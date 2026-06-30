@@ -987,6 +987,9 @@ value_type: int
           expect(stderr).toContain(
             "Failed to upsert entity FACT-MISSING-VALUE-FIELD",
           );
+          expect(stderr).toContain("source=documentation/facts/FACT-MISSING-VALUE-FIELD.md");
+          expect(stderr).toContain("fact_kind=property_value");
+          expect(stderr).toContain("missing value field");
         }
       },
       TEST_TIMEOUT_MS,

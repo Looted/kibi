@@ -177,7 +177,7 @@ Validates knowledge base integrity and runs inference rules.
 - Checks requirement coverage (must-priority rules)
 - Detects dangling references (entities that reference non-existent IDs)
 - Detects cycles in dependency graphs
-- Supports strict migration checks like `strict-fact-shape` and `strict-req-fact-pairing` (both default-off) for malformed typed facts and incomplete requirement/fact pairing
+- Supports strict migration checks like `strict-fact-shape` and `strict-req-fact-pairing`, a default-off semantic audit (`predicate-verifiability`) for `requires_predicate` links that still target prose/observation facts, and default-on `query-plan-safety` for Prolog clauses that place negation before later generator calls. Rule defaults can be overridden in `.kb/config.json`.
 - With `--staged`, runs commit-time changed-file impact enforcement for behavior-changing source edits, including missing Kibi impact evidence, stale symbol coordinates, and changed behavioral symbols that are only linked through coarse class/module ownership
 - Reports violations with actionable suggestions
 
@@ -204,6 +204,12 @@ kibi check --rules strict-fact-shape # Migration-oriented check
 
 # Audit strict requirement/fact pairing during migration
 kibi check --rules strict-req-fact-pairing
+
+# Audit predicate ontology links during migration
+kibi check --rules predicate-verifiability
+
+# Audit Prolog validation query plans
+kibi check --rules query-plan-safety
 ```
 
 Agents should prefer MCP `kb_check({sourceFiles:[...], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})` while editing. CLI `kibi check --staged` remains the git-hook and operator fallback once files are staged.

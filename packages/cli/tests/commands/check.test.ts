@@ -66,6 +66,22 @@ describe("kibi check", () => {
   });
 
   test(
+    "runs query-plan-safety through the CLI check surface",
+    async () => {
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--rules", "query-plan-safety"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+      expect(status).toBe(0);
+      expect(output).toContain("No violations found");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
     "reports legacy fact-linked requirements as not-ready instead of contradictions",
     async () => {
       const reqDir = path.join(tmpDir, "documentation/requirements");

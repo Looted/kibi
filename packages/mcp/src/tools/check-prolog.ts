@@ -18,6 +18,7 @@
 import type { PrologProcess } from "kibi-cli/prolog";
 import type { Violation } from "kibi-cli/public/check-types";
 import { resolveCorePlPath } from "./core-module.js";
+import { collectQueryPlanSafetyViolations } from "./query-plan-safety.js";
 
 // implements REQ-002
 export async function runAggregatedChecks(
@@ -28,11 +29,14 @@ export async function runAggregatedChecks(
   const violations: Violation[] = [];
 
   const checksPlPath = resolveCorePlPath("checks.pl");
+  if (rulesAllowlist.has("query-plan-safety")) {
+    violations.push(...collectQueryPlanSafetyViolations(checksPlPath));
+  }
   const normalizedChecksPlPath = checksPlPath.replace(/\\/g, "/");
   const checksPlPathEscaped = normalizedChecksPlPath.replace(/'/g, "''");
 
   const requireAdrStr = requireAdr ? "true" : "false";
-  const query = `(use_module('${checksPlPathEscaped}'),
+  const query = `(load_files('${checksPlPathEscaped}', [if(changed)]),
     (   predicate_property(checks:check_all_json_with_options(_, _), _)
     ->  call(checks:check_all_json_with_options(JsonString, ${requireAdrStr}))
     ;   call(checks:check_all_json(JsonString))

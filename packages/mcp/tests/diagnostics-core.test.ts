@@ -126,6 +126,24 @@ describe("classifyDiagnosticError", () => {
     });
   });
 
+  test("classifies Prolog requirement contradictions as semantic validation", () => {
+    const result = classifyDiagnosticError(
+      new Error(
+        "Upsert execution failed: Contradiction detected for requirement REQ-NEW:\n  - Conflicts with REQ-OLD: Value conflict on auth.session_timeout: eq 15 vs eq 30",
+      ),
+    );
+
+    expect(result).toMatchObject({
+      error_category: "semantic_contradiction",
+      error_stage: "validation",
+      error_summary:
+        "Requirement prose/facts contradict existing contradiction-ready requirements.",
+      semantic_outcome: "conflict-blocked",
+      semantic_conflicting_req_ids: ["REQ-OLD"],
+      semantic_checked_req_id: "REQ-NEW",
+    });
+  });
+
   test("classifies unhandled handler errors for unknown messages", () => {
     const result = classifyDiagnosticError(
       new Error("Unexpected internal failure"),
@@ -216,6 +234,105 @@ describe("deriveDiagnosticFields", () => {
     });
     expect(result.violation_count).toBe(0);
     expect(result.result_summary).toBe("0 violations");
+  });
+
+  test("kb_semantic_advisor: extracts semantic readiness fields", () => {
+    const result = deriveDiagnosticFields("kb_semantic_advisor", {}, null, {
+      structuredContent: {
+        receipt: {
+          logic_readiness: "needs_modeling",
+          candidate_lane: "predicate",
+          suggestions: [
+            { kind: "predicate" },
+            { kind: "ontology_gap" },
+          ],
+          suggested_next_tools: ["kb_suggest_predicates"],
+        },
+      },
+    });
+
+    expect(result.semantic_logic_readiness).toBe("needs_modeling");
+    expect(result.semantic_candidate_lane).toBe("predicate");
+    expect(result.semantic_suggestion_kinds).toEqual([
+      "predicate",
+      "ontology_gap",
+    ]);
+    expect(result.semantic_suggestion_count).toBe(2);
+    expect(result.semantic_next_tools).toEqual(["kb_suggest_predicates"]);
+    expect(result.result_summary).toBe(
+      "semantic advisor needs_modeling via predicate",
+    );
+  });
+
+  test("kb_suggest_predicates: extracts predicate recommendation fields", () => {
+    const result = deriveDiagnosticFields("kb_suggest_predicates", {}, null, {
+      structuredContent: {
+        candidates: [
+          { predicate_name: "commit_action", score: 0.98 },
+          { predicate_name: "has_unsaved_changes", score: 0.74 },
+        ],
+        recommendedAction: "apply_requires_predicate",
+        relationshipPlan: {
+          relationship: { type: "requires_predicate" },
+        },
+      },
+    });
+
+    expect(result.predicate_candidate_count).toBe(2);
+    expect(result.predicate_top_name).toBe("commit_action");
+    expect(result.predicate_top_score).toBe(0.98);
+    expect(result.predicate_recommended_action).toBe(
+      "apply_requires_predicate",
+    );
+    expect(result.predicate_relationship_plan).toBe(true);
+    expect(result.result_summary).toBe(
+      "2 predicate candidates; top=commit_action",
+    );
+  });
+
+  test("kb_upsert: extracts semantic advisor and contradiction fields", () => {
+    const result = deriveDiagnosticFields("kb_upsert", {}, null, {
+      structuredContent: {
+        created: 0,
+        updated: 1,
+        relationships_created: 2,
+        semanticAdvisor: {
+          logic_readiness: "modeled",
+          candidate_lane: "none",
+          suggestions: [],
+        },
+      },
+    });
+
+    expect(result.upsert_created).toBe(0);
+    expect(result.upsert_updated).toBe(1);
+    expect(result.upsert_relationships_created).toBe(2);
+    expect(result.semantic_logic_readiness).toBe("modeled");
+    expect(result.semantic_candidate_lane).toBe("none");
+    expect(result.semantic_suggestion_count).toBe(0);
+    expect(result.result_summary).toBe("upsert updated; semantic modeled");
+  });
+
+  test("kb_upsert: extracts successful contradiction-check outcome fields", () => {
+    const result = deriveDiagnosticFields("kb_upsert", {}, null, {
+      structuredContent: {
+        created: 1,
+        updated: 0,
+        contradictionCheck: {
+          outcome: "no-conflict",
+          checked_req_id: "REQ-NEW",
+          strict_readiness: "contradiction-ready",
+          subject_key: "auth.session",
+          property_key: "timeout_minutes",
+        },
+      },
+    });
+
+    expect(result.semantic_contradiction_outcome).toBe("no-conflict");
+    expect(result.semantic_checked_req_id).toBe("REQ-NEW");
+    expect(result.semantic_strict_readiness).toBe("contradiction-ready");
+    expect(result.semantic_subject_key).toBe("auth.session");
+    expect(result.semantic_property_key).toBe("timeout_minutes");
   });
 
   test("other tools: returns default summary", () => {

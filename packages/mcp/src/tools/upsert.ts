@@ -72,6 +72,11 @@ export interface UpsertResult {
     relationships_created: number;
     warnings: string[];
     semanticAdvisor: SemanticAdvisorReceipt;
+    contradictionCheck?: {
+      outcome: "no-conflict" | "skipped";
+      checked_req_id: string;
+      strict_readiness: string;
+    };
   };
 }
 
@@ -446,6 +451,18 @@ export async function handleKbUpsert(
         relationships_created: relationshipsCreated,
         warnings: [...semanticAdvisor.warnings, ...coverageWarnings],
         semanticAdvisor: semanticAdvisor.receipt,
+        ...(type === "req"
+          ? {
+              contradictionCheck: {
+                outcome: args._skipContradictionCheck ? "skipped" : "no-conflict",
+                checked_req_id: entity.id as string,
+                strict_readiness:
+                  semanticAdvisor.receipt.logic_readiness === "modeled"
+                    ? "modeled"
+                    : semanticAdvisor.receipt.candidate_lane,
+              },
+            }
+          : {}),
       },
     };
   } catch (error) {

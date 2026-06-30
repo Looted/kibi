@@ -507,6 +507,25 @@ function detectStrictPropertySuggestion(
     );
   }
 
+  const decisecondSlot = statement.match(
+    /^.+?\s+(?:must|shall|should)\s+normalize\s+into\s+canonical\s+integer\s+decisecond\s+(?<subject>[a-z][a-z0-9_-]*)\s+values?\.?$/i,
+  );
+  if (decisecondSlot?.groups?.subject) {
+    return strictSuggestion(
+      payload,
+      decisecondSlot[0],
+      {
+        subject_key: normalizeSubjectKey(decisecondSlot.groups.subject),
+        property_key: "slot_precision",
+        operator: "eq",
+        value_type: "string",
+        value_string: "decisecond",
+      },
+      "Canonical decisecond slot prose is a strict precision property.",
+      0.9,
+    );
+  }
+
   const threshold = statement.match(
     /^(?<subject>.+?)\s+(?:must|shall|should)\s+return\s+within\s+(?<value>\d+)\s+(?<unit>ms|milliseconds?|s|sec|secs|seconds?)\.?$/i,
   );
@@ -860,6 +879,31 @@ function detectPredicateSuggestion(
       ownership[0],
       predicate,
       "Ownership prose assigns responsibility for a resource or behavior and should be queryable as a predicate.",
+    );
+  }
+
+  const mergePolicy = statement.match(
+    /^(?<inputs>.+?)\s+saved\s+in\s+the\s+same\s+(?<slot>.+?)\s+must\s+merge\s+into\s+(?<target>.+?)\s+instead\s+of\s+creating\s+.+?\.?$/i,
+  );
+  if (
+    mergePolicy?.groups?.inputs &&
+    mergePolicy.groups.slot &&
+    mergePolicy.groups.target
+  ) {
+    const inputs = normalizePredicateToken(mergePolicy.groups.inputs);
+    const slot = normalizePredicateToken(mergePolicy.groups.slot);
+    const target = normalizePredicateToken(mergePolicy.groups.target);
+    const predicate = {
+      predicate_name: "merge_policy",
+      predicate_args: [inputs, slot, target],
+      canonical_key: `merge_policy(${inputs},${slot},${target})`,
+      polarity: "assert" as const,
+    };
+    return predicateSuggestion(
+      payload,
+      mergePolicy[0],
+      predicate,
+      "Same-slot merge prose defines ontology-lite merge behavior and should be queryable as a predicate.",
     );
   }
 

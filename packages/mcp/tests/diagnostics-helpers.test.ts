@@ -156,6 +156,17 @@ describe("diagnostic tool call helpers", () => {
     ).toContain("query_failed");
   });
 
+  test("derives deterministic hints for semantic contradiction failures", () => {
+    expect(
+      deriveDiagnosticHints({
+        tool: "kb_upsert",
+        error: new Error(
+          "Upsert execution failed: Contradiction detected for requirement REQ-NEW: conflicts with REQ-OLD",
+        ),
+      }),
+    ).toContain("semantic_contradiction");
+  });
+
   test("builds a tool call from malformed input without exposing raw secrets", () => {
     const toolCall = buildDiagnosticToolCall({
       tool: "kb_query",

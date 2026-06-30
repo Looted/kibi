@@ -221,6 +221,8 @@ symbols:
   - id: SYM-cli-persistEntities
     title: persistEntities
     sourceFile: packages/cli/src/commands/sync/persistence.ts
+    symbol_role: behavioral
+    text_ref: packages/cli/src/commands/sync/persistence.ts#persistEntities
     relationships:
       - type: implements
         target: REQ-core-persistence
@@ -381,6 +383,8 @@ symbols:
   - id: SYM-mcp-runAggregatedChecks
     title: runAggregatedChecks
     sourceFile: packages/mcp/src/tools/check-prolog.ts
+    symbol_role: behavioral
+    text_ref: packages/mcp/src/tools/check-prolog.ts#runAggregatedChecks
     links:
       - REQ-core-validation-rules
     relationships:
@@ -392,6 +396,15 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 71
     sourceEndColumn: 1
+  - id: SYM-mcp-collectQueryPlanSafetyViolations
+    title: collectQueryPlanSafetyViolations
+    sourceFile: packages/mcp/src/tools/query-plan-safety.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-001
   - id: SYM-mcp-CheckArgs
     title: CheckArgs
     sourceFile: packages/mcp/src/tools/check-types.ts
@@ -737,6 +750,7 @@ symbols:
   - id: SYM-checkCommand
     title: checkCommand
     sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
     relationships:
       - type: implements
         target: REQ-cli-check
@@ -751,19 +765,6 @@ symbols:
         target: REQ-cli-check
       - type: covered_by
         target: TEST-004
-  - id: SYM-cli-collectQueryPlanSafetyViolations
-    title: collectQueryPlanSafetyViolations
-    sourceFile: packages/cli/src/commands/check.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-cli-check
-      - type: covered_by
-        target: TEST-004
-    sourceLine: 93
-    sourceColumn: 9
-    sourceEndLine: 103
-    sourceEndColumn: 1
   - id: SYM-cli-analyzePrologQueryPlanSafety
     title: analyzePrologQueryPlanSafety
     sourceFile: packages/cli/src/utils/prolog-query-plan-safety.ts
@@ -789,6 +790,100 @@ symbols:
     sourceColumn: 17
     sourceEndLine: 6
     sourceEndColumn: 1
+  - id: SYM-cli-rule-registry-RULES
+    title: RULES
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
+  - id: SYM-cli-rule-registry-getEffectiveRules
+    title: getEffectiveRules
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
+  - id: SYM-cli-rule-registry-validateRuleName
+    title: validateRuleName
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
+  - id: SYM-cli-rule-registry-mergeChecksConfig
+    title: mergeChecksConfig
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
+  - id: SYM-cli-rule-registry-RuleDefinition
+    title: RuleDefinition
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
+  - id: SYM-cli-rule-registry-SymbolTraceabilityOptions
+    title: SymbolTraceabilityOptions
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
+  - id: SYM-cli-rule-registry-Violation
+    title: Violation
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
+  - id: SYM-cli-rule-registry-ChecksConfig
+    title: ChecksConfig
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
+  - id: SYM-cli-rule-registry-RULE_NAMES
+    title: RULE_NAMES
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
+  - id: SYM-cli-rule-registry-DEFAULT_CHECKS_CONFIG
+    title: DEFAULT_CHECKS_CONFIG
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
+    sourceLine: 53
+    sourceColumn: 13
+    sourceEndLine: 143
+    sourceEndColumn: 10
   - id: SYM-getCurrentBranch
     title: getCurrentBranch
     sourceFile: packages/cli/src/commands/init-helpers.ts
@@ -2444,6 +2539,8 @@ symbols:
   - id: SYM-classifyDiagnosticError
     title: classifyDiagnosticError
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
+    symbol_role: behavioral
+    text_ref: packages/mcp/src/diagnostics-helpers.ts#classifyDiagnosticError
     relationships:
       - type: implements
         target: REQ-002
@@ -2452,6 +2549,8 @@ symbols:
   - id: SYM-deriveDiagnosticFields
     title: deriveDiagnosticFields
     sourceFile: packages/mcp/src/diagnostics.ts
+    symbol_role: behavioral
+    text_ref: packages/mcp/src/diagnostics.ts#deriveDiagnosticFields
     relationships:
       - type: implements
         target: REQ-002
@@ -2570,6 +2669,8 @@ symbols:
   - id: SYM-deriveDiagnosticHints
     title: deriveDiagnosticHints
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
+    symbol_role: behavioral
+    text_ref: packages/mcp/src/diagnostics-helpers.ts#deriveDiagnosticHints
     relationships:
       - type: implements
         target: REQ-002
@@ -3221,7 +3322,10 @@ symbols:
   - id: SYM-handleKbUpsert
     title: handleKbUpsert
     sourceFile: packages/mcp/src/tools/upsert.ts
+    symbol_role: behavioral
     text_ref: packages/mcp/src/tools/upsert.ts#handleKbUpsert
+    links:
+      - REQ-002
     relationships:
       - type: implements
         target: REQ-002
@@ -5392,6 +5496,7 @@ symbols:
     title: evaluateProseCoverageCorpus
     sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
     symbol_role: behavioral
+    text_ref: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts#evaluateProseCoverageCorpus
     relationships:
       - type: implements
         target: REQ-mcp-semantic-advisor-preflight
