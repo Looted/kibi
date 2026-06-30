@@ -201,6 +201,35 @@ describe("prompt coverage", () => {
     assert.equal(second, SENTINEL);
   });
 
+  test("cache suppression is bypassed when maintenance degraded advisory is enabled", () => {
+    const cache = new GuidanceCache();
+    const context: PromptContext = {
+      recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
+      focusEdit: { path: "packages/opencode/src/prompt.ts", kind: "code" },
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      cache,
+      workspaceRoot: process.cwd(),
+      branch: "coverage-cache-degraded",
+    };
+
+    const normalPrompt = buildPrompt(context, supportedCapability);
+
+    const degradedPrompt = buildPrompt(
+      {
+        ...context,
+        maintenanceDegraded: true,
+        degradedMode: "warn-once",
+        showDegradedAdvisory: true,
+      },
+      supportedCapability,
+    );
+
+    assert.match(normalPrompt, /Code changes detected/);
+    assert.match(degradedPrompt, /Maintenance degraded/);
+    assert.ok(!degradedPrompt.includes("STOP implementation"));
+  });
+
   test("file-operation reminders survive satisfied advisory cache", () => {
     const cache = new GuidanceCache();
     const context: PromptContext = {
@@ -224,6 +253,29 @@ describe("prompt coverage", () => {
 
     assert.match(prompt, /Verify lifecycle impact/);
     assert.ok(!prompt.includes("Production code: use `implements`"));
+  });
+
+  test("freshness-only advisory still surfaces changed paths and missing evidence", () => {
+    const prompt = buildPrompt(
+      {
+        recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
+        posture: "root_active",
+        riskClass: "traceability_candidate",
+        kbFreshness: {
+          state: "evidence-required",
+          requiresEvidence: true,
+          allowsCompletion: false,
+          reason: "Source file edits are not linked to requirements yet.",
+          missingEvidence: ["kbCheck", "kbCoverage"],
+        },
+        freshnessChangedPaths: ["packages/opencode/src/prompt.ts"],
+      },
+      supportedCapability,
+    );
+
+    assert.match(prompt, /Kibi freshness required/);
+    assert.match(prompt, /Changed: `packages\/opencode\/src\/prompt\.ts`/);
+    assert.match(prompt, /Missing: kbCheck, kbCoverage/);
   });
 
   test("freshness evidence requirements bypass advisory cache suppression", () => {
