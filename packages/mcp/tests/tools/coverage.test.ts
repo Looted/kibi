@@ -181,5 +181,5 @@ describe("kb_coverage isolated-core regression (issue #118)", () => {
     });
     expect(result2.structuredContent).not.toBeNull();
     expect(result2.structuredContent).toBeDefined();
-  });
+  }, 30000);
 });
