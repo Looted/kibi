@@ -472,8 +472,8 @@ function parseQualityDiagnostics(
     try {
       const parsed: unknown = JSON.parse(output);
       const candidates = qualityDiagnosticCandidates(parsed);
-      const diagnostics = candidates.flatMap((candidate) =>
-        parseQualityDiagnostic(candidate) ?? [],
+      const diagnostics = candidates.flatMap(
+        (candidate) => parseQualityDiagnostic(candidate) ?? [],
       );
       if (diagnostics.length > 0) return diagnostics;
     } catch (error: unknown) {

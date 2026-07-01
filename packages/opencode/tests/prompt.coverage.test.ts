@@ -258,7 +258,9 @@ describe("prompt coverage", () => {
   test("freshness-only advisory still surfaces changed paths and missing evidence", () => {
     const prompt = buildPrompt(
       {
-        recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
+        recentEdits: [
+          { path: "packages/opencode/src/prompt.ts", kind: "code" },
+        ],
         posture: "root_active",
         riskClass: "traceability_candidate",
         kbFreshness: {
