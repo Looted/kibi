@@ -6165,6 +6165,7 @@ symbols:
   - id: SYM-cli-impact-createCoverageDepthQualityDiagnostics
     title: createCoverageDepthQualityDiagnostics
     sourceFile: packages/cli/src/public/impact/coverage-depth-quality.ts
+    granularity_reason: legacy-link
     symbol_role: behavioral
     relationships:
       - type: implements
