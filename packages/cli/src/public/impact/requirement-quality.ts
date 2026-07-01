@@ -52,7 +52,10 @@ function isRequirement(result: ExtractionResult): boolean {
 }
 
 function isCurrentRequirement(result: ExtractionResult): boolean {
-  return isRequirement(result) && CURRENT_REQUIREMENT_STATUSES.has(result.entity.status);
+  return (
+    isRequirement(result) &&
+    CURRENT_REQUIREMENT_STATUSES.has(result.entity.status)
+  );
 }
 
 function sortedUnique(values: readonly string[]): readonly string[] {
@@ -90,7 +93,10 @@ function collectFanout(
 
   for (const result of results) {
     for (const relationship of result.relationships) {
-      if (relationship.type === "implements" && relationship.to === requirementId) {
+      if (
+        relationship.type === "implements" &&
+        relationship.to === requirementId
+      ) {
         implementingSymbolIds.push(result.entity.id);
       }
       if (
@@ -102,7 +108,8 @@ function collectFanout(
       }
       if (
         result.entity.id === requirementId &&
-        (relationship.type === "verified_by" || relationship.type === "covered_by") &&
+        (relationship.type === "verified_by" ||
+          relationship.type === "covered_by") &&
         targetHasType(relationship.to, "test", typesByEntityId)
       ) {
         testIds.push(relationship.to);
@@ -218,15 +225,17 @@ function createRequirementStatusDiagnostics(
 function strictRelationshipTypes(result: ExtractionResult): readonly string[] {
   return sortedUnique(
     result.relationships
-      .filter((relationship) => STRICT_RELATIONSHIP_TYPES.has(relationship.type))
+      .filter((relationship) =>
+        STRICT_RELATIONSHIP_TYPES.has(relationship.type),
+      )
       .map((relationship) => relationship.type),
   );
 }
 
 function matchedNormativeIndicators(text: string): readonly string[] {
-  return NORMATIVE_INDICATOR_PATTERNS.filter((entry) => entry[1].test(text)).map(
-    (entry) => entry[0],
-  );
+  return NORMATIVE_INDICATOR_PATTERNS.filter((entry) =>
+    entry[1].test(text),
+  ).map((entry) => entry[0]);
 }
 
 function createStrictFactModelingDiagnostics(

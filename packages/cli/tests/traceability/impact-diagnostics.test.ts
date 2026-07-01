@@ -1,9 +1,9 @@
 import { describe, expect, it } from "bun:test";
 import type { ExtractionResult } from "../../src/extractors/markdown.js";
 import {
-	createSemanticReviewDiagnostics,
-	createSymbolGranularityDiagnostics,
-	hasBlockingImpactDiagnostics,
+  createSemanticReviewDiagnostics,
+  createSymbolGranularityDiagnostics,
+  hasBlockingImpactDiagnostics,
 } from "../../src/public/impact-diagnostics.js";
 import type { ExtractedSymbol } from "../../src/traceability/symbol-extract.js";
 
@@ -25,8 +25,8 @@ function makeSymbol(overrides: Partial<ExtractedSymbol> = {}): ExtractedSymbol {
 }
 
 function makeManifestResult(
-	title: string,
-	granularityReason?: string,
+  title: string,
+  granularityReason?: string,
 ): ExtractionResult {
   return {
     entity: {
@@ -44,7 +44,7 @@ function makeManifestResult(
       { type: "implements", from: "SYM-UPLOAD-PAGE", to: "REQ-UPLOAD" },
       { type: "covered_by", from: "SYM-UPLOAD-PAGE", to: "TEST-UPLOAD" },
     ],
-	};
+  };
 }
 
 describe("impact diagnostics", () => {
@@ -73,18 +73,18 @@ describe("impact diagnostics", () => {
       symbolsByFile,
     });
 
-		expect(diagnostics).toEqual([
-			expect.objectContaining({
-				id: "symbol_granularity_violation",
-				severity: "error",
-				blocking: true,
-				message: expect.stringContaining(
-					"UploadPageComponent.processingProgressLabel",
-				),
-			}),
-		]);
-		expect(hasBlockingImpactDiagnostics(diagnostics)).toBe(true);
-	});
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        id: "symbol_granularity_violation",
+        severity: "error",
+        blocking: true,
+        message: expect.stringContaining(
+          "UploadPageComponent.processingProgressLabel",
+        ),
+      }),
+    ]);
+    expect(hasBlockingImpactDiagnostics(diagnostics)).toBe(true);
+  });
 
   it("keeps intentional module-level ownership from becoming a hard granularity blocker", () => {
     const symbolsByFile = new Map<string, ExtractedSymbol[]>([
@@ -143,7 +143,7 @@ describe("impact diagnostics", () => {
     ]);
   });
 
-	it("emits a semantic review warning for changed behavior even when narrow coverage exists", () => {
+  it("emits a semantic review warning for changed behavior even when narrow coverage exists", () => {
     const symbol = makeSymbol({
       id: "SYM-UPLOAD-PAGE-PROGRESS-LABEL",
       relationships: [
@@ -152,21 +152,21 @@ describe("impact diagnostics", () => {
       ],
     });
 
-		const diagnostics = createSemanticReviewDiagnostics({
-			symbolsByFile: new Map([[symbol.location.file, [symbol]]]),
-		});
+    const diagnostics = createSemanticReviewDiagnostics({
+      symbolsByFile: new Map([[symbol.location.file, [symbol]]]),
+    });
 
-		expect(diagnostics).toEqual([
-			expect.objectContaining({
-				id: "symbol_semantic_review_needed",
-				severity: "warning",
-				blocking: false,
-				message: expect.stringContaining(
-					"UploadPageComponent.processingProgressLabel",
-				),
-				suggestion: expect.stringContaining("REQ-VIDEO-UPLOAD-PROGRESS"),
-			}),
-		]);
-		expect(hasBlockingImpactDiagnostics(diagnostics)).toBe(false);
-	});
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        id: "symbol_semantic_review_needed",
+        severity: "warning",
+        blocking: false,
+        message: expect.stringContaining(
+          "UploadPageComponent.processingProgressLabel",
+        ),
+        suggestion: expect.stringContaining("REQ-VIDEO-UPLOAD-PROGRESS"),
+      }),
+    ]);
+    expect(hasBlockingImpactDiagnostics(diagnostics)).toBe(false);
+  });
 });
