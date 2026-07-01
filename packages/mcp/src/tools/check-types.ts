@@ -39,18 +39,18 @@ export interface Diagnostic {
 
 export interface CheckResult {
   content: Array<{ type: string; text: string }>;
-	structuredContent?: {
-		violations: Violation[];
-		count: number;
+  structuredContent?: {
+    violations: Violation[];
+    count: number;
     diagnostics: Array<{
       category: string;
       severity: string;
       message: string;
       file?: string;
-			suggestion?: string;
-		}>;
-		qualityDiagnostics?: QualityDiagnostic[];
-		impactDiagnostics?: ChangedFileImpactResult["impactDiagnostics"];
+      suggestion?: string;
+    }>;
+    qualityDiagnostics?: QualityDiagnostic[];
+    impactDiagnostics?: ChangedFileImpactResult["impactDiagnostics"];
     sourceFiles?: ChangedFileImpactResult["sourceFiles"];
     extractedSymbols?: ChangedFileImpactResult["extractedSymbols"];
     linkedEntities?: ChangedFileImpactResult["linkedEntities"];

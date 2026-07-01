@@ -13,11 +13,11 @@ import path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
 import type { Violation } from "kibi-cli/public/check-types";
 import type { QualityDiagnostic } from "kibi-cli/public/impact-diagnostics";
-import { handleKbCheck } from "../../src/tools/check.js";
 import {
   buildStructuredContent,
   formatQualityDiagnosticsText,
 } from "../../src/tools/check-format.js";
+import { handleKbCheck } from "../../src/tools/check.js";
 import {
   attachTestKb,
   createTestKbDir,
@@ -58,12 +58,9 @@ function writeMultiRequirementSource(workspaceRoot: string): void {
   mkdirSync(path.dirname(absolutePath), { recursive: true });
   writeFileSync(
     absolutePath,
-    [
-      "export function multiAction() {",
-      "  return 'changed';",
-      "}",
-      "",
-    ].join("\n"),
+    ["export function multiAction() {", "  return 'changed';", "}", ""].join(
+      "\n",
+    ),
   );
 }
 
@@ -162,9 +159,13 @@ describe("MCP kb_check impact diagnostics", () => {
     const formatted = formatQualityDiagnosticsText(diagnostics);
 
     expect(formatted).toContain("1 quality diagnostic found");
-    expect(formatted).toContain("broad_requirement_review | review | requirement");
+    expect(formatted).toContain(
+      "broad_requirement_review | review | requirement",
+    );
     expect(formatted).toContain("Blocking: no");
-    expect(formatted).toContain("Suggestion: Split it or add stricter fact modeling.");
+    expect(formatted).toContain(
+      "Suggestion: Split it or add stricter fact modeling.",
+    );
   });
 
   test("returns hard granularity and advisory semantic diagnostics for coarse class ownership", async () => {

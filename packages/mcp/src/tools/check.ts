@@ -18,8 +18,8 @@
 import type { PrologProcess } from "kibi-cli/prolog";
 import type { Violation } from "kibi-cli/public/check-types";
 import {
-  collectFullKbQualityDiagnostics,
   type QualityDiagnostic,
+  collectFullKbQualityDiagnostics,
 } from "kibi-cli/public/impact-diagnostics";
 import { resolveWorkspaceRoot } from "../workspace.js";
 import { getEffectiveRules, loadChecksConfig } from "./check-config.js";
@@ -76,40 +76,40 @@ export async function handleKbCheck(
 
   try {
     const workspaceRoot = workspaceOverride ?? resolveWorkspaceRoot();
-      const checksConfig = await loadChecksConfig(workspaceRoot);
-      const rulesAllowlist = getEffectiveRules(checksConfig.rules, rules);
-      const impactResult = analyzeKbCheckImpact(workspaceRoot, args);
-      const impactQualityDiagnostics = qualityDiagnosticsFromImpact(impactResult);
+    const checksConfig = await loadChecksConfig(workspaceRoot);
+    const rulesAllowlist = getEffectiveRules(checksConfig.rules, rules);
+    const impactResult = analyzeKbCheckImpact(workspaceRoot, args);
+    const impactQualityDiagnostics = qualityDiagnosticsFromImpact(impactResult);
 
-      if (rulesAllowlist.size === 0) {
-        const qualityDiagnostics = hasExplicitRules
-          ? []
-          : impactResult
-            ? impactQualityDiagnostics
-            : await collectFullKbQualityDiagnostics({
-                prolog,
-                ...(args.maxDiagnostics !== undefined
-                  ? { maxDiagnostics: args.maxDiagnostics }
-                  : {}),
-              });
-        return {
-          content: [
-            {
-              type: "text",
-              text: buildSummary({
-                violations: [],
-                impactResult,
-                qualityDiagnostics,
-              }),
-            },
-          ],
-          structuredContent: buildStructuredContent({
-            violations: [],
-            diagnostics: [],
-            qualityDiagnostics,
-            impactResult,
-          }),
-        };
+    if (rulesAllowlist.size === 0) {
+      const qualityDiagnostics = hasExplicitRules
+        ? []
+        : impactResult
+          ? impactQualityDiagnostics
+          : await collectFullKbQualityDiagnostics({
+              prolog,
+              ...(args.maxDiagnostics !== undefined
+                ? { maxDiagnostics: args.maxDiagnostics }
+                : {}),
+            });
+      return {
+        content: [
+          {
+            type: "text",
+            text: buildSummary({
+              violations: [],
+              impactResult,
+              qualityDiagnostics,
+            }),
+          },
+        ],
+        structuredContent: buildStructuredContent({
+          violations: [],
+          diagnostics: [],
+          qualityDiagnostics,
+          impactResult,
+        }),
+      };
     }
 
     // Ensure we read the latest KB state, not a cached snapshot.
