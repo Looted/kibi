@@ -227,9 +227,9 @@ coordinates:
   SYM-DOC-RESOURCES:
     sourceColumn: 13
     sourceEndColumn: 51
-    sourceEndLine: 294
+    sourceEndLine: 295
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 294
+    sourceLine: 295
   SYM-DefaultRuntimeProlog:
     sourceColumn: 12
     sourceEndColumn: 49
@@ -803,13 +803,13 @@ coordinates:
   SYM-PROMPTS:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 196
+    sourceEndLine: 197
     sourceFile: packages/mcp/src/server/docs.ts
     sourceLine: 71
   SYM-PROSE_COVERAGE_CORPUS:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 359
+    sourceEndLine: 361
     sourceFile: packages/mcp/tests/semantic-advisor/prose-coverage-fixture.ts
     sourceLine: 3
   SYM-PUBLISHABLE-DIRS:
@@ -1601,9 +1601,9 @@ coordinates:
   SYM-buildDiagnosticToolCall:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 250
+    sourceEndLine: 254
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
-    sourceLine: 220
+    sourceLine: 224
   SYM-buildDirtyRelevantFingerprint:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1679,9 +1679,9 @@ coordinates:
   SYM-checkCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 937
+    sourceEndLine: 941
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 519
+    sourceLine: 521
   SYM-checkWorkspaceHealth:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1925,9 +1925,9 @@ coordinates:
   SYM-cli-analyzePrologQueryPlanSafety:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 38
+    sourceEndLine: 39
     sourceFile: packages/cli/src/utils/prolog-query-plan-safety.ts
-    sourceLine: 11
+    sourceLine: 12
   SYM-cli-discovery-renderCoverageTable:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1943,9 +1943,9 @@ coordinates:
   SYM-cli-impact-AGGREGATE_KINDS:
     sourceColumn: 13
     sourceEndColumn: 2
-    sourceEndLine: 23
+    sourceEndLine: 27
     sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
-    sourceLine: 18
+    sourceLine: 22
   SYM-cli-impact-ChangedFileImpactOptions:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -2009,9 +2009,9 @@ coordinates:
   SYM-cli-impact-SymbolMetadata:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 16
+    sourceEndLine: 20
     sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
-    sourceLine: 6
+    sourceLine: 10
   SYM-cli-impact-SymbolQualityDiagnosticsOptions:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -2045,9 +2045,9 @@ coordinates:
   SYM-cli-impact-collectFullKbQualityDiagnostics:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 193
+    sourceEndLine: 203
     sourceFile: packages/cli/src/public/impact/full-kb-quality.ts
-    sourceLine: 172
+    sourceLine: 182
   SYM-cli-impact-collectLinkedEntities:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2063,15 +2063,15 @@ coordinates:
   SYM-cli-impact-collectSymbols:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 133
+    sourceEndLine: 143
     sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
-    sourceLine: 107
+    sourceLine: 116
   SYM-cli-impact-createCoverageDepthQualityDiagnostics:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 243
+    sourceEndLine: 260
     sourceFile: packages/cli/src/public/impact/coverage-depth-quality.ts
-    sourceLine: 230
+    sourceLine: 245
   SYM-cli-impact-createImpactManifestLookup:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2081,9 +2081,9 @@ coordinates:
   SYM-cli-impact-createRequirementQualityDiagnostics:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 273
+    sourceEndLine: 282
     sourceFile: packages/cli/src/public/impact/requirement-quality.ts
-    sourceLine: 265
+    sourceLine: 274
   SYM-cli-impact-createSemanticReviewDiagnostics:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2099,9 +2099,9 @@ coordinates:
   SYM-cli-impact-createSymbolQualityDiagnostics:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 201
+    sourceEndLine: 207
     sourceFile: packages/cli/src/public/impact/symbol-quality.ts
-    sourceLine: 192
+    sourceLine: 198
   SYM-cli-impact-formatExtractedSymbols:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2123,21 +2123,21 @@ coordinates:
   SYM-cli-impact-isModuleOrConfig:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 137
+    sourceEndLine: 147
     sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
-    sourceLine: 135
+    sourceLine: 145
   SYM-cli-impact-narrowerExtractedSymbols:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 161
+    sourceEndLine: 171
     sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
-    sourceLine: 151
+    sourceLine: 161
   SYM-cli-impact-narrowerManifestSymbols:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 149
+    sourceEndLine: 159
     sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
-    sourceLine: 139
+    sourceLine: 149
   SYM-cli-impact-normalizeSourceFile:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2777,15 +2777,15 @@ coordinates:
   SYM-deriveDiagnosticFields:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 284
+    sourceEndLine: 289
     sourceFile: packages/mcp/src/diagnostics.ts
-    sourceLine: 210
+    sourceLine: 212
   SYM-deriveDiagnosticHints:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 218
+    sourceEndLine: 222
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
-    sourceLine: 191
+    sourceLine: 195
   SYM-deriveDiagnosticRetryKey:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2825,7 +2825,7 @@ coordinates:
   SYM-discoverSourceFiles:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 71
+    sourceEndLine: 75
     sourceFile: packages/cli/src/commands/sync/discovery.ts
     sourceLine: 34
   SYM-discoverSources:
@@ -2915,9 +2915,9 @@ coordinates:
   SYM-extractToolCallPayload:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 261
+    sourceEndLine: 265
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
-    sourceLine: 252
+    sourceLine: 256
   SYM-findKibiOpencodePluginEntry:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3107,7 +3107,7 @@ coordinates:
   SYM-handleKbUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 472
+    sourceEndLine: 474
     sourceFile: packages/mcp/src/tools/upsert.ts
     sourceLine: 272
   SYM-handleKbValidateUpsert:
@@ -3389,15 +3389,15 @@ coordinates:
   SYM-mcp-buildStructuredContent:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 113
+    sourceEndLine: 118
     sourceFile: packages/mcp/src/tools/check-format.ts
-    sourceLine: 89
+    sourceLine: 94
   SYM-mcp-collectQueryPlanSafetyViolations:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 19
+    sourceEndLine: 20
     sourceFile: packages/mcp/src/tools/query-plan-safety.ts
-    sourceLine: 8
+    sourceLine: 9
   SYM-mcp-createIntegrationProlog:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3431,15 +3431,15 @@ coordinates:
   SYM-mcp-formatQualityDiagnosticsText:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 87
+    sourceEndLine: 92
     sourceFile: packages/mcp/src/tools/check-format.ts
-    sourceLine: 58
+    sourceLine: 61
   SYM-mcp-formatViolationText:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 134
+    sourceEndLine: 139
     sourceFile: packages/mcp/src/tools/check-format.ts
-    sourceLine: 115
+    sourceLine: 120
   SYM-mcp-getEffectiveRules:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3893,9 +3893,9 @@ coordinates:
   SYM-setupDocsAndPrompts:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 324
+    sourceEndLine: 325
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 296
+    sourceLine: 297
   SYM-skillsListCommand:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3947,9 +3947,9 @@ coordinates:
   SYM-test:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 689
+    sourceEndLine: 691
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 682
+    sourceLine: 684
   SYM-updateGitIgnore:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3971,9 +3971,9 @@ coordinates:
   SYM-validateKbUpsertArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 521
+    sourceEndLine: 523
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 474
+    sourceLine: 476
   SYM-validateSkillBundle:
     sourceColumn: 16
     sourceEndColumn: 1
