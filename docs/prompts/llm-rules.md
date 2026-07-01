@@ -159,7 +159,7 @@ Inline `// implements REQ-xxx` comments remain **optional and backward-compatibl
 
 Avoid these common mistakes:
 
-- **Don't call `kb_check` without rules during iteration** - Full validation is slow; only run when needed or with specific rules.
+- **Don't call `kb_check` without rules during iteration** - Full validation also runs the full-KB `qualityDiagnostics[]` audit scan. Use explicit `rules` for scoped iteration, and reserve an unfiltered `kb_check` for final completion review.
 - **Don't fire `kb_upsert` in parallel** - This causes lock contention. Always execute upserts sequentially.
 - **Don't use tags as multi-ID lookup** - Tags are for categorization, not for querying multiple specific entities.
 - **Don't create relationships to non-existent entities** - Always confirm target entities exist before linking.
@@ -176,7 +176,7 @@ Avoid these common mistakes:
 
 1. Create entities as you go with `kb_upsert` (sequentially).
 2. Maintain relationships continuously instead of batch-fixing them later.
-3. Run `kb_check` after significant structural changes.
+3. Run `kb_check` after significant structural changes. Use explicit `rules` for scoped iteration; run an unfiltered `kb_check` before completion so full-KB `qualityDiagnostics[]` are reviewed.
 
 ## Task Completion Contract
 
@@ -194,7 +194,7 @@ unresolved. This block lists changed files, missing evidence, and resolution ste
 
 ## After Completing Work
 
-1. Run `kb_check`.
+1. Run an unfiltered `kb_check` and review both `violations[]` and advisory `qualityDiagnostics[]`.
 2. Summarize which entities were created, updated, or deleted.
 3. Call out any remaining KB follow-up work explicitly.
 
