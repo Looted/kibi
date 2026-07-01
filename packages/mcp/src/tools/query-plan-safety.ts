@@ -2,7 +2,8 @@ import fs from "node:fs";
 
 import type { Violation } from "kibi-cli/public/check-types";
 
-const GENERATOR_PATTERN = /\b(?:kb_entity|kb_relationship|member|memberchk|findall|setof|bagof)\s*\(/;
+const GENERATOR_PATTERN =
+  /\b(?:kb_entity|kb_relationship|member|memberchk|findall|setof|bagof)\s*\(/;
 const NEGATION_PATTERN = /\\\+\s*/;
 
 export function collectQueryPlanSafetyViolations(
@@ -71,7 +72,8 @@ function analyzeClause(
   return {
     predicate,
     line: startLine + negationIndex,
-    description: "Negation appears before later generator calls in the same clause.",
+    description:
+      "Negation appears before later generator calls in the same clause.",
     suggestion:
       "Move kb_entity/kb_relationship/member/findall generators before \\+/1 so variables are bound before negation.",
   };
