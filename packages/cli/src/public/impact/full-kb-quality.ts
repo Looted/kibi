@@ -1,10 +1,17 @@
+import type {
+  ExtractedEntity,
+  ExtractionResult,
+} from "../../extractors/markdown.js";
 import type { PrologProcess } from "../../prolog.js";
-import { parseListOfLists, parseEntityFromList, parseTriples } from "../../prolog/codec.js";
-import type { ExtractedEntity, ExtractionResult } from "../../extractors/markdown.js";
-import type { QualityDiagnostic } from "./types.js";
+import {
+  parseEntityFromList,
+  parseListOfLists,
+  parseTriples,
+} from "../../prolog/codec.js";
 import { createCoverageDepthQualityDiagnostics } from "./coverage-depth-quality.js";
 import { createRequirementQualityDiagnostics } from "./requirement-quality.js";
 import { createSymbolQualityDiagnostics } from "./symbol-quality.js";
+import type { QualityDiagnostic } from "./types.js";
 
 const RELATIONSHIP_TYPES = [
   "depends_on",
@@ -104,7 +111,8 @@ function toExtractedEntity(entity: Record<string, unknown>): ExtractedEntity {
   const sourceEndLine = optionalNumberField(entity, "sourceEndLine");
   if (sourceEndLine !== undefined) extracted.sourceEndLine = sourceEndLine;
   const sourceEndColumn = optionalNumberField(entity, "sourceEndColumn");
-  if (sourceEndColumn !== undefined) extracted.sourceEndColumn = sourceEndColumn;
+  if (sourceEndColumn !== undefined)
+    extracted.sourceEndColumn = sourceEndColumn;
   const factKind = optionalStringField(entity, "fact_kind");
   if (
     factKind === "subject" ||
@@ -139,7 +147,9 @@ async function loadKbExtractionResults(
     const relResult = await prolog.query(
       `findall([From,To,'${relationshipType}'], kb_relationship(${relationshipType}, From, To), Rels)`,
     );
-    const rows = relResult.bindings.Rels ? parseTriples(relResult.bindings.Rels) : [];
+    const rows = relResult.bindings.Rels
+      ? parseTriples(relResult.bindings.Rels)
+      : [];
     for (const [from, to, type] of rows) {
       const current = relationships.get(from) ?? [];
       current.push({ from, to, type });
