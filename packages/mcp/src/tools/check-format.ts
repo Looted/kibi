@@ -47,7 +47,10 @@ export function formatImpactText(
   return `${impactResult.impactDiagnostics.length} impact diagnostics found\n${details.join("\n")}`;
 }
 
-function formatOptionalList(label: string, values: readonly string[] | undefined) {
+function formatOptionalList(
+  label: string,
+  values: readonly string[] | undefined,
+) {
   if (values === undefined || values.length === 0) {
     return [];
   }
@@ -76,7 +79,9 @@ export function formatQualityDiagnosticsText(
       ...(diagnostic.entityId !== undefined
         ? [`Entity: ${diagnostic.entityId}`]
         : []),
-      ...(diagnostic.source !== undefined ? [`Source: ${diagnostic.source}`] : []),
+      ...(diagnostic.source !== undefined
+        ? [`Source: ${diagnostic.source}`]
+        : []),
       `Suggestion: ${diagnostic.suggestion}`,
     ];
 

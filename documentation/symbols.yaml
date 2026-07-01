@@ -267,6 +267,7 @@ symbols:
   - id: SYM-004
     title: handleKbCheck
     sourceFile: packages/mcp/src/tools/check.ts
+    granularity_reason: legacy-link
     text_ref: packages/mcp/src/tools/check.ts#handleKbCheck
     links:
       - REQ-mcp-tool-check
@@ -328,6 +329,7 @@ symbols:
   - id: SYM-mcp-formatQualityDiagnosticsText
     title: formatQualityDiagnosticsText
     sourceFile: packages/mcp/src/tools/check-format.ts
+    granularity_reason: legacy-link
     links:
       - REQ-mcp-tool-check
       - REQ-audit-quality-diagnostics-v1
