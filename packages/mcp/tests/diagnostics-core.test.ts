@@ -242,10 +242,7 @@ describe("deriveDiagnosticFields", () => {
         receipt: {
           logic_readiness: "needs_modeling",
           candidate_lane: "predicate",
-          suggestions: [
-            { kind: "predicate" },
-            { kind: "ontology_gap" },
-          ],
+          suggestions: [{ kind: "predicate" }, { kind: "ontology_gap" }],
           suggested_next_tools: ["kb_suggest_predicates"],
         },
       },

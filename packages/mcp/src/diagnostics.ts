@@ -116,7 +116,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-function structuredContentFrom(result: unknown): Record<string, unknown> | undefined {
+function structuredContentFrom(
+  result: unknown,
+): Record<string, unknown> | undefined {
   if (!isRecord(result)) return undefined;
   const structuredContent = result.structuredContent;
   return isRecord(structuredContent) ? structuredContent : undefined;
@@ -268,7 +270,10 @@ export function deriveDiagnosticFields(
     fields.upsert_relationships_created = Number(
       structuredContent.relationships_created ?? 0,
     );
-    appendContradictionCheckFields(fields, structuredContent.contradictionCheck);
+    appendContradictionCheckFields(
+      fields,
+      structuredContent.contradictionCheck,
+    );
     appendSemanticAdvisorFields(fields, structuredContent.semanticAdvisor);
     const readiness = fields.semantic_logic_readiness;
     if (typeof readiness === "string") {

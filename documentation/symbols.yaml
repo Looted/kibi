@@ -2645,6 +2645,7 @@ symbols:
   - id: SYM-deriveDiagnosticFields
     title: deriveDiagnosticFields
     sourceFile: packages/mcp/src/diagnostics.ts
+    granularity_reason: legacy-link
     symbol_role: behavioral
     text_ref: packages/mcp/src/diagnostics.ts#deriveDiagnosticFields
     relationships:
