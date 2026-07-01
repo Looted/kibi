@@ -33,7 +33,10 @@ function makeRequirementResult(fixture: RequirementFixture): ExtractionResult {
   };
 }
 
-function makeSymbolImplementing(requirementId: string, index: number): ExtractionResult {
+function makeSymbolImplementing(
+  requirementId: string,
+  index: number,
+): ExtractionResult {
   return {
     entity: {
       id: `SYM-BROAD-${index}`,
@@ -45,7 +48,9 @@ function makeSymbolImplementing(requirementId: string, index: number): Extractio
       source: "documentation/symbols.yaml",
     },
     sourceFile: "src/broad.ts",
-    relationships: [{ type: "implements", from: `SYM-BROAD-${index}`, to: requirementId }],
+    relationships: [
+      { type: "implements", from: `SYM-BROAD-${index}`, to: requirementId },
+    ],
   };
 }
 
@@ -117,7 +122,9 @@ describe("requirement quality impact diagnostics", () => {
 
   it("emits requirement status review for a requirement using passing status", () => {
     const diagnostics = createRequirementQualityDiagnostics({
-      manifestResults: [makeRequirementResult({ id: "REQ-PASSING", status: "passing" })],
+      manifestResults: [
+        makeRequirementResult({ id: "REQ-PASSING", status: "passing" }),
+      ],
     });
 
     expect(diagnostics).toEqual([
@@ -158,7 +165,9 @@ describe("requirement quality impact diagnostics", () => {
         category: "fact",
         entityId: "REQ-NORMATIVE",
         suggestion: expect.stringContaining("kb_model_requirement"),
-        evidence: expect.objectContaining({ matchedIndicators: ["must", "at least"] }),
+        evidence: expect.objectContaining({
+          matchedIndicators: ["must", "at least"],
+        }),
       }),
     ]);
   });

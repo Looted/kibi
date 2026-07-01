@@ -1,4 +1,7 @@
-import type { ExtractedEntity, ExtractionResult } from "../../extractors/markdown.js";
+import type {
+  ExtractedEntity,
+  ExtractionResult,
+} from "../../extractors/markdown.js";
 import type { QualityDiagnostic } from "./types.js";
 
 type ReviewableCoverageDepth =
@@ -41,7 +44,9 @@ function entitiesById(
   );
 }
 
-function outgoingTargets(lookup: RelationshipLookup): readonly ExtractedEntity[] {
+function outgoingTargets(
+  lookup: RelationshipLookup,
+): readonly ExtractedEntity[] {
   return lookup.result.relationships.flatMap((relationship) => {
     if (relationship.type !== lookup.relationshipType) return [];
     const target = lookup.entities.get(relationship.to);
@@ -62,10 +67,12 @@ function incomingSources(lookup: IncomingLookup): readonly ExtractedEntity[] {
   });
 }
 
-function uniqueEntities(entities: readonly ExtractedEntity[]): readonly ExtractedEntity[] {
-  return [...new Map(entities.map((entity) => [entity.id, entity])).values()].toSorted(
-    (left, right) => left.id.localeCompare(right.id),
-  );
+function uniqueEntities(
+  entities: readonly ExtractedEntity[],
+): readonly ExtractedEntity[] {
+  return [
+    ...new Map(entities.map((entity) => [entity.id, entity])).values(),
+  ].toSorted((left, right) => left.id.localeCompare(right.id));
 }
 
 function testScope(test: ExtractedEntity): string {
@@ -76,7 +83,9 @@ function testScope(test: ExtractedEntity): string {
   return test.source.toLowerCase().includes("e2e") ? "end_to_end" : "unknown";
 }
 
-function passingTests(tests: readonly ExtractedEntity[]): readonly ExtractedEntity[] {
+function passingTests(
+  tests: readonly ExtractedEntity[],
+): readonly ExtractedEntity[] {
   return tests.filter((test) => test.status === "passing");
 }
 
@@ -120,17 +129,23 @@ function isReviewableCoverageDepth(
 }
 
 function uniqueStrings(values: readonly string[]): readonly string[] {
-  return [...new Set(values)].toSorted((left, right) => left.localeCompare(right));
+  return [...new Set(values)].toSorted((left, right) =>
+    left.localeCompare(right),
+  );
 }
 
-function coverageDepthSuggestion(coverageDepth: ReviewableCoverageDepth): string {
+function coverageDepthSuggestion(
+  coverageDepth: ReviewableCoverageDepth,
+): string {
   if (coverageDepth === "unit_only") {
     return "Keep unit coverage where appropriate; add or link a passing end-to-end or scenario-backed test when this behavior warrants e2e confidence.";
   }
   return "Add or link passing tests, preferably end-to-end or scenario-backed when this behavior warrants e2e confidence.";
 }
 
-function createDiagnostic(coverage: RequirementCoverage): QualityDiagnostic | undefined {
+function createDiagnostic(
+  coverage: RequirementCoverage,
+): QualityDiagnostic | undefined {
   const coverageDepth = classifyCoverageDepth(coverage);
   if (!isReviewableCoverageDepth(coverageDepth)) return undefined;
 
@@ -239,5 +254,7 @@ export function createCoverageDepthQualityDiagnostics(
       );
       return diagnostic === undefined ? [] : [diagnostic];
     })
-    .toSorted((left, right) => (left.entityId ?? "").localeCompare(right.entityId ?? ""));
+    .toSorted((left, right) =>
+      (left.entityId ?? "").localeCompare(right.entityId ?? ""),
+    );
 }
