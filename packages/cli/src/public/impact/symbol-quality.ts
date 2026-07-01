@@ -3,11 +3,11 @@ import type { KibiImpactDiagnostic } from "../../traceability/staged-diagnostics
 import { isAllowedGranularityReason } from "../symbol-granularity.js";
 import {
   AGGREGATE_KINDS,
+  type SymbolMetadata,
   collectSymbols,
   isModuleOrConfig,
   narrowerExtractedSymbols,
   narrowerManifestSymbols,
-  type SymbolMetadata,
 } from "./symbol-quality-model.js";
 import type { SymbolQualityDiagnosticsOptions } from "./types.js";
 
@@ -146,14 +146,20 @@ function createMixedPurposeDiagnostics(
   return symbols.flatMap((symbol) => {
     if (!isMixedPurposeCandidate(symbol)) return [];
     const manifestChildren = narrowerManifestSymbols(symbol, symbols);
-    const extractedChildren = narrowerExtractedSymbols(symbol, options.symbolsByFile);
-    if (manifestChildren.length === 0 && extractedChildren.length === 0) return [];
+    const extractedChildren = narrowerExtractedSymbols(
+      symbol,
+      options.symbolsByFile,
+    );
+    if (manifestChildren.length === 0 && extractedChildren.length === 0)
+      return [];
     const requirementTags = tagsForTargets(
       symbol.requirementTargetIds,
       tagsByRequirementId,
     );
     if (requirementTags.length < 3) return [];
-    if (hasSharedRequirementTag(symbol.requirementTargetIds, tagsByRequirementId)) {
+    if (
+      hasSharedRequirementTag(symbol.requirementTargetIds, tagsByRequirementId)
+    ) {
       return [];
     }
     const narrowerSymbolIds = [

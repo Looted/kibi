@@ -6204,6 +6204,7 @@ symbols:
   - id: SYM-cli-impact-collectSymbols
     title: collectSymbols
     sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
+    granularity_reason: legacy-link
     symbol_role: behavioral
     relationships:
       - type: implements
