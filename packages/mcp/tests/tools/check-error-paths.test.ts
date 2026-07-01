@@ -8,6 +8,24 @@ import { handleKbCheck } from "../../src/tools/check.js";
 const tempDirs: string[] = [];
 const originalWorkspace = process.env.KIBI_WORKSPACE;
 
+function emptyFullQualityResult(goal: string) {
+  if (goal.includes("kb_entity")) {
+    return {
+      success: true,
+      bindings: { Results: "[]" },
+    };
+  }
+
+  if (goal.includes("kb_relationship")) {
+    return {
+      success: true,
+      bindings: { Rels: "[]" },
+    };
+  }
+
+  return undefined;
+}
+
 async function createWorkspace(): Promise<string> {
   const workspaceRoot = await fs.mkdtemp(
     path.join(os.tmpdir(), "kibi-mcp-check-error-"),
@@ -40,12 +58,19 @@ describe("kb_check error and edge branches", () => {
     await fs.mkdir(path.join(workspaceRoot, ".kb"), { recursive: true });
     await fs.writeFile(path.join(workspaceRoot, ".kb", "config.json"), "{oops");
 
-    const query = mock(async () => ({
-      success: true,
-      bindings: {
-        JsonString: JSON.stringify({}),
-      },
-    }));
+    const query = mock(async (goal: string) => {
+      const fullQualityResult = emptyFullQualityResult(goal);
+      if (fullQualityResult !== undefined) {
+        return fullQualityResult;
+      }
+
+      return {
+        success: true,
+        bindings: {
+          JsonString: JSON.stringify({}),
+        },
+      };
+    });
 
     const result = await handleKbCheck(
       { query, invalidateCache: () => {} } as unknown as PrologProcess,
@@ -53,7 +78,7 @@ describe("kb_check error and edge branches", () => {
     );
 
     expect(result.structuredContent?.count).toBe(0);
-    expect(query).toHaveBeenCalledTimes(1);
+    expect(query).toHaveBeenCalledTimes(18);
   });
 
   test("returns early when all requested rules are invalid", async () => {

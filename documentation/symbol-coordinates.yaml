@@ -17,7 +17,7 @@ coordinates:
   SYM-004:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 167
+    sourceEndLine: 172
     sourceFile: packages/mcp/src/tools/check.ts
     sourceLine: 70
   SYM-010:

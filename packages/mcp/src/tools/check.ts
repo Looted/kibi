@@ -72,6 +72,7 @@ export async function handleKbCheck(
   args: CheckArgs,
 ): Promise<CheckResult> {
   const { rules, workspaceRoot: workspaceOverride } = args;
+  const hasExplicitRules = rules !== undefined;
 
   try {
     const workspaceRoot = workspaceOverride ?? resolveWorkspaceRoot();
@@ -81,14 +82,16 @@ export async function handleKbCheck(
       const impactQualityDiagnostics = qualityDiagnosticsFromImpact(impactResult);
 
       if (rulesAllowlist.size === 0) {
-        const qualityDiagnostics = impactResult
-          ? impactQualityDiagnostics
-          : await collectFullKbQualityDiagnostics({
-              prolog,
-              ...(args.maxDiagnostics !== undefined
-                ? { maxDiagnostics: args.maxDiagnostics }
-                : {}),
-            });
+        const qualityDiagnostics = hasExplicitRules
+          ? []
+          : impactResult
+            ? impactQualityDiagnostics
+            : await collectFullKbQualityDiagnostics({
+                prolog,
+                ...(args.maxDiagnostics !== undefined
+                  ? { maxDiagnostics: args.maxDiagnostics }
+                  : {}),
+              });
         return {
           content: [
             {
@@ -128,17 +131,19 @@ export async function handleKbCheck(
       ...(v.suggestion !== undefined ? { suggestion: v.suggestion } : {}),
     }));
 
-    const qualityDiagnostics = impactResult
+    const qualityDiagnostics = hasExplicitRules
       ? impactQualityDiagnostics
-      : await collectFullKbQualityDiagnostics({
-          prolog,
-          hardViolationEntityIds: new Set(
-            aggregatedViolations.map((violation) => violation.entityId),
-          ),
-          ...(args.maxDiagnostics !== undefined
-            ? { maxDiagnostics: args.maxDiagnostics }
-            : {}),
-        });
+      : impactResult
+        ? impactQualityDiagnostics
+        : await collectFullKbQualityDiagnostics({
+            prolog,
+            hardViolationEntityIds: new Set(
+              aggregatedViolations.map((violation) => violation.entityId),
+            ),
+            ...(args.maxDiagnostics !== undefined
+              ? { maxDiagnostics: args.maxDiagnostics }
+              : {}),
+          });
 
     const summary = buildSummary({
       violations: aggregatedViolations,
