@@ -1,6 +1,10 @@
 import type { ExtractionResult } from "../../extractors/markdown.js";
 import type { ExtractedSymbol } from "../../traceability/symbol-extract.js";
-import { getSymbolRole, type SymbolKind, type SymbolRole } from "../symbol-granularity.js";
+import {
+  type SymbolKind,
+  type SymbolRole,
+  getSymbolRole,
+} from "../symbol-granularity.js";
 import type { SymbolQualityDiagnosticsOptions } from "./types.js";
 
 export type SymbolMetadata = {
@@ -32,7 +36,8 @@ function getRequirementTargets(result: ExtractionResult): readonly string[] {
       result.relationships
         .filter(
           (relationship) =>
-            relationship.type === "implements" && relationship.to.startsWith("REQ-"),
+            relationship.type === "implements" &&
+            relationship.to.startsWith("REQ-"),
         )
         .map((relationship) => relationship.to),
     ),
@@ -72,7 +77,10 @@ function inferKind(result: ExtractionResult): SymbolMetadata["kind"] {
   return "unknown";
 }
 
-function inferRole(result: ExtractionResult, kind: SymbolMetadata["kind"]): SymbolRole {
+function inferRole(
+  result: ExtractionResult,
+  kind: SymbolMetadata["kind"],
+): SymbolRole {
   const explicitRole = result.entity.symbol_role;
   if (
     explicitRole === "behavioral" ||
@@ -91,7 +99,8 @@ function inferRole(result: ExtractionResult, kind: SymbolMetadata["kind"]): Symb
 }
 
 function getCoordinateKey(result: ExtractionResult): string | null {
-  const { sourceLine, sourceColumn, sourceEndLine, sourceEndColumn } = result.entity;
+  const { sourceLine, sourceColumn, sourceEndLine, sourceEndColumn } =
+    result.entity;
   if (
     sourceLine === undefined ||
     sourceColumn === undefined ||
@@ -111,7 +120,8 @@ export function collectSymbols(
     .filter((result) =>
       options.activeEntityIds === undefined
         ? isActiveSymbol(result)
-        : isActiveSymbol(result) && options.activeEntityIds.has(result.entity.id),
+        : isActiveSymbol(result) &&
+          options.activeEntityIds.has(result.entity.id),
     )
     .flatMap((result) => {
       if (result.sourceFile === undefined) return [];

@@ -183,5 +183,4 @@ describe("symbol quality impact diagnostics", () => {
       ),
     ).toEqual([]);
   });
-
 });

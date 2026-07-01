@@ -13,11 +13,7 @@ describe("mixed-purpose symbol impact diagnostics", () => {
       sourceFile: "src/upload.ts",
       symbolKind: "class",
       symbolRole: "behavioral",
-      relationshipTargets: [
-        "REQ-UPLOAD",
-        "REQ-MOBILE-SHELL",
-        "REQ-ANNOTATION",
-      ],
+      relationshipTargets: ["REQ-UPLOAD", "REQ-MOBILE-SHELL", "REQ-ANNOTATION"],
     });
     const child = makeQualitySymbolResult({
       id: "SYM-UPLOAD-COMPONENT-ANNOTATE",
