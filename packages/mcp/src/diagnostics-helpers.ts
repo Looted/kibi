@@ -178,13 +178,17 @@ function semanticContradictionIds(message: string): {
   semantic_checked_req_id?: string;
   semantic_conflicting_req_ids?: string[];
 } {
-  const checked = message.match(/Contradiction detected for requirement\s+([^:\s]+)/i);
-  const conflicts = [...message.matchAll(/Conflicts with\s+([^:\s]+)/gi)].flatMap(
-    (match) => (match[1] ? [match[1]] : []),
+  const checked = message.match(
+    /Contradiction detected for requirement\s+([^:\s]+)/i,
   );
+  const conflicts = [
+    ...message.matchAll(/Conflicts with\s+([^:\s]+)/gi),
+  ].flatMap((match) => (match[1] ? [match[1]] : []));
   return {
     ...(checked?.[1] ? { semantic_checked_req_id: checked[1] } : {}),
-    ...(conflicts.length > 0 ? { semantic_conflicting_req_ids: conflicts } : {}),
+    ...(conflicts.length > 0
+      ? { semantic_conflicting_req_ids: conflicts }
+      : {}),
   };
 }
 
