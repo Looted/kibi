@@ -455,10 +455,13 @@ describe("kibi check --staged impact enforcement", () => {
       commitAll(tmpDir, "initial");
 
       writeFiles(tmpDir, createMultiRequirementSymbolFixture());
-      execSync("git add documentation/requirements documentation/symbols.yaml", {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
+      execSync(
+        "git add documentation/requirements documentation/symbols.yaml",
+        {
+          cwd: tmpDir,
+          stdio: "pipe",
+        },
+      );
 
       const { status, stdout, stderr } = runKibi(
         kibiBin,

@@ -38,9 +38,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function isDiagnosticRecord(
-  value: unknown,
-): value is {
+function isDiagnosticRecord(value: unknown): value is {
   readonly id: string;
   readonly entityId?: string;
   readonly blocking?: boolean;
@@ -133,7 +131,10 @@ ${Array.from({ length: 9 }, (_, index) => {
 
   for (const ordinal of Array.from({ length: 9 }, (_, index) => index + 1)) {
     writeFileSync(
-      path.join(testDir, `TEST-BROAD-CHECK-${String(ordinal).padStart(3, "0")}.md`),
+      path.join(
+        testDir,
+        `TEST-BROAD-CHECK-${String(ordinal).padStart(3, "0")}.md`,
+      ),
       `---
 id: TEST-BROAD-CHECK-${String(ordinal).padStart(3, "0")}
 title: Broad check test ${ordinal}
@@ -437,13 +438,13 @@ describe("kibi check", () => {
         ) ?? [];
       expect(status).toBe(0);
       expect(parsed.structuredContent?.count).toBe(0);
-      expect(coverageDiagnostics.map((diagnostic) => diagnostic.entityId)).toEqual(
-        [
-          "REQ-COVERAGE-NO_TEST_EVIDENCE",
-          "REQ-COVERAGE-OPEN_OR_NONPASSING_TESTS_ONLY",
-          "REQ-COVERAGE-SCENARIO_ONLY_NO_TEST",
-        ],
-      );
+      expect(
+        coverageDiagnostics.map((diagnostic) => diagnostic.entityId),
+      ).toEqual([
+        "REQ-COVERAGE-NO_TEST_EVIDENCE",
+        "REQ-COVERAGE-OPEN_OR_NONPASSING_TESTS_ONLY",
+        "REQ-COVERAGE-SCENARIO_ONLY_NO_TEST",
+      ]);
       expect(
         coverageDiagnostics.every(
           (diagnostic) =>

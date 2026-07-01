@@ -777,6 +777,7 @@ symbols:
   - id: SYM-checkCommand
     title: checkCommand
     sourceFile: packages/cli/src/commands/check.ts
+    granularity_reason: legacy-link
     symbol_role: behavioral
     relationships:
       - type: implements
