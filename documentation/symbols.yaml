@@ -1027,6 +1027,7 @@ symbols:
   - id: SYM-discoverSourceFiles
     title: discoverSourceFiles
     sourceFile: packages/cli/src/commands/sync/discovery.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-core-extractors

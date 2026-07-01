@@ -7,8 +7,7 @@ const fgMock = mock(
       string | string[],
       { cwd: string; absolute: boolean; ignore?: string[] }?,
     ]
-  ) =>
-    [] as string[],
+  ) => [] as string[],
 );
 
 mock.module("fast-glob", () => ({

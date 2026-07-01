@@ -67,5 +67,9 @@ export async function discoverSourceFiles(
 
   const relationshipsDir = getRelationshipsDir(path.join(cwd, ".kb"));
 
-  return { markdownFiles: entityMarkdownFiles, manifestFiles, relationshipsDir };
+  return {
+    markdownFiles: entityMarkdownFiles,
+    manifestFiles,
+    relationshipsDir,
+  };
 }
