@@ -149,6 +149,8 @@ kibi coverage [--by req|symbol|type] [--tag TAGS] [--include-passing] [--no-incl
 **Notes:**
 - Requirement coverage summaries distinguish evaluated must-priority requirements from `not_applicable` rows.
 - `--include-passing` adds fully covered rows back into the result set.
+- Requirement coverage rows include coverage-depth labels when evidence can be classified: `direct_passing_e2e`, `scenario_passing_e2e`, `unit_only`, `open_or_nonpassing_tests_only`, `scenario_only_no_test`, or `no_test_evidence`.
+- Coverage-depth labels are informational. They do not change existing covered/uncovered pass-fail semantics, and typed test fields (`verification_scope`, then `verification_perspective`) take precedence over legacy `e2e` tags or `/e2e/` path heuristics.
 
 ## `kibi graph`
 
@@ -179,7 +181,8 @@ Validates knowledge base integrity and runs inference rules.
 - Detects cycles in dependency graphs
 - Supports strict migration checks like `strict-fact-shape` and `strict-req-fact-pairing`, a default-off semantic audit (`predicate-verifiability`) for `requires_predicate` links that still target prose/observation facts, and default-on `query-plan-safety` for Prolog clauses that place negation before later generator calls. Rule defaults can be overridden in `.kb/config.json`.
 - With `--staged`, runs commit-time changed-file impact enforcement for behavior-changing source edits, including missing Kibi impact evidence, stale symbol coordinates, and changed behavioral symbols that are only linked through coarse class/module ownership
-- Reports violations with actionable suggestions
+- Reports blocking `violations[]` with actionable suggestions and additive `qualityDiagnostics[]` audit signals for modeling quality, coverage depth, broad requirements, duplicate coordinates, symbol fanout, and strict-fact review
+- Keeps advisory quality diagnostics non-blocking by default: `review`, `info`, and non-blocking `warning` diagnostics do not change the exit code; hard violations, `severity: "error"`, or `blocking: true` still fail the check
 
 **Flags:**
 - `--staged` - Only check staged files (not whole repo)
@@ -187,11 +190,15 @@ Validates knowledge base integrity and runs inference rules.
 - `--rules <rule1,rule2>` - Comma-separated list of rules to run (optional)
 - `--min-links <N>` - Minimum requirement links per symbol for staged traceability (default: 1)
 - `--dry-run` - Show staged-traceability effects without modifying files
+- `--format json|text` - Output structured JSON for integrations such as OpenCode scheduled checks, or human-readable text output (default: text)
 
 **Examples:**
 ```bash
 # Check entire KB
 kibi check
+
+# Export structured two-lane check output for automation
+kibi check --format json
 
 # Check only staged changes
 kibi check --staged
@@ -213,6 +220,8 @@ kibi check --rules query-plan-safety
 ```
 
 Agents should prefer MCP `kb_check({sourceFiles:[...], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})` while editing. CLI `kibi check --staged` remains the git-hook and operator fallback once files are staged.
+
+Structured JSON output preserves the same two-lane model used by MCP: hard correctness failures appear under `structuredContent.violations[]`, while advisory audit signals appear under `structuredContent.qualityDiagnostics[]`. Advisory-only output is still a successful check; integrations should inspect `blocking` and `severity` instead of treating every diagnostic as a failure.
 
 **See also:** [Staged Symbol Traceability](#staged-symbol-traceability) for `--staged` usage details.
 
@@ -418,6 +427,8 @@ kibi check --staged
 This command scans only files staged for commit and reports any new or modified symbols that do not have requirement links (either via inline comments or explicit KB relationships). It also reports stale symbol-coordinate evidence and `symbol_granularity_violation` when a changed behavioral member such as `UploadPageComponent.processingProgressLabel` is covered only by a coarse class/module relationship without an audited `granularity_reason`. If violations are found and this is run as a pre-commit hook, the commit will be blocked.
 
 The staged CLI gate does not prove that linked prose still matches the source edit. Use the MCP impact check while editing to get `symbol_semantic_review_needed` guidance and inspect linked requirements/scenarios/tests before deciding whether to update KB entities.
+
+Quality diagnostics may also appear during full or staged checks. They are designed to surface auditability problems automatically without creating a new command agents must remember: broad requirement reviews, multi-requirement symbol fanout, mixed-purpose class/component reviews, duplicate symbol-coordinate reviews, status misuse, strict-fact modeling gaps, and coverage-depth labels are review signals unless explicitly marked blocking.
 
 **Scope Note**: Staged check handles explicitly modeled symbols and extracted TypeScript/JavaScript anchors, including exported class methods, accessors, and behavior-bearing class properties. Automatic extraction of framework-specific `test()` or `it()` callbacks is not currently supported.
 

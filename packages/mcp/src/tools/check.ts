@@ -17,11 +17,16 @@
  */
 import type { PrologProcess } from "kibi-cli/prolog";
 import type { Violation } from "kibi-cli/public/check-types";
+import {
+  collectFullKbQualityDiagnostics,
+  type QualityDiagnostic,
+} from "kibi-cli/public/impact-diagnostics";
 import { resolveWorkspaceRoot } from "../workspace.js";
 import { getEffectiveRules, loadChecksConfig } from "./check-config.js";
 import {
   buildStructuredContent,
   formatImpactText,
+  formatQualityDiagnosticsText,
   formatViolationText,
 } from "./check-format.js";
 import { analyzeKbCheckImpact } from "./check-impact.js";
@@ -29,6 +34,33 @@ import { runAggregatedChecks } from "./check-prolog.js";
 import type { CheckArgs, CheckResult, Diagnostic } from "./check-types.js";
 
 export type { CheckArgs, CheckResult } from "./check-types.js";
+
+function qualityDiagnosticsFromImpact(
+  impactResult: ReturnType<typeof analyzeKbCheckImpact>,
+): readonly QualityDiagnostic[] {
+  if (impactResult === undefined) {
+    return [];
+  }
+
+  return impactResult.impactDiagnostics.filter(
+    (diagnostic) => !diagnostic.blocking && diagnostic.severity !== "error",
+  );
+}
+
+function buildSummary(input: {
+  readonly violations: readonly Violation[];
+  readonly impactResult: ReturnType<typeof analyzeKbCheckImpact>;
+  readonly qualityDiagnostics: readonly QualityDiagnostic[];
+}): string {
+  const sections = [formatViolationText(input.violations)];
+  if (input.impactResult !== undefined) {
+    sections.push(formatImpactText(input.impactResult));
+  }
+  if (input.qualityDiagnostics.length > 0) {
+    sections.push(formatQualityDiagnosticsText(input.qualityDiagnostics));
+  }
+  return sections.join("\n");
+}
 
 /**
  * Handle kb_check tool calls - run validation rules on the KB
@@ -43,26 +75,38 @@ export async function handleKbCheck(
 
   try {
     const workspaceRoot = workspaceOverride ?? resolveWorkspaceRoot();
-    const checksConfig = await loadChecksConfig(workspaceRoot);
-    const rulesAllowlist = getEffectiveRules(checksConfig.rules, rules);
-    const impactResult = analyzeKbCheckImpact(workspaceRoot, args);
+      const checksConfig = await loadChecksConfig(workspaceRoot);
+      const rulesAllowlist = getEffectiveRules(checksConfig.rules, rules);
+      const impactResult = analyzeKbCheckImpact(workspaceRoot, args);
+      const impactQualityDiagnostics = qualityDiagnosticsFromImpact(impactResult);
 
-    if (rulesAllowlist.size === 0) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: impactResult
-              ? `No violations found\n${formatImpactText(impactResult)}`
-              : "No violations found",
-          },
-        ],
-        structuredContent: buildStructuredContent({
-          violations: [],
-          diagnostics: [],
-          impactResult,
-        }),
-      };
+      if (rulesAllowlist.size === 0) {
+        const qualityDiagnostics = impactResult
+          ? impactQualityDiagnostics
+          : await collectFullKbQualityDiagnostics({
+              prolog,
+              ...(args.maxDiagnostics !== undefined
+                ? { maxDiagnostics: args.maxDiagnostics }
+                : {}),
+            });
+        return {
+          content: [
+            {
+              type: "text",
+              text: buildSummary({
+                violations: [],
+                impactResult,
+                qualityDiagnostics,
+              }),
+            },
+          ],
+          structuredContent: buildStructuredContent({
+            violations: [],
+            diagnostics: [],
+            qualityDiagnostics,
+            impactResult,
+          }),
+        };
     }
 
     // Ensure we read the latest KB state, not a cached snapshot.
@@ -84,9 +128,23 @@ export async function handleKbCheck(
       ...(v.suggestion !== undefined ? { suggestion: v.suggestion } : {}),
     }));
 
-    const summary = impactResult
-      ? `${formatViolationText(aggregatedViolations)}\n${formatImpactText(impactResult)}`
-      : formatViolationText(aggregatedViolations);
+    const qualityDiagnostics = impactResult
+      ? impactQualityDiagnostics
+      : await collectFullKbQualityDiagnostics({
+          prolog,
+          hardViolationEntityIds: new Set(
+            aggregatedViolations.map((violation) => violation.entityId),
+          ),
+          ...(args.maxDiagnostics !== undefined
+            ? { maxDiagnostics: args.maxDiagnostics }
+            : {}),
+        });
+
+    const summary = buildSummary({
+      violations: aggregatedViolations,
+      impactResult,
+      qualityDiagnostics,
+    });
 
     return {
       content: [
@@ -98,6 +156,7 @@ export async function handleKbCheck(
       structuredContent: buildStructuredContent({
         violations: aggregatedViolations,
         diagnostics,
+        qualityDiagnostics,
         impactResult,
       }),
     };

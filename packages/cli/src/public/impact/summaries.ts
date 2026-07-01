@@ -94,5 +94,7 @@ export function buildNextActions(sourceFiles: readonly string[]): string[] {
       (sourceFile) =>
         `kb_query({ sourceFile: "${sourceFile}" }) to inspect exact source-linked Kibi entities before deciding whether requirements/tests need updates.`,
     ),
+    "Update narrower symbols, requirements, tests, or strict facts when diagnostics show broad or stale modeling.",
+    "rerun kb_check with the same sourceFiles/impact options after Kibi updates.",
   ];
 }

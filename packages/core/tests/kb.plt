@@ -1156,6 +1156,51 @@ test(contradicting_reqs_ignores_superseded, [setup(setup_kb), cleanup(cleanup_kb
 
 :- end_tests(kb_inference).
 
+:- begin_tests(kb_coverage_depth).
+
+test(coverage_report_classifies_requirement_depths, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    seed_coverage_depth_fixture,
+    coverage_report_json(req, [], true, true, 100, 0, JsonString),
+    json_string_dict(JsonString, Report),
+    Rows = Report.rows,
+    coverage_row(Rows, 'REQ-DIRECT-E2E', DirectE2e),
+    assertion(DirectE2e.coverageDepth == direct_passing_e2e),
+    assertion(DirectE2e.coverage_depth == direct_passing_e2e),
+    assertion(DirectE2e.coverageStatus == uncovered),
+    assertion(DirectE2e.evaluated == true),
+    assertion(DirectE2e.directTests == ['TEST-DIRECT-E2E']),
+    assertion(DirectE2e.verificationScopes == [end_to_end]),
+    coverage_row(Rows, 'REQ-SCENARIO-E2E', ScenarioE2e),
+    assertion(ScenarioE2e.coverageDepth == scenario_passing_e2e),
+    assertion(ScenarioE2e.scenarioTests == ['TEST-SCENARIO-E2E']),
+    coverage_row(Rows, 'REQ-UNIT-ONLY', UnitOnly),
+    assertion(UnitOnly.coverageDepth == unit_only),
+    assertion(UnitOnly.testStatuses == [passing]),
+    coverage_row(Rows, 'REQ-NONPASSING', Nonpassing),
+    assertion(Nonpassing.coverageDepth == open_or_nonpassing_tests_only),
+    assertion(Nonpassing.testStatuses == [failing, open]),
+    coverage_row(Rows, 'REQ-SCENARIO-ONLY', ScenarioOnly),
+    assertion(ScenarioOnly.coverageDepth == scenario_only_no_test),
+    coverage_row(Rows, 'REQ-NO-EVIDENCE', NoEvidence),
+    assertion(NoEvidence.coverageDepth == no_test_evidence),
+    assertion(NoEvidence.coverageStatus == uncovered).
+
+test(typed_verification_scope_beats_legacy_e2e_heuristics, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-TYPED-BEATS-LEGACY', "Typed beats legacy", active, [priority=must]),
+    assert_fixture_entity(test, 'TEST-TYPED-UNIT-LEGACY-E2E', "Typed unit legacy e2e", passing, [
+        verification_scope=unit,
+        tags=[e2e],
+        source="tests/e2e/typed-unit.test.ts"
+    ]),
+    kb_assert_relationship(verified_by, 'REQ-TYPED-BEATS-LEGACY', 'TEST-TYPED-UNIT-LEGACY-E2E', []),
+    coverage_report_json(req, [], true, true, 100, 0, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-TYPED-BEATS-LEGACY', Row),
+    assertion(Row.coverageDepth == unit_only),
+    assertion(Row.verificationScopes == [unit]).
+
+:- end_tests(kb_coverage_depth).
+
 % Semantic contradiction tests using typed facts (Task 4)
 :- begin_tests(kb_semantic_contradictions).
 
@@ -2499,6 +2544,41 @@ assert_contradicting_requirement_pair(ReqA, ValueA, ReqB, ValueB) :-
     kb_assert_relationship(constrains, ReqB, 'FACT-CONFLICT-SUBJECT', []),
     kb_assert_relationship(requires_property, ReqA, 'FACT-CONFLICT-A', []),
     kb_assert_relationship(requires_property, ReqB, 'FACT-CONFLICT-B', []).
+
+json_string_dict(JsonString, Dict) :-
+    atom_string(JsonAtom, JsonString),
+    atom_json_dict(JsonAtom, Dict, [value_string_as(atom)]).
+
+coverage_row(Rows, Id, Row) :-
+    member(Row, Rows),
+    Row.id == Id.
+
+seed_coverage_depth_fixture :-
+    assert_fixture_entity(req, 'REQ-DIRECT-E2E', "Direct E2E", active, [priority=must]),
+    assert_fixture_entity(test, 'TEST-DIRECT-E2E', "Direct E2E test", passing, [verification_scope=end_to_end, verification_perspective=consumer]),
+    kb_assert_relationship(verified_by, 'REQ-DIRECT-E2E', 'TEST-DIRECT-E2E', []),
+
+    assert_fixture_entity(req, 'REQ-SCENARIO-E2E', "Scenario E2E", active, [priority=must]),
+    assert_fixture_entity(scenario, 'SCEN-SCENARIO-E2E', "Scenario E2E scenario", active, []),
+    assert_fixture_entity(test, 'TEST-SCENARIO-E2E', "Scenario E2E test", passing, [verification_scope=end_to_end]),
+    kb_assert_relationship(specified_by, 'REQ-SCENARIO-E2E', 'SCEN-SCENARIO-E2E', []),
+    kb_assert_relationship(validates, 'TEST-SCENARIO-E2E', 'SCEN-SCENARIO-E2E', []),
+
+    assert_fixture_entity(req, 'REQ-UNIT-ONLY', "Unit only", active, [priority=must]),
+    assert_fixture_entity(test, 'TEST-UNIT-ONLY', "Unit only test", passing, [verification_scope=unit]),
+    kb_assert_relationship(verified_by, 'REQ-UNIT-ONLY', 'TEST-UNIT-ONLY', []),
+
+    assert_fixture_entity(req, 'REQ-NONPASSING', "Nonpassing only", active, [priority=must]),
+    assert_fixture_entity(test, 'TEST-NONPASSING-OPEN', "Open test", open, [verification_scope=end_to_end]),
+    assert_fixture_entity(test, 'TEST-NONPASSING-FAILING', "Failing test", failing, [verification_scope=unit]),
+    kb_assert_relationship(verified_by, 'REQ-NONPASSING', 'TEST-NONPASSING-OPEN', []),
+    kb_assert_relationship(validates, 'TEST-NONPASSING-FAILING', 'REQ-NONPASSING', []),
+
+    assert_fixture_entity(req, 'REQ-SCENARIO-ONLY', "Scenario only", active, [priority=must]),
+    assert_fixture_entity(scenario, 'SCEN-SCENARIO-ONLY', "Scenario only scenario", active, []),
+    kb_assert_relationship(specified_by, 'REQ-SCENARIO-ONLY', 'SCEN-SCENARIO-ONLY', []),
+
+    assert_fixture_entity(req, 'REQ-NO-EVIDENCE', "No evidence", active, [priority=must]).
 
 setup_kb :-
     cleanup_test_kb,

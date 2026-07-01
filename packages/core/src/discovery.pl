@@ -131,6 +131,7 @@ requirement_coverage_row(Tags, IncludeTransitive, Row) :-
     count_direct_symbols(Id, DirectSymbolCount),
     count_transitive_symbols(Id, IncludeTransitive, TransitiveSymbolCount),
     requirement_coverage_state(Id, Props, Gaps, Evaluated, CoverageStatus),
+    requirement_coverage_depth(Id, ScenarioCount, CoverageDepth, CoverageEvidence),
     Row = _{
         id: Id,
         type: req,
@@ -143,7 +144,13 @@ requirement_coverage_row(Tags, IncludeTransitive, Row) :-
         transitiveSymbolCount: TransitiveSymbolCount,
         gaps: Gaps,
         evaluated: Evaluated,
-        coverageStatus: CoverageStatus
+        coverageStatus: CoverageStatus,
+        coverageDepth: CoverageDepth,
+        coverage_depth: CoverageDepth,
+        directTests: CoverageEvidence.directTests,
+        scenarioTests: CoverageEvidence.scenarioTests,
+        testStatuses: CoverageEvidence.testStatuses,
+        verificationScopes: CoverageEvidence.verificationScopes
     }.
 
 symbol_coverage_row(Tags, Row) :-
@@ -231,6 +238,125 @@ requirement_test_count(Id, Count) :-
     append(Verified0, Validates0, Combined0),
     sort(Combined0, Combined),
     length(Combined, Count).
+
+requirement_coverage_depth(Id, ScenarioCount, CoverageDepth, Evidence) :-
+    requirement_direct_tests(Id, DirectTests),
+    requirement_scenario_tests(Id, ScenarioTests),
+    append(DirectTests, ScenarioTests, AllTests0),
+    sort(AllTests0, AllTests),
+    passing_tests(DirectTests, PassingDirectTests),
+    passing_tests(ScenarioTests, PassingScenarioTests),
+    passing_tests(AllTests, PassingTests),
+    test_statuses(AllTests, TestStatuses),
+    test_scopes(AllTests, VerificationScopes),
+    Evidence = _{
+        directTests: DirectTests,
+        scenarioTests: ScenarioTests,
+        testStatuses: TestStatuses,
+        verificationScopes: VerificationScopes
+    },
+    classify_coverage_depth(
+        ScenarioCount,
+        AllTests,
+        PassingTests,
+        PassingDirectTests,
+        PassingScenarioTests,
+        CoverageDepth
+    ).
+
+requirement_direct_tests(Id, Tests) :-
+    findall(TestId, direct_requirement_test(Id, TestId), Tests0),
+    sort(Tests0, Tests).
+
+direct_requirement_test(Id, TestId) :-
+    kb_relationship(verified_by, Id, TestId),
+    kb_entity(TestId, test, _).
+direct_requirement_test(Id, TestId) :-
+    kb_relationship(validates, TestId, Id),
+    kb_entity(TestId, test, _).
+direct_requirement_test(Id, TestId) :-
+    kb_relationship(covered_by, Id, TestId),
+    kb_entity(TestId, test, _).
+
+requirement_scenario_tests(Id, Tests) :-
+    findall(TestId, scenario_requirement_test(Id, TestId), Tests0),
+    sort(Tests0, Tests).
+
+scenario_requirement_test(Id, TestId) :-
+    kb_relationship(specified_by, Id, ScenarioId),
+    scenario_test(ScenarioId, TestId).
+
+scenario_test(ScenarioId, TestId) :-
+    kb_relationship(validates, TestId, ScenarioId),
+    kb_entity(TestId, test, _).
+scenario_test(ScenarioId, TestId) :-
+    kb_relationship(verified_by, ScenarioId, TestId),
+    kb_entity(TestId, test, _).
+
+passing_tests(Tests, PassingTests) :-
+    include(passing_test, Tests, PassingTests).
+
+passing_test(TestId) :-
+    kb_entity(TestId, test, Props),
+    memberchk(status=StatusRaw, Props),
+    source_value_atom(StatusRaw, passing).
+
+test_statuses(Tests, Statuses) :-
+    findall(Status, (member(TestId, Tests), test_status(TestId, Status)), Statuses0),
+    sort(Statuses0, Statuses).
+
+test_status(TestId, Status) :-
+    kb_entity(TestId, test, Props),
+    memberchk(status=StatusRaw, Props),
+    source_value_atom(StatusRaw, Status).
+
+test_scopes(Tests, Scopes) :-
+    findall(Scope, (member(TestId, Tests), test_scope(TestId, Scope)), Scopes0),
+    sort(Scopes0, Scopes).
+
+test_scope(TestId, Scope) :-
+    kb_entity(TestId, test, Props),
+    (   memberchk(verification_scope=ScopeRaw, Props)
+    ->  source_value_atom(ScopeRaw, Scope)
+    ;   legacy_e2e_test(Props)
+    ->  Scope = end_to_end
+    ;   Scope = unknown
+    ).
+
+legacy_e2e_test(Props) :-
+    legacy_e2e_tag(Props),
+    !.
+legacy_e2e_test(Props) :-
+    memberchk(source=SourceRaw, Props),
+    source_value_atom(SourceRaw, Source),
+    downcase_atom(Source, LowercaseSource),
+    sub_atom(LowercaseSource, _, _, _, 'e2e').
+
+legacy_e2e_tag(Props) :-
+    memberchk(tags=Tags, Props),
+    member(TagRaw, Tags),
+    source_value_atom(TagRaw, Tag),
+    downcase_atom(Tag, e2e).
+
+classify_coverage_depth(_ScenarioCount, _AllTests, _PassingTests, PassingDirectTests, _PassingScenarioTests, direct_passing_e2e) :-
+    member(TestId, PassingDirectTests),
+    test_scope(TestId, end_to_end),
+    !.
+classify_coverage_depth(_ScenarioCount, _AllTests, _PassingTests, _PassingDirectTests, PassingScenarioTests, scenario_passing_e2e) :-
+    member(TestId, PassingScenarioTests),
+    test_scope(TestId, end_to_end),
+    !.
+classify_coverage_depth(_ScenarioCount, _AllTests, PassingTests, _PassingDirectTests, _PassingScenarioTests, unit_only) :-
+    PassingTests \= [],
+    forall(member(TestId, PassingTests), test_scope(TestId, unit)),
+    !.
+classify_coverage_depth(_ScenarioCount, AllTests, _PassingTests, _PassingDirectTests, _PassingScenarioTests, open_or_nonpassing_tests_only) :-
+    AllTests \= [],
+    !.
+classify_coverage_depth(ScenarioCount, _AllTests, _PassingTests, _PassingDirectTests, _PassingScenarioTests, scenario_only_no_test) :-
+    ScenarioCount > 0,
+    !.
+classify_coverage_depth(_ScenarioCount, _AllTests, _PassingTests, _PassingDirectTests, _PassingScenarioTests, no_test_evidence).
 
 count_direct_symbols(Id, Count) :-
     findall(SymbolId, kb_relationship(implements, SymbolId, Id), Symbols0),

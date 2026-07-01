@@ -34,10 +34,13 @@ import {
   parseViolationRows,
 } from "../prolog/codec.js";
 import {
+  collectFullKbQualityDiagnostics,
   createSemanticReviewDiagnostics,
   createSymbolGranularityDiagnostics,
+  createSymbolQualityDiagnostics,
   hasBlockingImpactDiagnostics,
 } from "../public/impact-diagnostics.js";
+import type { QualityDiagnostic } from "../public/impact-diagnostics.js";
 import {
   KIBI_NO_IMPACT_DECLARATION,
   KIBI_SYMBOLS_MANIFEST_PATH,
@@ -109,6 +112,7 @@ export interface CheckOptions {
   staged?: boolean;
   minLinks?: string | number;
   dryRun?: boolean;
+  format?: "text" | "json";
 }
 
 function getMatchGroup(
@@ -322,6 +326,48 @@ function formatStagedKibiDiagnostics(
       return lines.join("\n");
     })
     .join("\n\n");
+}
+
+function formatQualityDiagnostics(diagnostics: readonly QualityDiagnostic[]): string {
+  if (diagnostics.length === 0) {
+    return "";
+  }
+
+  const details = diagnostics.map((diagnostic) => {
+    const lines = [
+      `[${diagnostic.severity.toUpperCase()} ${diagnostic.id}] ${diagnostic.message}`,
+    ];
+    if (diagnostic.entityId !== undefined) {
+      lines.push(`  Entity: ${diagnostic.entityId}`);
+    }
+    if (diagnostic.files !== undefined && diagnostic.files.length > 0) {
+      lines.push(`  Files: ${diagnostic.files.join(", ")}`);
+    }
+    if (diagnostic.docs !== undefined && diagnostic.docs.length > 0) {
+      lines.push(`  Docs: ${diagnostic.docs.join(", ")}`);
+    }
+    lines.push(`  Blocking: ${diagnostic.blocking ? "yes" : "no"}`);
+    lines.push(`  Suggestion: ${diagnostic.suggestion}`);
+    return lines.join("\n");
+  });
+
+  return `Quality diagnostics (${diagnostics.length}):\n${details.join("\n\n")}`;
+}
+
+function printStructuredCheckResult(input: {
+  violations: readonly Violation[];
+  qualityDiagnostics: readonly QualityDiagnostic[];
+}): void {
+  console.log(
+    JSON.stringify({
+      structuredContent: {
+        violations: input.violations,
+        count: input.violations.length,
+        diagnostics: [],
+        qualityDiagnostics: input.qualityDiagnostics,
+      },
+    }),
+  );
 }
 
 function uniqueSorted(values: Iterable<string>): string[] {
@@ -623,6 +669,13 @@ export async function checkCommand(
             symbolsByFile,
             sourceContentByFile,
           }),
+          ...createSymbolQualityDiagnostics({
+            manifestResults: activeGranularityResults,
+            ...(activeStagedSymbolEntityIds.size > 0
+              ? { activeEntityIds: activeStagedSymbolEntityIds }
+              : {}),
+            symbolsByFile,
+          }),
           ...createSemanticReviewDiagnostics({ symbolsByFile }),
         );
 
@@ -831,8 +884,21 @@ export async function checkCommand(
     if (effectiveRules.has("query-plan-safety")) {
       violations.push(...collectQueryPlanSafetyViolations());
     }
+    const qualityDiagnostics = await collectFullKbQualityDiagnostics({
+      prolog: activeProlog,
+      hardViolationEntityIds: new Set(violations.map((violation) => violation.entityId)),
+    });
+    if (options.format === "json") {
+      printStructuredCheckResult({ violations, qualityDiagnostics });
+      return { exitCode: violations.length === 0 ? 0 : 1 };
+    }
+    const qualityOutput = formatQualityDiagnostics(qualityDiagnostics);
     if (violations.length === 0) {
       console.log("✓ No violations found. KB is valid.");
+      if (qualityOutput.length > 0) {
+        console.log();
+        console.log(qualityOutput);
+      }
       return { exitCode: 0 };
     }
 
@@ -852,6 +918,11 @@ export async function checkCommand(
       if (options.fix && v.suggestion) {
         console.log(`  Suggestion: ${v.suggestion}`);
       }
+      console.log();
+    }
+
+    if (qualityOutput.length > 0) {
+      console.log(qualityOutput);
       console.log();
     }
 

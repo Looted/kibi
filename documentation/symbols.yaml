@@ -278,9 +278,9 @@ symbols:
         target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-001
-    sourceLine: 38
+    sourceLine: 70
     sourceColumn: 22
-    sourceEndLine: 108
+    sourceEndLine: 167
     sourceEndColumn: 1
   - id: SYM-mcp-loadChecksConfig
     title: loadChecksConfig
@@ -313,6 +313,7 @@ symbols:
   - id: SYM-mcp-formatImpactText
     title: formatImpactText
     sourceFile: packages/mcp/src/tools/check-format.ts
+    granularity_reason: extractor-miss
     links:
       - REQ-mcp-tool-check
     relationships:
@@ -320,27 +321,52 @@ symbols:
         target: REQ-mcp-tool-check
       - type: covered_by
         target: TEST-001
-    sourceLine: 32
+    sourceLine: 33
     sourceColumn: 16
-    sourceEndLine: 47
+    sourceEndLine: 48
+    sourceEndColumn: 1
+  - id: SYM-mcp-formatQualityDiagnosticsText
+    title: formatQualityDiagnosticsText
+    sourceFile: packages/mcp/src/tools/check-format.ts
+    links:
+      - REQ-mcp-tool-check
+      - REQ-audit-quality-diagnostics-v1
+    relationships:
+      - type: implements
+        target: REQ-mcp-tool-check
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-001
+      - type: covered_by
+        target: TEST-mcp-quality-diagnostics-contract
+    sourceLine: 58
+    sourceColumn: 16
+    sourceEndLine: 87
     sourceEndColumn: 1
   - id: SYM-mcp-buildStructuredContent
     title: buildStructuredContent
     sourceFile: packages/mcp/src/tools/check-format.ts
     links:
       - REQ-mcp-tool-check
+      - REQ-audit-quality-diagnostics-v1
     relationships:
       - type: implements
         target: REQ-mcp-tool-check
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
       - type: covered_by
         target: TEST-001
-    sourceLine: 49
+      - type: covered_by
+        target: TEST-mcp-quality-diagnostics-contract
+    sourceLine: 89
     sourceColumn: 16
-    sourceEndLine: 68
+    sourceEndLine: 113
     sourceEndColumn: 1
   - id: SYM-mcp-formatViolationText
     title: formatViolationText
     sourceFile: packages/mcp/src/tools/check-format.ts
+    granularity_reason: extractor-miss
     links:
       - REQ-mcp-tool-check
     relationships:
@@ -348,9 +374,9 @@ symbols:
         target: REQ-mcp-tool-check
       - type: covered_by
         target: TEST-001
-    sourceLine: 70
+    sourceLine: 115
     sourceColumn: 16
-    sourceEndLine: 89
+    sourceEndLine: 134
     sourceEndColumn: 1
   - id: SYM-mcp-hasImpactOptions
     title: hasImpactOptions
@@ -416,9 +442,9 @@ symbols:
         target: REQ-mcp-tool-check
       - type: covered_by
         target: TEST-001
-    sourceLine: 21
+    sourceLine: 22
     sourceColumn: 17
-    sourceEndLine: 29
+    sourceEndLine: 30
     sourceEndColumn: 1
   - id: SYM-mcp-Diagnostic
     title: Diagnostic
@@ -431,9 +457,9 @@ symbols:
         target: REQ-mcp-tool-check
       - type: covered_by
         target: TEST-001
-    sourceLine: 31
+    sourceLine: 32
     sourceColumn: 17
-    sourceEndLine: 37
+    sourceEndLine: 38
     sourceEndColumn: 1
   - id: SYM-mcp-CheckResult
     title: CheckResult
@@ -446,9 +472,9 @@ symbols:
         target: REQ-mcp-tool-check
       - type: covered_by
         target: TEST-001
-    sourceLine: 39
+    sourceLine: 40
     sourceColumn: 17
-    sourceEndLine: 57
+    sourceEndLine: 59
     sourceEndColumn: 1
   - id: SYM-010
     title: startServer
@@ -880,10 +906,10 @@ symbols:
         target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-004
-    sourceLine: 53
+    sourceLine: 153
     sourceColumn: 13
-    sourceEndLine: 143
-    sourceEndColumn: 10
+    sourceEndLine: 158
+    sourceEndColumn: 1
   - id: SYM-getCurrentBranch
     title: getCurrentBranch
     sourceFile: packages/cli/src/commands/init-helpers.ts
@@ -1696,9 +1722,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 23
+    sourceLine: 24
     sourceColumn: 16
-    sourceEndLine: 85
+    sourceEndLine: 90
     sourceEndColumn: 1
   - id: SYM-cli-impact-createSymbolGranularityDiagnostics
     title: createSymbolGranularityDiagnostics
@@ -1709,9 +1735,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 102
+    sourceLine: 103
     sourceColumn: 16
-    sourceEndLine: 149
+    sourceEndLine: 152
     sourceEndColumn: 1
   - id: SYM-cli-impact-createSemanticReviewDiagnostics
     title: createSemanticReviewDiagnostics
@@ -1722,9 +1748,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 151
+    sourceLine: 154
     sourceColumn: 16
-    sourceEndLine: 173
+    sourceEndLine: 178
     sourceEndColumn: 1
   - id: SYM-cli-impact-hasBlockingImpactDiagnostics
     title: hasBlockingImpactDiagnostics
@@ -1735,10 +1761,49 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 175
+    sourceLine: 180
     sourceColumn: 16
-    sourceEndLine: 179
+    sourceEndLine: 184
     sourceEndColumn: 1
+  - id: SYM-cli-impact-createSymbolQualityDiagnostics
+    title: createSymbolQualityDiagnostics
+    sourceFile: packages/cli/src/public/impact/symbol-quality.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-symbol-quality-diagnostics
+      - type: covered_by
+        target: TEST-cli-mixed-purpose-diagnostics
+  - id: SYM-cli-impact-createRequirementQualityDiagnostics
+    title: createRequirementQualityDiagnostics
+    sourceFile: packages/cli/src/public/impact/requirement-quality.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-requirement-quality-diagnostics
+  - id: SYM-cli-impact-collectFullKbQualityDiagnostics
+    title: collectFullKbQualityDiagnostics
+    sourceFile: packages/cli/src/public/impact/full-kb-quality.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-requirement-quality-diagnostics
+      - type: covered_by
+        target: TEST-cli-symbol-quality-diagnostics
+      - type: covered_by
+        target: TEST-mcp-quality-diagnostics-contract
   - id: SYM-cli-impact-readImpactManifestResults
     title: readImpactManifestResults
     sourceFile: packages/cli/src/public/impact/manifest.ts
@@ -1841,7 +1906,7 @@ symbols:
         target: TEST-cli-staged-impact-enforcement
     sourceLine: 88
     sourceColumn: 16
-    sourceEndLine: 98
+    sourceEndLine: 100
     sourceEndColumn: 1
   - id: SYM-cli-impact-SymbolsByFile
     title: SymbolsByFile
@@ -1852,10 +1917,28 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 6
+    sourceLine: 30
     sourceColumn: 12
-    sourceEndLine: 6
+    sourceEndLine: 30
     sourceEndColumn: 68
+  - id: SYM-cli-impact-QualityDiagnosticSeverity
+    title: QualityDiagnosticSeverity
+    sourceFile: packages/cli/src/public/impact/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+  - id: SYM-cli-impact-QualityDiagnostic
+    title: QualityDiagnostic
+    sourceFile: packages/cli/src/public/impact/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
   - id: SYM-cli-impact-TraceabilityRelationship
     title: TraceabilityRelationship
     sourceFile: packages/cli/src/public/impact/types.ts
@@ -1865,9 +1948,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 8
+    sourceLine: 32
     sourceColumn: 12
-    sourceEndLine: 11
+    sourceEndLine: 35
     sourceEndColumn: 2
   - id: SYM-cli-impact-SymbolGranularityDiagnosticsOptions
     title: SymbolGranularityDiagnosticsOptions
@@ -1878,9 +1961,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 13
+    sourceLine: 37
     sourceColumn: 12
-    sourceEndLine: 19
+    sourceEndLine: 43
     sourceEndColumn: 2
   - id: SYM-cli-impact-SemanticReviewDiagnosticsOptions
     title: SemanticReviewDiagnosticsOptions
@@ -1891,10 +1974,19 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 21
+    sourceLine: 45
     sourceColumn: 12
-    sourceEndLine: 23
+    sourceEndLine: 47
     sourceEndColumn: 2
+  - id: SYM-cli-impact-SymbolQualityDiagnosticsOptions
+    title: SymbolQualityDiagnosticsOptions
+    sourceFile: packages/cli/src/public/impact/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
   - id: SYM-cli-impact-ChangedFileImpactOptions
     title: ChangedFileImpactOptions
     sourceFile: packages/cli/src/public/impact/types.ts
@@ -1904,9 +1996,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 25
+    sourceLine: 60
     sourceColumn: 12
-    sourceEndLine: 32
+    sourceEndLine: 67
     sourceEndColumn: 2
   - id: SYM-cli-impact-ImpactExtractedSymbol
     title: ImpactExtractedSymbol
@@ -1917,9 +2009,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 34
+    sourceLine: 69
     sourceColumn: 12
-    sourceEndLine: 42
+    sourceEndLine: 77
     sourceEndColumn: 2
   - id: SYM-cli-impact-ImpactLinkedEntity
     title: ImpactLinkedEntity
@@ -1930,9 +2022,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 44
+    sourceLine: 79
     sourceColumn: 12
-    sourceEndLine: 49
+    sourceEndLine: 84
     sourceEndColumn: 2
   - id: SYM-cli-impact-ChangedFileImpactResult
     title: ChangedFileImpactResult
@@ -1943,9 +2035,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 51
+    sourceLine: 86
     sourceColumn: 12
-    sourceEndLine: 57
+    sourceEndLine: 92
     sourceEndColumn: 2
   - id: SYM-cli-impact-SourceChange
     title: SourceChange
@@ -1956,9 +2048,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 59
+    sourceLine: 94
     sourceColumn: 12
-    sourceEndLine: 64
+    sourceEndLine: 99
     sourceEndColumn: 2
   - id: SYM-assessStagedSymbolsManifest
     title: assessStagedSymbolsManifest
@@ -4106,8 +4198,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-advisory-diagnostics
   - id: SYM-SyncRunMetadata
     title: SyncRunMetadata
     sourceFile: packages/opencode/src/scheduler.ts
@@ -6025,3 +6121,438 @@ symbols:
         target: REQ-020
       - type: covered_by
         target: TEST-014
+  - id: SYM-core-discovery-requirementCoverageDepth
+    title: requirement_coverage_depth
+    sourceFile: packages/core/src/discovery.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+  - id: SYM-core-discovery-classifyCoverageDepth
+    title: classify_coverage_depth
+    sourceFile: packages/core/src/discovery.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+  - id: SYM-cli-discovery-renderDiscoveryTable
+    title: renderDiscoveryTable
+    sourceFile: packages/cli/src/commands/discovery-table.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-search-discovery
+      - type: covered_by
+        target: TEST-mcp-search-discovery
+  - id: SYM-cli-discovery-renderCoverageTable
+    title: renderCoverageTable
+    sourceFile: packages/cli/src/commands/discovery-table.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+  - id: SYM-cli-impact-createCoverageDepthQualityDiagnostics
+    title: createCoverageDepthQualityDiagnostics
+    sourceFile: packages/cli/src/public/impact/coverage-depth-quality.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+  - id: SYM-cli-impact-hasBlockingQualityDiagnostics
+    title: hasBlockingQualityDiagnostics
+    sourceFile: packages/cli/src/public/impact/diagnostics.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-quality-diagnostics-contract
+  - id: SYM-cli-impact-SymbolMetadata
+    title: SymbolMetadata
+    sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-symbol-quality-diagnostics
+  - id: SYM-cli-impact-AGGREGATE_KINDS
+    title: AGGREGATE_KINDS
+    sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-symbol-quality-diagnostics
+  - id: SYM-cli-impact-collectSymbols
+    title: collectSymbols
+    sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-symbol-quality-diagnostics
+  - id: SYM-cli-impact-isModuleOrConfig
+    title: isModuleOrConfig
+    sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-symbol-quality-diagnostics
+  - id: SYM-cli-impact-narrowerManifestSymbols
+    title: narrowerManifestSymbols
+    sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-symbol-quality-diagnostics
+  - id: SYM-cli-impact-narrowerExtractedSymbols
+    title: narrowerExtractedSymbols
+    sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-symbol-quality-diagnostics
+  - id: SYM-cli-impact-RequirementQualityDiagnosticsOptions
+    title: RequirementQualityDiagnosticsOptions
+    sourceFile: packages/cli/src/public/impact/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-requirement-quality-diagnostics
+  - id: SYM-cli-TestVerificationFields
+    title: TestVerificationFields
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+  - id: SYM-cli-TestEntity
+    title: TestEntity
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+  - id: SYM-markdown-detectEmbeddedEntities
+    title: detectEmbeddedEntities
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 391
+    sourceColumn: 16
+    sourceEndLine: 445
+    sourceEndColumn: 1
+  - id: SYM-markdown-ExtractedRelationship
+    title: ExtractedRelationship
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 98
+    sourceColumn: 17
+    sourceEndLine: 102
+    sourceEndColumn: 1
+  - id: SYM-markdown-extractFromMarkdown
+    title: extractFromMarkdown
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 735
+    sourceColumn: 16
+    sourceEndLine: 748
+    sourceEndColumn: 1
+  - id: SYM-markdown-extractFromMarkdownString
+    title: extractFromMarkdownString
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 727
+    sourceColumn: 16
+    sourceEndLine: 732
+    sourceEndColumn: 1
+  - id: SYM-markdown-ExtractionResult
+    title: ExtractionResult
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 104
+    sourceColumn: 17
+    sourceEndLine: 108
+    sourceEndColumn: 1
+  - id: SYM-markdown-FrontmatterError-classification
+    title: FrontmatterError.classification
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 296
+    sourceColumn: 9
+    sourceEndLine: 296
+    sourceEndColumn: 32
+  - id: SYM-markdown-FrontmatterError-hint
+    title: FrontmatterError.hint
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 297
+    sourceColumn: 9
+    sourceEndLine: 297
+    sourceEndColumn: 22
+  - id: SYM-markdown-FrontmatterError-originalError
+    title: FrontmatterError.originalError
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 298
+    sourceColumn: 9
+    sourceEndLine: 298
+    sourceEndColumn: 32
+  - id: SYM-markdown-FrontmatterError-toString
+    title: FrontmatterError.toString
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 319
+    sourceColumn: 11
+    sourceEndLine: 328
+    sourceEndColumn: 3
+  - id: SYM-markdown-FrontmatterError
+    title: FrontmatterError
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 295
+    sourceColumn: 13
+    sourceEndLine: 329
+    sourceEndColumn: 1
+  - id: SYM-markdown-inferTypeFromPath
+    title: inferTypeFromPath
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 750
+    sourceColumn: 16
+    sourceEndLine: 759
+    sourceEndColumn: 1
+  - id: SYM-markdown-normalizeDateLike
+    title: normalizeDateLike
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 768
+    sourceColumn: 16
+    sourceEndLine: 776
+    sourceEndColumn: 1
+  - id: SYM-cli-ADR
+    title: ADR
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+    sourceLine: 77
+    sourceColumn: 12
+    sourceEndLine: 77
+    sourceEndColumn: 47
+  - id: SYM-cli-BaseEntity
+    title: BaseEntity
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+    sourceLine: 19
+    sourceColumn: 17
+    sourceEndLine: 32
+    sourceEndColumn: 1
+  - id: SYM-cli-Entity
+    title: Entity
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+    sourceLine: 83
+    sourceColumn: 12
+    sourceEndLine: 91
+    sourceEndColumn: 9
+  - id: SYM-cli-Event
+    title: Event
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+    sourceLine: 79
+    sourceColumn: 12
+    sourceEndLine: 79
+    sourceEndColumn: 51
+  - id: SYM-cli-Fact
+    title: Fact
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+    sourceLine: 81
+    sourceColumn: 12
+    sourceEndLine: 81
+    sourceEndColumn: 62
+  - id: SYM-cli-FactFields
+    title: FactFields
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+    sourceLine: 35
+    sourceColumn: 17
+    sourceEndLine: 67
+    sourceEndColumn: 1
+  - id: SYM-cli-Flag
+    title: Flag
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+    sourceLine: 78
+    sourceColumn: 12
+    sourceEndLine: 78
+    sourceEndColumn: 49
+  - id: SYM-cli-Requirement
+    title: Requirement
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+    sourceLine: 74
+    sourceColumn: 12
+    sourceEndLine: 74
+    sourceEndColumn: 55
+  - id: SYM-cli-Scenario
+    title: Scenario
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+    sourceLine: 75
+    sourceColumn: 12
+    sourceEndLine: 75
+    sourceEndColumn: 57
+  - id: SYM-cli-Symbol
+    title: Symbol
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+    sourceLine: 80
+    sourceColumn: 12
+    sourceEndLine: 80
+    sourceEndColumn: 53
+  - id: SYM-cli-test-makeQualitySymbolResult
+    title: makeQualitySymbolResult
+    sourceFile: packages/cli/tests/traceability/impact-symbol-quality-fixtures.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-cli-symbol-quality-diagnostics
+  - id: SYM-cli-test-makeRequirementResult
+    title: makeRequirementResult
+    sourceFile: packages/cli/tests/traceability/impact-symbol-quality-fixtures.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-cli-symbol-quality-diagnostics

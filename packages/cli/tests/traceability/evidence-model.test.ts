@@ -69,6 +69,8 @@ describe("evidence-model", () => {
       {
         id: "kibi_impact_evidence_missing",
         severity: "error",
+        blocking: true,
+        category: "fact",
         files: ["packages/cli/src/traceability/check.ts"],
         docs: [KIBI_ENTITY_SCHEMA_DOC],
         message:
@@ -91,6 +93,8 @@ describe("evidence-model", () => {
     expect(collectStagedKibiDiagnostics(evidence)).toContainEqual({
       id: "symbols_manifest_stale",
       severity: "error",
+      blocking: true,
+      category: "symbol",
       files: [
         KIBI_SYMBOL_COORDINATES_PATH,
         "packages/cli/src/traceability/check.ts",
@@ -115,6 +119,8 @@ describe("evidence-model", () => {
     expect(collectStagedKibiDiagnostics(evidence)).toContainEqual({
       id: "symbols_manifest_stale",
       severity: "error",
+      blocking: true,
+      category: "symbol",
       files: [
         KIBI_SYMBOL_COORDINATES_PATH,
         "packages/cli/src/traceability/check.ts",
@@ -152,6 +158,8 @@ describe("evidence-model", () => {
       {
         id: "kibi_impact_override_missing_rationale",
         severity: "error",
+        blocking: true,
+        category: "fact",
         files: [
           "documentation/facts/FACT-kibi-impact-none.md",
           "packages/cli/src/traceability/comments.ts",
@@ -210,6 +218,8 @@ describe("evidence-model", () => {
     expect(collectStagedKibiDiagnostics(evidence)).toContainEqual({
       id: "kibi_impact_evidence_missing",
       severity: "error",
+      blocking: true,
+      category: "fact",
       files: ["packages/cli/src/traceability/check.ts"],
       docs: [KIBI_ENTITY_SCHEMA_DOC],
       message:

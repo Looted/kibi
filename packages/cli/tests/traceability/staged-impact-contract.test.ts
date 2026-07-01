@@ -341,6 +341,8 @@ describe("staged diagnostics: kibi_impact_evidence_missing contract", () => {
     expect(diagnostics).toContainEqual({
       id: "kibi_impact_evidence_missing",
       severity: "error",
+      blocking: true,
+      category: "fact",
       files: ["packages/cli/src/traceability/check.ts"],
       docs: [KIBI_ENTITY_SCHEMA_DOC],
       message: expect.stringContaining(
@@ -516,6 +518,8 @@ describe("staged diagnostics: kibi_impact_evidence_missing contract", () => {
     expect(diagnostics).toContainEqual({
       id: "kibi_impact_evidence_missing",
       severity: "error",
+      blocking: true,
+      category: "fact",
       files: [uncovered],
       docs: [KIBI_ENTITY_SCHEMA_DOC],
       message: expect.stringContaining(uncovered),

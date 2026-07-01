@@ -13,6 +13,7 @@ import {
   isTraceabilityRelationshipType,
 } from "../symbol-granularity.js";
 import type {
+  QualityDiagnostic,
   SemanticReviewDiagnosticsOptions,
   SymbolGranularityDiagnosticsOptions,
 } from "./types.js";
@@ -138,6 +139,8 @@ export function createSymbolGranularityDiagnostics(
     diagnostics.push({
       id: "symbol_granularity_violation",
       severity: "error",
+      blocking: true,
+      category: "symbol",
       files: [result.entity.source, result.sourceFile],
       docs: ["docs/symbol-traceability-taxonomy.md"],
       message: `Symbol ${result.entity.id} links ${result.sourceFile} coarsely while granular symbols are available (behavioral only): ${behavioralNames.join(", ")}`,
@@ -161,6 +164,8 @@ export function createSemanticReviewDiagnostics(
       diagnostics.push({
         id: "symbol_semantic_review_needed",
         severity: "warning",
+        blocking: false,
+        category: "symbol",
         files: [symbol.location.file],
         docs: ["docs/symbol-traceability-taxonomy.md"],
         message: `Changed behavioral symbol ${symbol.name} needs semantic review against linked Kibi coverage: ${linkedTargets}`,
@@ -175,5 +180,13 @@ export function createSemanticReviewDiagnostics(
 export function hasBlockingImpactDiagnostics(
   diagnostics: readonly KibiImpactDiagnostic[],
 ): boolean {
-  return diagnostics.some((diagnostic) => diagnostic.severity === "error");
+  return hasBlockingQualityDiagnostics(diagnostics);
+}
+
+export function hasBlockingQualityDiagnostics(
+  diagnostics: readonly QualityDiagnostic[],
+): boolean {
+  return diagnostics.some(
+    (diagnostic) => diagnostic.blocking || diagnostic.severity === "error",
+  );
 }
