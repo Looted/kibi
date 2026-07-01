@@ -47,6 +47,12 @@ Impact diagnostics intentionally separate graph shape from semantic truth. A cha
 
 Run MCP `kb_check({sourceFiles:[...], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})` while the edit context is fresh. Treat CLI `kibi check --staged` and git hooks as the later hard fallback for missing impact evidence, stale symbol coordinates, and granularity violations.
 
+## Audit quality diagnostics
+
+Kibi separates blocking traceability enforcement from advisory audit diagnostics. Hard graph/schema/staged failures stay in `violations[]`; quality findings such as `multi_requirement_symbol_review`, `duplicate_symbol_coordinate_review`, `component_mixed_purpose_review`, `broad_requirement_review`, `coverage_depth_review`, `requirement_status_review`, and `strict_fact_modeling_review` appear in `qualityDiagnostics[]` and are non-blocking unless a diagnostic explicitly carries `blocking: true` or `severity: "error"`.
+
+Use these diagnostics as review prompts, not as proof of incorrectness. A multi-requirement or mixed-purpose symbol may be legitimate, but it should have a narrow behavioral anchor, an explicit `granularity_reason`, or a split requirement/symbol model that explains why one symbol owns several outcomes. OpenCode scheduled checks and normal CLI/MCP checks surface the same advisory lane automatically so agents see modeling drift without adding a separate audit command.
+
 ### Production runtime symbols
 
 Shipped code that executes product behavior: handlers, services, commands, UI actions, adapters, event publishers/consumers, and other runtime code.

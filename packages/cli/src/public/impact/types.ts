@@ -3,6 +3,30 @@ import type { HunkRange, StagedFile } from "../../traceability/git-staged.js";
 import type { KibiImpactDiagnostic } from "../../traceability/staged-diagnostics.js";
 import type { ExtractedSymbol } from "../../traceability/symbol-extract.js";
 
+export type QualityDiagnosticSeverity = "error" | "warning" | "review" | "info";
+
+export type QualityDiagnostic = {
+  readonly id: string;
+  readonly severity: QualityDiagnosticSeverity;
+  readonly blocking: boolean;
+  readonly category:
+    | "symbol"
+    | "requirement"
+    | "coverage"
+    | "fact"
+    | "status"
+    | "coordinate"
+    | "mixed-purpose"
+    | string;
+  readonly entityId?: string;
+  readonly source?: string;
+  readonly files?: readonly string[];
+  readonly docs?: readonly string[];
+  readonly message: string;
+  readonly suggestion: string;
+  readonly evidence?: Readonly<Record<string, unknown>>;
+};
+
 export type SymbolsByFile = Map<string, readonly ExtractedSymbol[]>;
 
 export type TraceabilityRelationship = {
@@ -20,6 +44,17 @@ export type SymbolGranularityDiagnosticsOptions = {
 
 export type SemanticReviewDiagnosticsOptions = {
   readonly symbolsByFile: SymbolsByFile;
+};
+
+export type SymbolQualityDiagnosticsOptions = {
+  readonly manifestResults: readonly ExtractionResult[];
+  readonly activeEntityIds?: ReadonlySet<string>;
+  readonly symbolsByFile: SymbolsByFile;
+};
+
+export type RequirementQualityDiagnosticsOptions = {
+  readonly manifestResults: readonly ExtractionResult[];
+  readonly hardViolationEntityIds?: ReadonlySet<string>;
 };
 
 export type ChangedFileImpactOptions = {

@@ -17,6 +17,7 @@ import type { Violation } from "kibi-cli/public/check-types";
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import type { ChangedFileImpactResult } from "kibi-cli/public/impact-diagnostics";
+import type { QualityDiagnostic } from "kibi-cli/public/impact-diagnostics";
 import type { CheckResult, Diagnostic } from "./check-types.js";
 
 function formatDiagnosticsForMcp(diagnostics: readonly Diagnostic[]) {
@@ -46,15 +47,59 @@ export function formatImpactText(
   return `${impactResult.impactDiagnostics.length} impact diagnostics found\n${details.join("\n")}`;
 }
 
+function formatOptionalList(label: string, values: readonly string[] | undefined) {
+  if (values === undefined || values.length === 0) {
+    return [];
+  }
+
+  return [`${label}: ${values.join(", ")}`];
+}
+
+export function formatQualityDiagnosticsText(
+  diagnostics: readonly QualityDiagnostic[],
+): string {
+  if (diagnostics.length === 0) {
+    return "No quality diagnostics found";
+  }
+
+  const details = diagnostics.map((diagnostic) => {
+    const parts = [
+      diagnostic.id,
+      diagnostic.severity,
+      diagnostic.category,
+      diagnostic.message,
+    ];
+    const metadata = [
+      `Blocking: ${diagnostic.blocking ? "yes" : "no"}`,
+      ...formatOptionalList("Files", diagnostic.files),
+      ...formatOptionalList("Docs", diagnostic.docs),
+      ...(diagnostic.entityId !== undefined
+        ? [`Entity: ${diagnostic.entityId}`]
+        : []),
+      ...(diagnostic.source !== undefined ? [`Source: ${diagnostic.source}`] : []),
+      `Suggestion: ${diagnostic.suggestion}`,
+    ];
+
+    return `- ${parts.join(" | ")}\n  ${metadata.join("\n  ")}`;
+  });
+
+  return `${diagnostics.length} quality diagnostic${diagnostics.length === 1 ? "" : "s"} found\n${details.join("\n")}`;
+}
+
 export function buildStructuredContent(input: {
   violations: readonly Violation[];
   diagnostics: readonly Diagnostic[];
+  qualityDiagnostics?: readonly QualityDiagnostic[];
   impactResult: ChangedFileImpactResult | undefined;
 }): NonNullable<CheckResult["structuredContent"]> {
+  const qualityDiagnostics = input.qualityDiagnostics ?? [];
   return {
     violations: [...input.violations],
     count: input.violations.length,
     diagnostics: formatDiagnosticsForMcp(input.diagnostics),
+    ...(qualityDiagnostics.length > 0
+      ? { qualityDiagnostics: [...qualityDiagnostics] }
+      : {}),
     ...(input.impactResult
       ? {
           impactDiagnostics: input.impactResult.impactDiagnostics,

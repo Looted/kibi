@@ -29,6 +29,8 @@ type FactKind =
 type Operator = "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
 type ValueType = "string" | "int" | "number" | "bool";
 type Polarity = "require" | "forbid" | "assert" | "deny";
+type VerificationScope = "unit" | "integration" | "end_to_end";
+type VerificationPerspective = "internal" | "consumer";
 
 const factConditionals = JSON.parse(`[
   {
@@ -133,6 +135,14 @@ const entitySchema: Record<string, unknown> = {
       type: "string",
       enum: [...SYMBOL_ROLES] satisfies SymbolRole[],
     },
+    verification_scope: {
+      type: "string",
+      enum: ["unit", "integration", "end_to_end"] satisfies VerificationScope[],
+    },
+    verification_perspective: {
+      type: "string",
+      enum: ["internal", "consumer"] satisfies VerificationPerspective[],
+    },
     type: {
       type: "string",
       enum: [
@@ -231,6 +241,19 @@ const entitySchema: Record<string, unknown> = {
             { required: ["aliases"] },
             { required: ["examples"] },
             { required: ["predicate_args"] },
+          ],
+        },
+      },
+    },
+    {
+      if: {
+        properties: { type: { const: "test" } },
+      },
+      else: {
+        not: {
+          anyOf: [
+            { required: ["verification_scope"] },
+            { required: ["verification_perspective"] },
           ],
         },
       },

@@ -5,6 +5,7 @@ import {
   createSemanticReviewDiagnostics,
   createSymbolGranularityDiagnostics,
 } from "./diagnostics.js";
+import { createSymbolQualityDiagnostics } from "./symbol-quality.js";
 import {
   createImpactManifestLookup,
   readImpactManifestResults,
@@ -62,6 +63,10 @@ export function analyzeChangedFileImpact(
             symbolsByFile,
             sourceContentByFile,
             workspaceRoot,
+          }),
+          ...createSymbolQualityDiagnostics({
+            manifestResults: activeManifestResults,
+            symbolsByFile,
           }),
           ...createSemanticReviewDiagnostics({ symbolsByFile }),
         ];

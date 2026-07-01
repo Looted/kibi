@@ -7,22 +7,29 @@ import {
   getMissingBehaviorSourcePaths,
   hasOverrideRationale,
 } from "./evidence-model.js";
+import type { QualityDiagnostic } from "../public/impact/types.js";
 
 export type KibiImpactDiagnosticId =
   | "kibi_impact_evidence_missing"
   | "symbols_manifest_stale"
   | "symbol_granularity_violation"
   | "symbol_semantic_review_needed"
+  | "multi_requirement_symbol_review"
+  | "duplicate_symbol_coordinate_review"
+  | "component_mixed_purpose_review"
+  | "broad_requirement_review"
+  | "requirement_status_review"
+  | "strict_fact_modeling_review"
   | "kibi_impact_override_missing_rationale";
 
-export interface KibiImpactDiagnostic {
+export interface KibiImpactDiagnostic extends QualityDiagnostic {
   /** Stable staged-enforcement diagnostic identifier. */
   id: KibiImpactDiagnosticId;
-  severity: "error" | "warning";
+  category: QualityDiagnostic["category"];
   /** Repo-relative files that explain why the diagnostic fired. */
-  files: string[];
+  files: readonly string[];
   /** User-facing docs that explain the policy. */
-  docs: string[];
+  docs: readonly string[];
   /** Exact CLI-facing diagnostic message. */
   message: string;
   /** Deterministic remediation guidance. */
@@ -39,6 +46,8 @@ function createMissingEvidenceDiagnostic(
   return {
     id: "kibi_impact_evidence_missing",
     severity: "error",
+    blocking: true,
+    category: "fact",
     files: [...paths],
     docs: [KIBI_ENTITY_SCHEMA_DOC],
     message: `Behavior-changing staged files are missing Kibi impact evidence (see ${KIBI_ENTITY_SCHEMA_DOC}): ${formatFileList(paths)}`,
@@ -52,6 +61,8 @@ function createSymbolsManifestStaleDiagnostic(
   return {
     id: "symbols_manifest_stale",
     severity: "error",
+    blocking: true,
+    category: "symbol",
     files: [KIBI_SYMBOL_COORDINATES_PATH, ...paths],
     docs: [KIBI_ENTITY_SCHEMA_DOC],
     message: `${KIBI_SYMBOL_COORDINATES_PATH} is stale or missing for staged source files: ${formatFileList(paths)}`,
@@ -73,6 +84,8 @@ function createMissingOverrideRationaleDiagnostic(
   return {
     id: "kibi_impact_override_missing_rationale",
     severity: "error",
+    blocking: true,
+    category: "fact",
     files: [evidence.mode.override.path, ...paths],
     docs: [KIBI_ENTITY_SCHEMA_DOC],
     message: `Kibi-Impact: none override is missing rationale for staged source files: ${formatFileList(paths)}`,

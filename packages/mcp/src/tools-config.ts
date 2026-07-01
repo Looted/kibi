@@ -466,6 +466,18 @@ const BASE_TOOLS = [
               description:
                 "Optional role classification for symbol entities. Example: 'behavioral'.",
             },
+            verification_scope: {
+              type: "string",
+              enum: ["unit", "integration", "end_to_end"],
+              description:
+                "Optional typed verification scope for test entities. Example: 'end_to_end'.",
+            },
+            verification_perspective: {
+              type: "string",
+              enum: ["internal", "consumer"],
+              description:
+                "Optional typed verification perspective for test entities. Example: 'consumer'.",
+            },
             fact_kind: {
               type: "string",
               enum: [

@@ -68,6 +68,12 @@ export interface ExtractedEntity {
   severity?: string;
   text_ref?: string;
   granularity_reason?: string;
+  symbol_kind?: string;
+  symbol_role?: string;
+  sourceLine?: number;
+  sourceColumn?: number;
+  sourceEndLine?: number;
+  sourceEndColumn?: number;
   verification_scope?: "unit" | "integration" | "end_to_end";
   verification_perspective?: "internal" | "consumer";
   // Typed fact fields - only present when type === 'fact'

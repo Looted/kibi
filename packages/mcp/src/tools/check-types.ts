@@ -17,6 +17,7 @@ import type { Violation } from "kibi-cli/public/check-types";
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import type { ChangedFileImpactResult } from "kibi-cli/public/impact-diagnostics";
+import type { QualityDiagnostic } from "kibi-cli/public/impact-diagnostics";
 
 export interface CheckArgs {
   rules?: string[];
@@ -38,17 +39,18 @@ export interface Diagnostic {
 
 export interface CheckResult {
   content: Array<{ type: string; text: string }>;
-  structuredContent?: {
-    violations: Violation[];
-    count: number;
+	structuredContent?: {
+		violations: Violation[];
+		count: number;
     diagnostics: Array<{
       category: string;
       severity: string;
       message: string;
       file?: string;
-      suggestion?: string;
-    }>;
-    impactDiagnostics?: ChangedFileImpactResult["impactDiagnostics"];
+			suggestion?: string;
+		}>;
+		qualityDiagnostics?: QualityDiagnostic[];
+		impactDiagnostics?: ChangedFileImpactResult["impactDiagnostics"];
     sourceFiles?: ChangedFileImpactResult["sourceFiles"];
     extractedSymbols?: ChangedFileImpactResult["extractedSymbols"];
     linkedEntities?: ChangedFileImpactResult["linkedEntities"];

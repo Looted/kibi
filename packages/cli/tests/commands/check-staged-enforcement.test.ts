@@ -215,6 +215,54 @@ function createUnlinkedSymbolFixture(): FileMap {
   };
 }
 
+function createMultiRequirementSymbolFixture(): FileMap {
+  return {
+    "documentation/requirements/REQ-MULTI-001.md": `---
+id: REQ-MULTI-001
+title: Multi requirement one
+status: open
+---
+
+# Multi requirement one
+`,
+    "documentation/requirements/REQ-MULTI-002.md": `---
+id: REQ-MULTI-002
+title: Multi requirement two
+status: open
+---
+
+# Multi requirement two
+`,
+    "documentation/requirements/REQ-MULTI-003.md": `---
+id: REQ-MULTI-003
+title: Multi requirement three
+status: open
+---
+
+# Multi requirement three
+`,
+    "documentation/symbols.yaml": `symbols:
+  - id: SYM-MULTI-001
+    title: multiAction
+    sourceFile: src/multi.ts
+    status: active
+    symbol_kind: function
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-MULTI-001
+      - type: implements
+        target: REQ-MULTI-002
+      - type: implements
+        target: REQ-MULTI-003
+`,
+    "src/multi.ts": `export function multiAction() {
+  return "initial";
+}
+`,
+  };
+}
+
 function createCoarseSymbolFixture(reason?: string): FileMap {
   const reasonLine = reason ? `    granularity_reason: ${reason}\n` : "";
   return {
@@ -397,6 +445,35 @@ describe("kibi check --staged impact enforcement", () => {
       rmSync(tmpDir, { recursive: true, force: true });
     }
   });
+
+  test(
+    "prints advisory quality diagnostics for staged symbols without failing",
+    async () => {
+      writeFiles(tmpDir, {
+        "README.md": "# Initial\n",
+      });
+      commitAll(tmpDir, "initial");
+
+      writeFiles(tmpDir, createMultiRequirementSymbolFixture());
+      execSync("git add documentation/requirements documentation/symbols.yaml", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--staged"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+      expect(status).toBe(0);
+      expect(output).toContain("multi_requirement_symbol_review");
+      expect(output).toContain("SYM-MULTI-001");
+      expect(output).not.toContain("kibi_impact_evidence_missing");
+    },
+    TEST_TIMEOUT_MS,
+  );
 
   test(
     "fails behavior edits without staged Kibi evidence",

@@ -218,6 +218,7 @@ program
     "1",
   )
   .option("--dry-run", "Do not modify files; only print what would happen")
+  .option("--format <format>", "Output format: text|json", "text")
   .action(
     withExitCode(async (options: Parameters<typeof checkCommand>[0]) => {
       return checkCommand(options);

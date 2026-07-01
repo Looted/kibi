@@ -97,6 +97,18 @@ test("kb_upsert schema advertises typed fact fields", () => {
   expect(entityProperties.value_bool).toBeDefined();
 });
 
+test("kb_upsert schema advertises typed test verification fields", () => {
+  const upsert = TOOLS.find((tool) => tool.name === "kb_upsert");
+  expect(upsert).toBeDefined();
+  const inputSchema = objectRecord(upsert?.inputSchema);
+  const rootProperties = objectRecord(inputSchema.properties);
+  const propertiesSchema = objectRecord(rootProperties.properties);
+  const entityProperties = objectRecord(propertiesSchema.properties);
+
+  expect(entityProperties.verification_scope).toBeDefined();
+  expect(entityProperties.verification_perspective).toBeDefined();
+});
+
 test("kb_semantic_advisor schema accepts prose without mutation fields", () => {
   const advisor = TOOLS.find((tool) => tool.name === "kb_semantic_advisor");
   expect(advisor).toBeDefined();
