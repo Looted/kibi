@@ -182,7 +182,7 @@ Never fire `kb_upsert` calls in parallel. Execute them sequentially to avoid loc
 
 ## Targeted and Final Checks
 
-Run `kb_check` with specific rules during iteration for fast feedback. For example, use `rules: ["required-fields", "no-dangling-refs"]` after small changes. Run a full `kb_check` without rule filters before declaring work complete.
+Run `kb_check` with specific rules during iteration for fast feedback. For example, use `rules: ["required-fields", "no-dangling-refs"]` after small changes. Supplying `rules` preserves that scoped validation and skips the full-KB advisory scan. Run a full `kb_check` without rule filters before declaring work complete so `qualityDiagnostics[]` includes the full-KB audit-quality review.
 
 For meaningful source edits, run impact diagnostics while the edit context is fresh: `kb_check({sourceFiles:["src/changed-file.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})`. Review `symbol_granularity_violation` as a hard ownership-shape problem and `symbol_semantic_review_needed` as an advisory prompt to inspect whether linked requirements, scenarios, and tests still match the changed behavior or UI copy.
 
@@ -205,7 +205,7 @@ Call `kb_status` when you suspect the branch KB is stale or when switching conte
 | Bug-as-flag | `flag` misused for defect tracking | Use `fact` with `fact_kind: observation` or `meta` |
 | Parallel upserts | Lock contention and nondeterminism | Execute `kb_upsert` calls sequentially |
 | Embedded scenarios in reqs | Violates canonical traceability chain | Create separate `req`, `scen`, and `test` entities |
-| Missing `kb_check` | Undetected dangling refs and violations | Run targeted checks during work, full check at completion |
+| Missing `kb_check` | Undetected dangling refs, violations, and full-KB quality diagnostics | Run targeted checks during work, full unfiltered check at completion |
 | Tags as multi-ID lookup | Tags are metadata, not identifiers | Use `kb_query` with explicit `id` values |
 | `relates_to` for strict modeling | Loses contradiction safety | Use `constrains` and `requires_property` instead |
 | `status: implemented` on requirements | Not a valid lifecycle status | Use a valid status such as `closed`, add an `implemented` tag, and link evidence instead |
