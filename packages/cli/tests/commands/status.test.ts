@@ -169,7 +169,12 @@ status: open
       );
 
       writeFileSync(
-        path.join(readmeDir, "documentation", "requirements", "REQ-README-001.md"),
+        path.join(
+          readmeDir,
+          "documentation",
+          "requirements",
+          "REQ-README-001.md",
+        ),
         `---
 id: REQ-README-001
 title: README status freshness
