@@ -1,10 +1,4 @@
-import {
-  describe,
-  expect,
-  it,
-  afterEach,
-  beforeEach,
-} from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { execSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -95,7 +89,10 @@ describe("collectSourceChanges", () => {
 
     try {
       mkdirSync(join(repoDir, "src"), { recursive: true });
-      writeFileSync(join(repoDir, "src", "tracked.ts"), "export const value = 1;\n");
+      writeFileSync(
+        join(repoDir, "src", "tracked.ts"),
+        "export const value = 1;\n",
+      );
       writeFileSync(join(repoDir, "src", "notes.md"), "tracked note\n");
       execSync("git add src/tracked.ts src/notes.md", {
         cwd: repoDir,
@@ -106,8 +103,14 @@ describe("collectSourceChanges", () => {
         stdio: "pipe",
       });
 
-      writeFileSync(join(repoDir, "src", "tracked.ts"), "export const value = 1;\nexport const next = 2;\n");
-      writeFileSync(join(repoDir, "src", "notes.md"), "tracked note\nupdated\n");
+      writeFileSync(
+        join(repoDir, "src", "tracked.ts"),
+        "export const value = 1;\nexport const next = 2;\n",
+      );
+      writeFileSync(
+        join(repoDir, "src", "notes.md"),
+        "tracked note\nupdated\n",
+      );
 
       const result = collectSourceChanges({
         workspaceRoot: repoDir,
@@ -161,7 +164,10 @@ describe("collectSourceChanges", () => {
 
     try {
       mkdirSync(join(repoDir, "src"), { recursive: true });
-      writeFileSync(join(repoDir, "src", "tracked.ts"), "export const value = 1;\n");
+      writeFileSync(
+        join(repoDir, "src", "tracked.ts"),
+        "export const value = 1;\n",
+      );
 
       const result = collectSourceChanges({
         workspaceRoot: repoDir,

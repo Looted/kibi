@@ -5,7 +5,6 @@ import {
   createSemanticReviewDiagnostics,
   createSymbolGranularityDiagnostics,
 } from "./diagnostics.js";
-import { createSymbolQualityDiagnostics } from "./symbol-quality.js";
 import {
   createImpactManifestLookup,
   readImpactManifestResults,
@@ -16,6 +15,7 @@ import {
   collectLinkedEntities,
   formatExtractedSymbols,
 } from "./summaries.js";
+import { createSymbolQualityDiagnostics } from "./symbol-quality.js";
 import type {
   ChangedFileImpactOptions,
   ChangedFileImpactResult,

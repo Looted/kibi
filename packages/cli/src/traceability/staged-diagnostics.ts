@@ -1,3 +1,4 @@
+import type { QualityDiagnostic } from "../public/impact/types.js";
 import {
   KIBI_ENTITY_SCHEMA_DOC,
   KIBI_SYMBOLS_MANIFEST_PATH,
@@ -7,7 +8,6 @@ import {
   getMissingBehaviorSourcePaths,
   hasOverrideRationale,
 } from "./evidence-model.js";
-import type { QualityDiagnostic } from "../public/impact/types.js";
 
 export type KibiImpactDiagnosticId =
   | "kibi_impact_evidence_missing"
