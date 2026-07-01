@@ -190,5 +190,4 @@ describe("MCP check aggregated path", () => {
     expect(result.content[0]?.text).toContain("REQ-DOMAIN-CLOSED-001");
     expect(result.content[0]?.text).toContain("timeout_minutes");
   });
-
 });

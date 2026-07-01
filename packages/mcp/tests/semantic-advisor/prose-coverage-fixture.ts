@@ -3,7 +3,8 @@ import type { ProseCoverageCase } from "../../src/semantic-advisor/prose-coverag
 export const PROSE_COVERAGE_CORPUS: ProseCoverageCase[] = [
   {
     id: "align-annotation-timekey-slot-precision",
-    source: "/home/looted/projects/align/docs/requirements/annotation-timekey.md",
+    source:
+      "/home/looted/projects/align/docs/requirements/annotation-timekey.md",
     text: "Raw browser currentTime values must normalize into canonical integer decisecond timeKey values.",
     expected: {
       kind: "strict_property",
@@ -13,7 +14,8 @@ export const PROSE_COVERAGE_CORPUS: ProseCoverageCase[] = [
   },
   {
     id: "align-annotation-timekey-merge-policy",
-    source: "/home/looted/projects/align/docs/facts/FACT-ANNOTATION-TIMEKEY-MERGE-POLICY.md",
+    source:
+      "/home/looted/projects/align/docs/facts/FACT-ANNOTATION-TIMEKEY-MERGE-POLICY.md",
     text: "Drawing, text, and voice data saved in the same tenth-second slot must merge into one annotation instead of creating multiple selectable annotations.",
     expected: {
       kind: "predicate",
