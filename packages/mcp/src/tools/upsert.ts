@@ -454,7 +454,9 @@ export async function handleKbUpsert(
         ...(type === "req"
           ? {
               contradictionCheck: {
-                outcome: args._skipContradictionCheck ? "skipped" : "no-conflict",
+                outcome: args._skipContradictionCheck
+                  ? "skipped"
+                  : "no-conflict",
                 checked_req_id: entity.id as string,
                 strict_readiness:
                   semanticAdvisor.receipt.logic_readiness === "modeled"

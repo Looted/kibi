@@ -3421,6 +3421,7 @@ symbols:
   - id: SYM-handleKbUpsert
     title: handleKbUpsert
     sourceFile: packages/mcp/src/tools/upsert.ts
+    granularity_reason: legacy-link
     symbol_role: behavioral
     text_ref: packages/mcp/src/tools/upsert.ts#handleKbUpsert
     links:
