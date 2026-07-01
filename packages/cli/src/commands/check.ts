@@ -328,7 +328,9 @@ function formatStagedKibiDiagnostics(
     .join("\n\n");
 }
 
-function formatQualityDiagnostics(diagnostics: readonly QualityDiagnostic[]): string {
+function formatQualityDiagnostics(
+  diagnostics: readonly QualityDiagnostic[],
+): string {
   if (diagnostics.length === 0) {
     return "";
   }
@@ -886,7 +888,9 @@ export async function checkCommand(
     }
     const qualityDiagnostics = await collectFullKbQualityDiagnostics({
       prolog: activeProlog,
-      hardViolationEntityIds: new Set(violations.map((violation) => violation.entityId)),
+      hardViolationEntityIds: new Set(
+        violations.map((violation) => violation.entityId),
+      ),
     });
     if (options.format === "json") {
       printStructuredCheckResult({ violations, qualityDiagnostics });

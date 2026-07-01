@@ -12,42 +12,42 @@ import {
 } from "../../src/traceability/staged-impact-contract";
 
 describe("staged impact contract", () => {
-	it("keeps advisory quality diagnostics non-blocking while honoring explicit blockers", () => {
-		const advisoryDiagnostics: readonly QualityDiagnostic[] = [
-			{
-				id: "broad_requirement_review",
-				severity: "review",
-				blocking: false,
-				category: "requirement",
-				message: "Requirement spans multiple outcomes.",
-				suggestion: "Split the requirement before adding more traceability.",
-			},
-			{
-				id: "coverage_depth_review",
-				severity: "info",
-				blocking: false,
-				category: "coverage",
-				message: "Coverage is unit-only.",
-				suggestion: "Consider end-to-end coverage for user-visible behavior.",
-			},
-		];
-		const blockingDiagnostics: readonly QualityDiagnostic[] = [
-			...advisoryDiagnostics,
-			{
-				id: "symbol_granularity_violation",
-				severity: "review",
-				blocking: true,
-				category: "symbol",
-				message: "Existing staged symbol granularity violation blocks.",
-				suggestion: "Move ownership to the narrower behavioral symbol.",
-			},
-		];
+  it("keeps advisory quality diagnostics non-blocking while honoring explicit blockers", () => {
+    const advisoryDiagnostics: readonly QualityDiagnostic[] = [
+      {
+        id: "broad_requirement_review",
+        severity: "review",
+        blocking: false,
+        category: "requirement",
+        message: "Requirement spans multiple outcomes.",
+        suggestion: "Split the requirement before adding more traceability.",
+      },
+      {
+        id: "coverage_depth_review",
+        severity: "info",
+        blocking: false,
+        category: "coverage",
+        message: "Coverage is unit-only.",
+        suggestion: "Consider end-to-end coverage for user-visible behavior.",
+      },
+    ];
+    const blockingDiagnostics: readonly QualityDiagnostic[] = [
+      ...advisoryDiagnostics,
+      {
+        id: "symbol_granularity_violation",
+        severity: "review",
+        blocking: true,
+        category: "symbol",
+        message: "Existing staged symbol granularity violation blocks.",
+        suggestion: "Move ownership to the narrower behavioral symbol.",
+      },
+    ];
 
-		expect(hasBlockingQualityDiagnostics(advisoryDiagnostics)).toBe(false);
-		expect(hasBlockingQualityDiagnostics(blockingDiagnostics)).toBe(true);
-	});
+    expect(hasBlockingQualityDiagnostics(advisoryDiagnostics)).toBe(false);
+    expect(hasBlockingQualityDiagnostics(blockingDiagnostics)).toBe(true);
+  });
 
-	it("uses stable diagnostic ids and resolution steps", () => {
+  it("uses stable diagnostic ids and resolution steps", () => {
     expect(KIBI_IMPACT_DIAGNOSTIC_IDS).toEqual([
       "kibi_impact_evidence_missing",
       "symbols_manifest_stale",
