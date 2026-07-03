@@ -1,6 +1,6 @@
 import type { QualityDiagnostic } from "../public/impact/types.js";
 import {
-  KIBI_ENTITY_SCHEMA_DOC,
+  KIBI_STAGED_IMPACT_EVIDENCE_DOC,
   KIBI_SYMBOLS_MANIFEST_PATH,
   KIBI_SYMBOL_COORDINATES_PATH,
   type KibiImpactEvidence,
@@ -49,9 +49,9 @@ function createMissingEvidenceDiagnostic(
     blocking: true,
     category: "fact",
     files: [...paths],
-    docs: [KIBI_ENTITY_SCHEMA_DOC],
-    message: `Behavior-changing staged files are missing Kibi impact evidence (see ${KIBI_ENTITY_SCHEMA_DOC}): ${formatFileList(paths)}`,
-    suggestion: `Query Kibi via MCP before deciding, then stage requirement/scenario/test/fact/symbol markdown evidence, staged authored ${KIBI_SYMBOLS_MANIFEST_PATH} metadata, or refreshed ${KIBI_SYMBOL_COORDINATES_PATH}. Re-run kibi check --staged after staging the evidence.`,
+    docs: [KIBI_STAGED_IMPACT_EVIDENCE_DOC],
+    message: `Behavior-changing staged files are missing staged Kibi impact evidence (see ${KIBI_STAGED_IMPACT_EVIDENCE_DOC}): ${formatFileList(paths)}`,
+    suggestion: `Query Kibi via MCP before deciding. MCP writes update KB state but do not stage tracked evidence; also stage requirement/scenario/test/fact/symbol markdown, authored ${KIBI_SYMBOLS_MANIFEST_PATH} metadata, or refreshed ${KIBI_SYMBOL_COORDINATES_PATH}. Re-run kibi check --staged after staging tracked evidence.`,
   };
 }
 
@@ -64,7 +64,7 @@ function createSymbolsManifestStaleDiagnostic(
     blocking: true,
     category: "symbol",
     files: [KIBI_SYMBOL_COORDINATES_PATH, ...paths],
-    docs: [KIBI_ENTITY_SCHEMA_DOC],
+    docs: [KIBI_STAGED_IMPACT_EVIDENCE_DOC],
     message: `${KIBI_SYMBOL_COORDINATES_PATH} is stale or missing for staged source files: ${formatFileList(paths)}`,
     suggestion: `Run kibi sync --refresh-symbol-coordinates && git add ${KIBI_SYMBOL_COORDINATES_PATH} ${KIBI_SYMBOLS_MANIFEST_PATH}, then re-run kibi check --staged.`,
   };
@@ -87,7 +87,7 @@ function createMissingOverrideRationaleDiagnostic(
     blocking: true,
     category: "fact",
     files: [evidence.mode.override.path, ...paths],
-    docs: [KIBI_ENTITY_SCHEMA_DOC],
+    docs: [KIBI_STAGED_IMPACT_EVIDENCE_DOC],
     message: `Kibi-Impact: none override is missing rationale for staged source files: ${formatFileList(paths)}`,
     suggestion:
       "Add a non-empty rationale in the same staged override record, keep overrides limited to false positives or non-behavioral source edits, and re-run kibi check --staged.",

@@ -139,8 +139,13 @@ export function registerConfiguredTools<TProlog>(
   });
   register({
     name: "kb_validate_upsert",
-    handler: async (args) =>
-      runtime.handleKbValidateUpsert(args as unknown as UpsertArgs),
+    handler: async (args) => {
+      const prolog = await runtime.ensureProlog();
+      return runtime.handleKbValidateUpsert(
+        prolog,
+        args as unknown as UpsertArgs,
+      );
+    },
   });
   register({
     name: "kb_delete",
