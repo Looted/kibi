@@ -48,6 +48,10 @@ Call `kb_suggest_predicates` before hand-writing ontology predicates.
 
 Same-call relationship rows must start from the entity being upserted. To link `REQ-001 -> TEST-001`, create `TEST-001` first, then upsert `REQ-001` with `verified_by`.
 
+## Invalid relationship tuple
+
+`kb_validate_upsert` and `kb_upsert` reject relationship source/target type pairs that are not part of the relationship schema. For example, facts are not directly verified by tests: do not write `verified_by fact -> test` or `validates test -> fact`. Create or update a requirement, link the requirement to the fact with `constrains`, `requires_property`, or `requires_predicate`, and link the requirement or its scenario to the test with `verified_by` / `validates`.
+
 ## Strict-lane mismatch
 
 - `constrains` targets `fact_kind: subject`.

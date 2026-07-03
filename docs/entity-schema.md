@@ -596,6 +596,8 @@ relationship:
 
 `verified_by` has one frozen meaning: a requirement or scenario is verified by a test. Direct `req -> test` is fallback only when no scenario exists. Prefer `req -> scenario -> test`.
 
+Facts are not directly verified by tests. Model the behavior through a requirement: link the requirement to strict or observation facts with `constrains`, `requires_property`, or `requires_predicate`, then link the requirement or scenario to the test with `verified_by` / `validates`.
+
 **validates**
 ```yaml
 # test TEST-001 validates scenario SCEN-001
