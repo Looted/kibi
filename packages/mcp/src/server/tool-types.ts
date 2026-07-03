@@ -68,7 +68,7 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
   handleKbSkillsLoad: (args: SkillsLoadArgs) => Promise<unknown>;
   handleKbSkillsRead: (args: SkillsReadArgs) => Promise<unknown>;
   handleKbUpsert: (prolog: TProlog, args: UpsertArgs) => Promise<unknown>;
-  handleKbValidateUpsert: (args: UpsertArgs) => Promise<unknown>;
+  handleKbValidateUpsert: (prolog: TProlog, args: UpsertArgs) => Promise<unknown>;
   handleKbModelRequirement: (
     prolog: TProlog,
     args: ModelRequirementArgs,

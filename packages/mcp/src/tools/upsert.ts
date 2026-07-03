@@ -45,6 +45,11 @@ import {
   attachedBranchKbPath,
   updateAttachedBranchStamp,
 } from "../server/session.js";
+import {
+  formatInvalidRelationshipError,
+  formatRelationshipSourceMismatch,
+  validateLiveRelationshipTargets,
+} from "./relationship-validation.js";
 import { refreshCoordinatesForSymbolId } from "./symbols.js";
 
 let refreshCoordinatesForSymbolIdImpl = refreshCoordinatesForSymbolId;
@@ -317,6 +322,7 @@ export async function handleKbUpsert(
     // Validate strict-lane fact_kind pairing for constrains/requires_property
     // implements REQ-011
     await validateStrictLanePairing(prolog, effectiveRelationships);
+    await validateLiveRelationshipTargets(prolog, entity, effectiveRelationships);
 
     // Process entities
     for (const entity of entities) {
@@ -794,7 +800,7 @@ function validateRelationshipSources(
   for (const rel of relationships) {
     if (rel.from !== entityId) {
       throw new Error(
-        `Relationship source must match the upserted entity ${entityId}; received from=${String(rel.from)}`,
+        formatRelationshipSourceMismatch(entityId, rel),
       );
     }
   }
@@ -1016,6 +1022,11 @@ function formatUpsertError(
 ): string {
   if (!rawError) {
     return `Failed to upsert entity ${entityId}: Unknown error`;
+  }
+
+  const invalidRelationshipError = formatInvalidRelationshipError(rawError);
+  if (invalidRelationshipError !== null) {
+    return `Failed to upsert entity ${entityId}: ${invalidRelationshipError}`;
   }
 
   // Check for contradiction error - Prolog returns kb_contradiction([...]) term

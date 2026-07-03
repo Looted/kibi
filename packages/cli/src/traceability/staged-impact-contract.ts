@@ -94,7 +94,7 @@ export const KIBI_IMPACT_DIAGNOSTICS: Record<
     title: "Behavior edit requires staged Kibi impact evidence",
     resolution: [
       "Query Kibi via MCP first: use kb_search for discovery, then kb_query for exact follow-up.",
-      "Stage related KB entity markdown, stage authored documentation/symbols.yaml metadata, or refresh coordinates with kibi sync --refresh-symbol-coordinates and stage documentation/symbol-coordinates.yaml documentation/symbols.yaml.",
+      "MCP writes update KB state but do not stage tracked evidence; also stage related KB entity markdown, authored documentation/symbols.yaml metadata, or refreshed documentation/symbol-coordinates.yaml.",
       "Re-run or let the hook run kibi check --staged.",
     ],
   },

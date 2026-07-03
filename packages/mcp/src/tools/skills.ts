@@ -83,7 +83,7 @@ export async function handleKbSkillsLoad(
       content: [
         {
           type: "text",
-          text: `Loaded bundled skill ${bundle.manifest.id} with ${resources.length} resources`,
+          text: `Loaded bundled skill ${bundle.manifest.id} with ${resources.length} resources: ${formatResourceList(resources)}`,
         },
       ],
       structuredContent: payload,
@@ -113,7 +113,26 @@ export async function handleKbSkillsRead(
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Skills read failed: ${message}`);
+    throw new Error(`Skills read failed: ${message}${resourceListHint(args.id)}`);
+  }
+}
+
+function formatResourceList(resources: readonly string[]): string {
+  return resources.length === 0 ? "none" : resources.join(", ");
+}
+
+function resourceListHint(id: string): string {
+  if (typeof id !== "string" || id.trim() === "") {
+    return "";
+  }
+  try {
+    const bundle = loadBundledSkill(id);
+    return `. Declared resources: ${formatResourceList(bundle.manifest.resources ?? [])}`;
+  } catch (error) {
+    if (error instanceof Error) {
+      return "";
+    }
+    throw error;
   }
 }
 

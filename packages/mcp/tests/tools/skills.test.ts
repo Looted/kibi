@@ -34,6 +34,11 @@ describe("MCP skills tool handlers", () => {
     expect(result.content[0]?.text).toContain(
       "Loaded bundled skill kibi-usage",
     );
+    expect(result.content[0]?.text).toContain(
+      "resources/relationship-directions.md",
+    );
+    expect(result.content[0]?.text).toContain("resources/fact-lanes.md");
+    expect(result.content[0]?.text).toContain("resources/workflows.md");
   });
 
   test("reads declared bundled skill resources", async () => {
@@ -59,7 +64,7 @@ describe("MCP skills tool handlers", () => {
         resource: "resources/missing.md",
       }),
     ).rejects.toThrow(
-      "Skills read failed: Skill resource not found: kibi-usage/resources/missing.md",
+      /Skills read failed: Skill resource not found: kibi-usage\/resources\/missing.md[\s\S]*Declared resources: resources\/relationship-directions.md, resources\/fact-lanes.md, resources\/workflows.md/,
     );
   });
 

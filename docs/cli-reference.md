@@ -192,6 +192,12 @@ Validates knowledge base integrity and runs inference rules.
 - `--dry-run` - Show staged-traceability effects without modifying files
 - `--format json|text` - Output structured JSON for integrations such as OpenCode scheduled checks, or human-readable text output (default: text)
 
+### Staged Impact Evidence
+
+When `kibi check --staged` reports `kibi_impact_evidence_missing`, first use MCP discovery (`kb_search`, then `kb_query`) to inspect existing requirements, scenarios, tests, facts, and symbols for the edited source file. If the edit changes behavior, update the KB through MCP and also stage tracked evidence that the commit can carry: related entity markdown, authored `documentation/symbols.yaml` entries, or refreshed `documentation/symbol-coordinates.yaml` output.
+
+MCP writes update the branch KB state, but they do not automatically stage markdown or manifest files. The staged hook can only accept evidence present in the staged change-set, so run the required sync/authoring step and `git add` the tracked evidence before rerunning `kibi check --staged`.
+
 **Examples:**
 ```bash
 # Check entire KB

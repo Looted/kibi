@@ -74,6 +74,12 @@ coordinates:
     sourceEndLine: 16
     sourceFile: packages/opencode/src/reconcile-engine.ts
     sourceLine: 11
+  SYM-AuditedNoImpactOverrideInput:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 65
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 62
   SYM-AutoUpdateInput:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -158,6 +164,12 @@ coordinates:
     sourceEndLine: 43
     sourceFile: packages/cli/src/types/relationships.ts
     sourceLine: 19
+  SYM-BehaviorSourceEditInput:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 55
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 50
   SYM-Candidate:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -461,39 +473,57 @@ coordinates:
   SYM-KIBI-ENTITY-SCHEMA-DOC:
     sourceColumn: 13
     sourceEndColumn: 61
-    sourceEndLine: 10
+    sourceEndLine: 12
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 10
+    sourceLine: 12
   SYM-KIBI-FOCUS-KB-COMMAND:
     sourceColumn: 13
     sourceEndColumn: 62
     sourceEndLine: 8
     sourceFile: packages/vscode/src/extensionIds.ts
     sourceLine: 8
+  SYM-KIBI-IMPACT-DIAGNOSTIC-IDS:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 26
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 22
+  SYM-KIBI-IMPACT-DIAGNOSTICS:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 119
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 88
   SYM-KIBI-NO-IMPACT-DECLARATION:
     sourceColumn: 13
     sourceEndColumn: 61
-    sourceEndLine: 20
+    sourceEndLine: 22
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 20
+    sourceLine: 22
   SYM-KIBI-REFRESH-TREE-COMMAND:
     sourceColumn: 13
     sourceEndColumn: 59
     sourceEndLine: 6
     sourceFile: packages/vscode/src/extensionIds.ts
     sourceLine: 6
+  SYM-KIBI-STAGED-IMPACT-EVIDENCE-DOC:
+    sourceColumn: 13
+    sourceEndColumn: 48
+    sourceEndLine: 10
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    sourceLine: 9
   SYM-KIBI-SYMBOL-COORDINATES-PATH:
     sourceColumn: 13
     sourceEndColumn: 41
-    sourceEndLine: 17
+    sourceEndLine: 19
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 16
+    sourceLine: 18
   SYM-KIBI-SYMBOLS-MANIFEST-PATH:
     sourceColumn: 13
     sourceEndColumn: 70
-    sourceEndLine: 13
+    sourceEndLine: 15
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 13
+    sourceLine: 15
   SYM-KIBI-VIEW-ID:
     sourceColumn: 13
     sourceEndColumn: 49
@@ -605,81 +635,105 @@ coordinates:
   SYM-KibiEntityType:
     sourceColumn: 12
     sourceEndColumn: 11
-    sourceEndLine: 31
+    sourceEndLine: 33
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 23
+    sourceLine: 25
   SYM-KibiImpactDiagnostic:
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 37
     sourceFile: packages/cli/src/traceability/staged-diagnostics.ts
     sourceLine: 25
+  SYM-KibiImpactDiagnosticContract:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 40
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 36
   SYM-KibiImpactDiagnosticId:
     sourceColumn: 12
     sourceEndColumn: 45
     sourceEndLine: 23
     sourceFile: packages/cli/src/traceability/staged-diagnostics.ts
     sourceLine: 12
+  SYM-KibiImpactDiagnosticId-contract:
+    sourceColumn: 12
+    sourceEndColumn: 46
+    sourceEndLine: 29
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 28
   SYM-KibiImpactEvidence:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 155
+    sourceEndLine: 157
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 148
+    sourceLine: 150
+  SYM-KibiImpactEvidenceInput:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 48
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 42
+  SYM-KibiImpactEvidenceKind:
+    sourceColumn: 12
+    sourceEndColumn: 24
+    sourceEndLine: 34
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 31
   SYM-KibiImpactKbArtifact:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 70
+    sourceEndLine: 72
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 59
+    sourceLine: 61
   SYM-KibiImpactKbChangesMode:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 120
+    sourceEndLine: 122
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 116
+    sourceLine: 118
   SYM-KibiImpactMissingMode:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 132
+    sourceEndLine: 134
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 130
+    sourceLine: 132
   SYM-KibiImpactMode:
     sourceColumn: 12
     sourceEndColumn: 26
-    sourceEndLine: 138
+    sourceEndLine: 140
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 135
+    sourceLine: 137
   SYM-KibiImpactNoImpactOverrideMode:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 127
+    sourceEndLine: 129
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 123
+    sourceLine: 125
   SYM-KibiImpactSourceChange:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 51
+    sourceEndLine: 53
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 46
+    sourceLine: 48
   SYM-KibiImpactSymbolsManifest:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 89
+    sourceEndLine: 91
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 82
+    sourceLine: 84
   SYM-KibiNoImpactOverride:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 113
+    sourceEndLine: 115
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 102
+    sourceLine: 104
   SYM-KibiNoImpactReason:
     sourceColumn: 12
     sourceEndColumn: 33
-    sourceEndLine: 94
+    sourceEndLine: 96
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 92
+    sourceLine: 94
   SYM-KibiOpencodePluginEntry:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -824,6 +878,12 @@ coordinates:
     sourceEndLine: 40
     sourceFile: scripts/release-state.ts
     sourceLine: 35
+  SYM-ParsedKibiImpactOverride:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 60
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 57
   SYM-PendingLifecycleEvent:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1229,9 +1289,9 @@ coordinates:
   SYM-SourceChangeKind:
     sourceColumn: 12
     sourceEndColumn: 31
-    sourceEndLine: 43
+    sourceEndLine: 45
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 41
+    sourceLine: 43
   SYM-SourceDiscoveryResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1511,27 +1571,27 @@ coordinates:
   SYM-UpsertArgs:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 65
+    sourceEndLine: 70
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 52
+    sourceLine: 57
   SYM-UpsertResult:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 81
-    sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 67
-  SYM-ValidateUpsertResult:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 15
-    sourceFile: packages/mcp/src/tools/validate-upsert.ts
-    sourceLine: 6
-  SYM-ValidatedUpsertArgs:
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 86
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 83
+    sourceLine: 72
+  SYM-ValidateUpsertResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 17
+    sourceFile: packages/mcp/src/tools/validate-upsert.ts
+    sourceLine: 8
+  SYM-ValidatedUpsertArgs:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 91
+    sourceFile: packages/mcp/src/tools/upsert.ts
+    sourceLine: 88
   SYM-WorkContext:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1700,6 +1760,12 @@ coordinates:
     sourceEndLine: 175
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
     sourceLine: 67
+  SYM-classifyKibiImpactEvidence:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 145
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 121
   SYM-classifyKnowledge:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2930,12 +2996,30 @@ coordinates:
     sourceEndLine: 194
     sourceFile: packages/opencode/src/init-kibi-capability.ts
     sourceLine: 178
+  SYM-formatInvalidRelationshipError:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 127
+    sourceFile: packages/mcp/src/tools/relationship-validation.ts
+    sourceLine: 105
+  SYM-formatInvalidRelationshipTuple:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 103
+    sourceFile: packages/mcp/src/tools/relationship-validation.ts
+    sourceLine: 99
+  SYM-formatRelationshipSourceMismatch:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 139
+    sourceFile: packages/mcp/src/tools/relationship-validation.ts
+    sourceLine: 129
   SYM-getBehaviorSourcePaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 167
+    sourceEndLine: 169
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 162
+    sourceLine: 164
   SYM-getBehavioralSymbolNames:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2975,9 +3059,9 @@ coordinates:
   SYM-getFreshSymbolsManifestSourcePaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 191
+    sourceEndLine: 193
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 183
+    sourceLine: 185
   SYM-getInitKibiCommandCapability:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2987,15 +3071,15 @@ coordinates:
   SYM-getKbCoveredSourcePaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 180
+    sourceEndLine: 182
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 170
+    sourceLine: 172
   SYM-getKbEvidencePaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 209
+    sourceEndLine: 211
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 197
+    sourceLine: 199
   SYM-getKbExistenceTargets:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3011,9 +3095,9 @@ coordinates:
   SYM-getMissingBehaviorSourcePaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 233
+    sourceEndLine: 235
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 223
+    sourceLine: 225
   SYM-getNonBehavioralSymbolNames:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3107,15 +3191,15 @@ coordinates:
   SYM-handleKbUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 474
+    sourceEndLine: 480
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 272
+    sourceLine: 277
   SYM-handleKbValidateUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 58
+    sourceEndLine: 84
     sourceFile: packages/mcp/src/tools/validate-upsert.ts
-    sourceLine: 17
+    sourceLine: 30
   SYM-handleSparql:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3131,9 +3215,9 @@ coordinates:
   SYM-hasOverrideRationale:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 217
+    sourceEndLine: 219
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 212
+    sourceLine: 214
   SYM-inferSymbolRole:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3188,6 +3272,18 @@ coordinates:
     sourceEndLine: 95
     sourceFile: packages/cli/src/public/symbol-granularity.ts
     sourceLine: 91
+  SYM-isAuditedNoImpactOverrideAllowed:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 168
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 160
+  SYM-isBehaviorSourceEdit:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 200
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 170
   SYM-isBehavioralSymbol:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3212,6 +3308,12 @@ coordinates:
     sourceEndLine: 250
     sourceFile: packages/opencode/src/config.ts
     sourceLine: 247
+  SYM-isSupportedBehaviorSourcePath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 210
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 202
   SYM-isSymbolRole:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3602,6 +3704,12 @@ coordinates:
     sourceEndLine: 192
     sourceFile: packages/vscode/src/codeActionProvider.ts
     sourceLine: 176
+  SYM-parseKibiImpactOverride:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 158
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 147
   SYM-parseRdfRelationships:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3695,7 +3803,7 @@ coordinates:
   SYM-registerConfiguredTools:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 189
+    sourceEndLine: 194
     sourceFile: packages/mcp/src/server/tool-registration.ts
     sourceLine: 39
   SYM-registerIndexCoverageTests:
@@ -3947,9 +4055,9 @@ coordinates:
   SYM-test:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 691
+    sourceEndLine: 697
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 684
+    sourceLine: 690
   SYM-updateGitIgnore:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3971,9 +4079,15 @@ coordinates:
   SYM-validateKbUpsertArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 523
+    sourceEndLine: 529
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 476
+    sourceLine: 482
+  SYM-validateLiveRelationshipTargets:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 175
+    sourceFile: packages/mcp/src/tools/relationship-validation.ts
+    sourceLine: 141
   SYM-validateSkillBundle:
     sourceColumn: 16
     sourceEndColumn: 1

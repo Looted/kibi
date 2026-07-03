@@ -425,7 +425,7 @@ function createRuntime() {
   );
   const handleKbValidateUpsert: ToolsRuntime<MockProlog>["handleKbValidateUpsert"] =
     mock(
-      async (args: UpsertArgs): Promise<unknown> => ({
+      async (_prolog: MockProlog, args: UpsertArgs): Promise<unknown> => ({
         tool: "kb_validate_upsert",
         args,
       }),
@@ -947,7 +947,7 @@ describe.serial("server tools coverage", () => {
       })),
     );
 
-    expect(spies.ensureProlog).toHaveBeenCalledTimes(TOOL_NAMES.length - 5);
+    expect(spies.ensureProlog).toHaveBeenCalledTimes(TOOL_NAMES.length - 4);
     expect(spies.handleKbQuery).toHaveBeenCalledWith(
       mockProlog,
       argsByTool.get("kb_query"),
@@ -987,6 +987,10 @@ describe.serial("server tools coverage", () => {
     expect(spies.handleKbUpsert).toHaveBeenCalledWith(
       mockProlog,
       argsByTool.get("kb_upsert"),
+    );
+    expect(spies.handleKbValidateUpsert).toHaveBeenCalledWith(
+      mockProlog,
+      argsByTool.get("kb_validate_upsert"),
     );
     expect(spies.handleKbDelete).toHaveBeenCalledWith(
       mockProlog,
