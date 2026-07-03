@@ -208,6 +208,8 @@ NJ|
 BN|### `kb_skills_load`
 HT|
 YK|Load a bundled Kibi agent skill by ID, returning its manifest metadata, Markdown body, declared resources, content hash, and source type. Read-only; does not execute scripts or require Prolog.
+
+The visible text includes the skill's declared resources so agents can discover follow-up `kb_skills_read` calls without guessing resource paths.
 YQ|
 RH|**Parameters:**
 ZV|- `id` (required): Bundled skill ID to load. Example: `'kibi-usage'`.
@@ -360,6 +362,8 @@ Confirmation of entity creation/update and relationship creation counts. Success
 Validate a `kb_upsert` payload without mutating the KB. This read-only preflight returns `valid`, `errors`, `warnings`, `semanticAdvisor`, and `normalizedPreview` so agents can fix schema issues and semantic modeling gaps before calling `kb_upsert`.
 
 `semanticAdvisor` includes a version, payload hash, logic readiness, candidate lane, detected signals, ambiguity witnesses, modeling suggestions, and suggested next tools. Use the receipt as proof that the payload was inspected, not as proof that the prose is logically enforced.
+
+When invoked through MCP, `kb_validate_upsert` also attaches to Prolog and validates live relationship endpoint types before mutation. Invalid tuples such as `verified_by fact -> test` are rejected in preflight with the same relationship guidance `kb_upsert` would return.
 
 ### `kb_delete`
 

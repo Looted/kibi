@@ -16,6 +16,7 @@ Use this one-page guide when deciding how to model knowledge through MCP tools.
 7. **BDD behavior?** Use `scenario`, linked with `specified_by`.
 8. **Executable evidence?** Use `test`, linked with `verified_by` or `validates`.
    - When the requirement has a `scenario`, this link must target the scenario: use `verified_by(Scenario, Test)` or `validates(Test, Scenario)`. Directly linking `verified_by(Req, Test)` and `validates(Test, Req)` does not satisfy scenario-aware symbol-coverage.
+   - For small behavior fixes discovered from source, create or update a `req` for the observable behavior. Link strict or observation facts from that requirement, then link the requirement or scenario to the executable test. Do not create direct `fact -> test` / `test -> fact` verification shortcuts.
 9. **Code ownership or coverage?** Use `symbol`, linked with `implements`, `covered_by`, or `executable_for`.
 
 ## Strict property example
