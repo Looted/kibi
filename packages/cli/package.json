@@ -1,6 +1,6 @@
 {
   "name": "kibi-cli",
-  "version": "0.13.1",
+  "version": "0.14.0",
   "type": "module",
   "description": "Kibi CLI for knowledge base management",
   "engines": {
@@ -11,7 +11,13 @@
   "bin": {
     "kibi": "bin/kibi"
   },
-  "files": ["dist", "bin", "schema", "src/schemas", "src/public"],
+  "files": [
+    "dist",
+    "bin",
+    "schema",
+    "src/schemas",
+    "src/public"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json && mkdir -p dist/public/skills && cp -r src/public/skills/. dist/public/skills/",
     "prepack": "npm run build"
@@ -103,7 +109,7 @@
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "kibi-core": "^0.6.5",
+    "kibi-core": "^0.7.0",
     "ts-morph": "^23.0.0",
     "ignore": "^5.3.0"
   },
