@@ -1,5 +1,38 @@
 # kibi-core
 
+## 0.7.0
+
+### Minor Changes
+
+- f1db710: Coverage reports now explain how deep each requirement's test evidence goes without changing existing covered/uncovered semantics. CLI users and MCP clients can distinguish direct passing e2e evidence, scenario-backed e2e evidence, unit-only evidence, nonpassing test evidence, scenario-only coverage, and no evidence at all. Typed test verification fields are honored before legacy e2e tag/path heuristics, so modern test metadata produces more reliable coverage labels.
+
+  Technical summary:
+
+  - Add additive `coverageDepth` / `coverage_depth` fields and coverage evidence lists to requirement coverage rows.
+  - Classify coverage depth from direct requirement tests, scenario tests, test statuses, and typed `verification_scope` values.
+  - Surface coverage depth in CLI table output and MCP structured coverage results while preserving existing summary and `coverageStatus` fields.
+  - Allow typed `verification_scope` and `verification_perspective` test fields through CLI/MCP entity schemas and MCP upsert serialization.
+
+### Patch Changes
+
+- 439cb2e: Kibi now makes semantic Prolog adoption easier to measure and debug. Diagnostic usage logs expose semantic advisor readiness, predicate suggestion outcomes, upsert semantic readiness, and contradiction failures as structured fields instead of generic success/error text. Operators can opt into predicate-link audits and get Prolog validation query-plan safety checked by default, with normal `.kb/config.json` overrides available when needed.
+
+  Technical summary:
+
+  - Add `predicate-verifiability` as a default-off KB check rule that flags `requires_predicate` targets whose `fact_kind` is not `predicate`.
+  - Add `query-plan-safety` as a default-enabled KB check rule that flags Prolog validation clauses that place negation before later generator calls.
+  - Enrich MCP diagnostic usage fields for `kb_semantic_advisor`, `kb_suggest_predicates`, and `kb_upsert`.
+  - Classify requirement contradiction errors as `semantic_contradiction` validation failures with actionable hints.
+  - Preserve semantic context in CLI sync/rebuild validation errors instead of reducing Prolog failures to `Query returned false`.
+  - Extend prose coverage with real Align annotation time-key and merge-policy requirements.
+  - Refresh changed Prolog check modules through the MCP aggregated check loader.
+
+- cb8d977: Kibi sync no longer treats README files inside configured entity directories as entities. This prevents human documentation such as fixture READMEs from producing missing-frontmatter warnings or failed background syncs while preserving normal entity markdown discovery.
+
+  - Ignore `**/README.md` during CLI sync markdown discovery.
+  - Ignore documentation `README.md` files during status freshness checks so synced workspaces remain fresh.
+  - Add regression coverage for README exclusion in sync discovery.
+
 ## 0.6.5
 
 ### Patch Changes
