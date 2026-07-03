@@ -12,6 +12,8 @@ type ReviewableCoverageDepth =
 
 type CoverageDepth =
   | ReviewableCoverageDepth
+  | "direct_passing_integration"
+  | "scenario_passing_integration"
   | "direct_passing_e2e"
   | "scenario_passing_e2e";
 
@@ -98,10 +100,16 @@ function classifyCoverageDepth(coverage: RequirementCoverage): CoverageDepth {
   if (directPassingTests.some((test) => testScope(test) === "end_to_end")) {
     return "direct_passing_e2e";
   }
+  if (directPassingTests.some((test) => testScope(test) === "integration")) {
+    return "direct_passing_integration";
+  }
 
   const scenarioPassingTests = passingTests(coverage.scenarioTests);
   if (scenarioPassingTests.some((test) => testScope(test) === "end_to_end")) {
     return "scenario_passing_e2e";
+  }
+  if (scenarioPassingTests.some((test) => testScope(test) === "integration")) {
+    return "scenario_passing_integration";
   }
 
   const allPassingTests = passingTests(allTests);

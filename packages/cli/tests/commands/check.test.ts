@@ -152,6 +152,32 @@ links:
   }
 }
 
+function writeUmbrellaBroadRequirementFixture(root: string): void {
+  writeBroadRequirementFixture(root);
+  writeFileSync(
+    path.join(root, "documentation/requirements/REQ-BROAD-CHECK-001.md"),
+    `---
+id: REQ-BROAD-CHECK-001
+title: Broad check audit requirement
+type: req
+status: open
+priority: should
+source: documentation/requirements/REQ-BROAD-CHECK-001.md
+tags:
+  - umbrella
+links:
+${Array.from({ length: 9 }, (_, index) => {
+  const ordinal = index + 1;
+  return `  - type: verified_by
+    target: TEST-BROAD-CHECK-${String(ordinal).padStart(3, "0")}`;
+}).join("\n")}
+---
+
+# Broad check audit requirement
+`,
+  );
+}
+
 function addSubjectOnlyStrictFactToBroadRequirement(root: string): void {
   const factDir = path.join(root, "documentation/facts");
   mkdirSync(factDir, { recursive: true });
@@ -200,6 +226,8 @@ type CoverageDepthFixture =
   | "open_or_nonpassing_tests_only"
   | "scenario_only_no_test"
   | "no_test_evidence"
+  | "direct_passing_integration"
+  | "scenario_passing_integration"
   | "direct_passing_e2e"
   | "scenario_passing_e2e";
 
@@ -223,10 +251,12 @@ function writeCoverageDepthFixture(
   const testId = `TEST-COVERAGE-${coverageDepth.toUpperCase()}`;
   const hasScenario =
     coverageDepth === "scenario_only_no_test" ||
+    coverageDepth === "scenario_passing_integration" ||
     coverageDepth === "scenario_passing_e2e";
   const hasDirectTest =
     coverageDepth === "unit_only" ||
     coverageDepth === "open_or_nonpassing_tests_only" ||
+    coverageDepth === "direct_passing_integration" ||
     coverageDepth === "direct_passing_e2e";
   const requirementLinks = hasScenario
     ? ["links:", "  - type: specified_by", `    target: ${scenarioId}`]
@@ -298,6 +328,37 @@ function writeCoverageDepthFixture(
         "status: passing",
         "verification_scope: end_to_end",
         `source: documentation/tests/${testId}.md`,
+      ]),
+    );
+  }
+
+  if (coverageDepth === "direct_passing_integration") {
+    writeFileSync(
+      path.join(testDir, `${testId}.md`),
+      yamlDoc([
+        `id: ${testId}`,
+        "title: Direct integration coverage depth test",
+        "type: test",
+        "status: passing",
+        "verification_scope: integration",
+        `source: documentation/tests/${testId}.md`,
+      ]),
+    );
+  }
+
+  if (coverageDepth === "scenario_passing_integration") {
+    writeFileSync(
+      path.join(testDir, `${testId}.md`),
+      yamlDoc([
+        `id: ${testId}`,
+        "title: Scenario integration coverage depth test",
+        "type: test",
+        "status: passing",
+        "verification_scope: integration",
+        `source: documentation/tests/${testId}.md`,
+        "links:",
+        "  - type: validates",
+        `    target: ${scenarioId}`,
       ]),
     );
   }
@@ -401,6 +462,30 @@ describe("kibi check", () => {
   );
 
   test(
+    "does not emit broad requirement diagnostics for explicit umbrella requirements",
+    async () => {
+      writeUmbrellaBroadRequirementFixture(tmpDir);
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      const { status, stdout } = runKibi(
+        kibiBin,
+        ["check", "--format", "json"],
+        tmpDir,
+      );
+
+      const parsed = parseCheckJson(stdout);
+      expect(status).toBe(0);
+      expect(parsed.structuredContent?.count).toBe(0);
+      expect(
+        parsed.structuredContent?.qualityDiagnostics?.some(
+          (diagnostic) => diagnostic.id === "broad_requirement_review",
+        ) ?? false,
+      ).toBe(false);
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
     "prints advisory coverage depth diagnostics for unit-only requirements without failing",
     async () => {
       writeCoverageDepthFixture(tmpDir, "unit_only");
@@ -463,6 +548,31 @@ describe("kibi check", () => {
     async () => {
       writeCoverageDepthFixture(tmpDir, "direct_passing_e2e");
       writeCoverageDepthFixture(tmpDir, "scenario_passing_e2e");
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      const { status, stdout } = runKibi(
+        kibiBin,
+        ["check", "--format", "json"],
+        tmpDir,
+      );
+
+      const parsed = parseCheckJson(stdout);
+      expect(status).toBe(0);
+      expect(parsed.structuredContent?.count).toBe(0);
+      expect(
+        parsed.structuredContent?.qualityDiagnostics?.some(
+          (diagnostic) => diagnostic.id === "coverage_depth_review",
+        ) ?? false,
+      ).toBe(false);
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "does not emit coverage depth diagnostics for passing integration requirements",
+    async () => {
+      writeCoverageDepthFixture(tmpDir, "direct_passing_integration");
+      writeCoverageDepthFixture(tmpDir, "scenario_passing_integration");
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout } = runKibi(

@@ -160,12 +160,12 @@ function createBroadRequirementDiagnostics(
     if (!isCurrentRequirement(result)) return [];
     const fanout = collectFanout(result.entity.id, results, typesByEntityId);
     if (!exceedsBroadThreshold(fanout)) return [];
-    const severity = isUmbrellaRequirement(result) ? "info" : "review";
+    if (isUmbrellaRequirement(result)) return [];
 
     return [
       {
         id: "broad_requirement_review",
-        severity,
+        severity: "review",
         blocking: false,
         category: "requirement",
         entityId: result.entity.id,
