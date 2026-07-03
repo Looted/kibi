@@ -101,7 +101,7 @@ See `resources/fact-lanes.md` for the full strict vs observation lane comparison
 
 Model one semantic claim per strict `property_value` fact. Reusing the same `subject_key` and `property_key` lets `domain-contradictions` compare requirements mechanically.
 
-Incoherent role-set example: `REQ-ROLE-SET-2` says the allowed user roles are exactly `[user, admin]`, while `REQ-ROLE-SET-3` says the same property is exactly `[user, admin, superadmin]`. Both constrain `FACT-USER-ROLES` and require different values for `user.roles.allowed_set`, so they cannot both be current.
+Incoherent role-set example: `REQ-ROLE-SET-2` says the allowed user roles are exactly `user,admin`, while `REQ-ROLE-SET-3` says the same property is exactly `user,admin,superadmin`. Both constrain `FACT-USER-ROLES` and require different values for `user.roles.allowed_set`, so they cannot both be current.
 
 ```yaml
 subject:
@@ -115,15 +115,15 @@ property_values:
     subject_key: user.roles
     property_key: user.roles.allowed_set
     operator: eq
-    value_type: list
-    value_json: '["user", "admin"]'
+    value_type: string
+    value_string: user,admin
   - id: FACT-USER-ROLES-ALLOWED-3
     fact_kind: property_value
     subject_key: user.roles
     property_key: user.roles.allowed_set
     operator: eq
-    value_type: list
-    value_json: '["user", "admin", "superadmin"]'
+    value_type: string
+    value_string: user,admin,superadmin
 
 requirements:
   - id: REQ-ROLE-SET-2
@@ -175,6 +175,14 @@ For `kb_upsert`, keep relationship rows anchored to the entity you are upserting
 Keep symbol payloads minimal: include only the fields needed to identify the symbol, its status, and its source traceability. Put extra prose, examples, or audit notes in docs or evidence files instead of custom `kb_upsert.properties`; strict `kb_upsert.properties` rejects unknown fields.
 
 When a generic `Query failed` appears, do not keep retrying the same payload. First call `kb_validate_upsert`, query or create the missing endpoints, reduce the payload to the minimum required fields, and retry once. If it still fails, report the blocker instead of looping.
+
+## Small Behavior Fix Impact Evidence
+
+For a behavior-changing source edit with no existing requirement, create a requirement for the corrected behavior. If no requirement exists, create one for the corrected behavior, then model strict facts from that requirement when the invariant is contradiction-sensitive.
+
+Do not link facts directly to tests. Facts describe the invariant; requirements or scenarios are verified by executable tests. Use `REQ -> TEST` with `verified_by` or `TEST -> REQ` with `validates`, then link the requirement to facts with `constrains` and `requires_property`. Link the touched production symbol to the requirement with `implements` and to the test with `covered_by` when coverage evidence is needed.
+
+MCP writes do not automatically stage markdown evidence. When a staged hook requires impact evidence, ensure the repo's tracked documentation artifacts for the requirement, fact, test, symbol metadata, or coordinate refresh are authored and staged alongside the source change.
 
 ## Sequential Upserts
 

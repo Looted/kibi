@@ -30,7 +30,7 @@ Granular strict facts work best when each `property_value` represents one semant
 
 ### Role set conflict
 
-`REQ-ROLE-SET-2` and `REQ-ROLE-SET-3` are incoherent if both are current: they each define the exact allowed role set, but one allows two roles and the other allows three.
+`REQ-ROLE-SET-2` and `REQ-ROLE-SET-3` are incoherent if both are current: they each define the exact allowed role set, but one allows two roles and the other allows three. Encode compact set values as canonical strings because the strict property schema supports string, int, number, and bool values.
 
 ```yaml
 subject:
@@ -48,8 +48,8 @@ property_values:
     subject_key: user.roles
     property_key: user.roles.allowed_set
     operator: eq
-    value_type: list
-    value_json: '["user", "admin"]'
+    value_type: string
+    value_string: user,admin
   - id: FACT-USER-ROLES-ALLOWED-3
     title: User, admin, and superadmin roles
     status: active
@@ -57,8 +57,8 @@ property_values:
     subject_key: user.roles
     property_key: user.roles.allowed_set
     operator: eq
-    value_type: list
-    value_json: '["user", "admin", "superadmin"]'
+    value_type: string
+    value_string: user,admin,superadmin
 
 relationships:
   - { type: constrains, from: REQ-ROLE-SET-2, to: FACT-USER-ROLES }
