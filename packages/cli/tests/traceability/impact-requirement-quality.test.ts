@@ -97,7 +97,7 @@ describe("requirement quality impact diagnostics", () => {
     expect(hasBlockingImpactDiagnostics(diagnostics)).toBe(false);
   });
 
-  it("downgrades broad requirement review to info for umbrella requirements", () => {
+  it("does not emit broad requirement review for umbrella requirements", () => {
     const requirement = makeRequirementResult({
       id: "REQ-UMBRELLA",
       tags: ["umbrella"],
@@ -110,14 +110,7 @@ describe("requirement quality impact diagnostics", () => {
       createRequirementQualityDiagnostics({
         manifestResults: [requirement, ...symbols],
       }),
-    ).toEqual([
-      expect.objectContaining({
-        id: "broad_requirement_review",
-        severity: "info",
-        blocking: false,
-        entityId: "REQ-UMBRELLA",
-      }),
-    ]);
+    ).toEqual([]);
   });
 
   it("emits requirement status review for a requirement using passing status", () => {
