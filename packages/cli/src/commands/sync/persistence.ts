@@ -192,6 +192,19 @@ export async function persistEntities(
         props.push(...factFields);
       }
 
+      if (entity.type === "test") {
+        if (entity.verification_scope !== undefined) {
+          props.push(
+            `verification_scope=${toPrologAtom(entity.verification_scope)}`,
+          );
+        }
+        if (entity.verification_perspective !== undefined) {
+          props.push(
+            `verification_perspective=${toPrologAtom(entity.verification_perspective)}`,
+          );
+        }
+      }
+
       const propsList = `[${props.join(", ")}]`;
       const goal = `kb_assert_entity(${entity.type}, ${propsList})`;
       const result = await prolog.query(goal);

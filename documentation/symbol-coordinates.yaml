@@ -2135,9 +2135,9 @@ coordinates:
   SYM-cli-impact-createCoverageDepthQualityDiagnostics:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 260
+    sourceEndLine: 268
     sourceFile: packages/cli/src/public/impact/coverage-depth-quality.ts
-    sourceLine: 245
+    sourceLine: 253
   SYM-cli-impact-createImpactManifestLookup:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2225,15 +2225,15 @@ coordinates:
   SYM-cli-persistEntities:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 214
+    sourceEndLine: 227
     sourceFile: packages/cli/src/commands/sync/persistence.ts
     sourceLine: 138
   SYM-cli-persistRelationships:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 422
+    sourceEndLine: 435
     sourceFile: packages/cli/src/commands/sync/persistence.ts
-    sourceLine: 243
+    sourceLine: 256
   SYM-cli-rule-registry-ChecksConfig:
     sourceColumn: 17
     sourceEndColumn: 1
