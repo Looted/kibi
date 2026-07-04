@@ -6,9 +6,7 @@
 
 - Updated dependencies [48b65b9]
 - Updated dependencies [f1db710]
-- Updated dependencies [f1db710]
 - Updated dependencies [439cb2e]
-- Updated dependencies [f1db710]
 - Updated dependencies [cb8d977]
 - Updated dependencies [224f18b]
   - kibi-cli@0.14.0
