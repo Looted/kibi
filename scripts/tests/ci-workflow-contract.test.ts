@@ -10,6 +10,7 @@ const WORKFLOW_PATH = join(
   "workflows",
   "ci.yml",
 );
+const CODECOV_CONFIG_PATH = join(import.meta.dir, "..", "..", "codecov.yml");
 
 /**
  * Extract the text block for a named job from a GitHub Actions YAML workflow.
@@ -33,6 +34,7 @@ function extractJobBlock(content: string, jobName: string): string {
 
 describe("ci.yml CI workflow contract", () => {
   const workflowContent = readFileSync(WORKFLOW_PATH, "utf8");
+  const codecovConfig = readFileSync(CODECOV_CONFIG_PATH, "utf8");
   const packedJobs = [
     "packed-e2e-cli-regression",
     "packed-e2e-mcp-regression",
@@ -88,6 +90,17 @@ describe("ci.yml CI workflow contract", () => {
     expect(block).not.toContain(
       "Run unit tests with coverage\n        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}",
     );
+  });
+
+  test("Codecov unit status requires 100 percent coverage", () => {
+    expect(workflowContent).toContain("flags: unit");
+    expect(workflowContent).toContain("files: ./coverage/unit/lcov.info");
+    expect(codecovConfig).toContain('range: "100...100"');
+    expect(codecovConfig).toContain("project:");
+    expect(codecovConfig).toContain("patch:");
+    expect(codecovConfig).toContain("target: 100%");
+    expect(codecovConfig).toContain("threshold: 0%");
+    expect(codecovConfig).toContain("- unit");
   });
 
   test("downstream jobs wait for both JS and Prolog coverage gates", () => {
