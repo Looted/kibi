@@ -32,7 +32,8 @@ export async function handleKbValidateUpsert(
   maybeArgs?: UpsertArgs,
 ): Promise<ValidateUpsertResult> {
   try {
-    const args = maybeArgs ?? (isUpsertArgs(prologOrArgs) ? prologOrArgs : null);
+    const args =
+      maybeArgs ?? (isUpsertArgs(prologOrArgs) ? prologOrArgs : null);
     if (args === null) {
       throw new Error("kb_validate_upsert requires an upsert payload");
     }

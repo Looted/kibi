@@ -102,7 +102,9 @@ export function formatInvalidRelationshipTuple(
   return `Invalid relationship: ${tuple.relType} from ${tuple.fromType} to ${tuple.toType}. ${relationshipRecipe(tuple)}`;
 }
 
-export function formatInvalidRelationshipError(rawError: string): string | null {
+export function formatInvalidRelationshipError(
+  rawError: string,
+): string | null {
   const placeholderMatch = rawError.match(
     /Invalid relationship:\s*~w from ~w to ~w-\[([^,\]]+),([^,\]]+),([^\]]+)\]/,
   );

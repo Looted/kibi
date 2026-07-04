@@ -113,7 +113,9 @@ export async function handleKbSkillsRead(
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Skills read failed: ${message}${resourceListHint(args.id)}`);
+    throw new Error(
+      `Skills read failed: ${message}${resourceListHint(args.id)}`,
+    );
   }
 }
 

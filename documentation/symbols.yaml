@@ -3451,6 +3451,7 @@ symbols:
   - id: SYM-handleKbSkillsLoad
     title: handleKbSkillsLoad
     sourceFile: packages/mcp/src/tools/skills.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-002
@@ -3705,6 +3706,7 @@ symbols:
   - id: SYM-validateLiveRelationshipTargets
     title: validateLiveRelationshipTargets
     sourceFile: packages/mcp/src/tools/relationship-validation.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-mcp-relationship-preflight
@@ -3717,6 +3719,7 @@ symbols:
   - id: SYM-formatInvalidRelationshipTuple
     title: formatInvalidRelationshipTuple
     sourceFile: packages/mcp/src/tools/relationship-validation.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-mcp-relationship-preflight
@@ -3741,6 +3744,7 @@ symbols:
   - id: SYM-formatRelationshipSourceMismatch
     title: formatRelationshipSourceMismatch
     sourceFile: packages/mcp/src/tools/relationship-validation.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-mcp-relationship-preflight
