@@ -447,6 +447,35 @@ describe("kibi check --staged impact enforcement", () => {
   });
 
   test(
+    "ignores staged README markdown without frontmatter under typed documentation paths",
+    async () => {
+      writeFiles(tmpDir, {
+        "README.md": "# Initial\n",
+      });
+      commitAll(tmpDir, "initial");
+
+      writeFiles(tmpDir, {
+        "documentation/tests/e2e/README.md": "# E2E test notes\n",
+      });
+      execSync("git add documentation/tests/e2e/README.md", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--staged"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+      expect(status).toBe(0);
+      expect(output).not.toContain("Missing required field: title");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
     "prints advisory quality diagnostics for staged symbols without failing",
     async () => {
       writeFiles(tmpDir, {

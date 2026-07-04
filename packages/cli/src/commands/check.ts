@@ -376,11 +376,16 @@ function uniqueSorted(values: Iterable<string>): string[] {
   return Array.from(new Set(values)).sort();
 }
 
+function hasYamlFrontmatter(content: string): boolean {
+  const trimmed = content.trimStart();
+  return trimmed.startsWith("---") && trimmed.slice(3).includes("\n---");
+}
+
 function buildStagedKibiImpactEvidence(options: {
   stagedFiles: StagedFile[];
   sourceFiles: StagedFile[];
   markdownFiles: StagedFile[];
-  markdownResults: ExtractionResult[];
+  markdownResultsByPath: ReadonlyMap<string, ExtractionResult>;
   symbolsByFile: Map<string, ReturnType<typeof extractSymbolsFromStagedFile>>;
   symbolsManifestPath: string;
 }): KibiImpactEvidence {
@@ -388,7 +393,7 @@ function buildStagedKibiImpactEvidence(options: {
     stagedFiles,
     sourceFiles,
     markdownFiles,
-    markdownResults,
+    markdownResultsByPath,
     symbolsByFile,
     symbolsManifestPath,
   } = options;
@@ -428,14 +433,6 @@ function buildStagedKibiImpactEvidence(options: {
       stagedFiles,
       sourceFiles: behaviorSourceFiles,
     });
-
-  const markdownResultsByPath = new Map<string, ExtractionResult>();
-  for (const [index, file] of markdownFiles.entries()) {
-    const result = markdownResults[index];
-    if (result) {
-      markdownResultsByPath.set(file.path, result);
-    }
-  }
 
   type KbArtifact = Extract<
     KibiImpactEvidence["mode"],
@@ -620,9 +617,16 @@ export async function checkCommand(
           }
         }
 
-        const markdownResults: ExtractionResult[] = markdownFiles.map((file) =>
-          extractFromMarkdownString(file.content ?? "", file.path),
-        );
+        const markdownResultsByPath = new Map<string, ExtractionResult>();
+        for (const file of markdownFiles) {
+          const content = file.content ?? "";
+          if (hasYamlFrontmatter(content)) {
+            markdownResultsByPath.set(
+              file.path,
+              extractFromMarkdownString(content, file.path),
+            );
+          }
+        }
 
         const stagedSourceFilePaths = new Set(
           sourceFiles.map((file) => file.path),
@@ -634,14 +638,14 @@ export async function checkCommand(
         );
         const stagedEntityResults: ExtractionResult[] = [
           ...scopedManifestResults,
-          ...markdownResults,
+          ...markdownResultsByPath.values(),
         ];
 
         const stagedKibiEvidence = buildStagedKibiImpactEvidence({
           stagedFiles,
           sourceFiles,
           markdownFiles,
-          markdownResults,
+          markdownResultsByPath,
           symbolsByFile,
           symbolsManifestPath,
         });
