@@ -2186,6 +2186,12 @@ coordinates:
     sourceEndLine: 192
     sourceFile: packages/cli/src/public/impact/diagnostics.ts
     sourceLine: 186
+  SYM-cli-impact-hasMeaningfulSourceDiff:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 121
+    sourceFile: packages/cli/src/public/impact/diff-meaning.ts
+    sourceLine: 106
   SYM-cli-impact-isModuleOrConfig:
     sourceColumn: 16
     sourceEndColumn: 1

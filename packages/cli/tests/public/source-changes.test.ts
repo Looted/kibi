@@ -131,6 +131,147 @@ describe("collectSourceChanges", () => {
     }
   });
 
+  it("skips whitespace-only tracked working-tree edits", () => {
+    const repoDir = createTempRepo();
+
+    try {
+      mkdirSync(join(repoDir, "src"), { recursive: true });
+      writeFileSync(
+        join(repoDir, "src", "formatted.ts"),
+        "export function greet(name: string): string { return `Hello ${name}`; }\n",
+      );
+      execSync("git add src/formatted.ts", {
+        cwd: repoDir,
+        stdio: "pipe",
+      });
+      execSync('git commit -m "base"', {
+        cwd: repoDir,
+        stdio: "pipe",
+      });
+
+      writeFileSync(
+        join(repoDir, "src", "formatted.ts"),
+        [
+          "export function greet(name: string): string {",
+          "  return `Hello ${name}`;",
+          "}",
+          "",
+        ].join("\n"),
+      );
+
+      const result = collectSourceChanges({
+        workspaceRoot: repoDir,
+        includeWorkingTreeDiff: true,
+      });
+
+      expect(result).toEqual([]);
+    } finally {
+      rmSync(repoDir, { recursive: true, force: true });
+    }
+  });
+
+  it("skips formatter-only trailing comma edits", () => {
+    const repoDir = createTempRepo();
+
+    try {
+      mkdirSync(join(repoDir, "src"), { recursive: true });
+      writeFileSync(
+        join(repoDir, "src", "signature.ts"),
+        "export function parse(input: string): string { return input; }\n",
+      );
+      execSync("git add src/signature.ts", { cwd: repoDir, stdio: "pipe" });
+      execSync('git commit -m "base"', { cwd: repoDir, stdio: "pipe" });
+
+      writeFileSync(
+        join(repoDir, "src", "signature.ts"),
+        [
+          "export function parse(",
+          "  input: string,",
+          "): string {",
+          "  return input;",
+          "}",
+          "",
+        ].join("\n"),
+      );
+
+      const result = collectSourceChanges({
+        workspaceRoot: repoDir,
+        includeWorkingTreeDiff: true,
+      });
+
+      expect(result).toEqual([]);
+    } finally {
+      rmSync(repoDir, { recursive: true, force: true });
+    }
+  });
+
+  it("skips whitespace-only staged edits", () => {
+    const repoDir = createTempRepo();
+
+    try {
+      mkdirSync(join(repoDir, "src"), { recursive: true });
+      writeFileSync(
+        join(repoDir, "src", "staged.ts"),
+        "export function read(value: string): string { return value; }\n",
+      );
+      execSync("git add src/staged.ts", { cwd: repoDir, stdio: "pipe" });
+      execSync('git commit -m "base"', { cwd: repoDir, stdio: "pipe" });
+
+      writeFileSync(
+        join(repoDir, "src", "staged.ts"),
+        [
+          "export function read(value: string): string {",
+          "  return value;",
+          "}",
+          "",
+        ].join("\n"),
+      );
+      execSync("git add src/staged.ts", { cwd: repoDir, stdio: "pipe" });
+
+      const result = collectSourceChanges({
+        workspaceRoot: repoDir,
+        staged: true,
+      });
+
+      expect(result).toEqual([]);
+    } finally {
+      rmSync(repoDir, { recursive: true, force: true });
+    }
+  });
+
+  it("keeps tracked working-tree edits that change string whitespace", () => {
+    const repoDir = createTempRepo();
+
+    try {
+      mkdirSync(join(repoDir, "src"), { recursive: true });
+      writeFileSync(
+        join(repoDir, "src", "copy.ts"),
+        "export const greeting = `Hello ${name}`;\n",
+      );
+      execSync("git add src/copy.ts", { cwd: repoDir, stdio: "pipe" });
+      execSync('git commit -m "base"', { cwd: repoDir, stdio: "pipe" });
+
+      writeFileSync(
+        join(repoDir, "src", "copy.ts"),
+        "export const greeting = `Hello  ${name}`;\n",
+      );
+
+      const result = collectSourceChanges({
+        workspaceRoot: repoDir,
+        includeWorkingTreeDiff: true,
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        file: "src/copy.ts",
+        status: "M",
+        content: "export const greeting = `Hello  ${name}`;\n",
+      });
+    } finally {
+      rmSync(repoDir, { recursive: true, force: true });
+    }
+  });
+
   it("builds full-file hunks for explicit supported source files", () => {
     const repoDir = createTempRepo();
 

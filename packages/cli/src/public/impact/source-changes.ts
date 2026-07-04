@@ -6,6 +6,7 @@ import {
   getStagedFiles,
   parseHunksFromDiff,
 } from "../../traceability/git-staged.js";
+import { hasMeaningfulSourceDiff } from "./diff-meaning.js";
 import type { ChangedFileImpactOptions, SourceChange } from "./types.js";
 
 const SOURCE_EXTENSIONS = new Set([
@@ -102,6 +103,12 @@ function getStagedSourceChanges(
     )
     .flatMap((file): SourceChange[] => {
       if (file.content === undefined || file.hunkRanges.length === 0) return [];
+      if (
+        file.diffText !== undefined &&
+        !hasMeaningfulSourceDiff(file.diffText)
+      ) {
+        return [];
+      }
       return [
         {
           file: file.path,
@@ -125,6 +132,11 @@ function getWorkingTreeSourceChanges(
   return sourceFiles.flatMap((sourceFile): SourceChange[] => {
     const content = readWorkingTreeSource(workspaceRoot, sourceFile);
     if (content === null) return [];
+    const diffText = runGit(
+      workspaceRoot,
+      `git diff -U0 -- "${escapeGitPath(sourceFile)}"`,
+    );
+    if (!hasMeaningfulSourceDiff(diffText)) return [];
     const hunkRanges = getWorkingTreeHunks(workspaceRoot, sourceFile);
     if (hunkRanges.length === 0) return [];
     return [{ file: sourceFile, status: "M", hunkRanges, content }];
