@@ -6348,6 +6348,24 @@ symbols:
         target: REQ-020
       - type: covered_by
         target: TEST-014
+  - id: SYM-scripts-finalizeLcov
+    title: finalizeLcov
+    sourceFile: scripts/finalize-lcov.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-014
+      - type: covered_by
+        target: TEST-scripts-finalize-lcov
+  - id: SYM-scripts-runUnitCoverage
+    title: runUnitCoverage
+    sourceFile: scripts/run-unit-coverage.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-014
+      - type: covered_by
+        target: TEST-scripts-unit-coverage-runner
   - id: SYM-core-discovery-requirementCoverageDepth
     title: requirement_coverage_depth
     sourceFile: packages/core/src/discovery.pl
