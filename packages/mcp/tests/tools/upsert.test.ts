@@ -1008,12 +1008,13 @@ export function greet() {
       if (goal === "once(kb_entity('FACT-UPPERCASE-INITIAL', _, _))") {
         return { success: true };
       }
-      if (
-        goal === "kb_entity('TEST-HEADER-AVATAR-FALLBACK', Type, _)"
-      ) {
+      if (goal === "kb_entity('TEST-HEADER-AVATAR-FALLBACK', Type, _)") {
         return { success: true, bindings: { Type: "test" } };
       }
-      if (goal === "findall(To, kb_relationship(depends_on, 'FACT-UPPERCASE-INITIAL', To), Targets)") {
+      if (
+        goal ===
+        "findall(To, kb_relationship(depends_on, 'FACT-UPPERCASE-INITIAL', To), Targets)"
+      ) {
         return { success: true, bindings: { Targets: "[]" } };
       }
       if (goal.startsWith("findall(To, kb_relationship(")) {
@@ -1025,9 +1026,7 @@ export function greet() {
       if (goal.includes("normalize_term_atom")) {
         return { success: false };
       }
-      if (
-        goal === "once(kb:validate_relationship(verified_by, fact, test))"
-      ) {
+      if (goal === "once(kb:validate_relationship(verified_by, fact, test))") {
         return { success: false };
       }
 
