@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
 
 import {
-  KIBI_STAGED_IMPACT_EVIDENCE_DOC,
   KIBI_NO_IMPACT_DECLARATION,
+  KIBI_STAGED_IMPACT_EVIDENCE_DOC,
   KIBI_SYMBOLS_MANIFEST_PATH,
   KIBI_SYMBOL_COORDINATES_PATH,
   type KibiImpactEvidence,
@@ -95,13 +95,13 @@ describe("evidence-model", () => {
       severity: "error",
       blocking: true,
       category: "symbol",
-        files: [
-          KIBI_SYMBOL_COORDINATES_PATH,
-          "packages/cli/src/traceability/check.ts",
-        ],
-        docs: [KIBI_STAGED_IMPACT_EVIDENCE_DOC],
-        message:
-          "documentation/symbol-coordinates.yaml is stale or missing for staged source files: packages/cli/src/traceability/check.ts",
+      files: [
+        KIBI_SYMBOL_COORDINATES_PATH,
+        "packages/cli/src/traceability/check.ts",
+      ],
+      docs: [KIBI_STAGED_IMPACT_EVIDENCE_DOC],
+      message:
+        "documentation/symbol-coordinates.yaml is stale or missing for staged source files: packages/cli/src/traceability/check.ts",
       suggestion:
         "Run kibi sync --refresh-symbol-coordinates && git add documentation/symbol-coordinates.yaml documentation/symbols.yaml, then re-run kibi check --staged.",
     });
@@ -121,13 +121,13 @@ describe("evidence-model", () => {
       severity: "error",
       blocking: true,
       category: "symbol",
-        files: [
-          KIBI_SYMBOL_COORDINATES_PATH,
-          "packages/cli/src/traceability/check.ts",
-        ],
-        docs: [KIBI_STAGED_IMPACT_EVIDENCE_DOC],
-        message:
-          "documentation/symbol-coordinates.yaml is stale or missing for staged source files: packages/cli/src/traceability/check.ts",
+      files: [
+        KIBI_SYMBOL_COORDINATES_PATH,
+        "packages/cli/src/traceability/check.ts",
+      ],
+      docs: [KIBI_STAGED_IMPACT_EVIDENCE_DOC],
+      message:
+        "documentation/symbol-coordinates.yaml is stale or missing for staged source files: packages/cli/src/traceability/check.ts",
       suggestion:
         "Run kibi sync --refresh-symbol-coordinates && git add documentation/symbol-coordinates.yaml documentation/symbols.yaml, then re-run kibi check --staged.",
     });

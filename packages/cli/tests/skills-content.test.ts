@@ -163,11 +163,15 @@ describe("kibi-usage skill content", () => {
 
   test("body covers small behavior fix impact evidence recipe", () => {
     expect(bundle.body).toContain("Small Behavior Fix Impact Evidence");
-    expect(bundle.body).toContain("If no requirement exists, create one for the corrected behavior");
+    expect(bundle.body).toContain(
+      "If no requirement exists, create one for the corrected behavior",
+    );
     expect(bundle.body).toContain("Do not link facts directly to tests");
     expect(bundle.body).toContain("REQ -> TEST");
     expect(bundle.body).toContain("`verified_by`");
-    expect(bundle.body).toContain("MCP writes do not automatically stage markdown evidence");
+    expect(bundle.body).toContain(
+      "MCP writes do not automatically stage markdown evidence",
+    );
   });
 
   test("body covers sequential upserts", () => {
@@ -244,7 +248,9 @@ describe("kibi-usage skill content", () => {
     );
     expect(workflows).toContain("kb_search");
     expect(workflows).toContain("kb_check");
-    expect(workflows).toContain("Small Behavior Fix With No Existing Requirement");
+    expect(workflows).toContain(
+      "Small Behavior Fix With No Existing Requirement",
+    );
     expect(workflows).toContain("Do not create a test-fact pair");
   });
 });
