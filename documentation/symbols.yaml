@@ -1999,6 +1999,15 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 168
     sourceEndColumn: 1
+  - id: SYM-cli-impact-hasMeaningfulSourceDiff
+    title: hasMeaningfulSourceDiff
+    sourceFile: packages/cli/src/public/impact/diff-meaning.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
   - id: SYM-cli-impact-formatExtractedSymbols
     title: formatExtractedSymbols
     sourceFile: packages/cli/src/public/impact/summaries.ts
