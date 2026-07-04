@@ -1,17 +1,3 @@
----
-id: README
-title: Tarball fixture documentation
-type: test
-status: active
-created_at: 2026-06-26T11:40:00Z
-updated_at: 2026-06-26T11:40:00Z
-source: documentation/tests/e2e/packed/fixtures/README.md
-tags:
-  - e2e
-  - fixtures
-  - release
----
-
 # Tarball Fixtures
 
 This directory contains tarball artifacts preserved for regression testing.
