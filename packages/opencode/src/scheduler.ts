@@ -437,15 +437,11 @@ function logAdvisoryQualityDiagnostics(
   if (diagnostics.length === 0) return;
 
   const severityCounts = new Map<string, number>();
-  let blockingCount = 0;
   for (const diagnostic of diagnostics) {
     severityCounts.set(
       diagnostic.severity,
       (severityCounts.get(diagnostic.severity) ?? 0) + 1,
     );
-    if (diagnostic.blocking) {
-      blockingCount += 1;
-    }
   }
 
   const first = diagnostics[0];
@@ -456,7 +452,6 @@ function logAdvisoryQualityDiagnostics(
       rules,
       count: diagnostics.length,
       ...Object.fromEntries(severityCounts),
-      blocking: blockingCount,
       firstId: first.id,
       firstMessage: first.message,
     })}`,

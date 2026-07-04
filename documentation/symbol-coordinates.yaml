@@ -2585,9 +2585,9 @@ coordinates:
   SYM-createSyncScheduler:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 524
+    sourceEndLine: 519
     sourceFile: packages/opencode/src/scheduler.ts
-    sourceLine: 522
+    sourceLine: 517
   SYM-createTempKb:
     sourceColumn: 22
     sourceEndColumn: 1

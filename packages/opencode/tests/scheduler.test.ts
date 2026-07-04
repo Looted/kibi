@@ -461,7 +461,7 @@ test("scheduler logs advisory quality diagnostics from successful structured che
     service: "kibi-opencode",
     level: "warn",
     message:
-      'check.advisory_quality {"rules":["symbol-traceability"],"count":1,"review":1,"blocking":0,"firstId":"symbol_semantic_review_needed","firstMessage":"Review linked requirement semantics"}',
+      'check.advisory_quality {"rules":["symbol-traceability"],"count":1,"review":1,"firstId":"symbol_semantic_review_needed","firstMessage":"Review linked requirement semantics"}',
   });
 });
 
@@ -527,7 +527,7 @@ test("scheduler logs advisory quality diagnostics from stderr when stdout is emp
     service: "kibi-opencode",
     level: "warn",
     message:
-      'check.advisory_quality {"rules":["symbol-traceability"],"count":1,"review":1,"blocking":0,"firstId":"symbol_semantic_review_needed","firstMessage":"Review linked requirement semantics"}',
+      'check.advisory_quality {"rules":["symbol-traceability"],"count":1,"review":1,"firstId":"symbol_semantic_review_needed","firstMessage":"Review linked requirement semantics"}',
   });
 });
 
@@ -611,7 +611,7 @@ test("scheduler prefers stdout structured diagnostics when both streams are pres
     service: "kibi-opencode",
     level: "warn",
     message:
-      'check.advisory_quality {"rules":["symbol-traceability"],"count":1,"review":1,"blocking":0,"firstId":"stdout_quality_diagnostic","firstMessage":"Prefer stdout diagnostics"}',
+      'check.advisory_quality {"rules":["symbol-traceability"],"count":1,"review":1,"firstId":"stdout_quality_diagnostic","firstMessage":"Prefer stdout diagnostics"}',
   });
 });
 
