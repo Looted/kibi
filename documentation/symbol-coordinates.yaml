@@ -3956,6 +3956,18 @@ coordinates:
     sourceEndLine: 287
     sourceFile: packages/opencode/src/plugin-startup.ts
     sourceLine: 96
+  SYM-scripts-finalizeLcov:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 51
+    sourceFile: scripts/finalize-lcov.ts
+    sourceLine: 35
+  SYM-scripts-runUnitCoverage:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 113
+    sourceFile: scripts/run-unit-coverage.ts
+    sourceLine: 91
   SYM-sendToast:
     sourceColumn: 22
     sourceEndColumn: 1
