@@ -322,7 +322,11 @@ export async function handleKbUpsert(
     // Validate strict-lane fact_kind pairing for constrains/requires_property
     // implements REQ-011
     await validateStrictLanePairing(prolog, effectiveRelationships);
-    await validateLiveRelationshipTargets(prolog, entity, effectiveRelationships);
+    await validateLiveRelationshipTargets(
+      prolog,
+      entity,
+      effectiveRelationships,
+    );
 
     // Process entities
     for (const entity of entities) {
@@ -799,9 +803,7 @@ function validateRelationshipSources(
 ): void {
   for (const rel of relationships) {
     if (rel.from !== entityId) {
-      throw new Error(
-        formatRelationshipSourceMismatch(entityId, rel),
-      );
+      throw new Error(formatRelationshipSourceMismatch(entityId, rel));
     }
   }
 }

@@ -1553,7 +1553,7 @@ coordinates:
   SYM-ToolsRuntime:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 84
+    sourceEndLine: 87
     sourceFile: packages/mcp/src/server/tool-types.ts
     sourceLine: 44
   SYM-TraceabilityRegistrationResult:
@@ -3005,7 +3005,7 @@ coordinates:
   SYM-formatInvalidRelationshipError:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 127
+    sourceEndLine: 129
     sourceFile: packages/mcp/src/tools/relationship-validation.ts
     sourceLine: 105
   SYM-formatInvalidRelationshipTuple:
@@ -3017,9 +3017,9 @@ coordinates:
   SYM-formatRelationshipSourceMismatch:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 139
+    sourceEndLine: 141
     sourceFile: packages/mcp/src/tools/relationship-validation.ts
-    sourceLine: 129
+    sourceLine: 131
   SYM-getBehaviorSourcePaths:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3179,7 +3179,7 @@ coordinates:
   SYM-handleKbSkillsRead:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 118
+    sourceEndLine: 120
     sourceFile: packages/mcp/src/tools/skills.ts
     sourceLine: 98
   SYM-handleKbSuggestPredicates:
@@ -3197,13 +3197,13 @@ coordinates:
   SYM-handleKbUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 480
+    sourceEndLine: 484
     sourceFile: packages/mcp/src/tools/upsert.ts
     sourceLine: 277
   SYM-handleKbValidateUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 84
+    sourceEndLine: 85
     sourceFile: packages/mcp/src/tools/validate-upsert.ts
     sourceLine: 30
   SYM-handleSparql:
@@ -4061,9 +4061,9 @@ coordinates:
   SYM-test:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 697
+    sourceEndLine: 701
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 690
+    sourceLine: 694
   SYM-updateGitIgnore:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4085,15 +4085,15 @@ coordinates:
   SYM-validateKbUpsertArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 529
+    sourceEndLine: 533
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 482
+    sourceLine: 486
   SYM-validateLiveRelationshipTargets:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 175
+    sourceEndLine: 177
     sourceFile: packages/mcp/src/tools/relationship-validation.ts
-    sourceLine: 141
+    sourceLine: 143
   SYM-validateSkillBundle:
     sourceColumn: 16
     sourceEndColumn: 1
