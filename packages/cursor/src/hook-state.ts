@@ -18,6 +18,8 @@ export type HookState = {
   guidedWritePaths: string[];
   kbMutationTools: string[];
   kbCheckRun: boolean;
+  impactCheckRun: boolean;
+  impactCheckedPaths: string[];
 };
 
 function statePath(pluginData: string): string {
@@ -69,6 +71,8 @@ function emptyHookState(): HookState {
     guidedWritePaths: [],
     kbMutationTools: [],
     kbCheckRun: false,
+    impactCheckRun: false,
+    impactCheckedPaths: [],
   };
 }
 
@@ -166,6 +170,13 @@ function coerceHookState(value: unknown): HookState {
         .filter((entry) => entry.length > 0)
     : [];
   const kbCheckRun = value.kbCheckRun === true;
+  const impactCheckRun = value.impactCheckRun === true;
+  const impactCheckedPaths = Array.isArray(value.impactCheckedPaths)
+    ? value.impactCheckedPaths
+        .filter((entry): entry is string => typeof entry === "string")
+        .map(normalizePath)
+        .filter((entry) => entry.length > 0)
+    : [];
 
   return {
     dirtyPaths: [...new Set(dirtyPaths)].slice(-maxDirtyPaths),
@@ -173,6 +184,8 @@ function coerceHookState(value: unknown): HookState {
     guidedWritePaths: [...new Set(guidedWritePaths)].slice(-maxGuidedPaths),
     kbMutationTools: [...new Set(kbMutationTools)].slice(-maxKbMutationTools),
     kbCheckRun,
+    impactCheckRun,
+    impactCheckedPaths: [...new Set(impactCheckedPaths)].slice(-maxGuidedPaths),
   };
 }
 
@@ -304,6 +317,7 @@ export function hasGuidedPath(
 export function recordKbMcpTool(
   stateDir: string | undefined,
   toolName: string,
+  options: { impactCheckRun?: boolean; sourceFiles?: readonly string[] } = {},
 ): HookState {
   const normalized = toolName.trim();
   if (normalized.length === 0) {
@@ -312,7 +326,18 @@ export function recordKbMcpTool(
 
   return updateHookState(stateDir, (state) => {
     if (normalized === "kb_check") {
-      return { ...state, kbCheckRun: true };
+      return {
+        ...state,
+        kbCheckRun: true,
+        impactCheckRun: state.impactCheckRun || options.impactCheckRun === true,
+        impactCheckedPaths:
+          options.impactCheckRun === true
+            ? mergeStringPaths(
+                state.impactCheckedPaths,
+                options.sourceFiles ?? [],
+              )
+            : state.impactCheckedPaths,
+      };
     }
 
     if (normalized === "kb_upsert" || normalized === "kb_delete") {

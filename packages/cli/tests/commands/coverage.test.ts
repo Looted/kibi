@@ -9,6 +9,7 @@ import {
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { renderCoverageTable } from "../../src/commands/discovery-shared.js";
 
 describe("kibi coverage", () => {
   let tmpDir: string;
@@ -44,6 +45,10 @@ status: open
 `,
     );
 
+    mkdirSync(path.join(tmpDir, "documentation", "tests"), {
+      recursive: true,
+    });
+
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
   }, 30000); // kibi init + sync can take ~10s; allow 30s for slower CI environments
 
@@ -72,6 +77,12 @@ status: open
         gaps: string[];
         evaluated: boolean;
         coverageStatus: string;
+        coverageDepth: string;
+        coverage_depth: string;
+        directTests: string[];
+        scenarioTests: string[];
+        testStatuses: string[];
+        verificationScopes: string[];
       }>;
     };
     expect(result.summary.total).toBe(2);
@@ -91,8 +102,15 @@ status: open
     const req1Row = result.rows.find((row) => row.id === "REQ-001");
     expect(req1Row?.gaps).toContain("missing_scenario_and_test");
     expect(req1Row?.coverageStatus).not.toBe("fully_covered");
+    expect(req1Row?.coverageDepth).toBe("no_test_evidence");
+    expect(req1Row?.coverage_depth).toBe("no_test_evidence");
+    expect(req1Row?.directTests).toEqual([]);
+    expect(req1Row?.scenarioTests).toEqual([]);
+    expect(req1Row?.testStatuses).toEqual([]);
+    expect(req1Row?.verificationScopes).toEqual([]);
     const req2Row = result.rows.find((row) => row.id === "REQ-002");
     expect(req2Row?.coverageStatus).toBe("not_applicable");
+    expect(req2Row?.coverageDepth).toBe("no_test_evidence");
   }, 30000); // 30 second test timeout
   test("shows table output by default and exposes no-include-transitive option", () => {
     const tableOutput = execSync(`bun ${kibiBin} coverage --by req`, {
@@ -102,6 +120,8 @@ status: open
     });
     expect(tableOutput).toContain("ID");
     expect(tableOutput).toContain("Coverage");
+    expect(tableOutput).toContain("Depth");
+    expect(tableOutput).toContain("no_test_evidence");
     expect(tableOutput).toContain("REQ-001");
 
     const helpOutput = execSync(`bun ${kibiBin} coverage --help`, {
@@ -111,4 +131,34 @@ status: open
     });
     expect(helpOutput).toContain("--no-include-transitive");
   }, 30000); // 30 second test timeout
+
+  test("renders full coverage depth labels in the human table", () => {
+    const rendered = renderCoverageTable({
+      summary: {
+        evaluated: 1,
+        fullyCovered: 0,
+        missingScenario: 0,
+        missingScenarioAndTest: 1,
+        missingTest: 0,
+        notApplicable: 0,
+        total: 1,
+        uncovered: 1,
+      },
+      rows: [
+        {
+          id: "REQ-001",
+          status: "open",
+          priority: "must",
+          coverageStatus: "uncovered",
+          coverageDepth: "open_or_nonpassing_tests_only",
+          scenarioCount: 0,
+          testCount: 1,
+          transitiveSymbolCount: 0,
+          gaps: ["missing_scenario_and_test"],
+        },
+      ],
+    });
+
+    expect(rendered).toContain("open_or_nonpassing_tests_only");
+  });
 });

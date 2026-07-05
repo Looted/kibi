@@ -139,6 +139,19 @@ export function classifyDiagnosticError(error: unknown): DiagnosticErrorFields {
       "validation",
       "Relationship source did not match the entity being upserted.",
     );
+  if (lower.includes("contradiction detected for requirement")) {
+    const fields = buildErrorFields(
+      err,
+      "semantic_contradiction",
+      "validation",
+      "Requirement prose/facts contradict existing contradiction-ready requirements.",
+    );
+    return {
+      ...fields,
+      semantic_outcome: "conflict-blocked",
+      ...semanticContradictionIds(err.message),
+    };
+  }
   if (lower.includes("module load failed"))
     return buildErrorFields(
       err,
@@ -161,6 +174,24 @@ export function classifyDiagnosticError(error: unknown): DiagnosticErrorFields {
   );
 }
 
+function semanticContradictionIds(message: string): {
+  semantic_checked_req_id?: string;
+  semantic_conflicting_req_ids?: string[];
+} {
+  const checked = message.match(
+    /Contradiction detected for requirement\s+([^:\s]+)/i,
+  );
+  const conflicts = [
+    ...message.matchAll(/Conflicts with\s+([^:\s]+)/gi),
+  ].flatMap((match) => (match[1] ? [match[1]] : []));
+  return {
+    ...(checked?.[1] ? { semantic_checked_req_id: checked[1] } : {}),
+    ...(conflicts.length > 0
+      ? { semantic_conflicting_req_ids: conflicts }
+      : {}),
+  };
+}
+
 export function deriveDiagnosticHints(input: {
   tool: string;
   error: unknown;
@@ -181,6 +212,8 @@ export function deriveDiagnosticHints(input: {
     return `tool_timeout ${mappedStage}: retry the same request after reducing payload size or scope.`;
   if (error_category === "relationship_source_mismatch")
     return `relationship_source_mismatch ${mappedStage}: align the relationship source with the upserted entity id.`;
+  if (error_category === "semantic_contradiction")
+    return `semantic_contradiction ${mappedStage}: add a supersedes relationship to the conflicting requirement, deprecate the older requirement, or align the modeled facts.`;
   if (error_category === "prolog_process_not_started")
     return `prolog_process_not_started ${mappedStage}: restart the MCP server before retrying the tool call.`;
   if (error_category === "prolog_query_failed")

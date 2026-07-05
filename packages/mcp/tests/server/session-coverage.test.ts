@@ -18,6 +18,7 @@
 
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import process from "node:process";
+import * as sessionModule from "../../src/server/session.js";
 
 type BranchResult = { branch: string } | { error: string };
 type MockRequire = ((path: string) => unknown) & {
@@ -175,9 +176,9 @@ function resetMocks() {
 }
 
 async function importSessionModule(tag: string) {
-  const session = await import(
-    `${SESSION_MODULE_URL}?case=${tag}-${Math.random()}`
-  );
+  void tag;
+  const session = sessionModule;
+  session.resetSessionStateForTests();
   session._resetSessionDepsForTests();
   session._setSessionDepsForTests({
     PrologProcess: function (this: Record<string, unknown>) {
@@ -195,7 +196,7 @@ async function importSessionModule(tag: string) {
     resolveActiveBranch: mockResolveActiveBranch,
     resolveKbPath: mockResolveKbPath,
     resolveWorkspaceRoot: mockResolveWorkspaceRoot,
-  });
+  } as unknown as Parameters<typeof session._setSessionDepsForTests>[0]);
   return session;
 }
 

@@ -354,6 +354,24 @@ function extractFromManifestSymbolRecords(
       ...(symbol.granularity_reason !== undefined
         ? { granularity_reason: symbol.granularity_reason }
         : {}),
+      ...(typeof symbol.symbol_kind === "string"
+        ? { symbol_kind: symbol.symbol_kind }
+        : {}),
+      ...(typeof symbol.symbol_role === "string"
+        ? { symbol_role: symbol.symbol_role }
+        : {}),
+      ...(typeof symbol.sourceLine === "number"
+        ? { sourceLine: symbol.sourceLine }
+        : {}),
+      ...(typeof symbol.sourceColumn === "number"
+        ? { sourceColumn: symbol.sourceColumn }
+        : {}),
+      ...(typeof symbol.sourceEndLine === "number"
+        ? { sourceEndLine: symbol.sourceEndLine }
+        : {}),
+      ...(typeof symbol.sourceEndColumn === "number"
+        ? { sourceEndColumn: symbol.sourceEndColumn }
+        : {}),
     };
     const sourceFile = symbol.sourceFile ?? symbol.source;
 

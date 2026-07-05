@@ -249,50 +249,54 @@ describe("kb_graph isolated-core regression (issue #118)", () => {
     fixture.cleanup();
   });
 
-  test("graph succeeds from isolated core root with repeated calls", async () => {
-    await handleKbUpsert(prolog, {
-      type: "req",
-      id: "REQ-118-GRAPH",
-      properties: { title: "Issue 118 graph regression", status: "open" },
-    });
-    await handleKbUpsert(prolog, {
-      type: "scenario",
-      id: "SCEN-118-GRAPH",
-      properties: { title: "Issue 118 graph scenario", status: "active" },
-    });
-    await handleKbUpsert(prolog, {
-      type: "test",
-      id: "TEST-118-GRAPH",
-      properties: { title: "Issue 118 graph test", status: "passing" },
-    });
-    await handleKbUpsert(prolog, {
-      type: "req",
-      id: "REQ-118-GRAPH",
-      properties: { title: "Issue 118 graph regression", status: "open" },
-      relationships: [
-        { type: "specified_by", from: "REQ-118-GRAPH", to: "SCEN-118-GRAPH" },
-        { type: "verified_by", from: "REQ-118-GRAPH", to: "TEST-118-GRAPH" },
-      ],
-    });
+  test(
+    "graph succeeds from isolated core root with repeated calls",
+    async () => {
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "REQ-118-GRAPH",
+        properties: { title: "Issue 118 graph regression", status: "open" },
+      });
+      await handleKbUpsert(prolog, {
+        type: "scenario",
+        id: "SCEN-118-GRAPH",
+        properties: { title: "Issue 118 graph scenario", status: "active" },
+      });
+      await handleKbUpsert(prolog, {
+        type: "test",
+        id: "TEST-118-GRAPH",
+        properties: { title: "Issue 118 graph test", status: "passing" },
+      });
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "REQ-118-GRAPH",
+        properties: { title: "Issue 118 graph regression", status: "open" },
+        relationships: [
+          { type: "specified_by", from: "REQ-118-GRAPH", to: "SCEN-118-GRAPH" },
+          { type: "verified_by", from: "REQ-118-GRAPH", to: "TEST-118-GRAPH" },
+        ],
+      });
 
-    const result1 = await handleKbGraph(prolog, {
-      seedIds: ["REQ-118-GRAPH"],
-      relationships: ["specified_by", "verified_by"],
-      direction: "outgoing",
-      depth: 1,
-    });
-    expect(result1.structuredContent?.nodes.length).toBe(3);
-    expect(result1.structuredContent?.edges.length).toBe(2);
+      const result1 = await handleKbGraph(prolog, {
+        seedIds: ["REQ-118-GRAPH"],
+        relationships: ["specified_by", "verified_by"],
+        direction: "outgoing",
+        depth: 1,
+      });
+      expect(result1.structuredContent?.nodes.length).toBe(3);
+      expect(result1.structuredContent?.edges.length).toBe(2);
 
-    const result2 = await handleKbGraph(prolog, {
-      seedIds: ["REQ-118-GRAPH"],
-      relationships: ["specified_by", "verified_by"],
-      direction: "outgoing",
-      depth: 1,
-    });
-    expect(result2.structuredContent?.nodes.length).toBe(3);
-    expect(result2.structuredContent?.edges.length).toBe(2);
-  });
+      const result2 = await handleKbGraph(prolog, {
+        seedIds: ["REQ-118-GRAPH"],
+        relationships: ["specified_by", "verified_by"],
+        direction: "outgoing",
+        depth: 1,
+      });
+      expect(result2.structuredContent?.nodes.length).toBe(3);
+      expect(result2.structuredContent?.edges.length).toBe(2);
+    },
+    KB_GRAPH_INTEGRATION_TIMEOUT_MS,
+  );
 });
 
 describe("kb_graph canonical traceability chain traversal", () => {
@@ -322,144 +326,152 @@ describe("kb_graph canonical traceability chain traversal", () => {
     await fs.rm(testKbPath, { recursive: true, force: true });
   });
 
-  test("traverses canonical chain: requirement → scenario → test", async () => {
-    // Set up the canonical authored chain:
-    // REQ-CHAIN-001 --specified_by--> SCEN-CHAIN-001 --verified_by--> TEST-CHAIN-001
-    // TEST-CHAIN-001 --validates--> SCEN-CHAIN-001
-    await handleKbUpsert(prolog, {
-      type: "req",
-      id: "REQ-CHAIN-001",
-      properties: { title: "Chain requirement", status: "open" },
-    });
-    await handleKbUpsert(prolog, {
-      type: "scenario",
-      id: "SCEN-CHAIN-001",
-      properties: { title: "Chain scenario", status: "active" },
-    });
-    await handleKbUpsert(prolog, {
-      type: "test",
-      id: "TEST-CHAIN-001",
-      properties: { title: "Chain test", status: "passing" },
-    });
+  test(
+    "traverses canonical chain: requirement → scenario → test",
+    async () => {
+      // Set up the canonical authored chain:
+      // REQ-CHAIN-001 --specified_by--> SCEN-CHAIN-001 --verified_by--> TEST-CHAIN-001
+      // TEST-CHAIN-001 --validates--> SCEN-CHAIN-001
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "REQ-CHAIN-001",
+        properties: { title: "Chain requirement", status: "open" },
+      });
+      await handleKbUpsert(prolog, {
+        type: "scenario",
+        id: "SCEN-CHAIN-001",
+        properties: { title: "Chain scenario", status: "active" },
+      });
+      await handleKbUpsert(prolog, {
+        type: "test",
+        id: "TEST-CHAIN-001",
+        properties: { title: "Chain test", status: "passing" },
+      });
 
-    // Link requirement → scenario
-    await handleKbUpsert(prolog, {
-      type: "req",
-      id: "REQ-CHAIN-001",
-      properties: { title: "Chain requirement", status: "open" },
-      relationships: [
-        { type: "specified_by", from: "REQ-CHAIN-001", to: "SCEN-CHAIN-001" },
-      ],
-    });
+      // Link requirement → scenario
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "REQ-CHAIN-001",
+        properties: { title: "Chain requirement", status: "open" },
+        relationships: [
+          { type: "specified_by", from: "REQ-CHAIN-001", to: "SCEN-CHAIN-001" },
+        ],
+      });
 
-    // Link scenario → test (verified_by)
-    await handleKbUpsert(prolog, {
-      type: "scenario",
-      id: "SCEN-CHAIN-001",
-      properties: { title: "Chain scenario", status: "active" },
-      relationships: [
-        { type: "verified_by", from: "SCEN-CHAIN-001", to: "TEST-CHAIN-001" },
-      ],
-    });
+      // Link scenario → test (verified_by)
+      await handleKbUpsert(prolog, {
+        type: "scenario",
+        id: "SCEN-CHAIN-001",
+        properties: { title: "Chain scenario", status: "active" },
+        relationships: [
+          { type: "verified_by", from: "SCEN-CHAIN-001", to: "TEST-CHAIN-001" },
+        ],
+      });
 
-    // Link test → scenario (validates)
-    await handleKbUpsert(prolog, {
-      type: "test",
-      id: "TEST-CHAIN-001",
-      properties: { title: "Chain test", status: "passing" },
-      relationships: [
-        { type: "validates", from: "TEST-CHAIN-001", to: "SCEN-CHAIN-001" },
-      ],
-    });
+      // Link test → scenario (validates)
+      await handleKbUpsert(prolog, {
+        type: "test",
+        id: "TEST-CHAIN-001",
+        properties: { title: "Chain test", status: "passing" },
+        relationships: [
+          { type: "validates", from: "TEST-CHAIN-001", to: "SCEN-CHAIN-001" },
+        ],
+      });
 
-    // Depth-2 traversal from requirement should reach test through scenario
-    const result = await handleKbGraph(prolog, {
-      seedIds: ["REQ-CHAIN-001"],
-      relationships: ["specified_by", "verified_by", "validates"],
-      direction: "outgoing",
-      depth: 2,
-    });
+      // Depth-2 traversal from requirement should reach test through scenario
+      const result = await handleKbGraph(prolog, {
+        seedIds: ["REQ-CHAIN-001"],
+        relationships: ["specified_by", "verified_by", "validates"],
+        direction: "outgoing",
+        depth: 2,
+      });
 
-    const nodes = result.structuredContent?.nodes ?? [];
-    const edges = result.structuredContent?.edges ?? [];
-    const nodeIds = nodes
-      .map((n) => (n as Record<string, unknown>).id)
-      .filter(Boolean) as string[];
+      const nodes = result.structuredContent?.nodes ?? [];
+      const edges = result.structuredContent?.edges ?? [];
+      const nodeIds = nodes
+        .map((n) => (n as Record<string, unknown>).id)
+        .filter(Boolean) as string[];
 
-    // All three entities should be discovered via chain traversal
-    expect(nodeIds).toContain("REQ-CHAIN-001");
-    expect(nodeIds).toContain("SCEN-CHAIN-001");
-    expect(nodeIds).toContain("TEST-CHAIN-001");
+      // All three entities should be discovered via chain traversal
+      expect(nodeIds).toContain("REQ-CHAIN-001");
+      expect(nodeIds).toContain("SCEN-CHAIN-001");
+      expect(nodeIds).toContain("TEST-CHAIN-001");
 
-    // Edge from requirement to scenario
-    expect(edges).toContainEqual({
-      type: "specified_by",
-      from: "REQ-CHAIN-001",
-      to: "SCEN-CHAIN-001",
-    });
+      // Edge from requirement to scenario
+      expect(edges).toContainEqual({
+        type: "specified_by",
+        from: "REQ-CHAIN-001",
+        to: "SCEN-CHAIN-001",
+      });
 
-    // Edge from scenario to test
-    expect(edges).toContainEqual({
-      type: "verified_by",
-      from: "SCEN-CHAIN-001",
-      to: "TEST-CHAIN-001",
-    });
-  });
+      // Edge from scenario to test
+      expect(edges).toContainEqual({
+        type: "verified_by",
+        from: "SCEN-CHAIN-001",
+        to: "TEST-CHAIN-001",
+      });
+    },
+    KB_GRAPH_INTEGRATION_TIMEOUT_MS,
+  );
 
-  test("requirement → test fallback when no scenario present", async () => {
-    // When no scenario exists, requirement → test via verified_by is the fallback path
-    await handleKbUpsert(prolog, {
-      type: "req",
-      id: "REQ-FALLBACK-001",
-      properties: { title: "Fallback requirement", status: "open" },
-    });
-    await handleKbUpsert(prolog, {
-      type: "test",
-      id: "TEST-FALLBACK-001",
-      properties: { title: "Fallback test", status: "passing" },
-    });
+  test(
+    "requirement → test fallback when no scenario present",
+    async () => {
+      // When no scenario exists, requirement → test via verified_by is the fallback path
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "REQ-FALLBACK-001",
+        properties: { title: "Fallback requirement", status: "open" },
+      });
+      await handleKbUpsert(prolog, {
+        type: "test",
+        id: "TEST-FALLBACK-001",
+        properties: { title: "Fallback test", status: "passing" },
+      });
 
-    // Direct req → test link (no scenario in between)
-    await handleKbUpsert(prolog, {
-      type: "req",
-      id: "REQ-FALLBACK-001",
-      properties: { title: "Fallback requirement", status: "open" },
-      relationships: [
-        {
-          type: "verified_by",
-          from: "REQ-FALLBACK-001",
-          to: "TEST-FALLBACK-001",
-        },
-      ],
-    });
+      // Direct req → test link (no scenario in between)
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "REQ-FALLBACK-001",
+        properties: { title: "Fallback requirement", status: "open" },
+        relationships: [
+          {
+            type: "verified_by",
+            from: "REQ-FALLBACK-001",
+            to: "TEST-FALLBACK-001",
+          },
+        ],
+      });
 
-    const result = await handleKbGraph(prolog, {
-      seedIds: ["REQ-FALLBACK-001"],
-      relationships: ["specified_by", "verified_by"],
-      direction: "outgoing",
-      depth: 1,
-    });
+      const result = await handleKbGraph(prolog, {
+        seedIds: ["REQ-FALLBACK-001"],
+        relationships: ["specified_by", "verified_by"],
+        direction: "outgoing",
+        depth: 1,
+      });
 
-    const edges = result.structuredContent?.edges ?? [];
-    const nodes = result.structuredContent?.nodes ?? [];
-    const nodeIds = nodes
-      .map((n) => (n as Record<string, unknown>).id)
-      .filter(Boolean) as string[];
+      const edges = result.structuredContent?.edges ?? [];
+      const nodes = result.structuredContent?.nodes ?? [];
+      const nodeIds = nodes
+        .map((n) => (n as Record<string, unknown>).id)
+        .filter(Boolean) as string[];
 
-    // Should have the direct req → test edge
-    expect(edges).toContainEqual({
-      type: "verified_by",
-      from: "REQ-FALLBACK-001",
-      to: "TEST-FALLBACK-001",
-    });
+      // Should have the direct req → test edge
+      expect(edges).toContainEqual({
+        type: "verified_by",
+        from: "REQ-FALLBACK-001",
+        to: "TEST-FALLBACK-001",
+      });
 
-    // Both entities reachable
-    expect(nodeIds).toContain("REQ-FALLBACK-001");
-    expect(nodeIds).toContain("TEST-FALLBACK-001");
+      // Both entities reachable
+      expect(nodeIds).toContain("REQ-FALLBACK-001");
+      expect(nodeIds).toContain("TEST-FALLBACK-001");
 
-    // No scenario entity in the result
-    expect(nodeIds).not.toContain(expect.stringMatching(/^SCEN-/));
-  });
+      // No scenario entity in the result
+      expect(nodeIds).not.toContain(expect.stringMatching(/^SCEN-/));
+    },
+    KB_GRAPH_INTEGRATION_TIMEOUT_MS,
+  );
 
   test(
     "traverses executable_for relationship from symbol to test",

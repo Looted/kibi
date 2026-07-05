@@ -1,4 +1,4 @@
-import { describe, test } from "bun:test";
+import { afterEach, describe, mock, test } from "bun:test";
 import { strict as assert } from "node:assert";
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -7,6 +7,7 @@ import {
   type KibiCheckpointContext,
   KibiCheckpointRunner,
 } from "../src/kibi-checkpoint-runner";
+import * as logger from "../src/logger";
 import { type SyncRunMetadata, createSyncScheduler } from "../src/scheduler";
 
 type TimeoutToken = ReturnType<typeof setTimeout>;
@@ -46,6 +47,25 @@ async function flushAsync(): Promise<void> {
   await Promise.resolve();
   await Promise.resolve();
 }
+
+function isLogBody(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function structuredLogBodies(
+  calls: readonly (readonly [Record<string, unknown>])[],
+): Record<string, unknown>[] {
+  return calls.flatMap(([payload]) => {
+    const body = payload.body;
+    return isLogBody(body) ? [body] : [];
+  });
+}
+
+afterEach(() => {
+  logger.resetClient();
+  logger._setConsoleError(null);
+  mock.restore();
+});
 
 describe("sync scheduler", () => {
   test("scheduler instances for parallel worktrees flush only their own pending sync", async () => {
@@ -377,6 +397,339 @@ test("onRunComplete exposes check failure via checkExitCode", async () => {
   assert.equal(completions.length, 1);
   assert.equal(completions[0]?.exitCode, 0);
   assert.equal(completions[0]?.checkExitCode, 1);
+});
+
+test("scheduler logs advisory quality diagnostics from successful structured check output", async () => {
+  const clock = createFakeClock();
+  const completions: SyncRunMetadata[] = [];
+  const log = mock(async (_payload: Record<string, unknown>) => {});
+  const consoleError = mock(() => {});
+  logger.setClient({ app: { log } });
+  logger._setConsoleError(consoleError);
+
+  const scheduler = createSyncScheduler({
+    worktree: process.cwd(),
+    config: {
+      ...DEFAULTS,
+      sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+    },
+    now: clock.now,
+    setTimeoutFn: clock.setTimeoutFn,
+    clearTimeoutFn: clock.clearTimeoutFn,
+    onRunComplete: (meta) => completions.push(meta),
+    runSync: async () => ({ exitCode: 0 }),
+    runCheck: async () => ({
+      exitCode: 0,
+      stdout: JSON.stringify({
+        structuredContent: {
+          violations: [],
+          count: 0,
+          diagnostics: [],
+          qualityDiagnostics: [
+            {
+              id: "symbol_semantic_review_needed",
+              severity: "review",
+              blocking: false,
+              category: "symbol",
+              files: ["packages/opencode/src/scheduler.ts"],
+              message: "Review linked requirement semantics",
+              suggestion: "Run semantic review",
+            },
+          ],
+        },
+      }),
+    }),
+  });
+
+  scheduler.scheduleSync("smart-enforcement.traceability", "src/feature.ts", [
+    "symbol-traceability",
+  ]);
+  clock.advance(100);
+  await scheduler.flush();
+  await flushAsync();
+
+  assert.equal(completions.length, 1);
+  assert.equal(completions[0]?.exitCode, 0);
+  assert.equal(completions[0]?.checkExitCode, 0);
+  assert.equal(consoleError.mock.calls.length, 0);
+
+  const advisoryLogs = structuredLogBodies(log.mock.calls).filter((body) =>
+    String(body.message).startsWith("check.advisory_quality"),
+  );
+  assert.equal(advisoryLogs.length, 1);
+  assert.deepEqual(advisoryLogs[0], {
+    service: "kibi-opencode",
+    level: "warn",
+    message:
+      'check.advisory_quality {"rules":["symbol-traceability"],"count":1,"review":1,"firstId":"symbol_semantic_review_needed","firstMessage":"Review linked requirement semantics"}',
+  });
+});
+
+test("scheduler logs advisory quality diagnostics from stderr when stdout is empty", async () => {
+  const clock = createFakeClock();
+  const completions: SyncRunMetadata[] = [];
+  const log = mock(async (_payload: Record<string, unknown>) => {});
+  const consoleError = mock(() => {});
+  logger.setClient({ app: { log } });
+  logger._setConsoleError(consoleError);
+
+  const scheduler = createSyncScheduler({
+    worktree: process.cwd(),
+    config: {
+      ...DEFAULTS,
+      sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+    },
+    now: clock.now,
+    setTimeoutFn: clock.setTimeoutFn,
+    clearTimeoutFn: clock.clearTimeoutFn,
+    onRunComplete: (meta) => completions.push(meta),
+    runSync: async () => ({ exitCode: 0 }),
+    runCheck: async () => ({
+      exitCode: 0,
+      stderr: JSON.stringify({
+        structuredContent: {
+          violations: [],
+          count: 0,
+          diagnostics: [],
+          qualityDiagnostics: [
+            {
+              id: "symbol_semantic_review_needed",
+              severity: "review",
+              blocking: false,
+              category: "symbol",
+              files: ["packages/opencode/src/scheduler.ts"],
+              message: "Review linked requirement semantics",
+              suggestion: "Run semantic review",
+            },
+          ],
+        },
+      }),
+    }),
+  });
+
+  scheduler.scheduleSync("smart-enforcement.traceability", "src/feature.ts", [
+    "symbol-traceability",
+  ]);
+  clock.advance(100);
+  await scheduler.flush();
+  await flushAsync();
+
+  assert.equal(completions.length, 1);
+  assert.equal(completions[0]?.exitCode, 0);
+  assert.equal(completions[0]?.checkExitCode, 0);
+  assert.equal(consoleError.mock.calls.length, 0);
+
+  const advisoryLogs = structuredLogBodies(log.mock.calls).filter((body) =>
+    String(body.message).startsWith("check.advisory_quality"),
+  );
+  assert.equal(advisoryLogs.length, 1);
+  assert.deepEqual(advisoryLogs[0], {
+    service: "kibi-opencode",
+    level: "warn",
+    message:
+      'check.advisory_quality {"rules":["symbol-traceability"],"count":1,"review":1,"firstId":"symbol_semantic_review_needed","firstMessage":"Review linked requirement semantics"}',
+  });
+});
+
+test("scheduler prefers stdout structured diagnostics when both streams are present", async () => {
+  const clock = createFakeClock();
+  const completions: SyncRunMetadata[] = [];
+  const log = mock(async (_payload: Record<string, unknown>) => {});
+  const consoleError = mock(() => {});
+  logger.setClient({ app: { log } });
+  logger._setConsoleError(consoleError);
+
+  const scheduler = createSyncScheduler({
+    worktree: process.cwd(),
+    config: {
+      ...DEFAULTS,
+      sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+    },
+    now: clock.now,
+    setTimeoutFn: clock.setTimeoutFn,
+    clearTimeoutFn: clock.clearTimeoutFn,
+    onRunComplete: (meta) => completions.push(meta),
+    runSync: async () => ({ exitCode: 0 }),
+    runCheck: async () => ({
+      exitCode: 0,
+      stdout: JSON.stringify({
+        structuredContent: {
+          violations: [],
+          count: 0,
+          diagnostics: [],
+          qualityDiagnostics: [
+            {
+              id: "stdout_quality_diagnostic",
+              severity: "review",
+              blocking: false,
+              category: "symbol",
+              files: ["packages/opencode/src/scheduler.ts"],
+              message: "Prefer stdout diagnostics",
+              suggestion: "Keep stdout first",
+            },
+          ],
+        },
+      }),
+      stderr: JSON.stringify({
+        structuredContent: {
+          violations: [],
+          count: 0,
+          diagnostics: [],
+          qualityDiagnostics: [
+            {
+              id: "stderr_quality_diagnostic",
+              severity: "review",
+              blocking: false,
+              category: "symbol",
+              files: ["packages/opencode/src/scheduler.ts"],
+              message: "Should not win precedence",
+              suggestion: "Keep stderr second",
+            },
+          ],
+        },
+      }),
+    }),
+  });
+
+  scheduler.scheduleSync("smart-enforcement.traceability", "src/feature.ts", [
+    "symbol-traceability",
+  ]);
+  clock.advance(100);
+  await scheduler.flush();
+  await flushAsync();
+
+  assert.equal(completions.length, 1);
+  assert.equal(completions[0]?.exitCode, 0);
+  assert.equal(completions[0]?.checkExitCode, 0);
+  assert.equal(consoleError.mock.calls.length, 0);
+
+  const advisoryLogs = structuredLogBodies(log.mock.calls).filter((body) =>
+    String(body.message).startsWith("check.advisory_quality"),
+  );
+  assert.equal(advisoryLogs.length, 1);
+  assert.deepEqual(advisoryLogs[0], {
+    service: "kibi-opencode",
+    level: "warn",
+    message:
+      'check.advisory_quality {"rules":["symbol-traceability"],"count":1,"review":1,"firstId":"stdout_quality_diagnostic","firstMessage":"Prefer stdout diagnostics"}',
+  });
+});
+
+test("scheduler keeps hard check failures on existing failure path", async () => {
+  const clock = createFakeClock();
+  const completions: SyncRunMetadata[] = [];
+  const log = mock(async (_payload: Record<string, unknown>) => {});
+  const consoleError = mock(() => {});
+  logger.setClient({ app: { log } });
+  logger._setConsoleError(consoleError);
+
+  const scheduler = createSyncScheduler({
+    worktree: process.cwd(),
+    config: {
+      ...DEFAULTS,
+      sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+    },
+    now: clock.now,
+    setTimeoutFn: clock.setTimeoutFn,
+    clearTimeoutFn: clock.clearTimeoutFn,
+    onRunComplete: (meta) => completions.push(meta),
+    runSync: async () => ({ exitCode: 0 }),
+    runCheck: async () => ({
+      exitCode: 1,
+      stdout: JSON.stringify({
+        structuredContent: {
+          violations: [
+            {
+              rule: "required-fields",
+              entityId: "REQ-001",
+              description: "missing title",
+            },
+          ],
+          count: 1,
+          diagnostics: [],
+        },
+      }),
+    }),
+  });
+
+  scheduler.scheduleSync("smart-enforcement.kb-doc", "documentation/req.md", [
+    "required-fields",
+  ]);
+  clock.advance(100);
+  await scheduler.flush();
+  await flushAsync();
+
+  assert.equal(completions.length, 1);
+  assert.equal(completions[0]?.exitCode, 0);
+  assert.equal(completions[0]?.checkExitCode, 1);
+  assert.equal(consoleError.mock.calls.length, 0);
+
+  const messages = structuredLogBodies(log.mock.calls).map((body) =>
+    String(body.message),
+  );
+  assert.ok(messages.some((message) => message.startsWith("check.failed")));
+  assert.equal(
+    messages.some((message) => message.startsWith("check.advisory_quality")),
+    false,
+  );
+});
+
+test("scheduler does not crash on malformed structured check output", async () => {
+  const clock = createFakeClock();
+  const completions: SyncRunMetadata[] = [];
+
+  const scheduler = createSyncScheduler({
+    worktree: process.cwd(),
+    config: {
+      ...DEFAULTS,
+      sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+    },
+    now: clock.now,
+    setTimeoutFn: clock.setTimeoutFn,
+    clearTimeoutFn: clock.clearTimeoutFn,
+    onRunComplete: (meta) => completions.push(meta),
+    runSync: async () => ({ exitCode: 0 }),
+    runCheck: async () => ({ exitCode: 0, stdout: "not json" }),
+  });
+
+  scheduler.scheduleSync("smart-enforcement.traceability", "src/feature.ts", [
+    "symbol-traceability",
+  ]);
+  clock.advance(100);
+  await scheduler.flush();
+
+  assert.equal(completions.length, 1);
+  assert.equal(completions[0]?.exitCode, 0);
+  assert.equal(completions[0]?.checkExitCode, 0);
+});
+
+test("scheduler does not crash when structured check output is absent", async () => {
+  const clock = createFakeClock();
+  const completions: SyncRunMetadata[] = [];
+
+  const scheduler = createSyncScheduler({
+    worktree: process.cwd(),
+    config: {
+      ...DEFAULTS,
+      sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+    },
+    now: clock.now,
+    setTimeoutFn: clock.setTimeoutFn,
+    clearTimeoutFn: clock.clearTimeoutFn,
+    onRunComplete: (meta) => completions.push(meta),
+    runSync: async () => ({ exitCode: 0 }),
+    runCheck: async () => ({ exitCode: 0 }),
+  });
+
+  scheduler.scheduleSync("smart-enforcement.traceability", "src/feature.ts", [
+    "symbol-traceability",
+  ]);
+  clock.advance(100);
+  await scheduler.flush();
+
+  assert.equal(completions.length, 1);
+  assert.equal(completions[0]?.exitCode, 0);
+  assert.equal(completions[0]?.checkExitCode, 0);
 });
 
 // Task 1 TDD: check.failed advisory noise regression tests

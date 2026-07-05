@@ -101,9 +101,30 @@ describe("deriveFileOperationReminder", () => {
       });
 
       expect(result.policyDecision).toBe("advisory_guidance");
-      expect(result.lifecycleReminder).toContain("Edited file detected");
+      expect(result.lifecycleReminder).toContain("Edited source file detected");
+      expect(result.lifecycleReminder).toContain("kb_check");
       expect(result.e2eReminder).toBeNull();
       expect(result.reminderKindsToMark).toEqual(["kibi_write"]);
+    });
+
+    test("edited risky code file prompts impact-enabled kb_check guidance", () => {
+      const result = deriveFileOperationReminder({
+        normalizedPath: "packages/opencode/src/existing.ts",
+        lifecycle: "edited",
+        pathKind: "code",
+        linkedEntityResult: { ids: ["REQ-001"], source: "symbols" },
+        e2eSignal: { level: "none", evidence: [], reminderText: null },
+        currentSemanticRisk: "behavior_candidate",
+        posture: "root_active",
+      });
+
+      const reminder = result.lifecycleReminder ?? "";
+      expect(reminder).toContain("kb_check");
+      expect(reminder).toContain("includeImpactDiagnostics");
+      expect(reminder).toContain("includeWorkingTreeDiff");
+      expect(reminder).toContain("packages/opencode/src/existing.ts");
+      expect(reminder).toContain("semantic review");
+      expect(reminder).toContain("linked requirements/tests");
     });
 
     test("edited safe_docs_only file returns no lifecycle reminder", () => {
@@ -239,7 +260,8 @@ describe("deriveFileOperationReminder", () => {
       });
 
       expect(result.policyDecision).toBe("advisory_guidance");
-      expect(result.lifecycleReminder).toContain("Edited file detected");
+      expect(result.lifecycleReminder).toContain("Edited source file detected");
+      expect(result.lifecycleReminder).toContain("kb_check");
       expect(result.lifecycleReminder).not.toContain(
         "Hard Kibi checkpoint required",
       );
@@ -382,7 +404,8 @@ describe("deriveFileOperationReminder", () => {
         posture: "root_active",
       });
 
-      expect(result.lifecycleReminder).toContain("Edited file detected");
+      expect(result.lifecycleReminder).toContain("Edited source file detected");
+      expect(result.lifecycleReminder).toContain("kb_check");
       expect(result.e2eReminder).toBe(
         "- This file has existing e2e coverage. Check whether e2e tests and linked TEST entities need updates.",
       );
@@ -430,7 +453,8 @@ describe("deriveFileOperationReminder", () => {
         posture: "root_active",
       });
 
-      expect(result.lifecycleReminder).toContain("Edited file detected");
+      expect(result.lifecycleReminder).toContain("Edited source file detected");
+      expect(result.lifecycleReminder).toContain("kb_check");
       expect(result.e2eReminder).toBe(
         "- This file may have related e2e coverage. Check linked e2e tests if this change affects behavior.",
       );
@@ -473,7 +497,8 @@ describe("deriveFileOperationReminder", () => {
         posture: "root_active",
       });
 
-      expect(result.lifecycleReminder).toContain("Edited file detected");
+      expect(result.lifecycleReminder).toContain("Edited source file detected");
+      expect(result.lifecycleReminder).toContain("kb_check");
       expect(result.e2eReminder).toBeNull();
       expect(result.reminderKindsToMark).toEqual(["kibi_write"]);
     });

@@ -57,6 +57,10 @@ entity_property(fact, aliases, list).
 entity_property(fact, examples, list).
 entity_property(fact, predicate_args, list).
 
+% Typed symbol metadata fields - only valid for symbol entities
+entity_property(symbol, symbol_role, atom).
+entity_property(symbol, granularity_reason, atom).
+
 % Typed test verification fields - only valid for test entities
 entity_property(test, verification_scope, atom).
 entity_property(test, verification_perspective, atom).

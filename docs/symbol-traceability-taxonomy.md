@@ -21,7 +21,9 @@ Current engine alignment:
 
 ### Behavioral anchors
 
-Traceability relationships (`implements`, `covered_by`, `executable_for`) should target behavioral symbols when available. Behavioral symbols include runtime functions, classes, methods, executable test helpers, and manual anchors for behavior composed through factory or expression constructs.
+Traceability relationships (`implements`, `covered_by`, `executable_for`) should target behavioral symbols when available. Behavioral symbols include runtime functions, classes, methods, accessors, behavior-bearing class properties, executable test helpers, and manual anchors for behavior composed through factory or expression constructs.
+
+Extracted class members use `ClassName.memberName` when they are the narrow behavioral seam. For example, an exported UI component property initialized with `computed(() => ...)`, `effect(...)`, `signal(...)`, a callback, or another non-trivial expression can be a behavioral anchor such as `UploadPageComponent.processingProgressLabel`. Prefer linking that member directly when the requirement ownership is about the member's behavior or UI-facing copy.
 
 Interfaces, type aliases, and enums are `type-shape` symbols. They describe data or API shape and should not by themselves block a module/file-level behavioral link. When behavior is composed through factory expressions, generated code, framework conventions, or language constructs the extractor cannot model, declare a manual symbol in `documentation/symbols.yaml` with `symbol_role: behavioral`.
 
@@ -38,6 +40,18 @@ symbols:
       - type: implements
         target: REQ-video-player-connects-element
 ```
+
+### Semantic review after source edits
+
+Impact diagnostics intentionally separate graph shape from semantic truth. A changed behavioral member can have complete `implements` and `covered_by` links and still emit `symbol_semantic_review_needed`; that warning tells the agent to inspect whether the linked requirement, scenario, and test still describe the changed behavior or UI copy. Kibi can point at the linked entities, but an LLM or human must review the prose and tests before claiming the KB remains semantically current.
+
+Run MCP `kb_check({sourceFiles:[...], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})` while the edit context is fresh. Treat CLI `kibi check --staged` and git hooks as the later hard fallback for missing impact evidence, stale symbol coordinates, and granularity violations.
+
+## Audit quality diagnostics
+
+Kibi separates blocking traceability enforcement from advisory audit diagnostics. Hard graph/schema/staged failures stay in `violations[]`; quality findings such as `multi_requirement_symbol_review`, `duplicate_symbol_coordinate_review`, `component_mixed_purpose_review`, `broad_requirement_review`, `coverage_depth_review`, `requirement_status_review`, and `strict_fact_modeling_review` appear in `qualityDiagnostics[]` and are non-blocking unless a diagnostic explicitly carries `blocking: true` or `severity: "error"`.
+
+Use these diagnostics as review prompts, not as proof of incorrectness. A multi-requirement or mixed-purpose symbol may be legitimate, but it should have a narrow behavioral anchor, an explicit `granularity_reason`, or a split requirement/symbol model that explains why one symbol owns several outcomes. OpenCode scheduled checks and normal CLI/MCP checks surface the same advisory lane automatically so agents see modeling drift without adding a separate audit command.
 
 ### Production runtime symbols
 

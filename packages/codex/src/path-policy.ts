@@ -30,6 +30,7 @@ const sourceExtensions = new Set([
   ".mjs",
   ".mts",
   ".php",
+  ".pl",
   ".py",
   ".rb",
   ".rs",
@@ -136,4 +137,27 @@ export function isMeaningfulTrackedPath(candidate: string): boolean {
   }
 
   return false;
+}
+
+export function isSourceImpactRelevantPath(candidate: string): boolean {
+  const normalized = normalizePath(candidate);
+  const segments = pathSegments(normalized);
+
+  if (
+    segments.includes(".kb") ||
+    segments.includes("dist") ||
+    segments.includes("tests") ||
+    segments.includes("test") ||
+    segments.includes("docs") ||
+    segments.includes("documentation")
+  ) {
+    return false;
+  }
+
+  const basename = segments.at(-1) ?? "";
+  const extension = basename.includes(".")
+    ? `.${basename.split(".").at(-1) ?? ""}`
+    : "";
+
+  return segments.includes("src") && sourceExtensions.has(extension);
 }

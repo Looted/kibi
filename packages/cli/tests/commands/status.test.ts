@@ -145,6 +145,75 @@ status: open
     }
   }, 15000);
 
+  test("keeps status fresh after syncing with documentation README files", () => {
+    const readmeDir = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-test-status-readme-"),
+    );
+
+    try {
+      execSync("git init -b main", { cwd: readmeDir, stdio: "pipe" });
+      execSync(`bun ${kibiBin} init`, { cwd: readmeDir, stdio: "pipe" });
+      mkdirSync(path.join(readmeDir, "documentation", "requirements"), {
+        recursive: true,
+      });
+      mkdirSync(
+        path.join(
+          readmeDir,
+          "documentation",
+          "tests",
+          "e2e",
+          "packed",
+          "fixtures",
+        ),
+        { recursive: true },
+      );
+
+      writeFileSync(
+        path.join(
+          readmeDir,
+          "documentation",
+          "requirements",
+          "REQ-README-001.md",
+        ),
+        `---
+id: REQ-README-001
+title: README status freshness
+status: open
+---
+`,
+      );
+      writeFileSync(
+        path.join(
+          readmeDir,
+          "documentation",
+          "tests",
+          "e2e",
+          "packed",
+          "fixtures",
+          "README.md",
+        ),
+        `# Fixture README
+`,
+      );
+
+      execSync(`bun ${kibiBin} sync`, { cwd: readmeDir, stdio: "pipe" });
+
+      const output = execSync(`bun ${kibiBin} status --format json`, {
+        cwd: readmeDir,
+        encoding: "utf8",
+      });
+
+      const result = JSON.parse(output) as {
+        dirty: boolean;
+        syncState: string;
+      };
+      expect(result.dirty).toBe(false);
+      expect(result.syncState).toBe("fresh");
+    } finally {
+      rmSync(readmeDir, { recursive: true, force: true });
+    }
+  }, 15000);
+
   test("reports stale status after adding a new documentation file without sync", () => {
     writeFileSync(
       path.join(tmpDir, "documentation", "requirements", "REQ-002.md"),

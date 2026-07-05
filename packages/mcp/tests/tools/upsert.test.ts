@@ -109,7 +109,7 @@ describe("handleKbUpsert", () => {
     expect(query).not.toHaveBeenCalled();
   });
 
-  test("accepts valid symbol_role values on symbol upserts", async () => {
+  test("accepts valid symbol metadata atom fields on symbol upserts", async () => {
     const { prolog, query } = createMockProlog(async (goal) => {
       if (goal === "once(kb_entity('SYM-ROLE-VALID', _, _))") {
         return { success: false };
@@ -141,6 +141,7 @@ describe("handleKbUpsert", () => {
         status: "active",
         source: "test://upsert",
         symbol_role: "behavioral",
+        granularity_reason: "config-artifact",
       },
     });
 
@@ -148,6 +149,7 @@ describe("handleKbUpsert", () => {
       String(goal).startsWith("rdf_transaction"),
     )?.[0] as string | undefined;
     expect(transactionGoal).toContain("symbol_role=behavioral");
+    expect(transactionGoal).toContain("granularity_reason='config-artifact'");
     expect(result.structuredContent?.created).toBe(1);
   });
 
@@ -191,7 +193,7 @@ describe("handleKbUpsert", () => {
         ],
       }),
     ).rejects.toThrow(
-      /Relationship source must match the upserted entity REQ-SOURCE-MISMATCH/,
+      /Relationship source must match the upserted entity REQ-SOURCE-MISMATCH[\s\S]*To add REQ-OTHER -> SCEN-001, upsert REQ-OTHER instead/,
     );
 
     expect(query).not.toHaveBeenCalled();
@@ -533,7 +535,7 @@ export function greet() {
       ],
     });
 
-    expect(query).toHaveBeenCalledTimes(8);
+    expect(query).toHaveBeenCalledTimes(10);
     expect(invalidateCache).toHaveBeenCalledTimes(1);
     expect(result.structuredContent).toMatchObject({
       created: 1,
@@ -998,6 +1000,64 @@ export function greet() {
       }),
     ).rejects.toThrow(
       "Upsert execution failed: Failed to upsert entity REQ-TX-PLAIN-001: permission denied",
+    );
+  });
+
+  test("rejects invalid relationship tuples before transaction with actionable alternatives", async () => {
+    const { prolog } = createMockProlog(async (goal) => {
+      if (goal === "once(kb_entity('FACT-UPPERCASE-INITIAL', _, _))") {
+        return { success: true };
+      }
+      if (goal === "kb_entity('TEST-HEADER-AVATAR-FALLBACK', Type, _)") {
+        return { success: true, bindings: { Type: "test" } };
+      }
+      if (
+        goal ===
+        "findall(To, kb_relationship(depends_on, 'FACT-UPPERCASE-INITIAL', To), Targets)"
+      ) {
+        return { success: true, bindings: { Targets: "[]" } };
+      }
+      if (goal.startsWith("findall(To, kb_relationship(")) {
+        return { success: true, bindings: { Targets: "[]" } };
+      }
+      if (goal.startsWith("findall(From, kb_relationship(")) {
+        return { success: true, bindings: { Sources: "[]" } };
+      }
+      if (goal.includes("normalize_term_atom")) {
+        return { success: false };
+      }
+      if (goal === "once(kb:validate_relationship(verified_by, fact, test))") {
+        return { success: false };
+      }
+
+      throw new Error(`Unexpected goal: ${goal}`);
+    });
+
+    await expect(
+      handleKbUpsert(prolog, {
+        type: "fact",
+        id: "FACT-UPPERCASE-INITIAL",
+        properties: {
+          title: "Header avatar initial is uppercase",
+          status: "active",
+          source: "test://upsert/fact",
+          fact_kind: "property_value",
+          subject_key: "header.avatar.initial",
+          property_key: "text_case",
+          operator: "eq",
+          value_type: "string",
+          value_string: "uppercase",
+        },
+        relationships: [
+          {
+            type: "verified_by",
+            from: "FACT-UPPERCASE-INITIAL",
+            to: "TEST-HEADER-AVATAR-FALLBACK",
+          },
+        ],
+      }),
+    ).rejects.toThrow(
+      /Invalid relationship: verified_by from fact to test[\s\S]*Facts are not directly verified by tests[\s\S]*Create or update a requirement and link REQ -> TEST with verified_by/,
     );
   });
 

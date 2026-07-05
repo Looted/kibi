@@ -27,18 +27,20 @@ import {
   type ExtractionResult,
   extractFromMarkdownString,
 } from "../extractors/markdown.js";
-import { PrologProcess } from "../prolog.js";
+import { PrologProcess, resolveKbPlPath } from "../prolog.js";
 import {
   escapeAtom,
   parseTriples,
   parseViolationRows,
 } from "../prolog/codec.js";
 import {
-  getBehavioralSymbolNames,
-  getNonBehavioralSymbolNames,
-  isAllowedGranularityReason,
-  isTraceabilityRelationshipType,
-} from "../public/symbol-granularity.js";
+  collectFullKbQualityDiagnostics,
+  createSemanticReviewDiagnostics,
+  createSymbolGranularityDiagnostics,
+  createSymbolQualityDiagnostics,
+  hasBlockingImpactDiagnostics,
+} from "../public/impact-diagnostics.js";
+import type { QualityDiagnostic } from "../public/impact-diagnostics.js";
 import {
   KIBI_NO_IMPACT_DECLARATION,
   KIBI_SYMBOLS_MANIFEST_PATH,
@@ -79,6 +81,7 @@ import {
 } from "../traceability/validate.js";
 import { loadConfig } from "../utils/config.js";
 import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
+import { analyzePrologQueryPlanSafety } from "../utils/prolog-query-plan-safety.js";
 import {
   type ChecksConfig,
   RULES,
@@ -90,6 +93,18 @@ export type { Violation };
 import { runAggregatedChecks } from "./aggregated-checks.js";
 import { getCurrentBranch } from "./init-helpers.js";
 
+function collectQueryPlanSafetyViolations(): Violation[] {
+  const checksPlPath = path.join(path.dirname(resolveKbPlPath()), "checks.pl");
+  const source = readFileSync(checksPlPath, "utf8");
+  return analyzePrologQueryPlanSafety(source).map((violation) => ({
+    rule: "query-plan-safety",
+    entityId: violation.predicate,
+    description: violation.description,
+    suggestion: violation.suggestion,
+    source: `${checksPlPath}:${violation.line}`,
+  }));
+}
+
 export interface CheckOptions {
   fix?: boolean;
   kbPath?: string;
@@ -97,6 +112,7 @@ export interface CheckOptions {
   staged?: boolean;
   minLinks?: string | number;
   dryRun?: boolean;
+  format?: "text" | "json";
 }
 
 function getMatchGroup(
@@ -229,93 +245,6 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
   };
 }
 
-function hasTraceabilityRelationship(result: ExtractionResult): boolean {
-  return result.relationships.some((relationship) =>
-    isTraceabilityRelationshipType(relationship.type),
-  );
-}
-
-function hasValidGranularityReason(result: ExtractionResult): boolean {
-  return isAllowedGranularityReason(result.entity.granularity_reason);
-}
-
-function createSymbolGranularityDiagnostics(options: {
-  manifestResults: ExtractionResult[];
-  symbolsByFile: Map<string, ReturnType<typeof extractSymbolsFromStagedFile>>;
-  sourceContentByFile: Map<string, string>;
-}): KibiImpactDiagnostic[] {
-  const diagnostics: KibiImpactDiagnostic[] = [];
-
-  for (const result of options.manifestResults) {
-    if (!result.sourceFile) continue;
-    if (!hasTraceabilityRelationship(result)) continue;
-    if (hasValidGranularityReason(result)) continue;
-
-    const granularSymbols = getGranularSymbolsForSourceFile(
-      result.sourceFile,
-      options.symbolsByFile,
-      options.sourceContentByFile,
-    );
-    if (granularSymbols.length === 0) continue;
-    const granularNames = [
-      ...new Set(granularSymbols.map((s) => s.name)),
-    ].sort();
-    if (granularNames.includes(result.entity.title)) continue;
-
-    const behavioralNames = getBehavioralSymbolNames(granularSymbols);
-    if (behavioralNames.length === 0) continue;
-
-    const nonBehavioralNames = getNonBehavioralSymbolNames(granularSymbols);
-    const ignoredSymbolsSuggestion =
-      nonBehavioralNames.length > 0
-        ? ` Non-behavioral symbols ignored for this decision: ${nonBehavioralNames.join(
-            ", ",
-          )}.`
-        : "";
-
-    diagnostics.push({
-      id: "symbol_granularity_violation",
-      severity: "error",
-      files: [result.entity.source, result.sourceFile],
-      docs: ["docs/symbol-traceability-taxonomy.md"],
-      message: `Symbol ${result.entity.id} links ${result.sourceFile} coarsely while granular symbols are available (behavioral only): ${behavioralNames.join(", ")}`,
-      suggestion: `Move ownership/coverage/test relationships to the narrow behavioral symbol, add a manifest behavioral anchor, or add granularity_reason with config-artifact, module-level-behavior, extractor-miss, or legacy-link when the coarse symbol is intentional.${ignoredSymbolsSuggestion}`,
-    });
-  }
-
-  return diagnostics;
-}
-
-function getGranularSymbolsForSourceFile(
-  sourceFile: string,
-  symbolsByFile: Map<string, ReturnType<typeof extractSymbolsFromStagedFile>>,
-  sourceContentByFile: Map<string, string>,
-): ReturnType<typeof extractSymbolsFromStagedFile> {
-  const stagedContent = sourceContentByFile.get(sourceFile);
-  if (stagedContent !== undefined) {
-    return extractSymbolsFromStagedFile({
-      path: sourceFile,
-      status: "M",
-      hunkRanges: [{ start: 1, end: Number.MAX_SAFE_INTEGER }],
-      content: stagedContent,
-    });
-  }
-
-  const absolutePath = path.isAbsolute(sourceFile)
-    ? sourceFile
-    : path.resolve(process.cwd(), sourceFile);
-  if (!existsSync(absolutePath)) {
-    return [];
-  }
-
-  return extractSymbolsFromStagedFile({
-    path: sourceFile,
-    status: "M",
-    hunkRanges: [{ start: 1, end: Number.MAX_SAFE_INTEGER }],
-    content: readFileSync(absolutePath, "utf8"),
-  });
-}
-
 const KIBI_ENTITY_TYPES = new Set<KibiEntityType>([
   "req",
   "scenario",
@@ -384,7 +313,9 @@ function formatStagedKibiDiagnostics(
 ): string {
   return diagnostics
     .map((diagnostic) => {
-      const lines = [`[${diagnostic.id}] ${diagnostic.message}`];
+      const lines = [
+        `[${diagnostic.severity.toUpperCase()} ${diagnostic.id}] ${diagnostic.message}`,
+      ];
       if (diagnostic.files.length > 0) {
         lines.push(`  Files: ${diagnostic.files.join(", ")}`);
       }
@@ -397,15 +328,64 @@ function formatStagedKibiDiagnostics(
     .join("\n\n");
 }
 
+function formatQualityDiagnostics(
+  diagnostics: readonly QualityDiagnostic[],
+): string {
+  if (diagnostics.length === 0) {
+    return "";
+  }
+
+  const details = diagnostics.map((diagnostic) => {
+    const lines = [
+      `[${diagnostic.severity.toUpperCase()} ${diagnostic.id}] ${diagnostic.message}`,
+    ];
+    if (diagnostic.entityId !== undefined) {
+      lines.push(`  Entity: ${diagnostic.entityId}`);
+    }
+    if (diagnostic.files !== undefined && diagnostic.files.length > 0) {
+      lines.push(`  Files: ${diagnostic.files.join(", ")}`);
+    }
+    if (diagnostic.docs !== undefined && diagnostic.docs.length > 0) {
+      lines.push(`  Docs: ${diagnostic.docs.join(", ")}`);
+    }
+    lines.push(`  Blocking: ${diagnostic.blocking ? "yes" : "no"}`);
+    lines.push(`  Suggestion: ${diagnostic.suggestion}`);
+    return lines.join("\n");
+  });
+
+  return `Quality diagnostics (${diagnostics.length}):\n${details.join("\n\n")}`;
+}
+
+function printStructuredCheckResult(input: {
+  violations: readonly Violation[];
+  qualityDiagnostics: readonly QualityDiagnostic[];
+}): void {
+  console.log(
+    JSON.stringify({
+      structuredContent: {
+        violations: input.violations,
+        count: input.violations.length,
+        diagnostics: [],
+        qualityDiagnostics: input.qualityDiagnostics,
+      },
+    }),
+  );
+}
+
 function uniqueSorted(values: Iterable<string>): string[] {
   return Array.from(new Set(values)).sort();
+}
+
+function hasYamlFrontmatter(content: string): boolean {
+  const trimmed = content.trimStart();
+  return trimmed.startsWith("---") && trimmed.slice(3).includes("\n---");
 }
 
 function buildStagedKibiImpactEvidence(options: {
   stagedFiles: StagedFile[];
   sourceFiles: StagedFile[];
   markdownFiles: StagedFile[];
-  markdownResults: ExtractionResult[];
+  markdownResultsByPath: ReadonlyMap<string, ExtractionResult>;
   symbolsByFile: Map<string, ReturnType<typeof extractSymbolsFromStagedFile>>;
   symbolsManifestPath: string;
 }): KibiImpactEvidence {
@@ -413,7 +393,7 @@ function buildStagedKibiImpactEvidence(options: {
     stagedFiles,
     sourceFiles,
     markdownFiles,
-    markdownResults,
+    markdownResultsByPath,
     symbolsByFile,
     symbolsManifestPath,
   } = options;
@@ -453,14 +433,6 @@ function buildStagedKibiImpactEvidence(options: {
       stagedFiles,
       sourceFiles: behaviorSourceFiles,
     });
-
-  const markdownResultsByPath = new Map<string, ExtractionResult>();
-  for (const [index, file] of markdownFiles.entries()) {
-    const result = markdownResults[index];
-    if (result) {
-      markdownResultsByPath.set(file.path, result);
-    }
-  }
 
   type KbArtifact = Extract<
     KibiImpactEvidence["mode"],
@@ -645,9 +617,16 @@ export async function checkCommand(
           }
         }
 
-        const markdownResults: ExtractionResult[] = markdownFiles.map((file) =>
-          extractFromMarkdownString(file.content ?? "", file.path),
-        );
+        const markdownResultsByPath = new Map<string, ExtractionResult>();
+        for (const file of markdownFiles) {
+          const content = file.content ?? "";
+          if (hasYamlFrontmatter(content)) {
+            markdownResultsByPath.set(
+              file.path,
+              extractFromMarkdownString(content, file.path),
+            );
+          }
+        }
 
         const stagedSourceFilePaths = new Set(
           sourceFiles.map((file) => file.path),
@@ -659,19 +638,26 @@ export async function checkCommand(
         );
         const stagedEntityResults: ExtractionResult[] = [
           ...scopedManifestResults,
-          ...markdownResults,
+          ...markdownResultsByPath.values(),
         ];
 
         const stagedKibiEvidence = buildStagedKibiImpactEvidence({
           stagedFiles,
           sourceFiles,
           markdownFiles,
-          markdownResults,
+          markdownResultsByPath,
           symbolsByFile,
           symbolsManifestPath,
         });
         const stagedKibiDiagnostics =
           collectStagedKibiDiagnostics(stagedKibiEvidence);
+        const activeStagedSymbolEntityIds = new Set(
+          stagedKibiEvidence.mode.kind === "kb_changes"
+            ? stagedKibiEvidence.mode.kbArtifacts
+                .filter((artifact) => artifact.kind === "symbols_manifest")
+                .flatMap((artifact) => artifact.entityIds)
+            : [],
+        );
         const stagedAuthoredSymbolSet = new Set(stagedAuthoredSymbolResults);
         const stagedSourcePaths = new Set(sourceFiles.map((file) => file.path));
         const activeGranularityResults = authoredSymbolResults.filter(
@@ -683,9 +669,20 @@ export async function checkCommand(
         stagedKibiDiagnostics.push(
           ...createSymbolGranularityDiagnostics({
             manifestResults: activeGranularityResults,
+            ...(activeStagedSymbolEntityIds.size > 0
+              ? { activeEntityIds: activeStagedSymbolEntityIds }
+              : {}),
             symbolsByFile,
             sourceContentByFile,
           }),
+          ...createSymbolQualityDiagnostics({
+            manifestResults: activeGranularityResults,
+            ...(activeStagedSymbolEntityIds.size > 0
+              ? { activeEntityIds: activeStagedSymbolEntityIds }
+              : {}),
+            symbolsByFile,
+          }),
+          ...createSemanticReviewDiagnostics({ symbolsByFile }),
         );
 
         if (allSymbols.length === 0 && stagedEntityResults.length === 0) {
@@ -694,7 +691,11 @@ export async function checkCommand(
             if (options.dryRun) {
               return { exitCode: 0 };
             }
-            return { exitCode: 1 };
+            return {
+              exitCode: hasBlockingImpactDiagnostics(stagedKibiDiagnostics)
+                ? 1
+                : 0,
+            };
           }
 
           console.log(
@@ -709,7 +710,11 @@ export async function checkCommand(
             if (options.dryRun) {
               return { exitCode: 0 };
             }
-            return { exitCode: 1 };
+            return {
+              exitCode: hasBlockingImpactDiagnostics(stagedKibiDiagnostics)
+                ? 1
+                : 0,
+            };
           }
           console.log("✓ No violations found in staged files.");
           return { exitCode: 0 };
@@ -756,7 +761,13 @@ export async function checkCommand(
           if (options.dryRun) {
             return { exitCode: 0 };
           }
-          return { exitCode: 1 };
+          if (!hasBlockingImpactDiagnostics(stagedKibiDiagnostics)) {
+            console.log("✓ No violations found in staged symbols.");
+            return { exitCode: 0 };
+          }
+          return {
+            exitCode: 1,
+          };
         }
 
         console.log("✓ No violations found in staged symbols.");
@@ -834,6 +845,7 @@ export async function checkCommand(
       "strict-fact-shape",
       "strict-req-fact-pairing",
       "strict-readiness",
+      "query-plan-safety",
     ];
 
     const canUseAggregated = Array.from(effectiveRules).every((r) =>
@@ -875,8 +887,26 @@ export async function checkCommand(
       await runCheck("strict-req-fact-pairing", checkStrictReqFactPairing);
       await runCheck("strict-readiness", checkStrictReadiness);
     }
+    if (effectiveRules.has("query-plan-safety")) {
+      violations.push(...collectQueryPlanSafetyViolations());
+    }
+    const qualityDiagnostics = await collectFullKbQualityDiagnostics({
+      prolog: activeProlog,
+      hardViolationEntityIds: new Set(
+        violations.map((violation) => violation.entityId),
+      ),
+    });
+    if (options.format === "json") {
+      printStructuredCheckResult({ violations, qualityDiagnostics });
+      return { exitCode: violations.length === 0 ? 0 : 1 };
+    }
+    const qualityOutput = formatQualityDiagnostics(qualityDiagnostics);
     if (violations.length === 0) {
       console.log("✓ No violations found. KB is valid.");
+      if (qualityOutput.length > 0) {
+        console.log();
+        console.log(qualityOutput);
+      }
       return { exitCode: 0 };
     }
 
@@ -896,6 +926,11 @@ export async function checkCommand(
       if (options.fix && v.suggestion) {
         console.log(`  Suggestion: ${v.suggestion}`);
       }
+      console.log();
+    }
+
+    if (qualityOutput.length > 0) {
+      console.log(qualityOutput);
       console.log();
     }
 

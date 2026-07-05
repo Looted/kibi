@@ -15,7 +15,7 @@ import {
   rememberGuidedPath,
   resolveStateDir,
 } from "./hook-state.js";
-import { extractKbMcpToolName } from "./kb-mcp-tools.js";
+import { extractKbMcpToolCall } from "./kb-mcp-tools.js";
 import {
   BOOTSTRAP_REMINDER,
   DIRECT_KB_EDIT_WARNING,
@@ -144,9 +144,12 @@ export async function runHook(
     }
 
     case "postToolUse": {
-      const kbToolName = extractKbMcpToolName(input.toolName, input.toolInput);
-      if (kbToolName) {
-        recordKbMcpTool(stateDir, kbToolName);
+      const kbToolCall = extractKbMcpToolCall(input.toolName, input.toolInput);
+      if (kbToolCall) {
+        recordKbMcpTool(stateDir, kbToolCall.toolName, {
+          impactCheckRun: kbToolCall.impactCheckRun,
+          sourceFiles: kbToolCall.sourceFiles,
+        });
       }
 
       const explicitPaths = extractExplicitPathFields(input.toolInput);

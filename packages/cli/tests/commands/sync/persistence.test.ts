@@ -9,6 +9,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import * as path from "node:path";
 import {
   persistEntities,
   persistRelationships,
@@ -410,6 +411,61 @@ describe("persistEntities", () => {
     );
     expect(assertCall).toContain("sourceFile=");
     expect(assertCall).toContain("packages/opencode/src/brief-intent.ts");
+  });
+
+  test("serializes test entity verification scope and perspective", async () => {
+    const entity = makeEntity({
+      id: "TEST-UPLOAD",
+      type: "test",
+      status: "passing",
+      verification_scope: "integration",
+      verification_perspective: "consumer",
+    });
+    const prolog = makeProlog({
+      "findall(Id, kb_entity(Id, _, _), ExistingIds)": {
+        success: true,
+        bindings: { ExistingIds: "[]" },
+      },
+    });
+
+    await persistEntities(
+      asPrologProcess(prolog),
+      [{ entity, relationships: [] }],
+      new Set(),
+    );
+
+    const assertCall = prolog.callLog.find((g) =>
+      g.includes("kb_assert_entity"),
+    );
+    expect(assertCall).toContain("verification_scope=integration");
+    expect(assertCall).toContain("verification_perspective=consumer");
+  });
+
+  test("adds absolute source and missing fact value context to entity failures", async () => {
+    const sourceFile = path.join(process.cwd(), "docs", "FACT-MISSING.md");
+    const entity = makeEntity({
+      id: "FACT-MISSING",
+      type: "fact",
+      fact_kind: "property_value",
+    });
+    const prolog = makeProlog();
+    prolog.query.mockImplementation(async (goal: string | string[]) => {
+      const g = Array.isArray(goal) ? goal.join(", ") : goal;
+      if (g.includes("kb_assert_entity")) {
+        return { success: false, bindings: {}, error: "shape failed" };
+      }
+      return { success: true, bindings: { ExistingIds: "[]" } };
+    });
+
+    expect(
+      persistEntities(
+        asPrologProcess(prolog),
+        [{ entity, relationships: [], sourceFile }],
+        new Set(),
+      ),
+    ).rejects.toThrow(
+      "source=docs/FACT-MISSING.md; fact_kind=property_value; missing value field",
+    );
   });
 
   test("serializes fact entity typed fields correctly", async () => {
@@ -1107,6 +1163,71 @@ describe("persistRelationships", () => {
     expect(allWarnOutput).toContain("relationship(s) failed");
     expect(allWarnOutput).toContain("depends_on");
     expect(allWarnOutput).toContain("Tip:");
+  });
+
+  test("logs missing entity tips for deterministic relationship failures", async () => {
+    const prolog = makeProlog();
+    prolog.query.mockImplementation(async () => ({
+      success: false,
+      bindings: {},
+      error: "entity does not exist: REQ-MISSING",
+    }));
+    const warnSpy = mock();
+    const origWarn = console.warn;
+    console.warn = warnSpy;
+
+    try {
+      await persistRelationships(
+        asPrologProcess(prolog),
+        [
+          {
+            entity: makeEntity({ id: "REQ-001" }),
+            relationships: [
+              { type: "depends_on", from: "REQ-001", to: "REQ-MISSING" },
+            ],
+          },
+        ],
+        [],
+      );
+    } finally {
+      console.warn = origWarn;
+    }
+
+    const warnOutput = warnSpy.mock.calls.map((call) => call.join(" ")).join("\n");
+    expect(warnOutput).toContain("REQ-MISSING");
+    expect(warnOutput).toContain("Create the missing docs");
+  });
+
+  test("logs schema tips for invalid relationship failures", async () => {
+    const prolog = makeProlog();
+    prolog.query.mockImplementation(async () => ({
+      success: false,
+      bindings: {},
+      error: "Invalid relationship direction",
+    }));
+    const warnSpy = mock();
+    const origWarn = console.warn;
+    console.warn = warnSpy;
+
+    try {
+      await persistRelationships(
+        asPrologProcess(prolog),
+        [
+          {
+            entity: makeEntity({ id: "REQ-001" }),
+            relationships: [
+              { type: "implements", from: "REQ-001", to: "SYM-WRONG" },
+            ],
+          },
+        ],
+        [],
+      );
+    } finally {
+      console.warn = origWarn;
+    }
+
+    const warnOutput = warnSpy.mock.calls.map((call) => call.join(" ")).join("\n");
+    expect(warnOutput).toContain("relationship types and directions");
   });
 
   test("deduplicates failure log warnings", async () => {

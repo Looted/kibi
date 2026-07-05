@@ -175,11 +175,14 @@ describe.serial("session module", () => {
   // ==========================================================================
 
   async function importSession() {
-    const session = await import(
-      `../../src/server/session.js?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
-    );
+    const session = coveredSession;
+    session.resetSessionStateForTests();
     session._resetSessionDepsForTests();
-    session._setSessionDepsForTests(createMockSessionDeps());
+    session._setSessionDepsForTests(
+      createMockSessionDeps() as unknown as Parameters<
+        typeof session._setSessionDepsForTests
+      >[0],
+    );
     return session;
   }
 

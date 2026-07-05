@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 
 import {
-  KIBI_ENTITY_SCHEMA_DOC,
+  KIBI_STAGED_IMPACT_EVIDENCE_DOC,
   KIBI_SYMBOLS_MANIFEST_PATH,
   type KibiImpactEvidence,
 } from "../../src/traceability/evidence-model.js";
@@ -341,12 +341,16 @@ describe("staged diagnostics: kibi_impact_evidence_missing contract", () => {
     expect(diagnostics).toContainEqual({
       id: "kibi_impact_evidence_missing",
       severity: "error",
+      blocking: true,
+      category: "fact",
       files: ["packages/cli/src/traceability/check.ts"],
-      docs: [KIBI_ENTITY_SCHEMA_DOC],
+      docs: [KIBI_STAGED_IMPACT_EVIDENCE_DOC],
       message: expect.stringContaining(
-        "Behavior-changing staged files are missing Kibi impact evidence",
+        "Behavior-changing staged files are missing staged Kibi impact evidence",
       ),
-      suggestion: expect.stringContaining("Query Kibi via MCP"),
+      suggestion: expect.stringContaining(
+        "MCP writes update KB state but do not stage tracked evidence",
+      ),
     });
   });
 
@@ -516,8 +520,10 @@ describe("staged diagnostics: kibi_impact_evidence_missing contract", () => {
     expect(diagnostics).toContainEqual({
       id: "kibi_impact_evidence_missing",
       severity: "error",
+      blocking: true,
+      category: "fact",
       files: [uncovered],
-      docs: [KIBI_ENTITY_SCHEMA_DOC],
+      docs: [KIBI_STAGED_IMPACT_EVIDENCE_DOC],
       message: expect.stringContaining(uncovered),
       suggestion: expect.any(String),
     });

@@ -239,6 +239,9 @@ describe("symbolIndex", () => {
         "  SYM-OVERLAY-001:",
         `    sourceFile: ${freshSourcePath}`,
         "    sourceLine: 12",
+        "    links:",
+        "      - REQ-FRESH-OVERLAY-001",
+        "      - 42",
         "    sourceColumn: 1",
         "    sourceEndLine: 16",
         "    sourceEndColumn: 3",
@@ -252,7 +255,7 @@ describe("symbolIndex", () => {
     expect(index.byId.get("SYM-OVERLAY-001")).toMatchObject({
       sourceFile: freshSourcePath,
       sourceLine: 12,
-      links: ["REQ-OVERLAY-001"],
+      links: ["REQ-FRESH-OVERLAY-001", "42"],
     });
   });
 
@@ -285,6 +288,36 @@ describe("symbolIndex", () => {
       sourceFile: inlineSourcePath,
       sourceLine: 7,
       links: ["REQ-INLINE-001"],
+    });
+  });
+
+  test("buildIndex ignores malformed coordinate artifact and uses inline metadata", () => {
+    const manifestPath = path.join(tmpDir, "symbols.yaml");
+    const coordinatesPath = path.join(tmpDir, "symbol-coordinates.yaml");
+    const inlineSourcePath = path.join(tmpDir, "src", "inline.ts");
+
+    fs.mkdirSync(path.dirname(inlineSourcePath), { recursive: true });
+    fs.writeFileSync(
+      manifestPath,
+      [
+        "symbols:",
+        "  - id: SYM-MALFORMED-OVERLAY-001",
+        "    title: InlineAfterMalformedOverlay",
+        `    sourceFile: ${inlineSourcePath}`,
+        "    sourceLine: 19",
+        "    links:",
+        "      - REQ-INLINE-AFTER-MALFORMED-OVERLAY-001",
+      ].join("\n"),
+      "utf8",
+    );
+    fs.writeFileSync(coordinatesPath, "coordinates: [\n  SYM-BAD", "utf8");
+
+    const index = buildIndex(manifestPath, tmpDir, coordinatesPath);
+
+    expect(index.byId.get("SYM-MALFORMED-OVERLAY-001")).toMatchObject({
+      sourceFile: inlineSourcePath,
+      sourceLine: 19,
+      links: ["REQ-INLINE-AFTER-MALFORMED-OVERLAY-001"],
     });
   });
 

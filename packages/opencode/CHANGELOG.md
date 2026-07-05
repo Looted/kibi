@@ -1,5 +1,46 @@
 # kibi-opencode
 
+## 0.18.0
+
+### Minor Changes
+
+- f1db710: OpenCode background checks now surface advisory Kibi quality diagnostics without turning a clean check into an operational plugin failure. Users get concise structured maintenance logs for review-only findings while hard `kibi check` violations keep the existing failure behavior and exit status. The CLI check command also exposes a JSON format so background integrations can consume the same structured diagnostics reliably.
+
+  Technical summary:
+
+  - Add `kibi check --format json` output with `structuredContent.violations`, `count`, `diagnostics`, and `qualityDiagnostics`.
+  - Run OpenCode targeted background checks with JSON output and parse non-blocking `qualityDiagnostics` on successful checks.
+  - Log advisory diagnostic summaries through structured warning logs, preserving terminal silence and existing hard check failure routing.
+
+### Patch Changes
+
+- Updated dependencies [48b65b9]
+- Updated dependencies [f1db710]
+- Updated dependencies [f1db710]
+- Updated dependencies [439cb2e]
+- Updated dependencies [f1db710]
+- Updated dependencies [cb8d977]
+- Updated dependencies [224f18b]
+  - kibi-cli@0.14.0
+
+## 0.17.0
+
+### Minor Changes
+
+- Kibi now gives agents source-impact feedback while they are still editing, instead of waiting for the commit hook to be the first signal. Meaningful source edits can be checked through MCP with changed-file impact diagnostics, so agents see coarse symbol ownership, stale symbol evidence, and semantic-review prompts while the source context is fresh. OpenCode, Cursor, and Codex adapters now steer agents toward that MCP-first workflow and keep CLI/hooks as the later safety net.
+
+  Technical summary:
+
+  - Add reusable CLI changed-file impact diagnostics and export them for MCP consumption.
+  - Extend MCP `kb_check` with source-file impact options and structured impact output.
+  - Update OpenCode, Cursor, and Codex guidance/hooks to request impact-enabled `kb_check` after source edits.
+  - Document semantic-review diagnostics and class-member granularity expectations.
+
+### Patch Changes
+
+- Updated dependencies
+  - kibi-cli@0.13.0
+
 ## 0.16.0
 
 ### Minor Changes

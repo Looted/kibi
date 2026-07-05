@@ -1135,6 +1135,55 @@ describe("semantic advisor prose analysis", () => {
     expect(result.receipt.suggestions).toEqual([]);
   });
 
+  test("returns not_applicable when payload is non-requirement type", () => {
+    const result = analyzeSemanticAdvisorInput({
+      payload: {
+        type: "fact",
+        id: "FACT-EXAMPLE",
+        properties: {
+          title: "Supporting fact",
+          status: "open",
+          source: "docs/facts/example.md",
+          text_ref: "This captures an observed behavior note.",
+        },
+      },
+    });
+
+    expect(result.receipt.logic_readiness).toBe("not_applicable");
+    expect(result.receipt.candidate_lane).toBe("none");
+    expect(result.receipt.signals).toEqual([]);
+    expect(result.receipt.suggestions).toEqual([]);
+    expect(result.warnings).toEqual([]);
+  });
+
+  test("returns modeled state for already constrained requirements with no further suggestions", () => {
+    const result = analyzeSemanticAdvisorInput({
+      payload: {
+        type: "req",
+        id: "REQ-PREMODELED",
+        properties: {
+          title: "Session timeout",
+          status: "open",
+          source: "docs/requirements/sessions.md",
+          text_ref: "Session timeout must equal 30 minutes.",
+        },
+        relationships: [
+          { type: "constrains", from: "REQ-PREMODELED", to: "FACT-SUBJECT" },
+          {
+            type: "requires_property",
+            from: "REQ-PREMODELED",
+            to: "FACT-TIMEOUT",
+          },
+        ],
+      },
+    });
+
+    expect(result.receipt.logic_readiness).toBe("modeled");
+    expect(result.receipt.candidate_lane).toBe("none");
+    expect(result.receipt.suggestions).toEqual([]);
+    expect(result.warnings).toEqual([]);
+  });
+
   test("does not warn for non-normative prose", () => {
     const result = analyzeSemanticAdvisorInput({
       payload: {

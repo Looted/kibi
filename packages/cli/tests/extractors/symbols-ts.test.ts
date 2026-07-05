@@ -122,6 +122,19 @@ describe("enrichSymbolCoordinatesWithTsMorph", () => {
       ),
     );
 
+    writeFixture(
+      workspaceRoot,
+      "fixtures/class-members.ts",
+      [
+        "export class UploadPageComponent {",
+        "  protected processingProgressLabel = computed(() => 'Processing started');",
+        "  get processingProgressAriaLabel() {",
+        "    return this.processingProgressLabel;",
+        "  }",
+        "}",
+      ].join("\n"),
+    );
+
     internalFile = writeFixture(
       workspaceRoot,
       "fixtures/internal.ts",
@@ -251,6 +264,110 @@ describe("enrichSymbolCoordinatesWithTsMorph", () => {
     expectCoordinates(requireEntry(result), 2);
   });
 
+  test("falls back to unique class property and accessor symbols", async () => {
+    const classMembersFile = path.join(
+      workspaceRoot,
+      "fixtures",
+      "class-members.ts",
+    );
+    const propertyEntry = createEntry(
+      "SYM-PROCESSING-LABEL",
+      "processingProgressLabel",
+      path.relative(workspaceRoot, classMembersFile),
+    );
+    const accessorEntry = createEntry(
+      "SYM-PROCESSING-ARIA",
+      "processingProgressAriaLabel",
+      path.relative(workspaceRoot, classMembersFile),
+    );
+
+    const [propertyResult, accessorResult] =
+      await enrichSymbolCoordinatesWithTsMorph(
+        [propertyEntry, accessorEntry],
+        workspaceRoot,
+      );
+
+    expectCoordinates(requireEntry(propertyResult), 2);
+    expectCoordinates(requireEntry(accessorResult), 3);
+  });
+
+  test("resolves qualified class method, property, and accessor titles", async () => {
+    const qualifiedMembersFile = writeFixture(
+      workspaceRoot,
+      "fixtures/qualified-members.ts",
+      [
+        "export class QualifiedHost {",
+        "  runTask() { return 1; }",
+        "  taskLabel = 'ready';",
+        "  get taskStatus() { return this.taskLabel; }",
+        "}",
+      ].join("\n"),
+    );
+    const methodEntry = createEntry(
+      "SYM-QUALIFIED-METHOD",
+      "QualifiedHost.runTask",
+      path.relative(workspaceRoot, qualifiedMembersFile),
+    );
+    const propertyEntry = createEntry(
+      "SYM-QUALIFIED-PROPERTY",
+      "QualifiedHost.taskLabel",
+      path.relative(workspaceRoot, qualifiedMembersFile),
+    );
+    const accessorEntry = createEntry(
+      "SYM-QUALIFIED-ACCESSOR",
+      "QualifiedHost.taskStatus",
+      path.relative(workspaceRoot, qualifiedMembersFile),
+    );
+    const missingEntry = createEntry(
+      "SYM-QUALIFIED-MISSING",
+      "QualifiedHost.missingMember",
+      path.relative(workspaceRoot, qualifiedMembersFile),
+    );
+
+    const [methodResult, propertyResult, accessorResult, missingResult] =
+      await enrichSymbolCoordinatesWithTsMorph(
+        [methodEntry, propertyEntry, accessorEntry, missingEntry],
+        workspaceRoot,
+      );
+
+    expectCoordinates(requireEntry(methodResult), 2);
+    expectCoordinates(requireEntry(propertyResult), 3);
+    expectCoordinates(requireEntry(accessorResult), 4);
+    expectUnchanged(requireEntry(missingResult), missingEntry);
+  });
+
+  test("leaves ambiguous internal functions and class members unchanged", async () => {
+    const ambiguousFile = writeFixture(
+      workspaceRoot,
+      "fixtures/ambiguous.ts",
+      [
+        "function duplicate() { return 1; }",
+        "function duplicate() { return 2; }",
+        "class First { sharedMember = 1; }",
+        "class Second { sharedMember = 2; }",
+      ].join("\n"),
+    );
+    const duplicateEntry = createEntry(
+      "SYM-DUPLICATE",
+      "duplicate",
+      path.relative(workspaceRoot, ambiguousFile),
+    );
+    const sharedMemberEntry = createEntry(
+      "SYM-SHARED-MEMBER",
+      "sharedMember",
+      path.relative(workspaceRoot, ambiguousFile),
+    );
+
+    const [duplicateResult, sharedMemberResult] =
+      await enrichSymbolCoordinatesWithTsMorph(
+        [duplicateEntry, sharedMemberEntry],
+        workspaceRoot,
+      );
+
+    expectUnchanged(requireEntry(duplicateResult), duplicateEntry);
+    expectUnchanged(requireEntry(sharedMemberResult), sharedMemberEntry);
+  });
+
   test("returns the original entry when the symbol name does not exist in the source file", async () => {
     const entry = createEntry(
       "SYM-013",
@@ -368,5 +485,67 @@ describe("enrichSymbolCoordinatesWithTsMorph", () => {
       ["ParsedMode", "enum"],
       ["parsedValue", "variable"],
     ]);
+  });
+
+  test("analyzes class properties, accessors, JSX, and CTS inputs", () => {
+    const createTsMorphSourceAnalysisProvider = (
+      symbolsTsExports as {
+        createTsMorphSourceAnalysisProvider?: () => {
+          supportsFile: (filePath: string) => boolean;
+          analyzeText: (
+            filePath: string,
+            content: string,
+          ) => {
+            language: string;
+            module: { language: string };
+            symbols: Array<{ name: string; kind: string }>;
+          };
+        };
+      }
+    ).createTsMorphSourceAnalysisProvider;
+
+    expect(typeof createTsMorphSourceAnalysisProvider).toBe("function");
+    const provider = createTsMorphSourceAnalysisProvider?.();
+    if (!provider) {
+      throw new Error("Expected ts-morph source analysis provider");
+    }
+
+    expect(provider.supportsFile("component.TSX")).toBe(true);
+    expect(provider.supportsFile("styles.css")).toBe(false);
+
+    const jsxAnalysis = provider.analyzeText(
+      "fixtures/component.jsx",
+      [
+        "export class Widget {",
+        "  value = 1;",
+        "  get label() { return 'x'; }",
+        "  set label(value) { void value; }",
+        "}",
+      ].join("\n"),
+    );
+    const ctsAnalysis = provider.analyzeText(
+      "fixtures/module.cts",
+      "export const ctsValue = 1;\n",
+    );
+    const cjsAnalysis = provider.analyzeText(
+      "fixtures/common.cjs",
+      "exports.commonValue = 1;\n",
+    );
+
+    expect(jsxAnalysis.language).toBe("javascript");
+    expect(jsxAnalysis.module.language).toBe("javascript");
+    expect(jsxAnalysis.symbols.map((symbol) => [symbol.name, symbol.kind])).toEqual(
+      [
+        ["Widget", "class"],
+        ["Widget.value", "property"],
+        ["Widget.label", "accessor"],
+        ["Widget.label", "accessor"],
+      ],
+    );
+    expect(ctsAnalysis.language).toBe("typescript");
+    expect(ctsAnalysis.symbols).toEqual([
+      expect.objectContaining({ name: "ctsValue", kind: "variable" }),
+    ]);
+    expect(cjsAnalysis.language).toBe("javascript");
   });
 });

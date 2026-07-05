@@ -56,7 +56,7 @@ The plugin now uses a posture-aware, low-token smart-enforcement model before em
 - **Start-task risky cue**: authoritative risky edits also add a compact Kibi context cue so agents can start with explicit source-linked guidance before acting, while staying inside the same single prompt block and token budget.
 - **Effective mode gating**: `advisory` (default) never blocks; `strict` escalates checks and reminders for `root_active` and `hybrid_root_plus_vendored` postures when `requireRootKbForStrict` is enabled; `hard` fails closed for authoritative roots and linked git worktrees, injecting a stop-state with MCP recovery steps until the Kibi checkpoint passes. `maintenanceDegraded` overrides everything back to `advisory`.
 - **Low-token prompt policy**: docs-only and test-only edits avoid unnecessary discovery prompts; vendored-only repos suppress operational bootstrap nudges; at most one contextual block is injected per prompt (≤120 words, ≤5 bullets)
-- **Completion reminder**: when `completionReminder` is enabled, risky code edits append a single prompt-visible `kb_check` reminder exactly once per cached context
+- **Completion reminder**: when `completionReminder` is enabled, risky code edits append a single prompt-visible impact-enabled `kb_check` reminder exactly once per cached context
 - **Runtime maintenance overlay**: static `maintenanceDegraded` from posture is merged with a latched runtime overlay (sync disabled/unavailable/failing) so degraded state is consistently reflected in prompts, logs, and mode decisions
 - **Three-mode enforcement**: `advisory` by default keeps guidance non-blocking; opt-in `strict` adds elevated validation cues; `hard` blocks the prompt for authoritative workspaces until the checkpoint cycle succeeds. Git hooks and KB validation checks remain the durable enforcement boundary for all modes.
 - **Structured observability**: posture, risk, cache, degraded-mode, targeted-check, and guidance events flow through structured plugin logs
@@ -75,11 +75,13 @@ modified, the plugin evaluates KB freshness evidence and surfaces a visible
   discovery via `kb_search` or `kb_query(sourceFile=...)` and `kb_check`.
 - **Deferred/Failed**: Do not claim task completion.
 
+For meaningful source edits, the first gate is MCP `kb_check` with impact options, for example `kb_check({sourceFiles:["src/feature.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})`. These diagnostics guide symbol granularity, requirement ownership, and semantic review of linked requirements/tests; they do not prove source behavior matches prose.
+
 ### Dynamic Contextual Guidance
 
 The plugin provides context-aware prompt guidance based on recent edits and workspace state:
 
-- **Code edits**: Guidance for querying Kibi by sourceFile, preferring Kibi over comments, and adding `// implements REQ-xxx` traceability
+- **Code edits**: Guidance for running impact-enabled `kb_check`, querying Kibi by sourceFile, preferring Kibi over comments, and adding or updating symbol traceability
 - **Requirement edits**: Guidance for maintaining separate REQ/SCEN/TEST artifacts and avoiding embedded scenarios
 - **KB doc edits**: Guidance for proper entity relationships and validation
 - **Bootstrap needed**: Detection and nudges for uninitialized repos

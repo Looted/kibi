@@ -6,7 +6,9 @@
  * records that decision and the staged KB artifacts that cover it.
  */
 
-/** User-facing KB schema documentation cited by staged diagnostics. */
+export const KIBI_STAGED_IMPACT_EVIDENCE_DOC =
+  "docs/cli-reference.md#staged-impact-evidence";
+
 export const KIBI_ENTITY_SCHEMA_DOC = "docs/entity-schema.md";
 
 /** Canonical symbols manifest path used by staged traceability enforcement. */

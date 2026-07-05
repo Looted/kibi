@@ -17,9 +17,9 @@ coordinates:
   SYM-004:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 219
+    sourceEndLine: 172
     sourceFile: packages/mcp/src/tools/check.ts
-    sourceLine: 159
+    sourceLine: 70
   SYM-010:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -59,9 +59,9 @@ coordinates:
   SYM-AnalyzeSourceTextOptions:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 85
+    sourceEndLine: 87
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
-    sourceLine: 83
+    sourceLine: 85
   SYM-AuditEntityPayload:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -74,6 +74,12 @@ coordinates:
     sourceEndLine: 16
     sourceFile: packages/opencode/src/reconcile-engine.ts
     sourceLine: 11
+  SYM-AuditedNoImpactOverrideInput:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 65
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 62
   SYM-AutoUpdateInput:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -158,6 +164,12 @@ coordinates:
     sourceEndLine: 43
     sourceFile: packages/cli/src/types/relationships.ts
     sourceLine: 19
+  SYM-BehaviorSourceEditInput:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 55
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 50
   SYM-Candidate:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -167,13 +179,13 @@ coordinates:
   SYM-CheckOptions:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 100
+    sourceEndLine: 116
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 93
+    sourceLine: 108
   SYM-CheckRunner:
     sourceColumn: 12
-    sourceEndColumn: 35
-    sourceEndLine: 38
+    sourceEndColumn: 3
+    sourceEndLine: 42
     sourceFile: packages/opencode/src/scheduler.ts
     sourceLine: 35
   SYM-CheckpointEvidence:
@@ -227,9 +239,9 @@ coordinates:
   SYM-DOC-RESOURCES:
     sourceColumn: 13
     sourceEndColumn: 51
-    sourceEndLine: 294
+    sourceEndLine: 295
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 294
+    sourceLine: 295
   SYM-DefaultRuntimeProlog:
     sourceColumn: 12
     sourceEndColumn: 49
@@ -263,15 +275,15 @@ coordinates:
   SYM-DiagnosticErrorFields:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 97
+    sourceEndLine: 100
     sourceFile: packages/mcp/src/diagnostics.ts
     sourceLine: 91
   SYM-DiagnosticToolCall:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 110
+    sourceEndLine: 113
     sourceFile: packages/mcp/src/diagnostics.ts
-    sourceLine: 99
+    sourceLine: 102
   SYM-DiscoverySummary:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -395,9 +407,9 @@ coordinates:
   SYM-GranularSymbolCandidate:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 46
+    sourceEndLine: 48
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 42
+    sourceLine: 44
   SYM-GranularityReason:
     sourceColumn: 12
     sourceEndColumn: 77
@@ -461,39 +473,57 @@ coordinates:
   SYM-KIBI-ENTITY-SCHEMA-DOC:
     sourceColumn: 13
     sourceEndColumn: 61
-    sourceEndLine: 10
+    sourceEndLine: 12
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 10
+    sourceLine: 12
   SYM-KIBI-FOCUS-KB-COMMAND:
     sourceColumn: 13
     sourceEndColumn: 62
     sourceEndLine: 8
     sourceFile: packages/vscode/src/extensionIds.ts
     sourceLine: 8
+  SYM-KIBI-IMPACT-DIAGNOSTIC-IDS:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 26
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 22
+  SYM-KIBI-IMPACT-DIAGNOSTICS:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 119
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 88
   SYM-KIBI-NO-IMPACT-DECLARATION:
     sourceColumn: 13
     sourceEndColumn: 61
-    sourceEndLine: 20
+    sourceEndLine: 22
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 20
+    sourceLine: 22
   SYM-KIBI-REFRESH-TREE-COMMAND:
     sourceColumn: 13
     sourceEndColumn: 59
     sourceEndLine: 6
     sourceFile: packages/vscode/src/extensionIds.ts
     sourceLine: 6
+  SYM-KIBI-STAGED-IMPACT-EVIDENCE-DOC:
+    sourceColumn: 13
+    sourceEndColumn: 48
+    sourceEndLine: 10
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    sourceLine: 9
   SYM-KIBI-SYMBOL-COORDINATES-PATH:
     sourceColumn: 13
     sourceEndColumn: 41
-    sourceEndLine: 17
+    sourceEndLine: 19
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 16
+    sourceLine: 18
   SYM-KIBI-SYMBOLS-MANIFEST-PATH:
     sourceColumn: 13
     sourceEndColumn: 70
-    sourceEndLine: 13
+    sourceEndLine: 15
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 13
+    sourceLine: 15
   SYM-KIBI-VIEW-ID:
     sourceColumn: 13
     sourceEndColumn: 49
@@ -605,81 +635,105 @@ coordinates:
   SYM-KibiEntityType:
     sourceColumn: 12
     sourceEndColumn: 11
-    sourceEndLine: 31
+    sourceEndLine: 33
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 23
+    sourceLine: 25
   SYM-KibiImpactDiagnostic:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 30
+    sourceEndLine: 37
     sourceFile: packages/cli/src/traceability/staged-diagnostics.ts
-    sourceLine: 17
+    sourceLine: 25
+  SYM-KibiImpactDiagnosticContract:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 40
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 36
   SYM-KibiImpactDiagnosticId:
     sourceColumn: 12
     sourceEndColumn: 45
-    sourceEndLine: 15
+    sourceEndLine: 23
     sourceFile: packages/cli/src/traceability/staged-diagnostics.ts
-    sourceLine: 11
+    sourceLine: 12
+  SYM-KibiImpactDiagnosticId-contract:
+    sourceColumn: 12
+    sourceEndColumn: 46
+    sourceEndLine: 29
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 28
   SYM-KibiImpactEvidence:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 155
+    sourceEndLine: 157
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 148
+    sourceLine: 150
+  SYM-KibiImpactEvidenceInput:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 48
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 42
+  SYM-KibiImpactEvidenceKind:
+    sourceColumn: 12
+    sourceEndColumn: 24
+    sourceEndLine: 34
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 31
   SYM-KibiImpactKbArtifact:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 70
+    sourceEndLine: 72
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 59
+    sourceLine: 61
   SYM-KibiImpactKbChangesMode:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 120
+    sourceEndLine: 122
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 116
+    sourceLine: 118
   SYM-KibiImpactMissingMode:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 132
+    sourceEndLine: 134
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 130
+    sourceLine: 132
   SYM-KibiImpactMode:
     sourceColumn: 12
     sourceEndColumn: 26
-    sourceEndLine: 138
+    sourceEndLine: 140
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 135
+    sourceLine: 137
   SYM-KibiImpactNoImpactOverrideMode:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 127
+    sourceEndLine: 129
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 123
+    sourceLine: 125
   SYM-KibiImpactSourceChange:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 51
+    sourceEndLine: 53
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 46
+    sourceLine: 48
   SYM-KibiImpactSymbolsManifest:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 89
+    sourceEndLine: 91
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 82
+    sourceLine: 84
   SYM-KibiNoImpactOverride:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 113
+    sourceEndLine: 115
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 102
+    sourceLine: 104
   SYM-KibiNoImpactReason:
     sourceColumn: 12
     sourceEndColumn: 33
-    sourceEndLine: 94
+    sourceEndLine: 96
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 92
+    sourceLine: 94
   SYM-KibiOpencodePluginEntry:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -803,13 +857,13 @@ coordinates:
   SYM-PROMPTS:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 196
+    sourceEndLine: 197
     sourceFile: packages/mcp/src/server/docs.ts
     sourceLine: 71
   SYM-PROSE_COVERAGE_CORPUS:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 340
+    sourceEndLine: 361
     sourceFile: packages/mcp/tests/semantic-advisor/prose-coverage-fixture.ts
     sourceLine: 3
   SYM-PUBLISHABLE-DIRS:
@@ -824,6 +878,12 @@ coordinates:
     sourceEndLine: 40
     sourceFile: scripts/release-state.ts
     sourceLine: 35
+  SYM-ParsedKibiImpactOverride:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 60
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 57
   SYM-PendingLifecycleEvent:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -833,9 +893,9 @@ coordinates:
   SYM-PendingTrigger:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 56
+    sourceEndLine: 60
     sourceFile: packages/opencode/src/scheduler.ts
-    sourceLine: 52
+    sourceLine: 56
   SYM-Plugin:
     sourceColumn: 12
     sourceEndColumn: 68
@@ -881,7 +941,7 @@ coordinates:
   SYM-ProseCoverageCase:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 15
+    sourceEndLine: 16
     sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
     sourceLine: 11
   SYM-ProseCoverageExpectation:
@@ -893,15 +953,15 @@ coordinates:
   SYM-ProseCoverageFailure:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 21
+    sourceEndLine: 22
     sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
-    sourceLine: 17
+    sourceLine: 18
   SYM-ProseCoverageResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 31
+    sourceEndLine: 32
     sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
-    sourceLine: 23
+    sourceLine: 24
   SYM-ProviderEvidenceDiscoveryResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -983,9 +1043,9 @@ coordinates:
   SYM-SchedulerOptions:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 50
+    sourceEndLine: 54
     sourceFile: packages/opencode/src/scheduler.ts
-    sourceLine: 40
+    sourceLine: 44
   SYM-SchemaVersionStatus:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1217,21 +1277,21 @@ coordinates:
   SYM-SourceAnalysisProvider:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 81
+    sourceEndLine: 83
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
-    sourceLine: 77
+    sourceLine: 79
   SYM-SourceAnalysisResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 75
+    sourceEndLine: 77
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
-    sourceLine: 69
+    sourceLine: 71
   SYM-SourceChangeKind:
     sourceColumn: 12
     sourceEndColumn: 31
-    sourceEndLine: 43
+    sourceEndLine: 45
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 41
+    sourceLine: 43
   SYM-SourceDiscoveryResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1241,9 +1301,9 @@ coordinates:
   SYM-SourceModuleAnalysis:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 67
+    sourceEndLine: 69
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
-    sourceLine: 62
+    sourceLine: 64
   SYM-SourceOnlyAuthoringSignal:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1253,13 +1313,13 @@ coordinates:
   SYM-SourceSymbolAnalysis:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 60
+    sourceEndLine: 62
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
-    sourceLine: 52
+    sourceLine: 54
   SYM-SourceSymbolKind:
     sourceColumn: 12
     sourceEndColumn: 14
-    sourceEndLine: 50
+    sourceEndLine: 52
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
     sourceLine: 42
   SYM-SparqlArgs:
@@ -1283,15 +1343,15 @@ coordinates:
   SYM-StagedAuthoredSymbolsManifestEvidence:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 53
+    sourceEndLine: 54
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
-    sourceLine: 50
+    sourceLine: 51
   SYM-StagedSymbolsManifestAssessment:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 48
+    sourceEndLine: 49
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
-    sourceLine: 44
+    sourceLine: 45
   SYM-StartupNotifierClient:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -1355,9 +1415,9 @@ coordinates:
   SYM-SymbolGranularitySourceSymbolKind:
     sourceColumn: 12
     sourceEndColumn: 42
-    sourceEndLine: 40
+    sourceEndLine: 42
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 40
+    sourceLine: 42
   SYM-SymbolIndex:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1367,7 +1427,7 @@ coordinates:
   SYM-SymbolKind:
     sourceColumn: 12
     sourceEndColumn: 14
-    sourceEndLine: 38
+    sourceEndLine: 40
     sourceFile: packages/cli/src/public/symbol-granularity.ts
     sourceLine: 30
   SYM-SymbolRole:
@@ -1427,15 +1487,15 @@ coordinates:
   SYM-SyncScheduler:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 64
+    sourceEndLine: 68
     sourceFile: packages/opencode/src/scheduler.ts
-    sourceLine: 58
+    sourceLine: 62
   SYM-TOOLS:
     sourceColumn: 13
     sourceEndColumn: 32
-    sourceEndLine: 920
+    sourceEndLine: 966
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 918
+    sourceLine: 964
   SYM-TRACEABILITY_RELATIONSHIP_TYPES:
     sourceColumn: 13
     sourceEndColumn: 10
@@ -1493,7 +1553,7 @@ coordinates:
   SYM-ToolsRuntime:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 84
+    sourceEndLine: 87
     sourceFile: packages/mcp/src/server/tool-types.ts
     sourceLine: 44
   SYM-TraceabilityRegistrationResult:
@@ -1511,27 +1571,27 @@ coordinates:
   SYM-UpsertArgs:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 65
+    sourceEndLine: 70
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 52
+    sourceLine: 57
   SYM-UpsertResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 76
+    sourceEndLine: 86
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 67
+    sourceLine: 72
   SYM-ValidateUpsertResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 15
+    sourceEndLine: 17
     sourceFile: packages/mcp/src/tools/validate-upsert.ts
-    sourceLine: 6
+    sourceLine: 8
   SYM-ValidatedUpsertArgs:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 81
+    sourceEndLine: 91
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 78
+    sourceLine: 88
   SYM-WorkContext:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1553,15 +1613,15 @@ coordinates:
   SYM-analyzeSemanticAdvisorInput:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 2096
+    sourceEndLine: 2140
     sourceFile: packages/mcp/src/semantic-advisor/analyze-prose.ts
-    sourceLine: 2061
+    sourceLine: 2105
   SYM-analyzeSourceText:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 161
+    sourceEndLine: 163
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
-    sourceLine: 131
+    sourceLine: 133
   SYM-appendDiagnosticErrorUsage:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -1583,9 +1643,9 @@ coordinates:
   SYM-assessStagedSymbolsManifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 405
+    sourceEndLine: 439
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
-    sourceLine: 323
+    sourceLine: 357
   SYM-atomicPublish:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1601,9 +1661,9 @@ coordinates:
   SYM-buildDiagnosticToolCall:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 221
+    sourceEndLine: 254
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
-    sourceLine: 191
+    sourceLine: 224
   SYM-buildDirtyRelevantFingerprint:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1679,9 +1739,9 @@ coordinates:
   SYM-checkCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 910
+    sourceEndLine: 945
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 546
+    sourceLine: 518
   SYM-checkWorkspaceHealth:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1697,9 +1757,15 @@ coordinates:
   SYM-classifyDiagnosticError:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 162
+    sourceEndLine: 175
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
     sourceLine: 67
+  SYM-classifyKibiImpactEvidence:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 145
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 121
   SYM-classifyKnowledge:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1736,6 +1802,54 @@ coordinates:
     sourceEndLine: 343
     sourceFile: packages/cli/src/traceability/temp-kb.ts
     sourceLine: 316
+  SYM-cli-ADR:
+    sourceColumn: 12
+    sourceEndColumn: 47
+    sourceEndLine: 77
+    sourceFile: packages/cli/src/types/entities.ts
+    sourceLine: 77
+  SYM-cli-BaseEntity:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 32
+    sourceFile: packages/cli/src/types/entities.ts
+    sourceLine: 19
+  SYM-cli-Entity:
+    sourceColumn: 12
+    sourceEndColumn: 9
+    sourceEndLine: 91
+    sourceFile: packages/cli/src/types/entities.ts
+    sourceLine: 83
+  SYM-cli-Event:
+    sourceColumn: 12
+    sourceEndColumn: 51
+    sourceEndLine: 79
+    sourceFile: packages/cli/src/types/entities.ts
+    sourceLine: 79
+  SYM-cli-ExtractionOutput:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 31
+    sourceFile: packages/cli/src/commands/sync/extraction.ts
+    sourceLine: 27
+  SYM-cli-Fact:
+    sourceColumn: 12
+    sourceEndColumn: 62
+    sourceEndLine: 81
+    sourceFile: packages/cli/src/types/entities.ts
+    sourceLine: 81
+  SYM-cli-FactFields:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 67
+    sourceFile: packages/cli/src/types/entities.ts
+    sourceLine: 35
+  SYM-cli-Flag:
+    sourceColumn: 12
+    sourceEndColumn: 49
+    sourceEndLine: 78
+    sourceFile: packages/cli/src/types/entities.ts
+    sourceLine: 78
   SYM-cli-PersistenceResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1844,24 +1958,378 @@ coordinates:
     sourceEndLine: 177
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 137
+  SYM-cli-PrologQueryPlanSafetyViolation:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 6
+    sourceFile: packages/cli/src/utils/prolog-query-plan-safety.ts
+    sourceLine: 1
+  SYM-cli-Requirement:
+    sourceColumn: 12
+    sourceEndColumn: 55
+    sourceEndLine: 74
+    sourceFile: packages/cli/src/types/entities.ts
+    sourceLine: 74
+  SYM-cli-Scenario:
+    sourceColumn: 12
+    sourceEndColumn: 57
+    sourceEndLine: 75
+    sourceFile: packages/cli/src/types/entities.ts
+    sourceLine: 75
+  SYM-cli-Symbol:
+    sourceColumn: 12
+    sourceEndColumn: 53
+    sourceEndLine: 80
+    sourceFile: packages/cli/src/types/entities.ts
+    sourceLine: 80
+  SYM-cli-TestEntity:
+    sourceColumn: 12
+    sourceEndColumn: 80
+    sourceEndLine: 76
+    sourceFile: packages/cli/src/types/entities.ts
+    sourceLine: 76
+  SYM-cli-TestVerificationFields:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 72
+    sourceFile: packages/cli/src/types/entities.ts
+    sourceLine: 69
+  SYM-cli-analyzePrologQueryPlanSafety:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 39
+    sourceFile: packages/cli/src/utils/prolog-query-plan-safety.ts
+    sourceLine: 12
+  SYM-cli-discovery-renderCoverageTable:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 181
+    sourceFile: packages/cli/src/commands/discovery-table.ts
+    sourceLine: 116
+  SYM-cli-discovery-renderDiscoveryTable:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 40
+    sourceFile: packages/cli/src/commands/discovery-table.ts
+    sourceLine: 5
+  SYM-cli-impact-AGGREGATE_KINDS:
+    sourceColumn: 13
+    sourceEndColumn: 2
+    sourceEndLine: 27
+    sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
+    sourceLine: 22
+  SYM-cli-impact-ChangedFileImpactOptions:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 67
+    sourceFile: packages/cli/src/public/impact/types.ts
+    sourceLine: 60
+  SYM-cli-impact-ChangedFileImpactResult:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 92
+    sourceFile: packages/cli/src/public/impact/types.ts
+    sourceLine: 86
+  SYM-cli-impact-ImpactExtractedSymbol:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 77
+    sourceFile: packages/cli/src/public/impact/types.ts
+    sourceLine: 69
+  SYM-cli-impact-ImpactLinkedEntity:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 84
+    sourceFile: packages/cli/src/public/impact/types.ts
+    sourceLine: 79
+  SYM-cli-impact-QualityDiagnostic:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 28
+    sourceFile: packages/cli/src/public/impact/types.ts
+    sourceLine: 8
+  SYM-cli-impact-QualityDiagnosticSeverity:
+    sourceColumn: 12
+    sourceEndColumn: 80
+    sourceEndLine: 6
+    sourceFile: packages/cli/src/public/impact/types.ts
+    sourceLine: 6
+  SYM-cli-impact-RequirementQualityDiagnosticsOptions:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 58
+    sourceFile: packages/cli/src/public/impact/types.ts
+    sourceLine: 55
+  SYM-cli-impact-SemanticReviewDiagnosticsOptions:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 47
+    sourceFile: packages/cli/src/public/impact/types.ts
+    sourceLine: 45
+  SYM-cli-impact-SourceChange:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 99
+    sourceFile: packages/cli/src/public/impact/types.ts
+    sourceLine: 94
+  SYM-cli-impact-SymbolGranularityDiagnosticsOptions:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 43
+    sourceFile: packages/cli/src/public/impact/types.ts
+    sourceLine: 37
+  SYM-cli-impact-SymbolMetadata:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 20
+    sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
+    sourceLine: 10
+  SYM-cli-impact-SymbolQualityDiagnosticsOptions:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 53
+    sourceFile: packages/cli/src/public/impact/types.ts
+    sourceLine: 49
+  SYM-cli-impact-SymbolsByFile:
+    sourceColumn: 12
+    sourceEndColumn: 68
+    sourceEndLine: 30
+    sourceFile: packages/cli/src/public/impact/types.ts
+    sourceLine: 30
+  SYM-cli-impact-TraceabilityRelationship:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 35
+    sourceFile: packages/cli/src/public/impact/types.ts
+    sourceLine: 32
+  SYM-cli-impact-analyzeChangedFileImpact:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 90
+    sourceFile: packages/cli/src/public/impact/analyzer.ts
+    sourceLine: 24
+  SYM-cli-impact-buildNextActions:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 100
+    sourceFile: packages/cli/src/public/impact/summaries.ts
+    sourceLine: 88
+  SYM-cli-impact-collectFullKbQualityDiagnostics:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 203
+    sourceFile: packages/cli/src/public/impact/full-kb-quality.ts
+    sourceLine: 182
+  SYM-cli-impact-collectLinkedEntities:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 86
+    sourceFile: packages/cli/src/public/impact/summaries.ts
+    sourceLine: 38
+  SYM-cli-impact-collectSourceChanges:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 180
+    sourceFile: packages/cli/src/public/impact/source-changes.ts
+    sourceLine: 164
+  SYM-cli-impact-collectSymbols:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 143
+    sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
+    sourceLine: 116
+  SYM-cli-impact-createCoverageDepthQualityDiagnostics:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 268
+    sourceFile: packages/cli/src/public/impact/coverage-depth-quality.ts
+    sourceLine: 253
+  SYM-cli-impact-createImpactManifestLookup:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 57
+    sourceFile: packages/cli/src/public/impact/manifest.ts
+    sourceLine: 43
+  SYM-cli-impact-createRequirementQualityDiagnostics:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 282
+    sourceFile: packages/cli/src/public/impact/requirement-quality.ts
+    sourceLine: 274
+  SYM-cli-impact-createSemanticReviewDiagnostics:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 178
+    sourceFile: packages/cli/src/public/impact/diagnostics.ts
+    sourceLine: 154
+  SYM-cli-impact-createSymbolGranularityDiagnostics:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 152
+    sourceFile: packages/cli/src/public/impact/diagnostics.ts
+    sourceLine: 103
+  SYM-cli-impact-createSymbolQualityDiagnostics:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 207
+    sourceFile: packages/cli/src/public/impact/symbol-quality.ts
+    sourceLine: 198
+  SYM-cli-impact-formatExtractedSymbols:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 36
+    sourceFile: packages/cli/src/public/impact/summaries.ts
+    sourceLine: 21
+  SYM-cli-impact-hasBlockingImpactDiagnostics:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 184
+    sourceFile: packages/cli/src/public/impact/diagnostics.ts
+    sourceLine: 180
+  SYM-cli-impact-hasBlockingQualityDiagnostics:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 192
+    sourceFile: packages/cli/src/public/impact/diagnostics.ts
+    sourceLine: 186
+  SYM-cli-impact-hasMeaningfulSourceDiff:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 121
+    sourceFile: packages/cli/src/public/impact/diff-meaning.ts
+    sourceLine: 106
+  SYM-cli-impact-isModuleOrConfig:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 147
+    sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
+    sourceLine: 145
+  SYM-cli-impact-narrowerExtractedSymbols:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 171
+    sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
+    sourceLine: 161
+  SYM-cli-impact-narrowerManifestSymbols:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 159
+    sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
+    sourceLine: 149
+  SYM-cli-impact-normalizeSourceFile:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 35
+    sourceFile: packages/cli/src/public/impact/source-changes.ts
+    sourceLine: 27
+  SYM-cli-impact-readImpactManifestResults:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 41
+    sourceFile: packages/cli/src/public/impact/manifest.ts
+    sourceLine: 19
+  SYM-cli-impact-uniqueSorted:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 39
+    sourceFile: packages/cli/src/public/impact/source-changes.ts
+    sourceLine: 37
   SYM-cli-persistEntities:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 212
+    sourceEndLine: 227
     sourceFile: packages/cli/src/commands/sync/persistence.ts
     sourceLine: 138
   SYM-cli-persistRelationships:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 394
+    sourceEndLine: 435
     sourceFile: packages/cli/src/commands/sync/persistence.ts
-    sourceLine: 215
+    sourceLine: 256
+  SYM-cli-processExtractions:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 93
+    sourceFile: packages/cli/src/commands/sync/extraction.ts
+    sourceLine: 43
+  SYM-cli-rule-registry-ChecksConfig:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 47
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 44
+  SYM-cli-rule-registry-DEFAULT_CHECKS_CONFIG:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 158
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 153
+  SYM-cli-rule-registry-RULES:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 143
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 53
+  SYM-cli-rule-registry-RULE_NAMES:
+    sourceColumn: 13
+    sourceEndColumn: 59
+    sourceEndLine: 148
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 148
+  SYM-cli-rule-registry-RuleDefinition:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 29
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 24
+  SYM-cli-rule-registry-SymbolTraceabilityOptions:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 33
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 31
+  SYM-cli-rule-registry-Violation:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 42
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 36
+  SYM-cli-rule-registry-getEffectiveRules:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 192
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 167
+  SYM-cli-rule-registry-mergeChecksConfig:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 221
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 208
+  SYM-cli-rule-registry-validateRuleName:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 203
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 198
+  SYM-cli-test-makeQualitySymbolResult:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 64
+    sourceFile: packages/cli/tests/traceability/impact-symbol-quality-fixtures.ts
+    sourceLine: 23
+  SYM-cli-test-makeRequirementResult:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 82
+    sourceFile: packages/cli/tests/traceability/impact-symbol-quality-fixtures.ts
+    sourceLine: 66
   SYM-codex-HookEnvironment:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 29
+    sourceEndLine: 37
     sourceFile: packages/codex/src/hook-runner.ts
-    sourceLine: 27
+    sourceLine: 35
   SYM-codex-HookEvent:
     sourceColumn: 12
     sourceEndColumn: 79
@@ -1877,15 +2345,21 @@ coordinates:
   SYM-codex-HookResult:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 25
+    sourceEndLine: 33
     sourceFile: packages/codex/src/hook-runner.ts
-    sourceLine: 20
+    sourceLine: 28
   SYM-codex-HookState:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 15
+    sourceEndLine: 18
     sourceFile: packages/codex/src/hook-state.ts
     sourceLine: 13
+  SYM-codex-KbMcpToolCall:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 70
+    sourceFile: packages/codex/src/kb-mcp-tools.ts
+    sourceLine: 66
   SYM-codex-adapterKind:
     sourceColumn: 13
     sourceEndColumn: 41
@@ -1895,9 +2369,9 @@ coordinates:
   SYM-codex-addDirtyPaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 189
+    sourceEndLine: 222
     sourceFile: packages/codex/src/hook-state.ts
-    sourceLine: 161
+    sourceLine: 188
   SYM-codex-bootstrapReminder:
     sourceColumn: 13
     sourceEndColumn: 164
@@ -1907,9 +2381,9 @@ coordinates:
   SYM-codex-clearDirtyPaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 213
+    sourceEndLine: 307
     sourceFile: packages/codex/src/hook-state.ts
-    sourceLine: 191
+    sourceLine: 285
   SYM-codex-directKbEditWarning:
     sourceColumn: 13
     sourceEndColumn: 112
@@ -1919,9 +2393,15 @@ coordinates:
   SYM-codex-extractExplicitPathFields:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 101
+    sourceEndLine: 102
     sourceFile: packages/codex/src/path-policy.ts
-    sourceLine: 97
+    sourceLine: 98
+  SYM-codex-extractKbMcpToolCall:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 112
+    sourceFile: packages/codex/src/kb-mcp-tools.ts
+    sourceLine: 72
   SYM-codex-freshnessReminder:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1931,27 +2411,39 @@ coordinates:
   SYM-codex-hookRunnerPath:
     sourceColumn: 13
     sourceEndColumn: 60
-    sourceEndLine: 124
+    sourceEndLine: 159
     sourceFile: packages/codex/src/hook-runner.ts
-    sourceLine: 124
+    sourceLine: 159
+  SYM-codex-impactCheckReminder:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 34
+    sourceFile: packages/codex/src/messages.ts
+    sourceLine: 21
   SYM-codex-isDirectKbPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 105
+    sourceEndLine: 106
     sourceFile: packages/codex/src/path-policy.ts
-    sourceLine: 103
+    sourceLine: 104
   SYM-codex-isMeaningfulTrackedPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 139
+    sourceEndLine: 140
     sourceFile: packages/codex/src/path-policy.ts
-    sourceLine: 107
+    sourceLine: 108
+  SYM-codex-isSourceImpactRelevantPath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 163
+    sourceFile: packages/codex/src/path-policy.ts
+    sourceLine: 142
   SYM-codex-loadHookState:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 144
+    sourceEndLine: 171
     sourceFile: packages/codex/src/hook-state.ts
-    sourceLine: 132
+    sourceLine: 159
   SYM-codex-packageName:
     sourceColumn: 13
     sourceEndColumn: 39
@@ -1976,18 +2468,24 @@ coordinates:
     sourceEndLine: 68
     sourceFile: packages/codex/src/hook-input.ts
     sourceLine: 60
+  SYM-codex-recordKbMcpTool:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 283
+    sourceFile: packages/codex/src/hook-state.ts
+    sourceLine: 231
   SYM-codex-runHook:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 103
+    sourceEndLine: 138
     sourceFile: packages/codex/src/hook-runner.ts
-    sourceLine: 49
+    sourceLine: 57
   SYM-codex-saveHookState:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 159
+    sourceEndLine: 186
     sourceFile: packages/codex/src/hook-state.ts
-    sourceLine: 146
+    sourceLine: 173
   SYM-collectMarkdownFiles:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2003,21 +2501,21 @@ coordinates:
   SYM-collectStagedAuthoredSymbolsManifestEvidence:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 479
+    sourceEndLine: 510
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
-    sourceLine: 425
+    sourceLine: 459
   SYM-collectStagedKibiDiagnostics:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 129
+    sourceEndLine: 142
     sourceFile: packages/cli/src/traceability/staged-diagnostics.ts
-    sourceLine: 91
+    sourceLine: 104
   SYM-computeEnforcementPolicy:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 449
+    sourceEndLine: 459
     sourceFile: packages/opencode/src/enforcement-policy.ts
-    sourceLine: 358
+    sourceLine: 368
   SYM-consultOverlay:
     sourceColumn: 15
     sourceEndColumn: 1
@@ -2030,6 +2528,18 @@ coordinates:
     sourceEndLine: 187
     sourceFile: packages/cli/src/commands/init-helpers.ts
     sourceLine: 172
+  SYM-core-discovery-classifyCoverageDepth:
+    sourceColumn: 4
+    sourceEndColumn: 27
+    sourceEndLine: 258
+    sourceFile: packages/core/src/discovery.pl
+    sourceLine: 258
+  SYM-core-discovery-requirementCoverageDepth:
+    sourceColumn: 4
+    sourceEndColumn: 30
+    sourceEndLine: 134
+    sourceFile: packages/core/src/discovery.pl
+    sourceLine: 134
   SYM-createAutoUpdateRunner:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2087,9 +2597,9 @@ coordinates:
   SYM-createSyncScheduler:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 406
+    sourceEndLine: 519
     sourceFile: packages/opencode/src/scheduler.ts
-    sourceLine: 404
+    sourceLine: 517
   SYM-createTempKb:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2111,9 +2621,9 @@ coordinates:
   SYM-cursor-BOOTSTRAP_REMINDER:
     sourceColumn: 13
     sourceEndColumn: 187
-    sourceEndLine: 6
+    sourceEndLine: 9
     sourceFile: packages/cursor/src/messages.ts
-    sourceLine: 5
+    sourceLine: 8
   SYM-cursor-CursorHookResult:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -2123,9 +2633,9 @@ coordinates:
   SYM-cursor-DIRECT_KB_EDIT_WARNING:
     sourceColumn: 13
     sourceEndColumn: 112
-    sourceEndLine: 9
+    sourceEndLine: 12
     sourceFile: packages/cursor/src/messages.ts
-    sourceLine: 8
+    sourceLine: 11
   SYM-cursor-HookEnvironment:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -2147,9 +2657,15 @@ coordinates:
   SYM-cursor-HookState:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 21
+    sourceEndLine: 23
     sourceFile: packages/cursor/src/hook-state.ts
     sourceLine: 15
+  SYM-cursor-KbMcpToolCall:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 70
+    sourceFile: packages/cursor/src/kb-mcp-tools.ts
+    sourceLine: 66
   SYM-cursor-adapterKind:
     sourceColumn: 13
     sourceEndColumn: 42
@@ -2159,81 +2675,99 @@ coordinates:
   SYM-cursor-addDirtyPaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 266
+    sourceEndLine: 279
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 256
+    sourceLine: 269
   SYM-cursor-clearDirtyPaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 344
+    sourceEndLine: 369
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 342
+    sourceLine: 367
   SYM-cursor-clearSessionHookState:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 339
+    sourceEndLine: 364
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 331
+    sourceLine: 356
   SYM-cursor-extractExplicitPathFields:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 101
+    sourceEndLine: 102
     sourceFile: packages/cursor/src/path-policy.ts
-    sourceLine: 97
+    sourceLine: 98
+  SYM-cursor-extractKbMcpToolCall:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 137
+    sourceFile: packages/cursor/src/kb-mcp-tools.ts
+    sourceLine: 72
   SYM-cursor-extractKbMcpToolName:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 53
+    sourceEndLine: 177
     sourceFile: packages/cursor/src/kb-mcp-tools.ts
-    sourceLine: 20
+    sourceLine: 139
   SYM-cursor-freshnessReminder:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 32
+    sourceEndLine: 58
     sourceFile: packages/cursor/src/messages.ts
-    sourceLine: 28
+    sourceLine: 54
   SYM-cursor-hasGuidedPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 302
+    sourceEndLine: 315
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 293
+    sourceLine: 306
   SYM-cursor-hookRunnerPath:
     sourceColumn: 13
     sourceEndColumn: 60
-    sourceEndLine: 245
+    sourceEndLine: 248
     sourceFile: packages/cursor/src/hook-runner.ts
-    sourceLine: 245
+    sourceLine: 248
+  SYM-cursor-impactCheckFollowup:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 51
+    sourceFile: packages/cursor/src/messages.ts
+    sourceLine: 42
   SYM-cursor-isDirectKbPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 105
+    sourceEndLine: 106
     sourceFile: packages/cursor/src/path-policy.ts
-    sourceLine: 103
+    sourceLine: 104
   SYM-cursor-isDocumentationTrackedPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 169
+    sourceEndLine: 193
     sourceFile: packages/cursor/src/path-policy.ts
-    sourceLine: 156
+    sourceLine: 180
   SYM-cursor-isKbFreshnessRelevantPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 154
+    sourceEndLine: 155
     sourceFile: packages/cursor/src/path-policy.ts
-    sourceLine: 142
+    sourceLine: 143
   SYM-cursor-isMeaningfulTrackedPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 139
+    sourceEndLine: 140
     sourceFile: packages/cursor/src/path-policy.ts
-    sourceLine: 107
+    sourceLine: 108
+  SYM-cursor-isSourceImpactRelevantPath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 178
+    sourceFile: packages/cursor/src/path-policy.ts
+    sourceLine: 157
   SYM-cursor-loadHookState:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 210
+    sourceEndLine: 223
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 198
+    sourceLine: 211
   SYM-cursor-packageName:
     sourceColumn: 13
     sourceEndColumn: 40
@@ -2267,55 +2801,55 @@ coordinates:
   SYM-cursor-recordKbMcpTool:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 329
+    sourceEndLine: 354
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 304
+    sourceLine: 317
   SYM-cursor-rememberGuidedPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 291
+    sourceEndLine: 304
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 268
+    sourceLine: 281
   SYM-cursor-resolveStateDir:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 196
+    sourceEndLine: 209
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 179
+    sourceLine: 192
   SYM-cursor-runHook:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 222
+    sourceEndLine: 225
     sourceFile: packages/cursor/src/hook-runner.ts
     sourceLine: 90
   SYM-cursor-saveHookState:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 225
+    sourceEndLine: 238
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 212
+    sourceLine: 225
   SYM-cursor-stopFollowupMessage:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 25
+    sourceEndLine: 40
     sourceFile: packages/cursor/src/messages.ts
-    sourceLine: 11
+    sourceLine: 14
   SYM-cursor-toRepoRelativePath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 186
+    sourceEndLine: 210
     sourceFile: packages/cursor/src/path-policy.ts
-    sourceLine: 171
+    sourceLine: 195
   SYM-cursor-updateHookState:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 254
+    sourceEndLine: 267
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 227
+    sourceLine: 240
   SYM-cursor-writeGuidance:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 56
+    sourceEndLine: 57
     sourceFile: packages/cursor/src/guidance.ts
     sourceLine: 29
   SYM-deactivate:
@@ -2327,15 +2861,15 @@ coordinates:
   SYM-deriveDiagnosticFields:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 155
+    sourceEndLine: 289
     sourceFile: packages/mcp/src/diagnostics.ts
-    sourceLine: 112
+    sourceLine: 212
   SYM-deriveDiagnosticHints:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 189
+    sourceEndLine: 222
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
-    sourceLine: 164
+    sourceLine: 195
   SYM-deriveDiagnosticRetryKey:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2372,6 +2906,12 @@ coordinates:
     sourceEndLine: 1011
     sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
     sourceLine: 956
+  SYM-discoverSourceFiles:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 75
+    sourceFile: packages/cli/src/commands/sync/discovery.ts
+    sourceLine: 34
   SYM-discoverSources:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2381,9 +2921,9 @@ coordinates:
   SYM-enrichSymbolCoordinates:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 204
+    sourceEndLine: 206
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
-    sourceLine: 163
+    sourceLine: 165
   SYM-enrichSymbolCoordinatesWithTsMorph:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2423,27 +2963,27 @@ coordinates:
   SYM-evaluateProseCoverageCorpus:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 47
+    sourceEndLine: 48
     sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
-    sourceLine: 33
+    sourceLine: 34
   SYM-extractFromManifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 431
+    sourceEndLine: 449
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 426
+    sourceLine: 444
   SYM-extractFromManifestString:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 400
+    sourceEndLine: 418
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 378
+    sourceLine: 396
   SYM-extractManifestSymbolRecordsString:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 424
+    sourceEndLine: 442
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 402
+    sourceLine: 420
   SYM-extractRequirementClaim:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2453,15 +2993,15 @@ coordinates:
   SYM-extractSymbolsFromStagedFile:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 510
+    sourceEndLine: 573
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
     sourceLine: 273
   SYM-extractToolCallPayload:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 232
+    sourceEndLine: 265
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
-    sourceLine: 223
+    sourceLine: 256
   SYM-findKibiOpencodePluginEntry:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2474,18 +3014,36 @@ coordinates:
     sourceEndLine: 194
     sourceFile: packages/opencode/src/init-kibi-capability.ts
     sourceLine: 178
+  SYM-formatInvalidRelationshipError:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 129
+    sourceFile: packages/mcp/src/tools/relationship-validation.ts
+    sourceLine: 105
+  SYM-formatInvalidRelationshipTuple:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 103
+    sourceFile: packages/mcp/src/tools/relationship-validation.ts
+    sourceLine: 99
+  SYM-formatRelationshipSourceMismatch:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 141
+    sourceFile: packages/mcp/src/tools/relationship-validation.ts
+    sourceLine: 131
   SYM-getBehaviorSourcePaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 167
+    sourceEndLine: 169
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 162
+    sourceLine: 164
   SYM-getBehavioralSymbolNames:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 113
+    sourceEndLine: 117
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 105
+    sourceLine: 109
   SYM-getCachedPluginVersion:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2519,9 +3077,9 @@ coordinates:
   SYM-getFreshSymbolsManifestSourcePaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 191
+    sourceEndLine: 193
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 183
+    sourceLine: 185
   SYM-getInitKibiCommandCapability:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2531,15 +3089,15 @@ coordinates:
   SYM-getKbCoveredSourcePaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 180
+    sourceEndLine: 182
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 170
+    sourceLine: 172
   SYM-getKbEvidencePaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 209
+    sourceEndLine: 211
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 197
+    sourceLine: 199
   SYM-getKbExistenceTargets:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2555,15 +3113,15 @@ coordinates:
   SYM-getMissingBehaviorSourcePaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 233
+    sourceEndLine: 235
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 223
+    sourceLine: 225
   SYM-getNonBehavioralSymbolNames:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 125
+    sourceEndLine: 129
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 115
+    sourceLine: 119
   SYM-getSchemaVersionStatus:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2579,9 +3137,9 @@ coordinates:
   SYM-getSymbolRole:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 97
+    sourceEndLine: 101
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 93
+    sourceLine: 97
   SYM-getWorkspaceFolderUri:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2633,7 +3191,7 @@ coordinates:
   SYM-handleKbSkillsRead:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 118
+    sourceEndLine: 120
     sourceFile: packages/mcp/src/tools/skills.ts
     sourceLine: 98
   SYM-handleKbSuggestPredicates:
@@ -2651,15 +3209,15 @@ coordinates:
   SYM-handleKbUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 455
+    sourceEndLine: 484
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 267
+    sourceLine: 277
   SYM-handleKbValidateUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 58
+    sourceEndLine: 85
     sourceFile: packages/mcp/src/tools/validate-upsert.ts
-    sourceLine: 17
+    sourceLine: 30
   SYM-handleSparql:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2675,21 +3233,21 @@ coordinates:
   SYM-hasOverrideRationale:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 217
+    sourceEndLine: 219
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 212
+    sourceLine: 214
   SYM-inferSymbolRole:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 69
+    sourceEndLine: 73
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 55
+    sourceLine: 57
   SYM-inferSymbolRoleFromKind:
     sourceColumn: 13
     sourceEndColumn: 54
-    sourceEndLine: 71
+    sourceEndLine: 75
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 71
+    sourceLine: 75
   SYM-info:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2729,15 +3287,27 @@ coordinates:
   SYM-isAllowedGranularityReason:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 91
+    sourceEndLine: 95
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 87
+    sourceLine: 91
+  SYM-isAuditedNoImpactOverrideAllowed:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 168
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 160
+  SYM-isBehaviorSourceEdit:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 200
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 170
   SYM-isBehavioralSymbol:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 103
+    sourceEndLine: 107
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 99
+    sourceLine: 103
   SYM-isEligibleForCoordinateRefresh:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2756,18 +3326,24 @@ coordinates:
     sourceEndLine: 250
     sourceFile: packages/opencode/src/config.ts
     sourceLine: 247
+  SYM-isSupportedBehaviorSourcePath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 210
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 202
   SYM-isSymbolRole:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 77
+    sourceEndLine: 81
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 73
+    sourceLine: 77
   SYM-isTraceabilityRelationshipType:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 85
+    sourceEndLine: 89
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 79
+    sourceLine: 83
   SYM-jsonSchemaToZod:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2813,27 +3389,135 @@ coordinates:
   SYM-markdown-ExtractedEntity:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 90
+    sourceEndLine: 96
     sourceFile: packages/cli/src/extractors/markdown.ts
     sourceLine: 57
+  SYM-markdown-ExtractedRelationship:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 102
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    sourceLine: 98
+  SYM-markdown-ExtractionResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 108
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    sourceLine: 104
+  SYM-markdown-FrontmatterError:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 329
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    sourceLine: 295
+  SYM-markdown-FrontmatterError-classification:
+    sourceColumn: 9
+    sourceEndColumn: 32
+    sourceEndLine: 296
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    sourceLine: 296
+  SYM-markdown-FrontmatterError-hint:
+    sourceColumn: 9
+    sourceEndColumn: 22
+    sourceEndLine: 297
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    sourceLine: 297
+  SYM-markdown-FrontmatterError-originalError:
+    sourceColumn: 9
+    sourceEndColumn: 32
+    sourceEndLine: 298
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    sourceLine: 298
+  SYM-markdown-FrontmatterError-toString:
+    sourceColumn: 11
+    sourceEndColumn: 3
+    sourceEndLine: 328
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    sourceLine: 319
+  SYM-markdown-detectEmbeddedEntities:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 445
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    sourceLine: 391
+  SYM-markdown-extractFromMarkdown:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 748
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    sourceLine: 735
+  SYM-markdown-extractFromMarkdownString:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 732
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    sourceLine: 727
+  SYM-markdown-inferTypeFromPath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 759
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    sourceLine: 750
+  SYM-markdown-normalizeDateLike:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 776
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    sourceLine: 768
   SYM-mcp-BranchKbStamp:
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 18
     sourceFile: packages/mcp/src/server/kb-freshness.ts
     sourceLine: 4
+  SYM-mcp-CheckArgs:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 30
+    sourceFile: packages/mcp/src/tools/check-types.ts
+    sourceLine: 22
+  SYM-mcp-CheckResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 59
+    sourceFile: packages/mcp/src/tools/check-types.ts
+    sourceLine: 40
+  SYM-mcp-Diagnostic:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 38
+    sourceFile: packages/mcp/src/tools/check-types.ts
+    sourceLine: 32
   SYM-mcp-KbRefreshError:
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 25
     sourceFile: packages/mcp/src/server/kb-freshness.ts
     sourceLine: 20
+  SYM-mcp-analyzeKbCheckImpact:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 57
+    sourceFile: packages/mcp/src/tools/check-impact.ts
+    sourceLine: 33
   SYM-mcp-attachTestKb:
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 48
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
     sourceLine: 43
+  SYM-mcp-buildStructuredContent:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 118
+    sourceFile: packages/mcp/src/tools/check-format.ts
+    sourceLine: 94
+  SYM-mcp-collectQueryPlanSafetyViolations:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 20
+    sourceFile: packages/mcp/src/tools/query-plan-safety.ts
+    sourceLine: 9
   SYM-mcp-createIntegrationProlog:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2858,12 +3542,54 @@ coordinates:
     sourceEndLine: 54
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
     sourceLine: 50
+  SYM-mcp-formatImpactText:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 48
+    sourceFile: packages/mcp/src/tools/check-format.ts
+    sourceLine: 33
+  SYM-mcp-formatQualityDiagnosticsText:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 92
+    sourceFile: packages/mcp/src/tools/check-format.ts
+    sourceLine: 61
+  SYM-mcp-formatViolationText:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 139
+    sourceFile: packages/mcp/src/tools/check-format.ts
+    sourceLine: 120
+  SYM-mcp-getEffectiveRules:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 88
+    sourceFile: packages/mcp/src/tools/check-config.ts
+    sourceLine: 70
+  SYM-mcp-hasImpactOptions:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 31
+    sourceFile: packages/mcp/src/tools/check-impact.ts
+    sourceLine: 24
+  SYM-mcp-loadChecksConfig:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 67
+    sourceFile: packages/mcp/src/tools/check-config.ts
+    sourceLine: 27
   SYM-mcp-readBranchKbStamp:
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 61
     sourceFile: packages/mcp/src/server/kb-freshness.ts
     sourceLine: 27
+  SYM-mcp-runAggregatedChecks:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 71
+    sourceFile: packages/mcp/src/tools/check-prolog.ts
+    sourceLine: 24
   SYM-mcp-sameBranchKbStamp:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2960,6 +3686,12 @@ coordinates:
     sourceEndLine: 300
     sourceFile: packages/cli/src/utils/strict-modeling.ts
     sourceLine: 280
+  SYM-normalizeMarkdownPath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 32
+    sourceFile: packages/cli/src/commands/sync/discovery.ts
+    sourceLine: 26
   SYM-normalizePropertyKey:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2990,6 +3722,12 @@ coordinates:
     sourceEndLine: 192
     sourceFile: packages/vscode/src/codeActionProvider.ts
     sourceLine: 176
+  SYM-parseKibiImpactOverride:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 158
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 147
   SYM-parseRdfRelationships:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3047,9 +3785,9 @@ coordinates:
   SYM-readManifestWithCoordinateOverlay:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 483
+    sourceEndLine: 501
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 469
+    sourceLine: 487
   SYM-reconcileAuditEntries:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3083,7 +3821,7 @@ coordinates:
   SYM-registerConfiguredTools:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 189
+    sourceEndLine: 194
     sourceFile: packages/mcp/src/server/tool-registration.ts
     sourceLine: 39
   SYM-registerIndexCoverageTests:
@@ -3230,6 +3968,18 @@ coordinates:
     sourceEndLine: 287
     sourceFile: packages/opencode/src/plugin-startup.ts
     sourceLine: 96
+  SYM-scripts-finalizeLcov:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 51
+    sourceFile: scripts/finalize-lcov.ts
+    sourceLine: 35
+  SYM-scripts-runUnitCoverage:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 113
+    sourceFile: scripts/run-unit-coverage.ts
+    sourceLine: 91
   SYM-sendToast:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3281,9 +4031,9 @@ coordinates:
   SYM-setupDocsAndPrompts:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 324
+    sourceEndLine: 325
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 296
+    sourceLine: 297
   SYM-skillsListCommand:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3335,9 +4085,9 @@ coordinates:
   SYM-test:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 672
+    sourceEndLine: 701
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 665
+    sourceLine: 694
   SYM-updateGitIgnore:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3359,9 +4109,15 @@ coordinates:
   SYM-validateKbUpsertArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 504
+    sourceEndLine: 533
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 457
+    sourceLine: 486
+  SYM-validateLiveRelationshipTargets:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 177
+    sourceFile: packages/mcp/src/tools/relationship-validation.ts
+    sourceLine: 143
   SYM-validateSkillBundle:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3377,9 +4133,9 @@ coordinates:
   SYM-withDiagnosticTelemetrySchema:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 912
+    sourceEndLine: 958
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 892
+    sourceLine: 938
   SYM-writeCoordinateArtifact:
     sourceColumn: 16
     sourceEndColumn: 1

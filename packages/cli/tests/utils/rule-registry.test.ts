@@ -94,6 +94,24 @@ describe("rule-registry constants", () => {
     expect(RULE_NAMES.has("strict-readiness")).toBe(true);
   });
 
+  test("predicate-verifiability rule exists and is disabled by default", () => {
+    const rule = RULES.find((r) => r.name === "predicate-verifiability");
+    expect(rule).toBeDefined();
+    expect(rule?.defaultEnabled).toBe(false);
+    expect(rule?.category).toBe("integrity");
+    expect(rule?.description).toContain("requires_predicate");
+    expect(RULE_NAMES.has("predicate-verifiability")).toBe(true);
+  });
+
+  test("query-plan-safety rule exists and is enabled by default", () => {
+    const rule = RULES.find((r) => r.name === "query-plan-safety");
+    expect(rule).toBeDefined();
+    expect(rule?.defaultEnabled).toBe(true);
+    expect(rule?.category).toBe("integrity");
+    expect(rule?.description).toContain("negation");
+    expect(RULE_NAMES.has("query-plan-safety")).toBe(true);
+  });
+
   test("RULE_NAMES is a proper Set for O(1) lookups", () => {
     expect(RULE_NAMES.has).toBeInstanceOf(Function);
     expect(RULE_NAMES.add).toBeInstanceOf(Function);
@@ -247,6 +265,13 @@ describe("getEffectiveRules", () => {
 
     expect(result.size).toBe(1);
     expect(result.has("strict-readiness")).toBe(true);
+  });
+
+  test("CLI rules can explicitly opt into predicate-verifiability", () => {
+    const result = getEffectiveRules(undefined, "predicate-verifiability");
+
+    expect(result.size).toBe(1);
+    expect(result.has("predicate-verifiability")).toBe(true);
   });
 
   test("config takes precedence over defaults (config override precedence)", () => {

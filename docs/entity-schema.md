@@ -310,6 +310,24 @@ tags:
 
 `tags` remain metadata only. They do not alias or replace typed verification fields.
 
+Coverage-depth reporting uses typed verification fields before legacy hints. A passing test with `verification_scope: end_to_end` supplies e2e evidence even if it has no `e2e` tag; tag or path heuristics are only fallback evidence for older records. Requirement coverage rows can therefore report deterministic depth labels without changing the underlying covered/uncovered decision:
+
+- `direct_passing_e2e` — the requirement is directly linked to a passing e2e test.
+- `scenario_passing_e2e` — a linked scenario is validated by a passing e2e test.
+- `unit_only` — passing evidence exists, but only at unit scope.
+- `open_or_nonpassing_tests_only` — tests exist but none are passing.
+- `scenario_only_no_test` — scenarios exist without executable test evidence.
+- `no_test_evidence` — no scenario or test evidence is linked.
+
+#### Check output diagnostics
+
+`kibi check`, MCP `kb_check`, staged impact checks, and OpenCode scheduled checks use a two-lane output contract rather than modeling audit findings as new entity types:
+
+- `violations[]` is the hard correctness lane. Graph, schema, contradiction, query-plan, and staged blocking failures stay here and continue to fail checks.
+- `qualityDiagnostics[]` is the audit-quality lane. Modeling reviews, coverage-depth reviews, broad requirement fanout, duplicate coordinates, symbol fanout, status misuse, and strict-fact modeling suggestions are advisory unless a diagnostic explicitly sets `blocking: true` or `severity: "error"`.
+
+The public severity values are `error`, `warning`, `review`, and `info`. `review` and `info` do not fail checks by default; `warning` is also non-blocking unless paired with `blocking: true`. Integrations should inspect both `severity` and `blocking` instead of treating every diagnostic-like record as a failure.
+
 **Example:**
 ```yaml
 ---
@@ -577,6 +595,8 @@ relationship:
 ```
 
 `verified_by` has one frozen meaning: a requirement or scenario is verified by a test. Direct `req -> test` is fallback only when no scenario exists. Prefer `req -> scenario -> test`.
+
+Facts are not directly verified by tests. Model the behavior through a requirement: link the requirement to strict or observation facts with `constrains`, `requires_property`, or `requires_predicate`, then link the requirement or scenario to the test with `verified_by` / `validates`.
 
 **validates**
 ```yaml

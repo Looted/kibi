@@ -141,8 +141,8 @@ describe("kibi-usage skill content", () => {
     expect(bundle.body).toContain("REQ-ROLE-SET-2");
     expect(bundle.body).toContain("REQ-ROLE-SET-3");
     expect(bundle.body).toContain("user.roles.allowed_set");
-    expect(bundle.body).toContain("[user, admin]");
-    expect(bundle.body).toContain("[user, admin, superadmin]");
+    expect(bundle.body).toContain("user,admin");
+    expect(bundle.body).toContain("user,admin,superadmin");
     expect(bundle.body).toContain("REQ-ADMIN-CAN-MANAGE-BILLING");
     expect(bundle.body).toContain("REQ-ONLY-SUPERADMIN-MANAGES-BILLING");
     expect(bundle.body).toContain("billing.manage.allowed_actor");
@@ -158,6 +158,19 @@ describe("kibi-usage skill content", () => {
   test("body covers create-before-link", () => {
     expect(bundle.body).toContain(
       "Always confirm or create endpoint entities before linking them",
+    );
+  });
+
+  test("body covers small behavior fix impact evidence recipe", () => {
+    expect(bundle.body).toContain("Small Behavior Fix Impact Evidence");
+    expect(bundle.body).toContain(
+      "If no requirement exists, create one for the corrected behavior",
+    );
+    expect(bundle.body).toContain("Do not link facts directly to tests");
+    expect(bundle.body).toContain("REQ -> TEST");
+    expect(bundle.body).toContain("`verified_by`");
+    expect(bundle.body).toContain(
+      "MCP writes do not automatically stage markdown evidence",
     );
   });
 
@@ -204,6 +217,11 @@ describe("kibi-usage skill content", () => {
     );
   });
 
+  test("body avoids unsupported typed fact value examples", () => {
+    expect(bundle.body).not.toContain("value_type: list");
+    expect(bundle.body).not.toContain("value_json");
+  });
+
   test("resources are readable and non-empty", () => {
     const relDir = readBundledSkillResource(
       "kibi-usage",
@@ -220,6 +238,9 @@ describe("kibi-usage skill content", () => {
     expect(factLanes).toContain("fact_kind: property_value");
     expect(factLanes).toContain("user.roles.allowed_set");
     expect(factLanes).toContain("billing.manage.allowed_actor");
+    expect(factLanes).toContain("value_type: string");
+    expect(factLanes).not.toContain("value_type: list");
+    expect(factLanes).not.toContain("value_json");
 
     const workflows = readBundledSkillResource(
       "kibi-usage",
@@ -227,5 +248,9 @@ describe("kibi-usage skill content", () => {
     );
     expect(workflows).toContain("kb_search");
     expect(workflows).toContain("kb_check");
+    expect(workflows).toContain(
+      "Small Behavior Fix With No Existing Requirement",
+    );
+    expect(workflows).toContain("Do not create a test-fact pair");
   });
 });

@@ -87,3 +87,33 @@ relationships:
     from: SYM-handler
     to: TEST-005
 ```
+
+## Invalid Test-Fact Shortcuts
+
+Do not model small behavior fixes as direct test-fact pairs. Facts describe invariants; requirements or scenarios are verified by tests.
+
+```yaml
+# WRONG: fact -> test is not a valid verified_by shape
+relationships:
+  - type: verified_by
+    from: FACT-HEADER-AVATAR-INITIAL-UPPERCASE
+    to: TEST-AVATAR-HEADER-FALLBACK
+
+# WRONG: test -> fact is not a valid validates shape
+relationships:
+  - type: validates
+    from: TEST-AVATAR-HEADER-FALLBACK
+    to: FACT-HEADER-AVATAR-INITIAL-UPPERCASE
+```
+
+Use a requirement as the verification target/source, then link that requirement to strict facts:
+
+```yaml
+relationships:
+  - type: verified_by
+    from: REQ-HEADER-AVATAR-INITIAL-UPPERCASE
+    to: TEST-AVATAR-HEADER-FALLBACK
+  - type: requires_property
+    from: REQ-HEADER-AVATAR-INITIAL-UPPERCASE
+    to: FACT-HEADER-AVATAR-INITIAL-UPPERCASE
+```

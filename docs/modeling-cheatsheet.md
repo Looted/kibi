@@ -16,6 +16,7 @@ Use this one-page guide when deciding how to model knowledge through MCP tools.
 7. **BDD behavior?** Use `scenario`, linked with `specified_by`.
 8. **Executable evidence?** Use `test`, linked with `verified_by` or `validates`.
    - When the requirement has a `scenario`, this link must target the scenario: use `verified_by(Scenario, Test)` or `validates(Test, Scenario)`. Directly linking `verified_by(Req, Test)` and `validates(Test, Req)` does not satisfy scenario-aware symbol-coverage.
+   - For small behavior fixes discovered from source, create or update a `req` for the observable behavior. Link strict or observation facts from that requirement, then link the requirement or scenario to the executable test. Do not create direct `fact -> test` / `test -> fact` verification shortcuts.
 9. **Code ownership or coverage?** Use `symbol`, linked with `implements`, `covered_by`, or `executable_for`.
 
 ## Strict property example
@@ -94,3 +95,14 @@ Suggestions are non-blocking and must be reviewed before applying; they are not 
 - **Review artifacts:** ambiguity observations and ontology-gap observations when a claim is logical but not safely grounded by the current deterministic catalog.
 
 When an exact predicate suggestion exists, prefer its `applyPlan` and `requires_predicate` relationship guidance over generic prose notes. The receipt-level `candidate_lane` and `suggested_next_tools` are aligned to exact suggestions, so numeric-looking predicate claims such as lifecycle or batching rules can still correctly route to `kb_suggest_predicates`.
+
+## Quality diagnostics lane
+
+`kibi check`, MCP `kb_check`, staged impact checks, coverage reports, and OpenCode scheduled checks can surface non-blocking `qualityDiagnostics[]` alongside hard `violations[]`. Treat `violations[]` as correctness failures to fix before handoff. Treat `qualityDiagnostics[]` as audit review guidance unless `blocking: true` or `severity: "error"` is present.
+
+Common review diagnostics map to modeling actions:
+
+- Broad requirement or multi-requirement symbol: split the requirement/symbol into one observable behavior per anchor, or document a valid umbrella/module rationale.
+- Strict fact modeling review: use `kb_model_requirement` or `kb_suggest_predicates` before hand-writing facts.
+- Coverage-depth review: add typed `verification_scope` / `verification_perspective` fields to test entities and prefer direct/scenario e2e evidence when the behavior crosses an external boundary.
+- Duplicate coordinate review: refresh symbol coordinates through the CLI sync workflow and keep modeled symbol IDs distinct enough to identify the behavioral anchor.

@@ -10,6 +10,7 @@ export interface ProseCoverageExpectation {
 
 export interface ProseCoverageCase {
   id: string;
+  source?: string;
   text: string;
   expected: ProseCoverageExpectation;
 }

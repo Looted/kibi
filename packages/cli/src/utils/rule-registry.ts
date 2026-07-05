@@ -126,6 +126,20 @@ export const RULES: readonly RuleDefinition[] = [
     defaultEnabled: false,
     category: "integrity",
   },
+  {
+    name: "predicate-verifiability",
+    description:
+      "Detect requires_predicate links that do not target ground fact_kind: predicate facts",
+    defaultEnabled: false,
+    category: "integrity",
+  },
+  {
+    name: "query-plan-safety",
+    description:
+      "Detect Prolog validation clauses that place negation before generator calls",
+    defaultEnabled: true,
+    category: "integrity",
+  },
 ] as const;
 
 /**

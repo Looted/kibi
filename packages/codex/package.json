@@ -1,6 +1,6 @@
 {
   "name": "kibi-codex",
-  "version": "0.16.1",
+  "version": "0.17.1",
   "description": "Kibi Codex plugin - thin adapter for Codex MCP integration",
   "type": "module",
   "main": "dist/index.js",

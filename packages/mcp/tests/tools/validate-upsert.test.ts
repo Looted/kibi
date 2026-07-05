@@ -1,5 +1,22 @@
-import { describe, expect, test } from "bun:test";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  test,
+} from "bun:test";
+import fs from "node:fs/promises";
+import type { PrologProcess } from "kibi-cli/prolog";
+import { handleKbUpsert } from "../../src/tools/upsert.js";
 import { handleKbValidateUpsert } from "../../src/tools/validate-upsert.js";
+import {
+  attachTestKb,
+  createTestKbDir,
+  detachTestKb,
+  startIntegrationProlog,
+  stopIntegrationProlog,
+} from "../helpers/integration-prolog.js";
 
 describe("kb_validate_upsert", () => {
   test("returns semantic advisor warning for prose-heavy normative requirements", async () => {
@@ -124,6 +141,88 @@ describe("kb_validate_upsert", () => {
       type: "fact",
       fact_kind: "property_value",
       value_bool: true,
+    });
+  });
+
+  describe("live relationship preflight", () => {
+    let prolog: PrologProcess;
+    let testKbPath: string;
+
+    beforeAll(async () => {
+      prolog = await startIntegrationProlog();
+      testKbPath = await createTestKbDir("kibi-mcp-validate-upsert-");
+    });
+
+    beforeEach(async () => {
+      await detachTestKb(prolog);
+      await fs.rm(testKbPath, { recursive: true, force: true });
+      await fs.mkdir(testKbPath, { recursive: true });
+      await attachTestKb(prolog, testKbPath);
+    });
+
+    afterAll(async () => {
+      await stopIntegrationProlog(prolog);
+      await fs.rm(testKbPath, { recursive: true, force: true });
+    });
+
+    test("returns invalid before mutation when a fact is linked directly to a test", async () => {
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: "FACT-UPPERCASE-INITIAL",
+        properties: {
+          title: "Header avatar initial is uppercase",
+          status: "active",
+          source: "test://validate-upsert/fact",
+          fact_kind: "property_value",
+          subject_key: "header.avatar.initial",
+          property_key: "text_case",
+          operator: "eq",
+          value_type: "string",
+          value_string: "uppercase",
+        },
+      });
+      await handleKbUpsert(prolog, {
+        type: "test",
+        id: "TEST-HEADER-AVATAR-FALLBACK",
+        properties: {
+          title: "Header avatar fallback test",
+          status: "passing",
+          source: "test://validate-upsert/test",
+          verification_scope: "unit",
+          verification_perspective: "consumer",
+        },
+      });
+
+      const result = await handleKbValidateUpsert(prolog, {
+        type: "fact",
+        id: "FACT-UPPERCASE-INITIAL",
+        properties: {
+          title: "Header avatar initial is uppercase",
+          status: "active",
+          source: "test://validate-upsert/fact",
+          fact_kind: "property_value",
+          subject_key: "header.avatar.initial",
+          property_key: "text_case",
+          operator: "eq",
+          value_type: "string",
+          value_string: "uppercase",
+        },
+        relationships: [
+          {
+            type: "verified_by",
+            from: "FACT-UPPERCASE-INITIAL",
+            to: "TEST-HEADER-AVATAR-FALLBACK",
+          },
+        ],
+      });
+
+      expect(result.structuredContent.valid).toBe(false);
+      expect(result.structuredContent.errors.join("\n")).toContain(
+        "Invalid relationship: verified_by from fact to test",
+      );
+      expect(result.structuredContent.errors.join("\n")).toContain(
+        "Create or update a requirement and link REQ -> TEST with verified_by",
+      );
     });
   });
 });

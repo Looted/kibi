@@ -45,6 +45,11 @@ import {
   attachedBranchKbPath,
   updateAttachedBranchStamp,
 } from "../server/session.js";
+import {
+  formatInvalidRelationshipError,
+  formatRelationshipSourceMismatch,
+  validateLiveRelationshipTargets,
+} from "./relationship-validation.js";
 import { refreshCoordinatesForSymbolId } from "./symbols.js";
 
 let refreshCoordinatesForSymbolIdImpl = refreshCoordinatesForSymbolId;
@@ -72,6 +77,11 @@ export interface UpsertResult {
     relationships_created: number;
     warnings: string[];
     semanticAdvisor: SemanticAdvisorReceipt;
+    contradictionCheck?: {
+      outcome: "no-conflict" | "skipped";
+      checked_req_id: string;
+      strict_readiness: string;
+    };
   };
 }
 
@@ -312,6 +322,11 @@ export async function handleKbUpsert(
     // Validate strict-lane fact_kind pairing for constrains/requires_property
     // implements REQ-011
     await validateStrictLanePairing(prolog, effectiveRelationships);
+    await validateLiveRelationshipTargets(
+      prolog,
+      entity,
+      effectiveRelationships,
+    );
 
     // Process entities
     for (const entity of entities) {
@@ -446,6 +461,20 @@ export async function handleKbUpsert(
         relationships_created: relationshipsCreated,
         warnings: [...semanticAdvisor.warnings, ...coverageWarnings],
         semanticAdvisor: semanticAdvisor.receipt,
+        ...(type === "req"
+          ? {
+              contradictionCheck: {
+                outcome: args._skipContradictionCheck
+                  ? "skipped"
+                  : "no-conflict",
+                checked_req_id: entity.id as string,
+                strict_readiness:
+                  semanticAdvisor.receipt.logic_readiness === "modeled"
+                    ? "modeled"
+                    : semanticAdvisor.receipt.candidate_lane,
+              },
+            }
+          : {}),
       },
     };
   } catch (error) {
@@ -689,6 +718,9 @@ function buildPropertyList(entity: Record<string, unknown>): string {
     "priority",
     "severity",
     "symbol_role",
+    "granularity_reason",
+    "verification_scope",
+    "verification_perspective",
     // Typed fact enum fields must be atoms for Prolog validation
     "fact_kind",
     "operator",
@@ -771,9 +803,7 @@ function validateRelationshipSources(
 ): void {
   for (const rel of relationships) {
     if (rel.from !== entityId) {
-      throw new Error(
-        `Relationship source must match the upserted entity ${entityId}; received from=${String(rel.from)}`,
-      );
+      throw new Error(formatRelationshipSourceMismatch(entityId, rel));
     }
   }
 }
@@ -994,6 +1024,11 @@ function formatUpsertError(
 ): string {
   if (!rawError) {
     return `Failed to upsert entity ${entityId}: Unknown error`;
+  }
+
+  const invalidRelationshipError = formatInvalidRelationshipError(rawError);
+  if (invalidRelationshipError !== null) {
+    return `Failed to upsert entity ${entityId}: ${invalidRelationshipError}`;
   }
 
   // Check for contradiction error - Prolog returns kb_contradiction([...]) term

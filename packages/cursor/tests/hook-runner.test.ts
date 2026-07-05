@@ -66,6 +66,20 @@ describe("Cursor hook runner", () => {
     expect(result).toEqual({});
   });
 
+  test("sessionStart treats an empty cwd as missing Kibi config", async () => {
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
+
+    const result = await runHook(
+      { hook_event_name: "sessionStart", cwd: "" },
+      { pluginData },
+    );
+
+    expect(result.additional_context).toContain(
+      "Kibi config was not found at the Cursor workspace root",
+    );
+  });
+
   test("preToolUse warns on explicit direct .kb path edits without blocking", async () => {
     const cwd = createTempRoot("kibi-cursor-cwd-");
     const pluginData = createTempRoot("kibi-cursor-data-");
@@ -123,6 +137,32 @@ describe("Cursor hook runner", () => {
 
     const second = await runHook(payload, { pluginData });
     expect(second).toEqual({ permission: "allow" });
+  });
+
+  test("beforeReadFile allows missing, unready, and untracked reads", async () => {
+    const cwd = createTempRoot("kibi-cursor-cwd-");
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(cwd, pluginData);
+
+    expect(
+      await runHook({ hook_event_name: "beforeReadFile", cwd }, { pluginData }),
+    ).toEqual({ permission: "allow" });
+    expect(
+      await runHook(
+        { hook_event_name: "beforeReadFile", cwd, file_path: "src/a.ts" },
+        { pluginData },
+      ),
+    ).toEqual({ permission: "allow" });
+
+    fs.mkdirSync(path.join(cwd, ".kb"));
+    fs.writeFileSync(path.join(cwd, ".kb", "config.json"), "{}");
+
+    expect(
+      await runHook(
+        { hook_event_name: "beforeReadFile", cwd, file_path: "package.json" },
+        { pluginData },
+      ),
+    ).toEqual({ permission: "allow" });
   });
 
   test("postToolUse tracks only explicit meaningful paths", async () => {
@@ -183,6 +223,82 @@ describe("Cursor hook runner", () => {
     );
 
     expect(result.additional_context).toContain("Kibi write guidance");
+    expect(result.additional_context).toContain("kb_check");
+    expect(result.additional_context).toContain("includeImpactDiagnostics");
+    expect(result.additional_context).toContain("includeWorkingTreeDiff");
+    expect(result.additional_context).toContain("semantic review");
+  });
+
+  test("postToolUse injects read guidance once for read-like tools", async () => {
+    const cwd = createTempRoot("kibi-cursor-cwd-");
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(cwd, pluginData);
+    fs.mkdirSync(path.join(cwd, ".kb"));
+    fs.writeFileSync(path.join(cwd, ".kb", "config.json"), "{}");
+
+    const payload = {
+      hook_event_name: "postToolUse",
+      cwd,
+      tool_name: "Read",
+      tool_input: { file_path: "src/read.ts" },
+    };
+
+    const first = await runHook(payload, { pluginData });
+    expect(first.additional_context).toContain("Kibi read guidance");
+
+    expect(await runHook(payload, { pluginData })).toEqual({});
+  });
+
+  test("postToolUse skips repeated write guidance and untracked or non-edit tools", async () => {
+    const cwd = createTempRoot("kibi-cursor-cwd-");
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(cwd, pluginData);
+    fs.mkdirSync(path.join(cwd, ".kb"));
+    fs.writeFileSync(path.join(cwd, ".kb", "config.json"), "{}");
+
+    const writePayload = {
+      hook_event_name: "postToolUse",
+      cwd,
+      tool_name: "Write",
+      tool_input: { file_path: "src/write.ts" },
+    };
+    expect(
+      (await runHook(writePayload, { pluginData })).additional_context,
+    ).toContain("Kibi write guidance");
+    expect(await runHook(writePayload, { pluginData })).toEqual({});
+    expect(
+      await runHook(
+        {
+          hook_event_name: "postToolUse",
+          cwd,
+          tool_name: "Write",
+          tool_input: { file_path: "package.json" },
+        },
+        { pluginData },
+      ),
+    ).toEqual({});
+    expect(
+      await runHook(
+        {
+          hook_event_name: "postToolUse",
+          cwd,
+          tool_name: "Read",
+          tool_input: { file_path: "package.json" },
+        },
+        { pluginData },
+      ),
+    ).toEqual({});
+    expect(
+      await runHook(
+        {
+          hook_event_name: "postToolUse",
+          cwd,
+          tool_name: "Shell",
+          tool_input: { file_path: "src/shell.ts" },
+        },
+        { pluginData },
+      ),
+    ).toEqual({});
   });
 
   test("stop returns a short freshness follow-up once and clears tracked paths", async () => {
@@ -225,9 +341,17 @@ describe("Cursor hook runner", () => {
     );
   });
 
-  test("stop stays quiet after kb_check even when source files changed", async () => {
+  test("stop prompts impact-enabled kb_check after source edits without impact check", async () => {
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(pluginData);
+    await runHook(
+      {
+        hook_event_name: "postToolUse",
+        tool_name: "Write",
+        tool_input: { file_path: "packages/cursor/src/hook-runner.ts" },
+      },
+      { pluginData },
+    );
     await runHook(
       {
         hook_event_name: "postToolUse",
@@ -236,11 +360,38 @@ describe("Cursor hook runner", () => {
       },
       { pluginData },
     );
+
+    const result = await runHook({ hook_event_name: "stop" }, { pluginData });
+    expect(result.followup_message).toContain("includeImpactDiagnostics");
+    expect(result.followup_message).toContain("includeWorkingTreeDiff");
+    expect(result.followup_message).toContain(
+      "packages/cursor/src/hook-runner.ts",
+    );
+  });
+
+  test("stop stays quiet after impact-enabled kb_check covers source edits", async () => {
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
     await runHook(
       {
         hook_event_name: "postToolUse",
         tool_name: "Write",
-        tool_input: { file_path: "packages/core/src/kb.pl" },
+        tool_input: { file_path: "packages/cursor/src/hook-runner.ts" },
+      },
+      { pluginData },
+    );
+    await runHook(
+      {
+        hook_event_name: "postToolUse",
+        tool_name: "CallMcpTool",
+        tool_input: {
+          toolName: "kb_check",
+          arguments: {
+            sourceFiles: ["packages/cursor/src/hook-runner.ts"],
+            includeImpactDiagnostics: true,
+            includeWorkingTreeDiff: true,
+          },
+        },
       },
       { pluginData },
     );

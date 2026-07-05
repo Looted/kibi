@@ -208,6 +208,8 @@ NJ|
 BN|### `kb_skills_load`
 HT|
 YK|Load a bundled Kibi agent skill by ID, returning its manifest metadata, Markdown body, declared resources, content hash, and source type. Read-only; does not execute scripts or require Prolog.
+
+The visible text includes the skill's declared resources so agents can discover follow-up `kb_skills_read` calls without guessing resource paths.
 YQ|
 RH|**Parameters:**
 ZV|- `id` (required): Bundled skill ID to load. Example: `'kibi-usage'`.
@@ -361,6 +363,8 @@ Validate a `kb_upsert` payload without mutating the KB. This read-only preflight
 
 `semanticAdvisor` includes a version, payload hash, logic readiness, candidate lane, detected signals, ambiguity witnesses, modeling suggestions, and suggested next tools. Use the receipt as proof that the payload was inspected, not as proof that the prose is logically enforced.
 
+When invoked through MCP, `kb_validate_upsert` also attaches to Prolog and validates live relationship endpoint types before mutation. Invalid tuples such as `verified_by fact -> test` are rejected in preflight with the same relationship guidance `kb_upsert` would return.
+
 ### `kb_delete`
 
 Delete one or more entities by ID. Deletion is blocked when dependents still reference the target.
@@ -373,13 +377,34 @@ Confirmation of deletion, or an error describing blocked dependents.
 
 ### `kb_check`
 
-Run KB validation rules after mutations.
+Run KB validation rules after mutations. Agents can also opt into read-only changed-file impact diagnostics for source edits while the edit context is still fresh; this is the first Kibi gate for LLM workflows, with CLI/git hooks remaining the commit-time fallback.
 
 **Parameters:**
-- `rules` (optional): Validation rule subset (`must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `domain-contradictions`, `strict-fact-shape`, `strict-req-fact-pairing`). Note: `strict-fact-shape` and `strict-req-fact-pairing` are migration checks and are disabled by default. `domain-contradictions` applies only to strict-lane facts.
+- `rules` (optional): Validation rule subset (`must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `domain-contradictions`, `strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`, `query-plan-safety`). Note: `strict-fact-shape`, `strict-req-fact-pairing`, and `predicate-verifiability` are migration/semantic-audit checks and are disabled by default. `query-plan-safety` is enabled by default and can be disabled in `.kb/config.json`. `domain-contradictions` applies only to strict-lane facts; `predicate-verifiability` audits `requires_predicate` links for ground `fact_kind: predicate` targets; `query-plan-safety` flags Prolog validation clauses that place negation before later generator calls.
+- `sourceFiles` (optional): Repo-relative source paths to inspect for changed-file impact diagnostics.
+- `staged` (optional): Inspect staged source changes when building impact diagnostics.
+- `includeWorkingTreeDiff` (optional): Include unstaged working-tree content/diffs for the supplied `sourceFiles`.
+- `includeImpactDiagnostics` (optional): Include changed-file diagnostics such as `symbol_granularity_violation` and `symbol_semantic_review_needed` in structured output.
+- `maxDiagnostics` (optional): Cap returned impact diagnostics. Graph validation violations are not capped by this value.
+- `workspaceRoot` (optional): Workspace root for impact diagnostics and `.kb/config.json` lookup. Defaults to the MCP server workspace.
 
 **Returns:**
-Validation report with any violations found and suggested fixes.
+Validation report with any hard violations found and suggested fixes. `structuredContent.violations[]` is the blocking correctness lane: graph, schema, contradiction, query-plan, and staged enforcement failures live there and continue to drive `count` and failure status. `structuredContent.qualityDiagnostics[]` is the additive audit-quality lane for non-blocking modeling, coverage-depth, symbol fanout, duplicate-coordinate, broad-requirement, status, and strict-fact review signals.
+
+Rule filtering affects the audit-quality lane. When `rules` is omitted, MCP runs the normal full validation profile and also performs the full-KB audit-quality scan that populates `qualityDiagnostics[]`. When `rules` is supplied, MCP preserves the requested scoped validation and skips that full-KB advisory scan so iteration stays fast and predictable. Source impact diagnostics are independent: pass `includeImpactDiagnostics: true` with `sourceFiles` or `staged: true` when you need changed-file review during a filtered check.
+
+Quality diagnostics use explicit `severity` and `blocking` fields. `severity: "review"` and `severity: "info"` are advisory and do not fail checks by default; `severity: "warning"` is still non-blocking unless `blocking: true`; `severity: "error"` or `blocking: true` is a hard failure signal. Existing hard violations remain in `violations[]` rather than being downgraded into the advisory lane.
+
+When impact diagnostics are enabled, `structuredContent` also includes `impactDiagnostics`, `sourceFiles`, `extractedSymbols`, `linkedEntities`, and `nextActions`. Impact diagnostics follow the same blocking convention: advisory unless their severity is `error` or `blocking` is true. `symbol_granularity_violation` means a changed behavioral symbol has only coarse ownership when a narrower anchor is available and remains blocking. `symbol_semantic_review_needed` can fire even when graph coverage already exists; it tells the agent to inspect whether linked requirements, scenarios, and tests actually cover the changed behavior or UI copy. Kibi reports the linked entities and suggested MCP calls, but it does not prove prose semantics.
+
+**Example:**
+```json
+{
+  "sourceFiles": ["src/app/pages/upload/upload-page.component.ts"],
+  "includeImpactDiagnostics": true,
+  "includeWorkingTreeDiff": true
+}
+```
 
 ## Discoverability
 
@@ -419,11 +444,11 @@ This behavior is important after external branch operations such as `kibi sync -
 
 1. **Interactive Bootstrap**: Start with the `/init-kibi` workflow to gather declared context and synthesize entities. Always preview candidates for user approval before applying.
 2. **Gather Context**: Use `kb_search` for discovery (decomposing broad tasks into focused probes) and `kb_query` for exact follow-up.
-3. **Gather Context**: Use `kb_search` for discovery (decomposing broad tasks into focused probes) and `kb_query` for exact follow-up.
-4. **Inspect Freshness**: Use `kb_status` when branch or stale-state confidence matters.
-5. **Analyze**: Use `kb_find_gaps`, `kb_coverage`, and `kb_graph` for curated reporting.
+3. **Inspect Freshness**: Use `kb_status` when branch or stale-state confidence matters.
+4. **Analyze**: Use `kb_find_gaps`, `kb_coverage`, and `kb_graph` for curated reporting.
+5. **Check Source Impact**: After meaningful source edits, run `kb_check` with `sourceFiles`, `includeImpactDiagnostics: true`, and `includeWorkingTreeDiff: true` before deciding whether requirements/tests/symbol links need updates.
 6. **Execute Changes**: Use `kb_upsert` to create/update entities and relationships.
-7. **Validate**: Run `kb_check` after structural changes.
+7. **Validate**: Run `kb_check` after structural changes. Use explicit `rules` during iteration for scoped validation; run an unfiltered `kb_check` before completion to include the full-KB `qualityDiagnostics[]` audit scan.
 8. **Clean Up**: Use `kb_delete` only for intentional removals after validating dependencies.
 
 **Modeling note:** Use `flag` for runtime/config gates. Bug and workaround notes belong in `fact` entities, usually with `fact_kind: observation` or `meta`. **Strict facts** drive contradiction checks; observation/meta are non-blocking notes.

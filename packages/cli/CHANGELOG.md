@@ -1,5 +1,107 @@
 # kibi-cli
 
+## 0.14.0
+
+### Minor Changes
+
+- f1db710: Coverage reports now explain how deep each requirement's test evidence goes without changing existing covered/uncovered semantics. CLI users and MCP clients can distinguish direct passing e2e evidence, scenario-backed e2e evidence, unit-only evidence, nonpassing test evidence, scenario-only coverage, and no evidence at all. Typed test verification fields are honored before legacy e2e tag/path heuristics, so modern test metadata produces more reliable coverage labels.
+
+  Technical summary:
+
+  - Add additive `coverageDepth` / `coverage_depth` fields and coverage evidence lists to requirement coverage rows.
+  - Classify coverage depth from direct requirement tests, scenario tests, test statuses, and typed `verification_scope` values.
+  - Surface coverage depth in CLI table output and MCP structured coverage results while preserving existing summary and `coverageStatus` fields.
+  - Allow typed `verification_scope` and `verification_perspective` test fields through CLI/MCP entity schemas and MCP upsert serialization.
+
+- f1db710: OpenCode background checks now surface advisory Kibi quality diagnostics without turning a clean check into an operational plugin failure. Users get concise structured maintenance logs for review-only findings while hard `kibi check` violations keep the existing failure behavior and exit status. The CLI check command also exposes a JSON format so background integrations can consume the same structured diagnostics reliably.
+
+  Technical summary:
+
+  - Add `kibi check --format json` output with `structuredContent.violations`, `count`, `diagnostics`, and `qualityDiagnostics`.
+  - Run OpenCode targeted background checks with JSON output and parse non-blocking `qualityDiagnostics` on successful checks.
+  - Log advisory diagnostic summaries through structured warning logs, preserving terminal silence and existing hard check failure routing.
+
+- f1db710: Kibi check outputs now have a stable advisory diagnostics lane for auditability review signals. Operators and MCP clients can receive `qualityDiagnostics` alongside hard `violations` without advisory-only findings changing pass/fail counts or exit behavior. Existing staged impact failures, including symbol granularity violations, remain blocking. Source impact analysis now also highlights overly broad symbols, indistinguishable symbol coordinates, and mixed-purpose component/class ownership as review-only guidance.
+
+  Technical summary:
+
+  - Add the public `QualityDiagnostic` type with `error`, `warning`, `review`, and `info` severities plus explicit `blocking` semantics.
+  - Preserve existing `violations`, `diagnostics`, and `impactDiagnostics` fields while adding MCP structured `qualityDiagnostics` output support.
+  - Preserve explicitly filtered MCP `kb_check` rule semantics so advisory full-KB quality scans only run for unfiltered checks or requested impact diagnostics.
+  - Clarify Codex and Cursor bundled agent guidance so targeted checks use explicit rules and final checks omit rules for full-KB `qualityDiagnostics` review.
+  - Add quality diagnostic text formatting and shared blocking helpers that treat `blocking: true` or `severity: "error"` as hard failures.
+  - Add non-blocking `multi_requirement_symbol_review`, `duplicate_symbol_coordinate_review`, and `component_mixed_purpose_review` impact diagnostics.
+
+### Patch Changes
+
+- 48b65b9: Kibi quality checks now let teams resolve noisy advisory warnings with explicit, reviewable KB metadata instead of creating fake e2e evidence. Passing integration-level regression evidence can satisfy coverage-depth quality checks, and requirements tagged as intentional umbrella or epic requirements no longer keep emitting broad-fanout diagnostics.
+
+  Technical summary:
+
+  - Preserve test `verification_scope` and `verification_perspective` fields during CLI sync persistence.
+  - Treat passing integration coverage as sufficient quality evidence for coverage-depth diagnostics.
+  - Suppress broad-fanout quality diagnostics for requirements explicitly tagged `umbrella` or `epic`.
+
+- 439cb2e: Kibi now makes semantic Prolog adoption easier to measure and debug. Diagnostic usage logs expose semantic advisor readiness, predicate suggestion outcomes, upsert semantic readiness, and contradiction failures as structured fields instead of generic success/error text. Operators can opt into predicate-link audits and get Prolog validation query-plan safety checked by default, with normal `.kb/config.json` overrides available when needed.
+
+  Technical summary:
+
+  - Add `predicate-verifiability` as a default-off KB check rule that flags `requires_predicate` targets whose `fact_kind` is not `predicate`.
+  - Add `query-plan-safety` as a default-enabled KB check rule that flags Prolog validation clauses that place negation before later generator calls.
+  - Enrich MCP diagnostic usage fields for `kb_semantic_advisor`, `kb_suggest_predicates`, and `kb_upsert`.
+  - Classify requirement contradiction errors as `semantic_contradiction` validation failures with actionable hints.
+  - Preserve semantic context in CLI sync/rebuild validation errors instead of reducing Prolog failures to `Query returned false`.
+  - Extend prose coverage with real Align annotation time-key and merge-policy requirements.
+  - Refresh changed Prolog check modules through the MCP aggregated check loader.
+
+- cb8d977: Kibi sync no longer treats README files inside configured entity directories as entities. This prevents human documentation such as fixture READMEs from producing missing-frontmatter warnings or failed background syncs while preserving normal entity markdown discovery.
+
+  - Ignore `**/README.md` during CLI sync markdown discovery.
+  - Ignore documentation `README.md` files during status freshness checks so synced workspaces remain fresh.
+  - Add regression coverage for README exclusion in sync discovery.
+
+- 224f18b: Agents and hook users now get clearer guidance when behavior-changing staged files are missing Kibi impact evidence. The staged check points to the staged-impact workflow, explains that MCP KB writes do not automatically stage tracked markdown or manifest evidence, and tells users which files to stage before rerunning the hook. MCP validation also catches invalid relationship shortcuts earlier, and bundled skill loading makes follow-up resources easier to discover.
+
+  Technical summary:
+
+  - Add Prolog-backed relationship tuple preflight to `kb_validate_upsert` when invoked through MCP.
+  - Improve invalid relationship and relationship-source mismatch guidance in MCP upsert flows.
+  - Include declared skill resources in `kb_skills_load` visible text and missing-resource errors.
+  - Update staged impact diagnostic docs and bundled Kibi usage resources for requirement-mediated behavior-fix evidence.
+
+- Updated dependencies [f1db710]
+- Updated dependencies [439cb2e]
+- Updated dependencies [cb8d977]
+  - kibi-core@0.7.0
+
+## 0.13.1
+
+### Patch Changes
+
+- Symbol metadata writes now work consistently through MCP and the underlying Prolog schema. Agents can create source-linked symbol entities with `symbol_role` and `granularity_reason` metadata without hitting a transaction failure after JSON validation succeeds. This keeps behavioral-anchor traceability usable from the MCP-first workflow.
+
+  Technical summary:
+
+  - Add `symbol_role` and `granularity_reason` to the Prolog entity schema copies shipped by `kibi-core` and `kibi-cli`.
+  - Serialize `granularity_reason` as a Prolog atom in `kb_upsert` transactions.
+  - Add Prolog and MCP regression coverage for symbol metadata fields.
+
+- Updated dependencies
+  - kibi-core@0.6.5
+
+## 0.13.0
+
+### Minor Changes
+
+- Kibi now gives agents source-impact feedback while they are still editing, instead of waiting for the commit hook to be the first signal. Meaningful source edits can be checked through MCP with changed-file impact diagnostics, so agents see coarse symbol ownership, stale symbol evidence, and semantic-review prompts while the source context is fresh. OpenCode, Cursor, and Codex adapters now steer agents toward that MCP-first workflow and keep CLI/hooks as the later safety net.
+
+  Technical summary:
+
+  - Add reusable CLI changed-file impact diagnostics and export them for MCP consumption.
+  - Extend MCP `kb_check` with source-file impact options and structured impact output.
+  - Update OpenCode, Cursor, and Codex guidance/hooks to request impact-enabled `kb_check` after source edits.
+  - Document semantic-review diagnostics and class-member granularity expectations.
+
 ## 0.12.8
 
 ### Patch Changes

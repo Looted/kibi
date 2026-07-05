@@ -19,6 +19,20 @@ The canonical workflow for any KB operation follows this pattern:
 4. kb_check with targeted rules
 ```
 
+## Small Behavior Fix With No Existing Requirement
+```
+1. kb_search and kb_query by the changed source file and test file.
+2. If no requirement exists, create a REQ for the corrected behavior.
+3. Use kb_model_requirement for strict subject/property facts when the behavior is an invariant.
+4. Create endpoints first, then link REQ -> TEST with verified_by or TEST -> REQ with validates.
+5. Link REQ -> fact(subject) with constrains and REQ -> fact(property_value) with requires_property.
+6. Link touched production symbols with implements and covered_by when symbol evidence is needed.
+7. Author and stage tracked markdown/symbol evidence; MCP writes do not stage those files automatically.
+8. Run kb_check with targeted rules, then a final full check.
+```
+
+Do not create a test-fact pair. Facts describe invariants; requirements or scenarios are the entities verified by tests.
+
 ## Fixing a Traceability Gap
 ```
 1. kb_query --sourceFile <code-file> to find linked entities

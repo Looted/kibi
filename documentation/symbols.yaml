@@ -8,6 +8,7 @@ symbols:
   - id: SYM-001
     title: PrologProcess
     sourceFile: packages/cli/src/prolog.ts
+    granularity_reason: legacy-link
     links:
       - REQ-001
       - REQ-core-persistence
@@ -63,12 +64,16 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
   - id: SYM-cli-PrologProcess-start
     title: PrologProcess.start
     sourceFile: packages/cli/src/prolog.ts
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
     sourceLine: 98
     sourceColumn: 8
     sourceEndLine: 135
@@ -79,6 +84,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
     sourceLine: 137
     sourceColumn: 16
     sourceEndLine: 177
@@ -89,6 +96,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
     sourceLine: 349
     sourceColumn: 2
     sourceEndLine: 351
@@ -99,6 +108,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
     sourceLine: 353
     sourceColumn: 10
     sourceEndLine: 363
@@ -109,6 +120,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
     sourceLine: 366
     sourceColumn: 10
     sourceEndLine: 372
@@ -119,6 +132,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
     sourceLine: 375
     sourceColumn: 10
     sourceEndLine: 377
@@ -129,6 +144,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
     sourceLine: 379
     sourceColumn: 16
     sourceEndLine: 419
@@ -139,6 +156,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
     sourceLine: 424
     sourceColumn: 10
     sourceEndLine: 522
@@ -149,6 +168,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
     sourceLine: 524
     sourceColumn: 10
     sourceEndLine: 526
@@ -159,6 +180,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
     sourceLine: 528
     sourceColumn: 10
     sourceEndLine: 531
@@ -169,6 +192,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
     sourceLine: 534
     sourceColumn: 10
     sourceEndLine: 540
@@ -179,6 +204,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
     sourceLine: 542
     sourceColumn: 10
     sourceEndLine: 557
@@ -189,12 +216,16 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
   - id: SYM-cli-PrologProcess-isRunning
     title: PrologProcess.isRunning
     sourceFile: packages/cli/src/prolog.ts
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
     sourceLine: 621
     sourceColumn: 2
     sourceEndLine: 625
@@ -205,6 +236,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
     sourceLine: 627
     sourceColumn: 2
     sourceEndLine: 629
@@ -215,6 +248,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
     sourceLine: 631
     sourceColumn: 8
     sourceEndLine: 670
@@ -222,25 +257,39 @@ symbols:
   - id: SYM-cli-persistEntities
     title: persistEntities
     sourceFile: packages/cli/src/commands/sync/persistence.ts
+    symbol_role: behavioral
+    text_ref: packages/cli/src/commands/sync/persistence.ts#persistEntities
     relationships:
       - type: implements
         target: REQ-core-persistence
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-007
+      - type: covered_by
+        target: TEST-coverage-depth-labels
     sourceLine: 138
     sourceColumn: 22
-    sourceEndLine: 212
+    sourceEndLine: 227
     sourceEndColumn: 1
   - id: SYM-cli-persistRelationships
     title: persistRelationships
     sourceFile: packages/cli/src/commands/sync/persistence.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-core-persistence
+      - type: covered_by
+        target: TEST-007
   - id: SYM-cli-PersistenceResult
     title: PersistenceResult
     sourceFile: packages/cli/src/commands/sync/persistence.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-core-persistence
+      - type: covered_by
+        target: TEST-007
     sourceLine: 99
     sourceColumn: 17
     sourceEndLine: 103
@@ -258,6 +307,8 @@ symbols:
   - id: SYM-004
     title: handleKbCheck
     sourceFile: packages/mcp/src/tools/check.ts
+    granularity_reason: legacy-link
+    text_ref: packages/mcp/src/tools/check.ts#handleKbCheck
     links:
       - REQ-mcp-tool-check
       - REQ-core-validation-rules
@@ -266,6 +317,158 @@ symbols:
         target: REQ-mcp-tool-check
       - type: implements
         target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-001
+  - id: SYM-mcp-loadChecksConfig
+    title: loadChecksConfig
+    sourceFile: packages/mcp/src/tools/check-config.ts
+    links:
+      - REQ-mcp-tool-check
+    relationships:
+      - type: implements
+        target: REQ-mcp-tool-check
+      - type: covered_by
+        target: TEST-001
+  - id: SYM-mcp-getEffectiveRules
+    title: getEffectiveRules
+    sourceFile: packages/mcp/src/tools/check-config.ts
+    links:
+      - REQ-mcp-tool-check
+    relationships:
+      - type: implements
+        target: REQ-mcp-tool-check
+      - type: covered_by
+        target: TEST-001
+  - id: SYM-mcp-formatImpactText
+    title: formatImpactText
+    sourceFile: packages/mcp/src/tools/check-format.ts
+    granularity_reason: extractor-miss
+    links:
+      - REQ-mcp-tool-check
+    relationships:
+      - type: implements
+        target: REQ-mcp-tool-check
+      - type: covered_by
+        target: TEST-001
+  - id: SYM-mcp-formatQualityDiagnosticsText
+    title: formatQualityDiagnosticsText
+    sourceFile: packages/mcp/src/tools/check-format.ts
+    granularity_reason: legacy-link
+    links:
+      - REQ-mcp-tool-check
+      - REQ-audit-quality-diagnostics-v1
+    relationships:
+      - type: implements
+        target: REQ-mcp-tool-check
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-001
+      - type: covered_by
+        target: TEST-mcp-quality-diagnostics-contract
+  - id: SYM-mcp-buildStructuredContent
+    title: buildStructuredContent
+    sourceFile: packages/mcp/src/tools/check-format.ts
+    granularity_reason: legacy-link
+    links:
+      - REQ-mcp-tool-check
+      - REQ-audit-quality-diagnostics-v1
+    relationships:
+      - type: implements
+        target: REQ-mcp-tool-check
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-001
+      - type: covered_by
+        target: TEST-mcp-quality-diagnostics-contract
+  - id: SYM-mcp-formatViolationText
+    title: formatViolationText
+    sourceFile: packages/mcp/src/tools/check-format.ts
+    granularity_reason: extractor-miss
+    links:
+      - REQ-mcp-tool-check
+    relationships:
+      - type: implements
+        target: REQ-mcp-tool-check
+      - type: covered_by
+        target: TEST-001
+  - id: SYM-mcp-hasImpactOptions
+    title: hasImpactOptions
+    sourceFile: packages/mcp/src/tools/check-impact.ts
+    links:
+      - REQ-mcp-tool-check
+    relationships:
+      - type: implements
+        target: REQ-mcp-tool-check
+      - type: covered_by
+        target: TEST-001
+  - id: SYM-mcp-analyzeKbCheckImpact
+    title: analyzeKbCheckImpact
+    sourceFile: packages/mcp/src/tools/check-impact.ts
+    links:
+      - REQ-mcp-tool-check
+    relationships:
+      - type: implements
+        target: REQ-mcp-tool-check
+      - type: covered_by
+        target: TEST-001
+  - id: SYM-mcp-runAggregatedChecks
+    title: runAggregatedChecks
+    sourceFile: packages/mcp/src/tools/check-prolog.ts
+    symbol_role: behavioral
+    text_ref: packages/mcp/src/tools/check-prolog.ts#runAggregatedChecks
+    links:
+      - REQ-core-validation-rules
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-001
+  - id: SYM-mcp-collectQueryPlanSafetyViolations
+    title: collectQueryPlanSafetyViolations
+    sourceFile: packages/mcp/src/tools/query-plan-safety.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-001
+    sourceLine: 9
+    sourceColumn: 16
+    sourceEndLine: 20
+    sourceEndColumn: 1
+  - id: SYM-mcp-CheckArgs
+    title: CheckArgs
+    sourceFile: packages/mcp/src/tools/check-types.ts
+    symbol_role: type-shape
+    links:
+      - REQ-mcp-tool-check
+    relationships:
+      - type: implements
+        target: REQ-mcp-tool-check
+      - type: covered_by
+        target: TEST-001
+  - id: SYM-mcp-Diagnostic
+    title: Diagnostic
+    sourceFile: packages/mcp/src/tools/check-types.ts
+    symbol_role: type-shape
+    links:
+      - REQ-mcp-tool-check
+    relationships:
+      - type: implements
+        target: REQ-mcp-tool-check
+      - type: covered_by
+        target: TEST-001
+  - id: SYM-mcp-CheckResult
+    title: CheckResult
+    sourceFile: packages/mcp/src/tools/check-types.ts
+    symbol_role: type-shape
+    links:
+      - REQ-mcp-tool-check
+    relationships:
+      - type: implements
+        target: REQ-mcp-tool-check
       - type: covered_by
         target: TEST-001
   - id: SYM-010
@@ -331,6 +534,7 @@ symbols:
   - id: SYM-GuidanceCache
     title: GuidanceCache
     sourceFile: packages/opencode/src/guidance-cache.ts
+    granularity_reason: legacy-link
     links:
       - REQ-opencode-guidance-caching
     relationships:
@@ -587,27 +791,173 @@ symbols:
   - id: SYM-checkCommand
     title: checkCommand
     sourceFile: packages/cli/src/commands/check.ts
+    granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: implements
         target: REQ-cli-check
       - type: covered_by
         target: TEST-004
-    sourceLine: 546
+    sourceLine: 518
     sourceColumn: 22
-    sourceEndLine: 910
+    sourceEndLine: 945
     sourceEndColumn: 1
   - id: SYM-CheckOptions
     title: CheckOptions
     sourceFile: packages/cli/src/commands/check.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-cli-check
       - type: covered_by
         target: TEST-004
-    sourceLine: 93
+    sourceLine: 108
     sourceColumn: 17
-    sourceEndLine: 100
+    sourceEndLine: 116
     sourceEndColumn: 1
+  - id: SYM-cli-analyzePrologQueryPlanSafety
+    title: analyzePrologQueryPlanSafety
+    sourceFile: packages/cli/src/utils/prolog-query-plan-safety.ts
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
+  - id: SYM-cli-PrologQueryPlanSafetyViolation
+    title: PrologQueryPlanSafetyViolation
+    sourceFile: packages/cli/src/utils/prolog-query-plan-safety.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
+  - id: SYM-cli-rule-registry-RULES
+    title: RULES
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
+    sourceLine: 53
+    sourceColumn: 13
+    sourceEndLine: 143
+    sourceEndColumn: 10
+  - id: SYM-cli-rule-registry-getEffectiveRules
+    title: getEffectiveRules
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
+    sourceLine: 167
+    sourceColumn: 16
+    sourceEndLine: 192
+    sourceEndColumn: 1
+  - id: SYM-cli-rule-registry-validateRuleName
+    title: validateRuleName
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
+    sourceLine: 198
+    sourceColumn: 16
+    sourceEndLine: 203
+    sourceEndColumn: 1
+  - id: SYM-cli-rule-registry-mergeChecksConfig
+    title: mergeChecksConfig
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
+    sourceLine: 208
+    sourceColumn: 16
+    sourceEndLine: 221
+    sourceEndColumn: 1
+  - id: SYM-cli-rule-registry-RuleDefinition
+    title: RuleDefinition
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
+    sourceLine: 24
+    sourceColumn: 17
+    sourceEndLine: 29
+    sourceEndColumn: 1
+  - id: SYM-cli-rule-registry-SymbolTraceabilityOptions
+    title: SymbolTraceabilityOptions
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
+    sourceLine: 31
+    sourceColumn: 17
+    sourceEndLine: 33
+    sourceEndColumn: 1
+  - id: SYM-cli-rule-registry-Violation
+    title: Violation
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
+    sourceLine: 36
+    sourceColumn: 17
+    sourceEndLine: 42
+    sourceEndColumn: 1
+  - id: SYM-cli-rule-registry-ChecksConfig
+    title: ChecksConfig
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
+    sourceLine: 44
+    sourceColumn: 17
+    sourceEndLine: 47
+    sourceEndColumn: 1
+  - id: SYM-cli-rule-registry-RULE_NAMES
+    title: RULE_NAMES
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
+    sourceLine: 148
+    sourceColumn: 13
+    sourceEndLine: 148
+    sourceEndColumn: 59
+  - id: SYM-cli-rule-registry-DEFAULT_CHECKS_CONFIG
+    title: DEFAULT_CHECKS_CONFIG
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-004
   - id: SYM-getCurrentBranch
     title: getCurrentBranch
     sourceFile: packages/cli/src/commands/init-helpers.ts
@@ -776,6 +1126,45 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 540
     sourceEndColumn: 1
+  - id: SYM-cli-processExtractions
+    title: processExtractions
+    sourceFile: packages/cli/src/commands/sync/extraction.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+  - id: SYM-cli-ExtractionOutput
+    title: ExtractionOutput
+    sourceFile: packages/cli/src/commands/sync/extraction.ts
+    symbol_role: type-shape
+    sourceLine: 27
+    sourceColumn: 17
+    sourceEndLine: 31
+    sourceEndColumn: 1
+  - id: SYM-discoverSourceFiles
+    title: discoverSourceFiles
+    sourceFile: packages/cli/src/commands/sync/discovery.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-cli-sync-discovery-readme-ignore
+    sourceLine: 34
+    sourceColumn: 22
+    sourceEndLine: 75
+    sourceEndColumn: 1
+  - id: SYM-normalizeMarkdownPath
+    title: normalizeMarkdownPath
+    sourceFile: packages/cli/src/commands/sync/discovery.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-cli-sync-discovery-readme-ignore
   - id: SYM-SyncError
     title: SyncError
     sourceFile: packages/cli/src/commands/sync.ts
@@ -916,9 +1305,9 @@ symbols:
         target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
-    sourceLine: 378
+    sourceLine: 396
     sourceColumn: 16
-    sourceEndLine: 400
+    sourceEndLine: 418
     sourceEndColumn: 1
   - id: SYM-extractManifestSymbolRecordsString
     title: extractManifestSymbolRecordsString
@@ -928,9 +1317,9 @@ symbols:
         target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
-    sourceLine: 402
+    sourceLine: 420
     sourceColumn: 16
-    sourceEndLine: 424
+    sourceEndLine: 442
     sourceEndColumn: 1
   - id: SYM-extractFromManifest
     title: extractFromManifest
@@ -940,9 +1329,9 @@ symbols:
         target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
-    sourceLine: 426
+    sourceLine: 444
     sourceColumn: 16
-    sourceEndLine: 431
+    sourceEndLine: 449
     sourceEndColumn: 1
   - id: SYM-readManifestWithCoordinateOverlay
     title: readManifestWithCoordinateOverlay
@@ -952,9 +1341,9 @@ symbols:
         target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
-    sourceLine: 469
+    sourceLine: 487
     sourceColumn: 16
-    sourceEndLine: 483
+    sourceEndLine: 501
     sourceEndColumn: 1
   - id: SYM-ManifestError
     title: ManifestError
@@ -1014,7 +1403,7 @@ symbols:
         target: TEST-007
     sourceLine: 57
     sourceColumn: 17
-    sourceEndLine: 90
+    sourceEndLine: 96
     sourceEndColumn: 1
   - id: SYM-ManifestSymbolRecord
     title: ManifestSymbolRecord
@@ -1096,9 +1485,9 @@ symbols:
         target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
-    sourceLine: 131
+    sourceLine: 133
     sourceColumn: 16
-    sourceEndLine: 161
+    sourceEndLine: 163
     sourceEndColumn: 1
   - id: SYM-enrichSymbolCoordinates
     title: enrichSymbolCoordinates
@@ -1108,9 +1497,9 @@ symbols:
         target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
-    sourceLine: 163
+    sourceLine: 165
     sourceColumn: 22
-    sourceEndLine: 204
+    sourceEndLine: 206
     sourceEndColumn: 1
   - id: SYM-SourceSymbolAnalysis
     title: SourceSymbolAnalysis
@@ -1120,9 +1509,9 @@ symbols:
         target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
-    sourceLine: 52
+    sourceLine: 54
     sourceColumn: 17
-    sourceEndLine: 60
+    sourceEndLine: 62
     sourceEndColumn: 1
   - id: SYM-SourceModuleAnalysis
     title: SourceModuleAnalysis
@@ -1132,9 +1521,9 @@ symbols:
         target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
-    sourceLine: 62
+    sourceLine: 64
     sourceColumn: 17
-    sourceEndLine: 67
+    sourceEndLine: 69
     sourceEndColumn: 1
   - id: SYM-SourceAnalysisResult
     title: SourceAnalysisResult
@@ -1144,9 +1533,9 @@ symbols:
         target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
-    sourceLine: 69
+    sourceLine: 71
     sourceColumn: 17
-    sourceEndLine: 75
+    sourceEndLine: 77
     sourceEndColumn: 1
   - id: SYM-SourceAnalysisProvider
     title: SourceAnalysisProvider
@@ -1156,9 +1545,9 @@ symbols:
         target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
-    sourceLine: 77
+    sourceLine: 79
     sourceColumn: 17
-    sourceEndLine: 81
+    sourceEndLine: 83
     sourceEndColumn: 1
   - id: SYM-AnalyzeSourceTextOptions
     title: AnalyzeSourceTextOptions
@@ -1168,9 +1557,9 @@ symbols:
         target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
-    sourceLine: 83
+    sourceLine: 85
     sourceColumn: 17
-    sourceEndLine: 85
+    sourceEndLine: 87
     sourceEndColumn: 1
   - id: SYM-SourceAnalysisMode
     title: SourceAnalysisMode
@@ -1199,7 +1588,7 @@ symbols:
         target: TEST-007
     sourceLine: 42
     sourceColumn: 12
-    sourceEndLine: 50
+    sourceEndLine: 52
     sourceEndColumn: 14
   - id: SYM-createTsMorphSourceAnalysisProvider
     title: createTsMorphSourceAnalysisProvider
@@ -1396,6 +1785,7 @@ symbols:
   - id: SYM-SkillValidationError
     title: SkillValidationError
     sourceFile: packages/cli/src/public/skills.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-reusable-skill-subsystem
@@ -1408,6 +1798,7 @@ symbols:
   - id: SYM-SkillOversizeError
     title: SkillOversizeError
     sourceFile: packages/cli/src/public/skills.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-reusable-skill-subsystem
@@ -1485,9 +1876,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 162
+    sourceLine: 164
     sourceColumn: 16
-    sourceEndLine: 167
+    sourceEndLine: 169
     sourceEndColumn: 1
   - id: SYM-getKbCoveredSourcePaths
     title: getKbCoveredSourcePaths
@@ -1497,9 +1888,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 170
+    sourceLine: 172
     sourceColumn: 16
-    sourceEndLine: 180
+    sourceEndLine: 182
     sourceEndColumn: 1
   - id: SYM-getFreshSymbolsManifestSourcePaths
     title: getFreshSymbolsManifestSourcePaths
@@ -1509,9 +1900,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 183
+    sourceLine: 185
     sourceColumn: 16
-    sourceEndLine: 191
+    sourceEndLine: 193
     sourceEndColumn: 1
   - id: SYM-getKbEvidencePaths
     title: getKbEvidencePaths
@@ -1521,9 +1912,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 197
+    sourceLine: 199
     sourceColumn: 16
-    sourceEndLine: 209
+    sourceEndLine: 211
     sourceEndColumn: 1
   - id: SYM-hasOverrideRationale
     title: hasOverrideRationale
@@ -1533,9 +1924,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 212
+    sourceLine: 214
     sourceColumn: 16
-    sourceEndLine: 217
+    sourceEndLine: 219
     sourceEndColumn: 1
   - id: SYM-getMissingBehaviorSourcePaths
     title: getMissingBehaviorSourcePaths
@@ -1545,9 +1936,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 223
+    sourceLine: 225
     sourceColumn: 16
-    sourceEndLine: 233
+    sourceEndLine: 235
     sourceEndColumn: 1
   - id: SYM-KibiImpactSourceChange
     title: KibiImpactSourceChange
@@ -1557,9 +1948,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 46
+    sourceLine: 48
     sourceColumn: 17
-    sourceEndLine: 51
+    sourceEndLine: 53
     sourceEndColumn: 1
   - id: SYM-KibiImpactKbArtifact
     title: KibiImpactKbArtifact
@@ -1569,9 +1960,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 59
+    sourceLine: 61
     sourceColumn: 17
-    sourceEndLine: 70
+    sourceEndLine: 72
     sourceEndColumn: 1
   - id: SYM-KibiImpactSymbolsManifest
     title: KibiImpactSymbolsManifest
@@ -1581,9 +1972,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 82
+    sourceLine: 84
     sourceColumn: 17
-    sourceEndLine: 89
+    sourceEndLine: 91
     sourceEndColumn: 1
   - id: SYM-KibiNoImpactOverride
     title: KibiNoImpactOverride
@@ -1593,9 +1984,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 102
+    sourceLine: 104
     sourceColumn: 17
-    sourceEndLine: 113
+    sourceEndLine: 115
     sourceEndColumn: 1
   - id: SYM-KibiImpactKbChangesMode
     title: KibiImpactKbChangesMode
@@ -1605,9 +1996,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 116
+    sourceLine: 118
     sourceColumn: 17
-    sourceEndLine: 120
+    sourceEndLine: 122
     sourceEndColumn: 1
   - id: SYM-KibiImpactNoImpactOverrideMode
     title: KibiImpactNoImpactOverrideMode
@@ -1617,9 +2008,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 123
+    sourceLine: 125
     sourceColumn: 17
-    sourceEndLine: 127
+    sourceEndLine: 129
     sourceEndColumn: 1
   - id: SYM-KibiImpactMissingMode
     title: KibiImpactMissingMode
@@ -1629,9 +2020,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 130
+    sourceLine: 132
     sourceColumn: 17
-    sourceEndLine: 132
+    sourceEndLine: 134
     sourceEndColumn: 1
   - id: SYM-KibiImpactEvidence
     title: KibiImpactEvidence
@@ -1641,9 +2032,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 148
+    sourceLine: 150
     sourceColumn: 17
-    sourceEndLine: 155
+    sourceEndLine: 157
     sourceEndColumn: 1
   - id: SYM-KibiEntityType
     title: KibiEntityType
@@ -1653,9 +2044,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 23
+    sourceLine: 25
     sourceColumn: 12
-    sourceEndLine: 31
+    sourceEndLine: 33
     sourceEndColumn: 11
   - id: SYM-SourceChangeKind
     title: SourceChangeKind
@@ -1665,9 +2056,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 41
+    sourceLine: 43
     sourceColumn: 12
-    sourceEndLine: 43
+    sourceEndLine: 45
     sourceEndColumn: 31
   - id: SYM-KibiNoImpactReason
     title: KibiNoImpactReason
@@ -1677,9 +2068,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 92
+    sourceLine: 94
     sourceColumn: 12
-    sourceEndLine: 94
+    sourceEndLine: 96
     sourceEndColumn: 33
   - id: SYM-KibiImpactMode
     title: KibiImpactMode
@@ -1689,9 +2080,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 135
+    sourceLine: 137
     sourceColumn: 12
-    sourceEndLine: 138
+    sourceEndLine: 140
     sourceEndColumn: 26
   - id: SYM-KIBI-ENTITY-SCHEMA-DOC
     title: KIBI_ENTITY_SCHEMA_DOC
@@ -1701,10 +2092,190 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 10
+    sourceLine: 12
+    sourceColumn: 13
+    sourceEndLine: 12
+    sourceEndColumn: 61
+  - id: SYM-KIBI-STAGED-IMPACT-EVIDENCE-DOC
+    title: KIBI_STAGED_IMPACT_EVIDENCE_DOC
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 9
     sourceColumn: 13
     sourceEndLine: 10
-    sourceEndColumn: 61
+    sourceEndColumn: 48
+  - id: SYM-KIBI-IMPACT-DIAGNOSTICS
+    title: KIBI_IMPACT_DIAGNOSTICS
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 88
+    sourceColumn: 13
+    sourceEndLine: 119
+    sourceEndColumn: 1
+  - id: SYM-KIBI-IMPACT-DIAGNOSTIC-IDS
+    title: KIBI_IMPACT_DIAGNOSTIC_IDS
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 22
+    sourceColumn: 13
+    sourceEndLine: 26
+    sourceEndColumn: 10
+  - id: SYM-KibiImpactDiagnosticId-contract
+    title: KibiImpactDiagnosticId
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 28
+    sourceColumn: 12
+    sourceEndLine: 29
+    sourceEndColumn: 46
+  - id: SYM-KibiImpactEvidenceKind
+    title: KibiImpactEvidenceKind
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 31
+    sourceColumn: 12
+    sourceEndLine: 34
+    sourceEndColumn: 24
+  - id: SYM-KibiImpactDiagnosticContract
+    title: KibiImpactDiagnosticContract
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 36
+    sourceColumn: 17
+    sourceEndLine: 40
+    sourceEndColumn: 1
+  - id: SYM-KibiImpactEvidenceInput
+    title: KibiImpactEvidenceInput
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 42
+    sourceColumn: 17
+    sourceEndLine: 48
+    sourceEndColumn: 1
+  - id: SYM-BehaviorSourceEditInput
+    title: BehaviorSourceEditInput
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 50
+    sourceColumn: 17
+    sourceEndLine: 55
+    sourceEndColumn: 1
+  - id: SYM-ParsedKibiImpactOverride
+    title: ParsedKibiImpactOverride
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 57
+    sourceColumn: 17
+    sourceEndLine: 60
+    sourceEndColumn: 1
+  - id: SYM-AuditedNoImpactOverrideInput
+    title: AuditedNoImpactOverrideInput
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 62
+    sourceColumn: 17
+    sourceEndLine: 65
+    sourceEndColumn: 1
+  - id: SYM-classifyKibiImpactEvidence
+    title: classifyKibiImpactEvidence
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 121
+    sourceColumn: 16
+    sourceEndLine: 145
+    sourceEndColumn: 1
+  - id: SYM-parseKibiImpactOverride
+    title: parseKibiImpactOverride
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 147
+    sourceColumn: 16
+    sourceEndLine: 158
+    sourceEndColumn: 1
+  - id: SYM-isAuditedNoImpactOverrideAllowed
+    title: isAuditedNoImpactOverrideAllowed
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 160
+    sourceColumn: 16
+    sourceEndLine: 168
+    sourceEndColumn: 1
+  - id: SYM-isBehaviorSourceEdit
+    title: isBehaviorSourceEdit
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 170
+    sourceColumn: 16
+    sourceEndLine: 200
+    sourceEndColumn: 1
+  - id: SYM-isSupportedBehaviorSourcePath
+    title: isSupportedBehaviorSourcePath
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 202
+    sourceColumn: 16
+    sourceEndLine: 210
+    sourceEndColumn: 1
   - id: SYM-KIBI-SYMBOLS-MANIFEST-PATH
     title: KIBI_SYMBOLS_MANIFEST_PATH
     sourceFile: packages/cli/src/traceability/evidence-model.ts
@@ -1713,9 +2284,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 13
+    sourceLine: 15
     sourceColumn: 13
-    sourceEndLine: 13
+    sourceEndLine: 15
     sourceEndColumn: 70
   - id: SYM-KIBI-SYMBOL-COORDINATES-PATH
     title: KIBI_SYMBOL_COORDINATES_PATH
@@ -1725,9 +2296,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 16
+    sourceLine: 18
     sourceColumn: 13
-    sourceEndLine: 17
+    sourceEndLine: 19
     sourceEndColumn: 41
   - id: SYM-KIBI-NO-IMPACT-DECLARATION
     title: KIBI_NO_IMPACT_DECLARATION
@@ -1737,9 +2308,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 20
+    sourceLine: 22
     sourceColumn: 13
-    sourceEndLine: 20
+    sourceEndLine: 22
     sourceEndColumn: 61
   - id: SYM-collectStagedKibiDiagnostics
     title: collectStagedKibiDiagnostics
@@ -1749,9 +2320,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 91
+    sourceLine: 104
     sourceColumn: 16
-    sourceEndLine: 129
+    sourceEndLine: 142
     sourceEndColumn: 1
   - id: SYM-KibiImpactDiagnostic
     title: KibiImpactDiagnostic
@@ -1761,9 +2332,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 17
+    sourceLine: 25
     sourceColumn: 17
-    sourceEndLine: 30
+    sourceEndLine: 37
     sourceEndColumn: 1
   - id: SYM-KibiImpactDiagnosticId
     title: KibiImpactDiagnosticId
@@ -1773,10 +2344,302 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 11
+    sourceLine: 12
     sourceColumn: 12
-    sourceEndLine: 15
+    sourceEndLine: 23
     sourceEndColumn: 45
+  - id: SYM-cli-impact-analyzeChangedFileImpact
+    title: analyzeChangedFileImpact
+    sourceFile: packages/cli/src/public/impact/analyzer.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+  - id: SYM-cli-impact-createSymbolGranularityDiagnostics
+    title: createSymbolGranularityDiagnostics
+    sourceFile: packages/cli/src/public/impact/diagnostics.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+  - id: SYM-cli-impact-createSemanticReviewDiagnostics
+    title: createSemanticReviewDiagnostics
+    sourceFile: packages/cli/src/public/impact/diagnostics.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+  - id: SYM-cli-impact-hasBlockingImpactDiagnostics
+    title: hasBlockingImpactDiagnostics
+    sourceFile: packages/cli/src/public/impact/diagnostics.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+  - id: SYM-cli-impact-createSymbolQualityDiagnostics
+    title: createSymbolQualityDiagnostics
+    sourceFile: packages/cli/src/public/impact/symbol-quality.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-symbol-quality-diagnostics
+      - type: covered_by
+        target: TEST-cli-mixed-purpose-diagnostics
+    sourceLine: 198
+    sourceColumn: 16
+    sourceEndLine: 207
+    sourceEndColumn: 1
+  - id: SYM-cli-impact-createRequirementQualityDiagnostics
+    title: createRequirementQualityDiagnostics
+    sourceFile: packages/cli/src/public/impact/requirement-quality.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-requirement-quality-diagnostics
+    sourceLine: 274
+    sourceColumn: 16
+    sourceEndLine: 282
+    sourceEndColumn: 1
+  - id: SYM-cli-impact-collectFullKbQualityDiagnostics
+    title: collectFullKbQualityDiagnostics
+    sourceFile: packages/cli/src/public/impact/full-kb-quality.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-requirement-quality-diagnostics
+      - type: covered_by
+        target: TEST-cli-symbol-quality-diagnostics
+      - type: covered_by
+        target: TEST-mcp-quality-diagnostics-contract
+    sourceLine: 182
+    sourceColumn: 22
+    sourceEndLine: 203
+    sourceEndColumn: 1
+  - id: SYM-cli-impact-readImpactManifestResults
+    title: readImpactManifestResults
+    sourceFile: packages/cli/src/public/impact/manifest.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+  - id: SYM-cli-impact-createImpactManifestLookup
+    title: createImpactManifestLookup
+    sourceFile: packages/cli/src/public/impact/manifest.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+  - id: SYM-cli-impact-normalizeSourceFile
+    title: normalizeSourceFile
+    sourceFile: packages/cli/src/public/impact/source-changes.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+  - id: SYM-cli-impact-uniqueSorted
+    title: uniqueSorted
+    sourceFile: packages/cli/src/public/impact/source-changes.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+  - id: SYM-cli-impact-collectSourceChanges
+    title: collectSourceChanges
+    sourceFile: packages/cli/src/public/impact/source-changes.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+  - id: SYM-cli-impact-hasMeaningfulSourceDiff
+    title: hasMeaningfulSourceDiff
+    sourceFile: packages/cli/src/public/impact/diff-meaning.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 106
+    sourceColumn: 16
+    sourceEndLine: 121
+    sourceEndColumn: 1
+  - id: SYM-cli-impact-formatExtractedSymbols
+    title: formatExtractedSymbols
+    sourceFile: packages/cli/src/public/impact/summaries.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+  - id: SYM-cli-impact-collectLinkedEntities
+    title: collectLinkedEntities
+    sourceFile: packages/cli/src/public/impact/summaries.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+  - id: SYM-cli-impact-buildNextActions
+    title: buildNextActions
+    sourceFile: packages/cli/src/public/impact/summaries.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+  - id: SYM-cli-impact-SymbolsByFile
+    title: SymbolsByFile
+    sourceFile: packages/cli/src/public/impact/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+  - id: SYM-cli-impact-QualityDiagnosticSeverity
+    title: QualityDiagnosticSeverity
+    sourceFile: packages/cli/src/public/impact/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 6
+    sourceColumn: 12
+    sourceEndLine: 6
+    sourceEndColumn: 80
+  - id: SYM-cli-impact-QualityDiagnostic
+    title: QualityDiagnostic
+    sourceFile: packages/cli/src/public/impact/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 8
+    sourceColumn: 12
+    sourceEndLine: 28
+    sourceEndColumn: 2
+  - id: SYM-cli-impact-TraceabilityRelationship
+    title: TraceabilityRelationship
+    sourceFile: packages/cli/src/public/impact/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+  - id: SYM-cli-impact-SymbolGranularityDiagnosticsOptions
+    title: SymbolGranularityDiagnosticsOptions
+    sourceFile: packages/cli/src/public/impact/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+  - id: SYM-cli-impact-SemanticReviewDiagnosticsOptions
+    title: SemanticReviewDiagnosticsOptions
+    sourceFile: packages/cli/src/public/impact/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+  - id: SYM-cli-impact-SymbolQualityDiagnosticsOptions
+    title: SymbolQualityDiagnosticsOptions
+    sourceFile: packages/cli/src/public/impact/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 49
+    sourceColumn: 12
+    sourceEndLine: 53
+    sourceEndColumn: 2
+  - id: SYM-cli-impact-ChangedFileImpactOptions
+    title: ChangedFileImpactOptions
+    sourceFile: packages/cli/src/public/impact/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+  - id: SYM-cli-impact-ImpactExtractedSymbol
+    title: ImpactExtractedSymbol
+    sourceFile: packages/cli/src/public/impact/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+  - id: SYM-cli-impact-ImpactLinkedEntity
+    title: ImpactLinkedEntity
+    sourceFile: packages/cli/src/public/impact/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+  - id: SYM-cli-impact-ChangedFileImpactResult
+    title: ChangedFileImpactResult
+    sourceFile: packages/cli/src/public/impact/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+  - id: SYM-cli-impact-SourceChange
+    title: SourceChange
+    sourceFile: packages/cli/src/public/impact/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
   - id: SYM-assessStagedSymbolsManifest
     title: assessStagedSymbolsManifest
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
@@ -1785,9 +2648,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 323
+    sourceLine: 357
     sourceColumn: 16
-    sourceEndLine: 405
+    sourceEndLine: 439
     sourceEndColumn: 1
   - id: SYM-collectStagedAuthoredSymbolsManifestEvidence
     title: collectStagedAuthoredSymbolsManifestEvidence
@@ -1797,9 +2660,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 425
+    sourceLine: 459
     sourceColumn: 16
-    sourceEndLine: 479
+    sourceEndLine: 510
     sourceEndColumn: 1
   - id: SYM-StagedSymbolsManifestAssessment
     title: StagedSymbolsManifestAssessment
@@ -1809,9 +2672,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 44
+    sourceLine: 45
     sourceColumn: 17
-    sourceEndLine: 48
+    sourceEndLine: 49
     sourceEndColumn: 1
   - id: SYM-StagedAuthoredSymbolsManifestEvidence
     title: StagedAuthoredSymbolsManifestEvidence
@@ -1821,9 +2684,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 50
+    sourceLine: 51
     sourceColumn: 17
-    sourceEndLine: 53
+    sourceEndLine: 54
     sourceEndColumn: 1
   - id: SYM-createManifestLookupSentinelKey
     title: createManifestLookupSentinelKey
@@ -1854,7 +2717,7 @@ symbols:
         target: TEST-cli-symbol-extract-methods
     sourceLine: 273
     sourceColumn: 16
-    sourceEndLine: 510
+    sourceEndLine: 573
     sourceEndColumn: 1
   - id: SYM-ExtractedSymbol
     title: ExtractedSymbol
@@ -2314,9 +3177,9 @@ symbols:
         target: TEST-005
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 296
+    sourceLine: 297
     sourceColumn: 16
-    sourceEndLine: 324
+    sourceEndLine: 325
     sourceEndColumn: 1
   - id: SYM-DocResource
     title: DocResource
@@ -2354,7 +3217,7 @@ symbols:
         target: TEST-mcp-upsert-coverage
     sourceLine: 71
     sourceColumn: 13
-    sourceEndLine: 196
+    sourceEndLine: 197
     sourceEndColumn: 1
   - id: SYM-DOC-RESOURCES
     title: DOC_RESOURCES
@@ -2371,9 +3234,9 @@ symbols:
         target: TEST-005
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 294
+    sourceLine: 295
     sourceColumn: 13
-    sourceEndLine: 294
+    sourceEndLine: 295
     sourceEndColumn: 51
   - id: SYM-setToolsServerDepsForTests
     title: _setToolsServerDepsForTests
@@ -2404,7 +3267,7 @@ symbols:
     sourceFile: packages/mcp/src/server/session.ts
     relationships:
       - type: implements
-        target: REQ-008
+        target: REQ-002
       - type: covered_by
         target: TEST-005
     sourceLine: 65
@@ -2416,7 +3279,7 @@ symbols:
     sourceFile: packages/mcp/src/server/session.ts
     relationships:
       - type: implements
-        target: REQ-008
+        target: REQ-002
       - type: covered_by
         target: TEST-005
     sourceLine: 67
@@ -2428,7 +3291,7 @@ symbols:
     sourceFile: packages/mcp/src/server/session.ts
     relationships:
       - type: implements
-        target: REQ-008
+        target: REQ-002
       - type: covered_by
         target: TEST-005
     sourceLine: 77
@@ -2530,9 +3393,10 @@ symbols:
   - id: SYM-DIAGNOSTIC_MODE_ENABLED
     title: DIAGNOSTIC_MODE_ENABLED
     sourceFile: packages/mcp/src/diagnostics.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
-        target: REQ-008
+        target: REQ-002
       - type: covered_by
         target: TEST-005
     sourceLine: 26
@@ -2542,9 +3406,10 @@ symbols:
   - id: SYM-initializeDiagnosticMode
     title: initializeDiagnosticMode
     sourceFile: packages/mcp/src/diagnostics.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
-        target: REQ-008
+        target: REQ-002
       - type: covered_by
         target: TEST-005
     sourceLine: 31
@@ -2554,9 +3419,10 @@ symbols:
   - id: SYM-appendUsageLogLine
     title: appendUsageLogLine
     sourceFile: packages/mcp/src/diagnostics.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
-        target: REQ-008
+        target: REQ-002
       - type: covered_by
         target: TEST-005
     sourceLine: 45
@@ -2566,6 +3432,7 @@ symbols:
   - id: SYM-DIAGNOSTIC_TELEMETRY_SCHEMA
     title: DIAGNOSTIC_TELEMETRY_SCHEMA
     sourceFile: packages/mcp/src/diagnostics.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-002
@@ -2578,6 +3445,7 @@ symbols:
   - id: SYM-ToolCallPayload
     title: ToolCallPayload
     sourceFile: packages/mcp/src/diagnostics.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-002
@@ -2590,6 +3458,7 @@ symbols:
   - id: SYM-DiagnosticErrorFields
     title: DiagnosticErrorFields
     sourceFile: packages/mcp/src/diagnostics.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-002
@@ -2597,45 +3466,49 @@ symbols:
         target: TEST-005
     sourceLine: 91
     sourceColumn: 17
-    sourceEndLine: 97
+    sourceEndLine: 100
     sourceEndColumn: 1
   - id: SYM-classifyDiagnosticError
     title: classifyDiagnosticError
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
+    symbol_role: behavioral
+    text_ref: packages/mcp/src/diagnostics-helpers.ts#classifyDiagnosticError
     relationships:
       - type: implements
         target: REQ-002
-      - type: implements
-        target: REQ-008
       - type: covered_by
         target: TEST-005
     sourceLine: 67
     sourceColumn: 16
-    sourceEndLine: 162
+    sourceEndLine: 175
     sourceEndColumn: 1
   - id: SYM-deriveDiagnosticFields
     title: deriveDiagnosticFields
     sourceFile: packages/mcp/src/diagnostics.ts
+    granularity_reason: legacy-link
+    symbol_role: behavioral
+    text_ref: packages/mcp/src/diagnostics.ts#deriveDiagnosticFields
     relationships:
       - type: implements
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 112
+    sourceLine: 212
     sourceColumn: 16
-    sourceEndLine: 155
+    sourceEndLine: 289
     sourceEndColumn: 1
   - id: SYM-extractToolCallPayload
     title: extractToolCallPayload
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 223
+    sourceLine: 256
     sourceColumn: 16
-    sourceEndLine: 232
+    sourceEndLine: 265
     sourceEndColumn: 1
   - id: SYM-jsonSchemaToZod
     title: jsonSchemaToZod
@@ -2679,11 +3552,15 @@ symbols:
     relationships:
       - type: implements
         target: REQ-002
+      - type: implements
+        target: REQ-mcp-relationship-preflight
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
     sourceLine: 39
     sourceColumn: 16
-    sourceEndLine: 189
+    sourceEndLine: 194
     sourceEndColumn: 1
   - id: SYM-addTool
     title: addTool
@@ -2736,17 +3613,22 @@ symbols:
         target: REQ-002
       - type: implements
         target: REQ-mcp-tool-upsert
+      - type: implements
+        target: REQ-mcp-relationship-preflight
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-mcp-upsert-coverage
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
     sourceLine: 44
     sourceColumn: 17
-    sourceEndLine: 84
+    sourceEndLine: 87
     sourceEndColumn: 1
   - id: SYM-redactDiagnosticArgs
     title: redactDiagnosticArgs
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-002
@@ -2755,6 +3637,7 @@ symbols:
   - id: SYM-deriveDiagnosticRetryKey
     title: deriveDiagnosticRetryKey
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-002
@@ -2763,6 +3646,8 @@ symbols:
   - id: SYM-deriveDiagnosticHints
     title: deriveDiagnosticHints
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
+    symbol_role: behavioral
+    text_ref: packages/mcp/src/diagnostics-helpers.ts#deriveDiagnosticHints
     relationships:
       - type: implements
         target: REQ-002
@@ -2771,6 +3656,7 @@ symbols:
   - id: SYM-buildDiagnosticToolCall
     title: buildDiagnosticToolCall
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-002
@@ -2779,6 +3665,7 @@ symbols:
   - id: SYM-DiagnosticToolCall
     title: DiagnosticToolCall
     sourceFile: packages/mcp/src/diagnostics.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-002
@@ -2839,9 +3726,9 @@ symbols:
         target: TEST-005
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 918
+    sourceLine: 964
     sourceColumn: 13
-    sourceEndLine: 920
+    sourceEndLine: 966
     sourceEndColumn: 32
   - id: SYM-withDiagnosticTelemetrySchema
     title: withDiagnosticTelemetrySchema
@@ -2853,9 +3740,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 892
+    sourceLine: 938
     sourceColumn: 16
-    sourceEndLine: 912
+    sourceEndLine: 958
     sourceEndColumn: 1
   - id: SYM-buildTypedMarkdownCandidates
     title: buildTypedMarkdownCandidates
@@ -3436,6 +4323,7 @@ symbols:
   - id: SYM-handleKbSkillsList
     title: handleKbSkillsList
     sourceFile: packages/mcp/src/tools/skills.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-002
@@ -3448,11 +4336,16 @@ symbols:
   - id: SYM-handleKbSkillsLoad
     title: handleKbSkillsLoad
     sourceFile: packages/mcp/src/tools/skills.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-002
+      - type: implements
+        target: REQ-mcp-skills-resource-discoverability
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
     sourceLine: 65
     sourceColumn: 22
     sourceEndLine: 95
@@ -3463,15 +4356,20 @@ symbols:
     relationships:
       - type: implements
         target: REQ-002
+      - type: implements
+        target: REQ-mcp-skills-resource-discoverability
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
     sourceLine: 98
     sourceColumn: 22
-    sourceEndLine: 118
+    sourceEndLine: 120
     sourceEndColumn: 1
   - id: SYM-SkillsListResult
     title: SkillsListResult
     sourceFile: packages/mcp/src/tools/skills.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-002
@@ -3484,6 +4382,7 @@ symbols:
   - id: SYM-SkillsLoadArgs
     title: SkillsLoadArgs
     sourceFile: packages/mcp/src/tools/skills.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-002
@@ -3496,6 +4395,7 @@ symbols:
   - id: SYM-SkillsLoadPayload
     title: SkillsLoadPayload
     sourceFile: packages/mcp/src/tools/skills.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-002
@@ -3508,6 +4408,7 @@ symbols:
   - id: SYM-SkillsLoadResult
     title: SkillsLoadResult
     sourceFile: packages/mcp/src/tools/skills.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-002
@@ -3520,6 +4421,7 @@ symbols:
   - id: SYM-SkillsReadArgs
     title: SkillsReadArgs
     sourceFile: packages/mcp/src/tools/skills.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-002
@@ -3532,6 +4434,7 @@ symbols:
   - id: SYM-SkillsReadResult
     title: SkillsReadResult
     sourceFile: packages/mcp/src/tools/skills.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-002
@@ -3544,6 +4447,7 @@ symbols:
   - id: SYM-SkillsListArgs
     title: SkillsListArgs
     sourceFile: packages/mcp/src/tools/skills.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-002
@@ -3616,15 +4520,23 @@ symbols:
   - id: SYM-handleKbUpsert
     title: handleKbUpsert
     sourceFile: packages/mcp/src/tools/upsert.ts
+    granularity_reason: legacy-link
+    symbol_role: behavioral
     text_ref: packages/mcp/src/tools/upsert.ts#handleKbUpsert
+    links:
+      - REQ-002
     relationships:
       - type: implements
         target: REQ-002
+      - type: implements
+        target: REQ-mcp-relationship-preflight
       - type: covered_by
         target: TEST-005
-    sourceLine: 267
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+    sourceLine: 277
     sourceColumn: 22
-    sourceEndLine: 455
+    sourceEndLine: 484
     sourceEndColumn: 1
   - id: SYM-mcp-sameBranchKbStamp
     title: sameBranchKbStamp
@@ -3632,12 +4544,16 @@ symbols:
     relationships:
       - type: implements
         target: REQ-mcp-kb-freshness
+      - type: covered_by
+        target: TEST-005
   - id: SYM-mcp-BranchKbStamp
     title: BranchKbStamp
     sourceFile: packages/mcp/src/server/kb-freshness.ts
     relationships:
       - type: implements
         target: REQ-mcp-kb-freshness
+      - type: covered_by
+        target: TEST-005
     sourceLine: 4
     sourceColumn: 17
     sourceEndLine: 18
@@ -3648,6 +4564,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-mcp-kb-freshness
+      - type: covered_by
+        target: TEST-005
     sourceLine: 20
     sourceColumn: 13
     sourceEndLine: 25
@@ -3658,6 +4576,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-mcp-kb-freshness
+      - type: covered_by
+        target: TEST-005
     sourceLine: 27
     sourceColumn: 22
     sourceEndLine: 61
@@ -3668,6 +4588,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-mcp-kb-freshness
+      - type: covered_by
+        target: TEST-005
     sourceLine: 81
     sourceColumn: 16
     sourceEndLine: 90
@@ -3675,74 +4597,80 @@ symbols:
   - id: SYM-UpsertArgs
     title: UpsertArgs
     sourceFile: packages/mcp/src/tools/upsert.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 52
+    sourceLine: 57
     sourceColumn: 17
-    sourceEndLine: 65
+    sourceEndLine: 70
     sourceEndColumn: 1
   - id: SYM-UpsertResult
     title: UpsertResult
     sourceFile: packages/mcp/src/tools/upsert.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 67
+    sourceLine: 72
     sourceColumn: 17
-    sourceEndLine: 76
+    sourceEndLine: 86
     sourceEndColumn: 1
   - id: SYM-ValidatedUpsertArgs
     title: ValidatedUpsertArgs
     sourceFile: packages/mcp/src/tools/upsert.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-mcp-tool-upsert
       - type: covered_by
         target: TEST-mcp-upsert-coverage
-    sourceLine: 78
+    sourceLine: 88
     sourceColumn: 17
-    sourceEndLine: 81
+    sourceEndLine: 91
     sourceEndColumn: 1
   - id: SYM-validateKbUpsertArgs
     title: validateKbUpsertArgs
     sourceFile: packages/mcp/src/tools/upsert.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-mcp-tool-upsert
       - type: covered_by
         target: TEST-mcp-upsert-coverage
-    sourceLine: 457
+    sourceLine: 486
     sourceColumn: 16
-    sourceEndLine: 504
+    sourceEndLine: 533
     sourceEndColumn: 1
   - id: SYM-test
     title: __test__
     sourceFile: packages/mcp/src/tools/upsert.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 665
+    sourceLine: 694
     sourceColumn: 13
-    sourceEndLine: 672
+    sourceEndLine: 701
     sourceEndColumn: 1
   - id: SYM-ValidateUpsertResult
     title: ValidateUpsertResult
     sourceFile: packages/mcp/src/tools/validate-upsert.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-mcp-tool-upsert
       - type: covered_by
         target: TEST-mcp-upsert-coverage
-    sourceLine: 6
+    sourceLine: 8
     sourceColumn: 17
-    sourceEndLine: 15
+    sourceEndLine: 17
     sourceEndColumn: 1
   - id: SYM-handleKbValidateUpsert
     title: handleKbValidateUpsert
@@ -3750,12 +4678,51 @@ symbols:
     relationships:
       - type: implements
         target: REQ-mcp-tool-upsert
+      - type: implements
+        target: REQ-mcp-relationship-preflight
       - type: covered_by
         target: TEST-mcp-upsert-coverage
-    sourceLine: 17
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+    sourceLine: 30
     sourceColumn: 22
-    sourceEndLine: 58
+    sourceEndLine: 85
     sourceEndColumn: 1
+  - id: SYM-validateLiveRelationshipTargets
+    title: validateLiveRelationshipTargets
+    sourceFile: packages/mcp/src/tools/relationship-validation.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-mcp-relationship-preflight
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+  - id: SYM-formatInvalidRelationshipTuple
+    title: formatInvalidRelationshipTuple
+    sourceFile: packages/mcp/src/tools/relationship-validation.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-mcp-relationship-preflight
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+  - id: SYM-formatInvalidRelationshipError
+    title: formatInvalidRelationshipError
+    sourceFile: packages/mcp/src/tools/relationship-validation.ts
+    relationships:
+      - type: implements
+        target: REQ-mcp-relationship-preflight
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+  - id: SYM-formatRelationshipSourceMismatch
+    title: formatRelationshipSourceMismatch
+    sourceFile: packages/mcp/src/tools/relationship-validation.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-mcp-relationship-preflight
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
   - id: SYM-validateAndMerge
     title: validateAndMerge
     sourceFile: packages/opencode/src/config.ts
@@ -3836,9 +4803,9 @@ symbols:
         target: REQ-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
-    sourceLine: 358
+    sourceLine: 368
     sourceColumn: 16
-    sourceEndLine: 449
+    sourceEndLine: 459
     sourceEndColumn: 1
   - id: SYM-PolicyLinkedEntityResult
     title: PolicyLinkedEntityResult
@@ -4323,6 +5290,7 @@ symbols:
   - id: SYM-KibiCheckpointRunner
     title: KibiCheckpointRunner
     sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
@@ -4758,11 +5726,15 @@ symbols:
     relationships:
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
-    sourceLine: 404
+      - type: covered_by
+        target: TEST-opencode-advisory-diagnostics
+    sourceLine: 517
     sourceColumn: 16
-    sourceEndLine: 406
+    sourceEndLine: 519
     sourceEndColumn: 1
   - id: SYM-SyncRunMetadata
     title: SyncRunMetadata
@@ -4784,9 +5756,9 @@ symbols:
         target: REQ-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
-    sourceLine: 40
+    sourceLine: 44
     sourceColumn: 17
-    sourceEndLine: 50
+    sourceEndLine: 54
     sourceEndColumn: 1
   - id: SYM-SyncScheduler
     title: SyncScheduler
@@ -4796,9 +5768,9 @@ symbols:
         target: REQ-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
-    sourceLine: 58
+    sourceLine: 62
     sourceColumn: 17
-    sourceEndLine: 64
+    sourceEndLine: 68
     sourceEndColumn: 1
   - id: SYM-TimeoutHandle
     title: TimeoutHandle
@@ -4846,8 +5818,8 @@ symbols:
         target: TEST-opencode-kibi-plugin-v1
     sourceLine: 35
     sourceColumn: 12
-    sourceEndLine: 38
-    sourceEndColumn: 35
+    sourceEndLine: 42
+    sourceEndColumn: 3
   - id: SYM-PendingTrigger
     title: PendingTrigger
     sourceFile: packages/opencode/src/scheduler.ts
@@ -4856,9 +5828,9 @@ symbols:
         target: REQ-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
-    sourceLine: 52
+    sourceLine: 56
     sourceColumn: 12
-    sourceEndLine: 56
+    sourceEndLine: 60
     sourceEndColumn: 2
   - id: SYM-createSessionEditState
     title: createSessionEditState
@@ -5127,6 +6099,7 @@ symbols:
   - id: SYM-KibiCodeActionProvider
     title: KibiCodeActionProvider
     sourceFile: packages/vscode/src/codeActionProvider.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-vscode-traceability
@@ -5139,6 +6112,7 @@ symbols:
   - id: SYM-KibiCodeLensProvider
     title: KibiCodeLensProvider
     sourceFile: packages/vscode/src/codeLensProvider.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-vscode-traceability
@@ -5307,6 +6281,7 @@ symbols:
   - id: SYM-KibiTreeDataProvider
     title: KibiTreeDataProvider
     sourceFile: packages/vscode/src/treeProvider.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-vscode-traceability
@@ -5472,6 +6447,20 @@ symbols:
         target: REQ-codex-kibi-plugin-v1
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-impactCheckReminder
+    title: impactCheckReminder
+    sourceFile: packages/codex/src/messages.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 21
+    sourceColumn: 16
+    sourceEndLine: 34
+    sourceEndColumn: 1
   - id: SYM-codex-extractExplicitPathFields
     title: extractExplicitPathFields
     sourceFile: packages/codex/src/path-policy.ts
@@ -5502,6 +6491,20 @@ symbols:
         target: REQ-codex-kibi-plugin-v1
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-isSourceImpactRelevantPath
+    title: isSourceImpactRelevantPath
+    sourceFile: packages/codex/src/path-policy.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 142
+    sourceColumn: 16
+    sourceEndLine: 163
+    sourceEndColumn: 1
   - id: SYM-codex-HookState
     title: HookState
     sourceFile: packages/codex/src/hook-state.ts
@@ -5542,6 +6545,20 @@ symbols:
         target: REQ-codex-kibi-plugin-v1
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-recordKbMcpTool
+    title: recordKbMcpTool
+    sourceFile: packages/codex/src/hook-state.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 231
+    sourceColumn: 16
+    sourceEndLine: 283
+    sourceEndColumn: 1
   - id: SYM-codex-clearDirtyPaths
     title: clearDirtyPaths
     sourceFile: packages/codex/src/hook-state.ts
@@ -5575,6 +6592,7 @@ symbols:
   - id: SYM-codex-runHook
     title: runHook
     sourceFile: packages/codex/src/hook-runner.ts
+    text_ref: packages/codex/src/hook-runner.ts#runHook
     links:
       - REQ-codex-kibi-plugin-v1
     relationships:
@@ -5582,6 +6600,35 @@ symbols:
         target: REQ-codex-kibi-plugin-v1
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-KbMcpToolCall
+    title: KbMcpToolCall
+    sourceFile: packages/codex/src/kb-mcp-tools.ts
+    symbol_role: type-shape
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 66
+    sourceColumn: 12
+    sourceEndLine: 70
+    sourceEndColumn: 2
+  - id: SYM-codex-extractKbMcpToolCall
+    title: extractKbMcpToolCall
+    sourceFile: packages/codex/src/kb-mcp-tools.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 72
+    sourceColumn: 16
+    sourceEndLine: 112
+    sourceEndColumn: 1
   - id: SYM-codex-hookRunnerPath
     title: hookRunnerPath
     sourceFile: packages/codex/src/hook-runner.ts
@@ -5592,9 +6639,9 @@ symbols:
         target: REQ-codex-kibi-plugin-v1
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
-    sourceLine: 124
+    sourceLine: 159
     sourceColumn: 13
-    sourceEndLine: 124
+    sourceEndLine: 159
     sourceEndColumn: 60
   - id: SYM-PUBLISHABLE-DIRS
     title: PUBLISHABLE_DIRS
@@ -5856,7 +6903,7 @@ symbols:
         target: TEST-cli-symbol-behavioral-anchors
     sourceLine: 30
     sourceColumn: 12
-    sourceEndLine: 38
+    sourceEndLine: 40
     sourceEndColumn: 14
   - id: SYM-SymbolGranularitySourceSymbolKind
     title: SourceSymbolKind
@@ -5869,9 +6916,9 @@ symbols:
         target: TEST-cli-symbol-behavioral-anchors
       - type: covered_by
         target: TEST-mcp-upsert-symbol-behavioral-anchors
-    sourceLine: 40
+    sourceLine: 42
     sourceColumn: 12
-    sourceEndLine: 40
+    sourceEndLine: 42
     sourceEndColumn: 42
   - id: SYM-GranularSymbolCandidate
     title: GranularSymbolCandidate
@@ -5882,9 +6929,9 @@ symbols:
         target: REQ-symbol-behavioral-anchors
       - type: covered_by
         target: TEST-cli-symbol-behavioral-anchors
-    sourceLine: 42
+    sourceLine: 44
     sourceColumn: 17
-    sourceEndLine: 46
+    sourceEndLine: 48
     sourceEndColumn: 1
   - id: SYM-inferSymbolRole
     title: inferSymbolRole
@@ -5897,9 +6944,9 @@ symbols:
         target: TEST-cli-symbol-behavioral-anchors
       - type: covered_by
         target: TEST-mcp-upsert-symbol-behavioral-anchors
-    sourceLine: 55
+    sourceLine: 57
     sourceColumn: 16
-    sourceEndLine: 69
+    sourceEndLine: 73
     sourceEndColumn: 1
   - id: SYM-inferSymbolRoleFromKind
     title: inferSymbolRoleFromKind
@@ -5912,9 +6959,9 @@ symbols:
         target: TEST-cli-symbol-behavioral-anchors
       - type: covered_by
         target: TEST-mcp-upsert-symbol-behavioral-anchors
-    sourceLine: 71
+    sourceLine: 75
     sourceColumn: 13
-    sourceEndLine: 71
+    sourceEndLine: 75
     sourceEndColumn: 54
   - id: SYM-isSymbolRole
     title: isSymbolRole
@@ -5927,9 +6974,9 @@ symbols:
         target: TEST-cli-symbol-behavioral-anchors
       - type: covered_by
         target: TEST-mcp-upsert-symbol-behavioral-anchors
-    sourceLine: 73
+    sourceLine: 77
     sourceColumn: 16
-    sourceEndLine: 77
+    sourceEndLine: 81
     sourceEndColumn: 1
   - id: SYM-isTraceabilityRelationshipType
     title: isTraceabilityRelationshipType
@@ -5942,9 +6989,9 @@ symbols:
         target: TEST-cli-symbol-behavioral-anchors
       - type: covered_by
         target: TEST-mcp-upsert-symbol-behavioral-anchors
-    sourceLine: 79
+    sourceLine: 83
     sourceColumn: 16
-    sourceEndLine: 85
+    sourceEndLine: 89
     sourceEndColumn: 1
   - id: SYM-isAllowedGranularityReason
     title: isAllowedGranularityReason
@@ -5957,9 +7004,9 @@ symbols:
         target: TEST-cli-symbol-behavioral-anchors
       - type: covered_by
         target: TEST-mcp-upsert-symbol-behavioral-anchors
-    sourceLine: 87
+    sourceLine: 91
     sourceColumn: 16
-    sourceEndLine: 91
+    sourceEndLine: 95
     sourceEndColumn: 1
   - id: SYM-getSymbolRole
     title: getSymbolRole
@@ -5972,9 +7019,9 @@ symbols:
         target: TEST-cli-symbol-behavioral-anchors
       - type: covered_by
         target: TEST-mcp-upsert-symbol-behavioral-anchors
-    sourceLine: 93
+    sourceLine: 97
     sourceColumn: 16
-    sourceEndLine: 97
+    sourceEndLine: 101
     sourceEndColumn: 1
   - id: SYM-isBehavioralSymbol
     title: isBehavioralSymbol
@@ -5987,9 +7034,9 @@ symbols:
         target: TEST-cli-symbol-behavioral-anchors
       - type: covered_by
         target: TEST-mcp-upsert-symbol-behavioral-anchors
-    sourceLine: 99
+    sourceLine: 103
     sourceColumn: 16
-    sourceEndLine: 103
+    sourceEndLine: 107
     sourceEndColumn: 1
   - id: SYM-getBehavioralSymbolNames
     title: getBehavioralSymbolNames
@@ -6002,9 +7049,9 @@ symbols:
         target: TEST-cli-symbol-behavioral-anchors
       - type: covered_by
         target: TEST-mcp-upsert-symbol-behavioral-anchors
-    sourceLine: 105
+    sourceLine: 109
     sourceColumn: 16
-    sourceEndLine: 113
+    sourceEndLine: 117
     sourceEndColumn: 1
   - id: SYM-getNonBehavioralSymbolNames
     title: getNonBehavioralSymbolNames
@@ -6017,9 +7064,9 @@ symbols:
         target: TEST-cli-symbol-behavioral-anchors
       - type: covered_by
         target: TEST-mcp-upsert-symbol-behavioral-anchors
-    sourceLine: 115
+    sourceLine: 119
     sourceColumn: 16
-    sourceEndLine: 125
+    sourceEndLine: 129
     sourceEndColumn: 1
   - id: SYM-SEMANTIC_ADVISOR_VERSION
     title: SEMANTIC_ADVISOR_VERSION
@@ -6043,9 +7090,9 @@ symbols:
         target: REQ-mcp-semantic-advisor-preflight
       - type: covered_by
         target: TEST-mcp-semantic-advisor-preflight
-    sourceLine: 2061
+    sourceLine: 2105
     sourceColumn: 16
-    sourceEndLine: 2096
+    sourceEndLine: 2140
     sourceEndColumn: 1
   - id: SYM-handleKbSemanticAdvisor
     title: handleKbSemanticAdvisor
@@ -6273,6 +7320,7 @@ symbols:
     title: evaluateProseCoverageCorpus
     sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
     symbol_role: behavioral
+    text_ref: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts#evaluateProseCoverageCorpus
     relationships:
       - type: implements
         target: REQ-mcp-semantic-advisor-preflight
@@ -6396,6 +7444,7 @@ symbols:
   - id: SYM-cursor-writeGuidance
     title: writeGuidance
     sourceFile: packages/cursor/src/guidance.ts
+    text_ref: packages/cursor/src/guidance.ts#writeGuidance
     links:
       - REQ-cursor-kibi-plugin-v1
     relationships:
@@ -6405,7 +7454,7 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
     sourceLine: 29
     sourceColumn: 16
-    sourceEndLine: 56
+    sourceEndLine: 57
     sourceEndColumn: 1
   - id: SYM-cursor-BOOTSTRAP_REMINDER
     title: BOOTSTRAP_REMINDER
@@ -6417,9 +7466,9 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-    sourceLine: 5
+    sourceLine: 8
     sourceColumn: 13
-    sourceEndLine: 6
+    sourceEndLine: 9
     sourceEndColumn: 187
   - id: SYM-cursor-DIRECT_KB_EDIT_WARNING
     title: DIRECT_KB_EDIT_WARNING
@@ -6431,9 +7480,9 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-    sourceLine: 8
+    sourceLine: 11
     sourceColumn: 13
-    sourceEndLine: 9
+    sourceEndLine: 12
     sourceEndColumn: 112
   - id: SYM-cursor-freshnessReminder
     title: freshnessReminder
@@ -6445,10 +7494,21 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-    sourceLine: 28
+    sourceLine: 54
     sourceColumn: 16
-    sourceEndLine: 32
+    sourceEndLine: 58
     sourceEndColumn: 1
+  - id: SYM-cursor-impactCheckFollowup
+    title: impactCheckFollowup
+    sourceFile: packages/cursor/src/messages.ts
+    granularity_reason: extractor-miss
+    links:
+      - REQ-cursor-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
   - id: SYM-cursor-extractExplicitPathFields
     title: extractExplicitPathFields
     sourceFile: packages/cursor/src/path-policy.ts
@@ -6459,9 +7519,9 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-    sourceLine: 97
+    sourceLine: 98
     sourceColumn: 16
-    sourceEndLine: 101
+    sourceEndLine: 102
     sourceEndColumn: 1
   - id: SYM-cursor-isDirectKbPath
     title: isDirectKbPath
@@ -6473,9 +7533,9 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-    sourceLine: 103
+    sourceLine: 104
     sourceColumn: 16
-    sourceEndLine: 105
+    sourceEndLine: 106
     sourceEndColumn: 1
   - id: SYM-cursor-isMeaningfulTrackedPath
     title: isMeaningfulTrackedPath
@@ -6487,10 +7547,20 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-    sourceLine: 107
+    sourceLine: 108
     sourceColumn: 16
-    sourceEndLine: 139
+    sourceEndLine: 140
     sourceEndColumn: 1
+  - id: SYM-cursor-isSourceImpactRelevantPath
+    title: isSourceImpactRelevantPath
+    sourceFile: packages/cursor/src/path-policy.ts
+    links:
+      - REQ-cursor-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
   - id: SYM-cursor-isDocumentationTrackedPath
     title: isDocumentationTrackedPath
     sourceFile: packages/cursor/src/path-policy.ts
@@ -6501,9 +7571,9 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-    sourceLine: 156
+    sourceLine: 180
     sourceColumn: 16
-    sourceEndLine: 169
+    sourceEndLine: 193
     sourceEndColumn: 1
   - id: SYM-cursor-toRepoRelativePath
     title: toRepoRelativePath
@@ -6515,13 +7585,15 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-    sourceLine: 171
+    sourceLine: 195
     sourceColumn: 16
-    sourceEndLine: 186
+    sourceEndLine: 210
     sourceEndColumn: 1
   - id: SYM-cursor-HookState
     title: HookState
     sourceFile: packages/cursor/src/hook-state.ts
+    text_ref: packages/cursor/src/hook-state.ts#HookState
+    symbol_role: type-shape
     links:
       - REQ-cursor-kibi-plugin-v1
     relationships:
@@ -6531,7 +7603,7 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
     sourceLine: 15
     sourceColumn: 12
-    sourceEndLine: 21
+    sourceEndLine: 23
     sourceEndColumn: 2
   - id: SYM-cursor-resolveStateDir
     title: resolveStateDir
@@ -6543,9 +7615,9 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-    sourceLine: 179
+    sourceLine: 192
     sourceColumn: 16
-    sourceEndLine: 196
+    sourceEndLine: 209
     sourceEndColumn: 1
   - id: SYM-cursor-loadHookState
     title: loadHookState
@@ -6557,9 +7629,9 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-    sourceLine: 198
+    sourceLine: 211
     sourceColumn: 16
-    sourceEndLine: 210
+    sourceEndLine: 223
     sourceEndColumn: 1
   - id: SYM-cursor-saveHookState
     title: saveHookState
@@ -6571,9 +7643,9 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-    sourceLine: 212
+    sourceLine: 225
     sourceColumn: 16
-    sourceEndLine: 225
+    sourceEndLine: 238
     sourceEndColumn: 1
   - id: SYM-cursor-updateHookState
     title: updateHookState
@@ -6585,9 +7657,9 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-    sourceLine: 227
+    sourceLine: 240
     sourceColumn: 16
-    sourceEndLine: 254
+    sourceEndLine: 267
     sourceEndColumn: 1
   - id: SYM-cursor-addDirtyPaths
     title: addDirtyPaths
@@ -6599,9 +7671,9 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-    sourceLine: 256
+    sourceLine: 269
     sourceColumn: 16
-    sourceEndLine: 266
+    sourceEndLine: 279
     sourceEndColumn: 1
   - id: SYM-cursor-rememberGuidedPath
     title: rememberGuidedPath
@@ -6613,9 +7685,9 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-    sourceLine: 268
+    sourceLine: 281
     sourceColumn: 16
-    sourceEndLine: 291
+    sourceEndLine: 304
     sourceEndColumn: 1
   - id: SYM-cursor-hasGuidedPath
     title: hasGuidedPath
@@ -6627,9 +7699,9 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-    sourceLine: 293
+    sourceLine: 306
     sourceColumn: 16
-    sourceEndLine: 302
+    sourceEndLine: 315
     sourceEndColumn: 1
   - id: SYM-cursor-clearDirtyPaths
     title: clearDirtyPaths
@@ -6641,9 +7713,9 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-    sourceLine: 342
+    sourceLine: 367
     sourceColumn: 16
-    sourceEndLine: 344
+    sourceEndLine: 369
     sourceEndColumn: 1
   - id: SYM-cursor-CursorHookResult
     title: CursorHookResult
@@ -6676,6 +7748,7 @@ symbols:
   - id: SYM-cursor-runHook
     title: runHook
     sourceFile: packages/cursor/src/hook-runner.ts
+    text_ref: packages/cursor/src/hook-runner.ts#runHook
     links:
       - REQ-cursor-kibi-plugin-v1
     relationships:
@@ -6685,7 +7758,7 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
     sourceLine: 90
     sourceColumn: 22
-    sourceEndLine: 222
+    sourceEndLine: 225
     sourceEndColumn: 1
   - id: SYM-cursor-hookRunnerPath
     title: hookRunnerPath
@@ -6697,9 +7770,9 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-    sourceLine: 245
+    sourceLine: 248
     sourceColumn: 13
-    sourceEndLine: 245
+    sourceEndLine: 248
     sourceEndColumn: 60
   - id: SYM-cursor-stopFollowupMessage
     title: stopFollowupMessage
@@ -6732,10 +7805,32 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
+  - id: SYM-cursor-KbMcpToolCall
+    title: KbMcpToolCall
+    sourceFile: packages/cursor/src/kb-mcp-tools.ts
+    symbol_role: type-shape
+    links:
+      - REQ-cursor-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+  - id: SYM-cursor-extractKbMcpToolCall
+    title: extractKbMcpToolCall
+    sourceFile: packages/cursor/src/kb-mcp-tools.ts
+    links:
+      - REQ-cursor-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
   - id: SYM-cursor-recordKbMcpTool
     title: recordKbMcpTool
     sourceFile: packages/cursor/src/hook-state.ts
     text_ref: packages/cursor/src/hook-state.ts#recordKbMcpTool
+    symbol_role: behavioral
     links:
       - REQ-cursor-kibi-plugin-v1
     relationships:
@@ -6813,4 +7908,453 @@ symbols:
     sourceLine: 137
     sourceColumn: 22
     sourceEndLine: 148
+    sourceEndColumn: 1
+  - id: SYM-scripts-finalizeLcov
+    title: finalizeLcov
+    sourceFile: scripts/finalize-lcov.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-014
+      - type: covered_by
+        target: TEST-scripts-finalize-lcov
+    sourceLine: 35
+    sourceColumn: 22
+    sourceEndLine: 51
+    sourceEndColumn: 1
+  - id: SYM-scripts-runUnitCoverage
+    title: runUnitCoverage
+    sourceFile: scripts/run-unit-coverage.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-014
+      - type: covered_by
+        target: TEST-scripts-unit-coverage-runner
+    sourceLine: 91
+    sourceColumn: 22
+    sourceEndLine: 113
+    sourceEndColumn: 1
+  - id: SYM-core-discovery-requirementCoverageDepth
+    title: requirement_coverage_depth
+    sourceFile: packages/core/src/discovery.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+    sourceLine: 134
+    sourceColumn: 4
+    sourceEndLine: 134
+    sourceEndColumn: 30
+  - id: SYM-core-discovery-classifyCoverageDepth
+    title: classify_coverage_depth
+    sourceFile: packages/core/src/discovery.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+    sourceLine: 258
+    sourceColumn: 4
+    sourceEndLine: 258
+    sourceEndColumn: 27
+  - id: SYM-cli-discovery-renderDiscoveryTable
+    title: renderDiscoveryTable
+    sourceFile: packages/cli/src/commands/discovery-table.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-search-discovery
+      - type: covered_by
+        target: TEST-mcp-search-discovery
+    sourceLine: 5
+    sourceColumn: 16
+    sourceEndLine: 40
+    sourceEndColumn: 1
+  - id: SYM-cli-discovery-renderCoverageTable
+    title: renderCoverageTable
+    sourceFile: packages/cli/src/commands/discovery-table.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+    sourceLine: 116
+    sourceColumn: 16
+    sourceEndLine: 181
+    sourceEndColumn: 1
+  - id: SYM-cli-impact-createCoverageDepthQualityDiagnostics
+    title: createCoverageDepthQualityDiagnostics
+    sourceFile: packages/cli/src/public/impact/coverage-depth-quality.ts
+    granularity_reason: legacy-link
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+    sourceLine: 253
+    sourceColumn: 16
+    sourceEndLine: 268
+    sourceEndColumn: 1
+  - id: SYM-cli-impact-hasBlockingQualityDiagnostics
+    title: hasBlockingQualityDiagnostics
+    sourceFile: packages/cli/src/public/impact/diagnostics.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-quality-diagnostics-contract
+    sourceLine: 186
+    sourceColumn: 16
+    sourceEndLine: 192
+    sourceEndColumn: 1
+  - id: SYM-cli-impact-SymbolMetadata
+    title: SymbolMetadata
+    sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
+    granularity_reason: legacy-link
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-symbol-quality-diagnostics
+    sourceLine: 10
+    sourceColumn: 12
+    sourceEndLine: 20
+    sourceEndColumn: 2
+  - id: SYM-cli-impact-AGGREGATE_KINDS
+    title: AGGREGATE_KINDS
+    sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
+    granularity_reason: legacy-link
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-symbol-quality-diagnostics
+    sourceLine: 22
+    sourceColumn: 13
+    sourceEndLine: 27
+    sourceEndColumn: 2
+  - id: SYM-cli-impact-collectSymbols
+    title: collectSymbols
+    sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
+    granularity_reason: legacy-link
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-symbol-quality-diagnostics
+    sourceLine: 116
+    sourceColumn: 16
+    sourceEndLine: 143
+    sourceEndColumn: 1
+  - id: SYM-cli-impact-isModuleOrConfig
+    title: isModuleOrConfig
+    sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
+    granularity_reason: legacy-link
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-symbol-quality-diagnostics
+    sourceLine: 145
+    sourceColumn: 16
+    sourceEndLine: 147
+    sourceEndColumn: 1
+  - id: SYM-cli-impact-narrowerManifestSymbols
+    title: narrowerManifestSymbols
+    sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
+    granularity_reason: legacy-link
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-symbol-quality-diagnostics
+    sourceLine: 149
+    sourceColumn: 16
+    sourceEndLine: 159
+    sourceEndColumn: 1
+  - id: SYM-cli-impact-narrowerExtractedSymbols
+    title: narrowerExtractedSymbols
+    sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
+    granularity_reason: legacy-link
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-symbol-quality-diagnostics
+    sourceLine: 161
+    sourceColumn: 16
+    sourceEndLine: 171
+    sourceEndColumn: 1
+  - id: SYM-cli-impact-RequirementQualityDiagnosticsOptions
+    title: RequirementQualityDiagnosticsOptions
+    sourceFile: packages/cli/src/public/impact/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-cli-requirement-quality-diagnostics
+    sourceLine: 55
+    sourceColumn: 12
+    sourceEndLine: 58
+    sourceEndColumn: 2
+  - id: SYM-cli-TestVerificationFields
+    title: TestVerificationFields
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+    sourceLine: 69
+    sourceColumn: 17
+    sourceEndLine: 72
+    sourceEndColumn: 1
+  - id: SYM-cli-TestEntity
+    title: TestEntity
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+    sourceLine: 76
+    sourceColumn: 12
+    sourceEndLine: 76
+    sourceEndColumn: 80
+  - id: SYM-markdown-detectEmbeddedEntities
+    title: detectEmbeddedEntities
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+  - id: SYM-markdown-ExtractedRelationship
+    title: ExtractedRelationship
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+  - id: SYM-markdown-extractFromMarkdown
+    title: extractFromMarkdown
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+  - id: SYM-markdown-extractFromMarkdownString
+    title: extractFromMarkdownString
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+  - id: SYM-markdown-ExtractionResult
+    title: ExtractionResult
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+  - id: SYM-markdown-FrontmatterError-classification
+    title: FrontmatterError.classification
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+  - id: SYM-markdown-FrontmatterError-hint
+    title: FrontmatterError.hint
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+  - id: SYM-markdown-FrontmatterError-originalError
+    title: FrontmatterError.originalError
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+  - id: SYM-markdown-FrontmatterError-toString
+    title: FrontmatterError.toString
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+  - id: SYM-markdown-FrontmatterError
+    title: FrontmatterError
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+  - id: SYM-markdown-inferTypeFromPath
+    title: inferTypeFromPath
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+  - id: SYM-markdown-normalizeDateLike
+    title: normalizeDateLike
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+  - id: SYM-cli-ADR
+    title: ADR
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+  - id: SYM-cli-BaseEntity
+    title: BaseEntity
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+  - id: SYM-cli-Entity
+    title: Entity
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+  - id: SYM-cli-Event
+    title: Event
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+  - id: SYM-cli-Fact
+    title: Fact
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+  - id: SYM-cli-FactFields
+    title: FactFields
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+  - id: SYM-cli-Flag
+    title: Flag
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+  - id: SYM-cli-Requirement
+    title: Requirement
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+  - id: SYM-cli-Scenario
+    title: Scenario
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+  - id: SYM-cli-Symbol
+    title: Symbol
+    sourceFile: packages/cli/src/types/entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1
+      - type: covered_by
+        target: TEST-coverage-depth-labels
+  - id: SYM-cli-test-makeQualitySymbolResult
+    title: makeQualitySymbolResult
+    sourceFile: packages/cli/tests/traceability/impact-symbol-quality-fixtures.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-cli-symbol-quality-diagnostics
+    sourceLine: 23
+    sourceColumn: 16
+    sourceEndLine: 64
+    sourceEndColumn: 1
+  - id: SYM-cli-test-makeRequirementResult
+    title: makeRequirementResult
+    sourceFile: packages/cli/tests/traceability/impact-symbol-quality-fixtures.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-cli-symbol-quality-diagnostics
+    sourceLine: 66
+    sourceColumn: 16
+    sourceEndLine: 82
     sourceEndColumn: 1

@@ -35,7 +35,11 @@ export type SyncRunner = (worktree: string) => Promise<SyncRunnerResult>;
 export type CheckRunner = (
   worktree: string,
   rules: string[],
-) => Promise<{ exitCode: number }>;
+) => Promise<{
+  readonly exitCode: number;
+  readonly stdout?: string;
+  readonly stderr?: string;
+}>;
 
 export interface SchedulerOptions {
   worktree: string;
@@ -240,6 +244,11 @@ class WorktreeSyncScheduler implements SyncScheduler {
           logger.info(
             `check.succeeded ${JSON.stringify({ rules: checkRules })}`,
           );
+          logAdvisoryQualityDiagnostics(
+            checkRules,
+            checkResult.stdout,
+            checkResult.stderr,
+          );
         }
       }
     } catch (err: unknown) {
@@ -391,13 +400,117 @@ async function runKibiSync(worktree: string): Promise<SyncRunnerResult> {
 async function runKibiCheck(
   worktree: string,
   rules: string[],
-): Promise<{ exitCode: number }> {
+): ReturnType<CheckRunner> {
   return new Promise((resolve) => {
     const rulesArg = rules.join(",");
-    exec(`kibi check --rules ${rulesArg}`, { cwd: worktree }, (error) => {
-      resolve({ exitCode: error ? (error.code ?? 1) : 0 });
-    });
+    exec(
+      `kibi check --rules ${rulesArg} --format json`,
+      { cwd: worktree },
+      (error, stdout, stderr) => {
+        const truncatedOut = truncateSyncOutput(stdout || undefined);
+        const truncatedErr = truncateSyncOutput(stderr || undefined);
+        resolve({
+          exitCode: error ? (error.code ?? 1) : 0,
+          ...(truncatedOut !== undefined ? { stdout: truncatedOut } : {}),
+          ...(truncatedErr !== undefined ? { stderr: truncatedErr } : {}),
+        });
+      },
+    );
   });
+}
+
+type AdvisoryQualityDiagnostic = {
+  readonly id: string;
+  readonly severity: string;
+  readonly blocking: boolean;
+  readonly message: string;
+};
+
+function logAdvisoryQualityDiagnostics(
+  rules: readonly string[],
+  stdout: string | undefined,
+  stderr: string | undefined,
+): void {
+  const diagnostics = parseQualityDiagnostics(stdout, stderr).filter(
+    (diagnostic) => !diagnostic.blocking,
+  );
+  if (diagnostics.length === 0) return;
+
+  const severityCounts = new Map<string, number>();
+  for (const diagnostic of diagnostics) {
+    severityCounts.set(
+      diagnostic.severity,
+      (severityCounts.get(diagnostic.severity) ?? 0) + 1,
+    );
+  }
+
+  const first = diagnostics[0];
+  if (first === undefined) return;
+
+  logger.warn(
+    `check.advisory_quality ${JSON.stringify({
+      rules,
+      count: diagnostics.length,
+      ...Object.fromEntries(severityCounts),
+      firstId: first.id,
+      firstMessage: first.message,
+    })}`,
+  );
+}
+
+function parseQualityDiagnostics(
+  stdout: string | undefined,
+  stderr: string | undefined,
+): AdvisoryQualityDiagnostic[] {
+  for (const output of [stdout, stderr]) {
+    if (output === undefined || output.trim().length === 0) continue;
+    try {
+      const parsed: unknown = JSON.parse(output);
+      const candidates = qualityDiagnosticCandidates(parsed);
+      const diagnostics = candidates.flatMap(
+        (candidate) => parseQualityDiagnostic(candidate) ?? [],
+      );
+      if (diagnostics.length > 0) return diagnostics;
+    } catch (error: unknown) {
+      if (error instanceof SyntaxError) continue;
+      throw error;
+    }
+  }
+  return [];
+}
+
+function qualityDiagnosticCandidates(value: unknown): readonly unknown[] {
+  if (!isRecord(value)) return [];
+  const structuredContent = value.structuredContent;
+  if (isRecord(structuredContent)) {
+    const diagnostics = structuredContent.qualityDiagnostics;
+    return Array.isArray(diagnostics) ? diagnostics : [];
+  }
+  const diagnostics = value.qualityDiagnostics;
+  return Array.isArray(diagnostics) ? diagnostics : [];
+}
+
+function parseQualityDiagnostic(
+  value: unknown,
+): AdvisoryQualityDiagnostic | null {
+  if (!isRecord(value)) return null;
+  const id = value.id;
+  const severity = value.severity;
+  const blocking = value.blocking;
+  const message = value.message;
+  if (
+    typeof id !== "string" ||
+    typeof severity !== "string" ||
+    typeof blocking !== "boolean" ||
+    typeof message !== "string"
+  ) {
+    return null;
+  }
+  return { id, severity, blocking, message };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 // implements REQ-opencode-kibi-plugin-v1

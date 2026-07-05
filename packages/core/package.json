@@ -1,6 +1,6 @@
 {
   "name": "kibi-core",
-  "version": "0.6.4",
+  "version": "0.7.0",
   "private": false,
   "description": "Core Prolog modules and RDF graph logic for Kibi",
   "type": "module",

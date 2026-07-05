@@ -31,6 +31,87 @@ import {
   stopIntegrationProlog,
 } from "../helpers/integration-prolog.js";
 
+async function createBroadQualityFixture(prolog: PrologProcess): Promise<void> {
+  await handleKbUpsert(prolog, {
+    type: "req",
+    id: "REQ-BROAD-MCP-001",
+    properties: {
+      title: "Broad MCP audit requirement",
+      status: "open",
+      priority: "should",
+      source: "documentation/requirements/REQ-BROAD-MCP-001.md",
+    },
+  });
+
+  for (const ordinal of Array.from({ length: 9 }, (_, index) => index + 1)) {
+    const testId = `TEST-BROAD-MCP-${String(ordinal).padStart(3, "0")}`;
+    await handleKbUpsert(prolog, {
+      type: "test",
+      id: testId,
+      properties: {
+        title: `Broad MCP test ${ordinal}`,
+        status: "passing",
+        source: `documentation/tests/${testId}.md`,
+      },
+      relationships: [
+        { type: "validates", from: testId, to: "REQ-BROAD-MCP-001" },
+      ],
+    });
+  }
+
+  await handleKbUpsert(prolog, {
+    type: "req",
+    id: "REQ-BROAD-MCP-001",
+    properties: {
+      title: "Broad MCP audit requirement",
+      status: "open",
+      priority: "should",
+      source: "documentation/requirements/REQ-BROAD-MCP-001.md",
+    },
+    relationships: Array.from({ length: 9 }, (_, index) => {
+      const ordinal = index + 1;
+      return {
+        type: "verified_by" as const,
+        from: "REQ-BROAD-MCP-001",
+        to: `TEST-BROAD-MCP-${String(ordinal).padStart(3, "0")}`,
+      };
+    }),
+  });
+}
+
+async function createCoverageDepthQualityFixture(
+  prolog: PrologProcess,
+): Promise<void> {
+  await handleKbUpsert(prolog, {
+    type: "test",
+    id: "TEST-COVERAGE-MCP-UNIT-001",
+    properties: {
+      title: "Unit coverage MCP test",
+      status: "passing",
+      source: "documentation/tests/TEST-COVERAGE-MCP-UNIT-001.md",
+      verification_scope: "unit",
+    },
+  });
+
+  await handleKbUpsert(prolog, {
+    type: "req",
+    id: "REQ-COVERAGE-MCP-UNIT-001",
+    properties: {
+      title: "Unit-only MCP coverage requirement",
+      status: "open",
+      priority: "should",
+      source: "documentation/requirements/REQ-COVERAGE-MCP-UNIT-001.md",
+    },
+    relationships: [
+      {
+        type: "verified_by",
+        from: "REQ-COVERAGE-MCP-UNIT-001",
+        to: "TEST-COVERAGE-MCP-UNIT-001",
+      },
+    ],
+  });
+}
+
 describe("MCP Check Tool Handler", () => {
   let prolog: PrologProcess;
   let testKbPath: string;
@@ -64,6 +145,67 @@ describe("MCP Check Tool Handler", () => {
     expect(result.content[0].text).toContain("No violations");
     expect(result.structuredContent?.violations).toEqual([]);
     expect(result.structuredContent?.count).toBe(0);
+  }, 30000);
+
+  test("returns full-check quality diagnostics in structured content and text", async () => {
+    await createBroadQualityFixture(prolog);
+
+    const result = await handleKbCheck(prolog, {});
+
+    expect(result.structuredContent?.violations).toEqual([]);
+    expect(result.structuredContent?.count).toBe(0);
+    expect(result.structuredContent?.qualityDiagnostics).toContainEqual(
+      expect.objectContaining({
+        id: "broad_requirement_review",
+        entityId: "REQ-BROAD-MCP-001",
+        blocking: false,
+      }),
+    );
+    expect(result.content[0].text).toContain("quality diagnostic");
+    expect(result.content[0].text).toContain("broad_requirement_review");
+  }, 30000);
+
+  test("returns coverage depth quality diagnostics in structured content", async () => {
+    await createCoverageDepthQualityFixture(prolog);
+
+    const result = await handleKbCheck(prolog, {});
+
+    expect(result.structuredContent?.violations).toEqual([]);
+    expect(result.structuredContent?.count).toBe(0);
+    expect(result.structuredContent?.qualityDiagnostics).toContainEqual(
+      expect.objectContaining({
+        id: "coverage_depth_review",
+        entityId: "REQ-COVERAGE-MCP-UNIT-001",
+        severity: "review",
+        blocking: false,
+        evidence: expect.objectContaining({
+          coverageDepth: "unit_only",
+          directTests: ["TEST-COVERAGE-MCP-UNIT-001"],
+          verificationScopes: ["unit"],
+        }),
+      }),
+    );
+    expect(result.content[0].text).toContain("coverage_depth_review");
+  }, 30000);
+
+  test("caps full-check quality diagnostics deterministically", async () => {
+    await createBroadQualityFixture(prolog);
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-STATUS-MCP-001",
+      properties: {
+        title: "Requirement with test status",
+        status: "passing",
+        source: "documentation/requirements/REQ-STATUS-MCP-001.md",
+      },
+    });
+
+    const result = await handleKbCheck(prolog, { maxDiagnostics: 1 });
+
+    expect(result.structuredContent?.qualityDiagnostics).toHaveLength(1);
+    expect(result.structuredContent?.qualityDiagnostics?.[0]?.id).toBe(
+      "broad_requirement_review",
+    );
   }, 30000);
 
   test("should detect must-priority requirement without scenario", async () => {
@@ -1298,6 +1440,95 @@ describe("MCP Check Tool Handler", () => {
     );
 
     expect(violation).toBeDefined();
+  }, 15000);
+
+  test("should flag requires_predicate edges pointing to observation facts", async () => {
+    await handleKbUpsert(prolog, {
+      type: "fact",
+      id: "FACT-PREDICATE-OBS-MCP-001",
+      properties: {
+        title: "Observation used as predicate",
+        status: "active",
+        source: "test://predicate-verifiability",
+        fact_kind: "observation",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-PREDICATE-VERIFY-MCP-001",
+      properties: {
+        title: "Predicate verification requirement",
+        status: "open",
+        source: "test://predicate-verifiability",
+      },
+      relationships: [
+        {
+          type: "requires_predicate",
+          from: "REQ-PREDICATE-VERIFY-MCP-001",
+          to: "FACT-PREDICATE-OBS-MCP-001",
+        },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["predicate-verifiability"],
+    });
+
+    const violation = result.structuredContent?.violations.find(
+      (v) =>
+        v.rule === "predicate-verifiability" &&
+        v.entityId === "REQ-PREDICATE-VERIFY-MCP-001",
+    );
+
+    expect(violation).toBeDefined();
+    expect(violation?.description).toContain("requires_predicate");
+    expect(violation?.description).toContain("fact_kind=observation");
+    expect(violation?.suggestion).toContain("fact_kind: predicate");
+  }, 15000);
+
+  test("should pass requires_predicate edges pointing to predicate facts", async () => {
+    await handleKbUpsert(prolog, {
+      type: "fact",
+      id: "FACT-PREDICATE-GROUND-MCP-001",
+      properties: {
+        title: "Ground predicate fact",
+        status: "active",
+        source: "test://predicate-verifiability",
+        fact_kind: "predicate",
+        predicate_name: "commit_action",
+        predicate_args: ["editor.annotation", "navigation", "draft"],
+        canonical_key: "commit_action(editor.annotation,navigation,draft)",
+        polarity: "assert",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-PREDICATE-VERIFY-MCP-002",
+      properties: {
+        title: "Predicate verification requirement",
+        status: "open",
+        source: "test://predicate-verifiability",
+      },
+      relationships: [
+        {
+          type: "requires_predicate",
+          from: "REQ-PREDICATE-VERIFY-MCP-002",
+          to: "FACT-PREDICATE-GROUND-MCP-001",
+        },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["predicate-verifiability"],
+    });
+
+    const violation = result.structuredContent?.violations.find(
+      (v) => v.entityId === "REQ-PREDICATE-VERIFY-MCP-002",
+    );
+
+    expect(violation).toBeUndefined();
   }, 15000);
 
   test("should report domain-contradictions when a closed requirement is still current", async () => {

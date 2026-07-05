@@ -33,6 +33,12 @@ describe("MCP coverage tool handler", () => {
               testCount: 1,
               directSymbolCount: 2,
               transitiveSymbolCount: 2,
+              coverageDepth: "direct_passing_e2e",
+              coverage_depth: "direct_passing_e2e",
+              directTests: ["TEST-002-E2E"],
+              scenarioTests: [],
+              testStatuses: ["passing"],
+              verificationScopes: ["end_to_end"],
               gaps: ["missing_scenario"],
             },
           ],
@@ -53,6 +59,15 @@ describe("MCP coverage tool handler", () => {
     const result = await handleKbCoverage(prolog, { by: "req" });
 
     expect(result.structuredContent?.summary.total).toBe(2);
+    expect(result.structuredContent?.rows[0]?.coverageDepth).toBe(
+      "direct_passing_e2e",
+    );
+    expect(result.structuredContent?.rows[0]?.coverage_depth).toBe(
+      "direct_passing_e2e",
+    );
+    expect(result.structuredContent?.rows[0]?.directTests).toEqual([
+      "TEST-002-E2E",
+    ]);
     expect(result.structuredContent?.rows[0]?.gaps).toContain(
       "missing_scenario",
     );
@@ -134,7 +149,11 @@ describe("kb_coverage isolated-core regression (issue #118)", () => {
     await handleKbUpsert(prolog, {
       type: "test",
       id: "TEST-118-COV-1",
-      properties: { title: "Issue 118 coverage test", status: "passing" },
+      properties: {
+        title: "Issue 118 coverage test",
+        status: "passing",
+        verification_scope: "end_to_end",
+      },
     });
 
     // Create relationships on REQ-118-COV-1
@@ -171,7 +190,12 @@ describe("kb_coverage isolated-core regression (issue #118)", () => {
     ) as Record<string, unknown> | undefined;
 
     expect(row1?.coverageStatus).toBe("fully_covered");
+    expect(row1?.coverageDepth).toBe("direct_passing_e2e");
+    expect(row1?.coverage_depth).toBe("direct_passing_e2e");
+    expect(row1?.directTests).toEqual(["TEST-118-COV-1"]);
+    expect(row1?.verificationScopes).toEqual(["end_to_end"]);
     expect(row2?.evaluated).toBe(false);
+    expect(row2?.coverageDepth).toBe("no_test_evidence");
 
     // Second call with includePassing: false, includeTransitive: false
     const result2 = await handleKbCoverage(prolog, {
@@ -181,5 +205,5 @@ describe("kb_coverage isolated-core regression (issue #118)", () => {
     });
     expect(result2.structuredContent).not.toBeNull();
     expect(result2.structuredContent).toBeDefined();
-  });
+  }, 30000);
 });

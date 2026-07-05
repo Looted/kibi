@@ -66,9 +66,14 @@ export interface FactFields {
   predicate_args?: string[];
 }
 
+export interface TestVerificationFields {
+  verification_scope?: "unit" | "integration" | "end_to_end";
+  verification_perspective?: "internal" | "consumer";
+}
+
 export type Requirement = BaseEntity & { type: "req" };
 export type Scenario = BaseEntity & { type: "scenario" };
-export type TestEntity = BaseEntity & { type: "test" };
+export type TestEntity = BaseEntity & TestVerificationFields & { type: "test" };
 export type ADR = BaseEntity & { type: "adr" };
 export type Flag = BaseEntity & { type: "flag" };
 export type Event = BaseEntity & { type: "event" };

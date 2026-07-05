@@ -48,6 +48,10 @@ Call `kb_suggest_predicates` before hand-writing ontology predicates.
 
 Same-call relationship rows must start from the entity being upserted. To link `REQ-001 -> TEST-001`, create `TEST-001` first, then upsert `REQ-001` with `verified_by`.
 
+## Invalid relationship tuple
+
+`kb_validate_upsert` and `kb_upsert` reject relationship source/target type pairs that are not part of the relationship schema. For example, facts are not directly verified by tests: do not write `verified_by fact -> test` or `validates test -> fact`. Create or update a requirement, link the requirement to the fact with `constrains`, `requires_property`, or `requires_predicate`, and link the requirement or its scenario to the test with `verified_by` / `validates`.
+
 ## Strict-lane mismatch
 
 - `constrains` targets `fact_kind: subject`.
@@ -67,3 +71,9 @@ When confidence is below `0.70`, Kibi emits a non-blocking `fact_kind: observati
 ## `kb_suggest_predicates` ontology gap
 
 If no candidate meets `minScore`, Kibi emits a `review:ontology-gap` observation. Keep it as review evidence, or add a project-local `fact_kind: predicate_schema` when the language is recurring domain ontology.
+
+## Advisory quality diagnostics are present but checks pass
+
+Kibi has a two-lane check contract. Hard correctness failures appear in `violations[]` and fail checks. Auditability findings appear in `qualityDiagnostics[]`; `review`, `info`, and non-blocking `warning` diagnostics are intentionally advisory so they can guide agents without breaking otherwise valid KB operations.
+
+Fix the underlying modeling issue when the diagnostic points to real drift, but do not move advisory findings into `links` or prose-only workarounds to silence them. Use the suggested MCP workflow instead: `kb_search` → `kb_query`, update narrower requirements/scenarios/tests/symbols/facts through `kb_upsert`, and rerun `kb_check`.

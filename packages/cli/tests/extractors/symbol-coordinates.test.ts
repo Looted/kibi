@@ -82,6 +82,52 @@ describe("symbol coordinates artifact", () => {
     expect(readCoordinateArtifact("meta: true\n")).toEqual({ coordinates: {} });
   });
 
+  test("skips invalid coordinate records while preserving valid entries", async () => {
+    const symbolCoordinatesExports = await loadSymbolCoordinatesModule();
+
+    expect(typeof symbolCoordinatesExports.readCoordinateArtifact).toBe(
+      "function",
+    );
+    if (typeof symbolCoordinatesExports.readCoordinateArtifact !== "function") {
+      return;
+    }
+
+    const readCoordinateArtifact =
+      symbolCoordinatesExports.readCoordinateArtifact as (
+        content: string,
+      ) => unknown;
+
+    expect(
+      readCoordinateArtifact(`coordinates:
+  SYM-VALID:
+    sourceFile: src/valid.ts
+    sourceLine: 1
+    sourceColumn: 0
+    sourceEndLine: 2
+    sourceEndColumn: 3
+  SYM-MISSING-LINE:
+    sourceFile: src/invalid.ts
+    sourceColumn: 0
+    sourceEndLine: 2
+    sourceEndColumn: 3
+  SYM-ARRAY:
+    - not
+    - a
+    - record
+`),
+    ).toEqual({
+      coordinates: {
+        "SYM-VALID": {
+          sourceColumn: 0,
+          sourceEndColumn: 3,
+          sourceEndLine: 2,
+          sourceFile: "src/valid.ts",
+          sourceLine: 1,
+        },
+      },
+    });
+  });
+
   test("serializes coordinate artifacts deterministically", async () => {
     const symbolCoordinatesExports = await loadSymbolCoordinatesModule();
 
@@ -321,6 +367,51 @@ coordinates:
 
     expect(output).not.toContain("coordinatesGeneratedAt");
   });
+
+  test("serializes empty coordinate artifacts with the generated header", async () => {
+    const symbolCoordinatesExports = await loadSymbolCoordinatesModule();
+
+    expect(typeof symbolCoordinatesExports.writeCoordinateArtifact).toBe(
+      "function",
+    );
+    if (
+      typeof symbolCoordinatesExports.writeCoordinateArtifact !== "function"
+    ) {
+      return;
+    }
+
+    const output = (
+      symbolCoordinatesExports.writeCoordinateArtifact as (
+        coordinates: Record<string, unknown>,
+      ) => string
+    )({});
+
+    expect(output).toContain("# symbol-coordinates.yaml");
+    expect(output).toContain("coordinates: {}");
+  });
+
+  test("returns an empty merge result when manifest records are empty", async () => {
+    const symbolCoordinatesExports = await loadSymbolCoordinatesModule();
+
+    expect(typeof symbolCoordinatesExports.mergeCoordinatesWithManifest).toBe(
+      "function",
+    );
+    if (
+      typeof symbolCoordinatesExports.mergeCoordinatesWithManifest !==
+      "function"
+    ) {
+      return;
+    }
+
+    expect(
+      (
+        symbolCoordinatesExports.mergeCoordinatesWithManifest as (
+          symbolRecords: Array<Record<string, unknown>>,
+          coordinateArtifact: { coordinates: Record<string, unknown> } | null,
+        ) => Array<Record<string, unknown>>
+      )([], { coordinates: {} }),
+    ).toEqual([]);
+  });
 });
 
 describe("manifest coordinate overlay reader", () => {
@@ -432,5 +523,59 @@ describe("manifest coordinate overlay reader", () => {
         sourceEndColumn: 5,
       },
     ]);
+  });
+
+  test("uses an explicit coordinate artifact path when provided", () => {
+    const readManifestWithCoordinateOverlay = (
+      manifestExports as Record<string, unknown>
+    ).readManifestWithCoordinateOverlay;
+
+    expect(typeof readManifestWithCoordinateOverlay).toBe("function");
+    if (typeof readManifestWithCoordinateOverlay !== "function") {
+      return;
+    }
+
+    const workspaceRoot = createWorkspace();
+    const documentationDir = join(workspaceRoot, "documentation");
+    mkdirSync(documentationDir, { recursive: true });
+
+    const symbolsPath = join(documentationDir, "symbols.yaml");
+    const coordinatesPath = join(workspaceRoot, "custom-coordinates.yaml");
+    writeFileSync(
+      symbolsPath,
+      `symbols:
+  - id: SYM-001
+    title: Example
+    sourceFile: src/inline.ts
+`,
+      "utf8",
+    );
+    writeFileSync(
+      coordinatesPath,
+      `coordinates:
+  SYM-001:
+    sourceFile: src/custom.ts
+    sourceLine: 7
+    sourceColumn: 1
+    sourceEndLine: 8
+    sourceEndColumn: 2
+`,
+      "utf8",
+    );
+
+    const records = (
+      readManifestWithCoordinateOverlay as (
+        manifestPath: string,
+        coordinatesPath?: string,
+      ) => Array<Record<string, unknown>>
+    )(symbolsPath, coordinatesPath);
+
+    expect(records[0]).toMatchObject({
+      sourceFile: "src/custom.ts",
+      sourceLine: 7,
+      sourceColumn: 1,
+      sourceEndLine: 8,
+      sourceEndColumn: 2,
+    });
   });
 });

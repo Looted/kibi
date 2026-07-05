@@ -94,6 +94,9 @@ export interface DiagnosticErrorFields {
   error_category: string;
   error_stage: string;
   error_summary: string;
+  semantic_outcome?: string;
+  semantic_checked_req_id?: string;
+  semantic_conflicting_req_ids?: string[];
 }
 
 export interface DiagnosticToolCall {
@@ -107,6 +110,103 @@ export interface DiagnosticToolCall {
   hint: string;
   diagnostic_error: DiagnosticErrorFields | null;
   diagnostic_telemetry: Record<string, unknown> | null;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function structuredContentFrom(
+  result: unknown,
+): Record<string, unknown> | undefined {
+  if (!isRecord(result)) return undefined;
+  const structuredContent = result.structuredContent;
+  return isRecord(structuredContent) ? structuredContent : undefined;
+}
+
+function stringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === "string");
+}
+
+function suggestionKindsFrom(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (!isRecord(item) || typeof item.kind !== "string") return [];
+    return [item.kind];
+  });
+}
+
+function appendSemanticAdvisorFields(
+  fields: Record<string, unknown>,
+  receipt: unknown,
+): void {
+  if (!isRecord(receipt)) return;
+  const readiness = receipt.logic_readiness;
+  const lane = receipt.candidate_lane;
+  const suggestionKinds = suggestionKindsFrom(receipt.suggestions);
+
+  if (typeof readiness === "string") {
+    fields.semantic_logic_readiness = readiness;
+  }
+  if (typeof lane === "string") {
+    fields.semantic_candidate_lane = lane;
+  }
+  fields.semantic_suggestion_kinds = suggestionKinds;
+  fields.semantic_suggestion_count = suggestionKinds.length;
+  fields.semantic_next_tools = stringArray(receipt.suggested_next_tools);
+}
+
+function appendPredicateSuggestionFields(
+  fields: Record<string, unknown>,
+  structuredContent: Record<string, unknown>,
+): void {
+  const candidates = Array.isArray(structuredContent.candidates)
+    ? structuredContent.candidates
+    : [];
+  const topCandidate = candidates.find(isRecord);
+  fields.predicate_candidate_count = candidates.length;
+  if (topCandidate) {
+    if (typeof topCandidate.predicate_name === "string") {
+      fields.predicate_top_name = topCandidate.predicate_name;
+    }
+    if (typeof topCandidate.score === "number") {
+      fields.predicate_top_score = topCandidate.score;
+    }
+  }
+  if (typeof structuredContent.recommendedAction === "string") {
+    fields.predicate_recommended_action = structuredContent.recommendedAction;
+  }
+  fields.predicate_relationship_plan = isRecord(
+    structuredContent.relationshipPlan,
+  );
+}
+
+function appendContradictionCheckFields(
+  fields: Record<string, unknown>,
+  contradictionCheck: unknown,
+): void {
+  if (!isRecord(contradictionCheck)) return;
+  const outcome = contradictionCheck.outcome;
+  if (typeof outcome === "string") {
+    fields.semantic_contradiction_outcome = outcome;
+  }
+  const checkedReqId = contradictionCheck.checked_req_id;
+  if (typeof checkedReqId === "string") {
+    fields.semantic_checked_req_id = checkedReqId;
+  }
+  const strictReadiness = contradictionCheck.strict_readiness;
+  if (typeof strictReadiness === "string") {
+    fields.semantic_strict_readiness = strictReadiness;
+  }
+  const subjectKey = contradictionCheck.subject_key;
+  if (typeof subjectKey === "string") {
+    fields.semantic_subject_key = subjectKey;
+  }
+  const propertyKey = contradictionCheck.property_key;
+  if (typeof propertyKey === "string") {
+    fields.semantic_property_key = propertyKey;
+  }
 }
 
 export function deriveDiagnosticFields(
@@ -125,11 +225,7 @@ export function deriveDiagnosticFields(
     fields.telemetry_attempt_number = telemetry.attempt_number ?? null;
   }
 
-  const structuredContent =
-    result && typeof result === "object" && "structuredContent" in result
-      ? (result as { structuredContent?: Record<string, unknown> })
-          .structuredContent
-      : undefined;
+  const structuredContent = structuredContentFrom(result);
 
   if (toolName === "kb_query" || toolName === "kb_search") {
     const resultCount = Number(structuredContent?.count ?? 0);
@@ -145,6 +241,44 @@ export function deriveDiagnosticFields(
     fields.requested_rules = Array.isArray(args.rules) ? args.rules : [];
     fields.result_summary =
       violationCount === 0 ? "0 violations" : `${violationCount} violations`;
+  }
+
+  if (toolName === "kb_semantic_advisor" && structuredContent) {
+    appendSemanticAdvisorFields(fields, structuredContent.receipt);
+    const readiness = fields.semantic_logic_readiness;
+    const lane = fields.semantic_candidate_lane;
+    if (typeof readiness === "string" && typeof lane === "string") {
+      fields.result_summary = `semantic advisor ${readiness} via ${lane}`;
+    }
+  }
+
+  if (toolName === "kb_suggest_predicates" && structuredContent) {
+    appendPredicateSuggestionFields(fields, structuredContent);
+    const count = Number(fields.predicate_candidate_count ?? 0);
+    const topName = fields.predicate_top_name;
+    fields.result_summary =
+      typeof topName === "string"
+        ? `${count} predicate candidates; top=${topName}`
+        : `${count} predicate candidates`;
+  }
+
+  if (toolName === "kb_upsert" && structuredContent) {
+    const created = Number(structuredContent.created ?? 0);
+    const updated = Number(structuredContent.updated ?? 0);
+    fields.upsert_created = created;
+    fields.upsert_updated = updated;
+    fields.upsert_relationships_created = Number(
+      structuredContent.relationships_created ?? 0,
+    );
+    appendContradictionCheckFields(
+      fields,
+      structuredContent.contradictionCheck,
+    );
+    appendSemanticAdvisorFields(fields, structuredContent.semanticAdvisor);
+    const readiness = fields.semantic_logic_readiness;
+    if (typeof readiness === "string") {
+      fields.result_summary = `upsert ${created > 0 ? "created" : "updated"}; semantic ${readiness}`;
+    }
   }
 
   if (!fields.result_summary) {

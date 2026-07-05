@@ -126,6 +126,51 @@ describe("symbol-extract (real integration)", () => {
     expect(inferSymbolRole("unknown")).toBe("unknown");
   });
 
+  it("extracts behavioral class properties and accessors as granular member symbols", async () => {
+    const { extractSymbolsFromStagedFile } = await loadSymbolExtractModule(
+      "class-member-anchors",
+    );
+
+    const symbols = extractSymbolsFromStagedFile(
+      makeStagedFile(
+        "src/app/pages/upload/upload-page.component.ts",
+        [
+          "export class UploadPageComponent {",
+          "  protected processingProgressLabel = computed(() => 'Processing started');",
+          "  get processingProgressAriaLabel() {",
+          "    return this.processingProgressLabel;",
+          "  }",
+          "}",
+        ].join("\n"),
+        "A",
+      ),
+    );
+
+    expect(
+      symbols.map((symbol: { name: string; kind: string; role: string }) => ({
+        name: symbol.name,
+        kind: symbol.kind,
+        role: symbol.role,
+      })),
+    ).toEqual([
+      {
+        name: "UploadPageComponent",
+        kind: "class",
+        role: "behavioral",
+      },
+      {
+        name: "UploadPageComponent.processingProgressLabel",
+        kind: "property",
+        role: "behavioral",
+      },
+      {
+        name: "UploadPageComponent.processingProgressAriaLabel",
+        kind: "accessor",
+        role: "behavioral",
+      },
+    ]);
+  });
+
   it("extracts symbols across script kinds and applies inline, manifest, hunk, and hash fallbacks", async () => {
     const { extractSymbolsFromStagedFile } =
       await loadSymbolExtractModule("real-script-kinds");
