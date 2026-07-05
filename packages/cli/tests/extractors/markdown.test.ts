@@ -4,6 +4,7 @@ import {
   FrontmatterError,
   detectEmbeddedEntities,
   extractFromMarkdown,
+  extractFromMarkdownString,
   inferTypeFromPath,
   normalizeDateLike,
 } from "../../src/extractors/markdown";
@@ -151,6 +152,41 @@ describe("Markdown Extractor", () => {
     expect(error.toString()).toContain(
       "Original error: unexpected end of stream",
     );
+  });
+
+  test("formats FrontmatterError defaults without optional sections", () => {
+    const error = new FrontmatterError("Broken frontmatter", "/tmp/test.md");
+
+    expect(error.toString()).toBe(
+      "/tmp/test.md: [Generic Error] Broken frontmatter\nHow to fix:\n- Check the file for syntax errors.",
+    );
+  });
+
+  test("extractFromMarkdownString extracts frontmatter without reading a file", () => {
+    const result = extractFromMarkdownString(
+      "---\ntitle: Inline Requirement\ntype: req\n---\n# Inline",
+      "/tmp/requirements/inline.md",
+    );
+
+    expect(result.entity).toMatchObject({
+      title: "Inline Requirement",
+      type: "req",
+      source: "/tmp/requirements/inline.md",
+    });
+  });
+
+  test("wraps file read failures as FrontmatterError", () => {
+    expect(() => extractFromMarkdown("/tmp/kibi-no-such-file.md")).toThrow(
+      FrontmatterError,
+    );
+    try {
+      extractFromMarkdown("/tmp/kibi-no-such-file.md");
+      expect(true).toBe(false);
+    } catch (error) {
+      expect(error).toBeInstanceOf(FrontmatterError);
+      const frontmatterError = error as FrontmatterError;
+      expect(frontmatterError.classification).toBe("File Read Error");
+    }
   });
 
   test("generates consistent IDs", () => {
@@ -856,6 +892,66 @@ canonical_key: user.session.timeout_minutes.eq.30
         );
       } finally {
         unlinkSync(tempFile);
+      }
+    });
+
+    test("extracts valid test verification fields", () => {
+      const tempFile = "/tmp/tests/test-verification-fields.md";
+      mkdirSync("/tmp/tests", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+title: Verification Field Test
+type: test
+verification_scope: integration
+verification_perspective: consumer
+---
+# Verification Field Test
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.verification_scope).toBe("integration");
+        expect(result.entity.verification_perspective).toBe("consumer");
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("rejects invalid and misplaced test verification fields", () => {
+      const invalidScopeFile = "/tmp/tests/test-invalid-scope.md";
+      const invalidPerspectiveFile = "/tmp/tests/test-invalid-perspective.md";
+      const misplacedFile = "/tmp/requirements/test-field-on-req.md";
+      mkdirSync("/tmp/tests", { recursive: true });
+      mkdirSync("/tmp/requirements", { recursive: true });
+      writeFileSync(
+        invalidScopeFile,
+        "---\ntitle: Bad Scope\ntype: test\nverification_scope: smoke\n---\n# Bad Scope",
+      );
+      writeFileSync(
+        invalidPerspectiveFile,
+        "---\ntitle: Bad Perspective\ntype: test\nverification_perspective: external\n---\n# Bad Perspective",
+      );
+      writeFileSync(
+        misplacedFile,
+        "---\ntitle: Bad Req\ntype: req\nverification_scope: unit\n---\n# Bad Req",
+      );
+
+      try {
+        expect(() => extractFromMarkdown(invalidScopeFile)).toThrow(
+          /Invalid verification_scope/,
+        );
+        expect(() => extractFromMarkdown(invalidPerspectiveFile)).toThrow(
+          /Invalid verification_perspective/,
+        );
+        expect(() => extractFromMarkdown(misplacedFile)).toThrow(
+          /Test-only fields are only allowed/,
+        );
+      } finally {
+        unlinkSync(invalidScopeFile);
+        unlinkSync(invalidPerspectiveFile);
+        unlinkSync(misplacedFile);
       }
     });
 

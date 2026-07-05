@@ -21,11 +21,20 @@ describe("cli env helpers", () => {
 
     process.env.KIBI_BRANCH = " ";
     expect(getBranchOverride()).toBeUndefined();
+
+    process.env.KIBI_BRANCH = undefined;
+    expect(getBranchOverride()).toBeUndefined();
   });
 
   test("getKbPlPathOverride returns kb.pl override", () => {
     process.env.KIBI_KB_PL_PATH = "/tmp/kb.pl";
     expect(getKbPlPathOverride()).toBe("/tmp/kb.pl");
+
+    process.env.KIBI_KB_PL_PATH = "";
+    expect(getKbPlPathOverride()).toBe("");
+
+    process.env.KIBI_KB_PL_PATH = undefined;
+    expect(getKbPlPathOverride()).toBeUndefined();
   });
 
   test("debug and trace helpers reflect env flags", () => {

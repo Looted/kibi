@@ -122,6 +122,70 @@ describe("kibi migrate", () => {
     expect(existsSync(auditPath)).toBe(false);
   });
 
+  test("reports missing .kb directory as a migration error", () => {
+    rmSync(path.join(tmpDir, ".kb"), { recursive: true, force: true });
+
+    const result = runKibi(["migrate"], tmpDir);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("Missing .kb/ directory");
+  });
+
+  test("reports missing config file as a migration error", () => {
+    rmSync(path.join(tmpDir, ".kb", "config.json"), { force: true });
+
+    const result = runKibi(["migrate"], tmpDir);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("Missing .kb/config.json");
+  });
+
+  test("reports invalid JSON config as a migration error", () => {
+    writeFileSync(path.join(tmpDir, ".kb", "config.json"), "{ nope", "utf8");
+
+    const result = runKibi(["migrate"], tmpDir);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("Invalid .kb/config.json");
+  });
+
+  test("reports non-object JSON config as a migration error", () => {
+    writeFileSync(path.join(tmpDir, ".kb", "config.json"), "[]", "utf8");
+
+    const result = runKibi(["migrate"], tmpDir);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("must contain a JSON object");
+  });
+
+  test("rejects config schema versions newer than the CLI", () => {
+    const configPath = path.join(tmpDir, ".kb", "config.json");
+    const config = readJson(configPath);
+    writeFileSync(
+      configPath,
+      `${JSON.stringify({ ...config, schemaVersion: 999 }, null, 2)}\n`,
+      "utf8",
+    );
+
+    const result = runKibi(["migrate", "--yes"], tmpDir);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("Unsupported schemaVersion 999");
+  });
+
+  test("formats invalid schema versions in dry-run output", () => {
+    const configPath = path.join(tmpDir, ".kb", "config.json");
+    const config = readJson(configPath);
+    writeFileSync(
+      configPath,
+      `${JSON.stringify({ ...config, schemaVersion: "not-a-number" }, null, 2)}\n`,
+      "utf8",
+    );
+
+    const result = runKibi(["migrate", "--dry-run"], tmpDir);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('schemaVersion from invalid ("not-a-number")');
+  });
+
   test("without --yes warns and exits 0 without writing files", () => {
     const configPath = path.join(tmpDir, ".kb", "config.json");
     const auditPath = path.join(tmpDir, ".kb", "migrations", "main.json");
@@ -206,6 +270,66 @@ describe("kibi migrate", () => {
     );
     const audit = readJson(auditPath);
     expect(audit.symbolGranularityLegacyLinks).toBe(1);
+  });
+
+  test("skips symbol granularity migration when symbols path is not a string", () => {
+    const configPath = path.join(tmpDir, ".kb", "config.json");
+    const config = readJson(configPath);
+    writeFileSync(
+      configPath,
+      `${JSON.stringify(
+        { ...config, schemaVersion: 1, paths: { symbols: null } },
+        null,
+        2,
+      )}\n`,
+      "utf8",
+    );
+
+    const result = runKibi(["migrate", "--dry-run"], tmpDir);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).not.toContain("legacy coarse symbol");
+  });
+
+  test("skips symbol granularity migration for malformed manifests and already-reasoned symbols", () => {
+    const configPath = path.join(tmpDir, ".kb", "config.json");
+    const symbolsPath = path.join(tmpDir, "documentation", "symbols.yaml");
+    const config = readJson(configPath);
+    writeFileSync(
+      configPath,
+      `${JSON.stringify({ ...config, schemaVersion: 1 }, null, 2)}\n`,
+      "utf8",
+    );
+    mkdirSync(path.dirname(symbolsPath), { recursive: true });
+    writeFileSync(
+      symbolsPath,
+      [
+        "symbols:",
+        "  - null",
+        "  - id: SYM-NO-SOURCE",
+        "    title: noSource",
+        "  - id: SYM-NO-TITLE",
+        "    sourceFile: src/missing.ts",
+        "  - title: noId",
+        "    sourceFile: src/missing.ts",
+        "  - id: SYM-REASONED",
+        "    title: reasoned",
+        "    sourceFile: src/missing.ts",
+        "    granularity_reason: legacy-link",
+        "    links:",
+        "      - REQ-REASONED",
+        "  - id: SYM-NO-TRACE",
+        "    title: noTrace",
+        "    sourceFile: src/missing.ts",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+
+    const result = runKibi(["migrate", "--dry-run"], tmpDir);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).not.toContain("legacy coarse symbol");
   });
 
   test("--yes marks semantic advisor backfill pending for schema v2 configs", () => {

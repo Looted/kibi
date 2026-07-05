@@ -1,0 +1,3 @@
+class FixtureComponent {
+  value = "ok";
+}

@@ -6809,3 +6809,11 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cli-symbol-quality-diagnostics
+
+  - id: SYM-cli-test-FixtureComponent
+    title: FixtureComponent
+    sourceFile: packages/cli/tests/fixtures/impact-diagnostics-source.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-audit-quality-diagnostics-v1

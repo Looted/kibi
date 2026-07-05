@@ -29,6 +29,18 @@ describe("hasMeaningfulSourceDiff", () => {
     expect(hasMeaningfulSourceDiff(diffText)).toBe(false);
   });
 
+  it("ignores formatter-only trailing commas before closing object braces", () => {
+    const diffText = [
+      "diff --git a/src/config.ts b/src/config.ts",
+      "@@ -1 +1 @@",
+      "-configure({ enabled: true })",
+      "+configure({ enabled: true,})",
+      "",
+    ].join("\n");
+
+    expect(hasMeaningfulSourceDiff(diffText)).toBe(false);
+  });
+
   it("keeps escaped string literal whitespace changes meaningful", () => {
     const diffText = [
       "diff --git a/src/copy.ts b/src/copy.ts",
@@ -39,5 +51,48 @@ describe("hasMeaningfulSourceDiff", () => {
     ].join("\n");
 
     expect(hasMeaningfulSourceDiff(diffText)).toBe(true);
+  });
+
+  it("returns false for metadata-only diffs with no added or removed content", () => {
+    const diffText = [
+      "diff --git a/src/a.ts b/src/a.ts",
+      "index 1111111..2222222 100644",
+      "--- a/src/a.ts",
+      "+++ b/src/a.ts",
+      "",
+    ].join("\n");
+
+    expect(hasMeaningfulSourceDiff(diffText)).toBe(false);
+  });
+
+  it("detects an earlier meaningful hunk before later formatter-only hunks", () => {
+    const diffText = [
+      "diff --git a/src/a.ts b/src/a.ts",
+      "@@ -1 +1 @@",
+      "-export const value = 1;",
+      "+export const value = 2;",
+      "@@ -3 +3 @@",
+      "-render(`same`)",
+      "+render(`same`,)",
+      "",
+    ].join("\n");
+
+    expect(hasMeaningfulSourceDiff(diffText)).toBe(true);
+  });
+
+  it("preserves whitespace inside single-quoted and template literals", () => {
+    const singleQuoted = [
+      "@@ -1 +1 @@",
+      "-const value = 'a b';",
+      "+const value = 'ab';",
+    ].join("\n");
+    const templateQuoted = [
+      "@@ -1 +1 @@",
+      "-const value = `a b`;",
+      "+const value = `ab`;",
+    ].join("\n");
+
+    expect(hasMeaningfulSourceDiff(singleQuoted)).toBe(true);
+    expect(hasMeaningfulSourceDiff(templateQuoted)).toBe(true);
   });
 });

@@ -153,6 +153,23 @@ describe("cleanupAbandonedStagingDirectories", () => {
     expect(mockFg).not.toHaveBeenCalled();
     expect(mockRmSync).not.toHaveBeenCalled();
   });
+
+  test("uses default process liveness and keeps live process staging directories", async () => {
+    mockExistsSync.mockImplementation(
+      (p: PathLike) => p === "/repo/.kb/branches/main.staging.1.1000",
+    );
+    mockFg.mockResolvedValue(["/repo/.kb/branches/main.staging.1.1000"]);
+
+    await cleanupAbandonedStagingDirectories(
+      "/repo/.kb/branches/main.staging.222.2000",
+      {
+        ...stagingDeps(),
+        fg: mockFg as unknown as typeof fg,
+      },
+    );
+
+    expect(mockRmSync).not.toHaveBeenCalled();
+  });
 });
 
 describe("atomicPublish", () => {

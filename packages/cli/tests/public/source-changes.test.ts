@@ -319,4 +319,22 @@ describe("collectSourceChanges", () => {
       rmSync(repoDir, { recursive: true, force: true });
     }
   });
+
+  it("returns an empty working-tree diff list outside a git repository", () => {
+    const repoDir = createTempRepo();
+
+    try {
+      const nonRepoDir = join(repoDir, "not-a-repo");
+      mkdirSync(nonRepoDir, { recursive: true });
+
+      expect(
+        collectSourceChanges({
+          workspaceRoot: nonRepoDir,
+          includeWorkingTreeDiff: true,
+        }),
+      ).toEqual([]);
+    } finally {
+      rmSync(repoDir, { recursive: true, force: true });
+    }
+  });
 });

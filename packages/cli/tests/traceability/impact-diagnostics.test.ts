@@ -169,4 +169,117 @@ describe("impact diagnostics", () => {
     ]);
     expect(hasBlockingImpactDiagnostics(diagnostics)).toBe(false);
   });
+
+  it("reads staged source content to report narrower behavioral symbols and ignored non-behavioral symbols", () => {
+    const sourceFile = "src/app/pages/upload/upload-page.component.ts";
+    const sourceContent = [
+      "export class UploadPageComponent {",
+      "  processingProgressLabel = 'Uploading';",
+      "}",
+      "export interface UploadPageComponentProps { value: string }",
+      "",
+    ].join("\n");
+
+    const diagnostics = createSymbolGranularityDiagnostics({
+      manifestResults: [makeManifestResult("UploadPageComponent")],
+      symbolsByFile: new Map(),
+      sourceContentByFile: new Map([[sourceFile, sourceContent]]),
+    });
+
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        id: "symbol_granularity_violation",
+        message: expect.stringContaining(
+          "UploadPageComponent.processingProgressLabel",
+        ),
+      }),
+    ]);
+  });
+
+  it("mentions ignored non-behavioral symbols when narrower type-shape candidates exist", () => {
+    const behavioral = makeSymbol({
+      name: "UploadPageComponent.processingProgressLabel",
+      kind: "property",
+      role: "behavioral",
+    });
+    const typeShape = makeSymbol({
+      name: "UploadPageComponent.Props",
+      kind: "interface",
+      role: "type-shape",
+    });
+
+    const diagnostics = createSymbolGranularityDiagnostics({
+      manifestResults: [makeManifestResult("UploadPageComponent")],
+      symbolsByFile: new Map([[behavioral.location.file, [behavioral, typeShape]]]),
+    });
+
+    expect(diagnostics[0]?.suggestion).toContain(
+      "Non-behavioral symbols ignored",
+    );
+  });
+
+  it("reads source files from workspace root when no staged content map is supplied", () => {
+    const workspaceRoot = process.cwd();
+    const sourceFile = "packages/cli/tests/fixtures/impact-diagnostics-source.ts";
+
+    const diagnostics = createSymbolGranularityDiagnostics({
+      manifestResults: [
+        {
+          ...makeManifestResult("FixtureComponent"),
+          sourceFile,
+        },
+      ],
+      symbolsByFile: new Map(),
+      workspaceRoot,
+    });
+
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        id: "symbol_granularity_violation",
+        message: expect.stringContaining("FixtureComponent.value"),
+      }),
+    ]);
+  });
+
+  it("skips missing source files when manifest entries cannot be read", () => {
+    expect(
+      createSymbolGranularityDiagnostics({
+        manifestResults: [
+          {
+            ...makeManifestResult("MissingComponent"),
+            sourceFile: "src/does-not-exist.ts",
+          },
+        ],
+        symbolsByFile: new Map(),
+        workspaceRoot: process.cwd(),
+      }),
+    ).toEqual([]);
+  });
+
+  it("skips semantic review for class and non-behavioral changed symbols", () => {
+    const classSymbol = makeSymbol({
+      name: "UploadPageComponent",
+      kind: "class",
+      role: "behavioral",
+    });
+    const typeSymbol = makeSymbol({
+      name: "UploadPageComponentProps",
+      kind: "interface",
+      role: "type-shape",
+    });
+
+    expect(
+      createSemanticReviewDiagnostics({
+        symbolsByFile: new Map([[classSymbol.location.file, [classSymbol, typeSymbol]]]),
+      }),
+    ).toEqual([]);
+  });
+
+  it("uses fallback linked-target wording when changed behavior has no traceability links", () => {
+    const diagnostics = createSemanticReviewDiagnostics({
+      symbolsByFile: new Map([["src/upload.ts", [makeSymbol()]]]),
+    });
+
+    expect(diagnostics[0]?.message).toContain("linked requirements/tests");
+  });
 });
