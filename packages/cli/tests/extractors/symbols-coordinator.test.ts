@@ -40,12 +40,7 @@ function writeFile(name: string, content: string) {
 beforeEach(() => {
   if (fs.existsSync(tmpDir)) {
     for (const fileName of fs.readdirSync(tmpDir)) {
-      try {
-        fs.chmodSync(path.join(tmpDir, fileName), 0o600);
-      } catch {}
-      try {
-        fs.unlinkSync(path.join(tmpDir, fileName));
-      } catch {}
+      fs.rmSync(path.join(tmpDir, fileName), { recursive: true, force: true });
     }
 
     try {
@@ -59,10 +54,7 @@ beforeEach(() => {
 afterEach(() => {
   if (fs.existsSync(tmpDir)) {
     for (const fileName of fs.readdirSync(tmpDir)) {
-      try {
-        fs.chmodSync(path.join(tmpDir, fileName), 0o600);
-      } catch {}
-      fs.unlinkSync(path.join(tmpDir, fileName));
+      fs.rmSync(path.join(tmpDir, fileName), { recursive: true, force: true });
     }
     fs.rmdirSync(tmpDir);
   }
@@ -207,6 +199,94 @@ it("falls back to module evidence for unsupported languages", () => {
   });
 });
 
+it("falls back when a matching source analysis provider throws", () => {
+  const analyzeSourceText = (
+    symbolsCoordinatorExports as {
+      analyzeSourceText?: (
+        filePath: string,
+        content: string,
+        options: {
+          providers: Array<{
+            id: string;
+            supportsFile: (filePath: string) => boolean;
+            analyzeText: (filePath: string, content: string) => never;
+          }>;
+        },
+      ) => {
+        providerId: string | null;
+        language: string;
+        sourceFile: string;
+        module: {
+          analysisMode: string;
+          fallbackReason?: string;
+          language: string;
+          title: string;
+        };
+        symbols: unknown[];
+      };
+    }
+  ).analyzeSourceText;
+
+  const analysis = analyzeSourceText?.("src/broken.ts", "export const x = 1;", {
+    providers: [
+      {
+        id: "throwing-provider",
+        supportsFile(filePath: string) {
+          return filePath.endsWith(".ts");
+        },
+        analyzeText() {
+          throw new Error("parser failed");
+        },
+      },
+    ],
+  });
+
+  expect(analysis).toEqual({
+    providerId: null,
+    module: {
+      analysisMode: "fallback",
+      fallbackReason: "provider_error",
+      language: "typescript",
+      title: "broken",
+    },
+    language: "typescript",
+    sourceFile: "src/broken.ts",
+    symbols: [],
+  });
+});
+
+it("supports the legacy analyzeSourceText enrichment overload", async () => {
+  const analyzeSourceText = (
+    symbolsCoordinatorExports as {
+      analyzeSourceText?: (
+        entries: ManifestSymbolEntry[],
+        workspaceRoot: string,
+        deps: { enrichTsCoordinates: TsEnrichStub },
+      ) => Promise<ManifestSymbolEntry[]>;
+    }
+  ).analyzeSourceText;
+  const tsPath = writeFile("legacy.ts", "export function legacySymbol() {}\n");
+  const entries: ManifestSymbolEntry[] = [
+    { id: "legacy", title: "legacySymbol", sourceFile: path.basename(tsPath) },
+  ];
+
+  const out = await analyzeSourceText?.(entries, tmpDir, {
+    enrichTsCoordinates: async (inputEntries) =>
+      inputEntries.map((entry) => ({
+        ...entry,
+        sourceLine: 44,
+        sourceColumn: 0,
+        sourceEndLine: 44,
+        sourceEndColumn: 12,
+        coordinatesGeneratedAt: "2026-01-01T00:00:00.000Z",
+      })),
+  });
+
+  expect(out).toEqual([
+    expect.objectContaining({ id: "legacy", sourceLine: 44 }),
+  ]);
+});
+
 it("delegates TS/JS files to ts-morph exporter (ts and js) and resolves absolute/relative paths", async () => {
   tsEnrichStub = async (entries) =>
     entries.map((entry, index) => ({
@@ -261,6 +341,16 @@ it("returns original entry when source path cannot be resolved", async () => {
   const out = await runEnrichment(entries, tmpDir);
 
   expect(out[0]?.sourceLine).toBeUndefined();
+});
+
+it("returns original entry when regex heuristic cannot read a resolved path", async () => {
+  const entries: ManifestSymbolEntry[] = [
+    { id: "dir", title: "anything", sourceFile: "." },
+  ];
+
+  const out = await runEnrichment(entries, tmpDir);
+
+  expect(out).toEqual(entries);
 });
 
 it("handles nonexistent sourceFile and returns original", async () => {

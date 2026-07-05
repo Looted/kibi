@@ -1,5 +1,34 @@
 import { describe, expect, test } from "bun:test";
-import { parseViolationRows, toPrologString } from "../src/prolog/codec";
+import {
+  escapeAtom,
+  escapeAtomContent,
+  parseAtomList,
+  parseEntityFromBinding,
+  parseEntityFromList,
+  parseListOfLists,
+  parsePairList,
+  parsePropertyList,
+  parsePrologValue,
+  parseTriples,
+  parseViolationRows,
+  splitTopLevel,
+  splitTopLevelGeneral,
+  toPrologAtom,
+  toPrologString,
+} from "../src/prolog/codec";
+
+describe("atom encoding", () => {
+  test("escapes single quotes in atom content", () => {
+    expect(escapeAtom("can't")).toBe("can''t");
+    expect(escapeAtomContent("owner's note")).toBe("owner''s note");
+  });
+
+  test("quotes non-simple Prolog atoms", () => {
+    expect(toPrologAtom("simple_atom1")).toBe("simple_atom1");
+    expect(toPrologAtom("REQ-001")).toBe("'REQ-001'");
+    expect(toPrologAtom("Owner's Fact")).toBe("'Owner''s Fact'");
+  });
+});
 
 describe("toPrologString", () => {
   test("wraps plain string in double quotes", () => {
@@ -90,5 +119,121 @@ describe("parseViolationRows", () => {
     );
     // Should not throw; result may be empty or partial (both acceptable)
     expect(Array.isArray(result)).toBe(true);
+  });
+});
+
+describe("Prolog collection parsing", () => {
+  test("parses nested list rows", () => {
+    expect(parseListOfLists("[[a,b],[c,[d,e]],[]]")).toEqual([
+      ["a", "b"],
+      ["c", "[d,e]"],
+    ]);
+    expect(parseListOfLists("[]")).toEqual([]);
+  });
+
+  test("parses atom, pair, and triple lists", () => {
+    expect(parseAtomList("['REQ-001', adr_002, \"SYM-003\", '']")).toEqual([
+      "REQ-001",
+      "adr_002",
+      "SYM-003",
+    ]);
+    expect(parseAtomList("[ ]")).toEqual([]);
+    expect(parsePairList("[['REQ-001','REQ-002'],[too_short]]")).toEqual([
+      ["REQ-001", "REQ-002"],
+    ]);
+    expect(parseTriples("[['A','rel','B'],[too,short]]")).toEqual([
+      ["A", "rel", "B"],
+    ]);
+  });
+
+  test("returns empty arrays for blank list inputs", () => {
+    expect(parseAtomList("   ")).toEqual([]);
+    expect(parsePairList("[]")).toEqual([]);
+    expect(parseTriples("[ ]")).toEqual([]);
+  });
+
+  test("parses nested pair and triple row values", () => {
+    expect(parsePairList("[[outer,[inner,value]]]")).toEqual([
+      ["outer", "[inner,value]"],
+    ]);
+    expect(parseTriples("[[outer,[inner,value],tail]]")).toEqual([
+      ["outer", "[inner,value]", "tail"],
+    ]);
+  });
+});
+
+describe("Prolog entity parsing", () => {
+  test("parses entity bindings and file URI ids", () => {
+    const entity = parseEntityFromBinding(
+      "['file:///repo/docs/REQ-001.md',req,[title=\"Title\",tags=[security,api]]]",
+    );
+
+    expect(entity.id).toBe("REQ-001.md");
+    expect(entity.type).toBe("req");
+    expect(entity.title).toBe("Title");
+    expect(entity.tags).toEqual(["security", "api"]);
+  });
+
+  test("parses entity list rows and rejects short rows", () => {
+    const sparseRow: string[] = [];
+    sparseRow.length = 3;
+
+    expect(
+      parseEntityFromList(["'REQ-001'", "req", "[title=\"Title\"]"]),
+    ).toEqual({ id: "REQ-001", type: "req", title: "Title" });
+    expect(
+      parseEntityFromList(['"REQ-DOUBLE"', "req", "[title=\"Title\"]"]),
+    ).toEqual({ id: "REQ-DOUBLE", type: "req", title: "Title" });
+    expect(
+      parseEntityFromList(["REQ-PLAIN", "req", "[title=\"Title\"]"]),
+    ).toEqual({ id: "REQ-PLAIN", type: "req", title: "Title" });
+    expect(parseEntityFromList(["REQ-001", "req"])).toEqual({});
+    expect(parseEntityFromList(sparseRow)).toEqual({});
+    expect(parseEntityFromBinding("[REQ-001,req]")).toEqual({});
+  });
+});
+
+describe("Prolog property and value parsing", () => {
+  test("parses typed literals, URIs, atoms, strings, and lists", () => {
+    expect(parsePrologValue('^^("42",xsd#integer)')).toBe(42);
+    expect(parsePrologValue('^^("3.5",xsd#decimal)')).toBe(3.5);
+    expect(parsePrologValue('^^("3.5",xsd#double)')).toBe(3.5);
+    expect(parsePrologValue('^^("true",xsd#boolean)')).toBe(true);
+    expect(parsePrologValue('^^("[a,b]",xsd#string)')).toEqual(["a", "b"]);
+    expect(parsePrologValue('^^("[]",xsd#string)')).toEqual([]);
+    expect(parsePrologValue('^^("text",xsd#string)')).toBe("text");
+    expect(parsePrologValue("^^(literal(fn(a)),xsd#string)")).toBe(
+      "literal(fn(a))",
+    );
+    expect(parsePrologValue("file:///tmp/REQ-001.md")).toBe("REQ-001.md");
+    expect(parsePrologValue("file:///")).toBe("");
+    expect(parsePrologValue("'quoted atom'")).toBe("quoted atom");
+    expect(parsePrologValue("[]")).toEqual([]);
+    expect(parsePrologValue("[1,'two',[three]]")).toEqual([
+      "1",
+      "two",
+      ["three"],
+    ]);
+  });
+
+  test("parses property lists and skips placeholder values", () => {
+    expect(
+      parsePropertyList("[title=\"Title\",skip=...,tail=...|...,owner='team']"),
+    ).toEqual({ title: "Title", owner: "team" });
+  });
+});
+
+describe("top-level splitting", () => {
+  test("splits only at top-level delimiters", () => {
+    const input = "a,[b,c],\"d,e\",'f,g',h(i,j)";
+
+    expect(splitTopLevelGeneral(input, ",")).toEqual([
+      "a",
+      "[b,c]",
+      '"d,e"',
+      "'f,g'",
+      "h(i,j)",
+    ]);
+    expect(splitTopLevel(input, ",")).toEqual(splitTopLevelGeneral(input, ","));
   });
 });

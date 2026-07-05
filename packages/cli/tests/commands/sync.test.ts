@@ -18,7 +18,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { toPrologString } from "../../dist/prolog/codec.js";
 import { type SyncResult, syncCommand } from "../../src/commands/sync.js";
-import { PrologProcess } from "../../src/prolog.js";
+import { PrologProcess, type QueryResult } from "../../src/prolog.js";
 
 interface Deferred<T> {
   promise: Promise<T>;
@@ -57,6 +57,17 @@ function createInteractiveSyncProlog(
 ): PrologProcess {
   const prolog = new PrologProcess(options);
   (prolog as unknown as { useOneShotMode: boolean }).useOneShotMode = false;
+  return prolog;
+}
+
+function createScriptedProlog(
+  query: (goal: string | string[]) => Promise<QueryResult>,
+): PrologProcess {
+  const prolog = new PrologProcess({ timeout: 120000 });
+  prolog.start = async () => {};
+  prolog.terminate = async () => {};
+  prolog.invalidateCache = () => {};
+  prolog.query = query;
   return prolog;
 }
 
@@ -230,6 +241,41 @@ User logs in with OAuth2 provider.
     },
     TEST_TIMEOUT_MS,
   );
+
+  test("throws SyncError when staging KB attach fails", async () => {
+    await withWorkingDirectory(tmpDir, async () => {
+      const prolog = createScriptedProlog(async (goal): Promise<QueryResult> => {
+        const text = Array.isArray(goal) ? goal.join(",") : goal;
+        if (text.includes("kb_attach")) {
+          return { success: false, bindings: {}, error: "attach denied" };
+        }
+        return { success: true, bindings: {} };
+      });
+
+      await expect(
+        runHarnessedSync({}, { createProlog: () => prolog }),
+      ).rejects.toThrow("Failed to attach to staging KB: attach denied");
+    });
+  });
+
+  test("throws SyncError when staging KB save fails", async () => {
+    await withWorkingDirectory(tmpDir, async () => {
+      const prolog = createScriptedProlog(async (goal): Promise<QueryResult> => {
+        const text = Array.isArray(goal) ? goal.join(",") : goal;
+        if (text === "findall(Id, kb_entity(Id, _, _), ExistingIds)") {
+          return { success: true, bindings: { ExistingIds: "[]" } };
+        }
+        if (text === "kb_save") {
+          return { success: false, bindings: {}, error: "disk full" };
+        }
+        return { success: true, bindings: {} };
+      });
+
+      await expect(
+        runHarnessedSync({}, { createProlog: () => prolog }),
+      ).rejects.toThrow("Failed to save staging KB: disk full");
+    });
+  });
 
   describe("stale_snapshot classification", () => {
     test(

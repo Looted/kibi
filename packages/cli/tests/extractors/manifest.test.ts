@@ -5,6 +5,8 @@ import {
   ManifestError,
   extractFromManifest,
   extractFromManifestString,
+  extractManifestSymbolRecordsString,
+  readManifestWithCoordinateOverlay,
 } from "../../src/extractors/manifest";
 
 const TEST_DIR = join(process.cwd(), "test-tmp");
@@ -378,6 +380,87 @@ symbols:
 
     expect(results).toHaveLength(1);
     expect(results[0].sourceFile).toBe("src/correct.ts");
+
+    cleanup();
+  });
+
+  test("extracts symbol role, kind, coordinates, and ignores malformed link objects", () => {
+    const results = extractFromManifestString(
+      `symbols:
+  - id: SYM-RICH
+    title: Rich symbol
+    sourceFile: src/rich.ts
+    symbol_kind: function
+    symbol_role: behavioral
+    sourceLine: 10
+    sourceColumn: 2
+    sourceEndLine: 12
+    sourceEndColumn: 4
+    links:
+      - type: implements
+      - target: REQ-MISSING-TYPE
+      - null
+    relationships:
+      - type: executable_for
+        target: TEST-RICH
+`,
+      "documentation/symbols.yaml",
+    );
+
+    expect(results).toHaveLength(1);
+    expect(results[0]).toMatchObject({
+      entity: {
+        id: "SYM-RICH",
+        symbol_kind: "function",
+        symbol_role: "behavioral",
+        sourceLine: 10,
+        sourceColumn: 2,
+        sourceEndLine: 12,
+        sourceEndColumn: 4,
+      },
+      relationships: [
+        { type: "executable_for", from: "SYM-RICH", to: "TEST-RICH" },
+      ],
+    });
+  });
+
+  test("clones manifest symbol records without mutating parsed content", () => {
+    const records = extractManifestSymbolRecordsString(
+      `symbols:
+  - id: SYM-CLONE
+    title: Clone
+    sourceFile: src/clone.ts
+`,
+      "documentation/symbols.yaml",
+    );
+
+    expect(records).toEqual([
+      { id: "SYM-CLONE", title: "Clone", sourceFile: "src/clone.ts" },
+    ]);
+  });
+
+  test("wraps invalid manifest YAML as ManifestError", () => {
+    expect(() =>
+      extractFromManifestString("symbols: [", "documentation/symbols.yaml"),
+    ).toThrow(ManifestError);
+  });
+
+  test("wraps invalid coordinate artifacts as ManifestError", () => {
+    const symbolsPath = setupTestFile(
+      "explicit-coordinates-symbols.yaml",
+      `symbols:
+  - id: SYM-COORD
+    title: Coord
+`,
+    );
+    const coordinatesPath = setupTestFile(
+      "explicit-coordinates.yaml",
+      "coordinates: [",
+    );
+
+    expect(() =>
+      readManifestWithCoordinateOverlay(symbolsPath, coordinatesPath),
+    ).toThrow(ManifestError);
 
     cleanup();
   });

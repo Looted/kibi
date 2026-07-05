@@ -169,6 +169,68 @@ describe("extractFromRelationshipShards", () => {
     expect(results).toHaveLength(1);
     expect(results[0].relationships).toHaveLength(2);
   });
+
+  test("extracts yml shards and skips directories with yaml suffixes", () => {
+    fs.mkdirSync(path.join(relationshipsDir, "nested.yaml"));
+    fs.writeFileSync(
+      path.join(relationshipsDir, "h8.yml"),
+      `relationships:
+  - id: rel-yml
+    type: relates_to
+    from: REQ-001
+    to: ADR-001
+    created_at: "2026-01-01T00:00:00Z"
+    created_by: agent/kibi-mcp
+    source: mcp://kb_upsert`,
+    );
+
+    const results = extractFromRelationshipShards(relationshipsDir);
+
+    expect(results).toHaveLength(1);
+    expect(results[0].shardPath).toEndWith("h8.yml");
+    expect(results[0].relationships).toEqual([
+      {
+        type: "relates_to",
+        from: "REQ-001",
+        to: "ADR-001",
+        metadata: {
+          created_at: "2026-01-01T00:00:00Z",
+          created_by: "agent/kibi-mcp",
+          source: "mcp://kb_upsert",
+        },
+      },
+    ]);
+  });
+
+  test("extracts partial relationship metadata", () => {
+    fs.writeFileSync(
+      path.join(relationshipsDir, "partial.yaml"),
+      `relationships:
+  - id: rel-partial
+    type: relates_to
+    from: REQ-001
+    to: ADR-001
+    created_at: "2026-01-01T00:00:00Z"
+    created_by: agent/kibi-mcp
+    source: mcp://kb_upsert
+    confidence: 0.5`,
+    );
+
+    const results = extractFromRelationshipShards(relationshipsDir);
+
+    expect(results[0].relationships[0]).toEqual({
+      type: "relates_to",
+      from: "REQ-001",
+      to: "ADR-001",
+      metadata: {
+        confidence: 0.5,
+        created_at: "2026-01-01T00:00:00Z",
+        created_by: "agent/kibi-mcp",
+        source: "mcp://kb_upsert",
+      },
+    });
+  });
+
   test("throws on invalid relationship type", () => {
     fs.writeFileSync(
       path.join(relationshipsDir, "d4.yaml"),

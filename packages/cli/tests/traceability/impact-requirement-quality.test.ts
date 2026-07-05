@@ -11,6 +11,7 @@ type RequirementFixture = {
   readonly status?: string;
   readonly tags?: readonly string[];
   readonly relationshipTypes?: readonly string[];
+  readonly relationships?: readonly { readonly type: string; readonly to: string }[];
 };
 
 function makeRequirementResult(fixture: RequirementFixture): ExtractionResult {
@@ -25,11 +26,17 @@ function makeRequirementResult(fixture: RequirementFixture): ExtractionResult {
       source: `documentation/requirements/${fixture.id}.md`,
       ...(fixture.tags !== undefined ? { tags: [...fixture.tags] } : {}),
     },
-    relationships: (fixture.relationshipTypes ?? []).map((type) => ({
-      type,
-      from: fixture.id,
-      to: `${type.toUpperCase()}-TARGET`,
-    })),
+    relationships:
+      fixture.relationships?.map((relationship) => ({
+        type: relationship.type,
+        from: fixture.id,
+        to: relationship.to,
+      })) ??
+      (fixture.relationshipTypes ?? []).map((type) => ({
+        type,
+        from: fixture.id,
+        to: `${type.toUpperCase()}-TARGET`,
+      })),
   };
 }
 
@@ -110,6 +117,98 @@ describe("requirement quality impact diagnostics", () => {
       createRequirementQualityDiagnostics({
         manifestResults: [requirement, ...symbols],
       }),
+    ).toEqual([]);
+  });
+
+  it("does not emit broad requirement review for epic requirements", () => {
+    const requirement = makeRequirementResult({
+      id: "REQ-EPIC",
+      tags: ["epic"],
+    });
+    const symbols = Array.from({ length: 9 }, (_unused, index) =>
+      makeSymbolImplementing("REQ-EPIC", index + 1),
+    );
+
+    expect(
+      createRequirementQualityDiagnostics({
+        manifestResults: [requirement, ...symbols],
+      }),
+    ).toEqual([]);
+  });
+
+  it("emits broad requirement review for scenario, test, and dependent-requirement fanout", () => {
+    const requirement = makeRequirementResult({
+      id: "REQ-FANOUT",
+      relationships: [
+        ...Array.from({ length: 7 }, (_unused, index) => ({
+          type: "specified_by",
+          to: `SCEN-${index + 1}`,
+        })),
+        ...Array.from({ length: 9 }, (_unused, index) => ({
+          type: "verified_by",
+          to: `TEST-${index + 1}`,
+        })),
+        ...Array.from({ length: 3 }, (_unused, index) => ({
+          type: "depends_on",
+          to: `REQ-DEP-${index + 1}`,
+        })),
+      ],
+    });
+    const reverseDependents = Array.from({ length: 3 }, (_unused, index) =>
+      makeRequirementResult({
+        id: `REQ-REVERSE-${index + 1}`,
+        relationships: [{ type: "depends_on", to: "REQ-FANOUT" }],
+      }),
+    );
+
+    const diagnostics = createRequirementQualityDiagnostics({
+      manifestResults: [requirement, ...reverseDependents],
+    });
+
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        id: "broad_requirement_review",
+        evidence: expect.objectContaining({
+          scenarioCount: 7,
+          testCount: 9,
+          dependentRequirementCount: 6,
+        }),
+      }),
+    ]);
+  });
+
+  it("ignores fanout targets with known mismatched entity types", () => {
+    const requirement = makeRequirementResult({
+      id: "REQ-MISMATCHED-TARGETS",
+      relationships: [
+        { type: "specified_by", to: "TEST-NOT-SCENARIO" },
+        { type: "verified_by", to: "SCEN-NOT-TEST" },
+        { type: "depends_on", to: "TEST-NOT-REQ" },
+      ],
+    });
+
+    expect(
+      createRequirementQualityDiagnostics({
+        manifestResults: [
+          requirement,
+          makeTestResult("passing"),
+          {
+            ...makeTestResult("passing"),
+            entity: { ...makeTestResult("passing").entity, id: "TEST-NOT-SCENARIO" },
+          },
+          {
+            ...makeRequirementResult({ id: "SCEN-NOT-TEST" }),
+            entity: {
+              ...makeRequirementResult({ id: "SCEN-NOT-TEST" }).entity,
+              type: "scenario",
+            },
+          },
+          {
+            ...makeTestResult("passing"),
+            entity: { ...makeTestResult("passing").entity, id: "TEST-NOT-REQ" },
+          },
+        ],
+      }).filter((diagnostic) => diagnostic.id === "broad_requirement_review"),
     ).toEqual([]);
   });
 
@@ -200,6 +299,20 @@ describe("requirement quality impact diagnostics", () => {
           makeRequirementResult({
             id: "REQ-NARRATIVE",
             title: "User profile editing experience",
+          }),
+        ],
+      }),
+    ).toEqual([]);
+  });
+
+  it("does not emit quality reviews for closed normative requirements", () => {
+    expect(
+      createRequirementQualityDiagnostics({
+        manifestResults: [
+          makeRequirementResult({
+            id: "REQ-CLOSED",
+            status: "closed",
+            title: "Users must close old sessions",
           }),
         ],
       }),

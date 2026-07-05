@@ -608,6 +608,29 @@ describe("refreshManifestCoordinates", () => {
     expect(written).toContain("new-yaml");
   });
 
+  test("warns when coordinate artifact writing fails", async () => {
+    const entry = makeEntry();
+    mockParseYAML.mockImplementation(() => ({ symbols: [entry] }));
+    mockEnrichSymbolCoordinates.mockImplementation(async (e) => e);
+    mockResolveSymbolsManifestPaths.mockImplementation(() => {
+      throw new Error("config unavailable");
+    });
+    const { messages, restore } = captureWarn();
+
+    await refreshManifestCoordinates(
+      manifestPath,
+      workspaceRoot,
+      Object.assign(manifestDeps(), { refreshSymbolCoordinates: true }),
+    );
+
+    expect(messages[0]).toContain(
+      "Warning: Failed to write symbol-coordinates artifact",
+    );
+    expect(messages[0]).toContain("config unavailable");
+
+    restore();
+  });
+
   test("logs with path.relative for manifest path", async () => {
     const entry = makeEntry();
     mockParseYAML.mockImplementation(() => ({ symbols: [entry] }));

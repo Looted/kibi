@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import * as path from "node:path";
 import { createRepoIgnorePolicy } from "../../src/public/ignore-policy.js";
@@ -8,6 +8,15 @@ describe("createRepoIgnorePolicy", () => {
   function createTempWorkspace(): string {
     const dir = mkdtempSync(path.join(tmpdir(), "ignore-policy-test-"));
     return dir;
+  }
+
+  function withTempWorkspace(run: (dir: string) => void): void {
+    const dir = createTempWorkspace();
+    try {
+      run(dir);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   }
 
   test("hard denylist ignores .sisyphus/drafts", () => {
@@ -89,5 +98,51 @@ describe("createRepoIgnorePolicy", () => {
     const globs = policy.getFastGlobIgnoreGlobs();
     expect(globs.some((g) => g.includes(".sisyphus"))).toBe(true);
     expect(globs.some((g) => g.includes(".kb"))).toBe(true);
+  });
+
+  test("getFastGlobIgnoreGlobs includes rooted, nested, slash, and exclude patterns", () => {
+    withTempWorkspace((dir) => {
+      mkdirSync(path.join(dir, ".git", "info"), { recursive: true });
+      mkdirSync(path.join(dir, "docs", "private"), { recursive: true });
+      writeFileSync(
+        path.join(dir, ".gitignore"),
+        ["/dist/output.txt", "*.log", "!keep.log", ""].join("\n"),
+      );
+      writeFileSync(
+        path.join(dir, ".git", "info", "exclude"),
+        ["cache/tmp.txt", "*.secret", ""].join("\n"),
+      );
+      writeFileSync(
+        path.join(dir, "docs", "private", ".gitignore"),
+        ["/drafts/*.md", "*.tmp", "!allowed.tmp", ""].join("\n"),
+      );
+
+      const globs = createRepoIgnorePolicy(dir).getFastGlobIgnoreGlobs();
+
+      expect(globs).toContain("**/dist/output.txt");
+      expect(globs).toContain("**/*.log");
+      expect(globs).toContain("**/cache/tmp.txt");
+      expect(globs).toContain("**/*.secret");
+      expect(globs).toContain("**/docs/private/drafts/*.md");
+      expect(globs).toContain("**/docs/private/*.tmp");
+      expect(globs).not.toContain("**/keep.log");
+      expect(globs).not.toContain("**/docs/private/allowed.tmp");
+    });
+  });
+
+  test("returns not ignored for the workspace root and unreadable ignore files", () => {
+    withTempWorkspace((dir) => {
+      mkdirSync(path.join(dir, ".gitignore"));
+      const policy = createRepoIgnorePolicy(dir);
+
+      expect(policy.explain(dir)).toEqual({ ignored: false });
+    });
+  });
+
+  test("returns not ignored when the workspace cannot be scanned", () => {
+    const dir = path.join(tmpdir(), "kibi-ignore-policy-missing-root");
+    const policy = createRepoIgnorePolicy(dir);
+
+    expect(policy.explain("src/index.ts")).toEqual({ ignored: false });
   });
 });
