@@ -30,11 +30,22 @@ export interface ExtractionOutput {
   errors: { file: string; message: string }[];
 }
 
+interface ExtractionDependencies {
+  extractFromMarkdown: (file: string) => ExtractionResult;
+  extractFromManifest: (file: string) => ExtractionResult[];
+}
+
+const DEFAULT_EXTRACTION_DEPENDENCIES: ExtractionDependencies = {
+  extractFromMarkdown,
+  extractFromManifest,
+};
+
 export async function processExtractions(
   // implements REQ-003
   changedMarkdownFiles: string[],
   changedManifestFiles: string[],
   validateOnly: boolean,
+  dependencies: ExtractionDependencies = DEFAULT_EXTRACTION_DEPENDENCIES,
 ): Promise<ExtractionOutput> {
   const results: ExtractionResult[] = [];
   const failedCacheKeys = new Set<string>();
@@ -42,7 +53,7 @@ export async function processExtractions(
 
   for (const file of changedMarkdownFiles) {
     try {
-      results.push(extractFromMarkdown(file));
+      results.push(dependencies.extractFromMarkdown(file));
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
 
@@ -65,7 +76,7 @@ export async function processExtractions(
 
   for (const file of changedManifestFiles) {
     try {
-      const manifestResults = extractFromManifest(file);
+      const manifestResults = dependencies.extractFromManifest(file);
       results.push(...manifestResults);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

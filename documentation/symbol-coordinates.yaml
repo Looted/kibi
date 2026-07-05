@@ -1826,6 +1826,12 @@ coordinates:
     sourceEndLine: 79
     sourceFile: packages/cli/src/types/entities.ts
     sourceLine: 79
+  SYM-cli-ExtractionOutput:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 31
+    sourceFile: packages/cli/src/commands/sync/extraction.ts
+    sourceLine: 27
   SYM-cli-Fact:
     sourceColumn: 12
     sourceEndColumn: 62
@@ -2123,9 +2129,9 @@ coordinates:
   SYM-cli-impact-collectSourceChanges:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 168
+    sourceEndLine: 180
     sourceFile: packages/cli/src/public/impact/source-changes.ts
-    sourceLine: 152
+    sourceLine: 164
   SYM-cli-impact-collectSymbols:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2213,9 +2219,9 @@ coordinates:
   SYM-cli-impact-normalizeSourceFile:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 34
+    sourceEndLine: 35
     sourceFile: packages/cli/src/public/impact/source-changes.ts
-    sourceLine: 26
+    sourceLine: 27
   SYM-cli-impact-readImpactManifestResults:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2225,9 +2231,9 @@ coordinates:
   SYM-cli-impact-uniqueSorted:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 38
+    sourceEndLine: 39
     sourceFile: packages/cli/src/public/impact/source-changes.ts
-    sourceLine: 36
+    sourceLine: 37
   SYM-cli-persistEntities:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2240,6 +2246,12 @@ coordinates:
     sourceEndLine: 435
     sourceFile: packages/cli/src/commands/sync/persistence.ts
     sourceLine: 256
+  SYM-cli-processExtractions:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 93
+    sourceFile: packages/cli/src/commands/sync/extraction.ts
+    sourceLine: 43
   SYM-cli-rule-registry-ChecksConfig:
     sourceColumn: 17
     sourceEndColumn: 1
