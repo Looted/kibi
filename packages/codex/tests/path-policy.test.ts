@@ -4,6 +4,7 @@ import {
   extractExplicitPathFields,
   isDirectKbPath,
   isMeaningfulTrackedPath,
+  isSourceImpactRelevantPath,
 } from "../src/path-policy";
 
 describe("Codex hook path policy", () => {
@@ -31,6 +32,16 @@ describe("Codex hook path policy", () => {
     ]);
   });
 
+  test("ignores non-path values while recursively collecting arrays", () => {
+    expect(extractExplicitPathFields(undefined)).toEqual([]);
+    expect(
+      extractExplicitPathFields({
+        path: 7,
+        paths: [" src\\a.ts ", ["src/b.ts", ""]],
+      }),
+    ).toEqual(["src/a.ts", "src/b.ts"]);
+  });
+
   test("tracks source, tests, and documentation paths only", () => {
     expect(isMeaningfulTrackedPath("src/hook-runner.ts")).toBe(true);
     expect(
@@ -42,5 +53,17 @@ describe("Codex hook path policy", () => {
     expect(isMeaningfulTrackedPath("package.json")).toBe(false);
     expect(isMeaningfulTrackedPath("dist/hook-runner.js")).toBe(false);
     expect(isMeaningfulTrackedPath(".kb/config.json")).toBe(false);
+  });
+
+  test("classifies source impact paths while excluding docs tests dist and KB files", () => {
+    expect(
+      isSourceImpactRelevantPath("packages/codex/src/hook-runner.ts"),
+    ).toBe(true);
+    expect(
+      isSourceImpactRelevantPath("packages/codex/tests/hook.test.ts"),
+    ).toBe(false);
+    expect(isSourceImpactRelevantPath("docs/codex.md")).toBe(false);
+    expect(isSourceImpactRelevantPath(".kb/config.json")).toBe(false);
+    expect(isSourceImpactRelevantPath("dist/hook-runner.js")).toBe(false);
   });
 });
