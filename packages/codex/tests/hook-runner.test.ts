@@ -45,6 +45,19 @@ describe("Codex hook runner", () => {
     ).toEqual({ continue: true });
   });
 
+  test("SessionStart treats an empty cwd as missing Kibi config", async () => {
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+
+    const result = await runHook(
+      { event: "SessionStart", cwd: "" },
+      { pluginData },
+    );
+
+    expect(result.continue).toBe(true);
+    expect(result.systemMessage).toContain("Kibi is not initialized");
+  });
+
   test("PreToolUse warns on explicit direct .kb path edits without blocking", async () => {
     const pluginData = createTempRoot("kibi-codex-data-");
     tempRoots.push(pluginData);

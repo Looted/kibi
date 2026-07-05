@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import type { HookState } from "../src/hook-state";
-import { stopFollowupMessage } from "../src/messages";
+import { freshnessReminder, stopFollowupMessage } from "../src/messages";
 
 function state(overrides: Partial<HookState> = {}): HookState {
   return {
@@ -41,6 +41,18 @@ describe("stopFollowupMessage", () => {
     );
   });
 
+  test("returns impact guidance when impact check ran but missed source paths", () => {
+    expect(
+      stopFollowupMessage(
+        state({
+          dirtyPaths: ["packages/core/src/kb.pl"],
+          impactCheckRun: true,
+          impactCheckedPaths: [],
+        }),
+      ),
+    ).toContain("impact-enabled kb_check");
+  });
+
   test("ignores test-only dirty paths", () => {
     expect(
       stopFollowupMessage(
@@ -75,5 +87,14 @@ describe("stopFollowupMessage", () => {
         }),
       ),
     ).toBe("Kibi KB updated (kb_upsert).");
+  });
+
+  test("formats deprecated freshness reminders with singular and plural nouns", () => {
+    expect(freshnessReminder(["docs/a.md"])).toBe(
+      "Kibi: sync or record no-impact after 1 edited file.",
+    );
+    expect(freshnessReminder(["docs/a.md", "docs/b.md"])).toBe(
+      "Kibi: sync or record no-impact after 2 edited files.",
+    );
   });
 });
