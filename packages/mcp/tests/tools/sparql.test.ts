@@ -32,6 +32,17 @@ describe("MCP remote SPARQL tool handler", () => {
     ).rejects.toThrow("SPARQL endpoint must be an http:// or https:// URL");
   });
 
+  test("rejects malformed endpoint URLs as non-remote", async () => {
+    const prolog = { query: mock() } as unknown as PrologProcess;
+
+    await expect(
+      handleSparql(prolog, {
+        endpoint: "not a url",
+        query: "SELECT * WHERE { ?s ?p ?o }",
+      }),
+    ).rejects.toThrow("SPARQL endpoint must be an http:// or https:// URL");
+  });
+
   test("rejects localhost and private network endpoints", async () => {
     const prolog = { query: mock() } as unknown as PrologProcess;
 

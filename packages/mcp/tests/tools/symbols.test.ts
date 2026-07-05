@@ -371,6 +371,60 @@ symbols:
       sourceEndColumn: 5,
     });
   });
+
+  it("preserves valid existing coordinate artifact entries and drops malformed ones", async () => {
+    const yamlWithSymbol = `symbols:
+  - id: test-symbol
+    title: Missing Symbol
+`;
+    writeRefreshFixture(yamlWithSymbol);
+    fs.writeFileSync(
+      refreshCoordinatesPath,
+      [
+        "coordinates:",
+        "  valid-symbol:",
+        "    sourceFile: src/valid.ts",
+        "    sourceLine: 1",
+        "    sourceColumn: 0",
+        "    sourceEndLine: 1",
+        "    sourceEndColumn: 5",
+        "  malformed-symbol: not-a-record",
+      ].join("\n"),
+      "utf-8",
+    );
+
+    const result = await refreshCoordinatesForSymbolId(
+      "test-symbol",
+      refreshTestRoot,
+    );
+
+    expect(result).toEqual({ refreshed: false, found: true });
+    const coordinates = readCoordinatesArtifact(refreshCoordinatesPath);
+    expect(coordinates["valid-symbol"]).toEqual({
+      sourceFile: "src/valid.ts",
+      sourceLine: 1,
+      sourceColumn: 0,
+      sourceEndLine: 1,
+      sourceEndColumn: 5,
+    });
+    expect(coordinates["malformed-symbol"]).toBeUndefined();
+  });
+
+  it("does not create coordinate artifact when a found symbol has no coordinates", async () => {
+    const yamlWithSymbol = `symbols:
+  - id: test-symbol
+    title: Missing Symbol
+`;
+    writeRefreshFixture(yamlWithSymbol);
+
+    const result = await refreshCoordinatesForSymbolId(
+      "test-symbol",
+      refreshTestRoot,
+    );
+
+    expect(result).toEqual({ refreshed: false, found: true });
+    expect(fs.existsSync(refreshCoordinatesPath)).toBe(false);
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -1,8 +1,9 @@
 import { describe, expect, mock, test } from "bun:test";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
+import { RULE_NAMES } from "kibi-cli/public/check-types";
 import { handleKbCheck } from "../../src/tools/check.js";
 
 function emptyFullQualityResult(goal: string) {
@@ -120,6 +121,47 @@ describe("MCP check aggregated defaults", () => {
       expect(result.structuredContent?.count).toBe(0);
       expect(result.structuredContent?.violations).toEqual([]);
       expect(query).toHaveBeenCalledTimes(18);
+    } finally {
+      rmSync(workspaceRoot, { recursive: true, force: true });
+    }
+  });
+
+  test("should pass maxDiagnostics to full quality diagnostics when configured rules are disabled", async () => {
+    const workspaceRoot = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-mcp-check-no-rules-"),
+    );
+
+    try {
+      mkdirSync(path.join(workspaceRoot, ".kb"), { recursive: true });
+      writeFileSync(
+        path.join(workspaceRoot, ".kb", "config.json"),
+        JSON.stringify({
+          checks: {
+            rules: Object.fromEntries([...RULE_NAMES].map((rule) => [rule, false])),
+          },
+        }),
+      );
+      const query = mock(async (goal: string) => {
+        const fullQualityResult = emptyFullQualityResult(goal);
+        if (fullQualityResult !== undefined) {
+          return fullQualityResult;
+        }
+
+        throw new Error(`Unexpected query: ${goal}`);
+      });
+      const prolog = {
+        query,
+        invalidateCache: () => {},
+      } as unknown as PrologProcess;
+
+      const result = await handleKbCheck(prolog, {
+        workspaceRoot,
+        maxDiagnostics: 1,
+      });
+
+      expect(result.structuredContent?.count).toBe(0);
+      expect(result.structuredContent?.violations).toEqual([]);
+      expect(query).toHaveBeenCalled();
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });
     }
