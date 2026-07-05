@@ -1,4 +1,8 @@
 import { describe, expect, it } from "bun:test";
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
+import type { ExtractionResult } from "../../src/extractors/markdown.js";
 import type { ExtractionResult } from "../../src/extractors/markdown.js";
 import {
   createSemanticReviewDiagnostics,
@@ -219,26 +223,31 @@ describe("impact diagnostics", () => {
   });
 
   it("reads source files from workspace root when no staged content map is supplied", () => {
-    const workspaceRoot = process.cwd();
-    const sourceFile = "packages/cli/tests/fixtures/impact-diagnostics-source.ts";
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-impact-test-"));
+    const sourceFile = path.join(tmpDir, "fixture.ts");
+    fs.writeFileSync(sourceFile, "export class FixtureComponent {\n  value = \"ok\";\n}");
 
-    const diagnostics = createSymbolGranularityDiagnostics({
-      manifestResults: [
-        {
-          ...makeManifestResult("FixtureComponent"),
-          sourceFile,
-        },
-      ],
-      symbolsByFile: new Map(),
-      workspaceRoot,
-    });
+    try {
+      const diagnostics = createSymbolGranularityDiagnostics({
+        manifestResults: [
+          {
+            ...makeManifestResult("FixtureComponent"),
+            sourceFile,
+          },
+        ],
+        symbolsByFile: new Map(),
+        workspaceRoot: tmpDir,
+      });
 
-    expect(diagnostics).toEqual([
-      expect.objectContaining({
-        id: "symbol_granularity_violation",
-        message: expect.stringContaining("FixtureComponent.value"),
-      }),
-    ]);
+      expect(diagnostics).toEqual([
+        expect.objectContaining({
+          id: "symbol_granularity_violation",
+          message: expect.stringContaining("FixtureComponent.value"),
+        }),
+      ]);
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
   });
 
   it("skips missing source files when manifest entries cannot be read", () => {
