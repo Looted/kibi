@@ -16,16 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import {
-  afterAll,
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  mock,
-  test,
-} from "bun:test";
-import type { ExtractionResult } from "../../../src/extractors/markdown.js";
+  type ExtractionResult,
+  FrontmatterError,
+} from "../../../src/extractors/markdown.js";
 
 // --- Mocks ---
 
@@ -37,38 +32,7 @@ const mockExtractFromManifest = mock((_file: string): ExtractionResult[] => {
   throw new Error("not implemented");
 });
 
-mock.module("../../../src/extractors/markdown.js", () => ({
-  extractFromMarkdown: mockExtractFromMarkdown,
-  FrontmatterError: class FrontmatterError extends Error {
-    public classification: string;
-    public hint: string;
-    public originalError?: string;
-    constructor(
-      message: string,
-      public filePath: string,
-      options?: {
-        classification?: string;
-        hint?: string;
-        originalError?: string;
-      },
-    ) {
-      super(message);
-      this.name = "FrontmatterError";
-      this.classification = options?.classification || "Generic Error";
-      this.hint = options?.hint || "Check the file for syntax errors.";
-      this.originalError = options?.originalError;
-    }
-  },
-}));
-
-mock.module("../../../src/extractors/manifest.js", () => ({
-  extractFromManifest: mockExtractFromManifest,
-}));
-
-// Note: We don't mock cache.js because it pollutes other tests.
-// The toCacheKey function is used but the tests don't rely on its specific return value.
-
-import { processExtractions } from "../../../src/commands/sync/extraction.js";
+import { processExtractions as processExtractionsBase } from "../../../src/commands/sync/extraction.js";
 
 // --- Helpers ---
 
@@ -90,10 +54,21 @@ function makeResult(
   };
 }
 
-// Import FrontmatterError from mocked module for use in tests
-const { FrontmatterError } = await import(
-  "../../../src/extractors/markdown.js"
-);
+async function processExtractions(
+  changedMarkdownFiles: string[],
+  changedManifestFiles: string[],
+  validateOnly: boolean,
+) {
+  return await processExtractionsBase(
+    changedMarkdownFiles,
+    changedManifestFiles,
+    validateOnly,
+    {
+      extractFromMarkdown: mockExtractFromMarkdown,
+      extractFromManifest: mockExtractFromManifest,
+    },
+  );
+}
 
 // --- Tests ---
 
@@ -101,10 +76,16 @@ describe("processExtractions", () => {
   beforeEach(() => {
     mockExtractFromMarkdown.mockClear();
     mockExtractFromManifest.mockClear();
-  });
-
-  afterAll(() => {
-    mock.restore();
+    mockExtractFromMarkdown.mockImplementation(
+      (_file: string): ExtractionResult => {
+        throw new Error("not implemented");
+      },
+    );
+    mockExtractFromManifest.mockImplementation(
+      (_file: string): ExtractionResult[] => {
+        throw new Error("not implemented");
+      },
+    );
   });
 
   test("returns empty results, no errors, no failedCacheKeys for empty inputs", async () => {
@@ -278,10 +259,6 @@ describe("processExtractions edge cases", () => {
   beforeEach(() => {
     mockExtractFromMarkdown.mockClear();
     mockExtractFromManifest.mockClear();
-  });
-
-  afterAll(() => {
-    mock.restore();
   });
 
   test("handles empty file list with manifest", async () => {
