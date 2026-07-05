@@ -949,3 +949,61 @@ afterAll(() => {
   resetVscodeMock();
   mock.restore();
 });
+
+describe("KibiCodeLensProvider - remaining branch coverage", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    configureVscodeMock();
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-cl-remain-"));
+    mockQueryImpl = () => [];
+    createdWatchers.length = 0;
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test("resolveCodeLens uses cached data without calling CLI", async () => {
+    const testFile = path.join(tmpDir, "src", "main.ts");
+    fs.mkdirSync(path.dirname(testFile), { recursive: true });
+    fs.writeFileSync(testFile, "// main", "utf8");
+    writeTestSymbols(tmpDir, [{ id: "SYM-CACHE", title: "cache", sourceFile: "src/main.ts", sourceLine: 1, links: [] }]);
+    const cache = new RelationshipCache();
+    cache.set("codelens:rel:SYM-CACHE", { data: [{ type: "implements", from: "SYM-CACHE", to: "REQ-001" }], timestamp: Date.now() });
+    const provider = new KibiCodeLensProvider(tmpDir, cache);
+    const lenses = provider.provideCodeLenses(makeDoc(testFile), noCancel);
+    if (!lenses || lenses.length === 0) throw new Error("no lenses");
+    let queryCalled = false;
+    mockQueryImpl = () => { queryCalled = true; return []; };
+    const resolved = await provider.resolveCodeLens(lenses[0], noCancel);
+    expect(queryCalled).toBe(false);
+    expect(queryCalled).toBe(false);
+    expect(resolved?.command?.command).toBe("kibi.browseLinkedEntities");
+  });
+
+  test("resolveCodeLens with guards and non-guard relationships", async () => {
+    const testFile = path.join(tmpDir, "src", "guarded.ts");
+    fs.mkdirSync(path.dirname(testFile), { recursive: true });
+    fs.writeFileSync(testFile, "// guarded", "utf8");
+    writeTestSymbols(tmpDir, [{ id: "SYM-G", title: "g", sourceFile: "src/guarded.ts", sourceLine: 1, links: [] }]);
+    mockQueryImpl = () => [
+      { type: "guards", from: "SYM-G", to: "FLAG-001" },
+      { type: "implements", from: "SYM-G", to: "REQ-001" },
+    ];
+    const provider = new KibiCodeLensProvider(tmpDir, new RelationshipCache());
+    const lenses = provider.provideCodeLenses(makeDoc(testFile), noCancel);
+    if (!lenses || lenses.length === 0) throw new Error("no lenses");
+    const resolved = await provider.resolveCodeLens(lenses[0], noCancel);
+    expect(resolved?.command?.title).toContain("g");
+  });
+
+  test("provideCodeLenses returns null for no-match document", () => {
+    const testFile = path.join(tmpDir, "src", "no-match.ts");
+    fs.mkdirSync(path.dirname(testFile), { recursive: true });
+    fs.writeFileSync(testFile, "// no-match", "utf8");
+    writeTestSymbols(tmpDir, [{ id: "SYM-X", title: "x", sourceFile: "other/file.ts", sourceLine: 1, links: [] }]);
+    const provider = new KibiCodeLensProvider(tmpDir, new RelationshipCache());
+    expect(provider.provideCodeLenses(makeDoc(testFile), noCancel)).toBeNull();
+  });
+});
