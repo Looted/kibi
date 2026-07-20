@@ -3,7 +3,7 @@ id: FACT-POL-027
 title: Repository dogfoods local kibi-mcp, kibi-opencode, and kibi-cursor builds
 status: active
 created_at: 2026-03-20T00:00:00Z
-updated_at: 2026-06-09T00:00:00Z
+updated_at: 2026-07-19T20:00:00Z
 source: documentation/facts/FACT-POL-027.md
 tags:
   - dogfood
@@ -12,10 +12,12 @@ tags:
   - release
   - build
   - npm
+  - worktree
 links:
   - ADR-013
   - ADR-014
   - FACT-034
+  - FACT-cursor-worktree-mcp-launch
 fact_kind: meta
 ---
 
@@ -24,7 +26,7 @@ The repository's own OpenCode and Cursor setups do not consume the published `ki
 - `opencode.json` starts the local MCP server through a shell wrapper that resolves the repository root with `git rev-parse --show-toplevel` before running `packages/mcp/bin/kibi-mcp --diagnostic-mode`
 - `opencode.json` keeps `"plugin": []` so OpenCode does not auto-install the published `kibi-opencode` package
 - `.opencode/plugins/kibi.ts` re-exports `../../packages/opencode/dist/index.js`
-- `.cursor/mcp.json` uses the same repo-root MCP wrapper for Cursor dogfood
+- `.cursor/mcp.json` uses a worktree-aware MCP wrapper: prefer the current checkout's `packages/mcp/bin/kibi-mcp` when that binary and `packages/mcp/dist` exist, otherwise fall back to the primary checkout via `git-common-dir` (see `FACT-cursor-worktree-mcp-launch`)
 - `.cursor/hooks.json` runs `packages/cursor/dist/hook-runner.js` for advisory editor hooks
 - `scripts/sync-cursor-dogfood.sh` copies plugin rules into `.cursor/rules/` after `bun run build:cursor`
 - `.cursor-plugin/marketplace.json` exposes `kibi-cursor` from `plugins/kibi-cursor` (symlink to `packages/cursor`) for workspace marketplace installs
