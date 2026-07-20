@@ -1193,7 +1193,9 @@ describe("persistRelationships", () => {
       console.warn = origWarn;
     }
 
-    const warnOutput = warnSpy.mock.calls.map((call) => call.join(" ")).join("\n");
+    const warnOutput = warnSpy.mock.calls
+      .map((call) => call.join(" "))
+      .join("\n");
     expect(warnOutput).toContain("REQ-MISSING");
     expect(warnOutput).toContain("Create the missing docs");
   });
@@ -1226,7 +1228,9 @@ describe("persistRelationships", () => {
       console.warn = origWarn;
     }
 
-    const warnOutput = warnSpy.mock.calls.map((call) => call.join(" ")).join("\n");
+    const warnOutput = warnSpy.mock.calls
+      .map((call) => call.join(" "))
+      .join("\n");
     expect(warnOutput).toContain("relationship types and directions");
   });
 

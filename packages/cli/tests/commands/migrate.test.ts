@@ -183,7 +183,9 @@ describe("kibi migrate", () => {
     const result = runKibi(["migrate", "--dry-run"], tmpDir);
 
     expect(result.status).toBe(0);
-    expect(result.stdout).toContain('schemaVersion from invalid ("not-a-number")');
+    expect(result.stdout).toContain(
+      'schemaVersion from invalid ("not-a-number")',
+    );
   });
 
   test("without --yes warns and exits 0 without writing files", () => {

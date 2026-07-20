@@ -15,11 +15,13 @@ import type { PrologProcess, QueryResult } from "../../../src/prolog.js";
 
 function makeQueryOnlyProlog(): PrologProcess {
   const prolog = {
-    query: mock(async (): Promise<QueryResult> => ({
-      success: false,
-      bindings: {},
-      error: "Query failed",
-    })),
+    query: mock(
+      async (): Promise<QueryResult> => ({
+        success: false,
+        bindings: {},
+        error: "Query failed",
+      }),
+    ),
   };
 
   return prolog as unknown as PrologProcess;
