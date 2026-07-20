@@ -11,6 +11,8 @@ describe("session direct coverage smoke", () => {
     resetSessionStateForTests();
     _resetSessionDepsForTests();
 
-    expect(() => ensureBranchKbExists(process.cwd(), "direct-smoke")).not.toThrow();
+    expect(() =>
+      ensureBranchKbExists(process.cwd(), "direct-smoke"),
+    ).not.toThrow();
   });
 });
