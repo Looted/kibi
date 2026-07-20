@@ -1,5 +1,20 @@
 # kibi-opencode
 
+## 0.18.1
+
+### Patch Changes
+
+- da91ada: OpenCode guidance now emits safer Kibi impact-check snippets for edited source paths and cleaner advisory diagnostics during background maintenance. Paths with quotes or other JSON-sensitive characters are escaped correctly, and advisory failures stay focused on actionable Kibi review work instead of noisy implementation detail.
+
+  - JSON-escape edited source paths before embedding them in `kb_check` guidance.
+  - Clean advisory diagnostic handling in the OpenCode sync scheduler.
+  - Add regression coverage for source-path escaping and advisory diagnostic quality.
+
+- Updated dependencies [6830005]
+- Updated dependencies [c7126dd]
+- Updated dependencies [da9da64]
+  - kibi-cli@0.14.1
+
 ## 0.18.0
 
 ### Minor Changes
