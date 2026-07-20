@@ -11,7 +11,10 @@ type RequirementFixture = {
   readonly status?: string;
   readonly tags?: readonly string[];
   readonly relationshipTypes?: readonly string[];
-  readonly relationships?: readonly { readonly type: string; readonly to: string }[];
+  readonly relationships?: readonly {
+    readonly type: string;
+    readonly to: string;
+  }[];
 };
 
 function makeRequirementResult(fixture: RequirementFixture): ExtractionResult {
@@ -194,7 +197,10 @@ describe("requirement quality impact diagnostics", () => {
           makeTestResult("passing"),
           {
             ...makeTestResult("passing"),
-            entity: { ...makeTestResult("passing").entity, id: "TEST-NOT-SCENARIO" },
+            entity: {
+              ...makeTestResult("passing").entity,
+              id: "TEST-NOT-SCENARIO",
+            },
           },
           {
             ...makeRequirementResult({ id: "SCEN-NOT-TEST" }),
