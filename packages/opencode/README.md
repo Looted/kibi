@@ -31,7 +31,7 @@ Use an exact semver entry when you want a fixed plugin version:
 
 ```json
 {
-  "plugin": ["kibi-opencode@0.15.0"]
+  "plugin": ["kibi-opencode@0.18.1"]
 }
 ```
 
