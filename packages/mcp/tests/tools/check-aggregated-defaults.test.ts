@@ -137,7 +137,9 @@ describe("MCP check aggregated defaults", () => {
         path.join(workspaceRoot, ".kb", "config.json"),
         JSON.stringify({
           checks: {
-            rules: Object.fromEntries([...RULE_NAMES].map((rule) => [rule, false])),
+            rules: Object.fromEntries(
+              [...RULE_NAMES].map((rule) => [rule, false]),
+            ),
           },
         }),
       );

@@ -3,6 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
+import { evaluateProseCoverageCorpus } from "../../src/semantic-advisor/prose-coverage-evaluator.js";
 import { jsonSchemaToZod } from "../../src/server/json-schema-to-zod.js";
 import { formatImpactText } from "../../src/tools/check-format.js";
 import { collectQueryPlanSafetyViolations } from "../../src/tools/query-plan-safety.js";
@@ -15,7 +16,6 @@ import {
 import { handleSparql } from "../../src/tools/sparql.js";
 import { handleKbSuggestPredicates } from "../../src/tools/suggest-predicates.js";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
-import { evaluateProseCoverageCorpus } from "../../src/semantic-advisor/prose-coverage-evaluator.js";
 
 type QueryResult = {
   readonly success: boolean;
@@ -68,16 +68,18 @@ describe("coverage gap branches", () => {
   });
 
   test("collectQueryPlanSafetyViolations maps unsafe negation clauses", () => {
-    const filePath = tempFile([
-      "safe_rule(Id) :-",
-      "  kb_entity(Id, req, _),",
-      "  \\+ kb_relationship(specified_by, Id, _).",
-      "",
-      "unsafe_rule(Id) :-",
-      "  \\+ kb_relationship(specified_by, Id, _),",
-      "  kb_entity(Id, req, _).",
-      "",
-    ].join("\n"));
+    const filePath = tempFile(
+      [
+        "safe_rule(Id) :-",
+        "  kb_entity(Id, req, _),",
+        "  \\+ kb_relationship(specified_by, Id, _).",
+        "",
+        "unsafe_rule(Id) :-",
+        "  \\+ kb_relationship(specified_by, Id, _),",
+        "  kb_entity(Id, req, _).",
+        "",
+      ].join("\n"),
+    );
 
     const violations = collectQueryPlanSafetyViolations(filePath);
 
@@ -139,8 +141,10 @@ describe("coverage gap branches", () => {
       query: mock(async (goal: string) => {
         queries.push(goal);
         if (goal.includes("UNKNOWN")) return { success: false };
-        if (goal.includes("REQ-1")) return { success: true, bindings: { Type: "'req'" } };
-        if (goal.includes("FACT-1")) return { success: true, bindings: { Type: "fact" } };
+        if (goal.includes("REQ-1"))
+          return { success: true, bindings: { Type: "'req'" } };
+        if (goal.includes("FACT-1"))
+          return { success: true, bindings: { Type: "fact" } };
         if (goal.includes("validate_relationship")) return { success: false };
         return { success: false };
       }),
@@ -167,7 +171,8 @@ describe("coverage gap branches", () => {
       query: mock(async (goal: string) => {
         queries.push(goal);
         if (goal.includes("THROW")) throw new Error("lookup failed");
-        if (goal.includes("TEST-1")) return { success: true, bindings: { Type: "test" } };
+        if (goal.includes("TEST-1"))
+          return { success: true, bindings: { Type: "test" } };
         return { success: true };
       }),
     };
@@ -187,23 +192,46 @@ describe("coverage gap branches", () => {
 
   test("handleSparql rejects invalid positive-timeout inputs before Prolog", async () => {
     await expect(
-      handleSparql({ query: mock(async () => ({ success: true })) } as unknown as Parameters<
-        typeof handleSparql
-      >[0], {
-        endpoint: "https://query.wikidata.org/sparql",
-        query: "SELECT * WHERE { ?s ?p ?o }",
-        timeoutMs: 0,
-      }),
+      handleSparql(
+        {
+          query: mock(async () => ({ success: true })),
+        } as unknown as Parameters<typeof handleSparql>[0],
+        {
+          endpoint: "https://query.wikidata.org/sparql",
+          query: "SELECT * WHERE { ?s ?p ?o }",
+          timeoutMs: 0,
+        },
+      ),
     ).rejects.toThrow("timeoutMs must be a positive number");
   });
 
   test("prose coverage evaluator reports missing, kind, predicate, property, and operator failures", () => {
     const result = evaluateProseCoverageCorpus([
-      { id: "missing", text: "Plain descriptive prose.", expected: { kind: "predicate" } },
-      { id: "kind", text: "Only admins can delete records.", expected: { kind: "strict_property" } },
-      { id: "predicate", text: "Only admins can delete records.", expected: { kind: "predicate", predicate_name: "state_transition" } },
-      { id: "property", text: "Sessions must be at most 3 active sessions.", expected: { kind: "strict_property", property_key: "wrong" } },
-      { id: "operator", text: "Sessions must be at most 3 active sessions.", expected: { kind: "strict_property", operator: "gte" } },
+      {
+        id: "missing",
+        text: "Plain descriptive prose.",
+        expected: { kind: "predicate" },
+      },
+      {
+        id: "kind",
+        text: "Only admins can delete records.",
+        expected: { kind: "strict_property" },
+      },
+      {
+        id: "predicate",
+        text: "Only admins can delete records.",
+        expected: { kind: "predicate", predicate_name: "state_transition" },
+      },
+      {
+        id: "property",
+        text: "Sessions must be at most 3 active sessions.",
+        expected: { kind: "strict_property", property_key: "wrong" },
+      },
+      {
+        id: "operator",
+        text: "Sessions must be at most 3 active sessions.",
+        expected: { kind: "strict_property", operator: "gte" },
+      },
     ]);
 
     expect(result.summary.failed).toBe(5);
@@ -242,18 +270,21 @@ describe("coverage gap branches", () => {
 
   test("upsert validates value-field hints and nested list parsing", async () => {
     await expect(
-      handleKbUpsert({ query: mock(async () => ({ success: true })) } as unknown as Parameters<
-        typeof handleKbUpsert
-      >[0], {
-        type: "fact",
-        id: "FACT-VALUE-HINT",
-        properties: {
-          title: "Value hint",
-          status: "open",
-          fact_kind: "property_value",
-          value: true,
+      handleKbUpsert(
+        {
+          query: mock(async () => ({ success: true })),
+        } as unknown as Parameters<typeof handleKbUpsert>[0],
+        {
+          type: "fact",
+          id: "FACT-VALUE-HINT",
+          properties: {
+            title: "Value hint",
+            status: "open",
+            fact_kind: "property_value",
+            value: true,
+          },
         },
-      }),
+      ),
     ).rejects.toThrow("value_bool: true");
 
     const goals: string[] = [];
@@ -265,11 +296,17 @@ describe("coverage gap branches", () => {
           if (goal.includes("findall(To, kb_relationship(relates_to")) {
             return {
               success: true,
-              bindings: { Targets: "['A,B', [nested,value], plain]", Sources: "[]" },
+              bindings: {
+                Targets: "['A,B', [nested,value], plain]",
+                Sources: "[]",
+              },
             };
           }
           if (goal.includes("findall")) {
-            return { success: true, bindings: { Targets: "[]", Sources: "[]" } };
+            return {
+              success: true,
+              bindings: { Targets: "[]", Sources: "[]" },
+            };
           }
           return { success: true };
         }),
