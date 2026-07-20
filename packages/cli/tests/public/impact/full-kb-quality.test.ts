@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { collectFullKbQualityDiagnostics } from "../../../src/public/impact/full-kb-quality.js";
 import { PrologProcess, type QueryResult } from "../../../src/prolog.js";
+import { collectFullKbQualityDiagnostics } from "../../../src/public/impact/full-kb-quality.js";
 
 const entityRows = [
   [
@@ -22,7 +22,9 @@ const entityRows = [
 
 function makeProlog(): PrologProcess {
   const prolog = new PrologProcess();
-  prolog.query = async (goal: string | readonly string[]): Promise<QueryResult> => {
+  prolog.query = async (
+    goal: string | readonly string[],
+  ): Promise<QueryResult> => {
     const text = Array.isArray(goal) ? goal.join(",") : goal;
     if (text.includes("kb_entity")) {
       return {
@@ -61,12 +63,13 @@ describe("collectFullKbQualityDiagnostics", () => {
     expect(diagnostics.map((diagnostic) => diagnostic.id)).toContain(
       "coverage_depth_review",
     );
-    expect(diagnostics.find((diagnostic) => diagnostic.entityId === "REQ-NORMATIVE"))
-      .toEqual(
-        expect.objectContaining({
-          source: "docs/REQ-NORMATIVE.md",
-        }),
-      );
+    expect(
+      diagnostics.find((diagnostic) => diagnostic.entityId === "REQ-NORMATIVE"),
+    ).toEqual(
+      expect.objectContaining({
+        source: "docs/REQ-NORMATIVE.md",
+      }),
+    );
   });
 
   it("passes hard violation ids and caps diagnostics", async () => {

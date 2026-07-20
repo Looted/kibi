@@ -179,14 +179,15 @@ describe("createCoverageDepthQualityDiagnostics", () => {
       [{ type: "verified_by", from: "SCEN-INTEGRATION", to: "TEST-SCEN-INT" }],
     );
     const e2eScenario = result({ id: "SCEN-E2E", type: "scenario" });
-    const e2eTest = result({
-      id: "TEST-SCEN-E2E",
-      type: "test",
-      status: "passing",
-      tags: ["smoke", "E2E"],
-    }, [
-      { type: "validates", from: "TEST-SCEN-E2E", to: "SCEN-E2E" },
-    ]);
+    const e2eTest = result(
+      {
+        id: "TEST-SCEN-E2E",
+        type: "test",
+        status: "passing",
+        tags: ["smoke", "E2E"],
+      },
+      [{ type: "validates", from: "TEST-SCEN-E2E", to: "SCEN-E2E" }],
+    );
 
     expect(
       createCoverageDepthQualityDiagnostics([

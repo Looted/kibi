@@ -101,12 +101,9 @@ describe("analyzeChangedFileImpact", () => {
       );
       writeFileSync(
         sourcePath,
-        [
-          "export function upload(): string {",
-          "  return 'ok';",
-          "}",
-          "",
-        ].join("\n"),
+        ["export function upload(): string {", "  return 'ok';", "}", ""].join(
+          "\n",
+        ),
       );
 
       const result = analyzeChangedFileImpact({
