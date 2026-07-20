@@ -9,7 +9,10 @@ import {
 test("cleanupAbandonedStagingDirectories removes dead process staging directories with default liveness check", async () => {
   const stalePath = "/repo/.kb/branches/main.staging.999999999.1000";
   const existsSync = mock((value: PathLike) => value === stalePath);
-  const fg = Object.assign(mock(async () => [stalePath]), fastGlob);
+  const fg = Object.assign(
+    mock(async () => [stalePath]),
+    fastGlob,
+  );
   const rmSync = mock((_value: PathLike, _options?: unknown) => undefined);
 
   await cleanupAbandonedStagingDirectories(
@@ -27,7 +30,10 @@ test("cleanupAbandonedStagingDirectories escapes branch names when matching cand
   const stalePath = "/repo/.kb/branches/feature+a.staging.111.1000";
   const otherPath = "/repo/.kb/branches/featurexa.staging.222.1000";
   const existsSync = mock((value: PathLike) => value === stalePath);
-  const fg = Object.assign(mock(async () => [stalePath, otherPath]), fastGlob);
+  const fg = Object.assign(
+    mock(async () => [stalePath, otherPath]),
+    fastGlob,
+  );
   const rmSync = mock((_value: PathLike, _options?: unknown) => undefined);
 
   await cleanupAbandonedStagingDirectories(
