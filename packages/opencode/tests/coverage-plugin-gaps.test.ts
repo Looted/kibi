@@ -3,11 +3,18 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { _setConsoleError } from "../src/logger.js";
 import kibiOpencodePlugin from "../src/plugin.js";
 import type { PluginInput } from "../src/plugin.js";
-import type { SchedulerOptions, SyncRunMetadata, SyncScheduler } from "../src/scheduler.js";
-import { _setConsoleError } from "../src/logger.js";
-import { getSessionTracker, resetSessionTracker } from "../src/session-tracker.js";
+import type {
+  SchedulerOptions,
+  SyncRunMetadata,
+  SyncScheduler,
+} from "../src/scheduler.js";
+import {
+  getSessionTracker,
+  resetSessionTracker,
+} from "../src/session-tracker.js";
 
 type ToastPayload = {
   variant?: "info" | "success" | "warning" | "error";
@@ -75,7 +82,16 @@ function writePluginConfig(
   );
 }
 
-function makeClient(extras: Partial<NonNullable<PluginInput["client"]>> & { tui?: { executeCommand?: (command: string, _args?: object) => void | Promise<void> } } = {}): CapturedClient {
+function makeClient(
+  extras: Partial<NonNullable<PluginInput["client"]>> & {
+    tui?: {
+      executeCommand?: (
+        command: string,
+        _args?: object,
+      ) => void | Promise<void>;
+    };
+  } = {},
+): CapturedClient {
   const logs: Record<string, unknown>[] = [];
   const toasts: ToastPayload[] = [];
   return {
@@ -112,15 +128,6 @@ function installSchedulerStub(scheduled: ScheduledSync[]): void {
     flush: async () => {},
     dispose: () => {},
   });
-}
-
-function bodyMessage(payload: Record<string, unknown>): string {
-  const body = payload.body;
-  if (body && typeof body === "object" && "message" in body) {
-    const message = (body as { message?: unknown }).message;
-    return typeof message === "string" ? message : "";
-  }
-  return "";
 }
 
 function logEvents(logs: readonly Record<string, unknown>[]): string[] {
@@ -227,8 +234,14 @@ describe("plugin coverage gaps - scheduler onRunComplete closures", () => {
     ]);
     try {
       fs.mkdirSync(path.join(otherDir, ".git"), { recursive: true });
-      fs.writeFileSync(path.join(otherDir, ".git", "HEAD"), "ref: refs/heads/feature\n");
-      fs.writeFileSync(path.join(otherDir, "src", "scoped.ts"), "export const scoped = true;\n");
+      fs.writeFileSync(
+        path.join(otherDir, ".git", "HEAD"),
+        "ref: refs/heads/feature\n",
+      );
+      fs.writeFileSync(
+        path.join(otherDir, "src", "scoped.ts"),
+        "export const scoped = true;\n",
+      );
       const hooks = await kibiOpencodePlugin({
         directory: rootDir,
         worktree: rootDir,
@@ -236,7 +249,10 @@ describe("plugin coverage gaps - scheduler onRunComplete closures", () => {
       });
 
       await hooks.event?.({
-        event: { type: "file.edited", properties: { file: path.join(otherDir, "src", "scoped.ts") } },
+        event: {
+          type: "file.edited",
+          properties: { file: path.join(otherDir, "src", "scoped.ts") },
+        },
       });
       await flushPromises();
 
@@ -285,8 +301,14 @@ describe("plugin coverage gaps - scheduler onRunComplete closures", () => {
     ]);
     try {
       fs.mkdirSync(path.join(otherDir, ".git"), { recursive: true });
-      fs.writeFileSync(path.join(otherDir, ".git", "HEAD"), "ref: refs/heads/feature\n");
-      fs.writeFileSync(path.join(otherDir, "src", "checked.ts"), "export const checked = true;\n");
+      fs.writeFileSync(
+        path.join(otherDir, ".git", "HEAD"),
+        "ref: refs/heads/feature\n",
+      );
+      fs.writeFileSync(
+        path.join(otherDir, "src", "checked.ts"),
+        "export const checked = true;\n",
+      );
       const hooks = await kibiOpencodePlugin({
         directory: rootDir,
         worktree: rootDir,
@@ -294,7 +316,10 @@ describe("plugin coverage gaps - scheduler onRunComplete closures", () => {
       });
 
       await hooks.event?.({
-        event: { type: "file.edited", properties: { file: path.join(otherDir, "src", "checked.ts") } },
+        event: {
+          type: "file.edited",
+          properties: { file: path.join(otherDir, "src", "checked.ts") },
+        },
       });
 
       // check_exit code path executes without throwing
@@ -333,8 +358,14 @@ describe("plugin coverage gaps - scheduler onRunComplete closures", () => {
     ]);
     try {
       fs.mkdirSync(path.join(otherDir, ".git"), { recursive: true });
-      fs.writeFileSync(path.join(otherDir, ".git", "HEAD"), "ref: refs/heads/feature\n");
-      fs.writeFileSync(path.join(otherDir, "src", "trail.ts"), "export const trail = true;\n");
+      fs.writeFileSync(
+        path.join(otherDir, ".git", "HEAD"),
+        "ref: refs/heads/feature\n",
+      );
+      fs.writeFileSync(
+        path.join(otherDir, "src", "trail.ts"),
+        "export const trail = true;\n",
+      );
       const hooks = await kibiOpencodePlugin({
         directory: rootDir,
         worktree: rootDir,
@@ -342,7 +373,10 @@ describe("plugin coverage gaps - scheduler onRunComplete closures", () => {
       });
 
       await hooks.event?.({
-        event: { type: "file.edited", properties: { file: path.join(otherDir, "src", "trail.ts") } },
+        event: {
+          type: "file.edited",
+          properties: { file: path.join(otherDir, "src", "trail.ts") },
+        },
       });
       await flushPromises();
 
@@ -361,7 +395,10 @@ describe("plugin coverage gaps - deleted file lifecycle", () => {
     installSchedulerStub(scheduled);
     globals.__kibi_test_schedule_startup_notify = () => {};
     try {
-      fs.writeFileSync(path.join(tmpDir, "documentation", "requirements", "REQ-del.md"), "---\npriority: must\n---\nTest\n");
+      fs.writeFileSync(
+        path.join(tmpDir, "documentation", "requirements", "REQ-del.md"),
+        "---\npriority: must\n---\nTest\n",
+      );
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: tmpDir,
@@ -369,15 +406,27 @@ describe("plugin coverage gaps - deleted file lifecycle", () => {
 
       // First edit so path-kind cache is populated
       await hooks.event?.({
-        event: { type: "file.edited", properties: { file: "documentation/requirements/REQ-del.md" } },
+        event: {
+          type: "file.edited",
+          properties: { file: "documentation/requirements/REQ-del.md" },
+        },
       });
       // Now delete; lastKnownKind will be truthy
       await hooks.event?.({
-        event: { type: "file.deleted", properties: { file: "documentation/requirements/REQ-del.md" } },
+        event: {
+          type: "file.deleted",
+          properties: { file: "documentation/requirements/REQ-del.md" },
+        },
       });
 
-      expect(scheduled.some((entry) => entry.reason === "file.deleted")).toBe(true);
-      expect(scheduled.some((entry) => entry.filePath === "documentation/requirements/REQ-del.md")).toBe(true);
+      expect(scheduled.some((entry) => entry.reason === "file.deleted")).toBe(
+        true,
+      );
+      expect(
+        scheduled.some(
+          (entry) => entry.filePath === "documentation/requirements/REQ-del.md",
+        ),
+      ).toBe(true);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -396,10 +445,15 @@ describe("plugin coverage gaps - deleted file lifecycle", () => {
       });
 
       await hooks.event?.({
-        event: { type: "file.deleted", properties: { file: "node_modules/removed.ts" } },
+        event: {
+          type: "file.deleted",
+          properties: { file: "node_modules/removed.ts" },
+        },
       });
 
-      expect(scheduled.some((entry) => entry.reason === "file.deleted")).toBe(false);
+      expect(scheduled.some((entry) => entry.reason === "file.deleted")).toBe(
+        false,
+      );
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -812,7 +866,10 @@ describe("plugin coverage gaps - cache hit with active recent edits", () => {
 
       // First event: cache miss; populates cache
       await hooks.event?.({
-        event: { type: "file.edited", properties: { file: "src/cached-active.ts" } },
+        event: {
+          type: "file.edited",
+          properties: { file: "src/cached-active.ts" },
+        },
       });
       const firstOutput = { system: [] as string[] };
       await hooks["experimental.chat.system.transform"]?.(
@@ -821,11 +878,16 @@ describe("plugin coverage gaps - cache hit with active recent edits", () => {
       );
       // Second event: cache hit; logger.info emits smart_enforcement_cache cache_state: hit
       await hooks.event?.({
-        event: { type: "file.edited", properties: { file: "src/cached-active.ts" } },
+        event: {
+          type: "file.edited",
+          properties: { file: "src/cached-active.ts" },
+        },
       });
       await flushPromises();
 
-      const cacheLogs = logEvents(captured.logs).filter((e) => e === "smart_enforcement_cache");
+      const cacheLogs = logEvents(captured.logs).filter(
+        (e) => e === "smart_enforcement_cache",
+      );
       expect(cacheLogs.length).toBeGreaterThan(0);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
