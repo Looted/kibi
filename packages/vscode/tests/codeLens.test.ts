@@ -968,14 +968,28 @@ describe("KibiCodeLensProvider - remaining branch coverage", () => {
     const testFile = path.join(tmpDir, "src", "main.ts");
     fs.mkdirSync(path.dirname(testFile), { recursive: true });
     fs.writeFileSync(testFile, "// main", "utf8");
-    writeTestSymbols(tmpDir, [{ id: "SYM-CACHE", title: "cache", sourceFile: "src/main.ts", sourceLine: 1, links: [] }]);
+    writeTestSymbols(tmpDir, [
+      {
+        id: "SYM-CACHE",
+        title: "cache",
+        sourceFile: "src/main.ts",
+        sourceLine: 1,
+        links: [],
+      },
+    ]);
     const cache = new RelationshipCache();
-    cache.set("codelens:rel:SYM-CACHE", { data: [{ type: "implements", from: "SYM-CACHE", to: "REQ-001" }], timestamp: Date.now() });
+    cache.set("codelens:rel:SYM-CACHE", {
+      data: [{ type: "implements", from: "SYM-CACHE", to: "REQ-001" }],
+      timestamp: Date.now(),
+    });
     const provider = new KibiCodeLensProvider(tmpDir, cache);
     const lenses = provider.provideCodeLenses(makeDoc(testFile), noCancel);
     if (!lenses || lenses.length === 0) throw new Error("no lenses");
     let queryCalled = false;
-    mockQueryImpl = () => { queryCalled = true; return []; };
+    mockQueryImpl = () => {
+      queryCalled = true;
+      return [];
+    };
     const resolved = await provider.resolveCodeLens(lenses[0], noCancel);
     expect(queryCalled).toBe(false);
     expect(queryCalled).toBe(false);
@@ -986,7 +1000,15 @@ describe("KibiCodeLensProvider - remaining branch coverage", () => {
     const testFile = path.join(tmpDir, "src", "guarded.ts");
     fs.mkdirSync(path.dirname(testFile), { recursive: true });
     fs.writeFileSync(testFile, "// guarded", "utf8");
-    writeTestSymbols(tmpDir, [{ id: "SYM-G", title: "g", sourceFile: "src/guarded.ts", sourceLine: 1, links: [] }]);
+    writeTestSymbols(tmpDir, [
+      {
+        id: "SYM-G",
+        title: "g",
+        sourceFile: "src/guarded.ts",
+        sourceLine: 1,
+        links: [],
+      },
+    ]);
     mockQueryImpl = () => [
       { type: "guards", from: "SYM-G", to: "FLAG-001" },
       { type: "implements", from: "SYM-G", to: "REQ-001" },
@@ -1002,7 +1024,15 @@ describe("KibiCodeLensProvider - remaining branch coverage", () => {
     const testFile = path.join(tmpDir, "src", "no-match.ts");
     fs.mkdirSync(path.dirname(testFile), { recursive: true });
     fs.writeFileSync(testFile, "// no-match", "utf8");
-    writeTestSymbols(tmpDir, [{ id: "SYM-X", title: "x", sourceFile: "other/file.ts", sourceLine: 1, links: [] }]);
+    writeTestSymbols(tmpDir, [
+      {
+        id: "SYM-X",
+        title: "x",
+        sourceFile: "other/file.ts",
+        sourceLine: 1,
+        links: [],
+      },
+    ]);
     const provider = new KibiCodeLensProvider(tmpDir, new RelationshipCache());
     expect(provider.provideCodeLenses(makeDoc(testFile), noCancel)).toBeNull();
   });
