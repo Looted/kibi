@@ -271,7 +271,7 @@ maintenance. Keep the `mcp.kibi` entry configured against the project-local
 
 `kibi-opencode` auto-updates its cached OpenCode plugin package by default on
 startup. To keep the plugin fixed, pin an exact version in the plugin array,
-for example `"kibi-opencode@0.15.0"`; MCP/CLI/core project dependencies remain
+for example `"kibi-opencode@0.18.1"`; MCP/CLI/core project dependencies remain
 under your package manager's control.
 
 ## Quick Start
@@ -336,9 +336,10 @@ Kibi uses a two-branch release model with [Changesets](https://github.com/change
 
 ### Release Flow
 1. **Development**: Create changesets on `develop` as you work.
-2. **Versioning**: Run `bun run version-packages` on `develop` to apply bumps.
-3. **Merge**: Merge `develop` into `master`.
-4. **Publish**: `master` CI builds and publishes new versions to npm.
+2. **Versioning**: Run `bun run version-packages` on `develop` to consume changesets, apply bumps, update changelogs, and sync plugin manifests.
+3. **Review**: Review and commit the generated release changes.
+4. **Merge**: Merge `develop` into `master`.
+5. **Publish**: `master` CI builds, verifies, and publishes new versions to npm.
 
 There is no `master → develop` back-merge.
 
@@ -349,6 +350,8 @@ bun run changeset
 # Apply version bumps (run on develop)
 bun run version-packages
 ```
+
+Do not publish manually or merge `master` back into `develop`.
 
 ---
 
