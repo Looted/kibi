@@ -25,6 +25,8 @@ Full setup: [docs/install.md](https://github.com/Looted/kibi/blob/develop/docs/i
 
 Add this plugin only after the base packages work in your project.
 
+**Git worktrees:** the published plugin MCP entry (`npx --no-install kibi-mcp`) needs `kibi-mcp` resolvable from that worktree's `node_modules` (run install there). For this monorepo's dogfood path, prefer project `.cursor/mcp.json`, which can fall back to the primary checkout's built MCP — see [DEV.md](./DEV.md#linked-worktrees).
+
 ## Installation
 
 ### Cursor Marketplace (recommended)
