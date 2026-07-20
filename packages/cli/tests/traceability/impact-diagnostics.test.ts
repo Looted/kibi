@@ -213,7 +213,9 @@ describe("impact diagnostics", () => {
 
     const diagnostics = createSymbolGranularityDiagnostics({
       manifestResults: [makeManifestResult("UploadPageComponent")],
-      symbolsByFile: new Map([[behavioral.location.file, [behavioral, typeShape]]]),
+      symbolsByFile: new Map([
+        [behavioral.location.file, [behavioral, typeShape]],
+      ]),
     });
 
     expect(diagnostics[0]?.suggestion).toContain(
@@ -224,7 +226,10 @@ describe("impact diagnostics", () => {
   it("reads source files from workspace root when no staged content map is supplied", () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-impact-test-"));
     const sourceFile = path.join(tmpDir, "fixture.ts");
-    fs.writeFileSync(sourceFile, "export class FixtureComponent {\n  value = \"ok\";\n}");
+    fs.writeFileSync(
+      sourceFile,
+      'export class FixtureComponent {\n  value = "ok";\n}',
+    );
 
     try {
       const diagnostics = createSymbolGranularityDiagnostics({
@@ -278,7 +283,9 @@ describe("impact diagnostics", () => {
 
     expect(
       createSemanticReviewDiagnostics({
-        symbolsByFile: new Map([[classSymbol.location.file, [classSymbol, typeSymbol]]]),
+        symbolsByFile: new Map([
+          [classSymbol.location.file, [classSymbol, typeSymbol]],
+        ]),
       }),
     ).toEqual([]);
   });

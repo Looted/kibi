@@ -63,7 +63,11 @@ describe("impact summaries", () => {
     ]);
 
     expect(formatExtractedSymbols(symbolsByFile)).toEqual([
-      expect.objectContaining({ id: "SYM-A", name: "alpha", linkedEntityIds: [] }),
+      expect.objectContaining({
+        id: "SYM-A",
+        name: "alpha",
+        linkedEntityIds: [],
+      }),
       expect.objectContaining({
         id: "SYM-B",
         name: "beta",
