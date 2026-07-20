@@ -43,7 +43,10 @@ function makeTempDir(prefix: string): string {
 
 function makeProjectWithPlugins(plugins: readonly string[]): string {
   const tmpDir = makeTempDir("kibi-final-auto-update-");
-  fs.writeFileSync(path.join(tmpDir, "opencode.json"), JSON.stringify({ plugin: plugins }));
+  fs.writeFileSync(
+    path.join(tmpDir, "opencode.json"),
+    JSON.stringify({ plugin: plugins }),
+  );
   return tmpDir;
 }
 
@@ -77,7 +80,9 @@ describe("coverage final gaps for auto-update", () => {
           log: () => {},
         });
 
-        expect((await runner({ directory: tmpDir, enabled: true })).status).toBe("up-to-date");
+        expect(
+          (await runner({ directory: tmpDir, enabled: true })).status,
+        ).toBe("up-to-date");
       }
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -86,7 +91,11 @@ describe("coverage final gaps for auto-update", () => {
 
   test("Given cached package in cache root When running install Then cache root is selected as active workspace", async () => {
     const cacheHome = makeTempDir("kibi-final-install-cache-");
-    const execCalls: Array<{ readonly command: string; readonly args: readonly string[]; readonly cwd: string }> = [];
+    const execCalls: Array<{
+      readonly command: string;
+      readonly args: readonly string[];
+      readonly cwd: string;
+    }> = [];
     try {
       process.env.XDG_CACHE_HOME = cacheHome;
       const cachePackageJson = path.join(
@@ -110,7 +119,8 @@ describe("coverage final gaps for auto-update", () => {
         },
       }));
       const freshAutoUpdate = await import(
-        new URL("../src/auto-update.ts?cache-root-install", import.meta.url).href
+        new URL("../src/auto-update.ts?cache-root-install", import.meta.url)
+          .href
       );
 
       expect(await freshAutoUpdate.runBunInstallForOpenCodePlugin()).toBe(true);
@@ -137,11 +147,16 @@ describe("coverage final gaps for auto-update", () => {
         },
       }));
       const freshAutoUpdate = await import(
-        new URL("../src/auto-update.ts?packages-cache-install", import.meta.url).href
+        new URL("../src/auto-update.ts?packages-cache-install", import.meta.url)
+          .href
       );
 
-      expect(await freshAutoUpdate.runBunInstallForOpenCodePlugin()).toBe(false);
-      expect(execCalls[0]?.cwd).toBe(path.join(cacheHome, "opencode", "packages"));
+      expect(await freshAutoUpdate.runBunInstallForOpenCodePlugin()).toBe(
+        false,
+      );
+      expect(execCalls[0]?.cwd).toBe(
+        path.join(cacheHome, "opencode", "packages"),
+      );
     } finally {
       fs.rmSync(cacheHome, { recursive: true, force: true });
     }
@@ -169,7 +184,9 @@ describe("coverage final gaps for auto-update", () => {
       );
 
       expect(await freshAutoUpdate.runBunInstallForOpenCodePlugin()).toBe(true);
-      expect(execCalls[0]?.cwd).toBe(path.join(tmpDir, "LocalAppData", "opencode", "packages"));
+      expect(execCalls[0]?.cwd).toBe(
+        path.join(tmpDir, "LocalAppData", "opencode", "packages"),
+      );
     } finally {
       Reflect.deleteProperty(process.env, "LOCALAPPDATA");
       fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -181,12 +198,15 @@ describe("coverage final gaps for init-kibi capability", () => {
   test("Given missing host hooks and sdk command fields When detecting capability Then each unsupported path is returned", () => {
     expect(detectInitKibiCommandCapability({})).toEqual({
       supported: false,
-      reason: "@opencode-ai/plugin host Hooks definition is unavailable for config hook inspection.",
+      reason:
+        "@opencode-ai/plugin host Hooks definition is unavailable for config hook inspection.",
     });
     expect(
       detectInitKibiCommandCapability({
-        pluginHooksDts: "export interface Hooks { config?: (input: Config) => Promise<void>; }",
-        sdkTypesDts: "export interface Config { command?: Record<string, string>; }",
+        pluginHooksDts:
+          "export interface Hooks { config?: (input: Config) => Promise<void>; }",
+        sdkTypesDts:
+          "export interface Config { command?: Record<string, string>; }",
       }),
     ).toEqual({
       supported: false,
@@ -197,7 +217,10 @@ describe("coverage final gaps for init-kibi capability", () => {
 
   test("Given existing command map When registering init command Then existing command is preserved", () => {
     const configInput: {
-      command: Record<string, { readonly template: string; readonly description?: string }>;
+      command: Record<
+        string,
+        { readonly template: string; readonly description?: string }
+      >;
     } = { command: { existing: { template: "keep", description: "Keep" } } };
 
     const capability = registerInitKibiCommand(configInput, {
@@ -206,8 +229,13 @@ describe("coverage final gaps for init-kibi capability", () => {
     });
 
     expect(capability).toEqual({ supported: true, pluginVersion: "unknown" });
-    expect(configInput.command.existing).toEqual({ template: "keep", description: "Keep" });
-    expect(configInput.command["init-kibi"]?.template).toContain("kb_autopilot_generate");
+    expect(configInput.command.existing).toEqual({
+      template: "keep",
+      description: "Keep",
+    });
+    expect(configInput.command["init-kibi"]?.template).toContain(
+      "kb_autopilot_generate",
+    );
   });
 });
 
@@ -243,7 +271,10 @@ describe("coverage final gaps for policy and work context", () => {
     try {
       fs.writeFileSync(path.join(tmpDir, ".git"), "gitdir:   \n");
 
-      const context = resolveWorkContext({ inputDirectory: tmpDir, inputWorktree: tmpDir });
+      const context = resolveWorkContext({
+        inputDirectory: tmpDir,
+        inputWorktree: tmpDir,
+      });
 
       expect(context.isAuthoritative).toBe(false);
       expect(context.branch).toBe("unknown");
