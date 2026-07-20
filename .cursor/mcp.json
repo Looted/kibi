@@ -4,7 +4,7 @@
       "command": "sh",
       "args": [
         "-lc",
-        "repo_root=$(git rev-parse --show-toplevel) && exec bun run \"$repo_root/packages/mcp/bin/kibi-mcp\" --diagnostic-mode"
+        "repo_root=$(git rev-parse --show-toplevel); mcp=\"$repo_root/packages/mcp/bin/kibi-mcp\"; if [ ! -f \"$mcp\" ] || [ ! -d \"$repo_root/packages/mcp/dist\" ]; then common=$(git rev-parse --path-format=absolute --git-common-dir); repo_root=\"$(cd \"$common/..\" && pwd)\"; mcp=\"$repo_root/packages/mcp/bin/kibi-mcp\"; fi; exec bun run \"$mcp\" --diagnostic-mode"
       ]
     }
   }
