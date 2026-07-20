@@ -161,7 +161,11 @@ describe("manifest path resolver", () => {
     )(workspaceRoot);
 
     expect(result).toEqual({
-      coordinatesPath: join(workspaceRoot, "absolute", "symbol-coordinates.yaml"),
+      coordinatesPath: join(
+        workspaceRoot,
+        "absolute",
+        "symbol-coordinates.yaml",
+      ),
       symbolsPath,
     });
   });

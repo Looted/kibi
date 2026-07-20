@@ -534,14 +534,14 @@ describe("enrichSymbolCoordinatesWithTsMorph", () => {
 
     expect(jsxAnalysis.language).toBe("javascript");
     expect(jsxAnalysis.module.language).toBe("javascript");
-    expect(jsxAnalysis.symbols.map((symbol) => [symbol.name, symbol.kind])).toEqual(
-      [
-        ["Widget", "class"],
-        ["Widget.value", "property"],
-        ["Widget.label", "accessor"],
-        ["Widget.label", "accessor"],
-      ],
-    );
+    expect(
+      jsxAnalysis.symbols.map((symbol) => [symbol.name, symbol.kind]),
+    ).toEqual([
+      ["Widget", "class"],
+      ["Widget.value", "property"],
+      ["Widget.label", "accessor"],
+      ["Widget.label", "accessor"],
+    ]);
     expect(ctsAnalysis.language).toBe("typescript");
     expect(ctsAnalysis.symbols).toEqual([
       expect.objectContaining({ name: "ctsValue", kind: "variable" }),
