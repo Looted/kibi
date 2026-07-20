@@ -41,7 +41,10 @@ function createWorkspace(): string {
   const root = mkdtempSync(path.join(tmpdir(), "kibi-session-direct-"));
   tempRoots.push(root);
   mkdirSync(path.join(root, ".kb", "branches", "develop"), { recursive: true });
-  writeFileSync(path.join(root, ".kb", "branches", "develop", "kb.rdf"), "<rdf />\n");
+  writeFileSync(
+    path.join(root, ".kb", "branches", "develop", "kb.rdf"),
+    "<rdf />\n",
+  );
   return root;
 }
 
@@ -55,14 +58,18 @@ function installDeps(workspace: string): void {
     PrologProcess: function (this: Record<string, unknown>) {
       Object.assign(this, fakeProlog);
       return this;
-    } as unknown as Parameters<typeof session._setSessionDepsForTests>[0]["PrologProcess"],
+    } as unknown as Parameters<
+      typeof session._setSessionDepsForTests
+    >[0]["PrologProcess"],
     copyCleanSnapshot: mock((source: string, target: string) => {
       calls.push(`copy:${path.basename(source)}:${path.basename(target)}`);
       mkdirSync(target, { recursive: true });
       writeFileSync(path.join(target, "kb.rdf"), "<rdf />\n");
     }),
     createRequire: mock(() => {
-      const req = ((_specifier: string) => ({ version: "9.9.9" })) as unknown as NodeJS.Require;
+      const req = ((_specifier: string) => ({
+        version: "9.9.9",
+      })) as unknown as NodeJS.Require;
       req.resolve = Object.assign(
         (_specifier: string) => "/virtual/kibi-cli/prolog.js",
         { paths: (_specifier: string) => [] },
@@ -72,7 +79,10 @@ function installDeps(workspace: string): void {
     fs: {
       existsSync: (candidate) => {
         const candidatePath = String(candidate);
-        return candidatePath.includes("existing") || candidatePath === branchPath(workspace, "develop");
+        return (
+          candidatePath.includes("existing") ||
+          candidatePath === branchPath(workspace, "develop")
+        );
       },
       mkdirSync: (candidate) => {
         const candidatePath = String(candidate);
@@ -132,7 +142,7 @@ describe.serial("direct session lifecycle coverage", () => {
     await session.resetProlog("unit reset");
     process.env.KIBI_BRANCH = "bad/branch";
 
-    await expect(session.ensureProlog()).rejects.toThrow(
+    expect(session.ensureProlog()).rejects.toThrow(
       "Invalid branch name from KIBI_BRANCH",
     );
     expect(second).toBe(first);
@@ -146,15 +156,22 @@ describe.serial("direct session lifecycle coverage", () => {
     await session.ensureProlog();
     fakeProlog.query.mockImplementation(async (goal: string) => {
       calls.push(goal);
-      return goal === "kb_detach" ? { success: false, error: "detach warning" } : { success: true };
+      return goal === "kb_detach"
+        ? { success: false, error: "detach warning" }
+        : { success: true };
     });
 
     process.env.KIBI_BRANCH = "feature-switch";
     await session.ensureProlog();
-    session.ensureBranchKbExists(path.dirname(path.dirname(branchPath(createWorkspace(), "develop"))), "new-empty");
-    session.updateAttachedBranchStamp(await import("../../src/server/kb-freshness.js").then((m) =>
-      m.readBranchKbStamp(branchPath(createWorkspace(), "develop")),
-    ));
+    session.ensureBranchKbExists(
+      path.dirname(path.dirname(branchPath(createWorkspace(), "develop"))),
+      "new-empty",
+    );
+    session.updateAttachedBranchStamp(
+      await import("../../src/server/kb-freshness.js").then((m) =>
+        m.readBranchKbStamp(branchPath(createWorkspace(), "develop")),
+      ),
+    );
 
     expect(calls).toContain("kb_save");
     expect(calls).toContain("kb_detach");
@@ -171,15 +188,17 @@ describe.serial("direct session lifecycle coverage", () => {
       return { success: true };
     });
     process.env.KIBI_BRANCH = "save-fail";
-    await expect(session.ensureProlog()).rejects.toThrow("save denied");
+    expect(session.ensureProlog()).rejects.toThrow("save denied");
 
     await session.resetProlog("after save failure");
     process.env.KIBI_BRANCH = "develop";
     fakeProlog.query.mockImplementation(async (goal: string) => {
       calls.push(goal);
-      return goal.startsWith("kb_attach") ? { success: false, error: "attach denied" } : { success: true };
+      return goal.startsWith("kb_attach")
+        ? { success: false, error: "attach denied" }
+        : { success: true };
     });
-    await expect(session.ensureProlog()).rejects.toThrow("attach denied");
+    expect(session.ensureProlog()).rejects.toThrow("attach denied");
 
     fakeProlog.start.mockImplementation(async () => {
       await session.resetProlog("during initialization");
@@ -188,7 +207,7 @@ describe.serial("direct session lifecycle coverage", () => {
       calls.push(goal);
       return { success: true };
     });
-    await expect(session.ensureProlog()).rejects.toThrow(
+    expect(session.ensureProlog()).rejects.toThrow(
       "reset while initialization was in progress",
     );
   });
@@ -230,7 +249,9 @@ describe.serial("direct session lifecycle coverage", () => {
     const originalClearTimeout = globalThis.clearTimeout;
     const originalConsoleError = console.error;
     const exitMock = mock((_code?: string | number | null) => undefined);
-    const clearTimeoutMock = mock((_timer?: number | string | NodeJS.Timeout) => {});
+    const clearTimeoutMock = mock(
+      (_timer?: number | string | NodeJS.Timeout) => {},
+    );
     const consoleErrorMock = mock((_message?: unknown) => {});
     const timerHandle = {} as NodeJS.Timeout;
     process.exit = exitMock as unknown as typeof process.exit;
@@ -268,38 +289,46 @@ describe.serial("direct session lifecycle coverage", () => {
     if (attachedPath === null) {
       throw new Error("Expected attached branch path after initialization");
     }
-    writeFileSync(
-      path.join(attachedPath, "kb.rdf"),
-      "<rdf changed='one' />\n",
-    );
+    writeFileSync(path.join(attachedPath, "kb.rdf"), "<rdf changed='one' />\n");
     fakeProlog.query.mockImplementation(async (goal: string) => {
       calls.push(goal);
-      return goal === "kb_detach" ? { success: false, error: "detach denied" } : { success: true };
+      return goal === "kb_detach"
+        ? { success: false, error: "detach denied" }
+        : { success: true };
     });
-    await expect(session.ensureProlog()).rejects.toThrow("detach denied");
+    expect(session.ensureProlog()).rejects.toThrow("detach denied");
 
     session.resetSessionStateForTests();
     const workspace = createWorkspace();
     installDeps(workspace);
     process.env.KIBI_BRANCH = "develop";
     await session.ensureProlog();
-    writeFileSync(path.join(branchPath(workspace, "develop"), "kb.rdf"), "<rdf changed='two' />\n");
+    writeFileSync(
+      path.join(branchPath(workspace, "develop"), "kb.rdf"),
+      "<rdf changed='two' />\n",
+    );
     let attachCount = 0;
     fakeProlog.query.mockImplementation(async (goal: string) => {
       calls.push(goal);
       if (goal.startsWith("kb_attach")) {
         attachCount += 1;
         if (attachCount === 1) {
-          writeFileSync(path.join(branchPath(workspace, "develop"), "kb.rdf"), "<rdf changed='after-first-refresh' />\n");
+          writeFileSync(
+            path.join(branchPath(workspace, "develop"), "kb.rdf"),
+            "<rdf changed='after-first-refresh' />\n",
+          );
         }
         if (attachCount === 2) {
-          writeFileSync(path.join(branchPath(workspace, "develop"), "kb.rdf"), "<rdf changed='after-second-refresh-with-longer-content' />\n");
+          writeFileSync(
+            path.join(branchPath(workspace, "develop"), "kb.rdf"),
+            "<rdf changed='after-second-refresh-with-longer-content' />\n",
+          );
         }
       }
       return { success: true };
     });
 
-    await expect(session.ensureProlog()).rejects.toThrow(
+    expect(session.ensureProlog()).rejects.toThrow(
       "stamp changed during attach",
     );
   });
@@ -313,8 +342,10 @@ describe.serial("direct session lifecycle coverage", () => {
     const originalConsoleError = console.error;
     const consoleErrorMock = mock((..._args: unknown[]) => {});
     console.error = consoleErrorMock as typeof console.error;
-    await expect(session.ensureProlog()).rejects.toThrow("detached");
-    expect(consoleErrorMock).toHaveBeenCalledWith("[KIBI-MCP] diagnostic detached");
+    expect(session.ensureProlog()).rejects.toThrow("detached");
+    expect(consoleErrorMock).toHaveBeenCalledWith(
+      "[KIBI-MCP] diagnostic detached",
+    );
 
     session.resetSessionStateForTests();
     installDeps(workspace);

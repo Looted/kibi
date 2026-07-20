@@ -4,8 +4,8 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import process from "node:process";
 
-import * as session from "../../src/server/session.js";
 import { readBranchKbStamp } from "../../src/server/kb-freshness.js";
+import * as session from "../../src/server/session.js";
 
 type QueryResult = { readonly success: boolean; readonly error?: string };
 
@@ -33,7 +33,8 @@ const fakeProlog = {
 };
 
 function restoreEnv(): void {
-  for (const key of Object.keys(process.env)) Reflect.deleteProperty(process.env, key);
+  for (const key of Object.keys(process.env))
+    Reflect.deleteProperty(process.env, key);
   Object.assign(process.env, originalEnv);
 }
 
@@ -59,14 +60,18 @@ function setDeps(root: string): void {
     PrologProcess: function (this: Record<string, unknown>) {
       Object.assign(this, fakeProlog);
       return this;
-    } as unknown as Parameters<typeof session._setSessionDepsForTests>[0]["PrologProcess"],
+    } as unknown as Parameters<
+      typeof session._setSessionDepsForTests
+    >[0]["PrologProcess"],
     copyCleanSnapshot: (source, target) => {
       calls.push(`copy:${path.basename(source)}:${path.basename(target)}`);
       mkdirSync(target, { recursive: true });
       writeFileSync(path.join(target, "kb.rdf"), "<rdf />\n");
     },
     createRequire: () => {
-      const req = ((_specifier: string) => ({ version: "1.0.0" })) as unknown as NodeJS.Require;
+      const req = ((_specifier: string) => ({
+        version: "1.0.0",
+      })) as unknown as NodeJS.Require;
       req.resolve = Object.assign((_specifier: string) => "/resolved", {
         paths: (_specifier: string) => [],
       });
@@ -114,13 +119,14 @@ describe.serial("direct session edge coverage", () => {
     session.resetSessionStateForTests();
     session._resetSessionDepsForTests();
     restoreEnv();
-    for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
+    for (const root of roots.splice(0))
+      rmSync(root, { recursive: true, force: true });
   });
 
   test("covers invalid branch, previous-branch copy, and reset termination errors", async () => {
-    expect(() => session.ensureBranchKbExists("/workspace", "bad/name")).toThrow(
-      "Invalid branch name: bad/name",
-    );
+    expect(() =>
+      session.ensureBranchKbExists("/workspace", "bad/name"),
+    ).toThrow("Invalid branch name: bad/name");
     process.env.KIBI_BRANCH = "previous";
     await session.ensureProlog();
     session.ensureBranchKbExists(currentRoot, "copy-target");
@@ -136,7 +142,9 @@ describe.serial("direct session edge coverage", () => {
       console.error = originalConsoleError;
     }
 
-    expect(calls.some((call) => call.startsWith("copy:previous:copy-target"))).toBe(true);
+    expect(
+      calls.some((call) => call.startsWith("copy:previous:copy-target")),
+    ).toBe(true);
     expect(consoleErrorMock).toHaveBeenCalledWith(
       "[KIBI-MCP] Error resetting Prolog worker:",
       expect.any(Error),
@@ -146,18 +154,21 @@ describe.serial("direct session edge coverage", () => {
   test("covers unstable same-branch stamps and branch attach failures", async () => {
     process.env.KIBI_BRANCH = "missing-rdf";
     await session.ensureProlog();
-    await expect(session.ensureProlog()).rejects.toThrow("branch KB snapshot is unstable");
+    expect(session.ensureProlog()).rejects.toThrow(
+      "branch KB snapshot is unstable",
+    );
 
     await session.resetProlog("after unstable");
     process.env.KIBI_BRANCH = "stable";
     await session.ensureProlog();
     fakeProlog.query.mockImplementation(async (goal: string) => {
       calls.push(goal);
-      if (goal.startsWith("kb_attach")) return { success: false, error: "switch attach failed" };
+      if (goal.startsWith("kb_attach"))
+        return { success: false, error: "switch attach failed" };
       return { success: true };
     });
     process.env.KIBI_BRANCH = "next";
-    await expect(session.ensureProlog()).rejects.toThrow("switch attach failed");
+    expect(session.ensureProlog()).rejects.toThrow("switch attach failed");
   });
 
   test("covers debug require resolution and package metadata branches", async () => {
@@ -176,7 +187,9 @@ describe.serial("direct session edge coverage", () => {
           createRequire: () => {
             const req = ((_specifier: string) => {
               if (mode === "package-error") throw new Error("package denied");
-              return mode === "no-version" ? { name: "kibi-cli" } : { version: "1.0.0" };
+              return mode === "no-version"
+                ? { name: "kibi-cli" }
+                : { version: "1.0.0" };
             }) as unknown as NodeJS.Require;
             req.resolve = Object.assign(
               (_specifier: string) => {
@@ -206,7 +219,9 @@ describe.serial("direct session edge coverage", () => {
     const exitMock = mock((_code?: string | number | null) => undefined);
     process.exit = exitMock as unknown as typeof process.exit;
     globalThis.setTimeout = ((handler: TimerHandler) => {
-      calls.push(typeof handler === "function" ? "timeout-armed" : "timeout-other");
+      calls.push(
+        typeof handler === "function" ? "timeout-armed" : "timeout-other",
+      );
       return {} as NodeJS.Timeout;
     }) as unknown as typeof setTimeout;
 
@@ -235,12 +250,17 @@ describe.serial("direct session edge coverage", () => {
     await session.ensureProlog();
     const attachedPath = session.attachedBranchKbPath;
     if (attachedPath === null) throw new Error("Expected attached branch path");
-    writeFileSync(path.join(attachedPath, "kb.rdf"), "<rdf changed='attach-fail' />\n");
+    writeFileSync(
+      path.join(attachedPath, "kb.rdf"),
+      "<rdf changed='attach-fail' />\n",
+    );
     fakeProlog.query.mockImplementation(async (goal: string) => {
       calls.push(goal);
-      return goal.startsWith("kb_attach") ? { success: false, error: "refresh attach failed" } : { success: true };
+      return goal.startsWith("kb_attach")
+        ? { success: false, error: "refresh attach failed" }
+        : { success: true };
     });
-    await expect(session.ensureProlog()).rejects.toThrow("refresh attach failed");
+    expect(session.ensureProlog()).rejects.toThrow("refresh attach failed");
 
     session.resetSessionStateForTests();
     const unstableRoot = workspace();
@@ -257,9 +277,13 @@ describe.serial("direct session edge coverage", () => {
       return { success: true };
     });
     await session.ensureProlog();
-    const unstableCurrent = await readBranchKbStamp(branchPath(unstableRoot, "develop"));
+    const unstableCurrent = await readBranchKbStamp(
+      branchPath(unstableRoot, "develop"),
+    );
     session.updateAttachedBranchStamp({ ...unstableCurrent, rdfSize: -1 });
-    await expect(session.ensureProlog()).rejects.toThrow("stamp changed during attach");
+    expect(session.ensureProlog()).rejects.toThrow(
+      "stamp changed during attach",
+    );
 
     session.resetSessionStateForTests();
     const root = workspace();
@@ -279,7 +303,10 @@ describe.serial("direct session edge coverage", () => {
       if (goal.startsWith("kb_attach")) {
         attachCount += 1;
         if (attachCount === 1) {
-          writeFileSync(path.join(branch, "kb.rdf"), "<rdf changed='once' />\n");
+          writeFileSync(
+            path.join(branch, "kb.rdf"),
+            "<rdf changed='once' />\n",
+          );
         }
       }
       return { success: true };
@@ -287,7 +314,8 @@ describe.serial("direct session edge coverage", () => {
 
     const refreshed = await session.ensureProlog();
     const activeProcess = session.prologProcess;
-    if (activeProcess === null) throw new Error("Expected active Prolog process");
+    if (activeProcess === null)
+      throw new Error("Expected active Prolog process");
     expect(refreshed).toBe(activeProcess);
   });
 
@@ -304,7 +332,9 @@ describe.serial("direct session edge coverage", () => {
     });
 
     try {
-      await expect(session.ensureProlog()).rejects.toThrow("reset while initialization");
+      expect(session.ensureProlog()).rejects.toThrow(
+        "reset while initialization",
+      );
     } finally {
       console.error = originalConsoleError;
     }
