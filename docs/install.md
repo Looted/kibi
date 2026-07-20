@@ -173,7 +173,7 @@ the plugin, use an exact semver entry in the plugin array:
 
 ```json
 {
-  "plugin": ["kibi-opencode@0.15.0"]
+  "plugin": ["kibi-opencode@0.18.1"]
 }
 ```
 

@@ -85,7 +85,7 @@ Use the following prefixes:
 
 - [ ] All tests pass (`bun run test`)
 - [ ] Code passes linting (`bun run check`)
-- [ ] Integration tests pass (34/34)
+- [ ] Integration tests pass (`bash ./scripts/run-integration-tests.sh`)
 - [ ] Documentation updated if needed
 - [ ] Tests added for new features
 - [ ] Commit messages follow conventions
