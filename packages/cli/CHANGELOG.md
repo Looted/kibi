@@ -1,5 +1,35 @@
 # kibi-cli
 
+## 0.14.2
+
+### Patch Changes
+
+- The bundled Kibi usage skill now explains the supported release workflow and correctly distinguishes MCP-first agent operations from CLI-only maintenance workflows. This keeps release guidance aligned with the repository’s develop-to-master process and prevents agents from treating direct `.kb` access as acceptable.
+
+  - Bump the bundled `kibi-usage` skill metadata to 1.0.1.
+  - Document changeset versioning, plugin manifest synchronization, and master-branch publishing.
+
+## 0.14.1
+
+### Patch Changes
+
+- 6830005: Formatting-only source diffs no longer trigger Kibi impact review warnings. Agents and developers can now run formatter fixes without receiving semantic-review prompts for unchanged behavior, while actual copy or behavior edits still surface impact diagnostics.
+
+  - Filter formatter-only changed-file impact hunks before extracting semantic-review symbols.
+  - Preserve review diagnostics for meaningful text changes inside string and template literals.
+  - Add regression coverage for whitespace-only and trailing-comma formatter diffs.
+
+- c7126dd: CLI sync extraction tests no longer leak mocked extractors into later impact-analysis tests. This makes the unit coverage workflow deterministic in CI and prevents unrelated impact manifest checks from failing after sync extraction error-path tests run first.
+
+  - Add an explicit extraction dependency seam for `processExtractions` while preserving the existing default CLI behavior.
+  - Route sync extraction tests through injected dependencies instead of Bun module-level mocks.
+  - Verify the polluted test ordering that previously failed in CI now passes.
+
+- da9da64: `kibi check --staged` no longer treats ordinary README markdown without YAML frontmatter as a Kibi entity just because it lives under a typed documentation directory. Documentation-only README edits can now pass staged validation without requiring test-entity frontmatter.
+
+  - Skip Markdown entity extraction for staged `.md` files that do not contain YAML frontmatter.
+  - Add a staged-check regression for README files under `documentation/tests/`.
+
 ## 0.14.0
 
 ### Minor Changes

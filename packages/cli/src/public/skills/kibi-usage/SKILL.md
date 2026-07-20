@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Guides agents to use Kibi MCP, facts, relationships, and validation correctly
-version: 1.0.0
+version: 1.0.1
 kibiCompatibility: ">=0.11.0"
 tags:
   - kibi
@@ -22,7 +22,7 @@ Consult this skill before any Kibi knowledge base operation, on first interactio
 
 ## MCP-Only Rules
 
-Interact with the knowledge base exclusively through MCP tools. Do not read or edit files inside `.kb/` directly. Do not run any `kibi` CLI commands from the agent session. The MCP surface is the only sanctioned interface for agents.
+Interact with the knowledge base through MCP tools whenever an MCP equivalent exists. Do not read or edit files inside `.kb/` directly. CLI-only sync, symbol-coordinate refresh, and freshness workflows may be run when no MCP equivalent exists and the repository workflow requires them.
 
 ### Tool Name Prefixes
 
@@ -33,6 +33,17 @@ Kibi's canonical MCP names are `kb_search`, `kb_query`, `kb_upsert`, `kb_check`,
 Always discover before you mutate. Start with `kb_search` for exploratory discovery across metadata and markdown body text. Split broad queries into 1-3 focused probes. Review top hits for relevance before concluding the KB lacks knowledge.
 
 Follow up with `kb_query` for exact lookups by `id`, `type`, `tags`, or `sourceFile`. Call `kb_status` to inspect branch attachment and freshness when stale context would affect decisions. Only after discovery and confirmation should you mutate.
+
+## Release Versioning Workflow
+
+Release preparation happens on `develop`:
+
+1. Add human-readable changesets for publishable package changes.
+2. Run `bun run version-packages` to consume changesets, update package versions and changelogs, and synchronize plugin manifests.
+3. Review the generated package/dependency changes and run the release checks before committing.
+4. Merge `develop` into `master`; publishing is performed by the master-branch CI workflow.
+
+Never publish manually from an agent session, and never merge `master` back into `develop`.
 
 ## Relationship Directions
 
