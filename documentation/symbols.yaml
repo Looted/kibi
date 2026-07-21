@@ -1139,6 +1139,11 @@ symbols:
     title: ExtractionOutput
     sourceFile: packages/cli/src/commands/sync/extraction.ts
     symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
     sourceLine: 27
     sourceColumn: 17
     sourceEndLine: 31
@@ -3586,6 +3591,11 @@ symbols:
     title: registerAllTools
     sourceFile: packages/mcp/src/server/tools.ts
     symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
     sourceLine: 246
     sourceColumn: 16
     sourceEndLine: 252
@@ -4706,6 +4716,7 @@ symbols:
   - id: SYM-formatInvalidRelationshipError
     title: formatInvalidRelationshipError
     sourceFile: packages/mcp/src/tools/relationship-validation.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-mcp-relationship-preflight
