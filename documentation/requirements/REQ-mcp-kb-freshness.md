@@ -12,6 +12,8 @@ tags:
   - freshness
   - prolog
 links:
+  - type: specified_by
+    target: SCEN-mcp-kb-freshness-coverage
   - ADR-021
   - SCEN-001
   - REQ-core-prolog-process-management
