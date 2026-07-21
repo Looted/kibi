@@ -86,4 +86,16 @@ describe("shared reporting operation executors", () => {
       "graph_expand_json(['REQ-001'], [], 'outgoing', 5, [], 40, 80, JsonString)",
     );
   });
+
+  test("graphSpec.execute rejects traversal depth above five", async () => {
+    const { context } = contextWithPayload({
+      nodes: [],
+      edges: [],
+      truncated: false,
+    });
+
+    await expect(
+      graphSpec.execute({ seedIds: ["REQ-001"], depth: 6 }, context),
+    ).rejects.toThrow("Graph depth must be between 1 and 5");
+  });
 });
