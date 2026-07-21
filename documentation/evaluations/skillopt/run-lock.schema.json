@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SkillOpt run lock",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "runId",
+    "skilloptCommit",
+    "skilloptVersion",
+    "targetModel",
+    "optimizerModel",
+    "hosts",
+    "catalogHash",
+    "pricingHash"
+  ],
+  "properties": {
+    "runId": { "type": "string", "minLength": 1 },
+    "skilloptCommit": { "const": "b860a5cf88ce75e2bd02ca981ac21fb28cffba83" },
+    "skilloptVersion": { "const": "0.2.0" },
+    "targetModel": { "const": "gpt-5.4-mini" },
+    "optimizerModel": { "const": "gpt-5.5" },
+    "hosts": { "type": "array", "const": ["codex", "opencode", "cursor"] },
+    "catalogHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "pricingHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}
