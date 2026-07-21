@@ -100,11 +100,9 @@ function semanticCliResult(result: CliResult): unknown {
   if (result.exitCode === 0) {
     return JSON.parse(result.stdout);
   }
-  const code = /Error \[([A-Z_]+)\]/.exec(result.stderr)?.[1] ?? "UNKNOWN";
   return {
     error: {
       category: result.exitCode === 2 ? "validation" : "operation",
-      ...(result.exitCode === 2 ? {} : { code }),
     },
   };
 }

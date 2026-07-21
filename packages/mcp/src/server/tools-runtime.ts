@@ -2,6 +2,7 @@ import type {
   PrologPort,
   PrologQueryResult,
 } from "kibi-cli/operations/runtime-types";
+import { getSpec } from "kibi-cli/operations";
 import type { PrologProcess } from "kibi-cli/prolog";
 import {
   DIAGNOSTIC_MODE_ENABLED,
@@ -28,7 +29,6 @@ import {
   handleKbSkillsLoad,
   handleKbSkillsRead,
 } from "../tools/skills.js";
-import { handleSparql } from "../tools/sparql.js";
 import { handleKbStatus } from "../tools/status.js";
 import { handleKbSuggestPredicates } from "../tools/suggest-predicates.js";
 import { handleKbUpsert } from "../tools/upsert.js";
@@ -108,6 +108,7 @@ const operationRuntime = createMcpRuntime<PrologProcess>({
     (await getSessionModule()).attachedBranchKbPath,
   ensureProlog: async () => (await getSessionModule()).ensureProlog(),
   adaptProlog,
+  net: { fetch: (input, init) => globalThis.fetch(input, init) },
   refreshAttachedBranchStamp: async () => {
     const session = await getSessionModule();
     const kbPath = session.attachedBranchKbPath;
@@ -149,7 +150,8 @@ export const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
   handleKbDelete,
   handleKbFindGaps,
   handleKbGraph,
-  handleSparql,
+  handleSparql: (args, context) =>
+    getSpec("kb_sparql_remote").execute(args, context),
   handleKbQuery,
   handleKbSearch,
   handleKbStatus,

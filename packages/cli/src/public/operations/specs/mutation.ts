@@ -1,5 +1,11 @@
-import { executePlaceholder } from "../types.js";
-import type { OperationSpec } from "../types.js";
+import { executeUpsert } from "../../../operations/mutation/upsert.js";
+import type {
+  UpsertInput,
+  UpsertPayload,
+  ValidateUpsertPayload,
+} from "../../../operations/mutation/types.js";
+import { executeValidateUpsert } from "../../../operations/mutation/validate-upsert.js";
+import { executePlaceholder, type OperationSpec } from "../types.js";
 
 const ENTITY_TYPES = [
   "req",
@@ -260,8 +266,8 @@ export const upsertSpec = {
   },
   requiresProlog: true,
   effects: ["kb-write", "workspace-write"],
-  execute: executePlaceholder,
-} as const satisfies OperationSpec;
+  execute: executeUpsert,
+} as const satisfies OperationSpec<UpsertInput, UpsertPayload>;
 
 export const validateUpsertSpec = {
   name: "kb_validate_upsert",
@@ -284,8 +290,8 @@ export const validateUpsertSpec = {
   },
   requiresProlog: true,
   effects: ["kb-read"],
-  execute: executePlaceholder,
-} as const satisfies OperationSpec;
+  execute: executeValidateUpsert,
+} as const satisfies OperationSpec<UpsertInput, ValidateUpsertPayload>;
 
 export const deleteSpec = {
   name: "kb_delete",

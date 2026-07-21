@@ -33,14 +33,14 @@ export interface OperationContent {
   readonly text?: string;
 }
 
-export interface OperationResult<O = Record<string, unknown>> {
+export interface OperationResult<O = unknown> {
   readonly content: readonly OperationContent[];
   readonly structuredContent?: O;
 }
 
 export interface OperationSpec<
   I = Readonly<Record<string, unknown>>,
-  O = Record<string, unknown>,
+  O = unknown,
 > {
   readonly name: OperationName;
   readonly cliName: string;

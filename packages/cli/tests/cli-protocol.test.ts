@@ -58,4 +58,21 @@ describe("executeOperation", () => {
       stderr: "Error [UNKNOWN_OPERATION]: Unknown operation 'unknown'.\n",
     });
   });
+
+  test("rejects MCP-internal upsert fields at the CLI boundary", async () => {
+    // Given
+    const input = {
+      type: "req",
+      id: "REQ-INTERNAL-FIELD",
+      properties: { title: "Private field", status: "open" },
+      _skipContradictionCheck: true,
+    };
+
+    // When
+    const result = await executeOperation("kb_upsert", input, createContext());
+
+    // Then
+    expect(result.exitCode).toBe(2);
+    expect(result.stderr).toContain("_skipContradictionCheck");
+  });
 });

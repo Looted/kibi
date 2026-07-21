@@ -1,4 +1,5 @@
 export * from "./catalog.js";
+export * from "./check-executor.js";
 export * from "./discovery-entities.js";
 export * from "./discovery-executors.js";
 export * from "./runtime-types.js";

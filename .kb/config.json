@@ -25,5 +25,6 @@
       "requireAdr": false
     }
   },
-  "schemaVersion": 2
+  "schemaVersion": 3,
+  "semanticAdvisorBackfill": "pending"
 }

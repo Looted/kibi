@@ -12,6 +12,8 @@ tags:
   - kibi
   - enforcement
 links:
+  - type: specified_by
+    target: SCEN-opencode-smart-enforcement-v1-coverage
   - REQ-opencode-posture-detection
   - REQ-opencode-risk-classification
   - REQ-opencode-guidance-caching

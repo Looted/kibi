@@ -283,9 +283,9 @@ symbols:
         target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-001
-    sourceLine: 70
+    sourceLine: 30
     sourceColumn: 22
-    sourceEndLine: 172
+    sourceEndLine: 46
     sourceEndColumn: 1
   - id: SYM-mcp-loadChecksConfig
     title: loadChecksConfig
@@ -1047,6 +1047,11 @@ symbols:
     title: ExtractionOutput
     sourceFile: packages/cli/src/commands/sync/extraction.ts
     symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
   - id: SYM-discoverSourceFiles
     title: discoverSourceFiles
     sourceFile: packages/cli/src/commands/sync/discovery.ts
@@ -2838,6 +2843,26 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
+  - id: SYM-registerConfiguredTools
+    title: registerConfiguredTools
+    sourceFile: packages/mcp/src/server/tool-registration.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: implements
+        target: REQ-mcp-relationship-preflight
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
   - id: SYM-addTool
     title: addTool
     sourceFile: packages/mcp/src/server/tools.ts
@@ -2854,6 +2879,35 @@ symbols:
     title: registerAllTools
     sourceFile: packages/mcp/src/server/tools.ts
     symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-ToolConfig
+    title: ToolConfig
+    sourceFile: packages/mcp/src/server/tool-types.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-ToolsRuntime
+    title: ToolsRuntime
+    sourceFile: packages/mcp/src/server/tool-types.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: implements
+        target: REQ-mcp-tool-upsert
+      - type: implements
+        target: REQ-mcp-relationship-preflight
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
   - id: SYM-redactDiagnosticArgs
     title: redactDiagnosticArgs
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
@@ -2920,6 +2974,54 @@ symbols:
     sourceColumn: 17
     sourceEndLine: 113
     sourceEndColumn: 1
+  - id: SYM-ToolHandler
+    title: ToolHandler
+    sourceFile: packages/mcp/src/server/tool-types.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 37
+    sourceColumn: 12
+    sourceEndLine: 37
+    sourceEndColumn: 78
+  - id: SYM-ToolHandlerArgs
+    title: ToolHandlerArgs
+    sourceFile: packages/mcp/src/server/tool-types.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 39
+    sourceColumn: 12
+    sourceEndLine: 41
+    sourceEndColumn: 2
+  - id: SYM-Awaitable
+    title: Awaitable
+    sourceFile: packages/mcp/src/server/tool-types.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 43
+    sourceColumn: 12
+    sourceEndLine: 43
+    sourceEndColumn: 42
+  - id: SYM-DefaultRuntimeProlog
+    title: DefaultRuntimeProlog
+    sourceFile: packages/mcp/src/server/tool-types.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 44
+    sourceColumn: 12
+    sourceEndLine: 44
+    sourceEndColumn: 49
   - id: SYM-DEFAULT-TOOLS-RUNTIME
     title: DEFAULT_TOOLS_RUNTIME
     sourceFile: packages/mcp/src/server/tools-runtime.ts
@@ -2928,9 +3030,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 130
+    sourceLine: 131
     sourceColumn: 13
-    sourceEndLine: 165
+    sourceEndLine: 167
     sourceEndColumn: 1
   - id: SYM-TOOLS
     title: TOOLS
@@ -3149,6 +3251,102 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
+  - id: SYM-handleKbAutopilotGenerate
+    title: handleKbAutopilotGenerate
+    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+  - id: SYM-AutopilotBootstrapContext
+    title: AutopilotBootstrapContext
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+  - id: SYM-AutopilotConfidence
+    title: AutopilotConfidence
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+  - id: SYM-AutopilotRecommendedAction
+    title: AutopilotRecommendedAction
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+  - id: SYM-AutopilotDeclaredContext
+    title: AutopilotDeclaredContext
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+  - id: SYM-setAutopilotGenerateDepsForTests
+    title: _setAutopilotGenerateDepsForTests
+    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+  - id: SYM-resetAutopilotGenerateDepsForTests
+    title: _resetAutopilotGenerateDepsForTests
+    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+  - id: SYM-AutopilotGenerateArgs
+    title: AutopilotGenerateArgs
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+  - id: SYM-AutopilotGenerateResult
+    title: AutopilotGenerateResult
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
   - id: SYM-handleKbDelete
     title: handleKbDelete
     sourceFile: packages/mcp/src/tools/delete.ts
@@ -3447,6 +3645,36 @@ symbols:
         target: TEST-005
       - type: covered_by
         target: TEST-mcp-relationship-preflight
+  - id: SYM-executeUpsert
+    title: executeUpsert
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    symbol_role: behavioral
+    text_ref: packages/cli/src/operations/mutation/upsert.ts#executeUpsert
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-executeValidateUpsert
+    title: executeValidateUpsert
+    sourceFile: packages/cli/src/operations/mutation/validate-upsert.ts
+    symbol_role: behavioral
+    text_ref: packages/cli/src/operations/mutation/validate-upsert.ts#executeValidateUpsert
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-validateUpsertInput
+    title: validateUpsertInput
+    sourceFile: packages/cli/src/operations/mutation/validation.ts
+    symbol_role: behavioral
+    text_ref: packages/cli/src/operations/mutation/validation.ts#validateUpsertInput
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
   - id: SYM-mcp-sameBranchKbStamp
     title: sameBranchKbStamp
     sourceFile: packages/mcp/src/server/kb-freshness.ts
@@ -3570,9 +3798,9 @@ symbols:
         target: REQ-mcp-relationship-preflight
       - type: covered_by
         target: TEST-mcp-relationship-preflight
-    sourceLine: 143
+    sourceLine: 16
     sourceColumn: 22
-    sourceEndLine: 177
+    sourceEndLine: 28
     sourceEndColumn: 1
   - id: SYM-formatInvalidRelationshipTuple
     title: formatInvalidRelationshipTuple
@@ -3583,10 +3811,6 @@ symbols:
         target: REQ-mcp-relationship-preflight
       - type: covered_by
         target: TEST-mcp-relationship-preflight
-    sourceLine: 99
-    sourceColumn: 16
-    sourceEndLine: 103
-    sourceEndColumn: 1
   - id: SYM-formatInvalidRelationshipError
     title: formatInvalidRelationshipError
     sourceFile: packages/mcp/src/tools/relationship-validation.ts
@@ -3595,10 +3819,6 @@ symbols:
         target: REQ-mcp-relationship-preflight
       - type: covered_by
         target: TEST-mcp-relationship-preflight
-    sourceLine: 105
-    sourceColumn: 16
-    sourceEndLine: 129
-    sourceEndColumn: 1
   - id: SYM-formatRelationshipSourceMismatch
     title: formatRelationshipSourceMismatch
     sourceFile: packages/mcp/src/tools/relationship-validation.ts
@@ -3608,10 +3828,6 @@ symbols:
         target: REQ-mcp-relationship-preflight
       - type: covered_by
         target: TEST-mcp-relationship-preflight
-    sourceLine: 131
-    sourceColumn: 16
-    sourceEndLine: 141
-    sourceEndColumn: 1
   - id: SYM-validateAndMerge
     title: validateAndMerge
     sourceFile: packages/opencode/src/config.ts
@@ -5134,21 +5350,6 @@ symbols:
         target: REQ-prolog-library-adoption
       - type: covered_by
         target: TEST-prolog-library-adoption-core
-  - id: SYM-mcp-handle-sparql
-    title: handleSparql validates and dispatches remote SPARQL MCP calls
-    sourceFile: packages/mcp/src/tools/sparql.ts
-    owner: mcp-team
-    granularity_reason: extractor-miss
-    links:
-      - REQ-prolog-library-adoption
-      - REQ-002
-    relationships:
-      - type: implements
-        target: REQ-prolog-library-adoption
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-prolog-library-adoption-mcp
   - id: SYM-SparqlArgs
     title: SparqlArgs
     sourceFile: packages/mcp/src/tools/sparql.ts
@@ -5163,10 +5364,10 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-prolog-library-adoption-mcp
-    sourceLine: 4
-    sourceColumn: 17
-    sourceEndLine: 8
-    sourceEndColumn: 1
+    sourceLine: 6
+    sourceColumn: 12
+    sourceEndLine: 10
+    sourceEndColumn: 2
   - id: SYM-SparqlResult
     title: SparqlResult
     sourceFile: packages/mcp/src/tools/sparql.ts
@@ -5181,10 +5382,10 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-prolog-library-adoption-mcp
-    sourceLine: 10
-    sourceColumn: 17
-    sourceEndLine: 15
-    sourceEndColumn: 1
+    sourceLine: 12
+    sourceColumn: 12
+    sourceEndLine: 12
+    sourceEndColumn: 80
   - id: SYM-handleSparql
     title: handleSparql
     sourceFile: packages/mcp/src/tools/sparql.ts
@@ -5199,9 +5400,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-prolog-library-adoption-mcp
-    sourceLine: 18
+    sourceLine: 15
     sourceColumn: 22
-    sourceEndLine: 46
+    sourceEndLine: 25
     sourceEndColumn: 1
   - id: SYM-SYMBOL_ROLES
     title: SYMBOL_ROLES
@@ -6562,6 +6763,21 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 42
     sourceEndColumn: 45
+  - id: SYM-operation-autopilot-generate-spec
+    title: autopilotGenerateSpec
+    sourceFile: packages/cli/src/public/operations/specs/autopilot.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 15
+    sourceColumn: 13
+    sourceEndLine: 98
+    sourceEndColumn: 1
   - id: SYM-operation-check-spec
     title: checkSpec
     sourceFile: packages/cli/src/public/operations/specs/check.ts
@@ -6740,10 +6956,10 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 237
+    sourceLine: 243
     sourceColumn: 13
-    sourceEndLine: 264
-    sourceEndColumn: 34
+    sourceEndLine: 270
+    sourceEndColumn: 62
   - id: SYM-operation-validate-upsert-spec
     title: validateUpsertSpec
     sourceFile: packages/cli/src/public/operations/specs/mutation.ts
@@ -6753,10 +6969,10 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 266
+    sourceLine: 272
     sourceColumn: 13
-    sourceEndLine: 288
-    sourceEndColumn: 34
+    sourceEndLine: 294
+    sourceEndColumn: 70
   - id: SYM-operation-delete-spec
     title: deleteSpec
     sourceFile: packages/cli/src/public/operations/specs/mutation.ts
@@ -6766,9 +6982,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 290
+    sourceLine: 296
     sourceColumn: 13
-    sourceEndLine: 310
+    sourceEndLine: 316
     sourceEndColumn: 34
   - id: SYM-operation-find-gaps-spec
     title: findGapsSpec
@@ -6879,10 +7095,10 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 4
+    sourceLine: 121
     sourceColumn: 13
-    sourceEndLine: 32
-    sourceEndColumn: 34
+    sourceEndLine: 149
+    sourceEndColumn: 73
   - id: SYM-operation-content-type
     title: OperationContent
     sourceFile: packages/cli/src/public/operations/types.ts
@@ -6947,6 +7163,15 @@ symbols:
   - id: SYM-executeOperation
     title: executeOperation
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-createCliRuntime
+    title: createCliRuntime
+    sourceFile: packages/cli/src/runtime/cli-runtime.ts
     symbol_role: behavioral
     relationships:
       - type: implements
@@ -7591,100 +7816,6 @@ symbols:
         target: REQ-mcp-semantic-advisor-preflight
       - type: covered_by
         target: TEST-mcp-semantic-advisor-preflight
-  - id: SYM-autopilot-classify-activation
-    title: classifyActivation
-    sourceFile: packages/cli/src/operations/autopilot/activation.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-confidence-band
-    title: confidenceBand
-    sourceFile: packages/cli/src/operations/autopilot/candidate-helpers.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-slug
-    title: slug
-    sourceFile: packages/cli/src/operations/autopilot/candidate-helpers.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-upsert-plan
-    title: upsert
-    sourceFile: packages/cli/src/operations/autopilot/candidate-helpers.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-strict-plan
-    title: strictPlan
-    sourceFile: packages/cli/src/operations/autopilot/candidate-helpers.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-build-candidates-shared
-    title: buildAutopilotCandidates
-    sourceFile: packages/cli/src/operations/autopilot/candidates.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-scan-evidence
-    title: scanEvidence
-    sourceFile: packages/cli/src/operations/autopilot/discovery-evidence.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-evidence-scan
-    title: EvidenceScan
-    sourceFile: packages/cli/src/operations/autopilot/discovery-evidence.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-discover-shared
-    title: discoverAutopilot
-    sourceFile: packages/cli/src/operations/autopilot/discovery.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-select-candidates
-    title: selectAutopilotCandidates
-    sourceFile: packages/cli/src/operations/autopilot/generate.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
   - id: SYM-autopilot-execute-shared
     title: executeAutopilotGenerate
     sourceFile: packages/cli/src/operations/autopilot/generate.ts
@@ -7696,51 +7827,40 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-build-actions
-    title: buildActions
-    sourceFile: packages/cli/src/operations/autopilot/guidance-actions.ts
+    sourceLine: 106
+    sourceColumn: 22
+    sourceEndLine: 157
+    sourceEndColumn: 1
+  - id: SYM-autopilot-discover-shared
+    title: discoverAutopilot
+    sourceFile: packages/cli/src/operations/autopilot/discovery.ts
     symbol_role: behavioral
     relationships:
       - type: implements
         target: REQ-mcp-init-kibi-autopilot-v1
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-build-guidance
-    title: buildGuidance
-    sourceFile: packages/cli/src/operations/autopilot/guidance.ts
+    sourceLine: 83
+    sourceColumn: 22
+    sourceEndLine: 132
+    sourceEndColumn: 1
+  - id: SYM-autopilot-build-candidates-shared
+    title: buildAutopilotCandidates
+    sourceFile: packages/cli/src/operations/autopilot/candidates.ts
     symbol_role: behavioral
     relationships:
       - type: implements
         target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-markdown-candidates
-    title: markdownCandidates
-    sourceFile: packages/cli/src/operations/autopilot/markdown-candidates.ts
-    symbol_role: behavioral
-    relationships:
       - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
+        target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-candidate-build-result
-    title: CandidateBuildResult
-    sourceFile: packages/cli/src/operations/autopilot/markdown-candidates.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-normalize-context
-    title: normalizeBootstrapContext
-    sourceFile: packages/cli/src/operations/autopilot/presentation.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 129
+    sourceColumn: 16
+    sourceEndLine: 155
+    sourceEndColumn: 1
   - id: SYM-autopilot-present-shared
     title: presentAutopilot
     sourceFile: packages/cli/src/operations/autopilot/presentation.ts
@@ -7754,413 +7874,10 @@ symbols:
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-claim-for
-    title: claimFor
-    sourceFile: packages/cli/src/operations/autopilot/requirement-claims.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-AutopilotBootstrapContext
-    title: AutopilotBootstrapContext
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-AutopilotGenerateArgs
-    title: AutopilotGenerateArgs
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-AutopilotConfidence
-    title: AutopilotConfidence
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-AutopilotRecommendedAction
-    title: AutopilotRecommendedAction
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-AutopilotDeclaredContext
-    title: AutopilotDeclaredContext
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-activation-state-shared
-    title: ActivationState
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-activation-mode-shared
-    title: ActivationMode
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-provider-name-shared
-    title: EvidenceProviderName
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-evidence-kind-shared
-    title: EvidenceKind
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-activation-policy-shared
-    title: ActivationPolicy
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-evidence-shared
-    title: AutopilotEvidence
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-discovery-summary-shared
-    title: DiscoverySummary
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-discovery-result-shared
-    title: DiscoveryResult
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-candidate-shared
-    title: Candidate
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-source-only-signal-shared
-    title: SourceOnlySignal
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-structured-content-shared
-    title: AutopilotStructuredContent
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-AutopilotGenerateResult
-    title: AutopilotGenerateResult
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-provider-order-shared
-    title: AUTOPILOT_PROVIDER_ORDER
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-operation-node-filesystem
-    title: nodeFilesystem
-    sourceFile: packages/cli/src/public/operations/node-ports.ts
-    symbol_role: config
-    relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-kibi-operation-interface-parity
-  - id: SYM-operation-node-git
-    title: nodeGit
-    sourceFile: packages/cli/src/public/operations/node-ports.ts
-    symbol_role: config
-    relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-kibi-operation-interface-parity
-  - id: SYM-operation-autopilot-generate-spec
-    title: autopilotGenerateSpec
-    sourceFile: packages/cli/src/public/operations/specs/autopilot.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-createCliRuntime
-    title: createCliRuntime
-    sourceFile: packages/cli/src/runtime/cli-runtime.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-kibi-operation-interface-parity
-  - id: SYM-registerConfiguredTools
-    title: registerConfiguredTools
-    sourceFile: packages/mcp/src/server/tool-registration.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: implements
-        target: REQ-mcp-relationship-preflight
-      - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-relationship-preflight
-      - type: covered_by
-        target: TEST-mcp-semantic-advisor-preflight
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-ToolConfig
-    title: ToolConfig
-    sourceFile: packages/mcp/src/server/tool-types.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-  - id: SYM-ToolsRuntime
-    title: ToolsRuntime
-    sourceFile: packages/mcp/src/server/tool-types.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: implements
-        target: REQ-mcp-tool-upsert
-      - type: implements
-        target: REQ-mcp-relationship-preflight
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-upsert-coverage
-      - type: covered_by
-        target: TEST-mcp-relationship-preflight
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-ToolHandler
-    title: ToolHandler
-    sourceFile: packages/mcp/src/server/tool-types.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-  - id: SYM-ToolHandlerArgs
-    title: ToolHandlerArgs
-    sourceFile: packages/mcp/src/server/tool-types.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-  - id: SYM-Awaitable
-    title: Awaitable
-    sourceFile: packages/mcp/src/server/tool-types.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-  - id: SYM-DefaultRuntimeProlog
-    title: DefaultRuntimeProlog
-    sourceFile: packages/mcp/src/server/tool-types.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-  - id: SYM-setAutopilotGenerateDepsForTests
-    title: _setAutopilotGenerateDepsForTests
-    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-resetAutopilotGenerateDepsForTests
-    title: _resetAutopilotGenerateDepsForTests
-    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-handleKbAutopilotGenerate
-    title: handleKbAutopilotGenerate
-    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-test-set-dependencies
-    title: setTestDependencies
-    sourceFile: packages/mcp/src/tools/autopilot-test-compat.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-test-reset-dependencies
-    title: resetTestDependencies
-    sourceFile: packages/mcp/src/tools/autopilot-test-compat.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-test-execute-dependencies
-    title: executeTestDependencies
-    sourceFile: packages/mcp/src/tools/autopilot-test-compat.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-test-legacy-dependencies
-    title: LegacyDependencies
-    sourceFile: packages/mcp/src/tools/autopilot-test-compat.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-test-record-parser
-    title: record
-    sourceFile: packages/mcp/src/tools/autopilot-test-parsers.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-test-candidate-parser
-    title: candidate
-    sourceFile: packages/mcp/src/tools/autopilot-test-parsers.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-test-signal-parser
-    title: signal
-    sourceFile: packages/mcp/src/tools/autopilot-test-parsers.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-test-activation-parser
-    title: activation
-    sourceFile: packages/mcp/src/tools/autopilot-test-parsers.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 45
+    sourceColumn: 16
+    sourceEndLine: 122
+    sourceEndColumn: 1
   - id: SYM-autopilot-shared-executor-test
     title: shared autopilot executor test
     sourceFile: packages/cli/tests/operations/autopilot.test.ts
@@ -8182,3 +7899,532 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-operation-interface-parity
+  - id: SYM-autopilot-classify-activation
+    title: classifyActivation
+    sourceFile: packages/cli/src/operations/autopilot/activation.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 99
+    sourceColumn: 22
+    sourceEndLine: 173
+    sourceEndColumn: 1
+  - id: SYM-autopilot-confidence-band
+    title: confidenceBand
+    sourceFile: packages/cli/src/operations/autopilot/candidate-helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 3
+    sourceColumn: 16
+    sourceEndLine: 5
+    sourceEndColumn: 1
+  - id: SYM-autopilot-slug
+    title: slug
+    sourceFile: packages/cli/src/operations/autopilot/candidate-helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 7
+    sourceColumn: 16
+    sourceEndLine: 13
+    sourceEndColumn: 1
+  - id: SYM-autopilot-upsert-plan
+    title: upsert
+    sourceFile: packages/cli/src/operations/autopilot/candidate-helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 15
+    sourceColumn: 16
+    sourceEndLine: 32
+    sourceEndColumn: 1
+  - id: SYM-autopilot-strict-plan
+    title: strictPlan
+    sourceFile: packages/cli/src/operations/autopilot/candidate-helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 34
+    sourceColumn: 16
+    sourceEndLine: 71
+    sourceEndColumn: 1
+  - id: SYM-autopilot-scan-evidence
+    title: scanEvidence
+    sourceFile: packages/cli/src/operations/autopilot/discovery-evidence.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 170
+    sourceColumn: 22
+    sourceEndLine: 225
+    sourceEndColumn: 1
+  - id: SYM-autopilot-evidence-scan
+    title: EvidenceScan
+    sourceFile: packages/cli/src/operations/autopilot/discovery-evidence.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 39
+    sourceColumn: 12
+    sourceEndLine: 44
+    sourceEndColumn: 2
+  - id: SYM-autopilot-select-candidates
+    title: selectAutopilotCandidates
+    sourceFile: packages/cli/src/operations/autopilot/generate.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 32
+    sourceColumn: 16
+    sourceEndLine: 89
+    sourceEndColumn: 1
+  - id: SYM-autopilot-build-actions
+    title: buildActions
+    sourceFile: packages/cli/src/operations/autopilot/guidance-actions.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 24
+    sourceColumn: 16
+    sourceEndLine: 101
+    sourceEndColumn: 1
+  - id: SYM-autopilot-build-guidance
+    title: buildGuidance
+    sourceFile: packages/cli/src/operations/autopilot/guidance.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 162
+    sourceColumn: 16
+    sourceEndLine: 199
+    sourceEndColumn: 1
+  - id: SYM-autopilot-markdown-candidates
+    title: markdownCandidates
+    sourceFile: packages/cli/src/operations/autopilot/markdown-candidates.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 142
+    sourceColumn: 16
+    sourceEndLine: 198
+    sourceEndColumn: 1
+  - id: SYM-autopilot-candidate-build-result
+    title: CandidateBuildResult
+    sourceFile: packages/cli/src/operations/autopilot/markdown-candidates.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 17
+    sourceColumn: 12
+    sourceEndLine: 20
+    sourceEndColumn: 2
+  - id: SYM-autopilot-normalize-context
+    title: normalizeBootstrapContext
+    sourceFile: packages/cli/src/operations/autopilot/presentation.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 18
+    sourceColumn: 16
+    sourceEndLine: 29
+    sourceEndColumn: 1
+  - id: SYM-autopilot-claim-for
+    title: claimFor
+    sourceFile: packages/cli/src/operations/autopilot/requirement-claims.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 3
+    sourceColumn: 16
+    sourceEndLine: 62
+    sourceEndColumn: 1
+  - id: SYM-autopilot-activation-state-shared
+    title: ActivationState
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 48
+    sourceColumn: 12
+    sourceEndLine: 53
+    sourceEndColumn: 25
+  - id: SYM-autopilot-activation-mode-shared
+    title: ActivationMode
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 55
+    sourceColumn: 12
+    sourceEndLine: 60
+    sourceEndColumn: 23
+  - id: SYM-autopilot-provider-order-shared
+    title: AUTOPILOT_PROVIDER_ORDER
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 62
+    sourceColumn: 13
+    sourceEndLine: 69
+    sourceEndColumn: 10
+  - id: SYM-autopilot-provider-name-shared
+    title: EvidenceProviderName
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 71
+    sourceColumn: 12
+    sourceEndLine: 71
+    sourceEndColumn: 77
+  - id: SYM-autopilot-evidence-kind-shared
+    title: EvidenceKind
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 72
+    sourceColumn: 12
+    sourceEndLine: 79
+    sourceEndColumn: 21
+  - id: SYM-autopilot-activation-policy-shared
+    title: ActivationPolicy
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 81
+    sourceColumn: 12
+    sourceEndLine: 88
+    sourceEndColumn: 2
+  - id: SYM-autopilot-evidence-shared
+    title: AutopilotEvidence
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 90
+    sourceColumn: 12
+    sourceEndLine: 98
+    sourceEndColumn: 2
+  - id: SYM-autopilot-discovery-summary-shared
+    title: DiscoverySummary
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 100
+    sourceColumn: 12
+    sourceEndLine: 114
+    sourceEndColumn: 2
+  - id: SYM-autopilot-discovery-result-shared
+    title: DiscoveryResult
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 116
+    sourceColumn: 12
+    sourceEndLine: 122
+    sourceEndColumn: 2
+  - id: SYM-autopilot-candidate-shared
+    title: Candidate
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 124
+    sourceColumn: 12
+    sourceEndLine: 139
+    sourceEndColumn: 2
+  - id: SYM-autopilot-source-only-signal-shared
+    title: SourceOnlySignal
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 141
+    sourceColumn: 12
+    sourceEndLine: 147
+    sourceEndColumn: 2
+  - id: SYM-autopilot-structured-content-shared
+    title: AutopilotStructuredContent
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 149
+    sourceColumn: 12
+    sourceEndLine: 153
+    sourceEndColumn: 2
+  - id: SYM-operation-node-filesystem
+    title: nodeFilesystem
+    sourceFile: packages/cli/src/public/operations/node-ports.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 42
+    sourceColumn: 13
+    sourceEndLine: 60
+    sourceEndColumn: 1
+  - id: SYM-operation-node-git
+    title: nodeGit
+    sourceFile: packages/cli/src/public/operations/node-ports.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 62
+    sourceColumn: 13
+    sourceEndLine: 78
+    sourceEndColumn: 1
+  - id: SYM-autopilot-test-set-dependencies
+    title: setTestDependencies
+    sourceFile: packages/mcp/src/tools/autopilot-test-compat.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 22
+    sourceColumn: 16
+    sourceEndLine: 24
+    sourceEndColumn: 1
+  - id: SYM-autopilot-test-reset-dependencies
+    title: resetTestDependencies
+    sourceFile: packages/mcp/src/tools/autopilot-test-compat.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 26
+    sourceColumn: 16
+    sourceEndLine: 28
+    sourceEndColumn: 1
+  - id: SYM-autopilot-test-execute-dependencies
+    title: executeTestDependencies
+    sourceFile: packages/mcp/src/tools/autopilot-test-compat.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 41
+    sourceColumn: 22
+    sourceEndLine: 131
+    sourceEndColumn: 1
+  - id: SYM-autopilot-test-legacy-dependencies
+    title: LegacyDependencies
+    sourceFile: packages/mcp/src/tools/autopilot-test-compat.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 19
+    sourceColumn: 12
+    sourceEndLine: 19
+    sourceEndColumn: 67
+  - id: SYM-autopilot-test-record-parser
+    title: record
+    sourceFile: packages/mcp/src/tools/autopilot-test-parsers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 7
+    sourceColumn: 16
+    sourceEndLine: 13
+    sourceEndColumn: 1
+  - id: SYM-autopilot-test-candidate-parser
+    title: candidate
+    sourceFile: packages/mcp/src/tools/autopilot-test-parsers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 15
+    sourceColumn: 16
+    sourceEndLine: 61
+    sourceEndColumn: 1
+  - id: SYM-autopilot-test-signal-parser
+    title: signal
+    sourceFile: packages/mcp/src/tools/autopilot-test-parsers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 63
+    sourceColumn: 16
+    sourceEndLine: 90
+    sourceEndColumn: 1
+  - id: SYM-autopilot-test-activation-parser
+    title: activation
+    sourceFile: packages/mcp/src/tools/autopilot-test-parsers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-mcp-init-kibi-autopilot-v1
+    sourceLine: 92
+    sourceColumn: 16
+    sourceEndLine: 147
+    sourceEndColumn: 1
+  - id: SYM-operation-node-network
+    title: nodeNetwork
+    sourceFile: packages/cli/src/public/operations/node-ports.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 80
+    sourceColumn: 13
+    sourceEndLine: 82
+    sourceEndColumn: 1
+  - id: SYM-operation-sparql-remote-input
+    title: SparqlRemoteInput
+    sourceFile: packages/cli/src/public/operations/specs/sparql.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 5
+    sourceColumn: 12
+    sourceEndLine: 9
+    sourceEndColumn: 2
+  - id: SYM-operation-sparql-remote-output
+    title: SparqlRemoteOutput
+    sourceFile: packages/cli/src/public/operations/specs/sparql.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 12
+    sourceColumn: 12
+    sourceEndLine: 14
+    sourceEndColumn: 2
+  - id: SYM-test-sparql-fixture-request
+    title: SparqlFixtureRequest
+    sourceFile: packages/cli/tests/fixtures/sparql-http-server.ts
+    symbol_role: type-shape
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 7
+    sourceColumn: 12
+    sourceEndLine: 12
+    sourceEndColumn: 2
+  - id: SYM-test-sparql-fixture-rows
+    title: SPARQL_FIXTURE_ROWS
+    sourceFile: packages/cli/tests/fixtures/sparql-http-server.ts
+    symbol_role: config
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 2
+    sourceColumn: 13
+    sourceEndLine: 4
+    sourceEndColumn: 10

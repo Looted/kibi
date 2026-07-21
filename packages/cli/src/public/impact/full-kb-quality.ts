@@ -33,7 +33,7 @@ const RELATIONSHIP_TYPES = [
 ] as const;
 
 type FullKbQualityDiagnosticsOptions = {
-  readonly prolog: PrologProcess;
+  readonly prolog: Pick<PrologProcess, "query">;
   readonly hardViolationEntityIds?: ReadonlySet<string>;
   readonly maxDiagnostics?: number;
 };
@@ -133,7 +133,7 @@ function sourceFileFor(entity: Record<string, unknown>): string | undefined {
 }
 
 async function loadKbExtractionResults(
-  prolog: PrologProcess,
+  prolog: Pick<PrologProcess, "query">,
 ): Promise<ExtractionResult[]> {
   const entityResult = await prolog.query(
     "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)",
