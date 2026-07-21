@@ -8978,3 +8978,12 @@ symbols:
         target: REQ-skill-behavioral-efficacy
       - type: covered_by
         target: TEST-skill-behavioral-efficacy
+  - id: SYM-skillopt-preflight-run
+    title: runPreflight
+    sourceFile: scripts/skillopt-eval/preflight.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skill-behavioral-efficacy
+      - type: covered_by
+        target: TEST-skill-behavioral-efficacy

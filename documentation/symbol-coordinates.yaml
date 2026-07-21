@@ -4526,3 +4526,9 @@ coordinates:
     sourceEndLine: 418
     sourceFile: packages/mcp/src/tools/model-requirement.ts
     sourceLine: 416
+  SYM-skillopt-preflight-run:
+    sourceColumn: 17
+    sourceEndColumn: 2
+    sourceEndLine: 154
+    sourceFile: scripts/skillopt-eval/preflight.ts
+    sourceLine: 112
