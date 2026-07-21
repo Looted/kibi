@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { fileURLToPath } from "node:url";
 import {
   skillsListSpec,
   skillsLoadSpec,
@@ -43,4 +44,32 @@ describe("skills CLI and MCP parity", () => {
       expect(comparison.parity, comparison.diff).toBe(true);
     });
   }
+
+  test("skills-load accepts JSON from stdin", async () => {
+    // Given: the documented JSON route and a piped skill identifier.
+    const kibiBin = fileURLToPath(new URL("../../bin/kibi", import.meta.url));
+    const child = Bun.spawn(
+      ["bun", "run", kibiBin, "skills-load", "--input", "-"],
+      {
+        cwd: process.cwd(),
+        stdin: new Blob([JSON.stringify({ id: "kibi-usage" })]),
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    );
+
+    // When: the CLI consumes stdin and exits.
+    const [exitCode, stdout, stderr] = await Promise.all([
+      child.exited,
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+    ]);
+
+    // Then: it emits the shared load payload without transport errors.
+    expect(exitCode, stderr).toBe(0);
+    expect(JSON.parse(stdout)).toMatchObject({
+      metadata: { id: "kibi-usage" },
+      sourceType: "bundled",
+    });
+  });
 });
