@@ -34,7 +34,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && bun run scripts/copy-plugin-assets.ts",
+    "build": "tsc -p tsconfig.json && bun run scripts/copy-plugin-assets.ts && bun run ../../scripts/sync-agent-skills.ts --write --target cursor",
     "dev": "tsc -p tsconfig.json --watch",
     "clean": "rm -rf dist",
     "prepack": "npm run build"

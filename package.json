@@ -29,6 +29,7 @@
     "dev:codex": "bun --filter ./packages/codex dev",
     "dev:cursor": "bun --filter ./packages/cursor dev",
     "sync:cursor-dogfood": "./scripts/sync-cursor-dogfood.sh",
+    "sync:agent-skills": "bun run scripts/sync-agent-skills.ts --write",
     "sync:cursor-plugin-local": "./scripts/sync-cursor-plugin-local.sh",
     "build": "bun run build:cli && bun run build:mcp && bun run build:opencode && bun run build:codex && bun run build:cursor",
     "typecheck:cli": "tsc -p packages/cli/tsconfig.json --noEmit",

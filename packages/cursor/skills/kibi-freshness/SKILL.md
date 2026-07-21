@@ -1,6 +1,14 @@
 ---
+id: kibi-freshness
 name: kibi-freshness
 description: Check branch freshness and source linkage quality before decisions or risky writes.
+version: 1.0.0
+kibiCompatibility: "*"
+tags:
+  - kibi
+  - mcp
+  - freshness
+  - agent-guidance
 ---
 
 ## Goal
