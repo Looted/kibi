@@ -1,0 +1,10 @@
+{
+  "runId": "preflight-001",
+  "targetModel": "gpt-5.4-mini",
+  "optimizerModel": "gpt-5.5",
+  "skilloptCommit": "b860a5cf88ce75e2bd02ca981ac21fb28cffba83",
+  "hosts": [],
+  "verdict": "no-go",
+  "reason": "missing_host:codex",
+  "paidModelCalls": 0
+}
