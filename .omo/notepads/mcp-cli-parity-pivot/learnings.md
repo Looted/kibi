@@ -41,3 +41,11 @@
 - The CLI build already compiles `src/public/operations/**` into `dist/public/operations/`; the post-`tsc` skills copy does not interfere with that output.
 - Every family spec stays below 250 nonblank/non-comment LOC; the largest is `mutation.ts` at 214 lines.
 - Focused catalog, purity, and frozen MCP contract verification passed (5 tests, 125 assertions). CLI source typecheck passed; the MCP package typecheck was temporarily blocked by concurrent Todo 6 runtime edits outside Task 4 (`mcp-runtime.ts`, `tools-runtime.ts`, and `tools.ts`).
+
+## 2026-07-21T11:09:17Z Task: plan-todo-7
+- The executable parity seam uses two independently initialized and seeded temporary Git/KB workspaces per case. CLI calls run through the built binary and MCP calls cross a real SDK `InMemoryTransport` pair before reaching the catalog executor.
+- A single normalizer removes only declared volatile keys, workspace-root path prefixes, UUID values, and Prolog PID fragments while preserving business fields and nested diagnostics. A contract assertion proves the stripping behavior before the 18 cases run.
+- The case table is catalog-keyed and schema-validated before execution. The MCP anti-drift gate dynamically imports `kibi-cli/operations`, requires 18 specs, and requires exactly one case for each operation name.
+- Mutation cases compare post-operation query results and exercise schema-rejected writes, asserting CLI validation exit 2, MCP typed validation errors, and unchanged failed-entity query state.
+- Remote SPARQL input is bound to a per-test loopback-only Bun server; no public network endpoint is contacted.
+- Focused verification passed 19 tests total: 18 unskipped operation parity cases plus one registry-completeness gate. Each run removed all 36 temporary workspaces through `finally` cleanup.
