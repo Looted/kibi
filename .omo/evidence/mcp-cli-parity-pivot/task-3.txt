@@ -1,0 +1,57 @@
+task: "3"
+timestamp: "2026-07-21T09:30:00Z"
+
+canonical_skills:
+  - id: init-kibi
+    version: 1.0.0
+    kibiCompatibility: "*"
+  - id: kibi-freshness
+    version: 1.0.0
+    kibiCompatibility: "*"
+  - id: kibi-traceability
+    version: 1.0.0
+    kibiCompatibility: "*"
+  - id: kibi-usage
+    version: 1.0.1
+    kibiCompatibility: ">=0.11.0"
+
+generated_mirrors:
+  cursor:
+    count: 4
+    files:
+      - init-kibi/SKILL.md
+      - kibi-freshness/SKILL.md
+      - kibi-traceability/SKILL.md
+      - kibi-usage/SKILL.md
+      - kibi-usage/resources/fact-lanes.md
+      - kibi-usage/resources/relationship-directions.md
+      - kibi-usage/resources/workflows.md
+      - .canon-hash.json
+  codex:
+    count: 4
+    files:
+      - init-kibi/SKILL.md
+      - kibi-freshness/SKILL.md
+      - kibi-traceability/SKILL.md
+      - kibi-usage/SKILL.md
+      - kibi-usage/resources/fact-lanes.md
+      - kibi-usage/resources/relationship-directions.md
+      - kibi-usage/resources/workflows.md
+      - .canon-hash.json
+
+verification:
+  sync_check_exit_code: 0
+  test_results:
+    packages/cli/tests/skills-source.test.ts: pass
+    packages/cursor/tests/skill-drift.test.ts: pass
+    packages/codex/tests/skill-drift.test.ts: pass
+    packages/cli/tests/skills-content.test.ts: pass
+    packages/mcp/tests/tools/skills.test.ts: pass
+  kibi_skills_list:
+    count: 4
+    ids: [init-kibi, kibi-freshness, kibi-traceability, kibi-usage]
+  byte_parity:
+    all_mirrors_match_canonical: true
+  hash_manifest:
+    cursor: present and valid
+    codex: present and valid

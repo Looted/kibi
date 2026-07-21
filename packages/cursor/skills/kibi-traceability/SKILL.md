@@ -1,6 +1,14 @@
 ---
+id: kibi-traceability
 name: kibi-traceability
 description: Maintain requirement, scenario, and test traceability through Kibi MCP tools.
+version: 1.0.0
+kibiCompatibility: "*"
+tags:
+  - kibi
+  - mcp
+  - traceability
+  - agent-guidance
 ---
 
 ## Goal

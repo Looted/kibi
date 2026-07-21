@@ -1,6 +1,14 @@
 ---
+id: init-kibi
 name: init-kibi
 description: Bootstrap and model knowledge safely using approved Kibi MCP initialization and mutation workflow.
+version: 1.0.0
+kibiCompatibility: "*"
+tags:
+  - kibi
+  - mcp
+  - bootstrap
+  - agent-guidance
 ---
 
 ## Goal

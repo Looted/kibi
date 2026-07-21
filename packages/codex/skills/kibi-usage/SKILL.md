@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Guides agents to use Kibi MCP, facts, relationships, and validation correctly
-version: 1.0.0
+version: 1.0.1
 kibiCompatibility: ">=0.11.0"
 tags:
   - kibi
@@ -22,7 +22,7 @@ Consult this skill before any Kibi knowledge base operation, on first interactio
 
 ## MCP-Only Rules
 
-Interact with the knowledge base exclusively through MCP tools. Do not read or edit files inside `.kb/` directly. Do not run any `kibi` CLI commands from the agent session. The MCP surface is the only sanctioned interface for agents.
+Interact with the knowledge base through MCP tools whenever an MCP equivalent exists. Do not read or edit files inside `.kb/` directly. CLI-only sync, symbol-coordinate refresh, and freshness workflows may be run when no MCP equivalent exists and the repository workflow requires them.
 
 ### Tool Name Prefixes
 
@@ -33,6 +33,17 @@ Kibi's canonical MCP names are `kb_search`, `kb_query`, `kb_upsert`, `kb_check`,
 Always discover before you mutate. Start with `kb_search` for exploratory discovery across metadata and markdown body text. Split broad queries into 1-3 focused probes. Review top hits for relevance before concluding the KB lacks knowledge.
 
 Follow up with `kb_query` for exact lookups by `id`, `type`, `tags`, or `sourceFile`. Call `kb_status` to inspect branch attachment and freshness when stale context would affect decisions. Only after discovery and confirmation should you mutate.
+
+## Release Versioning Workflow
+
+Release preparation happens on `develop`:
+
+1. Add human-readable changesets for publishable package changes.
+2. Run `bun run version-packages` to consume changesets, update package versions and changelogs, and synchronize plugin manifests.
+3. Review the generated package/dependency changes and run the release checks before committing.
+4. Merge `develop` into `master`; publishing is performed by the master-branch CI workflow.
+
+Never publish manually from an agent session, and never merge `master` back into `develop`.
 
 ## Relationship Directions
 
@@ -101,7 +112,7 @@ See `resources/fact-lanes.md` for the full strict vs observation lane comparison
 
 Model one semantic claim per strict `property_value` fact. Reusing the same `subject_key` and `property_key` lets `domain-contradictions` compare requirements mechanically.
 
-Incoherent role-set example: `REQ-ROLE-SET-2` says the allowed user roles are exactly `[user, admin]`, while `REQ-ROLE-SET-3` says the same property is exactly `[user, admin, superadmin]`. Both constrain `FACT-USER-ROLES` and require different values for `user.roles.allowed_set`, so they cannot both be current.
+Incoherent role-set example: `REQ-ROLE-SET-2` says the allowed user roles are exactly `user,admin`, while `REQ-ROLE-SET-3` says the same property is exactly `user,admin,superadmin`. Both constrain `FACT-USER-ROLES` and require different values for `user.roles.allowed_set`, so they cannot both be current.
 
 ```yaml
 subject:
@@ -115,15 +126,15 @@ property_values:
     subject_key: user.roles
     property_key: user.roles.allowed_set
     operator: eq
-    value_type: list
-    value_json: '["user", "admin"]'
+    value_type: string
+    value_string: user,admin
   - id: FACT-USER-ROLES-ALLOWED-3
     fact_kind: property_value
     subject_key: user.roles
     property_key: user.roles.allowed_set
     operator: eq
-    value_type: list
-    value_json: '["user", "admin", "superadmin"]'
+    value_type: string
+    value_string: user,admin,superadmin
 
 requirements:
   - id: REQ-ROLE-SET-2
@@ -176,15 +187,21 @@ Keep symbol payloads minimal: include only the fields needed to identify the sym
 
 When a generic `Query failed` appears, do not keep retrying the same payload. First call `kb_validate_upsert`, query or create the missing endpoints, reduce the payload to the minimum required fields, and retry once. If it still fails, report the blocker instead of looping.
 
+## Small Behavior Fix Impact Evidence
+
+For a behavior-changing source edit with no existing requirement, create a requirement for the corrected behavior. If no requirement exists, create one for the corrected behavior, then model strict facts from that requirement when the invariant is contradiction-sensitive.
+
+Do not link facts directly to tests. Facts describe the invariant; requirements or scenarios are verified by executable tests. Use `REQ -> TEST` with `verified_by` or `TEST -> REQ` with `validates`, then link the requirement to facts with `constrains` and `requires_property`. Link the touched production symbol to the requirement with `implements` and to the test with `covered_by` when coverage evidence is needed.
+
+MCP writes do not automatically stage markdown evidence. When a staged hook requires impact evidence, ensure the repo's tracked documentation artifacts for the requirement, fact, test, symbol metadata, or coordinate refresh are authored and staged alongside the source change.
+
 ## Sequential Upserts
 
 Never fire `kb_upsert` calls in parallel. Execute them sequentially to avoid lock contention and ensure deterministic ordering. This is especially important when creating chains of related entities.
 
 ## Targeted and Final Checks
 
-Run `kb_check` with specific rules during iteration for fast feedback. For example, use `rules: ["required-fields", "no-dangling-refs"]` after small changes. Supplying `rules` preserves that scoped validation and skips the full-KB advisory scan. Run a full `kb_check` without rule filters before declaring work complete so `qualityDiagnostics[]` includes the full-KB audit-quality review.
-
-For meaningful source edits, run impact diagnostics while the edit context is fresh: `kb_check({sourceFiles:["src/changed-file.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})`. Review `symbol_granularity_violation` as a hard ownership-shape problem and `symbol_semantic_review_needed` as an advisory prompt to inspect whether linked requirements, scenarios, and tests still match the changed behavior or UI copy.
+Run `kb_check` with specific rules during iteration for fast feedback. For example, use `rules: ["required-fields", "no-dangling-refs"]` after small changes. Run a full `kb_check` without rule filters before declaring work complete.
 
 ## Domain Contradictions and Evolution
 
@@ -205,7 +222,7 @@ Call `kb_status` when you suspect the branch KB is stale or when switching conte
 | Bug-as-flag | `flag` misused for defect tracking | Use `fact` with `fact_kind: observation` or `meta` |
 | Parallel upserts | Lock contention and nondeterminism | Execute `kb_upsert` calls sequentially |
 | Embedded scenarios in reqs | Violates canonical traceability chain | Create separate `req`, `scen`, and `test` entities |
-| Missing `kb_check` | Undetected dangling refs, violations, and full-KB quality diagnostics | Run targeted checks during work, full unfiltered check at completion |
+| Missing `kb_check` | Undetected dangling refs and violations | Run targeted checks during work, full check at completion |
 | Tags as multi-ID lookup | Tags are metadata, not identifiers | Use `kb_query` with explicit `id` values |
 | `relates_to` for strict modeling | Loses contradiction safety | Use `constrains` and `requires_property` instead |
 | `status: implemented` on requirements | Not a valid lifecycle status | Use a valid status such as `closed`, add an `implemented` tag, and link evidence instead |
