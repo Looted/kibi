@@ -1,0 +1,79 @@
+from __future__ import annotations
+
+from typing import Annotated, Literal
+from uuid import UUID
+
+from pydantic import AwareDatetime, Field, model_validator
+from typing_extensions import Self
+
+from .common import (
+    ContractModel,
+    ContractValidationError,
+    NonEmptyString,
+    PriceEquivalentEstimate,
+    Sha256,
+    Usage,
+)
+
+Variant = Literal["baseline", "one-shot", "skillopt"]
+Skill = Literal["kibi-usage", "kibi-freshness", "kibi-traceability", "init-kibi", "bundle"]
+
+
+class EpisodeRequest(ContractModel):
+    schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
+    artifact_type: Annotated[Literal["episode-request"], Field(alias="artifactType")]
+    episode_id: Annotated[UUID, Field(alias="episodeId")]
+    run_id: Annotated[UUID, Field(alias="runId")]
+    run_lock_hash: Annotated[Sha256, Field(alias="runLockHash")]
+    variant: Variant
+    skill: Skill
+    task_id: Annotated[NonEmptyString, Field(alias="taskId")]
+    attempt: Annotated[int, Field(ge=1, le=2)]
+    prompt: Annotated[str, Field(min_length=1, max_length=100_000)]
+    workspace_fixture_hash: Annotated[Sha256, Field(alias="workspaceFixtureHash")]
+
+
+class Reconciliation(ContractModel):
+    broker_trace: Annotated[bool, Field(alias="brokerTrace")]
+    diagnostic_receipt: Annotated[bool, Field(alias="diagnosticReceipt")]
+    final_state_query: Annotated[bool, Field(alias="finalStateQuery")]
+
+
+class EpisodeResult(ContractModel):
+    schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
+    artifact_type: Annotated[Literal["episode-result"], Field(alias="artifactType")]
+    episode_id: Annotated[UUID, Field(alias="episodeId")]
+    run_id: Annotated[UUID, Field(alias="runId")]
+    run_lock_hash: Annotated[Sha256, Field(alias="runLockHash")]
+    status: Literal["completed", "behavioral-failure", "infrastructure-failure", "interrupted"]
+    started_at: Annotated[AwareDatetime, Field(alias="startedAt")]
+    finished_at: Annotated[AwareDatetime, Field(alias="finishedAt")]
+    exit_code: Annotated[int | None, Field(alias="exitCode")]
+    score: Annotated[float, Field(ge=0, le=100)]
+    hard_pass: Annotated[bool, Field(alias="hardPass")]
+    critical_failures: Annotated[tuple[NonEmptyString, ...], Field(alias="criticalFailures")]
+    evidence_index_hash: Annotated[Sha256, Field(alias="evidenceIndexHash")]
+    reconciliation: Reconciliation
+    usage: Usage
+    price_equivalent_estimate: Annotated[
+        PriceEquivalentEstimate, Field(alias="priceEquivalentEstimate")
+    ]
+
+    @model_validator(mode="after")
+    def verify_result_claims(self) -> Self:
+        reconciled = all(
+            (
+                self.reconciliation.broker_trace,
+                self.reconciliation.diagnostic_receipt,
+                self.reconciliation.final_state_query,
+            )
+        )
+        if self.status == "completed" and (not reconciled or self.exit_code != 0):
+            raise ContractValidationError(
+                "completed result requires exit zero and reconciled evidence"
+            )
+        if self.hard_pass and (self.score < 85 or self.critical_failures):
+            raise ContractValidationError(
+                "hard pass requires score >= 85 and no critical failures"
+            )
+        return self

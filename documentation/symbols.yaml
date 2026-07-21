@@ -9079,3 +9079,549 @@ symbols:
         target: REQ-skill-behavioral-efficacy
       - type: covered_by
         target: TEST-skill-behavioral-efficacy
+    sourceLine: 3
+    sourceColumn: 13
+    sourceEndLine: 8
+    sourceEndColumn: 10
+  - id: SYM-skillopt-contract-cli-main
+    title: main
+    sourceFile: scripts/skillopt-eval/contracts/cli.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 32
+    sourceColumn: 16
+    sourceEndLine: 61
+    sourceEndColumn: 1
+  - id: SYM-skillopt-contract-input-error
+    title: ContractInputError
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 43
+    sourceColumn: 13
+    sourceEndLine: 53
+    sourceEndColumn: 1
+  - id: SYM-skillopt-contract-input-error-name
+    title: ContractInputError.name
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-contract-integrity-error
+    title: ContractIntegrityError
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 56
+    sourceColumn: 13
+    sourceEndLine: 66
+    sourceEndColumn: 1
+  - id: SYM-skillopt-contract-integrity-error-name
+    title: ContractIntegrityError.name
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-contract-json-value
+    title: JsonValue
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 21
+    sourceColumn: 12
+    sourceEndLine: 21
+    sourceEndColumn: 56
+  - id: SYM-skillopt-contract-common-constants
+    title: CONTRACT_SCHEMA_VERSION
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 5
+    sourceColumn: 13
+    sourceEndLine: 5
+    sourceEndColumn: 55
+  - id: SYM-skillopt-contract-max-bytes
+    title: MAX_CONTRACT_BYTES
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 7
+    sourceColumn: 13
+    sourceEndLine: 7
+    sourceEndColumn: 43
+  - id: SYM-skillopt-contract-sha-schema
+    title: Sha256Schema
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 10
+    sourceColumn: 13
+    sourceEndLine: 10
+    sourceEndColumn: 62
+  - id: SYM-skillopt-contract-nonempty-schema
+    title: NonEmptyStringSchema
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 12
+    sourceColumn: 13
+    sourceEndLine: 12
+    sourceEndColumn: 53
+  - id: SYM-skillopt-contract-artifact-id-schema
+    title: ArtifactIdSchema
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 14
+    sourceColumn: 13
+    sourceEndLine: 14
+    sourceEndColumn: 40
+  - id: SYM-skillopt-contract-timestamp-schema
+    title: TimestampSchema
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 16
+    sourceColumn: 13
+    sourceEndLine: 16
+    sourceEndColumn: 63
+  - id: SYM-skillopt-contract-json-schema
+    title: JsonValueSchema
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 18
+    sourceColumn: 13
+    sourceEndLine: 18
+    sourceEndColumn: 39
+  - id: SYM-skillopt-contract-usage-schema
+    title: UsageSchema
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 24
+    sourceColumn: 13
+    sourceEndLine: 30
+    sourceEndColumn: 11
+  - id: SYM-skillopt-contract-estimate-schema
+    title: PriceEquivalentEstimateSchema
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 33
+    sourceColumn: 13
+    sourceEndLine: 40
+    sourceEndColumn: 11
+  - id: SYM-skillopt-contract-variant-schema
+    title: VariantSchema
+    sourceFile: scripts/skillopt-eval/contracts/episode.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 12
+    sourceColumn: 13
+    sourceEndLine: 12
+    sourceEndColumn: 73
+  - id: SYM-skillopt-contract-skill-schema
+    title: SkillSchema
+    sourceFile: scripts/skillopt-eval/contracts/episode.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 14
+    sourceColumn: 13
+    sourceEndLine: 20
+    sourceEndColumn: 2
+  - id: SYM-skillopt-contract-episode-request-schema
+    title: EpisodeRequestSchema
+    sourceFile: scripts/skillopt-eval/contracts/episode.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 23
+    sourceColumn: 13
+    sourceEndLine: 37
+    sourceEndColumn: 11
+  - id: SYM-skillopt-contract-episode-result-schema
+    title: EpisodeResultSchema
+    sourceFile: scripts/skillopt-eval/contracts/episode.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 40
+    sourceColumn: 13
+    sourceEndLine: 96
+    sourceEndColumn: 4
+  - id: SYM-skillopt-contract-evidence-envelope-schema
+    title: EvidenceEnvelopeSchema
+    sourceFile: scripts/skillopt-eval/contracts/evidence.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 11
+    sourceColumn: 13
+    sourceEndLine: 17
+    sourceEndColumn: 11
+  - id: SYM-skillopt-contract-evidence-index-schema
+    title: EvidenceIndexSchema
+    sourceFile: scripts/skillopt-eval/contracts/evidence.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 20
+    sourceColumn: 13
+    sourceEndLine: 42
+    sourceEndColumn: 4
+  - id: SYM-skillopt-contract-gates
+    title: CODEX_GATES
+    sourceFile: scripts/skillopt-eval/contracts/gates.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 4
+    sourceColumn: 13
+    sourceEndLine: 32
+    sourceEndColumn: 10
+  - id: SYM-skillopt-contract-gates-schema
+    title: CodexGatesSchema
+    sourceFile: scripts/skillopt-eval/contracts/gates.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 35
+    sourceColumn: 13
+    sourceEndLine: 82
+    sourceEndColumn: 11
+  - id: SYM-skillopt-contract-proposal-schema
+    title: ProposalSchema
+    sourceFile: scripts/skillopt-eval/contracts/review.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 14
+    sourceColumn: 13
+    sourceEndLine: 41
+    sourceEndColumn: 4
+  - id: SYM-skillopt-contract-approval-schema
+    title: ApprovalSchema
+    sourceFile: scripts/skillopt-eval/contracts/review.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 44
+    sourceColumn: 13
+    sourceEndLine: 58
+    sourceEndColumn: 11
+  - id: SYM-skillopt-contract-source-lock
+    title: SKILLOPT_SOURCE_LOCK
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 36
+    sourceColumn: 13
+    sourceEndLine: 43
+    sourceEndColumn: 1
+  - id: SYM-skillopt-contract-pricing-schema
+    title: PricingTableSchema
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 62
+    sourceColumn: 13
+    sourceEndLine: 75
+    sourceEndColumn: 11
+  - id: SYM-skillopt-contract-run-lock-schema
+    title: RunLockSchema
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 83
+    sourceColumn: 13
+    sourceEndLine: 128
+    sourceEndColumn: 11
+  - id: SYM-skillopt-contract-ledger-schema
+    title: LedgerEntrySchema
+    sourceFile: scripts/skillopt-eval/contracts/workflow.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 13
+    sourceColumn: 13
+    sourceEndLine: 46
+    sourceEndColumn: 4
+  - id: SYM-skillopt-contract-run-state-schema
+    title: RunStateSchema
+    sourceFile: scripts/skillopt-eval/contracts/workflow.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 49
+    sourceColumn: 13
+    sourceEndLine: 75
+    sourceEndColumn: 11
+  - id: SYM-skillopt-contract-report-v1-schema
+    title: ReportV1Schema
+    sourceFile: scripts/skillopt-eval/contracts/workflow.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 93
+    sourceColumn: 13
+    sourceEndLine: 129
+    sourceEndColumn: 11
+  - id: SYM-skillopt-contract-report-schema
+    title: ReportSchema
+    sourceFile: scripts/skillopt-eval/contracts/workflow.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 132
+    sourceColumn: 13
+    sourceEndLine: 132
+    sourceEndColumn: 73
+  - id: SYM-skillopt-contract-parse-json
+    title: parseJsonText
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 69
+    sourceColumn: 16
+    sourceEndLine: 88
+    sourceEndColumn: 1
+  - id: SYM-skillopt-contract-parse-typed
+    title: parseContractText
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 91
+    sourceColumn: 16
+    sourceEndLine: 93
+    sourceEndColumn: 1
+  - id: SYM-skillopt-contract-hash
+    title: contractHash
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 110
+    sourceColumn: 16
+    sourceEndLine: 114
+    sourceEndColumn: 1
+  - id: SYM-skillopt-contract-episode-request-type
+    title: EpisodeRequest
+    sourceFile: scripts/skillopt-eval/contracts/episode.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 99
+    sourceColumn: 12
+    sourceEndLine: 99
+    sourceEndColumn: 76
+  - id: SYM-skillopt-contract-episode-result-type
+    title: EpisodeResult
+    sourceFile: scripts/skillopt-eval/contracts/episode.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 101
+    sourceColumn: 12
+    sourceEndLine: 101
+    sourceEndColumn: 74
+  - id: SYM-skillopt-contract-evidence-index-type
+    title: EvidenceIndex
+    sourceFile: scripts/skillopt-eval/contracts/evidence.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 45
+    sourceColumn: 12
+    sourceEndLine: 45
+    sourceEndColumn: 74
+  - id: SYM-skillopt-contract-proposal-type
+    title: Proposal
+    sourceFile: scripts/skillopt-eval/contracts/review.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 61
+    sourceColumn: 12
+    sourceEndLine: 61
+    sourceEndColumn: 64
+  - id: SYM-skillopt-contract-approval-type
+    title: Approval
+    sourceFile: scripts/skillopt-eval/contracts/review.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 63
+    sourceColumn: 12
+    sourceEndLine: 63
+    sourceEndColumn: 64
+  - id: SYM-skillopt-contract-assert-approval
+    title: assertApprovalMatchesProposal
+    sourceFile: scripts/skillopt-eval/contracts/review.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 66
+    sourceColumn: 16
+    sourceEndLine: 83
+    sourceEndColumn: 1
+  - id: SYM-skillopt-contract-run-lock-type
+    title: RunLock
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 131
+    sourceColumn: 12
+    sourceEndLine: 131
+    sourceEndColumn: 62
+  - id: SYM-skillopt-contract-parse-run-lock
+    title: parseRunLockText
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 134
+    sourceColumn: 16
+    sourceEndLine: 141
+    sourceEndColumn: 1
+  - id: SYM-skillopt-contract-run-lock-hash
+    title: runLockHash
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 144
+    sourceColumn: 16
+    sourceEndLine: 146
+    sourceEndColumn: 1
+  - id: SYM-skillopt-contract-assert-run-lock
+    title: assertRunLockMatches
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 149
+    sourceColumn: 16
+    sourceEndLine: 153
+    sourceEndColumn: 1
+  - id: SYM-skillopt-contract-report-type
+    title: Report
+    sourceFile: scripts/skillopt-eval/contracts/workflow.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-contract-ts-tests-fixture
+    title: fixtureValue
+    sourceFile: scripts/skillopt-eval/tests/contracts.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 23
+    sourceColumn: 9
+    sourceEndLine: 26
+    sourceEndColumn: 1
+  - id: SYM-skillopt-contract-schema-tests-reader
+    title: readJson
+    sourceFile: scripts/skillopt-eval/tests/schema-contract.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 26
+    sourceColumn: 9
+    sourceEndLine: 29
+    sourceEndColumn: 1
+  - id: SYM-skillopt-contract-python-tests
+    title: ContractTests
+    sourceFile: tools/skillopt/tests/test_contracts.py
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 50
+    sourceColumn: 6
+    sourceEndLine: 50
+    sourceEndColumn: 19
+  - id: SYM-skillopt-contract-python-workflow-tests
+    title: WorkflowContractTests
+    sourceFile: tools/skillopt/tests/test_workflow_contracts.py
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 35
+    sourceColumn: 6
+    sourceEndLine: 35
+    sourceEndColumn: 27

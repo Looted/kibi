@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "episode-request.schema.json",
+  "title": "SkillOpt episode request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "artifactType",
+    "episodeId",
+    "runId",
+    "runLockHash",
+    "variant",
+    "skill",
+    "taskId",
+    "attempt",
+    "prompt",
+    "workspaceFixtureHash"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "$ref": "contract-definitions.schema.json#/$defs/schemaVersion"
+    },
+    "artifactType": { "const": "episode-request" },
+    "episodeId": {
+      "$ref": "contract-definitions.schema.json#/$defs/artifactId"
+    },
+    "runId": {
+      "$ref": "contract-definitions.schema.json#/$defs/artifactId"
+    },
+    "runLockHash": { "$ref": "contract-definitions.schema.json#/$defs/sha256" },
+    "variant": { "enum": ["baseline", "one-shot", "skillopt"] },
+    "skill": {
+      "enum": [
+        "kibi-usage",
+        "kibi-freshness",
+        "kibi-traceability",
+        "init-kibi",
+        "bundle"
+      ]
+    },
+    "taskId": {
+      "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString"
+    },
+    "attempt": { "type": "integer", "minimum": 1, "maximum": 2 },
+    "prompt": { "type": "string", "minLength": 1, "maxLength": 100000 },
+    "workspaceFixtureHash": {
+      "$ref": "contract-definitions.schema.json#/$defs/sha256"
+    }
+  }
+}

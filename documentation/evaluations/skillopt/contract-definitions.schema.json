@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "contract-definitions.schema.json",
+  "$defs": {
+    "schemaVersion": { "const": "1.0.0" },
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "artifactId": { "type": "string", "format": "uuid" },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "jsonValue": {
+      "anyOf": [
+        { "type": "null" },
+        { "type": "boolean" },
+        { "type": "number" },
+        { "type": "string" },
+        { "type": "array", "items": { "$ref": "#/$defs/jsonValue" } },
+        {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/jsonValue" }
+        }
+      ]
+    },
+    "usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inputTokens", "cachedInputTokens", "outputTokens"],
+      "properties": {
+        "inputTokens": { "type": "integer", "minimum": 0 },
+        "cachedInputTokens": { "type": "integer", "minimum": 0 },
+        "outputTokens": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "priceEquivalentEstimate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["currency", "amount", "pricingHash", "kind"],
+      "properties": {
+        "currency": { "const": "USD" },
+        "amount": { "type": "number", "minimum": 0 },
+        "pricingHash": { "$ref": "#/$defs/sha256" },
+        "kind": { "const": "price-equivalent-estimate-not-invoice" }
+      }
+    }
+  }
+}

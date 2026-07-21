@@ -8,11 +8,13 @@
         "@biomejs/biome": "^1.9.0",
         "@changesets/cli": "^2.27.12",
         "@types/node": "^25.2.3",
+        "ajv": "^8.17.1",
         "ajv-formats": "2.1.1",
         "bun-types": "^1.2.0",
         "kibi-mcp": "workspace:*",
         "mitata": "^1.0.34",
         "typescript": "^5.7.0",
+        "zod": "^4.3.6",
       },
     },
     "packages/cli": {
