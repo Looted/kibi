@@ -17,6 +17,10 @@ const BATCHES: Batch[] = [
     args: ["test", "--timeout", "15000", "./packages/cli"],
   },
   {
+    label: "skillopt evaluator",
+    args: ["test", "--timeout", "15000", "./scripts/skillopt-eval/tests"],
+  },
+  {
     label: "mcp",
     args: [
       "test",
