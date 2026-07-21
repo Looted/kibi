@@ -1,5 +1,80 @@
-import { executePlaceholder } from "../types.js";
+import { InputError } from "../../../cli-errors.js";
+import { analyzeSemanticAdvisorInput } from "../../../operations/semantic-advisor/analyze-prose.js";
+import type {
+  SemanticAdvisorArgs,
+  SemanticAdvisorOperationResult,
+} from "../../../operations/semantic-advisor/types.js";
+import type { OperationContext } from "../runtime-types.js";
 import type { OperationSpec } from "../types.js";
+
+function requiredText(value: unknown): string {
+  const text = typeof value === "string" ? value.trim() : "";
+  if (!text) {
+    throw new InputError(
+      "VALIDATION_FAILED",
+      "Semantic advisor failed: text must be a non-empty string",
+    );
+  }
+  return text;
+}
+
+function optionalString(value: unknown): string | undefined {
+  const text = typeof value === "string" ? value.trim() : "";
+  return text || undefined;
+}
+
+export async function executeSemanticAdvisor(
+  args: SemanticAdvisorArgs,
+  _context?: OperationContext,
+): Promise<SemanticAdvisorOperationResult> {
+  const text = requiredText(args.text);
+  const id = optionalString(args.id) ?? "REQ-SEMANTIC-ADVISOR-PREVIEW";
+  const title = optionalString(args.title) ?? text.split(/[.!?]/, 1)[0] ?? text;
+  const source = optionalString(args.source) ?? "mcp://kibi/semantic-advisor";
+  const result = analyzeSemanticAdvisorInput({
+    payload: {
+      type: optionalString(args.type) ?? "req",
+      id,
+      properties: {
+        title,
+        status: optionalString(args.status) ?? "open",
+        source,
+        text_ref: text,
+      },
+    },
+  });
+  return {
+    content: [
+      {
+        type: "text",
+        text: `kb_semantic_advisor: ${result.receipt.summary} Suggestions: ${result.receipt.suggestions.map(({ kind }) => kind).join(", ") || "none"}.`,
+      },
+    ],
+    structuredContent: { receipt: result.receipt, warnings: result.warnings },
+  };
+}
+
+async function executeSemanticAdvisorInput(
+  input: Readonly<Record<string, unknown>>,
+  context: OperationContext,
+): Promise<SemanticAdvisorOperationResult> {
+  const type = optionalString(input.type);
+  const id = optionalString(input.id);
+  const title = optionalString(input.title);
+  const source = optionalString(input.source);
+  const status = optionalString(input.status);
+  return executeSemanticAdvisor(
+    {
+      text: requiredText(input.text),
+      ...(type ? { type } : {}),
+      ...(id ? { id } : {}),
+      ...(title ? { title } : {}),
+      ...(source ? { source } : {}),
+      ...(status ? { status } : {}),
+    },
+    context,
+  );
+}
 
 export const semanticAdvisorSpec = {
   name: "kb_semantic_advisor",
@@ -27,12 +102,21 @@ export const semanticAdvisorSpec = {
         description:
           "Optional requirement ID used for deterministic draft relationship guidance.",
       },
-      title: { type: "string", description: "Optional requirement title for draft apply plans." },
-      source: { type: "string", description: "Optional provenance for draft suggestions." },
-      status: { type: "string", description: "Optional requirement status for draft suggestions." },
+      title: {
+        type: "string",
+        description: "Optional requirement title for draft apply plans.",
+      },
+      source: {
+        type: "string",
+        description: "Optional provenance for draft suggestions.",
+      },
+      status: {
+        type: "string",
+        description: "Optional requirement status for draft suggestions.",
+      },
     },
   },
   requiresProlog: false,
   effects: ["local-read"],
-  execute: executePlaceholder,
+  execute: executeSemanticAdvisorInput,
 } as const satisfies OperationSpec;

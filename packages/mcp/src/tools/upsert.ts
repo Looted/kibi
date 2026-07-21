@@ -18,6 +18,8 @@ import path from "node:path";
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 import Ajv, { type ErrorObject } from "ajv";
+import { analyzeSemanticAdvisorInput } from "kibi-cli/operations/semantic-advisor/analyze-prose";
+import type { SemanticAdvisorReceipt } from "kibi-cli/operations/semantic-advisor/types";
 import type { PrologProcess } from "kibi-cli/prolog";
 import {
   escapeAtom,
@@ -38,8 +40,6 @@ import entitySchema from "kibi-cli/schemas/entity";
 import relationshipSchema from "kibi-cli/schemas/relationship";
 import { Project, ScriptKind } from "ts-morph";
 import { isMcpDebugEnabled } from "../env.js";
-import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
-import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
 import {
   formatInvalidRelationshipError,
   formatRelationshipSourceMismatch,
@@ -862,8 +862,8 @@ async function checkScenarioCoverageGuidance(
         break; // One warning per entity is enough
       }
     }
-  } catch {
-    // Non-blocking: never fail the upsert
+  } catch (error) {
+    if (!(error instanceof Error)) throw error;
   }
   return warnings;
 }
@@ -919,7 +919,8 @@ async function fetchExistingRelationships(
         }
       }
     }
-  } catch (e) {
+  } catch (error) {
+    if (!(error instanceof Error)) throw error;
     // Best-effort: if we can't read existing relationships, proceed without them.
     // This preserves backward compatibility and avoids breaking mocked tests.
   }

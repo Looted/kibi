@@ -221,9 +221,9 @@ coordinates:
   SYM-DEFAULT-TOOLS-RUNTIME:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 159
+    sourceEndLine: 165
     sourceFile: packages/mcp/src/server/tools-runtime.ts
-    sourceLine: 124
+    sourceLine: 130
   SYM-DIAGNOSTIC_MODE_ENABLED:
     sourceColumn: 13
     sourceEndColumn: 45
@@ -942,25 +942,25 @@ coordinates:
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 16
-    sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
+    sourceFile: packages/cli/src/operations/semantic-advisor/prose-coverage-evaluator.ts
     sourceLine: 11
   SYM-ProseCoverageExpectation:
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 9
-    sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
+    sourceFile: packages/cli/src/operations/semantic-advisor/prose-coverage-evaluator.ts
     sourceLine: 4
   SYM-ProseCoverageFailure:
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 22
-    sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
+    sourceFile: packages/cli/src/operations/semantic-advisor/prose-coverage-evaluator.ts
     sourceLine: 18
   SYM-ProseCoverageResult:
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 32
-    sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
+    sourceFile: packages/cli/src/operations/semantic-advisor/prose-coverage-evaluator.ts
     sourceLine: 24
   SYM-ProviderEvidenceDiscoveryResult:
     sourceColumn: 17
@@ -1025,9 +1025,9 @@ coordinates:
   SYM-SEMANTIC_ADVISOR_VERSION:
     sourceColumn: 13
     sourceEndColumn: 61
-    sourceEndLine: 14
-    sourceFile: packages/mcp/src/semantic-advisor/analyze-prose.ts
-    sourceLine: 14
+    sourceEndLine: 25
+    sourceFile: packages/cli/src/operations/semantic-advisor/analyze-prose.ts
+    sourceLine: 25
   SYM-SYMBOLS-MANIFEST-COMMENT-BLOCK:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -1058,60 +1058,42 @@ coordinates:
     sourceEndLine: 9
     sourceFile: packages/cli/src/search-ranking.ts
     sourceLine: 4
-  SYM-SemanticAdvisorArgs:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 11
-    sourceFile: packages/mcp/src/tools/semantic-advisor.ts
-    sourceLine: 4
   SYM-SemanticAdvisorInput:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 120
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
-    sourceLine: 118
+    sourceEndLine: 113
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    sourceLine: 111
   SYM-SemanticAdvisorLane:
     sourceColumn: 12
     sourceEndColumn: 11
     sourceEndLine: 5
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
     sourceLine: 1
   SYM-SemanticAdvisorReadiness:
     sourceColumn: 12
     sourceEndColumn: 21
     sourceEndLine: 10
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
     sourceLine: 7
   SYM-SemanticAdvisorReceipt:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 44
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
-    sourceLine: 34
-  SYM-SemanticAdvisorResult:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 125
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
-    sourceLine: 122
+    sourceEndLine: 109
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    sourceLine: 99
   SYM-SemanticAdvisorToolResult:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 19
+    sourceColumn: 12
+    sourceEndColumn: 67
+    sourceEndLine: 8
     sourceFile: packages/mcp/src/tools/semantic-advisor.ts
-    sourceLine: 13
-  SYM-SemanticAmbiguityObservationSuggestion:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 102
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
-    sourceLine: 94
+    sourceLine: 8
   SYM-SemanticAmbiguityWitness:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 32
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
-    sourceLine: 27
+    sourceEndLine: 31
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    sourceLine: 26
   SYM-SemanticClaim:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1120,52 +1102,34 @@ coordinates:
     sourceLine: 27
   SYM-SemanticModelingSuggestion:
     sourceColumn: 12
-    sourceEndColumn: 34
-    sourceEndLine: 50
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
-    sourceLine: 46
-  SYM-SemanticOntologyGapSuggestion:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 116
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
-    sourceLine: 104
+    sourceEndColumn: 6
+    sourceEndLine: 97
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    sourceLine: 52
   SYM-SemanticPredicateClaim:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 80
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
-    sourceLine: 75
-  SYM-SemanticPredicateSuggestion:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 92
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
-    sourceLine: 82
+    sourceEndLine: 50
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    sourceLine: 45
   SYM-SemanticSignal:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 25
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
-    sourceLine: 20
+    sourceEndLine: 24
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    sourceLine: 19
   SYM-SemanticSignalKind:
     sourceColumn: 12
     sourceEndColumn: 23
-    sourceEndLine: 18
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
-    sourceLine: 12
+    sourceEndLine: 17
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    sourceLine: 11
   SYM-SemanticStrictPropertyClaim:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 62
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
-    sourceLine: 52
-  SYM-SemanticStrictPropertySuggestion:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 73
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
-    sourceLine: 64
+    sourceEndLine: 43
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    sourceLine: 33
   SYM-SendToastResult:
     sourceColumn: 12
     sourceEndColumn: 6
@@ -1229,45 +1193,45 @@ coordinates:
   SYM-SkillsListArgs:
     sourceColumn: 12
     sourceEndColumn: 51
-    sourceEndLine: 11
+    sourceEndLine: 6
     sourceFile: packages/mcp/src/tools/skills.ts
-    sourceLine: 11
+    sourceLine: 6
   SYM-SkillsListResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 16
+    sourceEndLine: 11
     sourceFile: packages/mcp/src/tools/skills.ts
-    sourceLine: 13
+    sourceLine: 8
   SYM-SkillsLoadArgs:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 20
+    sourceEndLine: 15
     sourceFile: packages/mcp/src/tools/skills.ts
-    sourceLine: 18
+    sourceLine: 13
   SYM-SkillsLoadPayload:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 23
+    sourceFile: packages/mcp/src/tools/skills.ts
+    sourceLine: 17
+  SYM-SkillsLoadResult:
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 28
     sourceFile: packages/mcp/src/tools/skills.ts
-    sourceLine: 22
-  SYM-SkillsLoadResult:
+    sourceLine: 25
+  SYM-SkillsReadArgs:
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 33
     sourceFile: packages/mcp/src/tools/skills.ts
     sourceLine: 30
-  SYM-SkillsReadArgs:
+  SYM-SkillsReadResult:
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 38
     sourceFile: packages/mcp/src/tools/skills.ts
     sourceLine: 35
-  SYM-SkillsReadResult:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 43
-    sourceFile: packages/mcp/src/tools/skills.ts
-    sourceLine: 40
   SYM-SourceAnalysisMode:
     sourceColumn: 12
     sourceEndColumn: 55
@@ -1607,15 +1571,15 @@ coordinates:
   SYM-addTool:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 243
+    sourceEndLine: 250
     sourceFile: packages/mcp/src/server/tools.ts
     sourceLine: 104
   SYM-analyzeSemanticAdvisorInput:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 2140
-    sourceFile: packages/mcp/src/semantic-advisor/analyze-prose.ts
-    sourceLine: 2105
+    sourceEndLine: 236
+    sourceFile: packages/cli/src/operations/semantic-advisor/analyze-prose.ts
+    sourceLine: 227
   SYM-analyzeSourceText:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2255,15 +2219,51 @@ coordinates:
   SYM-cli-json-invocation-type:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 19
+    sourceEndLine: 16
     sourceFile: packages/cli/src/cli-json-command.ts
-    sourceLine: 11
+    sourceLine: 8
   SYM-cli-load-input-options-type:
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 9
     sourceFile: packages/cli/src/cli-input.ts
     sourceLine: 6
+  SYM-cli-parity-case-type:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 12
+    sourceFile: packages/cli/tests/parity/cases.ts
+    sourceLine: 9
+  SYM-cli-parity-cases:
+    sourceColumn: 13
+    sourceEndColumn: 3
+    sourceEndLine: 75
+    sourceFile: packages/cli/tests/parity/cases.ts
+    sourceLine: 72
+  SYM-cli-parity-cli-result-type:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 10
+    sourceFile: packages/cli/tests/parity/runner.ts
+    sourceLine: 6
+  SYM-cli-parity-comparison-result-type:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 22
+    sourceFile: packages/cli/tests/parity/runner.ts
+    sourceLine: 19
+  SYM-cli-parity-mcp-result-type:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 16
+    sourceFile: packages/cli/tests/parity/runner.ts
+    sourceLine: 13
+  SYM-cli-parity-workspace-type:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 22
+    sourceFile: packages/cli/tests/parity/helpers.ts
+    sourceLine: 19
   SYM-cli-persistEntities:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2597,9 +2597,9 @@ coordinates:
   SYM-createCliRuntime:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 132
+    sourceEndLine: 142
     sourceFile: packages/cli/src/runtime/cli-runtime.ts
-    sourceLine: 84
+    sourceLine: 87
   SYM-createConfigFile:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2633,9 +2633,9 @@ coordinates:
   SYM-createMcpRuntime:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 85
+    sourceEndLine: 82
     sourceFile: packages/mcp/src/runtime/mcp-runtime.ts
-    sourceLine: 39
+    sourceLine: 36
   SYM-createOverlayFacts:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3023,15 +3023,21 @@ coordinates:
   SYM-evaluateProseCoverageCorpus:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 48
-    sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
-    sourceLine: 34
+    sourceEndLine: 113
+    sourceFile: packages/cli/src/operations/semantic-advisor/prose-coverage-evaluator.ts
+    sourceLine: 103
   SYM-executeOperation:
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 105
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     sourceLine: 86
+  SYM-executeSemanticAdvisor:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 55
+    sourceFile: packages/cli/src/public/operations/specs/semantic.ts
+    sourceLine: 26
   SYM-extractFromManifest:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3239,27 +3245,27 @@ coordinates:
   SYM-handleKbSemanticAdvisor:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 66
+    sourceEndLine: 14
     sourceFile: packages/mcp/src/tools/semantic-advisor.ts
-    sourceLine: 34
+    sourceLine: 10
   SYM-handleKbSkillsList:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 62
+    sourceEndLine: 60
     sourceFile: packages/mcp/src/tools/skills.ts
-    sourceLine: 46
+    sourceLine: 49
   SYM-handleKbSkillsLoad:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 95
+    sourceEndLine: 77
     sourceFile: packages/mcp/src/tools/skills.ts
-    sourceLine: 65
+    sourceLine: 63
   SYM-handleKbSkillsRead:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 120
+    sourceEndLine: 96
     sourceFile: packages/mcp/src/tools/skills.ts
-    sourceLine: 98
+    sourceLine: 80
   SYM-handleKbSuggestPredicates:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3791,15 +3797,15 @@ coordinates:
   SYM-operation-autopilot-generate-spec:
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 83
+    sourceEndLine: 84
     sourceFile: packages/cli/src/public/operations/specs/autopilot.ts
     sourceLine: 4
   SYM-operation-catalog:
     sourceColumn: 13
     sourceEndColumn: 45
-    sourceEndLine: 31
+    sourceEndLine: 42
     sourceFile: packages/cli/src/public/operations/catalog.ts
-    sourceLine: 12
+    sourceLine: 23
   SYM-operation-check-spec:
     sourceColumn: 13
     sourceEndColumn: 34
@@ -3815,15 +3821,15 @@ coordinates:
   SYM-operation-coverage-spec:
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 48
+    sourceEndLine: 57
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
-    sourceLine: 29
+    sourceLine: 38
   SYM-operation-delete-spec:
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 220
+    sourceEndLine: 310
     sourceFile: packages/cli/src/public/operations/specs/mutation.ts
-    sourceLine: 201
+    sourceLine: 290
   SYM-operation-effect-type:
     sourceColumn: 12
     sourceEndColumn: 22
@@ -3833,19 +3839,19 @@ coordinates:
   SYM-operation-find-gaps-spec:
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 27
+    sourceEndLine: 36
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
     sourceLine: 4
   SYM-operation-graph-spec:
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 75
+    sourceEndLine: 84
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
-    sourceLine: 50
+    sourceLine: 59
   SYM-operation-model-requirement-spec:
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 66
+    sourceEndLine: 67
     sourceFile: packages/cli/src/public/operations/specs/modeling.ts
     sourceLine: 4
   SYM-operation-name-type:
@@ -3875,31 +3881,31 @@ coordinates:
   SYM-operation-semantic-advisor-spec:
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 38
+    sourceEndLine: 122
     sourceFile: packages/cli/src/public/operations/specs/semantic.ts
-    sourceLine: 4
+    sourceLine: 79
   SYM-operation-skills-list-spec:
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 13
+    sourceEndLine: 92
     sourceFile: packages/cli/src/public/operations/specs/skills.ts
-    sourceLine: 4
+    sourceLine: 83
   SYM-operation-skills-load-spec:
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 33
+    sourceEndLine: 112
     sourceFile: packages/cli/src/public/operations/specs/skills.ts
-    sourceLine: 15
+    sourceLine: 94
   SYM-operation-skills-read-spec:
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 55
+    sourceEndLine: 137
     sourceFile: packages/cli/src/public/operations/specs/skills.ts
-    sourceLine: 35
+    sourceLine: 114
   SYM-operation-sparql-remote-spec:
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 30
+    sourceEndLine: 32
     sourceFile: packages/cli/src/public/operations/specs/sparql.ts
     sourceLine: 4
   SYM-operation-spec-type:
@@ -3917,21 +3923,21 @@ coordinates:
   SYM-operation-suggest-predicates-spec:
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 123
+    sourceEndLine: 125
     sourceFile: packages/cli/src/public/operations/specs/modeling.ts
-    sourceLine: 68
+    sourceLine: 69
   SYM-operation-upsert-spec:
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 176
+    sourceEndLine: 264
     sourceFile: packages/cli/src/public/operations/specs/mutation.ts
-    sourceLine: 151
+    sourceLine: 237
   SYM-operation-validate-upsert-spec:
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 199
+    sourceEndLine: 288
     sourceFile: packages/cli/src/public/operations/specs/mutation.ts
-    sourceLine: 178
+    sourceLine: 266
   SYM-parseKibiImpactOverride:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4025,13 +4031,13 @@ coordinates:
   SYM-registerAllTools:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 252
+    sourceEndLine: 259
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 246
+    sourceLine: 253
   SYM-registerConfiguredTools:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 194
+    sourceEndLine: 191
     sourceFile: packages/mcp/src/server/tool-registration.ts
     sourceLine: 48
   SYM-registerIndexCoverageTests:
@@ -4085,9 +4091,9 @@ coordinates:
   SYM-resetSessionModulePromise:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 69
+    sourceEndLine: 72
     sourceFile: packages/mcp/src/server/tools-runtime.ts
-    sourceLine: 67
+    sourceLine: 70
   SYM-resetWorkspaceFeaturesForTests:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4205,13 +4211,13 @@ coordinates:
   SYM-runtime-McpOperationRuntime:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 36
+    sourceEndLine: 33
     sourceFile: packages/mcp/src/runtime/mcp-runtime.ts
-    sourceLine: 34
+    sourceLine: 31
   SYM-runtime-McpSession:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 32
+    sourceEndLine: 29
     sourceFile: packages/mcp/src/runtime/mcp-runtime.ts
     sourceLine: 13
   SYM-runtime-NetworkPort:
@@ -4274,6 +4280,186 @@ coordinates:
     sourceEndLine: 113
     sourceFile: scripts/run-unit-coverage.ts
     sourceLine: 91
+  SYM-semantic-advisor-CORE_PREDICATE_RULES:
+    sourceColumn: 13
+    sourceEndColumn: 45
+    sourceEndLine: 177
+    sourceFile: packages/cli/src/operations/semantic-advisor/predicate-rules-core.ts
+    sourceLine: 10
+  SYM-semantic-advisor-MatchGroups:
+    sourceColumn: 12
+    sourceEndColumn: 71
+    sourceEndLine: 10
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    sourceLine: 10
+  SYM-semantic-advisor-POLICY_PREDICATE_RULES:
+    sourceColumn: 13
+    sourceEndColumn: 45
+    sourceEndLine: 189
+    sourceFile: packages/cli/src/operations/semantic-advisor/predicate-rules-policy.ts
+    sourceLine: 7
+  SYM-semantic-advisor-PRODUCT_PREDICATE_RULES:
+    sourceColumn: 13
+    sourceEndColumn: 45
+    sourceEndLine: 173
+    sourceFile: packages/cli/src/operations/semantic-advisor/predicate-rules-product.ts
+    sourceLine: 8
+  SYM-semantic-advisor-PRODUCT_TAIL_PREDICATE_RULES:
+    sourceColumn: 13
+    sourceEndColumn: 45
+    sourceEndLine: 127
+    sourceFile: packages/cli/src/operations/semantic-advisor/predicate-rules-product-tail.ts
+    sourceLine: 9
+  SYM-semantic-advisor-Payload:
+    sourceColumn: 12
+    sourceEndColumn: 56
+    sourceEndLine: 9
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    sourceLine: 9
+  SYM-semantic-advisor-PredicateRule:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 26
+    sourceFile: packages/cli/src/operations/semantic-advisor/predicate-rule.ts
+    sourceLine: 19
+  SYM-semantic-advisor-SemanticAdvisorAnalysisResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 118
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    sourceLine: 115
+  SYM-semantic-advisor-SemanticAdvisorArgs:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 127
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    sourceLine: 120
+  SYM-semantic-advisor-SemanticAdvisorOperationResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 135
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    sourceLine: 129
+  SYM-semantic-advisor-buildAdvisorResult:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 115
+    sourceFile: packages/cli/src/operations/semantic-advisor/analysis-receipt.ts
+    sourceLine: 49
+  SYM-semantic-advisor-canonicalize:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 32
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    sourceLine: 23
+  SYM-semantic-advisor-commaList:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 60
+    sourceFile: packages/cli/src/operations/semantic-advisor/predicate-rule.ts
+    sourceLine: 51
+  SYM-semantic-advisor-detectCountStrictSuggestion:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 94
+    sourceFile: packages/cli/src/operations/semantic-advisor/strict-count-rules.ts
+    sourceLine: 31
+  SYM-semantic-advisor-detectPredicateRules:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 48
+    sourceFile: packages/cli/src/operations/semantic-advisor/predicate-rule.ts
+    sourceLine: 29
+  SYM-semantic-advisor-detectStrictSuggestion:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 201
+    sourceFile: packages/cli/src/operations/semantic-advisor/strict-rules.ts
+    sourceLine: 24
+  SYM-semantic-advisor-isRecord:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 15
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    sourceLine: 13
+  SYM-semantic-advisor-normalizeKey:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 73
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    sourceLine: 66
+  SYM-semantic-advisor-normalizePredicateToken:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 84
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    sourceLine: 76
+  SYM-semantic-advisor-normalizeSubjectKey:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 95
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    sourceLine: 93
+  SYM-semantic-advisor-observationPlan:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 30
+    sourceFile: packages/cli/src/operations/semantic-advisor/observation-plan.ts
+    sourceLine: 10
+  SYM-semantic-advisor-payloadHash:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 40
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    sourceLine: 35
+  SYM-semantic-advisor-predicateSuggestion:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 248
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    sourceLine: 197
+  SYM-semantic-advisor-propertiesOf:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 50
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    sourceLine: 48
+  SYM-semantic-advisor-shortHash:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 45
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    sourceLine: 43
+  SYM-semantic-advisor-singularize:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 90
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    sourceLine: 87
+  SYM-semantic-advisor-sourceOf:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 63
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    sourceLine: 59
+  SYM-semantic-advisor-statementOf:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 56
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    sourceLine: 53
+  SYM-semantic-advisor-strictSuggestion:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 194
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    sourceLine: 106
+  SYM-semantic-advisor-stringValue:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 20
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    sourceLine: 18
   SYM-sendToast:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -4313,9 +4499,9 @@ coordinates:
   SYM-setToolsServerDepsForTests:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 64
+    sourceEndLine: 67
     sourceFile: packages/mcp/src/server/tools-runtime.ts
-    sourceLine: 55
+    sourceLine: 58
   SYM-setWorkspaceFsDepsForTests:
     sourceColumn: 16
     sourceEndColumn: 1

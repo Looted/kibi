@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   SEMANTIC_ADVISOR_VERSION,
   analyzeSemanticAdvisorInput,
-} from "../../src/semantic-advisor/analyze-prose.js";
+} from "kibi-cli/operations/semantic-advisor/analyze-prose";
 
 describe("semantic advisor prose analysis", () => {
   test("flags cardinality prose with ambiguity witness and strict-property route", () => {
