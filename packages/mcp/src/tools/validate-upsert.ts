@@ -1,6 +1,6 @@
+import { analyzeSemanticAdvisorInput } from "kibi-cli/operations/semantic-advisor/analyze-prose";
+import type { SemanticAdvisorReceipt } from "kibi-cli/operations/semantic-advisor/types";
 import type { PrologProcess } from "kibi-cli/prolog";
-import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
-import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
 import { validateLiveRelationshipTargets } from "./relationship-validation.js";
 import type { UpsertArgs } from "./upsert.js";
 import { validateKbUpsertArgs } from "./upsert.js";
@@ -10,7 +10,7 @@ export interface ValidateUpsertResult {
   structuredContent: {
     valid: boolean;
     errors: string[];
-    warnings: string[];
+    warnings: readonly string[];
     semanticAdvisor: SemanticAdvisorReceipt | null;
     normalizedPreview: Record<string, unknown> | null;
   };

@@ -3,7 +3,8 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { evaluateProseCoverageCorpus } from "../../src/semantic-advisor/prose-coverage-evaluator.js";
+import { evaluateProseCoverageCorpus } from "kibi-cli/operations/semantic-advisor/prose-coverage-evaluator";
+import { PrologProcess } from "kibi-cli/prolog";
 import { jsonSchemaToZod } from "../../src/server/json-schema-to-zod.js";
 import { formatImpactText } from "../../src/tools/check-format.js";
 import { collectQueryPlanSafetyViolations } from "../../src/tools/query-plan-safety.js";
@@ -17,14 +18,16 @@ import { handleSparql } from "../../src/tools/sparql.js";
 import { handleKbSuggestPredicates } from "../../src/tools/suggest-predicates.js";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
 
-type QueryResult = {
+type LightweightQueryResult = {
   readonly success: boolean;
   readonly error?: string;
   readonly bindings?: Record<string, string>;
 };
 
+type PrologQueryResult = Awaited<ReturnType<PrologProcess["query"]>>;
+
 type QueryableProlog = {
-  readonly query: (goal: string) => Promise<QueryResult>;
+  readonly query: (goal: string) => Promise<LightweightQueryResult>;
   readonly invalidateCache?: () => void;
 };
 
@@ -191,17 +194,20 @@ describe("coverage gap branches", () => {
   });
 
   test("handleSparql rejects invalid positive-timeout inputs before Prolog", async () => {
+    const prolog = new PrologProcess();
+    prolog.query = mock(
+      async (): Promise<PrologQueryResult> => ({
+        success: true,
+        bindings: {},
+      }),
+    );
+
     await expect(
-      handleSparql(
-        {
-          query: mock(async () => ({ success: true })),
-        } as unknown as Parameters<typeof handleSparql>[0],
-        {
-          endpoint: "https://query.wikidata.org/sparql",
-          query: "SELECT * WHERE { ?s ?p ?o }",
-          timeoutMs: 0,
-        },
-      ),
+      handleSparql(prolog, {
+        endpoint: "https://query.wikidata.org/sparql",
+        query: "SELECT * WHERE { ?s ?p ?o }",
+        timeoutMs: 0,
+      }),
     ).rejects.toThrow("timeoutMs must be a positive number");
   });
 
@@ -269,57 +275,59 @@ describe("coverage gap branches", () => {
   });
 
   test("upsert validates value-field hints and nested list parsing", async () => {
+    const validationProlog = new PrologProcess();
+    validationProlog.query = mock(
+      async (): Promise<PrologQueryResult> => ({
+        success: true,
+        bindings: {},
+      }),
+    );
+
     await expect(
-      handleKbUpsert(
-        {
-          query: mock(async () => ({ success: true })),
-        } as unknown as Parameters<typeof handleKbUpsert>[0],
-        {
-          type: "fact",
-          id: "FACT-VALUE-HINT",
-          properties: {
-            title: "Value hint",
-            status: "open",
-            fact_kind: "property_value",
-            value: true,
-          },
+      handleKbUpsert(validationProlog, {
+        type: "fact",
+        id: "FACT-VALUE-HINT",
+        properties: {
+          title: "Value hint",
+          status: "open",
+          fact_kind: "property_value",
+          value: true,
         },
-      ),
+      }),
     ).rejects.toThrow("value_bool: true");
 
     const goals: string[] = [];
-    const result = await handleKbUpsert(
-      {
-        invalidateCache: () => {},
-        query: mock(async (goal: string) => {
-          goals.push(goal);
-          if (goal.includes("findall(To, kb_relationship(relates_to")) {
-            return {
-              success: true,
-              bindings: {
-                Targets: "['A,B', [nested,value], plain]",
-                Sources: "[]",
-              },
-            };
-          }
-          if (goal.includes("findall")) {
-            return {
-              success: true,
-              bindings: { Targets: "[]", Sources: "[]" },
-            };
-          }
-          return { success: true };
-        }),
-      } as unknown as Parameters<typeof handleKbUpsert>[0],
-      {
-        type: "req",
-        id: "REQ-NESTED-LIST",
-        properties: {
-          title: "Nested list",
-          status: "open",
-        },
+    const upsertProlog = new PrologProcess();
+    upsertProlog.query = mock(
+      async (goal: string | string[]): Promise<PrologQueryResult> => {
+        const queryGoal = Array.isArray(goal) ? goal.join("\n") : goal;
+        goals.push(queryGoal);
+        if (queryGoal.includes("findall(To, kb_relationship(relates_to")) {
+          return {
+            success: true,
+            bindings: {
+              Targets: "['A,B', [nested,value], plain]",
+              Sources: "[]",
+            },
+          };
+        }
+        if (queryGoal.includes("findall")) {
+          return {
+            success: true,
+            bindings: { Targets: "[]", Sources: "[]" },
+          };
+        }
+        return { success: true, bindings: {} };
       },
     );
+    const result = await handleKbUpsert(upsertProlog, {
+      type: "req",
+      id: "REQ-NESTED-LIST",
+      properties: {
+        title: "Nested list",
+        status: "open",
+      },
+    });
 
     expect(result.structuredContent?.relationships_created).toBeGreaterThan(0);
     expect(goals.some((goal) => goal.includes("findall"))).toBe(true);

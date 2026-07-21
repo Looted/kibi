@@ -1,4 +1,4 @@
-import type { ProseCoverageCase } from "../../src/semantic-advisor/prose-coverage-evaluator.js";
+import type { ProseCoverageCase } from "kibi-cli/operations/semantic-advisor/prose-coverage-evaluator";
 
 export const PROSE_COVERAGE_CORPUS: ProseCoverageCase[] = [
   {

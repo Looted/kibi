@@ -2,52 +2,45 @@ import { analyzeSemanticAdvisorInput } from "./analyze-prose.js";
 import type { SemanticModelingSuggestion } from "./types.js";
 
 export interface ProseCoverageExpectation {
-  kind: SemanticModelingSuggestion["kind"];
-  predicate_name?: string;
-  property_key?: string;
-  operator?: string;
+  readonly kind: SemanticModelingSuggestion["kind"];
+  readonly predicate_name?: string;
+  readonly property_key?: string;
+  readonly operator?: string;
 }
 
 export interface ProseCoverageCase {
-  id: string;
-  source?: string;
-  text: string;
-  expected: ProseCoverageExpectation;
+  readonly id: string;
+  readonly source?: string;
+  readonly text: string;
+  readonly expected: ProseCoverageExpectation;
 }
 
 export interface ProseCoverageFailure {
-  id: string;
-  text: string;
-  reason: string;
+  readonly id: string;
+  readonly text: string;
+  readonly reason: string;
 }
 
 export interface ProseCoverageResult {
-  coverage: number;
-  summary: {
-    total: number;
-    passed: number;
-    failed: number;
+  readonly coverage: number;
+  readonly summary: {
+    readonly total: number;
+    readonly passed: number;
+    readonly failed: number;
   };
-  failures: ProseCoverageFailure[];
+  readonly failures: readonly ProseCoverageFailure[];
 }
 
-export function evaluateProseCoverageCorpus(
-  cases: ProseCoverageCase[],
-): ProseCoverageResult {
-  const failures = cases.flatMap((testCase) => evaluateCase(testCase));
-  const passed = cases.length - failures.length;
-  return {
-    coverage: cases.length === 0 ? 1 : passed / cases.length,
-    summary: {
-      total: cases.length,
-      passed,
-      failed: failures.length,
-    },
-    failures,
-  };
+function failure(
+  testCase: ProseCoverageCase,
+  reason: string,
+): ProseCoverageFailure {
+  return { id: testCase.id, text: testCase.text, reason };
 }
 
-function evaluateCase(testCase: ProseCoverageCase): ProseCoverageFailure[] {
+function evaluateCase(
+  testCase: ProseCoverageCase,
+): readonly ProseCoverageFailure[] {
   const result = analyzeSemanticAdvisorInput({
     payload: {
       type: "req",
@@ -61,21 +54,18 @@ function evaluateCase(testCase: ProseCoverageCase): ProseCoverageFailure[] {
     },
   });
   const suggestion = result.receipt.suggestions[0];
-  if (!suggestion) {
+  if (!suggestion)
     return [failure(testCase, "No semantic advisor suggestion was produced")];
-  }
-  if (suggestion.kind !== testCase.expected.kind) {
+  if (suggestion.kind !== testCase.expected.kind)
     return [
       failure(
         testCase,
         `Expected ${testCase.expected.kind} but received ${suggestion.kind}`,
       ),
     ];
-  }
   if (
-    testCase.expected.kind === "predicate" &&
-    testCase.expected.predicate_name &&
     suggestion.kind === "predicate" &&
+    testCase.expected.predicate_name &&
     suggestion.predicate.predicate_name !== testCase.expected.predicate_name
   ) {
     return [
@@ -85,39 +75,39 @@ function evaluateCase(testCase: ProseCoverageCase): ProseCoverageFailure[] {
       ),
     ];
   }
-  if (testCase.expected.kind === "strict_property") {
-    if (suggestion.kind !== "strict_property") {
-      return [failure(testCase, "Expected strict property suggestion")];
-    }
+  if (suggestion.kind === "strict_property") {
     if (
       testCase.expected.property_key &&
       suggestion.claim.property_key !== testCase.expected.property_key
-    ) {
+    )
       return [
         failure(
           testCase,
           `Expected property ${testCase.expected.property_key} but received ${suggestion.claim.property_key}`,
         ),
       ];
-    }
     if (
       testCase.expected.operator &&
       suggestion.claim.operator !== testCase.expected.operator
-    ) {
+    )
       return [
         failure(
           testCase,
           `Expected operator ${testCase.expected.operator} but received ${suggestion.claim.operator}`,
         ),
       ];
-    }
   }
   return [];
 }
 
-function failure(
-  testCase: ProseCoverageCase,
-  reason: string,
-): ProseCoverageFailure {
-  return { id: testCase.id, text: testCase.text, reason };
+export function evaluateProseCoverageCorpus(
+  cases: readonly ProseCoverageCase[],
+): ProseCoverageResult {
+  const failures = cases.flatMap(evaluateCase);
+  const passed = cases.length - failures.length;
+  return {
+    coverage: cases.length === 0 ? 1 : passed / cases.length,
+    summary: { total: cases.length, passed, failed: failures.length },
+    failures,
+  };
 }

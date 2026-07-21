@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { evaluateProseCoverageCorpus } from "../../src/semantic-advisor/prose-coverage-evaluator.js";
+import { evaluateProseCoverageCorpus } from "kibi-cli/operations/semantic-advisor/prose-coverage-evaluator";
 import { PROSE_COVERAGE_CORPUS } from "./prose-coverage-fixture.js";
 
 describe("semantic advisor prose coverage corpus", () => {

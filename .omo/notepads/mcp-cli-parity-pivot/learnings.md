@@ -49,3 +49,21 @@
 - Mutation cases compare post-operation query results and exercise schema-rejected writes, asserting CLI validation exit 2, MCP typed validation errors, and unchanged failed-entity query state.
 - Remote SPARQL input is bound to a per-test loopback-only Bun server; no public network endpoint is contacted.
 - Focused verification passed 19 tests total: 18 unskipped operation parity cases plus one registry-completeness gate. Each run removed all 36 temporary workspaces through `finally` cleanup.
+
+## 2026-07-21T12:00:00Z Task: plan-todo-8
+- Shared executors in `specs/skills.ts` call `listBundledSkills`, `loadBundledSkill`, `readBundledSkillResource` from `kibi-cli/skills`; SHA-256 content hashing moved from MCP handler into the shared `executeSkillsLoad` function.
+- The `OperationSpec.execute` signature uses default generic params (`Readonly<Record<string, unknown>>`, `OperationResult<Record<string, unknown>>`) so `as const satisfies OperationSpec` type-checks without per-spec generic instantiation.
+- `OperationContext` must be exported from `types.ts` (via `export type { OperationContext }`) for spec files that import from `../types.js`.
+- MCP handlers in `tools/skills.ts` became thin adapters: validate/preprocess args, call `getSpec(name).execute(args, minimalContext())`, catch and wrap errors with `Skills * failed:` prefix.
+- `resourceListHint` stays in the MCP layer (not the shared executor) because it's an MCP-specific UX enhancement for read errors.
+- MCP adapter imports dropped `createHash`, `readBundledSkillResource`, `listBundledSkills` from the old inline implementation.
+- 3 new test files created: `cli/tests/operations/skills.test.ts` (8 tests), `mcp/tests/tools/skills-adapter.test.ts` (3 tests), `cli/tests/parity/skills.test.ts` (4 tests). Total 15 new tests + 31 total skill-related tests, all passing.
+- The `--input` JSON routes for skills-list, skills-load, skills-read work through `cli-protocol.ts` -> `spec.execute` path, producing identical structured content to the MCP adapter.
+- Legacy CLI commands (`skills list`, `skills load`, `skills read`) remain unchanged; they use direct loader calls with Commander-specific rendering.
+
+## 2026-07-21T13:00:00Z Task: plan-todo-11
+- The semantic advisor remains fully local: `requiresProlog: false` lets both CLI and MCP runtimes skip Prolog startup while sharing one executor.
+- Preserve detector precedence when extracting prose analysis. Predicate rules run before ontology-gap, ambiguity, and strict-property rules, and multi-claim splitting preserves deterministic suggestion ordering.
+- A compact declarative predicate-rule engine keeps every shared module below 250 LOC without changing predicate names, arguments, polarity, evidence, apply plans, or ambiguity witnesses.
+- `kibi-cli/operations/semantic-advisor/analyze-prose` is the stable upsert-analysis import; the MCP tool adapter imports the public executor from `kibi-cli/operations`.
+- Exact-schema CLI validation rejects missing or blank text with exit 2, while successful `semantic-advisor --input` emits one structured JSON value and never starts Prolog.
