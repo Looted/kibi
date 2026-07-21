@@ -27,24 +27,34 @@ describe("buildProgram", () => {
     const program = buildProgram();
 
     const registered = JSON_COMMANDS.filter((name) => {
-      const command = program.commands.find((candidate) => candidate.name() === name);
-      return command?.options.some((option) => option.long === "--input") ?? false;
+      const command = program.commands.find(
+        (candidate) => candidate.name() === name,
+      );
+      return (
+        command?.options.some((option) => option.long === "--input") ?? false
+      );
     });
 
     expect(registered).toEqual(Array.from(JSON_COMMANDS));
   });
 
-  test("keeps gaps as a compatibility command", () => {
+  test("keeps gaps as the Commander alias of find-gaps", () => {
     const program = buildProgram();
+    const findGaps = program.commands.find(
+      (command) => command.name() === "find-gaps",
+    );
 
-    expect(program.commands.some((command) => command.name() === "gaps")).toBe(
+    expect(findGaps?.aliases()).toContain("gaps");
+    expect(findGaps?.options.some((option) => option.long === "--input")).toBe(
       true,
     );
   });
 
   test("uses catalog descriptions in JSON command help", () => {
     const program = buildProgram();
-    const status = program.commands.find((command) => command.name() === "status");
+    const status = program.commands.find(
+      (command) => command.name() === "status",
+    );
 
     expect(status?.description()).toContain("freshness metadata");
     expect(status?.helpInformation()).toContain("--input <path>");

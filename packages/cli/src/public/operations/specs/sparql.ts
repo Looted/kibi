@@ -12,7 +12,8 @@ export const sparqlRemoteSpec = {
     properties: {
       endpoint: {
         type: "string",
-        description: "Remote SPARQL endpoint URL. Must start with http:// or https://.",
+        description:
+          "Remote SPARQL endpoint URL. Must start with http:// or https://.",
       },
       query: {
         type: "string",
@@ -20,7 +21,8 @@ export const sparqlRemoteSpec = {
       },
       timeoutMs: {
         type: "number",
-        description: "Optional positive timeout in milliseconds for the remote query.",
+        description:
+          "Optional positive timeout in milliseconds for the remote query.",
       },
     },
   },

@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
 
 import {
-  executeOperation,
   type FilesystemPort,
   type OperationContext,
   type OperationRuntime,
-  type RuntimeOperationSpec,
   type PrologPort,
+  type RuntimeOperationSpec,
+  executeOperation,
 } from "../../src/public/operations/runtime-types.js";
 
 const fakeProlog: PrologPort = {
@@ -32,10 +32,9 @@ function createContext(): OperationContext {
   };
 }
 
-function createSpec(effect: "kb-read" | "kb-write"): RuntimeOperationSpec<
-  { readonly value: string },
-  string
-> {
+function createSpec(
+  effect: "kb-read" | "kb-write",
+): RuntimeOperationSpec<{ readonly value: string }, string> {
   return {
     name: effect === "kb-write" ? "kb_upsert" : "kb_query",
     effects: [effect],

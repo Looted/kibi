@@ -1,12 +1,12 @@
 import type { Command } from "commander";
+import { withExitCode } from "./cli-command.js";
+import { runJsonInvocation } from "./cli-json-command.js";
 import { initCommand } from "./commands/init.js";
 import { migrateCommand } from "./commands/migrate.js";
 import { queryCommand } from "./commands/query.js";
 import { searchCommand } from "./commands/search.js";
 import { statusCommand } from "./commands/status.js";
 import { syncCommand } from "./commands/sync.js";
-import { withExitCode } from "./cli-command.js";
-import { runJsonInvocation } from "./cli-json-command.js";
 import { getSpec } from "./public/operations/index.js";
 
 // implements REQ-kibi-operation-interface-parity
@@ -14,7 +14,10 @@ export function registerFoundationCommands(program: Command): void {
   program
     .command("init")
     .description("Initialize .kb/ directory")
-    .option("--no-hooks", "Do not install git hooks (hooks installed by default)")
+    .option(
+      "--no-hooks",
+      "Do not install git hooks (hooks installed by default)",
+    )
     .action(
       withExitCode(async (options: Parameters<typeof initCommand>[0]) =>
         initCommand(options),
@@ -36,8 +39,14 @@ export function registerFoundationCommands(program: Command): void {
     .command("sync")
     .description("Sync entities from documents")
     .option("--validate-only", "Perform validation without mutations")
-    .option("--refresh-symbol-coordinates", "Refresh generated symbol coordinates")
-    .option("--rebuild", "Rebuild branch snapshot from scratch (discards current KB)")
+    .option(
+      "--refresh-symbol-coordinates",
+      "Refresh generated symbol coordinates",
+    )
+    .option(
+      "--rebuild",
+      "Rebuild branch snapshot from scratch (discards current KB)",
+    )
     .action(
       withExitCode(async (options: Parameters<typeof syncCommand>[0]) =>
         syncCommand(options),

@@ -1,10 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import {
-  OPERATION_CATALOG,
-  getSpec,
-  listSpecs,
-} from "kibi-cli/operations";
+import { OPERATION_CATALOG, getSpec, listSpecs } from "kibi-cli/operations";
 
 const EXPECTED_CLI_NAMES = {
   kb_query: "query",

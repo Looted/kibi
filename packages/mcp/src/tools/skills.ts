@@ -1,45 +1,39 @@
-import { createHash } from "node:crypto";
 import {
-  type SkillManifest,
-  listBundledSkills,
-  loadBundledSkill,
-  readBundledSkillResource,
-} from "kibi-cli/skills";
-
-type TextContent = Array<{ type: string; text: string }>;
+  type OperationContext,
+  skillsListSpec,
+  skillsLoadSpec,
+  skillsReadSpec,
+} from "kibi-cli/operations";
+import { loadBundledSkill } from "kibi-cli/skills";
 
 export type SkillsListArgs = Record<string, never>;
+export type SkillsListResult = Awaited<
+  ReturnType<typeof skillsListSpec.execute>
+>;
 
-export interface SkillsListResult {
-  content: TextContent;
-  structuredContent?: { skills: SkillManifest[] };
-}
+export type SkillsLoadArgs = Readonly<Record<string, unknown>> & {
+  readonly id: string;
+};
 
-export interface SkillsLoadArgs {
-  id: string;
-}
+export type SkillsLoadResult = Awaited<
+  ReturnType<typeof skillsLoadSpec.execute>
+>;
 
-export interface SkillsLoadPayload {
-  metadata: SkillManifest;
-  body: string;
-  resources: string[];
-  contentHash: string;
-  sourceType: "bundled";
-}
+export type SkillsReadArgs = Readonly<Record<string, unknown>> & {
+  readonly id: string;
+  readonly resource: string;
+};
 
-export interface SkillsLoadResult {
-  content: TextContent;
-  structuredContent?: SkillsLoadPayload;
-}
+export type SkillsReadResult = Awaited<
+  ReturnType<typeof skillsReadSpec.execute>
+>;
 
-export interface SkillsReadArgs {
-  id: string;
-  resource: string;
-}
-
-export interface SkillsReadResult {
-  content: TextContent;
-  structuredContent?: { content: string };
+function runtimeContext(): OperationContext {
+  return {
+    workspaceRoot: process.cwd(),
+    signal: new AbortController().signal,
+    clock: (): Date => new Date(),
+  };
 }
 
 // implements REQ-001
@@ -47,14 +41,7 @@ export async function handleKbSkillsList(
   _args: SkillsListArgs,
 ): Promise<SkillsListResult> {
   try {
-    const skills = listBundledSkills();
-    const ids = skills.map((skill) => skill.id).join(", ") || "none";
-    return {
-      content: [
-        { type: "text", text: `Found ${skills.length} bundled skills: ${ids}` },
-      ],
-      structuredContent: { skills },
-    };
+    return await skillsListSpec.execute({}, runtimeContext());
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Skills list failed: ${message}`);
@@ -66,28 +53,7 @@ export async function handleKbSkillsLoad(
   args: SkillsLoadArgs,
 ): Promise<SkillsLoadResult> {
   try {
-    assertNonEmptyString(args.id, "id");
-    const bundle = loadBundledSkill(args.id);
-    const resources = bundle.manifest.resources ?? [];
-    const payload: SkillsLoadPayload = {
-      metadata: bundle.manifest,
-      body: bundle.body,
-      resources,
-      contentHash: createHash("sha256")
-        .update(bundle.body, "utf8")
-        .digest("hex"),
-      sourceType: "bundled",
-    };
-
-    return {
-      content: [
-        {
-          type: "text",
-          text: `Loaded bundled skill ${bundle.manifest.id} with ${resources.length} resources: ${formatResourceList(resources)}`,
-        },
-      ],
-      structuredContent: payload,
-    };
+    return await skillsLoadSpec.execute(args, runtimeContext());
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Skills load failed: ${message}`);
@@ -99,18 +65,7 @@ export async function handleKbSkillsRead(
   args: SkillsReadArgs,
 ): Promise<SkillsReadResult> {
   try {
-    assertNonEmptyString(args.id, "id");
-    assertNonEmptyString(args.resource, "resource");
-    const resourceContent = readBundledSkillResource(args.id, args.resource);
-    return {
-      content: [
-        {
-          type: "text",
-          text: `Read bundled skill resource ${args.id}/${args.resource}`,
-        },
-      ],
-      structuredContent: { content: resourceContent },
-    };
+    return await skillsReadSpec.execute(args, runtimeContext());
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(
@@ -119,27 +74,16 @@ export async function handleKbSkillsRead(
   }
 }
 
-function formatResourceList(resources: readonly string[]): string {
-  return resources.length === 0 ? "none" : resources.join(", ");
-}
-
 function resourceListHint(id: string): string {
   if (typeof id !== "string" || id.trim() === "") {
     return "";
   }
   try {
     const bundle = loadBundledSkill(id);
-    return `. Declared resources: ${formatResourceList(bundle.manifest.resources ?? [])}`;
-  } catch (error) {
-    if (error instanceof Error) {
-      return "";
-    }
-    throw error;
-  }
-}
-
-function assertNonEmptyString(value: string, field: string): void {
-  if (typeof value !== "string" || value.trim() === "") {
-    throw new Error(`${field} must be a non-empty string`);
+    const resources = bundle.manifest.resources ?? [];
+    const resourceList = resources.length === 0 ? "none" : resources.join(", ");
+    return `. Declared resources: ${resourceList}`;
+  } catch {
+    return "";
   }
 }

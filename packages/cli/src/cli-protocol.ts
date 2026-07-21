@@ -1,10 +1,10 @@
-import { listSpecs } from "./public/operations/index.js";
-import type { OperationContext } from "./public/operations/index.js";
 import { InputError, OperationError } from "./cli-errors.js";
 import {
-  prepareOperationInput,
   type DiagnosticTelemetry,
+  prepareOperationInput,
 } from "./cli-validate.js";
+import { listSpecs } from "./public/operations/index.js";
+import type { OperationContext } from "./public/operations/index.js";
 
 // implements REQ-kibi-operation-interface-parity
 export type CliContext = OperationContext & {

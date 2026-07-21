@@ -18,7 +18,7 @@ symbols:
       - type: implements
         target: REQ-core-persistence
       - type: covered_by
-        target: TEST-001
+        target: TEST-kibi-operation-interface-parity
     sourceLine: 79
     sourceColumn: 13
     sourceEndLine: 671
@@ -264,9 +264,9 @@ symbols:
         target: REQ-mcp-tool-query
       - type: covered_by
         target: TEST-001
-    sourceLine: 48
+    sourceLine: 17
     sourceColumn: 22
-    sourceEndLine: 97
+    sourceEndLine: 23
     sourceEndColumn: 1
   - id: SYM-004
     title: handleKbCheck
@@ -6752,6 +6752,97 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 71
     sourceEndColumn: 34
+  - id: SYM-discovery-execute-query
+    title: executeQuery
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-discovery-execute-search
+    title: executeSearch
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-mcp-search-discovery
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-discovery-execute-status
+    title: executeStatus
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-cli-status-pre-first-sync
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-query-command
+    title: queryCommand
+    sourceFile: packages/cli/src/commands/query.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-search-command
+    title: searchCommand
+    sourceFile: packages/cli/src/commands/search.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-mcp-search-discovery
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-status-command
+    title: statusCommand
+    sourceFile: packages/cli/src/commands/status.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-cli-status-pre-first-sync
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-mcp-discovery-context
+    title: createDiscoveryContext
+    sourceFile: packages/mcp/src/tools/discovery-adapter.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-mcp-search-adapter
+    title: handleKbSearch
+    sourceFile: packages/mcp/src/tools/search.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-mcp-search-discovery
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-mcp-status-adapter
+    title: handleKbStatus
+    sourceFile: packages/mcp/src/tools/status.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
   - id: SYM-operation-query-spec
     title: querySpec
     sourceFile: packages/cli/src/public/operations/specs/discovery.ts
@@ -6761,10 +6852,10 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 15
+    sourceLine: 27
     sourceColumn: 13
-    sourceEndLine: 62
-    sourceEndColumn: 34
+    sourceEndLine: 74
+    sourceEndColumn: 60
   - id: SYM-operation-search-spec
     title: searchSpec
     sourceFile: packages/cli/src/public/operations/specs/discovery.ts
@@ -6774,10 +6865,10 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 64
+    sourceLine: 76
     sourceColumn: 13
-    sourceEndLine: 99
-    sourceEndColumn: 34
+    sourceEndLine: 111
+    sourceEndColumn: 62
   - id: SYM-operation-status-spec
     title: statusSpec
     sourceFile: packages/cli/src/public/operations/specs/discovery.ts
@@ -6787,10 +6878,10 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 101
+    sourceLine: 113
     sourceColumn: 13
-    sourceEndLine: 110
-    sourceEndColumn: 34
+    sourceEndLine: 122
+    sourceEndColumn: 62
   - id: SYM-operation-model-requirement-spec
     title: modelRequirementSpec
     sourceFile: packages/cli/src/public/operations/specs/modeling.ts
@@ -6865,10 +6956,10 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 4
+    sourceLine: 115
     sourceColumn: 13
-    sourceEndLine: 36
-    sourceEndColumn: 34
+    sourceEndLine: 138
+    sourceEndColumn: 66
   - id: SYM-operation-coverage-spec
     title: coverageSpec
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
@@ -6878,10 +6969,10 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 38
+    sourceLine: 168
     sourceColumn: 13
-    sourceEndLine: 57
-    sourceEndColumn: 34
+    sourceEndLine: 187
+    sourceEndColumn: 66
   - id: SYM-operation-graph-spec
     title: graphSpec
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
@@ -6891,10 +6982,10 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 59
+    sourceLine: 224
     sourceColumn: 13
-    sourceEndLine: 84
-    sourceEndColumn: 34
+    sourceEndLine: 249
+    sourceEndColumn: 60
   - id: SYM-executeSemanticAdvisor
     title: executeSemanticAdvisor
     sourceFile: packages/cli/src/public/operations/specs/semantic.ts
@@ -6926,9 +7017,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 83
+    sourceLine: 88
     sourceColumn: 13
-    sourceEndLine: 92
+    sourceEndLine: 97
     sourceEndColumn: 34
   - id: SYM-operation-skills-load-spec
     title: skillsLoadSpec
@@ -6939,9 +7030,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 94
+    sourceLine: 99
     sourceColumn: 13
-    sourceEndLine: 112
+    sourceEndLine: 117
     sourceEndColumn: 34
   - id: SYM-operation-skills-read-spec
     title: skillsReadSpec
@@ -6952,9 +7043,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 114
+    sourceLine: 119
     sourceColumn: 13
-    sourceEndLine: 137
+    sourceEndLine: 142
     sourceEndColumn: 34
   - id: SYM-operation-sparql-remote-spec
     title: sparqlRemoteSpec
@@ -7006,7 +7097,7 @@ symbols:
         target: TEST-kibi-operation-interface-parity
     sourceLine: 41
     sourceColumn: 17
-    sourceEndLine: 55
+    sourceEndLine: 57
     sourceEndColumn: 1
   - id: SYM-operation-name-type
     title: OperationName
@@ -7219,9 +7310,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 8
+    sourceLine: 13
     sourceColumn: 12
-    sourceEndLine: 16
+    sourceEndLine: 21
     sourceEndColumn: 2
   - id: SYM-cli-context-type
     title: CliContext

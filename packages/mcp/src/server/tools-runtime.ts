@@ -1,3 +1,8 @@
+import type {
+  PrologPort,
+  PrologQueryResult,
+} from "kibi-cli/operations/runtime-types";
+import type { PrologProcess } from "kibi-cli/prolog";
 import {
   DIAGNOSTIC_MODE_ENABLED,
   appendUsageLogLine,
@@ -5,8 +10,9 @@ import {
   deriveDiagnosticFields,
   extractToolCallPayload,
 } from "../diagnostics.js";
-import { TOOLS } from "../tools-config.js";
 import { isMcpDebugEnabled } from "../env.js";
+import { createMcpRuntime } from "../runtime/mcp-runtime.js";
+import { TOOLS } from "../tools-config.js";
 import { handleKbAutopilotGenerate } from "../tools/autopilot-generate.js";
 import { handleKbCheck } from "../tools/check.js";
 import { handleKbCoverage } from "../tools/coverage.js";
@@ -27,16 +33,13 @@ import { handleKbStatus } from "../tools/status.js";
 import { handleKbSuggestPredicates } from "../tools/suggest-predicates.js";
 import { handleKbUpsert } from "../tools/upsert.js";
 import { handleKbValidateUpsert } from "../tools/validate-upsert.js";
+import { resolveWorkspaceRoot } from "../workspace.js";
+import { readBranchKbStamp } from "./kb-freshness.js";
 import type {
   DefaultRuntimeProlog,
   ToolConfig,
   ToolsRuntime,
 } from "./tool-types.js";
-import type { PrologPort, PrologQueryResult } from "kibi-cli/operations/runtime-types";
-import type { PrologProcess } from "kibi-cli/prolog";
-import { readBranchKbStamp } from "./kb-freshness.js";
-import { createMcpRuntime } from "../runtime/mcp-runtime.js";
-import { resolveWorkspaceRoot } from "../workspace.js";
 
 type SessionModule = typeof import("./session.js");
 
@@ -114,7 +117,10 @@ const operationRuntime = createMcpRuntime<PrologProcess>({
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         if (isMcpDebugEnabled()) {
-          console.warn("[KIBI-MCP] Attached branch stamp refresh failed:", message);
+          console.warn(
+            "[KIBI-MCP] Attached branch stamp refresh failed:",
+            message,
+          );
         }
       }
     }

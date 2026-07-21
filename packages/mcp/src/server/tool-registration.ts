@@ -1,5 +1,5 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { getSpec, type OperationName } from "kibi-cli/operations";
+import { type OperationName, getSpec } from "kibi-cli/operations";
 import type {
   OperationContext,
   RuntimeOperationSpec,
@@ -62,10 +62,7 @@ export function registerConfiguredTools<TProlog>(
     }
     return prolog;
   };
-  const register = ({
-    name,
-    execute,
-  }: ToolRegistration): void => {
+  const register = ({ name, execute }: ToolRegistration): void => {
     const definition = toolDef(name);
     const publicSpec = getSpec(name);
     const spec: RuntimeOperationSpec<Record<string, unknown>, unknown> = {

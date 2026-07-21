@@ -1,6 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
 import type { PrologProcess } from "kibi-cli/prolog";
-import { createMcpRuntime } from "../../src/runtime/mcp-runtime.js";
 import {
   parseEntityFromBinding,
   parseEntityFromList,
@@ -9,6 +8,7 @@ import {
   parsePropertyList,
   splitTopLevel,
 } from "kibi-cli/prolog/codec";
+import { createMcpRuntime } from "../../src/runtime/mcp-runtime.js";
 import { registerAllTools } from "../../src/server/tools.js";
 import { TOOLS } from "../../src/tools-config.js";
 import { VALID_ENTITY_TYPES, handleKbQuery } from "../../src/tools/query.js";

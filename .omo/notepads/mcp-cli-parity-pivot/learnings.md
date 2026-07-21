@@ -67,3 +67,22 @@
 - A compact declarative predicate-rule engine keeps every shared module below 250 LOC without changing predicate names, arguments, polarity, evidence, apply plans, or ambiguity witnesses.
 - `kibi-cli/operations/semantic-advisor/analyze-prose` is the stable upsert-analysis import; the MCP tool adapter imports the public executor from `kibi-cli/operations`.
 - Exact-schema CLI validation rejects missing or blank text with exit 2, while successful `semantic-advisor --input` emits one structured JSON value and never starts Prolog.
+
+## 2026-07-21T14:00:00Z Task: plan-todo-8-retry
+- Operation specs must import the monorepo-local skill implementation through `../../skills.js`; importing the package export from inside `kibi-cli` can bind execution to stale package output rather than the source module under test.
+- Hash assertions should recompute SHA-256 from the returned body, not merely accept any 64-character hexadecimal value.
+- Skill parity coverage must invoke `runCliJsonRoute`, `runMCPAdapter`, and `compareResults`; direct calls to all three specs only test operation shape and do not prove transport parity.
+- The MCP adapter can import the concrete skill specs, provide the no-Prolog runtime context, and retain MCP-specific error wrapping without owning skill loading or hashing.
+
+## 2026-07-21T14:00:00Z Task: plan-todo-10
+- `findGapsSpec`, `coverageSpec`, and `graphSpec` now own Prolog goal construction, defaults, structured payloads, and transport-neutral text summaries; MCP handlers only supply the session Prolog port and retain their historical error prefixes.
+- Legacy reporting flags are translated into typed operation inputs before execution. `find-gaps` is the canonical Commander command and `gaps` is its real alias, so both names share one action and produce byte-identical output.
+- Reporting JSON routes must open the CLI runtime before entering `cli-protocol`; otherwise a validated `--input` call reaches a Prolog-required shared executor without an attached branch KB.
+- Coverage keeps `includePassing: false` and `includeTransitive: true`; graph keeps depth 1 with a hard 1..5 range plus 200-node and 500-edge defaults.
+
+## 2026-07-21T15:00:00Z Task: plan-todo-9-retry
+- Query, search, and status now execute from `kibi-cli` operation specs against `OperationContext.prolog`; MCP handlers only adapt their session Prolog process into that context.
+- The shared entity-query seam owns Prolog goal construction, parsing, tag filtering, deduplication, and pagination, so tag filtering still occurs before pagination and search ranking remains unchanged.
+- Human CLI flags open `createCliRuntime()` and then format the shared structured result; `query --relationships` remains a CLI-only presentation path.
+- Prolog-backed `--input` routes must open the CLI runtime before entering `cli-protocol`, matching the reporting extraction pattern and preserving the status freshness query.
+- Executable parity tests compare human flag output with JSON protocol output for query, search, and status, while MCP adapter tests compare each handler directly with its shared executor.

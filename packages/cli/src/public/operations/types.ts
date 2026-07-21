@@ -1,5 +1,5 @@
 import type { OperationContext } from "./runtime-types.js";
-
+export type { OperationContext };
 export type OperationName =
   | "kb_query"
   | "kb_search"
@@ -48,10 +48,12 @@ export interface OperationSpec<
   readonly businessInputSchema: Readonly<Record<string, unknown>>;
   readonly requiresProlog: boolean;
   readonly effects: readonly OperationEffect[];
-  readonly execute: (
-    input: I,
-    context: OperationContext,
-  ) => Promise<OperationResult<O>>;
+  readonly execute: {
+    bivarianceHack(
+      input: I,
+      context: OperationContext,
+    ): Promise<OperationResult<O>>;
+  }["bivarianceHack"];
 }
 
 // implements REQ-kibi-operation-interface-parity

@@ -13,10 +13,7 @@ import type {
 export interface McpSession<TProlog = PrologPort> {
   readonly workspaceRoot: string;
   readonly activeBranchName: () => string | Promise<string>;
-  readonly attachedBranchKbPath: () =>
-    | string
-    | null
-    | Promise<string | null>;
+  readonly attachedBranchKbPath: () => string | null | Promise<string | null>;
   readonly ensureProlog: () => Promise<TProlog>;
   readonly adaptProlog: (prolog: TProlog) => PrologPort;
   readonly refreshAttachedBranchStamp: () => Promise<void>;

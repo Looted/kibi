@@ -1,11 +1,13 @@
 import type { Command } from "commander";
 import { InputError } from "./cli-errors.js";
 import { loadInput } from "./cli-input.js";
-import { executeOperation } from "./cli-protocol.js";
+import { executeOperation as executeProtocolOperation } from "./cli-protocol.js";
 import {
-  listSpecs,
   type OperationName,
+  getSpec,
+  listSpecs,
 } from "./public/operations/index.js";
+import { createCliRuntime } from "./runtime/cli-runtime.js";
 
 // implements REQ-kibi-operation-interface-parity
 export type JsonInvocation = {
@@ -57,7 +59,10 @@ export async function runJsonInvocation(
 
   let input: unknown;
   try {
-    input = await loadInput({ input: invocation.inputPath, cwd: process.cwd() });
+    input = await loadInput({
+      input: invocation.inputPath,
+      cwd: process.cwd(),
+    });
   } catch (error) {
     if (error instanceof InputError) {
       writeInputError(error);
@@ -66,10 +71,21 @@ export async function runJsonInvocation(
     throw error;
   }
 
-  const result = await executeOperation(invocation.operationName, input, {
-    workspaceRoot: process.cwd(),
-    signal: new AbortController().signal,
-    clock: () => new Date(),
+  const workspaceRoot = process.cwd();
+  const spec = getSpec(invocation.operationName);
+  const runtime = createCliRuntime({ workspaceRoot });
+  const context = await runtime.open(spec, { workspaceRoot });
+  const result = await executeProtocolOperation(
+    invocation.operationName,
+    input,
+    context,
+  );
+  if (result.exitCode === 0 && spec.effects.includes("kb-write")) {
+    await runtime.afterSuccess(spec, context);
+  }
+  await runtime.close(context, {
+    status: "success",
+    result,
   });
   if (result.stdout !== undefined) {
     process.stdout.write(result.stdout);
@@ -84,6 +100,7 @@ const INTEGRATED_OPERATIONS = new Set<OperationName>([
   "kb_query",
   "kb_search",
   "kb_status",
+  "kb_find_gaps",
   "kb_coverage",
   "kb_graph",
   "kb_check",

@@ -1,9 +1,7 @@
-import { escapeAtom } from "../prolog/codec.js";
+import { graphSpec } from "../public/operations/index.js";
 import {
+  executeReportingSpec,
   printDiscoveryResult,
-  resolveCurrentKbPath,
-  runJsonModuleQuery,
-  withPrologProcess,
 } from "./discovery-shared.js";
 
 interface GraphOptions {
@@ -25,43 +23,28 @@ export async function graphCommand(options: GraphOptions): Promise<void> {
     return;
   }
 
-  await withPrologProcess(async (prolog) => {
-    const kbPath = await resolveCurrentKbPath();
-    const seedIds = csvToPrologList(options.from);
-    const relationships = csvToPrologList(options.relationships);
-    const direction = options.direction || "outgoing";
-    const depth = Number.parseInt(options.depth || "1", 10);
-    const entityTypes = csvToPrologList(options.entityTypes);
-    const maxNodes = Number.parseInt(options.maxNodes || "200", 10);
-    const maxEdges = Number.parseInt(options.maxEdges || "500", 10);
-
-    const result = await runJsonModuleQuery<Record<string, unknown>>(
-      prolog,
-      "discovery.pl",
-      `discovery:graph_expand_json(${seedIds}, ${relationships}, '${direction}', ${depth}, ${entityTypes}, ${maxNodes}, ${maxEdges}, JsonString)`,
-      "graph query failed",
-      kbPath,
-    );
-
-    const nodes = Array.isArray(result.nodes) ? result.nodes.length : 0;
-    const edges = Array.isArray(result.edges) ? result.edges.length : 0;
-    printDiscoveryResult(
-      options.format,
-      result,
-      `Graph traversal returned ${nodes} nodes and ${edges} edges.`,
-    );
+  const result = await executeReportingSpec(graphSpec, {
+    seedIds: csvValues(options.from),
+    relationships: csvValues(options.relationships),
+    direction: options.direction ?? "outgoing",
+    depth: Number.parseInt(options.depth || "1", 10),
+    entityTypes: csvValues(options.entityTypes),
+    maxNodes: Number.parseInt(options.maxNodes || "200", 10),
+    maxEdges: Number.parseInt(options.maxEdges || "500", 10),
   });
+  printDiscoveryResult(
+    options.format,
+    result.structuredContent,
+    result.content[0]?.text ?? "Graph traversal returned no nodes.",
+  );
 }
 
-function csvToPrologList(value?: string): string {
+function csvValues(value?: string): string[] {
   if (!value?.trim()) {
-    return "[]";
+    return [];
   }
-
-  return `[${value
+  return value
     .split(",")
     .map((item) => item.trim())
-    .filter(Boolean)
-    .map((item) => `'${escapeAtom(item)}'`)
-    .join(",")}]`;
+    .filter(Boolean);
 }

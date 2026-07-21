@@ -15,7 +15,9 @@ describe("operations import purity", () => {
     );
     const writeFileSync = spyOn(fs, "writeFileSync");
     const spawn = spyOn(Bun, "spawn");
-    const exit = spyOn(process, "exit").mockImplementation(() => undefined as never);
+    const exit = spyOn(process, "exit").mockImplementation(
+      () => undefined as never,
+    );
     const on = spyOn(process, "on");
     const addListener = spyOn(process, "addListener");
 

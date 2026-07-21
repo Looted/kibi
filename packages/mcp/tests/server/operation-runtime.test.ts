@@ -1,13 +1,13 @@
 import { describe, expect, mock, test } from "bun:test";
 
 import type {
-  RuntimeOperationSpec,
   PrologPort,
+  RuntimeOperationSpec,
 } from "kibi-cli/operations/runtime-types";
 import { executeOperation } from "kibi-cli/operations/runtime-types";
 import {
-  createMcpRuntime,
   type McpSession,
+  createMcpRuntime,
 } from "../../src/runtime/mcp-runtime.js";
 
 function createSession(refresh: () => Promise<void>): McpSession {
@@ -32,7 +32,10 @@ describe("MCP operation adapter integration", () => {
     // Given
     const refresh = mock(async () => undefined);
     const execute = mock(async () => ({ created: 1 }));
-    const spec: RuntimeOperationSpec<Record<string, never>, { readonly created: number }> = {
+    const spec: RuntimeOperationSpec<
+      Record<string, never>,
+      { readonly created: number }
+    > = {
       name: "kb_upsert",
       effects: ["kb-write"],
       requiresProlog: true,

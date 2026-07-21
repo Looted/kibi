@@ -19,7 +19,8 @@ const ENTITY_PROPERTIES_SCHEMA = {
   properties: {
     title: {
       type: "string",
-      description: "Required short title. Example: 'Protect account settings endpoint'.",
+      description:
+        "Required short title. Example: 'Protect account settings endpoint'.",
     },
     status: {
       type: "string",
@@ -36,43 +37,80 @@ const ENTITY_PROPERTIES_SCHEMA = {
       items: { type: "string" },
       description: "Optional categorization tags. Example: ['security','api'].",
     },
-    owner: { type: "string", description: "Optional owner name/team. Example: 'platform-team'." },
-    priority: { type: "string", description: "Optional priority label. Example: 'high'." },
-    severity: { type: "string", description: "Optional severity label. Example: 'critical'." },
+    owner: {
+      type: "string",
+      description: "Optional owner name/team. Example: 'platform-team'.",
+    },
+    priority: {
+      type: "string",
+      description: "Optional priority label. Example: 'high'.",
+    },
+    severity: {
+      type: "string",
+      description: "Optional severity label. Example: 'critical'.",
+    },
     links: {
       type: "array",
       items: { type: "string" },
-      description: "Optional references. Example: ['REQ-010','https://example.com/spec'].",
+      description:
+        "Optional references. Example: ['REQ-010','https://example.com/spec'].",
     },
-    text_ref: { type: "string", description: "Optional text anchor/reference. Example: 'requirements.md#L40'." },
+    text_ref: {
+      type: "string",
+      description:
+        "Optional text anchor/reference. Example: 'requirements.md#L40'.",
+    },
     sourceFile: {
       type: "string",
-      description: "Optional code source file for symbol entities. Example: 'src/auth/login.ts'.",
+      description:
+        "Optional code source file for symbol entities. Example: 'src/auth/login.ts'.",
     },
     granularity_reason: {
       type: "string",
-      enum: ["config-artifact", "module-level-behavior", "extractor-miss", "legacy-link"],
+      enum: [
+        "config-artifact",
+        "module-level-behavior",
+        "extractor-miss",
+        "legacy-link",
+      ],
       description:
         "Optional justification for a coarse file/module-level symbol traceability relationship when narrower function/class/type symbols exist.",
     },
     symbol_role: {
       type: "string",
-      enum: ["behavioral", "structural", "type-shape", "config", "module", "unknown"],
-      description: "Optional role classification for symbol entities. Example: 'behavioral'.",
+      enum: [
+        "behavioral",
+        "structural",
+        "type-shape",
+        "config",
+        "module",
+        "unknown",
+      ],
+      description:
+        "Optional role classification for symbol entities. Example: 'behavioral'.",
     },
     verification_scope: {
       type: "string",
       enum: ["unit", "integration", "end_to_end"],
-      description: "Optional typed verification scope for test entities. Example: 'end_to_end'.",
+      description:
+        "Optional typed verification scope for test entities. Example: 'end_to_end'.",
     },
     verification_perspective: {
       type: "string",
       enum: ["internal", "consumer"],
-      description: "Optional typed verification perspective for test entities. Example: 'consumer'.",
+      description:
+        "Optional typed verification perspective for test entities. Example: 'consumer'.",
     },
     fact_kind: {
       type: "string",
-      enum: ["subject", "property_value", "observation", "meta", "predicate_schema", "predicate"],
+      enum: [
+        "subject",
+        "property_value",
+        "observation",
+        "meta",
+        "predicate_schema",
+        "predicate",
+      ],
       description:
         "Optional fact lane kind for fact entities. Strict lane uses 'subject' and 'property_value'; context lane uses 'observation' or 'meta'; ontology lane uses 'predicate_schema' or 'predicate'. Use kb_model_requirement or kb_suggest_predicates when starting from prose.",
     },
@@ -89,7 +127,8 @@ const ENTITY_PROPERTIES_SCHEMA = {
     operator: {
       type: "string",
       enum: ["eq", "neq", "lt", "lte", "gt", "gte"],
-      description: "Optional comparison operator for property_value facts. Example: 'eq'.",
+      description:
+        "Optional comparison operator for property_value facts. Example: 'eq'.",
     },
     value_type: {
       type: "string",
@@ -97,27 +136,55 @@ const ENTITY_PROPERTIES_SCHEMA = {
       description:
         "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, or value_bool; do not use generic value.",
     },
-    value_string: { type: "string", description: "Optional string value for property_value facts." },
-    value_int: { type: "integer", description: "Optional integer value for property_value facts." },
-    value_number: { type: "number", description: "Optional number value for property_value facts." },
-    value_bool: { type: "boolean", description: "Optional boolean value for property_value facts." },
-    unit: { type: "string", description: "Optional unit for numeric property_value facts." },
-    scope: { type: "string", description: "Optional scope qualifier for fact entities." },
+    value_string: {
+      type: "string",
+      description: "Optional string value for property_value facts.",
+    },
+    value_int: {
+      type: "integer",
+      description: "Optional integer value for property_value facts.",
+    },
+    value_number: {
+      type: "number",
+      description: "Optional number value for property_value facts.",
+    },
+    value_bool: {
+      type: "boolean",
+      description: "Optional boolean value for property_value facts.",
+    },
+    unit: {
+      type: "string",
+      description: "Optional unit for numeric property_value facts.",
+    },
+    scope: {
+      type: "string",
+      description: "Optional scope qualifier for fact entities.",
+    },
     polarity: {
       type: "string",
       enum: ["require", "forbid", "assert", "deny"],
       description: "Optional polarity for property_value or predicate facts.",
     },
-    closed_world: { type: "boolean", description: "Optional closed-world marker for strict fact interpretation." },
-    canonical_key: { type: "string", description: "Optional canonical identity key for predicate or strict fact claims." },
+    closed_world: {
+      type: "boolean",
+      description:
+        "Optional closed-world marker for strict fact interpretation.",
+    },
+    canonical_key: {
+      type: "string",
+      description:
+        "Optional canonical identity key for predicate or strict fact claims.",
+    },
     predicate_name: {
       type: "string",
-      description: "Optional predicate name for ontology predicate facts. Prefer kb_suggest_predicates before hand-writing predicate_name.",
+      description:
+        "Optional predicate name for ontology predicate facts. Prefer kb_suggest_predicates before hand-writing predicate_name.",
     },
     predicate_args: {
       type: "array",
       items: { type: "string" },
-      description: "Optional ordered predicate arguments for ontology predicate facts. Prefer kb_suggest_predicates before hand-writing predicate_args.",
+      description:
+        "Optional ordered predicate arguments for ontology predicate facts. Prefer kb_suggest_predicates before hand-writing predicate_args.",
     },
   },
   required: ["title", "status"],
@@ -134,16 +201,35 @@ const RELATIONSHIPS_SCHEMA = {
       type: {
         type: "string",
         enum: [
-          "depends_on", "specified_by", "verified_by", "validates", "implements",
-          "covered_by", "executable_for", "constrained_by", "constrains",
-          "requires_property", "requires_predicate", "guards", "publishes", "consumes",
-          "supersedes", "relates_to",
+          "depends_on",
+          "specified_by",
+          "verified_by",
+          "validates",
+          "implements",
+          "covered_by",
+          "executable_for",
+          "constrained_by",
+          "constrains",
+          "requires_property",
+          "requires_predicate",
+          "guards",
+          "publishes",
+          "consumes",
+          "supersedes",
+          "relates_to",
         ],
         description:
           "Relationship type enum. Use only supported values. Direction semantics follow KB model (e.g., implements symbol->req, verified_by req/scenario->test, executable_for symbol->test).",
       },
-      from: { type: "string", description: "Source entity ID (must exist). Example: 'SYM-login-handler'." },
-      to: { type: "string", description: "Target entity ID (must exist). Example: 'REQ-001'." },
+      from: {
+        type: "string",
+        description:
+          "Source entity ID (must exist). Example: 'SYM-login-handler'.",
+      },
+      to: {
+        type: "string",
+        description: "Target entity ID (must exist). Example: 'REQ-001'.",
+      },
     },
   },
 } as const;
@@ -160,11 +246,13 @@ export const upsertSpec = {
       type: {
         type: "string",
         enum: ENTITY_TYPES,
-        description: "Entity type to create/update. Allowed: req, scenario, test, adr, flag, event, symbol, fact. Example: 'req'.",
+        description:
+          "Entity type to create/update. Allowed: req, scenario, test, adr, flag, event, symbol, fact. Example: 'req'.",
       },
       id: {
         type: "string",
-        description: "Unique entity ID (string). Example: 'REQ-123'. Existing ID updates the entity; new ID creates it.",
+        description:
+          "Unique entity ID (string). Example: 'REQ-123'. Existing ID updates the entity; new ID creates it.",
       },
       properties: ENTITY_PROPERTIES_SCHEMA,
       relationships: RELATIONSHIPS_SCHEMA,
@@ -188,7 +276,8 @@ export const validateUpsertSpec = {
       id: { type: "string" },
       properties: {
         type: "object",
-        description: "Entity properties to validate using the same snake_case field names accepted by kb_upsert.",
+        description:
+          "Entity properties to validate using the same snake_case field names accepted by kb_upsert.",
       },
       relationships: { type: "array", items: { type: "object" } },
     },
@@ -210,7 +299,8 @@ export const deleteSpec = {
       ids: {
         type: "array",
         items: { type: "string" },
-        description: "Required list of entity IDs to delete. Example: ['REQ-001','TEST-002']. At least one ID is required.",
+        description:
+          "Required list of entity IDs to delete. Example: ['REQ-001','TEST-002']. At least one ID is required.",
       },
     },
   },

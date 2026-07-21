@@ -1,11 +1,22 @@
 import { autopilotGenerateSpec } from "./specs/autopilot.js";
 import { checkSpec } from "./specs/check.js";
 import { querySpec, searchSpec, statusSpec } from "./specs/discovery.js";
-import { modelRequirementSpec, suggestPredicatesSpec } from "./specs/modeling.js";
-import { deleteSpec, upsertSpec, validateUpsertSpec } from "./specs/mutation.js";
+import {
+  modelRequirementSpec,
+  suggestPredicatesSpec,
+} from "./specs/modeling.js";
+import {
+  deleteSpec,
+  upsertSpec,
+  validateUpsertSpec,
+} from "./specs/mutation.js";
 import { coverageSpec, findGapsSpec, graphSpec } from "./specs/reporting.js";
 import { semanticAdvisorSpec } from "./specs/semantic.js";
-import { skillsListSpec, skillsLoadSpec, skillsReadSpec } from "./specs/skills.js";
+import {
+  skillsListSpec,
+  skillsLoadSpec,
+  skillsReadSpec,
+} from "./specs/skills.js";
 import { sparqlRemoteSpec } from "./specs/sparql.js";
 import type { OperationName, OperationSpec } from "./types.js";
 

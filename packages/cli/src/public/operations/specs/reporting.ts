@@ -1,5 +1,116 @@
-import { executePlaceholder } from "../types.js";
-import type { OperationSpec } from "../types.js";
+import {
+  runOperationJsonQuery,
+  toPrologAtom,
+  toPrologList,
+} from "../prolog-json.js";
+import type { OperationContext } from "../runtime-types.js";
+import type { OperationResult, OperationSpec } from "../types.js";
+
+const ENTITY_TYPES = [
+  "req",
+  "scenario",
+  "test",
+  "adr",
+  "flag",
+  "event",
+  "symbol",
+  "fact",
+] as const;
+const ENTITY_TYPE_SET: ReadonlySet<string> = new Set(ENTITY_TYPES);
+
+export type FindGapsInput = {
+  readonly type?: string;
+  readonly missingRelationships?: readonly string[];
+  readonly presentRelationships?: readonly string[];
+  readonly tags?: readonly string[];
+  readonly sourceFile?: string;
+  readonly limit?: number;
+  readonly offset?: number;
+};
+
+export type FindGapsPayload = {
+  readonly rows: readonly Readonly<Record<string, unknown>>[];
+  readonly count: number;
+  readonly meta?: Readonly<Record<string, unknown>>;
+};
+
+export type CoverageInput = {
+  readonly by?: "req" | "symbol" | "type";
+  readonly tags?: readonly string[];
+  readonly includePassing?: boolean;
+  readonly includeTransitive?: boolean;
+  readonly limit?: number;
+  readonly offset?: number;
+};
+
+export type CoveragePayload = {
+  readonly summary: Readonly<Record<string, number>>;
+  readonly rows: readonly Readonly<Record<string, unknown>>[];
+  readonly meta?: Readonly<Record<string, unknown>>;
+};
+
+export type GraphInput = {
+  readonly seedIds: readonly string[];
+  readonly relationships?: readonly string[];
+  readonly direction?: "outgoing" | "incoming" | "both";
+  readonly depth?: number;
+  readonly entityTypes?: readonly string[];
+  readonly maxNodes?: number;
+  readonly maxEdges?: number;
+};
+
+export type GraphPayload = {
+  readonly nodes: readonly Readonly<Record<string, unknown>>[];
+  readonly edges: readonly Readonly<Record<string, unknown>>[];
+  readonly truncated: boolean;
+  readonly meta?: Readonly<Record<string, unknown>>;
+};
+
+function requireProlog(context: OperationContext) {
+  if (context.prolog === undefined) {
+    throw new Error("Reporting operation requires a Prolog runtime");
+  }
+  return context.prolog;
+}
+
+function validateEntityType(type?: string): void {
+  if (type !== undefined && !ENTITY_TYPE_SET.has(type)) {
+    throw new Error(
+      `Invalid type '${type}'. Valid types: ${ENTITY_TYPES.join(", ")}. Use a single type value, or omit this parameter to query all entities.`,
+    );
+  }
+}
+
+export async function executeFindGaps(
+  input: FindGapsInput,
+  context: OperationContext,
+): Promise<OperationResult<FindGapsPayload>> {
+  validateEntityType(input.type);
+  try {
+    const payload = await runOperationJsonQuery<FindGapsPayload>(
+      requireProlog(context),
+      "discovery.pl",
+      `discovery:find_gaps_json(${toPrologAtom(input.type)}, ${toPrologList(input.missingRelationships)}, ${toPrologList(input.presentRelationships)}, ${toPrologList(input.tags)}, ${toPrologAtom(input.sourceFile)}, ${input.limit ?? 100}, ${input.offset ?? 0}, JsonString)`,
+      "Find-gaps execution",
+    );
+    const rows = payload.rows ?? [];
+    return {
+      content: [
+        {
+          type: "text",
+          text:
+            rows.length === 0
+              ? "No matching gaps found."
+              : `Found ${payload.count ?? rows.length} gap rows. Showing ${rows.length}: ${rows.map((row) => row.id).join(", ")}`,
+        },
+      ],
+      structuredContent: payload,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Find-gaps execution failed: ${message}`);
+  }
+}
 
 export const findGapsSpec = {
   name: "kb_find_gaps",
@@ -11,7 +122,7 @@ export const findGapsSpec = {
     properties: {
       type: {
         type: "string",
-        enum: ["req", "scenario", "test", "adr", "flag", "event", "symbol", "fact"],
+        enum: ENTITY_TYPES,
       },
       missingRelationships: { type: "array", items: { type: "string" } },
       presentRelationships: { type: "array", items: { type: "string" } },
@@ -23,8 +134,36 @@ export const findGapsSpec = {
   },
   requiresProlog: true,
   effects: ["kb-read"],
-  execute: executePlaceholder,
-} as const satisfies OperationSpec;
+  execute: executeFindGaps,
+} as const satisfies OperationSpec<FindGapsInput, FindGapsPayload>;
+
+export async function executeCoverage(
+  input: CoverageInput,
+  context: OperationContext,
+): Promise<OperationResult<CoveragePayload>> {
+  try {
+    const payload = await runOperationJsonQuery<CoveragePayload>(
+      requireProlog(context),
+      "discovery.pl",
+      `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, JsonString)`,
+      "Coverage execution",
+    );
+    const fullyCovered = Number(payload.summary?.fullyCovered ?? 0);
+    const total = Number(payload.summary?.total ?? 0);
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Coverage summary: ${fullyCovered} fully covered out of ${total}.`,
+        },
+      ],
+      structuredContent: payload,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Coverage execution failed: ${message}`);
+  }
+}
 
 export const coverageSpec = {
   name: "kb_coverage",
@@ -44,8 +183,43 @@ export const coverageSpec = {
   },
   requiresProlog: true,
   effects: ["kb-read"],
-  execute: executePlaceholder,
-} as const satisfies OperationSpec;
+  execute: executeCoverage,
+} as const satisfies OperationSpec<CoverageInput, CoveragePayload>;
+
+export async function executeGraph(
+  input: GraphInput,
+  context: OperationContext,
+): Promise<OperationResult<GraphPayload>> {
+  const depth = input.depth ?? 1;
+  if (depth < 1 || depth > 5) {
+    throw new RangeError("Graph depth must be between 1 and 5");
+  }
+  try {
+    const payload = await runOperationJsonQuery<GraphPayload>(
+      requireProlog(context),
+      "discovery.pl",
+      `discovery:graph_expand_json(${toPrologList(input.seedIds)}, ${toPrologList(input.relationships)}, '${input.direction ?? "outgoing"}', ${depth}, ${toPrologList(input.entityTypes)}, ${input.maxNodes ?? 200}, ${input.maxEdges ?? 500}, JsonString)`,
+      "Graph execution",
+    );
+    const nodes = payload.nodes ?? [];
+    const edges = payload.edges ?? [];
+    return {
+      content: [
+        {
+          type: "text",
+          text:
+            nodes.length === 0
+              ? "Graph traversal returned no nodes."
+              : `Graph traversal returned ${nodes.length} nodes and ${edges.length} edges from ${input.seedIds.join(", ")}.`,
+        },
+      ],
+      structuredContent: payload,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Graph execution failed: ${message}`);
+  }
+}
 
 export const graphSpec = {
   name: "kb_graph",
@@ -71,5 +245,5 @@ export const graphSpec = {
   },
   requiresProlog: true,
   effects: ["kb-read"],
-  execute: executePlaceholder,
-} as const satisfies OperationSpec;
+  execute: executeGraph,
+} as const satisfies OperationSpec<GraphInput, GraphPayload>;
