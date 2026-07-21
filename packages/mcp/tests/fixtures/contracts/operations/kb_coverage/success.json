@@ -1,0 +1,65 @@
+{
+  "input": {
+    "by": "req",
+    "includePassing": false,
+    "includeTransitive": true,
+    "limit": 25,
+    "offset": 0
+  },
+  "structuredContent": {
+    "meta": {
+      "by": "req",
+      "includePassing": false,
+      "includeTransitive": true,
+      "limit": 25,
+      "offset": 0
+    },
+    "rows": [
+      {
+        "covered": 1,
+        "id": "REQ-CONTRACT-001",
+        "missing": 0
+      }
+    ],
+    "summary": {
+      "fullyCovered": 1,
+      "total": 1
+    }
+  },
+  "tool": {
+    "description": "Generate curated coverage reports for requirements, symbols, or grouped types. Read-only reporting with no mutation side effects.",
+    "inputSchema": {
+      "properties": {
+        "by": {
+          "default": "req",
+          "enum": ["req", "symbol", "type"],
+          "type": "string"
+        },
+        "includePassing": {
+          "default": false,
+          "type": "boolean"
+        },
+        "includeTransitive": {
+          "default": true,
+          "type": "boolean"
+        },
+        "limit": {
+          "default": 100,
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "type": "integer"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "name": "kb_coverage"
+  }
+}

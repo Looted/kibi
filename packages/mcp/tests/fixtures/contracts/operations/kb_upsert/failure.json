@@ -1,0 +1,254 @@
+{
+  "error": {
+    "class": "JSONRPCError",
+    "code": -32602,
+    "message": "Entity validation failed: /root: id is required"
+  },
+  "input": {
+    "id": "REQ-CONTRACT-002",
+    "properties": {
+      "source": "contracts/seed/requirements/REQ-CONTRACT-002.md",
+      "status": "open",
+      "title": "Add parity test coverage"
+    },
+    "relationships": [
+      {
+        "from": "REQ-CONTRACT-002",
+        "to": "REQ-CONTRACT-001",
+        "type": "specified_by"
+      }
+    ],
+    "type": "req"
+  },
+  "tool": {
+    "description": "Create or update one entity and optional relationships. Use for KB mutations after validating intent; prefer kb_validate_upsert first because it returns semantic advisor receipts for prose-heavy requirements. Use kb_model_requirement before hand-writing strict property facts from prose, and kb_suggest_predicates before hand-writing ontology predicate facts. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`, or `requires_predicate`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. For requirements, the write will be rejected if it contradicts existing current requirements that constrain the same subject with incompatible properties. To replace a conflicting requirement, include a `supersedes` relationship from the new requirement to the old one in the same request. Successful writes may return non-blocking semantic advisor warnings; inspect and repair those warnings before treating prose as contradiction-checkable. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",
+    "inputSchema": {
+      "properties": {
+        "id": {
+          "description": "Unique entity ID (string). Example: 'REQ-123'. Existing ID updates the entity; new ID creates it.",
+          "type": "string"
+        },
+        "properties": {
+          "description": "Entity fields to persist. Must include title and status. If created_at, updated_at, or source are omitted, server fills defaults.",
+          "properties": {
+            "canonical_key": {
+              "description": "Optional canonical identity key for predicate or strict fact claims.",
+              "type": "string"
+            },
+            "closed_world": {
+              "description": "Optional closed-world marker for strict fact interpretation.",
+              "type": "boolean"
+            },
+            "fact_kind": {
+              "description": "Optional fact lane kind for fact entities. Strict lane uses 'subject' and 'property_value'; context lane uses 'observation' or 'meta'; ontology lane uses 'predicate_schema' or 'predicate'. Use kb_model_requirement or kb_suggest_predicates when starting from prose.",
+              "enum": [
+                "subject",
+                "property_value",
+                "observation",
+                "meta",
+                "predicate_schema",
+                "predicate"
+              ],
+              "type": "string"
+            },
+            "granularity_reason": {
+              "description": "Optional justification for a coarse file/module-level symbol traceability relationship when narrower function/class/type symbols exist.",
+              "enum": [
+                "config-artifact",
+                "module-level-behavior",
+                "extractor-miss",
+                "legacy-link"
+              ],
+              "type": "string"
+            },
+            "links": {
+              "description": "Optional references. Example: ['REQ-010','https://example.com/spec'].",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "operator": {
+              "description": "Optional comparison operator for property_value facts. Example: 'eq'.",
+              "enum": ["eq", "neq", "lt", "lte", "gt", "gte"],
+              "type": "string"
+            },
+            "owner": {
+              "description": "Optional owner name/team. Example: 'platform-team'.",
+              "type": "string"
+            },
+            "polarity": {
+              "description": "Optional polarity for property_value or predicate facts.",
+              "enum": ["require", "forbid", "assert", "deny"],
+              "type": "string"
+            },
+            "predicate_args": {
+              "description": "Optional ordered predicate arguments for ontology predicate facts. Prefer kb_suggest_predicates before hand-writing predicate_args.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "predicate_name": {
+              "description": "Optional predicate name for ontology predicate facts. Prefer kb_suggest_predicates before hand-writing predicate_name.",
+              "type": "string"
+            },
+            "priority": {
+              "description": "Optional priority label. Example: 'high'.",
+              "type": "string"
+            },
+            "property_key": {
+              "description": "Snake_case only. Optional canonical property key for property_value facts. Example: 'session.timeout_minutes'. Do not use propertyKey in kb_upsert.properties.",
+              "type": "string"
+            },
+            "scope": {
+              "description": "Optional scope qualifier for fact entities.",
+              "type": "string"
+            },
+            "severity": {
+              "description": "Optional severity label. Example: 'critical'.",
+              "type": "string"
+            },
+            "source": {
+              "description": "Optional provenance string. Example: 'docs/requirements/REQ-123.md'. Defaults to 'mcp://kibi/upsert'.",
+              "type": "string"
+            },
+            "sourceFile": {
+              "description": "Optional code source file for symbol entities. Example: 'src/auth/login.ts'.",
+              "type": "string"
+            },
+            "status": {
+              "description": "Required lifecycle state. Allowed values depend on entity type; backward-compatible legacy statuses are also accepted. Examples: 'open', 'passing', 'accepted', 'active'.",
+              "type": "string"
+            },
+            "subject_key": {
+              "description": "Snake_case only. Optional canonical subject key for strict fact entities. Example: 'user.session'. Do not use subjectKey in kb_upsert.properties.",
+              "type": "string"
+            },
+            "symbol_role": {
+              "description": "Optional role classification for symbol entities. Example: 'behavioral'.",
+              "enum": [
+                "behavioral",
+                "structural",
+                "type-shape",
+                "config",
+                "module",
+                "unknown"
+              ],
+              "type": "string"
+            },
+            "tags": {
+              "description": "Optional categorization tags. Example: ['security','api'].",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "text_ref": {
+              "description": "Optional text anchor/reference. Example: 'requirements.md#L40'.",
+              "type": "string"
+            },
+            "title": {
+              "description": "Required short title. Example: 'Protect account settings endpoint'.",
+              "type": "string"
+            },
+            "unit": {
+              "description": "Optional unit for numeric property_value facts.",
+              "type": "string"
+            },
+            "value_bool": {
+              "description": "Optional boolean value for property_value facts.",
+              "type": "boolean"
+            },
+            "value_int": {
+              "description": "Optional integer value for property_value facts.",
+              "type": "integer"
+            },
+            "value_number": {
+              "description": "Optional number value for property_value facts.",
+              "type": "number"
+            },
+            "value_string": {
+              "description": "Optional string value for property_value facts.",
+              "type": "string"
+            },
+            "value_type": {
+              "description": "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, or value_bool; do not use generic value.",
+              "enum": ["string", "int", "number", "bool"],
+              "type": "string"
+            },
+            "verification_perspective": {
+              "description": "Optional typed verification perspective for test entities. Example: 'consumer'.",
+              "enum": ["internal", "consumer"],
+              "type": "string"
+            },
+            "verification_scope": {
+              "description": "Optional typed verification scope for test entities. Example: 'end_to_end'.",
+              "enum": ["unit", "integration", "end_to_end"],
+              "type": "string"
+            }
+          },
+          "required": ["title", "status"],
+          "type": "object"
+        },
+        "relationships": {
+          "description": "Optional relationship rows to create in the same call. For requirement encoding, prefer `constrains` + `requires_property` for strict property facts or `requires_predicate` for ontology predicate facts. Side effect: asserts edges in KB.",
+          "items": {
+            "properties": {
+              "from": {
+                "description": "Source entity ID (must exist). Example: 'SYM-login-handler'.",
+                "type": "string"
+              },
+              "to": {
+                "description": "Target entity ID (must exist). Example: 'REQ-001'.",
+                "type": "string"
+              },
+              "type": {
+                "description": "Relationship type enum. Use only supported values. Direction semantics follow KB model (e.g., implements symbol->req, verified_by req/scenario->test, executable_for symbol->test).",
+                "enum": [
+                  "depends_on",
+                  "specified_by",
+                  "verified_by",
+                  "validates",
+                  "implements",
+                  "covered_by",
+                  "executable_for",
+                  "constrained_by",
+                  "constrains",
+                  "requires_property",
+                  "requires_predicate",
+                  "guards",
+                  "publishes",
+                  "consumes",
+                  "supersedes",
+                  "relates_to"
+                ],
+                "type": "string"
+              }
+            },
+            "required": ["type", "from", "to"],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "type": {
+          "description": "Entity type to create/update. Allowed: req, scenario, test, adr, flag, event, symbol, fact. Example: 'req'.",
+          "enum": [
+            "req",
+            "scenario",
+            "test",
+            "adr",
+            "flag",
+            "event",
+            "symbol",
+            "fact"
+          ],
+          "type": "string"
+        }
+      },
+      "required": ["type", "id", "properties"],
+      "type": "object"
+    },
+    "name": "kb_upsert"
+  }
+}

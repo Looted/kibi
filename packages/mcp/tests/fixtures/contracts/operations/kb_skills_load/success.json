@@ -1,0 +1,31 @@
+{
+  "input": {
+    "id": "kibi-contract-fixture"
+  },
+  "structuredContent": {
+    "skill": {
+      "body": "# Seeded contract skill\n",
+      "contentHash": "seed-hash",
+      "description": "Local fixture skill loaded from the contract seed.",
+      "id": "kibi-contract-fixture",
+      "name": "kibi-contract-fixture",
+      "resources": ["instructions.md"],
+      "sourceType": "fixture",
+      "title": "Seeded contract skill"
+    }
+  },
+  "tool": {
+    "description": "Load a bundled Kibi agent skill by ID, returning its manifest metadata, Markdown body, declared resources, content hash, and source type. Read-only; does not execute scripts or require Prolog.",
+    "inputSchema": {
+      "properties": {
+        "id": {
+          "description": "Bundled skill ID to load. Example: 'kibi-usage'.",
+          "type": "string"
+        }
+      },
+      "required": ["id"],
+      "type": "object"
+    },
+    "name": "kb_skills_load"
+  }
+}

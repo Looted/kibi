@@ -1,0 +1,60 @@
+{
+  "error": {
+    "class": "JSONRPCError",
+    "code": -32602,
+    "message": "Invalid request: type must be one of the supported entity types."
+  },
+  "input": {
+    "limit": 1,
+    "offset": 0,
+    "type": "req"
+  },
+  "tool": {
+    "description": "Read entities from the KB with filters. Use for discovery and lookup before edits. Do not use for writes. No mutation side effects. Tags filter by metadata tags only, not entity IDs.",
+    "inputSchema": {
+      "properties": {
+        "id": {
+          "description": "Optional exact entity ID. Example: 'REQ-001'. If omitted, returns matching entities by other filters.",
+          "type": "string"
+        },
+        "limit": {
+          "default": 100,
+          "description": "Optional max rows to return after filtering. Default: 100 when omitted. Example: 25.",
+          "type": "number"
+        },
+        "offset": {
+          "default": 0,
+          "description": "Optional zero-based pagination offset. Default: 0. Example: 50 to skip first 50 rows.",
+          "type": "number"
+        },
+        "sourceFile": {
+          "description": "Optional source-file substring filter. Example: 'src/auth/login.ts'. Uses KB source linkage, not file-system scanning.",
+          "type": "string"
+        },
+        "tags": {
+          "description": "Optional tag filter. Matches entities that contain any provided tag. Example: ['security','billing'].",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "type": {
+          "description": "Optional entity type filter. Allowed: req, scenario, test, adr, flag, event, symbol, fact. Example: 'req'.",
+          "enum": [
+            "req",
+            "scenario",
+            "test",
+            "adr",
+            "flag",
+            "event",
+            "symbol",
+            "fact"
+          ],
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "name": "kb_query"
+  }
+}
