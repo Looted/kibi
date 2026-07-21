@@ -8987,3 +8987,84 @@ symbols:
         target: REQ-skill-behavioral-efficacy
       - type: covered_by
         target: TEST-skill-behavioral-efficacy
+  - id: SYM-skillopt-build-skill-catalog
+    title: buildSkillCatalog
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skill-behavioral-efficacy
+      - type: covered_by
+        target: TEST-skill-behavioral-efficacy
+  - id: SYM-skillopt-build-bundle-catalog
+    title: buildBundleCatalog
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skill-behavioral-efficacy
+      - type: covered_by
+        target: TEST-skill-behavioral-efficacy
+  - id: SYM-skillopt-validate-catalog
+    title: validateSkillCatalog
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skill-behavioral-efficacy
+      - type: covered_by
+        target: TEST-skill-behavioral-efficacy
+  - id: SYM-skillopt-catalog-hash
+    title: catalogHash
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skill-behavioral-efficacy
+      - type: covered_by
+        target: TEST-skill-behavioral-efficacy
+  - id: SYM-skillopt-canonical-skill-type
+    title: CanonicalSkill
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skill-behavioral-efficacy
+      - type: covered_by
+        target: TEST-skill-behavioral-efficacy
+  - id: SYM-skillopt-catalog-skill-type
+    title: CatalogSkill
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skill-behavioral-efficacy
+      - type: covered_by
+        target: TEST-skill-behavioral-efficacy
+  - id: SYM-skillopt-task-split-type
+    title: TaskSplit
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skill-behavioral-efficacy
+      - type: covered_by
+        target: TEST-skill-behavioral-efficacy
+  - id: SYM-skillopt-task-spec-type
+    title: TaskSpec
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skill-behavioral-efficacy
+      - type: covered_by
+        target: TEST-skill-behavioral-efficacy
+  - id: SYM-skillopt-canonical-skills
+    title: CANONICAL_SKILLS
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skill-behavioral-efficacy
+      - type: covered_by
+        target: TEST-skill-behavioral-efficacy
