@@ -1,0 +1,52 @@
+{
+  "error": {
+    "class": "JSONRPCError",
+    "code": -32602,
+    "message": "kb_validate_upsert: payload is invalid. payload missing required properties"
+  },
+  "input": {
+    "id": "REQ-CONTRACT-002",
+    "properties": {
+      "source": "contracts/seed/requirements/REQ-CONTRACT-002.md",
+      "status": "open",
+      "title": "Add parity test coverage"
+    },
+    "type": "req"
+  },
+  "tool": {
+    "description": "Validate a kb_upsert payload without mutating the KB. Use this read-only preflight before kb_upsert, especially for requirements, because it returns schema/modeling errors plus semantic advisor receipts that identify prose likely needing kb_model_requirement, kb_suggest_predicates, ambiguity review, or an ontology-gap observation.",
+    "inputSchema": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "properties": {
+          "description": "Entity properties to validate using the same snake_case field names accepted by kb_upsert.",
+          "type": "object"
+        },
+        "relationships": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "type": {
+          "enum": [
+            "req",
+            "scenario",
+            "test",
+            "adr",
+            "flag",
+            "event",
+            "symbol",
+            "fact"
+          ],
+          "type": "string"
+        }
+      },
+      "required": ["type", "id", "properties"],
+      "type": "object"
+    },
+    "name": "kb_validate_upsert"
+  }
+}

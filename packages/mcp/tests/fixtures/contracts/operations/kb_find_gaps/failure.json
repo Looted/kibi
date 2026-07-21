@@ -1,0 +1,64 @@
+{
+  "error": {
+    "class": "JSONRPCError",
+    "code": -32602,
+    "message": "Invalid type 'bogus'. Valid types: req, scenario, test, adr, flag, event, symbol, fact. Use a single type value, or omit this parameter to query all entities."
+  },
+  "input": {
+    "limit": 25,
+    "missingRelationships": ["verified_by"],
+    "offset": 0,
+    "type": "req"
+  },
+  "tool": {
+    "description": "Run bulk missing/present relationship analysis over KB entities. Use for questions like which requirements lack scenarios or tests. No mutation side effects.",
+    "inputSchema": {
+      "properties": {
+        "limit": {
+          "default": 100,
+          "type": "integer"
+        },
+        "missingRelationships": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "offset": {
+          "default": 0,
+          "type": "integer"
+        },
+        "presentRelationships": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "sourceFile": {
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "type": {
+          "enum": [
+            "req",
+            "scenario",
+            "test",
+            "adr",
+            "flag",
+            "event",
+            "symbol",
+            "fact"
+          ],
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "name": "kb_find_gaps"
+  }
+}

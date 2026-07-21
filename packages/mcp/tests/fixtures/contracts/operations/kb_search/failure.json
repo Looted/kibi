@@ -1,0 +1,51 @@
+{
+  "error": {
+    "class": "JSONRPCError",
+    "code": -32602,
+    "message": "Search execution failed: query must be a non-empty string"
+  },
+  "input": {
+    "limit": 1,
+    "offset": 0,
+    "query": "freeze contracts",
+    "type": "req"
+  },
+  "tool": {
+    "description": "Search KB entities for discovery using metadata and markdown body text. Use for exploratory lookup before exact follow-up with kb_query. No mutation side effects.",
+    "inputSchema": {
+      "properties": {
+        "limit": {
+          "default": 20,
+          "description": "Optional max rows to return after ranking. Default: 20.",
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "description": "Optional zero-based pagination offset. Default: 0.",
+          "type": "integer"
+        },
+        "query": {
+          "description": "Free-text query for metadata and markdown body discovery. Example: 'OAuth login flow'.",
+          "type": "string"
+        },
+        "type": {
+          "description": "Optional entity type filter to narrow discovery. Example: 'req'.",
+          "enum": [
+            "req",
+            "scenario",
+            "test",
+            "adr",
+            "flag",
+            "event",
+            "symbol",
+            "fact"
+          ],
+          "type": "string"
+        }
+      },
+      "required": ["query"],
+      "type": "object"
+    },
+    "name": "kb_search"
+  }
+}

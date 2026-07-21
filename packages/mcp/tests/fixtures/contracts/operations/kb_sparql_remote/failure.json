@@ -1,0 +1,34 @@
+{
+  "error": {
+    "class": "JSONRPCError",
+    "code": -32602,
+    "message": "SPARQL endpoint must target a public remote host"
+  },
+  "input": {
+    "endpoint": "http://127.0.0.1:40123/sparql",
+    "query": "SELECT ?subject ?label WHERE { VALUES (?subject ?label) { (\"REQ-CONTRACT-001\" \"Seed row\") } }",
+    "timeoutMs": 1000
+  },
+  "tool": {
+    "description": "Opt-in remote SPARQL query tool for external HTTP(S) RDF endpoints. This does not query Kibi's local RDF store directly, stores no credentials, and depends on network availability.",
+    "inputSchema": {
+      "properties": {
+        "endpoint": {
+          "description": "Remote SPARQL endpoint URL. Must start with http:// or https://.",
+          "type": "string"
+        },
+        "query": {
+          "description": "SPARQL SELECT query to send to the remote endpoint.",
+          "type": "string"
+        },
+        "timeoutMs": {
+          "description": "Optional positive timeout in milliseconds for the remote query.",
+          "type": "number"
+        }
+      },
+      "required": ["endpoint", "query"],
+      "type": "object"
+    },
+    "name": "kb_sparql_remote"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "error": {
+    "class": "JSONRPCError",
+    "code": -32602,
+    "message": "At least one ID required for delete"
+  },
+  "input": {
+    "ids": ["REQ-CONTRACT-001"]
+  },
+  "tool": {
+    "description": "Delete entities by ID. Use only for intentional removals after dependency checks. Do not use as a bulk cleanup shortcut. Side effects: mutates and saves KB; skips entities with dependents.",
+    "inputSchema": {
+      "properties": {
+        "ids": {
+          "description": "Required list of entity IDs to delete. Example: ['REQ-001','TEST-002']. At least one ID is required.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": ["ids"],
+      "type": "object"
+    },
+    "name": "kb_delete"
+  }
+}
