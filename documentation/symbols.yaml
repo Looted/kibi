@@ -8864,3 +8864,45 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-parity-case-type
+    title: ParityCase
+    sourceFile: packages/cli/tests/parity/cases.ts
+    symbol_role: type-shape
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-parity-cases
+    title: PARITY_CASES
+    sourceFile: packages/cli/tests/parity/cases.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-parity-workspace-type
+    title: ParityWorkspace
+    sourceFile: packages/cli/tests/parity/helpers.ts
+    symbol_role: type-shape
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-parity-cli-result-type
+    title: CliResult
+    sourceFile: packages/cli/tests/parity/runner.ts
+    symbol_role: type-shape
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-parity-mcp-result-type
+    title: McpResult
+    sourceFile: packages/cli/tests/parity/runner.ts
+    symbol_role: type-shape
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-parity-comparison-result-type
+    title: ComparisonResult
+    sourceFile: packages/cli/tests/parity/runner.ts
+    symbol_role: type-shape
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-operation-interface-parity
