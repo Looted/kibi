@@ -1,0 +1,54 @@
+from __future__ import annotations
+
+import json
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+from tools.skillopt.verify_pin import SourceLock
+
+ROOT = Path(__file__).parents[1]
+EXPECTED_COMMIT = "b860a5cf88ce75e2bd02ca981ac21fb28cffba83"
+
+
+class SourceLockTests(unittest.TestCase):
+    def test_source_lock_records_the_pinned_skillopt_release(self) -> None:
+        lock_path = ROOT / "source-lock.json"
+        self.assertTrue(lock_path.is_file())
+        lock = SourceLock.model_validate_json(lock_path.read_text(encoding="utf-8"))
+        self.assertEqual(lock.package, "skillopt")
+        self.assertEqual(lock.version, "0.2.0")
+        self.assertEqual(lock.commit, EXPECTED_COMMIT)
+        self.assertEqual(lock.license, "MIT")
+
+    def test_verifier_rejects_a_tampered_expected_commit(self) -> None:
+        verifier = ROOT / "verify_pin.py"
+        self.assertTrue(verifier.is_file())
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            temporary_root = Path(temporary_dir)
+            lock_path = temporary_root / "source-lock.json"
+            _ = lock_path.write_text(
+                json.dumps(
+                    {
+                        "package": "skillopt",
+                        "version": "0.2.0",
+                        "commit": "tampered",
+                        "license": "MIT",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            result = subprocess.run(
+                [sys.executable, str(verifier), "--lock", str(lock_path)],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("commit", result.stderr)
+
+
+if __name__ == "__main__":
+    _ = unittest.main()
