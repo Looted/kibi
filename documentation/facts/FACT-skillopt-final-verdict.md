@@ -1,3 +1,17 @@
+---
+id: FACT-skillopt-final-verdict
+title: SkillOpt Kibi skills evaluation bounded no-go
+status: active
+created_at: 2026-07-21T16:00:00Z
+updated_at: 2026-07-21T16:00:00Z
+source: documentation/facts/FACT-skillopt-final-verdict.md
+tags:
+  - skillopt
+  - evaluation
+  - no-go
+fact_kind: meta
+---
+
 # SkillOpt Kibi skills evaluation: bounded no-go
 
 ## Result
@@ -12,7 +26,7 @@ No skill candidate was generated or adopted. The canonical skill sources and gen
 
 ## Evidence
 
-- Methodology: `documentation/evaluations/skillopt/methodology.md`
+- Methodology: `documentation/facts/FACT-skillopt-methodology.md`
 - Pinned source: `tools/skillopt/source-lock.json`
 - Offline evaluator: `scripts/skillopt-eval/`
 - Preflight: `documentation/evaluations/skillopt/results/preflight-001.json`
