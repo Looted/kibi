@@ -25,6 +25,7 @@
     "test": "bun test",
     "dev": "bun run bin/kibi-mcp",
     "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepack": "npm run build"
   },
   "files": ["dist", "bin"],

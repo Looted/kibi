@@ -1,5 +1,6 @@
 import { describe, expect, mock, test } from "bun:test";
 import type { PrologProcess } from "kibi-cli/prolog";
+import { createMcpRuntime } from "../../src/runtime/mcp-runtime.js";
 import {
   parseEntityFromBinding,
   parseEntityFromList,
@@ -373,6 +374,18 @@ describe("MCP kb.query Parsing Functions", () => {
         deriveDiagnosticFields: () => ({}),
         classifyDiagnosticError: () => ({}),
         ensureProlog,
+        operationRuntime: createMcpRuntime({
+          workspaceRoot: "/workspace",
+          activeBranchName: async () => "test",
+          attachedBranchKbPath: () => null,
+          ensureProlog,
+          adaptProlog: () => ({
+            query: async () => ({ success: true, bindings: {} }),
+            nextSolution: async () => null,
+            save: async () => ({ success: true, bindings: {} }),
+          }),
+          refreshAttachedBranchStamp: async () => undefined,
+        }),
         handleKbQuery,
       } as unknown as Parameters<typeof registerAllTools>[1];
 

@@ -2846,6 +2846,10 @@ symbols:
         target: REQ-002
       - type: implements
         target: REQ-mcp-relationship-preflight
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-005
       - type: covered_by
@@ -2856,23 +2860,16 @@ symbols:
     relationships:
       - type: implements
         target: REQ-002
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-005
   - id: SYM-registerAllTools
     title: registerAllTools
     sourceFile: packages/mcp/src/server/tools.ts
-    links:
-      - REQ-002
-      - REQ-mcp-suggest-predicates
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: implements
-        target: REQ-mcp-suggest-predicates
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-suggest-predicates
+    symbol_role: structural
   - id: SYM-ToolConfig
     title: ToolConfig
     sourceFile: packages/mcp/src/server/tool-types.ts
@@ -2971,9 +2968,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 35
+    sourceLine: 36
     sourceColumn: 12
-    sourceEndLine: 35
+    sourceEndLine: 36
     sourceEndColumn: 78
   - id: SYM-ToolHandlerArgs
     title: ToolHandlerArgs
@@ -2983,9 +2980,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 37
+    sourceLine: 38
     sourceColumn: 12
-    sourceEndLine: 39
+    sourceEndLine: 40
     sourceEndColumn: 2
   - id: SYM-Awaitable
     title: Awaitable
@@ -2995,9 +2992,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 41
+    sourceLine: 42
     sourceColumn: 12
-    sourceEndLine: 41
+    sourceEndLine: 42
     sourceEndColumn: 42
   - id: SYM-DefaultRuntimeProlog
     title: DefaultRuntimeProlog
@@ -3007,9 +3004,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 42
+    sourceLine: 43
     sourceColumn: 12
-    sourceEndLine: 42
+    sourceEndLine: 43
     sourceEndColumn: 49
   - id: SYM-DEFAULT-TOOLS-RUNTIME
     title: DEFAULT_TOOLS_RUNTIME
@@ -3019,9 +3016,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 72
+    sourceLine: 124
     sourceColumn: 13
-    sourceEndLine: 106
+    sourceEndLine: 159
     sourceEndColumn: 1
   - id: SYM-TOOLS
     title: TOOLS
@@ -6826,3 +6823,572 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cli-symbol-quality-diagnostics
+    sourceLine: 66
+    sourceColumn: 16
+    sourceEndLine: 82
+    sourceEndColumn: 1
+  - id: SYM-operation-catalog
+    title: OPERATION_CATALOG
+    sourceFile: packages/cli/src/public/operations/catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 12
+    sourceColumn: 13
+    sourceEndLine: 31
+    sourceEndColumn: 45
+  - id: SYM-operation-autopilot-generate-spec
+    title: autopilotGenerateSpec
+    sourceFile: packages/cli/src/public/operations/specs/autopilot.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 4
+    sourceColumn: 13
+    sourceEndLine: 83
+    sourceEndColumn: 34
+  - id: SYM-operation-check-spec
+    title: checkSpec
+    sourceFile: packages/cli/src/public/operations/specs/check.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 4
+    sourceColumn: 13
+    sourceEndLine: 71
+    sourceEndColumn: 34
+  - id: SYM-operation-query-spec
+    title: querySpec
+    sourceFile: packages/cli/src/public/operations/specs/discovery.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 15
+    sourceColumn: 13
+    sourceEndLine: 62
+    sourceEndColumn: 34
+  - id: SYM-operation-search-spec
+    title: searchSpec
+    sourceFile: packages/cli/src/public/operations/specs/discovery.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 64
+    sourceColumn: 13
+    sourceEndLine: 99
+    sourceEndColumn: 34
+  - id: SYM-operation-status-spec
+    title: statusSpec
+    sourceFile: packages/cli/src/public/operations/specs/discovery.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 101
+    sourceColumn: 13
+    sourceEndLine: 110
+    sourceEndColumn: 34
+  - id: SYM-operation-model-requirement-spec
+    title: modelRequirementSpec
+    sourceFile: packages/cli/src/public/operations/specs/modeling.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 4
+    sourceColumn: 13
+    sourceEndLine: 66
+    sourceEndColumn: 34
+  - id: SYM-operation-suggest-predicates-spec
+    title: suggestPredicatesSpec
+    sourceFile: packages/cli/src/public/operations/specs/modeling.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 68
+    sourceColumn: 13
+    sourceEndLine: 123
+    sourceEndColumn: 34
+  - id: SYM-operation-upsert-spec
+    title: upsertSpec
+    sourceFile: packages/cli/src/public/operations/specs/mutation.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 151
+    sourceColumn: 13
+    sourceEndLine: 176
+    sourceEndColumn: 34
+  - id: SYM-operation-validate-upsert-spec
+    title: validateUpsertSpec
+    sourceFile: packages/cli/src/public/operations/specs/mutation.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 178
+    sourceColumn: 13
+    sourceEndLine: 199
+    sourceEndColumn: 34
+  - id: SYM-operation-delete-spec
+    title: deleteSpec
+    sourceFile: packages/cli/src/public/operations/specs/mutation.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 201
+    sourceColumn: 13
+    sourceEndLine: 220
+    sourceEndColumn: 34
+  - id: SYM-operation-find-gaps-spec
+    title: findGapsSpec
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 4
+    sourceColumn: 13
+    sourceEndLine: 27
+    sourceEndColumn: 34
+  - id: SYM-operation-coverage-spec
+    title: coverageSpec
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 29
+    sourceColumn: 13
+    sourceEndLine: 48
+    sourceEndColumn: 34
+  - id: SYM-operation-graph-spec
+    title: graphSpec
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 50
+    sourceColumn: 13
+    sourceEndLine: 75
+    sourceEndColumn: 34
+  - id: SYM-operation-semantic-advisor-spec
+    title: semanticAdvisorSpec
+    sourceFile: packages/cli/src/public/operations/specs/semantic.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 4
+    sourceColumn: 13
+    sourceEndLine: 38
+    sourceEndColumn: 34
+  - id: SYM-operation-skills-list-spec
+    title: skillsListSpec
+    sourceFile: packages/cli/src/public/operations/specs/skills.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 4
+    sourceColumn: 13
+    sourceEndLine: 13
+    sourceEndColumn: 34
+  - id: SYM-operation-skills-load-spec
+    title: skillsLoadSpec
+    sourceFile: packages/cli/src/public/operations/specs/skills.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 15
+    sourceColumn: 13
+    sourceEndLine: 33
+    sourceEndColumn: 34
+  - id: SYM-operation-skills-read-spec
+    title: skillsReadSpec
+    sourceFile: packages/cli/src/public/operations/specs/skills.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 35
+    sourceColumn: 13
+    sourceEndLine: 55
+    sourceEndColumn: 34
+  - id: SYM-operation-sparql-remote-spec
+    title: sparqlRemoteSpec
+    sourceFile: packages/cli/src/public/operations/specs/sparql.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 4
+    sourceColumn: 13
+    sourceEndLine: 30
+    sourceEndColumn: 34
+  - id: SYM-operation-content-type
+    title: OperationContent
+    sourceFile: packages/cli/src/public/operations/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 31
+    sourceColumn: 17
+    sourceEndLine: 34
+    sourceEndColumn: 1
+  - id: SYM-operation-result-type
+    title: OperationResult
+    sourceFile: packages/cli/src/public/operations/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 36
+    sourceColumn: 17
+    sourceEndLine: 39
+    sourceEndColumn: 1
+  - id: SYM-operation-spec-type
+    title: OperationSpec
+    sourceFile: packages/cli/src/public/operations/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 41
+    sourceColumn: 17
+    sourceEndLine: 55
+    sourceEndColumn: 1
+  - id: SYM-operation-name-type
+    title: OperationName
+    sourceFile: packages/cli/src/public/operations/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 3
+    sourceColumn: 12
+    sourceEndLine: 21
+    sourceEndColumn: 28
+  - id: SYM-operation-effect-type
+    title: OperationEffect
+    sourceFile: packages/cli/src/public/operations/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-executeOperation
+    title: executeOperation
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-createCliRuntime
+    title: createCliRuntime
+    sourceFile: packages/cli/src/runtime/cli-runtime.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-createMcpRuntime
+    title: createMcpRuntime
+    sourceFile: packages/mcp/src/runtime/mcp-runtime.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-runtime-PrologQueryResult
+    title: PrologQueryResult
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-runtime-PrologPort
+    title: PrologPort
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-runtime-FilesystemStat
+    title: FilesystemStat
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-runtime-FilesystemPort
+    title: FilesystemPort
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-runtime-GitPort
+    title: GitPort
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-runtime-NetworkPort
+    title: NetworkPort
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-runtime-Clock
+    title: Clock
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-runtime-RuntimeOptions
+    title: RuntimeOptions
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-runtime-OperationContext
+    title: OperationContext
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-runtime-RuntimeOperationSpec
+    title: RuntimeOperationSpec
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-runtime-OperationOutcome
+    title: OperationOutcome
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-runtime-OperationRuntime
+    title: OperationRuntime
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-runtime-McpSession
+    title: McpSession
+    sourceFile: packages/mcp/src/runtime/mcp-runtime.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-runtime-McpOperationRuntime
+    title: McpOperationRuntime
+    sourceFile: packages/mcp/src/runtime/mcp-runtime.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-command-result-type
+    title: CommandResult
+    sourceFile: packages/cli/src/cli-command.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 2
+    sourceColumn: 17
+    sourceEndLine: 4
+    sourceEndColumn: 1
+  - id: SYM-cli-load-input-options-type
+    title: LoadInputOptions
+    sourceFile: packages/cli/src/cli-input.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 6
+    sourceColumn: 12
+    sourceEndLine: 9
+    sourceEndColumn: 2
+  - id: SYM-cli-json-invocation-type
+    title: JsonInvocation
+    sourceFile: packages/cli/src/cli-json-command.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 11
+    sourceColumn: 12
+    sourceEndLine: 19
+    sourceEndColumn: 2
+  - id: SYM-cli-context-type
+    title: CliContext
+    sourceFile: packages/cli/src/cli-protocol.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 10
+    sourceColumn: 12
+    sourceEndLine: 12
+    sourceEndColumn: 2
+  - id: SYM-cli-protocol-result-type
+    title: CliProtocolResult
+    sourceFile: packages/cli/src/cli-protocol.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 15
+    sourceColumn: 12
+    sourceEndLine: 19
+    sourceEndColumn: 2
+  - id: SYM-cli-diagnostic-telemetry-type
+    title: DiagnosticTelemetry
+    sourceFile: packages/cli/src/cli-validate.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 4
+    sourceColumn: 12
+    sourceEndLine: 4
+    sourceEndColumn: 68
+  - id: SYM-cli-validation-result-type
+    title: ValidationResult
+    sourceFile: packages/cli/src/cli-validate.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 7
+    sourceColumn: 12
+    sourceEndLine: 9
+    sourceEndColumn: 66
+  - id: SYM-cli-prepared-input-result-type
+    title: PreparedInputResult
+    sourceFile: packages/cli/src/cli-validate.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+    sourceLine: 12
+    sourceColumn: 12
+    sourceEndLine: 18
+    sourceEndColumn: 66

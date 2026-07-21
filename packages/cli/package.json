@@ -14,6 +14,7 @@
   "files": ["dist", "bin", "schema", "src/schemas", "src/public"],
   "scripts": {
     "build": "tsc -p tsconfig.json && mkdir -p dist/public/skills && cp -r src/public/skills/. dist/public/skills/",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepack": "npm run build"
   },
   "exports": {
@@ -28,6 +29,10 @@
     "./prolog/codec": {
       "types": "./dist/prolog/codec.d.ts",
       "default": "./dist/prolog/codec.js"
+    },
+    "./operations/runtime-types": {
+      "types": "./dist/public/operations/runtime-types.d.ts",
+      "default": "./dist/public/operations/runtime-types.js"
     },
     "./extractors/symbols-coordinator": {
       "types": "./dist/public/extractors/symbols-coordinator.d.ts",
@@ -89,6 +94,8 @@
       "types": "./dist/public/skills.d.ts",
       "default": "./dist/public/skills.js"
     },
+    "./operations": "./dist/public/operations/index.js",
+    "./operations/*": "./dist/public/operations/*",
     "./ignore-policy": {
       "types": "./dist/public/ignore-policy.d.ts",
       "import": "./dist/public/ignore-policy.js",

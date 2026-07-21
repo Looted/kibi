@@ -3,6 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
+import { createMcpRuntime } from "../../src/runtime/mcp-runtime.js";
 import { registerAllTools } from "../../src/server/tools.js";
 import { TOOLS } from "../../src/tools-config.js";
 import { __test__, handleKbUpsert } from "../../src/tools/upsert.js";
@@ -1268,6 +1269,18 @@ export function greet() {
       deriveDiagnosticFields: () => ({}),
       classifyDiagnosticError: () => ({}),
       ensureProlog,
+      operationRuntime: createMcpRuntime({
+        workspaceRoot: "/workspace",
+        activeBranchName: async () => "test",
+        attachedBranchKbPath: () => null,
+        ensureProlog,
+        adaptProlog: () => ({
+          query: async () => ({ success: true, bindings: {} }),
+          nextSolution: async () => null,
+          save: async () => ({ success: true, bindings: {} }),
+        }),
+        refreshAttachedBranchStamp: async () => undefined,
+      }),
       handleKbUpsert,
     } as unknown as Parameters<typeof registerAllTools>[1];
 
