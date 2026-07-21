@@ -1,0 +1,47 @@
+{
+  "task": "1",
+  "created_files": [
+    "documentation/adr/ADR-022.md",
+    "documentation/requirements/REQ-kibi-operation-interface-parity.md",
+    "documentation/requirements/REQ-agent-kibi-interface-selection.md",
+    "documentation/requirements/REQ-cursor-worktree-kibi-continuity.md",
+    "documentation/scenarios/SCEN-kibi-operation-interface-parity.md",
+    "documentation/scenarios/SCEN-agent-kibi-interface-selection.md",
+    "documentation/scenarios/SCEN-cursor-worktree-kibi-continuity.md",
+    "documentation/tests/TEST-kibi-operation-interface-parity.md",
+    "documentation/tests/TEST-agent-kibi-interface-selection.md",
+    "documentation/tests/TEST-cursor-worktree-kibi-continuity.md"
+  ],
+  "sync_validate_only": {
+    "status": "timeout",
+    "command": "env -u OPENCODE -u OPENCODE_PID -u OPENCODE_CONFIG_REPO -u OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS -u OPENCODE_AUTO_RESTORE_ON_MISSING -u OPENCODE_ENABLE_DEBUG_AUDIT -u OPENCODE_CONFIG_DIR -u OPENCODE_CMD_AUDIT_FILE node packages/cli/bin/kibi sync --validate-only",
+    "note": "The repo-wide validate-only pass did not complete within the available tool timeout. Plain sync and refresh-symbol-coordinates both succeeded afterward."
+  },
+  "kb_check_result": {
+    "violations": [],
+    "count": 0
+  },
+  "kb_graph_seed_chains": {
+    "REQ-kibi-operation-interface-parity": [
+      "REQ-kibi-operation-interface-parity",
+      "SCEN-kibi-operation-interface-parity",
+      "TEST-kibi-operation-interface-parity"
+    ],
+    "REQ-agent-kibi-interface-selection": [
+      "REQ-agent-kibi-interface-selection",
+      "SCEN-agent-kibi-interface-selection",
+      "TEST-agent-kibi-interface-selection"
+    ],
+    "REQ-cursor-worktree-kibi-continuity": [
+      "REQ-cursor-worktree-kibi-continuity",
+      "SCEN-cursor-worktree-kibi-continuity",
+      "TEST-cursor-worktree-kibi-continuity"
+    ],
+    "ADR-022": [
+      "ADR-022",
+      "ADR-018"
+    ]
+  },
+  "violations": [],
+  "confidence": 0.83
+}

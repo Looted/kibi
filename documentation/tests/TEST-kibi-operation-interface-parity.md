@@ -1,0 +1,29 @@
+---
+id: TEST-kibi-operation-interface-parity
+title: Kibi public operation parity verification plan
+type: test
+status: pending
+created_at: 2026-07-21T00:00:00Z
+updated_at: 2026-07-21T00:00:00Z
+source: documentation/tests/TEST-kibi-operation-interface-parity.md
+priority: must
+tags:
+  - mcp
+  - cli
+  - parity
+  - policy
+  - test
+links:
+  - type: validates
+    target: SCEN-kibi-operation-interface-parity
+  - type: relates_to
+    target: ADR-022
+---
+
+## Test Coverage
+
+### Policy Checks
+
+- The strict fact lane models the operation surface as exactly 18 peer operations.
+- The requirement, scenario, test, and ADR links all resolve without dangling references.
+- The docs describe MCP and CLI as peers, not as primary and secondary surfaces.
