@@ -4,6 +4,10 @@ import { join, resolve } from "node:path";
 
 const repoRoot = resolve(import.meta.dir, "../../..");
 const evaluationRoot = join(repoRoot, "documentation/evaluations/skillopt");
+const methodologyPath = join(
+  repoRoot,
+  "documentation/facts/FACT-skillopt-methodology.md",
+);
 
 function readEvaluationFile(fileName: string): string {
   const filePath = join(evaluationRoot, fileName);
@@ -15,7 +19,11 @@ function readEvaluationFile(fileName: string): string {
 
 describe("SkillOpt methodology contract", () => {
   test("declares the frozen corpus, score, and budget constants", () => {
-    const methodology = readEvaluationFile("methodology.md");
+    expect(
+      existsSync(methodologyPath),
+      `expected methodology file ${methodologyPath}`,
+    ).toBe(true);
+    const methodology = readFileSync(methodologyPath, "utf8");
 
     expect(methodology).toContain("8 train");
     expect(methodology).toContain("4 development");
