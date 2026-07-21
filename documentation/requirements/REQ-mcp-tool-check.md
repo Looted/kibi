@@ -11,6 +11,8 @@ tags:
   - kibi
   - validation
 links:
+  - type: specified_by
+    target: SCEN-mcp-tool-check-coverage
   - type: verified_by
     target: TEST-004
 ---
