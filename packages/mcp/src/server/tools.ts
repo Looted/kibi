@@ -18,6 +18,10 @@
 import process from "node:process";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { z } from "zod";
+import {
+  executeOperation,
+  type RuntimeOperationSpec,
+} from "kibi-cli/operations/runtime-types";
 import { isMcpDebugEnabled } from "../env.js";
 import {
   appendDiagnosticErrorUsage,
@@ -107,6 +111,7 @@ export function addTool<TProlog>(
   // generic TProlog parameter exists so tests can inject a mock type. The cast is safe
   // because the runtime object satisfies the full ToolsRuntime contract at runtime.
   runtime: ToolsRuntime<TProlog> = DEFAULT_TOOLS_RUNTIME as unknown as ToolsRuntime<TProlog>,
+  spec?: RuntimeOperationSpec<Record<string, unknown>, unknown>,
 ): void {
   const wrappedHandler: ToolHandler = async (args) => {
     const startedAt = new Date();
@@ -145,7 +150,20 @@ export function addTool<TProlog>(
 
       // Track the handler promise in inFlightRequests Map
       const trackedRequests = await runtime.inFlightRequests();
-      const handlerPromise = handler(businessArgs);
+      const controller = new AbortController();
+      const operationSpec: RuntimeOperationSpec<Record<string, unknown>, unknown> =
+        spec ?? {
+          name,
+          effects: ["local-read"],
+          requiresProlog: false,
+          execute: async (input, _context) => handler(input),
+        };
+      const handlerPromise = executeOperation(
+        runtime.operationRuntime,
+        operationSpec,
+        businessArgs,
+        { signal: controller.signal },
+      );
       trackedRequests.set(requestId, handlerPromise);
       let resetAttempted = false;
       let resetSucceeded = false;
@@ -153,8 +171,9 @@ export function addTool<TProlog>(
 
       try {
         // Execute handler
-        const result = await withToolTimeout(name, handlerPromise, async () => {
+        const result = await withToolTimeout(name, handlerPromise, async (error) => {
           resetAttempted = true;
+          controller.abort(error);
           try {
             await runtime.resetProlog(`tool timeout: ${name}`);
             resetSucceeded = true;

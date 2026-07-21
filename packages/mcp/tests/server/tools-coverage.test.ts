@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import process from "node:process";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { PrologPort } from "kibi-cli/operations/runtime-types";
 
 import type { DiagnosticErrorFields } from "../../src/diagnostics.js";
+import { createMcpRuntime } from "../../src/runtime/mcp-runtime.js";
 import {
   type ToolConfig,
   type ToolsRuntime,
@@ -334,6 +336,19 @@ function createRuntime() {
     async (): Promise<{ getPid: () => number } | null> => prologHandle,
   );
   const resetProlog = mock(async (_reason: string): Promise<void> => {});
+  const refreshAttachedBranchStamp = mock(async (): Promise<void> => {});
+  const operationRuntime = createMcpRuntime<MockProlog>({
+    workspaceRoot: "/workspace",
+    activeBranchName,
+    attachedBranchKbPath: () => "/workspace/.kb/branches/feature/test",
+    ensureProlog,
+    adaptProlog: (): PrologPort => ({
+      query: async () => ({ success: true, bindings: {} }),
+      nextSolution: async () => null,
+      save: async () => ({ success: true, bindings: {} }),
+    }),
+    refreshAttachedBranchStamp,
+  });
 
   const handleKbCheck: ToolsRuntime<MockProlog>["handleKbCheck"] = mock(
     async (_prolog: MockProlog, args: CheckArgs): Promise<unknown> => ({
@@ -473,6 +488,7 @@ function createRuntime() {
     isShuttingDown,
     resetProlog,
     prologProcess,
+    operationRuntime,
     handleKbCheck,
     handleKbCoverage,
     handleKbDelete,
@@ -509,6 +525,7 @@ function createRuntime() {
       isShuttingDown,
       resetProlog,
       prologProcess,
+      refreshAttachedBranchStamp,
       handleKbCheck,
       handleKbCoverage,
       handleKbDelete,
@@ -662,7 +679,7 @@ describe.serial("server tools coverage", () => {
     const entries = Array.from(trackedRequests.entries());
     expect(entries).toHaveLength(1);
     expect(entries[0]?.[0]).toStartWith("plain_tool-");
-    expect(entries[0]?.[1]).toBe(deferred.promise);
+    expect(entries[0]?.[1]).toBeInstanceOf(Promise);
 
     deferred.resolve({ ok: true });
 
@@ -675,6 +692,22 @@ describe.serial("server tools coverage", () => {
     expect(spies.deriveDiagnosticFields).not.toHaveBeenCalled();
     expect(spies.prologProcess).not.toHaveBeenCalled();
     expect(spies.activeBranchName).not.toHaveBeenCalled();
+  });
+
+  test("registerAllTools refreshes the MCP branch stamp after kb-write execution", async () => {
+    // Given
+    const { runtime, spies } = createRuntime();
+    const { server, registered } = createCapturingServer();
+    registerAllTools(server, runtime);
+    const tool = getRegisteredTool(registered, "kb_upsert");
+
+    // When
+    await invokeTool(tool, { marker: "write" });
+
+    // Then
+    expect(spies.handleKbUpsert).toHaveBeenCalledTimes(1);
+    expect(spies.ensureProlog).toHaveBeenCalledTimes(1);
+    expect(spies.refreshAttachedBranchStamp).toHaveBeenCalledTimes(1);
   });
 
   test("addTool extracts telemetry and appends usage logs on success in diagnostic mode", async () => {

@@ -40,11 +40,6 @@ import { Project, ScriptKind } from "ts-morph";
 import { isMcpDebugEnabled } from "../env.js";
 import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
 import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
-import { readBranchKbStamp } from "../server/kb-freshness.js";
-import {
-  attachedBranchKbPath,
-  updateAttachedBranchStamp,
-} from "../server/session.js";
 import {
   formatInvalidRelationshipError,
   formatRelationshipSourceMismatch,
@@ -417,17 +412,6 @@ export async function handleKbUpsert(
         `Failed to save KB after upsert: ${saveResult.error || "Unknown error"}`,
       );
     }
-    // Update session stamp so kb_check (and other tools) don't trigger a
-    // stale-detach refresh that would unload the just-saved runtime state.
-    if (attachedBranchKbPath) {
-      try {
-        const freshStamp = await readBranchKbStamp(attachedBranchKbPath);
-        updateAttachedBranchStamp(freshStamp);
-      } catch {
-        // Non-fatal: stamp update is best-effort to avoid spurious refresh.
-      }
-    }
-
     if (type === "symbol") {
       try {
         await refreshCoordinatesForSymbolIdImpl(entity.id as string);

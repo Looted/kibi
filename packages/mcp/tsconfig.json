@@ -17,6 +17,9 @@
     "paths": {
       "kibi-cli/prolog": ["../cli/dist/public/prolog"],
       "kibi-cli/prolog/codec": ["../cli/dist/prolog/codec"],
+      "kibi-cli/operations/runtime-types": [
+        "../cli/dist/public/operations/runtime-types"
+      ],
       "kibi-cli/extractors/symbols-coordinator": [
         "../cli/dist/public/extractors/symbols-coordinator"
       ],

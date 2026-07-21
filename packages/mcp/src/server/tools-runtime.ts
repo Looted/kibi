@@ -6,6 +6,7 @@ import {
   extractToolCallPayload,
 } from "../diagnostics.js";
 import { TOOLS } from "../tools-config.js";
+import { isMcpDebugEnabled } from "../env.js";
 import { handleKbAutopilotGenerate } from "../tools/autopilot-generate.js";
 import { handleKbCheck } from "../tools/check.js";
 import { handleKbCoverage } from "../tools/coverage.js";
@@ -31,6 +32,11 @@ import type {
   ToolConfig,
   ToolsRuntime,
 } from "./tool-types.js";
+import type { PrologPort, PrologQueryResult } from "kibi-cli/operations/runtime-types";
+import type { PrologProcess } from "kibi-cli/prolog";
+import { readBranchKbStamp } from "./kb-freshness.js";
+import { createMcpRuntime } from "../runtime/mcp-runtime.js";
+import { resolveWorkspaceRoot } from "../workspace.js";
 
 type SessionModule = typeof import("./session.js");
 
@@ -43,6 +49,7 @@ const defaultToolsServerDeps: ToolsServerDeps = {
 };
 
 let sessionModulePromise: Promise<SessionModule> | null = null;
+const prologPorts = new WeakMap<PrologProcess, PrologPort>();
 
 // implements REQ-008
 export function _setToolsServerDepsForTests(
@@ -69,6 +76,51 @@ async function getSessionModule(): Promise<SessionModule> {
   return sessionModulePromise;
 }
 
+function adaptProlog(prolog: PrologProcess): PrologPort {
+  const existing = prologPorts.get(prolog);
+  if (existing) {
+    return existing;
+  }
+  let lastResult: PrologQueryResult | null = null;
+  const port: PrologPort = {
+    query: async (goal) => {
+      lastResult = await prolog.query(goal);
+      return lastResult;
+    },
+    nextSolution: async () => {
+      const result = lastResult;
+      lastResult = null;
+      return result;
+    },
+    save: () => prolog.query("kb_save"),
+  };
+  prologPorts.set(prolog, port);
+  return port;
+}
+
+const operationRuntime = createMcpRuntime<PrologProcess>({
+  workspaceRoot: resolveWorkspaceRoot(),
+  activeBranchName: async () => (await getSessionModule()).activeBranchName,
+  attachedBranchKbPath: async () =>
+    (await getSessionModule()).attachedBranchKbPath,
+  ensureProlog: async () => (await getSessionModule()).ensureProlog(),
+  adaptProlog,
+  refreshAttachedBranchStamp: async () => {
+    const session = await getSessionModule();
+    const kbPath = session.attachedBranchKbPath;
+    if (kbPath) {
+      try {
+        session.updateAttachedBranchStamp(await readBranchKbStamp(kbPath));
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (isMcpDebugEnabled()) {
+          console.warn("[KIBI-MCP] Attached branch stamp refresh failed:", message);
+        }
+      }
+    }
+  },
+});
+
 export const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
   diagnosticModeEnabled: () => DIAGNOSTIC_MODE_ENABLED,
   appendUsageLogLine,
@@ -85,6 +137,7 @@ export const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
   inFlightRequests: async () => (await getSessionModule()).inFlightRequests,
   isShuttingDown: async () => (await getSessionModule()).isShuttingDown,
   prologProcess: async () => (await getSessionModule()).prologProcess,
+  operationRuntime,
   handleKbCheck,
   handleKbCoverage,
   handleKbDelete,
