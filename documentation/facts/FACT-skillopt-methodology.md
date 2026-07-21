@@ -1,3 +1,17 @@
+---
+id: FACT-skillopt-methodology
+title: SkillOpt behavioral efficacy methodology
+status: active
+created_at: 2026-07-21T16:00:00Z
+updated_at: 2026-07-21T16:00:00Z
+source: documentation/facts/FACT-skillopt-methodology.md
+tags:
+  - skillopt
+  - evaluation
+  - methodology
+fact_kind: meta
+---
+
 # SkillOpt behavioral efficacy methodology
 
 This preregistration limits conclusions to the pinned fixture matrix, exact host/model lock, and one-run-per-cell policy. It does not establish universal improvement across arbitrary repositories, models, or future host releases.

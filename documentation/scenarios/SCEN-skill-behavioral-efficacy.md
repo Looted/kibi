@@ -5,7 +5,7 @@ type: scenario
 status: active
 created_at: 2026-07-21T00:00:00Z
 updated_at: 2026-07-21T00:00:00Z
-source: documentation/evaluations/skillopt/methodology.md
+source: documentation/facts/FACT-skillopt-methodology.md
 priority: must
 tags: [skills, evaluation, traceability, security]
 links:
