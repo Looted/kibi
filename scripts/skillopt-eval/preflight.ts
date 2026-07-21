@@ -5,11 +5,9 @@ const SKILLOPT_COMMIT = "b860a5cf88ce75e2bd02ca981ac21fb28cffba83" as const;
 
 const HOST_COMMANDS = {
   codex: "codex",
-  opencode: "opencode",
-  cursor: "cursor-agent",
 } as const;
 
-const HOSTS = ["codex", "opencode", "cursor"] as const;
+const HOSTS = ["codex"] as const;
 
 // implements REQ-skill-behavioral-efficacy
 type PreflightHost = keyof typeof HOST_COMMANDS;

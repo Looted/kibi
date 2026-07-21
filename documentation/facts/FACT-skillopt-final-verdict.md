@@ -16,9 +16,9 @@ fact_kind: meta
 
 ## Result
 
-The offline methodology contract, pinned SkillOpt environment, deterministic vertical slice, fixture catalog, and fail-closed preflight were implemented and verified. The experiment stopped before any paid model call because the required Codex host CLI is not installed in the execution environment.
+The offline methodology contract, pinned SkillOpt environment, deterministic vertical slice, fixture catalog, and fail-closed Codex preflight were implemented and verified. The experiment stopped before any paid model call because model access was not explicitly verified.
 
-The preflight receipt is `preflight-001.json`. It records the pinned SkillOpt commit, target and optimizer models, zero paid calls, and `missing_host:codex`. Cursor's required `cursor-agent` CLI is also unavailable; OpenCode is present but cannot satisfy the all-host gate alone.
+The preflight receipt is `preflight-001.json`. It records the pinned SkillOpt commit, the Codex host, target and optimizer models, zero paid calls, and a fail-closed no-go reason.
 
 ## Adoption decision
 
@@ -34,4 +34,4 @@ No skill candidate was generated or adopted. The canonical skill sources and gen
 
 ## Scope limitation
 
-This is a hard no-go for the approved all-host experiment in this environment, not evidence that SkillOpt cannot improve Kibi skills. Re-run `bun run skillopt:preflight -- --run-id <id>` only in an environment with authenticated `codex`, `opencode`, and `cursor-agent` CLIs, the pinned models, auditable usage, and the required isolation boundary.
+This is a hard no-go for the approved Codex-only experiment in this environment, not evidence that SkillOpt cannot improve Kibi skills. Re-run `SKILLOPT_MODEL_ACCESS=true bun run skillopt:preflight -- --run-id <id>` in an environment with an authenticated `codex` CLI, the pinned models, auditable usage, and the required isolation boundary.

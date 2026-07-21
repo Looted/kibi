@@ -4529,9 +4529,9 @@ coordinates:
   SYM-skillopt-preflight-run:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 154
+    sourceEndLine: 152
     sourceFile: scripts/skillopt-eval/preflight.ts
-    sourceLine: 112
+    sourceLine: 110
   SYM-skillopt-build-skill-catalog:
     sourceColumn: 16
     sourceEndColumn: 1
