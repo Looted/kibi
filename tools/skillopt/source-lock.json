@@ -1,0 +1,9 @@
+{
+  "package": "skillopt",
+  "version": "0.2.0",
+  "commit": "b860a5cf88ce75e2bd02ca981ac21fb28cffba83",
+  "repository": "https://github.com/microsoft/SkillOpt",
+  "license": "MIT",
+  "retrievedAt": "2026-07-21",
+  "python": ">=3.10"
+}

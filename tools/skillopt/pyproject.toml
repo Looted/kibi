@@ -1,0 +1,27 @@
+[project]
+name = "kibi-skillopt-evaluation"
+version = "0.1.0"
+description = "Pinned, isolated evaluation environment for Kibi SkillOpt experiments"
+requires-python = ">=3.10"
+dependencies = [
+  "skillopt @ git+https://github.com/microsoft/SkillOpt.git@b860a5cf88ce75e2bd02ca981ac21fb28cffba83",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.0.0",
+  "ruff>=0.4.0",
+  "basedpyright>=1.29.0",
+]
+
+[tool.pyright]
+typeCheckingMode = "all"
+include = ["verify_pin.py", "tests"]
+extraPaths = ["../.."]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
