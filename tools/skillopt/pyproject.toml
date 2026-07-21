@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Pinned, isolated evaluation environment for Kibi SkillOpt experiments"
 requires-python = ">=3.10"
 dependencies = [
+  "pydantic>=2.12.5,<3",
   "skillopt @ git+https://github.com/microsoft/SkillOpt.git@b860a5cf88ce75e2bd02ca981ac21fb28cffba83",
 ]
 
@@ -16,7 +17,7 @@ dev = [
 
 [tool.pyright]
 typeCheckingMode = "all"
-include = ["verify_pin.py", "tests"]
+include = ["verify_pin.py", "kibi_skillopt", "tests"]
 extraPaths = ["../.."]
 
 [tool.ruff]

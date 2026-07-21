@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "proposal.schema.json",
+  "title": "SkillOpt proposal v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "artifactType",
+    "proposalId",
+    "runId",
+    "runLockHash",
+    "skill",
+    "candidateBodyHash",
+    "baselineFrontmatterHash",
+    "candidateFrontmatterHash",
+    "baselineResourcesHash",
+    "candidateResourcesHash",
+    "reportHash",
+    "createdAt",
+    "status"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "$ref": "contract-definitions.schema.json#/$defs/schemaVersion"
+    },
+    "artifactType": { "const": "proposal" },
+    "proposalId": {
+      "$ref": "contract-definitions.schema.json#/$defs/artifactId"
+    },
+    "runId": {
+      "$ref": "contract-definitions.schema.json#/$defs/artifactId"
+    },
+    "runLockHash": { "$ref": "contract-definitions.schema.json#/$defs/sha256" },
+    "skill": {
+      "enum": [
+        "kibi-usage",
+        "kibi-freshness",
+        "kibi-traceability",
+        "init-kibi",
+        "bundle"
+      ]
+    },
+    "candidateBodyHash": {
+      "$ref": "contract-definitions.schema.json#/$defs/sha256"
+    },
+    "baselineFrontmatterHash": {
+      "$ref": "contract-definitions.schema.json#/$defs/sha256"
+    },
+    "candidateFrontmatterHash": {
+      "$ref": "contract-definitions.schema.json#/$defs/sha256"
+    },
+    "baselineResourcesHash": {
+      "$ref": "contract-definitions.schema.json#/$defs/sha256"
+    },
+    "candidateResourcesHash": {
+      "$ref": "contract-definitions.schema.json#/$defs/sha256"
+    },
+    "reportHash": { "$ref": "contract-definitions.schema.json#/$defs/sha256" },
+    "createdAt": {
+      "$ref": "contract-definitions.schema.json#/$defs/timestamp"
+    },
+    "status": { "enum": ["pending-review", "approved", "rejected"] }
+  }
+}

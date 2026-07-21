@@ -1,0 +1,162 @@
+[
+  {
+    "name": "completed episode with reconciled evidence",
+    "schema": "episode-result.schema.json",
+    "accepted": true,
+    "artifact": {
+      "schemaVersion": "1.0.0",
+      "artifactType": "episode-result",
+      "episodeId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000001",
+      "runLockHash": "1111111111111111111111111111111111111111111111111111111111111111",
+      "status": "completed",
+      "startedAt": "2026-07-21T12:00:00Z",
+      "finishedAt": "2026-07-21T12:01:00Z",
+      "exitCode": 0,
+      "score": 90,
+      "hardPass": true,
+      "criticalFailures": [],
+      "evidenceIndexHash": "2222222222222222222222222222222222222222222222222222222222222222",
+      "reconciliation": {
+        "brokerTrace": true,
+        "diagnosticReceipt": true,
+        "finalStateQuery": true
+      },
+      "usage": { "inputTokens": 1, "cachedInputTokens": 0, "outputTokens": 1 },
+      "priceEquivalentEstimate": {
+        "currency": "USD",
+        "amount": 0.01,
+        "pricingHash": "3333333333333333333333333333333333333333333333333333333333333333",
+        "kind": "price-equivalent-estimate-not-invoice"
+      }
+    }
+  },
+  {
+    "name": "completed episode without reconciliation",
+    "schema": "episode-result.schema.json",
+    "accepted": false,
+    "artifact": {
+      "schemaVersion": "1.0.0",
+      "artifactType": "episode-result",
+      "episodeId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000001",
+      "runLockHash": "1111111111111111111111111111111111111111111111111111111111111111",
+      "status": "completed",
+      "startedAt": "2026-07-21T12:00:00Z",
+      "finishedAt": "2026-07-21T12:01:00Z",
+      "exitCode": 0,
+      "score": 90,
+      "hardPass": true,
+      "criticalFailures": [],
+      "evidenceIndexHash": "2222222222222222222222222222222222222222222222222222222222222222",
+      "reconciliation": {
+        "brokerTrace": false,
+        "diagnosticReceipt": true,
+        "finalStateQuery": true
+      },
+      "usage": { "inputTokens": 1, "cachedInputTokens": 0, "outputTokens": 1 },
+      "priceEquivalentEstimate": {
+        "currency": "USD",
+        "amount": 0.01,
+        "pricingHash": "3333333333333333333333333333333333333333333333333333333333333333",
+        "kind": "price-equivalent-estimate-not-invoice"
+      }
+    }
+  },
+  {
+    "name": "episode with malformed UUID",
+    "schema": "episode-result.schema.json",
+    "accepted": false,
+    "artifact": {
+      "schemaVersion": "1.0.0",
+      "artifactType": "episode-result",
+      "episodeId": "episode-2",
+      "runId": "00000000-0000-4000-8000-000000000001",
+      "runLockHash": "1111111111111111111111111111111111111111111111111111111111111111",
+      "status": "interrupted",
+      "startedAt": "2026-07-21T12:00:00Z",
+      "finishedAt": "2026-07-21T12:01:00Z",
+      "exitCode": null,
+      "score": 0,
+      "hardPass": false,
+      "criticalFailures": [],
+      "evidenceIndexHash": "2222222222222222222222222222222222222222222222222222222222222222",
+      "reconciliation": {
+        "brokerTrace": false,
+        "diagnosticReceipt": false,
+        "finalStateQuery": false
+      },
+      "usage": { "inputTokens": 1, "cachedInputTokens": 0, "outputTokens": 1 },
+      "priceEquivalentEstimate": {
+        "currency": "USD",
+        "amount": 0.01,
+        "pricingHash": "3333333333333333333333333333333333333333333333333333333333333333",
+        "kind": "price-equivalent-estimate-not-invoice"
+      }
+    }
+  },
+  {
+    "name": "episode with malformed timestamp",
+    "schema": "episode-result.schema.json",
+    "accepted": false,
+    "artifact": {
+      "schemaVersion": "1.0.0",
+      "artifactType": "episode-result",
+      "episodeId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000001",
+      "runLockHash": "1111111111111111111111111111111111111111111111111111111111111111",
+      "status": "interrupted",
+      "startedAt": "yesterday",
+      "finishedAt": "2026-07-21T12:01:00Z",
+      "exitCode": null,
+      "score": 0,
+      "hardPass": false,
+      "criticalFailures": [],
+      "evidenceIndexHash": "2222222222222222222222222222222222222222222222222222222222222222",
+      "reconciliation": {
+        "brokerTrace": false,
+        "diagnosticReceipt": false,
+        "finalStateQuery": false
+      },
+      "usage": { "inputTokens": 1, "cachedInputTokens": 0, "outputTokens": 1 },
+      "priceEquivalentEstimate": {
+        "currency": "USD",
+        "amount": 0.01,
+        "pricingHash": "3333333333333333333333333333333333333333333333333333333333333333",
+        "kind": "price-equivalent-estimate-not-invoice"
+      }
+    }
+  },
+  {
+    "name": "hard pass with duplicate critical failures",
+    "schema": "episode-result.schema.json",
+    "accepted": false,
+    "artifact": {
+      "schemaVersion": "1.0.0",
+      "artifactType": "episode-result",
+      "episodeId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000001",
+      "runLockHash": "1111111111111111111111111111111111111111111111111111111111111111",
+      "status": "behavioral-failure",
+      "startedAt": "2026-07-21T12:00:00Z",
+      "finishedAt": "2026-07-21T12:01:00Z",
+      "exitCode": 1,
+      "score": 90,
+      "hardPass": true,
+      "criticalFailures": ["failure", "failure"],
+      "evidenceIndexHash": "2222222222222222222222222222222222222222222222222222222222222222",
+      "reconciliation": {
+        "brokerTrace": true,
+        "diagnosticReceipt": true,
+        "finalStateQuery": true
+      },
+      "usage": { "inputTokens": 1, "cachedInputTokens": 0, "outputTokens": 1 },
+      "priceEquivalentEstimate": {
+        "currency": "USD",
+        "amount": 0.01,
+        "pricingHash": "3333333333333333333333333333333333333333333333333333333333333333",
+        "kind": "price-equivalent-estimate-not-invoice"
+      }
+    }
+  }
+]
