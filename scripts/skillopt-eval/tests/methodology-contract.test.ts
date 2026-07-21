@@ -18,21 +18,24 @@ function readEvaluationFile(fileName: string): string {
 }
 
 describe("SkillOpt methodology contract", () => {
-  test("declares the frozen corpus, score, and budget constants", () => {
+  test("publishes the Codex gate contract as machine-readable JSON", () => {
     expect(
       existsSync(methodologyPath),
       `expected methodology file ${methodologyPath}`,
     ).toBe(true);
     const methodology = readFileSync(methodologyPath, "utf8");
+    const contractBlock = methodology.match(
+      /```json skillopt-codex-gates\n(?<contract>[\s\S]*?)\n```/,
+    )?.groups?.contract;
 
-    expect(methodology).toContain("8 train");
-    expect(methodology).toContain("4 development");
-    expect(methodology).toContain("16 held-out");
-    expect(methodology).toContain("60 final repo/KB state");
-    expect(methodology).toContain("25 required Kibi protocol behavior");
-    expect(methodology).toContain("15 isolation/forbidden effects");
-    expect(methodology).toContain("5417");
-    expect(methodology).toContain("USD 100");
+    const runLockSchema = JSON.parse(
+      readEvaluationFile("run-lock.schema.json"),
+    );
+
+    expect(contractBlock).toBeDefined();
+    expect(JSON.parse(contractBlock ?? "null")).toEqual(
+      runLockSchema.properties.gates.const,
+    );
   });
 
   test("publishes schemas for run locks and reports", () => {
@@ -41,6 +44,45 @@ describe("SkillOpt methodology contract", () => {
     const preflightSchema = readEvaluationFile("preflight.schema.json");
 
     expect(JSON.parse(runLockSchema)).toMatchObject({ type: "object" });
+    expect(JSON.parse(runLockSchema)).toMatchObject({
+      properties: {
+        hosts: { const: ["codex"] },
+        gates: {
+          const: {
+            heldOutTasksPerVariant: 16,
+            familySlices: 4,
+            bundleTasks: 8,
+            candidate: {
+              meanMinimum: 85,
+              hardPassesMinimum: 13,
+              hardPassesTotal: 16,
+              meanDeltaMinimum: { baseline: 8, oneShot: 5 },
+              hardPassDeltaMinimum: { baseline: 2, oneShot: 1 },
+            },
+            bootstrap: {
+              resamples: 10_000,
+              seed: 5417,
+              confidenceLevel: 0.95,
+              sidedness: "one-sided",
+              lowerBoundExclusiveMinimum: 0,
+              clusterUnit: "task",
+            },
+            familyGuard: {
+              maxMeanRegression: 3,
+              maxHardPassRegression: 1,
+            },
+            bundle: {
+              meanMinimum: 85,
+              hardPassesMinimum: 7,
+              hardPassesTotal: 8,
+              meanDeltaMinimum: { baseline: 3, oneShot: 3 },
+              allowHardPassLoss: false,
+              maxCriticalFailures: 0,
+            },
+          },
+        },
+      },
+    });
     expect(JSON.parse(reportSchema)).toMatchObject({ type: "object" });
     expect(JSON.parse(preflightSchema)).toMatchObject({ type: "object" });
   });
