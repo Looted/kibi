@@ -126,6 +126,10 @@ function normalizeString(
   }
   return normalized
     .replaceAll(
+      /<workspace>\/\.kb\/branches\/[^/\s"']+/g,
+      "<workspace>/.kb/branches/<branch>",
+    )
+    .replaceAll(
       /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/gi,
       "<uuid>",
     )

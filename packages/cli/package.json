@@ -107,6 +107,30 @@
       "default": "./dist/public/skills.js"
     },
     "./operations": "./dist/public/operations/index.js",
+    "./operations/mutation/relationships": {
+      "types": "./dist/operations/mutation/relationships.d.ts",
+      "default": "./dist/operations/mutation/relationships.js"
+    },
+    "./operations/mutation/symbol-refresh": {
+      "types": "./dist/operations/mutation/symbol-refresh.d.ts",
+      "default": "./dist/operations/mutation/symbol-refresh.js"
+    },
+    "./operations/mutation/types": {
+      "types": "./dist/operations/mutation/types.d.ts",
+      "default": "./dist/operations/mutation/types.js"
+    },
+    "./operations/mutation/upsert": {
+      "types": "./dist/operations/mutation/upsert.d.ts",
+      "default": "./dist/operations/mutation/upsert.js"
+    },
+    "./operations/mutation/validate-upsert": {
+      "types": "./dist/operations/mutation/validate-upsert.d.ts",
+      "default": "./dist/operations/mutation/validate-upsert.js"
+    },
+    "./operations/mutation/validation": {
+      "types": "./dist/operations/mutation/validation.d.ts",
+      "default": "./dist/operations/mutation/validation.js"
+    },
     "./ignore-policy": {
       "types": "./dist/public/ignore-policy.d.ts",
       "import": "./dist/public/ignore-policy.js",

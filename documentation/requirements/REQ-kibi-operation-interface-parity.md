@@ -26,3 +26,4 @@ The Kibi public operation surface exposes exactly 18 peer operations across MCP 
 1. The public operation surface must stay aligned across MCP and CLI.
 2. The published operation set must contain exactly 18 peer operations.
 3. Public documentation and traceability artifacts must describe the two surfaces as peers.
+4. Remote SPARQL SELECT execution must use the shared operation executor through an explicit network port, preserve HTTP(S)-only endpoints and whole-second timeout behavior, and remain available through both MCP and the CLI JSON route.

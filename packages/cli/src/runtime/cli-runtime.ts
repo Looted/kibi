@@ -1,9 +1,12 @@
 import path from "node:path";
 
 import { PrologProcess } from "../prolog.js";
-import { nodeFilesystem, nodeGit } from "../public/operations/node-ports.js";
+import {
+  nodeFilesystem,
+  nodeGit,
+  nodeNetwork,
+} from "../public/operations/node-ports.js";
 import type {
-  NetworkPort,
   OperationContext,
   OperationRuntime,
   PrologPort,
@@ -14,10 +17,6 @@ import type {
 type ManagedPrologPort = PrologPort & {
   readonly start?: () => Promise<void>;
   readonly terminate?: () => Promise<void>;
-};
-
-const defaultNetwork: NetworkPort = {
-  fetch: (input, init) => globalThis.fetch(input, init),
 };
 
 function createDefaultProlog(): ManagedPrologPort {
@@ -73,7 +72,7 @@ export function createCliRuntime(
         clock,
         fs: merged.fs ?? nodeFilesystem,
         git,
-        net: merged.net ?? defaultNetwork,
+        net: merged.net ?? nodeNetwork,
       } satisfies Omit<OperationContext, "prolog">;
 
       if (!spec.requiresProlog) {

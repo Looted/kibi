@@ -20,7 +20,7 @@ interface JsonViolation {
  * @param requireAdr - Whether to require ADR constraints for symbol-traceability
  */
 export async function runAggregatedChecks(
-  prolog: PrologProcess,
+  prolog: Pick<PrologProcess, "query">,
   rulesAllowlist: Set<string> | null,
   requireAdr = false,
 ): Promise<Violation[]> {

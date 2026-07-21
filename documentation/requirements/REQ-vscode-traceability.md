@@ -12,6 +12,8 @@ tags:
   - kibi
   - traceability
 links:
+  - type: specified_by
+    target: SCEN-vscode-traceability-coverage
   - REQ-vscode-kb-to-source
   - REQ-vscode-source-to-kb
   - REQ-vscode-sidebar-kb-tree

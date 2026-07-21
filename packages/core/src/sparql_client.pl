@@ -44,7 +44,10 @@ validate_remote_endpoint(Endpoint) :-
 
 validate_select_query(Query) :-
     normalize_space(atom(Normalized), Query),
-    downcase_atom(Normalized, Lower),
+    split_string(Normalized, "\n", " \t\r", RawLines),
+    strip_sparql_prelude(RawLines, RemainingLines),
+    atomic_list_concat(RemainingLines, ' ', Remainder),
+    downcase_atom(Remainder, Lower),
     sub_atom(Lower, 0, 6, After, 'select'),
     (   After =:= 0
     ;   sub_atom(Lower, 6, 1, _, ' ')
@@ -53,6 +56,25 @@ validate_select_query(Query) :-
     !.
 validate_select_query(Query) :-
     throw(error(domain_error(sparql_select_query, Query), _)).
+
+strip_sparql_prelude([], []).
+strip_sparql_prelude([Line | Rest], Result) :-
+    normalize_space(atom(Trimmed), Line),
+    (   Trimmed == ''
+    ->  strip_sparql_prelude(Rest, Result)
+    ;   is_prelude_line(Trimmed)
+    ->  strip_sparql_prelude(Rest, Result)
+    ;   Result = [Trimmed | Rest]
+    ).
+
+is_prelude_line(Line) :-
+    downcase_atom(Line, Lower),
+    split_string(Lower, " ", " \t", Tokens0),
+    exclude(=("") , Tokens0, Tokens),
+    Tokens = [FirstToken | _],
+    (   FirstToken == "prefix"
+    ;   FirstToken == "base"
+    ).
 
 endpoint_host(Endpoint, Host) :-
     strip_endpoint_scheme(Endpoint, WithoutScheme),

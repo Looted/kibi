@@ -12,6 +12,7 @@ export type PrologQueryResult = {
 export interface PrologPort {
   query(goal: string): Promise<PrologQueryResult>;
   nextSolution(): Promise<PrologQueryResult | null>;
+  invalidateCache?(): void;
   save(): Promise<PrologQueryResult>;
 }
 

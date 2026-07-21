@@ -62,7 +62,10 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
   handleKbDelete: (prolog: TProlog, args: DeleteArgs) => Promise<unknown>;
   handleKbFindGaps: (prolog: TProlog, args: FindGapsArgs) => Promise<unknown>;
   handleKbGraph: (prolog: TProlog, args: GraphArgs) => Promise<unknown>;
-  handleSparql: (prolog: TProlog, args: SparqlArgs) => Promise<unknown>;
+  handleSparql: (
+    args: SparqlArgs,
+    context: OperationContext,
+  ) => Promise<unknown>;
   handleKbQuery: (prolog: TProlog, args: QueryArgs) => Promise<unknown>;
   handleKbSearch: (prolog: TProlog, args: SearchArgs) => Promise<unknown>;
   handleKbStatus: (prolog: TProlog, args: StatusArgs) => Promise<unknown>;

@@ -100,6 +100,55 @@ describe("MCP transaction integrity", () => {
     // Entity existence already verified above; no need to check exact property format
   }, 30000);
 
+  test("failure at relationship two rolls back a newly created entity and relationship one", async () => {
+    // Given
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-TX-TARGET-004",
+      properties: {
+        title: "Existing relationship target",
+        status: "open",
+        source: "test://tx-test",
+      },
+    });
+
+    // When
+    const invocation = handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-TX-004",
+      properties: {
+        title: "Must be rolled back",
+        status: "open",
+        source: "test://tx-test",
+      },
+      relationships: [
+        {
+          type: "relates_to",
+          from: "REQ-TX-004",
+          to: "REQ-TX-TARGET-004",
+        },
+        {
+          type: "relates_to",
+          from: "REQ-TX-004",
+          to: "REQ-TX-MISSING-004",
+        },
+      ],
+    });
+
+    // Then
+    await expect(invocation).rejects.toThrow();
+    expect(
+      (await prolog.query("kb_entity('REQ-TX-004', req, _)")).success,
+    ).toBe(false);
+    expect(
+      (
+        await prolog.query(
+          "kb_relationship(relates_to, 'REQ-TX-004', 'REQ-TX-TARGET-004')",
+        )
+      ).success,
+    ).toBe(false);
+  }, 30000);
+
   test("failed relationship upsert should not remove existing relationships", async () => {
     // Create a requirement and a test
     await handleKbUpsert(prolog, {

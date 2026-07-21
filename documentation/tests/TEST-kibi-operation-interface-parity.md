@@ -27,3 +27,4 @@ links:
 - The strict fact lane models the operation surface as exactly 18 peer operations.
 - The requirement, scenario, test, and ADR links all resolve without dangling references.
 - The docs describe MCP and CLI as peers, not as primary and secondary surfaces.
+- Remote SPARQL operation, CLI JSON, MCP adapter, and parity tests use a loopback-only HTTP fixture and verify shared decoding, HTTP(S)-only validation, and timeout cancellation without public endpoint access.

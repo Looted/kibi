@@ -93,3 +93,9 @@
 - Discovery embeds source content into deterministic evidence records, allowing candidate builders to remain pure and use string-based markdown/manifest extractors.
 - Confidence and candidate bounds remain clamped to 0.60–0.95 and 1–200, and apply plans remain review-only output with no `kb_upsert` or filesystem writes.
 - The dedicated CLI JSON/MCP parity case carries nested `bootstrapContext` and deep-compares normalized structured output across both real transports.
+
+## 2026-07-21T17:00:00Z Task: plan-todo-17-retry
+- Remote SPARQL execution belongs in the shared operation spec and depends only on `OperationContext.net`; neither CLI nor MCP needs to start Prolog for an HTTP SELECT request.
+- `nodeNetwork` is the native Node/Bun `NetworkPort` adapter and is the CLI runtime default, while tests can inject the same narrow port contract directly.
+- Timeout compatibility requires rounding positive millisecond input up to whole seconds before creating the abort signal, matching the prior Prolog client behavior.
+- CLI JSON, MCP handler, and parity coverage all use a loopback-only `Bun.serve` fixture on `127.0.0.1`; no test needs a public SPARQL endpoint.

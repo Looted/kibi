@@ -38,18 +38,18 @@ export interface Diagnostic {
 }
 
 export interface CheckResult {
-  content: Array<{ type: string; text: string }>;
-  structuredContent?: {
-    violations: Violation[];
-    count: number;
-    diagnostics: Array<{
-      category: string;
-      severity: string;
-      message: string;
-      file?: string;
-      suggestion?: string;
-    }>;
-    qualityDiagnostics?: QualityDiagnostic[];
+  readonly content: readonly { readonly type: string; readonly text?: string }[];
+  readonly structuredContent?: {
+    readonly violations: readonly Violation[];
+    readonly count: number;
+    readonly diagnostics: readonly {
+      readonly category: string;
+      readonly severity: string;
+      readonly message: string;
+      readonly file?: string;
+      readonly suggestion?: string;
+    }[];
+    readonly qualityDiagnostics?: readonly QualityDiagnostic[];
     impactDiagnostics?: ChangedFileImpactResult["impactDiagnostics"];
     sourceFiles?: ChangedFileImpactResult["sourceFiles"];
     extractedSymbols?: ChangedFileImpactResult["extractedSymbols"];

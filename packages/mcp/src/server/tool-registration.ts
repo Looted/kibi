@@ -134,7 +134,7 @@ export function registerConfiguredTools<TProlog>(
   register({
     name: "kb_sparql_remote",
     execute: async (context, args) =>
-      runtime.handleSparql(prologFor(context), args as unknown as SparqlArgs),
+      runtime.handleSparql(args as SparqlArgs, context),
   });
   register({
     name: "kb_semantic_advisor",

@@ -85,6 +85,7 @@ export async function runMcpOperation(
       },
       save: () => prolog.query("kb_save"),
     }),
+    net: { fetch: (input, init) => globalThis.fetch(input, init) },
     refreshAttachedBranchStamp: async () => undefined,
   });
   const executeNamed = async (
@@ -117,7 +118,8 @@ export async function runMcpOperation(
     handleKbDelete: (_prolog, args) => executeNamed("kb_delete", args),
     handleKbFindGaps: (_prolog, args) => executeNamed("kb_find_gaps", args),
     handleKbGraph: (_prolog, args) => executeNamed("kb_graph", args),
-    handleSparql: (_prolog, args) => executeNamed("kb_sparql_remote", args),
+    handleSparql: (args, context) =>
+      getSpec("kb_sparql_remote").execute(args, context),
     handleKbQuery: (_prolog, args) => executeNamed("kb_query", args),
     handleKbSearch: (_prolog, args) => executeNamed("kb_search", args),
     handleKbStatus: (_prolog, args) => executeNamed("kb_status", args),

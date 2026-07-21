@@ -1,4 +1,4 @@
-import { executePlaceholder } from "../types.js";
+import { executeCheck } from "../check-executor.js";
 import type { OperationSpec } from "../types.js";
 
 export const checkSpec = {
@@ -67,5 +67,5 @@ export const checkSpec = {
   },
   requiresProlog: true,
   effects: ["kb-read", "workspace-read"],
-  execute: executePlaceholder,
+  execute: executeCheck,
 } as const satisfies OperationSpec;
