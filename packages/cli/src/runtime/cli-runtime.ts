@@ -10,9 +10,9 @@ import type {
   NetworkPort,
   OperationContext,
   OperationRuntime,
-  RuntimeOperationSpec,
   PrologPort,
   PrologQueryResult,
+  RuntimeOperationSpec,
   RuntimeOptions,
 } from "../public/operations/runtime-types.js";
 
@@ -40,7 +40,10 @@ const defaultGit: GitPort = {
     return stdout.trim();
   },
   showToplevel: async () => {
-    const { stdout } = await execFileAsync("git", ["rev-parse", "--show-toplevel"]);
+    const { stdout } = await execFileAsync("git", [
+      "rev-parse",
+      "--show-toplevel",
+    ]);
     return stdout.trim();
   },
 };
@@ -81,12 +84,17 @@ function quoteProlog(value: string): string {
 }
 
 // implements REQ-kibi-operation-interface-parity
-export function createCliRuntime(options: RuntimeOptions = {}): OperationRuntime {
+export function createCliRuntime(
+  options: RuntimeOptions = {},
+): OperationRuntime {
   const ownedPrologs = new WeakMap<OperationContext, ManagedPrologPort>();
 
   return {
     open: async (spec, invocationOptions = {}) => {
-      const merged = { ...options, ...invocationOptions } satisfies RuntimeOptions;
+      const merged = {
+        ...options,
+        ...invocationOptions,
+      } satisfies RuntimeOptions;
       const root = workspaceRoot(merged);
       const signal = merged.signal ?? new AbortController().signal;
       const clock = merged.clock ?? (() => new Date());
@@ -107,11 +115,19 @@ export function createCliRuntime(options: RuntimeOptions = {}): OperationRuntime
       const prolog: ManagedPrologPort = merged.prolog ?? createDefaultProlog();
       try {
         await prolog.start?.();
-        const branch =
-          process.env.KIBI_BRANCH?.trim() ||
-          (await git.revParse("--abbrev-ref", "HEAD"));
+        let branch = process.env.KIBI_BRANCH?.trim();
+        if (!branch) {
+          try {
+            branch = await git.revParse("--abbrev-ref", "HEAD");
+          } catch {
+            branch = "main";
+          }
+        }
+        if (branch === "master") branch = "main";
         const kbPath = path.join(root, ".kb", "branches", branch);
-        const attached = await prolog.query(`kb_attach('${quoteProlog(kbPath)}')`);
+        const attached = await prolog.query(
+          `kb_attach('${quoteProlog(kbPath)}')`,
+        );
         if (!attached.success) {
           throw new Error(attached.error ?? "Failed to attach branch KB");
         }

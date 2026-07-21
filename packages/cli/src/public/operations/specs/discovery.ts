@@ -1,4 +1,16 @@
-import { executePlaceholder } from "../types.js";
+import {
+  executeQuery,
+  executeSearch,
+  executeStatus,
+} from "../discovery-executors.js";
+import type {
+  QueryInput,
+  QueryPayload,
+  SearchInput,
+  SearchPayload,
+  StatusInput,
+  StatusPayload,
+} from "../discovery-executors.js";
 import type { OperationSpec } from "../types.js";
 
 const ENTITY_TYPES = [
@@ -58,8 +70,8 @@ export const querySpec = {
   },
   requiresProlog: true,
   effects: ["kb-read"],
-  execute: executePlaceholder,
-} as const satisfies OperationSpec;
+  execute: executeQuery,
+} as const satisfies OperationSpec<QueryInput, QueryPayload>;
 
 export const searchSpec = {
   name: "kb_search",
@@ -95,8 +107,8 @@ export const searchSpec = {
   },
   requiresProlog: true,
   effects: ["kb-read"],
-  execute: executePlaceholder,
-} as const satisfies OperationSpec;
+  execute: executeSearch,
+} as const satisfies OperationSpec<SearchInput, SearchPayload>;
 
 export const statusSpec = {
   name: "kb_status",
@@ -106,5 +118,5 @@ export const statusSpec = {
   businessInputSchema: { type: "object", properties: {} },
   requiresProlog: true,
   effects: ["kb-read", "workspace-read"],
-  execute: executePlaceholder,
-} as const satisfies OperationSpec;
+  execute: executeStatus,
+} as const satisfies OperationSpec<StatusInput, StatusPayload>;

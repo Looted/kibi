@@ -1,9 +1,9 @@
 import type { Command } from "commander";
+import { withExitCode } from "./cli-command.js";
 import { branchEnsureCommand } from "./commands/branch.js";
 import { doctorCommand } from "./commands/doctor.js";
 import { gcCommand } from "./commands/gc.js";
 import { usageMetricsCommand } from "./commands/usage-metrics.js";
-import { withExitCode } from "./cli-command.js";
 
 // implements REQ-kibi-operation-interface-parity
 export function registerMaintenanceCommands(program: Command): void {

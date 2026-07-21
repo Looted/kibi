@@ -1,10 +1,10 @@
 import { describe, expect, mock, test } from "bun:test";
 
 import type {
-  RuntimeOperationSpec,
   PrologPort,
+  RuntimeOperationSpec,
 } from "kibi-cli/operations/runtime-types";
-import { createMcpRuntime, type McpSession } from "./mcp-runtime.js";
+import { type McpSession, createMcpRuntime } from "./mcp-runtime.js";
 
 const readSpec: RuntimeOperationSpec<Record<string, never>, void> = {
   name: "kb_query",

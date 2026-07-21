@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 

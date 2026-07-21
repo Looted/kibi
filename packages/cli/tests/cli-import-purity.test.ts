@@ -7,7 +7,10 @@ describe("CLI import purity", () => {
     const cliUrl = new URL("../src/cli.ts", import.meta.url).href;
     const result = spawnSync(
       "bun",
-      ["--eval", `await import(${JSON.stringify(cliUrl)}); console.log("imported");`],
+      [
+        "--eval",
+        `await import(${JSON.stringify(cliUrl)}); console.log("imported");`,
+      ],
       {
         cwd: path.resolve(import.meta.dir, "../../.."),
         encoding: "utf8",

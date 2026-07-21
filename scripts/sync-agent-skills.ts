@@ -68,7 +68,8 @@ function parseArgs(argv: string[]): ParsedArgs {
           `--target requires one of: cursor, codex (got: ${String(next)})`,
         );
       }
-      (limitTargets ??= []).push(next);
+      limitTargets ??= [];
+      limitTargets.push(next);
       i++;
     } else if (arg.startsWith("--")) {
       throw new UsageError(`Unknown flag: ${arg}`);
@@ -167,7 +168,7 @@ function planSkillMirror(
   const skillRoot = join(canonicalRoot, skillId);
   const files = walkFiles(skillRoot);
   return files.map((absoluteSource) => {
-    const relPath = relative(skillRoot, absoluteSource).replaceAll("\\", "/");
+    const relPath = relative(skillRoot, absoluteSource).split("\\").join("/");
     return {
       relPath: `${skillId}/${relPath}`,
       absoluteSource,
@@ -203,7 +204,7 @@ function readJsonIfExists(path: string): Record<string, unknown> | undefined {
 function listMirrorFiles(mirrorRoot: string): string[] {
   if (!existsSync(mirrorRoot)) return [];
   return walkFiles(mirrorRoot).map((abs) =>
-    relative(mirrorRoot, abs).replaceAll("\\", "/"),
+    relative(mirrorRoot, abs).split("\\").join("/"),
   );
 }
 
@@ -294,22 +295,22 @@ function summarizeDrift(target: Target, report: DriftReport): string {
   const lines: string[] = [];
   lines.push(`[${target}] skill mirror drift detected`);
   if (report.added.length > 0) {
-    lines.push(`  added (canonical, missing in mirror):`);
+    lines.push("  added (canonical, missing in mirror):");
     for (const rel of report.added) lines.push(`    + ${rel}`);
   }
   if (report.removed.length > 0) {
-    lines.push(`  removed (mirror, not in canonical):`);
+    lines.push("  removed (mirror, not in canonical):");
     for (const rel of report.removed) lines.push(`    - ${rel}`);
   }
   if (report.modified.length > 0) {
-    lines.push(`  modified:`);
+    lines.push("  modified:");
     for (const rel of report.modified) lines.push(`    ~ ${rel}`);
   }
   if (report.hashManifestMissing) {
     lines.push(`  hash manifest missing: ${HASH_MANIFEST_NAME}`);
   }
   if (report.hashManifestDrifted.length > 0) {
-    lines.push(`  hash manifest drifted:`);
+    lines.push("  hash manifest drifted:");
     for (const rel of report.hashManifestDrifted) lines.push(`    ~ ${rel}`);
   }
   return lines.join("\n");
@@ -354,7 +355,7 @@ function main(argv: string[]): void {
     const message = error instanceof Error ? error.message : String(error);
     process.stderr.write(`sync-agent-skills: ${message}\n`);
     process.stderr.write(
-      `Usage: sync-agent-skills.ts [--write|--check] [--target cursor|codex]\n`,
+      "Usage: sync-agent-skills.ts [--write|--check] [--target cursor|codex]\n",
     );
     process.exit(2);
   }

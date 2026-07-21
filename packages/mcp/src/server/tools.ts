@@ -17,11 +17,11 @@
  */
 import process from "node:process";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { z } from "zod";
 import {
-  executeOperation,
   type RuntimeOperationSpec,
+  executeOperation,
 } from "kibi-cli/operations/runtime-types";
+import type { z } from "zod";
 import { isMcpDebugEnabled } from "../env.js";
 import {
   appendDiagnosticErrorUsage,
@@ -151,13 +151,15 @@ export function addTool<TProlog>(
       // Track the handler promise in inFlightRequests Map
       const trackedRequests = await runtime.inFlightRequests();
       const controller = new AbortController();
-      const operationSpec: RuntimeOperationSpec<Record<string, unknown>, unknown> =
-        spec ?? {
-          name,
-          effects: ["local-read"],
-          requiresProlog: false,
-          execute: async (input, _context) => handler(input),
-        };
+      const operationSpec: RuntimeOperationSpec<
+        Record<string, unknown>,
+        unknown
+      > = spec ?? {
+        name,
+        effects: ["local-read"],
+        requiresProlog: false,
+        execute: async (input, _context) => handler(input),
+      };
       const handlerPromise = executeOperation(
         runtime.operationRuntime,
         operationSpec,
@@ -171,16 +173,21 @@ export function addTool<TProlog>(
 
       try {
         // Execute handler
-        const result = await withToolTimeout(name, handlerPromise, async (error) => {
-          resetAttempted = true;
-          controller.abort(error);
-          try {
-            await runtime.resetProlog(`tool timeout: ${name}`);
-            resetSucceeded = true;
-          } catch (error) {
-            resetError = error instanceof Error ? error.message : String(error);
-          }
-        });
+        const result = await withToolTimeout(
+          name,
+          handlerPromise,
+          async (error) => {
+            resetAttempted = true;
+            controller.abort(error);
+            try {
+              await runtime.resetProlog(`tool timeout: ${name}`);
+              resetSucceeded = true;
+            } catch (error) {
+              resetError =
+                error instanceof Error ? error.message : String(error);
+            }
+          },
+        );
 
         // Log usage in diagnostic mode
         if (diagnosticModeEnabled) {

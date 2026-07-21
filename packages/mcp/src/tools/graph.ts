@@ -1,5 +1,7 @@
+import { executeGraph } from "kibi-cli/operations";
 import type { PrologProcess } from "kibi-cli/prolog";
-import { runJsonModuleQuery, toPrologList } from "./core-module.js";
+
+type ReportingProlog = Pick<PrologProcess, "query">;
 
 export interface GraphArgs {
   seedIds: string[];
@@ -12,48 +14,34 @@ export interface GraphArgs {
 }
 
 export interface GraphResult {
-  content: Array<{ type: string; text: string }>;
+  readonly content: readonly {
+    readonly type: string;
+    readonly text?: string;
+  }[];
   structuredContent?: {
-    nodes: Array<Record<string, unknown>>;
-    edges: Array<Record<string, unknown>>;
-    truncated: boolean;
-    meta?: Record<string, unknown>;
+    readonly nodes: readonly Readonly<Record<string, unknown>>[];
+    readonly edges: readonly Readonly<Record<string, unknown>>[];
+    readonly truncated: boolean;
+    readonly meta?: Readonly<Record<string, unknown>>;
   };
 }
 
 // implements REQ-002, REQ-013
 export async function handleKbGraph(
-  prolog: PrologProcess,
+  prolog: ReportingProlog,
   args: GraphArgs,
 ): Promise<GraphResult> {
-  const direction = args.direction ?? "outgoing";
-  const depth = args.depth ?? 1;
-  const maxNodes = args.maxNodes ?? 200;
-  const maxEdges = args.maxEdges ?? 500;
-
-  try {
-    const payload = await runJsonModuleQuery<GraphResult["structuredContent"]>(
-      prolog,
-      "discovery.pl",
-      `discovery:graph_expand_json(${toPrologList(args.seedIds)}, ${toPrologList(args.relationships)}, '${direction}', ${depth}, ${toPrologList(args.entityTypes)}, ${maxNodes}, ${maxEdges}, JsonString)`,
-      "Graph execution",
-    );
-
-    const nodes = payload?.nodes ?? [];
-    return {
-      content: [
-        {
-          type: "text",
-          text:
-            nodes.length === 0
-              ? "Graph traversal returned no nodes."
-              : `Graph traversal returned ${nodes.length} nodes and ${(payload?.edges ?? []).length} edges from ${args.seedIds.join(", ")}.`,
-        },
-      ],
-      ...(payload !== undefined ? { structuredContent: payload } : {}),
-    };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Graph execution failed: ${message}`);
-  }
+  return executeGraph(
+    { ...args },
+    {
+      workspaceRoot: process.cwd(),
+      signal: new AbortController().signal,
+      clock: () => new Date(),
+      prolog: {
+        query: (goal) => prolog.query(goal),
+        nextSolution: async () => null,
+        save: () => prolog.query("kb_save"),
+      },
+    },
+  );
 }

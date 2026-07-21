@@ -3,9 +3,9 @@
 import { describe, expect, test } from "bun:test";
 
 import type {
-  RuntimeOperationSpec,
   PrologPort,
   PrologQueryResult,
+  RuntimeOperationSpec,
 } from "../public/operations/runtime-types.js";
 import { createCliRuntime } from "./cli-runtime.js";
 

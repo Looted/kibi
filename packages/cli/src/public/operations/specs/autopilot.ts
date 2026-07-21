@@ -47,7 +47,8 @@ export const autopilotGenerateSpec = {
         properties: {
           projectSummary: {
             type: "string",
-            description: "Optional short summary of the project or bootstrap goal.",
+            description:
+              "Optional short summary of the project or bootstrap goal.",
           },
           sourceOfTruthPaths: {
             type: "array",

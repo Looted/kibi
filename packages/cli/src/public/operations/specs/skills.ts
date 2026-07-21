@@ -1,5 +1,89 @@
-import { executePlaceholder } from "../types.js";
-import type { OperationSpec } from "../types.js";
+import { createHash } from "node:crypto";
+import {
+  type SkillManifest,
+  listBundledSkills,
+  loadBundledSkill,
+  readBundledSkillResource,
+} from "../../skills.js";
+import type { OperationContext } from "../runtime-types.js";
+import type { OperationResult, OperationSpec } from "../types.js";
+
+function assertNonEmptyString(value: string, field: string): void {
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new Error(`${field} must be a non-empty string`);
+  }
+}
+
+async function executeSkillsList(
+  _input: Readonly<Record<string, unknown>>,
+  _context: OperationContext,
+): Promise<OperationResult<{ readonly skills: readonly SkillManifest[] }>> {
+  const skills = listBundledSkills();
+  const ids = skills.map((skill) => skill.id).join(", ") || "none";
+  return {
+    content: [
+      { type: "text", text: `Found ${skills.length} bundled skills: ${ids}` },
+    ],
+    structuredContent: { skills },
+  };
+}
+
+async function executeSkillsLoad(
+  input: Readonly<Record<string, unknown>>,
+  _context: OperationContext,
+): Promise<
+  OperationResult<{
+    readonly metadata: SkillManifest;
+    readonly body: string;
+    readonly resources: readonly string[];
+    readonly contentHash: string;
+    readonly sourceType: "bundled";
+  }>
+> {
+  const id = typeof input.id === "string" ? input.id : "";
+  assertNonEmptyString(id, "id");
+  const bundle = loadBundledSkill(id);
+  const resources = bundle.manifest.resources ?? [];
+  const contentHash = createHash("sha256")
+    .update(bundle.body, "utf8")
+    .digest("hex");
+  const resourceList = resources.length === 0 ? "none" : resources.join(", ");
+  return {
+    content: [
+      {
+        type: "text",
+        text: `Loaded bundled skill ${bundle.manifest.id} with ${resources.length} resources: ${resourceList}`,
+      },
+    ],
+    structuredContent: {
+      metadata: bundle.manifest,
+      body: bundle.body,
+      resources,
+      contentHash,
+      sourceType: "bundled",
+    },
+  };
+}
+
+async function executeSkillsRead(
+  input: Readonly<Record<string, unknown>>,
+  _context: OperationContext,
+): Promise<OperationResult<{ readonly content: string }>> {
+  const id = typeof input.id === "string" ? input.id : "";
+  const resource = typeof input.resource === "string" ? input.resource : "";
+  assertNonEmptyString(id, "id");
+  assertNonEmptyString(resource, "resource");
+  const resourceContent = readBundledSkillResource(id, resource);
+  return {
+    content: [
+      {
+        type: "text",
+        text: `Read bundled skill resource ${id}/${resource}`,
+      },
+    ],
+    structuredContent: { content: resourceContent },
+  };
+}
 
 export const skillsListSpec = {
   name: "kb_skills_list",
@@ -9,7 +93,7 @@ export const skillsListSpec = {
   businessInputSchema: { type: "object", properties: {} },
   requiresProlog: false,
   effects: ["local-read"],
-  execute: executePlaceholder,
+  execute: executeSkillsList,
 } as const satisfies OperationSpec;
 
 export const skillsLoadSpec = {
@@ -29,7 +113,7 @@ export const skillsLoadSpec = {
   },
   requiresProlog: false,
   effects: ["local-read"],
-  execute: executePlaceholder,
+  execute: executeSkillsLoad,
 } as const satisfies OperationSpec;
 
 export const skillsReadSpec = {
@@ -41,7 +125,10 @@ export const skillsReadSpec = {
     type: "object",
     required: ["id", "resource"],
     properties: {
-      id: { type: "string", description: "Bundled skill ID. Example: 'kibi-usage'." },
+      id: {
+        type: "string",
+        description: "Bundled skill ID. Example: 'kibi-usage'.",
+      },
       resource: {
         type: "string",
         description:
@@ -51,5 +138,5 @@ export const skillsReadSpec = {
   },
   requiresProlog: false,
   effects: ["local-read"],
-  execute: executePlaceholder,
+  execute: executeSkillsRead,
 } as const satisfies OperationSpec;

@@ -1,11 +1,11 @@
 import type { Command } from "commander";
+import { withExitCode } from "./cli-command.js";
 import {
   skillsListCommand,
   skillsLoadCommand,
   skillsReadCommand,
   skillsValidateCommand,
 } from "./commands/skills.js";
-import { withExitCode } from "./cli-command.js";
 
 // implements REQ-kibi-operation-interface-parity
 export function registerSkillsCommands(program: Command): void {

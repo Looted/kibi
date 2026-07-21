@@ -47,7 +47,8 @@ export const modelRequirementSpec = {
       operator: {
         type: "string",
         enum: ["eq", "gte", "lte", "neq", "bool", "polarity"],
-        description: "Optional extracted semantic claim operator. Example: 'eq'.",
+        description:
+          "Optional extracted semantic claim operator. Example: 'eq'.",
       },
       value: {
         description:
@@ -99,7 +100,8 @@ export const suggestPredicatesSpec = {
         default: 5,
         minimum: 1,
         maximum: 20,
-        description: "Maximum ranked predicate candidates to return. Default: 5.",
+        description:
+          "Maximum ranked predicate candidates to return. Default: 5.",
       },
       minScore: {
         type: "number",

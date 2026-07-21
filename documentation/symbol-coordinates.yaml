@@ -11,9 +11,9 @@ coordinates:
   SYM-003:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 97
+    sourceEndLine: 23
     sourceFile: packages/mcp/src/tools/query.ts
-    sourceLine: 48
+    sourceLine: 17
   SYM-004:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -1193,45 +1193,39 @@ coordinates:
   SYM-SkillsListArgs:
     sourceColumn: 12
     sourceEndColumn: 51
-    sourceEndLine: 6
+    sourceEndLine: 9
     sourceFile: packages/mcp/src/tools/skills.ts
-    sourceLine: 6
+    sourceLine: 9
   SYM-SkillsListResult:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 11
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 12
     sourceFile: packages/mcp/src/tools/skills.ts
-    sourceLine: 8
+    sourceLine: 10
   SYM-SkillsLoadArgs:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 15
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 16
     sourceFile: packages/mcp/src/tools/skills.ts
-    sourceLine: 13
-  SYM-SkillsLoadPayload:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 23
-    sourceFile: packages/mcp/src/tools/skills.ts
-    sourceLine: 17
+    sourceLine: 14
   SYM-SkillsLoadResult:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 28
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 20
     sourceFile: packages/mcp/src/tools/skills.ts
-    sourceLine: 25
+    sourceLine: 18
   SYM-SkillsReadArgs:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 33
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 25
     sourceFile: packages/mcp/src/tools/skills.ts
-    sourceLine: 30
+    sourceLine: 22
   SYM-SkillsReadResult:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 38
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 29
     sourceFile: packages/mcp/src/tools/skills.ts
-    sourceLine: 35
+    sourceLine: 27
   SYM-SourceAnalysisMode:
     sourceColumn: 12
     sourceEndColumn: 55
@@ -2219,9 +2213,9 @@ coordinates:
   SYM-cli-json-invocation-type:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 16
+    sourceEndLine: 21
     sourceFile: packages/cli/src/cli-json-command.ts
-    sourceLine: 8
+    sourceLine: 13
   SYM-cli-load-input-options-type:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -2294,6 +2288,12 @@ coordinates:
     sourceEndLine: 19
     sourceFile: packages/cli/src/cli-protocol.ts
     sourceLine: 15
+  SYM-cli-query-command:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 87
+    sourceFile: packages/cli/src/commands/query.ts
+    sourceLine: 35
   SYM-cli-rule-registry-ChecksConfig:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -2354,6 +2354,18 @@ coordinates:
     sourceEndLine: 203
     sourceFile: packages/cli/src/utils/rule-registry.ts
     sourceLine: 198
+  SYM-cli-search-command:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 54
+    sourceFile: packages/cli/src/commands/search.ts
+    sourceLine: 16
+  SYM-cli-status-command:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 22
+    sourceFile: packages/cli/src/commands/status.ts
+    sourceLine: 9
   SYM-cli-test-makeQualitySymbolResult:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2597,7 +2609,7 @@ coordinates:
   SYM-createCliRuntime:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 142
+    sourceEndLine: 148
     sourceFile: packages/cli/src/runtime/cli-runtime.ts
     sourceLine: 87
   SYM-createConfigFile:
@@ -2978,6 +2990,24 @@ coordinates:
     sourceEndLine: 1248
     sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
     sourceLine: 1223
+  SYM-discovery-execute-query:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 105
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    sourceLine: 71
+  SYM-discovery-execute-search:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 146
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    sourceLine: 107
+  SYM-discovery-execute-status:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 189
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    sourceLine: 148
   SYM-enrichSymbolCoordinates:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3251,21 +3281,21 @@ coordinates:
   SYM-handleKbSkillsList:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 60
+    sourceEndLine: 49
     sourceFile: packages/mcp/src/tools/skills.ts
-    sourceLine: 49
+    sourceLine: 40
   SYM-handleKbSkillsLoad:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 77
+    sourceEndLine: 61
     sourceFile: packages/mcp/src/tools/skills.ts
-    sourceLine: 63
+    sourceLine: 52
   SYM-handleKbSkillsRead:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 96
+    sourceEndLine: 75
     sourceFile: packages/mcp/src/tools/skills.ts
-    sourceLine: 80
+    sourceLine: 64
   SYM-handleKbSuggestPredicates:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3614,6 +3644,12 @@ coordinates:
     sourceEndLine: 54
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
     sourceLine: 50
+  SYM-mcp-discovery-context:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 32
+    sourceFile: packages/mcp/src/tools/discovery-adapter.ts
+    sourceLine: 9
   SYM-mcp-formatImpactText:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3668,6 +3704,12 @@ coordinates:
     sourceEndLine: 79
     sourceFile: packages/mcp/src/server/kb-freshness.ts
     sourceLine: 63
+  SYM-mcp-search-adapter:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 19
+    sourceFile: packages/mcp/src/tools/search.ts
+    sourceLine: 13
   SYM-mcp-session-activeBranchName:
     sourceColumn: 11
     sourceEndColumn: 39
@@ -3734,6 +3776,12 @@ coordinates:
     sourceEndLine: 37
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
     sourceLine: 23
+  SYM-mcp-status-adapter:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 20
+    sourceFile: packages/mcp/src/tools/status.ts
+    sourceLine: 14
   SYM-mcp-stopIntegrationProlog:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3820,10 +3868,10 @@ coordinates:
     sourceLine: 31
   SYM-operation-coverage-spec:
     sourceColumn: 13
-    sourceEndColumn: 34
-    sourceEndLine: 57
+    sourceEndColumn: 66
+    sourceEndLine: 187
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
-    sourceLine: 38
+    sourceLine: 168
   SYM-operation-delete-spec:
     sourceColumn: 13
     sourceEndColumn: 34
@@ -3838,16 +3886,16 @@ coordinates:
     sourceLine: 23
   SYM-operation-find-gaps-spec:
     sourceColumn: 13
-    sourceEndColumn: 34
-    sourceEndLine: 36
+    sourceEndColumn: 66
+    sourceEndLine: 138
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
-    sourceLine: 4
+    sourceLine: 115
   SYM-operation-graph-spec:
     sourceColumn: 13
-    sourceEndColumn: 34
-    sourceEndLine: 84
+    sourceEndColumn: 60
+    sourceEndLine: 249
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
-    sourceLine: 59
+    sourceLine: 224
   SYM-operation-model-requirement-spec:
     sourceColumn: 13
     sourceEndColumn: 34
@@ -3862,10 +3910,10 @@ coordinates:
     sourceLine: 3
   SYM-operation-query-spec:
     sourceColumn: 13
-    sourceEndColumn: 34
-    sourceEndLine: 62
+    sourceEndColumn: 60
+    sourceEndLine: 74
     sourceFile: packages/cli/src/public/operations/specs/discovery.ts
-    sourceLine: 15
+    sourceLine: 27
   SYM-operation-result-type:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -3874,10 +3922,10 @@ coordinates:
     sourceLine: 36
   SYM-operation-search-spec:
     sourceColumn: 13
-    sourceEndColumn: 34
-    sourceEndLine: 99
+    sourceEndColumn: 62
+    sourceEndLine: 111
     sourceFile: packages/cli/src/public/operations/specs/discovery.ts
-    sourceLine: 64
+    sourceLine: 76
   SYM-operation-semantic-advisor-spec:
     sourceColumn: 13
     sourceEndColumn: 34
@@ -3887,21 +3935,21 @@ coordinates:
   SYM-operation-skills-list-spec:
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 92
+    sourceEndLine: 97
     sourceFile: packages/cli/src/public/operations/specs/skills.ts
-    sourceLine: 83
+    sourceLine: 88
   SYM-operation-skills-load-spec:
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 112
+    sourceEndLine: 117
     sourceFile: packages/cli/src/public/operations/specs/skills.ts
-    sourceLine: 94
+    sourceLine: 99
   SYM-operation-skills-read-spec:
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 137
+    sourceEndLine: 142
     sourceFile: packages/cli/src/public/operations/specs/skills.ts
-    sourceLine: 114
+    sourceLine: 119
   SYM-operation-sparql-remote-spec:
     sourceColumn: 13
     sourceEndColumn: 34
@@ -3911,15 +3959,15 @@ coordinates:
   SYM-operation-spec-type:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 55
+    sourceEndLine: 57
     sourceFile: packages/cli/src/public/operations/types.ts
     sourceLine: 41
   SYM-operation-status-spec:
     sourceColumn: 13
-    sourceEndColumn: 34
-    sourceEndLine: 110
+    sourceEndColumn: 62
+    sourceEndLine: 122
     sourceFile: packages/cli/src/public/operations/specs/discovery.ts
-    sourceLine: 101
+    sourceLine: 113
   SYM-operation-suggest-predicates-spec:
     sourceColumn: 13
     sourceEndColumn: 34

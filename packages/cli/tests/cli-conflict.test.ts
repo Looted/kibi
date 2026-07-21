@@ -39,7 +39,10 @@ describe("CLI JSON input conflicts", () => {
 
   test("rejects a legacy positional together with --input", () => {
     const fixture = createInput();
-    const result = runCli(["query", "req", "--input", fixture.input], fixture.cwd);
+    const result = runCli(
+      ["query", "req", "--input", fixture.input],
+      fixture.cwd,
+    );
 
     expect(result.status).toBe(2);
     expect(result.stdout).toBe("");

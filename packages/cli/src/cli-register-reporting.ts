@@ -1,25 +1,42 @@
 import type { Command } from "commander";
+import { withExitCode } from "./cli-command.js";
+import { runJsonInvocation } from "./cli-json-command.js";
 import { checkCommand } from "./commands/check.js";
 import { coverageCommand } from "./commands/coverage.js";
 import { gapsCommand } from "./commands/gaps.js";
 import { graphCommand } from "./commands/graph.js";
-import { withExitCode } from "./cli-command.js";
-import { runJsonInvocation } from "./cli-json-command.js";
 import { getSpec } from "./public/operations/index.js";
 
 // implements REQ-kibi-operation-interface-parity
 export function registerReportingCommands(program: Command): void {
   program
-    .command("gaps [type]")
-    .description("Find entities missing or present on selected relationships")
-    .option("--missing-rel <rels>", "Comma-separated missing relationship filters")
-    .option("--present-rel <rels>", "Comma-separated present relationship filters")
+    .command("find-gaps [type]")
+    .alias("gaps")
+    .description(getSpec("kb_find_gaps").description)
+    .option("--input <path>", "JSON input file (use - for stdin)")
+    .option(
+      "--missing-rel <rels>",
+      "Comma-separated missing relationship filters",
+    )
+    .option(
+      "--present-rel <rels>",
+      "Comma-separated present relationship filters",
+    )
     .option("--tag <tags>", "Comma-separated tag filter")
     .option("--source <path>", "Source file substring filter")
     .option("--limit <n>", "Limit results", "100")
     .option("--offset <n>", "Skip results", "0")
     .option("--format <format>", "Output format: json|table", "table")
-    .action(async (type, options) => {
+    .action(async (type, options, command: Command) => {
+      if (options.input !== undefined) {
+        await runJsonInvocation({
+          operationName: "kb_find_gaps",
+          inputPath: options.input,
+          command,
+          positionals: [{ name: "type", value: type }],
+        });
+        return;
+      }
       await gapsCommand(type, options);
     });
 
@@ -52,7 +69,11 @@ export function registerReportingCommands(program: Command): void {
     .option("--input <path>", "JSON input file (use - for stdin)")
     .option("--from <ids>", "Comma-separated seed IDs")
     .option("--relationships <rels>", "Comma-separated relationship filter")
-    .option("--direction <direction>", "Direction: outgoing|incoming|both", "outgoing")
+    .option(
+      "--direction <direction>",
+      "Direction: outgoing|incoming|both",
+      "outgoing",
+    )
     .option("--depth <n>", "Traversal depth", "1")
     .option("--entity-types <types>", "Comma-separated entity type filter")
     .option("--max-nodes <n>", "Maximum node count", "200")
@@ -75,10 +96,17 @@ export function registerReportingCommands(program: Command): void {
     .description(getSpec("kb_check").description)
     .option("--input <path>", "JSON input file (use - for stdin)")
     .option("--fix", "Suggest fixes for violations")
-    .option("--kb-path <dir>", "Path to KB directory (overrides branch resolution)")
+    .option(
+      "--kb-path <dir>",
+      "Path to KB directory (overrides branch resolution)",
+    )
     .option("--rules <csv>", "Comma-separated allowlist of rule names to run")
     .option("--staged", "Run check only against staged changes (experimental)")
-    .option("--min-links <n>", "Minimum number of links required for symbol coverage", "1")
+    .option(
+      "--min-links <n>",
+      "Minimum number of links required for symbol coverage",
+      "1",
+    )
     .option("--dry-run", "Do not modify files; only print what would happen")
     .option("--format <format>", "Output format: text|json", "text")
     .action(

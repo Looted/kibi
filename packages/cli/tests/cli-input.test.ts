@@ -88,7 +88,7 @@ describe("loadInput", () => {
     const script = [
       'import { loadInput } from "./packages/cli/src/cli-input.ts";',
       'try { await loadInput({ input: "-", cwd: process.cwd() }); }',
-      'catch (error) { console.error(JSON.stringify({ code: error.code, exitCode: error.exitCode })); process.exit(error.exitCode); }',
+      "catch (error) { console.error(JSON.stringify({ code: error.code, exitCode: error.exitCode })); process.exit(error.exitCode); }",
     ].join("\n");
 
     const result = spawnSync("bun", ["--eval", script], {

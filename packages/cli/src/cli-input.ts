@@ -60,16 +60,16 @@ export async function loadInput(options: LoadInputOptions): Promise<unknown> {
     parsed = JSON.parse(text);
   } catch (error) {
     if (error instanceof SyntaxError) {
-      throw new InputError("INVALID_JSON", `Invalid JSON input: ${error.message}`);
+      throw new InputError(
+        "INVALID_JSON",
+        `Invalid JSON input: ${error.message}`,
+      );
     }
     throw error;
   }
 
   if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
-    throw new InputError(
-      "INVALID_INPUT_ROOT",
-      "JSON input must be an object.",
-    );
+    throw new InputError("INVALID_INPUT_ROOT", "JSON input must be an object.");
   }
   return parsed;
 }
