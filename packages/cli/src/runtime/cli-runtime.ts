@@ -1,51 +1,19 @@
-import { execFile } from "node:child_process";
-import * as fs from "node:fs/promises";
 import path from "node:path";
-import { promisify } from "node:util";
 
 import { PrologProcess } from "../prolog.js";
+import { nodeFilesystem, nodeGit } from "../public/operations/node-ports.js";
 import type {
-  FilesystemPort,
-  GitPort,
   NetworkPort,
   OperationContext,
   OperationRuntime,
   PrologPort,
   PrologQueryResult,
-  RuntimeOperationSpec,
   RuntimeOptions,
 } from "../public/operations/runtime-types.js";
 
 type ManagedPrologPort = PrologPort & {
   readonly start?: () => Promise<void>;
   readonly terminate?: () => Promise<void>;
-};
-
-const execFileAsync = promisify(execFile);
-
-const defaultFilesystem: FilesystemPort = {
-  readFile: (filePath) => fs.readFile(filePath, "utf8"),
-  writeFile: async (filePath, data) => {
-    await fs.writeFile(filePath, data, "utf8");
-  },
-  mkdir: async (directoryPath) => {
-    await fs.mkdir(directoryPath, { recursive: true });
-  },
-  stat: (filePath) => fs.stat(filePath),
-};
-
-const defaultGit: GitPort = {
-  revParse: async (...args) => {
-    const { stdout } = await execFileAsync("git", ["rev-parse", ...args]);
-    return stdout.trim();
-  },
-  showToplevel: async () => {
-    const { stdout } = await execFileAsync("git", [
-      "rev-parse",
-      "--show-toplevel",
-    ]);
-    return stdout.trim();
-  },
 };
 
 const defaultNetwork: NetworkPort = {
@@ -98,12 +66,12 @@ export function createCliRuntime(
       const root = workspaceRoot(merged);
       const signal = merged.signal ?? new AbortController().signal;
       const clock = merged.clock ?? (() => new Date());
-      const git = merged.git ?? defaultGit;
+      const git = merged.git ?? nodeGit;
       const contextBase = {
         workspaceRoot: root,
         signal,
         clock,
-        fs: merged.fs ?? defaultFilesystem,
+        fs: merged.fs ?? nodeFilesystem,
         git,
         net: merged.net ?? defaultNetwork,
       } satisfies Omit<OperationContext, "prolog">;

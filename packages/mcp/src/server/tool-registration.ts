@@ -184,8 +184,8 @@ export function registerConfiguredTools<TProlog>(
     name: "kb_autopilot_generate",
     execute: async (context, args) =>
       runtime.handleKbAutopilotGenerate(
-        prologFor(context),
         args as unknown as AutopilotGenerateArgs,
+        context,
       ),
   });
 }
