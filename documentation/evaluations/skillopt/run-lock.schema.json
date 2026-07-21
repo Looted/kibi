@@ -10,6 +10,7 @@
     "targetModel",
     "optimizerModel",
     "hosts",
+    "gates",
     "catalogHash",
     "pricingHash"
   ],
@@ -19,7 +20,41 @@
     "skilloptVersion": { "const": "0.2.0" },
     "targetModel": { "const": "gpt-5.4-mini" },
     "optimizerModel": { "const": "gpt-5.5" },
-    "hosts": { "type": "array", "const": ["codex", "opencode", "cursor"] },
+    "hosts": { "type": "array", "const": ["codex"] },
+    "gates": {
+      "const": {
+        "heldOutTasksPerVariant": 16,
+        "familySlices": 4,
+        "bundleTasks": 8,
+        "candidate": {
+          "meanMinimum": 85,
+          "hardPassesMinimum": 13,
+          "hardPassesTotal": 16,
+          "meanDeltaMinimum": { "baseline": 8, "oneShot": 5 },
+          "hardPassDeltaMinimum": { "baseline": 2, "oneShot": 1 }
+        },
+        "bootstrap": {
+          "resamples": 10000,
+          "seed": 5417,
+          "confidenceLevel": 0.95,
+          "sidedness": "one-sided",
+          "lowerBoundExclusiveMinimum": 0,
+          "clusterUnit": "task"
+        },
+        "familyGuard": {
+          "maxMeanRegression": 3,
+          "maxHardPassRegression": 1
+        },
+        "bundle": {
+          "meanMinimum": 85,
+          "hardPassesMinimum": 7,
+          "hardPassesTotal": 8,
+          "meanDeltaMinimum": { "baseline": 3, "oneShot": 3 },
+          "allowHardPassLoss": false,
+          "maxCriticalFailures": 0
+        }
+      }
+    },
     "catalogHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "pricingHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
   }
