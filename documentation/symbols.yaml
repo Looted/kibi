@@ -8906,3 +8906,75 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-operation-interface-parity
+  - id: SYM-skillopt-prototype-calls
+    title: REQUIRED_PROTOTYPE_CALLS
+    sourceFile: scripts/skillopt-eval/prototype.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skill-behavioral-efficacy
+      - type: covered_by
+        target: TEST-skill-behavioral-efficacy
+  - id: SYM-skillopt-prototype-call-type
+    title: PrototypeCall
+    sourceFile: scripts/skillopt-eval/prototype.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skill-behavioral-efficacy
+      - type: covered_by
+        target: TEST-skill-behavioral-efficacy
+  - id: SYM-skillopt-prototype-final-state-type
+    title: PrototypeFinalState
+    sourceFile: scripts/skillopt-eval/prototype.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skill-behavioral-efficacy
+      - type: covered_by
+        target: TEST-skill-behavioral-efficacy
+  - id: SYM-skillopt-prototype-failure-type
+    title: PrototypeFailure
+    sourceFile: scripts/skillopt-eval/prototype.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skill-behavioral-efficacy
+      - type: covered_by
+        target: TEST-skill-behavioral-efficacy
+  - id: SYM-skillopt-prototype-scenario-type
+    title: PrototypeScenario
+    sourceFile: scripts/skillopt-eval/prototype.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skill-behavioral-efficacy
+      - type: covered_by
+        target: TEST-skill-behavioral-efficacy
+  - id: SYM-skillopt-prototype-receipt-type
+    title: PrototypeReceipt
+    sourceFile: scripts/skillopt-eval/prototype.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skill-behavioral-efficacy
+      - type: covered_by
+        target: TEST-skill-behavioral-efficacy
+  - id: SYM-skillopt-prototype-run
+    title: runPrototype
+    sourceFile: scripts/skillopt-eval/prototype.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skill-behavioral-efficacy
+      - type: covered_by
+        target: TEST-skill-behavioral-efficacy
+  - id: SYM-skillopt-cli-main
+    title: main
+    sourceFile: scripts/skillopt-eval/cli.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skill-behavioral-efficacy
+      - type: covered_by
+        target: TEST-skill-behavioral-efficacy
