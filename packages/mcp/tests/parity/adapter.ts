@@ -6,6 +6,8 @@ import {
   type OperationName,
   executeOperation,
   getSpec,
+  nodeFilesystem,
+  nodeGit,
 } from "kibi-cli/operations";
 import type { PrologProcess } from "kibi-cli/prolog";
 
@@ -65,6 +67,8 @@ export async function runMcpOperation(
   };
   const operationRuntime = createMcpRuntime<PrologProcess>({
     workspaceRoot,
+    fs: nodeFilesystem,
+    git: nodeGit,
     activeBranchName: async () => "contracts-seed",
     attachedBranchKbPath: () =>
       path.join(workspaceRoot, ".kb", "branches", "contracts-seed"),
@@ -129,7 +133,7 @@ export async function runMcpOperation(
       executeNamed("kb_model_requirement", args),
     handleKbSuggestPredicates: (_prolog, args) =>
       executeNamed("kb_suggest_predicates", args),
-    handleKbAutopilotGenerate: (_prolog, args) =>
+    handleKbAutopilotGenerate: (args) =>
       executeNamed("kb_autopilot_generate", args),
   };
 

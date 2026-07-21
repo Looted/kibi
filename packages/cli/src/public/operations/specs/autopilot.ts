@@ -1,5 +1,16 @@
-import { executePlaceholder } from "../types.js";
+import { executeAutopilotGenerate } from "../../../operations/autopilot/generate.js";
+import type {
+  AutopilotGenerateArgs,
+  AutopilotGenerateResult,
+} from "../../../operations/autopilot/types.js";
 import type { OperationSpec } from "../types.js";
+
+export type {
+  AutopilotBootstrapContext,
+  AutopilotGenerateArgs,
+  AutopilotGenerateResult,
+} from "../../../operations/autopilot/types.js";
+export { executeAutopilotGenerate } from "../../../operations/autopilot/generate.js";
 
 export const autopilotGenerateSpec = {
   name: "kb_autopilot_generate",
@@ -78,7 +89,10 @@ export const autopilotGenerateSpec = {
       },
     },
   },
-  requiresProlog: true,
-  effects: ["kb-read", "workspace-read"],
-  execute: executePlaceholder,
-} as const satisfies OperationSpec;
+  requiresProlog: false,
+  effects: ["workspace-read"],
+  execute: executeAutopilotGenerate,
+} as const satisfies OperationSpec<
+  AutopilotGenerateArgs,
+  AutopilotGenerateResult["structuredContent"]
+>;

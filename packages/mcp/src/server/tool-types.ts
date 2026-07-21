@@ -1,3 +1,4 @@
+import type { OperationContext } from "kibi-cli/operations/runtime-types";
 import type { PrologProcess } from "kibi-cli/prolog";
 import type { McpOperationRuntime } from "../runtime/mcp-runtime.js";
 
@@ -83,7 +84,7 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
     args: SuggestPredicatesArgs,
   ) => Promise<unknown>;
   handleKbAutopilotGenerate: (
-    prolog: TProlog,
     args: AutopilotGenerateArgs,
+    context: OperationContext,
   ) => Promise<unknown>;
 }

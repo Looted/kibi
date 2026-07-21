@@ -28,6 +28,8 @@ const PROLOG_FREE_OPERATIONS = new Set([
   "kb_skills_load",
   "kb_skills_read",
   "kb_semantic_advisor",
+  "kb_autopilot_generate",
+  "kb_sparql_remote",
 ]);
 
 const VALID_EFFECTS = new Set([

@@ -86,3 +86,10 @@
 - Human CLI flags open `createCliRuntime()` and then format the shared structured result; `query --relationships` remains a CLI-only presentation path.
 - Prolog-backed `--input` routes must open the CLI runtime before entering `cli-protocol`, matching the reporting extraction pattern and preserving the status freshness query.
 - Executable parity tests compare human flag output with JSON protocol output for query, search, and status, while MCP adapter tests compare each handler directly with its shared executor.
+
+## 2026-07-21T16:00:00Z Task: plan-todo-13
+- Autopilot cold-start synthesis does not require Prolog: the operation spec is `requiresProlog: false`, while an already-supplied Prolog port still refines attached-KB activation classification and duplicate suppression.
+- Repository scans now cross `FilesystemPort.glob/readFile/stat` and `GitPort.ignoredPaths`; shared synthesis never calls `process.cwd()`, `node:fs`, or Git subprocesses directly.
+- Discovery embeds source content into deterministic evidence records, allowing candidate builders to remain pure and use string-based markdown/manifest extractors.
+- Confidence and candidate bounds remain clamped to 0.60–0.95 and 1–200, and apply plans remain review-only output with no `kb_upsert` or filesystem writes.
+- The dedicated CLI JSON/MCP parity case carries nested `bootstrapContext` and deep-compares normalized structured output across both real transports.

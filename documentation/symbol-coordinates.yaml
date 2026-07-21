@@ -105,23 +105,23 @@ coordinates:
     sourceFile: packages/opencode/src/auto-update.ts
     sourceLine: 21
   SYM-AutopilotBootstrapContext:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 87
-    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 81
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 9
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    sourceLine: 3
   SYM-AutopilotConfidence:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 94
-    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 89
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 31
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    sourceLine: 26
   SYM-AutopilotDeclaredContext:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 109
-    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 103
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 46
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    sourceLine: 40
   SYM-AutopilotEvidence:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -135,29 +135,29 @@ coordinates:
     sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
     sourceLine: 42
   SYM-AutopilotGenerateArgs:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 117
-    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 111
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 24
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    sourceLine: 11
   SYM-AutopilotGenerateResult:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 153
-    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 145
+    sourceColumn: 12
+    sourceEndColumn: 4
+    sourceEndLine: 162
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    sourceLine: 155
   SYM-AutopilotRecommendedAction:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 101
-    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 96
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 38
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    sourceLine: 33
   SYM-Awaitable:
     sourceColumn: 12
     sourceEndColumn: 42
-    sourceEndLine: 42
+    sourceEndLine: 43
     sourceFile: packages/mcp/src/server/tool-types.ts
-    sourceLine: 42
+    sourceLine: 43
   SYM-BaseRelationship:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -245,9 +245,9 @@ coordinates:
   SYM-DefaultRuntimeProlog:
     sourceColumn: 12
     sourceEndColumn: 49
-    sourceEndLine: 43
+    sourceEndLine: 44
     sourceFile: packages/mcp/src/server/tool-types.ts
-    sourceLine: 43
+    sourceLine: 44
   SYM-DeleteArgs:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1493,27 +1493,27 @@ coordinates:
   SYM-ToolConfig:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 34
+    sourceEndLine: 35
     sourceFile: packages/mcp/src/server/tool-types.ts
-    sourceLine: 30
+    sourceLine: 31
   SYM-ToolHandler:
     sourceColumn: 12
     sourceEndColumn: 78
-    sourceEndLine: 36
+    sourceEndLine: 37
     sourceFile: packages/mcp/src/server/tool-types.ts
-    sourceLine: 36
+    sourceLine: 37
   SYM-ToolHandlerArgs:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 40
+    sourceEndLine: 41
     sourceFile: packages/mcp/src/server/tool-types.ts
-    sourceLine: 38
+    sourceLine: 39
   SYM-ToolsRuntime:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 89
+    sourceEndLine: 90
     sourceFile: packages/mcp/src/server/tool-types.ts
-    sourceLine: 45
+    sourceLine: 46
   SYM-TraceabilityRegistrationResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1610,6 +1610,234 @@ coordinates:
     sourceEndLine: 220
     sourceFile: packages/cli/src/commands/sync/staging.ts
     sourceLine: 200
+  SYM-autopilot-activation-mode-shared:
+    sourceColumn: 12
+    sourceEndColumn: 23
+    sourceEndLine: 60
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    sourceLine: 55
+  SYM-autopilot-activation-policy-shared:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 88
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    sourceLine: 81
+  SYM-autopilot-activation-state-shared:
+    sourceColumn: 12
+    sourceEndColumn: 25
+    sourceEndLine: 53
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    sourceLine: 48
+  SYM-autopilot-build-actions:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 101
+    sourceFile: packages/cli/src/operations/autopilot/guidance-actions.ts
+    sourceLine: 24
+  SYM-autopilot-build-candidates-shared:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 155
+    sourceFile: packages/cli/src/operations/autopilot/candidates.ts
+    sourceLine: 129
+  SYM-autopilot-build-guidance:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 199
+    sourceFile: packages/cli/src/operations/autopilot/guidance.ts
+    sourceLine: 162
+  SYM-autopilot-candidate-build-result:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 20
+    sourceFile: packages/cli/src/operations/autopilot/markdown-candidates.ts
+    sourceLine: 17
+  SYM-autopilot-candidate-shared:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 139
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    sourceLine: 124
+  SYM-autopilot-claim-for:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 62
+    sourceFile: packages/cli/src/operations/autopilot/requirement-claims.ts
+    sourceLine: 3
+  SYM-autopilot-classify-activation:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 173
+    sourceFile: packages/cli/src/operations/autopilot/activation.ts
+    sourceLine: 99
+  SYM-autopilot-confidence-band:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 5
+    sourceFile: packages/cli/src/operations/autopilot/candidate-helpers.ts
+    sourceLine: 3
+  SYM-autopilot-discover-shared:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 132
+    sourceFile: packages/cli/src/operations/autopilot/discovery.ts
+    sourceLine: 83
+  SYM-autopilot-discovery-result-shared:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 122
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    sourceLine: 116
+  SYM-autopilot-discovery-summary-shared:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 114
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    sourceLine: 100
+  SYM-autopilot-evidence-kind-shared:
+    sourceColumn: 12
+    sourceEndColumn: 21
+    sourceEndLine: 79
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    sourceLine: 72
+  SYM-autopilot-evidence-scan:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 44
+    sourceFile: packages/cli/src/operations/autopilot/discovery-evidence.ts
+    sourceLine: 39
+  SYM-autopilot-evidence-shared:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 98
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    sourceLine: 90
+  SYM-autopilot-execute-shared:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 157
+    sourceFile: packages/cli/src/operations/autopilot/generate.ts
+    sourceLine: 106
+  SYM-autopilot-markdown-candidates:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 198
+    sourceFile: packages/cli/src/operations/autopilot/markdown-candidates.ts
+    sourceLine: 142
+  SYM-autopilot-normalize-context:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 29
+    sourceFile: packages/cli/src/operations/autopilot/presentation.ts
+    sourceLine: 18
+  SYM-autopilot-present-shared:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 122
+    sourceFile: packages/cli/src/operations/autopilot/presentation.ts
+    sourceLine: 45
+  SYM-autopilot-provider-name-shared:
+    sourceColumn: 12
+    sourceEndColumn: 77
+    sourceEndLine: 71
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    sourceLine: 71
+  SYM-autopilot-provider-order-shared:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 69
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    sourceLine: 62
+  SYM-autopilot-scan-evidence:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 225
+    sourceFile: packages/cli/src/operations/autopilot/discovery-evidence.ts
+    sourceLine: 170
+  SYM-autopilot-select-candidates:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 89
+    sourceFile: packages/cli/src/operations/autopilot/generate.ts
+    sourceLine: 32
+  SYM-autopilot-slug:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 13
+    sourceFile: packages/cli/src/operations/autopilot/candidate-helpers.ts
+    sourceLine: 7
+  SYM-autopilot-source-only-signal-shared:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 147
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    sourceLine: 141
+  SYM-autopilot-strict-plan:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 71
+    sourceFile: packages/cli/src/operations/autopilot/candidate-helpers.ts
+    sourceLine: 34
+  SYM-autopilot-structured-content-shared:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 153
+    sourceFile: packages/cli/src/operations/autopilot/types.ts
+    sourceLine: 149
+  SYM-autopilot-test-activation-parser:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 147
+    sourceFile: packages/mcp/src/tools/autopilot-test-parsers.ts
+    sourceLine: 92
+  SYM-autopilot-test-candidate-parser:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 61
+    sourceFile: packages/mcp/src/tools/autopilot-test-parsers.ts
+    sourceLine: 15
+  SYM-autopilot-test-execute-dependencies:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 131
+    sourceFile: packages/mcp/src/tools/autopilot-test-compat.ts
+    sourceLine: 41
+  SYM-autopilot-test-legacy-dependencies:
+    sourceColumn: 12
+    sourceEndColumn: 67
+    sourceEndLine: 19
+    sourceFile: packages/mcp/src/tools/autopilot-test-compat.ts
+    sourceLine: 19
+  SYM-autopilot-test-record-parser:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 13
+    sourceFile: packages/mcp/src/tools/autopilot-test-parsers.ts
+    sourceLine: 7
+  SYM-autopilot-test-reset-dependencies:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 28
+    sourceFile: packages/mcp/src/tools/autopilot-test-compat.ts
+    sourceLine: 26
+  SYM-autopilot-test-set-dependencies:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 24
+    sourceFile: packages/mcp/src/tools/autopilot-test-compat.ts
+    sourceLine: 22
+  SYM-autopilot-test-signal-parser:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 90
+    sourceFile: packages/mcp/src/tools/autopilot-test-parsers.ts
+    sourceLine: 63
+  SYM-autopilot-upsert-plan:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 32
+    sourceFile: packages/cli/src/operations/autopilot/candidate-helpers.ts
+    sourceLine: 15
   SYM-browseLinkedEntities:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2609,9 +2837,9 @@ coordinates:
   SYM-createCliRuntime:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 148
+    sourceEndLine: 116
     sourceFile: packages/cli/src/runtime/cli-runtime.ts
-    sourceLine: 87
+    sourceLine: 55
   SYM-createConfigFile:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3257,9 +3485,9 @@ coordinates:
   SYM-handleKbAutopilotGenerate:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1073
+    sourceEndLine: 86
     sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 698
+    sourceLine: 63
   SYM-handleKbDelete:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3844,10 +4072,10 @@ coordinates:
     sourceLine: 176
   SYM-operation-autopilot-generate-spec:
     sourceColumn: 13
-    sourceEndColumn: 34
-    sourceEndLine: 84
+    sourceEndColumn: 1
+    sourceEndLine: 98
     sourceFile: packages/cli/src/public/operations/specs/autopilot.ts
-    sourceLine: 4
+    sourceLine: 15
   SYM-operation-catalog:
     sourceColumn: 13
     sourceEndColumn: 45
@@ -3908,6 +4136,18 @@ coordinates:
     sourceEndLine: 21
     sourceFile: packages/cli/src/public/operations/types.ts
     sourceLine: 3
+  SYM-operation-node-filesystem:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 56
+    sourceFile: packages/cli/src/public/operations/node-ports.ts
+    sourceLine: 38
+  SYM-operation-node-git:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 74
+    sourceFile: packages/cli/src/public/operations/node-ports.ts
+    sourceLine: 58
   SYM-operation-query-spec:
     sourceColumn: 13
     sourceEndColumn: 60
@@ -4109,9 +4349,9 @@ coordinates:
   SYM-resetAutopilotGenerateDepsForTests:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 79
+    sourceEndLine: 35
     sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 77
+    sourceLine: 33
   SYM-resetBundledSkillsDir:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4517,9 +4757,9 @@ coordinates:
   SYM-setAutopilotGenerateDepsForTests:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 75
+    sourceEndLine: 31
     sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 71
+    sourceLine: 27
   SYM-setBundledSkillsDir:
     sourceColumn: 16
     sourceEndColumn: 1
