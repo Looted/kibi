@@ -2264,6 +2264,42 @@ coordinates:
     sourceEndLine: 9
     sourceFile: packages/cli/src/cli-input.ts
     sourceLine: 6
+  SYM-cli-parity-case-type:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 12
+    sourceFile: packages/cli/tests/parity/cases.ts
+    sourceLine: 9
+  SYM-cli-parity-cases:
+    sourceColumn: 13
+    sourceEndColumn: 3
+    sourceEndLine: 75
+    sourceFile: packages/cli/tests/parity/cases.ts
+    sourceLine: 72
+  SYM-cli-parity-cli-result-type:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 10
+    sourceFile: packages/cli/tests/parity/runner.ts
+    sourceLine: 6
+  SYM-cli-parity-comparison-result-type:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 22
+    sourceFile: packages/cli/tests/parity/runner.ts
+    sourceLine: 19
+  SYM-cli-parity-mcp-result-type:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 16
+    sourceFile: packages/cli/tests/parity/runner.ts
+    sourceLine: 13
+  SYM-cli-parity-workspace-type:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 22
+    sourceFile: packages/cli/tests/parity/helpers.ts
+    sourceLine: 19
   SYM-cli-persistEntities:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -4328,6 +4364,54 @@ coordinates:
     sourceEndLine: 325
     sourceFile: packages/mcp/src/server/docs.ts
     sourceLine: 297
+  SYM-skillopt-cli-main:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 69
+    sourceFile: scripts/skillopt-eval/cli.ts
+    sourceLine: 40
+  SYM-skillopt-prototype-call-type:
+    sourceColumn: 12
+    sourceEndColumn: 70
+    sourceEndLine: 9
+    sourceFile: scripts/skillopt-eval/prototype.ts
+    sourceLine: 9
+  SYM-skillopt-prototype-calls:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 6
+    sourceFile: scripts/skillopt-eval/prototype.ts
+    sourceLine: 2
+  SYM-skillopt-prototype-failure-type:
+    sourceColumn: 12
+    sourceEndColumn: 30
+    sourceEndLine: 16
+    sourceFile: scripts/skillopt-eval/prototype.ts
+    sourceLine: 13
+  SYM-skillopt-prototype-final-state-type:
+    sourceColumn: 12
+    sourceEndColumn: 55
+    sourceEndLine: 11
+    sourceFile: scripts/skillopt-eval/prototype.ts
+    sourceLine: 11
+  SYM-skillopt-prototype-receipt-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 32
+    sourceFile: scripts/skillopt-eval/prototype.ts
+    sourceLine: 27
+  SYM-skillopt-prototype-run:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 67
+    sourceFile: scripts/skillopt-eval/prototype.ts
+    sourceLine: 41
+  SYM-skillopt-prototype-scenario-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 24
+    sourceFile: scripts/skillopt-eval/prototype.ts
+    sourceLine: 19
   SYM-skillsListCommand:
     sourceColumn: 22
     sourceEndColumn: 1
