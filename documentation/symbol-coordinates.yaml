@@ -4532,3 +4532,57 @@ coordinates:
     sourceEndLine: 154
     sourceFile: scripts/skillopt-eval/preflight.ts
     sourceLine: 112
+  SYM-skillopt-build-skill-catalog:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 98
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 80
+  SYM-skillopt-build-bundle-catalog:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 109
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 100
+  SYM-skillopt-validate-catalog:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 144
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 111
+  SYM-skillopt-catalog-hash:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 148
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 146
+  SYM-skillopt-canonical-skill-type:
+    sourceColumn: 12
+    sourceEndColumn: 63
+    sourceEndLine: 10
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 10
+  SYM-skillopt-catalog-skill-type:
+    sourceColumn: 12
+    sourceEndColumn: 53
+    sourceEndLine: 11
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 11
+  SYM-skillopt-task-split-type:
+    sourceColumn: 12
+    sourceEndColumn: 61
+    sourceEndLine: 12
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 12
+  SYM-skillopt-task-spec-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 21
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 14
+  SYM-skillopt-canonical-skills:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 8
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 3
