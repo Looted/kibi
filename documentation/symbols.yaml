@@ -8369,3 +8369,69 @@ symbols:
     sourceColumn: 6
     sourceEndLine: 15
     sourceEndColumn: 21
+  - id: SYM-skillopt-fixture-parse-task-spec
+    title: parseTaskSpec
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    symbol_role: behavioral
+    relationships: &skillopt_fixture_implementation
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-fixture-parse-public-manifest
+    title: parsePublicTaskManifest
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-parse-private-manifest
+    title: parsePrivateEvaluatorManifest
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-parse-public-value
+    title: parsePublicTaskManifestValue
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-parse-private-value
+    title: parsePrivateEvaluatorManifestValue
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-parse-corpus-index
+    title: parseCorpusIndexValue
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-blinded-order
+    title: blindedVariantOrder
+    sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-private-manifest
+    title: buildPrivateManifest
+    sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-materialize-corpus
+    title: materializeCorpus
+    sourceFile: scripts/skillopt-eval/fixtures/materialize.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-hash-workspace
+    title: hashWorkspace
+    sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-write-workspace
+    title: writePublicWorkspace
+    sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-corpus-tests
+    title: deterministic SkillOpt fixture corpus
+    sourceFile: scripts/skillopt-eval/tests/fixture-corpus.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
