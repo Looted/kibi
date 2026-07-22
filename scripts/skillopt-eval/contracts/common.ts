@@ -12,9 +12,13 @@ export const Sha256Schema = z.string().regex(/^[a-f0-9]{64}$/);
 // implements REQ-skillopt-codex-optimization
 export const NonEmptyStringSchema = z.string().min(1);
 // implements REQ-skillopt-codex-optimization
-export const ArtifactIdSchema = z.uuid();
+export const ArtifactIdSchema = z
+  .string()
+  .regex(
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+  );
 // implements REQ-skillopt-codex-optimization
-export const TimestampSchema = z.iso.datetime({ offset: true });
+export const TimestampSchema = z.iso.datetime({ offset: false, local: false });
 // implements REQ-skillopt-codex-optimization
 export const JsonValueSchema = z.json();
 

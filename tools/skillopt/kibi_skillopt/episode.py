@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from typing import Annotated, Literal
-from uuid import UUID
 
-from pydantic import AwareDatetime, Field, model_validator
+from pydantic import Field, model_validator
 from typing_extensions import Self
 
 from .common import (
+    ArtifactId,
     ContractModel,
     ContractValidationError,
     JsonBoolean,
@@ -15,6 +15,7 @@ from .common import (
     NonEmptyString,
     PriceEquivalentEstimate,
     Sha256,
+    Timestamp,
     Usage,
 )
 
@@ -25,8 +26,8 @@ Skill = Literal["kibi-usage", "kibi-freshness", "kibi-traceability", "init-kibi"
 class EpisodeRequest(ContractModel):
     schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
     artifact_type: Annotated[Literal["episode-request"], Field(alias="artifactType")]
-    episode_id: Annotated[UUID, Field(alias="episodeId")]
-    run_id: Annotated[UUID, Field(alias="runId")]
+    episode_id: Annotated[ArtifactId, Field(alias="episodeId")]
+    run_id: Annotated[ArtifactId, Field(alias="runId")]
     run_lock_hash: Annotated[Sha256, Field(alias="runLockHash")]
     variant: Variant
     skill: Skill
@@ -45,8 +46,8 @@ class Reconciliation(ContractModel):
 class EpisodeResult(ContractModel):
     schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
     artifact_type: Annotated[Literal["episode-result"], Field(alias="artifactType")]
-    episode_id: Annotated[UUID, Field(alias="episodeId")]
-    run_id: Annotated[UUID, Field(alias="runId")]
+    episode_id: Annotated[ArtifactId, Field(alias="episodeId")]
+    run_id: Annotated[ArtifactId, Field(alias="runId")]
     run_lock_hash: Annotated[Sha256, Field(alias="runLockHash")]
     status: Literal[
         "completed",
@@ -56,8 +57,8 @@ class EpisodeResult(ContractModel):
         "budget-exhausted",
         "evidence-conflict",
     ]
-    started_at: Annotated[AwareDatetime, Field(alias="startedAt")]
-    finished_at: Annotated[AwareDatetime, Field(alias="finishedAt")]
+    started_at: Annotated[Timestamp, Field(alias="startedAt")]
+    finished_at: Annotated[Timestamp, Field(alias="finishedAt")]
     exit_code: Annotated[JsonInteger | None, Field(alias="exitCode")]
     score: Annotated[JsonNumber, Field(ge=0, le=100)]
     hard_pass: Annotated[JsonBoolean, Field(alias="hardPass")]

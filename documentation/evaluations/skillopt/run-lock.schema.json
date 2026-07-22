@@ -38,8 +38,11 @@
     "runId": {
       "$ref": "contract-definitions.schema.json#/$defs/artifactId"
     },
-    "repositoryHashAlgorithm": { "const": "sha1" },
-    "repositoryCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "repositoryHashAlgorithm": { "enum": ["sha1", "sha256"] },
+    "repositoryCommit": {
+      "type": "string",
+      "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"
+    },
     "dirtyState": {
       "type": "object",
       "additionalProperties": false,
@@ -222,6 +225,36 @@
       }
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "repositoryHashAlgorithm": { "const": "sha1" } },
+        "required": ["repositoryHashAlgorithm"]
+      },
+      "then": {
+        "properties": {
+          "repositoryCommit": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{40}$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "repositoryHashAlgorithm": { "const": "sha256" } },
+        "required": ["repositoryHashAlgorithm"]
+      },
+      "then": {
+        "properties": {
+          "repositoryCommit": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "skillSurfaceHashes": {
       "type": "object",

@@ -1,32 +1,33 @@
 from __future__ import annotations
 
 from typing import Annotated, Literal
-from uuid import UUID
 
-from pydantic import AwareDatetime, Field, model_validator
+from pydantic import Field, model_validator
 from typing_extensions import Self
 
 from .common import (
+    ArtifactId,
     ContractModel,
     ContractValidationError,
     JsonBoolean,
     JsonInteger,
     JsonNode,
     Sha256,
+    Timestamp,
 )
 
 
 class EvidenceEnvelope(ContractModel):
     sequence: Annotated[JsonInteger, Field(ge=0)]
-    received_at: Annotated[AwareDatetime, Field(alias="receivedAt")]
+    received_at: Annotated[Timestamp, Field(alias="receivedAt")]
     event: dict[str, JsonNode]
 
 
 class EvidenceIndex(ContractModel):
     schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
     artifact_type: Annotated[Literal["evidence-index"], Field(alias="artifactType")]
-    run_id: Annotated[UUID, Field(alias="runId")]
-    episode_id: Annotated[UUID, Field(alias="episodeId")]
+    run_id: Annotated[ArtifactId, Field(alias="runId")]
+    episode_id: Annotated[ArtifactId, Field(alias="episodeId")]
     run_lock_hash: Annotated[Sha256, Field(alias="runLockHash")]
     events: Annotated[tuple[EvidenceEnvelope, ...], Field(max_length=100_000)]
     broker_trace_hash: Annotated[Sha256, Field(alias="brokerTraceHash")]

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  ArtifactIdSchema,
   CONTRACT_SCHEMA_VERSION,
   JsonValueSchema,
   Sha256Schema,
@@ -22,8 +23,8 @@ export const EvidenceIndexSchema = boundedContractSchema(
     .object({
       schemaVersion: z.literal(CONTRACT_SCHEMA_VERSION),
       artifactType: z.literal("evidence-index"),
-      runId: z.uuid(),
-      episodeId: z.uuid(),
+      runId: ArtifactIdSchema,
+      episodeId: ArtifactIdSchema,
       runLockHash: Sha256Schema,
       events: z.array(EvidenceEnvelopeSchema).max(100_000),
       brokerTraceHash: Sha256Schema,
