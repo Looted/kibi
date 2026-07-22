@@ -1,9 +1,9 @@
 import { chmod, cp, mkdir, realpath, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { z } from "zod";
+import { type CapabilityProbeEvidence, sha256File } from "./canary-evidence";
 import type { AuthMode } from "./codex-auth";
+import type { IsolationWorkspace } from "./isolation-workspace";
 import type { ProcessResult } from "./process";
-import type { IsolationWorkspace } from "./workspace";
 
 export const TARGET_MODEL = "gpt-5.4-mini" as const;
 export const OPTIMIZER_MODEL = "gpt-5.5" as const;
@@ -16,19 +16,23 @@ const SKILLS = [
   "kibi-traceability",
   "init-kibi",
 ] as const;
-const ProbeSchema = z.object({
-  workspaceWrite: z.literal(true),
-  denied: z.array(z.string()).length(9),
-  skillsReadable: z.literal(4),
-  networkDenied: z.literal(true),
-});
+export type CanaryRole = "optimizer" | "target";
+export type CanaryModel = typeof TARGET_MODEL | typeof OPTIMIZER_MODEL;
+
+export type CapabilityCanaryModelRun = Readonly<{
+  role: CanaryRole;
+  model: CanaryModel;
+  events: readonly Readonly<Record<string, unknown>>[];
+}>;
 
 export type CapabilityCanaryReceipt = Readonly<{
   verdict: "pass" | "no-go";
   runId: string;
-  model: typeof TARGET_MODEL;
+  targetModel: typeof TARGET_MODEL;
+  optimizerModel: typeof OPTIMIZER_MODEL;
   authMode: "file" | "keyring" | null;
-  paidModelCalls: 0 | 1;
+  paidModelCalls: 0 | 1 | 2;
+  modelRuns: readonly CapabilityCanaryModelRun[];
   events: readonly Readonly<Record<string, unknown>>[];
   reason?: string;
 }>;
@@ -107,7 +111,15 @@ export function buildCodexConfig(options: CodexConfigOptions): string {
     "[permissions.skillopt-isolated.filesystem]",
     '":root" = "deny"',
     '":minimal" = "read"',
+    '"/usr/bin/bwrap" = "read"',
     `${tomlString(options.codexExecutable)} = "read"`,
+    `${tomlString(options.paths.runPrivateHome)} = "deny"`,
+    `${tomlString(options.paths.realCodexHome)} = "deny"`,
+    `${tomlString(options.paths.sourceWorktree)} = "deny"`,
+    `${tomlString(options.paths.fixtureKb)} = "deny"`,
+    `${tomlString(options.paths.privateScorer)} = "deny"`,
+    `${tomlString(options.paths.privateEvidence)} = "deny"`,
+    `${tomlString(options.paths.siblingRuns)} = "deny"`,
     '":tmpdir" = "deny"',
     '":slash_tmp" = "deny"',
     "",
@@ -151,6 +163,7 @@ export function buildCodexExecArgv(
     "exec",
     "--json",
     "--ephemeral",
+    "--skip-git-repo-check",
     "--ignore-rules",
     "--strict-config",
     "--model",
@@ -204,16 +217,19 @@ export async function stageCapabilityCanary(
 export async function writeCapabilityProbe(
   workspace: IsolationWorkspace,
   deniedPaths: readonly string[],
-): Promise<void> {
+): Promise<CapabilityProbeEvidence> {
   const quoted = deniedPaths.map((path) => JSON.stringify(path)).join(" ");
-  const probe = `#!/bin/sh\nset -u\nout="$PWD/canary-result.json"\nfor p in ${quoted}; do test ! -r "$p" || exit 41; done\nskills=0\nfor p in "$PWD"/.agents/skills/*/SKILL.md; do test -r "$p" && skills=$((skills+1)); done\ntest "$skills" -eq 4 || exit 42\nprintf canary > "$PWD/write-proof"\nif python3 -c 'import socket; socket.create_connection(("example.com",80),1)' >/dev/null 2>&1; then exit 43; fi\nprintf '{"workspaceWrite":true,"denied":["1","2","3","4","5","6","7","8","9"],"skillsReadable":4,"networkDenied":true}\n' > "$out"\n`;
-  const path = resolve(workspace.target, "canary-probe");
+  const expectedOutput = "skillopt-capability-canary:pass\n";
+  const probe = `#!/bin/sh\nset -u\nfor p in ${quoted}; do test ! -r "$p" || exit 41; done\nskills=0\nfor p in "$PWD"/.agents/skills/*/SKILL.md; do test -r "$p" && skills=$((skills+1)); done\ntest "$skills" -eq 4 || exit 42\nprintf canary > "$PWD/write-proof"\nif python3 -c 'import socket; socket.create_connection(("example.com",80),1)' >/dev/null 2>&1; then exit 43; fi\nprintf '${expectedOutput}'\n`;
+  const path = resolve(workspace.target, ".runtime/canary-probe");
   await writeFile(path, probe, { encoding: "utf8", mode: 0o500 });
   await chmod(path, 0o500);
-}
-
-export function parseCapabilityProbe(value: unknown): void {
-  ProbeSchema.parse(value);
+  return {
+    absolutePath: path,
+    command: "./.runtime/canary-probe",
+    expectedOutput,
+    sha256: await sha256File(path),
+  };
 }
 
 export function summarizeProcessFailure(result: ProcessResult): string {

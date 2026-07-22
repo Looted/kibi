@@ -39,7 +39,12 @@ describe("Codex existing-login isolation", () => {
   test("copies only file credentials with restrictive permissions", async () => {
     // Given
     const paths = await directories();
-    await writeFile(join(paths.real, "auth.json"), "credential", {
+    const chatGptAuth = JSON.stringify({
+      auth_mode: "chatgpt",
+      OPENAI_API_KEY: null,
+      tokens: { access_token: "session-token" },
+    });
+    await writeFile(join(paths.real, "auth.json"), chatGptAuth, {
       mode: 0o644,
     });
     await writeFile(join(paths.real, "config.toml"), "ambient = true");
@@ -54,7 +59,7 @@ describe("Codex existing-login isolation", () => {
     // Then
     expect(auth.mode).toBe("file");
     expect(await readFile(join(paths.privateHome, "auth.json"), "utf8")).toBe(
-      "credential",
+      chatGptAuth,
     );
     expect(
       (await stat(join(paths.privateHome, "auth.json"))).mode & 0o777,
@@ -76,6 +81,52 @@ describe("Codex existing-login isolation", () => {
     // Then
     expect(auth.mode).toBe("keyring");
     expect(Bun.file(join(paths.privateHome, "auth.json")).size).toBe(0);
+  });
+
+  test("rejects API-key-backed auth files", async () => {
+    // Given
+    const paths = await directories();
+    await writeFile(
+      join(paths.real, "auth.json"),
+      JSON.stringify({ auth_mode: "apikey", OPENAI_API_KEY: "secret" }),
+    );
+
+    // When
+    const attempt = prepareExistingLogin({
+      privateCodexHome: paths.privateHome,
+      env: { PATH: process.env.PATH, CODEX_HOME: paths.real },
+      run: successfulLogin,
+    });
+
+    // Then
+    expect(attempt).rejects.toMatchObject({
+      name: "CodexAuthError",
+      kind: "auth_file",
+    });
+  });
+
+  test("rejects API-key-backed keyring sessions", async () => {
+    // Given
+    const paths = await directories();
+
+    // When
+    const attempt = prepareExistingLogin({
+      privateCodexHome: paths.privateHome,
+      env: { PATH: process.env.PATH, CODEX_HOME: paths.real },
+      run: async (argv) => ({
+        argv,
+        stdout: "",
+        stderr: "Logged in using an API key\n",
+        exitCode: 0,
+        signal: null,
+      }),
+    });
+
+    // Then
+    expect(attempt).rejects.toMatchObject({
+      name: "CodexAuthError",
+      kind: "login",
+    });
   });
 
   test("rejects API keys and alternate provider configuration", async () => {
@@ -125,6 +176,7 @@ describe("Codex evaluator-owned permissions", () => {
       "exec",
       "--json",
       "--ephemeral",
+      "--skip-git-repo-check",
       "--ignore-rules",
       "--strict-config",
       "--model",
@@ -164,7 +216,19 @@ describe("Codex evaluator-owned permissions", () => {
     expect(config).toContain('":root" = "deny"');
     expect(config).toContain('":tmpdir" = "deny"');
     expect(config).toContain('":slash_tmp" = "deny"');
+    expect(config).toContain('"/usr/bin/bwrap" = "read"');
     expect(config).toContain('".kb" = "deny"');
+    for (const deniedPath of [
+      paths.runPrivateHome,
+      paths.realCodexHome,
+      paths.sourceWorktree,
+      paths.fixtureKb,
+      paths.privateScorer,
+      paths.privateEvidence,
+      paths.siblingRuns,
+    ]) {
+      expect(config).toContain(`${JSON.stringify(deniedPath)} = "deny"`);
+    }
     expect(config).toContain(`${JSON.stringify(paths.workspace)} = true`);
     expect(config).toContain('command = "/bin/node"');
     expect(config).toContain('"/opt/codex/bin/codex" = "read"');
@@ -172,6 +236,8 @@ describe("Codex evaluator-owned permissions", () => {
     expect(config).toContain("required = true");
     expect(config).toContain('default_tools_approval_mode = "auto"');
     expect(config).toContain("enabled = false");
+    expect(config).toContain("allow_upstream_proxy = false");
+    expect(config).toContain("allow_local_binding = false");
     expect(config).not.toContain("danger-full-access");
     expect(config).not.toContain("prompt");
   });

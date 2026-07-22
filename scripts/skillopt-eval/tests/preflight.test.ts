@@ -2,7 +2,11 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { type PreflightDependencies, runPreflight } from "../preflight";
+import {
+  type PreflightDependencies,
+  runPreflight,
+  sourceWorktreeIsClean,
+} from "../preflight";
 
 const temporaryRoots: string[] = [];
 
@@ -23,7 +27,14 @@ async function fixture(): Promise<
   temporaryRoots.push(root);
   const codexHome = join(root, "real-codex");
   await mkdir(codexHome);
-  await writeFile(join(codexHome, "auth.json"), "{}", { mode: 0o600 });
+  await writeFile(
+    join(codexHome, "auth.json"),
+    JSON.stringify({
+      auth_mode: "chatgpt",
+      tokens: { access_token: "session-token" },
+    }),
+    { mode: 0o600 },
+  );
   return {
     root,
     artifactRoot: join(root, "artifacts"),
@@ -73,6 +84,27 @@ function dependencies(
 }
 
 describe("SkillOpt Codex preflight", () => {
+  test("treats an untracked source file as dirty", async () => {
+    // Given
+    const testFixture = await fixture();
+    const init = Bun.spawn(["git", "init", "--quiet", testFixture.root], {
+      env: { ...process.env, GIT_MASTER: "1" },
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    expect(await init.exited).toBe(0);
+    await writeFile(join(testFixture.root, "untracked.txt"), "dirty\n");
+
+    // When
+    const clean = await sourceWorktreeIsClean(
+      testFixture.root,
+      testFixture.env,
+    );
+
+    // Then
+    expect(clean).toBe(false);
+  });
+
   test("passes without a paid call when login and strict config are usable", async () => {
     // Given
     const testFixture = await fixture();

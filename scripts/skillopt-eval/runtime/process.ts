@@ -104,8 +104,8 @@ export function runBoundedProcess(
       }, killGraceMs);
     };
     const interrupt = (): void => beginTermination("interrupted");
-    process.once("SIGINT", interrupt);
-    process.once("SIGTERM", interrupt);
+    process.on("SIGINT", interrupt);
+    process.on("SIGTERM", interrupt);
     const timeout = setTimeout(
       () => beginTermination("timeout"),
       options.timeoutMs,
