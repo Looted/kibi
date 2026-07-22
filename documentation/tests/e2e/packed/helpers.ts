@@ -1,18 +1,17 @@
 import { execFileSync, spawn } from "node:child_process";
 import {
-  constants,
-  chmodSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
   readdirSync,
-  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
+import { writePackedInstallManifest } from "./packed-install-manifest.js";
 
+// allow: SIZE_OK — legacy packed E2E helper API spans established tests; splitting it requires a repository-wide migration.
 /**
  * E2E Test Harness for Packaged npm Packages
  *
@@ -46,7 +45,9 @@ function resolveNpmBinary(): string {
     if (npmPath) {
       return npmPath;
     }
-  } catch {}
+  } catch (error) {
+    if (!(error instanceof Error)) throw error;
+  }
 
   return "npm";
 }
@@ -57,7 +58,9 @@ function resolveGitBinary(): string {
     if (gitPath) {
       return gitPath;
     }
-  } catch {}
+  } catch (error) {
+    if (!(error instanceof Error)) throw error;
+  }
 
   return "git";
 }
@@ -87,8 +90,8 @@ function findPrePackedTarball(
     const pkgJsonPath = join(REPO_ROOT, "packages", pkg, "package.json");
     const pkgJson = JSON.parse(readFileSync(pkgJsonPath, "utf8"));
     preferredVersion = pkgJson.version ?? null;
-  } catch {
-    // If we can't read the package.json, proceed without version matching
+  } catch (error) {
+    if (!(error instanceof Error)) throw error;
   }
 
   for (const dir of candidateDirs) {
@@ -120,7 +123,14 @@ function findPrePackedTarball(
   return null;
 }
 
-const packagesForPack = ["core", "cli", "mcp"] as const;
+const packagesForPack = [
+  "core",
+  "cli",
+  "mcp",
+  "opencode",
+  "codex",
+  "cursor",
+] as const;
 
 async function bootstrapSharedInstall(): Promise<void> {
   const bakedPrefix = process.env.KIBI_E2E_PREFIX;
@@ -157,22 +167,12 @@ async function bootstrapSharedInstall(): Promise<void> {
   sharedInstallKey = installKey;
   sharedInstallPromise = (async () => {
     console.log("📥 Bootstrapping shared packed test installation...");
-    await run(
-      npmBinary,
-      [
-        "install",
-        "--legacy-peer-deps",
-        "--no-audit",
-        tarballs.core,
-        tarballs.cli,
-        tarballs.mcp,
-      ],
-      {
-        cwd: npmPrefix,
-        env,
-        timeoutMs: 300000,
-      },
-    );
+    writePackedInstallManifest(npmPrefix, tarballs);
+    await run(npmBinary, ["install", "--legacy-peer-deps", "--no-audit"], {
+      cwd: npmPrefix,
+      env,
+      timeoutMs: 300000,
+    });
     await verifyKibiCliResolutionImpl(npmPrefix, env);
   })();
 
@@ -184,6 +184,9 @@ export interface Tarballs {
   core: string;
   cli: string;
   mcp: string;
+  opencode: string;
+  codex: string;
+  cursor: string;
 }
 
 /** Options for running commands */
@@ -246,14 +249,13 @@ export async function packAll(): Promise<Tarballs> {
   cachedTarballsPromise = (async () => {
     console.log("📦 Packing packages...");
 
-    const packages = ["core", "cli", "mcp"] as const;
     const tarballs: Partial<Tarballs> = {};
     const npmBinary = resolveNpmBinary();
 
     const prePackedDir = process.env.KIBI_TEST_TARBALLS;
     if (prePackedDir && existsSync(prePackedDir)) {
       console.log(`  Using pre-packed tarballs from ${prePackedDir}`);
-      for (const pkg of packages) {
+      for (const pkg of packagesForPack) {
         const tarballPath = findPrePackedTarball(prePackedDir, pkg);
         if (tarballPath) {
           tarballs[pkg] = tarballPath;
@@ -266,7 +268,7 @@ export async function packAll(): Promise<Tarballs> {
       return tarballs as Tarballs;
     }
 
-    for (const pkg of packages) {
+    for (const pkg of packagesForPack) {
       const pkgDir = join(REPO_ROOT, "packages", pkg);
       console.log(`  Packing packages/${pkg}...`);
 
@@ -399,22 +401,12 @@ export function createSandbox(): TestSandbox {
       sharedInstallKey = installKey;
       sharedInstallPromise = (async () => {
         console.log("📥 Installing packages into shared sandbox...");
-        await run(
-          npmBinary,
-          [
-            "install",
-            "--legacy-peer-deps",
-            "--no-audit",
-            tarballs.core,
-            tarballs.cli,
-            tarballs.mcp,
-          ],
-          {
-            cwd: npmPrefix,
-            env,
-            timeoutMs: 300000,
-          },
-        );
+        writePackedInstallManifest(npmPrefix, tarballs);
+        await run(npmBinary, ["install", "--legacy-peer-deps", "--no-audit"], {
+          cwd: npmPrefix,
+          env,
+          timeoutMs: 300000,
+        });
         await verifyKibiCliResolutionImpl(npmPrefix, env);
         console.log("  ✓ Packages installed");
       })();
@@ -452,11 +444,7 @@ export function createSandbox(): TestSandbox {
 
     async cleanup(): Promise<void> {
       console.log(`🧹 Cleaning up ${baseDir}...`);
-      try {
-        await run("rm", ["-rf", baseDir], { cwd: "/tmp", env: process.env });
-      } catch {
-        // Ignore cleanup errors
-      }
+      await run("rm", ["-rf", baseDir], { cwd: "/tmp", env: process.env });
     },
   };
 }

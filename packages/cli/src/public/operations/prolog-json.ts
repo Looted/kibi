@@ -13,7 +13,6 @@ function resolveCoreModulePath(fileName: string): string {
   );
 }
 
-// implements REQ-kibi-operation-interface-parity
 export async function runOperationJsonQuery<T>(
   prolog: PrologPort,
   fileName: string,
@@ -23,7 +22,13 @@ export async function runOperationJsonQuery<T>(
   const modulePath = escapeAtom(
     resolveCoreModulePath(fileName).replaceAll("\\", "/"),
   );
-  const result = await prolog.query(`(use_module('${modulePath}'), ${goal})`);
+  const loadResult = await prolog.query(`use_module('${modulePath}')`);
+  if (!loadResult.success) {
+    throw new Error(
+      `${errorLabel} module load failed: ${loadResult.error ?? "Unknown error"}`,
+    );
+  }
+  const result = await prolog.query(goal);
   if (!result.success) {
     throw new Error(
       `${errorLabel} query failed: ${result.error ?? "Unknown error"}`,

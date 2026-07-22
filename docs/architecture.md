@@ -9,8 +9,9 @@ graph TD
     end
     D -->|Extract| E[Extractors]
     E -->|Entities/Relationships| KB[Prolog KB (per branch)]
-    KB -->|Query| CLI[CLI]
-    KB -->|Query| MCP[MCP Server]
+    CLI[CLI: flags + JSON routes] --> OPS[18 shared operation specs]
+    MCP[MCP Server] --> OPS
+    OPS -->|Query / mutate| KB[Prolog KB (per branch)]
     CC[kibi-codex (optional plugin)] -->|calls| MCP
     CU[kibi-cursor (optional plugin)] -->|calls| MCP
     MCP -->|Tooling| VSCode[VS Code Extension]
@@ -34,18 +35,19 @@ graph TD
 
 ### CLI
 - Located at `packages/cli/`
-- Node.js/Bun wrapper around Prolog
-- Spawns SWI-Prolog subprocess
-- Commands: init, sync, query, check, gc, branch, doctor
+- Peer public operation surface alongside MCP, plus maintenance and human-oriented commands
+- Exposes all 18 public operations through `--input <file|->` JSON routes and preserves ergonomic flag commands where available
+- Node.js/Bun wrapper that owns the short-lived CLI runtime and spawns SWI-Prolog when an operation requires it
+- Maintenance commands include init, sync, migrate, gc, branch, doctor, and usage-metrics
 - Runs extractors for Markdown/YAML
 - Handles schema validation and audit logging
 
 ### MCP Server
 - Located at `packages/mcp/`
+- Peer public operation surface alongside the CLI
 - Provides stdio JSON-RPC transport (newline-delimited, no embedded newlines)
-- Tools: query, upsert, delete, check, branch.ensure, branch.gc
-- Branch-aware: all tools accept branch parameter
-- Keeps Prolog process alive for stateful operations
+- Registers the same 18 shared operation specs as host-visible `kb_*` tools
+- Keeps a branch-aware Prolog process alive and adapts its session runtime to shared executors
 
 ### Codex Adapter Plugin
 - Located at `packages/codex/`
@@ -95,15 +97,18 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant User as User
-    participant CLI as CLI/MCP
+    participant User as User or Agent
+    participant Surface as CLI or MCP
+    participant Ops as Shared Operation
     participant KB as Prolog KB
     participant RDF as RDF Persistence
-    User->>CLI: kibi query / MCP query
-    CLI->>KB: Send query
+    User->>Surface: CLI JSON/flags or MCP tool call
+    Surface->>Ops: Validate shared operation input
+    Ops->>KB: Send query
     KB->>RDF: Query RDF store
-    KB->>CLI: Serialize results to JSON
-    CLI->>User: Return results
+    KB->>Ops: Return bindings
+    Ops->>Surface: Structured operation result
+    Surface->>User: Return CLI JSON or MCP content
 ```
 
 ## Per-Branch KB Architecture

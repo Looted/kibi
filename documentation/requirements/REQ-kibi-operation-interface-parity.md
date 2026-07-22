@@ -27,3 +27,5 @@ The Kibi public operation surface exposes exactly 18 peer operations across MCP 
 2. The published operation set must contain exactly 18 peer operations.
 3. Public documentation and traceability artifacts must describe the two surfaces as peers.
 4. Remote SPARQL SELECT execution must use the shared operation executor through an explicit network port, preserve HTTP(S)-only endpoints and whole-second timeout behavior, and remain available through both MCP and the CLI JSON route.
+5. Every CLI operation route must accept one JSON object through `--input <file|->` and use exit codes `0` for success, `1` for operation failure, and `2` for invocation or validation failure.
+6. Material shared executors, transport protocol modules, runtime adapters, resolver scripts, and skill generators must have requirement-linked symbol traceability.

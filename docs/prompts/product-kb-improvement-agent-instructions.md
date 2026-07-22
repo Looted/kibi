@@ -8,7 +8,7 @@ Improve a product KB from a traceability-heavy graph into a semantic, queryable 
 
 ## Hard Rules
 
-1. Use Kibi MCP tools only; do not edit `.kb/` manually and do not run Kibi CLI from an agent session.
+1. Use visible Kibi MCP tools or the trusted project-local CLI's dedicated JSON routes (`kibi <route> --input <file|->`); never edit `.kb/` manually. If neither peer surface is available, stop and ask the operator to provide one.
 2. Start with `kb_search`, then exact `kb_query`.
 3. Create relationship endpoints before linking them.
 4. Run `kb_upsert` sequentially.

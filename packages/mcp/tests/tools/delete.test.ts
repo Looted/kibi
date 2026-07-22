@@ -75,11 +75,13 @@ describe("handleKbDelete", () => {
         }
 
         if (
-          goal ===
-          deleteGoal(
-            "REQ-001",
-            "req",
-            `id='REQ-001', title=\"Delete me\", source=\"test://delete\", text_ref=\"docs/REQ-001.md#L1\"`,
+          goal.startsWith("rdf_transaction(") &&
+          goal.includes(
+            deleteGoal(
+              "REQ-001",
+              "req",
+              `id='REQ-001', title=\"Delete me\", source=\"test://delete\", text_ref=\"docs/REQ-001.md#L1\"`,
+            ),
           )
         ) {
           return { success: true };
@@ -95,7 +97,7 @@ describe("handleKbDelete", () => {
 
     const result = await handleKbDelete(prolog, { ids: ["REQ-001"] });
 
-    expect(query).toHaveBeenCalledTimes(5);
+    expect(query).toHaveBeenCalledTimes(4);
     expect(invalidateCache).toHaveBeenCalledTimes(1);
     expect(result.structuredContent).toEqual({
       deleted: 1,
@@ -156,22 +158,20 @@ describe("handleKbDelete", () => {
       }
 
       if (
-        goal ===
-        deleteGoal(
-          "REQ-001",
-          "req",
-          `id='REQ-001', title=\"Delete req\", source=\"test://delete\"`,
-        )
-      ) {
-        return { success: true };
-      }
-
-      if (
-        goal ===
-        deleteGoal(
-          "o'brien",
-          "req",
-          `id='o''brien', title=\"Delete quoted\", source=\"test://delete\"`,
+        goal.startsWith("rdf_transaction(") &&
+        goal.includes(
+          deleteGoal(
+            "REQ-001",
+            "req",
+            `id='REQ-001', title=\"Delete req\", source=\"test://delete\"`,
+          ),
+        ) &&
+        goal.includes(
+          deleteGoal(
+            "o'brien",
+            "req",
+            `id='o''brien', title=\"Delete quoted\", source=\"test://delete\"`,
+          ),
         )
       ) {
         return { success: true };
@@ -190,10 +190,12 @@ describe("handleKbDelete", () => {
 
     expect(query).toHaveBeenCalledWith("once(kb_entity('o''brien', _, _))");
     expect(query).toHaveBeenCalledWith(
-      deleteGoal(
-        "o'brien",
-        "req",
-        `id='o''brien', title=\"Delete quoted\", source=\"test://delete\"`,
+      expect.stringContaining(
+        deleteGoal(
+          "o'brien",
+          "req",
+          `id='o''brien', title=\"Delete quoted\", source=\"test://delete\"`,
+        ),
       ),
     );
     expect(result.structuredContent).toEqual({
@@ -230,11 +232,13 @@ describe("handleKbDelete", () => {
       }
 
       if (
-        goal ===
-        deleteGoal(
-          "REQ-MINIMAL",
-          "req",
-          `id='REQ-MINIMAL', title=\"Minimal delete\"`,
+        goal.startsWith("rdf_transaction(") &&
+        goal.includes(
+          deleteGoal(
+            "REQ-MINIMAL",
+            "req",
+            `id='REQ-MINIMAL', title=\"Minimal delete\"`,
+          ),
         )
       ) {
         return { success: true };
@@ -250,10 +254,12 @@ describe("handleKbDelete", () => {
     await handleKbDelete(prolog, { ids: ["REQ-MINIMAL"] });
 
     expect(query).toHaveBeenCalledWith(
-      deleteGoal(
-        "REQ-MINIMAL",
-        "req",
-        `id='REQ-MINIMAL', title=\"Minimal delete\"`,
+      expect.stringContaining(
+        deleteGoal(
+          "REQ-MINIMAL",
+          "req",
+          `id='REQ-MINIMAL', title=\"Minimal delete\"`,
+        ),
       ),
     );
   });
@@ -353,11 +359,13 @@ describe("handleKbDelete", () => {
       }
 
       if (
-        goal ===
-        deleteGoal(
-          "REQ-DELETED",
-          "req",
-          `id='REQ-DELETED', title=\"Delete success\", source=\"test://delete\"`,
+        goal.startsWith("rdf_transaction(") &&
+        goal.includes(
+          deleteGoal(
+            "REQ-DELETED",
+            "req",
+            `id='REQ-DELETED', title=\"Delete success\", source=\"test://delete\"`,
+          ),
         )
       ) {
         return { success: true };
@@ -440,14 +448,7 @@ describe("handleKbDelete", () => {
         return { success: true, bindings: { Dependents: "[]" } };
       }
 
-      if (
-        goal ===
-        deleteGoal(
-          "REQ-001",
-          "req",
-          `id='REQ-001', title=\"Delete failure\", source=\"test://delete\"`,
-        )
-      ) {
+      if (goal.startsWith("rdf_transaction(")) {
         return { success: false, error: "permission denied" };
       }
 
@@ -458,13 +459,9 @@ describe("handleKbDelete", () => {
       throw new Error(`Unexpected goal: ${goal}`);
     });
 
-    const result = await handleKbDelete(prolog, { ids: ["REQ-001"] });
-
-    expect(result.structuredContent).toEqual({
-      deleted: 0,
-      skipped: 1,
-      errors: ["Failed to delete entity REQ-001: permission denied"],
-    });
+    await expect(handleKbDelete(prolog, { ids: ["REQ-001"] })).rejects.toThrow(
+      "Delete execution failed: Failed to save KB after delete: permission denied",
+    );
   });
 
   test("wraps save failures and does not invalidate cache", async () => {
@@ -493,18 +490,7 @@ describe("handleKbDelete", () => {
         return { success: true, bindings: { Dependents: "[]" } };
       }
 
-      if (
-        goal ===
-        deleteGoal(
-          "REQ-001",
-          "req",
-          `id='REQ-001', title=\"Delete save fail\", source=\"test://delete\"`,
-        )
-      ) {
-        return { success: true };
-      }
-
-      if (goal === "kb_save") {
+      if (goal.startsWith("rdf_transaction(")) {
         return { success: false };
       }
 

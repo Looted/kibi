@@ -3,7 +3,6 @@ import type { PrologPort } from "../../public/operations/runtime-types.js";
 import { buildPropertyList, buildRelationshipMetadata } from "./serialization.js";
 import type { RelationshipInput } from "./types.js";
 
-// implements REQ-kibi-operation-interface-parity
 export async function recordEntityAudit(
   prolog: PrologPort,
   change: "created" | "updated",
@@ -17,7 +16,6 @@ export async function recordEntityAudit(
   }
 }
 
-// implements REQ-kibi-operation-interface-parity
 export async function recordRelationshipAudits(
   prolog: PrologPort,
   relationships: readonly RelationshipInput[],
@@ -32,4 +30,15 @@ export async function recordRelationshipAudits(
       throw new Error(`Failed to record relationship audit entry ${from}->${to}: ${result.error ?? "Unknown error"}`);
     }
   }
+}
+
+export function buildEntityDeleteAuditGoal(
+  entity: Readonly<Record<string, unknown>>,
+): string {
+  const auditEntity = Object.fromEntries(
+    ["id", "title", "source", "text_ref"].flatMap((key) =>
+      typeof entity[key] === "string" ? [[key, entity[key]]] : [],
+    ),
+  );
+  return `kb_retract_entity('${escapeAtom(String(entity.id))}', ${String(entity.type)}, ${buildPropertyList(auditEntity)})`;
 }

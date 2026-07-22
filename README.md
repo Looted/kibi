@@ -29,7 +29,7 @@ Kibi is designed to boost AI agents' memory during software development. It main
 - **Tracks context across branches** — Every git branch gets its own KB snapshot, preserving context as you switch between features
 - **Enforces traceability** — Links code symbols to requirements, preventing orphan features and technical debt
 - **Validates automatically** — Rules catch missing requirements, dangling references, and consistency issues
-- **Agent-friendly** — LLM assistants can query and update knowledge base via MCP without risking file corruption
+- **Agent-friendly** — LLM assistants can query and update the knowledge base through peer MCP tools or dedicated CLI JSON routes without risking direct file corruption
 - **Guides semantic modeling** — The MCP server can inspect prose requirements and suggest strict facts or reusable predicate facts before agents treat text as machine-checkable knowledge
 
 ### What You Get
@@ -58,8 +58,8 @@ For OpenCode users, bootstrap an existing repo with \`/init-kibi\` (\`kb_autopil
 ## Key Components
 
 - **kibi-core** — Prolog-based knowledge graph that tracks entities across branches
-- **kibi-cli** — Command-line interface for automation and hooks
-- **kibi-mcp** — Model Context Protocol server for LLM integration
+- **kibi-cli** — Command-line interface for people, agents, automation, and hooks, including 18 dedicated JSON routes
+- **kibi-mcp** — Peer Model Context Protocol surface exposing the same 18 public operations to MCP-capable agents
 - **kibi-opencode** — OpenCode plugin that injects Kibi guidance and runs background syncs
 - **kibi-codex** — Optional Codex adapter that brings Kibi MCP skills and hooks into Codex workflows
 - **kibi-cursor** — Optional Cursor plugin with rules, skills, MCP wiring, and advisory editor hooks

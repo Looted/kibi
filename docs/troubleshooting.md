@@ -206,6 +206,16 @@ This checks:
 - Git repository presence
 - Git hooks installation
 
+## Agent CLI JSON route failures
+
+The dedicated CLI JSON routes are peer operation access for agents that do not have visible MCP tools.
+
+- Exit `2` means invocation or input validation failed. Confirm `--input <file|->` is present, the JSON root is an object, and no business flag or positional argument is mixed with JSON mode.
+- Exit `1` means validated operation execution failed. Inspect `Error [CODE]: detail` on stderr, then check SWI-Prolog, branch freshness, filesystem permissions, or network availability as appropriate for that operation.
+- Exit `0` writes one structured JSON value to stdout. If an integration expects a table or prose, use the human flag mode instead of `--input`.
+
+Use a project-local binary (`npm exec -- kibi`, `pnpm exec kibi`, `yarn exec kibi`, or `bunx --no-install kibi`) so CLI and MCP resolve the same package versions.
+
 ## OpenCode shows "workspace needs Kibi bootstrap" before the TUI
 ## OpenCode shows "workspace needs Kibi bootstrap" before the TUI
 

@@ -11,6 +11,8 @@ The repo-root setup relies on these files:
 3. `.cursor/rules/*.mdc` mirrors plugin rules after sync (optional but recommended for rule dogfood).
 4. `packages/mcp/dist/` and `packages/cursor/dist/` must exist in the **worktree or the primary checkout** because Cursor uses those built outputs.
 
+Agent-visible Kibi operations are not owned exclusively by this MCP dogfood wiring. MCP tools and the trusted project-local CLI's 18 `--input` JSON routes are peer surfaces over the same operation catalog; this setup exercises Cursor's MCP transport, resolver, and hooks specifically.
+
 Do **not** rely on a symlink into `~/.cursor/plugins/local` for repo dogfood. Cursor rejects symlinks whose targets live outside the plugins/local directory.
 
 ## Initial Setup
