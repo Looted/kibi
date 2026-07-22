@@ -1,6 +1,6 @@
 import * as path from "node:path";
 import type { CommentAnalysisResult } from "./comment-analysis.js";
-// implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1, REQ-opencode-agent-mcp-only
+// implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1, REQ-agent-kibi-interface-selection
 import type { KibiConfig } from "./config.js";
 import { isPluginEnabled } from "./config.js";
 import type { CacheKey, GuidanceCache } from "./guidance-cache.js";
@@ -101,7 +101,7 @@ function buildBootstrapRequiredBody(
     ? "- When the Kibi OpenCode plugin is active and native injection is supported, use `/init-kibi` as the canonical short alias; `/kibi:init-kibi:mcp` remains the namespaced MCP fallback."
     : "- This host does not support native `/init-kibi` injection. Kibi must fail closed and does not register a fake native alias; use `/kibi:init-kibi:mcp` instead.";
 
-  return `This repository does not appear to have Kibi initialized. Agents should:\n${commandBullet}\n- The workflow uses \`kb_autopilot_generate\` for read-only synthesis; always preview and get approval before writes.\n- Ask the user/operator to run setup or repair outside this session if bootstrap is insufficient.\n- For comprehensive Kibi usage guidance, use \`kb_skills_load\` with skill id \`kibi-usage\`.\n\nUse public MCP tools only: \`kb_autopilot_generate\`, \`kb_search\`, \`kb_query\`, \`kb_status\`, \`kb_find_gaps\`, \`kb_coverage\`, \`kb_graph\`, \`kb_upsert\`, \`kb_delete\`, \`kb_check\`, \`kb_skills_load\`.`;
+  return `Kibi capability selection:\n1. If Kibi MCP tools are visible, use MCP.\n2. If MCP availability is unknown and a trusted local Kibi CLI is available, use its dedicated JSON routes with \`--input <file|->\`.\n3. If neither interface is available, Kibi operation is blocked; tell the operator.\nDo not infer MCP availability from config file existence. Do not read or edit \`.kb/\` files directly. Query before mutate. Run \`kb_upsert\` sequentially. Run \`kb_check\` before completion.\n\nThis repository does not appear to have Kibi initialized. Agents should:\n${commandBullet}\n- The workflow uses \`kb_autopilot_generate\` for read-only synthesis; always preview and get approval before writes.\n- Ask the operator to handle setup or repair if bootstrap is insufficient.\n- Load \`kibi-usage\` with \`kb_skills_load\` for comprehensive guidance.`;
 }
 
 // ── PromptContext ──────────────────────────────────────────────────────
@@ -163,7 +163,12 @@ function buildHardGateBlock(
     reasonLine,
     "Affected files:",
     ...pathLines,
-    "MCP-only recovery steps:",
+    "Capability-based recovery steps:",
+    "- If Kibi MCP tools are visible, use MCP.",
+    "- If MCP availability is unknown and a trusted local Kibi CLI is available, use its dedicated JSON routes with `--input <file|->`.",
+    "- If neither interface is available, Kibi operation is blocked; tell the operator to enable MCP or the trusted project-local CLI.",
+    "- Do not infer MCP availability from config file existence. Do not read or edit `.kb/` files directly.",
+    "- Query before mutate. Run `kb_upsert` sequentially. Run `kb_check` before completion.",
     "- Run `kb_search` for impacted requirements, tests, ADRs, and facts.",
     "- Run `kb_query` with `sourceFile` for each affected file.",
     "- Run `kb_status` if branch or snapshot freshness matters.",
@@ -210,7 +215,8 @@ Production code: use \`implements\` (symbol→req) for requirement ownership. Te
 
   manual_kb_edit: `⚠️  **WARNING: Direct .kb/ edits bypass validation**
 
-The Kibi knowledge base is managed through public MCP tools. Direct manual edits to .kb/** can cause inconsistencies.
+The Kibi knowledge base is managed through visible MCP tools or trusted project-local CLI JSON routes when MCP is unavailable. Do not read or edit \`.kb/\` files directly.
+- Query before mutate and run kb_upsert sequentially
 - Use kb_upsert to create/update entities
 - Use kb_delete to remove entities
 - Use kb_check to validate consistency`,
@@ -411,8 +417,10 @@ If you're adding long explanatory comments, consider routing that knowledge to:
           );
         }
       }
-    } catch {
-      // Non-fatal: source-linked context is best-effort
+    } catch (error) {
+      if (!(error instanceof Error)) {
+        throw error;
+      }
     }
   }
 
@@ -618,13 +626,17 @@ function buildBaseGuidance(
   capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
 ): string {
   return `${SENTINEL}
-This project uses Kibi (via MCP). Prefer storing durable knowledge in Kibi over code comments.
+This project uses Kibi through capability-selected MCP or CLI JSON routes. Prefer storing durable knowledge in Kibi over code comments.
 
 Before changing behavior: use kb_search for discovery, then kb_query by sourceFile, id, type, or tags for exact follow-up; do not rely on undocumented tools.
 
 Keep changed symbols traceable: production code uses \`implements\` (symbol→req) for ownership; test code uses \`executable_for\`; \`covered_by\` is coverage evidence only. Inline \`// implements REQ-xxx\` comments remain backward-compatible.
 
-Run kb_check after KB mutations.
+Kibi capability selection:
+1. If Kibi MCP tools are visible, use MCP.
+2. If MCP availability is unknown and a trusted local Kibi CLI is available, use its dedicated JSON routes with \`--input <file|->\`.
+3. If neither interface is available, Kibi operation is blocked; tell the operator to enable MCP or the trusted project-local CLI.
+Do not infer MCP availability from config file existence. Do not read or edit \`.kb/\` files directly. Query before mutate. Run \`kb_upsert\` sequentially. Run \`kb_check\` before completion.
 
 Dogfood note for this repo: OpenCode here uses local built \`kibi-mcp\` and \`kibi-opencode\` artifacts. If you change package versions or local package wiring, run \`bun run build\` before relying on OpenCode in this workspace.
 
@@ -637,11 +649,9 @@ Dogfood note for this repo: OpenCode here uses local built \`kibi-mcp\` and \`ki
 6. **Validate**: Run kb_check after KB mutations to catch violations early.
 7. **Before completion/commit**: Kibi impact evidence is required before completion/commit. If extraction output changes, refresh documentation/symbols.yaml and do not revert that update as scope creep.
 
-**Public Kibi tools only:** kb_autopilot_generate, kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check, kb_skills_load.
+MCP and CLI expose the same 18 Kibi operations. Use the exact MCP tool or dedicated CLI route; do not invent a generic runner.
 
 For comprehensive Kibi usage guidance (relationships, fact lanes, workflows), use \`kb_skills_load\` with skill id \`kibi-usage\`.
-
-Do not invoke Kibi CLI commands directly from the agent.
 
 ${buildInitKibiBootstrapReference(capability)}`;
 }

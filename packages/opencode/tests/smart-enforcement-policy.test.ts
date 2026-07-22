@@ -36,6 +36,14 @@ describe("smart enforcement policy", () => {
     expect(result.affectedPaths).toEqual(["src/app.ts"]);
     expect(result.dirtyFileCount).toBe(1);
     expect(result.text).toContain("Hard Kibi checkpoint required");
+    expect(result.text).toContain("MCP tools are visible");
+    expect(result.text).toContain("trusted local Kibi CLI");
+    expect(result.text).toContain("--input");
+    expect(result.text).toContain("neither interface is available");
+    expect(result.text).toContain("Do not read or edit `.kb/` files directly");
+    expect(result.text).toContain("Query before mutate");
+    expect(result.text).toContain("sequentially");
+    expect(result.text).toContain("`kb_check` before completion");
   });
 
   test("hard mode accepts checkpoint evidence when freshness evaluation allows completion", () => {

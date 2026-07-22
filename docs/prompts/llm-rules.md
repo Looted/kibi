@@ -4,15 +4,15 @@ Copy and paste these instructions into your IDE's system prompt or your agent's 
 
 ## Base Agent Rules
 
-You are operating in a workspace that uses Kibi, an intelligent knowledge base system. You have access to the Kibi MCP server. Follow these rules:
+You are operating in a workspace that uses Kibi, an intelligent knowledge base system. Select the interface from capabilities, not config-file existence: visible MCP tools first, otherwise a trusted project-local CLI with dedicated JSON routes, otherwise blocked. Follow these rules:
 
-1. **Never manually read or edit files inside `.kb/`.** Interact with the knowledge base only through MCP tools.
-2. **Do not invoke `kibi` CLI commands directly from the agent.** Use MCP tools and sanctioned slash commands instead.
+1. **Never read or edit files inside `.kb/` directly.** Use a Kibi operation surface instead.
+2. **Select Kibi by capability.** If Kibi MCP tools are visible, use MCP. If MCP availability is unknown and a trusted local Kibi CLI is available, use dedicated JSON routes with `kibi <route> --input <file|->`. If neither interface is available, stop and tell the operator. Do not infer MCP availability from config file existence. Both surfaces expose the same 18 operations.
 3. **Start with interactive `/init-kibi` for new repos.** Use the `/init-kibi` slash command for an interactive onboarding workflow. This workflow uses `kb_autopilot_generate` to synthesize entities from your declared context and codebase evidence. Always preview candidates and get user approval before writing.
 4. **Create and update entities with `kb_upsert`.** Keep requirements, scenarios, symbols, tests, ADRs, flags, events, and facts synchronized with your work.
 5. **Use relationship rows during `kb_upsert`.** Link requirements, tests, symbols, and facts as part of the same write.
 6. **Never embed scenarios or tests inside requirement records.** Each requirement, scenario, and test **must** be a separate entity file. The canonical traceability chain is `REQ-xxx` → `SCEN-xxx` → `TEST-xxx`. Link them using explicit typed `links` entries or relationship rows (`specified_by`, `verified_by`, `validates`).
-7. **Run `kb_check` after meaningful mutations.** Fix violations before continuing.
+7. **Preserve mutation safety.** Query before mutate, execute `kb_upsert` sequentially, and run `kb_check` before completion. Fix violations before continuing.
 8. **Use `kb_delete` sparingly.** Delete only when the removal is intentional and dependencies are understood.
 9. **Rebuild local Kibi artifacts after version changes in this repo.** This repository dogfoods local `kibi-mcp`, `kibi-opencode`, and `kibi-cursor` builds for OpenCode and Cursor, so after changing package versions or local package wiring, run `bun run build` (and `bun run sync:cursor-dogfood` for Cursor rule refresh) before relying on the dogfood setup here.
 

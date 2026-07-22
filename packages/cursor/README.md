@@ -87,7 +87,7 @@ Manual MCP fallback (no plugin install required):
 
 ### Discovery-first rules and skills
 
-- **Rules**: always-on MCP workflow guidance plus optional traceability rules for source files.
+- **Rules**: always-on capability-based workflow guidance plus optional traceability rules for source files.
 - **Skills**: `kibi-usage`, `init-kibi`, `kibi-freshness`, and `kibi-traceability`.
 - **Commands**: `/init-kibi` documents the `kb_autopilot_generate` bootstrap workflow.
 
@@ -106,14 +106,14 @@ Hooks are warning-only and never replace MCP/CLI behavior:
 Per the thin-adapter architecture, `kibi-cursor` does not:
 
 - Own KB storage, parsing, or validation
-- Run background `kibi sync` or CLI `kibi check` (use git hooks and MCP tools; for source edits, use impact-enabled MCP `kb_check` first)
+- Run background `kibi sync` or CLI `kibi check` from hooks (agents select visible MCP tools or trusted project-local CLI JSON routes; for source edits, use impact-enabled `kb_check` first)
 - Block agent actions in advisory mode
 
 ## Architecture
 
 `kibi-cursor` is a thin bridge layer:
 
-- **Agent-visible guidance**: public MCP tools (`kb_search`, `kb_query`, `kb_upsert`, impact-enabled `kb_check`, etc.) and the `/init-kibi` command
+- **Agent-visible guidance**: visible public MCP tools or trusted project-local CLI JSON routes (`--input`), plus a blocked/operator state when neither is available
 - **Editor-specific value**: Cursor hooks for read/write reminders and session freshness follow-ups
 - **Foundation**: `kibi-core`, `kibi-cli`, and `kibi-mcp` remain required for project-local operations
 

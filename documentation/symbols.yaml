@@ -2599,6 +2599,7 @@ symbols:
       - REQ-002
       - REQ-mcp-suggest-predicates
       - REQ-mcp-tool-upsert
+      - REQ-agent-kibi-interface-selection
     relationships:
       - type: implements
         target: REQ-002
@@ -2606,6 +2607,8 @@ symbols:
         target: REQ-mcp-suggest-predicates
       - type: implements
         target: REQ-mcp-tool-upsert
+      - type: implements
+        target: REQ-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-005
       - type: covered_by
@@ -2618,11 +2621,14 @@ symbols:
     links:
       - REQ-002
       - REQ-mcp-suggest-predicates
+      - REQ-agent-kibi-interface-selection
     relationships:
       - type: implements
         target: REQ-002
       - type: implements
         target: REQ-mcp-suggest-predicates
+      - type: implements
+        target: REQ-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-005
       - type: covered_by
@@ -3882,6 +3888,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
   - id: SYM-PolicyLinkedEntityResult
@@ -4058,6 +4066,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-opencode-bootstrap-nudge
+      - type: implements
+        target: REQ-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
   - id: SYM-findSdkPackageJsonForPluginRoot
@@ -4435,6 +4445,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
   - id: SYM-injectPrompt
@@ -5848,9 +5860,12 @@ symbols:
     sourceFile: packages/cursor/src/guidance.ts
     links:
       - REQ-cursor-kibi-plugin-v1
+      - REQ-agent-kibi-interface-selection
     relationships:
       - type: implements
         target: REQ-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
   - id: SYM-cursor-writeGuidance
@@ -5859,9 +5874,12 @@ symbols:
     text_ref: packages/cursor/src/guidance.ts#writeGuidance
     links:
       - REQ-cursor-kibi-plugin-v1
+      - REQ-agent-kibi-interface-selection
     relationships:
       - type: implements
         target: REQ-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
   - id: SYM-cursor-BOOTSTRAP_REMINDER
@@ -5870,9 +5888,12 @@ symbols:
     granularity_reason: legacy-link
     links:
       - REQ-cursor-kibi-plugin-v1
+      - REQ-agent-kibi-interface-selection
     relationships:
       - type: implements
         target: REQ-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
   - id: SYM-cursor-DIRECT_KB_EDIT_WARNING
@@ -5881,9 +5902,12 @@ symbols:
     granularity_reason: legacy-link
     links:
       - REQ-cursor-kibi-plugin-v1
+      - REQ-agent-kibi-interface-selection
     relationships:
       - type: implements
         target: REQ-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
   - id: SYM-cursor-freshnessReminder
@@ -5897,21 +5921,6 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-  - id: SYM-cursor-impactCheckFollowup
-    title: impactCheckFollowup
-    sourceFile: packages/cursor/src/messages.ts
-    granularity_reason: extractor-miss
-    links:
-      - REQ-cursor-kibi-plugin-v1
-    relationships:
-      - type: implements
-        target: REQ-cursor-kibi-plugin-v1
-      - type: covered_by
-        target: TEST-cursor-kibi-plugin-v1
-    sourceLine: 58
-    sourceColumn: 9
-    sourceEndLine: 67
-    sourceEndColumn: 1
   - id: SYM-cursor-extractExplicitPathFields
     title: extractExplicitPathFields
     sourceFile: packages/cursor/src/path-policy.ts
@@ -6337,6 +6346,7 @@ symbols:
     title: GuidanceContext
     sourceFile: packages/cursor/src/guidance.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     links:
       - REQ-cursor-worktree-kibi-continuity
     relationships:

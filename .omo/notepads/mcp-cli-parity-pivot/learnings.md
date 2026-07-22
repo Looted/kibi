@@ -106,3 +106,10 @@
 - Pipes inside Markdown table cells break simple machine parsing; representing input mode as `--input JSON` or `--input JSON or flags` keeps the resource deterministic while the prose defines `<file|->` semantics.
 - Cursor and Codex mirrors remain generated artifacts: updating canonical sources and running `sync-agent-skills.ts --write` copies the new resource and refreshes both hash manifests.
 - Test symbols must use `executable_for` without mixing production `implements` ownership; the requirement remains connected through the existing test entity.
+
+## 2026-07-22T14:00:00Z Task: plan-todo-20
+- Active repository, Copilot, Cursor, OpenCode, and MCP bootstrap guidance now uses one three-state interface policy: visible MCP tools, trusted project-local CLI JSON routes with `--input`, or a blocked state that tells the operator what capability is missing.
+- Capability selection must never infer MCP availability from config-file presence; the Cursor host resolver remains the only runtime state seam, while static guidance explains the same policy without probing or installing anything.
+- The interface pivot preserves the invariant safety sequence everywhere it appears: never access `.kb/` directly, discover/query before mutation, execute upserts sequentially, and run `kb_check` before completion.
+- OpenCode's bootstrap posture text is capped by a prompt word budget, so the capability and safety state machine must appear before lower-priority bootstrap details or it can be truncated from the injected system prompt.
+- Focused tests first failed against every obsolete surface, then passed across OpenCode policy/prompt/hooks, Cursor read/write guidance, and MCP runtime docs after the production wording pivot.

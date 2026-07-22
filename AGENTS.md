@@ -12,7 +12,8 @@ If this file and MCP schema details diverge, follow MCP schema and update this f
 
 ## Non-Negotiables
 
-- Use MCP tools for Kibi operations that have MCP equivalents.
+- Use Kibi through MCP tools when available, or through the CLI's dedicated JSON routes (--input) when MCP is unavailable. Both surfaces expose the same 18 operations.
+- Select the interface by capability: use visible MCP tools; otherwise use a trusted project-local CLI when available; if neither is available, stop and tell the operator. Do not infer MCP availability from config file existence.
 - Do **not** manually read or edit `.kb/` files.
 - CLI-only Kibi operations, including sync/refresh workflows that do not have MCP tool equivalents, may be run from agent sessions when needed to complete validation or freshness work.
 - If KB setup/repair is needed beyond `/init-kibi`, ask the user/operator to run those steps.
