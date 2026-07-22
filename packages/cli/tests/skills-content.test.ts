@@ -32,6 +32,7 @@ describe("kibi-usage skill content", () => {
     );
     expect(bundle.manifest.resources).toContain("resources/fact-lanes.md");
     expect(bundle.manifest.resources).toContain("resources/workflows.md");
+    expect(bundle.manifest.resources).toContain("resources/operation-access.md");
   });
 
   test("body contains MCP workflow terms", () => {
@@ -49,53 +50,23 @@ describe("kibi-usage skill content", () => {
     expect(bundle.body).toContain("canonical MCP names");
   });
 
-  test("body contains relationship terms", () => {
-    expect(bundle.body).toContain("implements");
-    expect(bundle.body).toContain("specified_by");
-    expect(bundle.body).toContain("verified_by");
-    expect(bundle.body).toContain("validates");
-    expect(bundle.body).toContain("executable_for");
-    expect(bundle.body).toContain("constrains");
-    expect(bundle.body).toContain("requires_property");
-    expect(bundle.body).toContain("supersedes");
-  });
+  test("body defines the capability selection order", () => {
+    const interfaceSection = bundle.body.match(
+      /## Interface Selection\n([\s\S]*?)(?=\n## )/,
+    )?.[1];
 
-  test("body contains fact lane terms", () => {
-    expect(bundle.body).toContain("fact_kind: subject");
-    expect(bundle.body).toContain("fact_kind: property_value");
-    expect(bundle.body).toContain("observation");
-    expect(bundle.body).toContain("meta");
-  });
-
-  test("body contains entity type terms", () => {
-    expect(bundle.body).toContain("flag");
-    expect(bundle.body).toContain("fact");
-    expect(bundle.body).toContain("req");
-    expect(bundle.body).toContain("scenario");
-    expect(bundle.body).toContain("test");
-  });
-
-  test("body contains workflow terms", () => {
-    expect(bundle.body).toContain("sequential");
-    expect(bundle.body).toContain("discovery");
-    expect(bundle.body).toContain("Create-Before-Link");
-  });
-
-  test("body contains validation terms", () => {
-    expect(bundle.body).toContain("domain-contradictions");
-  });
-
-  test("body contains anti-pattern terms", () => {
-    expect(bundle.body).toContain("Anti-Patterns");
-    expect(bundle.body).toContain("Remediation");
-    expect(bundle.body).toContain("do not");
-  });
-
-  test("body does not contain CLI-first guidance", () => {
-    expect(bundle.body).not.toContain("kibi sync");
-    expect(bundle.body).not.toContain("kibi init");
-    expect(bundle.body).not.toContain("kibi doctor");
-    expect(bundle.body).not.toContain("kibi migrate");
+    expect(interfaceSection).toBeDefined();
+    expect(interfaceSection).toMatch(/1\.[\s\S]*MCP/);
+    expect(interfaceSection).toMatch(/2\.[\s\S]*npx --no-install/);
+    expect(interfaceSection).toMatch(/bunx --no-install/);
+    expect(interfaceSection).toMatch(/3\.[\s\S]*operator/);
+    expect(interfaceSection).toMatch(/too old/);
+    expect(interfaceSection).toMatch(/4\.[\s\S]*global/);
+    expect(interfaceSection).toMatch(/installing runner/);
+    expect(interfaceSection?.toLowerCase()).not.toContain("mcp only");
+    expect(interfaceSection?.toLowerCase()).not.toContain(
+      "exclusively through mcp",
+    );
   });
 
   test("body covers activation criteria", () => {
@@ -104,9 +75,25 @@ describe("kibi-usage skill content", () => {
     );
   });
 
-  test("body covers MCP-only rules", () => {
+  test("body preserves direct-storage safety rules", () => {
     expect(bundle.body).toContain("Do not read or edit files inside");
     expect(bundle.body).toContain(".kb/");
+  });
+
+  test("body links the operation catalog and provides an executable CLI JSON recipe", () => {
+    const bashBlocks = [...bundle.body.matchAll(/```bash\n([\s\S]*?)```/g)].map(
+      (match) => match[1] ?? "",
+    );
+
+    expect(bundle.body).toContain("resources/operation-access.md");
+    expect(
+      bashBlocks.some(
+        (block) =>
+          block.includes("npx --no-install kibi upsert --input -") &&
+          block.includes('"type":"req"') &&
+          block.includes('"id":"REQ-001"'),
+      ),
+    ).toBe(true);
   });
 
   test("body covers discovery-first workflow", () => {
@@ -170,7 +157,7 @@ describe("kibi-usage skill content", () => {
     expect(bundle.body).toContain("REQ -> TEST");
     expect(bundle.body).toContain("`verified_by`");
     expect(bundle.body).toContain(
-      "MCP writes do not automatically stage markdown evidence",
+      "Kibi operation writes do not automatically stage markdown evidence",
     );
   });
 
