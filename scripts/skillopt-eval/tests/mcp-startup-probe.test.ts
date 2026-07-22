@@ -1,11 +1,13 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import {
   RequiredMcpStartupError,
   probeRequiredMcp,
+  stageCapabilityCanary,
 } from "../runtime/canary-runtime";
+import { createIsolationWorkspace } from "../runtime/isolation-workspace";
 
 const roots: string[] = [];
 
@@ -22,23 +24,40 @@ async function workspace(): Promise<string> {
 }
 
 describe("required Kibi MCP stdio startup", () => {
-  test("initializes the locally built server and lists tools", async () => {
+  test("initializes the staged source-independent server and lists tools", async () => {
     // Given
-    const cwd = await workspace();
-    const launch = {
-      command: process.execPath,
-      args: [resolve("packages/mcp/bin/kibi-mcp")],
-      cwd,
-      env: process.env,
-    } as const;
+    const artifactRoot = await workspace();
+    const isolation = await createIsolationWorkspace({
+      artifactRoot,
+      runId: "staged-mcp",
+      role: "target",
+    });
 
-    // When
-    const result = await probeRequiredMcp(launch);
+    try {
+      // When
+      const staged = await stageCapabilityCanary(isolation, process.cwd());
+      const result = await probeRequiredMcp({
+        ...staged.mcpServer,
+        env: process.env,
+      });
 
-    // Then
-    expect(result.toolNames).toContain("kb_search");
-    expect(result.toolNames).toContain("kb_query");
-    expect(result.toolNames).toContain("kb_check");
+      // Then
+      const stagedRoot = resolve(isolation.target, ".runtime/kibi-mcp");
+      expect(staged.mcpServer.command.startsWith(`${stagedRoot}/`)).toBe(true);
+      expect(staged.mcpServer.args).toEqual([
+        resolve(stagedRoot, "dist/server.js"),
+      ]);
+      expect(
+        (await readFile(staged.mcpServer.args[0] ?? "", "utf8")).includes(
+          process.cwd(),
+        ),
+      ).toBe(false);
+      expect(result.toolNames).toContain("kb_search");
+      expect(result.toolNames).toContain("kb_query");
+      expect(result.toolNames).toContain("kb_check");
+    } finally {
+      await isolation.cleanup();
+    }
   });
 
   test("returns a typed startup failure for an unavailable command", async () => {

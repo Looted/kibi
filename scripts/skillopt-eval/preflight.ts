@@ -7,7 +7,9 @@ import {
   type StagedCanaryRuntime,
   probeCodexSandbox,
   probeRequiredMcp,
+  sourceIsolationDeniedPaths,
   stageCapabilityCanary,
+  writeCapabilityProbe,
 } from "./runtime/canary-runtime";
 import { CodexAuthError, prepareExistingLogin } from "./runtime/codex-auth";
 import {
@@ -185,7 +187,11 @@ export async function runPreflight(
   const sourceWorktree = resolve(config.sourceWorktree ?? process.cwd());
   const artifactRoot = resolve(
     config.artifactRoot ??
-      join(sourceWorktree, "artifacts/skillopt/isolation-canary"),
+      join(
+        "/run/user",
+        String(process.getuid?.() ?? process.pid),
+        "kibi-skillopt/isolation-canary",
+      ),
   );
   const env = config.env ?? process.env;
   let state: Parameters<typeof baseReceipt>[1] = {
@@ -234,11 +240,16 @@ export async function runPreflight(
       ...staged.mcpServer,
       env: auth.env,
     });
+    const probe = await writeCapabilityProbe(
+      workspace,
+      sourceIsolationDeniedPaths(workspace, sourceWorktree, auth.realCodexHome),
+    );
     await dependencies.probeSandbox({
       codexCommand: staged.codexCommand,
       workspace: workspace.target,
       env: auth.env,
       run: dependencies.run,
+      probe,
     });
     state = { ...state, configValid: true };
     return { ...baseReceipt(config, state), verdict: "pass" };

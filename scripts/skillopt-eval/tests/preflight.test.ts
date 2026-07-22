@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { isAbsolute, join, relative } from "node:path";
 import {
   type PreflightDependencies,
   runPreflight,
@@ -52,6 +52,7 @@ function dependencies(
     bwrap?: boolean;
     mcp?: boolean;
     sandbox?: boolean;
+    sourceIsolation?: boolean;
     doctorExit?: number;
   }>,
 ): PreflightDependencies {
@@ -69,7 +70,6 @@ function dependencies(
           command: "/bin/node",
           args: ["/source/packages/mcp/bin/kibi-mcp"],
           cwd: workspace.target,
-          readableRoots: ["/source/packages/mcp/dist"],
         },
       };
     },
@@ -79,9 +79,12 @@ function dependencies(
       }
       return { toolNames: ["kb_search", "kb_query", "kb_check"] };
     },
-    probeSandbox: async () => {
+    probeSandbox: async (probeOptions) => {
       if (options?.sandbox === false) {
         throw new RuntimePrerequisiteError("sandbox_probe_failed");
+      }
+      if (options?.sourceIsolation === false && "probe" in probeOptions) {
+        throw new RuntimePrerequisiteError("source_isolation_probe_failed");
       }
     },
     run: async (argv) => {
@@ -194,6 +197,10 @@ describe("SkillOpt Codex preflight", () => {
       [dependencies({ bwrap: false }), "missing_isolation:bwrap"],
       [dependencies({ mcp: false }), "required_mcp_startup:connection_closed"],
       [dependencies({ sandbox: false }), "isolation_probe_failed"],
+      [
+        dependencies({ sourceIsolation: false }),
+        "source_isolation_probe_failed",
+      ],
       [dependencies({ sourceClean: false }), "source_not_clean"],
       [dependencies({ doctorExit: 1 }), "config_invalid"],
     ] as const;
@@ -217,5 +224,43 @@ describe("SkillOpt Codex preflight", () => {
     expect(receipts.map((receipt) => receipt.reason)).toEqual(
       cases.map((entry) => entry[1]),
     );
+  });
+
+  test("places the default preflight runtime outside the source worktree", async () => {
+    // Given
+    const testFixture = await fixture();
+    let stagedRoot = "";
+    const deps = dependencies();
+
+    // When
+    const receipt = await runPreflight(
+      {
+        runId: "external-preflight-runtime",
+        sourceWorktree: testFixture.root,
+        env: testFixture.env,
+      },
+      {
+        ...deps,
+        stageRuntime: async (workspace, sourceWorktree) => {
+          stagedRoot = workspace.root;
+          return deps.stageRuntime(workspace, sourceWorktree);
+        },
+      },
+    );
+
+    // Then
+    const sourceRelative = relative(testFixture.root, stagedRoot);
+    const runtimeParent = join("/run/user", String(process.getuid?.() ?? -1));
+    const runtimeRelative = relative(runtimeParent, stagedRoot);
+    expect(receipt.verdict).toBe("pass");
+    expect(
+      sourceRelative === "" ||
+        (!sourceRelative.startsWith("..") && !isAbsolute(sourceRelative)),
+    ).toBe(false);
+    expect(
+      runtimeRelative !== "" &&
+        !runtimeRelative.startsWith("..") &&
+        !isAbsolute(runtimeRelative),
+    ).toBe(true);
   });
 });

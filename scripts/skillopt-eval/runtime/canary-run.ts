@@ -7,6 +7,7 @@ import {
 import {
   RequiredMcpStartupError,
   RuntimePrerequisiteError,
+  sourceIsolationDeniedPaths,
   stageCapabilityCanary,
   summarizeProcessFailure,
   writeCapabilityProbe,
@@ -138,23 +139,21 @@ export async function runModelCanary(
       }),
       { encoding: "utf8", mode: 0o600 },
     );
-    const probe = await writeCapabilityProbe(workspace, [
-      join(auth.realCodexHome, "auth.json"),
-      workspace.codexHome,
-      join(context.sourceWorktree, "package.json"),
-      join(context.sourceWorktree, ".kb"),
-      workspace.privateScorer,
-      workspace.privateEvidence,
-      workspace.siblingRun,
-      "/tmp",
-      "/var/tmp",
-    ]);
+    const probe = await writeCapabilityProbe(
+      workspace,
+      sourceIsolationDeniedPaths(
+        workspace,
+        context.sourceWorktree,
+        auth.realCodexHome,
+      ),
+    );
     await context.probeMcp({ ...staged.mcpServer, env: runtimeEnv });
     await context.probeSandbox({
       codexCommand: staged.codexCommand,
       workspace: workspace.target,
       env: runtimeEnv,
       run: context.run,
+      probe,
     });
     const result = await context.run(
       buildCodexExecArgv({
