@@ -6,13 +6,10 @@ import {
   buildHeldOutCatalog,
   buildPublicCatalog,
 } from "../catalog";
-import {
-  materializePublicCorpus,
-  parsePublicTaskManifest,
-  parsePublicTaskSpec,
-} from "../fixtures";
+import { parsePublicTaskManifest, parsePublicTaskSpec } from "../fixtures";
 import * as publicFixtures from "../fixtures";
-import { materializeHeldOutCorpus } from "../fixtures/private";
+import * as privateFixtures from "../fixtures/private";
+import { materializeFixtureRun } from "../fixtures/private";
 import {
   CANONICAL_SKILL_ROOT,
   files,
@@ -53,46 +50,54 @@ describe("public SkillOpt fixture corpus", () => {
     expect(() => parsePublicTaskSpec(heldOut)).toThrow("reject held-out");
     const root = temporaryRoot();
     roots.push(root);
-    const publicRoot = path.join(root, "public");
+    const rejectedRunRoot = path.join(root, "rejected-run");
     expect(() =>
-      materializePublicCorpus({
-        publicRoot,
+      materializeFixtureRun({
+        runRoot: rejectedRunRoot,
         canonicalSkillRoot: CANONICAL_SKILL_ROOT,
-        tasks: [heldOut],
+        publicTasks: [heldOut],
+        heldOutTasks: [],
       }),
     ).toThrow("reject held-out");
-    expect(existsSync(publicRoot)).toBe(false);
+    expect(existsSync(rejectedRunRoot)).toBe(false);
 
-    const heldOutRoot = path.join(root, "held-out");
-    const evaluatorRoot = path.join(root, "evaluator");
-    materializeHeldOutCorpus({
-      heldOutRoot,
-      evaluatorRoot,
+    const receipt = materializeFixtureRun({
+      runRoot: path.join(root, "valid-run"),
       canonicalSkillRoot: CANONICAL_SKILL_ROOT,
-      tasks: [heldOut],
+      publicTasks: [],
+      heldOutTasks: [heldOut],
     });
     const heldOutManifest = readFileSync(
-      path.join(heldOutRoot, "tasks", heldOut.id, "task.json"),
+      path.join(receipt.roots.heldOutRoot, "tasks", heldOut.id, "task.json"),
       "utf8",
     );
     expect(() => parsePublicTaskManifest(heldOutManifest)).toThrow();
     expect(Object.keys(publicFixtures).sort()).toEqual([
-      "materializePublicCorpus",
       "parsePublicTaskManifest",
       "parsePublicTaskSpec",
     ]);
+    expect(Object.keys(privateFixtures).sort()).toContain(
+      "materializeFixtureRun",
+    );
+    expect(Object.keys(privateFixtures).sort()).not.toContain(
+      "materializeHeldOutCorpus",
+    );
   });
 
   test("copies all canonical skill bundles without fabricating Kibi state", () => {
     const root = temporaryRoot();
     roots.push(root);
-    const publicRoot = path.join(root, "public");
-    const receipt = materializePublicCorpus({
-      publicRoot,
+    const receipt = materializeFixtureRun({
+      runRoot: path.join(root, "run"),
       canonicalSkillRoot: CANONICAL_SKILL_ROOT,
+      heldOutTasks: [],
     });
+    const { publicRoot } = receipt.roots;
 
     expect(receipt.publicIndex.tasks).toHaveLength(48);
+    expect(path.basename(publicRoot)).toBe("public");
+    expect(path.basename(receipt.roots.heldOutRoot)).toBe("held-out");
+    expect(path.basename(receipt.roots.evaluatorRoot)).toBe("evaluator");
     expect(existsSync(path.join(publicRoot, "train"))).toBe(true);
     expect(existsSync(path.join(publicRoot, "development"))).toBe(true);
     expect(existsSync(path.join(publicRoot, "held-out"))).toBe(false);
@@ -122,12 +127,12 @@ describe("public SkillOpt fixture corpus", () => {
   test("does not expose private scorer or variant identity data", () => {
     const root = temporaryRoot();
     roots.push(root);
-    const publicRoot = path.join(root, "public");
-    materializePublicCorpus({
-      publicRoot,
+    const receipt = materializeFixtureRun({
+      runRoot: path.join(root, "run"),
       canonicalSkillRoot: CANONICAL_SKILL_ROOT,
+      heldOutTasks: [],
     });
-    const text = readTree(publicRoot);
+    const text = readTree(receipt.roots.publicRoot);
 
     expect(text).not.toMatch(
       /scorerKey|scorerReference|fixtureSeed|expectedFinalState/,

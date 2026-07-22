@@ -1,6 +1,7 @@
 import {
   existsSync,
   mkdirSync,
+  realpathSync,
   renameSync,
   rmSync,
   writeFileSync,
@@ -23,65 +24,64 @@ import {
 } from "./materialize-common";
 
 type FixtureTaskSpec = ReturnType<typeof parseTaskSpec>;
-type PublicOptions = Readonly<{
-  publicRoot: string;
+type FixtureRunOptions = Readonly<{
+  runRoot: string;
   canonicalSkillRoot: string;
-  tasks?: readonly unknown[];
+  publicTasks?: readonly unknown[];
+  heldOutTasks?: readonly unknown[];
+  onHeldOutTaskMaterialized?: (taskId: string) => void;
 }>;
-type HeldOutOptions = Readonly<{
-  heldOutRoot: string;
-  evaluatorRoot: string;
-  canonicalSkillRoot: string;
-  tasks?: readonly unknown[];
-  onTaskMaterialized?: (taskId: string) => void;
+type ProspectiveRoot = Readonly<{
+  canonicalRoot: string;
+  cleanupRoot: string;
 }>;
+
+const RESERVED_SUBTREES = new Set(["public", "held-out", "evaluator"]);
 
 class FixtureMaterializationError extends Error {
   readonly name = "FixtureMaterializationError";
 }
 
-function assertNewRoot(root: string): void {
-  if (existsSync(root)) {
+function prospectiveRoot(requestedRoot: string): ProspectiveRoot {
+  const missing: string[] = [];
+  let existingAncestor = path.resolve(requestedRoot);
+  while (!existsSync(existingAncestor)) {
+    missing.unshift(path.basename(existingAncestor));
+    const parent = path.dirname(existingAncestor);
+    if (parent === existingAncestor) break;
+    existingAncestor = parent;
+  }
+  const canonicalAncestor = realpathSync(existingAncestor);
+  const canonicalRoot = path.join(canonicalAncestor, ...missing);
+  const segments = path
+    .relative(path.parse(canonicalRoot).root, canonicalRoot)
+    .split(path.sep);
+  if (segments.some((segment) => RESERVED_SUBTREES.has(segment))) {
     throw new FixtureMaterializationError(
-      "materialization roots must not already exist",
+      "run root must not be inside a reserved fixture subtree",
     );
   }
-}
-
-function assertDisjointRoots(left: string, right: string): void {
-  const relation = path.relative(path.resolve(left), path.resolve(right));
-  const reverse = path.relative(path.resolve(right), path.resolve(left));
-  if (
-    relation === "" ||
-    (!relation.startsWith("..") && !path.isAbsolute(relation)) ||
-    (!reverse.startsWith("..") && !path.isAbsolute(reverse))
-  ) {
-    throw new FixtureMaterializationError(
-      "held-out and evaluator roots must be disjoint",
-    );
+  if (existsSync(canonicalRoot)) {
+    throw new FixtureMaterializationError("run root must not already exist");
   }
-}
-
-function stageRoot(root: string): string {
-  const stage = `${root}.staging`;
-  rmSync(stage, { recursive: true, force: true });
-  mkdirSync(stage, { recursive: true });
-  return stage;
-}
-
-function publishStage(stage: string, root: string): void {
-  mkdirSync(path.dirname(root), { recursive: true });
-  renameSync(stage, root);
+  const firstMissing = missing[0];
+  return {
+    canonicalRoot,
+    cleanupRoot:
+      firstMissing === undefined
+        ? canonicalRoot
+        : path.join(canonicalAncestor, firstMissing),
+  };
 }
 
 function writeHeldOutEvaluator(
-  evaluatorStage: string,
+  evaluatorRoot: string,
   task: FixtureTaskSpec,
   targetEntry: CorpusEntry,
 ): CorpusEntry {
   const descriptorText = serialize(task);
   writeFileSync(
-    path.join(evaluatorStage, "descriptors", `${task.id}.json`),
+    path.join(evaluatorRoot, "descriptors", `${task.id}.json`),
     descriptorText,
   );
   const privateManifest = parsePrivateEvaluatorManifestValue(
@@ -93,7 +93,7 @@ function writeHeldOutEvaluator(
   );
   const privateText = serialize(privateManifest);
   writeFileSync(
-    path.join(evaluatorStage, "manifests", `${task.id}.json`),
+    path.join(evaluatorRoot, "manifests", `${task.id}.json`),
     privateText,
   );
   return {
@@ -104,83 +104,81 @@ function writeHeldOutEvaluator(
 }
 
 // implements REQ-skillopt-codex-optimization
-export function materializePublicCorpus(options: PublicOptions) {
-  assertNewRoot(options.publicRoot);
-  const tasks = (options.tasks ?? buildPublicCatalog()).map(
+export function materializeFixtureRun(options: FixtureRunOptions) {
+  const { canonicalRoot, cleanupRoot } = prospectiveRoot(options.runRoot);
+  const publicTasks = (options.publicTasks ?? buildPublicCatalog()).map(
     parsePublicTaskSpec,
   );
-  const stage = stageRoot(options.publicRoot);
+  const heldOutTasks = (options.heldOutTasks ?? buildHeldOutCatalog()).map(
+    parseHeldOutTaskSpec,
+  );
+  const stageRoot = `${canonicalRoot}.staging`;
+  const publicRoot = path.join(stageRoot, "public");
+  const heldOutRoot = path.join(stageRoot, "held-out");
+  const evaluatorRoot = path.join(stageRoot, "evaluator");
+  rmSync(stageRoot, { recursive: true, force: true });
+  mkdirSync(publicRoot, { recursive: true });
+  mkdirSync(heldOutRoot, { recursive: true });
+  mkdirSync(path.join(evaluatorRoot, "descriptors"), { recursive: true });
+  mkdirSync(path.join(evaluatorRoot, "manifests"), { recursive: true });
+
   try {
-    const entries = tasks.map((task) =>
+    const publicEntries = publicTasks.map((task) =>
       writeTargetTask({
-        root: path.join(stage, task.split),
+        root: path.join(publicRoot, task.split),
         task,
         canonicalSkillRoot: options.canonicalSkillRoot,
         visibility: "public",
       }),
     );
-    const publicIndex = buildIndex(entries);
-    writeFileSync(
-      path.join(stage, "corpus-manifest.json"),
-      serialize(publicIndex),
-    );
-    publishStage(stage, options.publicRoot);
-    return { publicIndex };
-  } catch (error) {
-    rmSync(stage, { recursive: true, force: true });
-    throw error;
-  }
-}
-
-// implements REQ-skillopt-codex-optimization
-export function materializeHeldOutCorpus(options: HeldOutOptions) {
-  assertDisjointRoots(options.heldOutRoot, options.evaluatorRoot);
-  assertNewRoot(options.heldOutRoot);
-  assertNewRoot(options.evaluatorRoot);
-  const tasks = (options.tasks ?? buildHeldOutCatalog()).map(
-    parseHeldOutTaskSpec,
-  );
-  const targetStage = stageRoot(options.heldOutRoot);
-  const evaluatorStage = stageRoot(options.evaluatorRoot);
-  mkdirSync(path.join(evaluatorStage, "descriptors"), { recursive: true });
-  mkdirSync(path.join(evaluatorStage, "manifests"), { recursive: true });
-  try {
-    const targetEntries: CorpusEntry[] = [];
+    const heldOutEntries: CorpusEntry[] = [];
     const privateEntries: CorpusEntry[] = [];
-    for (const task of tasks) {
+    for (const task of heldOutTasks) {
       const targetEntry = writeTargetTask({
-        root: targetStage,
+        root: heldOutRoot,
         task,
         canonicalSkillRoot: options.canonicalSkillRoot,
         visibility: "held-out",
       });
-      targetEntries.push(targetEntry);
+      heldOutEntries.push(targetEntry);
       privateEntries.push(
-        writeHeldOutEvaluator(evaluatorStage, task, targetEntry),
+        writeHeldOutEvaluator(evaluatorRoot, task, targetEntry),
       );
-      options.onTaskMaterialized?.(task.id);
+      options.onHeldOutTaskMaterialized?.(task.id);
     }
-    const heldOutIndex = buildIndex(targetEntries);
+    const publicIndex = buildIndex(publicEntries);
+    const heldOutIndex = buildIndex(heldOutEntries);
     const privateIndex = buildIndex(privateEntries);
     writeFileSync(
-      path.join(targetStage, "corpus-manifest.json"),
+      path.join(publicRoot, "corpus-manifest.json"),
+      serialize(publicIndex),
+    );
+    writeFileSync(
+      path.join(heldOutRoot, "corpus-manifest.json"),
       serialize(heldOutIndex),
     );
     writeFileSync(
-      path.join(evaluatorStage, "evaluator-manifest.json"),
+      path.join(evaluatorRoot, "evaluator-manifest.json"),
       serialize(privateIndex),
     );
-    publishStage(evaluatorStage, options.evaluatorRoot);
-    try {
-      publishStage(targetStage, options.heldOutRoot);
-    } catch (error) {
-      rmSync(options.evaluatorRoot, { recursive: true, force: true });
-      throw error;
-    }
-    return { heldOutIndex, privateIndex };
+    renameSync(stageRoot, canonicalRoot);
+    return {
+      roots: {
+        runRoot: canonicalRoot,
+        publicRoot: path.join(canonicalRoot, "public"),
+        heldOutRoot: path.join(canonicalRoot, "held-out"),
+        evaluatorRoot: path.join(canonicalRoot, "evaluator"),
+      },
+      publicIndex,
+      heldOutIndex,
+      privateIndex,
+    };
   } catch (error) {
-    rmSync(targetStage, { recursive: true, force: true });
-    rmSync(evaluatorStage, { recursive: true, force: true });
+    rmSync(stageRoot, { recursive: true, force: true });
+    rmSync(canonicalRoot, { recursive: true, force: true });
+    if (cleanupRoot !== canonicalRoot) {
+      rmSync(cleanupRoot, { recursive: true, force: true });
+    }
     throw error;
   }
 }

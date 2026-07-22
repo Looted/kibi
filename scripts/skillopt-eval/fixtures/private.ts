@@ -7,4 +7,4 @@ export {
   blindedVariantOrder,
   verifyPrivateManifestIntegrity,
 } from "./evaluator";
-export { materializeHeldOutCorpus } from "./materialize";
+export { materializeFixtureRun } from "./materialize";
