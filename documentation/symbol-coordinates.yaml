@@ -4760,6 +4760,72 @@ coordinates:
     sourceEndLine: 14
     sourceFile: scripts/skillopt-eval/contracts/episode.ts
     sourceLine: 14
+  SYM-skillopt-fixture-blinded-order:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 42
+    sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
+    sourceLine: 26
+  SYM-skillopt-fixture-hash-workspace:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 66
+    sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
+    sourceLine: 57
+  SYM-skillopt-fixture-materialize-corpus:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 175
+    sourceFile: scripts/skillopt-eval/fixtures/materialize.ts
+    sourceLine: 82
+  SYM-skillopt-fixture-parse-corpus-index:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 178
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    sourceLine: 176
+  SYM-skillopt-fixture-parse-private-manifest:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 163
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    sourceLine: 159
+  SYM-skillopt-fixture-parse-private-value:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 173
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    sourceLine: 171
+  SYM-skillopt-fixture-parse-public-manifest:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 156
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    sourceLine: 154
+  SYM-skillopt-fixture-parse-public-value:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 168
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    sourceLine: 166
+  SYM-skillopt-fixture-parse-task-spec:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 151
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    sourceLine: 149
+  SYM-skillopt-fixture-private-manifest:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 160
+    sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
+    sourceLine: 98
+  SYM-skillopt-fixture-write-workspace:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 95
+    sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
+    sourceLine: 69
   SYM-skillopt-preflight-run:
     sourceColumn: 16
     sourceEndColumn: 1
