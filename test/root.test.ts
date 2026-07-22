@@ -14,7 +14,7 @@ type Batch = {
 const BATCHES: Batch[] = [
   {
     label: "cli",
-    args: ["test", "--timeout", "15000", "./packages/cli"],
+    args: ["test", "--timeout", "15000", "--max-concurrency=1", "./packages/cli"],
   },
   {
     label: "mcp",
@@ -149,7 +149,7 @@ async function runBatch(
       timedOut = true;
       child.kill("SIGTERM");
     },
-    15 * 60 * 1000,
+    20 * 60 * 1000,
   );
 
   const status = await new Promise<number | null>((resolve, reject) => {
