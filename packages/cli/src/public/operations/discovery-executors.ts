@@ -156,20 +156,8 @@ export async function executeStatus(
         .join(path.dirname(resolveKbPlPath()), "status.pl")
         .replace(/\\/g, "/"),
     );
-    // Load status.pl before calling the predicate: use_module/1 called as a goal
-    // inside a combined query (use_module(X), predicate(Y)) fails with
-    // "predicate or file not found" in SWI-Prolog but works when loaded
-    // independently before the predicate call.
-    const loadResult = await requireProlog(context).query(
-      `use_module('${modulePath}')`,
-    );
-    if (!loadResult.success) {
-      throw new Error(
-        `Failed to load status module: ${loadResult.error || "Unknown error"}`,
-      );
-    }
     const result = await requireProlog(context).query(
-      `status:kb_status_json(JsonString)`,
+      `(use_module('${modulePath}'), status:kb_status_json(JsonString))`,
     );
     if (!result.success) {
       throw new Error(

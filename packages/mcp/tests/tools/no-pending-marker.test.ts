@@ -160,17 +160,8 @@ describe("removed mutation pending markers", () => {
       }
       if (
         goal ===
-        "kb_retract_entity('REQ-DELETE-MARKER-001', req, [id='REQ-DELETE-MARKER-001', title=\"Delete marker\", source=\"test://marker\"] )"
+        "rdf_transaction((kb_retract_entity('REQ-DELETE-MARKER-001', req, [id='REQ-DELETE-MARKER-001', title=\"Delete marker\", source=\"test://marker\"]), kb_save))"
       ) {
-        return { success: true };
-      }
-      if (
-        goal ===
-        "kb_retract_entity('REQ-DELETE-MARKER-001', req, [id='REQ-DELETE-MARKER-001', title=\"Delete marker\", source=\"test://marker\"])"
-      ) {
-        return { success: true };
-      }
-      if (goal === "kb_save") {
         return { success: true };
       }
 

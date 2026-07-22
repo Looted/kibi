@@ -38,7 +38,9 @@ function readTestDoc(worktree: string, testId: string): TestDocMeta | null {
       try {
         const content = readFileSync(fullPath, "utf8");
         return parseTestDoc(content, testId);
-      } catch {}
+      } catch (error) {
+        if (!(error instanceof Error)) throw error;
+      }
     }
   }
 

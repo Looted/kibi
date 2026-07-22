@@ -135,6 +135,14 @@
       "types": "./dist/operations/mutation/validation.d.ts",
       "default": "./dist/operations/mutation/validation.js"
     },
+    "./operations/modeling/model-requirement": {
+      "types": "./dist/operations/modeling/model-requirement.d.ts",
+      "default": "./dist/operations/modeling/model-requirement.js"
+    },
+    "./operations/modeling/suggest-predicates": {
+      "types": "./dist/operations/modeling/suggest-predicates.d.ts",
+      "default": "./dist/operations/modeling/suggest-predicates.js"
+    },
     "./ignore-policy": {
       "types": "./dist/public/ignore-policy.d.ts",
       "import": "./dist/public/ignore-policy.js",

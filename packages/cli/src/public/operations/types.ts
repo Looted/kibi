@@ -55,12 +55,3 @@ export interface OperationSpec<
     ): Promise<OperationResult<O>>;
   }["bivarianceHack"];
 }
-
-// implements REQ-kibi-operation-interface-parity
-export async function executePlaceholder(
-  _input: Readonly<Record<string, unknown>>,
-  _context: OperationContext,
-): Promise<OperationResult> {
-  // TODO: Replace with the shared operation executor during extraction waves 3-4.
-  return { content: [], structuredContent: {} };
-}

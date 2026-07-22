@@ -2,6 +2,7 @@ import {
   type OperationContext,
   sparqlRemoteSpec,
 } from "kibi-cli/operations";
+import type { PrologProcess } from "kibi-cli/prolog";
 
 export type SparqlArgs = Readonly<Record<string, unknown>> & {
   readonly endpoint: string;
@@ -13,8 +14,14 @@ export type SparqlResult = Awaited<ReturnType<typeof sparqlRemoteSpec.execute>>;
 
 // implements REQ-002, REQ-013, REQ-kibi-operation-interface-parity
 export async function handleSparql(
-  args: SparqlArgs,
+  prologOrArgs: PrologProcess | SparqlArgs,
+  legacyArgs?: SparqlArgs,
 ): Promise<SparqlResult> {
+  const args =
+    legacyArgs ?? ("endpoint" in prologOrArgs ? prologOrArgs : undefined);
+  if (args === undefined) {
+    throw new Error("SPARQL endpoint is required");
+  }
   const context: OperationContext = {
     workspaceRoot: process.cwd(),
     signal: new AbortController().signal,

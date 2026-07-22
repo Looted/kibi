@@ -133,3 +133,13 @@
 - Live MCP `tools/list` schemas are SDK-rendered Zod JSON Schema, so parity comparison canonicalizes SDK-only metadata, enum encodings, defaults, and unconstrained object markers before comparing the frozen transport-neutral fixture.
 - Shared Prolog module executors must load `use_module/1` in a separate query before invoking reporting predicates; combining module loading and execution reproduces the packed `Predicate or file not found` failure.
 - Cursor and Codex tarball listings provide the final distribution gate for all four generated skills, all four `kibi-usage` resources, and `operation-access.md`.
+
+## 2026-07-22T20:00:00Z Task: final-verification-rejections
+- The modeling specs were still wired to `executePlaceholder`; moving both implementations under `kibi-cli/src/operations/modeling` made the catalog the real behavior owner and reduced MCP handlers to context adapters.
+- `model-requirement` needs a transport-neutral default source for text-only JSON input. Supplying `mcp://kibi/model-requirement` at executor entry preserves strict helper validation while making the documented CLI route useful.
+- The prior module-loading conclusion above was invalid for the shared runtime: separate interactive `use_module/1` calls caused the observed status/reporting failures. One compound `(use_module(...), module:predicate(...))` query passes mocked query-shape tests and isolated real-Prolog regressions.
+- Shared error composition must avoid stacking legacy helper prefixes beneath operation-level prefixes; `runAggregatedChecks` now emits the contract error and `executeCheck` owns the public wrapper.
+- Empty rule arrays and arrays containing only unknown rules are both explicit no-op check selections; neither should fall through to the default rule set or full quality queries.
+- Nested Commander skill routes need their own `--input` options and optional positionals so catalog names such as `skills list` remain executable exactly as declared.
+- Package parity must compare against the checked-in CLI version, not a future release floor; `kibi-mcp` now accepts `kibi-cli@^0.14.2`.
+- Mutation schema data, upsert wiring, and validate/delete wiring are distinct responsibilities; splitting them keeps every operation spec file below 250 lines without changing imports used by existing adapters and tests.

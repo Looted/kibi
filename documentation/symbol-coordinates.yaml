@@ -371,9 +371,9 @@ coordinates:
   SYM-ExtractedRequirementClaim:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 31
-    sourceFile: packages/mcp/src/tools/model-requirement.ts
-    sourceLine: 27
+    sourceEndLine: 30
+    sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
+    sourceLine: 26
   SYM-ExtractedSymbol:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -813,17 +813,17 @@ coordinates:
     sourceFile: packages/opencode/src/meaningful-change-classifier.ts
     sourceLine: 14
   SYM-ModelRequirementArgs:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 25
-    sourceFile: packages/mcp/src/tools/model-requirement.ts
-    sourceLine: 15
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 24
+    sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
+    sourceLine: 14
   SYM-ModelRequirementResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 56
-    sourceFile: packages/mcp/src/tools/model-requirement.ts
-    sourceLine: 33
+    sourceEndLine: 55
+    sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
+    sourceLine: 32
   SYM-NpmFixtureLive:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1283,15 +1283,15 @@ coordinates:
   SYM-SparqlArgs:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 10
+    sourceEndLine: 11
     sourceFile: packages/mcp/src/tools/sparql.ts
-    sourceLine: 6
+    sourceLine: 7
   SYM-SparqlResult:
     sourceColumn: 12
     sourceEndColumn: 80
-    sourceEndLine: 12
+    sourceEndLine: 13
     sourceFile: packages/mcp/src/tools/sparql.ts
-    sourceLine: 12
+    sourceLine: 13
   SYM-StableRequirementIds:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1335,17 +1335,17 @@ coordinates:
     sourceFile: packages/cli/src/utils/strict-modeling.ts
     sourceLine: 94
   SYM-SuggestPredicatesArgs:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 502
-    sourceFile: packages/mcp/src/tools/suggest-predicates.ts
-    sourceLine: 494
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 505
+    sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
+    sourceLine: 497
   SYM-SuggestPredicatesResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 532
-    sourceFile: packages/mcp/src/tools/suggest-predicates.ts
-    sourceLine: 518
+    sourceEndLine: 535
+    sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
+    sourceLine: 521
   SYM-SymbolCoordinates:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -2591,9 +2591,9 @@ coordinates:
   SYM-cli-register-skills-commands:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 69
+    sourceEndLine: 96
     sourceFile: packages/cli/src/cli-register-skills.ts
-    sourceLine: 11
+    sourceLine: 12
   SYM-cli-rule-registry-ChecksConfig:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -2654,6 +2654,12 @@ coordinates:
     sourceEndLine: 203
     sourceFile: packages/cli/src/utils/rule-registry.ts
     sourceLine: 198
+  SYM-cli-run-aggregated-checks:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 81
+    sourceFile: packages/cli/src/commands/aggregated-checks.ts
+    sourceLine: 22
   SYM-cli-run-json-invocation:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3353,9 +3359,9 @@ coordinates:
   SYM-detectPosture:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 241
+    sourceEndLine: 245
     sourceFile: packages/opencode/src/repo-posture.ts
-    sourceLine: 162
+    sourceLine: 166
   SYM-determineReleaseAction:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3395,9 +3401,45 @@ coordinates:
   SYM-discovery-execute-status:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 201
+    sourceEndLine: 189
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
     sourceLine: 148
+  SYM-discovery-query-input:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 21
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    sourceLine: 14
+  SYM-discovery-query-payload:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 26
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    sourceLine: 23
+  SYM-discovery-search-input:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 33
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    sourceLine: 28
+  SYM-discovery-search-payload:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 38
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    sourceLine: 35
+  SYM-discovery-status-input:
+    sourceColumn: 12
+    sourceEndColumn: 58
+    sourceEndLine: 40
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    sourceLine: 40
+  SYM-discovery-status-payload:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 50
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    sourceLine: 42
   SYM-enrichSymbolCoordinates:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3431,9 +3473,9 @@ coordinates:
   SYM-estimateNormativeSignalConfidence:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 296
-    sourceFile: packages/mcp/src/tools/model-requirement.ts
-    sourceLine: 276
+    sourceEndLine: 295
+    sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
+    sourceLine: 275
   SYM-evaluateKbFreshness:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3446,6 +3488,18 @@ coordinates:
     sourceEndLine: 113
     sourceFile: packages/cli/src/operations/semantic-advisor/prose-coverage-evaluator.ts
     sourceLine: 103
+  SYM-execute-model-requirement:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 511
+    sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
+    sourceLine: 506
+  SYM-execute-suggest-predicates:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 2988
+    sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
+    sourceLine: 2983
   SYM-executeOperation:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3491,9 +3545,9 @@ coordinates:
   SYM-extractRequirementClaim:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 368
-    sourceFile: packages/mcp/src/tools/model-requirement.ts
-    sourceLine: 298
+    sourceEndLine: 367
+    sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
+    sourceLine: 297
   SYM-extractSymbolsFromStagedFile:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3545,9 +3599,9 @@ coordinates:
   SYM-getE2eCoverageSignal:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 253
+    sourceEndLine: 255
     sourceFile: packages/opencode/src/e2e-coverage-signals.ts
-    sourceLine: 149
+    sourceLine: 151
   SYM-getFileLinkedEntityIds:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3635,9 +3689,9 @@ coordinates:
   SYM-getWorkspaceMigrationWarning:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 441
-    sourceFile: packages/mcp/src/tools/model-requirement.ts
-    sourceLine: 420
+    sourceEndLine: 440
+    sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
+    sourceLine: 419
   SYM-handleKbAutopilotGenerate:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3653,9 +3707,9 @@ coordinates:
   SYM-handleKbModelRequirement:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 498
+    sourceEndLine: 38
     sourceFile: packages/mcp/src/tools/model-requirement.ts
-    sourceLine: 443
+    sourceLine: 28
   SYM-handleKbSemanticAdvisor:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3683,9 +3737,9 @@ coordinates:
   SYM-handleKbSuggestPredicates:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 2978
+    sourceEndLine: 28
     sourceFile: packages/mcp/src/tools/suggest-predicates.ts
-    sourceLine: 2910
+    sourceLine: 15
   SYM-handleKbSymbolsRefresh:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3707,9 +3761,9 @@ coordinates:
   SYM-handleSparql:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 25
+    sourceEndLine: 32
     sourceFile: packages/mcp/src/tools/sparql.ts
-    sourceLine: 15
+    sourceLine: 16
   SYM-hasAllGeneratedCoordinates:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4184,12 +4238,36 @@ coordinates:
     sourceEndLine: 552
     sourceFile: packages/cli/src/commands/migrate.ts
     sourceLine: 407
+  SYM-model-requirement-core-handler:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 504
+    sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
+    sourceLine: 442
   SYM-modelRequirementClaims:
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 300
     sourceFile: packages/cli/src/utils/strict-modeling.ts
     sourceLine: 280
+  SYM-mutation-entity-properties-schema:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 188
+    sourceFile: packages/cli/src/public/operations/specs/mutation-schemas.ts
+    sourceLine: 12
+  SYM-mutation-entity-types-schema:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 10
+    sourceFile: packages/cli/src/public/operations/specs/mutation-schemas.ts
+    sourceLine: 1
+  SYM-mutation-relationships-schema:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 232
+    sourceFile: packages/cli/src/public/operations/specs/mutation-schemas.ts
+    sourceLine: 190
   SYM-normalizeMarkdownPath:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4238,6 +4316,24 @@ coordinates:
     sourceEndLine: 42
     sourceFile: packages/cli/src/public/operations/catalog.ts
     sourceLine: 23
+  SYM-operation-check-input:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 46
+    sourceFile: packages/cli/src/public/operations/check-executor.ts
+    sourceLine: 38
+  SYM-operation-check-options:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 59
+    sourceFile: packages/cli/src/public/operations/check-executor.ts
+    sourceLine: 57
+  SYM-operation-check-payload:
+    sourceColumn: 12
+    sourceEndColumn: 50
+    sourceEndLine: 48
+    sourceFile: packages/cli/src/public/operations/check-executor.ts
+    sourceLine: 48
   SYM-operation-check-spec:
     sourceColumn: 13
     sourceEndColumn: 34
@@ -4259,15 +4355,21 @@ coordinates:
   SYM-operation-delete-spec:
     sourceColumn: 13
     sourceEndColumn: 62
-    sourceEndLine: 319
+    sourceEndLine: 58
     sourceFile: packages/cli/src/public/operations/specs/mutation.ts
-    sourceLine: 299
+    sourceLine: 38
   SYM-operation-effect-type:
     sourceColumn: 12
     sourceEndColumn: 22
     sourceEndLine: 29
     sourceFile: packages/cli/src/public/operations/types.ts
     sourceLine: 23
+  SYM-operation-execute-check:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 187
+    sourceFile: packages/cli/src/public/operations/check-executor.ts
+    sourceLine: 73
   SYM-operation-find-gaps-spec:
     sourceColumn: 13
     sourceEndColumn: 66
@@ -4282,10 +4384,10 @@ coordinates:
     sourceLine: 224
   SYM-operation-model-requirement-spec:
     sourceColumn: 13
-    sourceEndColumn: 34
-    sourceEndLine: 67
+    sourceEndColumn: 101
+    sourceEndLine: 76
     sourceFile: packages/cli/src/public/operations/specs/modeling.ts
-    sourceLine: 4
+    sourceLine: 13
   SYM-operation-name-type:
     sourceColumn: 12
     sourceEndColumn: 28
@@ -4384,22 +4486,22 @@ coordinates:
     sourceLine: 113
   SYM-operation-suggest-predicates-spec:
     sourceColumn: 13
-    sourceEndColumn: 34
-    sourceEndLine: 125
+    sourceEndColumn: 103
+    sourceEndLine: 134
     sourceFile: packages/cli/src/public/operations/specs/modeling.ts
-    sourceLine: 69
+    sourceLine: 78
   SYM-operation-upsert-spec:
     sourceColumn: 13
     sourceEndColumn: 62
-    sourceEndLine: 273
-    sourceFile: packages/cli/src/public/operations/specs/mutation.ts
-    sourceLine: 246
+    sourceEndLine: 40
+    sourceFile: packages/cli/src/public/operations/specs/upsert.ts
+    sourceLine: 13
   SYM-operation-validate-upsert-spec:
     sourceColumn: 13
     sourceEndColumn: 70
-    sourceEndLine: 297
+    sourceEndLine: 36
     sourceFile: packages/cli/src/public/operations/specs/mutation.ts
-    sourceLine: 275
+    sourceLine: 14
   SYM-packed-create-sandbox:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4511,9 +4613,9 @@ coordinates:
   SYM-parity-existing-relationships:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 158
+    sourceEndLine: 159
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 146
+    sourceLine: 147
   SYM-parity-format-invalid-relationship-error:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4553,7 +4655,7 @@ coordinates:
   SYM-parity-run-operation-json-query:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 46
+    sourceEndLine: 40
     sourceFile: packages/cli/src/public/operations/prolog-json.ts
     sourceLine: 16
   SYM-parity-save-atomic-mutation:
@@ -4571,15 +4673,15 @@ coordinates:
   SYM-parity-to-prolog-atom:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 52
+    sourceEndLine: 46
     sourceFile: packages/cli/src/public/operations/prolog-json.ts
-    sourceLine: 48
+    sourceLine: 42
   SYM-parity-to-prolog-list:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 58
+    sourceEndLine: 52
     sourceFile: packages/cli/src/public/operations/prolog-json.ts
-    sourceLine: 54
+    sourceLine: 48
   SYM-parity-upsert-input-type:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -4595,9 +4697,9 @@ coordinates:
   SYM-parity-validate-live-relationship-targets:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 122
+    sourceEndLine: 123
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 107
+    sourceLine: 108
   SYM-parity-validate-relationship-sources:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4607,9 +4709,9 @@ coordinates:
   SYM-parity-validate-strict-lane-pairing:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 144
+    sourceEndLine: 145
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 124
+    sourceLine: 125
   SYM-parity-validate-upsert-payload-type:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -5225,9 +5327,15 @@ coordinates:
   SYM-strictWriteSetToApplyPlan:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 414
-    sourceFile: packages/mcp/src/tools/model-requirement.ts
-    sourceLine: 380
+    sourceEndLine: 413
+    sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
+    sourceLine: 379
+  SYM-suggest-predicates-core-handler:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 2981
+    sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
+    sourceLine: 2913
   SYM-sync-agent-skills-diff-mirror:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -5345,6 +5453,6 @@ coordinates:
   SYM-writeSetPrimaryEntityId:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 418
-    sourceFile: packages/mcp/src/tools/model-requirement.ts
-    sourceLine: 416
+    sourceEndLine: 417
+    sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
+    sourceLine: 415

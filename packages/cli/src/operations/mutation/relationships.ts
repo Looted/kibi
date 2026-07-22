@@ -100,8 +100,9 @@ async function endpointType(
     if (error instanceof Error) return null;
     throw error;
   }
+  if (!result.success) return null;
   const type = result.bindings.Type;
-  return result.success && type ? type.replace(/^['"]|['"]$/g, "") : null;
+  return type ? type.replace(/^['"]|['"]$/g, "") : null;
 }
 
 export async function validateLiveRelationshipTargets(

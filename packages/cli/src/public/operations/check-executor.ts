@@ -82,7 +82,9 @@ export async function executeCheck(
     const rulesAllowlist =
       args.rules === undefined
         ? getEffectiveRules(checksConfig.rules)
-        : new Set(args.rules);
+        : args.rules.length === 0
+          ? new Set<string>()
+          : getEffectiveRules(undefined, args.rules.join(","));
     const hasExplicitRules = args.rules !== undefined;
     const impactResult = analyzeKbCheckImpact(workspaceRoot, args);
     const impactQualityDiagnostics = qualityDiagnosticsFromImpact(impactResult);
