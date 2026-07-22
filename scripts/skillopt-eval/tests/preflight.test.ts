@@ -7,6 +7,10 @@ import {
   runPreflight,
   sourceWorktreeIsClean,
 } from "../preflight";
+import {
+  RequiredMcpStartupError,
+  RuntimePrerequisiteError,
+} from "../runtime/canary-runtime";
 
 const temporaryRoots: string[] = [];
 
@@ -46,15 +50,43 @@ function dependencies(
   options?: Readonly<{
     sourceClean?: boolean;
     bwrap?: boolean;
+    mcp?: boolean;
+    sandbox?: boolean;
     doctorExit?: number;
   }>,
 ): PreflightDependencies {
   return {
-    executable: async () => options?.bwrap ?? true,
     sourceClean: async () => options?.sourceClean ?? true,
+    stageRuntime: async (workspace) => {
+      if (options?.bwrap === false) {
+        throw new RuntimePrerequisiteError("missing_bwrap");
+      }
+      return {
+        schemaPath: join(workspace.privateEvidence, "schema.json"),
+        codexCommand: "/staged/codex",
+        bwrapExecutable: "/staged/codex-resources/bwrap",
+        mcpServer: {
+          command: "/bin/node",
+          args: ["/source/packages/mcp/bin/kibi-mcp"],
+          cwd: workspace.target,
+          readableRoots: ["/source/packages/mcp/dist"],
+        },
+      };
+    },
+    probeRequiredMcp: async () => {
+      if (options?.mcp === false) {
+        throw new RequiredMcpStartupError("connection_closed");
+      }
+      return { toolNames: ["kb_search", "kb_query", "kb_check"] };
+    },
+    probeSandbox: async () => {
+      if (options?.sandbox === false) {
+        throw new RuntimePrerequisiteError("sandbox_probe_failed");
+      }
+    },
     run: async (argv) => {
       const command = argv.join(" ");
-      if (command === "codex --version") {
+      if (command === "/staged/codex --version") {
         return {
           argv,
           stdout: "codex-cli 0.144.6\n",
@@ -155,11 +187,13 @@ describe("SkillOpt Codex preflight", () => {
     });
   });
 
-  test("fails closed for missing bwrap, dirty source, and invalid config", async () => {
+  test("fails closed for each runtime prerequisite before paid calls", async () => {
     // Given
     const testFixture = await fixture();
     const cases = [
       [dependencies({ bwrap: false }), "missing_isolation:bwrap"],
+      [dependencies({ mcp: false }), "required_mcp_startup:connection_closed"],
+      [dependencies({ sandbox: false }), "isolation_probe_failed"],
       [dependencies({ sourceClean: false }), "source_not_clean"],
       [dependencies({ doctorExit: 1 }), "config_invalid"],
     ] as const;

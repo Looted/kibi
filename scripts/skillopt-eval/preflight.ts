@@ -1,6 +1,14 @@
-import { constants as fsConstants } from "node:fs";
-import { access, realpath, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
+import {
+  type McpServerLaunch,
+  RequiredMcpStartupError,
+  RuntimePrerequisiteError,
+  type StagedCanaryRuntime,
+  probeCodexSandbox,
+  probeRequiredMcp,
+  stageCapabilityCanary,
+} from "./runtime/canary-runtime";
 import { CodexAuthError, prepareExistingLogin } from "./runtime/codex-auth";
 import {
   type CapabilityCanaryReceipt,
@@ -53,11 +61,16 @@ export type PreflightDependencies = Readonly<{
     timeoutMs: number,
     stdin?: string,
   ) => Promise<ProcessResult>;
-  executable: (command: string) => Promise<boolean>;
   sourceClean: (
     sourceWorktree: string,
     env: NodeJS.ProcessEnv,
   ) => Promise<boolean>;
+  stageRuntime: (
+    workspace: IsolationWorkspace,
+    sourceWorktree: string,
+  ) => Promise<StagedCanaryRuntime>;
+  probeRequiredMcp: (launch: McpServerLaunch) => Promise<unknown>;
+  probeSandbox: typeof probeCodexSandbox;
 }>;
 
 export async function sourceWorktreeIsClean(
@@ -76,22 +89,10 @@ export async function sourceWorktreeIsClean(
 const runtimeDependencies: PreflightDependencies = {
   run: (argv, cwd, env, timeoutMs, stdin) =>
     runBoundedProcess({ argv, cwd, env, timeoutMs, stdin }),
-  executable: async (command) => {
-    try {
-      await access(command, fsConstants.X_OK);
-      return true;
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        "code" in error &&
-        error.code === "ENOENT"
-      ) {
-        return false;
-      }
-      throw error;
-    }
-  },
   sourceClean: sourceWorktreeIsClean,
+  stageRuntime: stageCapabilityCanary,
+  probeRequiredMcp,
+  probeSandbox: probeCodexSandbox,
 };
 
 function baseReceipt(
@@ -145,6 +146,7 @@ async function prepareConfig(
     sourceWorktree: string;
     env: NodeJS.ProcessEnv;
     dependencies: PreflightDependencies;
+    staged: StagedCanaryRuntime;
   }>,
 ) {
   const runAuth = (
@@ -164,15 +166,15 @@ async function prepareConfig(
       options.sourceWorktree,
       auth.realCodexHome,
     ),
-    nodeCommand: process.execPath,
-    codexExecutable: await realpath(Bun.which("codex") ?? "codex"),
-    kibiServer: join(options.sourceWorktree, "packages/mcp/dist/server.js"),
+    bwrapExecutable: options.staged.bwrapExecutable,
+    codexExecutable: options.staged.codexCommand,
+    mcpServer: options.staged.mcpServer,
   });
   await writeFile(join(options.workspace.codexHome, "config.toml"), config, {
     encoding: "utf8",
     mode: 0o600,
   });
-  return auth;
+  return { ...auth, env: { ...auth.env, PATH: "/usr/bin:/bin" } };
 }
 
 // implements REQ-skillopt-codex-optimization
@@ -193,10 +195,6 @@ export async function runPreflight(
     sourceClean: false,
     configValid: false,
   };
-  if (!(await dependencies.executable("/usr/bin/bwrap"))) {
-    return noGo(config, state, "missing_isolation:bwrap");
-  }
-  state = { ...state, bwrap: true };
   const clean = await dependencies.sourceClean(sourceWorktree, env);
   state = { ...state, sourceClean: clean };
   if (!clean) return noGo(config, state, "source_not_clean");
@@ -206,8 +204,10 @@ export async function runPreflight(
     role: "target",
   });
   try {
+    const staged = await dependencies.stageRuntime(workspace, sourceWorktree);
+    state = { ...state, bwrap: true };
     const version = await dependencies.run(
-      ["codex", "--version"],
+      [staged.codexCommand, "--version"],
       sourceWorktree,
       env,
       10_000,
@@ -220,21 +220,36 @@ export async function runPreflight(
       sourceWorktree,
       env,
       dependencies,
+      staged,
     });
     state = { ...state, authMode: auth.mode };
     const doctor = await dependencies.run(
-      ["codex", "doctor", "--json"],
+      [staged.codexCommand, "--strict-config", "doctor", "--json"],
       workspace.target,
       auth.env,
       30_000,
     );
     if (doctor.exitCode !== 0) return noGo(config, state, "config_invalid");
+    await dependencies.probeRequiredMcp({
+      ...staged.mcpServer,
+      env: auth.env,
+    });
+    await dependencies.probeSandbox({
+      codexCommand: staged.codexCommand,
+      workspace: workspace.target,
+      env: auth.env,
+      run: dependencies.run,
+    });
     state = { ...state, configValid: true };
     return { ...baseReceipt(config, state), verdict: "pass" };
   } catch (error) {
     if (error instanceof CodexAuthError)
       return noGo(config, state, error.message);
     if (error instanceof ProcessControlError)
+      return noGo(config, state, error.message);
+    if (error instanceof RuntimePrerequisiteError)
+      return noGo(config, state, error.message);
+    if (error instanceof RequiredMcpStartupError)
       return noGo(config, state, error.message);
     throw error;
   } finally {

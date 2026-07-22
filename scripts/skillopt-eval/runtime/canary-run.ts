@@ -4,6 +4,14 @@ import {
   CanaryEvidenceError,
   verifyCapabilityEvidence,
 } from "./canary-evidence";
+import {
+  RequiredMcpStartupError,
+  RuntimePrerequisiteError,
+  stageCapabilityCanary,
+  summarizeProcessFailure,
+  writeCapabilityProbe,
+} from "./canary-runtime";
+import type { McpServerLaunch, probeCodexSandbox } from "./canary-runtime";
 import { CodexAuthError, prepareExistingLogin } from "./codex-auth";
 import {
   type IsolationWorkspace,
@@ -19,11 +27,13 @@ import {
   TARGET_MODEL,
   buildCodexConfig,
   buildCodexExecArgv,
-  stageCapabilityCanary,
-  summarizeProcessFailure,
-  writeCapabilityProbe,
 } from "./permissions";
-import { JsonLinesError, ProcessControlError, parseJsonLines } from "./process";
+import {
+  JsonLinesError,
+  ProcessControlError,
+  type ProcessResult,
+  parseJsonLines,
+} from "./process";
 
 export type ModelCanaryResult =
   | Readonly<{
@@ -46,6 +56,8 @@ export type ModelCanaryContext = Readonly<{
   artifactRoot: string;
   env: NodeJS.ProcessEnv;
   run: CanaryRunner;
+  probeSandbox: typeof probeCodexSandbox;
+  probeMcp: (launch: McpServerLaunch) => Promise<unknown>;
 }>;
 
 function modelRun(
@@ -73,6 +85,18 @@ function permissionPaths(
   } as const;
 }
 
+function codexRequiredMcpFailure(
+  result: ProcessResult,
+): RequiredMcpStartupError | null {
+  const stderr = result.stderr.toLowerCase();
+  if (!stderr.includes("required mcp servers failed to initialize"))
+    return null;
+  const detail = stderr.includes("connection closed")
+    ? "connection_closed"
+    : "codex_required_server";
+  return new RequiredMcpStartupError(detail);
+}
+
 // implements REQ-skillopt-codex-optimization
 export async function runModelCanary(
   context: ModelCanaryContext,
@@ -97,6 +121,7 @@ export async function runModelCanary(
       workspace,
       context.sourceWorktree,
     );
+    const runtimeEnv = { ...auth.env, PATH: "/usr/bin:/bin" };
     await writeFile(
       join(workspace.codexHome, "config.toml"),
       buildCodexConfig({
@@ -107,16 +132,16 @@ export async function runModelCanary(
           context.sourceWorktree,
           auth.realCodexHome,
         ),
-        nodeCommand: process.execPath,
+        bwrapExecutable: staged.bwrapExecutable,
         codexExecutable: staged.codexCommand,
-        kibiServer: join(context.sourceWorktree, "packages/mcp/dist/server.js"),
+        mcpServer: staged.mcpServer,
       }),
       { encoding: "utf8", mode: 0o600 },
     );
     const probe = await writeCapabilityProbe(workspace, [
       join(auth.realCodexHome, "auth.json"),
       workspace.codexHome,
-      context.sourceWorktree,
+      join(context.sourceWorktree, "package.json"),
       join(context.sourceWorktree, ".kb"),
       workspace.privateScorer,
       workspace.privateEvidence,
@@ -124,7 +149,13 @@ export async function runModelCanary(
       "/tmp",
       "/var/tmp",
     ]);
-    paidModelCalls = 1;
+    await context.probeMcp({ ...staged.mcpServer, env: runtimeEnv });
+    await context.probeSandbox({
+      codexCommand: staged.codexCommand,
+      workspace: workspace.target,
+      env: runtimeEnv,
+      run: context.run,
+    });
     const result = await context.run(
       buildCodexExecArgv({
         codexCommand: staged.codexCommand,
@@ -133,10 +164,13 @@ export async function runModelCanary(
         role: context.role,
       }),
       workspace.target,
-      auth.env,
+      runtimeEnv,
       120_000,
       `Use shell_command exactly once to execute ${probe.command}. Do not infer or claim success without that tool event. If it exits zero, return probeExecuted=true; otherwise fail.`,
     );
+    const requiredMcpFailure = codexRequiredMcpFailure(result);
+    if (requiredMcpFailure !== null) throw requiredMcpFailure;
+    paidModelCalls = 1;
     events = parseJsonLines(result.stdout).map(({ event }) => event);
     const run = modelRun(context.role, events);
     if (result.exitCode !== 0) {
@@ -177,7 +211,9 @@ export async function runModelCanary(
       error instanceof CodexAuthError ||
       error instanceof ProcessControlError ||
       error instanceof JsonLinesError ||
-      error instanceof CanaryEvidenceError
+      error instanceof CanaryEvidenceError ||
+      error instanceof RuntimePrerequisiteError ||
+      error instanceof RequiredMcpStartupError
     ) {
       return {
         kind: "no-go",

@@ -5003,9 +5003,9 @@ coordinates:
   SYM-skillopt-preflight-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 243
+    sourceEndLine: 258
     sourceFile: scripts/skillopt-eval/preflight.ts
-    sourceLine: 179
+    sourceLine: 181
   SYM-skillopt-process-group-exists:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -5213,15 +5213,21 @@ coordinates:
   SYM-skillopt-runtime-build-argv:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 177
+    sourceEndLine: 167
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
-    sourceLine: 151
+    sourceLine: 141
   SYM-skillopt-runtime-build-config:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 148
+    sourceEndLine: 138
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
-    sourceLine: 80
+    sourceLine: 72
+  SYM-skillopt-runtime-build-sandbox-probe-argv:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 228
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    sourceLine: 214
   SYM-skillopt-runtime-canary-evidence-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -5237,39 +5243,39 @@ coordinates:
   SYM-skillopt-runtime-canary-model:
     sourceColumn: 12
     sourceEndColumn: 71
-    sourceEndLine: 20
+    sourceEndLine: 12
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
-    sourceLine: 20
+    sourceLine: 12
   SYM-skillopt-runtime-canary-model-run:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 26
+    sourceEndLine: 18
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
-    sourceLine: 22
+    sourceLine: 14
   SYM-skillopt-runtime-canary-options:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 45
+    sourceEndLine: 37
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
-    sourceLine: 40
+    sourceLine: 32
   SYM-skillopt-runtime-canary-receipt:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 38
+    sourceEndLine: 30
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
-    sourceLine: 28
+    sourceLine: 20
   SYM-skillopt-runtime-canary-role:
     sourceColumn: 12
     sourceEndColumn: 48
-    sourceEndLine: 19
+    sourceEndLine: 11
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
-    sourceLine: 19
+    sourceLine: 11
   SYM-skillopt-runtime-canary-runner:
     sourceColumn: 12
     sourceEndColumn: 28
-    sourceEndLine: 53
+    sourceEndLine: 45
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
-    sourceLine: 47
+    sourceLine: 39
   SYM-skillopt-runtime-capability-probe-evidence:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -5279,9 +5285,9 @@ coordinates:
   SYM-skillopt-runtime-config-options:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 73
+    sourceEndLine: 65
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
-    sourceLine: 66
+    sourceLine: 58
   SYM-skillopt-runtime-create-workspace:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -5318,42 +5324,54 @@ coordinates:
     sourceEndLine: 39
     sourceFile: scripts/skillopt-eval/runtime/process.ts
     sourceLine: 36
+  SYM-skillopt-runtime-mcp-probe-result:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 36
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    sourceLine: 34
+  SYM-skillopt-runtime-mcp-server-launch:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 32
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    sourceLine: 26
   SYM-skillopt-runtime-mcp-startup-timeout:
     sourceColumn: 13
     sourceEndColumn: 54
-    sourceEndLine: 11
+    sourceEndLine: 9
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
-    sourceLine: 11
+    sourceLine: 9
   SYM-skillopt-runtime-mcp-tool-timeout:
-    sourceColumn: 13
-    sourceEndColumn: 52
-    sourceEndLine: 12
-    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
-    sourceLine: 12
-  SYM-skillopt-runtime-model-canary-context:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 49
-    sourceFile: scripts/skillopt-eval/runtime/canary-run.ts
-    sourceLine: 42
-  SYM-skillopt-runtime-model-canary-result:
-    sourceColumn: 12
-    sourceEndColumn: 7
-    sourceEndLine: 40
-    sourceFile: scripts/skillopt-eval/runtime/canary-run.ts
-    sourceLine: 28
-  SYM-skillopt-runtime-model-effort:
     sourceColumn: 13
     sourceEndColumn: 52
     sourceEndLine: 10
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     sourceLine: 10
+  SYM-skillopt-runtime-model-canary-context:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 61
+    sourceFile: scripts/skillopt-eval/runtime/canary-run.ts
+    sourceLine: 52
+  SYM-skillopt-runtime-model-canary-result:
+    sourceColumn: 12
+    sourceEndColumn: 7
+    sourceEndLine: 50
+    sourceFile: scripts/skillopt-eval/runtime/canary-run.ts
+    sourceLine: 38
+  SYM-skillopt-runtime-model-effort:
+    sourceColumn: 13
+    sourceEndColumn: 52
+    sourceEndLine: 8
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 8
   SYM-skillopt-runtime-optimizer-model:
     sourceColumn: 13
     sourceEndColumn: 49
-    sourceEndLine: 9
+    sourceEndLine: 7
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
-    sourceLine: 9
+    sourceLine: 7
   SYM-skillopt-runtime-parse-jsonl:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5363,33 +5381,57 @@ coordinates:
   SYM-skillopt-runtime-permission-paths:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 64
+    sourceEndLine: 56
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
-    sourceLine: 55
+    sourceLine: 47
   SYM-skillopt-runtime-preflight-config:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 28
+    sourceEndLine: 36
     sourceFile: scripts/skillopt-eval/preflight.ts
-    sourceLine: 23
+    sourceLine: 31
   SYM-skillopt-runtime-preflight-dependencies:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 61
+    sourceEndLine: 74
     sourceFile: scripts/skillopt-eval/preflight.ts
-    sourceLine: 48
+    sourceLine: 56
   SYM-skillopt-runtime-preflight-receipt:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 43
+    sourceEndLine: 51
     sourceFile: scripts/skillopt-eval/preflight.ts
-    sourceLine: 30
+    sourceLine: 38
   SYM-skillopt-runtime-prepare-existing-login:
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 144
     sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
     sourceLine: 108
+  SYM-skillopt-runtime-prerequisite-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 55
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    sourceLine: 45
+  SYM-skillopt-runtime-prerequisite-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 45
+    sourceEndLine: 46
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    sourceLine: 46
+  SYM-skillopt-runtime-probe-required-mcp:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 212
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    sourceLine: 185
+  SYM-skillopt-runtime-probe-sandbox:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 252
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    sourceLine: 230
   SYM-skillopt-runtime-process-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -5417,21 +5459,33 @@ coordinates:
   SYM-skillopt-runtime-process-summary:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 238
-    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
-    sourceLine: 235
+    sourceEndLine: 275
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    sourceLine: 272
+  SYM-skillopt-runtime-required-mcp-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 66
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    sourceLine: 57
+  SYM-skillopt-runtime-required-mcp-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 44
+    sourceEndLine: 58
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    sourceLine: 58
   SYM-skillopt-runtime-run-canary:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 99
+    sourceEndLine: 106
     sourceFile: scripts/skillopt-eval/runtime/workspace.ts
-    sourceLine: 41
+    sourceLine: 43
   SYM-skillopt-runtime-run-model-canary:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 206
+    sourceEndLine: 242
     sourceFile: scripts/skillopt-eval/runtime/canary-run.ts
-    sourceLine: 77
+    sourceLine: 101
   SYM-skillopt-runtime-run-process:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5447,25 +5501,31 @@ coordinates:
   SYM-skillopt-runtime-source-clean:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 74
+    sourceEndLine: 87
     sourceFile: scripts/skillopt-eval/preflight.ts
-    sourceLine: 63
+    sourceLine: 76
   SYM-skillopt-runtime-stage-canary:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 215
-    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
-    sourceLine: 179
+    sourceEndLine: 167
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    sourceLine: 80
+  SYM-skillopt-runtime-staged-canary:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 43
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    sourceLine: 38
   SYM-skillopt-runtime-target-model:
     sourceColumn: 13
     sourceEndColumn: 51
-    sourceEndLine: 8
+    sourceEndLine: 6
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
-    sourceLine: 8
+    sourceLine: 6
   SYM-skillopt-runtime-verify-canary-evidence:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 58
+    sourceEndLine: 62
     sourceFile: scripts/skillopt-eval/runtime/canary-evidence.ts
     sourceLine: 38
   SYM-skillopt-runtime-workspace-options:
@@ -5477,9 +5537,9 @@ coordinates:
   SYM-skillopt-runtime-write-probe:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 233
-    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
-    sourceLine: 217
+    sourceEndLine: 270
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    sourceLine: 254
   SYM-skillopt-source-lock-python-tests:
     sourceColumn: 6
     sourceEndColumn: 21
