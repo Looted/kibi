@@ -18,7 +18,18 @@ export const ArtifactIdSchema = z
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
   );
 // implements REQ-skillopt-codex-optimization
-export const TimestampSchema = z.iso.datetime({ offset: false, local: false });
+export const TimestampSchema = z
+  .string()
+  .regex(
+    /^(?:[0-9]{3}[1-9]|[0-9]{2}[1-9][0-9]|[0-9][1-9][0-9]{2}|[1-9][0-9]{3})-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])T(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](?:\.[0-9]+)?Z$/,
+  )
+  .refine((value) => {
+    const calendarDate = new Date(`${value.slice(0, 10)}T00:00:00Z`);
+    return (
+      !Number.isNaN(calendarDate.getTime()) &&
+      calendarDate.toISOString().slice(0, 10) === value.slice(0, 10)
+    );
+  }, "timestamp has an invalid calendar date");
 // implements REQ-skillopt-codex-optimization
 export const JsonValueSchema = z.json();
 

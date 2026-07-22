@@ -57,9 +57,18 @@
   },
   "allOf": [
     {
-      "if": { "properties": { "sequence": { "const": 0 } }, "required": ["sequence"] },
+      "if": {
+        "properties": { "sequence": { "const": 0 } },
+        "required": ["sequence"]
+      },
       "then": { "properties": { "previousEntryHash": { "type": "null" } } },
-      "else": { "properties": { "previousEntryHash": { "$ref": "contract-definitions.schema.json#/$defs/sha256" } } }
+      "else": {
+        "properties": {
+          "previousEntryHash": {
+            "$ref": "contract-definitions.schema.json#/$defs/sha256"
+          }
+        }
+      }
     }
   ]
 }

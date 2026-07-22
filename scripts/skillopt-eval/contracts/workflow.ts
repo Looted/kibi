@@ -111,7 +111,7 @@ export const ReportV1Schema = boundedContractSchema(
     .object({
       schemaVersion: z.literal(CONTRACT_SCHEMA_VERSION),
       artifactType: z.literal("report"),
-      runId: NonEmptyStringSchema,
+      runId: ArtifactIdSchema,
       runLockHash: Sha256Schema,
       skill: SkillSchema,
       variants: z
