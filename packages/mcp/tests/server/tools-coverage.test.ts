@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import process from "node:process";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { PrologPort } from "kibi-cli/operations/runtime-types";
+import type {
+  OperationContext,
+  PrologPort,
+} from "kibi-cli/operations/runtime-types";
 
 import type { DiagnosticErrorFields } from "../../src/diagnostics.js";
 import { createMcpRuntime } from "../../src/runtime/mcp-runtime.js";
@@ -381,9 +384,12 @@ function createRuntime() {
     }),
   );
   const handleSparql: ToolsRuntime<MockProlog>["handleSparql"] = mock(
-    async (_prolog: MockProlog, args: SparqlArgs): Promise<unknown> => ({
+    async (
+      _args: SparqlArgs,
+      context: OperationContext,
+    ): Promise<unknown> => ({
       tool: "kb_sparql_remote",
-      args,
+      args: context,
     }),
   );
   const handleKbQuery: ToolsRuntime<MockProlog>["handleKbQuery"] = mock(
@@ -468,11 +474,11 @@ function createRuntime() {
   const handleKbAutopilotGenerate: ToolsRuntime<MockProlog>["handleKbAutopilotGenerate"] =
     mock(
       async (
-        _prolog: MockProlog,
-        args: AutopilotGenerateArgs,
+        _args: AutopilotGenerateArgs,
+        context: OperationContext,
       ): Promise<unknown> => ({
         tool: "kb_autopilot_generate",
-        args,
+        args: context,
       }),
     );
   const runtime = {
@@ -976,11 +982,14 @@ describe.serial("server tools coverage", () => {
     expect(results).toEqual(
       TOOL_NAMES.map((name) => ({
         tool: name,
-        args: argsByTool.get(name),
+        args:
+          name === "kb_sparql_remote" || name === "kb_autopilot_generate"
+            ? expect.objectContaining({ workspaceRoot: "/workspace" })
+            : argsByTool.get(name),
       })),
     );
 
-    expect(spies.ensureProlog).toHaveBeenCalledTimes(TOOL_NAMES.length - 4);
+    expect(spies.ensureProlog).toHaveBeenCalledTimes(TOOL_NAMES.length - 6);
     expect(spies.handleKbQuery).toHaveBeenCalledWith(
       mockProlog,
       argsByTool.get("kb_query"),
@@ -1017,6 +1026,10 @@ describe.serial("server tools coverage", () => {
       mockProlog,
       argsByTool.get("kb_graph"),
     );
+    expect(spies.handleSparql).toHaveBeenCalledWith(
+      argsByTool.get("kb_sparql_remote"),
+      expect.objectContaining({ workspaceRoot: "/workspace" }),
+    );
     expect(spies.handleKbUpsert).toHaveBeenCalledWith(
       mockProlog,
       argsByTool.get("kb_upsert"),
@@ -1042,8 +1055,8 @@ describe.serial("server tools coverage", () => {
       argsByTool.get("kb_suggest_predicates"),
     );
     expect(spies.handleKbAutopilotGenerate).toHaveBeenCalledWith(
-      mockProlog,
       argsByTool.get("kb_autopilot_generate"),
+      expect.objectContaining({ workspaceRoot: "/workspace" }),
     );
   });
 
