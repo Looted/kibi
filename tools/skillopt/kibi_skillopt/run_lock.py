@@ -3,12 +3,12 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 from typing import Annotated, Literal
-from uuid import UUID
 
 from pydantic import Field, model_validator
 from typing_extensions import Self
 
 from .common import (
+    ArtifactId,
     ContractModel,
     ContractValidationError,
     JsonInteger,
@@ -163,9 +163,13 @@ class CodexGates(ContractModel):
 class RunLock(ContractModel):
     schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
     artifact_type: Annotated[Literal["run-lock"], Field(alias="artifactType")]
-    run_id: Annotated[UUID, Field(alias="runId")]
-    repository_hash_algorithm: Annotated[Literal["sha1"], Field(alias="repositoryHashAlgorithm")]
-    repository_commit: Annotated[str, Field(alias="repositoryCommit", pattern=r"^[a-f0-9]{40}$")]
+    run_id: Annotated[ArtifactId, Field(alias="runId")]
+    repository_hash_algorithm: Annotated[
+        Literal["sha1", "sha256"], Field(alias="repositoryHashAlgorithm")
+    ]
+    repository_commit: Annotated[
+        str, Field(alias="repositoryCommit", pattern=r"^(?:[a-f0-9]{40}|[a-f0-9]{64})$")
+    ]
     dirty_state: Annotated[
         Annotated[CleanState | DirtyState, Field(discriminator="is_dirty")],
         Field(alias="dirtyState"),
@@ -190,12 +194,19 @@ class RunLock(ContractModel):
     gates: CodexGates
 
     @model_validator(mode="after")
-    def verify_integrity(self) -> Self:
+    def verify_repository_object_id(self) -> Self:
+        expected_length = 40 if self.repository_hash_algorithm == "sha1" else 64
+        if len(self.repository_commit) != expected_length:
+            raise ContractValidationError(
+                f"{self.repository_hash_algorithm} object ID must be {expected_length} characters"
+            )
+        return self
+
+    def verify_integrity(self, source_lock_path: Path) -> None:
         pricing = parse_json_value(self.pricing.model_dump_json(by_alias=True))
         if contract_hash(pricing) != self.pricing_hash:
             raise ContractValidationError("pricing hash mismatch")
-        self.assert_source_lock(DEFAULT_SOURCE_LOCK_PATH)
-        return self
+        self.assert_source_lock(source_lock_path)
 
     def assert_source_lock(self, source_lock_path: Path) -> None:
         source_lock = load_skillopt_source_lock(source_lock_path)
@@ -214,7 +225,7 @@ class RunLock(ContractModel):
     @classmethod
     def model_validate_with_source_lock(cls, value: JsonValue, source_lock_path: Path) -> Self:
         lock = cls.model_validate(value)
-        lock.assert_source_lock(source_lock_path)
+        lock.verify_integrity(source_lock_path)
         return lock
 
 

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  ArtifactIdSchema,
   CONTRACT_SCHEMA_VERSION,
   NonEmptyStringSchema,
   PriceEquivalentEstimateSchema,
@@ -16,12 +17,12 @@ export const LedgerEntrySchema = boundedContractSchema(
     .object({
       schemaVersion: z.literal(CONTRACT_SCHEMA_VERSION),
       artifactType: z.literal("ledger-entry"),
-      runId: z.uuid(),
+      runId: ArtifactIdSchema,
       sequence: z.int().nonnegative(),
       previousEntryHash: Sha256Schema.nullable(),
       entryHash: Sha256Schema,
       occurredAt: TimestampSchema,
-      episodeId: z.uuid().optional(),
+      episodeId: ArtifactIdSchema.optional(),
       category: z.enum([
         "preflight",
         "development",
@@ -54,7 +55,7 @@ export const RunStateSchema = boundedContractSchema(
     .object({
       schemaVersion: z.literal(CONTRACT_SCHEMA_VERSION),
       artifactType: z.literal("run-state"),
-      runId: z.uuid(),
+      runId: ArtifactIdSchema,
       runLockHash: Sha256Schema,
       phase: z.enum([
         "preflight",
@@ -67,7 +68,7 @@ export const RunStateSchema = boundedContractSchema(
         "no-go",
       ]),
       completedEpisodeIds: z
-        .array(z.uuid())
+        .array(ArtifactIdSchema)
         .refine(
           (ids) => new Set(ids).size === ids.length,
           "completed episode ids must be unique",
@@ -90,7 +91,7 @@ export const RunStateSchema = boundedContractSchema(
 const LegacyReportSchema = boundedContractSchema(
   z
     .object({
-      runId: z.uuid(),
+      runId: NonEmptyStringSchema,
       skill: NonEmptyStringSchema,
       variants: z.tuple([
         z.literal("baseline"),

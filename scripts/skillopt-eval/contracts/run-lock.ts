@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { z } from "zod";
 import {
+  ArtifactIdSchema,
   CONTRACT_SCHEMA_VERSION,
   ContractIntegrityError,
   JsonValueSchema,
@@ -85,16 +86,15 @@ const DirtyStateSchema = z.discriminatedUnion("isDirty", [
 
 // implements REQ-skillopt-codex-optimization
 export function createRunLockSchema(sourceLockPath = DEFAULT_SOURCE_LOCK_PATH) {
-  const sourceLock = loadSkillOptSourceLock(sourceLockPath);
-  const sourceLockHash = contractHash(JsonValueSchema.parse(sourceLock));
+  loadSkillOptSourceLock(sourceLockPath);
   return boundedContractSchema(
     z
       .object({
         schemaVersion: z.literal(CONTRACT_SCHEMA_VERSION),
         artifactType: z.literal("run-lock"),
-        runId: z.uuid(),
-        repositoryHashAlgorithm: z.literal("sha1"),
-        repositoryCommit: z.string().regex(/^[a-f0-9]{40}$/),
+        runId: ArtifactIdSchema,
+        repositoryHashAlgorithm: z.enum(["sha1", "sha256"]),
+        repositoryCommit: z.string().regex(/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/),
         dirtyState: DirtyStateSchema,
         codexCliVersion: NonEmptyStringSchema,
         codexExecutable: ExecutableIdentitySchema,
@@ -104,19 +104,19 @@ export function createRunLockSchema(sourceLockPath = DEFAULT_SOURCE_LOCK_PATH) {
         optimizerModel: z.literal("gpt-5.5"),
         skillopt: z
           .object({
-            package: z.literal(sourceLock.package),
-            version: z.literal(sourceLock.version),
-            commit: z.literal(sourceLock.commit),
-            repository: z.literal(sourceLock.repository),
-            license: z.literal(sourceLock.license),
-            retrievedAt: z.literal(sourceLock.retrievedAt),
-            python: z.literal(sourceLock.python),
+            package: z.literal("skillopt"),
+            version: NonEmptyStringSchema,
+            commit: z.string().regex(/^[a-f0-9]{40}$/),
+            repository: z.url(),
+            license: NonEmptyStringSchema,
+            retrievedAt: z.iso.date(),
+            python: NonEmptyStringSchema,
             packageHash: Sha256Schema,
             sourceHash: Sha256Schema,
             uvLockHash: Sha256Schema,
           })
           .strict(),
-        sourceLockHash: z.literal(sourceLockHash),
+        sourceLockHash: Sha256Schema,
         catalogHash: Sha256Schema,
         fixtureHash: Sha256Schema,
         fixtureGeneratorHash: Sha256Schema,
@@ -135,7 +135,18 @@ export function createRunLockSchema(sourceLockPath = DEFAULT_SOURCE_LOCK_PATH) {
         hosts: z.tuple([z.literal("codex")]),
         gates: CodexGatesSchema,
       })
-      .strict(),
+      .strict()
+      .superRefine((lock, context) => {
+        const expectedLength =
+          lock.repositoryHashAlgorithm === "sha1" ? 40 : 64;
+        if (lock.repositoryCommit.length !== expectedLength) {
+          context.addIssue({
+            code: "custom",
+            message: `${lock.repositoryHashAlgorithm} object ID must be ${expectedLength} characters`,
+            path: ["repositoryCommit"],
+          });
+        }
+      }),
   );
 }
 
@@ -146,11 +157,34 @@ export const RunLockSchema = createRunLockSchema();
 export type RunLock = Readonly<z.infer<typeof RunLockSchema>>;
 
 // implements REQ-skillopt-codex-optimization
-export function parseRunLockText(text: string): RunLock {
+export function parseRunLockText(
+  text: string,
+  sourceLockPath = DEFAULT_SOURCE_LOCK_PATH,
+): RunLock {
   const lock = RunLockSchema.parse(parseJsonText(text));
   const pricing = JsonValueSchema.parse(lock.pricing);
   if (contractHash(pricing) !== lock.pricingHash) {
     throw new ContractIntegrityError("pricing hash mismatch", "pricingHash");
+  }
+  const sourceLock = loadSkillOptSourceLock(sourceLockPath);
+  const expectedPin = JsonValueSchema.parse(sourceLock);
+  const actualPin = JsonValueSchema.parse({
+    package: lock.skillopt.package,
+    version: lock.skillopt.version,
+    commit: lock.skillopt.commit,
+    repository: lock.skillopt.repository,
+    license: lock.skillopt.license,
+    retrievedAt: lock.skillopt.retrievedAt,
+    python: lock.skillopt.python,
+  });
+  if (contractHash(actualPin) !== contractHash(expectedPin)) {
+    throw new ContractIntegrityError("source lock mismatch", "skillopt");
+  }
+  if (contractHash(expectedPin) !== lock.sourceLockHash) {
+    throw new ContractIntegrityError(
+      "source lock hash mismatch",
+      "sourceLockHash",
+    );
   }
   return lock;
 }

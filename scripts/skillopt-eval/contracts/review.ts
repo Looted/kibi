@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  ArtifactIdSchema,
   CONTRACT_SCHEMA_VERSION,
   ContractIntegrityError,
   JsonValueSchema,
@@ -17,8 +18,8 @@ export const ProposalSchema = boundedContractSchema(
     .object({
       schemaVersion: z.literal(CONTRACT_SCHEMA_VERSION),
       artifactType: z.literal("proposal"),
-      proposalId: z.uuid(),
-      runId: z.uuid(),
+      proposalId: ArtifactIdSchema,
+      runId: ArtifactIdSchema,
       runLockHash: Sha256Schema,
       skill: SkillSchema,
       candidateBodyHash: Sha256Schema,
@@ -52,10 +53,10 @@ export const ApprovalSchema = boundedContractSchema(
     .object({
       schemaVersion: z.literal(CONTRACT_SCHEMA_VERSION),
       artifactType: z.literal("approval"),
-      approvalId: z.uuid(),
-      proposalId: z.uuid(),
+      approvalId: ArtifactIdSchema,
+      proposalId: ArtifactIdSchema,
       proposalHash: Sha256Schema,
-      runId: z.uuid(),
+      runId: ArtifactIdSchema,
       runLockHash: Sha256Schema,
       reportHash: Sha256Schema,
       candidateBodyHash: Sha256Schema,

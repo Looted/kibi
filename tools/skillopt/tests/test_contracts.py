@@ -17,6 +17,7 @@ from tools.skillopt.kibi_skillopt.common import (
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_PATH = REPO_ROOT / "scripts/skillopt-eval/tests/fixtures/valid-run-lock.json"
+SOURCE_LOCK_PATH = REPO_ROOT / "tools/skillopt/source-lock.json"
 HASH = "b" * 64
 TIMESTAMP = "2026-07-21T12:00:00Z"
 RUN_ID = "00000000-0000-4000-8000-000000000001"
@@ -53,8 +54,9 @@ class ContractTests(unittest.TestCase):
             _ = RunLock.model_validate(missing)
         with self.assertRaises(ValidationError):
             _ = RunLock.model_validate(unknown)
-        with self.assertRaises(ValidationError):
-            _ = RunLock.model_validate(tampered)
+        _ = RunLock.model_validate(tampered)
+        with self.assertRaisesRegex(ValueError, "pricing hash mismatch"):
+            _ = RunLock.model_validate_with_source_lock(tampered, SOURCE_LOCK_PATH)
 
     def test_run_lock_rejects_immutable_dirty_state_mismatch(self) -> None:
         expected = RunLock.model_validate(load_run_lock())

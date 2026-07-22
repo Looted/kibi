@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from typing import Annotated, Literal
-from uuid import UUID
 
-from pydantic import AwareDatetime, Field, field_validator, model_validator
+from pydantic import Field, field_validator, model_validator
 from typing_extensions import Self
 
 from .common import (
+    ArtifactId,
     ContractModel,
     ContractValidationError,
     JsonBoolean,
@@ -17,6 +17,7 @@ from .common import (
     NonEmptyString,
     PriceEquivalentEstimate,
     Sha256,
+    Timestamp,
     Usage,
 )
 from .episode import Skill
@@ -25,12 +26,12 @@ from .episode import Skill
 class LedgerEntry(ContractModel):
     schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
     artifact_type: Annotated[Literal["ledger-entry"], Field(alias="artifactType")]
-    run_id: Annotated[UUID, Field(alias="runId")]
+    run_id: Annotated[ArtifactId, Field(alias="runId")]
     sequence: Annotated[JsonInteger, Field(ge=0)]
     previous_entry_hash: Annotated[Sha256 | None, Field(alias="previousEntryHash")]
     entry_hash: Annotated[Sha256, Field(alias="entryHash")]
-    occurred_at: Annotated[AwareDatetime, Field(alias="occurredAt")]
-    episode_id: Annotated[UUID | None, Field(alias="episodeId")] = None
+    occurred_at: Annotated[Timestamp, Field(alias="occurredAt")]
+    episode_id: Annotated[ArtifactId | None, Field(alias="episodeId")] = None
     category: Literal[
         "preflight", "development", "optimization", "held-out", "bundle", "infrastructure"
     ]
@@ -62,7 +63,7 @@ class LedgerEntry(ContractModel):
 class RunState(ContractModel):
     schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
     artifact_type: Annotated[Literal["run-state"], Field(alias="artifactType")]
-    run_id: Annotated[UUID, Field(alias="runId")]
+    run_id: Annotated[ArtifactId, Field(alias="runId")]
     run_lock_hash: Annotated[Sha256, Field(alias="runLockHash")]
     phase: Literal[
         "preflight",
@@ -74,9 +75,9 @@ class RunState(ContractModel):
         "complete",
         "no-go",
     ]
-    completed_episode_ids: Annotated[tuple[UUID, ...], Field(alias="completedEpisodeIds")]
+    completed_episode_ids: Annotated[tuple[ArtifactId, ...], Field(alias="completedEpisodeIds")]
     ledger_head_hash: Annotated[Sha256 | None, Field(alias="ledgerHeadHash")]
-    updated_at: Annotated[AwareDatetime, Field(alias="updatedAt")]
+    updated_at: Annotated[Timestamp, Field(alias="updatedAt")]
     interrupted: JsonBoolean
 
     @model_validator(mode="after")
@@ -108,7 +109,7 @@ class GateResults(ContractModel):
 class ReportV1(ContractModel):
     schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
     artifact_type: Annotated[Literal["report"], Field(alias="artifactType")]
-    run_id: Annotated[UUID, Field(alias="runId")]
+    run_id: Annotated[ArtifactId, Field(alias="runId")]
     run_lock_hash: Annotated[Sha256, Field(alias="runLockHash")]
     skill: Skill
     variants: tuple[Literal["baseline"], Literal["one-shot"], Literal["skillopt"]]
@@ -117,7 +118,7 @@ class ReportV1(ContractModel):
         PriceEquivalentEstimate, Field(alias="priceEquivalentEstimate")
     ]
     verdict: Literal["pass", "fail", "no-go"]
-    generated_at: Annotated[AwareDatetime, Field(alias="generatedAt")]
+    generated_at: Annotated[Timestamp, Field(alias="generatedAt")]
     gate_results: Annotated[GateResults, Field(alias="gateResults")]
 
     @model_validator(mode="after")

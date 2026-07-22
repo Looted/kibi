@@ -22,12 +22,28 @@ class SourceLockTests(unittest.TestCase):
         self.assertEqual(len(lock.commit), 40)
         self.assertTrue(lock.license)
 
-    def test_verifier_uses_source_lock_version_as_authority(self) -> None:
+    def test_tampered_source_lock_cannot_self_validate(self) -> None:
         lock_path = ROOT / "source-lock.json"
         lock = SourceLock.model_validate_json(lock_path.read_text(encoding="utf-8"))
         changed = lock.model_copy(update={"version": "9.9.9"})
 
-        verify_lock(changed, "9.9.9")
+        with self.assertRaisesRegex(RuntimeError, "installed version mismatch"):
+            verify_lock(changed, lock.version, lock.commit)
+
+    def test_tampered_source_revision_cannot_self_validate(self) -> None:
+        lock_path = ROOT / "source-lock.json"
+        lock = SourceLock.model_validate_json(lock_path.read_text(encoding="utf-8"))
+        changed = lock.model_copy(update={"commit": "1" * 40})
+
+        with self.assertRaisesRegex(RuntimeError, "installed revision mismatch"):
+            verify_lock(changed, lock.version, lock.commit)
+
+    def test_missing_independent_revision_fails_closed(self) -> None:
+        lock_path = ROOT / "source-lock.json"
+        lock = SourceLock.model_validate_json(lock_path.read_text(encoding="utf-8"))
+
+        with self.assertRaisesRegex(RuntimeError, "installed revision unavailable"):
+            verify_lock(lock, lock.version, None)
 
     def test_verifier_rejects_a_tampered_expected_commit(self) -> None:
         verifier = ROOT / "verify_pin.py"

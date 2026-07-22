@@ -229,11 +229,101 @@
       "patch": { "path": ["runId"], "value": "run-1" }
     },
     {
+      "name": "UUID URNs are rejected",
+      "schema": "run-state.schema.json",
+      "fixture": "run-state",
+      "accepted": false,
+      "patch": {
+        "path": ["runId"],
+        "value": "urn:uuid:abcdefab-cdef-4abc-8abc-abcdefabcdef"
+      }
+    },
+    {
+      "name": "braced UUIDs are rejected",
+      "schema": "run-state.schema.json",
+      "fixture": "run-state",
+      "accepted": false,
+      "patch": {
+        "path": ["runId"],
+        "value": "{abcdefab-cdef-4abc-8abc-abcdefabcdef}"
+      }
+    },
+    {
+      "name": "uppercase UUIDs are rejected",
+      "schema": "run-state.schema.json",
+      "fixture": "run-state",
+      "accepted": false,
+      "patch": {
+        "path": ["runId"],
+        "value": "ABCDEFAB-CDEF-4ABC-8ABC-ABCDEFABCDEF"
+      }
+    },
+    {
+      "name": "non-RFC UUID variants are rejected",
+      "schema": "run-state.schema.json",
+      "fixture": "run-state",
+      "accepted": false,
+      "patch": {
+        "path": ["runId"],
+        "value": "abcdefab-cdef-4abc-7abc-abcdefabcdef"
+      }
+    },
+    {
       "name": "timestamps are validated",
       "schema": "ledger-entry.schema.json",
       "fixture": "ledger-entry",
       "accepted": false,
       "patch": { "path": ["occurredAt"], "value": "yesterday" }
+    },
+    {
+      "name": "fractional UTC timestamps are canonical",
+      "schema": "ledger-entry.schema.json",
+      "fixture": "ledger-entry",
+      "accepted": true,
+      "patch": {
+        "path": ["occurredAt"],
+        "value": "2024-02-29T23:59:59.123456789Z"
+      }
+    },
+    {
+      "name": "lowercase timestamp separators are rejected",
+      "schema": "ledger-entry.schema.json",
+      "fixture": "ledger-entry",
+      "accepted": false,
+      "patch": {
+        "path": ["occurredAt"],
+        "value": "2026-07-21t12:00:00z"
+      }
+    },
+    {
+      "name": "space-separated timestamps are rejected",
+      "schema": "ledger-entry.schema.json",
+      "fixture": "ledger-entry",
+      "accepted": false,
+      "patch": {
+        "path": ["occurredAt"],
+        "value": "2026-07-21 12:00:00Z"
+      }
+    },
+    {
+      "name": "invalid calendar timestamps are rejected",
+      "schema": "ledger-entry.schema.json",
+      "fixture": "ledger-entry",
+      "accepted": false,
+      "patch": {
+        "path": ["occurredAt"],
+        "value": "2026-02-30T12:00:00Z"
+      }
+    },
+    {
+      "name": "leap-second timestamps are rejected",
+      "schema": "ledger-entry.schema.json",
+      "fixture": "ledger-entry",
+      "accepted": false,
+      "patch": {
+        "path": ["occurredAt"],
+        "value": "2026-07-21T12:00:60Z"
+      }
     },
     {
       "name": "unknown fields are forbidden",
@@ -351,6 +441,43 @@
       "patch": {
         "path": ["repositoryCommit"],
         "value": "1111111111111111111111111111111111111111111111111111111111111111"
+      }
+    },
+    {
+      "name": "repository object IDs support explicit SHA-256",
+      "schema": "run-lock.schema.json",
+      "fixture": "run-lock",
+      "accepted": true,
+      "patches": [
+        { "path": ["repositoryHashAlgorithm"], "value": "sha256" },
+        {
+          "path": ["repositoryCommit"],
+          "value": "1111111111111111111111111111111111111111111111111111111111111111"
+        }
+      ]
+    },
+    {
+      "name": "SHA-256 discriminator rejects SHA-1 object IDs",
+      "schema": "run-lock.schema.json",
+      "fixture": "run-lock",
+      "accepted": false,
+      "patch": { "path": ["repositoryHashAlgorithm"], "value": "sha256" }
+    },
+    {
+      "name": "repository object algorithms are exact",
+      "schema": "run-lock.schema.json",
+      "fixture": "run-lock",
+      "accepted": false,
+      "patch": { "path": ["repositoryHashAlgorithm"], "value": "sha512" }
+    },
+    {
+      "name": "repository object IDs reject malformed lengths",
+      "schema": "run-lock.schema.json",
+      "fixture": "run-lock",
+      "accepted": false,
+      "patch": {
+        "path": ["repositoryCommit"],
+        "value": "111111111111111111111111111111111111111"
       }
     }
   ]

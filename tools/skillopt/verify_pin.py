@@ -32,15 +32,47 @@ class PinVerificationError(RuntimeError):
     """Raised when the committed source receipt does not match the pin."""
 
 
+class VcsInfo(BaseModel):
+    model_config: ClassVar[ConfigDict] = ConfigDict(extra="ignore", frozen=True)
+
+    vcs: Literal["git"]
+    commit_id: Annotated[str, Field(pattern=r"^[a-f0-9]{40}$")]
+
+
+class DirectUrl(BaseModel):
+    model_config: ClassVar[ConfigDict] = ConfigDict(extra="ignore", frozen=True)
+
+    url: Annotated[str, Field(min_length=1)]
+    vcs_info: VcsInfo
+
+
 def parse_source_lock(text: str) -> SourceLock:
     """Parse the small JSON source receipt at the process boundary."""
     return SourceLock.model_validate_json(text)
 
 
-def verify_lock(lock: SourceLock, installed_version: str | None) -> None:
-    """Verify the immutable source receipt and optional installed package."""
-    if installed_version is not None and installed_version != lock.version:
+def installed_revision(package: str) -> str | None:
+    """Read the independently installed PEP 610 source revision."""
+    direct_url_text = importlib.metadata.distribution(package).read_text("direct_url.json")
+    if direct_url_text is None:
+        return None
+    return DirectUrl.model_validate_json(direct_url_text).vcs_info.commit_id
+
+
+def verify_lock(
+    lock: SourceLock,
+    installed_version: str | None,
+    installed_commit: str | None,
+) -> None:
+    """Verify the source receipt against independent installation metadata."""
+    if installed_version is None:
+        raise PinVerificationError("installed version unavailable")
+    if installed_version != lock.version:
         raise PinVerificationError(f"installed version mismatch: {installed_version}")
+    if installed_commit is None:
+        raise PinVerificationError("installed revision unavailable")
+    if installed_commit != lock.commit:
+        raise PinVerificationError(f"installed revision mismatch: {installed_commit}")
 
 
 def parse_lock_path(argv: Sequence[str]) -> Path:
@@ -59,9 +91,11 @@ def main(argv: list[str]) -> int:
         lock = parse_source_lock(lock_path.read_text(encoding="utf-8"))
         try:
             installed_version = importlib.metadata.version(lock.package)
+            installed_commit = installed_revision(lock.package)
         except importlib.metadata.PackageNotFoundError:
             installed_version = None
-        verify_lock(lock, installed_version)
+            installed_commit = None
+        verify_lock(lock, installed_version, installed_commit)
     except (OSError, PinVerificationError, ValidationError) as error:
         _ = sys.stderr.write(f"skillopt pin verification failed: {error}\n")
         return 1

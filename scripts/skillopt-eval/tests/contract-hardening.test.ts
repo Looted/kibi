@@ -19,6 +19,7 @@ import {
   canonicalJson,
   contractHash,
   createRunLockSchema,
+  parseRunLockText,
 } from "../contracts";
 
 const fixturePath = join(import.meta.dir, "fixtures/valid-run-lock.json");
@@ -95,9 +96,12 @@ describe("SkillOpt hardened contract boundaries", () => {
     writeFileSync(changedPath, JSON.stringify({ ...source, version: "0.2.1" }));
 
     try {
+      expect(
+        createRunLockSchema(changedPath).safeParse(runLockFixture()).success,
+      ).toBe(true);
       expect(() =>
-        createRunLockSchema(changedPath).parse(runLockFixture()),
-      ).toThrow();
+        parseRunLockText(JSON.stringify(runLockFixture()), changedPath),
+      ).toThrow("source lock mismatch");
     } finally {
       rmSync(directory, { recursive: true, force: true });
     }

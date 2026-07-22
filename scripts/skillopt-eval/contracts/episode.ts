@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  ArtifactIdSchema,
   CONTRACT_SCHEMA_VERSION,
   NonEmptyStringSchema,
   PriceEquivalentEstimateSchema,
@@ -26,8 +27,8 @@ export const EpisodeRequestSchema = boundedContractSchema(
     .object({
       schemaVersion: z.literal(CONTRACT_SCHEMA_VERSION),
       artifactType: z.literal("episode-request"),
-      episodeId: z.uuid(),
-      runId: z.uuid(),
+      episodeId: ArtifactIdSchema,
+      runId: ArtifactIdSchema,
       runLockHash: Sha256Schema,
       variant: VariantSchema,
       skill: SkillSchema,
@@ -45,8 +46,8 @@ export const EpisodeResultSchema = boundedContractSchema(
     .object({
       schemaVersion: z.literal(CONTRACT_SCHEMA_VERSION),
       artifactType: z.literal("episode-result"),
-      episodeId: z.uuid(),
-      runId: z.uuid(),
+      episodeId: ArtifactIdSchema,
+      runId: ArtifactIdSchema,
       runLockHash: Sha256Schema,
       status: z.enum([
         "completed",

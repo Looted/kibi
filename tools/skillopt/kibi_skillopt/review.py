@@ -1,16 +1,17 @@
 from __future__ import annotations
 
 from typing import Annotated, Literal
-from uuid import UUID
 
-from pydantic import AwareDatetime, Field, model_validator
+from pydantic import Field, model_validator
 from typing_extensions import Self
 
 from .common import (
+    ArtifactId,
     ContractModel,
     ContractValidationError,
     NonEmptyString,
     Sha256,
+    Timestamp,
     contract_hash,
     parse_json_value,
 )
@@ -20,8 +21,8 @@ from .episode import Skill
 class Proposal(ContractModel):
     schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
     artifact_type: Annotated[Literal["proposal"], Field(alias="artifactType")]
-    proposal_id: Annotated[UUID, Field(alias="proposalId")]
-    run_id: Annotated[UUID, Field(alias="runId")]
+    proposal_id: Annotated[ArtifactId, Field(alias="proposalId")]
+    run_id: Annotated[ArtifactId, Field(alias="runId")]
     run_lock_hash: Annotated[Sha256, Field(alias="runLockHash")]
     skill: Skill
     candidate_body_hash: Annotated[Sha256, Field(alias="candidateBodyHash")]
@@ -30,7 +31,7 @@ class Proposal(ContractModel):
     baseline_resources_hash: Annotated[Sha256, Field(alias="baselineResourcesHash")]
     candidate_resources_hash: Annotated[Sha256, Field(alias="candidateResourcesHash")]
     report_hash: Annotated[Sha256, Field(alias="reportHash")]
-    created_at: Annotated[AwareDatetime, Field(alias="createdAt")]
+    created_at: Annotated[Timestamp, Field(alias="createdAt")]
     status: Literal["eligible", "accepted", "rejected"]
 
     @model_validator(mode="after")
@@ -45,16 +46,16 @@ class Proposal(ContractModel):
 class Approval(ContractModel):
     schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
     artifact_type: Annotated[Literal["approval"], Field(alias="artifactType")]
-    approval_id: Annotated[UUID, Field(alias="approvalId")]
-    proposal_id: Annotated[UUID, Field(alias="proposalId")]
+    approval_id: Annotated[ArtifactId, Field(alias="approvalId")]
+    proposal_id: Annotated[ArtifactId, Field(alias="proposalId")]
     proposal_hash: Annotated[Sha256, Field(alias="proposalHash")]
-    run_id: Annotated[UUID, Field(alias="runId")]
+    run_id: Annotated[ArtifactId, Field(alias="runId")]
     run_lock_hash: Annotated[Sha256, Field(alias="runLockHash")]
     report_hash: Annotated[Sha256, Field(alias="reportHash")]
     candidate_body_hash: Annotated[Sha256, Field(alias="candidateBodyHash")]
     reviewer: NonEmptyString
     decision: Literal["approved"]
-    decided_at: Annotated[AwareDatetime, Field(alias="decidedAt")]
+    decided_at: Annotated[Timestamp, Field(alias="decidedAt")]
 
 
 def assert_approval_matches_proposal(proposal: Proposal, approval: Approval) -> None:
