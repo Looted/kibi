@@ -1,5 +1,43 @@
 # kibi-opencode
 
+## 0.19.0
+
+### Minor Changes
+
+- a0fee4a: OpenCode plugin guidance now describes MCP and CLI as peer surfaces. Agents can select the available trusted capability while preserving the same discovery, mutation, and validation workflow.
+
+  - Document visible MCP tools and trusted project-local CLI JSON routes as equivalent operation surfaces.
+  - Keep the blocked-state guidance when neither safe interface is available.
+
+### Patch Changes
+
+- 23e815a: Agents can now keep using Kibi when MCP tools are unavailable but a trusted project-local CLI is ready. Guidance across Cursor, OpenCode, and MCP documentation now selects the interface by capability and stops for operator action only when neither safe surface is available.
+
+  - Replace MCP-exclusive guidance with the visible-MCP, trusted-CLI JSON route, and blocked state machine.
+  - Preserve direct `.kb/` access prohibitions, discovery-before-mutation, sequential writes, and completion validation gates.
+
+- 0a8a5d3: CLI and MCP users now receive real requirement-modeling and predicate-suggestion plans through the same shared operation executors. Prolog-backed status and reports work reliably again, nested skill commands accept JSON input, and compatibility errors no longer block parity verification.
+
+  - Move modeling execution into `kibi-cli` and keep MCP handlers as thin adapters.
+  - Split modeling internals into reviewable modules and use the operation workspace context for migration checks.
+  - Restore compatible Prolog query, validation, deletion, and error behavior.
+  - Align the MCP dependency range with the released CLI version and remove silent OpenCode catches.
+
+- Updated dependencies [6abc7ea]
+- Updated dependencies [212fe1c]
+- Updated dependencies [8c3a2e9]
+- Updated dependencies [6c132ee]
+- Updated dependencies [cafa25f]
+- Updated dependencies [0a8a5d3]
+- Updated dependencies [212fe1c]
+- Updated dependencies [a0fee4a]
+- Updated dependencies [c229a35]
+- Updated dependencies [6c132ee]
+- Updated dependencies [212fe1c]
+- Updated dependencies [6c132ee]
+- Updated dependencies [efa3c7e]
+  - kibi-cli@0.15.0
+
 ## 0.18.1
 
 ### Patch Changes

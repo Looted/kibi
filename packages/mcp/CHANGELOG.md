@@ -1,5 +1,103 @@
 # kibi-mcp
 
+## 0.19.1
+
+### Patch Changes
+
+- 6abc7ea: Operators can now run semantic requirement analysis through the dedicated `semantic-advisor --input` CLI route with the same JSON contract and deterministic suggestions as MCP. MCP and upsert analysis now reuse the shared CLI implementation, so ambiguity witnesses and modeling advice stay aligned without starting Prolog.
+
+  - Move semantic-advisor analysis, types, coverage evaluation, and execution into size-bounded `kibi-cli` modules.
+  - Replace the MCP semantic-advisor implementation with a thin shared-executor adapter and update upsert imports.
+
+- 212fe1c: CLI and MCP checks now run the same validation executor, so both interfaces report the same violations for equivalent inputs. The CLI retains its staged workflow, fix suggestions, path overrides, dry-run behavior, and human-readable output while JSON input gains explicit parity coverage for impact diagnostics.
+
+  - Route non-staged CLI validation and MCP `kb_check` through the shared check executor.
+  - Preserve CLI advisory-quality and exit-code semantics in its adapter.
+  - Add executable CLI/MCP check parity and JSON impact-option coverage.
+
+- 8c3a2e9: CLI and MCP operation changes now have an executable semantic parity safety net. Contributors get immediate failures when an operation is missing, duplicated, or returns transport-specific business data.
+
+  - Add isolated seeded workspace fixtures for all 18 catalog operations.
+  - Compare CLI JSON and in-memory MCP results after narrowly scoped volatile-field normalization.
+  - Enforce exact catalog-to-parity-case registry completeness.
+
+- 6c132ee: Operators can use `find-gaps`, `coverage`, and `graph` through either CLI flags or JSON input with the same results exposed by MCP. The existing `gaps` command remains available as an alias, while reporting defaults and traversal bounds stay unchanged.
+
+  - Move find-gaps, coverage, and graph execution into shared `kibi-cli` operation specs.
+  - Replace MCP reporting business logic with thin shared-executor adapters.
+  - Route legacy reporting commands and JSON input through the shared operation protocol.
+
+- 23e815a: Agents can now keep using Kibi when MCP tools are unavailable but a trusted project-local CLI is ready. Guidance across Cursor, OpenCode, and MCP documentation now selects the interface by capability and stops for operator action only when neither safe surface is available.
+
+  - Replace MCP-exclusive guidance with the visible-MCP, trusted-CLI JSON route, and blocked state machine.
+  - Preserve direct `.kb/` access prohibitions, discovery-before-mutation, sequential writes, and completion validation gates.
+
+- 0a8a5d3: CLI and MCP users now receive real requirement-modeling and predicate-suggestion plans through the same shared operation executors. Prolog-backed status and reports work reliably again, nested skill commands accept JSON input, and compatibility errors no longer block parity verification.
+
+  - Move modeling execution into `kibi-cli` and keep MCP handlers as thin adapters.
+  - Split modeling internals into reviewable modules and use the operation workspace context for migration checks.
+  - Restore compatible Prolog query, validation, deletion, and error behavior.
+  - Align the MCP dependency range with the released CLI version and remove silent OpenCode catches.
+
+- 212fe1c: Remote SPARQL SELECT queries now produce the same decoded rows through the CLI JSON route and MCP tool. Network access remains opt-in and HTTP(S)-only, while caller-provided timeouts retain their existing whole-second behavior.
+
+  - Share endpoint, query, timeout, request, and result-decoding logic through the CLI operation executor.
+  - Route CLI and MCP adapters through an explicit network port and verify parity against a local HTTP fixture.
+
+- a0fee4a: MCP tools now delegate to shared operation executors in kibi-cli, ensuring semantic parity with CLI routes. Existing MCP clients keep the same public contract while gaining a single implementation path shared with the CLI.
+
+  - Preserve all tool names, schemas, and wire formats without breaking changes.
+  - Require the kibi-cli minor release that provides the shared operations catalog.
+
+- c229a35: CLI and MCP operations now run through explicit, transport-neutral contexts while each transport keeps ownership of its own lifecycle. This makes one-shot CLI execution and persistent MCP sessions predictable without changing MCP tool behavior.
+
+  - Add public operation runtime, capability-port, and lifecycle types to `kibi-cli`.
+  - Add separate CLI and MCP runtime adapters with write-only MCP stamp refresh.
+  - Route MCP registrations through runtime-backed operation specs while preserving timeout, diagnostics, and in-flight request handling.
+
+- e71f1ce: Cursor dogfood sessions now keep each linked worktree as the Kibi data workspace while launching a compatible built MCP runtime from that worktree or its primary checkout. Invalid, stale, or unrelated builds are rejected without installing packages, and Cursor hooks offer the project-local CLI only as advisory guidance after explicit workspace trust.
+
+  - Add deterministic build, runtime, SWI-Prolog, and package-version checks to the Cursor worktree resolver.
+  - Preserve an explicit `KIBI_WORKSPACE` when the MCP diagnostic launcher starts from another runtime root.
+  - Track MCP capability as `observed` or `unknown` and keep hook-driven CLI fallback non-executing.
+
+- 6c132ee: Skill discovery now returns the same bundled metadata, content hashes, and declared resources through CLI JSON routes and MCP tools. This makes scripted CLI usage consistent with agent-facing skill loading while preserving the existing human-oriented `kibi skills` commands.
+
+  - Share bundled skill list, load, and resource-read executors between CLI and MCP.
+  - Exercise all three skill operations through the executable CLI/MCP parity harness.
+
+- 212fe1c: CLI users can now validate and apply one MCP-shaped upsert payload through `validate-upsert --input` and `upsert --input`, including stdin input. Both transports now enforce the same relationship, contradiction, strict-fact, audit, symbol-granularity, durability, and rollback behavior.
+
+  - Move validated upsert execution behind shared Prolog, filesystem, save, and symbol-refresh ports.
+  - Keep MCP handlers as thin compatibility adapters and verify CLI/MCP graph-state parity.
+  - Ensure a failed relationship prevents save and leaves no partial entity or edge state.
+
+- 6c132ee: Operators now get the same query, search, and status results whether they use familiar CLI flags, JSON input, or MCP. Existing table output, discovery flags, ranking, pagination, relationship display, and status freshness behavior remain available while the execution paths can no longer drift independently.
+
+  - Move query, search, and status business logic into shared `kibi-cli` operation executors.
+  - Replace MCP discovery implementations with thin shared-executor adapters.
+  - Route human CLI commands and JSON protocol input through runtime-backed shared operations.
+
+- efa3c7e: Autopilot bootstrap synthesis now returns the same deterministic candidates, payoff guidance, and exact review-only apply plans through CLI JSON and MCP. Cold-start analysis no longer launches Prolog unnecessarily, making scripted bootstrap previews faster while preserving confidence and candidate safety bounds.
+
+  - Share port-backed autopilot discovery, candidate construction, and result generation in `kibi-cli`.
+  - Route `autopilot-generate --input` and `kb_autopilot_generate` through the same executor and parity harness.
+
+- Updated dependencies [6abc7ea]
+- Updated dependencies [212fe1c]
+- Updated dependencies [8c3a2e9]
+- Updated dependencies [6c132ee]
+- Updated dependencies [cafa25f]
+- Updated dependencies [0a8a5d3]
+- Updated dependencies [212fe1c]
+- Updated dependencies [a0fee4a]
+- Updated dependencies [c229a35]
+- Updated dependencies [6c132ee]
+- Updated dependencies [212fe1c]
+- Updated dependencies [6c132ee]
+- Updated dependencies [efa3c7e]
+  - kibi-cli@0.15.0
+
 ## 0.19.0
 
 ### Minor Changes
