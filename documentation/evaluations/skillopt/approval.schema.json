@@ -12,6 +12,7 @@
     "proposalHash",
     "runId",
     "runLockHash",
+    "reportHash",
     "candidateBodyHash",
     "reviewer",
     "decision",
@@ -35,6 +36,7 @@
       "$ref": "contract-definitions.schema.json#/$defs/artifactId"
     },
     "runLockHash": { "$ref": "contract-definitions.schema.json#/$defs/sha256" },
+    "reportHash": { "$ref": "contract-definitions.schema.json#/$defs/sha256" },
     "candidateBodyHash": {
       "$ref": "contract-definitions.schema.json#/$defs/sha256"
     },

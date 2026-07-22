@@ -9,23 +9,23 @@ from __future__ import annotations
 import importlib.metadata
 import sys
 from collections.abc import Sequence
+from datetime import date
 from pathlib import Path
-from typing import ClassVar
+from typing import Annotated, ClassVar, Literal
 
-from pydantic import BaseModel, ConfigDict, ValidationError
-
-EXPECTED_COMMIT = "b860a5cf88ce75e2bd02ca981ac21fb28cffba83"
-EXPECTED_PACKAGE = "skillopt"
-EXPECTED_VERSION = "0.2.0"
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 
 class SourceLock(BaseModel):
-    model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid", frozen=True)
 
-    package: str
-    version: str
-    commit: str
-    license: str
+    package: Literal["skillopt"]
+    version: Annotated[str, Field(min_length=1)]
+    commit: Annotated[str, Field(pattern=r"^[a-f0-9]{40}$")]
+    repository: Annotated[str, Field(min_length=1)]
+    license: Annotated[str, Field(min_length=1)]
+    retrieved_at: Annotated[date, Field(alias="retrievedAt")]
+    python: Annotated[str, Field(min_length=1)]
 
 
 class PinVerificationError(RuntimeError):
@@ -39,15 +39,7 @@ def parse_source_lock(text: str) -> SourceLock:
 
 def verify_lock(lock: SourceLock, installed_version: str | None) -> None:
     """Verify the immutable source receipt and optional installed package."""
-    if lock.package != EXPECTED_PACKAGE:
-        raise PinVerificationError(f"package mismatch: {lock.package}")
-    if lock.version != EXPECTED_VERSION:
-        raise PinVerificationError(f"version mismatch: {lock.version}")
-    if lock.commit != EXPECTED_COMMIT:
-        raise PinVerificationError(f"commit mismatch: {lock.commit}")
-    if lock.license != "MIT":
-        raise PinVerificationError(f"license mismatch: {lock.license}")
-    if installed_version is not None and installed_version != EXPECTED_VERSION:
+    if installed_version is not None and installed_version != lock.version:
         raise PinVerificationError(f"installed version mismatch: {installed_version}")
 
 
@@ -66,16 +58,14 @@ def main(argv: list[str]) -> int:
         lock_path = parse_lock_path(argv)
         lock = parse_source_lock(lock_path.read_text(encoding="utf-8"))
         try:
-            installed_version = importlib.metadata.version(EXPECTED_PACKAGE)
+            installed_version = importlib.metadata.version(lock.package)
         except importlib.metadata.PackageNotFoundError:
             installed_version = None
         verify_lock(lock, installed_version)
     except (OSError, PinVerificationError, ValidationError) as error:
         _ = sys.stderr.write(f"skillopt pin verification failed: {error}\n")
         return 1
-    _ = sys.stdout.write(
-        f"skillopt pin verified: {EXPECTED_PACKAGE} {EXPECTED_VERSION} @ {EXPECTED_COMMIT}\n"
-    )
+    _ = sys.stdout.write(f"skillopt pin verified: {lock.package} {lock.version} @ {lock.commit}\n")
     return 0
 
 

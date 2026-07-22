@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import canonicalize from "canonicalize";
 import { z } from "zod";
 
 // implements REQ-skillopt-codex-optimization
@@ -19,6 +20,22 @@ export const JsonValueSchema = z.json();
 
 // implements REQ-skillopt-codex-optimization
 export type JsonValue = z.infer<typeof JsonValueSchema>;
+
+function serializedSize(value: unknown): number {
+  const serialized = JSON.stringify(value);
+  return serialized === undefined ? 0 : Buffer.byteLength(serialized, "utf8");
+}
+
+// implements REQ-skillopt-codex-optimization
+export function boundedContractSchema<T extends z.ZodType>(schema: T) {
+  return z
+    .unknown()
+    .refine(
+      (value) => serializedSize(value) <= MAX_CONTRACT_BYTES,
+      `contract exceeds ${MAX_CONTRACT_BYTES} bytes`,
+    )
+    .pipe(schema);
+}
 
 // implements REQ-skillopt-codex-optimization
 export const UsageSchema = z
@@ -92,23 +109,19 @@ export function parseContractText<T>(schema: z.ZodType<T>, text: string): T {
   return schema.parse(parseJsonText(text));
 }
 
-function canonicalize(value: JsonValue): JsonValue {
-  if (Array.isArray(value)) {
-    return value.map(canonicalize);
+// implements REQ-skillopt-codex-optimization
+export function canonicalJson(value: JsonValue): string {
+  const canonical = canonicalize(value);
+  if (canonical === undefined) {
+    throw new ContractInputError(
+      "contract cannot be represented as RFC 8785 JSON",
+      "malformed-json",
+    );
   }
-  if (value === null || typeof value !== "object") {
-    return value;
-  }
-  return Object.fromEntries(
-    Object.entries(value)
-      .sort(([left], [right]) => left.localeCompare(right))
-      .map(([key, entry]) => [key, canonicalize(entry)]),
-  );
+  return canonical;
 }
 
 // implements REQ-skillopt-codex-optimization
 export function contractHash(value: JsonValue): string {
-  return createHash("sha256")
-    .update(JSON.stringify(canonicalize(value)))
-    .digest("hex");
+  return createHash("sha256").update(canonicalJson(value)).digest("hex");
 }

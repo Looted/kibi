@@ -11,6 +11,9 @@ from typing_extensions import Self
 from .common import (
     ContractModel,
     ContractValidationError,
+    JsonInteger,
+    JsonNumber,
+    JsonValue,
     NonEmptyString,
     Sha256,
     contract_hash,
@@ -29,11 +32,11 @@ class DirtyState(ContractModel):
 
 
 class ModelPricing(ContractModel):
-    input_per_million_tokens: Annotated[float, Field(alias="inputPerMillionTokens", ge=0)]
+    input_per_million_tokens: Annotated[JsonNumber, Field(alias="inputPerMillionTokens", ge=0)]
     cached_input_per_million_tokens: Annotated[
-        float, Field(alias="cachedInputPerMillionTokens", ge=0)
+        JsonNumber, Field(alias="cachedInputPerMillionTokens", ge=0)
     ]
-    output_per_million_tokens: Annotated[float, Field(alias="outputPerMillionTokens", ge=0)]
+    output_per_million_tokens: Annotated[JsonNumber, Field(alias="outputPerMillionTokens", ge=0)]
 
 
 class PricingModels(ContractModel):
@@ -51,39 +54,15 @@ class PricingTable(ContractModel):
 
 class SkillOptPin(ContractModel):
     package: Literal["skillopt"]
-    version: Literal["0.2.0"]
-    commit: Literal["b860a5cf88ce75e2bd02ca981ac21fb28cffba83"]
-    repository: Literal["https://github.com/microsoft/SkillOpt"]
-    license: Literal["MIT"]
-    retrieved_at: Annotated[Literal["2026-07-21"], Field(alias="retrievedAt")]
-    python: Literal[">=3.10"]
+    version: NonEmptyString
+    commit: Annotated[str, Field(pattern=r"^[a-f0-9]{40}$")]
+    repository: NonEmptyString
+    license: NonEmptyString
+    retrieved_at: Annotated[date, Field(alias="retrievedAt")]
+    python: NonEmptyString
     package_hash: Annotated[Sha256, Field(alias="packageHash")]
     source_hash: Annotated[Sha256, Field(alias="sourceHash")]
     uv_lock_hash: Annotated[Sha256, Field(alias="uvLockHash")]
-
-    @model_validator(mode="after")
-    def verify_source_lock(self) -> Self:
-        pinned = (
-            self.package,
-            self.version,
-            self.commit,
-            self.repository,
-            self.license,
-            self.retrieved_at,
-            self.python,
-        )
-        expected = (
-            SKILLOPT_SOURCE_LOCK.package,
-            SKILLOPT_SOURCE_LOCK.version,
-            SKILLOPT_SOURCE_LOCK.commit,
-            SKILLOPT_SOURCE_LOCK.repository,
-            SKILLOPT_SOURCE_LOCK.license,
-            SKILLOPT_SOURCE_LOCK.retrieved_at.isoformat(),
-            SKILLOPT_SOURCE_LOCK.python,
-        )
-        if pinned != expected:
-            raise ContractValidationError("SkillOpt source lock mismatch")
-        return self
 
 
 class SkillSurfaceHashes(ContractModel):
@@ -115,9 +94,14 @@ class SourceLock(ContractModel):
     python: NonEmptyString
 
 
-SKILLOPT_SOURCE_LOCK = SourceLock.model_validate_json(
-    (Path(__file__).resolve().parents[1] / "source-lock.json").read_text(encoding="utf-8")
-)
+DEFAULT_SOURCE_LOCK_PATH = Path(__file__).resolve().parents[1] / "source-lock.json"
+
+
+def load_skillopt_source_lock(path: Path = DEFAULT_SOURCE_LOCK_PATH) -> SourceLock:
+    return SourceLock.model_validate_json(path.read_text(encoding="utf-8"))
+
+
+SKILLOPT_SOURCE_LOCK = load_skillopt_source_lock()
 
 
 class CandidateMeanDelta(ContractModel):
@@ -141,7 +125,7 @@ class CandidateGates(ContractModel):
 class BootstrapGates(ContractModel):
     resamples: Literal[10000]
     seed: Literal[5417]
-    confidence_level: Annotated[float, Field(alias="confidenceLevel", ge=0.95, le=0.95)]
+    confidence_level: Annotated[JsonNumber, Field(alias="confidenceLevel", ge=0.95, le=0.95)]
     sidedness: Literal["one-sided"]
     lower_bound_exclusive_minimum: Annotated[Literal[0], Field(alias="lowerBoundExclusiveMinimum")]
     cluster_unit: Annotated[Literal["task"], Field(alias="clusterUnit")]
@@ -180,7 +164,8 @@ class RunLock(ContractModel):
     schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
     artifact_type: Annotated[Literal["run-lock"], Field(alias="artifactType")]
     run_id: Annotated[UUID, Field(alias="runId")]
-    repository_commit: Annotated[Sha256, Field(alias="repositoryCommit")]
+    repository_hash_algorithm: Annotated[Literal["sha1"], Field(alias="repositoryHashAlgorithm")]
+    repository_commit: Annotated[str, Field(alias="repositoryCommit", pattern=r"^[a-f0-9]{40}$")]
     dirty_state: Annotated[
         Annotated[CleanState | DirtyState, Field(discriminator="is_dirty")],
         Field(alias="dirtyState"),
@@ -192,23 +177,45 @@ class RunLock(ContractModel):
     target_model: Annotated[Literal["gpt-5.4-mini"], Field(alias="targetModel")]
     optimizer_model: Annotated[Literal["gpt-5.5"], Field(alias="optimizerModel")]
     skillopt: SkillOptPin
+    source_lock_hash: Annotated[Sha256, Field(alias="sourceLockHash")]
     catalog_hash: Annotated[Sha256, Field(alias="catalogHash")]
     fixture_hash: Annotated[Sha256, Field(alias="fixtureHash")]
     fixture_generator_hash: Annotated[Sha256, Field(alias="fixtureGeneratorHash")]
     pricing: PricingTable
     pricing_hash: Annotated[Sha256, Field(alias="pricingHash")]
     baseline_skill_hashes: Annotated[BaselineSkillHashes, Field(alias="baselineSkillHashes")]
-    seed: Annotated[int, Field(ge=0)]
+    seed: Annotated[JsonInteger, Field(ge=0)]
     auth_mode: Annotated[Literal["existing-login"], Field(alias="authMode")]
     hosts: tuple[Literal["codex"]]
     gates: CodexGates
 
     @model_validator(mode="after")
-    def verify_pricing_hash(self) -> Self:
+    def verify_integrity(self) -> Self:
         pricing = parse_json_value(self.pricing.model_dump_json(by_alias=True))
         if contract_hash(pricing) != self.pricing_hash:
             raise ContractValidationError("pricing hash mismatch")
+        self.assert_source_lock(DEFAULT_SOURCE_LOCK_PATH)
         return self
+
+    def assert_source_lock(self, source_lock_path: Path) -> None:
+        source_lock = load_skillopt_source_lock(source_lock_path)
+        expected_pin = source_lock.model_dump(mode="json", by_alias=True)
+        actual_pin = self.skillopt.model_dump(
+            mode="json",
+            by_alias=True,
+            exclude={"package_hash", "source_hash", "uv_lock_hash"},
+        )
+        if actual_pin != expected_pin:
+            raise ContractValidationError("SkillOpt source lock mismatch")
+        source_lock_value = parse_json_value(source_lock.model_dump_json(by_alias=True))
+        if contract_hash(source_lock_value) != self.source_lock_hash:
+            raise ContractValidationError("SkillOpt source lock hash mismatch")
+
+    @classmethod
+    def model_validate_with_source_lock(cls, value: JsonValue, source_lock_path: Path) -> Self:
+        lock = cls.model_validate(value)
+        lock.assert_source_lock(source_lock_path)
+        return lock
 
 
 def run_lock_hash(lock: RunLock) -> str:
@@ -217,5 +224,7 @@ def run_lock_hash(lock: RunLock) -> str:
 
 
 def assert_run_lock_matches(expected: RunLock, actual: RunLock) -> None:
+    if expected.dirty_state.is_dirty or actual.dirty_state.is_dirty:
+        raise ContractValidationError("dirty run lock")
     if run_lock_hash(expected) != run_lock_hash(actual):
         raise ContractValidationError("immutable run lock mismatch")

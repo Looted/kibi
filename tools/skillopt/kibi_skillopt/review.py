@@ -31,7 +31,7 @@ class Proposal(ContractModel):
     candidate_resources_hash: Annotated[Sha256, Field(alias="candidateResourcesHash")]
     report_hash: Annotated[Sha256, Field(alias="reportHash")]
     created_at: Annotated[AwareDatetime, Field(alias="createdAt")]
-    status: Literal["pending-review", "approved", "rejected"]
+    status: Literal["eligible", "accepted", "rejected"]
 
     @model_validator(mode="after")
     def verify_immutable_surfaces(self) -> Self:
@@ -50,6 +50,7 @@ class Approval(ContractModel):
     proposal_hash: Annotated[Sha256, Field(alias="proposalHash")]
     run_id: Annotated[UUID, Field(alias="runId")]
     run_lock_hash: Annotated[Sha256, Field(alias="runLockHash")]
+    report_hash: Annotated[Sha256, Field(alias="reportHash")]
     candidate_body_hash: Annotated[Sha256, Field(alias="candidateBodyHash")]
     reviewer: NonEmptyString
     decision: Literal["approved"]
@@ -57,10 +58,13 @@ class Approval(ContractModel):
 
 
 def assert_approval_matches_proposal(proposal: Proposal, approval: Approval) -> None:
+    if proposal.status not in ("eligible", "accepted"):
+        raise ContractValidationError("proposal is not approval-eligible")
     matches = (
         approval.proposal_id == proposal.proposal_id
         and approval.run_id == proposal.run_id
         and approval.run_lock_hash == proposal.run_lock_hash
+        and approval.report_hash == proposal.report_hash
         and approval.candidate_body_hash == proposal.candidate_body_hash
         and approval.proposal_hash
         == contract_hash(parse_json_value(proposal.model_dump_json(by_alias=True)))

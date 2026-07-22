@@ -151,7 +151,7 @@ class WorkflowContractTests(unittest.TestCase):
             "candidateResourcesHash": HASH,
             "reportHash": HASH,
             "createdAt": TIMESTAMP,
-            "status": "pending-review",
+            "status": "accepted",
         }
         proposal = Proposal.model_validate(proposal_payload)
         approval = Approval.model_validate(
@@ -165,6 +165,7 @@ class WorkflowContractTests(unittest.TestCase):
                 ),
                 "runId": RUN_ID,
                 "runLockHash": HASH,
+                "reportHash": HASH,
                 "candidateBodyHash": HASH,
                 "reviewer": "reviewer@example.test",
                 "decision": "approved",

@@ -60,6 +60,6 @@
     "createdAt": {
       "$ref": "contract-definitions.schema.json#/$defs/timestamp"
     },
-    "status": { "enum": ["pending-review", "approved", "rejected"] }
+    "status": { "enum": ["eligible", "accepted", "rejected"] }
   }
 }
