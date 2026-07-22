@@ -1,6 +1,6 @@
 import type { McpState } from "./kb-mcp-tools.js";
 import { interfaceAdvisory } from "./messages.js";
-// implements REQ-cursor-kibi-plugin-v1
+// implements REQ-cursor-kibi-plugin-v1, REQ-agent-kibi-interface-selection
 import {
   isDocumentationTrackedPath,
   isMeaningfulTrackedPath,
@@ -30,7 +30,7 @@ export function readGuidance(
   }
 
   const guidance = [
-    "Kibi read guidance: before changing this file, discover linked knowledge with Kibi MCP.",
+    "Kibi read guidance: before changing this file, discover linked knowledge through the selected MCP or CLI JSON route.",
     `Start with kb_search, then kb_query with sourceFile="${relativePath}".`,
     "Prefer Kibi facts and requirements over long inline comments for durable knowledge.",
   ];
@@ -57,8 +57,8 @@ export function writeGuidance(
   if (isDocumentationTrackedPath(relativePath)) {
     const guidance = [
       "Kibi write guidance: keep REQ, SCEN, and TEST artifacts separate.",
-      "Update KB entities through kb_upsert and finish with kb_check.",
-      "Do not edit .kb/ files directly.",
+      "Query before mutate. Update KB entities through kb_upsert sequentially. Run kb_check before completion.",
+      "Do not read or edit `.kb/` files directly.",
     ];
     const advisory = interfaceAdvisory(
       context.mcpState,
@@ -68,10 +68,11 @@ export function writeGuidance(
   }
 
   const guidance = [
-    "Kibi write guidance: link production symbols to requirements.",
+    "Kibi write guidance: use the selected MCP or CLI JSON route to link production symbols to requirements.",
     `After editing, run kb_check({sourceFiles:["${relativePath}"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) for symbol granularity and semantic review of linked requirements/tests.`,
     `After editing, resolve freshness with kb_search/kb_query for sourceFile="${relativePath}".`,
     "Prefer symbol manifest + executable_for or // implements REQ-xxx for traceability.",
+    "Do not read or edit `.kb/` files directly. Query before mutate; run kb_upsert sequentially and kb_check before completion.",
   ];
   const advisory = interfaceAdvisory(
     context.mcpState,

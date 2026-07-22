@@ -293,9 +293,9 @@ coordinates:
   SYM-DocResource:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 38
+    sourceEndLine: 35
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 32
+    sourceLine: 29
   SYM-E2eCoverageSignal:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -859,7 +859,7 @@ coordinates:
     sourceEndColumn: 1
     sourceEndLine: 197
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 71
+    sourceLine: 68
   SYM-PROSE_COVERAGE_CORPUS:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -1877,7 +1877,7 @@ coordinates:
   SYM-buildInitKibiAlias:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 40
+    sourceEndLine: 43
     sourceFile: packages/opencode/src/init-kibi-alias.ts
     sourceLine: 14
   SYM-buildNormativeRequirementCandidates:
@@ -1889,9 +1889,9 @@ coordinates:
   SYM-buildPrompt:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 660
+    sourceEndLine: 670
     sourceFile: packages/opencode/src/prompt.ts
-    sourceLine: 652
+    sourceLine: 662
   SYM-buildProviderEvidenceCandidates:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2801,9 +2801,9 @@ coordinates:
   SYM-computeEnforcementPolicy:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 459
+    sourceEndLine: 464
     sourceFile: packages/opencode/src/enforcement-policy.ts
-    sourceLine: 368
+    sourceLine: 373
   SYM-consultOverlay:
     sourceColumn: 15
     sourceEndColumn: 1
@@ -2920,7 +2920,7 @@ coordinates:
     sourceLine: 66
   SYM-cursor-BOOTSTRAP_REMINDER:
     sourceColumn: 13
-    sourceEndColumn: 187
+    sourceEndColumn: 378
     sourceEndLine: 10
     sourceFile: packages/cursor/src/messages.ts
     sourceLine: 9
@@ -2932,7 +2932,7 @@ coordinates:
     sourceLine: 32
   SYM-cursor-DIRECT_KB_EDIT_WARNING:
     sourceColumn: 13
-    sourceEndColumn: 112
+    sourceEndColumn: 238
     sourceEndLine: 13
     sourceFile: packages/cursor/src/messages.ts
     sourceLine: 12
@@ -3215,7 +3215,7 @@ coordinates:
   SYM-cursor-writeGuidance:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 81
+    sourceEndLine: 82
     sourceFile: packages/cursor/src/guidance.ts
     sourceLine: 44
   SYM-deactivate:
@@ -3653,9 +3653,9 @@ coordinates:
   SYM-injectPrompt:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 678
+    sourceEndLine: 688
     sourceFile: packages/opencode/src/prompt.ts
-    sourceLine: 665
+    sourceLine: 675
   SYM-installGitHooks:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4325,9 +4325,9 @@ coordinates:
   SYM-postureGuidance:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 241
+    sourceEndLine: 247
     sourceFile: packages/opencode/src/prompt.ts
-    sourceLine: 221
+    sourceLine: 227
   SYM-prepareStagingEnvironment:
     sourceColumn: 22
     sourceEndColumn: 1

@@ -33,7 +33,10 @@ export function buildInitKibiAlias(): string {
     "",
     "## Rules",
     "- Never apply changes without a user-facing preview and approval.",
-    "- Guidance must stay MCP-only; do not suggest `kibi` CLI commands.",
+    "- Prefer MCP tools; CLI routes are available when MCP is unavailable.",
+    "- If MCP availability is unknown and a trusted local Kibi CLI is available, use its dedicated JSON routes with `--input <file|->`. If neither interface is available, stop and tell the operator.",
+    "- Do not infer MCP availability from config file existence. Do not read or edit `.kb/` files directly.",
+    "- Query before mutate. Run `kb_upsert` sequentially. Run `kb_check` before completion.",
   ];
 
   return lines.join("\n");

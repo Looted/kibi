@@ -26,15 +26,18 @@ describe("Cursor guidance", () => {
   });
 
   test("Given tracked paths When reading or writing Then path-specific guidance is returned", () => {
-    expect(
-      readGuidance("/repo/src/a.ts", { ...observedContext, cwd: "/repo" }),
-    ).toContain('sourceFile="src/a.ts"');
+    const read = readGuidance("/repo/src/a.ts", {
+      ...observedContext,
+      cwd: "/repo",
+    });
+    expect(read).toContain('sourceFile="src/a.ts"');
+    expect(read).toContain("MCP or CLI JSON route");
     expect(
       writeGuidance("documentation/requirements/REQ.md", observedContext),
     ).toContain("keep REQ, SCEN, and TEST artifacts separate");
-    expect(writeGuidance("src/a.ts", observedContext)).toContain(
-      'sourceFiles:["src/a.ts"]',
-    );
+    const write = writeGuidance("src/a.ts", observedContext);
+    expect(write).toContain('sourceFiles:["src/a.ts"]');
+    expect(write).toContain("MCP or CLI JSON route");
   });
 
   test("routes only observed MCP and trusted unknown workspaces to usable interfaces", () => {

@@ -1,9 +1,9 @@
 ---
-description: Kibi MCP discovery-first workflow and KB mutation discipline
+description: Kibi capability-based discovery-first workflow and KB mutation discipline
 alwaysApply: true
 ---
 
-Use Kibi via MCP tools only. Do not manually read or edit `.kb/` files.
+Use Kibi via MCP tools when available, or via CLI JSON routes when MCP is unavailable. If MCP tools are visible, use MCP. If MCP availability is unknown and a trusted project-local CLI is available, use `kibi <route> --input <file|->`. If neither interface is available, stop and tell the operator. Do not infer MCP availability from config file existence. Do not read or edit `.kb/` files directly.
 
 Discovery workflow:
 - Start with `kb_search` for broad discovery.
@@ -13,7 +13,7 @@ Discovery workflow:
 Mutation workflow:
 - Query before mutate.
 - Create relationship endpoints before linking.
-- Use `kb_upsert` sequentially, then `kb_check`.
+- Use `kb_upsert` sequentially. Run `kb_check` before completion.
 - Use `kb_delete` only for intentional removals with dependency awareness.
 
 Completion must state KB freshness outcome: updated, no-impact with rationale, or deferred/failed.
