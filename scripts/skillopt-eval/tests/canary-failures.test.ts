@@ -388,7 +388,7 @@ describe("Codex capability canary failures", () => {
     }
   });
 
-  test("probes a source file instead of its traversable parent directory", async () => {
+  test("probes every formerly allowlisted source subtree", async () => {
     // Given
     const fixture = await authEnvironment();
     const sourceWorktree = process.cwd();
@@ -431,13 +431,44 @@ describe("Codex capability canary failures", () => {
     // Then
     expect(receipt.verdict).toBe("pass");
     expect(probeScripts).toHaveLength(2);
+    const deniedRepresentatives = [
+      "packages/mcp/dist/server.js",
+      "packages/cli/dist/cli.js",
+      "packages/core/src/kb.pl",
+      "node_modules/typescript/package.json",
+      ".kb/config.json",
+    ].map((path) => join(sourceWorktree, path));
     for (const script of probeScripts) {
-      expect(script).toContain(
-        JSON.stringify(join(sourceWorktree, "package.json")),
-      );
-      expect(script).not.toContain(
-        `for p in ${JSON.stringify(sourceWorktree)} `,
-      );
+      for (const deniedPath of deniedRepresentatives) {
+        expect(script).toContain(JSON.stringify(deniedPath));
+      }
     }
+  });
+
+  test("runs the authoritative source probe in the production profile before model calls", async () => {
+    // Given
+    const fixture = await authEnvironment();
+    let productionProbeCalls = 0;
+
+    // When
+    const receipt = await runCapabilityCanary(
+      {
+        runId: "production-source-probe",
+        sourceWorktree: process.cwd(),
+        artifactRoot: fixture.artifactRoot,
+        env: fixture.env,
+      },
+      {
+        run: fakeRunner(completedProbeEvents),
+        probeRequiredMcp: passingPrerequisites.probeRequiredMcp,
+        probeSandbox: async (options) => {
+          if ("probe" in options) productionProbeCalls += 1;
+        },
+      },
+    );
+
+    // Then
+    expect(receipt.verdict).toBe("pass");
+    expect(productionProbeCalls).toBe(2);
   });
 });

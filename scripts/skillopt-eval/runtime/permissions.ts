@@ -71,7 +71,15 @@ function tomlString(value: string): string {
 // implements REQ-skillopt-codex-optimization
 export function buildCodexConfig(options: CodexConfigOptions): string {
   const model = options.role === "target" ? TARGET_MODEL : OPTIMIZER_MODEL;
-  const mcpReads = options.mcpServer.readableRoots ?? [];
+  const deniedRoots = new Set([
+    options.paths.sourceWorktree,
+    options.paths.fixtureKb,
+    options.paths.runPrivateHome,
+    options.paths.realCodexHome,
+    options.paths.privateScorer,
+    options.paths.privateEvidence,
+    options.paths.siblingRuns,
+  ]);
   return [
     `model = ${JSON.stringify(model)}`,
     `model_reasoning_effort = ${JSON.stringify(MODEL_REASONING_EFFORT)}`,
@@ -107,8 +115,7 @@ export function buildCodexConfig(options: CodexConfigOptions): string {
     `${tomlString(options.bwrapExecutable)} = "read"`,
     `${tomlString(options.codexExecutable)} = "read"`,
     `${tomlString(options.mcpServer.command)} = "read"`,
-    ...mcpReads.map((path) => `${tomlString(path)} = "read"`),
-    `${tomlString(options.paths.fixtureKb)} = "deny"`,
+    ...[...deniedRoots].map((path) => `${tomlString(path)} = "deny"`),
     '":tmpdir" = "deny"',
     '":slash_tmp" = "deny"',
     "",

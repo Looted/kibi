@@ -117,7 +117,7 @@ describe("Codex existing-login isolation", () => {
     const attempt = prepareExistingLogin({
       privateCodexHome: paths.privateHome,
       env: { PATH: process.env.PATH, CODEX_HOME: paths.real },
-      run: async (argv) => ({
+      run: async (argv: readonly [string, ...string[]]) => ({
         argv,
         stdout: "",
         stderr: "Logged in using an API key\n",
@@ -242,6 +242,37 @@ describe("Codex evaluator-owned permissions", () => {
     expect(await attempt).toBeUndefined();
   });
 
+  test("classifies a production source probe failure as a prerequisite", async () => {
+    // Given
+    const probe = {
+      absolutePath: "/run/work/.runtime/canary-probe",
+      command: "./.runtime/canary-probe",
+      expectedOutput: "skillopt-capability-canary:pass\n",
+      sha256: "probe-sha",
+    } as const;
+
+    // When
+    const attempt = probeCodexSandbox({
+      codexCommand: "/run/work/.runtime/codex",
+      workspace: "/run/work",
+      env: { PATH: "/usr/bin:/bin" },
+      probe,
+      run: async (argv: readonly [string, ...string[]]) => ({
+        argv,
+        stdout: "",
+        stderr: "source path readable\n",
+        exitCode: 41,
+        signal: null,
+      }),
+    });
+
+    // Then
+    expect(attempt).rejects.toMatchObject({
+      name: "RuntimePrerequisiteError",
+      message: "source_isolation_probe_failed",
+    });
+  });
+
   test("denies every private path and requires the exact Kibi server", () => {
     // Given
     const paths = {
@@ -261,20 +292,11 @@ describe("Codex evaluator-owned permissions", () => {
       authMode: "file",
       paths,
       bwrapExecutable: "/run/work/.runtime/codex-resources/bwrap",
-      codexExecutable: "/opt/codex/bin/codex",
+      codexExecutable: "/run/work/.runtime/codex",
       mcpServer: {
-        command: "/bin/node",
-        args: ["/source/packages/mcp/bin/kibi-mcp"],
+        command: "/run/work/.runtime/kibi-mcp/bun",
+        args: ["/run/work/.runtime/kibi-mcp/dist/server.js"],
         cwd: paths.workspace,
-        readableRoots: [
-          "/source/packages/mcp/bin",
-          "/source/packages/mcp/dist",
-          "/source/packages/mcp/package.json",
-          "/source/packages/cli/dist",
-          "/source/packages/cli/package.json",
-          "/source/packages/core",
-          "/source/node_modules/.bun",
-        ],
       },
     });
 
@@ -287,7 +309,7 @@ describe("Codex evaluator-owned permissions", () => {
     );
     expect(config).toContain('".kb" = "deny"');
     expect(config).toContain(`${JSON.stringify(paths.fixtureKb)} = "deny"`);
-    expect(config).not.toContain(
+    expect(config).toContain(
       `${JSON.stringify(paths.sourceWorktree)} = "deny"`,
     );
     for (const rootDeniedPath of [
@@ -297,15 +319,16 @@ describe("Codex evaluator-owned permissions", () => {
       paths.privateEvidence,
       paths.siblingRuns,
     ]) {
-      expect(config).not.toContain(JSON.stringify(rootDeniedPath));
+      expect(config).toContain(`${JSON.stringify(rootDeniedPath)} = "deny"`);
     }
     expect(config).toContain(`${JSON.stringify(paths.workspace)} = true`);
-    expect(config).toContain('command = "/bin/node"');
-    expect(config).toContain('"/opt/codex/bin/codex" = "read"');
-    expect(config).toContain('args = ["/source/packages/mcp/bin/kibi-mcp"]');
+    expect(config).toContain('command = "/run/work/.runtime/kibi-mcp/bun"');
+    expect(config).toContain(
+      'args = ["/run/work/.runtime/kibi-mcp/dist/server.js"]',
+    );
     expect(config).toContain('cwd = "/run/work"');
-    expect(config).toContain('"/source/packages/mcp/dist" = "read"');
-    expect(config).toContain('"/source/node_modules/.bun" = "read"');
+    expect(config).not.toContain('"/source/packages/');
+    expect(config).not.toContain('"/source/node_modules');
     expect(config).toContain("required = true");
     expect(config).toContain('default_tools_approval_mode = "auto"');
     expect(config).toContain("enabled = false");
