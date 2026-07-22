@@ -2,24 +2,86 @@ import { z } from "zod";
 import { CANONICAL_SKILLS } from "../catalog";
 
 const Sha256Schema = z.string().regex(/^[a-f0-9]{64}$/);
-const VariantSchema = z.enum(["baseline", "one-shot", "skillopt"]);
-const TaskSpecSchema = z
+const SplitSchema = z.enum(["train", "development", "held-out"]);
+const AdversarialCaseSchema = z.enum([
+  "malformed-input",
+  "prompt-injection",
+  "dirty-state",
+  "stale-state",
+  "misleading-success",
+  "interruption-cleanup",
+  "approval-boundary",
+]);
+
+const InitialStateSchema = z
+  .object({
+    repository: z.enum(["cold-start", "partial", "thin", "seeded"]),
+    kb: z.enum(["absent", "partial", "fresh", "stale"]),
+    worktree: z.enum(["clean", "dirty"]),
+    setupBoundary: z.literal("external-kibi-adapter"),
+  })
+  .strict();
+
+const TaskDataSchema = z
+  .object({
+    objectiveCode: z.string().regex(/^[a-z0-9_]+$/),
+    sourceFile: z.string().min(1),
+    mutation: z.enum(["read-only", "write"]),
+    approvalPhase: z.enum(["not-applicable", "pre-approval", "post-approval"]),
+    adversarialCases: z.array(AdversarialCaseSchema),
+  })
+  .strict();
+
+const TaskSpecObjectSchema = z
   .object({
     id: z.string().regex(/^[a-z0-9-]+$/),
     skill: z.enum([...CANONICAL_SKILLS, "bundle"]),
     family: z.string().regex(/^[a-z0-9-]+$/),
-    split: z.enum(["train", "development", "held-out"]),
+    split: SplitSchema,
     fixtureSeed: Sha256Schema,
     prompt: z.string().min(1).max(100_000),
+    activationMode: z.enum([
+      "cold_start_bootstrap",
+      "repair_bootstrap",
+      "attached_thin_handoff",
+      "attached_seeded_handoff",
+    ]),
+    initialState: InitialStateSchema,
+    allowedPublicFiles: z.array(z.string().min(1)).min(1),
+    scorerReference: z.string().regex(/^scorer-ref-[a-f0-9]{16}$/),
+    taskData: TaskDataSchema,
   })
   .strict();
 
-const PublicTaskManifestSchema = z
+const TaskSpecSchema = TaskSpecObjectSchema.superRefine((task, context) => {
+  if (
+    task.initialState.worktree === "dirty" &&
+    !task.taskData.adversarialCases.includes("dirty-state")
+  ) {
+    context.addIssue({
+      code: "custom",
+      message: "dirty state requires dirty-state metadata",
+    });
+  }
+  if (
+    task.initialState.kb === "stale" &&
+    !task.taskData.adversarialCases.includes("stale-state")
+  ) {
+    context.addIssue({
+      code: "custom",
+      message: "stale KB requires stale-state metadata",
+    });
+  }
+});
+
+const PublicTaskSchema = TaskSpecObjectSchema.omit({
+  fixtureSeed: true,
+  scorerReference: true,
+}).extend({ host: z.literal("codex") });
+
+const ManifestBaseSchema = z
   .object({
-    schemaVersion: z.literal("1.0.0"),
-    task: TaskSpecSchema.omit({ fixtureSeed: true }).extend({
-      host: z.literal("codex"),
-    }),
+    schemaVersion: z.literal("1.1.0"),
     workspaceHash: Sha256Schema,
     blindVariantSlots: z.tuple([
       z.literal("variant-a"),
@@ -29,125 +91,59 @@ const PublicTaskManifestSchema = z
   })
   .strict();
 
-const AssertionSchema = z
-  .object({
-    key: z.string().min(1),
-    query: z.string().min(1),
-    expected: z.union([z.string(), z.number(), z.boolean()]),
-    critical: z.boolean(),
-  })
-  .strict();
+const PublicTaskManifestSchema = ManifestBaseSchema.extend({
+  task: PublicTaskSchema.extend({ split: z.enum(["train", "development"]) }),
+}).superRefine((manifest, context) => {
+  const serialized = JSON.stringify(manifest);
+  if (/"(?:baseline|one-shot|skillopt)"/.test(serialized)) {
+    context.addIssue({
+      code: "custom",
+      message: "public manifest exposes a variant label",
+    });
+  }
+});
 
-const McpPredicateSchema = z
-  .object({
-    tool: z.string().regex(/^kb_[a-z_]+$/),
-    predicate: z.string().min(1),
-  })
-  .strict();
+const HeldOutTaskManifestSchema = ManifestBaseSchema.extend({
+  task: PublicTaskSchema.extend({ split: z.literal("held-out") }),
+});
 
-const RubricItemSchema = z
+const CorpusEntrySchema = z
   .object({
-    key: z.string().min(1),
-    points: z.int().positive(),
-    criticalAssertionKeys: z.array(z.string().min(1)),
-  })
-  .strict();
-
-const AdversarialAssessmentSchema = z
-  .object({
-    class: z.enum([
-      "malformed-task-descriptor",
-      "prompt-injection",
-      "generated-stale-state",
-      "dirty-worktree",
-      "long-materialization",
-      "misleading-success-output",
-      "mid-operation-interruption",
-    ]),
-    applicable: z.boolean(),
-    reason: z.string().min(1),
-  })
-  .strict();
-
-const PrivateEvaluatorManifestSchema = z
-  .object({
-    schemaVersion: z.literal("1.0.0"),
     taskId: z.string().min(1),
-    scorerKey: z.string().regex(/^scorer-[a-f0-9]{16}$/),
-    publicManifestHash: Sha256Schema,
+    manifestHash: Sha256Schema,
     workspaceHash: Sha256Schema,
-    fixtureSeedHash: Sha256Schema,
-    expectedFinalState: z.array(AssertionSchema).min(1),
-    orderedMcpPredicates: z
-      .object({
-        required: z.array(McpPredicateSchema).min(1),
-        forbidden: z.array(McpPredicateSchema).min(1),
-      })
-      .strict(),
-    isolationSentinels: z.array(z.string().min(1)).min(2),
-    rubric: z
-      .array(RubricItemSchema)
-      .min(1)
-      .refine(
-        (items) => items.reduce((sum, item) => sum + item.points, 0) === 100,
-        "rubric points must sum to 100",
-      ),
-    blindedVariants: z.tuple([
-      z
-        .object({ slot: z.literal("variant-a"), variant: VariantSchema })
-        .strict(),
-      z
-        .object({ slot: z.literal("variant-b"), variant: VariantSchema })
-        .strict(),
-      z
-        .object({ slot: z.literal("variant-c"), variant: VariantSchema })
-        .strict(),
-    ]),
-    adversarialAssessments: z.array(AdversarialAssessmentSchema).length(7),
   })
-  .strict()
-  .superRefine((manifest, context) => {
-    if (!manifest.expectedFinalState.some((assertion) => assertion.critical)) {
-      context.addIssue({
-        code: "custom",
-        message: "at least one final-state assertion must be critical",
-      });
-    }
-    if (
-      new Set(manifest.blindedVariants.map(({ variant }) => variant)).size !== 3
-    ) {
-      context.addIssue({
-        code: "custom",
-        message: "blinded variants must contain every variant exactly once",
-      });
-    }
-  });
+  .strict();
 
 const CorpusIndexSchema = z
   .object({
-    schemaVersion: z.literal("1.0.0"),
+    schemaVersion: z.literal("1.1.0"),
     corpusHash: Sha256Schema,
-    tasks: z.array(
-      z
-        .object({
-          taskId: z.string().min(1),
-          manifestHash: Sha256Schema,
-          workspaceHash: Sha256Schema,
-        })
-        .strict(),
-    ),
+    tasks: z.array(CorpusEntrySchema),
   })
   .strict();
 
-type PublicTaskManifest = Readonly<z.infer<typeof PublicTaskManifestSchema>>;
-type PrivateEvaluatorManifest = Readonly<
-  z.infer<typeof PrivateEvaluatorManifestSchema>
->;
 type FixtureTaskSpec = Readonly<z.infer<typeof TaskSpecSchema>>;
+type PublicTaskManifest = Readonly<z.infer<typeof PublicTaskManifestSchema>>;
+type HeldOutTaskManifest = Readonly<z.infer<typeof HeldOutTaskManifestSchema>>;
 
 // implements REQ-skillopt-codex-optimization
 export function parseTaskSpec(value: unknown): FixtureTaskSpec {
   return TaskSpecSchema.parse(value);
+}
+
+// implements REQ-skillopt-codex-optimization
+export function parsePublicTaskSpec(value: unknown): FixtureTaskSpec {
+  return TaskSpecSchema.refine((task) => task.split !== "held-out", {
+    message: "public APIs reject held-out task descriptors",
+  }).parse(value);
+}
+
+// implements REQ-skillopt-codex-optimization
+export function parseHeldOutTaskSpec(value: unknown): FixtureTaskSpec {
+  return TaskSpecSchema.refine((task) => task.split === "held-out", {
+    message: "held-out APIs require held-out task descriptors",
+  }).parse(value);
 }
 
 // implements REQ-skillopt-codex-optimization
@@ -156,23 +152,18 @@ export function parsePublicTaskManifest(text: string): PublicTaskManifest {
 }
 
 // implements REQ-skillopt-codex-optimization
-export function parsePrivateEvaluatorManifest(
-  text: string,
-): PrivateEvaluatorManifest {
-  return PrivateEvaluatorManifestSchema.parse(JSON.parse(text));
+export function parseHeldOutTaskManifest(text: string): HeldOutTaskManifest {
+  return HeldOutTaskManifestSchema.parse(JSON.parse(text));
 }
 
-// implements REQ-skillopt-codex-optimization
 export function parsePublicTaskManifestValue(value: unknown) {
   return PublicTaskManifestSchema.parse(value);
 }
 
-// implements REQ-skillopt-codex-optimization
-export function parsePrivateEvaluatorManifestValue(value: unknown) {
-  return PrivateEvaluatorManifestSchema.parse(value);
+export function parseHeldOutTaskManifestValue(value: unknown) {
+  return HeldOutTaskManifestSchema.parse(value);
 }
 
-// implements REQ-skillopt-codex-optimization
 export function parseCorpusIndexValue(value: unknown) {
   return CorpusIndexSchema.parse(value);
 }

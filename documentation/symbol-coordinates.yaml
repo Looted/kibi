@@ -4364,42 +4364,72 @@ coordinates:
     sourceEndLine: 325
     sourceFile: packages/mcp/src/server/docs.ts
     sourceLine: 297
+  SYM-skillopt-activation-mode-type:
+    sourceColumn: 12
+    sourceEndColumn: 30
+    sourceEndLine: 22
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 18
+  SYM-skillopt-adversarial-case-type:
+    sourceColumn: 12
+    sourceEndColumn: 24
+    sourceEndLine: 34
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 27
+  SYM-skillopt-approval-phase-type:
+    sourceColumn: 12
+    sourceEndColumn: 80
+    sourceEndLine: 26
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 26
   SYM-skillopt-build-bundle-catalog:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 109
+    sourceEndLine: 158
     sourceFile: scripts/skillopt-eval/catalog.ts
-    sourceLine: 100
+    sourceLine: 148
+  SYM-skillopt-build-held-out-catalog:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 175
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 168
+  SYM-skillopt-build-public-catalog:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 165
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 161
   SYM-skillopt-build-skill-catalog:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 98
+    sourceEndLine: 146
     sourceFile: scripts/skillopt-eval/catalog.ts
-    sourceLine: 80
+    sourceLine: 127
   SYM-skillopt-canonical-skill-type:
     sourceColumn: 12
     sourceEndColumn: 63
-    sourceEndLine: 10
+    sourceEndLine: 15
     sourceFile: scripts/skillopt-eval/catalog.ts
-    sourceLine: 10
+    sourceLine: 15
   SYM-skillopt-canonical-skills:
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 8
+    sourceEndLine: 13
     sourceFile: scripts/skillopt-eval/catalog.ts
-    sourceLine: 3
+    sourceLine: 8
   SYM-skillopt-catalog-hash:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 148
+    sourceEndLine: 214
     sourceFile: scripts/skillopt-eval/catalog.ts
-    sourceLine: 146
+    sourceLine: 212
   SYM-skillopt-catalog-skill-type:
     sourceColumn: 12
     sourceEndColumn: 53
-    sourceEndLine: 11
+    sourceEndLine: 16
     sourceFile: scripts/skillopt-eval/catalog.ts
-    sourceLine: 11
+    sourceLine: 16
   SYM-skillopt-cli-main:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -4763,69 +4793,219 @@ coordinates:
   SYM-skillopt-fixture-blinded-order:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 42
+    sourceEndLine: 47
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    sourceLine: 26
+    sourceLine: 31
+  SYM-skillopt-fixture-build-bundle-payload:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 208
+    sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
+    sourceLine: 199
+  SYM-skillopt-fixture-build-family-payload:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 196
+    sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
+    sourceLine: 191
+  SYM-skillopt-fixture-build-index:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 33
+    sourceFile: scripts/skillopt-eval/fixtures/materialize-common.ts
+    sourceLine: 27
+  SYM-skillopt-fixture-corpus-entry-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 17
+    sourceFile: scripts/skillopt-eval/fixtures/materialize-common.ts
+    sourceLine: 13
+  SYM-skillopt-fixture-definition-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 21
+    sourceFile: scripts/skillopt-eval/fixtures/task-definition-types.ts
+    sourceLine: 10
+  SYM-skillopt-fixture-family-payload-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 44
+    sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
+    sourceLine: 27
+  SYM-skillopt-fixture-freshness-definitions:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 111
+    sourceFile: scripts/skillopt-eval/fixtures/task-definitions-usage.ts
+    sourceLine: 58
   SYM-skillopt-fixture-hash-workspace:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 66
+    sourceEndLine: 123
     sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
-    sourceLine: 57
-  SYM-skillopt-fixture-materialize-corpus:
+    sourceLine: 114
+  SYM-skillopt-fixture-init-definitions:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 111
+    sourceFile: scripts/skillopt-eval/fixtures/task-definitions-bootstrap.ts
+    sourceLine: 58
+  SYM-skillopt-fixture-materialize-held-out-corpus:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 175
+    sourceEndLine: 186
     sourceFile: scripts/skillopt-eval/fixtures/materialize.ts
-    sourceLine: 82
+    sourceLine: 136
+  SYM-skillopt-fixture-materialize-public-corpus:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 133
+    sourceFile: scripts/skillopt-eval/fixtures/materialize.ts
+    sourceLine: 107
   SYM-skillopt-fixture-parse-corpus-index:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 178
+    sourceEndLine: 169
     sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
-    sourceLine: 176
+    sourceLine: 167
+  SYM-skillopt-fixture-parse-held-out-manifest:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 157
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    sourceLine: 155
+  SYM-skillopt-fixture-parse-held-out-task-spec:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 147
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    sourceLine: 143
+  SYM-skillopt-fixture-parse-held-out-value:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 165
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    sourceLine: 163
   SYM-skillopt-fixture-parse-private-manifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 163
-    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
-    sourceLine: 159
+    sourceEndLine: 128
+    sourceFile: scripts/skillopt-eval/fixtures/evaluator-contracts.ts
+    sourceLine: 124
   SYM-skillopt-fixture-parse-private-value:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 173
-    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
-    sourceLine: 171
+    sourceEndLine: 132
+    sourceFile: scripts/skillopt-eval/fixtures/evaluator-contracts.ts
+    sourceLine: 130
   SYM-skillopt-fixture-parse-public-manifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 156
+    sourceEndLine: 152
     sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
-    sourceLine: 154
+    sourceLine: 150
+  SYM-skillopt-fixture-parse-public-task-spec:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 140
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    sourceLine: 136
   SYM-skillopt-fixture-parse-public-value:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 168
+    sourceEndLine: 161
     sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
-    sourceLine: 166
+    sourceLine: 159
   SYM-skillopt-fixture-parse-task-spec:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 151
+    sourceEndLine: 133
     sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
-    sourceLine: 149
+    sourceLine: 131
+  SYM-skillopt-fixture-private-integrity:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 216
+    sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
+    sourceLine: 206
   SYM-skillopt-fixture-private-manifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 160
+    sourceEndLine: 203
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    sourceLine: 98
+    sourceLine: 137
+  SYM-skillopt-fixture-serialize:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 25
+    sourceFile: scripts/skillopt-eval/fixtures/materialize-common.ts
+    sourceLine: 23
+  SYM-skillopt-fixture-sha256:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 21
+    sourceFile: scripts/skillopt-eval/fixtures/materialize-common.ts
+    sourceLine: 19
+  SYM-skillopt-fixture-test-canonical-skill-root:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 9
+    sourceFile: scripts/skillopt-eval/tests/fixture-test-helpers.ts
+    sourceLine: 6
+  SYM-skillopt-fixture-test-files:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 24
+    sourceFile: scripts/skillopt-eval/tests/fixture-test-helpers.ts
+    sourceLine: 15
+  SYM-skillopt-fixture-test-read-tree:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 30
+    sourceFile: scripts/skillopt-eval/tests/fixture-test-helpers.ts
+    sourceLine: 26
+  SYM-skillopt-fixture-test-temporary-root:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 13
+    sourceFile: scripts/skillopt-eval/tests/fixture-test-helpers.ts
+    sourceLine: 11
+  SYM-skillopt-fixture-test-tree-hash:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 39
+    sourceFile: scripts/skillopt-eval/tests/fixture-test-helpers.ts
+    sourceLine: 32
+  SYM-skillopt-fixture-traceability-definitions:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 56
+    sourceFile: scripts/skillopt-eval/fixtures/task-definitions-bootstrap.ts
+    sourceLine: 3
+  SYM-skillopt-fixture-usage-definitions:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 56
+    sourceFile: scripts/skillopt-eval/fixtures/task-definitions-usage.ts
+    sourceLine: 3
+  SYM-skillopt-fixture-write-target-task:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 79
+    sourceFile: scripts/skillopt-eval/fixtures/materialize-common.ts
+    sourceLine: 51
   SYM-skillopt-fixture-write-workspace:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 95
+    sourceEndLine: 175
     sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
-    sourceLine: 69
+    sourceLine: 126
+  SYM-skillopt-knowledge-state-type:
+    sourceColumn: 12
+    sourceEndColumn: 70
+    sourceEndLine: 24
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 24
   SYM-skillopt-preflight-run:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -4988,6 +5168,12 @@ coordinates:
     sourceEndLine: 87
     sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
     sourceLine: 87
+  SYM-skillopt-repository-state-type:
+    sourceColumn: 12
+    sourceEndColumn: 75
+    sourceEndLine: 23
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 23
   SYM-skillopt-runtime-assert-existing-login:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5237,21 +5423,21 @@ coordinates:
   SYM-skillopt-task-spec-type:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 21
+    sourceEndLine: 59
     sourceFile: scripts/skillopt-eval/catalog.ts
-    sourceLine: 14
+    sourceLine: 36
   SYM-skillopt-task-split-type:
     sourceColumn: 12
     sourceEndColumn: 61
-    sourceEndLine: 12
+    sourceEndLine: 17
     sourceFile: scripts/skillopt-eval/catalog.ts
-    sourceLine: 12
+    sourceLine: 17
   SYM-skillopt-validate-catalog:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 144
+    sourceEndLine: 210
     sourceFile: scripts/skillopt-eval/catalog.ts
-    sourceLine: 111
+    sourceLine: 177
   SYM-skillopt-verify-installed-revision:
     sourceColumn: 4
     sourceEndColumn: 22
@@ -5264,6 +5450,12 @@ coordinates:
     sourceEndLine: 62
     sourceFile: tools/skillopt/verify_pin.py
     sourceLine: 62
+  SYM-skillopt-worktree-state-type:
+    sourceColumn: 12
+    sourceEndColumn: 46
+    sourceEndLine: 25
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 25
   SYM-skillsListCommand:
     sourceColumn: 22
     sourceEndColumn: 1
