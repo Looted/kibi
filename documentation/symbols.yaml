@@ -8685,6 +8685,7 @@ symbols:
     title: sourceWorktreeIsClean
     sourceFile: scripts/skillopt-eval/preflight.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships: *skillopt_runtime_implementation
   - id: SYM-skillopt-runtime-auth-mode
     title: AuthMode
@@ -8756,6 +8757,7 @@ symbols:
     title: CapabilityCanaryReceipt
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships: *skillopt_runtime_implementation
   - id: SYM-skillopt-runtime-canary-options
     title: CapabilityCanaryOptions
@@ -8783,13 +8785,66 @@ symbols:
     relationships: *skillopt_runtime_implementation
   - id: SYM-skillopt-runtime-stage-canary
     title: stageCapabilityCanary
-    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     relationships: *skillopt_runtime_implementation
   - id: SYM-skillopt-runtime-write-probe
     title: writeCapabilityProbe
-    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    symbol_role: behavioral
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-mcp-server-launch
+    title: McpServerLaunch
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    symbol_role: type-shape
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-mcp-probe-result
+    title: McpStartupProbeResult
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    symbol_role: type-shape
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-staged-canary
+    title: StagedCanaryRuntime
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    symbol_role: type-shape
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-prerequisite-error
+    title: RuntimePrerequisiteError
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-prerequisite-error-name
+    title: RuntimePrerequisiteError.name
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    symbol_role: structural
+    granularity_reason: extractor-miss
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-required-mcp-error
+    title: RequiredMcpStartupError
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-required-mcp-error-name
+    title: RequiredMcpStartupError.name
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    symbol_role: structural
+    granularity_reason: extractor-miss
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-probe-required-mcp
+    title: probeRequiredMcp
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    symbol_role: behavioral
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-build-sandbox-probe-argv
+    title: buildCodexSandboxProbeArgv
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    symbol_role: behavioral
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-probe-sandbox
+    title: probeCodexSandbox
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
     symbol_role: behavioral
     relationships: *skillopt_runtime_implementation
   - id: SYM-skillopt-runtime-verify-canary-evidence
@@ -8801,11 +8856,13 @@ symbols:
     title: CapabilityProbeEvidence
     sourceFile: scripts/skillopt-eval/runtime/canary-evidence.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships: *skillopt_runtime_implementation
   - id: SYM-skillopt-runtime-sha256-file
     title: sha256File
     sourceFile: scripts/skillopt-eval/runtime/canary-evidence.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships: *skillopt_runtime_implementation
   - id: SYM-skillopt-runtime-canary-evidence-error
     title: CanaryEvidenceError
@@ -8823,6 +8880,7 @@ symbols:
     title: ModelCanaryResult
     sourceFile: scripts/skillopt-eval/runtime/canary-run.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships: *skillopt_runtime_implementation
   - id: SYM-skillopt-runtime-model-canary-context
     title: ModelCanaryContext
@@ -8838,22 +8896,24 @@ symbols:
     title: CanaryRole
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships: *skillopt_runtime_implementation
   - id: SYM-skillopt-runtime-canary-model
     title: CanaryModel
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships: *skillopt_runtime_implementation
   - id: SYM-skillopt-runtime-canary-model-run
     title: CapabilityCanaryModelRun
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships: *skillopt_runtime_implementation
   - id: SYM-skillopt-runtime-process-summary
     title: summarizeProcessFailure
-    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     relationships: *skillopt_runtime_implementation
   - id: SYM-skillopt-runtime-process-result
     title: ProcessResult
@@ -8927,6 +8987,7 @@ symbols:
     title: buildCodexExecArgv
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships: *skillopt_runtime_implementation
   - id: SYM-skillopt-runtime-parse-jsonl
     title: parseJsonLines

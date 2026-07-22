@@ -1,5 +1,7 @@
+import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { runModelCanary } from "./canary-run";
+import { probeCodexSandbox, probeRequiredMcp } from "./canary-runtime";
 import {
   type IsolationWorkspace,
   type WorkspaceOptions,
@@ -40,12 +42,15 @@ function noGoReceipt(
 // implements REQ-skillopt-codex-optimization
 export async function runCapabilityCanary(
   options: CapabilityCanaryOptions,
-  dependencies?: Readonly<{ run: CanaryRunner }>,
+  dependencies?: Readonly<{
+    run: CanaryRunner;
+    probeSandbox?: typeof probeCodexSandbox;
+    probeRequiredMcp?: typeof probeRequiredMcp;
+  }>,
 ): Promise<CapabilityCanaryReceipt> {
   const sourceWorktree = resolve(options.sourceWorktree ?? process.cwd());
   const artifactRoot = resolve(
-    options.artifactRoot ??
-      join(sourceWorktree, "artifacts/skillopt/isolation-canary"),
+    options.artifactRoot ?? join(tmpdir(), "kibi-skillopt/isolation-canary"),
   );
   const run =
     dependencies?.run ??
@@ -65,6 +70,8 @@ export async function runCapabilityCanary(
       artifactRoot,
       env: options.env ?? process.env,
       run,
+      probeSandbox: dependencies?.probeSandbox ?? probeCodexSandbox,
+      probeMcp: dependencies?.probeRequiredMcp ?? probeRequiredMcp,
     });
     authMode = result.authMode ?? authMode;
     if (result.kind === "pass") {

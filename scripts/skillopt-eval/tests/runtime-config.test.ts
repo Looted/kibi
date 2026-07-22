@@ -9,6 +9,10 @@ import {
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import {
+  buildCodexSandboxProbeArgv,
+  probeCodexSandbox,
+} from "../runtime/canary-runtime";
 import { CodexAuthError, prepareExistingLogin } from "../runtime/codex-auth";
 import { buildCodexConfig, buildCodexExecArgv } from "../runtime/permissions";
 
@@ -189,6 +193,55 @@ describe("Codex evaluator-owned permissions", () => {
     ]);
   });
 
+  test("builds an offline production-profile sandbox probe", () => {
+    // Given
+    const options = {
+      codexCommand: "/run/work/.runtime/codex",
+      workspace: "/run/work",
+    } as const;
+
+    // When
+    const argv = buildCodexSandboxProbeArgv(options);
+
+    // Then
+    expect(argv).toEqual([
+      "/run/work/.runtime/codex",
+      "sandbox",
+      "--permission-profile",
+      "skillopt-isolated",
+      "--cd",
+      "/run/work",
+      "/bin/sh",
+      "-c",
+      "printf skillopt-sandbox-probe:pass",
+    ]);
+  });
+
+  test("accepts sandbox success with non-fatal stderr diagnostics", async () => {
+    // Given
+    const argv = buildCodexSandboxProbeArgv({
+      codexCommand: "/run/work/.runtime/codex",
+      workspace: "/run/work",
+    });
+
+    // When
+    const attempt = probeCodexSandbox({
+      codexCommand: argv[0],
+      workspace: "/run/work",
+      env: { PATH: "/usr/bin:/bin" },
+      run: async () => ({
+        argv,
+        stdout: "skillopt-sandbox-probe:pass",
+        stderr: "warning\n",
+        exitCode: 0,
+        signal: null,
+      }),
+    });
+
+    // Then
+    expect(await attempt).toBeUndefined();
+  });
+
   test("denies every private path and requires the exact Kibi server", () => {
     // Given
     const paths = {
@@ -207,32 +260,52 @@ describe("Codex evaluator-owned permissions", () => {
       role: "target",
       authMode: "file",
       paths,
-      nodeCommand: "/bin/node",
+      bwrapExecutable: "/run/work/.runtime/codex-resources/bwrap",
       codexExecutable: "/opt/codex/bin/codex",
-      kibiServer: "/source/packages/mcp/dist/server.js",
+      mcpServer: {
+        command: "/bin/node",
+        args: ["/source/packages/mcp/bin/kibi-mcp"],
+        cwd: paths.workspace,
+        readableRoots: [
+          "/source/packages/mcp/bin",
+          "/source/packages/mcp/dist",
+          "/source/packages/mcp/package.json",
+          "/source/packages/cli/dist",
+          "/source/packages/cli/package.json",
+          "/source/packages/core",
+          "/source/node_modules/.bun",
+        ],
+      },
     });
 
     // Then
     expect(config).toContain('":root" = "deny"');
     expect(config).toContain('":tmpdir" = "deny"');
     expect(config).toContain('":slash_tmp" = "deny"');
-    expect(config).toContain('"/usr/bin/bwrap" = "read"');
+    expect(config).toContain(
+      '"/run/work/.runtime/codex-resources/bwrap" = "read"',
+    );
     expect(config).toContain('".kb" = "deny"');
-    for (const deniedPath of [
+    expect(config).toContain(`${JSON.stringify(paths.fixtureKb)} = "deny"`);
+    expect(config).not.toContain(
+      `${JSON.stringify(paths.sourceWorktree)} = "deny"`,
+    );
+    for (const rootDeniedPath of [
       paths.runPrivateHome,
       paths.realCodexHome,
-      paths.sourceWorktree,
-      paths.fixtureKb,
       paths.privateScorer,
       paths.privateEvidence,
       paths.siblingRuns,
     ]) {
-      expect(config).toContain(`${JSON.stringify(deniedPath)} = "deny"`);
+      expect(config).not.toContain(JSON.stringify(rootDeniedPath));
     }
     expect(config).toContain(`${JSON.stringify(paths.workspace)} = true`);
     expect(config).toContain('command = "/bin/node"');
     expect(config).toContain('"/opt/codex/bin/codex" = "read"');
-    expect(config).toContain('args = ["/source/packages/mcp/dist/server.js"]');
+    expect(config).toContain('args = ["/source/packages/mcp/bin/kibi-mcp"]');
+    expect(config).toContain('cwd = "/run/work"');
+    expect(config).toContain('"/source/packages/mcp/dist" = "read"');
+    expect(config).toContain('"/source/node_modules/.bun" = "read"');
     expect(config).toContain("required = true");
     expect(config).toContain('default_tools_approval_mode = "auto"');
     expect(config).toContain("enabled = false");

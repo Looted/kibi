@@ -45,7 +45,11 @@ export async function verifyCapabilityEvidence(
   });
   const matching = commandEvents.filter(
     ({ item }) =>
-      item.command === probe.command &&
+      [
+        probe.command,
+        `/bin/bash -c ${probe.command}`,
+        `/bin/sh -c ${probe.command}`,
+      ].includes(item.command) &&
       item.aggregated_output === probe.expectedOutput &&
       item.exit_code === 0,
   );

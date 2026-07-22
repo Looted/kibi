@@ -1,11 +1,16 @@
-import { afterEach, describe, expect, test } from "bun:test";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { afterEach, describe, expect, setDefaultTimeout, test } from "bun:test";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { isAbsolute, join, relative } from "node:path";
+import {
+  RequiredMcpStartupError,
+  RuntimePrerequisiteError,
+} from "../runtime/canary-runtime";
 import type { ProcessResult } from "../runtime/process";
 import { runCapabilityCanary } from "../runtime/workspace";
 
 const roots: string[] = [];
+setDefaultTimeout(15_000);
 afterEach(async () => {
   for (const root of roots.splice(0))
     await rm(root, { recursive: true, force: true });
@@ -52,6 +57,13 @@ function fakeRunner(stdout: string, exitCode = 0) {
   };
 }
 
+const passingPrerequisites = {
+  probeSandbox: async () => {},
+  probeRequiredMcp: async () => ({
+    toolNames: ["kb_search", "kb_query", "kb_check"],
+  }),
+} as const;
+
 const completedProbeEvents = [
   JSON.stringify({
     type: "item.completed",
@@ -76,7 +88,7 @@ const completedProbeEvents = [
 ].join("\n");
 
 describe("Codex capability canary failures", () => {
-  test("fails when required MCP startup reports an error despite exit zero", async () => {
+  test("fails before paid calls when required MCP startup fails", async () => {
     // Given
     const fixture = await authEnvironment();
 
@@ -89,19 +101,50 @@ describe("Codex capability canary failures", () => {
         env: fixture.env,
       },
       {
-        run: fakeRunner(
-          '{"type":"error","message":"required MCP failed"}\n{"type":"turn.completed"}\n',
-        ),
+        run: fakeRunner(completedProbeEvents),
+        probeSandbox: passingPrerequisites.probeSandbox,
+        probeRequiredMcp: async () => {
+          throw new RequiredMcpStartupError("connection_closed");
+        },
       },
     );
 
     // Then
     expect(receipt).toMatchObject({
       verdict: "no-go",
-      reason: "codex_event_failure",
-      paidModelCalls: 2,
+      reason: "required_mcp_startup:connection_closed",
+      paidModelCalls: 0,
     });
-    expect(receipt.events[0]).toMatchObject({ message: "required MCP failed" });
+    expect(receipt.events).toEqual([]);
+  });
+
+  test("fails before paid calls when no usable bwrap exists", async () => {
+    // Given
+    const fixture = await authEnvironment();
+
+    // When
+    const receipt = await runCapabilityCanary(
+      {
+        runId: "missing-bwrap",
+        sourceWorktree: process.cwd(),
+        artifactRoot: fixture.artifactRoot,
+        env: fixture.env,
+      },
+      {
+        run: fakeRunner(completedProbeEvents),
+        probeSandbox: async () => {
+          throw new RuntimePrerequisiteError("missing_bwrap");
+        },
+        probeRequiredMcp: passingPrerequisites.probeRequiredMcp,
+      },
+    );
+
+    // Then
+    expect(receipt).toMatchObject({
+      verdict: "no-go",
+      reason: "missing_isolation:bwrap",
+      paidModelCalls: 0,
+    });
   });
 
   test("rejects malformed JSONL and misleading success exit", async () => {
@@ -116,7 +159,7 @@ describe("Codex capability canary failures", () => {
         artifactRoot: fixture.artifactRoot,
         env: fixture.env,
       },
-      { run: fakeRunner('{"type":') },
+      { run: fakeRunner('{"type":'), ...passingPrerequisites },
     );
     const misleading = await runCapabilityCanary(
       {
@@ -125,7 +168,10 @@ describe("Codex capability canary failures", () => {
         artifactRoot: fixture.artifactRoot,
         env: fixture.env,
       },
-      { run: fakeRunner('{"type":"turn.started"}\n') },
+      {
+        run: fakeRunner('{"type":"turn.started"}\n'),
+        ...passingPrerequisites,
+      },
     );
 
     // Then
@@ -151,13 +197,59 @@ describe("Codex capability canary failures", () => {
         artifactRoot: fixture.artifactRoot,
         env: fixture.env,
       },
-      { run: fakeRunner("", 17) },
+      { run: fakeRunner("", 17), ...passingPrerequisites },
     );
 
     // Then
     expect(receipt).toMatchObject({
       verdict: "no-go",
       reason: "codex_exit:17:no_stderr",
+    });
+  });
+
+  test("classifies Codex MCP handshake failure before paid calls", async () => {
+    // Given
+    const fixture = await authEnvironment();
+    const mcpFailure =
+      "required MCP servers failed to initialize: kibi: handshaking with MCP server failed: connection closed: initialize response";
+
+    // When
+    const receipt = await runCapabilityCanary(
+      {
+        runId: "codex-required-mcp-failure",
+        sourceWorktree: process.cwd(),
+        artifactRoot: fixture.artifactRoot,
+        env: fixture.env,
+      },
+      {
+        ...passingPrerequisites,
+        run: async (argv) => {
+          if (argv.join(" ") === "codex login status") {
+            return {
+              argv,
+              stdout: "",
+              stderr: "Logged in using ChatGPT\n",
+              exitCode: 0,
+              signal: null,
+            };
+          }
+          return {
+            argv,
+            stdout: "",
+            stderr: mcpFailure,
+            exitCode: 1,
+            signal: null,
+          };
+        },
+      },
+    );
+
+    // Then
+    expect(receipt).toMatchObject({
+      verdict: "no-go",
+      reason: "required_mcp_startup:connection_closed",
+      paidModelCalls: 0,
+      events: [],
     });
   });
 
@@ -184,7 +276,7 @@ describe("Codex capability canary failures", () => {
         artifactRoot: fixture.artifactRoot,
         env: fixture.env,
       },
-      { run: fakeRunner(forgedEvents) },
+      { run: fakeRunner(forgedEvents), ...passingPrerequisites },
     );
 
     // Then
@@ -209,6 +301,7 @@ describe("Codex capability canary failures", () => {
         env: fixture.env,
       },
       {
+        ...passingPrerequisites,
         run: async (argv) => {
           if (argv.join(" ") === "codex login status") {
             return {
@@ -244,5 +337,107 @@ describe("Codex capability canary failures", () => {
       "gpt-5.4-mini",
       "gpt-5.5",
     ]);
+  });
+
+  test("places default isolation workspaces outside the source worktree", async () => {
+    // Given
+    const fixture = await authEnvironment();
+    const sourceWorktree = process.cwd();
+    const modelCwds: string[] = [];
+
+    // When
+    const receipt = await runCapabilityCanary(
+      {
+        runId: "external-default-workspace",
+        sourceWorktree,
+        env: fixture.env,
+      },
+      {
+        ...passingPrerequisites,
+        run: async (argv, cwd) => {
+          if (argv.join(" ") === "codex login status") {
+            return {
+              argv,
+              stdout: "",
+              stderr: "Logged in using ChatGPT\n",
+              exitCode: 0,
+              signal: null,
+            };
+          }
+          modelCwds.push(cwd);
+          return {
+            argv,
+            stdout: `${completedProbeEvents}\n`,
+            stderr: "",
+            exitCode: 0,
+            signal: null,
+          };
+        },
+      },
+    );
+
+    // Then
+    expect(receipt.verdict).toBe("pass");
+    expect(modelCwds).toHaveLength(2);
+    for (const cwd of modelCwds) {
+      const sourceRelative = relative(sourceWorktree, cwd);
+      expect(
+        sourceRelative === "" ||
+          (!sourceRelative.startsWith("..") && !isAbsolute(sourceRelative)),
+      ).toBe(false);
+    }
+  });
+
+  test("probes a source file instead of its traversable parent directory", async () => {
+    // Given
+    const fixture = await authEnvironment();
+    const sourceWorktree = process.cwd();
+    const probeScripts: string[] = [];
+
+    // When
+    const receipt = await runCapabilityCanary(
+      {
+        runId: "source-file-denial",
+        sourceWorktree,
+        artifactRoot: fixture.artifactRoot,
+        env: fixture.env,
+      },
+      {
+        ...passingPrerequisites,
+        run: async (argv, cwd) => {
+          if (argv.join(" ") === "codex login status") {
+            return {
+              argv,
+              stdout: "",
+              stderr: "Logged in using ChatGPT\n",
+              exitCode: 0,
+              signal: null,
+            };
+          }
+          probeScripts.push(
+            await readFile(join(cwd, ".runtime/canary-probe"), "utf8"),
+          );
+          return {
+            argv,
+            stdout: `${completedProbeEvents}\n`,
+            stderr: "",
+            exitCode: 0,
+            signal: null,
+          };
+        },
+      },
+    );
+
+    // Then
+    expect(receipt.verdict).toBe("pass");
+    expect(probeScripts).toHaveLength(2);
+    for (const script of probeScripts) {
+      expect(script).toContain(
+        JSON.stringify(join(sourceWorktree, "package.json")),
+      );
+      expect(script).not.toContain(
+        `for p in ${JSON.stringify(sourceWorktree)} `,
+      );
+    }
   });
 });
