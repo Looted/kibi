@@ -41,3 +41,14 @@ export type ValidateUpsertPayload = {
   readonly semanticAdvisor: SemanticAdvisorReceipt | null;
   readonly normalizedPreview: Readonly<Record<string, unknown>> | null;
 };
+
+export type DeleteInput = {
+  readonly ids: readonly string[];
+  readonly _requestId?: string;
+};
+
+export type DeletePayload = {
+  readonly deleted: number;
+  readonly skipped: number;
+  readonly errors: readonly string[];
+};

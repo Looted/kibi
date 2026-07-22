@@ -1,11 +1,14 @@
+import { executeDelete } from "../../../operations/mutation/delete.js";
 import { executeUpsert } from "../../../operations/mutation/upsert.js";
 import type {
+  DeleteInput,
+  DeletePayload,
   UpsertInput,
   UpsertPayload,
   ValidateUpsertPayload,
 } from "../../../operations/mutation/types.js";
 import { executeValidateUpsert } from "../../../operations/mutation/validate-upsert.js";
-import { executePlaceholder, type OperationSpec } from "../types.js";
+import type { OperationSpec } from "../types.js";
 
 const ENTITY_TYPES = [
   "req",
@@ -312,5 +315,5 @@ export const deleteSpec = {
   },
   requiresProlog: true,
   effects: ["kb-write", "workspace-write"],
-  execute: executePlaceholder,
-} as const satisfies OperationSpec;
+  execute: executeDelete,
+} as const satisfies OperationSpec<DeleteInput, DeletePayload>;

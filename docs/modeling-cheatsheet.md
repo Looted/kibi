@@ -1,6 +1,6 @@
 # Kibi Modeling Cheatsheet
 
-Use this one-page guide when deciding how to model knowledge through MCP tools.
+Use this one-page guide when deciding how to model knowledge through peer MCP tools or dedicated CLI JSON routes.
 
 ## Decision Tree
 

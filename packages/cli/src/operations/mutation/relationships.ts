@@ -22,6 +22,10 @@ const RELATIONSHIP_TYPES = [
   "relates_to",
 ] as const;
 
+export function dependentRelationshipsGoal(entityId: string): string {
+  return `findall([RelType,From], (member(RelType, [${RELATIONSHIP_TYPES.join(", ")}]), kb_relationship(RelType, From, '${escapeAtom(entityId)}')), Dependents)`;
+}
+
 type RelationshipTuple = {
   readonly relType: string;
   readonly fromType: string;
@@ -48,12 +52,10 @@ function recipe(tuple: RelationshipTuple): string {
   return "Use a typed relationship from docs/entity-schema.md, or relates_to only as a reviewed escape hatch.";
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function formatInvalidRelationshipTuple(tuple: RelationshipTuple): string {
   return `Invalid relationship: ${tuple.relType} from ${tuple.fromType} to ${tuple.toType}. ${recipe(tuple)}`;
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function formatInvalidRelationshipError(raw: string): string | null {
   const match = raw.match(/Invalid relationship:\s*([^\s~]+) from ([^\s~]+) to ([^\s.\-]+)/)
     ?? raw.match(/Invalid relationship:\s*~w from ~w to ~w-\[([^,\]]+),([^,\]]+),([^\]]+)\]/);
@@ -65,7 +67,6 @@ export function formatInvalidRelationshipError(raw: string): string | null {
     : null;
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function validateRelationshipSources(
   entityId: string,
   relationships: readonly RelationshipInput[],
@@ -77,7 +78,6 @@ export function validateRelationshipSources(
   }
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function formatRelationshipSourceMismatch(
   entityId: string,
   relationship: RelationshipInput,
@@ -104,7 +104,6 @@ async function endpointType(
   return result.success && type ? type.replace(/^['"]|['"]$/g, "") : null;
 }
 
-// implements REQ-kibi-operation-interface-parity
 export async function validateLiveRelationshipTargets(
   prolog: PrologPort,
   entity: Readonly<Record<string, unknown>>,
@@ -122,7 +121,6 @@ export async function validateLiveRelationshipTargets(
   }
 }
 
-// implements REQ-kibi-operation-interface-parity
 export async function validateStrictLanePairing(
   prolog: PrologPort,
   relationships: readonly RelationshipInput[],
@@ -145,7 +143,6 @@ export async function validateStrictLanePairing(
   }
 }
 
-// implements REQ-kibi-operation-interface-parity
 export async function existingRelationships(
   prolog: PrologPort,
   entityId: string,

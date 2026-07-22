@@ -1,10 +1,10 @@
 # MCP Server Reference
 
-The Kibi Model Context Protocol (MCP) server is the primary interface for LLM agents. The server operates over `stdio` and receives JSON-RPC 2.0 requests.
+The Kibi Model Context Protocol (MCP) server is a peer public interface alongside the CLI's 18 dedicated JSON routes. It serves MCP-capable agents over `stdio` and receives JSON-RPC 2.0 requests; operation schemas and executors are shared with the CLI.
 
 ## Public Tools
 
-The public MCP surface is intentionally curated. Agents can call exact lookup, discovery/reporting, mutation, and validation tools through MCP.
+The public MCP surface is intentionally curated. Agents can call exact lookup, discovery/reporting, mutation, and validation tools through MCP, with equivalent operation access through `kibi <route> --input <file|->`.
 
 ### Host-visible tool names
 
@@ -377,7 +377,7 @@ Confirmation of deletion, or an error describing blocked dependents.
 
 ### `kb_check`
 
-Run KB validation rules after mutations. Agents can also opt into read-only changed-file impact diagnostics for source edits while the edit context is still fresh; this is the first Kibi gate for LLM workflows, with CLI/git hooks remaining the commit-time fallback.
+Run KB validation rules after mutations. Agents can also opt into read-only changed-file impact diagnostics for source edits while the edit context is still fresh. The MCP tool and CLI JSON route are peer interactive gates; CLI staged checks and git hooks remain the commit-time enforcement gate.
 
 **Parameters:**
 - `rules` (optional): Validation rule subset (`must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `domain-contradictions`, `strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`, `query-plan-safety`). Note: `strict-fact-shape`, `strict-req-fact-pairing`, and `predicate-verifiability` are migration/semantic-audit checks and are disabled by default. `query-plan-safety` is enabled by default and can be disabled in `.kb/config.json`. `domain-contradictions` applies only to strict-lane facts; `predicate-verifiability` audits `requires_predicate` links for ground `fact_kind: predicate` targets; `query-plan-safety` flags Prolog validation clauses that place negation before later generator calls.

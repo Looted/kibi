@@ -81,6 +81,8 @@ Common environment check: `npm exec -- kibi doctor`.
 
 Validation command: `npm exec -- kibi check`.
 
+The CLI and MCP server are peer agent-operation surfaces. MCP-capable hosts can call the 18 `kb_*` tools directly; agents in trusted project-local shells can invoke the equivalent 18 CLI routes with `kibi <route> --input <file|->`. Neither path requires direct access to `.kb/**` files.
+
 Avoid auto-install or hot-load commands for MCP startup (`npx -y`, `pnpm dlx` /
 `pnx`, `yarn dlx`, or `bunx` without `--no-install`) unless you intentionally
 want the client to fetch a package outside the project lockfile.

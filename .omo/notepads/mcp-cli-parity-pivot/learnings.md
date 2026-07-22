@@ -107,9 +107,29 @@
 - Cursor and Codex mirrors remain generated artifacts: updating canonical sources and running `sync-agent-skills.ts --write` copies the new resource and refreshes both hash manifests.
 - Test symbols must use `executable_for` without mixing production `implements` ownership; the requirement remains connected through the existing test entity.
 
+## 2026-07-22T12:00:00Z Task: plan-todo-19
+- Cursor worktree resolution needs two roots: `workspaceRoot` remains the Kibi data target through `KIBI_WORKSPACE`, while `runtimeRoot` is the validated checkout used as process CWD for built MCP imports.
+- The only trusted fallback checkout is derived from the current worktree's absolute `git-common-dir`; using the resolver script's own checkout would allow unrelated builds to leak across repositories.
+- Candidate validation is side-effect free: require MCP bin/dist, Bun or Node, SWI-Prolog, and matching core/CLI/MCP package versions before launch. Rejections are emitted in local-then-primary order and never invoke installers, network tools, globals, or `.opencode/bin`.
+- Cursor has no supported hook trust signal, so root dogfood uses an explicit checked-in `--trusted-workspace` opt-in. Hooks keep MCP state strictly `observed`/`unknown`, emit non-installing CLI commands only for trusted unknown state, and never execute those commands.
+- Seven temporary-repository tests cover local and primary selection, unrelated checkout rejection, version drift, missing/incomplete builds, and paths containing spaces without skips or network access.
+
 ## 2026-07-22T14:00:00Z Task: plan-todo-20
 - Active repository, Copilot, Cursor, OpenCode, and MCP bootstrap guidance now uses one three-state interface policy: visible MCP tools, trusted project-local CLI JSON routes with `--input`, or a blocked state that tells the operator what capability is missing.
 - Capability selection must never infer MCP availability from config-file presence; the Cursor host resolver remains the only runtime state seam, while static guidance explains the same policy without probing or installing anything.
 - The interface pivot preserves the invariant safety sequence everywhere it appears: never access `.kb/` directly, discover/query before mutation, execute upserts sequentially, and run `kb_check` before completion.
 - OpenCode's bootstrap posture text is capped by a prompt word budget, so the capability and safety state machine must appear before lower-priority bootstrap details or it can be truncated from the injected system prompt.
 - Focused tests first failed against every obsolete surface, then passed across OpenCode policy/prompt/hooks, Cursor read/write guidance, and MCP runtime docs after the production wording pivot.
+
+## 2026-07-22T16:00:00Z Task: plan-todo-21
+- Active guidance now treats MCP tools and the CLI's 18 dedicated `--input <file|->` routes as peers; `find-gaps` is canonical and `gaps` remains its exact alias.
+- The JSON protocol contract is stable and documentable across routes: one object from a file or stdin, structured JSON on stdout, exit `0` for success, `1` for execution failure, and `2` for invocation/schema failure.
+- Briefing governance required no new mutation: every discovered briefing requirement was already `superseded`, and every discovered briefing scenario/test was already `closed`; historical artifacts and negative regression mentions remain untouched.
+- Symbol traceability needs explicit manual anchors for non-TypeScript runtime seams such as the Cursor worktree resolver, while generated coordinates can cover TypeScript protocol and skill-generator symbols.
+
+## 2026-07-22T18:00:00Z Task: plan-todo-22
+- Packed dependency-floor tests need root manifest overrides that point `kibi-cli` and `kibi-core` transitives at local tarballs; otherwise npm tries to satisfy the future `^0.15.0` CLI floor from the registry before versioning occurs.
+- The packed harness executes all 18 dedicated routes twice, once from a JSON file and once from stdin, against one isolated Git/KB sandbox and a loopback-only SPARQL server.
+- Live MCP `tools/list` schemas are SDK-rendered Zod JSON Schema, so parity comparison canonicalizes SDK-only metadata, enum encodings, defaults, and unconstrained object markers before comparing the frozen transport-neutral fixture.
+- Shared Prolog module executors must load `use_module/1` in a separate query before invoking reporting predicates; combining module loading and execution reproduces the packed `Predicate or file not found` failure.
+- Cursor and Codex tarball listings provide the final distribution gate for all four generated skills, all four `kibi-usage` resources, and `operation-access.md`.
