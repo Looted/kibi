@@ -39,7 +39,9 @@
         "completed",
         "behavioral-failure",
         "infrastructure-failure",
-        "interrupted"
+        "interrupted",
+        "budget-exhausted",
+        "evidence-conflict"
       ]
     },
     "startedAt": {
@@ -78,7 +80,10 @@
   },
   "allOf": [
     {
-      "if": { "properties": { "status": { "const": "completed" } }, "required": ["status"] },
+      "if": {
+        "properties": { "status": { "const": "completed" } },
+        "required": ["status"]
+      },
       "then": {
         "properties": {
           "exitCode": { "const": 0 },
@@ -94,8 +99,28 @@
       }
     },
     {
-      "if": { "properties": { "hardPass": { "const": true } }, "required": ["hardPass"] },
-      "then": { "properties": { "score": { "type": "number", "minimum": 85 }, "criticalFailures": { "type": "array", "maxItems": 0 } } }
+      "if": {
+        "properties": { "hardPass": { "const": true } },
+        "required": ["hardPass"]
+      },
+      "then": {
+        "properties": {
+          "score": { "type": "number", "minimum": 85 },
+          "criticalFailures": { "type": "array", "maxItems": 0 }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "status": { "not": { "const": "completed" } } },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "hardPass": { "const": false },
+          "score": { "type": "number", "exclusiveMaximum": 85 }
+        }
+      }
     }
   ]
 }

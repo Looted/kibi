@@ -8,6 +8,7 @@
     "schemaVersion",
     "artifactType",
     "runId",
+    "repositoryHashAlgorithm",
     "repositoryCommit",
     "dirtyState",
     "codexCliVersion",
@@ -17,6 +18,7 @@
     "targetModel",
     "optimizerModel",
     "skillopt",
+    "sourceLockHash",
     "catalogHash",
     "fixtureHash",
     "fixtureGeneratorHash",
@@ -36,9 +38,8 @@
     "runId": {
       "$ref": "contract-definitions.schema.json#/$defs/artifactId"
     },
-    "repositoryCommit": {
-      "$ref": "contract-definitions.schema.json#/$defs/sha256"
-    },
+    "repositoryHashAlgorithm": { "const": "sha1" },
+    "repositoryCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
     "dirtyState": {
       "type": "object",
       "additionalProperties": false,
@@ -77,13 +78,25 @@
       "additionalProperties": false,
       "required": ["path", "version", "sha256"],
       "properties": {
-        "path": { "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString" },
-        "version": { "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString" },
+        "path": {
+          "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString"
+        },
+        "version": {
+          "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString"
+        },
         "sha256": { "$ref": "contract-definitions.schema.json#/$defs/sha256" }
       }
     },
-    "cliArgs": { "type": "array", "minItems": 1, "items": { "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString" } },
-    "artifactRoot": { "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString" },
+    "cliArgs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString"
+      }
+    },
+    "artifactRoot": {
+      "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString"
+    },
     "targetModel": { "const": "gpt-5.4-mini" },
     "optimizerModel": { "const": "gpt-5.5" },
     "skillopt": {
@@ -103,12 +116,18 @@
       ],
       "properties": {
         "package": { "const": "skillopt" },
-        "version": { "const": "0.2.0" },
-        "commit": { "const": "b860a5cf88ce75e2bd02ca981ac21fb28cffba83" },
-        "repository": { "const": "https://github.com/microsoft/SkillOpt" },
-        "license": { "const": "MIT" },
-        "retrievedAt": { "const": "2026-07-21" },
-        "python": { "const": ">=3.10" },
+        "version": {
+          "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString"
+        },
+        "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+        "repository": { "type": "string", "format": "uri" },
+        "license": {
+          "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString"
+        },
+        "retrievedAt": { "type": "string", "format": "date" },
+        "python": {
+          "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString"
+        },
         "packageHash": {
           "$ref": "contract-definitions.schema.json#/$defs/sha256"
         },
@@ -120,9 +139,14 @@
         }
       }
     },
+    "sourceLockHash": {
+      "$ref": "contract-definitions.schema.json#/$defs/sha256"
+    },
     "catalogHash": { "$ref": "contract-definitions.schema.json#/$defs/sha256" },
     "fixtureHash": { "$ref": "contract-definitions.schema.json#/$defs/sha256" },
-    "fixtureGeneratorHash": { "$ref": "contract-definitions.schema.json#/$defs/sha256" },
+    "fixtureGeneratorHash": {
+      "$ref": "contract-definitions.schema.json#/$defs/sha256"
+    },
     "pricing": {
       "type": "object",
       "additionalProperties": false,
@@ -204,9 +228,15 @@
       "additionalProperties": false,
       "required": ["bodyHash", "frontmatterHash", "resourcesHash"],
       "properties": {
-        "bodyHash": { "$ref": "contract-definitions.schema.json#/$defs/sha256" },
-        "frontmatterHash": { "$ref": "contract-definitions.schema.json#/$defs/sha256" },
-        "resourcesHash": { "$ref": "contract-definitions.schema.json#/$defs/sha256" }
+        "bodyHash": {
+          "$ref": "contract-definitions.schema.json#/$defs/sha256"
+        },
+        "frontmatterHash": {
+          "$ref": "contract-definitions.schema.json#/$defs/sha256"
+        },
+        "resourcesHash": {
+          "$ref": "contract-definitions.schema.json#/$defs/sha256"
+        }
       }
     },
     "modelPricing": {

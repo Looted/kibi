@@ -9110,6 +9110,7 @@ symbols:
     title: ContractInputError.name
     sourceFile: scripts/skillopt-eval/contracts/common.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -9129,6 +9130,7 @@ symbols:
     title: ContractIntegrityError.name
     sourceFile: scripts/skillopt-eval/contracts/common.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -9136,6 +9138,7 @@ symbols:
     title: JsonValue
     sourceFile: scripts/skillopt-eval/contracts/common.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -9147,6 +9150,7 @@ symbols:
     title: CONTRACT_SCHEMA_VERSION
     sourceFile: scripts/skillopt-eval/contracts/common.ts
     symbol_role: config
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -9158,6 +9162,7 @@ symbols:
     title: MAX_CONTRACT_BYTES
     sourceFile: scripts/skillopt-eval/contracts/common.ts
     symbol_role: config
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -9169,6 +9174,7 @@ symbols:
     title: Sha256Schema
     sourceFile: scripts/skillopt-eval/contracts/common.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -9180,6 +9186,7 @@ symbols:
     title: NonEmptyStringSchema
     sourceFile: scripts/skillopt-eval/contracts/common.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -9191,6 +9198,7 @@ symbols:
     title: ArtifactIdSchema
     sourceFile: scripts/skillopt-eval/contracts/common.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -9202,6 +9210,7 @@ symbols:
     title: TimestampSchema
     sourceFile: scripts/skillopt-eval/contracts/common.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -9213,6 +9222,7 @@ symbols:
     title: JsonValueSchema
     sourceFile: scripts/skillopt-eval/contracts/common.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -9224,6 +9234,7 @@ symbols:
     title: UsageSchema
     sourceFile: scripts/skillopt-eval/contracts/common.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -9235,6 +9246,7 @@ symbols:
     title: PriceEquivalentEstimateSchema
     sourceFile: scripts/skillopt-eval/contracts/common.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -9367,6 +9379,7 @@ symbols:
     title: PricingTableSchema
     sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -9433,6 +9446,7 @@ symbols:
     title: parseJsonText
     sourceFile: scripts/skillopt-eval/contracts/common.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -9444,6 +9458,7 @@ symbols:
     title: parseContractText
     sourceFile: scripts/skillopt-eval/contracts/common.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -9499,6 +9514,7 @@ symbols:
     title: Proposal
     sourceFile: scripts/skillopt-eval/contracts/review.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -9510,6 +9526,7 @@ symbols:
     title: Approval
     sourceFile: scripts/skillopt-eval/contracts/review.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -9532,6 +9549,7 @@ symbols:
     title: RunLock
     sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -9543,6 +9561,7 @@ symbols:
     title: parseRunLockText
     sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -9554,6 +9573,7 @@ symbols:
     title: runLockHash
     sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -9625,3 +9645,268 @@ symbols:
     sourceColumn: 6
     sourceEndLine: 35
     sourceEndColumn: 27
+  - id: SYM-skillopt-python-contract-model
+    title: ContractModel
+    sourceFile: tools/skillopt/kibi_skillopt/common.py
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 37
+    sourceColumn: 1
+    sourceEndLine: 77
+    sourceEndColumn: 10
+  - id: SYM-skillopt-python-canonical-json
+    title: canonical_json
+    sourceFile: tools/skillopt/kibi_skillopt/common.py
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 93
+    sourceColumn: 1
+    sourceEndLine: 94
+    sourceEndColumn: 51
+  - id: SYM-skillopt-python-contract-hash
+    title: contract_hash
+    sourceFile: tools/skillopt/kibi_skillopt/common.py
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 97
+    sourceColumn: 1
+    sourceEndLine: 98
+    sourceEndColumn: 70
+  - id: SYM-skillopt-python-json-node-value
+    title: json_node_value
+    sourceFile: tools/skillopt/kibi_skillopt/common.py
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 101
+    sourceColumn: 1
+    sourceEndLine: 112
+    sourceEndColumn: 24
+  - id: SYM-skillopt-python-episode-request
+    title: EpisodeRequest
+    sourceFile: tools/skillopt/kibi_skillopt/episode.py
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 25
+    sourceColumn: 1
+    sourceEndLine: 36
+    sourceEndColumn: 83
+  - id: SYM-skillopt-python-episode-result
+    title: EpisodeResult
+    sourceFile: tools/skillopt/kibi_skillopt/episode.py
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 45
+    sourceColumn: 1
+    sourceEndLine: 91
+    sourceEndColumn: 20
+  - id: SYM-skillopt-python-evidence-index
+    title: EvidenceIndex
+    sourceFile: tools/skillopt/kibi_skillopt/evidence.py
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 25
+    sourceColumn: 1
+    sourceEndLine: 42
+    sourceEndColumn: 20
+  - id: SYM-skillopt-python-proposal
+    title: Proposal
+    sourceFile: tools/skillopt/kibi_skillopt/review.py
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 20
+    sourceColumn: 1
+    sourceEndLine: 42
+    sourceEndColumn: 20
+  - id: SYM-skillopt-python-approval
+    title: Approval
+    sourceFile: tools/skillopt/kibi_skillopt/review.py
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 45
+    sourceColumn: 1
+    sourceEndLine: 57
+    sourceEndColumn: 67
+  - id: SYM-skillopt-python-assert-approval
+    title: assert_approval_matches_proposal
+    sourceFile: tools/skillopt/kibi_skillopt/review.py
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 60
+    sourceColumn: 1
+    sourceEndLine: 73
+    sourceEndColumn: 74
+  - id: SYM-skillopt-python-source-lock
+    title: SourceLock
+    sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 87
+    sourceColumn: 1
+    sourceEndLine: 94
+    sourceEndColumn: 27
+  - id: SYM-skillopt-python-load-source-lock
+    title: load_skillopt_source_lock
+    sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 100
+    sourceColumn: 1
+    sourceEndLine: 101
+    sourceEndColumn: 76
+  - id: SYM-skillopt-python-run-lock
+    title: RunLock
+    sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 163
+    sourceColumn: 1
+    sourceEndLine: 218
+    sourceEndColumn: 20
+  - id: SYM-skillopt-python-run-lock-hash
+    title: run_lock_hash
+    sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 221
+    sourceColumn: 1
+    sourceEndLine: 223
+    sourceEndColumn: 32
+  - id: SYM-skillopt-python-assert-run-lock
+    title: assert_run_lock_matches
+    sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 226
+    sourceColumn: 1
+    sourceEndLine: 230
+    sourceEndColumn: 69
+  - id: SYM-skillopt-python-ledger-entry
+    title: LedgerEntry
+    sourceFile: tools/skillopt/kibi_skillopt/workflow.py
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 25
+    sourceColumn: 1
+    sourceEndLine: 59
+    sourceEndColumn: 20
+  - id: SYM-skillopt-python-run-state
+    title: RunState
+    sourceFile: tools/skillopt/kibi_skillopt/workflow.py
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 62
+    sourceColumn: 1
+    sourceEndLine: 88
+    sourceEndColumn: 20
+  - id: SYM-skillopt-python-report-v1
+    title: ReportV1
+    sourceFile: tools/skillopt/kibi_skillopt/workflow.py
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+    sourceLine: 108
+    sourceColumn: 1
+    sourceEndLine: 127
+    sourceEndColumn: 20
+  - id: SYM-skillopt-contract-hardening-ts-tests
+    title: runLockFixture
+    sourceFile: scripts/skillopt-eval/tests/contract-hardening.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 46
+    sourceColumn: 10
+    sourceEndLine: 49
+    sourceEndColumn: 1
+  - id: SYM-skillopt-contract-hardening-python-tests
+    title: ContractHardeningTests
+    sourceFile: tools/skillopt/tests/test_contract_hardening.py
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 124
+    sourceColumn: 1
+    sourceEndLine: 232
+    sourceEndColumn: 51
+  - id: SYM-skillopt-contract-bounded-schema
+    title: boundedContractSchema
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-contract-canonical-json
+    title: canonicalJson
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-contract-load-source-lock
+    title: loadSkillOptSourceLock
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-contract-create-run-lock-schema
+    title: createRunLockSchema
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-contract-source-lock-schema
+    title: SourceLockSchema
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization

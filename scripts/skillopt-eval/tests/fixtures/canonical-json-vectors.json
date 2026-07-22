@@ -1,0 +1,21 @@
+[
+  {
+    "name": "unicode keys use UTF-16 code-unit ordering",
+    "value": {
+      "€": "euro",
+      "\r": "cr",
+      "1": "one",
+      "": "control",
+      "ö": "latin",
+      "😀": "astral"
+    },
+    "canonical": "{\"\\r\":\"cr\",\"1\":\"one\",\"\":\"control\",\"ö\":\"latin\",\"€\":\"euro\",\"😀\":\"astral\"}",
+    "sha256": "7f3648793685207101764f41cf90f0059b96969e49380c716f8c08018a2e6723"
+  },
+  {
+    "name": "small floats use ECMAScript exponent formatting",
+    "value": { "value": 1e-7 },
+    "canonical": "{\"value\":1e-7}",
+    "sha256": "910750038eb30a40d06da88009b6259aabaf3751b3cb212c616d51abb6b008a4"
+  }
+]

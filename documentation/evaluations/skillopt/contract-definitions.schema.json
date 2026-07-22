@@ -3,7 +3,11 @@
   "$id": "contract-definitions.schema.json",
   "$defs": {
     "schemaVersion": { "const": "1.0.0" },
-    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1048576
+    },
     "artifactId": { "type": "string", "format": "uuid" },
     "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "timestamp": { "type": "string", "format": "date-time" },
@@ -12,7 +16,7 @@
         { "type": "null" },
         { "type": "boolean" },
         { "type": "number" },
-        { "type": "string" },
+        { "type": "string", "maxLength": 1048576 },
         { "type": "array", "items": { "$ref": "#/$defs/jsonValue" } },
         {
           "type": "object",

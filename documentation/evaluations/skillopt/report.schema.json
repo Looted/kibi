@@ -13,7 +13,13 @@
         "runId": { "type": "string", "minLength": 1 },
         "skill": { "type": "string", "minLength": 1 },
         "variants": { "const": ["baseline", "one-shot", "skillopt"] },
-        "cells": { "type": "array", "minItems": 1 },
+        "cells": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "contract-definitions.schema.json#/$defs/jsonValue"
+          }
+        },
         "costUsd": { "type": "number", "minimum": 0, "maximum": 400 },
         "verdict": { "enum": ["pass", "fail", "no-go"] }
       }

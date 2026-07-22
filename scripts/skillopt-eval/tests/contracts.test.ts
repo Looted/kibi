@@ -80,7 +80,7 @@ describe("SkillOpt versioned contracts", () => {
     });
 
     expect(() => assertRunLockMatches(expected, actual)).toThrow(
-      "immutable run lock mismatch",
+      "dirty run lock",
     );
   });
 

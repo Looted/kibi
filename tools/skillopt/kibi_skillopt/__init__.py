@@ -1,4 +1,4 @@
-from .common import SCHEMA_VERSION, PriceEquivalentEstimate, Usage, contract_hash
+from .common import SCHEMA_VERSION, PriceEquivalentEstimate, Usage, canonical_json, contract_hash
 from .episode import EpisodeRequest, EpisodeResult
 from .evidence import EvidenceEnvelope, EvidenceIndex
 from .review import Approval, Proposal, assert_approval_matches_proposal
@@ -22,6 +22,7 @@ __all__ = [
     "Usage",
     "assert_approval_matches_proposal",
     "assert_run_lock_matches",
+    "canonical_json",
     "contract_hash",
     "run_lock_hash",
 ]

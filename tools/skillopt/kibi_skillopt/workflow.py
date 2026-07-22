@@ -3,13 +3,17 @@ from __future__ import annotations
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import AwareDatetime, Field, model_validator
+from pydantic import AwareDatetime, Field, field_validator, model_validator
 from typing_extensions import Self
 
 from .common import (
     ContractModel,
     ContractValidationError,
+    JsonBoolean,
+    JsonInteger,
     JsonNode,
+    JsonNumber,
+    JsonValue,
     NonEmptyString,
     PriceEquivalentEstimate,
     Sha256,
@@ -22,7 +26,7 @@ class LedgerEntry(ContractModel):
     schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
     artifact_type: Annotated[Literal["ledger-entry"], Field(alias="artifactType")]
     run_id: Annotated[UUID, Field(alias="runId")]
-    sequence: Annotated[int, Field(ge=0)]
+    sequence: Annotated[JsonInteger, Field(ge=0)]
     previous_entry_hash: Annotated[Sha256 | None, Field(alias="previousEntryHash")]
     entry_hash: Annotated[Sha256, Field(alias="entryHash")]
     occurred_at: Annotated[AwareDatetime, Field(alias="occurredAt")]
@@ -35,6 +39,13 @@ class LedgerEntry(ContractModel):
     price_equivalent_estimate: Annotated[
         PriceEquivalentEstimate, Field(alias="priceEquivalentEstimate")
     ]
+
+    @field_validator("episode_id", mode="before")
+    @classmethod
+    def reject_explicit_null_episode_id(cls, value: JsonValue) -> JsonValue:
+        if value is None:
+            raise ContractValidationError("episodeId cannot be null")
+        return value
 
     @model_validator(mode="after")
     def verify_chain_link(self) -> Self:
@@ -66,12 +77,14 @@ class RunState(ContractModel):
     completed_episode_ids: Annotated[tuple[UUID, ...], Field(alias="completedEpisodeIds")]
     ledger_head_hash: Annotated[Sha256 | None, Field(alias="ledgerHeadHash")]
     updated_at: Annotated[AwareDatetime, Field(alias="updatedAt")]
-    interrupted: bool
+    interrupted: JsonBoolean
 
     @model_validator(mode="after")
     def verify_unique_completed_episodes(self) -> Self:
         if len(set(self.completed_episode_ids)) != len(self.completed_episode_ids):
             raise ContractValidationError("completed episode ids must be unique")
+        if self.phase == "complete" and self.interrupted:
+            raise ContractValidationError("complete run state cannot be interrupted")
         return self
 
 
@@ -80,16 +93,16 @@ class LegacyReport(ContractModel):
     skill: NonEmptyString
     variants: tuple[Literal["baseline"], Literal["one-shot"], Literal["skillopt"]]
     cells: tuple[JsonNode, ...]
-    cost_usd: Annotated[float, Field(alias="costUsd", ge=0, le=400)]
+    cost_usd: Annotated[JsonNumber, Field(alias="costUsd", ge=0, le=400)]
     verdict: Literal["pass", "fail", "no-go"]
 
 
 class GateResults(ContractModel):
-    aggregate: bool
-    bootstrap: bool
-    family: bool
-    security: bool
-    bundle: bool | None
+    aggregate: JsonBoolean
+    bootstrap: JsonBoolean
+    family: JsonBoolean
+    security: JsonBoolean
+    bundle: JsonBoolean | None
 
 
 class ReportV1(ContractModel):

@@ -4,9 +4,11 @@ import hashlib
 import json
 from typing import Annotated, ClassVar, Final, Literal, TypeAlias
 
+import jcs
 from pydantic import BaseModel, ConfigDict, Field, RootModel
 from pydantic.config import ExtraValues
-from typing_extensions import Self, override
+from pydantic.functional_validators import model_validator
+from typing_extensions import Self, assert_never, override
 
 SCHEMA_VERSION: Final = "1.0.0"
 SHA256_PATTERN: Final = r"^[a-f0-9]{64}$"
@@ -14,6 +16,9 @@ MAX_CONTRACT_BYTES: Final = 1_048_576
 
 Sha256 = Annotated[str, Field(pattern=SHA256_PATTERN)]
 NonEmptyString = Annotated[str, Field(min_length=1)]
+JsonInteger = Annotated[int, Field(strict=True)]
+JsonNumber = Annotated[float, Field(strict=True)]
+JsonBoolean = Annotated[bool, Field(strict=True)]
 JsonValue: TypeAlias = str | int | float | bool | None | list["JsonValue"] | dict[str, "JsonValue"]
 
 
@@ -33,10 +38,19 @@ class ContractModel(BaseModel):
     model_config: ClassVar[ConfigDict] = ConfigDict(
         extra="forbid",
         frozen=True,
+        allow_inf_nan=False,
         validate_by_alias=True,
         validate_by_name=True,
         serialize_by_alias=True,
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def enforce_serialized_size(cls, value: JsonValue) -> JsonValue:
+        encoded = json.dumps(value, ensure_ascii=False, separators=(",", ":")).encode()
+        if len(encoded) > MAX_CONTRACT_BYTES:
+            raise ContractValidationError(f"contract exceeds {MAX_CONTRACT_BYTES} bytes")
+        return value
 
     @classmethod
     @override
@@ -64,30 +78,29 @@ class ContractModel(BaseModel):
 
 
 class Usage(ContractModel):
-    input_tokens: Annotated[int, Field(alias="inputTokens", ge=0)]
-    cached_input_tokens: Annotated[int, Field(alias="cachedInputTokens", ge=0)]
-    output_tokens: Annotated[int, Field(alias="outputTokens", ge=0)]
+    input_tokens: Annotated[JsonInteger, Field(alias="inputTokens", ge=0)]
+    cached_input_tokens: Annotated[JsonInteger, Field(alias="cachedInputTokens", ge=0)]
+    output_tokens: Annotated[JsonInteger, Field(alias="outputTokens", ge=0)]
 
 
 class PriceEquivalentEstimate(ContractModel):
     currency: Literal["USD"]
-    amount: Annotated[float, Field(ge=0)]
+    amount: Annotated[JsonNumber, Field(ge=0)]
     pricing_hash: Annotated[Sha256, Field(alias="pricingHash")]
     kind: Literal["price-equivalent-estimate-not-invoice"]
 
 
+def canonical_json(value: JsonValue) -> str:
+    return jcs.canonicalize(value).decode("utf-8")
+
+
 def contract_hash(value: JsonValue) -> str:
-    encoded = json.dumps(
-        value,
-        ensure_ascii=False,
-        separators=(",", ":"),
-        sort_keys=True,
-    ).encode()
-    return hashlib.sha256(encoded).hexdigest()
+    return hashlib.sha256(canonical_json(value).encode()).hexdigest()
 
 
 def json_node_value(node: JsonNode) -> JsonValue:
-    match node.root:  # noqa: MATCH_OK
+    value = node.root
+    match value:
         case None | str() | bool() | int() as scalar:
             return scalar
         case float() as number:
@@ -96,6 +109,7 @@ def json_node_value(node: JsonNode) -> JsonValue:
             return [json_node_value(item) for item in items]
         case dict() as entries:
             return {key: json_node_value(entry) for key, entry in entries.items()}
+    assert_never(value)
 
 
 def parse_json_value(text: str) -> JsonValue:

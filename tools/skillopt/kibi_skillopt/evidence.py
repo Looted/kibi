@@ -6,11 +6,18 @@ from uuid import UUID
 from pydantic import AwareDatetime, Field, model_validator
 from typing_extensions import Self
 
-from .common import ContractModel, ContractValidationError, JsonNode, Sha256
+from .common import (
+    ContractModel,
+    ContractValidationError,
+    JsonBoolean,
+    JsonInteger,
+    JsonNode,
+    Sha256,
+)
 
 
 class EvidenceEnvelope(ContractModel):
-    sequence: Annotated[int, Field(ge=0)]
+    sequence: Annotated[JsonInteger, Field(ge=0)]
     received_at: Annotated[AwareDatetime, Field(alias="receivedAt")]
     event: dict[str, JsonNode]
 
@@ -25,7 +32,7 @@ class EvidenceIndex(ContractModel):
     broker_trace_hash: Annotated[Sha256, Field(alias="brokerTraceHash")]
     diagnostic_receipt_hash: Annotated[Sha256, Field(alias="diagnosticReceiptHash")]
     final_state_hash: Annotated[Sha256, Field(alias="finalStateHash")]
-    truncated: bool
+    truncated: JsonBoolean
 
     @model_validator(mode="after")
     def verify_unique_sequences(self) -> Self:

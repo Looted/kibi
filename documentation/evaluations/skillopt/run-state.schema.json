@@ -53,5 +53,14 @@
       "$ref": "contract-definitions.schema.json#/$defs/timestamp"
     },
     "interrupted": { "type": "boolean" }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "phase": { "const": "complete" } },
+        "required": ["phase"]
+      },
+      "then": { "properties": { "interrupted": { "const": false } } }
+    }
+  ]
 }

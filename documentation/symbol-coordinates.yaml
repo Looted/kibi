@@ -4408,34 +4408,46 @@ coordinates:
     sourceLine: 40
   SYM-skillopt-contract-approval-schema:
     sourceColumn: 13
-    sourceEndColumn: 11
-    sourceEndLine: 58
+    sourceEndColumn: 1
+    sourceEndLine: 67
     sourceFile: scripts/skillopt-eval/contracts/review.ts
-    sourceLine: 44
+    sourceLine: 50
   SYM-skillopt-contract-approval-type:
     sourceColumn: 12
     sourceEndColumn: 64
-    sourceEndLine: 63
+    sourceEndLine: 72
     sourceFile: scripts/skillopt-eval/contracts/review.ts
-    sourceLine: 63
+    sourceLine: 72
   SYM-skillopt-contract-artifact-id-schema:
     sourceColumn: 13
     sourceEndColumn: 40
-    sourceEndLine: 14
+    sourceEndLine: 15
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 14
+    sourceLine: 15
   SYM-skillopt-contract-assert-approval:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 83
+    sourceEndLine: 99
     sourceFile: scripts/skillopt-eval/contracts/review.ts
-    sourceLine: 66
+    sourceLine: 75
   SYM-skillopt-contract-assert-run-lock:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 153
+    sourceEndLine: 171
     sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
-    sourceLine: 149
+    sourceLine: 164
+  SYM-skillopt-contract-bounded-schema:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 38
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    sourceLine: 30
+  SYM-skillopt-contract-canonical-json:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 122
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    sourceLine: 113
   SYM-skillopt-contract-cli-main:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4445,39 +4457,45 @@ coordinates:
   SYM-skillopt-contract-common-constants:
     sourceColumn: 13
     sourceEndColumn: 55
-    sourceEndLine: 5
+    sourceEndLine: 6
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 5
+    sourceLine: 6
+  SYM-skillopt-contract-create-run-lock-schema:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 140
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    sourceLine: 87
   SYM-skillopt-contract-episode-request-schema:
     sourceColumn: 13
-    sourceEndColumn: 11
-    sourceEndLine: 37
+    sourceEndColumn: 1
+    sourceEndLine: 40
     sourceFile: scripts/skillopt-eval/contracts/episode.ts
-    sourceLine: 23
+    sourceLine: 24
   SYM-skillopt-contract-episode-request-type:
     sourceColumn: 12
     sourceEndColumn: 76
-    sourceEndLine: 99
+    sourceEndLine: 122
     sourceFile: scripts/skillopt-eval/contracts/episode.ts
-    sourceLine: 99
+    sourceLine: 122
   SYM-skillopt-contract-episode-result-schema:
     sourceColumn: 13
-    sourceEndColumn: 4
-    sourceEndLine: 96
+    sourceEndColumn: 1
+    sourceEndLine: 119
     sourceFile: scripts/skillopt-eval/contracts/episode.ts
-    sourceLine: 40
+    sourceLine: 43
   SYM-skillopt-contract-episode-result-type:
     sourceColumn: 12
     sourceEndColumn: 74
-    sourceEndLine: 101
+    sourceEndLine: 124
     sourceFile: scripts/skillopt-eval/contracts/episode.ts
-    sourceLine: 101
+    sourceLine: 124
   SYM-skillopt-contract-estimate-schema:
     sourceColumn: 13
     sourceEndColumn: 11
-    sourceEndLine: 40
+    sourceEndLine: 57
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 33
+    sourceLine: 50
   SYM-skillopt-contract-evidence-envelope-schema:
     sourceColumn: 13
     sourceEndColumn: 11
@@ -4486,16 +4504,16 @@ coordinates:
     sourceLine: 11
   SYM-skillopt-contract-evidence-index-schema:
     sourceColumn: 13
-    sourceEndColumn: 4
-    sourceEndLine: 42
+    sourceEndColumn: 1
+    sourceEndLine: 44
     sourceFile: scripts/skillopt-eval/contracts/evidence.ts
     sourceLine: 20
   SYM-skillopt-contract-evidence-index-type:
     sourceColumn: 12
     sourceEndColumn: 74
-    sourceEndLine: 45
+    sourceEndLine: 47
     sourceFile: scripts/skillopt-eval/contracts/evidence.ts
-    sourceLine: 45
+    sourceLine: 47
   SYM-skillopt-contract-gates:
     sourceColumn: 13
     sourceEndColumn: 10
@@ -4508,108 +4526,126 @@ coordinates:
     sourceEndLine: 82
     sourceFile: scripts/skillopt-eval/contracts/gates.ts
     sourceLine: 35
+  SYM-skillopt-contract-hardening-python-tests:
+    sourceColumn: 6
+    sourceEndColumn: 28
+    sourceEndLine: 136
+    sourceFile: tools/skillopt/tests/test_contract_hardening.py
+    sourceLine: 136
+  SYM-skillopt-contract-hardening-ts-tests:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 49
+    sourceFile: scripts/skillopt-eval/tests/contract-hardening.test.ts
+    sourceLine: 46
   SYM-skillopt-contract-hash:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 114
+    sourceEndLine: 127
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 110
+    sourceLine: 125
   SYM-skillopt-contract-input-error:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 53
+    sourceEndLine: 70
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 43
+    sourceLine: 60
   SYM-skillopt-contract-input-error-name:
     sourceColumn: 11
     sourceEndColumn: 39
-    sourceEndLine: 45
+    sourceEndLine: 62
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 45
+    sourceLine: 62
   SYM-skillopt-contract-integrity-error:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 66
+    sourceEndLine: 83
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 56
+    sourceLine: 73
   SYM-skillopt-contract-integrity-error-name:
     sourceColumn: 11
     sourceEndColumn: 43
-    sourceEndLine: 58
+    sourceEndLine: 75
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 58
+    sourceLine: 75
   SYM-skillopt-contract-json-schema:
     sourceColumn: 13
     sourceEndColumn: 39
-    sourceEndLine: 18
+    sourceEndLine: 19
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 18
+    sourceLine: 19
   SYM-skillopt-contract-json-value:
     sourceColumn: 12
     sourceEndColumn: 56
-    sourceEndLine: 21
+    sourceEndLine: 22
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 21
+    sourceLine: 22
   SYM-skillopt-contract-ledger-schema:
     sourceColumn: 13
-    sourceEndColumn: 4
-    sourceEndLine: 46
+    sourceEndColumn: 1
+    sourceEndLine: 49
     sourceFile: scripts/skillopt-eval/contracts/workflow.ts
-    sourceLine: 13
+    sourceLine: 14
+  SYM-skillopt-contract-load-source-lock:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 44
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    sourceLine: 42
   SYM-skillopt-contract-max-bytes:
     sourceColumn: 13
     sourceEndColumn: 43
-    sourceEndLine: 7
+    sourceEndLine: 8
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 7
+    sourceLine: 8
   SYM-skillopt-contract-nonempty-schema:
     sourceColumn: 13
     sourceEndColumn: 53
-    sourceEndLine: 12
+    sourceEndLine: 13
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 12
+    sourceLine: 13
   SYM-skillopt-contract-parse-json:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 88
+    sourceEndLine: 105
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 69
+    sourceLine: 86
   SYM-skillopt-contract-parse-run-lock:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 141
+    sourceEndLine: 156
     sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
-    sourceLine: 134
+    sourceLine: 149
   SYM-skillopt-contract-parse-typed:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 93
+    sourceEndLine: 110
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 91
+    sourceLine: 108
   SYM-skillopt-contract-pricing-schema:
     sourceColumn: 13
     sourceEndColumn: 11
-    sourceEndLine: 75
+    sourceEndLine: 79
     sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
-    sourceLine: 62
+    sourceLine: 66
   SYM-skillopt-contract-proposal-schema:
     sourceColumn: 13
-    sourceEndColumn: 4
-    sourceEndLine: 41
+    sourceEndColumn: 1
+    sourceEndLine: 47
     sourceFile: scripts/skillopt-eval/contracts/review.ts
-    sourceLine: 14
+    sourceLine: 15
   SYM-skillopt-contract-proposal-type:
     sourceColumn: 12
     sourceEndColumn: 64
-    sourceEndLine: 61
+    sourceEndLine: 70
     sourceFile: scripts/skillopt-eval/contracts/review.ts
-    sourceLine: 61
+    sourceLine: 70
   SYM-skillopt-contract-python-tests:
     sourceColumn: 6
     sourceEndColumn: 19
-    sourceEndLine: 50
+    sourceEndLine: 33
     sourceFile: tools/skillopt/tests/test_contracts.py
-    sourceLine: 50
+    sourceLine: 33
   SYM-skillopt-contract-python-workflow-tests:
     sourceColumn: 6
     sourceEndColumn: 27
@@ -4618,76 +4654,82 @@ coordinates:
     sourceLine: 35
   SYM-skillopt-contract-report-schema:
     sourceColumn: 13
-    sourceEndColumn: 73
-    sourceEndLine: 132
+    sourceEndColumn: 1
+    sourceEndLine: 151
     sourceFile: scripts/skillopt-eval/contracts/workflow.ts
-    sourceLine: 132
+    sourceLine: 149
   SYM-skillopt-contract-report-type:
     sourceColumn: 12
     sourceEndColumn: 60
-    sourceEndLine: 134
+    sourceEndLine: 153
     sourceFile: scripts/skillopt-eval/contracts/workflow.ts
-    sourceLine: 134
+    sourceLine: 153
   SYM-skillopt-contract-report-v1-schema:
     sourceColumn: 13
-    sourceEndColumn: 11
-    sourceEndLine: 129
+    sourceEndColumn: 1
+    sourceEndLine: 146
     sourceFile: scripts/skillopt-eval/contracts/workflow.ts
-    sourceLine: 93
+    sourceLine: 108
   SYM-skillopt-contract-run-lock-hash:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 146
+    sourceEndLine: 161
     sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
-    sourceLine: 144
+    sourceLine: 159
   SYM-skillopt-contract-run-lock-schema:
     sourceColumn: 13
-    sourceEndColumn: 11
-    sourceEndLine: 128
+    sourceEndColumn: 50
+    sourceEndLine: 143
     sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
-    sourceLine: 83
+    sourceLine: 143
   SYM-skillopt-contract-run-lock-type:
     sourceColumn: 12
     sourceEndColumn: 62
-    sourceEndLine: 131
+    sourceEndLine: 146
     sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
-    sourceLine: 131
+    sourceLine: 146
   SYM-skillopt-contract-run-state-schema:
     sourceColumn: 13
-    sourceEndColumn: 11
-    sourceEndLine: 75
+    sourceEndColumn: 1
+    sourceEndLine: 88
     sourceFile: scripts/skillopt-eval/contracts/workflow.ts
-    sourceLine: 49
+    sourceLine: 52
   SYM-skillopt-contract-schema-tests-reader:
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 29
+    sourceEndLine: 63
     sourceFile: scripts/skillopt-eval/tests/schema-contract.test.ts
-    sourceLine: 26
+    sourceLine: 60
   SYM-skillopt-contract-sha-schema:
     sourceColumn: 13
     sourceEndColumn: 62
-    sourceEndLine: 10
+    sourceEndLine: 11
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 10
+    sourceLine: 11
   SYM-skillopt-contract-skill-schema:
     sourceColumn: 13
     sourceEndColumn: 2
-    sourceEndLine: 20
+    sourceEndLine: 21
     sourceFile: scripts/skillopt-eval/contracts/episode.ts
-    sourceLine: 14
+    sourceLine: 15
   SYM-skillopt-contract-source-lock:
     sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 43
+    sourceEndColumn: 60
+    sourceEndLine: 47
     sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
-    sourceLine: 36
+    sourceLine: 47
+  SYM-skillopt-contract-source-lock-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 34
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    sourceLine: 24
   SYM-skillopt-contract-timestamp-schema:
     sourceColumn: 13
     sourceEndColumn: 63
-    sourceEndLine: 16
+    sourceEndLine: 17
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 16
+    sourceLine: 17
   SYM-skillopt-contract-ts-tests-fixture:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -4697,15 +4739,15 @@ coordinates:
   SYM-skillopt-contract-usage-schema:
     sourceColumn: 13
     sourceEndColumn: 11
-    sourceEndLine: 30
+    sourceEndLine: 47
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 24
+    sourceLine: 41
   SYM-skillopt-contract-variant-schema:
     sourceColumn: 13
     sourceEndColumn: 73
-    sourceEndLine: 12
+    sourceEndLine: 13
     sourceFile: scripts/skillopt-eval/contracts/episode.ts
-    sourceLine: 12
+    sourceLine: 13
   SYM-skillopt-preflight-run:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4754,6 +4796,114 @@ coordinates:
     sourceEndLine: 24
     sourceFile: scripts/skillopt-eval/prototype.ts
     sourceLine: 19
+  SYM-skillopt-python-approval:
+    sourceColumn: 6
+    sourceEndColumn: 14
+    sourceEndLine: 45
+    sourceFile: tools/skillopt/kibi_skillopt/review.py
+    sourceLine: 45
+  SYM-skillopt-python-assert-approval:
+    sourceColumn: 4
+    sourceEndColumn: 36
+    sourceEndLine: 60
+    sourceFile: tools/skillopt/kibi_skillopt/review.py
+    sourceLine: 60
+  SYM-skillopt-python-assert-run-lock:
+    sourceColumn: 4
+    sourceEndColumn: 27
+    sourceEndLine: 226
+    sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
+    sourceLine: 226
+  SYM-skillopt-python-canonical-json:
+    sourceColumn: 4
+    sourceEndColumn: 18
+    sourceEndLine: 93
+    sourceFile: tools/skillopt/kibi_skillopt/common.py
+    sourceLine: 93
+  SYM-skillopt-python-contract-hash:
+    sourceColumn: 4
+    sourceEndColumn: 17
+    sourceEndLine: 97
+    sourceFile: tools/skillopt/kibi_skillopt/common.py
+    sourceLine: 97
+  SYM-skillopt-python-contract-model:
+    sourceColumn: 6
+    sourceEndColumn: 19
+    sourceEndLine: 37
+    sourceFile: tools/skillopt/kibi_skillopt/common.py
+    sourceLine: 37
+  SYM-skillopt-python-episode-request:
+    sourceColumn: 6
+    sourceEndColumn: 20
+    sourceEndLine: 25
+    sourceFile: tools/skillopt/kibi_skillopt/episode.py
+    sourceLine: 25
+  SYM-skillopt-python-episode-result:
+    sourceColumn: 6
+    sourceEndColumn: 19
+    sourceEndLine: 45
+    sourceFile: tools/skillopt/kibi_skillopt/episode.py
+    sourceLine: 45
+  SYM-skillopt-python-evidence-index:
+    sourceColumn: 6
+    sourceEndColumn: 19
+    sourceEndLine: 25
+    sourceFile: tools/skillopt/kibi_skillopt/evidence.py
+    sourceLine: 25
+  SYM-skillopt-python-json-node-value:
+    sourceColumn: 4
+    sourceEndColumn: 19
+    sourceEndLine: 101
+    sourceFile: tools/skillopt/kibi_skillopt/common.py
+    sourceLine: 101
+  SYM-skillopt-python-ledger-entry:
+    sourceColumn: 6
+    sourceEndColumn: 17
+    sourceEndLine: 25
+    sourceFile: tools/skillopt/kibi_skillopt/workflow.py
+    sourceLine: 25
+  SYM-skillopt-python-load-source-lock:
+    sourceColumn: 4
+    sourceEndColumn: 29
+    sourceEndLine: 100
+    sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
+    sourceLine: 100
+  SYM-skillopt-python-proposal:
+    sourceColumn: 6
+    sourceEndColumn: 14
+    sourceEndLine: 20
+    sourceFile: tools/skillopt/kibi_skillopt/review.py
+    sourceLine: 20
+  SYM-skillopt-python-report-v1:
+    sourceColumn: 6
+    sourceEndColumn: 14
+    sourceEndLine: 108
+    sourceFile: tools/skillopt/kibi_skillopt/workflow.py
+    sourceLine: 108
+  SYM-skillopt-python-run-lock:
+    sourceColumn: 6
+    sourceEndColumn: 13
+    sourceEndLine: 163
+    sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
+    sourceLine: 163
+  SYM-skillopt-python-run-lock-hash:
+    sourceColumn: 4
+    sourceEndColumn: 17
+    sourceEndLine: 221
+    sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
+    sourceLine: 221
+  SYM-skillopt-python-run-state:
+    sourceColumn: 6
+    sourceEndColumn: 14
+    sourceEndLine: 62
+    sourceFile: tools/skillopt/kibi_skillopt/workflow.py
+    sourceLine: 62
+  SYM-skillopt-python-source-lock:
+    sourceColumn: 6
+    sourceEndColumn: 16
+    sourceEndLine: 87
+    sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
+    sourceLine: 87
   SYM-skillopt-task-spec-type:
     sourceColumn: 12
     sourceEndColumn: 3

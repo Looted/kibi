@@ -1,9 +1,19 @@
-[
-  {
-    "name": "completed episode with reconciled evidence",
-    "schema": "episode-result.schema.json",
-    "accepted": true,
-    "artifact": {
+{
+  "fixtures": {
+    "episode-request": {
+      "schemaVersion": "1.0.0",
+      "artifactType": "episode-request",
+      "episodeId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000001",
+      "runLockHash": "1111111111111111111111111111111111111111111111111111111111111111",
+      "variant": "baseline",
+      "skill": "kibi-usage",
+      "taskId": "task-1",
+      "attempt": 1,
+      "prompt": "Use the public MCP workflow.",
+      "workspaceFixtureHash": "2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "episode-result": {
       "schemaVersion": "1.0.0",
       "artifactType": "episode-result",
       "episodeId": "00000000-0000-4000-8000-000000000002",
@@ -25,138 +35,323 @@
       "usage": { "inputTokens": 1, "cachedInputTokens": 0, "outputTokens": 1 },
       "priceEquivalentEstimate": {
         "currency": "USD",
-        "amount": 0.01,
+        "amount": 1e-7,
         "pricingHash": "3333333333333333333333333333333333333333333333333333333333333333",
         "kind": "price-equivalent-estimate-not-invoice"
       }
-    }
-  },
-  {
-    "name": "completed episode without reconciliation",
-    "schema": "episode-result.schema.json",
-    "accepted": false,
-    "artifact": {
+    },
+    "evidence-index": {
       "schemaVersion": "1.0.0",
-      "artifactType": "episode-result",
+      "artifactType": "evidence-index",
+      "runId": "00000000-0000-4000-8000-000000000001",
       "episodeId": "00000000-0000-4000-8000-000000000002",
+      "runLockHash": "1111111111111111111111111111111111111111111111111111111111111111",
+      "events": [
+        {
+          "sequence": 0,
+          "receivedAt": "2026-07-21T12:00:00Z",
+          "event": { "type": "item.completed", "é": "unicode" }
+        }
+      ],
+      "brokerTraceHash": "2222222222222222222222222222222222222222222222222222222222222222",
+      "diagnosticReceiptHash": "3333333333333333333333333333333333333333333333333333333333333333",
+      "finalStateHash": "4444444444444444444444444444444444444444444444444444444444444444",
+      "truncated": false
+    },
+    "ledger-entry": {
+      "schemaVersion": "1.0.0",
+      "artifactType": "ledger-entry",
+      "runId": "00000000-0000-4000-8000-000000000001",
+      "sequence": 0,
+      "previousEntryHash": null,
+      "entryHash": "1111111111111111111111111111111111111111111111111111111111111111",
+      "occurredAt": "2026-07-21T12:00:00Z",
+      "category": "preflight",
+      "model": "none",
+      "usage": { "inputTokens": 0, "cachedInputTokens": 0, "outputTokens": 0 },
+      "priceEquivalentEstimate": {
+        "currency": "USD",
+        "amount": 0,
+        "pricingHash": "2222222222222222222222222222222222222222222222222222222222222222",
+        "kind": "price-equivalent-estimate-not-invoice"
+      }
+    },
+    "run-state": {
+      "schemaVersion": "1.0.0",
+      "artifactType": "run-state",
       "runId": "00000000-0000-4000-8000-000000000001",
       "runLockHash": "1111111111111111111111111111111111111111111111111111111111111111",
-      "status": "completed",
-      "startedAt": "2026-07-21T12:00:00Z",
-      "finishedAt": "2026-07-21T12:01:00Z",
-      "exitCode": 0,
-      "score": 90,
-      "hardPass": true,
-      "criticalFailures": [],
-      "evidenceIndexHash": "2222222222222222222222222222222222222222222222222222222222222222",
-      "reconciliation": {
-        "brokerTrace": false,
-        "diagnosticReceipt": true,
-        "finalStateQuery": true
-      },
-      "usage": { "inputTokens": 1, "cachedInputTokens": 0, "outputTokens": 1 },
+      "phase": "review",
+      "completedEpisodeIds": ["00000000-0000-4000-8000-000000000002"],
+      "ledgerHeadHash": "2222222222222222222222222222222222222222222222222222222222222222",
+      "updatedAt": "2026-07-21T12:00:00Z",
+      "interrupted": false
+    },
+    "report": {
+      "schemaVersion": "1.0.0",
+      "artifactType": "report",
+      "runId": "00000000-0000-4000-8000-000000000001",
+      "runLockHash": "1111111111111111111111111111111111111111111111111111111111111111",
+      "skill": "kibi-usage",
+      "variants": ["baseline", "one-shot", "skillopt"],
+      "cells": [
+        "2222222222222222222222222222222222222222222222222222222222222222"
+      ],
       "priceEquivalentEstimate": {
         "currency": "USD",
         "amount": 0.01,
         "pricingHash": "3333333333333333333333333333333333333333333333333333333333333333",
         "kind": "price-equivalent-estimate-not-invoice"
+      },
+      "verdict": "pass",
+      "generatedAt": "2026-07-21T12:00:00Z",
+      "gateResults": {
+        "aggregate": true,
+        "bootstrap": true,
+        "family": true,
+        "security": true,
+        "bundle": null
       }
+    },
+    "proposal": {
+      "schemaVersion": "1.0.0",
+      "artifactType": "proposal",
+      "proposalId": "00000000-0000-4000-8000-000000000003",
+      "runId": "00000000-0000-4000-8000-000000000001",
+      "runLockHash": "1111111111111111111111111111111111111111111111111111111111111111",
+      "skill": "kibi-usage",
+      "candidateBodyHash": "2222222222222222222222222222222222222222222222222222222222222222",
+      "baselineFrontmatterHash": "3333333333333333333333333333333333333333333333333333333333333333",
+      "candidateFrontmatterHash": "3333333333333333333333333333333333333333333333333333333333333333",
+      "baselineResourcesHash": "4444444444444444444444444444444444444444444444444444444444444444",
+      "candidateResourcesHash": "4444444444444444444444444444444444444444444444444444444444444444",
+      "reportHash": "5555555555555555555555555555555555555555555555555555555555555555",
+      "createdAt": "2026-07-21T12:00:00Z",
+      "status": "accepted"
+    },
+    "approval": {
+      "schemaVersion": "1.0.0",
+      "artifactType": "approval",
+      "approvalId": "00000000-0000-4000-8000-000000000004",
+      "proposalId": "00000000-0000-4000-8000-000000000003",
+      "proposalHash": "6666666666666666666666666666666666666666666666666666666666666666",
+      "runId": "00000000-0000-4000-8000-000000000001",
+      "runLockHash": "1111111111111111111111111111111111111111111111111111111111111111",
+      "reportHash": "5555555555555555555555555555555555555555555555555555555555555555",
+      "candidateBodyHash": "2222222222222222222222222222222222222222222222222222222222222222",
+      "reviewer": "reviewer@example.test",
+      "decision": "approved",
+      "decidedAt": "2026-07-21T12:00:00Z"
     }
   },
-  {
-    "name": "episode with malformed UUID",
-    "schema": "episode-result.schema.json",
-    "accepted": false,
-    "artifact": {
-      "schemaVersion": "1.0.0",
-      "artifactType": "episode-result",
-      "episodeId": "episode-2",
-      "runId": "00000000-0000-4000-8000-000000000001",
-      "runLockHash": "1111111111111111111111111111111111111111111111111111111111111111",
-      "status": "interrupted",
-      "startedAt": "2026-07-21T12:00:00Z",
-      "finishedAt": "2026-07-21T12:01:00Z",
-      "exitCode": null,
-      "score": 0,
-      "hardPass": false,
-      "criticalFailures": [],
-      "evidenceIndexHash": "2222222222222222222222222222222222222222222222222222222222222222",
-      "reconciliation": {
-        "brokerTrace": false,
-        "diagnosticReceipt": false,
-        "finalStateQuery": false
-      },
-      "usage": { "inputTokens": 1, "cachedInputTokens": 0, "outputTokens": 1 },
-      "priceEquivalentEstimate": {
-        "currency": "USD",
-        "amount": 0.01,
-        "pricingHash": "3333333333333333333333333333333333333333333333333333333333333333",
-        "kind": "price-equivalent-estimate-not-invoice"
+  "cases": [
+    {
+      "name": "valid episode request",
+      "schema": "episode-request.schema.json",
+      "fixture": "episode-request",
+      "accepted": true
+    },
+    {
+      "name": "valid completed episode result",
+      "schema": "episode-result.schema.json",
+      "fixture": "episode-result",
+      "accepted": true
+    },
+    {
+      "name": "valid evidence index",
+      "schema": "evidence-index.schema.json",
+      "fixture": "evidence-index",
+      "accepted": true
+    },
+    {
+      "name": "valid ledger entry",
+      "schema": "ledger-entry.schema.json",
+      "fixture": "ledger-entry",
+      "accepted": true
+    },
+    {
+      "name": "valid run state",
+      "schema": "run-state.schema.json",
+      "fixture": "run-state",
+      "accepted": true
+    },
+    {
+      "name": "valid report",
+      "schema": "report.schema.json",
+      "fixture": "report",
+      "accepted": true
+    },
+    {
+      "name": "valid accepted proposal",
+      "schema": "proposal.schema.json",
+      "fixture": "proposal",
+      "accepted": true
+    },
+    {
+      "name": "valid approval",
+      "schema": "approval.schema.json",
+      "fixture": "approval",
+      "accepted": true
+    },
+    {
+      "name": "valid run lock",
+      "schema": "run-lock.schema.json",
+      "fixture": "run-lock",
+      "accepted": true
+    },
+
+    {
+      "name": "numeric strings are not coerced",
+      "schema": "episode-request.schema.json",
+      "fixture": "episode-request",
+      "accepted": false,
+      "patch": { "path": ["attempt"], "value": "1" }
+    },
+    {
+      "name": "boolean strings are not coerced",
+      "schema": "episode-result.schema.json",
+      "fixture": "episode-result",
+      "accepted": false,
+      "patch": { "path": ["hardPass"], "value": "true" }
+    },
+    {
+      "name": "enum fields are exact",
+      "schema": "episode-request.schema.json",
+      "fixture": "episode-request",
+      "accepted": false,
+      "patch": { "path": ["variant"], "value": 1 }
+    },
+    {
+      "name": "UUID fields are validated",
+      "schema": "run-state.schema.json",
+      "fixture": "run-state",
+      "accepted": false,
+      "patch": { "path": ["runId"], "value": "run-1" }
+    },
+    {
+      "name": "timestamps are validated",
+      "schema": "ledger-entry.schema.json",
+      "fixture": "ledger-entry",
+      "accepted": false,
+      "patch": { "path": ["occurredAt"], "value": "yesterday" }
+    },
+    {
+      "name": "unknown fields are forbidden",
+      "schema": "evidence-index.schema.json",
+      "fixture": "evidence-index",
+      "accepted": false,
+      "patch": { "path": ["unexpected"], "value": true }
+    },
+    {
+      "name": "completed episode IDs are unique",
+      "schema": "run-state.schema.json",
+      "fixture": "run-state",
+      "accepted": false,
+      "patch": {
+        "path": ["completedEpisodeIds"],
+        "value": [
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000002"
+        ]
+      }
+    },
+    {
+      "name": "complete run state cannot be interrupted",
+      "schema": "run-state.schema.json",
+      "fixture": "run-state",
+      "accepted": false,
+      "patches": [
+        { "path": ["phase"], "value": "complete" },
+        { "path": ["interrupted"], "value": true }
+      ]
+    },
+    {
+      "name": "report cells are unique",
+      "schema": "report.schema.json",
+      "fixture": "report",
+      "accepted": false,
+      "patch": {
+        "path": ["cells"],
+        "value": [
+          "2222222222222222222222222222222222222222222222222222222222222222",
+          "2222222222222222222222222222222222222222222222222222222222222222"
+        ]
+      }
+    },
+    {
+      "name": "ledger links match sequence",
+      "schema": "ledger-entry.schema.json",
+      "fixture": "ledger-entry",
+      "accepted": false,
+      "patch": { "path": ["sequence"], "value": 1 }
+    },
+    {
+      "name": "optional UUIDs reject explicit null",
+      "schema": "ledger-entry.schema.json",
+      "fixture": "ledger-entry",
+      "accepted": false,
+      "patch": { "path": ["episodeId"], "value": null }
+    },
+    {
+      "name": "completed results require terminal evidence",
+      "schema": "episode-result.schema.json",
+      "fixture": "episode-result",
+      "accepted": false,
+      "patch": { "path": ["reconciliation", "brokerTrace"], "value": false }
+    },
+    {
+      "name": "behavioral failures cannot claim hard pass",
+      "schema": "episode-result.schema.json",
+      "fixture": "episode-result",
+      "accepted": false,
+      "patches": [
+        { "path": ["status"], "value": "behavioral-failure" },
+        { "path": ["exitCode"], "value": 1 }
+      ]
+    },
+    {
+      "name": "budget exhaustion cannot claim passing score",
+      "schema": "episode-result.schema.json",
+      "fixture": "episode-result",
+      "accepted": false,
+      "patches": [
+        { "path": ["status"], "value": "budget-exhausted" },
+        { "path": ["hardPass"], "value": false }
+      ]
+    },
+    {
+      "name": "evidence conflict cannot claim hard pass",
+      "schema": "episode-result.schema.json",
+      "fixture": "episode-result",
+      "accepted": false,
+      "patches": [
+        { "path": ["status"], "value": "evidence-conflict" },
+        { "path": ["exitCode"], "value": 1 }
+      ]
+    },
+    {
+      "name": "rejected proposal remains structurally valid",
+      "schema": "proposal.schema.json",
+      "fixture": "proposal",
+      "accepted": true,
+      "patch": { "path": ["status"], "value": "rejected" }
+    },
+    {
+      "name": "approval decisions are approved only",
+      "schema": "approval.schema.json",
+      "fixture": "approval",
+      "accepted": false,
+      "patch": { "path": ["decision"], "value": "rejected" }
+    },
+    {
+      "name": "repository object IDs match SHA-1",
+      "schema": "run-lock.schema.json",
+      "fixture": "run-lock",
+      "accepted": false,
+      "patch": {
+        "path": ["repositoryCommit"],
+        "value": "1111111111111111111111111111111111111111111111111111111111111111"
       }
     }
-  },
-  {
-    "name": "episode with malformed timestamp",
-    "schema": "episode-result.schema.json",
-    "accepted": false,
-    "artifact": {
-      "schemaVersion": "1.0.0",
-      "artifactType": "episode-result",
-      "episodeId": "00000000-0000-4000-8000-000000000002",
-      "runId": "00000000-0000-4000-8000-000000000001",
-      "runLockHash": "1111111111111111111111111111111111111111111111111111111111111111",
-      "status": "interrupted",
-      "startedAt": "yesterday",
-      "finishedAt": "2026-07-21T12:01:00Z",
-      "exitCode": null,
-      "score": 0,
-      "hardPass": false,
-      "criticalFailures": [],
-      "evidenceIndexHash": "2222222222222222222222222222222222222222222222222222222222222222",
-      "reconciliation": {
-        "brokerTrace": false,
-        "diagnosticReceipt": false,
-        "finalStateQuery": false
-      },
-      "usage": { "inputTokens": 1, "cachedInputTokens": 0, "outputTokens": 1 },
-      "priceEquivalentEstimate": {
-        "currency": "USD",
-        "amount": 0.01,
-        "pricingHash": "3333333333333333333333333333333333333333333333333333333333333333",
-        "kind": "price-equivalent-estimate-not-invoice"
-      }
-    }
-  },
-  {
-    "name": "hard pass with duplicate critical failures",
-    "schema": "episode-result.schema.json",
-    "accepted": false,
-    "artifact": {
-      "schemaVersion": "1.0.0",
-      "artifactType": "episode-result",
-      "episodeId": "00000000-0000-4000-8000-000000000002",
-      "runId": "00000000-0000-4000-8000-000000000001",
-      "runLockHash": "1111111111111111111111111111111111111111111111111111111111111111",
-      "status": "behavioral-failure",
-      "startedAt": "2026-07-21T12:00:00Z",
-      "finishedAt": "2026-07-21T12:01:00Z",
-      "exitCode": 1,
-      "score": 90,
-      "hardPass": true,
-      "criticalFailures": ["failure", "failure"],
-      "evidenceIndexHash": "2222222222222222222222222222222222222222222222222222222222222222",
-      "reconciliation": {
-        "brokerTrace": true,
-        "diagnosticReceipt": true,
-        "finalStateQuery": true
-      },
-      "usage": { "inputTokens": 1, "cachedInputTokens": 0, "outputTokens": 1 },
-      "priceEquivalentEstimate": {
-        "currency": "USD",
-        "amount": 0.01,
-        "pricingHash": "3333333333333333333333333333333333333333333333333333333333333333",
-        "kind": "price-equivalent-estimate-not-invoice"
-      }
-    }
-  }
-]
+  ]
+}
