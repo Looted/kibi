@@ -11468,3 +11468,233 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 110
     sourceEndColumn: 1
+  - id: SYM-skillopt-scoring-cell
+    title: scoreCell
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 121
+    sourceColumn: 16
+    sourceEndLine: 216
+    sourceEndColumn: 1
+  - id: SYM-skillopt-scoring-infrastructure-failure
+    title: classifyPreActionInfrastructureFailure
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 218
+    sourceColumn: 16
+    sourceEndLine: 229
+    sourceEndColumn: 1
+  - id: SYM-skillopt-scoring-budget-stop
+    title: classifyBudgetStop
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 231
+    sourceColumn: 16
+    sourceEndLine: 236
+    sourceEndColumn: 1
+  - id: SYM-skillopt-scoring-redaction
+    title: redactEvidence
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 238
+    sourceColumn: 16
+    sourceEndLine: 259
+    sourceEndColumn: 1
+  - id: SYM-skillopt-scoring-summary
+    title: summarizeCells
+    sourceFile: scripts/skillopt-eval/scoring/statistics.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 49
+    sourceColumn: 16
+    sourceEndLine: 60
+    sourceEndColumn: 1
+  - id: SYM-skillopt-scoring-bootstrap
+    title: pairedBootstrapLowerBound
+    sourceFile: scripts/skillopt-eval/scoring/statistics.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 62
+    sourceColumn: 16
+    sourceEndLine: 80
+    sourceEndColumn: 1
+  - id: SYM-skillopt-scoring-skill-gate
+    title: evaluateSkillGate
+    sourceFile: scripts/skillopt-eval/scoring/gates.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 164
+    sourceColumn: 16
+    sourceEndLine: 209
+    sourceEndColumn: 1
+  - id: SYM-skillopt-scoring-bundle-gate
+    title: evaluateBundleGate
+    sourceFile: scripts/skillopt-eval/scoring/gates.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 211
+    sourceColumn: 16
+    sourceEndLine: 242
+    sourceEndColumn: 1
+  - id: SYM-skillopt-scoring-evidence-claim
+    title: EvidenceClaim
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 6
+    sourceColumn: 13
+    sourceEndLine: 9
+    sourceEndColumn: 3
+  - id: SYM-skillopt-scoring-cell-evidence
+    title: CellEvidence
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 17
+    sourceColumn: 13
+    sourceEndLine: 31
+    sourceEndColumn: 3
+  - id: SYM-skillopt-scoring-terminal-category
+    title: TerminalCategory
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 33
+    sourceColumn: 13
+    sourceEndLine: 39
+    sourceEndColumn: 24
+  - id: SYM-skillopt-scoring-cell-receipt
+    title: CellReceipt
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 41
+    sourceColumn: 13
+    sourceEndLine: 58
+    sourceEndColumn: 3
+  - id: SYM-skillopt-scoring-gate-cell
+    title: GateCell
+    sourceFile: scripts/skillopt-eval/scoring/gates.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 9
+    sourceColumn: 13
+    sourceEndLine: 17
+    sourceEndColumn: 3
+  - id: SYM-skillopt-scoring-gate-verdict
+    title: GateVerdict
+    sourceFile: scripts/skillopt-eval/scoring/gates.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 47
+    sourceColumn: 13
+    sourceEndLine: 52
+    sourceEndColumn: 3
+  - id: SYM-skillopt-scoring-cell-summary
+    title: CellSummary
+    sourceFile: scripts/skillopt-eval/scoring/statistics.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 6
+    sourceColumn: 13
+    sourceEndLine: 11
+    sourceEndColumn: 3
+  - id: SYM-skillopt-scoring-bootstrap-resamples
+    title: BOOTSTRAP_RESAMPLES
+    sourceFile: scripts/skillopt-eval/scoring/statistics.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 3
+    sourceColumn: 14
+    sourceEndLine: 3
+    sourceEndColumn: 43
+  - id: SYM-skillopt-scoring-bootstrap-seed
+    title: BOOTSTRAP_SEED
+    sourceFile: scripts/skillopt-eval/scoring/statistics.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 4
+    sourceColumn: 14
+    sourceEndLine: 4
+    sourceEndColumn: 36
