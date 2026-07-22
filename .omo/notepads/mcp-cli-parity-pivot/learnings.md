@@ -99,3 +99,10 @@
 - `nodeNetwork` is the native Node/Bun `NetworkPort` adapter and is the CLI runtime default, while tests can inject the same narrow port contract directly.
 - Timeout compatibility requires rounding positive millisecond input up to whole seconds before creating the abort signal, matching the prior Prolog client behavior.
 - CLI JSON, MCP handler, and parity coverage all use a loopback-only `Bun.serve` fixture on `127.0.0.1`; no test needs a public SPARQL endpoint.
+
+## 2026-07-22T00:00:00Z Task: plan-todo-18
+- Capability guidance follows one explicit state machine across all four canonical skills: positively visible and approved MCP first, trusted project-local CLI through `npx --no-install` or `bunx --no-install` second, then stop with operator action when neither capability is usable.
+- The operation-access resource is a parseable 18-row Markdown table checked directly against `listSpecs()`, including normalized dedicated CLI routes, JSON/flag input modes, mutability, Prolog requirements, effects, and the MCP-first/CLI-fallback preference.
+- Pipes inside Markdown table cells break simple machine parsing; representing input mode as `--input JSON` or `--input JSON or flags` keeps the resource deterministic while the prose defines `<file|->` semantics.
+- Cursor and Codex mirrors remain generated artifacts: updating canonical sources and running `sync-agent-skills.ts --write` copies the new resource and refreshes both hash manifests.
+- Test symbols must use `executable_for` without mixing production `implements` ownership; the requirement remains connected through the existing test entity.

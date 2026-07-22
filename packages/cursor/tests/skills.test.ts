@@ -106,6 +106,28 @@ describe("kibi-cursor skills", () => {
     }
   });
 
+  test("generated skills expose the MCP-first capability state machine", () => {
+    for (const skillName of requiredSkills) {
+      const raw = fs.readFileSync(
+        path.join(skillsRoot, skillName, "SKILL.md"),
+        "utf8",
+      );
+
+      expect(raw).toContain("## Interface Selection");
+      expect(raw).toContain("MCP");
+      expect(raw).toMatch(/npx --no-install|bunx --no-install/);
+      expect(raw.toLowerCase()).not.toContain("mcp only");
+      expect(raw.toLowerCase()).not.toContain("exclusively through mcp");
+    }
+
+    const usage = fs.readFileSync(
+      path.join(skillsRoot, "kibi-usage", "SKILL.md"),
+      "utf8",
+    );
+    expect(usage).toContain("resources/operation-access.md");
+    expect(usage).toContain("npx --no-install kibi upsert --input -");
+  });
+
   test("kibi-usage includes status and source-mismatch guardrails", () => {
     const raw = fs.readFileSync(
       path.join(skillsRoot, "kibi-usage", "SKILL.md"),

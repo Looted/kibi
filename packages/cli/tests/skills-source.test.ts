@@ -153,16 +153,15 @@ describe("canonical skills source", () => {
     expect(listed).toEqual([...EXPECTED_SKILL_IDS].sort());
   });
 
-  test("canonical skills preserve MCP-only wording", () => {
+  test("canonical skills use the capability state machine", () => {
     for (const id of EXPECTED_SKILL_IDS) {
       const skillFile = join(canonicalRoot, id, "SKILL.md");
       const raw = readFileSync(skillFile, "utf8");
-      // MCP-only guard: no CLI fallback, no capability selection, no operation-access.
-      expect(raw).not.toMatch(/kibi\s+sync/);
-      expect(raw).not.toMatch(/kibi\s+init/);
-      expect(raw).not.toMatch(/kibi\s+doctor/);
-      expect(raw).not.toMatch(/operation-access/);
-      expect(raw).not.toMatch(/capability\s+selection/);
+      expect(raw).toContain("## Interface Selection");
+      expect(raw).toContain("MCP");
+      expect(raw).toMatch(/npx --no-install|bunx --no-install/);
+      expect(raw.toLowerCase()).not.toContain("mcp only");
+      expect(raw.toLowerCase()).not.toContain("exclusively through mcp");
     }
   });
 });

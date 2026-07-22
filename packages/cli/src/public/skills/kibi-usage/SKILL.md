@@ -14,15 +14,35 @@ resources:
   - resources/relationship-directions.md
   - resources/fact-lanes.md
   - resources/workflows.md
+  - resources/operation-access.md
 ---
 
 # Kibi Usage
 
 Consult this skill before any Kibi knowledge base operation, on first interaction with a Kibi-enabled repo, after detecting stale or dirty KB status, and before performing mutations.
 
-## MCP-Only Rules
+## Interface Selection
 
-Interact with the knowledge base through MCP tools whenever an MCP equivalent exists. Do not read or edit files inside `.kb/` directly. CLI-only sync, symbol-coordinate refresh, and freshness workflows may be run when no MCP equivalent exists and the repository workflow requires them.
+Use this capability state machine for every Kibi operation:
+
+1. If Kibi MCP tools are positively visible and approved in the current host, use MCP.
+2. Otherwise, in a trusted workspace, use the project-local CLI through a non-installing runner: `npx --no-install kibi ...` or `bunx --no-install kibi ...`.
+3. If the project-local CLI is unavailable or too old for the dedicated route, stop and tell the operator to enable or install Kibi.
+4. Never use a global fallback or an installing runner. Never probe or install packages as a side effect of selecting an interface.
+
+Both interfaces execute the same operation catalog. Use the exact MCP names, dedicated CLI routes, input modes, effects, and Prolog requirements in `resources/operation-access.md`; do not invent a generic operation runner. Do not read or edit files inside `.kb/` directly through either interface.
+
+CLI JSON mode accepts the MCP-shaped business input at `--input <file|->`. For example, the project-local mutation recipe is:
+
+```bash
+echo '{"type":"req","id":"REQ-001","properties":{"title":"Test","status":"open"}}' | npx --no-install kibi upsert --input -
+```
+
+The equivalent Bun runner is:
+
+```bash
+echo '{"query":"authentication","limit":10}' | bunx --no-install kibi search --input -
+```
 
 ### Tool Name Prefixes
 
@@ -193,7 +213,7 @@ For a behavior-changing source edit with no existing requirement, create a requi
 
 Do not link facts directly to tests. Facts describe the invariant; requirements or scenarios are verified by executable tests. Use `REQ -> TEST` with `verified_by` or `TEST -> REQ` with `validates`, then link the requirement to facts with `constrains` and `requires_property`. Link the touched production symbol to the requirement with `implements` and to the test with `covered_by` when coverage evidence is needed.
 
-MCP writes do not automatically stage markdown evidence. When a staged hook requires impact evidence, ensure the repo's tracked documentation artifacts for the requirement, fact, test, symbol metadata, or coordinate refresh are authored and staged alongside the source change.
+Kibi operation writes do not automatically stage markdown evidence. When a staged hook requires impact evidence, ensure the repo's tracked documentation artifacts for the requirement, fact, test, symbol metadata, or coordinate refresh are authored and staged alongside the source change.
 
 ## Sequential Upserts
 
