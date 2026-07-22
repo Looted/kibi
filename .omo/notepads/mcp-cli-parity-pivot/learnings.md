@@ -143,3 +143,9 @@
 - Nested Commander skill routes need their own `--input` options and optional positionals so catalog names such as `skills list` remain executable exactly as declared.
 - Package parity must compare against the checked-in CLI version, not a future release floor; `kibi-mcp` now accepts `kibi-cli@^0.14.2`.
 - Mutation schema data, upsert wiring, and validate/delete wiring are distinct responsibilities; splitting them keeps every operation spec file below 250 lines without changing imports used by existing adapters and tests.
+
+## 2026-07-22T21:00:00Z Task: final-verification-wave-f1-f2
+- Catalog data, argument inference, exact-match scoring, schema loading, and apply-plan generation require separate seams; large static catalogs and rule sets can be sharded behind small aggregators while preserving ordering and scores.
+- `model-requirement` migration checks must receive the operation runtime's `workspaceRoot`; defaulting inside shared logic to `process.cwd()` leaks transport state and breaks workspace isolation.
+- Catalog-backed MCP handlers for remote SPARQL and autopilot receive `(args, OperationContext)` and skip Prolog startup, so registration coverage must assert the runtime context rather than legacy marker/prolog arguments.
+- The focused predicate suite is a strong behavior-preservation gate for extraction work: it exercises 18 scenarios and 439 assertions across ranking, inference, apply plans, schema loading, and ontology-gap fallback.
