@@ -7566,9 +7566,9 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: implements
-        target: REQ-skill-behavioral-efficacy
+        target: REQ-skillopt-codex-optimization
       - type: covered_by
-        target: TEST-skill-behavioral-efficacy
+        target: TEST-skillopt-codex-optimization
     sourceLine: 40
     sourceColumn: 16
     sourceEndLine: 69
@@ -7579,9 +7579,9 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: implements
-        target: REQ-skill-behavioral-efficacy
+        target: REQ-skillopt-codex-optimization
       - type: covered_by
-        target: TEST-skill-behavioral-efficacy
+        target: TEST-skillopt-codex-optimization
     sourceLine: 110
     sourceColumn: 16
     sourceEndLine: 152
@@ -8435,3 +8435,210 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-preflight-config
+    title: PreflightConfig
+    sourceFile: scripts/skillopt-eval/preflight.ts
+    symbol_role: type-shape
+    relationships: &skillopt_runtime_implementation
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-preflight-receipt
+    title: PreflightReceipt
+    sourceFile: scripts/skillopt-eval/preflight.ts
+    symbol_role: type-shape
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-preflight-dependencies
+    title: PreflightDependencies
+    sourceFile: scripts/skillopt-eval/preflight.ts
+    symbol_role: type-shape
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-auth-mode
+    title: AuthMode
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    symbol_role: type-shape
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-auth-preparation
+    title: AuthPreparation
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    symbol_role: type-shape
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-auth-runner
+    title: AuthProcessRunner
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    symbol_role: type-shape
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-auth-error
+    title: CodexAuthError
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-auth-error-name
+    title: CodexAuthError.name
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    symbol_role: structural
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-isolated-env
+    title: isolatedCodexEnvironment
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    symbol_role: behavioral
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-target-model
+    title: TARGET_MODEL
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    symbol_role: config
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-optimizer-model
+    title: OPTIMIZER_MODEL
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    symbol_role: config
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-model-effort
+    title: MODEL_REASONING_EFFORT
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    symbol_role: config
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-mcp-startup-timeout
+    title: MCP_STARTUP_TIMEOUT_SECONDS
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    symbol_role: config
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-mcp-tool-timeout
+    title: MCP_TOOL_TIMEOUT_SECONDS
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    symbol_role: config
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-canary-receipt
+    title: CapabilityCanaryReceipt
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    symbol_role: type-shape
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-canary-options
+    title: CapabilityCanaryOptions
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    symbol_role: type-shape
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-canary-runner
+    title: CanaryRunner
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    symbol_role: type-shape
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-permission-paths
+    title: PermissionPaths
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    symbol_role: type-shape
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-config-options
+    title: CodexConfigOptions
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    symbol_role: type-shape
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-stage-canary
+    title: stageCapabilityCanary
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    symbol_role: behavioral
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-write-probe
+    title: writeCapabilityProbe
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    symbol_role: behavioral
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-parse-probe
+    title: parseCapabilityProbe
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    symbol_role: behavioral
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-process-summary
+    title: summarizeProcessFailure
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    symbol_role: behavioral
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-process-result
+    title: ProcessResult
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    symbol_role: type-shape
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-process-options
+    title: ProcessOptions
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    symbol_role: type-shape
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-process-error
+    title: ProcessControlError
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-process-error-name
+    title: ProcessControlError.name
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    symbol_role: structural
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-json-line
+    title: JsonLine
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    symbol_role: type-shape
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-json-error
+    title: JsonLinesError
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-json-error-name
+    title: JsonLinesError.name
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    symbol_role: structural
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-isolation-workspace
+    title: IsolationWorkspace
+    sourceFile: scripts/skillopt-eval/runtime/workspace.ts
+    symbol_role: type-shape
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-workspace-options
+    title: WorkspaceOptions
+    sourceFile: scripts/skillopt-eval/runtime/workspace.ts
+    symbol_role: type-shape
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-assert-existing-login
+    title: assertExistingLoginEnvironment
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    symbol_role: behavioral
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-prepare-existing-login
+    title: prepareExistingLogin
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    symbol_role: behavioral
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-build-config
+    title: buildCodexConfig
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    symbol_role: behavioral
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-build-argv
+    title: buildCodexExecArgv
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    symbol_role: behavioral
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-parse-jsonl
+    title: parseJsonLines
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    symbol_role: behavioral
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-run-process
+    title: runBoundedProcess
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    symbol_role: behavioral
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-create-workspace
+    title: createIsolationWorkspace
+    sourceFile: scripts/skillopt-eval/runtime/workspace.ts
+    symbol_role: behavioral
+    relationships: *skillopt_runtime_implementation
+  - id: SYM-skillopt-runtime-run-canary
+    title: runCapabilityCanary
+    sourceFile: scripts/skillopt-eval/runtime/workspace.ts
+    symbol_role: behavioral
+    relationships: *skillopt_runtime_implementation

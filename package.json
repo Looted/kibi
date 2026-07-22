@@ -33,6 +33,7 @@
     "skillopt:verify-pin": "uv run --project tools/skillopt python tools/skillopt/verify_pin.py",
     "skillopt:prototype": "bun run scripts/skillopt-eval/cli.ts",
     "skillopt:preflight": "bun run scripts/skillopt-eval/cli.ts preflight",
+    "skillopt:canary": "bun run scripts/skillopt-eval/cli.ts canary",
     "test:skillopt": "bun test --timeout 15000 ./scripts/skillopt-eval/tests",
     "sync:cursor-plugin-local": "./scripts/sync-cursor-plugin-local.sh",
     "build": "bun run build:cli && bun run build:mcp && bun run build:opencode && bun run build:codex && bun run build:cursor",

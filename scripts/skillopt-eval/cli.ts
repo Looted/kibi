@@ -1,4 +1,4 @@
-import { runPreflight } from "./preflight";
+import { runCapabilityCanary, runPreflight } from "./preflight";
 import { type PrototypeScenario, runPrototype } from "./prototype";
 
 class CliUsageError extends Error {
@@ -37,17 +37,14 @@ function prototypeScenario(runId: string): PrototypeScenario {
 }
 
 // implements REQ-skill-behavioral-efficacy
-export function main(args: readonly string[]): number {
+export async function main(args: readonly string[]): Promise<number> {
   try {
     const command = args[0];
-    if (command === "preflight") {
+    if (command === "preflight" || command === "canary") {
       const runId = parsePreflightRunId(args.slice(1));
-      const receipt = runPreflight({
-        runId,
-        targetModel: "gpt-5.4-mini",
-        optimizerModel: "gpt-5.5",
-        modelAccess: process.env.SKILLOPT_MODEL_ACCESS === "true",
-      });
+      const receipt = await (command === "preflight"
+        ? runPreflight({ runId })
+        : runCapabilityCanary({ runId }));
       process.stdout.write(`${JSON.stringify(receipt)}\n`);
       return receipt.verdict === "pass" ? 0 : 1;
     }
@@ -69,5 +66,5 @@ export function main(args: readonly string[]): number {
 }
 
 if (import.meta.main) {
-  process.exitCode = main(process.argv.slice(2));
+  process.exitCode = await main(process.argv.slice(2));
 }
