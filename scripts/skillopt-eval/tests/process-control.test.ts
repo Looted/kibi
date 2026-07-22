@@ -5,31 +5,67 @@ import {
   runBoundedProcess,
 } from "../runtime/process";
 
+function processGroupExists(groupId: number): boolean {
+  try {
+    process.kill(-groupId, 0);
+    return true;
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "ESRCH") {
+      return false;
+    }
+    throw error;
+  }
+}
+
+async function waitForProcessGroupReaping(groupId: number): Promise<number> {
+  const deadline = performance.now() + 2_000;
+  while (processGroupExists(groupId)) {
+    if (performance.now() >= deadline) {
+      throw new Error(`process group ${groupId} was not reaped within 2000ms`);
+    }
+    await Bun.sleep(10);
+  }
+  return groupId;
+}
+
 describe("bounded process groups", () => {
-  test("terminates a hung child and grandchild with SIGKILL", async () => {
-    // Given
-    const processPromise = runBoundedProcess({
-      argv: [
-        "bash",
-        "-c",
-        "trap '' TERM; (trap '' TERM; sleep 30) & echo $!; wait",
-      ],
-      cwd: process.cwd(),
-      env: process.env,
-      timeoutMs: 100,
-      killGraceMs: 50,
-    });
+  test.each([1, 2, 3])(
+    "terminates and reaps a hung process group on repeated run %d",
+    async () => {
+      // Given
+      const processPromise = runBoundedProcess({
+        argv: [
+          "bash",
+          "-c",
+          "trap '' TERM; (trap '' TERM; sleep 30) & grandchild=$!; echo $$ $grandchild; wait",
+        ],
+        cwd: process.cwd(),
+        env: process.env,
+        timeoutMs: 250,
+        killGraceMs: 50,
+      });
 
-    // When
-    const error = await processPromise.catch((caught: unknown) => caught);
+      // When
+      const error = await processPromise.catch((caught: unknown) => caught);
 
-    // Then
-    expect(error).toBeInstanceOf(ProcessControlError);
-    if (!(error instanceof ProcessControlError)) throw error;
-    expect(error.kind).toBe("timeout");
-    const grandchildPid = Number.parseInt(error.result.stdout.trim(), 10);
-    expect(() => process.kill(grandchildPid, 0)).toThrow();
-  });
+      // Then
+      expect(error).toBeInstanceOf(ProcessControlError);
+      if (!(error instanceof ProcessControlError)) throw error;
+      expect(error.kind).toBe("timeout");
+      const [groupText, grandchildText] = error.result.stdout.trim().split(" ");
+      const groupId = Number.parseInt(groupText ?? "", 10);
+      const grandchildId = Number.parseInt(grandchildText ?? "", 10);
+      expect(Number.isSafeInteger(groupId)).toBe(true);
+      expect(Number.isSafeInteger(grandchildId)).toBe(true);
+      expect(grandchildId).not.toBe(groupId);
+
+      // When
+      const reapedGroup = await waitForProcessGroupReaping(groupId);
+
+      // Then
+      expect(reapedGroup).toBe(groupId);
+    },
+  );
 
   test("handles repeated parent interruption once and kills the group", async () => {
     // Given
@@ -42,10 +78,10 @@ describe("bounded process groups", () => {
     });
 
     // When
-    setTimeout(() => {
+    queueMicrotask(() => {
       process.emit("SIGINT", "SIGINT");
       process.emit("SIGINT", "SIGINT");
-    }, 50);
+    });
     const error = await processPromise.catch((caught: unknown) => caught);
 
     // Then

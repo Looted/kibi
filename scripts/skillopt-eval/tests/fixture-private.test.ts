@@ -9,13 +9,12 @@ import {
 import { parseHeldOutTaskSpec } from "../fixtures/contracts";
 import {
   blindedVariantOrder,
-  materializeHeldOutCorpus,
+  materializeFixtureRun,
   parsePrivateEvaluatorManifest,
   verifyPrivateManifestIntegrity,
 } from "../fixtures/private";
 import {
   CANONICAL_SKILL_ROOT,
-  files,
   temporaryRoot,
   treeHash,
 } from "./fixture-test-helpers";
@@ -31,17 +30,15 @@ function oneFixture() {
   roots.push(root);
   const task = buildHeldOutCatalog()[0];
   if (task === undefined) throw new Error("held-out catalog must not be empty");
-  const heldOutRoot = path.join(root, "held-out");
-  const evaluatorRoot = path.join(root, "evaluator");
-  materializeHeldOutCorpus({
-    heldOutRoot,
-    evaluatorRoot,
+  const receipt = materializeFixtureRun({
+    runRoot: path.join(root, "run"),
     canonicalSkillRoot: CANONICAL_SKILL_ROOT,
-    tasks: [task],
+    publicTasks: [],
+    heldOutTasks: [task],
   });
   const manifest = parsePrivateEvaluatorManifest(
     readFileSync(
-      path.join(evaluatorRoot, "manifests", `${task.id}.json`),
+      path.join(receipt.roots.evaluatorRoot, "manifests", `${task.id}.json`),
       "utf8",
     ),
   );
@@ -53,26 +50,25 @@ describe("private SkillOpt fixture corpus", () => {
     const first = temporaryRoot();
     const second = temporaryRoot();
     roots.push(first, second);
-    const firstHeldOut = path.join(first, "held-out");
-    const firstEvaluator = path.join(first, "evaluator");
-    const secondHeldOut = path.join(second, "held-out");
-    const secondEvaluator = path.join(second, "evaluator");
-
-    const firstReceipt = materializeHeldOutCorpus({
-      heldOutRoot: firstHeldOut,
-      evaluatorRoot: firstEvaluator,
+    const firstReceipt = materializeFixtureRun({
+      runRoot: path.join(first, "run"),
       canonicalSkillRoot: CANONICAL_SKILL_ROOT,
     });
-    const secondReceipt = materializeHeldOutCorpus({
-      heldOutRoot: secondHeldOut,
-      evaluatorRoot: secondEvaluator,
+    const secondReceipt = materializeFixtureRun({
+      runRoot: path.join(second, "run"),
       canonicalSkillRoot: CANONICAL_SKILL_ROOT,
     });
 
-    expect(firstReceipt).toEqual(secondReceipt);
+    expect(firstReceipt.publicIndex).toEqual(secondReceipt.publicIndex);
+    expect(firstReceipt.heldOutIndex).toEqual(secondReceipt.heldOutIndex);
+    expect(firstReceipt.privateIndex).toEqual(secondReceipt.privateIndex);
     expect(firstReceipt.heldOutIndex.tasks).toHaveLength(72);
-    expect(treeHash(firstHeldOut)).toBe(treeHash(secondHeldOut));
-    expect(treeHash(firstEvaluator)).toBe(treeHash(secondEvaluator));
+    expect(treeHash(firstReceipt.roots.heldOutRoot)).toBe(
+      treeHash(secondReceipt.roots.heldOutRoot),
+    );
+    expect(treeHash(firstReceipt.roots.evaluatorRoot)).toBe(
+      treeHash(secondReceipt.roots.evaluatorRoot),
+    );
   });
 
   test("uses exact rubric allocation and valid critical keys", () => {

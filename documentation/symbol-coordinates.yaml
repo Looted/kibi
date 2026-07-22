@@ -4850,16 +4850,10 @@ coordinates:
     sourceEndLine: 111
     sourceFile: scripts/skillopt-eval/fixtures/task-definitions-bootstrap.ts
     sourceLine: 58
-  SYM-skillopt-fixture-materialize-held-out-corpus:
+  SYM-skillopt-fixture-materialize-run:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 186
-    sourceFile: scripts/skillopt-eval/fixtures/materialize.ts
-    sourceLine: 136
-  SYM-skillopt-fixture-materialize-public-corpus:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 133
+    sourceEndLine: 184
     sourceFile: scripts/skillopt-eval/fixtures/materialize.ts
     sourceLine: 107
   SYM-skillopt-fixture-parse-corpus-index:
@@ -5012,6 +5006,12 @@ coordinates:
     sourceEndLine: 238
     sourceFile: scripts/skillopt-eval/preflight.ts
     sourceLine: 174
+  SYM-skillopt-process-group-exists:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 18
+    sourceFile: scripts/skillopt-eval/tests/process-control.test.ts
+    sourceLine: 8
   SYM-skillopt-prototype-call-type:
     sourceColumn: 12
     sourceEndColumn: 70
@@ -5450,6 +5450,12 @@ coordinates:
     sourceEndLine: 62
     sourceFile: tools/skillopt/verify_pin.py
     sourceLine: 62
+  SYM-skillopt-wait-process-group-reaping:
+    sourceColumn: 15
+    sourceEndColumn: 1
+    sourceEndLine: 29
+    sourceFile: scripts/skillopt-eval/tests/process-control.test.ts
+    sourceLine: 20
   SYM-skillopt-worktree-state-type:
     sourceColumn: 12
     sourceEndColumn: 46

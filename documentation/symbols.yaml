@@ -8500,13 +8500,8 @@ symbols:
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
     symbol_role: behavioral
     relationships: *skillopt_fixture_implementation
-  - id: SYM-skillopt-fixture-materialize-public-corpus
-    title: materializePublicCorpus
-    sourceFile: scripts/skillopt-eval/fixtures/materialize.ts
-    symbol_role: behavioral
-    relationships: *skillopt_fixture_implementation
-  - id: SYM-skillopt-fixture-materialize-held-out-corpus
-    title: materializeHeldOutCorpus
+  - id: SYM-skillopt-fixture-materialize-run
+    title: materializeFixtureRun
     sourceFile: scripts/skillopt-eval/fixtures/materialize.ts
     symbol_role: behavioral
     relationships: *skillopt_fixture_implementation
@@ -8618,6 +8613,24 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-process-control-tests
+    title: bounded process groups
+    sourceFile: scripts/skillopt-eval/tests/process-control.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships: &skillopt_process_test_implementation
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-process-group-exists
+    title: processGroupExists
+    sourceFile: scripts/skillopt-eval/tests/process-control.test.ts
+    symbol_role: behavioral
+    relationships: *skillopt_process_test_implementation
+  - id: SYM-skillopt-wait-process-group-reaping
+    title: waitForProcessGroupReaping
+    sourceFile: scripts/skillopt-eval/tests/process-control.test.ts
+    symbol_role: behavioral
+    relationships: *skillopt_process_test_implementation
   - id: SYM-skillopt-fixture-test-canonical-skill-root
     title: CANONICAL_SKILL_ROOT
     sourceFile: scripts/skillopt-eval/tests/fixture-test-helpers.ts
