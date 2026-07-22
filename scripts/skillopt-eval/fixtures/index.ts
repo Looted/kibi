@@ -1,4 +1,5 @@
-export * from "./contracts";
-export * from "./evaluator";
-export * from "./materialize";
-export * from "./workspace";
+export {
+  parsePublicTaskManifest,
+  parsePublicTaskSpec,
+} from "./contracts";
+export { materializePublicCorpus } from "./materialize";

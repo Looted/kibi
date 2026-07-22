@@ -7612,10 +7612,29 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 109
     sourceEndColumn: 1
+  - id: SYM-skillopt-build-public-catalog
+    title: buildPublicCatalog
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skill-behavioral-efficacy
+      - type: covered_by
+        target: TEST-skill-behavioral-efficacy
+  - id: SYM-skillopt-build-held-out-catalog
+    title: buildHeldOutCatalog
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skill-behavioral-efficacy
+      - type: covered_by
+        target: TEST-skill-behavioral-efficacy
   - id: SYM-skillopt-validate-catalog
     title: validateSkillCatalog
     sourceFile: scripts/skillopt-eval/catalog.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skill-behavioral-efficacy
@@ -7629,6 +7648,7 @@ symbols:
     title: catalogHash
     sourceFile: scripts/skillopt-eval/catalog.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skill-behavioral-efficacy
@@ -7642,6 +7662,7 @@ symbols:
     title: CanonicalSkill
     sourceFile: scripts/skillopt-eval/catalog.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skill-behavioral-efficacy
@@ -7655,6 +7676,7 @@ symbols:
     title: CatalogSkill
     sourceFile: scripts/skillopt-eval/catalog.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skill-behavioral-efficacy
@@ -7668,6 +7690,7 @@ symbols:
     title: TaskSplit
     sourceFile: scripts/skillopt-eval/catalog.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skill-behavioral-efficacy
@@ -7690,10 +7713,45 @@ symbols:
     sourceColumn: 12
     sourceEndLine: 21
     sourceEndColumn: 3
+  - id: SYM-skillopt-activation-mode-type
+    title: ActivationMode
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    symbol_role: type-shape
+    relationships: &skillopt_catalog_implementation
+      - type: implements
+        target: REQ-skill-behavioral-efficacy
+      - type: covered_by
+        target: TEST-skill-behavioral-efficacy
+  - id: SYM-skillopt-repository-state-type
+    title: RepositoryState
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    symbol_role: type-shape
+    relationships: *skillopt_catalog_implementation
+  - id: SYM-skillopt-knowledge-state-type
+    title: KnowledgeState
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    symbol_role: type-shape
+    relationships: *skillopt_catalog_implementation
+  - id: SYM-skillopt-worktree-state-type
+    title: WorktreeState
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    symbol_role: type-shape
+    relationships: *skillopt_catalog_implementation
+  - id: SYM-skillopt-approval-phase-type
+    title: ApprovalPhase
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    symbol_role: type-shape
+    relationships: *skillopt_catalog_implementation
+  - id: SYM-skillopt-adversarial-case-type
+    title: AdversarialCase
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    symbol_role: type-shape
+    relationships: *skillopt_catalog_implementation
   - id: SYM-skillopt-canonical-skills
     title: CANONICAL_SKILLS
     sourceFile: scripts/skillopt-eval/catalog.ts
     symbol_role: config
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skill-behavioral-efficacy
@@ -8373,6 +8431,7 @@ symbols:
     title: parseTaskSpec
     sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships: &skillopt_fixture_implementation
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -8382,26 +8441,49 @@ symbols:
     title: parsePublicTaskManifest
     sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-parse-public-task-spec
+    title: parsePublicTaskSpec
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-parse-held-out-task-spec
+    title: parseHeldOutTaskSpec
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-parse-held-out-manifest
+    title: parseHeldOutTaskManifest
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    symbol_role: behavioral
     relationships: *skillopt_fixture_implementation
   - id: SYM-skillopt-fixture-parse-private-manifest
     title: parsePrivateEvaluatorManifest
-    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    sourceFile: scripts/skillopt-eval/fixtures/evaluator-contracts.ts
     symbol_role: behavioral
     relationships: *skillopt_fixture_implementation
   - id: SYM-skillopt-fixture-parse-public-value
     title: parsePublicTaskManifestValue
     sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-parse-held-out-value
+    title: parseHeldOutTaskManifestValue
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    symbol_role: behavioral
     relationships: *skillopt_fixture_implementation
   - id: SYM-skillopt-fixture-parse-private-value
     title: parsePrivateEvaluatorManifestValue
-    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    sourceFile: scripts/skillopt-eval/fixtures/evaluator-contracts.ts
     symbol_role: behavioral
     relationships: *skillopt_fixture_implementation
   - id: SYM-skillopt-fixture-parse-corpus-index
     title: parseCorpusIndexValue
     sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships: *skillopt_fixture_implementation
   - id: SYM-skillopt-fixture-blinded-order
     title: blindedVariantOrder
@@ -8413,28 +8495,156 @@ symbols:
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
     symbol_role: behavioral
     relationships: *skillopt_fixture_implementation
-  - id: SYM-skillopt-fixture-materialize-corpus
-    title: materializeCorpus
+  - id: SYM-skillopt-fixture-private-integrity
+    title: verifyPrivateManifestIntegrity
+    sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-materialize-public-corpus
+    title: materializePublicCorpus
     sourceFile: scripts/skillopt-eval/fixtures/materialize.ts
     symbol_role: behavioral
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-materialize-held-out-corpus
+    title: materializeHeldOutCorpus
+    sourceFile: scripts/skillopt-eval/fixtures/materialize.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-write-target-task
+    title: writeTargetTask
+    sourceFile: scripts/skillopt-eval/fixtures/materialize-common.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-sha256
+    title: sha256
+    sourceFile: scripts/skillopt-eval/fixtures/materialize-common.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-serialize
+    title: serialize
+    sourceFile: scripts/skillopt-eval/fixtures/materialize-common.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-build-index
+    title: buildIndex
+    sourceFile: scripts/skillopt-eval/fixtures/materialize-common.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-corpus-entry-type
+    title: CorpusEntry
+    sourceFile: scripts/skillopt-eval/fixtures/materialize-common.ts
+    symbol_role: type-shape
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-build-family-payload
+    title: buildFamilyPayload
+    sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-build-bundle-payload
+    title: buildBundlePayload
+    sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-family-payload-type
+    title: FamilyPayload
+    sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
+    symbol_role: type-shape
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-definition-type
+    title: Definition
+    sourceFile: scripts/skillopt-eval/fixtures/task-definition-types.ts
+    symbol_role: type-shape
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-traceability-definitions
+    title: TRACEABILITY_DEFINITIONS
+    sourceFile: scripts/skillopt-eval/fixtures/task-definitions-bootstrap.ts
+    symbol_role: config
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-init-definitions
+    title: INIT_DEFINITIONS
+    sourceFile: scripts/skillopt-eval/fixtures/task-definitions-bootstrap.ts
+    symbol_role: config
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-usage-definitions
+    title: USAGE_DEFINITIONS
+    sourceFile: scripts/skillopt-eval/fixtures/task-definitions-usage.ts
+    symbol_role: config
+    relationships: *skillopt_fixture_implementation
+  - id: SYM-skillopt-fixture-freshness-definitions
+    title: FRESHNESS_DEFINITIONS
+    sourceFile: scripts/skillopt-eval/fixtures/task-definitions-usage.ts
+    symbol_role: config
     relationships: *skillopt_fixture_implementation
   - id: SYM-skillopt-fixture-hash-workspace
     title: hashWorkspace
     sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships: *skillopt_fixture_implementation
   - id: SYM-skillopt-fixture-write-workspace
     title: writePublicWorkspace
     sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
     symbol_role: behavioral
     relationships: *skillopt_fixture_implementation
-  - id: SYM-skillopt-fixture-corpus-tests
-    title: deterministic SkillOpt fixture corpus
-    sourceFile: scripts/skillopt-eval/tests/fixture-corpus.test.ts
+  - id: SYM-skillopt-fixture-catalog-tests
+    title: SkillOpt fixture catalog
+    sourceFile: scripts/skillopt-eval/tests/catalog.test.ts
     symbol_role: behavioral
+    granularity_reason: extractor-miss
     relationships:
       - type: executable_for
         target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-fixture-public-tests
+    title: public SkillOpt fixture corpus
+    sourceFile: scripts/skillopt-eval/tests/fixture-public.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-fixture-private-tests
+    title: private SkillOpt fixture corpus
+    sourceFile: scripts/skillopt-eval/tests/fixture-private.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-fixture-resilience-tests
+    title: SkillOpt fixture adversarial resilience
+    sourceFile: scripts/skillopt-eval/tests/fixture-resilience.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-fixture-test-canonical-skill-root
+    title: CANONICAL_SKILL_ROOT
+    sourceFile: scripts/skillopt-eval/tests/fixture-test-helpers.ts
+    symbol_role: config
+    relationships: &skillopt_fixture_test_implementation
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-fixture-test-temporary-root
+    title: temporaryRoot
+    sourceFile: scripts/skillopt-eval/tests/fixture-test-helpers.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_test_implementation
+  - id: SYM-skillopt-fixture-test-files
+    title: files
+    sourceFile: scripts/skillopt-eval/tests/fixture-test-helpers.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_test_implementation
+  - id: SYM-skillopt-fixture-test-read-tree
+    title: readTree
+    sourceFile: scripts/skillopt-eval/tests/fixture-test-helpers.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_test_implementation
+  - id: SYM-skillopt-fixture-test-tree-hash
+    title: treeHash
+    sourceFile: scripts/skillopt-eval/tests/fixture-test-helpers.ts
+    symbol_role: behavioral
+    relationships: *skillopt_fixture_test_implementation
   - id: SYM-skillopt-runtime-preflight-config
     title: PreflightConfig
     sourceFile: scripts/skillopt-eval/preflight.ts

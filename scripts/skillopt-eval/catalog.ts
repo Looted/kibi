@@ -1,4 +1,9 @@
 import { createHash } from "node:crypto";
+import {
+  type FamilyPayload,
+  buildBundlePayload,
+  buildFamilyPayload,
+} from "./fixtures/task-builders";
 
 export const CANONICAL_SKILLS = [
   "kibi-usage",
@@ -10,6 +15,23 @@ export const CANONICAL_SKILLS = [
 export type CanonicalSkill = (typeof CANONICAL_SKILLS)[number];
 export type CatalogSkill = CanonicalSkill | "bundle";
 export type TaskSplit = "train" | "development" | "held-out";
+export type ActivationMode =
+  | "cold_start_bootstrap"
+  | "repair_bootstrap"
+  | "attached_thin_handoff"
+  | "attached_seeded_handoff";
+export type RepositoryState = "cold-start" | "partial" | "thin" | "seeded";
+export type KnowledgeState = "absent" | "partial" | "fresh" | "stale";
+export type WorktreeState = "clean" | "dirty";
+export type ApprovalPhase = "not-applicable" | "pre-approval" | "post-approval";
+export type AdversarialCase =
+  | "malformed-input"
+  | "prompt-injection"
+  | "dirty-state"
+  | "stale-state"
+  | "misleading-success"
+  | "interruption-cleanup"
+  | "approval-boundary";
 
 export type TaskSpec = Readonly<{
   id: string;
@@ -18,6 +40,22 @@ export type TaskSpec = Readonly<{
   split: TaskSplit;
   fixtureSeed: string;
   prompt: string;
+  activationMode: ActivationMode;
+  initialState: Readonly<{
+    repository: RepositoryState;
+    kb: KnowledgeState;
+    worktree: WorktreeState;
+    setupBoundary: "external-kibi-adapter";
+  }>;
+  allowedPublicFiles: readonly string[];
+  scorerReference: string;
+  taskData: Readonly<{
+    objectiveCode: string;
+    sourceFile: string;
+    mutation: "read-only" | "write";
+    approvalPhase: ApprovalPhase;
+    adversarialCases: readonly AdversarialCase[];
+  }>;
 }>;
 
 class CatalogError extends Error {
@@ -68,13 +106,22 @@ const BUNDLE_WORKFLOWS = [
   "semantic-to-test-02",
 ] as const;
 
-function taskPrompt(
-  skill: CanonicalSkill,
-  family: string,
-  split: TaskSplit,
-  index: number,
-): string {
-  return `Exercise ${skill} ${family} behavior for the ${split} split case ${index + 1}. Use only the public Kibi MCP workflow and leave the disposable fixture in the expected state.`;
+function taskSpec(input: {
+  readonly id: string;
+  readonly skill: CatalogSkill;
+  readonly family: string;
+  readonly split: TaskSplit;
+  readonly payload: FamilyPayload;
+}): TaskSpec {
+  return {
+    id: input.id,
+    skill: input.skill,
+    family: input.family,
+    split: input.split,
+    fixtureSeed: createHash("sha256").update(input.id).digest("hex"),
+    scorerReference: `scorer-ref-${createHash("sha256").update(`${input.id}:scorer`).digest("hex").slice(0, 16)}`,
+    ...input.payload,
+  };
 }
 
 export function buildSkillCatalog(skill: CanonicalSkill): readonly TaskSpec[] {
@@ -83,14 +130,15 @@ export function buildSkillCatalog(skill: CanonicalSkill): readonly TaskSpec[] {
     for (const split of ["train", "development", "held-out"] as const) {
       for (let index = 0; index < SPLIT_COUNTS[split]; index += 1) {
         const id = `${skill}-${family}-${split}-${index + 1}`;
-        tasks.push({
-          id,
-          skill,
-          family,
-          split,
-          fixtureSeed: createHash("sha256").update(id).digest("hex"),
-          prompt: taskPrompt(skill, family, split, index),
-        });
+        tasks.push(
+          taskSpec({
+            id,
+            skill,
+            split,
+            family,
+            payload: buildFamilyPayload({ skill, family, split, index }),
+          }),
+        );
       }
     }
   }
@@ -98,14 +146,32 @@ export function buildSkillCatalog(skill: CanonicalSkill): readonly TaskSpec[] {
 }
 
 export function buildBundleCatalog(): readonly TaskSpec[] {
-  return BUNDLE_WORKFLOWS.map((workflow) => ({
-    id: `bundle-${workflow}`,
-    skill: "bundle",
-    family: workflow.split("-").slice(0, -1).join("-"),
-    split: "held-out",
-    fixtureSeed: createHash("sha256").update(workflow).digest("hex"),
-    prompt: `Exercise the cross-skill workflow ${workflow} using the public Kibi MCP surface.`,
-  }));
+  return BUNDLE_WORKFLOWS.map((workflow) =>
+    taskSpec({
+      id: `bundle-${workflow}`,
+      skill: "bundle",
+      family: workflow.split("-").slice(0, -1).join("-"),
+      split: "held-out",
+      payload: buildBundlePayload(workflow),
+    }),
+  );
+}
+
+// implements REQ-skillopt-codex-optimization
+export function buildPublicCatalog(): readonly TaskSpec[] {
+  return CANONICAL_SKILLS.flatMap((skill) =>
+    buildSkillCatalog(skill).filter((task) => task.split !== "held-out"),
+  );
+}
+
+// implements REQ-skillopt-codex-optimization
+export function buildHeldOutCatalog(): readonly TaskSpec[] {
+  return [
+    ...CANONICAL_SKILLS.flatMap((skill) =>
+      buildSkillCatalog(skill).filter((task) => task.split === "held-out"),
+    ),
+    ...buildBundleCatalog(),
+  ];
 }
 
 export function validateSkillCatalog(

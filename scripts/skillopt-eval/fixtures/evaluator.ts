@@ -1,32 +1,37 @@
 import { createHash } from "node:crypto";
+import type { CatalogSkill } from "../catalog";
 import type { parseTaskSpec } from "./contracts";
+import type { parsePrivateEvaluatorManifest } from "./evaluator-contracts";
 
 type FixtureTaskSpec = ReturnType<typeof parseTaskSpec>;
+type PrivateEvaluatorManifest = ReturnType<
+  typeof parsePrivateEvaluatorManifest
+>;
 
+const BLINDING_SEED = 5417;
 const VARIANTS = ["baseline", "one-shot", "skillopt"] as const;
 const SLOTS = ["variant-a", "variant-b", "variant-c"] as const;
+const READ_TOOLS: Readonly<Record<CatalogSkill, readonly string[]>> = {
+  "kibi-usage": ["kb_search", "kb_query"],
+  "kibi-freshness": ["kb_status", "kb_query", "kb_check"],
+  "kibi-traceability": ["kb_search", "kb_query", "kb_graph"],
+  "init-kibi": ["kb_autopilot_generate"],
+  bundle: ["kb_autopilot_generate", "kb_search", "kb_query", "kb_check"],
+};
 
 class VariantOrderError extends Error {
   readonly name = "VariantOrderError";
 }
-
-const REQUIRED_TOOLS = {
-  "kibi-usage": ["kb_search", "kb_query", "kb_check"],
-  "kibi-freshness": ["kb_status", "kb_query", "kb_check"],
-  "kibi-traceability": ["kb_search", "kb_query", "kb_graph", "kb_check"],
-  "init-kibi": ["kb_autopilot_generate", "kb_upsert", "kb_check"],
-  bundle: ["kb_autopilot_generate", "kb_search", "kb_query", "kb_check"],
-} as const;
 
 function sha256(value: string): string {
   return createHash("sha256").update(value).digest("hex");
 }
 
 // implements REQ-skillopt-codex-optimization
-export function blindedVariantOrder(seed: string) {
+export function blindedVariantOrder(taskId: string, skill: CatalogSkill) {
   const ordered = VARIANTS.map((variant) => ({
     variant,
-    rank: sha256(`${seed}:${variant}`),
+    rank: sha256(`${BLINDING_SEED}:${skill}:${taskId}:${variant}`),
   })).sort((left, right) => left.rank.localeCompare(right.rank));
   const [first, second, third] = ordered;
   if (first === undefined || second === undefined || third === undefined) {
@@ -41,57 +46,91 @@ export function blindedVariantOrder(seed: string) {
   ] as const;
 }
 
+function assessment(input: {
+  readonly task: FixtureTaskSpec;
+  readonly taskCase: FixtureTaskSpec["taskData"]["adversarialCases"][number];
+  readonly className:
+    | "malformed-task-descriptor"
+    | "prompt-injection"
+    | "generated-stale-state"
+    | "dirty-worktree"
+    | "misleading-success-output"
+    | "mid-operation-interruption"
+    | "approval-boundary";
+  readonly fixturePath: string;
+}) {
+  const applicable = input.task.taskData.adversarialCases.includes(
+    input.taskCase,
+  );
+  return {
+    class: input.className,
+    applicable,
+    reason: applicable
+      ? `The workspace includes ${input.fixturePath}.`
+      : `The ${input.task.family} family does not exercise ${input.taskCase}.`,
+    fixturePath: applicable ? input.fixturePath : null,
+    approvalPhase: input.task.taskData.approvalPhase,
+  } as const;
+}
+
 function adversarialAssessments(task: FixtureTaskSpec) {
-  const staleApplicable =
-    task.skill === "kibi-freshness" || task.family.includes("repair");
-  const dirtyApplicable =
-    task.skill === "kibi-freshness" || task.family.includes("completion");
   return [
-    {
-      class: "malformed-task-descriptor" as const,
-      applicable: false,
-      reason:
-        "The typed descriptor boundary rejects malformed input before materialization.",
-    },
-    {
-      class: "prompt-injection" as const,
-      applicable: true,
-      reason:
-        "Task text is serialized as inert JSON data and never interpreted as a path or command.",
-    },
-    {
-      class: "generated-stale-state" as const,
-      applicable: staleApplicable,
-      reason: staleApplicable
-        ? "This family includes an explicit stale generated-state fixture."
-        : "This family does not evaluate freshness or bootstrap repair behavior.",
-    },
-    {
-      class: "dirty-worktree" as const,
-      applicable: dirtyApplicable,
-      reason: dirtyApplicable
-        ? "This family includes a dirty-worktree state marker."
-        : "Dirty-worktree handling is outside this family's scored behavior.",
-    },
+    assessment({
+      task,
+      taskCase: "malformed-input",
+      className: "malformed-task-descriptor",
+      fixturePath: "inputs/malformed.json",
+    }),
+    assessment({
+      task,
+      taskCase: "prompt-injection",
+      className: "prompt-injection",
+      fixturePath: "task-input.json",
+    }),
+    assessment({
+      task,
+      taskCase: "stale-state",
+      className: "generated-stale-state",
+      fixturePath: "generated/stale-snapshot.json",
+    }),
+    assessment({
+      task,
+      taskCase: "dirty-state",
+      className: "dirty-worktree",
+      fixturePath: "changes/uncommitted.patch",
+    }),
     {
       class: "long-materialization" as const,
       applicable: false,
       reason:
-        "Corpus generation is bounded local I/O with no timing-based scoring.",
+        "Materialization is bounded local I/O and has no timing-based score.",
+      fixturePath: null,
+      approvalPhase: task.taskData.approvalPhase,
     },
-    {
-      class: "misleading-success-output" as const,
-      applicable: true,
-      reason:
-        "Critical final-state queries override agent-reported success text.",
-    },
-    {
-      class: "mid-operation-interruption" as const,
-      applicable: false,
-      reason:
-        "Interruption cleanup is a materializer harness concern, not agent task behavior.",
-    },
+    assessment({
+      task,
+      taskCase: "misleading-success",
+      className: "misleading-success-output",
+      fixturePath: "agent-output.txt",
+    }),
+    assessment({
+      task,
+      taskCase: "interruption-cleanup",
+      className: "mid-operation-interruption",
+      fixturePath: "interruption-plan.json",
+    }),
+    assessment({
+      task,
+      taskCase: "approval-boundary",
+      className: "approval-boundary",
+      fixturePath: "approval-state.json",
+    }),
   ];
+}
+
+function requiredTools(task: FixtureTaskSpec): readonly string[] {
+  if (task.taskData.mutation === "read-only") return READ_TOOLS[task.skill];
+  return [...READ_TOOLS[task.skill], "kb_upsert", "kb_check"];
 }
 
 // implements REQ-skillopt-codex-optimization
@@ -100,12 +139,13 @@ export function buildPrivateManifest(input: {
   readonly publicManifestHash: string;
   readonly workspaceHash: string;
 }) {
-  const tools = REQUIRED_TOOLS[input.task.skill];
   const criticalKey = `final-${input.task.family}`;
+  const workspaceKey = "workspace-isolated";
   return {
-    schemaVersion: "1.0.0",
+    schemaVersion: "1.1.0" as const,
     taskId: input.task.id,
-    scorerKey: `scorer-${sha256(`${input.task.fixtureSeed}:scorer`).slice(0, 16)}`,
+    scorerKey: `scorer-${sha256(`${input.task.scorerReference}:private`).slice(0, 16)}`,
+    scorerReference: input.task.scorerReference,
     publicManifestHash: input.publicManifestHash,
     workspaceHash: input.workspaceHash,
     fixtureSeedHash: sha256(input.task.fixtureSeed),
@@ -117,14 +157,14 @@ export function buildPrivateManifest(input: {
         critical: true,
       },
       {
-        key: "workspace-isolated",
+        key: workspaceKey,
         query: "workspace://isolation/sentinel-count",
         expected: 0,
         critical: true,
       },
     ],
     orderedMcpPredicates: {
-      required: tools.map((tool, index) => ({
+      required: requiredTools(input.task).map((tool, index) => ({
         tool,
         predicate: `sequence=${index + 1}`,
       })),
@@ -142,19 +182,35 @@ export function buildPrivateManifest(input: {
     ],
     rubric: [
       {
-        key: "critical-final-state",
-        points: 40,
+        key: "final_state" as const,
+        points: 60 as const,
         criticalAssertionKeys: [criticalKey],
       },
-      { key: "ordered-mcp-workflow", points: 30, criticalAssertionKeys: [] },
       {
-        key: "isolation-and-integrity",
-        points: 20,
-        criticalAssertionKeys: ["workspace-isolated"],
+        key: "protocol" as const,
+        points: 25 as const,
+        criticalAssertionKeys: [],
       },
-      { key: "evidence-quality", points: 10, criticalAssertionKeys: [] },
+      {
+        key: "isolation" as const,
+        points: 15 as const,
+        criticalAssertionKeys: [workspaceKey],
+      },
     ],
-    blindedVariants: [...blindedVariantOrder(input.task.fixtureSeed)],
+    blindedVariants: [...blindedVariantOrder(input.task.id, input.task.skill)],
     adversarialAssessments: adversarialAssessments(input.task),
   };
+}
+
+// implements REQ-skillopt-codex-optimization
+export function verifyPrivateManifestIntegrity(
+  task: FixtureTaskSpec,
+  manifest: PrivateEvaluatorManifest,
+): boolean {
+  const expected = buildPrivateManifest({
+    task,
+    publicManifestHash: manifest.publicManifestHash,
+    workspaceHash: manifest.workspaceHash,
+  });
+  return JSON.stringify(expected) === JSON.stringify(manifest);
 }
