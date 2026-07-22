@@ -4439,15 +4439,15 @@ coordinates:
   SYM-skillopt-contract-bounded-schema:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 42
+    sourceEndLine: 53
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 34
+    sourceLine: 45
   SYM-skillopt-contract-canonical-json:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 126
+    sourceEndLine: 137
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 117
+    sourceLine: 128
   SYM-skillopt-contract-cli-main:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4493,9 +4493,9 @@ coordinates:
   SYM-skillopt-contract-estimate-schema:
     sourceColumn: 13
     sourceEndColumn: 11
-    sourceEndLine: 61
+    sourceEndLine: 72
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 54
+    sourceLine: 65
   SYM-skillopt-contract-evidence-envelope-schema:
     sourceColumn: 13
     sourceEndColumn: 11
@@ -4541,45 +4541,45 @@ coordinates:
   SYM-skillopt-contract-hash:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 131
+    sourceEndLine: 142
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 129
+    sourceLine: 140
   SYM-skillopt-contract-input-error:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 74
+    sourceEndLine: 85
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 64
+    sourceLine: 75
   SYM-skillopt-contract-input-error-name:
     sourceColumn: 11
     sourceEndColumn: 39
-    sourceEndLine: 66
+    sourceEndLine: 77
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 66
+    sourceLine: 77
   SYM-skillopt-contract-integrity-error:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 87
+    sourceEndLine: 98
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 77
+    sourceLine: 88
   SYM-skillopt-contract-integrity-error-name:
     sourceColumn: 11
     sourceEndColumn: 43
-    sourceEndLine: 79
+    sourceEndLine: 90
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 79
+    sourceLine: 90
   SYM-skillopt-contract-json-schema:
     sourceColumn: 13
     sourceEndColumn: 39
-    sourceEndLine: 23
+    sourceEndLine: 34
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 23
+    sourceLine: 34
   SYM-skillopt-contract-json-value:
     sourceColumn: 12
     sourceEndColumn: 56
-    sourceEndLine: 26
+    sourceEndLine: 37
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 26
+    sourceLine: 37
   SYM-skillopt-contract-ledger-schema:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -4619,9 +4619,9 @@ coordinates:
   SYM-skillopt-contract-parse-json:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 109
+    sourceEndLine: 120
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 90
+    sourceLine: 101
   SYM-skillopt-contract-parse-run-lock:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4631,9 +4631,9 @@ coordinates:
   SYM-skillopt-contract-parse-typed:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 114
+    sourceEndLine: 125
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 112
+    sourceLine: 123
   SYM-skillopt-contract-pricing-schema:
     sourceColumn: 13
     sourceEndColumn: 11
@@ -4738,8 +4738,8 @@ coordinates:
     sourceLine: 25
   SYM-skillopt-contract-timestamp-schema:
     sourceColumn: 13
-    sourceEndColumn: 78
-    sourceEndLine: 21
+    sourceEndColumn: 46
+    sourceEndLine: 32
     sourceFile: scripts/skillopt-eval/contracts/common.ts
     sourceLine: 21
   SYM-skillopt-contract-ts-tests-fixture:
@@ -4751,9 +4751,9 @@ coordinates:
   SYM-skillopt-contract-usage-schema:
     sourceColumn: 13
     sourceEndColumn: 11
-    sourceEndLine: 51
+    sourceEndLine: 62
     sourceFile: scripts/skillopt-eval/contracts/common.ts
-    sourceLine: 45
+    sourceLine: 56
   SYM-skillopt-contract-variant-schema:
     sourceColumn: 13
     sourceEndColumn: 73
@@ -4829,21 +4829,21 @@ coordinates:
   SYM-skillopt-python-canonical-json:
     sourceColumn: 4
     sourceEndColumn: 18
-    sourceEndLine: 114
+    sourceEndLine: 115
     sourceFile: tools/skillopt/kibi_skillopt/common.py
-    sourceLine: 114
+    sourceLine: 115
   SYM-skillopt-python-contract-hash:
     sourceColumn: 4
     sourceEndColumn: 17
-    sourceEndLine: 118
+    sourceEndLine: 119
     sourceFile: tools/skillopt/kibi_skillopt/common.py
-    sourceLine: 118
+    sourceLine: 119
   SYM-skillopt-python-contract-model:
     sourceColumn: 6
     sourceEndColumn: 19
-    sourceEndLine: 58
+    sourceEndLine: 59
     sourceFile: tools/skillopt/kibi_skillopt/common.py
-    sourceLine: 58
+    sourceLine: 59
   SYM-skillopt-python-episode-request:
     sourceColumn: 6
     sourceEndColumn: 20
@@ -4865,9 +4865,9 @@ coordinates:
   SYM-skillopt-python-json-node-value:
     sourceColumn: 4
     sourceEndColumn: 19
-    sourceEndLine: 122
+    sourceEndLine: 123
     sourceFile: tools/skillopt/kibi_skillopt/common.py
-    sourceLine: 122
+    sourceLine: 123
   SYM-skillopt-python-ledger-entry:
     sourceColumn: 6
     sourceEndColumn: 17
@@ -4883,9 +4883,9 @@ coordinates:
   SYM-skillopt-python-parse-timestamp:
     sourceColumn: 4
     sourceEndColumn: 19
-    sourceEndLine: 30
+    sourceEndLine: 31
     sourceFile: tools/skillopt/kibi_skillopt/common.py
-    sourceLine: 30
+    sourceLine: 31
   SYM-skillopt-python-proposal:
     sourceColumn: 6
     sourceEndColumn: 14

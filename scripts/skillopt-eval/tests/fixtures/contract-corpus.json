@@ -269,6 +269,13 @@
       }
     },
     {
+      "name": "report run IDs require canonical UUIDs",
+      "schema": "report.schema.json",
+      "fixture": "report",
+      "accepted": false,
+      "patch": { "path": ["runId"], "value": "report-run-1" }
+    },
+    {
       "name": "timestamps are validated",
       "schema": "ledger-entry.schema.json",
       "fixture": "ledger-entry",
@@ -283,6 +290,56 @@
       "patch": {
         "path": ["occurredAt"],
         "value": "2024-02-29T23:59:59.123456789Z"
+      }
+    },
+    {
+      "name": "single-digit fractional UTC timestamps are canonical",
+      "schema": "ledger-entry.schema.json",
+      "fixture": "ledger-entry",
+      "accepted": true,
+      "patch": {
+        "path": ["occurredAt"],
+        "value": "2024-02-29T23:59:59.1Z"
+      }
+    },
+    {
+      "name": "timestamps require seconds",
+      "schema": "ledger-entry.schema.json",
+      "fixture": "ledger-entry",
+      "accepted": false,
+      "patch": {
+        "path": ["occurredAt"],
+        "value": "2026-07-21T12:00Z"
+      }
+    },
+    {
+      "name": "timestamps reject year zero",
+      "schema": "ledger-entry.schema.json",
+      "fixture": "ledger-entry",
+      "accepted": false,
+      "patch": {
+        "path": ["occurredAt"],
+        "value": "0000-01-01T00:00:00Z"
+      }
+    },
+    {
+      "name": "timestamps reject empty fractional seconds",
+      "schema": "ledger-entry.schema.json",
+      "fixture": "ledger-entry",
+      "accepted": false,
+      "patch": {
+        "path": ["occurredAt"],
+        "value": "2026-07-21T12:00:00.Z"
+      }
+    },
+    {
+      "name": "timestamps reject comma fractional seconds",
+      "schema": "ledger-entry.schema.json",
+      "fixture": "ledger-entry",
+      "accepted": false,
+      "patch": {
+        "path": ["occurredAt"],
+        "value": "2026-07-21T12:00:00,1Z"
       }
     },
     {

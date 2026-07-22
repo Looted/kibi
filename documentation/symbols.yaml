@@ -7941,6 +7941,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-contract-report-schema
     title: ReportSchema
     sourceFile: scripts/skillopt-eval/contracts/workflow.ts
