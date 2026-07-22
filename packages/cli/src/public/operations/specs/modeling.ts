@@ -1,4 +1,13 @@
-import { executePlaceholder } from "../types.js";
+import {
+  executeModelRequirement,
+  type ModelRequirementArgs,
+  type ModelRequirementResult,
+} from "../../../operations/modeling/model-requirement.js";
+import {
+  executeSuggestPredicates,
+  type SuggestPredicatesArgs,
+  type SuggestPredicatesResult,
+} from "../../../operations/modeling/suggest-predicates.js";
 import type { OperationSpec } from "../types.js";
 
 export const modelRequirementSpec = {
@@ -63,8 +72,8 @@ export const modelRequirementSpec = {
   },
   requiresProlog: true,
   effects: ["kb-read"],
-  execute: executePlaceholder,
-} as const satisfies OperationSpec;
+  execute: executeModelRequirement,
+} as const satisfies OperationSpec<ModelRequirementArgs, ModelRequirementResult["structuredContent"]>;
 
 export const suggestPredicatesSpec = {
   name: "kb_suggest_predicates",
@@ -121,5 +130,5 @@ export const suggestPredicatesSpec = {
   },
   requiresProlog: true,
   effects: ["kb-read"],
-  execute: executePlaceholder,
-} as const satisfies OperationSpec;
+  execute: executeSuggestPredicates,
+} as const satisfies OperationSpec<SuggestPredicatesArgs, SuggestPredicatesResult["structuredContent"]>;

@@ -22,13 +22,7 @@ export async function runOperationJsonQuery<T>(
   const modulePath = escapeAtom(
     resolveCoreModulePath(fileName).replaceAll("\\", "/"),
   );
-  const loadResult = await prolog.query(`use_module('${modulePath}')`);
-  if (!loadResult.success) {
-    throw new Error(
-      `${errorLabel} module load failed: ${loadResult.error ?? "Unknown error"}`,
-    );
-  }
-  const result = await prolog.query(goal);
+  const result = await prolog.query(`(use_module('${modulePath}'), ${goal})`);
   if (!result.success) {
     throw new Error(
       `${errorLabel} query failed: ${result.error ?? "Unknown error"}`,
