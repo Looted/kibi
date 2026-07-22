@@ -69,6 +69,19 @@ export type KbMcpToolCall = {
   sourceFiles: string[];
 };
 
+export type McpState = "observed" | "unknown";
+export type KibiInterface = "mcp" | "cli" | "setup";
+
+export function resolveKibiInterface(
+  mcpState: McpState,
+  workspaceTrusted: boolean,
+): KibiInterface {
+  if (mcpState === "observed") {
+    return "mcp";
+  }
+  return workspaceTrusted ? "cli" : "setup";
+}
+
 export function extractKbMcpToolCall(
   toolName: string | undefined,
   toolInput: unknown,

@@ -5,6 +5,7 @@ import { freshnessReminder, stopFollowupMessage } from "../src/messages";
 
 function state(overrides: Partial<HookState> = {}): HookState {
   return {
+    mcpState: "unknown",
     dirtyPaths: [],
     guidedReadPaths: [],
     guidedWritePaths: [],

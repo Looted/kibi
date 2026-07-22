@@ -61,11 +61,13 @@ That watch mode updates `packages/cursor/dist/`, but version bumps and cross-pac
 When Cursor opens a git worktree as the workspace root:
 
 - Project MCP only loads if that worktree has `.cursor/mcp.json` (commit/copy it, or open a worktree that already has it).
-- The launcher prefers a built MCP in the worktree; if `packages/mcp/bin/kibi-mcp` or `packages/mcp/dist` is missing, it uses the primary checkout's built artifacts via `git-common-dir`.
-- Keep at least one built primary checkout (`bun run build` on the main tree) so sparse worktrees can still start MCP.
+- The checked-in resolver prefers a valid worktree MCP build, then derives the primary checkout only from the linked worktree's absolute `git-common-dir`. It rejects missing artifacts, unavailable runtimes or SWI-Prolog, and package-version mismatches.
+- The selected build directory is the MCP runtime working directory, while `KIBI_WORKSPACE` remains the opened worktree so Kibi data never moves to the primary checkout.
+- Keep at least one version-compatible built primary checkout (`bun run build` on the main tree) so sparse worktrees can still start MCP. The resolver never installs packages or searches global/cache fallbacks.
 - Marketplace/plugin MCP still uses `npx --no-install kibi-mcp` and needs `kibi-mcp` in the workspace `node_modules` (run `bun install` in that worktree) unless you disable the plugin MCP entry and keep project dogfood MCP.
 - After changing dogfood MCP or re-syncing the local plugin, reload Cursor (**Developer: Reload Window**).
 - If both project and plugin `kibi` MCP servers appear, disable the duplicate plugin entry in Customize / MCP settings so dogfood uses `.cursor/mcp.json`.
+- Root dogfood hooks pass `--trusted-workspace` as an explicit repository-local opt-in. Without that opt-in or an observed `kb_*` call, hooks emit setup guidance and never probe or execute the CLI.
 
 ## Full Plugin UI Testing (Optional)
 

@@ -250,16 +250,16 @@ coordinates:
     sourceLine: 44
   SYM-DeleteArgs:
     sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 28
+    sourceEndColumn: 50
+    sourceEndLine: 7
     sourceFile: packages/mcp/src/tools/delete.ts
-    sourceLine: 25
+    sourceLine: 7
   SYM-DeleteResult:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 37
+    sourceColumn: 12
+    sourceEndColumn: 74
+    sourceEndLine: 8
     sourceFile: packages/mcp/src/tools/delete.ts
-    sourceLine: 30
+    sourceLine: 8
   SYM-DeriveFileOperationReminderParams:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -2921,27 +2921,33 @@ coordinates:
   SYM-cursor-BOOTSTRAP_REMINDER:
     sourceColumn: 13
     sourceEndColumn: 187
-    sourceEndLine: 9
+    sourceEndLine: 10
     sourceFile: packages/cursor/src/messages.ts
-    sourceLine: 8
+    sourceLine: 9
   SYM-cursor-CursorHookResult:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 37
+    sourceEndLine: 38
     sourceFile: packages/cursor/src/hook-runner.ts
-    sourceLine: 31
+    sourceLine: 32
   SYM-cursor-DIRECT_KB_EDIT_WARNING:
     sourceColumn: 13
     sourceEndColumn: 112
-    sourceEndLine: 12
+    sourceEndLine: 13
     sourceFile: packages/cursor/src/messages.ts
-    sourceLine: 11
+    sourceLine: 12
+  SYM-cursor-GuidanceContext:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 17
+    sourceFile: packages/cursor/src/guidance.ts
+    sourceLine: 12
   SYM-cursor-HookEnvironment:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 41
+    sourceEndLine: 43
     sourceFile: packages/cursor/src/hook-runner.ts
-    sourceLine: 39
+    sourceLine: 40
   SYM-cursor-HookEvent:
     sourceColumn: 12
     sourceEndColumn: 11
@@ -2957,15 +2963,27 @@ coordinates:
   SYM-cursor-HookState:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 23
+    sourceEndLine: 29
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 15
+    sourceLine: 20
   SYM-cursor-KbMcpToolCall:
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 70
     sourceFile: packages/cursor/src/kb-mcp-tools.ts
     sourceLine: 66
+  SYM-cursor-KibiInterface:
+    sourceColumn: 12
+    sourceEndColumn: 52
+    sourceEndLine: 73
+    sourceFile: packages/cursor/src/kb-mcp-tools.ts
+    sourceLine: 73
+  SYM-cursor-McpState:
+    sourceColumn: 12
+    sourceEndColumn: 46
+    sourceEndLine: 72
+    sourceFile: packages/cursor/src/kb-mcp-tools.ts
+    sourceLine: 72
   SYM-cursor-adapterKind:
     sourceColumn: 13
     sourceEndColumn: 42
@@ -2975,21 +2993,27 @@ coordinates:
   SYM-cursor-addDirtyPaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 279
+    sourceEndLine: 41
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 269
+    sourceLine: 31
   SYM-cursor-clearDirtyPaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 369
+    sourceEndLine: 132
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 367
+    sourceLine: 130
   SYM-cursor-clearSessionHookState:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 364
+    sourceEndLine: 127
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 356
+    sourceLine: 119
+  SYM-cursor-emptyHookState:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 68
+    sourceFile: packages/cursor/src/hook-state-storage.ts
+    sourceLine: 57
   SYM-cursor-extractExplicitPathFields:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2999,39 +3023,45 @@ coordinates:
   SYM-cursor-extractKbMcpToolCall:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 137
+    sourceEndLine: 150
     sourceFile: packages/cursor/src/kb-mcp-tools.ts
-    sourceLine: 72
+    sourceLine: 85
   SYM-cursor-extractKbMcpToolName:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 177
+    sourceEndLine: 190
     sourceFile: packages/cursor/src/kb-mcp-tools.ts
-    sourceLine: 139
+    sourceLine: 152
   SYM-cursor-freshnessReminder:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 58
+    sourceEndLine: 74
     sourceFile: packages/cursor/src/messages.ts
-    sourceLine: 54
+    sourceLine: 70
   SYM-cursor-hasGuidedPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 315
+    sourceEndLine: 77
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 306
+    sourceLine: 68
   SYM-cursor-hookRunnerPath:
     sourceColumn: 13
     sourceEndColumn: 60
-    sourceEndLine: 248
+    sourceEndLine: 283
     sourceFile: packages/cursor/src/hook-runner.ts
-    sourceLine: 248
+    sourceLine: 283
   SYM-cursor-impactCheckFollowup:
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 51
+    sourceEndLine: 67
     sourceFile: packages/cursor/src/messages.ts
-    sourceLine: 42
+    sourceLine: 58
+  SYM-cursor-interfaceAdvisory:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 28
+    sourceFile: packages/cursor/src/messages.ts
+    sourceLine: 15
   SYM-cursor-isDirectKbPath:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3065,9 +3095,39 @@ coordinates:
   SYM-cursor-loadHookState:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 223
-    sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 211
+    sourceEndLine: 196
+    sourceFile: packages/cursor/src/hook-state-storage.ts
+    sourceLine: 185
+  SYM-cursor-maxDirtyPaths:
+    sourceColumn: 13
+    sourceEndColumn: 31
+    sourceEndLine: 10
+    sourceFile: packages/cursor/src/hook-state-storage.ts
+    sourceLine: 10
+  SYM-cursor-maxGuidedPaths:
+    sourceColumn: 13
+    sourceEndColumn: 33
+    sourceEndLine: 11
+    sourceFile: packages/cursor/src/hook-state-storage.ts
+    sourceLine: 11
+  SYM-cursor-maxKbMutationTools:
+    sourceColumn: 13
+    sourceEndColumn: 36
+    sourceEndLine: 12
+    sourceFile: packages/cursor/src/hook-state-storage.ts
+    sourceLine: 12
+  SYM-cursor-mergeStringPaths:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 55
+    sourceFile: packages/cursor/src/hook-state-storage.ts
+    sourceLine: 46
+  SYM-cursor-normalizePath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 31
+    sourceFile: packages/cursor/src/hook-state-storage.ts
+    sourceLine: 29
   SYM-cursor-packageName:
     sourceColumn: 13
     sourceEndColumn: 40
@@ -3089,9 +3149,9 @@ coordinates:
   SYM-cursor-readGuidance:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 27
+    sourceEndLine: 42
     sourceFile: packages/cursor/src/guidance.ts
-    sourceLine: 8
+    sourceLine: 19
   SYM-cursor-readStdin:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3101,39 +3161,45 @@ coordinates:
   SYM-cursor-recordKbMcpTool:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 354
+    sourceEndLine: 117
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 317
+    sourceLine: 79
   SYM-cursor-rememberGuidedPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 304
+    sourceEndLine: 66
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 281
+    sourceLine: 43
+  SYM-cursor-resolveKibiInterface:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 83
+    sourceFile: packages/cursor/src/kb-mcp-tools.ts
+    sourceLine: 75
   SYM-cursor-resolveStateDir:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 209
-    sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 192
+    sourceEndLine: 183
+    sourceFile: packages/cursor/src/hook-state-storage.ts
+    sourceLine: 168
   SYM-cursor-runHook:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 225
+    sourceEndLine: 258
     sourceFile: packages/cursor/src/hook-runner.ts
-    sourceLine: 90
+    sourceLine: 92
   SYM-cursor-saveHookState:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 238
-    sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 225
+    sourceEndLine: 210
+    sourceFile: packages/cursor/src/hook-state-storage.ts
+    sourceLine: 198
   SYM-cursor-stopFollowupMessage:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 40
+    sourceEndLine: 56
     sourceFile: packages/cursor/src/messages.ts
-    sourceLine: 14
+    sourceLine: 30
   SYM-cursor-toRepoRelativePath:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3143,15 +3209,15 @@ coordinates:
   SYM-cursor-updateHookState:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 267
-    sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 240
+    sourceEndLine: 235
+    sourceFile: packages/cursor/src/hook-state-storage.ts
+    sourceLine: 212
   SYM-cursor-writeGuidance:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 57
+    sourceEndLine: 81
     sourceFile: packages/cursor/src/guidance.ts
-    sourceLine: 29
+    sourceLine: 44
   SYM-deactivate:
     sourceColumn: 16
     sourceEndColumn: 31
@@ -3485,9 +3551,9 @@ coordinates:
   SYM-handleKbDelete:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 143
+    sourceEndLine: 16
     sourceFile: packages/mcp/src/tools/delete.ts
-    sourceLine: 43
+    sourceLine: 11
   SYM-handleKbModelRequirement:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -4096,10 +4162,10 @@ coordinates:
     sourceLine: 168
   SYM-operation-delete-spec:
     sourceColumn: 13
-    sourceEndColumn: 34
-    sourceEndLine: 316
+    sourceEndColumn: 62
+    sourceEndLine: 319
     sourceFile: packages/cli/src/public/operations/specs/mutation.ts
-    sourceLine: 296
+    sourceLine: 299
   SYM-operation-effect-type:
     sourceColumn: 12
     sourceEndColumn: 22
@@ -4229,15 +4295,15 @@ coordinates:
   SYM-operation-upsert-spec:
     sourceColumn: 13
     sourceEndColumn: 62
-    sourceEndLine: 270
+    sourceEndLine: 273
     sourceFile: packages/cli/src/public/operations/specs/mutation.ts
-    sourceLine: 243
+    sourceLine: 246
   SYM-operation-validate-upsert-spec:
     sourceColumn: 13
     sourceEndColumn: 70
-    sourceEndLine: 294
+    sourceEndLine: 297
     sourceFile: packages/cli/src/public/operations/specs/mutation.ts
-    sourceLine: 272
+    sourceLine: 275
   SYM-parseKibiImpactOverride:
     sourceColumn: 16
     sourceEndColumn: 1

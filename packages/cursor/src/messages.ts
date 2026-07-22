@@ -1,5 +1,6 @@
 // implements REQ-cursor-kibi-plugin-v1
 import type { HookState } from "./hook-state.js";
+import { type McpState, resolveKibiInterface } from "./kb-mcp-tools.js";
 import {
   isKbFreshnessRelevantPath,
   isSourceImpactRelevantPath,
@@ -10,6 +11,21 @@ export const BOOTSTRAP_REMINDER =
 
 export const DIRECT_KB_EDIT_WARNING =
   "Avoid direct edits to .kb/. Use Kibi MCP tools for KB discovery and mutations so project memory stays valid.";
+
+export function interfaceAdvisory(
+  mcpState: McpState,
+  workspaceTrusted: boolean,
+): string | undefined {
+  const selectedInterface = resolveKibiInterface(mcpState, workspaceTrusted);
+  switch (selectedInterface) {
+    case "mcp":
+      return undefined;
+    case "cli":
+      return "Kibi MCP has not been observed in this session. In this explicitly trusted workspace, the project-local CLI is an advisory fallback: use npx --no-install kibi or bunx --no-install kibi. Do not use global or installing runners.";
+    case "setup":
+      return "Kibi MCP has not been observed in this session and workspace trust is unknown. Do not probe or execute a CLI fallback; ask the operator to enable MCP or explicitly approve the trusted project-local CLI workflow.";
+  }
+}
 
 export function stopFollowupMessage(state: HookState): string | undefined {
   if (state.kbMutationTools.length > 0) {
