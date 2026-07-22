@@ -4,7 +4,7 @@ title: Codex-only SkillOpt candidates are gated before adoption
 type: scenario
 status: active
 created_at: 2026-07-21T00:00:00Z
-updated_at: 2026-07-21T00:00:00Z
+updated_at: 2026-07-22T00:00:00Z
 source: documentation/facts/FACT-skillopt-methodology.md
 priority: must
 tags: [skillopt, codex, evaluation, security]

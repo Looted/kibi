@@ -4401,9 +4401,9 @@ coordinates:
     sourceFile: scripts/skillopt-eval/catalog.ts
     sourceLine: 11
   SYM-skillopt-cli-main:
-    sourceColumn: 16
+    sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 69
+    sourceEndLine: 66
     sourceFile: scripts/skillopt-eval/cli.ts
     sourceLine: 40
   SYM-skillopt-contract-approval-schema:
@@ -4827,11 +4827,11 @@ coordinates:
     sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
     sourceLine: 69
   SYM-skillopt-preflight-run:
-    sourceColumn: 16
+    sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 152
+    sourceEndLine: 238
     sourceFile: scripts/skillopt-eval/preflight.ts
-    sourceLine: 110
+    sourceLine: 174
   SYM-skillopt-prototype-call-type:
     sourceColumn: 12
     sourceEndColumn: 70
@@ -4988,6 +4988,246 @@ coordinates:
     sourceEndLine: 87
     sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
     sourceLine: 87
+  SYM-skillopt-runtime-assert-existing-login:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 63
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    sourceLine: 54
+  SYM-skillopt-runtime-auth-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 51
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    sourceLine: 42
+  SYM-skillopt-runtime-auth-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 35
+    sourceEndLine: 43
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    sourceLine: 43
+  SYM-skillopt-runtime-auth-mode:
+    sourceColumn: 12
+    sourceEndColumn: 42
+    sourceEndLine: 28
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    sourceLine: 28
+  SYM-skillopt-runtime-auth-preparation:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 35
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    sourceLine: 30
+  SYM-skillopt-runtime-auth-runner:
+    sourceColumn: 12
+    sourceEndColumn: 28
+    sourceEndLine: 40
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    sourceLine: 37
+  SYM-skillopt-runtime-build-argv:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 164
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 139
+  SYM-skillopt-runtime-build-config:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 136
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 76
+  SYM-skillopt-runtime-canary-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 41
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 36
+  SYM-skillopt-runtime-canary-receipt:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 34
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 26
+  SYM-skillopt-runtime-canary-runner:
+    sourceColumn: 12
+    sourceEndColumn: 28
+    sourceEndLine: 49
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 43
+  SYM-skillopt-runtime-config-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 69
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 62
+  SYM-skillopt-runtime-create-workspace:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 94
+    sourceFile: scripts/skillopt-eval/runtime/workspace.ts
+    sourceLine: 50
+  SYM-skillopt-runtime-isolated-env:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 85
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    sourceLine: 65
+  SYM-skillopt-runtime-isolation-workspace:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 34
+    sourceFile: scripts/skillopt-eval/runtime/workspace.ts
+    sourceLine: 26
+  SYM-skillopt-runtime-json-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 50
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    sourceLine: 41
+  SYM-skillopt-runtime-json-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 35
+    sourceEndLine: 42
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    sourceLine: 42
+  SYM-skillopt-runtime-json-line:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 39
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    sourceLine: 36
+  SYM-skillopt-runtime-mcp-startup-timeout:
+    sourceColumn: 13
+    sourceEndColumn: 54
+    sourceEndLine: 11
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 11
+  SYM-skillopt-runtime-mcp-tool-timeout:
+    sourceColumn: 13
+    sourceEndColumn: 52
+    sourceEndLine: 12
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 12
+  SYM-skillopt-runtime-model-effort:
+    sourceColumn: 13
+    sourceEndColumn: 52
+    sourceEndLine: 10
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 10
+  SYM-skillopt-runtime-optimizer-model:
+    sourceColumn: 13
+    sourceEndColumn: 49
+    sourceEndLine: 9
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 9
+  SYM-skillopt-runtime-parse-jsonl:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 66
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    sourceLine: 53
+  SYM-skillopt-runtime-parse-probe:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 217
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 215
+  SYM-skillopt-runtime-permission-paths:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 60
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 51
+  SYM-skillopt-runtime-preflight-config:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 28
+    sourceFile: scripts/skillopt-eval/preflight.ts
+    sourceLine: 23
+  SYM-skillopt-runtime-preflight-dependencies:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 61
+    sourceFile: scripts/skillopt-eval/preflight.ts
+    sourceLine: 48
+  SYM-skillopt-runtime-preflight-receipt:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 43
+    sourceFile: scripts/skillopt-eval/preflight.ts
+    sourceLine: 30
+  SYM-skillopt-runtime-prepare-existing-login:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 135
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    sourceLine: 100
+  SYM-skillopt-runtime-process-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 32
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    sourceLine: 22
+  SYM-skillopt-runtime-process-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 40
+    sourceEndLine: 23
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    sourceLine: 23
+  SYM-skillopt-runtime-process-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 20
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    sourceLine: 13
+  SYM-skillopt-runtime-process-result:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 11
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    sourceLine: 5
+  SYM-skillopt-runtime-process-summary:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 222
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 219
+  SYM-skillopt-runtime-run-canary:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 251
+    sourceFile: scripts/skillopt-eval/runtime/workspace.ts
+    sourceLine: 115
+  SYM-skillopt-runtime-run-process:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 153
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    sourceLine: 81
+  SYM-skillopt-runtime-stage-canary:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 202
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 166
+  SYM-skillopt-runtime-target-model:
+    sourceColumn: 13
+    sourceEndColumn: 51
+    sourceEndLine: 8
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 8
+  SYM-skillopt-runtime-workspace-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 40
+    sourceFile: scripts/skillopt-eval/runtime/workspace.ts
+    sourceLine: 36
+  SYM-skillopt-runtime-write-probe:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 213
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 204
   SYM-skillopt-source-lock-python-tests:
     sourceColumn: 6
     sourceEndColumn: 21

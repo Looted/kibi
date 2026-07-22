@@ -1,152 +1,238 @@
-import { spawnSync } from "node:child_process";
+import { constants as fsConstants } from "node:fs";
+import { access, realpath, writeFile } from "node:fs/promises";
+import { join, resolve } from "node:path";
+import { CodexAuthError, prepareExistingLogin } from "./runtime/codex-auth";
+import {
+  type CapabilityCanaryReceipt,
+  OPTIMIZER_MODEL,
+  TARGET_MODEL,
+  buildCodexConfig,
+} from "./runtime/permissions";
+import {
+  ProcessControlError,
+  type ProcessResult,
+  runBoundedProcess,
+} from "./runtime/process";
+import {
+  type IsolationWorkspace,
+  createIsolationWorkspace,
+  runCapabilityCanary,
+} from "./runtime/workspace";
 
-// implements REQ-skill-behavioral-efficacy
-const SKILLOPT_COMMIT = "b860a5cf88ce75e2bd02ca981ac21fb28cffba83" as const;
-
-const HOST_COMMANDS = {
-  codex: "codex",
-} as const;
-
-const HOSTS = ["codex"] as const;
-
-// implements REQ-skill-behavioral-efficacy
-type PreflightHost = keyof typeof HOST_COMMANDS;
-
-// implements REQ-skill-behavioral-efficacy
-type PreflightDependencies = Readonly<{
-  commandExists: (command: string) => boolean;
-  commandVersion: (command: string) => string;
-}>;
-
-// implements REQ-skill-behavioral-efficacy
-type PreflightConfig = Readonly<{
+const SKILLOPT_COMMIT = "b860a5cf88ce75e2bd02ca981ac21fb28cffba83";
+export type PreflightConfig = Readonly<{
   runId: string;
-  targetModel: string;
-  optimizerModel: string;
-  modelAccess: boolean;
+  sourceWorktree?: string;
+  artifactRoot?: string;
+  env?: NodeJS.ProcessEnv;
 }>;
 
-// implements REQ-skill-behavioral-efficacy
-type HostPreflight = Readonly<{
-  host: PreflightHost;
-  command: string;
-  version: string;
-}>;
-
-// implements REQ-skill-behavioral-efficacy
-type PreflightPass = Readonly<{
-  verdict: "pass";
+export type PreflightReceipt = Readonly<{
+  verdict: "pass" | "no-go";
   runId: string;
-  targetModel: string;
-  optimizerModel: string;
+  targetModel: typeof TARGET_MODEL;
+  optimizerModel: typeof OPTIMIZER_MODEL;
   skilloptCommit: typeof SKILLOPT_COMMIT;
-  hosts: readonly HostPreflight[];
+  codexVersion: string | null;
+  authMode: "file" | "keyring" | null;
+  bwrap: boolean;
+  sourceClean: boolean;
+  configValid: boolean;
   paidModelCalls: 0;
+  reason?: string;
 }>;
 
-// implements REQ-skill-behavioral-efficacy
-type PreflightNoGo = Readonly<{
-  verdict: "no-go";
-  runId: string;
-  targetModel: string;
-  optimizerModel: string;
-  skilloptCommit: typeof SKILLOPT_COMMIT;
-  hosts: readonly HostPreflight[];
-  reason: string;
-}>;
+export { runCapabilityCanary };
+export type { CapabilityCanaryReceipt };
 
-// implements REQ-skill-behavioral-efficacy
-type PreflightReceipt = PreflightPass | PreflightNoGo;
+export type PreflightDependencies = Readonly<{
+  run: (
+    argv: readonly [string, ...string[]],
+    cwd: string,
+    env: NodeJS.ProcessEnv,
+    timeoutMs: number,
+    stdin?: string,
+  ) => Promise<ProcessResult>;
+  executable: (command: string) => Promise<boolean>;
+  sourceClean: (
+    sourceWorktree: string,
+    env: NodeJS.ProcessEnv,
+  ) => Promise<boolean>;
+}>;
 
 const runtimeDependencies: PreflightDependencies = {
-  commandExists: (command) =>
-    spawnSync(command, ["--version"], { stdio: "ignore" }).status === 0,
-  commandVersion: (command) => {
-    const result = spawnSync(command, ["--version"], { encoding: "utf8" });
-    return result.stdout.trim();
+  run: (argv, cwd, env, timeoutMs, stdin) =>
+    runBoundedProcess({ argv, cwd, env, timeoutMs, stdin }),
+  executable: async (command) => {
+    try {
+      await access(command, fsConstants.X_OK);
+      return true;
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        "code" in error &&
+        error.code === "ENOENT"
+      ) {
+        return false;
+      }
+      throw error;
+    }
+  },
+  sourceClean: async (sourceWorktree, env) => {
+    const result = await runBoundedProcess({
+      argv: ["git", "status", "--porcelain", "--untracked-files=no"],
+      cwd: sourceWorktree,
+      env,
+      timeoutMs: 10_000,
+    });
+    return result.exitCode === 0 && result.stdout.trim() === "";
   },
 };
 
-function hostChecks(
-  dependencies: PreflightDependencies,
-): readonly HostPreflight[] {
-  const checks: HostPreflight[] = [];
-  for (const host of HOSTS) {
-    const command = HOST_COMMANDS[host];
-    if (!dependencies.commandExists(command)) {
-      return checks;
-    }
-    checks.push({
-      host,
-      command,
-      version: dependencies.commandVersion(command),
-    });
-  }
-  return checks;
-}
-
-function receiptBase(
+function baseReceipt(
   config: PreflightConfig,
-  hosts: readonly HostPreflight[],
-): Readonly<{
-  runId: string;
-  targetModel: string;
-  optimizerModel: string;
-  skilloptCommit: typeof SKILLOPT_COMMIT;
-  hosts: readonly HostPreflight[];
-  paidModelCalls: 0;
-}> {
+  state: Readonly<{
+    codexVersion: string | null;
+    authMode: "file" | "keyring" | null;
+    bwrap: boolean;
+    sourceClean: boolean;
+    configValid: boolean;
+  }>,
+): Omit<PreflightReceipt, "verdict" | "reason"> {
   return {
     runId: config.runId,
-    targetModel: config.targetModel,
-    optimizerModel: config.optimizerModel,
+    targetModel: TARGET_MODEL,
+    optimizerModel: OPTIMIZER_MODEL,
     skilloptCommit: SKILLOPT_COMMIT,
-    hosts,
+    ...state,
     paidModelCalls: 0,
   };
 }
 
-// implements REQ-skill-behavioral-efficacy
-export function runPreflight(
+function noGo(
+  config: PreflightConfig,
+  state: Parameters<typeof baseReceipt>[1],
+  reason: string,
+): PreflightReceipt {
+  return { ...baseReceipt(config, state), verdict: "no-go", reason };
+}
+
+function pathsFor(
+  workspace: IsolationWorkspace,
+  sourceWorktree: string,
+  realCodexHome: string,
+) {
+  return {
+    workspace: workspace.target,
+    runPrivateHome: workspace.codexHome,
+    realCodexHome,
+    sourceWorktree,
+    fixtureKb: join(workspace.target, ".kb"),
+    privateScorer: workspace.privateScorer,
+    privateEvidence: workspace.privateEvidence,
+    siblingRuns: workspace.siblingRun,
+  } as const;
+}
+
+async function prepareConfig(
+  options: Readonly<{
+    workspace: IsolationWorkspace;
+    sourceWorktree: string;
+    env: NodeJS.ProcessEnv;
+    dependencies: PreflightDependencies;
+  }>,
+) {
+  const runAuth = (
+    argv: readonly [string, ...string[]],
+    env: NodeJS.ProcessEnv,
+  ) => options.dependencies.run(argv, options.workspace.target, env, 15_000);
+  const auth = await prepareExistingLogin({
+    privateCodexHome: options.workspace.codexHome,
+    env: options.env,
+    run: runAuth,
+  });
+  const config = buildCodexConfig({
+    role: "target",
+    authMode: auth.mode,
+    paths: pathsFor(
+      options.workspace,
+      options.sourceWorktree,
+      auth.realCodexHome,
+    ),
+    nodeCommand: process.execPath,
+    codexExecutable: await realpath(Bun.which("codex") ?? "codex"),
+    kibiServer: join(options.sourceWorktree, "packages/mcp/dist/server.js"),
+  });
+  await writeFile(join(options.workspace.codexHome, "config.toml"), config, {
+    encoding: "utf8",
+    mode: 0o600,
+  });
+  return auth;
+}
+
+// implements REQ-skillopt-codex-optimization
+export async function runPreflight(
   config: PreflightConfig,
   dependencies: PreflightDependencies = runtimeDependencies,
-): PreflightReceipt {
-  const hosts = hostChecks(dependencies);
-  if (hosts.length !== HOSTS.length) {
-    const missingHost = HOSTS[hosts.length];
-    return {
-      ...receiptBase(config, hosts),
-      verdict: "no-go",
-      reason: `missing_host:${missingHost}`,
-    };
+): Promise<PreflightReceipt> {
+  const sourceWorktree = resolve(config.sourceWorktree ?? process.cwd());
+  const artifactRoot = resolve(
+    config.artifactRoot ??
+      join(sourceWorktree, "artifacts/skillopt/isolation-canary"),
+  );
+  const env = config.env ?? process.env;
+  let state: Parameters<typeof baseReceipt>[1] = {
+    codexVersion: null,
+    authMode: null,
+    bwrap: false,
+    sourceClean: false,
+    configValid: false,
+  };
+  if (!(await dependencies.executable("/usr/bin/bwrap"))) {
+    return noGo(config, state, "missing_isolation:bwrap");
   }
-  if (!dependencies.commandExists("bwrap")) {
-    return {
-      ...receiptBase(config, hosts),
-      verdict: "no-go",
-      reason: "missing_isolation:bwrap",
-    };
+  state = { ...state, bwrap: true };
+  const clean = await dependencies.sourceClean(sourceWorktree, env);
+  state = { ...state, sourceClean: clean };
+  if (!clean) return noGo(config, state, "source_not_clean");
+  const workspace = await createIsolationWorkspace({
+    artifactRoot,
+    runId: config.runId,
+    role: "target",
+  });
+  try {
+    const version = await dependencies.run(
+      ["codex", "--version"],
+      sourceWorktree,
+      env,
+      10_000,
+    );
+    if (version.exitCode !== 0)
+      return noGo(config, state, "missing_host:codex");
+    state = { ...state, codexVersion: version.stdout.trim() };
+    const auth = await prepareConfig({
+      workspace,
+      sourceWorktree,
+      env,
+      dependencies,
+    });
+    state = { ...state, authMode: auth.mode };
+    const doctor = await dependencies.run(
+      ["codex", "doctor", "--json"],
+      workspace.target,
+      auth.env,
+      30_000,
+    );
+    if (doctor.exitCode !== 0) return noGo(config, state, "config_invalid");
+    state = { ...state, configValid: true };
+    return { ...baseReceipt(config, state), verdict: "pass" };
+  } catch (error) {
+    if (error instanceof CodexAuthError)
+      return noGo(config, state, error.message);
+    if (error instanceof ProcessControlError)
+      return noGo(config, state, error.message);
+    throw error;
+  } finally {
+    await workspace.cleanup();
   }
-  if (config.targetModel !== "gpt-5.4-mini") {
-    return {
-      ...receiptBase(config, hosts),
-      verdict: "no-go",
-      reason: `target_model_mismatch:${config.targetModel}`,
-    };
-  }
-  if (config.optimizerModel !== "gpt-5.5") {
-    return {
-      ...receiptBase(config, hosts),
-      verdict: "no-go",
-      reason: `optimizer_model_mismatch:${config.optimizerModel}`,
-    };
-  }
-  if (!config.modelAccess) {
-    return {
-      ...receiptBase(config, hosts),
-      verdict: "no-go",
-      reason: "model_access_not_verified",
-    };
-  }
-  return { ...receiptBase(config, hosts), verdict: "pass" };
 }
