@@ -1,7 +1,8 @@
 import { constants as fsConstants } from "node:fs";
-import { access, chmod, copyFile, stat } from "node:fs/promises";
+import { access, chmod, copyFile, readFile, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
+import { z } from "zod";
 import type { ProcessResult } from "./process";
 
 const FORBIDDEN_ENV = [
@@ -24,6 +25,13 @@ const FORBIDDEN_ENV = [
 
 const FORBIDDEN_ENV_SUFFIXES = ["_API_KEY", "_BASE_URL"] as const;
 const FORBIDDEN_ENV_NAMES = new Set<string>(FORBIDDEN_ENV);
+const ChatGptAuthFileSchema = z.object({
+  auth_mode: z.literal("chatgpt"),
+  tokens: z.record(z.string(), z.unknown()),
+  OPENAI_API_KEY: z.null().optional(),
+  personal_access_token: z.null().optional(),
+  bedrock_api_key: z.null().optional(),
+});
 
 export type AuthMode = "file" | "keyring";
 
@@ -112,6 +120,7 @@ export async function prepareExistingLogin(
   const mode: AuthMode = (await readableFile(authPath)) ? "file" : "keyring";
   if (mode === "file") {
     try {
+      ChatGptAuthFileSchema.parse(JSON.parse(await readFile(authPath, "utf8")));
       await copyFile(authPath, join(options.privateCodexHome, "auth.json"));
       await chmod(join(options.privateCodexHome, "auth.json"), 0o600);
     } catch (error) {
@@ -120,10 +129,10 @@ export async function prepareExistingLogin(
   }
   const env = isolatedCodexEnvironment(options.env, options.privateCodexHome);
   const login = await options.run(["codex", "login", "status"], env);
-  if (
-    login.exitCode !== 0 ||
-    !`${login.stdout}\n${login.stderr}`.includes("Logged in")
-  ) {
+  const loginLines = `${login.stdout}\n${login.stderr}`
+    .split("\n")
+    .map((line) => line.trim());
+  if (login.exitCode !== 0 || !loginLines.includes("Logged in using ChatGPT")) {
     throw new CodexAuthError("login");
   }
   return {

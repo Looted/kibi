@@ -60,6 +60,19 @@ export type PreflightDependencies = Readonly<{
   ) => Promise<boolean>;
 }>;
 
+export async function sourceWorktreeIsClean(
+  sourceWorktree: string,
+  env: NodeJS.ProcessEnv,
+): Promise<boolean> {
+  const result = await runBoundedProcess({
+    argv: ["git", "status", "--porcelain", "--untracked-files=all"],
+    cwd: sourceWorktree,
+    env,
+    timeoutMs: 10_000,
+  });
+  return result.exitCode === 0 && result.stdout.trim() === "";
+}
+
 const runtimeDependencies: PreflightDependencies = {
   run: (argv, cwd, env, timeoutMs, stdin) =>
     runBoundedProcess({ argv, cwd, env, timeoutMs, stdin }),
@@ -78,15 +91,7 @@ const runtimeDependencies: PreflightDependencies = {
       throw error;
     }
   },
-  sourceClean: async (sourceWorktree, env) => {
-    const result = await runBoundedProcess({
-      argv: ["git", "status", "--porcelain", "--untracked-files=no"],
-      cwd: sourceWorktree,
-      env,
-      timeoutMs: 10_000,
-    });
-    return result.exitCode === 0 && result.stdout.trim() === "";
-  },
+  sourceClean: sourceWorktreeIsClean,
 };
 
 function baseReceipt(

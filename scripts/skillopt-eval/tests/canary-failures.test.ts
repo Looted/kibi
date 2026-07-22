@@ -21,7 +21,14 @@ async function authEnvironment(): Promise<
   roots.push(root);
   const codexHome = join(root, "codex");
   await mkdir(codexHome);
-  await writeFile(join(codexHome, "auth.json"), "{}", { mode: 0o600 });
+  await writeFile(
+    join(codexHome, "auth.json"),
+    JSON.stringify({
+      auth_mode: "chatgpt",
+      tokens: { access_token: "session-token" },
+    }),
+    { mode: 0o600 },
+  );
   return {
     artifactRoot: join(root, "artifacts"),
     env: { PATH: process.env.PATH, CODEX_HOME: codexHome },
@@ -44,6 +51,29 @@ function fakeRunner(stdout: string, exitCode = 0) {
     return { argv, stdout, stderr: "", exitCode, signal: null };
   };
 }
+
+const completedProbeEvents = [
+  JSON.stringify({
+    type: "item.completed",
+    item: {
+      id: "probe-command",
+      type: "command_execution",
+      command: "./.runtime/canary-probe",
+      aggregated_output: "skillopt-capability-canary:pass\n",
+      exit_code: 0,
+      status: "completed",
+    },
+  }),
+  JSON.stringify({
+    type: "turn.completed",
+    usage: {
+      input_tokens: 1,
+      cached_input_tokens: 0,
+      output_tokens: 1,
+      reasoning_output_tokens: 0,
+    },
+  }),
+].join("\n");
 
 describe("Codex capability canary failures", () => {
   test("fails when required MCP startup reports an error despite exit zero", async () => {
@@ -69,7 +99,7 @@ describe("Codex capability canary failures", () => {
     expect(receipt).toMatchObject({
       verdict: "no-go",
       reason: "codex_event_failure",
-      paidModelCalls: 1,
+      paidModelCalls: 2,
     });
     expect(receipt.events[0]).toMatchObject({ message: "required MCP failed" });
   });
@@ -129,5 +159,90 @@ describe("Codex capability canary failures", () => {
       verdict: "no-go",
       reason: "codex_exit:17:no_stderr",
     });
+  });
+
+  test("rejects a forged final response without broker command evidence", async () => {
+    // Given
+    const fixture = await authEnvironment();
+    const forgedEvents = [
+      JSON.stringify({
+        type: "item.completed",
+        item: {
+          id: "final-message",
+          type: "agent_message",
+          text: '{"probeExecuted":true}',
+        },
+      }),
+      JSON.stringify({ type: "turn.completed", usage: {} }),
+    ].join("\n");
+
+    // When
+    const receipt = await runCapabilityCanary(
+      {
+        runId: "forged-final-response",
+        sourceWorktree: process.cwd(),
+        artifactRoot: fixture.artifactRoot,
+        env: fixture.env,
+      },
+      { run: fakeRunner(forgedEvents) },
+    );
+
+    // Then
+    expect(receipt).toMatchObject({
+      verdict: "no-go",
+      reason: "missing_probe_execution",
+      paidModelCalls: 2,
+    });
+  });
+
+  test("runs the identical probe with target and optimizer model identities", async () => {
+    // Given
+    const fixture = await authEnvironment();
+    const modelArgv: string[][] = [];
+
+    // When
+    const receipt = await runCapabilityCanary(
+      {
+        runId: "dual-model-pass",
+        sourceWorktree: process.cwd(),
+        artifactRoot: fixture.artifactRoot,
+        env: fixture.env,
+      },
+      {
+        run: async (argv) => {
+          if (argv.join(" ") === "codex login status") {
+            return {
+              argv,
+              stdout: "",
+              stderr: "Logged in using ChatGPT\n",
+              exitCode: 0,
+              signal: null,
+            };
+          }
+          modelArgv.push([...argv]);
+          return {
+            argv,
+            stdout: `${completedProbeEvents}\n`,
+            stderr: "",
+            exitCode: 0,
+            signal: null,
+          };
+        },
+      },
+    );
+
+    // Then
+    expect(receipt).toMatchObject({
+      verdict: "pass",
+      paidModelCalls: 2,
+      modelRuns: [
+        { role: "target", model: "gpt-5.4-mini" },
+        { role: "optimizer", model: "gpt-5.5" },
+      ],
+    });
+    expect(modelArgv.map((argv) => argv[argv.indexOf("--model") + 1])).toEqual([
+      "gpt-5.4-mini",
+      "gpt-5.5",
+    ]);
   });
 });
