@@ -1,5 +1,32 @@
 # kibi-cursor
 
+## 0.4.0
+
+### Minor Changes
+
+- a0fee4a: The Cursor plugin now supports capability-based Kibi interface selection, using visible MCP tools first and a trusted project-local CLI fallback when needed. Deterministic worktree resolution keeps both interface choices anchored to the intended repository.
+
+  - Add MCP-first, CLI-fallback agent guidance.
+  - Resolve trusted worktree runtime paths deterministically.
+
+### Patch Changes
+
+- cafa25f: Agents can now select Kibi by available capability instead of stopping at MCP-specific guidance. The bundled skills prefer approved MCP tools, fall back safely to a project-local non-installing CLI runner, and provide executable JSON recipes plus an exact 18-operation access catalog.
+
+  - Document every shared MCP operation's dedicated CLI route, input mode, effects, Prolog requirement, mutability, and telemetry handling.
+  - Regenerate Cursor and Codex skill mirrors from the canonical capability-based source.
+
+- 23e815a: Agents can now keep using Kibi when MCP tools are unavailable but a trusted project-local CLI is ready. Guidance across Cursor, OpenCode, and MCP documentation now selects the interface by capability and stops for operator action only when neither safe surface is available.
+
+  - Replace MCP-exclusive guidance with the visible-MCP, trusted-CLI JSON route, and blocked state machine.
+  - Preserve direct `.kb/` access prohibitions, discovery-before-mutation, sequential writes, and completion validation gates.
+
+- e71f1ce: Cursor dogfood sessions now keep each linked worktree as the Kibi data workspace while launching a compatible built MCP runtime from that worktree or its primary checkout. Invalid, stale, or unrelated builds are rejected without installing packages, and Cursor hooks offer the project-local CLI only as advisory guidance after explicit workspace trust.
+
+  - Add deterministic build, runtime, SWI-Prolog, and package-version checks to the Cursor worktree resolver.
+  - Preserve an explicit `KIBI_WORKSPACE` when the MCP diagnostic launcher starts from another runtime root.
+  - Track MCP capability as `observed` or `unknown` and keep hook-driven CLI fallback non-executing.
+
 ## 0.3.1
 
 ### Patch Changes

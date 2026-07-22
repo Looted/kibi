@@ -1,5 +1,21 @@
 # kibi-codex
 
+## 0.18.0
+
+### Minor Changes
+
+- a0fee4a: The Codex plugin now supports capability-based Kibi interface selection, using visible MCP tools first and a trusted project-local CLI fallback when needed. Agents can retain the same 18-operation workflow when MCP is unavailable without falling back to direct knowledge-base file access.
+
+  - Add MCP-first, CLI-fallback agent guidance.
+  - Ship the generated operation-access resource with all four Kibi skills.
+
+### Patch Changes
+
+- cafa25f: Agents can now select Kibi by available capability instead of stopping at MCP-specific guidance. The bundled skills prefer approved MCP tools, fall back safely to a project-local non-installing CLI runner, and provide executable JSON recipes plus an exact 18-operation access catalog.
+
+  - Document every shared MCP operation's dedicated CLI route, input mode, effects, Prolog requirement, mutability, and telemetry handling.
+  - Regenerate Cursor and Codex skill mirrors from the canonical capability-based source.
+
 ## 0.17.1
 
 ### Patch Changes
