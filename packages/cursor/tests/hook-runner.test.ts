@@ -44,9 +44,35 @@ describe("Cursor hook runner", () => {
     fs.mkdirSync(path.join(cwd, ".kb"));
     fs.writeFileSync(path.join(cwd, ".kb", "config.json"), "{}");
 
-    expect(
-      await runHook({ hook_event_name: "sessionStart", cwd }, { pluginData }),
-    ).toEqual({});
+    const result = await runHook(
+      { hook_event_name: "sessionStart", cwd },
+      { pluginData, workspaceTrusted: false },
+    );
+
+    expect(result.additional_context).toBeDefined();
+  });
+
+  test("sessionStart emits advisory output without executing a trusted CLI fallback", async () => {
+    const cwd = createTempRoot("kibi-cursor-cwd-");
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    const commandRoot = createTempRoot("kibi-cursor-commands-");
+    tempRoots.push(cwd, pluginData, commandRoot);
+    fs.mkdirSync(path.join(cwd, ".kb"));
+    fs.writeFileSync(path.join(cwd, ".kb", "config.json"), "{}");
+    const executionMarker = path.join(commandRoot, "executed");
+    for (const command of ["npx", "bunx"] as const) {
+      const executable = path.join(commandRoot, command);
+      fs.writeFileSync(executable, `#!/bin/sh\ntouch "${executionMarker}"\n`);
+      fs.chmodSync(executable, 0o755);
+    }
+
+    const result = await runHook(
+      { hook_event_name: "sessionStart", cwd },
+      { pluginData, workspaceTrusted: true },
+    );
+
+    expect(result.additional_context).toBeDefined();
+    expect(fs.existsSync(executionMarker)).toBe(false);
   });
 
   test("sessionStart uses Cursor workspace_roots when cwd is absent", async () => {
@@ -63,7 +89,7 @@ describe("Cursor hook runner", () => {
       { pluginData },
     );
 
-    expect(result).toEqual({});
+    expect(result.additional_context).toBeDefined();
   });
 
   test("sessionStart treats an empty cwd as missing Kibi config", async () => {
@@ -203,6 +229,24 @@ describe("Cursor hook runner", () => {
     expect(loadHookState(pluginData).dirtyPaths).toEqual([
       "packages/cursor/src/hook-runner.ts",
     ]);
+  });
+
+  test("postToolUse changes MCP state only after observing a kb tool call", async () => {
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
+
+    expect(loadHookState(pluginData).mcpState).toBe("unknown");
+
+    await runHook(
+      {
+        hook_event_name: "postToolUse",
+        tool_name: "CallMcpTool",
+        tool_input: { toolName: "kb_search" },
+      },
+      { pluginData },
+    );
+
+    expect(loadHookState(pluginData).mcpState).toBe("observed");
   });
 
   test("postToolUse injects write guidance for tracked source edits", async () => {

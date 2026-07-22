@@ -98,7 +98,7 @@ if (args.includes("-h") || args.includes("--help")) {
 
   if (args.includes("--diagnostic-mode")) {
     globalThis.__KIBI_MCP_DIAGNOSTIC_MODE = true;
-    process.env.KIBI_WORKSPACE = process.cwd();
+    process.env.KIBI_WORKSPACE ??= process.cwd();
     process.env.KIBI_MCP_DIAGNOSTIC_MODE = "1";
   }
 
