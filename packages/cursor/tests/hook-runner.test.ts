@@ -124,7 +124,10 @@ describe("Cursor hook runner", () => {
     );
 
     expect(result.permission).toBe("allow");
-    expect(result.agent_message).toContain("Avoid direct edits to .kb/");
+    expect(result.agent_message).toContain(".kb/");
+    expect(result.agent_message).toContain("MCP tools");
+    expect(result.agent_message).toContain("CLI JSON routes");
+    expect(result.agent_message).toContain("Query before mutate");
   });
 
   test("preToolUse does not parse Bash command text for .kb paths", async () => {
