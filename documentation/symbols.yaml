@@ -10585,9 +10585,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 33
+    sourceLine: 34
     sourceColumn: 12
-    sourceEndLine: 38
+    sourceEndLine: 39
     sourceEndColumn: 3
   - id: SYM-skillopt-runtime-preflight-receipt
     title: PreflightReceipt
@@ -10599,9 +10599,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 40
+    sourceLine: 41
     sourceColumn: 12
-    sourceEndLine: 53
+    sourceEndLine: 54
     sourceEndColumn: 3
   - id: SYM-skillopt-runtime-preflight-dependencies
     title: PreflightDependencies
@@ -10613,9 +10613,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 58
+    sourceLine: 59
     sourceColumn: 12
-    sourceEndLine: 76
+    sourceEndLine: 77
     sourceEndColumn: 3
   - id: SYM-skillopt-runtime-source-clean
     title: sourceWorktreeIsClean
@@ -10627,9 +10627,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 78
+    sourceLine: 79
     sourceColumn: 22
-    sourceEndLine: 89
+    sourceEndLine: 90
     sourceEndColumn: 1
   - id: SYM-skillopt-runtime-auth-mode
     title: AuthMode
@@ -10864,9 +10864,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 67
+    sourceLine: 70
     sourceColumn: 22
-    sourceEndLine: 144
+    sourceEndLine: 149
     sourceEndColumn: 1
   - id: SYM-skillopt-runtime-write-probe
     title: writeCapabilityProbe
@@ -10891,9 +10891,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 37
+    sourceLine: 40
     sourceColumn: 12
-    sourceEndLine: 42
+    sourceEndLine: 45
     sourceEndColumn: 3
   - id: SYM-skillopt-runtime-mcp-probe-result
     title: McpStartupProbeResult
@@ -10905,9 +10905,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 44
+    sourceLine: 47
     sourceColumn: 12
-    sourceEndLine: 46
+    sourceEndLine: 49
     sourceEndColumn: 3
   - id: SYM-skillopt-runtime-staged-canary
     title: StagedCanaryRuntime
@@ -10919,9 +10919,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 48
+    sourceLine: 51
     sourceColumn: 12
-    sourceEndLine: 53
+    sourceEndLine: 56
     sourceEndColumn: 3
   - id: SYM-skillopt-runtime-prerequisite-error
     title: RuntimePrerequisiteError
@@ -10989,9 +10989,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 162
+    sourceLine: 167
     sourceColumn: 22
-    sourceEndLine: 189
+    sourceEndLine: 194
     sourceEndColumn: 1
   - id: SYM-skillopt-runtime-build-sandbox-probe-argv
     title: buildCodexSandboxProbeArgv
@@ -11049,6 +11049,7 @@ symbols:
     title: StagedMcpLaunch
     sourceFile: scripts/skillopt-eval/runtime/staged-mcp.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -11067,9 +11068,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 94
+    sourceLine: 100
     sourceColumn: 22
-    sourceEndLine: 128
+    sourceEndLine: 139
     sourceEndColumn: 1
   - id: SYM-skillopt-runtime-verify-canary-evidence
     title: verifyCapabilityEvidence
@@ -11233,9 +11234,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 191
+    sourceLine: 196
     sourceColumn: 16
-    sourceEndLine: 194
+    sourceEndLine: 199
     sourceEndColumn: 1
   - id: SYM-skillopt-runtime-process-result
     title: ProcessResult
@@ -11399,7 +11400,7 @@ symbols:
         target: TEST-skillopt-codex-optimization
     sourceLine: 72
     sourceColumn: 16
-    sourceEndLine: 145
+    sourceEndLine: 144
     sourceEndColumn: 1
   - id: SYM-skillopt-runtime-build-argv
     title: buildCodexExecArgv
@@ -11411,9 +11412,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 148
+    sourceLine: 147
     sourceColumn: 16
-    sourceEndLine: 174
+    sourceEndLine: 173
     sourceEndColumn: 1
   - id: SYM-skillopt-runtime-parse-jsonl
     title: parseJsonLines
@@ -11464,9 +11465,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 42
+    sourceLine: 43
     sourceColumn: 22
-    sourceEndLine: 110
+    sourceEndLine: 104
     sourceEndColumn: 1
   - id: SYM-skillopt-scoring-cell
     title: scoreCell
@@ -11583,7 +11584,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
     sourceLine: 6
-    sourceColumn: 13
+    sourceColumn: 12
     sourceEndLine: 9
     sourceEndColumn: 3
   - id: SYM-skillopt-scoring-cell-evidence
@@ -11597,7 +11598,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
     sourceLine: 17
-    sourceColumn: 13
+    sourceColumn: 12
     sourceEndLine: 31
     sourceEndColumn: 3
   - id: SYM-skillopt-scoring-terminal-category
@@ -11611,7 +11612,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
     sourceLine: 33
-    sourceColumn: 13
+    sourceColumn: 12
     sourceEndLine: 39
     sourceEndColumn: 24
   - id: SYM-skillopt-scoring-cell-receipt
@@ -11625,8 +11626,8 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
     sourceLine: 41
-    sourceColumn: 13
-    sourceEndLine: 58
+    sourceColumn: 12
+    sourceEndLine: 56
     sourceEndColumn: 3
   - id: SYM-skillopt-scoring-gate-cell
     title: GateCell
@@ -11639,7 +11640,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
     sourceLine: 9
-    sourceColumn: 13
+    sourceColumn: 12
     sourceEndLine: 17
     sourceEndColumn: 3
   - id: SYM-skillopt-scoring-gate-verdict
@@ -11653,7 +11654,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
     sourceLine: 47
-    sourceColumn: 13
+    sourceColumn: 12
     sourceEndLine: 52
     sourceEndColumn: 3
   - id: SYM-skillopt-scoring-cell-summary
@@ -11667,7 +11668,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
     sourceLine: 6
-    sourceColumn: 13
+    sourceColumn: 12
     sourceEndLine: 11
     sourceEndColumn: 3
   - id: SYM-skillopt-scoring-bootstrap-resamples
@@ -11681,9 +11682,9 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
     sourceLine: 3
-    sourceColumn: 14
+    sourceColumn: 13
     sourceEndLine: 3
-    sourceEndColumn: 43
+    sourceEndColumn: 41
   - id: SYM-skillopt-scoring-bootstrap-seed
     title: BOOTSTRAP_SEED
     sourceFile: scripts/skillopt-eval/scoring/statistics.ts
@@ -11695,6 +11696,268 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
     sourceLine: 4
-    sourceColumn: 14
+    sourceColumn: 13
     sourceEndLine: 4
-    sourceEndColumn: 36
+    sourceEndColumn: 34
+  - id: SYM-skillopt-final-state-options
+    title: FinalStateOptions
+    sourceFile: scripts/skillopt-eval/runtime/final-state.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-final-state-receipt
+    title: FinalStateReceipt
+    sourceFile: scripts/skillopt-eval/runtime/final-state.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-run-independent-final-state
+    title: runIndependentFinalState
+    sourceFile: scripts/skillopt-eval/runtime/final-state.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-jsonrpc-trace-input
+    title: TraceInput
+    sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-jsonrpc-trace-receipt
+    title: TraceReceipt
+    sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-jsonrpc-trace-verification
+    title: TraceVerification
+    sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-jsonrpc-redact
+    title: redactJsonRpcValue
+    sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-jsonrpc-append-trace
+    title: appendTraceReceipt
+    sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-jsonrpc-verify-trace
+    title: verifyTraceChain
+    sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-jsonrpc-parse-object
+    title: parseJsonRpcObject
+    sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-jsonrpc-id
+    title: jsonRpcId
+    sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-jsonrpc-method
+    title: jsonRpcMethod
+    sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-jsonrpc-tool-name
+    title: toolNameFromCall
+    sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-staged-broker-launch
+    title: StagedBrokerLaunch
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker-stage.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-broker-stage-options
+    title: BrokerStageOptions
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker-stage.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-stage-kibi-mcp-broker
+    title: stageKibiMcpBroker
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker-stage.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-required-kibi-tools
+    title: REQUIRED_KIBI_TOOLS
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-broker-options
+    title: BrokerOptions
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-mcp-broker-error
+    title: McpBrokerError
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
+    symbol_role: structural
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-mcp-broker-error-name
+    title: McpBrokerError.name
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
+    symbol_role: structural
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-filter-advertised-tools
+    title: filterAdvertisedTools
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-run-mcp-broker
+    title: runMcpBroker
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker-process.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-staged-mcp-options
+    title: StagedMcpOptions
+    sourceFile: scripts/skillopt-eval/runtime/staged-mcp.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-mcp-broker-tests
+    title: evaluator-owned Kibi MCP broker and independent final-state client
+    sourceFile: scripts/skillopt-eval/tests/mcp-broker.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-artifact-root-options
+    title: ArtifactRootResolutionOptions
+    sourceFile: scripts/skillopt-eval/runtime/artifact-root.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 8
+    sourceColumn: 12
+    sourceEndLine: 11
+    sourceEndColumn: 3
+  - id: SYM-skillopt-resolve-artifact-root
+    title: resolveArtifactRoot
+    sourceFile: scripts/skillopt-eval/runtime/artifact-root.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 14
+    sourceColumn: 22
+    sourceEndLine: 42
+    sourceEndColumn: 1
+  - id: SYM-skillopt-artifact-root-tests
+    title: SkillOpt artifact-root fallback
+    sourceFile: scripts/skillopt-eval/tests/artifact-root.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization

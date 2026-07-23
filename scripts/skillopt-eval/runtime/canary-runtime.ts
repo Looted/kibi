@@ -15,8 +15,11 @@ import {
   RuntimePrerequisiteError,
 } from "./canary-errors";
 import type { IsolationWorkspace } from "./isolation-workspace";
+import {
+  type StagedBrokerLaunch,
+  stageKibiMcpBroker,
+} from "./mcp-broker-stage";
 import type { ProcessResult } from "./process";
-import { stageKibiMcpRuntime } from "./staged-mcp";
 
 export { RequiredMcpStartupError, RuntimePrerequisiteError };
 export {
@@ -49,7 +52,7 @@ export type StagedCanaryRuntime = Readonly<{
   schemaPath: string;
   codexCommand: string;
   bwrapExecutable: string;
-  mcpServer: Omit<McpServerLaunch, "env">;
+  mcpServer: StagedBrokerLaunch;
 }>;
 
 async function executableFile(path: string): Promise<boolean> {
@@ -130,10 +133,12 @@ export async function stageCapabilityCanary(
     { encoding: "utf8", mode: 0o600 },
   );
 
-  const mcpServer = await stageKibiMcpRuntime(
+  const mcpServer = await stageKibiMcpBroker(
     workspace,
     sourceWorktree,
-    dependencies.nodeCommand,
+    dependencies.nodeCommand === undefined
+      ? {}
+      : { nodeCommand: dependencies.nodeCommand },
   );
   return {
     schemaPath,

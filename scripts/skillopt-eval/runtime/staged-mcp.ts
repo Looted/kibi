@@ -16,6 +16,11 @@ export type StagedMcpLaunch = Readonly<{
   cwd: string;
 }>;
 
+export type StagedMcpOptions = Readonly<{
+  nodeCommand?: string;
+  stagedRoot?: string;
+}>;
+
 const bundleCache = new Map<string, Promise<Uint8Array>>();
 
 async function buildRuntimeBundle(
@@ -35,6 +40,7 @@ async function buildRuntimeBundle(
     naming: "server.js",
     target: "bun",
     format: "esm",
+    packages: "bundle",
     minify: false,
     sourcemap: "none",
   });
@@ -94,9 +100,11 @@ async function copyRuntimeResources(
 export async function stageKibiMcpRuntime(
   workspace: IsolationWorkspace,
   sourceWorktree: string,
-  nodeCommand = process.execPath,
+  options: StagedMcpOptions = {},
 ): Promise<StagedMcpLaunch> {
-  const stagedRoot = resolve(workspace.target, ".runtime/kibi-mcp");
+  const stagedRoot = resolve(
+    options.stagedRoot ?? resolve(workspace.target, ".runtime/kibi-mcp"),
+  );
   const bundlePath = resolve(stagedRoot, "dist/server.js");
   const stagedCommand = resolve(stagedRoot, "bun");
   await Promise.all([
@@ -110,7 +118,10 @@ export async function stageKibiMcpRuntime(
       mode: 0o700,
     }),
   ]);
-  await cp(await realpath(nodeCommand), stagedCommand);
+  await cp(
+    await realpath(options.nodeCommand ?? process.execPath),
+    stagedCommand,
+  );
   await chmod(stagedCommand, 0o500);
   await writeFile(
     bundlePath,

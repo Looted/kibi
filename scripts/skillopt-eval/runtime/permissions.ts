@@ -114,7 +114,6 @@ export function buildCodexConfig(options: CodexConfigOptions): string {
     '":minimal" = "read"',
     `${tomlString(options.bwrapExecutable)} = "read"`,
     `${tomlString(options.codexExecutable)} = "read"`,
-    `${tomlString(options.mcpServer.command)} = "read"`,
     ...[...deniedRoots].map((path) => `${tomlString(path)} = "deny"`),
     '":tmpdir" = "deny"',
     '":slash_tmp" = "deny"',

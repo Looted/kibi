@@ -1,4 +1,5 @@
-import { join, resolve } from "node:path";
+import { resolve } from "node:path";
+import { resolveArtifactRoot } from "./artifact-root";
 import { runModelCanary } from "./canary-run";
 import { probeCodexSandbox, probeRequiredMcp } from "./canary-runtime";
 import {
@@ -48,14 +49,7 @@ export async function runCapabilityCanary(
   }>,
 ): Promise<CapabilityCanaryReceipt> {
   const sourceWorktree = resolve(options.sourceWorktree ?? process.cwd());
-  const artifactRoot = resolve(
-    options.artifactRoot ??
-      join(
-        "/run/user",
-        String(process.getuid?.() ?? process.pid),
-        "kibi-skillopt/isolation-canary",
-      ),
-  );
+  const artifactRoot = await resolveArtifactRoot(options.artifactRoot);
   const run =
     dependencies?.run ??
     ((argv, cwd, env, timeoutMs, stdin) =>

@@ -8,6 +8,7 @@ import {
   stageCapabilityCanary,
 } from "../runtime/canary-runtime";
 import { createIsolationWorkspace } from "../runtime/isolation-workspace";
+import { verifyTraceChain } from "../runtime/jsonrpc";
 
 const roots: string[] = [];
 
@@ -42,19 +43,26 @@ describe("required Kibi MCP stdio startup", () => {
       });
 
       // Then
-      const stagedRoot = resolve(isolation.target, ".runtime/kibi-mcp");
+      const stagedRoot = resolve(isolation.privateEvidence, "mcp-broker");
       expect(staged.mcpServer.command.startsWith(`${stagedRoot}/`)).toBe(true);
-      expect(staged.mcpServer.args).toEqual([
-        resolve(stagedRoot, "dist/server.js"),
-      ]);
+      expect(staged.mcpServer.args).toEqual([resolve(stagedRoot, "broker.js")]);
       expect(
         (await readFile(staged.mcpServer.args[0] ?? "", "utf8")).includes(
           process.cwd(),
         ),
       ).toBe(false);
-      expect(result.toolNames).toContain("kb_search");
-      expect(result.toolNames).toContain("kb_query");
-      expect(result.toolNames).toContain("kb_check");
+      expect(result.toolNames).toEqual([
+        "kb_autopilot_generate",
+        "kb_search",
+        "kb_query",
+        "kb_status",
+        "kb_check",
+        "kb_graph",
+        "kb_upsert",
+      ]);
+      expect(
+        verifyTraceChain(await readFile(staged.mcpServer.tracePath, "utf8")),
+      ).toMatchObject({ valid: true, entries: 5 });
     } finally {
       await isolation.cleanup();
     }

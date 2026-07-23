@@ -294,8 +294,8 @@ describe("Codex evaluator-owned permissions", () => {
       bwrapExecutable: "/run/work/.runtime/codex-resources/bwrap",
       codexExecutable: "/run/work/.runtime/codex",
       mcpServer: {
-        command: "/run/work/.runtime/kibi-mcp/bun",
-        args: ["/run/work/.runtime/kibi-mcp/dist/server.js"],
+        command: "/run/evidence/mcp-broker/bun",
+        args: ["/run/evidence/mcp-broker/broker.js"],
         cwd: paths.workspace,
       },
     });
@@ -322,11 +322,10 @@ describe("Codex evaluator-owned permissions", () => {
       expect(config).toContain(`${JSON.stringify(rootDeniedPath)} = "deny"`);
     }
     expect(config).toContain(`${JSON.stringify(paths.workspace)} = true`);
-    expect(config).toContain('command = "/run/work/.runtime/kibi-mcp/bun"');
-    expect(config).toContain(
-      'args = ["/run/work/.runtime/kibi-mcp/dist/server.js"]',
-    );
+    expect(config).toContain('command = "/run/evidence/mcp-broker/bun"');
+    expect(config).toContain('args = ["/run/evidence/mcp-broker/broker.js"]');
     expect(config).toContain('cwd = "/run/work"');
+    expect(config).not.toContain('"/run/evidence/mcp-broker/bun" = "read"');
     expect(config).not.toContain('"/source/packages/');
     expect(config).not.toContain('"/source/node_modules');
     expect(config).toContain("required = true");

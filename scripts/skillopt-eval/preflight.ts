@@ -1,5 +1,6 @@
 import { writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
+import { resolveArtifactRoot } from "./runtime/artifact-root";
 import {
   type McpServerLaunch,
   RequiredMcpStartupError,
@@ -185,14 +186,7 @@ export async function runPreflight(
   dependencies: PreflightDependencies = runtimeDependencies,
 ): Promise<PreflightReceipt> {
   const sourceWorktree = resolve(config.sourceWorktree ?? process.cwd());
-  const artifactRoot = resolve(
-    config.artifactRoot ??
-      join(
-        "/run/user",
-        String(process.getuid?.() ?? process.pid),
-        "kibi-skillopt/isolation-canary",
-      ),
-  );
+  const artifactRoot = await resolveArtifactRoot(config.artifactRoot);
   const env = config.env ?? process.env;
   let state: Parameters<typeof baseReceipt>[1] = {
     codexVersion: null,
