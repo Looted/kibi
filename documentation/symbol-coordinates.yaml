@@ -4385,7 +4385,7 @@ coordinates:
   SYM-skillopt-artifact-root-options:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 11
+    sourceEndLine: 12
     sourceFile: scripts/skillopt-eval/runtime/artifact-root.ts
     sourceLine: 8
   SYM-skillopt-assemble-canonical-skills:
@@ -5435,9 +5435,9 @@ coordinates:
   SYM-skillopt-resolve-artifact-root:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 42
+    sourceEndLine: 55
     sourceFile: scripts/skillopt-eval/runtime/artifact-root.ts
-    sourceLine: 14
+    sourceLine: 25
   SYM-skillopt-run-codex-cell:
     sourceColumn: 22
     sourceEndColumn: 1
