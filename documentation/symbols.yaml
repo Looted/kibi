@@ -10105,6 +10105,286 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-candidate-validation-error
+    title: CandidateValidationError
+    sourceFile: scripts/skillopt-eval/variants.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-validate-candidate-body
+    title: validateCandidateBody
+    sourceFile: scripts/skillopt-eval/variants.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-create-baseline-variant
+    title: createBaselineVariant
+    sourceFile: scripts/skillopt-eval/variants.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-freeze-candidate-variant
+    title: freezeCandidateVariant
+    sourceFile: scripts/skillopt-eval/variants.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-generate-one-shot-variant
+    title: generateOneShotVariant
+    sourceFile: scripts/skillopt-eval/variants.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-candidate-validation-error-name
+    title: CandidateValidationError.name
+    sourceFile: scripts/skillopt-eval/variants.ts
+    symbol_role: structural
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-variant-type
+    title: Variant
+    sourceFile: scripts/skillopt-eval/variants.ts
+    symbol_role: type-shape
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-variant-surface
+    title: VariantSurface
+    sourceFile: scripts/skillopt-eval/variants.ts
+    symbol_role: type-shape
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-frozen-variant
+    title: FrozenVariant
+    sourceFile: scripts/skillopt-eval/variants.ts
+    symbol_role: type-shape
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-one-shot-request
+    title: OneShotRequest
+    sourceFile: scripts/skillopt-eval/variants.ts
+    symbol_role: type-shape
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-one-shot-optimizer
+    title: OneShotOptimizer
+    sourceFile: scripts/skillopt-eval/variants.ts
+    symbol_role: type-shape
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-one-shot-result
+    title: OneShotResult
+    sourceFile: scripts/skillopt-eval/variants.ts
+    symbol_role: type-shape
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-candidate-validation-error-code
+    title: CandidateValidationErrorCode
+    sourceFile: scripts/skillopt-eval/variants.ts
+    symbol_role: type-shape
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-max-candidate-body-bytes
+    title: MAX_CANDIDATE_BODY_BYTES
+    sourceFile: scripts/skillopt-eval/variants.ts
+    symbol_role: config
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-variant-schema
+    title: VariantSchema
+    sourceFile: scripts/skillopt-eval/variants.ts
+    symbol_role: type-shape
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-train-trajectory
+    title: TrainTrajectory
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    symbol_role: type-shape
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-create-pinned-runner
+    title: createPinnedSkillOptRunner
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-optimize-skillopt-variant
+    title: optimizeSkillOptVariant
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-development-gate
+    title: DevelopmentGate
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    symbol_role: type-shape
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-step-request
+    title: SkillOptStepRequest
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    symbol_role: type-shape
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-step-result
+    title: SkillOptStepResult
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    symbol_role: type-shape
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-step-runner
+    title: SkillOptStepRunner
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    symbol_role: type-shape
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-pinned-runner-options
+    title: PinnedSkillOptRunnerOptions
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    symbol_role: type-shape
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-optimization-checkpoint
+    title: OptimizationCheckpoint
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    symbol_role: type-shape
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-optimization-step
+    title: OptimizationStep
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    symbol_role: type-shape
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-optimization-result
+    title: OptimizationResult
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    symbol_role: type-shape
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-artifact-input
+    title: SkillOptArtifactInput
+    sourceFile: scripts/skillopt-eval/skillopt-artifacts.ts
+    symbol_role: type-shape
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-persist-artifacts
+    title: persistSkillOptArtifacts
+    sourceFile: scripts/skillopt-eval/skillopt-artifacts.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-bridge-cli-argument
     title: bridge-cli argument parser
     sourceFile: scripts/skillopt-eval/bridge-cli.ts
