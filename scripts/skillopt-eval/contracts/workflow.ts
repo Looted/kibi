@@ -88,6 +88,9 @@ export const RunStateSchema = boundedContractSchema(
     }),
 );
 
+// implements REQ-skillopt-codex-optimization
+export type RunState = Readonly<z.infer<typeof RunStateSchema>>;
+
 const LegacyReportSchema = boundedContractSchema(
   z
     .object({
