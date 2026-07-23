@@ -133,7 +133,7 @@ export async function stageKibiMcpRuntime(
   await copyRuntimeResources(sourceWorktree, stagedRoot);
   return {
     command: stagedCommand,
-    args: [bundlePath],
+    args: [bundlePath, "--diagnostic-mode"],
     cwd: workspace.target,
   };
 }
