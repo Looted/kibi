@@ -6410,3 +6410,33 @@ coordinates:
     sourceEndLine: 418
     sourceFile: packages/mcp/src/tools/model-requirement.ts
     sourceLine: 416
+  SYM-skillopt-report-gate-results-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 26
+    sourceFile: scripts/skillopt-eval/report.ts
+    sourceLine: 20
+  SYM-skillopt-build-report-input-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 39
+    sourceFile: scripts/skillopt-eval/report.ts
+    sourceLine: 29
+  SYM-skillopt-report-artifacts-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 47
+    sourceFile: scripts/skillopt-eval/report.ts
+    sourceLine: 42
+  SYM-skillopt-render-report-markdown:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 87
+    sourceFile: scripts/skillopt-eval/report.ts
+    sourceLine: 67
+  SYM-skillopt-build-report-artifacts:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 116
+    sourceFile: scripts/skillopt-eval/report.ts
+    sourceLine: 90
