@@ -6440,3 +6440,15 @@ coordinates:
     sourceEndLine: 116
     sourceFile: scripts/skillopt-eval/report.ts
     sourceLine: 90
+  SYM-skillopt-build-proposal-input-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 22
+    sourceFile: scripts/skillopt-eval/proposal.ts
+    sourceLine: 16
+  SYM-skillopt-build-proposal:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 97
+    sourceFile: scripts/skillopt-eval/proposal.ts
+    sourceLine: 77
