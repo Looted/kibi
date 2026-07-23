@@ -6026,6 +6026,24 @@ coordinates:
     sourceEndLine: 51
     sourceFile: packages/mcp/src/tools/upsert.ts
     sourceLine: 29
+  SYM-test-root-batch-timeout-minutes:
+    sourceColumn: 13
+    sourceEndColumn: 39
+    sourceEndLine: 15
+    sourceFile: test/root.test.ts
+    sourceLine: 15
+  SYM-test-root-getBatchFailureMessage:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 38
+    sourceFile: test/root.test.ts
+    sourceLine: 24
+  SYM-test-root-runBatch:
+    sourceColumn: 15
+    sourceEndColumn: 1
+    sourceEndLine: 198
+    sourceFile: test/root.test.ts
+    sourceLine: 150
   SYM-test-sparql-fixture-request:
     sourceColumn: 12
     sourceEndColumn: 2

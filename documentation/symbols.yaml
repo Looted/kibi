@@ -3825,6 +3825,7 @@ symbols:
   - id: SYM-formatInvalidRelationshipError
     title: formatInvalidRelationshipError
     sourceFile: packages/mcp/src/tools/relationship-validation.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-mcp-relationship-preflight
@@ -8815,6 +8816,7 @@ symbols:
   - id: SYM-cli-input-error
     title: InputError
     sourceFile: packages/cli/src/cli-errors.ts
+    granularity_reason: legacy-link
     symbol_role: behavioral
     relationships:
       - type: implements
@@ -8824,6 +8826,7 @@ symbols:
   - id: SYM-cli-operation-error
     title: OperationError
     sourceFile: packages/cli/src/cli-errors.ts
+    granularity_reason: legacy-link
     symbol_role: behavioral
     relationships:
       - type: implements
@@ -10412,3 +10415,51 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
+  - id: SYM-test-root-batch-timeout-minutes
+    title: BATCH_TIMEOUT_MINUTES
+    sourceFile: test/root.test.ts
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-root-suite-batch-diagnostics
+      - type: covered_by
+        target: TEST-root-suite-batch-diagnostics
+    sourceLine: 15
+    sourceColumn: 13
+    sourceEndLine: 15
+    sourceEndColumn: 39
+  - id: SYM-test-root-getBatchFailureMessage
+    title: getBatchFailureMessage
+    sourceFile: test/root.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-root-suite-batch-diagnostics
+      - type: covered_by
+        target: TEST-root-suite-batch-diagnostics
+    sourceLine: 24
+    sourceColumn: 16
+    sourceEndLine: 38
+    sourceEndColumn: 1
+  - id: SYM-test-root-runBatch
+    title: runBatch
+    sourceFile: test/root.test.ts
+    granularity_reason: extractor-miss
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-root-suite-batch-diagnostics
+      - type: covered_by
+        target: TEST-root-suite-batch-diagnostics
+    sourceLine: 150
+    sourceColumn: 15
+    sourceEndLine: 198
+    sourceEndColumn: 1
+  - id: SYM-test-root-summary-timeout-diagnostic
+    title: getBatchFailureMessage timeout regression
+    sourceFile: test/root-summary.test.ts
+    granularity_reason: extractor-miss
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-root-suite-batch-diagnostics
