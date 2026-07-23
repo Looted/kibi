@@ -6452,3 +6452,15 @@ coordinates:
     sourceEndLine: 97
     sourceFile: scripts/skillopt-eval/proposal.ts
     sourceLine: 77
+  SYM-skillopt-validate-approval-input-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 28
+    sourceFile: scripts/skillopt-eval/approval.ts
+    sourceLine: 22
+  SYM-skillopt-validate-approval:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 66
+    sourceFile: scripts/skillopt-eval/approval.ts
+    sourceLine: 31
