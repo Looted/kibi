@@ -8983,7 +8983,7 @@ symbols:
   - id: SYM-skillopt-cli-main
     title: main
     sourceFile: scripts/skillopt-eval/cli.ts
-    text_ref: docs/skillopt.md#direct-cli-commands
+    text_ref: scripts/skillopt-eval/tests/cli-workflow.test.ts#main
     symbol_role: behavioral
     relationships:
       - type: implements
@@ -13331,6 +13331,7 @@ symbols:
   - id: SYM-skillopt-build-offline-review-artifacts
     title: buildOfflineReviewArtifacts
     sourceFile: scripts/skillopt-eval/offline-artifacts.ts
+    text_ref: scripts/skillopt-eval/tests/cli-workflow.test.ts#buildOfflineReviewArtifacts
     symbol_role: behavioral
     granularity_reason: extractor-miss
     relationships:
@@ -13345,6 +13346,7 @@ symbols:
   - id: SYM-skillopt-write-offline-review-artifacts
     title: writeOfflineReviewArtifacts
     sourceFile: scripts/skillopt-eval/offline-artifacts.ts
+    text_ref: scripts/skillopt-eval/tests/cli-workflow.test.ts#writeOfflineReviewArtifacts
     symbol_role: behavioral
     granularity_reason: extractor-miss
     relationships:
@@ -13359,6 +13361,7 @@ symbols:
   - id: SYM-skillopt-plan-offline-adoption
     title: planOfflineAdoption
     sourceFile: scripts/skillopt-eval/offline-artifacts.ts
+    text_ref: scripts/skillopt-eval/tests/cli-workflow.test.ts#planOfflineAdoption
     symbol_role: behavioral
     granularity_reason: extractor-miss
     relationships:
