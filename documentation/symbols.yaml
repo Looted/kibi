@@ -13275,6 +13275,7 @@ symbols:
   - id: SYM-skillopt-plan-skill-adoption
     title: planSkillAdoption
     sourceFile: scripts/skillopt-eval/adoption.ts
+    text_ref: scripts/skillopt-eval/tests/adoption.test.ts#planSkillAdoption
     symbol_role: behavioral
     relationships:
       - type: implements
@@ -13288,6 +13289,7 @@ symbols:
   - id: SYM-skillopt-adopt-approved-skill
     title: adoptApprovedSkill
     sourceFile: scripts/skillopt-eval/adoption.ts
+    text_ref: scripts/skillopt-eval/tests/adoption.test.ts#adoptApprovedSkill
     symbol_role: behavioral
     relationships:
       - type: implements
