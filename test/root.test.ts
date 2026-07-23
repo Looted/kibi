@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
+import { resolve } from "node:path";
 
-type SuiteSummary = {
+export type SuiteSummary = {
   pass: number;
   fail: number;
   files: number;
@@ -80,10 +81,10 @@ const BATCHES: Batch[] = [
   },
 ];
 
-function parseSuiteSummaries(output: string): SuiteSummary[] {
+export function parseSuiteSummaries(output: string): SuiteSummary[] {
   const summaries: SuiteSummary[] = [];
   const summaryPattern =
-    /\n\s*(\d+) pass\n\s*(\d+) fail[\s\S]*?Ran \d+ tests across (\d+) files?/g;
+    /\n\s*(\d+) pass(?:\n\s*\d+ skip)?\n\s*(\d+) fail[\s\S]*?Ran \d+ tests across (\d+) files?/g;
   for (const match of output.matchAll(summaryPattern)) {
     summaries.push({
       pass: Number(match[1]),
@@ -184,9 +185,15 @@ async function runCuratedUnitSuite(): Promise<number> {
   return summaries.some((summary) => summary.fail > 0) ? 1 : 0;
 }
 
-try {
-  process.exit(await runCuratedUnitSuite());
-} catch (error) {
-  console.error(error);
-  process.exit(1);
+const isEntryPoint =
+  process.argv.length >= 2 &&
+  process.argv[1] !== undefined &&
+  resolve(process.argv[1]) === import.meta.filename;
+if (isEntryPoint) {
+  try {
+    process.exit(await runCuratedUnitSuite());
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
 }
