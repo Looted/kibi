@@ -11938,7 +11938,7 @@ symbols:
         target: TEST-skillopt-codex-optimization
     sourceLine: 8
     sourceColumn: 12
-    sourceEndLine: 11
+    sourceEndLine: 12
     sourceEndColumn: 3
   - id: SYM-skillopt-resolve-artifact-root
     title: resolveArtifactRoot
@@ -11949,9 +11949,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 14
+    sourceLine: 25
     sourceColumn: 22
-    sourceEndLine: 42
+    sourceEndLine: 55
     sourceEndColumn: 1
   - id: SYM-skillopt-artifact-root-tests
     title: SkillOpt artifact-root fallback
