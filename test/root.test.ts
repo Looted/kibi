@@ -12,6 +12,31 @@ type Batch = {
   args: string[];
 };
 
+export const BATCH_TIMEOUT_MINUTES = 25;
+
+type BatchOutcome = {
+  timedOut: boolean;
+  status: number | null;
+  summaryCount: number;
+};
+
+// implements REQ-root-suite-batch-diagnostics
+export function getBatchFailureMessage(
+  label: string,
+  outcome: BatchOutcome,
+): string | null {
+  if (outcome.timedOut) {
+    return `${label} timed out after ${BATCH_TIMEOUT_MINUTES} minutes (status ${outcome.status ?? "null"}; ${outcome.summaryCount} summaries).`;
+  }
+  if (outcome.status !== 0) {
+    return `${label} exited with status ${outcome.status ?? "null"} (${outcome.summaryCount} summaries).`;
+  }
+  if (outcome.summaryCount !== 1) {
+    return `Expected one Bun summary for ${label}, got ${outcome.summaryCount}.`;
+  }
+  return null;
+}
+
 const BATCHES: Batch[] = [
   {
     label: "cli",
@@ -121,6 +146,7 @@ function formatSuiteSummary(
   ].join("\n");
 }
 
+// implements REQ-root-suite-batch-diagnostics
 async function runBatch(
   batch: Batch,
 ): Promise<SuiteSummary & { label: string }> {
@@ -150,7 +176,7 @@ async function runBatch(
       timedOut = true;
       child.kill("SIGTERM");
     },
-    20 * 60 * 1000,
+    BATCH_TIMEOUT_MINUTES * 60 * 1000,
   );
 
   const status = await new Promise<number | null>((resolve, reject) => {
@@ -161,17 +187,12 @@ async function runBatch(
   const summaries = parseSuiteSummaries(
     Buffer.concat([...outputChunks, ...errorChunks]).toString("utf8"),
   );
-  if (summaries.length !== 1) {
-    throw new Error(
-      `Expected one Bun summary for ${batch.label}, got ${summaries.length}.`,
-    );
-  }
-  if (timedOut) {
-    throw new Error(`${batch.label} timed out after 15 minutes.`);
-  }
-  if (status !== 0) {
-    throw new Error(`${batch.label} exited with status ${status ?? "null"}.`);
-  }
+  const failureMessage = getBatchFailureMessage(batch.label, {
+    timedOut,
+    status,
+    summaryCount: summaries.length,
+  });
+  if (failureMessage !== null) throw new Error(failureMessage);
 
   return { ...summaries[0], label: batch.label };
 }

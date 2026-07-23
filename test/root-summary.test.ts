@@ -1,5 +1,24 @@
-import { describe, it, expect } from "bun:test";
-import { parseSuiteSummaries, type SuiteSummary } from "./root.test.ts";
+import { describe, expect, it } from "bun:test";
+import {
+  BATCH_TIMEOUT_MINUTES,
+  type SuiteSummary,
+  getBatchFailureMessage,
+  parseSuiteSummaries,
+} from "./root.test.ts";
+
+describe("getBatchFailureMessage", () => {
+  it("reports a killed batch timeout before a missing summary", () => {
+    expect(
+      getBatchFailureMessage("cli", {
+        timedOut: true,
+        status: null,
+        summaryCount: 0,
+      }),
+    ).toBe(
+      `cli timed out after ${BATCH_TIMEOUT_MINUTES} minutes (status null; 0 summaries).`,
+    );
+  });
+});
 
 describe("parseSuiteSummaries", () => {
   it("parses summary without skip line (legacy format)", () => {
@@ -68,8 +87,18 @@ describe("parseSuiteSummaries", () => {
   });
 
   it("matches singular 'file' and plural 'files'", () => {
-    const withSingular = ["", "  1 pass", "  0 fail", "Ran 1 tests across 1 file."].join("\n");
-    const withPlural = ["", "  2 pass", "  0 fail", "Ran 2 tests across 2 files."].join("\n");
+    const withSingular = [
+      "",
+      "  1 pass",
+      "  0 fail",
+      "Ran 1 tests across 1 file.",
+    ].join("\n");
+    const withPlural = [
+      "",
+      "  2 pass",
+      "  0 fail",
+      "Ran 2 tests across 2 files.",
+    ].join("\n");
 
     // Ensure old test runner output with known bun summary around it still works
     const resultSingular = parseSuiteSummaries(withSingular);
