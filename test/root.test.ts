@@ -15,7 +15,7 @@ type Batch = {
 const BATCHES: Batch[] = [
   {
     label: "cli",
-    args: ["test", "--timeout", "15000", "--max-concurrency=1", "./packages/cli"],
+    args: ["test", "--timeout", "15000", "./packages/cli"],
   },
   {
     label: "mcp",
