@@ -2,6 +2,8 @@
 
 This directory is an isolated research tool, not a Kibi runtime dependency. It pins Microsoft SkillOpt v0.2.0 to commit `b860a5cf88ce75e2bd02ca981ac21fb28cffba83`.
 
+For the operator workflow guide, see [docs/skillopt.md](../../docs/skillopt.md).
+
 ## Verify
 
 ```bash
