@@ -4484,6 +4484,174 @@ coordinates:
     sourceEndLine: 189
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     sourceLine: 187
+  SYM-skillopt-candidate-validation-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 64
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 58
+  SYM-skillopt-candidate-validation-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 45
+    sourceEndLine: 59
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 59
+  SYM-skillopt-variant-type:
+    sourceColumn: 12
+    sourceEndColumn: 52
+    sourceEndLine: 9
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 9
+  SYM-skillopt-variant-surface:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 14
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 11
+  SYM-skillopt-frozen-variant:
+    sourceColumn: 12
+    sourceEndColumn: 5
+    sourceEndLine: 27
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 16
+  SYM-skillopt-one-shot-request:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 35
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 29
+  SYM-skillopt-one-shot-optimizer:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 39
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 37
+  SYM-skillopt-one-shot-result:
+    sourceColumn: 12
+    sourceEndColumn: 7
+    sourceEndLine: 55
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 41
+  SYM-skillopt-candidate-validation-error-code:
+    sourceColumn: 12
+    sourceEndColumn: 40
+    sourceEndLine: 73
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 66
+  SYM-skillopt-max-candidate-body-bytes:
+    sourceColumn: 13
+    sourceEndColumn: 47
+    sourceEndLine: 6
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 6
+  SYM-skillopt-variant-schema:
+    sourceColumn: 13
+    sourceEndColumn: 73
+    sourceEndLine: 8
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 8
+  SYM-skillopt-validate-candidate-body:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 115
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 97
+  SYM-skillopt-create-baseline-variant:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 163
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 145
+  SYM-skillopt-freeze-candidate-variant:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 182
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 166
+  SYM-skillopt-generate-one-shot-variant:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 233
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 185
+  SYM-skillopt-train-trajectory:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 19
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 15
+  SYM-skillopt-development-gate:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 25
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 21
+  SYM-skillopt-step-request:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 34
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 27
+  SYM-skillopt-step-result:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 39
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 36
+  SYM-skillopt-step-runner:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 43
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 41
+  SYM-skillopt-pinned-runner-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 52
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 45
+  SYM-skillopt-optimization-checkpoint:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 59
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 54
+  SYM-skillopt-optimization-step:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 65
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 61
+  SYM-skillopt-optimization-result:
+    sourceColumn: 12
+    sourceEndColumn: 7
+    sourceEndLine: 81
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 67
+  SYM-skillopt-create-pinned-runner:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 154
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 105
+  SYM-skillopt-optimize-skillopt-variant:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 310
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 185
+  SYM-skillopt-artifact-input:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 11
+    sourceFile: scripts/skillopt-eval/skillopt-artifacts.ts
+    sourceLine: 6
+  SYM-skillopt-persist-artifacts:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 60
+    sourceFile: scripts/skillopt-eval/skillopt-artifacts.ts
+    sourceLine: 14
   SYM-skillopt-bridge-cli-argument:
     sourceColumn: 10
     sourceEndColumn: 1
