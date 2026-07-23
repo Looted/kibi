@@ -4388,6 +4388,108 @@ coordinates:
     sourceEndLine: 12
     sourceFile: scripts/skillopt-eval/runtime/artifact-root.ts
     sourceLine: 8
+  SYM-skillopt-file-bridge:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 190
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 152
+  SYM-skillopt-bridge-request-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 48
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 31
+  SYM-skillopt-bridge-result-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 67
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 51
+  SYM-skillopt-bridge-request:
+    sourceColumn: 12
+    sourceEndColumn: 74
+    sourceEndLine: 70
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 70
+  SYM-skillopt-bridge-result:
+    sourceColumn: 12
+    sourceEndColumn: 72
+    sourceEndLine: 72
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 72
+  SYM-skillopt-bridge-visibility-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 77
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 75
+  SYM-skillopt-bridge-visibility-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 42
+    sourceEndLine: 76
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 76
+  SYM-skillopt-write-bridge-request:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 108
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 100
+  SYM-skillopt-read-bridge-request:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 113
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 111
+  SYM-skillopt-write-bridge-result:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 128
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 116
+  SYM-skillopt-read-bridge-result:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 149
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 131
+  SYM-skillopt-file-bridge-resolve:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 169
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 159
+  SYM-skillopt-file-bridge-write-public:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 174
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 172
+  SYM-skillopt-file-bridge-write-private:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 179
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 177
+  SYM-skillopt-file-bridge-read-public:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 184
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 182
+  SYM-skillopt-file-bridge-read-private:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 189
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 187
+  SYM-skillopt-bridge-cli-argument:
+    sourceColumn: 10
+    sourceEndColumn: 1
+    sourceEndLine: 10
+    sourceFile: scripts/skillopt-eval/bridge-cli.ts
+    sourceLine: 4
   SYM-skillopt-assemble-canonical-skills:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -5321,9 +5423,9 @@ coordinates:
   SYM-skillopt-python-contract-hash:
     sourceColumn: 4
     sourceEndColumn: 17
-    sourceEndLine: 119
+    sourceEndLine: 120
     sourceFile: tools/skillopt/kibi_skillopt/common.py
-    sourceLine: 119
+    sourceLine: 120
   SYM-skillopt-python-contract-model:
     sourceColumn: 6
     sourceEndColumn: 19
@@ -5351,9 +5453,9 @@ coordinates:
   SYM-skillopt-python-json-node-value:
     sourceColumn: 4
     sourceEndColumn: 19
-    sourceEndLine: 123
+    sourceEndLine: 124
     sourceFile: tools/skillopt/kibi_skillopt/common.py
-    sourceLine: 123
+    sourceLine: 124
   SYM-skillopt-python-ledger-entry:
     sourceColumn: 6
     sourceEndColumn: 17
