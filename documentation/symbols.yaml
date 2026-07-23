@@ -10773,3 +10773,21 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-build-proposal-input-type
+    title: BuildProposalInput
+    sourceFile: scripts/skillopt-eval/proposal.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-build-proposal
+    title: buildProposal
+    sourceFile: scripts/skillopt-eval/proposal.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
