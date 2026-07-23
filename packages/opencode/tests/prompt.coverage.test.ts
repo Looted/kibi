@@ -178,8 +178,9 @@ describe("prompt coverage", () => {
     );
 
     assert.match(prompt, /Bootstrap required/);
-    assert.match(prompt, /kb_autopilot_generate/);
     assert.match(prompt, /\/init-kibi/);
+    assert.match(prompt, /--input <file\|->/);
+    assert.match(prompt, /Kibi capability selection/);
   });
 
   test("advisory cache suppresses repeated semantic guidance", () => {
