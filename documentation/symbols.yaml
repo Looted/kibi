@@ -13385,6 +13385,7 @@ symbols:
   - id: SYM-skillopt-run-store
     title: RunStore
     sourceFile: scripts/skillopt-eval/orchestration-store.ts
+    text_ref: scripts/skillopt-eval/tests/orchestration.test.ts#RunStore
     symbol_role: behavioral
     granularity_reason: extractor-miss
     relationships:
@@ -13623,6 +13624,7 @@ symbols:
   - id: SYM-skillopt-run-offline-workflow
     title: runOfflineWorkflow
     sourceFile: scripts/skillopt-eval/orchestration.ts
+    text_ref: scripts/skillopt-eval/tests/orchestration.test.ts#runOfflineWorkflow
     symbol_role: behavioral
     granularity_reason: extractor-miss
     relationships:
