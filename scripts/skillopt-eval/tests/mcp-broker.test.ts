@@ -158,6 +158,7 @@ describe("evaluator-owned Kibi MCP evidence", () => {
         true,
       );
       expect(staged.command.startsWith(`${workspace.target}/`)).toBe(false);
+      expect(staged.downstream.args).toContain("--diagnostic-mode");
       expect(
         (await readFile(staged.bundlePath, "utf8")).includes(process.cwd()),
       ).toBe(false);

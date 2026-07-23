@@ -4388,6 +4388,12 @@ coordinates:
     sourceEndLine: 11
     sourceFile: scripts/skillopt-eval/runtime/artifact-root.ts
     sourceLine: 8
+  SYM-skillopt-assemble-canonical-skills:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 136
+    sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
+    sourceLine: 91
   SYM-skillopt-broker-options:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -4424,6 +4430,18 @@ coordinates:
     sourceEndLine: 146
     sourceFile: scripts/skillopt-eval/catalog.ts
     sourceLine: 127
+  SYM-skillopt-candidate-surface-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 36
+    sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
+    sourceLine: 28
+  SYM-skillopt-candidate-surface-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 42
+    sourceEndLine: 29
+    sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
+    sourceLine: 29
   SYM-skillopt-canonical-skill-type:
     sourceColumn: 12
     sourceEndColumn: 63
@@ -4454,6 +4472,60 @@ coordinates:
     sourceEndLine: 66
     sourceFile: scripts/skillopt-eval/cli.ts
     sourceLine: 40
+  SYM-skillopt-codex-cell-dependencies-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 59
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    sourceLine: 45
+  SYM-skillopt-codex-cell-options-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 43
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    sourceLine: 27
+  SYM-skillopt-codex-episode-receipt-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 49
+    sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
+    sourceLine: 28
+  SYM-skillopt-codex-episode-receipt-type:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 53
+    sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
+    sourceLine: 51
+  SYM-skillopt-codex-normalization-options-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 43
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    sourceLine: 40
+  SYM-skillopt-codex-normalization-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 38
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    sourceLine: 28
+  SYM-skillopt-codex-violation-type:
+    sourceColumn: 12
+    sourceEndColumn: 63
+    sourceEndLine: 20
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    sourceLine: 20
+  SYM-skillopt-codex-violations:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 19
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    sourceLine: 14
+  SYM-skillopt-completed-codex-cell-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 65
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    sourceLine: 61
   SYM-skillopt-contract-approval-schema:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -4808,12 +4880,36 @@ coordinates:
     sourceEndLine: 14
     sourceFile: scripts/skillopt-eval/contracts/episode.ts
     sourceLine: 14
+  SYM-skillopt-default-codex-cell-dependencies:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 61
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
+    sourceLine: 23
+  SYM-skillopt-deterministic-variant-label:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 199
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    sourceLine: 189
+  SYM-skillopt-episode-replay-input-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 74
+    sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
+    sourceLine: 55
   SYM-skillopt-filter-advertised-tools:
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 53
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
     sourceLine: 30
+  SYM-skillopt-final-state-context-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 25
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    sourceLine: 18
   SYM-skillopt-final-state-options:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -4886,6 +4982,18 @@ coordinates:
     sourceEndLine: 111
     sourceFile: scripts/skillopt-eval/fixtures/task-definitions-bootstrap.ts
     sourceLine: 58
+  SYM-skillopt-fixture-integrity-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 73
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    sourceLine: 67
+  SYM-skillopt-fixture-integrity-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 42
+    sourceEndLine: 68
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    sourceLine: 68
   SYM-skillopt-fixture-materialize-run:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5108,12 +5216,36 @@ coordinates:
     sourceEndLine: 70
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
     sourceLine: 70
+  SYM-skillopt-normalize-codex-jsonl:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 186
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    sourceLine: 136
+  SYM-skillopt-normalized-codex-event-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 26
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    sourceLine: 22
+  SYM-skillopt-persist-codex-episode:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 63
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-artifacts.ts
+    sourceLine: 17
   SYM-skillopt-preflight-run:
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 263
     sourceFile: scripts/skillopt-eval/preflight.ts
     sourceLine: 184
+  SYM-skillopt-prepared-login-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 16
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    sourceLine: 12
   SYM-skillopt-process-group-exists:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -5276,6 +5408,18 @@ coordinates:
     sourceEndLine: 87
     sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
     sourceLine: 87
+  SYM-skillopt-read-optional-artifact:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 14
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-artifacts.ts
+    sourceLine: 5
+  SYM-skillopt-replay-codex-episode:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 253
+    sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
+    sourceLine: 159
   SYM-skillopt-repository-state-type:
     sourceColumn: 12
     sourceEndColumn: 75
@@ -5294,6 +5438,12 @@ coordinates:
     sourceEndLine: 42
     sourceFile: scripts/skillopt-eval/runtime/artifact-root.ts
     sourceLine: 14
+  SYM-skillopt-run-codex-cell:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 181
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
+    sourceLine: 31
   SYM-skillopt-run-independent-final-state:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -5798,6 +5948,18 @@ coordinates:
     sourceEndLine: 39
     sourceFile: scripts/skillopt-eval/scoring/cell.ts
     sourceLine: 33
+  SYM-skillopt-skill-assembly-receipt-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 26
+    sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
+    sourceLine: 18
+  SYM-skillopt-skill-candidate-surface-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 16
+    sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
+    sourceLine: 12
   SYM-skillopt-source-lock-python-tests:
     sourceColumn: 6
     sourceEndColumn: 21

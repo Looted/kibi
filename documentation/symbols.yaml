@@ -11961,3 +11961,364 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-normalize-codex-jsonl
+    title: normalizeCodexJsonl
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-deterministic-variant-label
+    title: deterministicVariantLabel
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-assemble-canonical-skills
+    title: assembleCanonicalSkills
+    sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-candidate-surface-error
+    title: CandidateSurfaceError
+    sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
+    symbol_role: structural
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-codex-episode-receipt-schema
+    title: CodexEpisodeReceiptSchema
+    sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-replay-codex-episode
+    title: replayCodexEpisode
+    sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-run-codex-cell
+    title: runCodexCell
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-persist-codex-episode
+    title: persistCodexEpisode
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-artifacts.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-default-codex-cell-dependencies
+    title: defaultCodexCellDependencies
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-fixture-integrity-error
+    title: FixtureIntegrityError
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    symbol_role: structural
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-codex-events-tests
+    title: Codex JSONL normalization
+    sourceFile: scripts/skillopt-eval/tests/codex-events.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-skill-assembly-tests
+    title: canonical skill assembly
+    sourceFile: scripts/skillopt-eval/tests/skill-assembly.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-codex-episode-replay-tests
+    title: deterministic Codex episode replay
+    sourceFile: scripts/skillopt-eval/tests/codex-episode-replay.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-codex-cell-runner-tests
+    title: Codex cell runner
+    sourceFile: scripts/skillopt-eval/tests/codex-cell-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-read-optional-artifact
+    title: readOptionalArtifact
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-artifacts.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 5
+    sourceColumn: 22
+    sourceEndLine: 14
+    sourceEndColumn: 1
+  - id: SYM-skillopt-prepared-login-type
+    title: PreparedLogin
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 12
+    sourceColumn: 12
+    sourceEndLine: 16
+    sourceEndColumn: 3
+  - id: SYM-skillopt-final-state-context-type
+    title: FinalStateContext
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 18
+    sourceColumn: 12
+    sourceEndLine: 25
+    sourceEndColumn: 3
+  - id: SYM-skillopt-codex-cell-options-type
+    title: CodexCellOptions
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 27
+    sourceColumn: 12
+    sourceEndLine: 43
+    sourceEndColumn: 3
+  - id: SYM-skillopt-codex-cell-dependencies-type
+    title: CodexCellDependencies
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 45
+    sourceColumn: 12
+    sourceEndLine: 59
+    sourceEndColumn: 3
+  - id: SYM-skillopt-completed-codex-cell-type
+    title: CompletedCodexCell
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 61
+    sourceColumn: 12
+    sourceEndLine: 65
+    sourceEndColumn: 3
+  - id: SYM-skillopt-fixture-integrity-error-name
+    title: FixtureIntegrityError.name
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    symbol_role: structural
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 68
+    sourceColumn: 11
+    sourceEndLine: 68
+    sourceEndColumn: 42
+  - id: SYM-skillopt-codex-episode-receipt-type
+    title: CodexEpisodeReceipt
+    sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 51
+    sourceColumn: 12
+    sourceEndLine: 53
+    sourceEndColumn: 2
+  - id: SYM-skillopt-episode-replay-input-type
+    title: EpisodeReplayInput
+    sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 55
+    sourceColumn: 12
+    sourceEndLine: 74
+    sourceEndColumn: 3
+  - id: SYM-skillopt-codex-violations
+    title: CODEX_VIOLATIONS
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 14
+    sourceColumn: 13
+    sourceEndLine: 19
+    sourceEndColumn: 10
+  - id: SYM-skillopt-codex-violation-type
+    title: CodexViolation
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 20
+    sourceColumn: 12
+    sourceEndLine: 20
+    sourceEndColumn: 63
+  - id: SYM-skillopt-normalized-codex-event-type
+    title: NormalizedCodexEvent
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 22
+    sourceColumn: 12
+    sourceEndLine: 26
+    sourceEndColumn: 3
+  - id: SYM-skillopt-codex-normalization-type
+    title: CodexNormalization
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 28
+    sourceColumn: 12
+    sourceEndLine: 38
+    sourceEndColumn: 3
+  - id: SYM-skillopt-codex-normalization-options-type
+    title: CodexNormalizationOptions
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 40
+    sourceColumn: 12
+    sourceEndLine: 43
+    sourceEndColumn: 3
+  - id: SYM-skillopt-skill-candidate-surface-type
+    title: SkillCandidateSurface
+    sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 12
+    sourceColumn: 12
+    sourceEndLine: 16
+    sourceEndColumn: 3
+  - id: SYM-skillopt-skill-assembly-receipt-type
+    title: SkillAssemblyReceipt
+    sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 18
+    sourceColumn: 12
+    sourceEndLine: 26
+    sourceEndColumn: 3
+  - id: SYM-skillopt-candidate-surface-error-name
+    title: CandidateSurfaceError.name
+    sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
+    symbol_role: structural
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 29
+    sourceColumn: 11
+    sourceEndLine: 29
+    sourceEndColumn: 42
