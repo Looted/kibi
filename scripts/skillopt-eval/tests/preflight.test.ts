@@ -70,6 +70,13 @@ function dependencies(
           command: "/bin/node",
           args: ["/source/packages/mcp/bin/kibi-mcp"],
           cwd: workspace.target,
+          bundlePath: "/staged/mcp-broker/broker.js",
+          tracePath: join(workspace.privateEvidence, "broker-trace.jsonl"),
+          downstream: {
+            command: "/staged/kibi-mcp/bun",
+            args: ["/staged/kibi-mcp/server.js"],
+            cwd: workspace.target,
+          },
         },
       };
     },
@@ -250,17 +257,10 @@ describe("SkillOpt Codex preflight", () => {
 
     // Then
     const sourceRelative = relative(testFixture.root, stagedRoot);
-    const runtimeParent = join("/run/user", String(process.getuid?.() ?? -1));
-    const runtimeRelative = relative(runtimeParent, stagedRoot);
     expect(receipt.verdict).toBe("pass");
     expect(
       sourceRelative === "" ||
         (!sourceRelative.startsWith("..") && !isAbsolute(sourceRelative)),
     ).toBe(false);
-    expect(
-      runtimeRelative !== "" &&
-        !runtimeRelative.startsWith("..") &&
-        !isAbsolute(runtimeRelative),
-    ).toBe(true);
   });
 });

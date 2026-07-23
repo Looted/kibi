@@ -1,0 +1,74 @@
+import { chmod, mkdir, readFile, realpath, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import type { IsolationWorkspace } from "./isolation-workspace";
+import { McpBrokerError } from "./mcp-broker";
+import { type StagedMcpLaunch, stageKibiMcpRuntime } from "./staged-mcp";
+
+export type StagedBrokerLaunch = Readonly<{
+  command: string;
+  args: readonly string[];
+  cwd: string;
+  bundlePath: string;
+  tracePath: string;
+  downstream: StagedMcpLaunch;
+}>;
+
+export type BrokerStageOptions = Readonly<{
+  nodeCommand?: string;
+}>;
+
+// implements REQ-skillopt-codex-optimization
+export async function stageKibiMcpBroker(
+  workspace: IsolationWorkspace,
+  sourceWorktree: string,
+  options: BrokerStageOptions = {},
+): Promise<StagedBrokerLaunch> {
+  const brokerRoot = resolve(workspace.privateEvidence, "mcp-broker");
+  const downstreamRoot = resolve(workspace.privateEvidence, "kibi-mcp-runtime");
+  await mkdir(brokerRoot, { recursive: true, mode: 0o700 });
+  const downstream = await stageKibiMcpRuntime(workspace, sourceWorktree, {
+    stagedRoot: downstreamRoot,
+    ...(options.nodeCommand === undefined
+      ? {}
+      : { nodeCommand: options.nodeCommand }),
+  });
+  const tracePath = resolve(workspace.privateEvidence, "broker-trace.jsonl");
+  const entryPath = resolve(brokerRoot, "entry.ts");
+  const bundlePath = resolve(brokerRoot, "broker.js");
+  await writeFile(
+    entryPath,
+    `import { runMcpBroker } from ${JSON.stringify(fileURLToPath(new URL("./mcp-broker-process.ts", import.meta.url)))};\nawait runMcpBroker(${JSON.stringify({ downstream, tracePath, startupTimeoutMs: 15_000, toolTimeoutMs: 120_000, killGraceMs: 2_000 })});\n`,
+    { encoding: "utf8", mode: 0o600 },
+  );
+  const build = await Bun.build({
+    entrypoints: [entryPath],
+    outdir: brokerRoot,
+    naming: "broker.js",
+    target: "bun",
+    format: "esm",
+    packages: "bundle",
+    minify: false,
+    sourcemap: "none",
+  });
+  if (!build.success) throw new McpBrokerError("startup");
+  const bundled = (await readFile(bundlePath, "utf8")).replaceAll(
+    sourceWorktree,
+    workspace.privateEvidence,
+  );
+  await writeFile(bundlePath, bundled, { encoding: "utf8", mode: 0o500 });
+  const command = resolve(brokerRoot, "bun");
+  await Bun.write(
+    command,
+    Bun.file(await realpath(options.nodeCommand ?? process.execPath)),
+  );
+  await chmod(command, 0o500);
+  return {
+    command,
+    args: [bundlePath],
+    cwd: workspace.target,
+    bundlePath,
+    tracePath,
+    downstream,
+  };
+}
