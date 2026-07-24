@@ -5810,6 +5810,36 @@ coordinates:
     sourceEndLine: 14
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-artifacts.ts
     sourceLine: 5
+  SYM-skillopt-real-optimization-dependencies:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 92
+    sourceFile: scripts/skillopt-eval/real-workflow.ts
+    sourceLine: 86
+  SYM-skillopt-real-optimization-input:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 84
+    sourceFile: scripts/skillopt-eval/real-workflow.ts
+    sourceLine: 69
+  SYM-skillopt-real-optimization-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 56
+    sourceFile: scripts/skillopt-eval/real-workflow.ts
+    sourceLine: 49
+  SYM-skillopt-real-optimization-result:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 67
+    sourceFile: scripts/skillopt-eval/real-workflow.ts
+    sourceLine: 58
+  SYM-skillopt-real-optimization-run:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 266
+    sourceFile: scripts/skillopt-eval/real-workflow.ts
+    sourceLine: 147
   SYM-skillopt-render-report-markdown:
     sourceColumn: 16
     sourceEndColumn: 1
