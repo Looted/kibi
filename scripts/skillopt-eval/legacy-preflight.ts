@@ -1,5 +1,6 @@
 import { writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
+import { sourceWorktreeIsClean } from "./legacy-preflight-source";
 import {
   resolveArtifactRoot,
   resolveIsolationArtifactRoot,
@@ -32,6 +33,8 @@ import {
   createIsolationWorkspace,
   runCapabilityCanary,
 } from "./runtime/workspace";
+
+export { sourceWorktreeIsClean } from "./legacy-preflight-source";
 
 const SKILLOPT_COMMIT = "b860a5cf88ce75e2bd02ca981ac21fb28cffba83";
 export type PreflightConfig = Readonly<{
@@ -78,19 +81,6 @@ export type PreflightDependencies = Readonly<{
   probeRequiredMcp: (launch: McpServerLaunch) => Promise<unknown>;
   probeSandbox: typeof probeCodexSandbox;
 }>;
-
-export async function sourceWorktreeIsClean(
-  sourceWorktree: string,
-  env: NodeJS.ProcessEnv,
-): Promise<boolean> {
-  const result = await runBoundedProcess({
-    argv: ["git", "status", "--porcelain", "--untracked-files=all"],
-    cwd: sourceWorktree,
-    env,
-    timeoutMs: 10_000,
-  });
-  return result.exitCode === 0 && result.stdout.trim() === "";
-}
 
 const runtimeDependencies: PreflightDependencies = {
   run: (argv, cwd, env, timeoutMs, stdin) =>

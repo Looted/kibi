@@ -1,8 +1,10 @@
 import { generateKeyPairSync, sign } from "node:crypto";
 import type { KeyObject } from "node:crypto";
-import { chmod, mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
+export { invokePreflight, updateProbe } from "./preflight-fixture-runtime";
 
 const sha256 = new Bun.CryptoHasher("sha256");
 
@@ -257,71 +259,4 @@ export async function createPreflightFixture(): Promise<PreflightFixture> {
     privateKey,
     probe,
   };
-}
-
-export async function updateProbe(
-  fixture: PreflightFixture,
-  transform: (probe: HostProbe) => HostProbe,
-): Promise<void> {
-  await chmod(fixture.probePath, 0o600);
-  await writeJson(
-    fixture.probePath,
-    signed(transform(fixture.probe), fixture.privateKey),
-    0o444,
-  );
-  await chmod(fixture.probePath, 0o444);
-}
-
-export async function invokePreflight(
-  fixture: PreflightFixture,
-  overrides: Readonly<{
-    sandboxLock?: string;
-    providerLock?: string;
-    verifierLock?: string;
-    output?: string;
-    env?: NodeJS.ProcessEnv;
-  }> = {},
-): Promise<Readonly<{ exitCode: number; output: unknown }>> {
-  const process = Bun.spawn(
-    [
-      "bun",
-      "run",
-      join(import.meta.dir, "..", "preflight.ts"),
-      "--sandbox-lock",
-      overrides.sandboxLock ?? fixture.sandboxLock,
-      "--provider-lock",
-      overrides.providerLock ?? fixture.providerLock,
-      "--verifier-lock",
-      overrides.verifierLock ?? fixture.verifierLock,
-      "--artifact-root",
-      fixture.artifactRoot,
-      "--output",
-      overrides.output ?? fixture.output,
-      "--fixture-root",
-      fixture.root,
-    ],
-    {
-      env: {
-        ...processEnv(),
-        ...overrides.env,
-        KIBI_SKILLOPT_TEST_FIXTURE: "1",
-        KIBI_SKILLOPT_PREFLIGHT_SENTINEL: fixture.sentinel,
-      },
-      stdout: "pipe",
-      stderr: "pipe",
-    },
-  );
-  const exitCode = await process.exited;
-  const text = await readFile(overrides.output ?? fixture.output, "utf8").catch(
-    (error: unknown) => {
-      if (error instanceof Error && "code" in error && error.code === "ENOENT")
-        return "null";
-      throw error;
-    },
-  );
-  return { exitCode, output: JSON.parse(text) };
-}
-
-function processEnv(): NodeJS.ProcessEnv {
-  return process.env;
 }
