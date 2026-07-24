@@ -12986,6 +12986,7 @@ symbols:
     title: createPreflightFixture
     sourceFile: scripts/skillopt-eval/tests/preflight-fixture.ts
     symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/tests/preflight-fixture.ts#createPreflightFixture
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -12995,6 +12996,7 @@ symbols:
     title: updateProbe
     sourceFile: scripts/skillopt-eval/tests/preflight-fixture.ts
     symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/tests/preflight-fixture.ts#updateProbe
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -13004,6 +13006,7 @@ symbols:
     title: invokePreflight
     sourceFile: scripts/skillopt-eval/tests/preflight-fixture.ts
     symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/tests/preflight-fixture.ts#invokePreflight
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -13013,6 +13016,7 @@ symbols:
     title: HostProbe
     sourceFile: scripts/skillopt-eval/tests/preflight-fixture.ts
     symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/tests/preflight-fixture.ts#HostProbe
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -13022,6 +13026,7 @@ symbols:
     title: PreflightFixture
     sourceFile: scripts/skillopt-eval/tests/preflight-fixture.ts
     symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/tests/preflight-fixture.ts#PreflightFixture
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
