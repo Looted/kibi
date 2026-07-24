@@ -96,6 +96,43 @@ describe("SkillOpt candidate optimization", () => {
     expect(launched).toBe(false);
   });
 
+  test("retries once when a candidate fails safety validation", async () => {
+    // Given
+    let calls = 0;
+
+    // When
+    const result = await optimizeSkillOptVariant(
+      {
+        skill: "kibi-usage",
+        baselineBody: BASELINE,
+        frontmatterHash: "a".repeat(64),
+        resourcesHash: "b".repeat(64),
+        baselineDevelopment: { mean: 70, hardPasses: 2, worstFamilyMean: 60 },
+        trainTrajectories: [
+          { taskId: "train-1", family: "discovery", reflection: "public" },
+        ],
+        maxSteps: 1,
+      },
+      {
+        runStep: async () => {
+          calls += 1;
+          return stepResult(
+            calls === 1 ? "OpenCode candidate\n" : "Valid candidate\n",
+            71,
+            61,
+          );
+        },
+      },
+    );
+
+    // Then
+    expect(calls).toBe(2);
+    expect(result.status).toBe("frozen");
+    if (result.status !== "frozen")
+      throw new Error("expected frozen optimization");
+    expect(result.bestSkill.body).toBe("Valid candidate\n");
+  });
+
   test("resumes from the next checkpoint without repeating terminal steps", async () => {
     const steps: number[] = [];
     const result = await optimizeSkillOptVariant(
