@@ -15,6 +15,8 @@ import canonicalize from "canonicalize";
 import { z } from "zod";
 import { type ValidateApprovalInput, validateApproval } from "./approval";
 import type { CanonicalSkill } from "./catalog";
+import { validateCandidateBody } from "./variants";
+import type { FrozenVariant } from "./variants";
 
 const MIRROR_TARGETS = ["cursor", "codex"] as const;
 
@@ -40,6 +42,13 @@ export type RunMirrorSync = (repoRoot: string) => Promise<void>;
 
 export type AdoptionDependencies = Readonly<{
   runMirrorSync: RunMirrorSync;
+}>;
+
+export type AutoAdoptionInput = Readonly<{
+  repoRoot: string;
+  candidate: FrozenVariant;
+  frontmatterHash: string;
+  resourcesHash: string;
 }>;
 
 type CanonicalSnapshot = AdoptionPlan &
@@ -105,6 +114,27 @@ async function loadCanonicalSnapshot(
   input: AdoptionInput,
 ): Promise<CanonicalSnapshot> {
   validateApproval(input);
+  return loadCanonicalSurface({
+    repoRoot: input.repoRoot,
+    candidate: input.candidate,
+    frontmatterHash: input.candidate.frontmatterHash,
+    resourcesHash: input.candidate.resourcesHash,
+  });
+}
+
+async function loadCanonicalSurface(
+  input: AutoAdoptionInput,
+): Promise<CanonicalSnapshot> {
+  if (input.candidate.variant !== "skillopt") {
+    throw new AdoptionIntegrityError("automatic adoption requires skillopt candidate");
+  }
+  if (
+    input.candidate.frontmatterHash !== input.frontmatterHash ||
+    input.candidate.resourcesHash !== input.resourcesHash
+  ) {
+    throw new AdoptionIntegrityError("candidate surface hash mismatch");
+  }
+  validateCandidateBody(input.candidate.body);
   const canonicalPath = join(
     input.repoRoot,
     "packages/cli/src/public/skills",
@@ -135,16 +165,14 @@ async function loadCanonicalSnapshot(
   const frontmatterHash = canonicalHash(manifest);
   const resourcesHash = canonicalHash(canonicalResources);
   if (
-    frontmatterHash !== input.candidate.frontmatterHash ||
-    frontmatterHash !== input.proposal.baselineFrontmatterHash ||
-    frontmatterHash !== input.proposal.candidateFrontmatterHash
+    frontmatterHash !== input.frontmatterHash ||
+    frontmatterHash !== input.candidate.frontmatterHash
   ) {
     throw new AdoptionIntegrityError("canonical frontmatter hash mismatch");
   }
   if (
-    resourcesHash !== input.candidate.resourcesHash ||
-    resourcesHash !== input.proposal.baselineResourcesHash ||
-    resourcesHash !== input.proposal.candidateResourcesHash
+    resourcesHash !== input.resourcesHash ||
+    resourcesHash !== input.candidate.resourcesHash
   ) {
     throw new AdoptionIntegrityError("canonical resource hash mismatch");
   }
@@ -218,12 +246,11 @@ export async function planSkillAdoption(
   return publicPlan(snapshot);
 }
 
-// implements REQ-skillopt-codex-optimization
-export async function adoptApprovedSkill(
-  input: AdoptionInput,
-  dependencies: AdoptionDependencies = { runMirrorSync: defaultRunMirrorSync },
+async function adoptSnapshot(
+  repoRoot: string,
+  snapshot: CanonicalSnapshot,
+  dependencies: AdoptionDependencies,
 ): Promise<AdoptionReceipt> {
-  const snapshot = await loadCanonicalSnapshot(input);
   const plan = publicPlan(snapshot);
   if (!snapshot.mutationRequired) return { ...plan, status: "unchanged" };
 
@@ -231,10 +258,10 @@ export async function adoptApprovedSkill(
   const tempCanonicalPath = `${snapshot.canonicalPath}.adoption-${randomUUID()}`;
   let mirrorSnapshots: readonly MirrorSnapshot[] = [];
   try {
-    mirrorSnapshots = await snapshotMirrors(input.repoRoot, backupRoot);
+    mirrorSnapshots = await snapshotMirrors(repoRoot, backupRoot);
     await writeFile(tempCanonicalPath, snapshot.candidateMarkdown, "utf8");
     await rename(tempCanonicalPath, snapshot.canonicalPath);
-    await dependencies.runMirrorSync(input.repoRoot);
+    await dependencies.runMirrorSync(repoRoot);
     return { ...plan, status: "adopted" };
   } catch (error) {
     await writeFile(tempCanonicalPath, snapshot.markdown, "utf8");
@@ -245,4 +272,26 @@ export async function adoptApprovedSkill(
     await rm(tempCanonicalPath, { force: true });
     await rm(backupRoot, { recursive: true, force: true });
   }
+}
+
+// implements REQ-skillopt-codex-optimization
+export async function adoptApprovedSkill(
+  input: AdoptionInput,
+  dependencies: AdoptionDependencies = { runMirrorSync: defaultRunMirrorSync },
+): Promise<AdoptionReceipt> {
+  const snapshot = await loadCanonicalSnapshot(input);
+  return adoptSnapshot(
+    input.repoRoot,
+    snapshot,
+    dependencies,
+  );
+}
+
+// implements REQ-skillopt-automatic-adoption
+export async function adoptSkillOptCandidate(
+  input: AutoAdoptionInput,
+  dependencies: AdoptionDependencies = { runMirrorSync: defaultRunMirrorSync },
+): Promise<AdoptionReceipt> {
+  const snapshot = await loadCanonicalSurface(input);
+  return adoptSnapshot(input.repoRoot, snapshot, dependencies);
 }
