@@ -43,7 +43,7 @@ describe("required Kibi MCP stdio startup", () => {
       });
 
       // Then
-      const stagedRoot = resolve(isolation.privateEvidence, "mcp-broker");
+      const stagedRoot = resolve(isolation.target, ".runtime/mcp/broker");
       expect(staged.mcpServer.command.startsWith(`${stagedRoot}/`)).toBe(true);
       expect(staged.mcpServer.args).toEqual([resolve(stagedRoot, "broker.js")]);
       expect(
