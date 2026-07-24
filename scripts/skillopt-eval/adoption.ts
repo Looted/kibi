@@ -19,6 +19,11 @@ import { validateCandidateBody } from "./variants";
 import type { FrozenVariant } from "./variants";
 
 const MIRROR_TARGETS = ["cursor", "codex"] as const;
+const REQUIRED_CANONICAL_GUIDANCE = [
+  "npx --no-install kibi",
+  "bunx --no-install kibi",
+  "Do not read or edit files inside `.kb` directly",
+] as const;
 
 export type AdoptionInput = ValidateApprovalInput &
   Readonly<{
@@ -35,7 +40,7 @@ export type AdoptionPlan = Readonly<{
 
 export type AdoptionReceipt = AdoptionPlan &
   Readonly<{
-    status: "adopted" | "unchanged";
+    status: "adopted" | "unchanged" | "blocked";
   }>;
 
 export type RunMirrorSync = (repoRoot: string) => Promise<void>;
@@ -293,5 +298,13 @@ export async function adoptSkillOptCandidate(
   dependencies: AdoptionDependencies = { runMirrorSync: defaultRunMirrorSync },
 ): Promise<AdoptionReceipt> {
   const snapshot = await loadCanonicalSurface(input);
+  const baselineBody = snapshot.markdown.slice(snapshot.frontmatter.length);
+  if (
+    REQUIRED_CANONICAL_GUIDANCE.some(
+      (phrase) => baselineBody.includes(phrase) && !input.candidate.body.includes(phrase),
+    )
+  ) {
+    return { ...publicPlan(snapshot), status: "blocked" };
+  }
   return adoptSnapshot(input.repoRoot, snapshot, dependencies);
 }

@@ -252,6 +252,33 @@ describe("SkillOpt adoption transaction", () => {
     );
   });
 
+  test("Given a candidate that drops canonical safety guidance When auto-adopted Then adoption is blocked", async () => {
+    const repoRoot = await createRepo();
+    const input = approvalArtifacts(repoRoot);
+    await writeFile(
+      join(repoRoot, "packages/cli/src/public/skills/kibi-usage/SKILL.md"),
+      `${frontmatter}npx --no-install kibi\nbunx --no-install kibi\nDo not read or edit files inside \`.kb\` directly\n`,
+    );
+
+    const receipt = await adoptSkillOptCandidate(
+      {
+        repoRoot,
+        candidate: input.candidate,
+        frontmatterHash: input.candidate.frontmatterHash,
+        resourcesHash: input.candidate.resourcesHash,
+      },
+      { runMirrorSync: syncMirrors },
+    );
+
+    expect(receipt.status).toBe("blocked");
+    expect(
+      await readFile(
+        join(repoRoot, "packages/cli/src/public/skills/kibi-usage/SKILL.md"),
+        "utf8",
+      ),
+    ).toContain("npx --no-install kibi");
+  });
+
   test("Given mirror sync fails after partial output When adopted Then rollback leaves zero canonical or mirror mutation", async () => {
     const repoRoot = await createRepo();
     const input = approvalArtifacts(repoRoot);
