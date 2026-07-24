@@ -83,7 +83,7 @@ describe("shared discovery operation executors", () => {
 
   test("kb_status executes the status module through context.prolog", async () => {
     // Given
-    const query = mock(async () => ({
+    const query = mock(async (_goal: string) => ({
       success: true,
       bindings: {
         JsonString: JSON.stringify({
