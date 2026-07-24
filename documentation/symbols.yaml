@@ -16371,6 +16371,7 @@ symbols:
     title: runCodexCell
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -16389,6 +16390,7 @@ symbols:
     title: defaultCodexCellDependencies
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -16496,6 +16498,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
     symbol_role: type-shape
     granularity_reason: legacy-link
+    text_ref: scripts/skillopt-eval/tests/codex-cell-runner.test.ts
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization

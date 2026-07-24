@@ -45,6 +45,7 @@ export type CodexCellOptions = Readonly<{
 export type CodexCellDependencies = Readonly<{
   prepareLogin: (input: {
     readonly privateCodexHome: string;
+    readonly sandboxHome: string;
     readonly env: NodeJS.ProcessEnv;
   }) => Promise<PreparedLogin>;
   stageBroker: (
