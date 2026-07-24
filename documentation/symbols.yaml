@@ -12529,6 +12529,7 @@ symbols:
     title: CodexOptimizerError.name
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -12538,6 +12539,7 @@ symbols:
     title: CodexOptimizerOptions
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -14712,6 +14714,7 @@ symbols:
     title: buildCodexSandboxProbeArgv
     sourceFile: scripts/skillopt-eval/runtime/canary-probes.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -14725,6 +14728,7 @@ symbols:
     title: probeCodexSandbox
     sourceFile: scripts/skillopt-eval/runtime/canary-probes.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -14738,6 +14742,7 @@ symbols:
     title: sourceIsolationDeniedPaths
     sourceFile: scripts/skillopt-eval/runtime/canary-probes.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -15068,6 +15073,7 @@ symbols:
     title: WorkspaceOptions
     sourceFile: scripts/skillopt-eval/runtime/isolation-workspace.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization

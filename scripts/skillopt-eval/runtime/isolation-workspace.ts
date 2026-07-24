@@ -4,6 +4,7 @@ import { join, resolve } from "node:path";
 export type IsolationWorkspace = Readonly<{
   root: string;
   codexHome: string;
+  sandboxHome: string;
   target: string;
   privateEvidence: string;
   privateScorer: string;
@@ -35,12 +36,13 @@ export async function createIsolationWorkspace(
   );
   await chmod(root, 0o700);
   const codexHome = join(root, "codex-home");
+  const sandboxHome = join(root, "workspace", ".sandbox-home");
   const target = join(root, "workspace");
   const privateEvidence = join(root, "private-evidence");
   const privateScorer = join(root, "private-scorer");
   const siblingRun = join(root, "sibling-run");
   await Promise.all(
-    [codexHome, target, privateEvidence, privateScorer, siblingRun].map(
+    [codexHome, sandboxHome, target, privateEvidence, privateScorer, siblingRun].map(
       async (directory) => {
         await mkdir(directory, { recursive: true, mode: 0o700 });
         await chmod(directory, 0o700);
@@ -59,6 +61,7 @@ export async function createIsolationWorkspace(
   return {
     root,
     codexHome,
+    sandboxHome,
     target,
     privateEvidence,
     privateScorer,
