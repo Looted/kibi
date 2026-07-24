@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "report.schema.json",
+  "title": "SkillOpt report",
+  "type": "object",
+  "oneOf": [
+    {
+      "title": "Historical SkillOpt gate report",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runId", "skill", "variants", "cells", "costUsd", "verdict"],
+      "properties": {
+        "runId": { "type": "string", "minLength": 1 },
+        "skill": { "type": "string", "minLength": 1 },
+        "variants": { "const": ["baseline", "one-shot", "skillopt"] },
+        "cells": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "contract-definitions.schema.json#/$defs/jsonValue"
+          }
+        },
+        "costUsd": { "type": "number", "minimum": 0, "maximum": 400 },
+        "verdict": { "enum": ["pass", "fail", "no-go"] }
+      }
+    },
+    {
+      "title": "SkillOpt gate report v1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "artifactType",
+        "runId",
+        "runLockHash",
+        "skill",
+        "variants",
+        "cells",
+        "priceEquivalentEstimate",
+        "verdict",
+        "generatedAt",
+        "gateResults"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "$ref": "contract-definitions.schema.json#/$defs/schemaVersion"
+        },
+        "artifactType": { "const": "report" },
+        "runId": {
+          "$ref": "contract-definitions.schema.json#/$defs/artifactId"
+        },
+        "runLockHash": {
+          "$ref": "contract-definitions.schema.json#/$defs/sha256"
+        },
+        "skill": {
+          "enum": [
+            "kibi-usage",
+            "kibi-freshness",
+            "kibi-traceability",
+            "init-kibi",
+            "bundle"
+          ]
+        },
+        "variants": { "const": ["baseline", "one-shot", "skillopt"] },
+        "cells": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "contract-definitions.schema.json#/$defs/sha256" },
+          "uniqueItems": true
+        },
+        "priceEquivalentEstimate": {
+          "$ref": "contract-definitions.schema.json#/$defs/priceEquivalentEstimate"
+        },
+        "verdict": { "enum": ["pass", "fail", "no-go"] },
+        "generatedAt": {
+          "$ref": "contract-definitions.schema.json#/$defs/timestamp"
+        },
+        "gateResults": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "aggregate",
+            "bootstrap",
+            "family",
+            "security",
+            "bundle"
+          ],
+          "properties": {
+            "aggregate": { "type": "boolean" },
+            "bootstrap": { "type": "boolean" },
+            "family": { "type": "boolean" },
+            "security": { "type": "boolean" },
+            "bundle": { "type": ["boolean", "null"] }
+          }
+        }
+      }
+    }
+  ]
+}

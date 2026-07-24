@@ -1106,12 +1106,24 @@ coordinates:
     sourceEndLine: 109
     sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
     sourceLine: 99
+  SYM-SemanticAdvisorResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 125
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    sourceLine: 122
   SYM-SemanticAdvisorToolResult:
     sourceColumn: 12
     sourceEndColumn: 67
     sourceEndLine: 8
     sourceFile: packages/mcp/src/tools/semantic-advisor.ts
     sourceLine: 8
+  SYM-SemanticAmbiguityObservationSuggestion:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 102
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    sourceLine: 94
   SYM-SemanticAmbiguityWitness:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1130,6 +1142,12 @@ coordinates:
     sourceEndLine: 97
     sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
     sourceLine: 52
+  SYM-SemanticOntologyGapSuggestion:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 116
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    sourceLine: 104
   SYM-SemanticPredicateClaim:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -3176,6 +3194,12 @@ coordinates:
     sourceEndLine: 283
     sourceFile: packages/cursor/src/hook-runner.ts
     sourceLine: 283
+  SYM-cursor-impactCheckFollowup:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 67
+    sourceFile: packages/cursor/src/messages.ts
+    sourceLine: 58
   SYM-cursor-interfaceAdvisory:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5948,6 +5972,2250 @@ coordinates:
     sourceEndLine: 325
     sourceFile: packages/mcp/src/server/docs.ts
     sourceLine: 297
+  SYM-skillopt-activation-mode-type:
+    sourceColumn: 12
+    sourceEndColumn: 30
+    sourceEndLine: 22
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 18
+  SYM-skillopt-adopt-approved-skill:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 248
+    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceLine: 222
+  SYM-skillopt-adopt-offline-approved-skill:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 222
+    sourceFile: scripts/skillopt-eval/offline-artifacts.ts
+    sourceLine: 207
+  SYM-skillopt-adoption-dependencies:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 43
+    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceLine: 41
+  SYM-skillopt-adoption-input:
+    sourceColumn: 12
+    sourceEndColumn: 5
+    sourceEndLine: 24
+    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceLine: 21
+  SYM-skillopt-adoption-integrity-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 60
+    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceLine: 58
+  SYM-skillopt-adoption-integrity-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 43
+    sourceEndLine: 59
+    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceLine: 59
+  SYM-skillopt-adoption-plan:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 32
+    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceLine: 26
+  SYM-skillopt-adoption-receipt:
+    sourceColumn: 12
+    sourceEndColumn: 5
+    sourceEndLine: 37
+    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceLine: 34
+  SYM-skillopt-adoption-transaction-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 68
+    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceLine: 62
+  SYM-skillopt-adoption-transaction-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 45
+    sourceEndLine: 63
+    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceLine: 63
+  SYM-skillopt-adversarial-case-type:
+    sourceColumn: 12
+    sourceEndColumn: 24
+    sourceEndLine: 34
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 27
+  SYM-skillopt-approval-phase-type:
+    sourceColumn: 12
+    sourceEndColumn: 80
+    sourceEndLine: 26
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 26
+  SYM-skillopt-artifact-input:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 11
+    sourceFile: scripts/skillopt-eval/skillopt-artifacts.ts
+    sourceLine: 6
+  SYM-skillopt-artifact-root-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 12
+    sourceFile: scripts/skillopt-eval/runtime/artifact-root.ts
+    sourceLine: 8
+  SYM-skillopt-assemble-canonical-skills:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 136
+    sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
+    sourceLine: 91
+  SYM-skillopt-bridge-request:
+    sourceColumn: 12
+    sourceEndColumn: 74
+    sourceEndLine: 70
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 70
+  SYM-skillopt-bridge-request-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 48
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 31
+  SYM-skillopt-bridge-result:
+    sourceColumn: 12
+    sourceEndColumn: 72
+    sourceEndLine: 72
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 72
+  SYM-skillopt-bridge-result-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 67
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 51
+  SYM-skillopt-bridge-visibility-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 77
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 75
+  SYM-skillopt-bridge-visibility-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 42
+    sourceEndLine: 76
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 76
+  SYM-skillopt-broker-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 67
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
+    sourceLine: 61
+  SYM-skillopt-broker-stage-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 19
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker-stage.ts
+    sourceLine: 17
+  SYM-skillopt-budget-ledger:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 126
+    sourceFile: scripts/skillopt-eval/orchestration.ts
+    sourceLine: 66
+  SYM-skillopt-budget-ledger-buckets:
+    sourceColumn: 19
+    sourceEndColumn: 65
+    sourceEndLine: 67
+    sourceFile: scripts/skillopt-eval/orchestration.ts
+    sourceLine: 67
+  SYM-skillopt-budget-ledger-finalize:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 121
+    sourceFile: scripts/skillopt-eval/orchestration.ts
+    sourceLine: 102
+  SYM-skillopt-budget-ledger-reservations:
+    sourceColumn: 19
+    sourceEndColumn: 6
+    sourceEndLine: 71
+    sourceFile: scripts/skillopt-eval/orchestration.ts
+    sourceLine: 68
+  SYM-skillopt-budget-ledger-reserve:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 100
+    sourceFile: scripts/skillopt-eval/orchestration.ts
+    sourceLine: 86
+  SYM-skillopt-budget-ledger-snapshot:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 125
+    sourceFile: scripts/skillopt-eval/orchestration.ts
+    sourceLine: 123
+  SYM-skillopt-budget-limits:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 15
+    sourceFile: scripts/skillopt-eval/orchestration.ts
+    sourceLine: 8
+  SYM-skillopt-build-bundle-catalog:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 158
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 148
+  SYM-skillopt-build-held-out-catalog:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 175
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 168
+  SYM-skillopt-build-offline-review-artifacts:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 158
+    sourceFile: scripts/skillopt-eval/offline-artifacts.ts
+    sourceLine: 80
+  SYM-skillopt-build-proposal:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 97
+    sourceFile: scripts/skillopt-eval/proposal.ts
+    sourceLine: 77
+  SYM-skillopt-build-proposal-input-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 22
+    sourceFile: scripts/skillopt-eval/proposal.ts
+    sourceLine: 16
+  SYM-skillopt-build-public-catalog:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 165
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 161
+  SYM-skillopt-build-report-artifacts:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 116
+    sourceFile: scripts/skillopt-eval/report.ts
+    sourceLine: 90
+  SYM-skillopt-build-report-input-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 39
+    sourceFile: scripts/skillopt-eval/report.ts
+    sourceLine: 29
+  SYM-skillopt-build-skill-catalog:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 146
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 127
+  SYM-skillopt-candidate-surface-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 36
+    sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
+    sourceLine: 28
+  SYM-skillopt-candidate-surface-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 42
+    sourceEndLine: 29
+    sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
+    sourceLine: 29
+  SYM-skillopt-candidate-validation-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 64
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 58
+  SYM-skillopt-candidate-validation-error-code:
+    sourceColumn: 12
+    sourceEndColumn: 40
+    sourceEndLine: 73
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 66
+  SYM-skillopt-candidate-validation-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 45
+    sourceEndLine: 59
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 59
+  SYM-skillopt-canonical-skill-type:
+    sourceColumn: 12
+    sourceEndColumn: 63
+    sourceEndLine: 15
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 15
+  SYM-skillopt-canonical-skills:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 13
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 8
+  SYM-skillopt-catalog-hash:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 214
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 212
+  SYM-skillopt-catalog-skill-type:
+    sourceColumn: 12
+    sourceEndColumn: 53
+    sourceEndLine: 16
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 16
+  SYM-skillopt-cli-main:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 297
+    sourceFile: scripts/skillopt-eval/cli.ts
+    sourceLine: 241
+  SYM-skillopt-codex-cell-dependencies-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 59
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    sourceLine: 45
+  SYM-skillopt-codex-cell-options-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 43
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    sourceLine: 27
+  SYM-skillopt-codex-episode-receipt-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 49
+    sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
+    sourceLine: 28
+  SYM-skillopt-codex-episode-receipt-type:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 53
+    sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
+    sourceLine: 51
+  SYM-skillopt-codex-normalization-options-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 43
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    sourceLine: 40
+  SYM-skillopt-codex-normalization-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 38
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    sourceLine: 28
+  SYM-skillopt-codex-optimizer-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 28
+    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    sourceLine: 25
+  SYM-skillopt-codex-optimizer-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 40
+    sourceEndLine: 27
+    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    sourceLine: 27
+  SYM-skillopt-codex-optimizer-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 78
+    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    sourceLine: 71
+  SYM-skillopt-codex-optimizer-run:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 164
+    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    sourceLine: 81
+  SYM-skillopt-codex-violation-type:
+    sourceColumn: 12
+    sourceEndColumn: 63
+    sourceEndLine: 20
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    sourceLine: 20
+  SYM-skillopt-codex-violations:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 19
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    sourceLine: 14
+  SYM-skillopt-completed-codex-cell-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 65
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    sourceLine: 61
+  SYM-skillopt-contract-approval-schema:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 68
+    sourceFile: scripts/skillopt-eval/contracts/review.ts
+    sourceLine: 51
+  SYM-skillopt-contract-approval-type:
+    sourceColumn: 12
+    sourceEndColumn: 64
+    sourceEndLine: 73
+    sourceFile: scripts/skillopt-eval/contracts/review.ts
+    sourceLine: 73
+  SYM-skillopt-contract-artifact-id-schema:
+    sourceColumn: 13
+    sourceEndColumn: 3
+    sourceEndLine: 19
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    sourceLine: 15
+  SYM-skillopt-contract-assert-approval:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 100
+    sourceFile: scripts/skillopt-eval/contracts/review.ts
+    sourceLine: 76
+  SYM-skillopt-contract-assert-run-lock:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 205
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    sourceLine: 198
+  SYM-skillopt-contract-bounded-schema:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 53
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    sourceLine: 45
+  SYM-skillopt-contract-canonical-json:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 137
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    sourceLine: 128
+  SYM-skillopt-contract-cli-main:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 61
+    sourceFile: scripts/skillopt-eval/contracts/cli.ts
+    sourceLine: 32
+  SYM-skillopt-contract-common-constants:
+    sourceColumn: 13
+    sourceEndColumn: 55
+    sourceEndLine: 6
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    sourceLine: 6
+  SYM-skillopt-contract-create-run-lock-schema:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 151
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    sourceLine: 88
+  SYM-skillopt-contract-episode-request-schema:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 41
+    sourceFile: scripts/skillopt-eval/contracts/episode.ts
+    sourceLine: 25
+  SYM-skillopt-contract-episode-request-type:
+    sourceColumn: 12
+    sourceEndColumn: 76
+    sourceEndLine: 123
+    sourceFile: scripts/skillopt-eval/contracts/episode.ts
+    sourceLine: 123
+  SYM-skillopt-contract-episode-result-schema:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 120
+    sourceFile: scripts/skillopt-eval/contracts/episode.ts
+    sourceLine: 44
+  SYM-skillopt-contract-episode-result-type:
+    sourceColumn: 12
+    sourceEndColumn: 74
+    sourceEndLine: 125
+    sourceFile: scripts/skillopt-eval/contracts/episode.ts
+    sourceLine: 125
+  SYM-skillopt-contract-estimate-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 72
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    sourceLine: 65
+  SYM-skillopt-contract-evidence-envelope-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 18
+    sourceFile: scripts/skillopt-eval/contracts/evidence.ts
+    sourceLine: 12
+  SYM-skillopt-contract-evidence-index-schema:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 45
+    sourceFile: scripts/skillopt-eval/contracts/evidence.ts
+    sourceLine: 21
+  SYM-skillopt-contract-evidence-index-type:
+    sourceColumn: 12
+    sourceEndColumn: 74
+    sourceEndLine: 48
+    sourceFile: scripts/skillopt-eval/contracts/evidence.ts
+    sourceLine: 48
+  SYM-skillopt-contract-gates:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 32
+    sourceFile: scripts/skillopt-eval/contracts/gates.ts
+    sourceLine: 4
+  SYM-skillopt-contract-gates-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 82
+    sourceFile: scripts/skillopt-eval/contracts/gates.ts
+    sourceLine: 35
+  SYM-skillopt-contract-hardening-python-tests:
+    sourceColumn: 6
+    sourceEndColumn: 28
+    sourceEndLine: 136
+    sourceFile: tools/skillopt/tests/test_contract_hardening.py
+    sourceLine: 136
+  SYM-skillopt-contract-hardening-ts-tests:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 50
+    sourceFile: scripts/skillopt-eval/tests/contract-hardening.test.ts
+    sourceLine: 47
+  SYM-skillopt-contract-hash:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 142
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    sourceLine: 140
+  SYM-skillopt-contract-input-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 85
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    sourceLine: 75
+  SYM-skillopt-contract-input-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 39
+    sourceEndLine: 77
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    sourceLine: 77
+  SYM-skillopt-contract-integrity-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 98
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    sourceLine: 88
+  SYM-skillopt-contract-integrity-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 43
+    sourceEndLine: 90
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    sourceLine: 90
+  SYM-skillopt-contract-json-schema:
+    sourceColumn: 13
+    sourceEndColumn: 39
+    sourceEndLine: 34
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    sourceLine: 34
+  SYM-skillopt-contract-json-value:
+    sourceColumn: 12
+    sourceEndColumn: 56
+    sourceEndLine: 37
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    sourceLine: 37
+  SYM-skillopt-contract-ledger-schema:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 50
+    sourceFile: scripts/skillopt-eval/contracts/workflow.ts
+    sourceLine: 15
+  SYM-skillopt-contract-load-source-lock:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 45
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    sourceLine: 43
+  SYM-skillopt-contract-max-bytes:
+    sourceColumn: 13
+    sourceEndColumn: 43
+    sourceEndLine: 8
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    sourceLine: 8
+  SYM-skillopt-contract-nonempty-schema:
+    sourceColumn: 13
+    sourceEndColumn: 53
+    sourceEndLine: 13
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    sourceLine: 13
+  SYM-skillopt-contract-parity-python-tests:
+    sourceColumn: 6
+    sourceEndColumn: 35
+    sourceEndLine: 74
+    sourceFile: tools/skillopt/tests/test_contract_parity_regressions.py
+    sourceLine: 74
+  SYM-skillopt-contract-parity-ts-tests:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 23
+    sourceFile: scripts/skillopt-eval/tests/contract-parity-regressions.test.ts
+    sourceLine: 20
+  SYM-skillopt-contract-parse-json:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 120
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    sourceLine: 101
+  SYM-skillopt-contract-parse-run-lock:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 190
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    sourceLine: 160
+  SYM-skillopt-contract-parse-typed:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 125
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    sourceLine: 123
+  SYM-skillopt-contract-pricing-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 80
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    sourceLine: 67
+  SYM-skillopt-contract-proposal-schema:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 48
+    sourceFile: scripts/skillopt-eval/contracts/review.ts
+    sourceLine: 16
+  SYM-skillopt-contract-proposal-type:
+    sourceColumn: 12
+    sourceEndColumn: 64
+    sourceEndLine: 71
+    sourceFile: scripts/skillopt-eval/contracts/review.ts
+    sourceLine: 71
+  SYM-skillopt-contract-python-tests:
+    sourceColumn: 6
+    sourceEndColumn: 19
+    sourceEndLine: 34
+    sourceFile: tools/skillopt/tests/test_contracts.py
+    sourceLine: 34
+  SYM-skillopt-contract-python-workflow-tests:
+    sourceColumn: 6
+    sourceEndColumn: 27
+    sourceEndLine: 35
+    sourceFile: tools/skillopt/tests/test_workflow_contracts.py
+    sourceLine: 35
+  SYM-skillopt-contract-report-schema:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 155
+    sourceFile: scripts/skillopt-eval/contracts/workflow.ts
+    sourceLine: 153
+  SYM-skillopt-contract-report-type:
+    sourceColumn: 12
+    sourceEndColumn: 60
+    sourceEndLine: 157
+    sourceFile: scripts/skillopt-eval/contracts/workflow.ts
+    sourceLine: 157
+  SYM-skillopt-contract-report-v1-schema:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 150
+    sourceFile: scripts/skillopt-eval/contracts/workflow.ts
+    sourceLine: 112
+  SYM-skillopt-contract-run-lock-hash:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 195
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    sourceLine: 193
+  SYM-skillopt-contract-run-lock-schema:
+    sourceColumn: 13
+    sourceEndColumn: 50
+    sourceEndLine: 154
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    sourceLine: 154
+  SYM-skillopt-contract-run-lock-type:
+    sourceColumn: 12
+    sourceEndColumn: 62
+    sourceEndLine: 157
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    sourceLine: 157
+  SYM-skillopt-contract-run-state-schema:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 89
+    sourceFile: scripts/skillopt-eval/contracts/workflow.ts
+    sourceLine: 53
+  SYM-skillopt-contract-run-state-type:
+    sourceColumn: 12
+    sourceEndColumn: 64
+    sourceEndLine: 92
+    sourceFile: scripts/skillopt-eval/contracts/workflow.ts
+    sourceLine: 92
+  SYM-skillopt-contract-schema-tests-reader:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 63
+    sourceFile: scripts/skillopt-eval/tests/schema-contract.test.ts
+    sourceLine: 60
+  SYM-skillopt-contract-sha-schema:
+    sourceColumn: 13
+    sourceEndColumn: 62
+    sourceEndLine: 11
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    sourceLine: 11
+  SYM-skillopt-contract-skill-schema:
+    sourceColumn: 13
+    sourceEndColumn: 2
+    sourceEndLine: 22
+    sourceFile: scripts/skillopt-eval/contracts/episode.ts
+    sourceLine: 16
+  SYM-skillopt-contract-source-lock:
+    sourceColumn: 13
+    sourceEndColumn: 60
+    sourceEndLine: 48
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    sourceLine: 48
+  SYM-skillopt-contract-source-lock-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 35
+    sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
+    sourceLine: 25
+  SYM-skillopt-contract-timestamp-schema:
+    sourceColumn: 13
+    sourceEndColumn: 46
+    sourceEndLine: 32
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    sourceLine: 21
+  SYM-skillopt-contract-ts-tests-fixture:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 26
+    sourceFile: scripts/skillopt-eval/tests/contracts.test.ts
+    sourceLine: 23
+  SYM-skillopt-contract-usage-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 62
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    sourceLine: 56
+  SYM-skillopt-contract-variant-schema:
+    sourceColumn: 13
+    sourceEndColumn: 73
+    sourceEndLine: 14
+    sourceFile: scripts/skillopt-eval/contracts/episode.ts
+    sourceLine: 14
+  SYM-skillopt-create-baseline-variant:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 163
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 145
+  SYM-skillopt-create-pinned-runner:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 154
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 105
+  SYM-skillopt-default-codex-cell-dependencies:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 61
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
+    sourceLine: 23
+  SYM-skillopt-deterministic-variant-label:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 199
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    sourceLine: 189
+  SYM-skillopt-development-gate:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 25
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 21
+  SYM-skillopt-episode-replay-input-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 74
+    sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
+    sourceLine: 55
+  SYM-skillopt-estimate-price-equivalent:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 60
+    sourceFile: scripts/skillopt-eval/orchestration.ts
+    sourceLine: 31
+  SYM-skillopt-file-bridge:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 190
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 152
+  SYM-skillopt-file-bridge-read-private:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 189
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 187
+  SYM-skillopt-file-bridge-read-public:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 184
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 182
+  SYM-skillopt-file-bridge-resolve:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 169
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 159
+  SYM-skillopt-file-bridge-write-private:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 179
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 177
+  SYM-skillopt-file-bridge-write-public:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 174
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 172
+  SYM-skillopt-filter-advertised-tools:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 53
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
+    sourceLine: 30
+  SYM-skillopt-final-state-context-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 25
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    sourceLine: 18
+  SYM-skillopt-final-state-options:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 40
+    sourceFile: scripts/skillopt-eval/runtime/final-state.ts
+    sourceLine: 38
+  SYM-skillopt-final-state-receipt:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 50
+    sourceFile: scripts/skillopt-eval/runtime/final-state.ts
+    sourceLine: 41
+  SYM-skillopt-fixture-blinded-order:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 47
+    sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
+    sourceLine: 31
+  SYM-skillopt-fixture-build-bundle-payload:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 208
+    sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
+    sourceLine: 199
+  SYM-skillopt-fixture-build-family-payload:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 196
+    sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
+    sourceLine: 191
+  SYM-skillopt-fixture-build-index:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 33
+    sourceFile: scripts/skillopt-eval/fixtures/materialize-common.ts
+    sourceLine: 27
+  SYM-skillopt-fixture-corpus-entry-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 17
+    sourceFile: scripts/skillopt-eval/fixtures/materialize-common.ts
+    sourceLine: 13
+  SYM-skillopt-fixture-definition-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 21
+    sourceFile: scripts/skillopt-eval/fixtures/task-definition-types.ts
+    sourceLine: 10
+  SYM-skillopt-fixture-family-payload-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 44
+    sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
+    sourceLine: 27
+  SYM-skillopt-fixture-freshness-definitions:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 111
+    sourceFile: scripts/skillopt-eval/fixtures/task-definitions-usage.ts
+    sourceLine: 58
+  SYM-skillopt-fixture-hash-workspace:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 123
+    sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
+    sourceLine: 114
+  SYM-skillopt-fixture-init-definitions:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 111
+    sourceFile: scripts/skillopt-eval/fixtures/task-definitions-bootstrap.ts
+    sourceLine: 58
+  SYM-skillopt-fixture-integrity-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 73
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    sourceLine: 67
+  SYM-skillopt-fixture-integrity-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 42
+    sourceEndLine: 68
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    sourceLine: 68
+  SYM-skillopt-fixture-materialize-run:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 184
+    sourceFile: scripts/skillopt-eval/fixtures/materialize.ts
+    sourceLine: 107
+  SYM-skillopt-fixture-parse-corpus-index:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 169
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    sourceLine: 167
+  SYM-skillopt-fixture-parse-held-out-manifest:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 157
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    sourceLine: 155
+  SYM-skillopt-fixture-parse-held-out-task-spec:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 147
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    sourceLine: 143
+  SYM-skillopt-fixture-parse-held-out-value:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 165
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    sourceLine: 163
+  SYM-skillopt-fixture-parse-private-manifest:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 128
+    sourceFile: scripts/skillopt-eval/fixtures/evaluator-contracts.ts
+    sourceLine: 124
+  SYM-skillopt-fixture-parse-private-value:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 132
+    sourceFile: scripts/skillopt-eval/fixtures/evaluator-contracts.ts
+    sourceLine: 130
+  SYM-skillopt-fixture-parse-public-manifest:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 152
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    sourceLine: 150
+  SYM-skillopt-fixture-parse-public-task-spec:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 140
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    sourceLine: 136
+  SYM-skillopt-fixture-parse-public-value:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 161
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    sourceLine: 159
+  SYM-skillopt-fixture-parse-task-spec:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 133
+    sourceFile: scripts/skillopt-eval/fixtures/contracts.ts
+    sourceLine: 131
+  SYM-skillopt-fixture-private-integrity:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 216
+    sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
+    sourceLine: 206
+  SYM-skillopt-fixture-private-manifest:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 203
+    sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
+    sourceLine: 137
+  SYM-skillopt-fixture-serialize:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 25
+    sourceFile: scripts/skillopt-eval/fixtures/materialize-common.ts
+    sourceLine: 23
+  SYM-skillopt-fixture-sha256:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 21
+    sourceFile: scripts/skillopt-eval/fixtures/materialize-common.ts
+    sourceLine: 19
+  SYM-skillopt-fixture-test-canonical-skill-root:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 9
+    sourceFile: scripts/skillopt-eval/tests/fixture-test-helpers.ts
+    sourceLine: 6
+  SYM-skillopt-fixture-test-files:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 24
+    sourceFile: scripts/skillopt-eval/tests/fixture-test-helpers.ts
+    sourceLine: 15
+  SYM-skillopt-fixture-test-read-tree:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 30
+    sourceFile: scripts/skillopt-eval/tests/fixture-test-helpers.ts
+    sourceLine: 26
+  SYM-skillopt-fixture-test-temporary-root:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 13
+    sourceFile: scripts/skillopt-eval/tests/fixture-test-helpers.ts
+    sourceLine: 11
+  SYM-skillopt-fixture-test-tree-hash:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 39
+    sourceFile: scripts/skillopt-eval/tests/fixture-test-helpers.ts
+    sourceLine: 32
+  SYM-skillopt-fixture-traceability-definitions:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 56
+    sourceFile: scripts/skillopt-eval/fixtures/task-definitions-bootstrap.ts
+    sourceLine: 3
+  SYM-skillopt-fixture-usage-definitions:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 56
+    sourceFile: scripts/skillopt-eval/fixtures/task-definitions-usage.ts
+    sourceLine: 3
+  SYM-skillopt-fixture-write-target-task:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 79
+    sourceFile: scripts/skillopt-eval/fixtures/materialize-common.ts
+    sourceLine: 51
+  SYM-skillopt-fixture-write-workspace:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 175
+    sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
+    sourceLine: 126
+  SYM-skillopt-freeze-candidate-variant:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 182
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 166
+  SYM-skillopt-frozen-variant:
+    sourceColumn: 12
+    sourceEndColumn: 5
+    sourceEndLine: 27
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 16
+  SYM-skillopt-generate-one-shot-variant:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 233
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 185
+  SYM-skillopt-jsonrpc-append-trace:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 166
+    sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
+    sourceLine: 135
+  SYM-skillopt-jsonrpc-id:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 212
+    sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
+    sourceLine: 205
+  SYM-skillopt-jsonrpc-method:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 218
+    sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
+    sourceLine: 214
+  SYM-skillopt-jsonrpc-parse-object:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 203
+    sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
+    sourceLine: 199
+  SYM-skillopt-jsonrpc-redact:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 109
+    sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
+    sourceLine: 100
+  SYM-skillopt-jsonrpc-tool-name:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 226
+    sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
+    sourceLine: 220
+  SYM-skillopt-jsonrpc-trace-input:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 16
+    sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
+    sourceLine: 7
+  SYM-skillopt-jsonrpc-trace-receipt:
+    sourceColumn: 12
+    sourceEndColumn: 5
+    sourceEndLine: 23
+    sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
+    sourceLine: 17
+  SYM-skillopt-jsonrpc-trace-verification:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 172
+    sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
+    sourceLine: 168
+  SYM-skillopt-jsonrpc-verify-trace:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 197
+    sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
+    sourceLine: 175
+  SYM-skillopt-knowledge-state-type:
+    sourceColumn: 12
+    sourceEndColumn: 70
+    sourceEndLine: 24
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 24
+  SYM-skillopt-max-candidate-body-bytes:
+    sourceColumn: 13
+    sourceEndColumn: 47
+    sourceEndLine: 6
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 6
+  SYM-skillopt-mcp-broker-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 77
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
+    sourceLine: 69
+  SYM-skillopt-mcp-broker-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 35
+    sourceEndLine: 70
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
+    sourceLine: 70
+  SYM-skillopt-normalize-codex-jsonl:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 186
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    sourceLine: 136
+  SYM-skillopt-normalized-codex-event-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 26
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    sourceLine: 22
+  SYM-skillopt-offline-review-artifacts:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 39
+    sourceFile: scripts/skillopt-eval/offline-artifacts.ts
+    sourceLine: 32
+  SYM-skillopt-offline-workflow-result:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 140
+    sourceFile: scripts/skillopt-eval/orchestration.ts
+    sourceLine: 136
+  SYM-skillopt-one-shot-optimizer:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 39
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 37
+  SYM-skillopt-one-shot-request:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 35
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 29
+  SYM-skillopt-one-shot-result:
+    sourceColumn: 12
+    sourceEndColumn: 7
+    sourceEndLine: 55
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 41
+  SYM-skillopt-optimization-checkpoint:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 59
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 54
+  SYM-skillopt-optimization-result:
+    sourceColumn: 12
+    sourceEndColumn: 7
+    sourceEndLine: 81
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 67
+  SYM-skillopt-optimization-step:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 65
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 61
+  SYM-skillopt-optimize-skillopt-variant:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 310
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 185
+  SYM-skillopt-persist-artifacts:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 60
+    sourceFile: scripts/skillopt-eval/skillopt-artifacts.ts
+    sourceLine: 14
+  SYM-skillopt-persist-codex-episode:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 63
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-artifacts.ts
+    sourceLine: 17
+  SYM-skillopt-pinned-runner-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 52
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 45
+  SYM-skillopt-plan-offline-adoption:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 205
+    sourceFile: scripts/skillopt-eval/offline-artifacts.ts
+    sourceLine: 193
+  SYM-skillopt-plan-skill-adoption:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 219
+    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceLine: 214
+  SYM-skillopt-preflight-run:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 263
+    sourceFile: scripts/skillopt-eval/preflight.ts
+    sourceLine: 184
+  SYM-skillopt-prepared-login-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 16
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    sourceLine: 12
+  SYM-skillopt-process-group-exists:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 18
+    sourceFile: scripts/skillopt-eval/tests/process-control.test.ts
+    sourceLine: 8
+  SYM-skillopt-prototype-call-type:
+    sourceColumn: 12
+    sourceEndColumn: 70
+    sourceEndLine: 9
+    sourceFile: scripts/skillopt-eval/prototype.ts
+    sourceLine: 9
+  SYM-skillopt-prototype-calls:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 6
+    sourceFile: scripts/skillopt-eval/prototype.ts
+    sourceLine: 2
+  SYM-skillopt-prototype-failure-type:
+    sourceColumn: 12
+    sourceEndColumn: 30
+    sourceEndLine: 16
+    sourceFile: scripts/skillopt-eval/prototype.ts
+    sourceLine: 13
+  SYM-skillopt-prototype-final-state-type:
+    sourceColumn: 12
+    sourceEndColumn: 55
+    sourceEndLine: 11
+    sourceFile: scripts/skillopt-eval/prototype.ts
+    sourceLine: 11
+  SYM-skillopt-prototype-receipt-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 32
+    sourceFile: scripts/skillopt-eval/prototype.ts
+    sourceLine: 27
+  SYM-skillopt-prototype-run:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 67
+    sourceFile: scripts/skillopt-eval/prototype.ts
+    sourceLine: 41
+  SYM-skillopt-prototype-scenario-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 24
+    sourceFile: scripts/skillopt-eval/prototype.ts
+    sourceLine: 19
+  SYM-skillopt-python-approval:
+    sourceColumn: 6
+    sourceEndColumn: 14
+    sourceEndLine: 46
+    sourceFile: tools/skillopt/kibi_skillopt/review.py
+    sourceLine: 46
+  SYM-skillopt-python-assert-approval:
+    sourceColumn: 4
+    sourceEndColumn: 36
+    sourceEndLine: 61
+    sourceFile: tools/skillopt/kibi_skillopt/review.py
+    sourceLine: 61
+  SYM-skillopt-python-assert-run-lock:
+    sourceColumn: 4
+    sourceEndColumn: 27
+    sourceEndLine: 237
+    sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
+    sourceLine: 237
+  SYM-skillopt-python-canonical-json:
+    sourceColumn: 4
+    sourceEndColumn: 18
+    sourceEndLine: 115
+    sourceFile: tools/skillopt/kibi_skillopt/common.py
+    sourceLine: 115
+  SYM-skillopt-python-contract-hash:
+    sourceColumn: 4
+    sourceEndColumn: 17
+    sourceEndLine: 120
+    sourceFile: tools/skillopt/kibi_skillopt/common.py
+    sourceLine: 120
+  SYM-skillopt-python-contract-model:
+    sourceColumn: 6
+    sourceEndColumn: 19
+    sourceEndLine: 59
+    sourceFile: tools/skillopt/kibi_skillopt/common.py
+    sourceLine: 59
+  SYM-skillopt-python-episode-request:
+    sourceColumn: 6
+    sourceEndColumn: 20
+    sourceEndLine: 26
+    sourceFile: tools/skillopt/kibi_skillopt/episode.py
+    sourceLine: 26
+  SYM-skillopt-python-episode-result:
+    sourceColumn: 6
+    sourceEndColumn: 19
+    sourceEndLine: 46
+    sourceFile: tools/skillopt/kibi_skillopt/episode.py
+    sourceLine: 46
+  SYM-skillopt-python-evidence-index:
+    sourceColumn: 6
+    sourceEndColumn: 19
+    sourceEndLine: 26
+    sourceFile: tools/skillopt/kibi_skillopt/evidence.py
+    sourceLine: 26
+  SYM-skillopt-python-json-node-value:
+    sourceColumn: 4
+    sourceEndColumn: 19
+    sourceEndLine: 124
+    sourceFile: tools/skillopt/kibi_skillopt/common.py
+    sourceLine: 124
+  SYM-skillopt-python-ledger-entry:
+    sourceColumn: 6
+    sourceEndColumn: 17
+    sourceEndLine: 26
+    sourceFile: tools/skillopt/kibi_skillopt/workflow.py
+    sourceLine: 26
+  SYM-skillopt-python-load-source-lock:
+    sourceColumn: 4
+    sourceEndColumn: 29
+    sourceEndLine: 100
+    sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
+    sourceLine: 100
+  SYM-skillopt-python-parse-timestamp:
+    sourceColumn: 4
+    sourceEndColumn: 19
+    sourceEndLine: 31
+    sourceFile: tools/skillopt/kibi_skillopt/common.py
+    sourceLine: 31
+  SYM-skillopt-python-proposal:
+    sourceColumn: 6
+    sourceEndColumn: 14
+    sourceEndLine: 21
+    sourceFile: tools/skillopt/kibi_skillopt/review.py
+    sourceLine: 21
+  SYM-skillopt-python-report-v1:
+    sourceColumn: 6
+    sourceEndColumn: 14
+    sourceEndLine: 109
+    sourceFile: tools/skillopt/kibi_skillopt/workflow.py
+    sourceLine: 109
+  SYM-skillopt-python-run-lock:
+    sourceColumn: 6
+    sourceEndColumn: 13
+    sourceEndLine: 163
+    sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
+    sourceLine: 163
+  SYM-skillopt-python-run-lock-hash:
+    sourceColumn: 4
+    sourceEndColumn: 17
+    sourceEndLine: 232
+    sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
+    sourceLine: 232
+  SYM-skillopt-python-run-state:
+    sourceColumn: 6
+    sourceEndColumn: 14
+    sourceEndLine: 63
+    sourceFile: tools/skillopt/kibi_skillopt/workflow.py
+    sourceLine: 63
+  SYM-skillopt-python-source-lock:
+    sourceColumn: 6
+    sourceEndColumn: 16
+    sourceEndLine: 87
+    sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
+    sourceLine: 87
+  SYM-skillopt-read-bridge-request:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 113
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 111
+  SYM-skillopt-read-bridge-result:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 149
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 131
+  SYM-skillopt-read-optional-artifact:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 14
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-artifacts.ts
+    sourceLine: 5
+  SYM-skillopt-real-optimization-dependencies:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 92
+    sourceFile: scripts/skillopt-eval/real-workflow.ts
+    sourceLine: 86
+  SYM-skillopt-real-optimization-input:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 84
+    sourceFile: scripts/skillopt-eval/real-workflow.ts
+    sourceLine: 69
+  SYM-skillopt-real-optimization-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 56
+    sourceFile: scripts/skillopt-eval/real-workflow.ts
+    sourceLine: 49
+  SYM-skillopt-real-optimization-result:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 67
+    sourceFile: scripts/skillopt-eval/real-workflow.ts
+    sourceLine: 58
+  SYM-skillopt-real-optimization-run:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 266
+    sourceFile: scripts/skillopt-eval/real-workflow.ts
+    sourceLine: 147
+  SYM-skillopt-render-report-markdown:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 87
+    sourceFile: scripts/skillopt-eval/report.ts
+    sourceLine: 67
+  SYM-skillopt-replay-codex-episode:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 253
+    sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
+    sourceLine: 159
+  SYM-skillopt-report-artifacts-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 47
+    sourceFile: scripts/skillopt-eval/report.ts
+    sourceLine: 42
+  SYM-skillopt-report-gate-results-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 26
+    sourceFile: scripts/skillopt-eval/report.ts
+    sourceLine: 20
+  SYM-skillopt-repository-state-type:
+    sourceColumn: 12
+    sourceEndColumn: 75
+    sourceEndLine: 23
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 23
+  SYM-skillopt-required-kibi-tools:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 9
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
+    sourceLine: 1
+  SYM-skillopt-resolve-artifact-root:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 55
+    sourceFile: scripts/skillopt-eval/runtime/artifact-root.ts
+    sourceLine: 25
+  SYM-skillopt-run-codex-cell:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 181
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
+    sourceLine: 31
+  SYM-skillopt-run-independent-final-state:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 133
+    sourceFile: scripts/skillopt-eval/runtime/final-state.ts
+    sourceLine: 82
+  SYM-skillopt-run-mcp-broker:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 242
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker-process.ts
+    sourceLine: 55
+  SYM-skillopt-run-mirror-sync:
+    sourceColumn: 12
+    sourceEndColumn: 64
+    sourceEndLine: 39
+    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceLine: 39
+  SYM-skillopt-run-offline-workflow:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 226
+    sourceFile: scripts/skillopt-eval/orchestration.ts
+    sourceLine: 143
+  SYM-skillopt-run-store:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 136
+    sourceFile: scripts/skillopt-eval/orchestration-store.ts
+    sourceLine: 19
+  SYM-skillopt-run-store-acquire:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 47
+    sourceFile: scripts/skillopt-eval/orchestration-store.ts
+    sourceLine: 27
+  SYM-skillopt-run-store-append-ledger:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 129
+    sourceFile: scripts/skillopt-eval/orchestration-store.ts
+    sourceLine: 77
+  SYM-skillopt-run-store-atomic-write:
+    sourceColumn: 16
+    sourceEndColumn: 3
+    sourceEndLine: 135
+    sourceFile: scripts/skillopt-eval/orchestration-store.ts
+    sourceLine: 131
+  SYM-skillopt-run-store-held:
+    sourceColumn: 10
+    sourceEndColumn: 23
+    sourceEndLine: 20
+    sourceFile: scripts/skillopt-eval/orchestration-store.ts
+    sourceLine: 20
+  SYM-skillopt-run-store-read-state:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 70
+    sourceFile: scripts/skillopt-eval/orchestration-store.ts
+    sourceLine: 55
+  SYM-skillopt-run-store-release:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 53
+    sourceFile: scripts/skillopt-eval/orchestration-store.ts
+    sourceLine: 49
+  SYM-skillopt-run-store-write-state:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 75
+    sourceFile: scripts/skillopt-eval/orchestration-store.ts
+    sourceLine: 72
+  SYM-skillopt-runtime-assert-existing-login:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 71
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    sourceLine: 62
+  SYM-skillopt-runtime-auth-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 59
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    sourceLine: 50
+  SYM-skillopt-runtime-auth-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 35
+    sourceEndLine: 51
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    sourceLine: 51
+  SYM-skillopt-runtime-auth-mode:
+    sourceColumn: 12
+    sourceEndColumn: 42
+    sourceEndLine: 36
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    sourceLine: 36
+  SYM-skillopt-runtime-auth-preparation:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 43
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    sourceLine: 38
+  SYM-skillopt-runtime-auth-runner:
+    sourceColumn: 12
+    sourceEndColumn: 28
+    sourceEndLine: 48
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    sourceLine: 45
+  SYM-skillopt-runtime-build-argv:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 173
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 147
+  SYM-skillopt-runtime-build-config:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 144
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 72
+  SYM-skillopt-runtime-build-sandbox-probe-argv:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 51
+    sourceFile: scripts/skillopt-eval/runtime/canary-probes.ts
+    sourceLine: 32
+  SYM-skillopt-runtime-canary-evidence-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 29
+    sourceFile: scripts/skillopt-eval/runtime/canary-evidence.ts
+    sourceLine: 23
+  SYM-skillopt-runtime-canary-evidence-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 40
+    sourceEndLine: 24
+    sourceFile: scripts/skillopt-eval/runtime/canary-evidence.ts
+    sourceLine: 24
+  SYM-skillopt-runtime-canary-model:
+    sourceColumn: 12
+    sourceEndColumn: 71
+    sourceEndLine: 12
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 12
+  SYM-skillopt-runtime-canary-model-run:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 18
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 14
+  SYM-skillopt-runtime-canary-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 37
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 32
+  SYM-skillopt-runtime-canary-receipt:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 30
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 20
+  SYM-skillopt-runtime-canary-role:
+    sourceColumn: 12
+    sourceEndColumn: 48
+    sourceEndLine: 11
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 11
+  SYM-skillopt-runtime-canary-runner:
+    sourceColumn: 12
+    sourceEndColumn: 28
+    sourceEndLine: 45
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 39
+  SYM-skillopt-runtime-capability-probe-evidence:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 21
+    sourceFile: scripts/skillopt-eval/runtime/canary-evidence.ts
+    sourceLine: 16
+  SYM-skillopt-runtime-config-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 65
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 58
+  SYM-skillopt-runtime-create-workspace:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 72
+    sourceFile: scripts/skillopt-eval/runtime/isolation-workspace.ts
+    sourceLine: 28
+  SYM-skillopt-runtime-isolated-env:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 93
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    sourceLine: 73
+  SYM-skillopt-runtime-isolation-workspace:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 12
+    sourceFile: scripts/skillopt-eval/runtime/isolation-workspace.ts
+    sourceLine: 4
+  SYM-skillopt-runtime-json-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 50
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    sourceLine: 41
+  SYM-skillopt-runtime-json-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 35
+    sourceEndLine: 42
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    sourceLine: 42
+  SYM-skillopt-runtime-json-line:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 39
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    sourceLine: 36
+  SYM-skillopt-runtime-mcp-probe-result:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 49
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    sourceLine: 47
+  SYM-skillopt-runtime-mcp-server-launch:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 45
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    sourceLine: 40
+  SYM-skillopt-runtime-mcp-startup-timeout:
+    sourceColumn: 13
+    sourceEndColumn: 54
+    sourceEndLine: 9
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 9
+  SYM-skillopt-runtime-mcp-tool-timeout:
+    sourceColumn: 13
+    sourceEndColumn: 52
+    sourceEndLine: 10
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 10
+  SYM-skillopt-runtime-model-canary-context:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 62
+    sourceFile: scripts/skillopt-eval/runtime/canary-run.ts
+    sourceLine: 53
+  SYM-skillopt-runtime-model-canary-result:
+    sourceColumn: 12
+    sourceEndColumn: 7
+    sourceEndLine: 51
+    sourceFile: scripts/skillopt-eval/runtime/canary-run.ts
+    sourceLine: 39
+  SYM-skillopt-runtime-model-effort:
+    sourceColumn: 13
+    sourceEndColumn: 52
+    sourceEndLine: 8
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 8
+  SYM-skillopt-runtime-optimizer-model:
+    sourceColumn: 13
+    sourceEndColumn: 49
+    sourceEndLine: 7
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 7
+  SYM-skillopt-runtime-parse-jsonl:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 66
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    sourceLine: 53
+  SYM-skillopt-runtime-permission-paths:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 56
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 47
+  SYM-skillopt-runtime-preflight-config:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 39
+    sourceFile: scripts/skillopt-eval/preflight.ts
+    sourceLine: 34
+  SYM-skillopt-runtime-preflight-dependencies:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 77
+    sourceFile: scripts/skillopt-eval/preflight.ts
+    sourceLine: 59
+  SYM-skillopt-runtime-preflight-receipt:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 54
+    sourceFile: scripts/skillopt-eval/preflight.ts
+    sourceLine: 41
+  SYM-skillopt-runtime-prepare-existing-login:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 144
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    sourceLine: 108
+  SYM-skillopt-runtime-prerequisite-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 16
+    sourceFile: scripts/skillopt-eval/runtime/canary-errors.ts
+    sourceLine: 10
+  SYM-skillopt-runtime-prerequisite-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 45
+    sourceEndLine: 11
+    sourceFile: scripts/skillopt-eval/runtime/canary-errors.ts
+    sourceLine: 11
+  SYM-skillopt-runtime-prerequisite-kind:
+    sourceColumn: 12
+    sourceEndColumn: 72
+    sourceEndLine: 8
+    sourceFile: scripts/skillopt-eval/runtime/canary-errors.ts
+    sourceLine: 8
+  SYM-skillopt-runtime-probe-required-mcp:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 194
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    sourceLine: 167
+  SYM-skillopt-runtime-probe-sandbox:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 79
+    sourceFile: scripts/skillopt-eval/runtime/canary-probes.ts
+    sourceLine: 53
+  SYM-skillopt-runtime-process-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 32
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    sourceLine: 22
+  SYM-skillopt-runtime-process-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 40
+    sourceEndLine: 23
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    sourceLine: 23
+  SYM-skillopt-runtime-process-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 20
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    sourceLine: 13
+  SYM-skillopt-runtime-process-result:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 11
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    sourceLine: 5
+  SYM-skillopt-runtime-process-summary:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 199
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    sourceLine: 196
+  SYM-skillopt-runtime-required-mcp-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 27
+    sourceFile: scripts/skillopt-eval/runtime/canary-errors.ts
+    sourceLine: 18
+  SYM-skillopt-runtime-required-mcp-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 44
+    sourceEndLine: 19
+    sourceFile: scripts/skillopt-eval/runtime/canary-errors.ts
+    sourceLine: 19
+  SYM-skillopt-runtime-run-canary:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 104
+    sourceFile: scripts/skillopt-eval/runtime/workspace.ts
+    sourceLine: 43
+  SYM-skillopt-runtime-run-model-canary:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 241
+    sourceFile: scripts/skillopt-eval/runtime/canary-run.ts
+    sourceLine: 102
+  SYM-skillopt-runtime-run-process:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 153
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    sourceLine: 81
+  SYM-skillopt-runtime-sha256-file:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 35
+    sourceFile: scripts/skillopt-eval/runtime/canary-evidence.ts
+    sourceLine: 31
+  SYM-skillopt-runtime-source-clean:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 90
+    sourceFile: scripts/skillopt-eval/preflight.ts
+    sourceLine: 79
+  SYM-skillopt-runtime-source-isolation-paths:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 30
+    sourceFile: scripts/skillopt-eval/runtime/canary-probes.ts
+    sourceLine: 11
+  SYM-skillopt-runtime-stage-canary:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 149
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    sourceLine: 70
+  SYM-skillopt-runtime-stage-kibi-mcp:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 139
+    sourceFile: scripts/skillopt-eval/runtime/staged-mcp.ts
+    sourceLine: 100
+  SYM-skillopt-runtime-staged-canary:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 56
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    sourceLine: 51
+  SYM-skillopt-runtime-staged-mcp-launch:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 17
+    sourceFile: scripts/skillopt-eval/runtime/staged-mcp.ts
+    sourceLine: 13
+  SYM-skillopt-runtime-target-model:
+    sourceColumn: 13
+    sourceEndColumn: 51
+    sourceEndLine: 6
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 6
+  SYM-skillopt-runtime-verify-canary-evidence:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 62
+    sourceFile: scripts/skillopt-eval/runtime/canary-evidence.ts
+    sourceLine: 38
+  SYM-skillopt-runtime-workspace-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 18
+    sourceFile: scripts/skillopt-eval/runtime/isolation-workspace.ts
+    sourceLine: 14
+  SYM-skillopt-runtime-write-probe:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 101
+    sourceFile: scripts/skillopt-eval/runtime/canary-probes.ts
+    sourceLine: 81
+  SYM-skillopt-scoring-bootstrap:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 80
+    sourceFile: scripts/skillopt-eval/scoring/statistics.ts
+    sourceLine: 62
+  SYM-skillopt-scoring-bootstrap-resamples:
+    sourceColumn: 13
+    sourceEndColumn: 41
+    sourceEndLine: 3
+    sourceFile: scripts/skillopt-eval/scoring/statistics.ts
+    sourceLine: 3
+  SYM-skillopt-scoring-bootstrap-seed:
+    sourceColumn: 13
+    sourceEndColumn: 34
+    sourceEndLine: 4
+    sourceFile: scripts/skillopt-eval/scoring/statistics.ts
+    sourceLine: 4
+  SYM-skillopt-scoring-budget-stop:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 236
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    sourceLine: 231
+  SYM-skillopt-scoring-bundle-gate:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 242
+    sourceFile: scripts/skillopt-eval/scoring/gates.ts
+    sourceLine: 211
+  SYM-skillopt-scoring-cell:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 216
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    sourceLine: 121
+  SYM-skillopt-scoring-cell-evidence:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 31
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    sourceLine: 17
+  SYM-skillopt-scoring-cell-receipt:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 56
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    sourceLine: 41
+  SYM-skillopt-scoring-cell-summary:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 11
+    sourceFile: scripts/skillopt-eval/scoring/statistics.ts
+    sourceLine: 6
+  SYM-skillopt-scoring-evidence-claim:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 9
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    sourceLine: 6
+  SYM-skillopt-scoring-gate-cell:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 17
+    sourceFile: scripts/skillopt-eval/scoring/gates.ts
+    sourceLine: 9
+  SYM-skillopt-scoring-gate-verdict:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 52
+    sourceFile: scripts/skillopt-eval/scoring/gates.ts
+    sourceLine: 47
+  SYM-skillopt-scoring-infrastructure-failure:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 229
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    sourceLine: 218
+  SYM-skillopt-scoring-redaction:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 259
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    sourceLine: 238
+  SYM-skillopt-scoring-skill-gate:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 209
+    sourceFile: scripts/skillopt-eval/scoring/gates.ts
+    sourceLine: 164
+  SYM-skillopt-scoring-summary:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 60
+    sourceFile: scripts/skillopt-eval/scoring/statistics.ts
+    sourceLine: 49
+  SYM-skillopt-scoring-terminal-category:
+    sourceColumn: 12
+    sourceEndColumn: 24
+    sourceEndLine: 39
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    sourceLine: 33
+  SYM-skillopt-skill-assembly-receipt-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 26
+    sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
+    sourceLine: 18
+  SYM-skillopt-skill-candidate-surface-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 16
+    sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
+    sourceLine: 12
+  SYM-skillopt-source-lock-python-tests:
+    sourceColumn: 6
+    sourceEndColumn: 21
+    sourceEndLine: 15
+    sourceFile: tools/skillopt/tests/test_source_lock.py
+    sourceLine: 15
+  SYM-skillopt-stage-kibi-mcp-broker:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 74
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker-stage.ts
+    sourceLine: 22
+  SYM-skillopt-staged-broker-launch:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 15
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker-stage.ts
+    sourceLine: 8
+  SYM-skillopt-staged-mcp-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 22
+    sourceFile: scripts/skillopt-eval/runtime/staged-mcp.ts
+    sourceLine: 19
+  SYM-skillopt-step-request:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 34
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 27
+  SYM-skillopt-step-result:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 39
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 36
+  SYM-skillopt-step-runner:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 43
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 41
+  SYM-skillopt-task-spec-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 59
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 36
+  SYM-skillopt-task-split-type:
+    sourceColumn: 12
+    sourceEndColumn: 61
+    sourceEndLine: 17
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 17
+  SYM-skillopt-train-trajectory:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 19
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 15
+  SYM-skillopt-validate-approval:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 66
+    sourceFile: scripts/skillopt-eval/approval.ts
+    sourceLine: 31
+  SYM-skillopt-validate-approval-input-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 28
+    sourceFile: scripts/skillopt-eval/approval.ts
+    sourceLine: 22
+  SYM-skillopt-validate-candidate-body:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 115
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 97
+  SYM-skillopt-validate-catalog:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 210
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 177
+  SYM-skillopt-variant-schema:
+    sourceColumn: 13
+    sourceEndColumn: 73
+    sourceEndLine: 8
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 8
+  SYM-skillopt-variant-surface:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 14
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 11
+  SYM-skillopt-variant-type:
+    sourceColumn: 12
+    sourceEndColumn: 52
+    sourceEndLine: 9
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 9
+  SYM-skillopt-verify-installed-revision:
+    sourceColumn: 4
+    sourceEndColumn: 22
+    sourceEndLine: 54
+    sourceFile: tools/skillopt/verify_pin.py
+    sourceLine: 54
+  SYM-skillopt-verify-lock:
+    sourceColumn: 4
+    sourceEndColumn: 15
+    sourceEndLine: 62
+    sourceFile: tools/skillopt/verify_pin.py
+    sourceLine: 62
+  SYM-skillopt-wait-process-group-reaping:
+    sourceColumn: 15
+    sourceEndColumn: 1
+    sourceEndLine: 29
+    sourceFile: scripts/skillopt-eval/tests/process-control.test.ts
+    sourceLine: 20
+  SYM-skillopt-worktree-state-type:
+    sourceColumn: 12
+    sourceEndColumn: 46
+    sourceEndLine: 25
+    sourceFile: scripts/skillopt-eval/catalog.ts
+    sourceLine: 25
+  SYM-skillopt-write-bridge-request:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 108
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 100
+  SYM-skillopt-write-bridge-result:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 128
+    sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
+    sourceLine: 116
+  SYM-skillopt-write-offline-review-artifacts:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 190
+    sourceFile: scripts/skillopt-eval/offline-artifacts.ts
+    sourceLine: 161
   SYM-skillsListCommand:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -6041,9 +8309,9 @@ coordinates:
   SYM-test-root-runBatch:
     sourceColumn: 15
     sourceEndColumn: 1
-    sourceEndLine: 198
+    sourceEndLine: 202
     sourceFile: test/root.test.ts
-    sourceLine: 150
+    sourceLine: 154
   SYM-test-sparql-fixture-request:
     sourceColumn: 12
     sourceEndColumn: 2

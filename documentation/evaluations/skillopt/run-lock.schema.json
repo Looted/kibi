@@ -1,0 +1,321 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "run-lock.schema.json",
+  "title": "SkillOpt run lock v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "artifactType",
+    "runId",
+    "repositoryHashAlgorithm",
+    "repositoryCommit",
+    "dirtyState",
+    "codexCliVersion",
+    "codexExecutable",
+    "cliArgs",
+    "artifactRoot",
+    "targetModel",
+    "optimizerModel",
+    "skillopt",
+    "sourceLockHash",
+    "catalogHash",
+    "fixtureHash",
+    "fixtureGeneratorHash",
+    "pricing",
+    "pricingHash",
+    "baselineSkillHashes",
+    "seed",
+    "authMode",
+    "hosts",
+    "gates"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "$ref": "contract-definitions.schema.json#/$defs/schemaVersion"
+    },
+    "artifactType": { "const": "run-lock" },
+    "runId": {
+      "$ref": "contract-definitions.schema.json#/$defs/artifactId"
+    },
+    "repositoryHashAlgorithm": { "enum": ["sha1", "sha256"] },
+    "repositoryCommit": {
+      "type": "string",
+      "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"
+    },
+    "dirtyState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["isDirty", "diffHash"],
+      "properties": {
+        "isDirty": { "type": "boolean" },
+        "diffHash": {
+          "oneOf": [
+            { "$ref": "contract-definitions.schema.json#/$defs/sha256" },
+            { "type": "null" }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "isDirty": { "const": false } } },
+          "then": { "properties": { "diffHash": { "type": "null" } } }
+        },
+        {
+          "if": { "properties": { "isDirty": { "const": true } } },
+          "then": {
+            "properties": {
+              "diffHash": {
+                "$ref": "contract-definitions.schema.json#/$defs/sha256"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "codexCliVersion": {
+      "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString"
+    },
+    "codexExecutable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "version", "sha256"],
+      "properties": {
+        "path": {
+          "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString"
+        },
+        "version": {
+          "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString"
+        },
+        "sha256": { "$ref": "contract-definitions.schema.json#/$defs/sha256" }
+      }
+    },
+    "cliArgs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString"
+      }
+    },
+    "artifactRoot": {
+      "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString"
+    },
+    "targetModel": { "const": "gpt-5.4-mini" },
+    "optimizerModel": { "const": "gpt-5.5" },
+    "skillopt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "package",
+        "version",
+        "commit",
+        "repository",
+        "license",
+        "retrievedAt",
+        "python",
+        "packageHash",
+        "sourceHash",
+        "uvLockHash"
+      ],
+      "properties": {
+        "package": { "const": "skillopt" },
+        "version": {
+          "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString"
+        },
+        "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+        "repository": { "type": "string", "format": "uri" },
+        "license": {
+          "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString"
+        },
+        "retrievedAt": { "type": "string", "format": "date" },
+        "python": {
+          "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString"
+        },
+        "packageHash": {
+          "$ref": "contract-definitions.schema.json#/$defs/sha256"
+        },
+        "sourceHash": {
+          "$ref": "contract-definitions.schema.json#/$defs/sha256"
+        },
+        "uvLockHash": {
+          "$ref": "contract-definitions.schema.json#/$defs/sha256"
+        }
+      }
+    },
+    "sourceLockHash": {
+      "$ref": "contract-definitions.schema.json#/$defs/sha256"
+    },
+    "catalogHash": { "$ref": "contract-definitions.schema.json#/$defs/sha256" },
+    "fixtureHash": { "$ref": "contract-definitions.schema.json#/$defs/sha256" },
+    "fixtureGeneratorHash": {
+      "$ref": "contract-definitions.schema.json#/$defs/sha256"
+    },
+    "pricing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "effectiveFrom", "currency", "source", "models"],
+      "properties": {
+        "name": { "const": "price-equivalent-estimates" },
+        "effectiveFrom": { "type": "string", "format": "date" },
+        "currency": { "const": "USD" },
+        "source": {
+          "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString"
+        },
+        "models": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["gpt-5.4-mini", "gpt-5.5"],
+          "properties": {
+            "gpt-5.4-mini": { "$ref": "#/$defs/modelPricing" },
+            "gpt-5.5": { "$ref": "#/$defs/modelPricing" }
+          }
+        }
+      }
+    },
+    "pricingHash": { "$ref": "contract-definitions.schema.json#/$defs/sha256" },
+    "baselineSkillHashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kibi-usage",
+        "kibi-freshness",
+        "kibi-traceability",
+        "init-kibi"
+      ],
+      "properties": {
+        "kibi-usage": { "$ref": "#/$defs/skillSurfaceHashes" },
+        "kibi-freshness": { "$ref": "#/$defs/skillSurfaceHashes" },
+        "kibi-traceability": { "$ref": "#/$defs/skillSurfaceHashes" },
+        "init-kibi": { "$ref": "#/$defs/skillSurfaceHashes" }
+      }
+    },
+    "seed": { "type": "integer", "minimum": 0 },
+    "authMode": { "const": "existing-login" },
+    "hosts": { "const": ["codex"] },
+    "gates": {
+      "$ref": "#/$defs/gates",
+      "const": {
+        "heldOutTasksPerVariant": 16,
+        "familySlices": 4,
+        "bundleTasks": 8,
+        "candidate": {
+          "meanMinimum": 85,
+          "hardPassesMinimum": 13,
+          "hardPassesTotal": 16,
+          "meanDeltaMinimum": { "baseline": 8, "oneShot": 5 },
+          "hardPassDeltaMinimum": { "baseline": 2, "oneShot": 1 }
+        },
+        "bootstrap": {
+          "resamples": 10000,
+          "seed": 5417,
+          "confidenceLevel": 0.95,
+          "sidedness": "one-sided",
+          "lowerBoundExclusiveMinimum": 0,
+          "clusterUnit": "task"
+        },
+        "familyGuard": { "maxMeanRegression": 3, "maxHardPassRegression": 1 },
+        "bundle": {
+          "meanMinimum": 85,
+          "hardPassesMinimum": 7,
+          "hardPassesTotal": 8,
+          "meanDeltaMinimum": { "baseline": 3, "oneShot": 3 },
+          "allowHardPassLoss": false,
+          "maxCriticalFailures": 0
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "repositoryHashAlgorithm": { "const": "sha1" } },
+        "required": ["repositoryHashAlgorithm"]
+      },
+      "then": {
+        "properties": {
+          "repositoryCommit": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{40}$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "repositoryHashAlgorithm": { "const": "sha256" } },
+        "required": ["repositoryHashAlgorithm"]
+      },
+      "then": {
+        "properties": {
+          "repositoryCommit": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "skillSurfaceHashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bodyHash", "frontmatterHash", "resourcesHash"],
+      "properties": {
+        "bodyHash": {
+          "$ref": "contract-definitions.schema.json#/$defs/sha256"
+        },
+        "frontmatterHash": {
+          "$ref": "contract-definitions.schema.json#/$defs/sha256"
+        },
+        "resourcesHash": {
+          "$ref": "contract-definitions.schema.json#/$defs/sha256"
+        }
+      }
+    },
+    "modelPricing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inputPerMillionTokens",
+        "cachedInputPerMillionTokens",
+        "outputPerMillionTokens"
+      ],
+      "properties": {
+        "inputPerMillionTokens": { "type": "number", "minimum": 0 },
+        "cachedInputPerMillionTokens": { "type": "number", "minimum": 0 },
+        "outputPerMillionTokens": { "type": "number", "minimum": 0 }
+      }
+    },
+    "gates": {
+      "const": {
+        "heldOutTasksPerVariant": 16,
+        "familySlices": 4,
+        "bundleTasks": 8,
+        "candidate": {
+          "meanMinimum": 85,
+          "hardPassesMinimum": 13,
+          "hardPassesTotal": 16,
+          "meanDeltaMinimum": { "baseline": 8, "oneShot": 5 },
+          "hardPassDeltaMinimum": { "baseline": 2, "oneShot": 1 }
+        },
+        "bootstrap": {
+          "resamples": 10000,
+          "seed": 5417,
+          "confidenceLevel": 0.95,
+          "sidedness": "one-sided",
+          "lowerBoundExclusiveMinimum": 0,
+          "clusterUnit": "task"
+        },
+        "familyGuard": { "maxMeanRegression": 3, "maxHardPassRegression": 1 },
+        "bundle": {
+          "meanMinimum": 85,
+          "hardPassesMinimum": 7,
+          "hardPassesTotal": 8,
+          "meanDeltaMinimum": { "baseline": 3, "oneShot": 3 },
+          "allowHardPassLoss": false,
+          "maxCriticalFailures": 0
+        }
+      }
+    }
+  }
+}

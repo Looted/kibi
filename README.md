@@ -326,6 +326,7 @@ npm exec -- kibi coverage --by req --format table
 - **[Architecture](docs/architecture.md)** — System architecture and component descriptions
 - **[Inference Rules](docs/inference-rules.md)** — Validation rules and constraint logic
 - **[MCP Reference](docs/mcp-reference.md)** — MCP server documentation
+- **[SkillOpt Workflow](docs/skillopt.md)**, operator guide for the fake workflow, artifact layout, and approval gate notes
 - **[LLM Prompts](docs/prompts/llm-rules.md)** — Ready-to-copy system prompts for agents
 - **[AGENTS.md](AGENTS.md)** — Guidelines for AI agents working on kibi projects
 - **[Contributing](CONTRIBUTING.md)** — Development setup and contributor workflow

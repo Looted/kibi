@@ -10,5 +10,9 @@
     "types": ["node", "bun-types"],
     "typeRoots": ["./types", "./node_modules/@types", "./node_modules"]
   },
-  "include": ["scripts/*.ts", "types/js-yaml.d.ts"]
+  "include": [
+    "scripts/*.ts",
+    "scripts/skillopt-eval/**/*.ts",
+    "types/js-yaml.d.ts"
+  ]
 }

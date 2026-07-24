@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ledger-entry.schema.json",
+  "title": "SkillOpt ledger entry v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "artifactType",
+    "runId",
+    "sequence",
+    "previousEntryHash",
+    "entryHash",
+    "occurredAt",
+    "category",
+    "model",
+    "usage",
+    "priceEquivalentEstimate"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "$ref": "contract-definitions.schema.json#/$defs/schemaVersion"
+    },
+    "artifactType": { "const": "ledger-entry" },
+    "runId": {
+      "$ref": "contract-definitions.schema.json#/$defs/artifactId"
+    },
+    "sequence": { "type": "integer", "minimum": 0 },
+    "previousEntryHash": {
+      "oneOf": [
+        { "$ref": "contract-definitions.schema.json#/$defs/sha256" },
+        { "type": "null" }
+      ]
+    },
+    "entryHash": { "$ref": "contract-definitions.schema.json#/$defs/sha256" },
+    "occurredAt": {
+      "$ref": "contract-definitions.schema.json#/$defs/timestamp"
+    },
+    "episodeId": {
+      "$ref": "contract-definitions.schema.json#/$defs/artifactId"
+    },
+    "category": {
+      "enum": [
+        "preflight",
+        "development",
+        "optimization",
+        "held-out",
+        "bundle",
+        "infrastructure"
+      ]
+    },
+    "model": { "enum": ["gpt-5.4-mini", "gpt-5.5", "none"] },
+    "usage": { "$ref": "contract-definitions.schema.json#/$defs/usage" },
+    "priceEquivalentEstimate": {
+      "$ref": "contract-definitions.schema.json#/$defs/priceEquivalentEstimate"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "sequence": { "const": 0 } },
+        "required": ["sequence"]
+      },
+      "then": { "properties": { "previousEntryHash": { "type": "null" } } },
+      "else": {
+        "properties": {
+          "previousEntryHash": {
+            "$ref": "contract-definitions.schema.json#/$defs/sha256"
+          }
+        }
+      }
+    }
+  ]
+}
