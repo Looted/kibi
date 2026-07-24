@@ -148,16 +148,17 @@ describe("evaluator-owned Kibi MCP evidence", () => {
       const staged = await stageKibiMcpBroker(workspace, process.cwd());
 
       // Then
-      expect(staged.command.startsWith(`${workspace.privateEvidence}/`)).toBe(
-        true,
-      );
+      const runtimeRoot = resolve(workspace.target, ".runtime/mcp");
+      expect(staged.command.startsWith(`${runtimeRoot}/broker/`)).toBe(true);
       expect(
-        staged.downstream.command.startsWith(`${workspace.privateEvidence}/`),
+        staged.downstream.command.startsWith(`${runtimeRoot}/kibi/`),
       ).toBe(true);
       expect(staged.tracePath.startsWith(`${workspace.privateEvidence}/`)).toBe(
         true,
       );
-      expect(staged.command.startsWith(`${workspace.target}/`)).toBe(false);
+      expect(staged.command.startsWith(`${workspace.privateEvidence}/`)).toBe(
+        false,
+      );
       expect(staged.downstream.args).toContain("--diagnostic-mode");
       expect(
         (await readFile(staged.bundlePath, "utf8")).includes(process.cwd()),

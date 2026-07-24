@@ -24,8 +24,9 @@ export async function stageKibiMcpBroker(
   sourceWorktree: string,
   options: BrokerStageOptions = {},
 ): Promise<StagedBrokerLaunch> {
-  const brokerRoot = resolve(workspace.privateEvidence, "mcp-broker");
-  const downstreamRoot = resolve(workspace.privateEvidence, "kibi-mcp-runtime");
+  const runtimeRoot = resolve(workspace.target, ".runtime/mcp");
+  const brokerRoot = resolve(runtimeRoot, "broker");
+  const downstreamRoot = resolve(runtimeRoot, "kibi");
   await mkdir(brokerRoot, { recursive: true, mode: 0o700 });
   const downstream = await stageKibiMcpRuntime(workspace, sourceWorktree, {
     stagedRoot: downstreamRoot,
