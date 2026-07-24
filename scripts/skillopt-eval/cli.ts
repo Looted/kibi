@@ -118,7 +118,7 @@ function printHelp(): void {
       "Usage: cli.ts <command> [options]",
       "Commands: preflight, smoke, dry-run, prepare, optimize, evaluate, bundle, run, resume, status, report, approve, adopt, prototype",
       "Workflow options: --run-id RUN_ID --artifact-root PATH [--fake] [--skill SKILL|all] [--max-steps 1..4]",
-      "Real optimize requires --allow-paid after preflight and smoke; it stops at approval review.",
+      "Real optimize requires --allow-paid after preflight and smoke; passing candidates are adopted automatically.",
     ].join("\n")}\n`,
   );
 }
