@@ -12500,7 +12500,7 @@ symbols:
     title: runPreflight
     sourceFile: scripts/skillopt-eval/preflight.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -12510,6 +12510,7 @@ symbols:
     title: runCodexSkillOptStep
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -14894,6 +14895,7 @@ symbols:
     title: runModelCanary
     sourceFile: scripts/skillopt-eval/runtime/canary-run.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization

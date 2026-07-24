@@ -158,6 +158,7 @@ async function prepareConfig(
   ) => options.dependencies.run(argv, options.workspace.target, env, 15_000);
   const auth = await prepareExistingLogin({
     privateCodexHome: options.workspace.codexHome,
+    sandboxHome: options.workspace.sandboxHome,
     env: options.env,
     run: runAuth,
   });

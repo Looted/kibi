@@ -113,6 +113,7 @@ export async function runModelCanary(
   try {
     const auth = await prepareExistingLogin({
       privateCodexHome: workspace.codexHome,
+      sandboxHome: workspace.sandboxHome,
       env: context.env,
       run: (argv, childEnv) =>
         context.run(argv, workspace.target, childEnv, 15_000),
