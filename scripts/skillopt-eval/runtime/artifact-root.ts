@@ -1,7 +1,7 @@
 import { constants } from "node:fs";
 import { access } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { isAbsolute, join, relative, resolve } from "node:path";
 
 const ARTIFACT_SUBPATH = ["kibi-skillopt", "isolation-canary"] as const;
 
@@ -52,4 +52,18 @@ export async function resolveArtifactRoot(
   }
 
   return resolve(join(options.tempRoot ?? tmpdir(), ...ARTIFACT_SUBPATH));
+}
+
+export function resolveIsolationArtifactRoot(
+  configuredRoot: string,
+  sourceWorktree: string,
+  tempRoot = tmpdir(),
+): string {
+  const relativeRoot = relative(resolve(sourceWorktree), resolve(configuredRoot));
+  const nested =
+    relativeRoot === "" ||
+    (!relativeRoot.startsWith("..") && !isAbsolute(relativeRoot));
+  return nested
+    ? resolve(join(tempRoot, "kibi-skillopt", "isolation"))
+    : resolve(configuredRoot);
 }

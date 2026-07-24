@@ -6293,27 +6293,27 @@ coordinates:
   SYM-skillopt-codex-optimizer-error:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 28
+    sourceEndLine: 29
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
-    sourceLine: 25
+    sourceLine: 26
   SYM-skillopt-codex-optimizer-error-name:
     sourceColumn: 11
     sourceEndColumn: 40
-    sourceEndLine: 27
+    sourceEndLine: 28
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
-    sourceLine: 27
+    sourceLine: 28
   SYM-skillopt-codex-optimizer-options:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 78
+    sourceEndLine: 79
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
-    sourceLine: 71
+    sourceLine: 72
   SYM-skillopt-codex-optimizer-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 165
+    sourceEndLine: 169
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
-    sourceLine: 81
+    sourceLine: 82
   SYM-skillopt-codex-violation-type:
     sourceColumn: 12
     sourceEndColumn: 63
@@ -7211,9 +7211,9 @@ coordinates:
   SYM-skillopt-preflight-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 264
+    sourceEndLine: 271
     sourceFile: scripts/skillopt-eval/preflight.ts
-    sourceLine: 185
+    sourceLine: 188
   SYM-skillopt-prepared-login-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -7472,12 +7472,18 @@ coordinates:
     sourceEndLine: 55
     sourceFile: scripts/skillopt-eval/runtime/artifact-root.ts
     sourceLine: 25
+  SYM-skillopt-resolve-isolation-artifact-root:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 69
+    sourceFile: scripts/skillopt-eval/runtime/artifact-root.ts
+    sourceLine: 57
   SYM-skillopt-run-codex-cell:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 182
+    sourceEndLine: 186
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
-    sourceLine: 31
+    sourceLine: 32
   SYM-skillopt-run-independent-final-state:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7763,21 +7769,21 @@ coordinates:
   SYM-skillopt-runtime-preflight-config:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 39
+    sourceEndLine: 42
     sourceFile: scripts/skillopt-eval/preflight.ts
-    sourceLine: 34
+    sourceLine: 37
   SYM-skillopt-runtime-preflight-dependencies:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 77
+    sourceEndLine: 80
     sourceFile: scripts/skillopt-eval/preflight.ts
-    sourceLine: 59
+    sourceLine: 62
   SYM-skillopt-runtime-preflight-receipt:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 54
+    sourceEndLine: 57
     sourceFile: scripts/skillopt-eval/preflight.ts
-    sourceLine: 41
+    sourceLine: 44
   SYM-skillopt-runtime-prepare-existing-login:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7859,9 +7865,9 @@ coordinates:
   SYM-skillopt-runtime-run-canary:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 104
+    sourceEndLine: 111
     sourceFile: scripts/skillopt-eval/runtime/workspace.ts
-    sourceLine: 43
+    sourceLine: 46
   SYM-skillopt-runtime-run-model-canary:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7883,9 +7889,9 @@ coordinates:
   SYM-skillopt-runtime-source-clean:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 90
+    sourceEndLine: 93
     sourceFile: scripts/skillopt-eval/preflight.ts
-    sourceLine: 79
+    sourceLine: 82
   SYM-skillopt-runtime-source-isolation-paths:
     sourceColumn: 16
     sourceEndColumn: 1
