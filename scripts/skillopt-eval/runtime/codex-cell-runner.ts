@@ -15,6 +15,7 @@ import {
   FixtureIntegrityError,
 } from "./codex-cell-types";
 import { replayCodexEpisode } from "./codex-episode";
+import { resolveIsolationArtifactRoot } from "./artifact-root";
 import { createIsolationWorkspace } from "./isolation-workspace";
 import { buildCodexConfig, buildCodexExecArgv } from "./permissions";
 import { ProcessControlError } from "./process";
@@ -40,7 +41,10 @@ export async function runCodexCell(
   );
   await mkdir(artifactDirectory, { recursive: true, mode: 0o700 });
   const workspace = await createIsolationWorkspace({
-    artifactRoot: resolve(options.artifactRoot, "ephemeral"),
+    artifactRoot: resolveIsolationArtifactRoot(
+      resolve(options.artifactRoot, "ephemeral"),
+      options.sourceWorktree,
+    ),
     runId: request.episodeId,
     role: "target",
   });
