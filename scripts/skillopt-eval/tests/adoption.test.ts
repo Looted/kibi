@@ -8,6 +8,7 @@ import canonicalize from "canonicalize";
 import {
   type RunMirrorSync,
   adoptApprovedSkill,
+  adoptSkillOptCandidate,
   planSkillAdoption,
 } from "../adoption";
 import { JsonValueSchema, contractHash } from "../contracts/common";
@@ -229,6 +230,26 @@ describe("SkillOpt adoption transaction", () => {
         "utf8",
       ),
     ).toBe(resourceBody);
+  });
+
+  test("Given a safety-passing SkillOpt candidate When auto-adopted Then canonical and mirrors change transactionally", async () => {
+    const repoRoot = await createRepo();
+    const input = approvalArtifacts(repoRoot);
+
+    const receipt = await adoptSkillOptCandidate(
+      {
+        repoRoot,
+        candidate: input.candidate,
+        frontmatterHash: input.candidate.frontmatterHash,
+        resourcesHash: input.candidate.resourcesHash,
+      },
+      { runMirrorSync: syncMirrors },
+    );
+
+    expect(receipt).toMatchObject({ skill, status: "adopted" });
+    expect(await readFile(join(repoRoot, "packages/cursor/skills/kibi-usage/SKILL.md"), "utf8")).toBe(
+      frontmatter + candidateBody,
+    );
   });
 
   test("Given mirror sync fails after partial output When adopted Then rollback leaves zero canonical or mirror mutation", async () => {

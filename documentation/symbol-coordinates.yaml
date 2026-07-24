@@ -713,9 +713,9 @@ coordinates:
   SYM-KibiImpactSourceChange:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 53
+    sourceEndLine: 52
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 48
+    sourceLine: 47
   SYM-KibiImpactSymbolsManifest:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -5963,63 +5963,75 @@ coordinates:
   SYM-skillopt-adopt-approved-skill:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 248
+    sourceEndLine: 288
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 222
+    sourceLine: 278
   SYM-skillopt-adopt-offline-approved-skill:
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 222
     sourceFile: scripts/skillopt-eval/offline-artifacts.ts
     sourceLine: 207
+  SYM-skillopt-adopt-skill-opt-candidate:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 297
+    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceLine: 291
   SYM-skillopt-adoption-dependencies:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 43
+    sourceEndLine: 45
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 41
+    sourceLine: 43
+  SYM-skillopt-auto-adoption-input:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 52
+    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceLine: 47
   SYM-skillopt-adoption-input:
     sourceColumn: 12
     sourceEndColumn: 5
-    sourceEndLine: 24
+    sourceEndLine: 26
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 21
+    sourceLine: 23
   SYM-skillopt-adoption-integrity-error:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 60
+    sourceEndLine: 69
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 58
+    sourceLine: 67
   SYM-skillopt-adoption-integrity-error-name:
     sourceColumn: 11
     sourceEndColumn: 43
-    sourceEndLine: 59
+    sourceEndLine: 68
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 59
+    sourceLine: 68
   SYM-skillopt-adoption-plan:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 32
+    sourceEndLine: 34
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 26
+    sourceLine: 28
   SYM-skillopt-adoption-receipt:
     sourceColumn: 12
     sourceEndColumn: 5
-    sourceEndLine: 37
+    sourceEndLine: 39
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 34
+    sourceLine: 36
   SYM-skillopt-adoption-transaction-error:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 68
+    sourceEndLine: 77
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 62
+    sourceLine: 71
   SYM-skillopt-adoption-transaction-error-name:
     sourceColumn: 11
     sourceEndColumn: 45
-    sourceEndLine: 63
+    sourceEndLine: 72
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 63
+    sourceLine: 72
   SYM-skillopt-adversarial-case-type:
     sourceColumn: 12
     sourceEndColumn: 24
@@ -7205,9 +7217,9 @@ coordinates:
   SYM-skillopt-plan-skill-adoption:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 219
+    sourceEndLine: 247
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 214
+    sourceLine: 242
   SYM-skillopt-preflight-run:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7403,33 +7415,33 @@ coordinates:
   SYM-skillopt-real-optimization-dependencies:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 92
+    sourceEndLine: 100
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 86
+    sourceLine: 91
   SYM-skillopt-real-optimization-input:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 84
+    sourceEndLine: 89
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 69
+    sourceLine: 74
   SYM-skillopt-real-optimization-options:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 56
+    sourceEndLine: 61
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 49
+    sourceLine: 54
   SYM-skillopt-real-optimization-result:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 67
+    sourceEndLine: 72
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 58
+    sourceLine: 63
   SYM-skillopt-real-optimization-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 266
+    sourceEndLine: 292
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 147
+    sourceLine: 153
   SYM-skillopt-render-report-markdown:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7499,9 +7511,9 @@ coordinates:
   SYM-skillopt-run-mirror-sync:
     sourceColumn: 12
     sourceEndColumn: 64
-    sourceEndLine: 39
+    sourceEndLine: 41
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 39
+    sourceLine: 41
   SYM-skillopt-run-offline-workflow:
     sourceColumn: 22
     sourceEndColumn: 1

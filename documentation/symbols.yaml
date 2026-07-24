@@ -644,7 +644,7 @@ symbols:
         target: REQ-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
-    sourceLine: 21
+    sourceLine: 23
     sourceColumn: 12
     sourceEndLine: 29
     sourceEndColumn: 21
@@ -1953,9 +1953,9 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 48
+    sourceLine: 47
     sourceColumn: 17
-    sourceEndLine: 53
+    sourceEndLine: 52
     sourceEndColumn: 1
   - id: SYM-KibiImpactKbArtifact
     title: KibiImpactKbArtifact
@@ -4164,7 +4164,7 @@ symbols:
         target: TEST-mcp-init-kibi-autopilot-v1
     sourceLine: 11
     sourceColumn: 12
-    sourceEndLine: 24
+    sourceEndLine: 26
     sourceEndColumn: 2
   - id: SYM-AutopilotGenerateResult
     title: AutopilotGenerateResult
@@ -4966,7 +4966,7 @@ symbols:
         target: REQ-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
-    sourceLine: 26
+    sourceLine: 28
     sourceColumn: 16
     sourceEndLine: 37
     sourceEndColumn: 1
@@ -6093,7 +6093,7 @@ symbols:
         target: TEST-opencode-kibi-plugin-v1
     sourceLine: 22
     sourceColumn: 17
-    sourceEndLine: 32
+    sourceEndLine: 34
     sourceEndColumn: 1
   - id: SYM-registerTraceability
     title: registerTraceability
@@ -12956,7 +12956,7 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 34
+    sourceLine: 36
     sourceColumn: 13
     sourceEndLine: 34
     sourceEndColumn: 39
@@ -14530,7 +14530,7 @@ symbols:
         target: TEST-skillopt-codex-optimization
     sourceLine: 32
     sourceColumn: 12
-    sourceEndLine: 37
+    sourceEndLine: 39
     sourceEndColumn: 3
   - id: SYM-skillopt-runtime-canary-runner
     title: CanaryRunner
@@ -14542,7 +14542,7 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 39
+    sourceLine: 41
     sourceColumn: 12
     sourceEndLine: 45
     sourceEndColumn: 28
@@ -15043,7 +15043,7 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 41
+    sourceLine: 43
     sourceColumn: 13
     sourceEndLine: 50
     sourceEndColumn: 1
@@ -16237,7 +16237,7 @@ symbols:
         target: TEST-skillopt-codex-optimization
     sourceLine: 41
     sourceColumn: 12
-    sourceEndLine: 43
+    sourceEndLine: 45
     sourceEndColumn: 3
   - id: SYM-skillopt-pinned-runner-options
     title: PinnedSkillOptRunnerOptions
@@ -16941,6 +16941,20 @@ symbols:
     sourceColumn: 12
     sourceEndLine: 43
     sourceEndColumn: 3
+  - id: SYM-skillopt-auto-adoption-input
+    title: AutoAdoptionInput
+    sourceFile: scripts/skillopt-eval/adoption.ts
+    symbol_role: type-shape
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-automatic-adoption
+      - type: covered_by
+        target: TEST-skillopt-automatic-adoption
+    sourceLine: 48
+    sourceColumn: 13
+    sourceEndLine: 53
+    sourceEndColumn: 3
   - id: SYM-skillopt-plan-skill-adoption
     title: planSkillAdoption
     sourceFile: scripts/skillopt-eval/adoption.ts
@@ -16951,9 +16965,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 214
+    sourceLine: 242
     sourceColumn: 22
-    sourceEndLine: 219
+    sourceEndLine: 247
     sourceEndColumn: 1
   - id: SYM-skillopt-adopt-approved-skill
     title: adoptApprovedSkill
@@ -16965,9 +16979,23 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 222
+    sourceLine: 278
     sourceColumn: 22
-    sourceEndLine: 248
+    sourceEndLine: 288
+    sourceEndColumn: 1
+  - id: SYM-skillopt-adopt-skill-opt-candidate
+    title: adoptSkillOptCandidate
+    sourceFile: scripts/skillopt-eval/adoption.ts
+    text_ref: scripts/skillopt-eval/tests/adoption.test.ts#adoptSkillOptCandidate
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-automatic-adoption
+      - type: covered_by
+        target: TEST-skillopt-automatic-adoption
+    sourceLine: 291
+    sourceColumn: 22
+    sourceEndLine: 297
     sourceEndColumn: 1
   - id: SYM-skillopt-contract-run-state-type
     title: RunState
