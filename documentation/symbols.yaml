@@ -12500,7 +12500,7 @@ symbols:
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-preflight-run
     title: runPreflight
-    sourceFile: scripts/skillopt-eval/preflight.ts
+    sourceFile: scripts/skillopt-eval/legacy-preflight.ts
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
@@ -12705,6 +12705,314 @@ symbols:
         target: REQ-skill-behavioral-efficacy
       - type: covered_by
         target: TEST-skill-behavioral-efficacy
+  - id: SYM-skillopt-preflight-installer-command
+    title: INSTALLER_COMMAND
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-launcher
+    title: LAUNCHER
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-external-root
+    title: EXTERNAL_ROOT
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-fd-inventory
+    title: FD_INVENTORY
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-sandbox-lock
+    title: SandboxLock
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-provider-lock
+    title: ProviderLock
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-verifier-lock
+    title: VerifierLock
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-host-probe
+    title: HostProbe
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-reason
+    title: PreflightReason
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-receipt
+    title: PreflightReceipt
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-sandbox-schema
+    title: SandboxLockSchema
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-provider-schema
+    title: ProviderLockSchema
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-verifier-schema
+    title: VerifierLockSchema
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-external-schema
+    title: ExternalBundleSchema
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-host-schema
+    title: HostProbeSchema
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-signed-host-schema
+    title: SignedHostProbeSchema
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-host-qualification
+    title: qualifySkillOptHost
+    sourceFile: scripts/skillopt-eval/preflight-host.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-no-go
+    title: PreflightNoGo
+    sourceFile: scripts/skillopt-eval/preflight-host.ts
+    symbol_role: structural
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-no-go-name
+    title: PreflightNoGo.name
+    sourceFile: scripts/skillopt-eval/preflight-host.ts
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-host-options
+    title: HostPreflightOptions
+    sourceFile: scripts/skillopt-eval/preflight-host.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-digest
+    title: digest
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-read-no-follow
+    title: readNoFollow
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-parse-lock
+    title: parseLock
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-ensure-inside
+    title: ensureInside
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-parent
+    title: parent
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-input-error
+    title: PreflightInputError
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    symbol_role: structural
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-input-error-name
+    title: PreflightInputError.name
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-validate-trust-directory
+    title: validateTrustDirectory
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-main
+    title: preflightMain
+    sourceFile: scripts/skillopt-eval/preflight.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-fixture-create
+    title: createPreflightFixture
+    sourceFile: scripts/skillopt-eval/tests/preflight-fixture.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-fixture-update
+    title: updateProbe
+    sourceFile: scripts/skillopt-eval/tests/preflight-fixture.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-fixture-invoke
+    title: invokePreflight
+    sourceFile: scripts/skillopt-eval/tests/preflight-fixture.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-fixture-host-probe
+    title: HostProbe
+    sourceFile: scripts/skillopt-eval/tests/preflight-fixture.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-fixture
+    title: PreflightFixture
+    sourceFile: scripts/skillopt-eval/tests/preflight-fixture.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-activation-mode-type
     title: ActivationMode
     sourceFile: scripts/skillopt-eval/catalog.ts
@@ -14306,7 +14614,7 @@ symbols:
     sourceEndColumn: 1
   - id: SYM-skillopt-runtime-preflight-config
     title: PreflightConfig
-    sourceFile: scripts/skillopt-eval/preflight.ts
+    sourceFile: scripts/skillopt-eval/legacy-preflight.ts
     symbol_role: type-shape
     granularity_reason: legacy-link
     relationships:
@@ -14320,7 +14628,7 @@ symbols:
     sourceEndColumn: 3
   - id: SYM-skillopt-runtime-preflight-receipt
     title: PreflightReceipt
-    sourceFile: scripts/skillopt-eval/preflight.ts
+    sourceFile: scripts/skillopt-eval/legacy-preflight.ts
     symbol_role: type-shape
     granularity_reason: legacy-link
     relationships:
@@ -14334,7 +14642,7 @@ symbols:
     sourceEndColumn: 3
   - id: SYM-skillopt-runtime-preflight-dependencies
     title: PreflightDependencies
-    sourceFile: scripts/skillopt-eval/preflight.ts
+    sourceFile: scripts/skillopt-eval/legacy-preflight.ts
     symbol_role: type-shape
     granularity_reason: legacy-link
     relationships:
@@ -14348,7 +14656,7 @@ symbols:
     sourceEndColumn: 3
   - id: SYM-skillopt-runtime-source-clean
     title: sourceWorktreeIsClean
-    sourceFile: scripts/skillopt-eval/preflight.ts
+    sourceFile: scripts/skillopt-eval/legacy-preflight.ts
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
