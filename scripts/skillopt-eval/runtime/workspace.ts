@@ -1,5 +1,8 @@
 import { resolve } from "node:path";
-import { resolveArtifactRoot } from "./artifact-root";
+import {
+  resolveArtifactRoot,
+  resolveIsolationArtifactRoot,
+} from "./artifact-root";
 import { runModelCanary } from "./canary-run";
 import { probeCodexSandbox, probeRequiredMcp } from "./canary-runtime";
 import {
@@ -49,7 +52,11 @@ export async function runCapabilityCanary(
   }>,
 ): Promise<CapabilityCanaryReceipt> {
   const sourceWorktree = resolve(options.sourceWorktree ?? process.cwd());
-  const artifactRoot = await resolveArtifactRoot(options.artifactRoot);
+  const configuredArtifactRoot = await resolveArtifactRoot(options.artifactRoot);
+  const artifactRoot = resolveIsolationArtifactRoot(
+    configuredArtifactRoot,
+    sourceWorktree,
+  );
   const run =
     dependencies?.run ??
     ((argv, cwd, env, timeoutMs, stdin) =>
