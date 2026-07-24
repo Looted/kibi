@@ -124,7 +124,7 @@ describe("real SkillOpt workflow", () => {
             const candidate = freezeCandidateVariant({
               skill: input.skill,
               variant: "skillopt",
-              body: "# Automatically improved guidance\n",
+              body: "# Automatically improved guidance\n\nnpx --no-install kibi\nbunx --no-install kibi\nDo not read or edit files inside `.kb` directly\n",
               frontmatterHash: input.frontmatterHash,
               resourcesHash: input.resourcesHash,
               provenance: "skillopt",

@@ -15,4 +15,4 @@ links:
     target: SCEN-skillopt-automatic-adoption
 ---
 
-The real workflow integration suite verifies that a generated candidate is automatically adopted into the canonical skill and mirrors after the safety and immutable-surface gates pass, while a run with no generated optimizer step remains blocked.
+The real workflow integration suite verifies that a generated candidate is automatically adopted into the canonical skill and mirrors after the safety and immutable-surface gates pass, while a run with no generated optimizer step remains blocked. It also verifies that the review receipt distinguishes automatic adoption, unchanged, and blocked outcomes.
