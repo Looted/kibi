@@ -13,7 +13,11 @@ import {
   buildCodexSandboxProbeArgv,
   probeCodexSandbox,
 } from "../runtime/canary-runtime";
-import { CodexAuthError, prepareExistingLogin } from "../runtime/codex-auth";
+import {
+  CodexAuthError,
+  isolatedCodexEnvironment,
+  prepareExistingLogin,
+} from "../runtime/codex-auth";
 import { buildCodexConfig, buildCodexExecArgv } from "../runtime/permissions";
 
 const roots: string[] = [];
@@ -157,6 +161,28 @@ describe("Codex existing-login isolation", () => {
       expect(attempt).rejects.toBeInstanceOf(CodexAuthError);
     }
   });
+
+  test("keeps private CODEX_HOME separate from the writable sandbox home", async () => {
+    // Given
+    const paths = await directories();
+    const sandboxHome = join(paths.root, "sandbox-home");
+    await mkdir(sandboxHome);
+
+    // When
+    const env = isolatedCodexEnvironment(
+      { PATH: process.env.PATH, CODEX_HOME: paths.real },
+      paths.privateHome,
+      sandboxHome,
+    );
+
+    // Then
+    expect(env.CODEX_HOME).toBe(paths.privateHome);
+    expect(env.HOME).toBe(sandboxHome);
+    expect(env.USERPROFILE).toBe(sandboxHome);
+    expect(env.XDG_CONFIG_HOME).toBe(join(sandboxHome, "xdg-config"));
+    expect(env.XDG_CACHE_HOME).toBe(join(sandboxHome, "xdg-cache"));
+    expect(env.XDG_DATA_HOME).toBe(join(sandboxHome, "xdg-data"));
+  });
 });
 
 describe("Codex evaluator-owned permissions", () => {
@@ -294,8 +320,8 @@ describe("Codex evaluator-owned permissions", () => {
       bwrapExecutable: "/run/work/.runtime/codex-resources/bwrap",
       codexExecutable: "/run/work/.runtime/codex",
       mcpServer: {
-        command: "/run/evidence/mcp-broker/bun",
-        args: ["/run/evidence/mcp-broker/broker.js"],
+        command: "/run/work/.runtime/mcp/broker/bun",
+        args: ["/run/work/.runtime/mcp/broker/broker.js"],
         cwd: paths.workspace,
       },
     });
@@ -309,23 +335,31 @@ describe("Codex evaluator-owned permissions", () => {
     );
     expect(config).toContain('".kb" = "deny"');
     expect(config).toContain(`${JSON.stringify(paths.fixtureKb)} = "deny"`);
-    expect(config).toContain(
+    expect(config).not.toContain(
       `${JSON.stringify(paths.sourceWorktree)} = "deny"`,
     );
-    for (const rootDeniedPath of [
+    for (const runtimePrivatePath of [
       paths.runPrivateHome,
       paths.realCodexHome,
       paths.privateScorer,
       paths.privateEvidence,
       paths.siblingRuns,
     ]) {
-      expect(config).toContain(`${JSON.stringify(rootDeniedPath)} = "deny"`);
+      expect(config).not.toContain(
+        `${JSON.stringify(runtimePrivatePath)} = "deny"`,
+      );
     }
     expect(config).toContain(`${JSON.stringify(paths.workspace)} = true`);
-    expect(config).toContain('command = "/run/evidence/mcp-broker/bun"');
-    expect(config).toContain('args = ["/run/evidence/mcp-broker/broker.js"]');
+    expect(config).toContain(
+      'command = "/run/work/.runtime/mcp/broker/bun"',
+    );
+    expect(config).toContain(
+      'args = ["/run/work/.runtime/mcp/broker/broker.js"]',
+    );
     expect(config).toContain('cwd = "/run/work"');
-    expect(config).not.toContain('"/run/evidence/mcp-broker/bun" = "read"');
+    expect(config).not.toContain(
+      '"/run/work/.runtime/mcp/broker/bun" = "read"',
+    );
     expect(config).not.toContain('"/source/packages/');
     expect(config).not.toContain('"/source/node_modules');
     expect(config).toContain("required = true");
