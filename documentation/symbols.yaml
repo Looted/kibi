@@ -15186,6 +15186,8 @@ symbols:
     title: runCapabilityCanary
     sourceFile: scripts/skillopt-eval/runtime/workspace.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
+    text_ref: scripts/skillopt-eval/tests/canary-failures.test.ts#runCapabilityCanary
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
