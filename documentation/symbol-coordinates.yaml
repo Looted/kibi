@@ -6257,7 +6257,7 @@ coordinates:
   SYM-skillopt-codex-cell-dependencies-type:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 59
+    sourceEndLine: 60
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
     sourceLine: 45
   SYM-skillopt-codex-cell-options-type:
@@ -6311,7 +6311,7 @@ coordinates:
   SYM-skillopt-codex-optimizer-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 164
+    sourceEndLine: 165
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
     sourceLine: 81
   SYM-skillopt-codex-violation-type:
@@ -6329,9 +6329,9 @@ coordinates:
   SYM-skillopt-completed-codex-cell-type:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 65
+    sourceEndLine: 66
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
-    sourceLine: 61
+    sourceLine: 62
   SYM-skillopt-contract-approval-schema:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -6707,7 +6707,7 @@ coordinates:
   SYM-skillopt-default-codex-cell-dependencies:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 61
+    sourceEndLine: 62
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
     sourceLine: 23
   SYM-skillopt-deterministic-variant-label:
@@ -6857,15 +6857,15 @@ coordinates:
   SYM-skillopt-fixture-integrity-error:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 73
+    sourceEndLine: 74
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
-    sourceLine: 67
+    sourceLine: 68
   SYM-skillopt-fixture-integrity-error-name:
     sourceColumn: 11
     sourceEndColumn: 42
-    sourceEndLine: 68
+    sourceEndLine: 69
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
-    sourceLine: 68
+    sourceLine: 69
   SYM-skillopt-fixture-materialize-run:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7211,9 +7211,9 @@ coordinates:
   SYM-skillopt-preflight-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 263
+    sourceEndLine: 264
     sourceFile: scripts/skillopt-eval/preflight.ts
-    sourceLine: 184
+    sourceLine: 185
   SYM-skillopt-prepared-login-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -7475,7 +7475,7 @@ coordinates:
   SYM-skillopt-run-codex-cell:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 181
+    sourceEndLine: 182
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
     sourceLine: 31
   SYM-skillopt-run-independent-final-state:
@@ -7589,13 +7589,13 @@ coordinates:
   SYM-skillopt-runtime-build-argv:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 173
+    sourceEndLine: 165
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
-    sourceLine: 147
+    sourceLine: 139
   SYM-skillopt-runtime-build-config:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 144
+    sourceEndLine: 136
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     sourceLine: 72
   SYM-skillopt-runtime-build-sandbox-probe-argv:
@@ -7667,19 +7667,19 @@ coordinates:
   SYM-skillopt-runtime-create-workspace:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 72
+    sourceEndLine: 75
     sourceFile: scripts/skillopt-eval/runtime/isolation-workspace.ts
-    sourceLine: 28
+    sourceLine: 29
   SYM-skillopt-runtime-isolated-env:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 93
+    sourceEndLine: 94
     sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
     sourceLine: 73
   SYM-skillopt-runtime-isolation-workspace:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 12
+    sourceEndLine: 13
     sourceFile: scripts/skillopt-eval/runtime/isolation-workspace.ts
     sourceLine: 4
   SYM-skillopt-runtime-json-error:
@@ -7781,9 +7781,9 @@ coordinates:
   SYM-skillopt-runtime-prepare-existing-login:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 144
+    sourceEndLine: 150
     sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
-    sourceLine: 108
+    sourceLine: 109
   SYM-skillopt-runtime-prerequisite-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -7865,7 +7865,7 @@ coordinates:
   SYM-skillopt-runtime-run-model-canary:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 241
+    sourceEndLine: 242
     sourceFile: scripts/skillopt-eval/runtime/canary-run.ts
     sourceLine: 102
   SYM-skillopt-runtime-run-process:
@@ -7931,13 +7931,13 @@ coordinates:
   SYM-skillopt-runtime-workspace-options:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 18
+    sourceEndLine: 19
     sourceFile: scripts/skillopt-eval/runtime/isolation-workspace.ts
-    sourceLine: 14
+    sourceLine: 15
   SYM-skillopt-runtime-write-probe:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 101
+    sourceEndLine: 102
     sourceFile: scripts/skillopt-eval/runtime/canary-probes.ts
     sourceLine: 81
   SYM-skillopt-scoring-bootstrap:
@@ -8063,7 +8063,7 @@ coordinates:
   SYM-skillopt-stage-kibi-mcp-broker:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 99
+    sourceEndLine: 100
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker-stage.ts
     sourceLine: 22
   SYM-skillopt-staged-broker-launch:
