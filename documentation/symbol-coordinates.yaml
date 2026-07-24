@@ -7224,7 +7224,7 @@ coordinates:
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 271
-    sourceFile: scripts/skillopt-eval/preflight.ts
+    sourceFile: scripts/skillopt-eval/legacy-preflight.ts
     sourceLine: 188
   SYM-skillopt-prepared-login-type:
     sourceColumn: 12
@@ -7782,19 +7782,19 @@ coordinates:
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 42
-    sourceFile: scripts/skillopt-eval/preflight.ts
+    sourceFile: scripts/skillopt-eval/legacy-preflight.ts
     sourceLine: 37
   SYM-skillopt-runtime-preflight-dependencies:
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 80
-    sourceFile: scripts/skillopt-eval/preflight.ts
+    sourceFile: scripts/skillopt-eval/legacy-preflight.ts
     sourceLine: 62
   SYM-skillopt-runtime-preflight-receipt:
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 57
-    sourceFile: scripts/skillopt-eval/preflight.ts
+    sourceFile: scripts/skillopt-eval/legacy-preflight.ts
     sourceLine: 44
   SYM-skillopt-runtime-prepare-existing-login:
     sourceColumn: 22
@@ -7902,7 +7902,7 @@ coordinates:
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 93
-    sourceFile: scripts/skillopt-eval/preflight.ts
+    sourceFile: scripts/skillopt-eval/legacy-preflight.ts
     sourceLine: 82
   SYM-skillopt-runtime-source-isolation-paths:
     sourceColumn: 16
@@ -8390,3 +8390,207 @@ coordinates:
     sourceEndLine: 52
     sourceFile: packages/cli/src/operations/modeling/requirement-applyplan.ts
     sourceLine: 50
+  SYM-skillopt-preflight-installer-command:
+    sourceColumn: 13
+    sourceEndColumn: 120
+    sourceEndLine: 4
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 3
+  SYM-skillopt-preflight-launcher:
+    sourceColumn: 13
+    sourceEndColumn: 77
+    sourceEndLine: 5
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 5
+  SYM-skillopt-preflight-external-root:
+    sourceColumn: 13
+    sourceEndColumn: 58
+    sourceEndLine: 6
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 6
+  SYM-skillopt-preflight-fd-inventory:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 12
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 7
+  SYM-skillopt-preflight-sandbox-lock:
+    sourceColumn: 12
+    sourceEndColumn: 60
+    sourceEndLine: 153
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 153
+  SYM-skillopt-preflight-provider-lock:
+    sourceColumn: 12
+    sourceEndColumn: 62
+    sourceEndLine: 154
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 154
+  SYM-skillopt-preflight-verifier-lock:
+    sourceColumn: 12
+    sourceEndColumn: 62
+    sourceEndLine: 155
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 155
+  SYM-skillopt-preflight-host-probe:
+    sourceColumn: 12
+    sourceEndColumn: 56
+    sourceEndLine: 156
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 156
+  SYM-skillopt-preflight-reason:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 162
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 158
+  SYM-skillopt-preflight-receipt:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 201
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 163
+  SYM-skillopt-preflight-sandbox-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 40
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 19
+  SYM-skillopt-preflight-provider-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 74
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 42
+  SYM-skillopt-preflight-verifier-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 95
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 82
+  SYM-skillopt-preflight-external-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 110
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 97
+  SYM-skillopt-preflight-host-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 148
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 112
+  SYM-skillopt-preflight-signed-host-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 152
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 150
+  SYM-skillopt-preflight-host-qualification:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 450
+    sourceFile: scripts/skillopt-eval/preflight-host.ts
+    sourceLine: 242
+  SYM-skillopt-preflight-no-go:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 54
+    sourceFile: scripts/skillopt-eval/preflight-host.ts
+    sourceLine: 49
+  SYM-skillopt-preflight-no-go-name:
+    sourceColumn: 11
+    sourceEndColumn: 34
+    sourceEndLine: 50
+    sourceFile: scripts/skillopt-eval/preflight-host.ts
+    sourceLine: 50
+  SYM-skillopt-preflight-host-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 35
+    sourceFile: scripts/skillopt-eval/preflight-host.ts
+    sourceLine: 30
+  SYM-skillopt-preflight-digest:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 22
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    sourceLine: 20
+  SYM-skillopt-preflight-read-no-follow:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 82
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    sourceLine: 38
+  SYM-skillopt-preflight-parse-lock:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 127
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    sourceLine: 112
+  SYM-skillopt-preflight-ensure-inside:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 139
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    sourceLine: 129
+  SYM-skillopt-preflight-parent:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 143
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    sourceLine: 141
+  SYM-skillopt-preflight-input-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 18
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    sourceLine: 6
+  SYM-skillopt-preflight-input-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 40
+    sourceEndLine: 7
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    sourceLine: 7
+  SYM-skillopt-preflight-validate-trust-directory:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 110
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    sourceLine: 84
+  SYM-skillopt-preflight-main:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 233
+    sourceFile: scripts/skillopt-eval/preflight.ts
+    sourceLine: 173
+  SYM-skillopt-preflight-fixture-create:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 260
+    sourceFile: scripts/skillopt-eval/tests/preflight-fixture.ts
+    sourceLine: 86
+  SYM-skillopt-preflight-fixture-update:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 273
+    sourceFile: scripts/skillopt-eval/tests/preflight-fixture.ts
+    sourceLine: 262
+  SYM-skillopt-preflight-fixture-invoke:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 321
+    sourceFile: scripts/skillopt-eval/tests/preflight-fixture.ts
+    sourceLine: 275
+  SYM-skillopt-preflight-fixture-host-probe:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 44
+    sourceFile: scripts/skillopt-eval/tests/preflight-fixture.ts
+    sourceLine: 9
+  SYM-skillopt-preflight-fixture:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 58
+    sourceFile: scripts/skillopt-eval/tests/preflight-fixture.ts
+    sourceLine: 46
