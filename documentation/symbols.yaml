@@ -14577,6 +14577,7 @@ symbols:
     title: stageCapabilityCanary
     sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -15570,6 +15571,7 @@ symbols:
     title: stageKibiMcpBroker
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker-stage.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization

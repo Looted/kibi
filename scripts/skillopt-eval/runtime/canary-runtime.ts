@@ -121,7 +121,7 @@ export async function stageCapabilityCanary(
   await cp(bwrapSource, bundledTarget);
   await chmod(bundledTarget, 0o500);
 
-  const schemaPath = resolve(workspace.privateEvidence, "output.schema.json");
+  const schemaPath = resolve(workspace.target, ".runtime/output.schema.json");
   await writeFile(
     schemaPath,
     JSON.stringify({
