@@ -12503,6 +12503,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/legacy-preflight.ts
     symbol_role: behavioral
     granularity_reason: legacy-link
+    text_ref: scripts/skillopt-eval/legacy-preflight.ts#runPreflight
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -14629,6 +14630,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/legacy-preflight.ts
     symbol_role: type-shape
     granularity_reason: legacy-link
+    text_ref: scripts/skillopt-eval/legacy-preflight.ts#PreflightConfig
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -14643,6 +14645,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/legacy-preflight.ts
     symbol_role: type-shape
     granularity_reason: legacy-link
+    text_ref: scripts/skillopt-eval/legacy-preflight.ts#PreflightReceipt
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -14657,6 +14660,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/legacy-preflight.ts
     symbol_role: type-shape
     granularity_reason: legacy-link
+    text_ref: scripts/skillopt-eval/legacy-preflight.ts#PreflightDependencies
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -14671,6 +14675,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/legacy-preflight.ts
     symbol_role: behavioral
     granularity_reason: legacy-link
+    text_ref: scripts/skillopt-eval/legacy-preflight.ts#sourceWorktreeIsClean
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
