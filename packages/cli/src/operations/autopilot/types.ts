@@ -147,6 +147,8 @@ export type SourceOnlySignal = {
 };
 
 export type AutopilotStructuredContent = Readonly<Record<string, unknown>> & {
+  readonly tldr: string;
+  readonly activationReason: string;
   readonly candidates: readonly Readonly<Record<string, unknown>>[];
   readonly applyPlan: readonly Readonly<Record<string, unknown>>[];
   readonly suppressedCandidates: readonly Readonly<Record<string, unknown>>[];
@@ -154,6 +156,7 @@ export type AutopilotStructuredContent = Readonly<Record<string, unknown>> & {
 
 export type AutopilotGenerateResult =
   OperationResult<AutopilotStructuredContent> & {
+    readonly structuredContent: AutopilotStructuredContent;
     readonly migrationWarning: string | null;
     readonly candidates: readonly Readonly<Record<string, unknown>>[];
     readonly applyPlan: readonly Readonly<Record<string, unknown>>[];

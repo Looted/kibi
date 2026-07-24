@@ -6,7 +6,9 @@ import { createMutationContext } from "./mutation-context.js";
 
 export type ValidateUpsertResult = Awaited<
   ReturnType<typeof validateUpsertSpec.execute>
->;
+> & {
+  readonly structuredContent: ValidateUpsertPayload;
+};
 
 function isUpsertArgs(value: PrologProcess | UpsertArgs): value is UpsertArgs {
   return "type" in value && "id" in value && "properties" in value;
@@ -30,7 +32,14 @@ export async function handleKbValidateUpsert(
   const prolog = maybeArgs === undefined || isUpsertArgs(prologOrArgs)
     ? undefined
     : prologOrArgs;
-  return validateUpsertSpec.execute(args, createMutationContext(prolog));
+  const result = await validateUpsertSpec.execute(
+    args,
+    createMutationContext(prolog),
+  );
+  if (result.structuredContent === undefined) {
+    throw new Error("kb_validate_upsert returned no structured content");
+  }
+  return { ...result, structuredContent: result.structuredContent };
 }
 
 export type { ValidateUpsertPayload };
