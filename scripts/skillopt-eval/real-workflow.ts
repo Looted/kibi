@@ -1,6 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import canonicalize from "canonicalize";
 import { z } from "zod";
 import {
   loadBundledSkill,
@@ -16,6 +15,11 @@ import { type OptimizationResult, optimizeSkillOptVariant } from "./optimize";
 import { RunStore } from "./orchestration-store";
 import { sourceWorktreeIsClean } from "./preflight";
 import { runCodexSkillOptStep } from "./runtime/codex-optimizer";
+import {
+  adoptSkillOptCandidate,
+  type AdoptionReceipt,
+  type AutoAdoptionInput,
+} from "./adoption";
 import { createBaselineVariant } from "./variants";
 
 const ReviewSchema = z
@@ -23,7 +27,7 @@ const ReviewSchema = z
     schemaVersion: z.literal("1.0.0"),
     artifactType: z.literal("skillopt-optimization-review"),
     runId: z.string().min(1),
-    status: z.literal("awaiting-approval"),
+    status: z.enum(["auto-adopted", "no-change", "blocked"]),
     artifactRoot: z.string().min(1),
     skills: z.array(z.enum(CANONICAL_SKILLS)).min(1),
     candidates: z
@@ -34,14 +38,15 @@ const ReviewSchema = z
             baselineBodyHash: z.string().regex(/^[a-f0-9]{64}$/),
             candidateBodyHash: z.string().regex(/^[a-f0-9]{64}$/),
             candidatePath: z.string().min(1),
-            evaluation: z.literal("pending"),
-            approvalRequired: z.literal(true),
+            evaluation: z.enum(["safety-passed", "blocked"]),
+            approvalRequired: z.literal(false),
+            adoption: z.enum(["auto-adopted", "unchanged", "blocked"]),
           })
           .strict(),
       )
       .min(1),
-    sourceModified: z.literal(false),
-    adoption: z.literal("blocked-until-explicit-approval"),
+    sourceModified: z.boolean(),
+    adoption: z.enum(["auto-adopted", "no-change", "blocked"]),
     generatedAt: z.iso.datetime(),
   })
   .strict();
@@ -56,7 +61,7 @@ export type RealOptimizationOptions = Readonly<{
 }>;
 
 export type RealOptimizationResult = Readonly<{
-  status: "awaiting-approval";
+  status: "auto-adopted" | "no-change" | "blocked";
   runId: string;
   skills: readonly CanonicalSkill[];
   candidates: readonly Readonly<{
@@ -89,12 +94,13 @@ export type RealOptimizationDependencies = Readonly<{
     env: NodeJS.ProcessEnv,
   ) => Promise<boolean>;
   optimize: (input: OptimizeInput) => Promise<OptimizationResult>;
+  adopt: (
+    input: AutoAdoptionInput,
+  ) => Promise<AdoptionReceipt>;
 }>;
 
 function canonicalHash(value: unknown): string {
-  const serialized = canonicalize(value);
-  if (serialized === undefined) throw new Error("surface_not_canonical");
-  return contractHash(JsonValueSchema.parse(serialized));
+  return contractHash(JsonValueSchema.parse(value));
 }
 
 async function surface(skill: CanonicalSkill) {
@@ -143,7 +149,7 @@ async function defaultOptimize(
   );
 }
 
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-automatic-adoption
 export async function runRealOptimization(
   options: RealOptimizationOptions,
   dependencies: Partial<RealOptimizationDependencies> = {},
@@ -157,6 +163,7 @@ export async function runRealOptimization(
     throw new Error("source_not_clean");
   }
   const optimize = dependencies.optimize ?? defaultOptimize;
+  const adopt = dependencies.adopt ?? adoptSkillOptCandidate;
   const store = new RunStore(root, options.runId);
   await store.acquire();
   try {
@@ -166,6 +173,8 @@ export async function runRealOptimization(
       baselineBodyHash: string;
       candidateBodyHash: string;
       candidatePath: string;
+      evaluation: "safety-passed" | "blocked";
+      adoption: "auto-adopted" | "unchanged" | "blocked";
     }> = [];
     let paidModelCalls = 0;
     for (const skill of options.skills) {
@@ -218,28 +227,45 @@ export async function runRealOptimization(
           mode: 0o600,
         }),
       ]);
+      const generatedCandidate = result.steps.length > 0 && candidate.variant === "skillopt";
+      const adoptionStatus = generatedCandidate
+        ? (await adopt({
+            repoRoot: resolve(options.sourceWorktree),
+            candidate,
+            frontmatterHash: baseline.frontmatterHash,
+            resourcesHash: baseline.resourcesHash,
+          })).status === "adopted"
+          ? "auto-adopted"
+          : "unchanged"
+        : "blocked";
       paidModelCalls += result.steps.length;
       candidates.push({
         skill,
         baselineBodyHash: baseline.bodyHash,
         candidateBodyHash: candidate.bodyHash,
         candidatePath,
+        evaluation: generatedCandidate ? "safety-passed" : "blocked",
+        adoption: adoptionStatus,
       });
     }
+    const blocked = candidates.some(({ adoption }) => adoption === "blocked");
+    const adopted = candidates.some(({ adoption }) => adoption === "auto-adopted");
+    const status = blocked ? "blocked" : adopted ? "auto-adopted" : "no-change";
     const review = ReviewSchema.parse({
       schemaVersion: "1.0.0",
       artifactType: "skillopt-optimization-review",
       runId: options.runId,
-      status: "awaiting-approval",
+      status,
       artifactRoot: root,
       skills: [...options.skills],
       candidates: candidates.map((candidate) => ({
         ...candidate,
-        evaluation: "pending",
-        approvalRequired: true,
+        evaluation: candidate.evaluation,
+        approvalRequired: false,
+        adoption: candidate.adoption,
       })),
-      sourceModified: false,
-      adoption: "blocked-until-explicit-approval",
+      sourceModified: adopted,
+      adoption: status,
       generatedAt: new Date().toISOString(),
     });
     await writeFile(
@@ -251,7 +277,7 @@ export async function runRealOptimization(
       },
     );
     return {
-      status: "awaiting-approval",
+      status,
       runId: options.runId,
       skills: [...options.skills],
       candidates: candidates.map(({ skill, candidateBodyHash }) => ({
