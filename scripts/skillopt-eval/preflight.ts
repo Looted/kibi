@@ -1,271 +1,236 @@
-import { writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
-import {
-  resolveArtifactRoot,
-  resolveIsolationArtifactRoot,
-} from "./runtime/artifact-root";
-import {
-  type McpServerLaunch,
-  RequiredMcpStartupError,
-  RuntimePrerequisiteError,
-  type StagedCanaryRuntime,
-  probeCodexSandbox,
-  probeRequiredMcp,
-  sourceIsolationDeniedPaths,
-  stageCapabilityCanary,
-  writeCapabilityProbe,
-} from "./runtime/canary-runtime";
-import { CodexAuthError, prepareExistingLogin } from "./runtime/codex-auth";
-import {
-  type CapabilityCanaryReceipt,
-  OPTIMIZER_MODEL,
-  TARGET_MODEL,
-  buildCodexConfig,
-} from "./runtime/permissions";
-import {
-  ProcessControlError,
-  type ProcessResult,
-  runBoundedProcess,
-} from "./runtime/process";
-import {
-  type IsolationWorkspace,
-  createIsolationWorkspace,
+import { mkdir, open, realpath, rename, rm } from "node:fs/promises";
+import { basename, dirname, join, resolve, sep } from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
+import { z } from "zod";
+import type { PreflightReceipt } from "./preflight-contracts";
+import { PreflightNoGo, qualifySkillOptHost } from "./preflight-host";
+
+export {
   runCapabilityCanary,
-} from "./runtime/workspace";
+  runPreflight,
+  sourceWorktreeIsClean,
+} from "./legacy-preflight";
+export type {
+  CapabilityCanaryReceipt,
+  PreflightConfig,
+  PreflightDependencies,
+  PreflightReceipt,
+} from "./legacy-preflight";
+export { PreflightNoGo, qualifySkillOptHost } from "./preflight-host";
+export type { HostPreflightOptions } from "./preflight-host";
+export type { PreflightReceipt as HostPreflightReceipt } from "./preflight-contracts";
 
-const SKILLOPT_COMMIT = "b860a5cf88ce75e2bd02ca981ac21fb28cffba83";
-export type PreflightConfig = Readonly<{
-  runId: string;
-  sourceWorktree?: string;
-  artifactRoot?: string;
-  env?: NodeJS.ProcessEnv;
+const CliSchema = z
+  .object({
+    sandboxLock: z.string().min(1),
+    providerLock: z.string().min(1),
+    verifierLock: z.string().min(1),
+    artifactRoot: z.string().min(1),
+    output: z.string().min(1),
+    fixtureRoot: z.string().min(1).optional(),
+  })
+  .strict();
+
+type CliOptions = z.infer<typeof CliSchema>;
+type ReceiptDestination = Readonly<{
+  artifactRoot: string;
+  output: string;
+  signal?: AbortSignal;
+  delayMs?: number;
+  onTemporaryReady?: () => void;
 }>;
 
-export type PreflightReceipt = Readonly<{
-  verdict: "pass" | "no-go";
-  runId: string;
-  targetModel: typeof TARGET_MODEL;
-  optimizerModel: typeof OPTIMIZER_MODEL;
-  skilloptCommit: typeof SKILLOPT_COMMIT;
-  codexVersion: string | null;
-  authMode: "file" | "keyring" | null;
-  bwrap: boolean;
-  sourceClean: boolean;
-  configValid: boolean;
-  paidModelCalls: 0;
-  reason?: string;
-}>;
-
-export { runCapabilityCanary };
-export type { CapabilityCanaryReceipt };
-
-export type PreflightDependencies = Readonly<{
-  run: (
-    argv: readonly [string, ...string[]],
-    cwd: string,
-    env: NodeJS.ProcessEnv,
-    timeoutMs: number,
-    stdin?: string,
-  ) => Promise<ProcessResult>;
-  sourceClean: (
-    sourceWorktree: string,
-    env: NodeJS.ProcessEnv,
-  ) => Promise<boolean>;
-  stageRuntime: (
-    workspace: IsolationWorkspace,
-    sourceWorktree: string,
-  ) => Promise<StagedCanaryRuntime>;
-  probeRequiredMcp: (launch: McpServerLaunch) => Promise<unknown>;
-  probeSandbox: typeof probeCodexSandbox;
-}>;
-
-export async function sourceWorktreeIsClean(
-  sourceWorktree: string,
-  env: NodeJS.ProcessEnv,
-): Promise<boolean> {
-  const result = await runBoundedProcess({
-    argv: ["git", "status", "--porcelain", "--untracked-files=all"],
-    cwd: sourceWorktree,
-    env,
-    timeoutMs: 10_000,
-  });
-  return result.exitCode === 0 && result.stdout.trim() === "";
+class PreflightCliError extends Error {
+  readonly name = "PreflightCliError";
+  constructor(readonly check: string) {
+    super(check);
+  }
 }
 
-const runtimeDependencies: PreflightDependencies = {
-  run: (argv, cwd, env, timeoutMs, stdin) =>
-    runBoundedProcess({ argv, cwd, env, timeoutMs, stdin }),
-  sourceClean: sourceWorktreeIsClean,
-  stageRuntime: stageCapabilityCanary,
-  probeRequiredMcp,
-  probeSandbox: probeCodexSandbox,
-};
+class PreflightInterruptedError extends Error {
+  readonly name = "PreflightInterruptedError";
+}
 
-function baseReceipt(
-  config: PreflightConfig,
-  state: Readonly<{
-    codexVersion: string | null;
-    authMode: "file" | "keyring" | null;
-    bwrap: boolean;
-    sourceClean: boolean;
-    configValid: boolean;
-  }>,
-): Omit<PreflightReceipt, "verdict" | "reason"> {
+function parseCli(argv: readonly string[]): CliOptions {
+  const values: Record<string, string> = {};
+  for (let index = 0; index < argv.length; index += 2) {
+    const flag = argv[index];
+    const value = argv[index + 1];
+    if (flag === undefined || value === undefined || !flag.startsWith("--")) {
+      throw new PreflightCliError("cli-arguments");
+    }
+    if (value.split(sep).includes(".."))
+      throw new PreflightCliError("path-traversal");
+    values[flag.slice(2)] = value;
+  }
+  const fixtureRoot = values["fixture-root"];
+  if (
+    fixtureRoot !== undefined &&
+    process.env.KIBI_SKILLOPT_TEST_FIXTURE !== "1"
+  ) {
+    throw new PreflightCliError("fixture-root-disabled");
+  }
+  return CliSchema.parse({
+    sandboxLock: values["sandbox-lock"],
+    providerLock: values["provider-lock"],
+    verifierLock: values["verifier-lock"],
+    artifactRoot: values["artifact-root"],
+    output: values.output,
+    ...(fixtureRoot === undefined ? {} : { fixtureRoot }),
+  });
+}
+
+async function writeReceipt(
+  options: ReceiptDestination,
+  receipt: PreflightReceipt,
+): Promise<void> {
+  const artifactRoot = resolve(options.artifactRoot);
+  const output = resolve(options.output);
+  await mkdir(artifactRoot, { recursive: true, mode: 0o700 });
+  const outputParent = dirname(output);
+  await mkdir(outputParent, { recursive: true, mode: 0o700 });
+  if ((await realpath(outputParent)) !== outputParent)
+    throw new PreflightCliError("output-parent-symlink");
+  const temporary = join(
+    outputParent,
+    `.${basename(output)}.${process.pid}.tmp`,
+  );
+  let handle: Awaited<ReturnType<typeof open>> | undefined;
+  try {
+    if (options.signal?.aborted) throw new PreflightInterruptedError();
+    handle = await open(temporary, "wx", 0o600);
+    await handle.writeFile(`${JSON.stringify(receipt, null, 2)}\n`, "utf8");
+    await handle.sync();
+    await handle.close();
+    handle = undefined;
+    options.onTemporaryReady?.();
+    if ((options.delayMs ?? 0) > 0)
+      await delay(options.delayMs, undefined, { signal: options.signal });
+    if (options.signal?.aborted) throw new PreflightInterruptedError();
+    await rename(temporary, output);
+    const directory = await open(outputParent, "r");
+    try {
+      await directory.sync();
+    } finally {
+      await directory.close();
+    }
+  } catch (error) {
+    if (options.signal?.aborted) throw new PreflightInterruptedError();
+    throw error;
+  } finally {
+    await handle?.close();
+    await rm(temporary, { force: true });
+  }
+}
+
+function failureDestination(
+  argv: readonly string[],
+): ReceiptDestination | undefined {
+  let artifactRoot: string | undefined;
+  let output: string | undefined;
+  for (let index = 0; index < argv.length; index += 2) {
+    const flag = argv[index];
+    const value = argv[index + 1];
+    if (flag === "--artifact-root") artifactRoot = value;
+    if (flag === "--output") output = value;
+  }
+  if (artifactRoot === undefined || output === undefined) return undefined;
+  if (
+    artifactRoot.split(sep).includes("..") ||
+    output.split(sep).includes("..")
+  )
+    return undefined;
+  return { artifactRoot, output };
+}
+
+function cliFailure(check: string): PreflightReceipt {
   return {
-    runId: config.runId,
-    targetModel: TARGET_MODEL,
-    optimizerModel: OPTIMIZER_MODEL,
-    skilloptCommit: SKILLOPT_COMMIT,
-    ...state,
+    schemaVersion: "1.0.0",
+    artifactType: "skillopt-host-preflight",
+    status: "no-go",
+    code: "LOCK_INVALID",
+    reasons: [{ check, expected: "valid preflight CLI contract" }],
+    lockDigests: { sandbox: "", provider: "", verifier: "" },
+    expected: {
+      externalRoot: "/etc/kibi-skillopt",
+      launcher: "/usr/libexec/kibi-skillopt-verifier-launch",
+      installerCommand:
+        "sudo /usr/libexec/kibi-skillopt-installer install --bundle <signed-bundle> --version kibi-skillopt-trust-v1",
+      paths: [],
+      identities: [],
+      fdInventory: [],
+      digests: {},
+      systemdSocketActivation: true,
+    },
+    checks: [],
+    verifierAttestation: { payload: null, signature: "unavailable" },
     paidModelCalls: 0,
+    runtimeAuthorized: false,
   };
-}
-
-function noGo(
-  config: PreflightConfig,
-  state: Parameters<typeof baseReceipt>[1],
-  reason: string,
-): PreflightReceipt {
-  return { ...baseReceipt(config, state), verdict: "no-go", reason };
-}
-
-function pathsFor(
-  workspace: IsolationWorkspace,
-  sourceWorktree: string,
-  realCodexHome: string,
-) {
-  return {
-    workspace: workspace.target,
-    runPrivateHome: workspace.codexHome,
-    realCodexHome,
-    sourceWorktree,
-    fixtureKb: join(workspace.target, ".kb"),
-    privateScorer: workspace.privateScorer,
-    privateEvidence: workspace.privateEvidence,
-    siblingRuns: workspace.siblingRun,
-  } as const;
-}
-
-async function prepareConfig(
-  options: Readonly<{
-    workspace: IsolationWorkspace;
-    sourceWorktree: string;
-    env: NodeJS.ProcessEnv;
-    dependencies: PreflightDependencies;
-    staged: StagedCanaryRuntime;
-  }>,
-) {
-  const runAuth = (
-    argv: readonly [string, ...string[]],
-    env: NodeJS.ProcessEnv,
-  ) => options.dependencies.run(argv, options.workspace.target, env, 15_000);
-  const auth = await prepareExistingLogin({
-    privateCodexHome: options.workspace.codexHome,
-    sandboxHome: options.workspace.sandboxHome,
-    env: options.env,
-    run: runAuth,
-  });
-  const config = buildCodexConfig({
-    role: "target",
-    authMode: auth.mode,
-    paths: pathsFor(
-      options.workspace,
-      options.sourceWorktree,
-      auth.realCodexHome,
-    ),
-    bwrapExecutable: options.staged.bwrapExecutable,
-    codexExecutable: options.staged.codexCommand,
-    mcpServer: options.staged.mcpServer,
-  });
-  await writeFile(join(options.workspace.codexHome, "config.toml"), config, {
-    encoding: "utf8",
-    mode: 0o600,
-  });
-  return { ...auth, env: { ...auth.env, PATH: "/usr/bin:/bin" } };
 }
 
 // implements REQ-skillopt-codex-optimization
-export async function runPreflight(
-  config: PreflightConfig,
-  dependencies: PreflightDependencies = runtimeDependencies,
-): Promise<PreflightReceipt> {
-  const sourceWorktree = resolve(config.sourceWorktree ?? process.cwd());
-  const configuredArtifactRoot = await resolveArtifactRoot(config.artifactRoot);
-  const artifactRoot = resolveIsolationArtifactRoot(
-    configuredArtifactRoot,
-    sourceWorktree,
-  );
-  const env = config.env ?? process.env;
-  let state: Parameters<typeof baseReceipt>[1] = {
-    codexVersion: null,
-    authMode: null,
-    bwrap: false,
-    sourceClean: false,
-    configValid: false,
-  };
-  const clean = await dependencies.sourceClean(sourceWorktree, env);
-  state = { ...state, sourceClean: clean };
-  if (!clean) return noGo(config, state, "source_not_clean");
-  const workspace = await createIsolationWorkspace({
-    artifactRoot,
-    runId: config.runId,
-    role: "target",
-  });
+export async function preflightMain(argv: readonly string[]): Promise<number> {
+  let options: CliOptions;
   try {
-    const staged = await dependencies.stageRuntime(workspace, sourceWorktree);
-    state = { ...state, bwrap: true };
-    const version = await dependencies.run(
-      [staged.codexCommand, "--version"],
-      sourceWorktree,
-      env,
-      10_000,
-    );
-    if (version.exitCode !== 0)
-      return noGo(config, state, "missing_host:codex");
-    state = { ...state, codexVersion: version.stdout.trim() };
-    const auth = await prepareConfig({
-      workspace,
-      sourceWorktree,
-      env,
-      dependencies,
-      staged,
-    });
-    state = { ...state, authMode: auth.mode };
-    const doctor = await dependencies.run(
-      [staged.codexCommand, "--strict-config", "doctor", "--json"],
-      workspace.target,
-      auth.env,
-      30_000,
-    );
-    if (doctor.exitCode !== 0) return noGo(config, state, "config_invalid");
-    await dependencies.probeRequiredMcp({
-      ...staged.mcpServer,
-      env: auth.env,
-    });
-    const probe = await writeCapabilityProbe(
-      workspace,
-      sourceIsolationDeniedPaths(workspace, sourceWorktree, auth.realCodexHome),
-    );
-    await dependencies.probeSandbox({
-      codexCommand: staged.codexCommand,
-      workspace: workspace.target,
-      env: auth.env,
-      run: dependencies.run,
-      probe,
-    });
-    state = { ...state, configValid: true };
-    return { ...baseReceipt(config, state), verdict: "pass" };
+    options = parseCli(argv);
   } catch (error) {
-    if (error instanceof CodexAuthError)
-      return noGo(config, state, error.message);
-    if (error instanceof ProcessControlError)
-      return noGo(config, state, error.message);
-    if (error instanceof RuntimePrerequisiteError)
-      return noGo(config, state, error.message);
-    if (error instanceof RequiredMcpStartupError)
-      return noGo(config, state, error.message);
+    const check =
+      error instanceof PreflightCliError ? error.check : "cli-schema";
+    const failure = cliFailure(check);
+    const destination = failureDestination(argv);
+    if (destination !== undefined) await writeReceipt(destination, failure);
+    process.stderr.write(`${JSON.stringify(failure)}\n`);
+    return 2;
+  }
+  let receipt: PreflightReceipt;
+  try {
+    receipt = await qualifySkillOptHost({
+      sandboxLock: options.sandboxLock,
+      providerLock: options.providerLock,
+      verifierLock: options.verifierLock,
+      ...(options.fixtureRoot === undefined
+        ? {}
+        : { fixtureRoot: resolve(options.fixtureRoot) }),
+    });
+  } catch (error) {
+    if (!(error instanceof PreflightNoGo)) throw error;
+    receipt = error.receipt;
+  }
+  const controller = new AbortController();
+  const interrupt = (): void => controller.abort();
+  process.once("SIGINT", interrupt);
+  process.once("SIGTERM", interrupt);
+  try {
+    const configuredDelay =
+      options.fixtureRoot === undefined
+        ? 0
+        : Number.parseInt(
+            process.env.KIBI_SKILLOPT_TEST_RECEIPT_DELAY_MS ?? "0",
+            10,
+          );
+    await writeReceipt(
+      {
+        ...options,
+        signal: controller.signal,
+        delayMs: Number.isFinite(configuredDelay) ? configuredDelay : 0,
+        ...(options.fixtureRoot !== undefined &&
+        process.env.KIBI_SKILLOPT_TEST_RECEIPT_READY === "1"
+          ? { onTemporaryReady: () => process.stdout.write("TEMP_READY\n") }
+          : {}),
+      },
+      receipt,
+    );
+  } catch (error) {
+    if (error instanceof PreflightInterruptedError) return 143;
     throw error;
   } finally {
-    await workspace.cleanup();
+    process.off("SIGINT", interrupt);
+    process.off("SIGTERM", interrupt);
   }
+  process.stdout.write(`${JSON.stringify(receipt)}\n`);
+  return receipt.status === "qualified" ? 0 : 1;
 }
+
+if (import.meta.main)
+  process.exitCode = await preflightMain(process.argv.slice(2));
