@@ -21,7 +21,7 @@ and the root package scripts only expose the supported command surface.
 | `skillopt:canary` | `bun run scripts/skillopt-eval/cli.ts smoke --run-id 00000000-0000-4000-8000-000000000091` | Bounded two-model Codex capability canary; may incur paid model calls. |
 | `skillopt:dry-run` | `bun run scripts/skillopt-eval/cli.ts dry-run --run-id 00000000-0000-4000-8000-000000000092` | Writes the zero-cost dry-run artifact tree. |
 | `skillopt:prepare` | `bun run scripts/skillopt-eval/cli.ts prepare --run-id 00000000-0000-4000-8000-000000000092` | Same dry-run shape, with the prepare command name. |
-| `skillopt:optimize` | `bun run scripts/skillopt-eval/cli.ts optimize --skill all --allow-paid --run-id <uuid>` | Runs the real Codex optimizer and stops with review artifacts; requires explicit paid-run acknowledgment. |
+| `skillopt:optimize` | `bun run scripts/skillopt-eval/cli.ts optimize --skill all --allow-paid --run-id <uuid>` | Runs the real Codex optimizer, applies automatic safety/surface gates, and adopts passing candidates; requires explicit paid-run acknowledgment. |
 | `skillopt:fake:run` | `bun run scripts/skillopt-eval/cli.ts run --fake --run-id 00000000-0000-4000-8000-000000000093` | Runs the offline workflow without paid calls. |
 | `skillopt:fake:resume` | `bun run scripts/skillopt-eval/cli.ts resume --fake --run-id 00000000-0000-4000-8000-000000000093` | Resumes the same offline workflow. |
 | `skillopt:fake:status` | `bun run scripts/skillopt-eval/cli.ts run --fake --run-id 00000000-0000-4000-8000-000000000093 && bun run scripts/skillopt-eval/cli.ts status --run-id 00000000-0000-4000-8000-000000000093` | Boots a fake run, then reads back its state. |
@@ -34,7 +34,7 @@ and the root package scripts only expose the supported command surface.
 | `smoke` | `--run-id <uuid>` | `artifacts/skillopt/<run-id>` | Capability canary, still zero-cost. |
 | `dry-run` | `--run-id <uuid>` | `artifacts/skillopt/<run-id>` | Creates `dry-run.json` and does not call a paid model. |
 | `prepare` | `--run-id <uuid>` | `artifacts/skillopt/<run-id>` | Same zero-cost artifact shape as dry-run. |
-| `optimize` | `--skill <id\|all>`, `--allow-paid`, `--max-steps 1..4`, `--run-id <uuid>` | `artifacts/skillopt/<run-id>` | Runs Codex-only SkillOpt candidate generation after preflight/smoke; stops before approval or adoption. |
+| `optimize` | `--skill <id\|all>`, `--allow-paid`, `--max-steps 1..4`, `--run-id <uuid>` | `artifacts/skillopt/<run-id>` | Runs Codex-only SkillOpt generation after preflight/smoke, then automatically adopts candidates that pass safety and immutable-surface gates. |
 | `evaluate` | `--fake`, `--run-id <uuid>` | `artifacts/skillopt/<run-id>` | Same offline rule as optimize. |
 | `bundle` | `--fake`, `--run-id <uuid>` | `artifacts/skillopt/<run-id>` | Same offline rule as optimize. |
 | `run` | `--fake`, `--run-id <uuid>` | `artifacts/skillopt/<run-id>` | Fake only until the bounded real smoke gate is enabled. |
@@ -42,8 +42,8 @@ and the root package scripts only expose the supported command surface.
 | `status` | `--run-id <uuid>` | `artifacts/skillopt/<run-id>` | Reads the current state and does not mutate artifacts. |
 
 The public script surface stops here. The separate report, approve, and adopt
-helpers are part of the approval gate work, and they should not be called from
-the root package scripts yet.
+helpers remain available for offline review artifacts and higher-assurance
+behavioral evaluation.
 
 ## Artifact layout
 
@@ -58,15 +58,20 @@ the root package scripts yet.
 | `artifacts/skillopt/<run-id>/best_skill.md` | `optimize` | The current best candidate body. |
 | `artifacts/skillopt/<run-id>/runtime_state.json` | `optimize` | Runtime state summary for the optimizer. |
 | `artifacts/skillopt/<run-id>/history.json` | `optimize` | Step history for the optimizer. |
-| `artifacts/skillopt/<run-id>/optimization-review.json` | `optimize` | Hashes and explicit approval state for generated candidates. |
+| `artifacts/skillopt/<run-id>/optimization-review.json` | `optimize` | Candidate hashes, automatic safety-gate results, and adoption receipts. |
 
-## Approval gate
+## Automatic adoption gate
 
-Approval is a separate step from optimization. The real `optimize` command writes
-`optimization-review.json`, one baseline and candidate variant per selected skill,
-and candidate bodies under the run artifact root. It never edits canonical skills.
-Evaluation/report/proposal approval remains a separate gate; do not adopt a
-candidate without an explicit, hash-matched approval receipt.
+The real `optimize` command automatically adopts a generated candidate only after
+the candidate body passes safety validation and its frontmatter/resources hashes
+match the canonical surface. Adoption uses the transactional canonical-and-mirror
+write path with rollback on mirror-sync failure. The command writes
+`optimization-review.json` with the candidate hash, safety result, and adoption
+receipt. It does not commit or push the resulting source change.
+
+The separate report/proposal/approval workflow remains available for offline
+artifacts and higher-assurance behavioral evaluation. Automatic safety adoption
+must not be described as a behavioral evaluation pass.
 
 ## Price-equivalent semantics
 
@@ -93,8 +98,8 @@ bun run skillopt:optimize --skill all --allow-paid --max-steps 1 --run-id <uuid>
 
 Use a single canonical skill instead of `all` to bound the first run, for example
 `--skill kibi-usage`. `--allow-paid` is mandatory and the command uses the
-existing Codex login only. The command produces a reviewable candidate but does
-not modify, commit, push, publish, or adopt any canonical skill.
+existing Codex login only. The command automatically adopts candidates that pass
+the safety and immutable-surface gates; it does not commit, push, or publish.
 
 ## Recovery
 

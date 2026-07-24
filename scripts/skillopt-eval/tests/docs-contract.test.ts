@@ -126,7 +126,7 @@ describe("SkillOpt documentation contract", () => {
         Command:
           "`bun run scripts/skillopt-eval/cli.ts optimize --skill all --allow-paid --run-id <uuid>`",
         Notes:
-          "Runs the real Codex optimizer and stops with review artifacts; requires explicit paid-run acknowledgment.",
+          "Runs the real Codex optimizer, applies automatic safety/surface gates, and adopts passing candidates; requires explicit paid-run acknowledgment.",
       },
       {
         Script: "`skillopt:fake:run`",

@@ -63,7 +63,7 @@ function promptFor(request: SkillOptStepRequest): string {
     "Preserve MCP-only Kibi guidance, approval boundaries, and source-file traceability.",
     "The body must pass candidate safety validation: do not mention OpenCode, Cursor, API keys, or provider SDKs; do not add positive instructions to read, write, edit, modify, access, inspect, or open .kb files.",
     "Do not copy the current body unchanged when it contains prohibited host names or direct .kb guidance.",
-    "The candidate is for human review; never claim that an evaluation passed.",
+    "The candidate is subject to automatic safety and surface checks; never claim that a behavioral evaluation passed.",
     `Current body:\n${request.currentBody}`,
     `Public training trajectories:\n${JSON.stringify(request.trainTrajectories)}`,
     `Previous development gate:\n${JSON.stringify(request.previousDevelopment)}`,
