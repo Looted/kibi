@@ -14589,6 +14589,7 @@ symbols:
     title: writeCapabilityProbe
     sourceFile: scripts/skillopt-eval/runtime/canary-probes.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -15114,6 +15115,7 @@ symbols:
     title: buildCodexConfig
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization

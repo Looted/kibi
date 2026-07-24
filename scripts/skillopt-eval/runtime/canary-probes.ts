@@ -83,8 +83,9 @@ export async function writeCapabilityProbe(
   deniedPaths: readonly string[],
 ): Promise<CapabilityProbeEvidence> {
   const quoted = deniedPaths.map((path) => JSON.stringify(path)).join(" ");
+  const sandboxHome = JSON.stringify(workspace.sandboxHome);
   const expectedOutput = "skillopt-capability-canary:pass\n";
-  const probe = `#!/bin/sh\nset -u\nfor p in ${quoted}; do test ! -r "$p" || exit 41; done\nskills=0\nfor p in "$PWD"/.agents/skills/*/SKILL.md; do test -r "$p" && skills=$((skills+1)); done\ntest "$skills" -eq 4 || exit 42\nprintf canary > "$PWD/write-proof"\nif python3 -c 'import socket; socket.create_connection(("example.com",80),1)' >/dev/null 2>&1; then exit 43; fi\nprintf '${expectedOutput}'\n`;
+  const probe = `#!/bin/sh\nset -u\nfor p in ${quoted}; do test ! -r "$p" || exit 41; done\ntest -d ${sandboxHome} || exit 44\nprintf sandbox > ${sandboxHome}/skillopt-home-write-proof || exit 45\nif printf runtime > "$PWD/.runtime/write-proof" 2>/dev/null; then exit 47; fi\nskills=0\nfor p in "$PWD"/.agents/skills/*/SKILL.md; do test -r "$p" && skills=$((skills+1)); done\ntest "$skills" -eq 4 || exit 42\nprintf canary > "$PWD/write-proof"\nif python3 -c 'import socket; socket.create_connection(("example.com",80),1)' >/dev/null 2>&1; then exit 43; fi\nprintf '${expectedOutput}'\n`;
   const path = resolve(workspace.target, ".runtime/canary-probe");
   await mkdir(resolve(workspace.target, ".runtime"), {
     recursive: true,

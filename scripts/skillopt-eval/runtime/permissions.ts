@@ -71,15 +71,7 @@ function tomlString(value: string): string {
 // implements REQ-skillopt-codex-optimization
 export function buildCodexConfig(options: CodexConfigOptions): string {
   const model = options.role === "target" ? TARGET_MODEL : OPTIMIZER_MODEL;
-  const deniedRoots = new Set([
-    options.paths.sourceWorktree,
-    options.paths.fixtureKb,
-    options.paths.runPrivateHome,
-    options.paths.realCodexHome,
-    options.paths.privateScorer,
-    options.paths.privateEvidence,
-    options.paths.siblingRuns,
-  ]);
+  const deniedRoots = new Set([options.paths.fixtureKb]);
   return [
     `model = ${JSON.stringify(model)}`,
     `model_reasoning_effort = ${JSON.stringify(MODEL_REASONING_EFFORT)}`,
