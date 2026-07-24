@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0.0",
+  "kind": "kibi-skillopt-verifier-bundle-lock",
+  "bundleVersion": "kibi-skillopt-trust-v1",
+  "publisherKeyDigest": "c38eb3fc0fbc081bd418492912d86c764359208380a28ac7652bb67e98e39120",
+  "externalBundleLockDigest": "9cc48ef532d141668e7a3489be1b89542a4cb73e738a2f0bedb200d3209d14cb",
+  "protocolDigests": {
+    "protocol-v1/authorization.schema.json": "1566223a45a67e376af42c822e363706931823960c5b13eb9d2116365ca0fbf1",
+    "protocol-v1/preflight.schema.json": "a9304ee58bbca49ddc35b136365bcc522bf15762660e0734363218f06f916911",
+    "protocol-v1/verdict.schema.json": "6c1ee63d537d3f157f09c8bb61fd48ca5dccf32c53ac0dba2c96b3be8c483a9d"
+  },
+  "pinnedCa": {
+    "path": "/etc/kibi-skillopt/provider-ca.pem",
+    "digest": "8327a91cdce47b258db27f89ea8e34c3fccba96d89efbaa27404f7482c5c12ab"
+  }
+}

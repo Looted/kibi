@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "1.0.0",
+  "kind": "kibi-skillopt-provider-policy-lock",
+  "launcher": "/usr/libexec/kibi-skillopt-verifier-launch",
+  "installerCommand": "sudo /usr/libexec/kibi-skillopt-installer install --bundle <signed-bundle> --version kibi-skillopt-trust-v1",
+  "systemdSocketActivation": true,
+  "identities": {
+    "provider": { "name": "kibi-skillopt-provider", "uid": 61101 },
+    "evaluator": { "name": "kibi-skillopt-evaluator", "uid": 61102 },
+    "verifier": { "name": "kibi-skillopt-verifier", "uid": 61103 }
+  },
+  "fdInventory": [
+    "control-socket",
+    "service-pidfd",
+    "sealed-authorization",
+    "sealed-snapshot-artifact"
+  ],
+  "stores": [
+    "/var/lib/kibi-skillopt/ledger",
+    "/var/lib/kibi-skillopt/evaluator",
+    "/var/lib/kibi-skillopt/verdict"
+  ]
+}
