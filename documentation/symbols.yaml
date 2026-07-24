@@ -12556,10 +12556,15 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-automatic-adoption
+      - type: covered_by
+        target: TEST-skillopt-automatic-adoption
   - id: SYM-skillopt-real-optimization-options
     title: RealOptimizationOptions
     sourceFile: scripts/skillopt-eval/real-workflow.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -12578,6 +12583,7 @@ symbols:
     title: OptimizeInput
     sourceFile: scripts/skillopt-eval/real-workflow.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
