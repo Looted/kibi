@@ -12890,6 +12890,7 @@ symbols:
     title: digest
     sourceFile: scripts/skillopt-eval/preflight-io.ts
     symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/preflight-io.ts#digest
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -12899,6 +12900,7 @@ symbols:
     title: readNoFollow
     sourceFile: scripts/skillopt-eval/preflight-io.ts
     symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/preflight-io.ts#readNoFollow
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -12908,6 +12910,7 @@ symbols:
     title: parseLock
     sourceFile: scripts/skillopt-eval/preflight-io.ts
     symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/preflight-io.ts#parseLock
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -12917,6 +12920,7 @@ symbols:
     title: ensureInside
     sourceFile: scripts/skillopt-eval/preflight-io.ts
     symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/preflight-io.ts#ensureInside
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -12926,6 +12930,7 @@ symbols:
     title: parent
     sourceFile: scripts/skillopt-eval/preflight-io.ts
     symbol_role: structural
+    text_ref: scripts/skillopt-eval/preflight-io.ts#parent
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -12936,6 +12941,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/preflight-io.ts
     symbol_role: structural
     granularity_reason: legacy-link
+    text_ref: scripts/skillopt-eval/preflight-io.ts#PreflightInputError
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -12945,6 +12951,7 @@ symbols:
     title: PreflightInputError.name
     sourceFile: scripts/skillopt-eval/preflight-io.ts
     symbol_role: structural
+    text_ref: scripts/skillopt-eval/preflight-io.ts#PreflightInputError.name
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -12954,6 +12961,7 @@ symbols:
     title: validateTrustDirectory
     sourceFile: scripts/skillopt-eval/preflight-io.ts
     symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/preflight-io.ts#validateTrustDirectory
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
