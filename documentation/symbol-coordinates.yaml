@@ -1106,24 +1106,12 @@ coordinates:
     sourceEndLine: 109
     sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
     sourceLine: 99
-  SYM-SemanticAdvisorResult:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 125
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
-    sourceLine: 122
   SYM-SemanticAdvisorToolResult:
     sourceColumn: 12
     sourceEndColumn: 67
     sourceEndLine: 8
     sourceFile: packages/mcp/src/tools/semantic-advisor.ts
     sourceLine: 8
-  SYM-SemanticAmbiguityObservationSuggestion:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 102
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
-    sourceLine: 94
   SYM-SemanticAmbiguityWitness:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1142,12 +1130,6 @@ coordinates:
     sourceEndLine: 97
     sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
     sourceLine: 52
-  SYM-SemanticOntologyGapSuggestion:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 116
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
-    sourceLine: 104
   SYM-SemanticPredicateClaim:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -8081,7 +8063,7 @@ coordinates:
   SYM-skillopt-stage-kibi-mcp-broker:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 74
+    sourceEndLine: 99
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker-stage.ts
     sourceLine: 22
   SYM-skillopt-staged-broker-launch:

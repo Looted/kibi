@@ -36,9 +36,31 @@ export async function stageKibiMcpBroker(
   const tracePath = resolve(workspace.privateEvidence, "broker-trace.jsonl");
   const entryPath = resolve(brokerRoot, "entry.ts");
   const bundlePath = resolve(brokerRoot, "broker.js");
+  const stagedPaths = [
+    downstream.command,
+    ...downstream.args,
+    downstream.cwd,
+    tracePath,
+  ];
+  const stagedPathTokens = stagedPaths.map(
+    (_, index) => `__SKILLOPT_STAGED_PATH_${index}__`,
+  );
+  let nextPathToken = 0;
+  const pathToken = (): string => {
+    const token = stagedPathTokens[nextPathToken];
+    if (token === undefined) throw new McpBrokerError("startup");
+    nextPathToken += 1;
+    return token;
+  };
+  const downstreamForBundle = {
+    command: pathToken(),
+    args: downstream.args.map(() => pathToken()),
+    cwd: pathToken(),
+  };
+  const traceToken = pathToken();
   await writeFile(
     entryPath,
-    `import { runMcpBroker } from ${JSON.stringify(fileURLToPath(new URL("./mcp-broker-process.ts", import.meta.url)))};\nawait runMcpBroker(${JSON.stringify({ downstream, tracePath, startupTimeoutMs: 15_000, toolTimeoutMs: 120_000, killGraceMs: 2_000 })});\n`,
+    `import { runMcpBroker } from ${JSON.stringify(fileURLToPath(new URL("./mcp-broker-process.ts", import.meta.url)))};\nawait runMcpBroker(${JSON.stringify({ downstream: downstreamForBundle, tracePath: traceToken, startupTimeoutMs: 15_000, toolTimeoutMs: 120_000, killGraceMs: 2_000 })});\n`,
     { encoding: "utf8", mode: 0o600 },
   );
   const build = await Bun.build({
@@ -52,10 +74,13 @@ export async function stageKibiMcpBroker(
     sourcemap: "none",
   });
   if (!build.success) throw new McpBrokerError("startup");
-  const bundled = (await readFile(bundlePath, "utf8")).replaceAll(
+  let bundled = (await readFile(bundlePath, "utf8")).replaceAll(
     sourceWorktree,
     workspace.privateEvidence,
   );
+  for (const [index, stagedPath] of stagedPaths.entries()) {
+    bundled = bundled.replaceAll(stagedPathTokens[index] ?? "", stagedPath);
+  }
   await writeFile(bundlePath, bundled, { encoding: "utf8", mode: 0o500 });
   const command = resolve(brokerRoot, "bun");
   await Bun.write(
