@@ -133,6 +133,36 @@ describe("SkillOpt candidate optimization", () => {
     expect(result.bestSkill.body).toBe("Valid candidate\n");
   });
 
+  test("preserves the canonical baseline when no candidate improves it", async () => {
+    // Given
+    const baselineBody = "Use OpenCode as the host.\n";
+
+    // When
+    const result = await optimizeSkillOptVariant(
+      {
+        skill: "kibi-usage",
+        baselineBody,
+        frontmatterHash: "a".repeat(64),
+        resourcesHash: "b".repeat(64),
+        baselineDevelopment: { mean: 70, hardPasses: 2, worstFamilyMean: 60 },
+        trainTrajectories: [
+          { taskId: "train-1", family: "discovery", reflection: "public" },
+        ],
+        maxSteps: 1,
+      },
+      {
+        runStep: async () => stepResult("Valid candidate\n", 69, 61),
+      },
+    );
+
+    // Then
+    expect(result.status).toBe("frozen");
+    if (result.status !== "frozen")
+      throw new Error("expected frozen optimization");
+    expect(result.bestSkill.variant).toBe("baseline");
+    expect(result.bestSkill.body).toBe(baselineBody);
+  });
+
   test("resumes from the next checkpoint without repeating terminal steps", async () => {
     const steps: number[] = [];
     const result = await optimizeSkillOptVariant(
