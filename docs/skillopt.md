@@ -68,6 +68,9 @@ match the canonical surface. Adoption uses the transactional canonical-and-mirro
 write path with rollback on mirror-sync failure. The command writes
 `optimization-review.json` with the candidate hash, safety result, and adoption
 receipt. It does not commit or push the resulting source change.
+The receipt distinguishes `auto-adopted`, `unchanged`, and `blocked` outcomes so
+the review artifact records whether a generated candidate changed the canonical
+surface.
 
 The separate report/proposal/approval workflow remains available for offline
 artifacts and higher-assurance behavioral evaluation. Automatic safety adoption

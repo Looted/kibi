@@ -228,16 +228,20 @@ export async function runRealOptimization(
         }),
       ]);
       const generatedCandidate = result.steps.length > 0 && candidate.variant === "skillopt";
-      const adoptionStatus = generatedCandidate
-        ? (await adopt({
+      const adoptionReceipt = generatedCandidate
+        ? await adopt({
             repoRoot: resolve(options.sourceWorktree),
             candidate,
             frontmatterHash: baseline.frontmatterHash,
             resourcesHash: baseline.resourcesHash,
-          })).status === "adopted"
-          ? "auto-adopted"
-          : "unchanged"
-        : "blocked";
+          })
+        : undefined;
+      const adoptionStatus =
+        adoptionReceipt === undefined
+          ? "blocked"
+          : adoptionReceipt.status === "adopted"
+            ? "auto-adopted"
+            : adoptionReceipt.status;
       paidModelCalls += result.steps.length;
       candidates.push({
         skill,
