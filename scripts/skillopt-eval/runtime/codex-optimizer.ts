@@ -91,6 +91,7 @@ export async function runCodexSkillOptStep(
     const env = options.env ?? process.env;
     const auth = await prepareExistingLogin({
       privateCodexHome: workspace.codexHome,
+      sandboxHome: workspace.sandboxHome,
       env,
       run: (argv, childEnv) =>
         runBoundedProcess({
