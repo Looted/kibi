@@ -7175,7 +7175,7 @@ coordinates:
   SYM-skillopt-optimize-skillopt-variant:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 310
+    sourceEndLine: 329
     sourceFile: scripts/skillopt-eval/optimize.ts
     sourceLine: 185
   SYM-skillopt-persist-artifacts:

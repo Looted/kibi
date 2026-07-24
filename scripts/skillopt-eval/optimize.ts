@@ -9,7 +9,7 @@ import {
   runBoundedProcess,
 } from "./runtime/process";
 import { persistSkillOptArtifacts } from "./skillopt-artifacts";
-import { freezeCandidateVariant } from "./variants";
+import { CandidateValidationError, freezeCandidateVariant } from "./variants";
 import type { FrozenVariant, VariantSurface } from "./variants";
 
 export type TrainTrajectory = Readonly<{
@@ -216,54 +216,73 @@ export async function optimizeSkillOptVariant(
   const steps: OptimizationStep[] = [];
 
   for (let step = startStep; step <= input.maxSteps; step += 1) {
-    const stepResult = await runner.runStep({
-      skill: input.skill,
-      step,
-      maxSteps: input.maxSteps,
-      currentBody: bestBody,
-      trainTrajectories: input.trainTrajectories,
-      previousDevelopment: {
-        mean: bestMean,
-        hardPasses: input.baselineDevelopment.hardPasses,
-        worstFamilyMean: previousWorstFamilyMean,
-      },
-    });
-    assertDevelopmentGate(stepResult.development);
-
-    try {
-      const candidate = freezeCandidateVariant({
+    let stepResult: SkillOptStepResult | undefined;
+    let candidate: FrozenVariant | undefined;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const nextStepResult = await runner.runStep({
         skill: input.skill,
-        variant: "skillopt",
-        body: stepResult.body,
-        frontmatterHash: input.frontmatterHash,
-        resourcesHash: input.resourcesHash,
-        provenance: "skillopt",
-        sourceRequestHash: contractHash({
-          skill: input.skill,
-          step,
-          trainTaskIds: input.trainTrajectories.map(({ taskId }) => taskId),
-        }),
+        step,
+        maxSteps: input.maxSteps,
+        currentBody: bestBody,
+        trainTrajectories: input.trainTrajectories,
+        previousDevelopment: {
+          mean: bestMean,
+          hardPasses: input.baselineDevelopment.hardPasses,
+          worstFamilyMean: previousWorstFamilyMean,
+        },
       });
-      steps.push({ step, candidate, development: stepResult.development });
+      assertDevelopmentGate(nextStepResult.development);
 
-      if (stepResult.development.mean > bestMean) {
-        bestBody = stepResult.body;
-        bestMean = stepResult.development.mean;
+      try {
+        candidate = freezeCandidateVariant({
+          skill: input.skill,
+          variant: "skillopt",
+          body: nextStepResult.body,
+          frontmatterHash: input.frontmatterHash,
+          resourcesHash: input.resourcesHash,
+          provenance: "skillopt",
+          sourceRequestHash: contractHash({
+            skill: input.skill,
+            step,
+            trainTaskIds: input.trainTrajectories.map(({ taskId }) => taskId),
+          }),
+        });
+        stepResult = nextStepResult;
+        break;
+      } catch (error) {
+        if (attempt === 0 && error instanceof CandidateValidationError)
+          continue;
+        return {
+          status: "invalid",
+          score: 0,
+          failureCategory: "invalid_variant",
+          steps,
+          error: error instanceof Error ? error.message : String(error),
+        };
       }
-      const improvement =
-        stepResult.development.worstFamilyMean - previousWorstFamilyMean;
-      lowImprovementStreak = improvement < 1 ? lowImprovementStreak + 1 : 0;
-      previousWorstFamilyMean = stepResult.development.worstFamilyMean;
-      if (lowImprovementStreak >= 2) break;
-    } catch (error) {
+    }
+
+    if (stepResult === undefined || candidate === undefined) {
       return {
         status: "invalid",
         score: 0,
         failureCategory: "invalid_variant",
         steps,
-        error: error instanceof Error ? error.message : String(error),
+        error: "candidate_validation_retry_exhausted",
       };
     }
+
+    steps.push({ step, candidate, development: stepResult.development });
+
+    if (stepResult.development.mean > bestMean) {
+      bestBody = stepResult.body;
+      bestMean = stepResult.development.mean;
+    }
+    const improvement =
+      stepResult.development.worstFamilyMean - previousWorstFamilyMean;
+    lowImprovementStreak = improvement < 1 ? lowImprovementStreak + 1 : 0;
+    previousWorstFamilyMean = stepResult.development.worstFamilyMean;
+    if (lowImprovementStreak >= 2) break;
   }
 
   const bestSkill = freezeCandidateVariant({
