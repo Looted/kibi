@@ -9,7 +9,11 @@ import {
   runBoundedProcess,
 } from "./runtime/process";
 import { persistSkillOptArtifacts } from "./skillopt-artifacts";
-import { CandidateValidationError, freezeCandidateVariant } from "./variants";
+import {
+  CandidateValidationError,
+  createBaselineVariant,
+  freezeCandidateVariant,
+} from "./variants";
 import type { FrozenVariant, VariantSurface } from "./variants";
 
 export type TrainTrajectory = Readonly<{
@@ -285,19 +289,27 @@ export async function optimizeSkillOptVariant(
     if (lowImprovementStreak >= 2) break;
   }
 
-  const bestSkill = freezeCandidateVariant({
-    skill: input.skill,
-    variant: "skillopt",
-    body: bestBody,
-    frontmatterHash: input.frontmatterHash,
-    resourcesHash: input.resourcesHash,
-    provenance: "skillopt",
-    sourceRequestHash: contractHash({
-      skill: input.skill,
-      completedSteps: steps.map(({ step }) => step),
-      bestBody,
-    }),
-  });
+  const bestSkill =
+    bestBody === input.baselineBody
+      ? createBaselineVariant({
+          skill: input.skill,
+          body: bestBody,
+          frontmatterHash: input.frontmatterHash,
+          resourcesHash: input.resourcesHash,
+        })
+      : freezeCandidateVariant({
+          skill: input.skill,
+          variant: "skillopt",
+          body: bestBody,
+          frontmatterHash: input.frontmatterHash,
+          resourcesHash: input.resourcesHash,
+          provenance: "skillopt",
+          sourceRequestHash: contractHash({
+            skill: input.skill,
+            completedSteps: steps.map(({ step }) => step),
+            bestBody,
+          }),
+        });
   const result: Extract<OptimizationResult, { status: "frozen" }> = {
     status: "frozen",
     bestSkill,

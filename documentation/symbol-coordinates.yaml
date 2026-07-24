@@ -6701,9 +6701,9 @@ coordinates:
   SYM-skillopt-create-pinned-runner:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 154
+    sourceEndLine: 158
     sourceFile: scripts/skillopt-eval/optimize.ts
-    sourceLine: 105
+    sourceLine: 109
   SYM-skillopt-default-codex-cell-dependencies:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6719,9 +6719,9 @@ coordinates:
   SYM-skillopt-development-gate:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 25
+    sourceEndLine: 29
     sourceFile: scripts/skillopt-eval/optimize.ts
-    sourceLine: 21
+    sourceLine: 25
   SYM-skillopt-episode-replay-input-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -7157,27 +7157,27 @@ coordinates:
   SYM-skillopt-optimization-checkpoint:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 59
+    sourceEndLine: 63
     sourceFile: scripts/skillopt-eval/optimize.ts
-    sourceLine: 54
+    sourceLine: 58
   SYM-skillopt-optimization-result:
     sourceColumn: 12
     sourceEndColumn: 7
-    sourceEndLine: 81
+    sourceEndLine: 85
     sourceFile: scripts/skillopt-eval/optimize.ts
-    sourceLine: 67
+    sourceLine: 71
   SYM-skillopt-optimization-step:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 65
+    sourceEndLine: 69
     sourceFile: scripts/skillopt-eval/optimize.ts
-    sourceLine: 61
+    sourceLine: 65
   SYM-skillopt-optimize-skillopt-variant:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 329
+    sourceEndLine: 341
     sourceFile: scripts/skillopt-eval/optimize.ts
-    sourceLine: 185
+    sourceLine: 189
   SYM-skillopt-persist-artifacts:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7193,9 +7193,9 @@ coordinates:
   SYM-skillopt-pinned-runner-options:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 52
+    sourceEndLine: 56
     sourceFile: scripts/skillopt-eval/optimize.ts
-    sourceLine: 45
+    sourceLine: 49
   SYM-skillopt-plan-offline-adoption:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -8087,21 +8087,21 @@ coordinates:
   SYM-skillopt-step-request:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 34
+    sourceEndLine: 38
     sourceFile: scripts/skillopt-eval/optimize.ts
-    sourceLine: 27
+    sourceLine: 31
   SYM-skillopt-step-result:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 39
-    sourceFile: scripts/skillopt-eval/optimize.ts
-    sourceLine: 36
-  SYM-skillopt-step-runner:
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 43
     sourceFile: scripts/skillopt-eval/optimize.ts
-    sourceLine: 41
+    sourceLine: 40
+  SYM-skillopt-step-runner:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 47
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    sourceLine: 45
   SYM-skillopt-task-spec-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -8117,9 +8117,9 @@ coordinates:
   SYM-skillopt-train-trajectory:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 19
+    sourceEndLine: 23
     sourceFile: scripts/skillopt-eval/optimize.ts
-    sourceLine: 15
+    sourceLine: 19
   SYM-skillopt-validate-approval:
     sourceColumn: 16
     sourceEndColumn: 1
