@@ -4370,6 +4370,12 @@ coordinates:
     sourceEndLine: 22
     sourceFile: scripts/skillopt-eval/catalog.ts
     sourceLine: 18
+  SYM-skillopt-adopt-approved-skill:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 248
+    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceLine: 222
   SYM-skillopt-adopt-offline-approved-skill:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -4382,12 +4388,6 @@ coordinates:
     sourceEndLine: 43
     sourceFile: scripts/skillopt-eval/adoption.ts
     sourceLine: 41
-  SYM-skillopt-adopt-approved-skill:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 248
-    sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 222
   SYM-skillopt-adoption-input:
     sourceColumn: 12
     sourceEndColumn: 5
@@ -4430,12 +4430,6 @@ coordinates:
     sourceEndLine: 63
     sourceFile: scripts/skillopt-eval/adoption.ts
     sourceLine: 63
-  SYM-skillopt-plan-skill-adoption:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 219
-    sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 214
   SYM-skillopt-adversarial-case-type:
     sourceColumn: 12
     sourceEndColumn: 24
@@ -4667,9 +4661,9 @@ coordinates:
   SYM-skillopt-cli-main:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 208
+    sourceEndLine: 297
     sourceFile: scripts/skillopt-eval/cli.ts
-    sourceLine: 152
+    sourceLine: 241
   SYM-skillopt-codex-cell-dependencies-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -4706,6 +4700,30 @@ coordinates:
     sourceEndLine: 38
     sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
     sourceLine: 28
+  SYM-skillopt-codex-optimizer-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 28
+    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    sourceLine: 25
+  SYM-skillopt-codex-optimizer-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 40
+    sourceEndLine: 27
+    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    sourceLine: 27
+  SYM-skillopt-codex-optimizer-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 78
+    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    sourceLine: 71
+  SYM-skillopt-codex-optimizer-run:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 164
+    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    sourceLine: 81
   SYM-skillopt-codex-violation-type:
     sourceColumn: 12
     sourceEndColumn: 63
@@ -5594,6 +5612,12 @@ coordinates:
     sourceEndLine: 205
     sourceFile: scripts/skillopt-eval/offline-artifacts.ts
     sourceLine: 193
+  SYM-skillopt-plan-skill-adoption:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 219
+    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceLine: 214
   SYM-skillopt-preflight-run:
     sourceColumn: 22
     sourceEndColumn: 1

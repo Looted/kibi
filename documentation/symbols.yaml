@@ -9000,6 +9000,43 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-codex-optimizer-run
+    title: runCodexSkillOptStep
+    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-codex-optimizer-error
+    title: CodexOptimizerError
+    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    symbol_role: structural
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-codex-optimizer-error-name
+    title: CodexOptimizerError.name
+    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-codex-optimizer-options
+    title: CodexOptimizerOptions
+    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-build-skill-catalog
     title: buildSkillCatalog
     sourceFile: scripts/skillopt-eval/catalog.ts
