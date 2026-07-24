@@ -26,9 +26,10 @@ export function defaultCodexCellDependencies(
   const run: CanaryRunner = (argv, cwd, env, timeoutMs, stdin) =>
     runBoundedProcess({ argv, cwd, env, timeoutMs, stdin });
   return {
-    prepareLogin: ({ privateCodexHome, env }) =>
+    prepareLogin: ({ privateCodexHome, sandboxHome, env }) =>
       prepareExistingLogin({
         privateCodexHome,
+        sandboxHome,
         env,
         run: (argv, childEnv) =>
           runBoundedProcess({

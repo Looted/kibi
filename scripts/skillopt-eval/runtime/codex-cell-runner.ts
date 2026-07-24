@@ -67,6 +67,7 @@ export async function runCodexCell(
     });
     const login = await dependencies.prepareLogin({
       privateCodexHome: workspace.codexHome,
+      sandboxHome: workspace.sandboxHome,
       env: options.env,
     });
     const broker = await dependencies.stageBroker(
