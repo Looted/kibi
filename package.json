@@ -38,6 +38,7 @@
     "skillopt:canary": "bun run scripts/skillopt-eval/cli.ts smoke --run-id 00000000-0000-4000-8000-000000000091",
     "skillopt:dry-run": "bun run scripts/skillopt-eval/cli.ts dry-run --run-id 00000000-0000-4000-8000-000000000092",
     "skillopt:prepare": "bun run scripts/skillopt-eval/cli.ts prepare --run-id 00000000-0000-4000-8000-000000000092",
+    "skillopt:optimize": "bun run scripts/skillopt-eval/cli.ts optimize",
     "skillopt:fake:run": "bun run scripts/skillopt-eval/cli.ts run --fake --run-id 00000000-0000-4000-8000-000000000093",
     "skillopt:fake:resume": "bun run scripts/skillopt-eval/cli.ts resume --fake --run-id 00000000-0000-4000-8000-000000000093",
     "skillopt:fake:status": "bun run scripts/skillopt-eval/cli.ts run --fake --run-id 00000000-0000-4000-8000-000000000093 && bun run scripts/skillopt-eval/cli.ts status --run-id 00000000-0000-4000-8000-000000000093",

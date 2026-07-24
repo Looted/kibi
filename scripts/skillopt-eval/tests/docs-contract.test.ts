@@ -106,7 +106,8 @@ describe("SkillOpt documentation contract", () => {
         Script: "`skillopt:canary`",
         Command:
           "`bun run scripts/skillopt-eval/cli.ts smoke --run-id 00000000-0000-4000-8000-000000000091`",
-        Notes: "Capability canary, also Codex-only and zero-cost.",
+        Notes:
+          "Bounded two-model Codex capability canary; may incur paid model calls.",
       },
       {
         Script: "`skillopt:dry-run`",
@@ -119,6 +120,13 @@ describe("SkillOpt documentation contract", () => {
         Command:
           "`bun run scripts/skillopt-eval/cli.ts prepare --run-id 00000000-0000-4000-8000-000000000092`",
         Notes: "Same dry-run shape, with the prepare command name.",
+      },
+      {
+        Script: "`skillopt:optimize`",
+        Command:
+          "`bun run scripts/skillopt-eval/cli.ts optimize --skill all --allow-paid --run-id <uuid>`",
+        Notes:
+          "Runs the real Codex optimizer and stops with review artifacts; requires explicit paid-run acknowledgment.",
       },
       {
         Script: "`skillopt:fake:run`",
@@ -151,6 +159,7 @@ describe("SkillOpt documentation contract", () => {
         "bun run scripts/skillopt-eval/cli.ts dry-run --run-id 00000000-0000-4000-8000-000000000092",
       "skillopt:prepare":
         "bun run scripts/skillopt-eval/cli.ts prepare --run-id 00000000-0000-4000-8000-000000000092",
+      "skillopt:optimize": "bun run scripts/skillopt-eval/cli.ts optimize",
       "skillopt:fake:run":
         "bun run scripts/skillopt-eval/cli.ts run --fake --run-id 00000000-0000-4000-8000-000000000093",
       "skillopt:fake:resume":
@@ -174,6 +183,7 @@ describe("SkillOpt documentation contract", () => {
       "`artifacts/skillopt/<run-id>/best_skill.md`",
       "`artifacts/skillopt/<run-id>/runtime_state.json`",
       "`artifacts/skillopt/<run-id>/history.json`",
+      "`artifacts/skillopt/<run-id>/optimization-review.json`",
     ]);
   });
 });

@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { CANONICAL_SKILLS, type CanonicalSkill } from "./catalog";
 import {
   buildOfflineReviewArtifacts,
   planOfflineAdoption,
@@ -8,6 +9,7 @@ import {
 import { RunStore, runOfflineWorkflow } from "./orchestration";
 import { runCapabilityCanary, runPreflight } from "./preflight";
 import { type PrototypeScenario, runPrototype } from "./prototype";
+import { runRealOptimization } from "./real-workflow";
 
 class CliUsageError extends Error {
   readonly name = "CliUsageError";
@@ -17,7 +19,18 @@ type WorkflowOptions = Readonly<{
   runId: string;
   artifactRoot: string;
   fake: boolean;
+  skill: CanonicalSkill | "all" | undefined;
+  allowPaid: boolean;
+  maxSteps: number;
 }>;
+
+function parseSkill(value: string): CanonicalSkill | "all" {
+  if (value === "all") return value;
+  for (const skill of CANONICAL_SKILLS) {
+    if (skill === value) return skill;
+  }
+  throw new CliUsageError(`Unknown skill: ${value}`);
+}
 
 function parseRunId(args: readonly string[], usage: string): string {
   if (args.length !== 2 || args[0] !== "--run-id") {
@@ -34,10 +47,34 @@ function parseWorkflowOptions(args: readonly string[]): WorkflowOptions {
   let runId: string | undefined;
   let artifactRoot: string | undefined;
   let fake = false;
+  let skill: CanonicalSkill | "all" | undefined;
+  let allowPaid = false;
+  let maxSteps = 1;
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
     if (arg === "--fake") {
       fake = true;
+      continue;
+    }
+    if (arg === "--allow-paid") {
+      allowPaid = true;
+      continue;
+    }
+    if (arg === "--skill" || arg === "--max-steps") {
+      const value = args[index + 1];
+      if (value === undefined || value.startsWith("--")) {
+        throw new CliUsageError(`${arg} requires a value`);
+      }
+      if (arg === "--skill") {
+        skill = parseSkill(value);
+      } else {
+        const parsed = Number(value);
+        if (!Number.isInteger(parsed) || parsed < 1 || parsed > 4) {
+          throw new CliUsageError("--max-steps must be an integer from 1 to 4");
+        }
+        maxSteps = parsed;
+      }
+      index += 1;
       continue;
     }
     if (arg === "--run-id" || arg === "--artifact-root") {
@@ -60,6 +97,9 @@ function parseWorkflowOptions(args: readonly string[]): WorkflowOptions {
     artifactRoot:
       artifactRoot ?? join(process.cwd(), "artifacts", "skillopt", runId),
     fake,
+    skill,
+    allowPaid,
+    maxSteps,
   };
 }
 
@@ -77,8 +117,8 @@ function printHelp(): void {
     `${[
       "Usage: cli.ts <command> [options]",
       "Commands: preflight, smoke, dry-run, prepare, optimize, evaluate, bundle, run, resume, status, report, approve, adopt, prototype",
-      "Workflow options: --run-id RUN_ID --artifact-root PATH [--fake]",
-      "Real model commands require the bounded smoke gate; --fake is offline-only.",
+      "Workflow options: --run-id RUN_ID --artifact-root PATH [--fake] [--skill SKILL|all] [--max-steps 1..4]",
+      "Real optimize requires --allow-paid after preflight and smoke; it stops at approval review.",
     ].join("\n")}\n`,
   );
 }
@@ -132,6 +172,55 @@ async function runWorkflowCommand(
       return 0;
     }
     process.stdout.write(`${JSON.stringify({ command, verdict: "pass" })}\n`);
+    return 0;
+  }
+  if (command === "optimize" && !options.fake) {
+    if (!options.allowPaid) {
+      throw new CliUsageError(
+        "optimize requires --allow-paid after preflight and smoke",
+      );
+    }
+    const preflight = await runPreflight({
+      runId: options.runId,
+      sourceWorktree: process.cwd(),
+      artifactRoot: options.artifactRoot,
+    });
+    if (preflight.verdict !== "pass") {
+      process.stdout.write(
+        `${JSON.stringify({ command, stage: "preflight", ...preflight })}\n`,
+      );
+      return 1;
+    }
+    const smoke = await runCapabilityCanary({
+      runId: options.runId,
+      sourceWorktree: process.cwd(),
+      artifactRoot: options.artifactRoot,
+    });
+    if (smoke.verdict !== "pass") {
+      process.stdout.write(
+        `${JSON.stringify({ command, stage: "smoke", ...smoke })}\n`,
+      );
+      return 1;
+    }
+    const skills =
+      options.skill === undefined || options.skill === "all"
+        ? [...CANONICAL_SKILLS]
+        : [options.skill];
+    const result = await runRealOptimization({
+      runId: options.runId,
+      artifactRoot: options.artifactRoot,
+      sourceWorktree: process.cwd(),
+      skills,
+      maxSteps: options.maxSteps,
+    });
+    process.stdout.write(
+      `${JSON.stringify({
+        command,
+        preflight,
+        smoke,
+        ...result,
+      })}\n`,
+    );
     return 0;
   }
   if (!options.fake) {
