@@ -12976,6 +12976,7 @@ symbols:
     title: preflightMain
     sourceFile: scripts/skillopt-eval/preflight.ts
     symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/preflight.ts#preflightMain
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
