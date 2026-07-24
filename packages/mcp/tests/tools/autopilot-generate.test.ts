@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -297,7 +297,7 @@ describe.serial("autopilot generate", () => {
     expect(res.structuredContent.applyBlocked).toBe(false);
 
     const candidates = res.structuredContent
-      .candidates as Array<CandidateWithPlan>;
+      .candidates as ReadonlyArray<CandidateWithPlan>;
     expect(candidates.length).toBeGreaterThan(0);
     const applyPlan = res.structuredContent.applyPlan as Array<ApplyPlanEntry>;
     expect(applyPlan.length).toBeGreaterThan(0);

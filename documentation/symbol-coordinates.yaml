@@ -143,9 +143,9 @@ coordinates:
   SYM-AutopilotGenerateResult:
     sourceColumn: 12
     sourceEndColumn: 4
-    sourceEndLine: 162
+    sourceEndLine: 165
     sourceFile: packages/cli/src/operations/autopilot/types.ts
-    sourceLine: 155
+    sourceLine: 157
   SYM-AutopilotRecommendedAction:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -1565,7 +1565,7 @@ coordinates:
   SYM-ValidateUpsertResult:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 9
+    sourceEndLine: 11
     sourceFile: packages/mcp/src/tools/validate-upsert.ts
     sourceLine: 7
   SYM-ValidatedUpsertArgs:
@@ -1805,7 +1805,7 @@ coordinates:
   SYM-autopilot-structured-content-shared:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 153
+    sourceEndLine: 155
     sourceFile: packages/cli/src/operations/autopilot/types.ts
     sourceLine: 149
   SYM-autopilot-test-activation-parser:
@@ -3791,9 +3791,9 @@ coordinates:
   SYM-handleKbValidateUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 34
+    sourceEndLine: 43
     sourceFile: packages/mcp/src/tools/validate-upsert.ts
-    sourceLine: 22
+    sourceLine: 24
   SYM-handleSparql:
     sourceColumn: 22
     sourceEndColumn: 1
