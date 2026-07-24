@@ -2393,6 +2393,7 @@ symbols:
     title: createSymbolQualityDiagnostics
     sourceFile: packages/cli/src/public/impact/symbol-quality.ts
     symbol_role: behavioral
+    granularity_reason: module-level-behavior
     relationships:
       - type: implements
         target: REQ-cli-staged-impact-enforcement
@@ -12362,6 +12363,7 @@ symbols:
     title: SemanticAdvisorArgs
     sourceFile: packages/mcp/src/tools/semantic-advisor.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-mcp-semantic-advisor-preflight
@@ -12574,6 +12576,7 @@ symbols:
     title: RealOptimizationResult
     sourceFile: scripts/skillopt-eval/real-workflow.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -12593,6 +12596,7 @@ symbols:
     title: RealOptimizationDependencies
     sourceFile: scripts/skillopt-eval/real-workflow.ts
     symbol_role: type-shape
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization

@@ -7439,7 +7439,7 @@ coordinates:
   SYM-skillopt-real-optimization-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 292
+    sourceEndLine: 296
     sourceFile: scripts/skillopt-eval/real-workflow.ts
     sourceLine: 153
   SYM-skillopt-render-report-markdown:
