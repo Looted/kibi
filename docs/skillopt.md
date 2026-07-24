@@ -5,6 +5,27 @@ and the root package scripts only expose the supported command surface.
 
 ## Prerequisites
 
+Real SkillOpt operations require the separately signed, operator-owned
+`kibi-skillopt-trust-v1` bundle. Repository code only validates its client
+contract; it never installs, signs, starts, or substitutes the privileged
+ProviderSupervisor, EvaluatorAuthority, or Verifier services. Provision the
+bundle noninteractively with exactly:
+
+```bash
+sudo /usr/libexec/kibi-skillopt-installer install --bundle <signed-bundle> --version kibi-skillopt-trust-v1
+```
+
+The installation must provide root-owned `/etc/kibi-skillopt/publisher.ed25519.pub`,
+`/etc/kibi-skillopt/verifier-bundle.lock`, and
+`/etc/kibi-skillopt/protocol-v1/*.schema.json`, plus the fixed launcher
+`/usr/libexec/kibi-skillopt-verifier-launch`. The socket-activated services use
+the distinct identities `kibi-skillopt-provider` (UID 61101),
+`kibi-skillopt-evaluator` (UID 61102), and `kibi-skillopt-verifier` (UID 61103),
+with durable state below `/var/lib/kibi-skillopt`. If any pinned path, digest,
+identity, descriptor, seal, isolation primitive, CA, veth, or nft check differs,
+preflight emits `EXTERNAL_PREREQUISITE_MISSING` or a typed no-go receipt before
+runtime authorization, materialization, paid access, spawn, or adoption.
+
 | Check | Command | Why |
 | --- | --- | --- |
 | Lock the isolated Python environment | `uv sync --project tools/skillopt --frozen` | Keeps the pinned SkillOpt toolchain fixed. |
@@ -27,6 +48,16 @@ and the root package scripts only expose the supported command surface.
 | `skillopt:fake:status` | `bun run scripts/skillopt-eval/cli.ts run --fake --run-id 00000000-0000-4000-8000-000000000093 && bun run scripts/skillopt-eval/cli.ts status --run-id 00000000-0000-4000-8000-000000000093` | Boots a fake run, then reads back its state. |
 
 ## Direct CLI commands
+
+Bun 1.3 requires an explicit `./` prefix when a single test file is passed to
+`bun test`; the plan spelling without that prefix is interpreted as a name
+filter and reports no matching files. Use the checked-in compatibility runner
+for a stable focused invocation:
+
+```bash
+bun run scripts/skillopt-eval/test-preflight.ts
+bun run scripts/skillopt-eval/test-preflight.ts --test-name-pattern 'preflight (accepts qualified host|rejects every unsupported primitive before spawn)'
+```
 
 | Command | Flags | Artifact root | Notes |
 | --- | --- | --- | --- |
