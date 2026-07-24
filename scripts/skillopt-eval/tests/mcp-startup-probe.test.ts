@@ -68,6 +68,36 @@ describe("required Kibi MCP stdio startup", () => {
     }
   });
 
+  test("initializes when the artifact root is nested in the source worktree", async () => {
+    // Given
+    const artifactRoot = resolve(
+      process.cwd(),
+      "artifacts",
+      "skillopt-mcp-probe-in-repo",
+    );
+    roots.push(artifactRoot);
+    await rm(artifactRoot, { recursive: true, force: true });
+    const isolation = await createIsolationWorkspace({
+      artifactRoot,
+      runId: "nested-artifacts",
+      role: "target",
+    });
+
+    try {
+      // When
+      const staged = await stageCapabilityCanary(isolation, process.cwd());
+      const result = await probeRequiredMcp({
+        ...staged.mcpServer,
+        env: process.env,
+      });
+
+      // Then
+      expect(result.toolNames).toContain("kb_status");
+    } finally {
+      await isolation.cleanup();
+    }
+  });
+
   test("returns a typed startup failure for an unavailable command", async () => {
     // Given
     const cwd = await workspace();
