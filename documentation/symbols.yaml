@@ -12853,6 +12853,7 @@ symbols:
     title: qualifySkillOptHost
     sourceFile: scripts/skillopt-eval/preflight-host.ts
     symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/preflight-host.ts#qualifySkillOptHost
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -12863,6 +12864,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/preflight-host.ts
     symbol_role: structural
     granularity_reason: legacy-link
+    text_ref: scripts/skillopt-eval/preflight-host.ts#PreflightNoGo
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -12872,6 +12874,7 @@ symbols:
     title: PreflightNoGo.name
     sourceFile: scripts/skillopt-eval/preflight-host.ts
     symbol_role: structural
+    text_ref: scripts/skillopt-eval/preflight-host.ts#PreflightNoGo.name
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -12881,6 +12884,7 @@ symbols:
     title: HostPreflightOptions
     sourceFile: scripts/skillopt-eval/preflight-host.ts
     symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/preflight-host.ts#HostPreflightOptions
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
