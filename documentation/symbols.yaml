@@ -15671,6 +15671,8 @@ symbols:
     title: resolveArtifactRoot
     sourceFile: scripts/skillopt-eval/runtime/artifact-root.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
+    text_ref: scripts/skillopt-eval/tests/artifact-root.test.ts#resolveIsolationArtifactRoot
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -15679,6 +15681,20 @@ symbols:
     sourceLine: 25
     sourceColumn: 22
     sourceEndLine: 55
+    sourceEndColumn: 1
+  - id: SYM-skillopt-resolve-isolation-artifact-root
+    title: resolveIsolationArtifactRoot
+    sourceFile: scripts/skillopt-eval/runtime/artifact-root.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    text_ref: scripts/skillopt-eval/tests/artifact-root.test.ts#resolveIsolationArtifactRoot
+    sourceLine: 57
+    sourceColumn: 16
+    sourceEndLine: 69
     sourceEndColumn: 1
   - id: SYM-skillopt-artifact-root-tests
     title: SkillOpt artifact-root fallback
