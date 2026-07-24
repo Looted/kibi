@@ -5963,9 +5963,9 @@ coordinates:
   SYM-skillopt-adopt-approved-skill:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 288
+    sourceEndLine: 293
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 278
+    sourceLine: 283
   SYM-skillopt-adopt-offline-approved-skill:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -5975,63 +5975,63 @@ coordinates:
   SYM-skillopt-adopt-skill-opt-candidate:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 297
+    sourceEndLine: 310
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 291
+    sourceLine: 296
   SYM-skillopt-adoption-dependencies:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 45
+    sourceEndLine: 50
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 43
+    sourceLine: 48
   SYM-skillopt-auto-adoption-input:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 52
+    sourceEndLine: 57
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 47
+    sourceLine: 52
   SYM-skillopt-adoption-input:
     sourceColumn: 12
     sourceEndColumn: 5
-    sourceEndLine: 26
+    sourceEndLine: 31
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 23
+    sourceLine: 28
   SYM-skillopt-adoption-integrity-error:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 69
+    sourceEndLine: 74
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 67
+    sourceLine: 72
   SYM-skillopt-adoption-integrity-error-name:
     sourceColumn: 11
     sourceEndColumn: 43
-    sourceEndLine: 68
+    sourceEndLine: 73
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 68
+    sourceLine: 73
   SYM-skillopt-adoption-plan:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 34
+    sourceEndLine: 39
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 28
+    sourceLine: 33
   SYM-skillopt-adoption-receipt:
     sourceColumn: 12
     sourceEndColumn: 5
-    sourceEndLine: 39
+    sourceEndLine: 44
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 36
+    sourceLine: 41
   SYM-skillopt-adoption-transaction-error:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 77
+    sourceEndLine: 82
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 71
+    sourceLine: 76
   SYM-skillopt-adoption-transaction-error-name:
     sourceColumn: 11
     sourceEndColumn: 45
-    sourceEndLine: 72
+    sourceEndLine: 77
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 72
+    sourceLine: 77
   SYM-skillopt-adversarial-case-type:
     sourceColumn: 12
     sourceEndColumn: 24
@@ -7217,9 +7217,9 @@ coordinates:
   SYM-skillopt-plan-skill-adoption:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 247
+    sourceEndLine: 252
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 242
+    sourceLine: 247
   SYM-skillopt-preflight-run:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7511,9 +7511,9 @@ coordinates:
   SYM-skillopt-run-mirror-sync:
     sourceColumn: 12
     sourceEndColumn: 64
-    sourceEndLine: 41
+    sourceEndLine: 46
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 41
+    sourceLine: 46
   SYM-skillopt-run-offline-workflow:
     sourceColumn: 22
     sourceEndColumn: 1

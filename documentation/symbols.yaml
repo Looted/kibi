@@ -16929,9 +16929,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 39
+    sourceLine: 46
     sourceColumn: 12
-    sourceEndLine: 39
+    sourceEndLine: 46
     sourceEndColumn: 64
   - id: SYM-skillopt-adoption-dependencies
     title: AdoptionDependencies
@@ -16957,37 +16957,39 @@ symbols:
         target: REQ-skillopt-automatic-adoption
       - type: covered_by
         target: TEST-skillopt-automatic-adoption
-    sourceLine: 48
-    sourceColumn: 13
-    sourceEndLine: 53
+    sourceLine: 52
+    sourceColumn: 12
+    sourceEndLine: 57
     sourceEndColumn: 3
   - id: SYM-skillopt-plan-skill-adoption
     title: planSkillAdoption
     sourceFile: scripts/skillopt-eval/adoption.ts
     text_ref: scripts/skillopt-eval/tests/adoption.test.ts#planSkillAdoption
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 242
+    sourceLine: 247
     sourceColumn: 22
-    sourceEndLine: 247
+    sourceEndLine: 252
     sourceEndColumn: 1
   - id: SYM-skillopt-adopt-approved-skill
     title: adoptApprovedSkill
     sourceFile: scripts/skillopt-eval/adoption.ts
     text_ref: scripts/skillopt-eval/tests/adoption.test.ts#adoptApprovedSkill
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 278
+    sourceLine: 283
     sourceColumn: 22
-    sourceEndLine: 288
+    sourceEndLine: 293
     sourceEndColumn: 1
   - id: SYM-skillopt-adopt-skill-opt-candidate
     title: adoptSkillOptCandidate
@@ -16999,9 +17001,9 @@ symbols:
         target: REQ-skillopt-automatic-adoption
       - type: covered_by
         target: TEST-skillopt-automatic-adoption
-    sourceLine: 291
+    sourceLine: 296
     sourceColumn: 22
-    sourceEndLine: 297
+    sourceEndLine: 310
     sourceEndColumn: 1
   - id: SYM-skillopt-contract-run-state-type
     title: RunState
