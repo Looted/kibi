@@ -6305,15 +6305,15 @@ coordinates:
   SYM-skillopt-codex-optimizer-options:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 79
+    sourceEndLine: 81
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
-    sourceLine: 72
+    sourceLine: 74
   SYM-skillopt-codex-optimizer-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 169
+    sourceEndLine: 171
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
-    sourceLine: 82
+    sourceLine: 84
   SYM-skillopt-codex-violation-type:
     sourceColumn: 12
     sourceEndColumn: 63
