@@ -1,0 +1,190 @@
+import { randomUUID } from "node:crypto";
+import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { dirname, isAbsolute, relative, resolve } from "node:path";
+import { z } from "zod";
+import {
+  CONTRACT_SCHEMA_VERSION,
+  JsonValueSchema,
+  Sha256Schema,
+  canonicalJson,
+  contractHash,
+} from "../contracts/common";
+
+const TaskIdSchema = z.string().regex(/^[a-z0-9][a-z0-9-]{0,127}$/);
+const RowSchema = z
+  .object({
+    id: TaskIdSchema,
+    hard: z.union([z.literal(0), z.literal(1)]),
+    soft: z.number().min(0).max(1),
+    status: z.enum([
+      "completed",
+      "behavioral-failure",
+      "infrastructure-failure",
+    ]),
+    failureCategory: z.string().min(1).nullable(),
+    conversationPath: z.string().min(1),
+    evidenceRefs: z.array(z.string().min(1)).min(1),
+  })
+  .strict();
+
+// implements REQ-skillopt-codex-optimization
+export const BridgeRequestSchema = z
+  .object({
+    schemaVersion: z.literal(CONTRACT_SCHEMA_VERSION),
+    artifactType: z.literal("skillopt-bridge-request"),
+    runId: z.uuid(),
+    batchId: z.string().regex(/^[a-z0-9][a-z0-9-]{0,63}$/),
+    skill: z.enum([
+      "kibi-usage",
+      "kibi-freshness",
+      "kibi-traceability",
+      "init-kibi",
+    ]),
+    phase: z.enum(["train", "development"]),
+    candidateBody: z.string().min(1).max(100_000),
+    taskIds: z.array(TaskIdSchema).min(1).max(8),
+    sourceLockHash: Sha256Schema,
+  })
+  .strict();
+
+// implements REQ-skillopt-codex-optimization
+export const BridgeResultSchema = z
+  .object({
+    schemaVersion: z.literal(CONTRACT_SCHEMA_VERSION),
+    artifactType: z.literal("skillopt-bridge-result"),
+    runId: z.uuid(),
+    batchId: z.string().regex(/^[a-z0-9][a-z0-9-]{0,63}$/),
+    requestHash: Sha256Schema,
+    rows: z.array(RowSchema).min(1).max(8),
+    checkpoint: z
+      .object({
+        maxSteps: z.number().int().min(0),
+        completedSteps: z.number().int().min(0),
+        nextStep: z.number().int().min(1),
+      })
+      .strict(),
+  })
+  .strict();
+
+// implements REQ-skillopt-codex-optimization
+export type BridgeRequest = Readonly<z.infer<typeof BridgeRequestSchema>>;
+// implements REQ-skillopt-codex-optimization
+export type BridgeResult = Readonly<z.infer<typeof BridgeResultSchema>>;
+
+// implements REQ-skillopt-codex-optimization
+export class BridgeVisibilityError extends Error {
+  readonly name = "BridgeVisibilityError";
+}
+
+function canonicalText(value: unknown): string {
+  return `${canonicalJson(JsonValueSchema.parse(value))}\n`;
+}
+
+async function atomicWrite(path: string, text: string): Promise<void> {
+  await mkdir(dirname(path), { recursive: true, mode: 0o700 });
+  const temporary = `${path}.${randomUUID()}.tmp`;
+  await writeFile(temporary, text, { encoding: "utf8", mode: 0o600 });
+  await rename(temporary, path);
+}
+
+function assertRequestMatches(
+  result: BridgeResult,
+  request: BridgeRequest,
+): void {
+  if (result.runId !== request.runId || result.batchId !== request.batchId) {
+    throw new BridgeVisibilityError("bridge_request_identity_mismatch");
+  }
+}
+
+// implements REQ-skillopt-codex-optimization
+export async function writeBridgeRequest(
+  path: string,
+  request: BridgeRequest,
+): Promise<string> {
+  const parsed = BridgeRequestSchema.parse(request);
+  const text = canonicalText(parsed);
+  await atomicWrite(path, text);
+  return contractHash(JsonValueSchema.parse(parsed));
+}
+
+// implements REQ-skillopt-codex-optimization
+export async function readBridgeRequest(path: string): Promise<BridgeRequest> {
+  return BridgeRequestSchema.parse(JSON.parse(await readFile(path, "utf8")));
+}
+
+// implements REQ-skillopt-codex-optimization
+export async function writeBridgeResult(
+  path: string,
+  result: BridgeResult,
+  request: BridgeRequest,
+): Promise<string> {
+  const requestHash = contractHash(
+    JsonValueSchema.parse(BridgeRequestSchema.parse(request)),
+  );
+  const parsed = BridgeResultSchema.parse({ ...result, requestHash });
+  assertRequestMatches(parsed, request);
+  await atomicWrite(path, canonicalText(parsed));
+  return requestHash;
+}
+
+// implements REQ-skillopt-codex-optimization
+export async function readBridgeResult(
+  path: string,
+  request: BridgeRequest,
+): Promise<BridgeResult> {
+  const parsed = BridgeResultSchema.parse(
+    JSON.parse(await readFile(path, "utf8")),
+  );
+  assertRequestMatches(parsed, request);
+  const requestHash = contractHash(
+    JsonValueSchema.parse(BridgeRequestSchema.parse(request)),
+  );
+  if (parsed.requestHash !== requestHash) {
+    throw new BridgeVisibilityError("bridge_request_hash_mismatch");
+  }
+  if (new Set(parsed.rows.map(({ id }) => id)).size !== parsed.rows.length) {
+    throw new BridgeVisibilityError("bridge_duplicate_task_id");
+  }
+  return parsed;
+}
+
+// implements REQ-skillopt-codex-optimization
+export class FileBridge {
+  constructor(
+    private readonly publicRoot: string,
+    private readonly privateRoot: string,
+  ) {}
+
+  // implements REQ-skillopt-codex-optimization
+  resolve(name: string, visibility: "public" | "private"): string {
+    if (isAbsolute(name))
+      throw new BridgeVisibilityError("absolute_bridge_path");
+    const root = resolve(
+      visibility === "public" ? this.publicRoot : this.privateRoot,
+    );
+    const path = resolve(root, name);
+    const escaped = relative(root, path).startsWith("..");
+    if (escaped) throw new BridgeVisibilityError("bridge_path_escape");
+    return path;
+  }
+
+  // implements REQ-skillopt-codex-optimization
+  async writePublic(name: string, content: string): Promise<void> {
+    await atomicWrite(this.resolve(name, "public"), content);
+  }
+
+  // implements REQ-skillopt-codex-optimization
+  async writePrivate(name: string, content: string): Promise<void> {
+    await atomicWrite(this.resolve(name, "private"), content);
+  }
+
+  // implements REQ-skillopt-codex-optimization
+  async readPublic(name: string): Promise<string> {
+    return readFile(this.resolve(name, "public"), "utf8");
+  }
+
+  // implements REQ-skillopt-codex-optimization
+  async readPrivate(name: string): Promise<string> {
+    return readFile(this.resolve(name, "private"), "utf8");
+  }
+}

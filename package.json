@@ -30,6 +30,19 @@
     "dev:cursor": "bun --filter ./packages/cursor dev",
     "sync:cursor-dogfood": "./scripts/sync-cursor-dogfood.sh",
     "sync:agent-skills": "bun run scripts/sync-agent-skills.ts --write",
+    "skillopt:help": "bun run scripts/skillopt-eval/cli.ts --help",
+    "skillopt:verify-pin": "uv run --project tools/skillopt python tools/skillopt/verify_pin.py",
+    "skillopt": "bun run scripts/skillopt-eval/cli.ts",
+    "skillopt:prototype": "bun run scripts/skillopt-eval/cli.ts",
+    "skillopt:preflight": "bun run scripts/skillopt-eval/cli.ts preflight --run-id 00000000-0000-4000-8000-000000000091",
+    "skillopt:canary": "bun run scripts/skillopt-eval/cli.ts smoke --run-id 00000000-0000-4000-8000-000000000091",
+    "skillopt:dry-run": "bun run scripts/skillopt-eval/cli.ts dry-run --run-id 00000000-0000-4000-8000-000000000092",
+    "skillopt:prepare": "bun run scripts/skillopt-eval/cli.ts prepare --run-id 00000000-0000-4000-8000-000000000092",
+    "skillopt:optimize": "bun run scripts/skillopt-eval/cli.ts optimize",
+    "skillopt:fake:run": "bun run scripts/skillopt-eval/cli.ts run --fake --run-id 00000000-0000-4000-8000-000000000093",
+    "skillopt:fake:resume": "bun run scripts/skillopt-eval/cli.ts resume --fake --run-id 00000000-0000-4000-8000-000000000093",
+    "skillopt:fake:status": "bun run scripts/skillopt-eval/cli.ts run --fake --run-id 00000000-0000-4000-8000-000000000093 && bun run scripts/skillopt-eval/cli.ts status --run-id 00000000-0000-4000-8000-000000000093",
+    "test:skillopt": "bun test --timeout 15000 ./scripts/skillopt-eval/tests",
     "sync:cursor-plugin-local": "./scripts/sync-cursor-plugin-local.sh",
     "build": "bun run build:cli && bun run build:mcp && bun run build:opencode && bun run build:codex && bun run build:cursor",
     "typecheck:cli": "tsc -p packages/cli/tsconfig.json --noEmit",
@@ -56,13 +69,16 @@
     "release": "changeset publish"
   },
   "devDependencies": {
-    "kibi-mcp": "workspace:*",
     "@biomejs/biome": "^1.9.0",
     "@changesets/cli": "^2.27.12",
     "@types/node": "^25.2.3",
+    "ajv": "^8.17.1",
     "ajv-formats": "2.1.1",
     "bun-types": "^1.2.0",
+    "canonicalize": "^3.0.0",
+    "kibi-mcp": "workspace:*",
     "mitata": "^1.0.34",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "zod": "^4.3.6"
   }
 }

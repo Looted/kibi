@@ -1,0 +1,16 @@
+{
+  "runId": "preflight-001",
+  "targetModel": "gpt-5.4-mini",
+  "optimizerModel": "gpt-5.5",
+  "skilloptCommit": "b860a5cf88ce75e2bd02ca981ac21fb28cffba83",
+  "hosts": [
+    {
+      "host": "codex",
+      "command": "codex",
+      "version": "codex-cli 0.144.6"
+    }
+  ],
+  "verdict": "no-go",
+  "reason": "model_access_not_verified",
+  "paidModelCalls": 0
+}
