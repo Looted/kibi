@@ -7,6 +7,7 @@ import {
   stageCapabilityCanary,
 } from "./canary-runtime";
 import { prepareExistingLogin } from "./codex-auth";
+import { resolveIsolationArtifactRoot } from "./artifact-root";
 import { createIsolationWorkspace } from "./isolation-workspace";
 import { buildCodexConfig, buildCodexExecArgv } from "./permissions";
 import { runBoundedProcess } from "./process";
@@ -82,7 +83,10 @@ export async function runCodexSkillOptStep(
   options: CodexOptimizerOptions,
 ): Promise<SkillOptStepResult> {
   const workspace = await createIsolationWorkspace({
-    artifactRoot: resolve(options.artifactRoot, "optimizer-runtime"),
+    artifactRoot: resolveIsolationArtifactRoot(
+      resolve(options.artifactRoot, "optimizer-runtime"),
+      options.sourceWorktree,
+    ),
     runId: `${options.runId}-${options.request.skill}-${options.request.step}`,
     role: "optimizer",
   });

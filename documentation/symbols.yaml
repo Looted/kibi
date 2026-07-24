@@ -12511,6 +12511,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
     symbol_role: behavioral
     granularity_reason: legacy-link
+    text_ref: scripts/skillopt-eval/tests/optimize.test.ts#runCodexSkillOptStep
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -16392,6 +16393,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
     symbol_role: behavioral
     granularity_reason: legacy-link
+    text_ref: scripts/skillopt-eval/tests/codex-cell-runner.test.ts#runCodexCell
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
