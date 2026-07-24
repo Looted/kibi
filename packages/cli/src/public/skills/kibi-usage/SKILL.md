@@ -16,7 +16,6 @@ resources:
   - resources/workflows.md
   - resources/operation-access.md
 ---
-
 # Kibi Usage
 
 Consult this skill before any Kibi knowledge base operation, on first interaction with a Kibi-enabled repo, after detecting stale or dirty KB status, and before performing mutations.
@@ -30,7 +29,7 @@ Use this capability state machine for every Kibi operation:
 3. If the project-local CLI is unavailable or too old for the dedicated route, stop and tell the operator to enable or install Kibi.
 4. Never use a global fallback or an installing runner. Never probe or install packages as a side effect of selecting an interface.
 
-Both interfaces execute the same operation catalog. Use the exact MCP names, dedicated CLI routes, input modes, effects, and Prolog requirements in `resources/operation-access.md`; do not invent a generic operation runner. Do not read or edit files inside `.kb/` directly through either interface.
+Both interfaces execute the same operation catalog. Use the exact MCP names, dedicated CLI routes, input modes, effects, and Prolog requirements in `resources/operation-access.md`; do not invent a generic operation runner. Do not read or edit files inside `.kb` directly.
 
 CLI JSON mode accepts the MCP-shaped business input at `--input <file|->`. For example, the project-local mutation recipe is:
 
@@ -44,15 +43,21 @@ The equivalent Bun runner is:
 echo '{"query":"authentication","limit":10}' | bunx --no-install kibi search --input -
 ```
 
-### Tool Name Prefixes
+## MCP Tool Names
 
-Kibi's canonical MCP names are `kb_search`, `kb_query`, `kb_upsert`, `kb_check`, and related `kb_*` tools. Some hosts add a server prefix when exposing tools to agents. In OpenCode, use the visible `kibi_kb_search`, `kibi_kb_query`, `kibi_kb_upsert`, and `kibi_kb_check` names when exact tool identifiers are required; they map to the same canonical MCP names.
+Kibi's canonical MCP names are `kb_search`, `kb_query`, `kb_upsert`, `kb_check`, and related `kb_*` tools. Some hosts add a server prefix when exposing tools to agents. Use the Kibi MCP tool identifiers that are visible in the current tool surface, and map prefixed names back to the canonical operation catalog before reasoning about behavior.
 
 ## Discovery-First Workflow
 
 Always discover before you mutate. Start with `kb_search` for exploratory discovery across metadata and markdown body text. Split broad queries into 1-3 focused probes. Review top hits for relevance before concluding the KB lacks knowledge.
 
 Follow up with `kb_query` for exact lookups by `id`, `type`, `tags`, or `sourceFile`. Call `kb_status` to inspect branch attachment and freshness when stale context would affect decisions. Only after discovery and confirmation should you mutate.
+
+## Approval Boundaries
+
+Do not perform Kibi mutations unless the current task calls for knowledge-base changes or the user explicitly asks for them. Discovery and validation are acceptable when needed to understand impact, freshness, traceability, or existing requirements. If a schema migration, installation, upgrade, publishing action, or repository-wide release operation is required, stop and ask the user or operator to handle it outside the agent session.
+
+Never publish manually from an agent session. Never use Kibi interface selection as a reason to install packages, change dependency manifests, or bypass sandbox and approval boundaries.
 
 ## Release Versioning Workflow
 
@@ -83,14 +88,15 @@ Relationship direction is fixed and semantic. Getting it wrong breaks traceabili
 
 See `resources/relationship-directions.md` for detailed payload examples.
 
-## Symbol-First Traceability
+## Source-File Traceability
 
-Trace code through `symbol` entities, not inline legacy comments. Do not use legacy `// implements REQ-xxx` comments as the primary marker for new or modified code. If a symbol is new or its requirement ownership changes, create or update the `symbol` entity and add an `implements` relationship from the symbol to the requirement.
+Preserve source-file traceability whenever creating or updating requirements, facts, scenarios, tests, or symbols. Prefer durable `sourceFile` references and symbol coordinates that point to tracked repository files. For code ownership, create or update `symbol` entities and link them to requirements with `implements`; link symbols to tests with `covered_by` when coverage evidence is needed.
 
-Use comments only as a temporary backward-compatibility fallback when the symbol manifest cannot be updated in the same task. Prefer durable symbol coordinates in `documentation/symbols.yaml` and `documentation/symbol-coordinates.yaml`, then link those symbols through MCP relationships.
+Do not use legacy `// implements REQ-xxx` comments as the primary marker for new or modified code. Use comments only as a temporary backward-compatibility fallback when symbol metadata cannot be updated in the same task.
+
+Preferred traceability model:
 
 ```yaml
-# Preferred traceability model
 symbol:
   id: SYM-admin-billing-policy
   title: Admin billing policy check
@@ -106,14 +112,14 @@ relationships:
 Normative requirements that must participate in contradiction blocking use the strict fact lane. Create a `fact_kind: subject` fact and link it from the requirement via `constrains`. Create a `fact_kind: property_value` fact and link it via `requires_property`.
 
 ```yaml
-# Fact entity
 id: FACT-USER-ROLE
 title: User Role Assignment
 status: active
 fact_kind: subject
 subject_key: user.role_assignment
+```
 
-# Requirement entity
+```yaml
 id: REQ-019
 title: Users can have up to 3 roles
 status: open
@@ -128,7 +134,7 @@ relationships:
 
 See `resources/fact-lanes.md` for the full strict vs observation lane comparison.
 
-### Granular fact examples for coherence checks
+### Granular Fact Examples for Coherence Checks
 
 Model one semantic claim per strict `property_value` fact. Reusing the same `subject_key` and `property_key` lets `domain-contradictions` compare requirements mechanically.
 
@@ -253,3 +259,9 @@ Before/after for reversed direction:
 - Right: `relationships: [{ type: "implements", from: "SYM-001", to: "REQ-001" }]`
 
 See `resources/workflows.md` for the golden-path discovery to validation sequence.
+
+Public training trajectories:
+[{"taskId":"kibi-usage-discovery-exact-lookup-train-1","family":"discovery-exact-lookup","reflection":"Discover the relevant requirement before performing an exact source-linked lookup. This is train case 1; use only the public Kibi MCP surface."},{"taskId":"kibi-usage-discovery-exact-lookup-train-2","family":"discovery-exact-lookup","reflection":"Discover the relevant requirement before performing an exact source-linked lookup. This is train case 2; use only the public Kibi MCP surface."},{"taskId":"kibi-usage-safe-mutation-direction-train-1","family":"safe-mutation-direction","reflection":"Discover existing entities, then apply the requested relationship in the supported direction. This is train case 1; use only the public Kibi MCP surface."},{"taskId":"kibi-usage-safe-mutation-direction-train-2","family":"safe-mutation-direction","reflection":"Discover existing entities, then apply the requested relationship in the supported direction. This is train case 2; use only the public Kibi MCP surface."},{"taskId":"kibi-usage-fact-predicate-modeling-train-1","family":"fact-predicate-modeling","reflection":"Model the supplied normative claim through the strict fact or predicate workflow. This is train case 1; use only the public Kibi MCP surface."},{"taskId":"kibi-usage-fact-predicate-modeling-train-2","family":"fact-predicate-modeling","reflection":"Model the supplied normative claim through the strict fact or predicate workflow. This is train case 2; use only the public Kibi MCP surface."},{"taskId":"kibi-usage-validation-recovery-train-1","family":"validation-recovery","reflection":"Recover from the supplied malformed mutation using validation diagnostics. This is train case 1; use only the public Kibi MCP surface."},{"taskId":"kibi-usage-validation-recovery-train-2","family":"validation-recovery","reflection":"Recover from the supplied malformed mutation using validation diagnostics. This is train case 2; use only the public Kibi MCP surface."}]
+
+Previous development gate:
+{"mean":0,"hardPasses":0,"worstFamilyMean":0}
