@@ -23,11 +23,13 @@ import {
   DIAGNOSTIC_MODE_ENABLED,
   DIAGNOSTIC_TELEMETRY_SCHEMA,
 } from "./diagnostics.js";
+import type { ToolAnnotations } from "./server/tool-types.js";
 
 interface ToolConfig {
   name: string;
   description: string;
   inputSchema: Readonly<Record<string, unknown>>;
+  annotations?: ToolAnnotations;
 }
 
 const MCP_TOOL_ORDER = [
@@ -51,12 +53,37 @@ const MCP_TOOL_ORDER = [
   "kb_autopilot_generate",
 ] as const satisfies readonly OperationName[];
 
+const TOOL_ANNOTATIONS: Partial<Record<OperationName, ToolAnnotations>> = {
+  kb_skills_list: {
+    title: "List bundled Kibi skills",
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
+  kb_skills_load: {
+    title: "Load a bundled Kibi skill",
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
+  kb_skills_read: {
+    title: "Read a bundled Kibi skill resource",
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
+};
+
 const BASE_TOOLS: readonly ToolConfig[] = MCP_TOOL_ORDER.map((name) => {
   const spec = getSpec(name);
   return {
     name: spec.name,
     description: spec.description,
     inputSchema: spec.businessInputSchema,
+    ...(TOOL_ANNOTATIONS[name] ? { annotations: TOOL_ANNOTATIONS[name] } : {}),
   };
 });
 
