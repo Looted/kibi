@@ -10,6 +10,26 @@ The public MCP surface is intentionally curated. Agents can call exact lookup, d
 
 The canonical MCP names in this reference use the `kb_*` form. Some hosts display tools with the configured MCP server name prefixed. In OpenCode, the same tools commonly appear as `kibi_kb_search`, `kibi_kb_query`, `kibi_kb_upsert`, `kibi_kb_check`, and `kibi_kb_autopilot_generate`. Use the host-visible prefixed name when an agent must reference an exact tool identifier; the semantics are identical to the canonical `kb_*` names documented here.
 
+### Generic-agent onboarding
+
+MCP-capable agents should use the standard `tools/list` capability discovery step, then follow Kibi's progressive-disclosure path instead of assuming that a package `skills/` directory is loaded by the host:
+
+1. Call `kb_skills_list` to obtain the bundled skill manifests.
+2. Call `kb_skills_load` with a returned ID, normally `kibi-usage` for general Kibi workflow guidance.
+3. Call `kb_skills_read` only for resource paths declared by that manifest.
+
+These skill operations are local, read-only, and do not require Prolog. They return a human-readable `content` item plus structured data for clients that support structured tool results. Their MCP registrations advertise `readOnlyHint: true`, `destructiveHint: false`, `idempotentHint: true`, and `openWorldHint: false` as client-facing behavior hints. Clients must treat annotations and skill text as untrusted guidance: authorization, schema validation, approval gates, and mutation sequencing remain enforced by the server and repository workflow.
+
+If MCP is unavailable, use the trusted project-local CLI's structured JSON routes:
+
+```bash
+printf '%s\n' '{}' | kibi skills-list --input -
+printf '%s\n' '{"id":"kibi-usage"}' | kibi skills-load --input -
+printf '%s\n' '{"id":"kibi-usage","resource":"resources/workflows.md"}' | kibi skills-read --input -
+```
+
+If neither a visible Kibi MCP surface nor a trusted local CLI is available, the agent must stop and ask the operator to enable one; it must not infer availability from configuration files or read `.kb/` directly.
+
 ### `kb_autopilot_generate`
 
 Discover existing repository entities and bootstrap the KB via read-only candidate synthesis. Use this as the backend for the interactive `/init-kibi` onboarding workflow.
