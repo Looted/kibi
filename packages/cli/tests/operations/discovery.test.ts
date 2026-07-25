@@ -1,4 +1,6 @@
 import { describe, expect, mock, test } from "bun:test";
+import { validateAgainstSchema } from "../../src/cli-validate.js";
+import { PrologProcess } from "../../src/prolog.js";
 import type {
   OperationContext,
   PrologPort,
@@ -27,7 +29,47 @@ function createContext(
   };
 }
 
+const ABOVE_FORMER_TRANSPORT_CAPACITY_COUNT = 12_000;
+const ABOVE_BOUNDED_TRANSPORT_CAPACITY_COUNT = 70_000;
+const TRANSPORT_PADDING = "x".repeat(128);
+
+function largeEntityGoal(count: number): string {
+  return `findall([Id,req,[title="skillopt ${TRANSPORT_PADDING}",status=open]], (between(1, ${count}, Index), atom_concat('REQ-skillopt-', Index, Id)), Results)`;
+}
+
 describe("shared discovery operation executors", () => {
+  test("kb_query preserves exact id lookup behavior", async () => {
+    // Given
+    const query = mock(async (_goal: string) => ({
+      success: true,
+      bindings: {
+        Results:
+          '[[REQ-exact,req,[title="Exact lookup",status=open,source="documentation/requirements/REQ-exact.md"]]]',
+      },
+    }));
+
+    // When
+    const result = await querySpec.execute(
+      { id: "REQ-exact", limit: 20, offset: 0 },
+      createContext(query),
+    );
+
+    // Then
+    expect(result.structuredContent).toEqual({
+      entities: [
+        {
+          id: "REQ-exact",
+          type: "req",
+          title: "Exact lookup",
+          status: "open",
+          source: "documentation/requirements/REQ-exact.md",
+        },
+      ],
+      count: 1,
+    });
+    expect(query.mock.calls[0]?.[0]).toContain("'REQ-exact'");
+  });
+
   test("kb_query filters tags before applying pagination", async () => {
     // Given
     const query = mock(async () => ({
@@ -81,6 +123,78 @@ describe("shared discovery operation executors", () => {
     expect(result.structuredContent?.results[0]?.entity.id).toBe("REQ-2");
   });
 
+  test("kb_search rejects invalid pagination and oversized query input", () => {
+    // Given
+    const invalidInputs = [
+      { query: "skillopt", limit: -1 },
+      { query: "skillopt", offset: -1 },
+      { query: "x".repeat(4097) },
+    ];
+
+    // When
+    const results = invalidInputs.map((input) =>
+      validateAgainstSchema(input, searchSpec.businessInputSchema),
+    );
+
+    // Then
+    expect(results.every((result) => !result.valid)).toBe(true);
+  });
+
+  test("broad search returns ranked results above former threshold", async () => {
+    // Given
+    const prolog = new PrologProcess({ timeout: 15_000 });
+    const query = (_goal: string) =>
+      prolog.query(largeEntityGoal(ABOVE_FORMER_TRANSPORT_CAPACITY_COUNT));
+
+    // When
+    const result = await searchSpec.execute(
+      { query: "skillopt", limit: 20, offset: 0 },
+      createContext(query),
+    );
+
+    // Then
+    expect(result.structuredContent?.count).toBe(
+      ABOVE_FORMER_TRANSPORT_CAPACITY_COUNT,
+    );
+    expect(result.structuredContent?.results).toHaveLength(20);
+    expect(result.structuredContent?.results[0]?.entity.id).toBe(
+      "REQ-skillopt-1",
+    );
+    expect(result.structuredContent?.results[0]?.reasons).toContain(
+      "title phrase match",
+    );
+  });
+
+  test("broad search reports bounded overflow and Prolog failure", async () => {
+    // Given
+    const prolog = new PrologProcess({ timeout: 15_000 });
+
+    // When
+    const result = await prolog.query(
+      largeEntityGoal(ABOVE_BOUNDED_TRANSPORT_CAPACITY_COUNT),
+    );
+
+    // Then
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("bounded Prolog output capacity");
+    expect(result.error).toContain("ENOBUFS");
+  });
+
+  test("one-shot stderr reports bounded overflow and Prolog failure", async () => {
+    // Given
+    const prolog = new PrologProcess({ timeout: 15_000 });
+
+    // When
+    const result = await prolog.query(
+      "format(user_error, '~*c', [9437184, 120]), flush_output(user_error), Results=[]",
+    );
+
+    // Then
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("bounded Prolog output capacity");
+    expect(result.error).toContain("ENOBUFS");
+  });
+
   test("kb_status executes the status module through context.prolog", async () => {
     // Given
     const query = mock(async (_goal: string) => ({
@@ -108,6 +222,8 @@ describe("shared discovery operation executors", () => {
       syncState: "fresh",
     });
     expect(query).toHaveBeenCalledTimes(1);
-    expect(query.mock.calls[0]?.[0]).toContain("status:kb_status_json(JsonString)");
+    expect(query.mock.calls[0]?.[0]).toContain(
+      "status:kb_status_json(JsonString)",
+    );
   });
 });

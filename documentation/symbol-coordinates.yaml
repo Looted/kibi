@@ -5,9 +5,9 @@ coordinates:
   SYM-001:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 671
+    sourceEndLine: 735
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 79
+    sourceLine: 82
   SYM-003:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -713,9 +713,9 @@ coordinates:
   SYM-KibiImpactSourceChange:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 52
+    sourceEndLine: 53
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 47
+    sourceLine: 48
   SYM-KibiImpactSymbolsManifest:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -953,9 +953,9 @@ coordinates:
   SYM-PrologOptions:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 71
+    sourceEndLine: 74
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 68
+    sourceLine: 71
   SYM-PromptContext:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -995,9 +995,9 @@ coordinates:
   SYM-QueryResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 77
+    sourceEndLine: 80
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 73
+    sourceLine: 76
   SYM-ReconcileResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1475,9 +1475,9 @@ coordinates:
   SYM-TOOLS:
     sourceColumn: 13
     sourceEndColumn: 19
-    sourceEndLine: 96
+    sourceEndLine: 123
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 94
+    sourceLine: 121
   SYM-TRACEABILITY_RELATIONSHIP_TYPES:
     sourceColumn: 13
     sourceEndColumn: 10
@@ -2072,108 +2072,204 @@ coordinates:
     sourceEndLine: 103
     sourceFile: packages/cli/src/commands/sync/persistence.ts
     sourceLine: 99
+  SYM-cli-PrologProcess-appendErrorChunk:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 595
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 584
+  SYM-cli-PrologProcess-appendOutputChunk:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 582
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 571
+  SYM-cli-PrologProcess-attachedKbPath:
+    sourceColumn: 10
+    sourceEndColumn: 47
+    sourceEndLine: 96
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 96
+  SYM-cli-PrologProcess-cache:
+    sourceColumn: 10
+    sourceEndColumn: 54
+    sourceEndLine: 91
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 91
   SYM-cli-PrologProcess-clearQueryBuffers:
     sourceColumn: 10
     sourceEndColumn: 3
-    sourceEndLine: 531
+    sourceEndLine: 569
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 528
-  SYM-cli-PrologProcess-execOneShot:
+    sourceLine: 563
+  SYM-cli-PrologProcess-errorBuffer:
     sourceColumn: 10
-    sourceEndColumn: 3
-    sourceEndLine: 522
+    sourceEndColumn: 27
+    sourceEndLine: 89
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 424
-  SYM-cli-PrologProcess-extractBindings:
+    sourceLine: 89
+  SYM-cli-PrologProcess-errorBufferBytes:
+    sourceColumn: 10
+    sourceEndColumn: 31
+    sourceEndLine: 90
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 90
+  SYM-cli-PrologProcess-execOneShot:
     sourceColumn: 10
     sourceEndColumn: 3
     sourceEndLine: 557
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 542
+    sourceLine: 450
+  SYM-cli-PrologProcess-extractBindings:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 621
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 606
   SYM-cli-PrologProcess-getPid:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 629
+    sourceEndLine: 693
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 627
+    sourceLine: 691
+  SYM-cli-PrologProcess-interactiveQueryTail:
+    sourceColumn: 10
+    sourceEndColumn: 66
+    sourceEndLine: 92
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 92
   SYM-cli-PrologProcess-invalidateCache:
     sourceColumn: 2
-    sourceEndColumn: 3
-    sourceEndLine: 351
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 349
-  SYM-cli-PrologProcess-isCacheableGoal:
-    sourceColumn: 10
-    sourceEndColumn: 3
-    sourceEndLine: 363
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 353
-  SYM-cli-PrologProcess-isExplicitSaveGoal:
-    sourceColumn: 10
     sourceEndColumn: 3
     sourceEndLine: 377
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 375
+  SYM-cli-PrologProcess-isCacheableGoal:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 389
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 379
+  SYM-cli-PrologProcess-isExplicitSaveGoal:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 403
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 401
   SYM-cli-PrologProcess-isMutatingGoal:
     sourceColumn: 10
     sourceEndColumn: 3
-    sourceEndLine: 372
+    sourceEndLine: 398
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 366
+    sourceLine: 392
   SYM-cli-PrologProcess-isProcessUsable:
     sourceColumn: 10
     sourceEndColumn: 3
-    sourceEndLine: 540
+    sourceEndLine: 604
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 534
+    sourceLine: 598
   SYM-cli-PrologProcess-isRunning:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 625
+    sourceEndLine: 689
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 621
+    sourceLine: 685
   SYM-cli-PrologProcess-normalizeGoal:
     sourceColumn: 10
     sourceEndColumn: 3
-    sourceEndLine: 526
+    sourceEndLine: 561
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 524
+    sourceLine: 559
+  SYM-cli-PrologProcess-onProcessExit:
+    sourceColumn: 10
+    sourceEndColumn: 52
+    sourceEndLine: 97
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 97
+  SYM-cli-PrologProcess-outputBuffer:
+    sourceColumn: 10
+    sourceEndColumn: 28
+    sourceEndLine: 86
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 86
+  SYM-cli-PrologProcess-outputBufferBytes:
+    sourceColumn: 10
+    sourceEndColumn: 32
+    sourceEndLine: 87
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 87
+  SYM-cli-PrologProcess-outputOverflowed:
+    sourceColumn: 10
+    sourceEndColumn: 35
+    sourceEndLine: 88
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 88
+  SYM-cli-PrologProcess-process:
+    sourceColumn: 10
+    sourceEndColumn: 46
+    sourceEndLine: 83
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 83
   SYM-cli-PrologProcess-query:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 347
+    sourceEndLine: 373
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 180
+    sourceLine: 184
   SYM-cli-PrologProcess-queryOneShot:
     sourceColumn: 16
     sourceEndColumn: 3
-    sourceEndLine: 419
+    sourceEndLine: 445
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 379
+    sourceLine: 405
   SYM-cli-PrologProcess-start:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 135
+    sourceEndLine: 141
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 98
+    sourceLine: 104
+  SYM-cli-PrologProcess-swiplPath:
+    sourceColumn: 10
+    sourceEndColumn: 28
+    sourceEndLine: 84
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 84
   SYM-cli-PrologProcess-terminate:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 670
+    sourceEndLine: 734
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 631
+    sourceLine: 695
+  SYM-cli-PrologProcess-terminationPromise:
+    sourceColumn: 10
+    sourceEndColumn: 58
+    sourceEndLine: 93
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 93
+  SYM-cli-PrologProcess-timeout:
+    sourceColumn: 10
+    sourceEndColumn: 26
+    sourceEndLine: 85
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 85
   SYM-cli-PrologProcess-translateError:
     sourceColumn: 10
     sourceEndColumn: 3
-    sourceEndLine: 619
+    sourceEndLine: 683
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 560
+    sourceLine: 624
+  SYM-cli-PrologProcess-useOneShotMode:
+    sourceColumn: 10
+    sourceEndColumn: 65
+    sourceEndLine: 95
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 94
   SYM-cli-PrologProcess-waitForReady:
     sourceColumn: 16
     sourceEndColumn: 3
-    sourceEndLine: 177
+    sourceEndLine: 181
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 137
+    sourceLine: 143
   SYM-cli-PrologQueryPlanSafetyViolation:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -2708,6 +2804,12 @@ coordinates:
     sourceEndLine: 22
     sourceFile: packages/cli/src/commands/status.ts
     sourceLine: 9
+  SYM-cli-test-large-entity-goal:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 38
+    sourceFile: packages/cli/tests/operations/discovery.test.ts
+    sourceLine: 36
   SYM-cli-test-makeQualitySymbolResult:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3425,57 +3527,57 @@ coordinates:
   SYM-discovery-execute-query:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 105
+    sourceEndLine: 103
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 71
+    sourceLine: 69
   SYM-discovery-execute-search:
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 146
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 107
+    sourceLine: 105
   SYM-discovery-execute-status:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 189
+    sourceEndLine: 176
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
     sourceLine: 148
   SYM-discovery-query-input:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 21
+    sourceEndLine: 19
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 14
+    sourceLine: 12
   SYM-discovery-query-payload:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 26
+    sourceEndLine: 24
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 23
+    sourceLine: 21
   SYM-discovery-search-input:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 33
+    sourceEndLine: 31
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 28
+    sourceLine: 26
   SYM-discovery-search-payload:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 38
+    sourceEndLine: 36
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 35
+    sourceLine: 33
   SYM-discovery-status-input:
     sourceColumn: 12
     sourceEndColumn: 58
-    sourceEndLine: 40
+    sourceEndLine: 38
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 40
+    sourceLine: 38
   SYM-discovery-status-payload:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 50
+    sourceEndLine: 48
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 42
+    sourceLine: 40
   SYM-enrichSymbolCoordinates:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -4199,9 +4301,9 @@ coordinates:
   SYM-mcp-session-ensureProlog:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 508
+    sourceEndLine: 509
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 495
+    sourceLine: 496
   SYM-mcp-session-inFlightRequests:
     sourceColumn: 13
     sourceEndColumn: 67
@@ -4211,7 +4313,7 @@ coordinates:
   SYM-mcp-session-initiateGracefulShutdown:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 204
+    sourceEndLine: 205
     sourceFile: packages/mcp/src/server/session.ts
     sourceLine: 155
   SYM-mcp-session-isShuttingDown:
@@ -4244,6 +4346,12 @@ coordinates:
     sourceEndLine: 103
     sourceFile: packages/mcp/src/server/session.ts
     sourceLine: 98
+  SYM-mcp-setupTransportHandlers:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 89
+    sourceFile: packages/mcp/src/server/transport.ts
+    sourceLine: 31
   SYM-mcp-startIntegrationProlog:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -4262,6 +4370,12 @@ coordinates:
     sourceEndLine: 63
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
     sourceLine: 56
+  SYM-mcp-test-serialized-broad-search-entities:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 17
+    sourceFile: packages/mcp/tests/tools/search.test.ts
+    sourceLine: 11
   SYM-mergeCoordinatesWithManifest:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4949,7 +5063,7 @@ coordinates:
   SYM-operation-search-spec:
     sourceColumn: 13
     sourceEndColumn: 62
-    sourceEndLine: 111
+    sourceEndLine: 115
     sourceFile: packages/cli/src/public/operations/specs/discovery.ts
     sourceLine: 76
   SYM-operation-semantic-advisor-spec:
@@ -5003,9 +5117,9 @@ coordinates:
   SYM-operation-status-spec:
     sourceColumn: 13
     sourceEndColumn: 62
-    sourceEndLine: 122
+    sourceEndLine: 126
     sourceFile: packages/cli/src/public/operations/specs/discovery.ts
-    sourceLine: 113
+    sourceLine: 117
   SYM-operation-suggest-predicates-spec:
     sourceColumn: 13
     sourceEndColumn: 103
@@ -5174,10 +5288,16 @@ coordinates:
     sourceEndLine: 4
     sourceFile: packages/cli/src/operations/mutation/types.ts
     sourceLine: 4
+  SYM-parity-run-interactive-module-query:
+    sourceColumn: 15
+    sourceEndColumn: 1
+    sourceEndLine: 59
+    sourceFile: packages/cli/src/public/operations/prolog-json.ts
+    sourceLine: 46
   SYM-parity-run-operation-json-query:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 40
+    sourceEndLine: 44
     sourceFile: packages/cli/src/public/operations/prolog-json.ts
     sourceLine: 16
   SYM-parity-save-atomic-mutation:
@@ -5195,15 +5315,15 @@ coordinates:
   SYM-parity-to-prolog-atom:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 46
+    sourceEndLine: 65
     sourceFile: packages/cli/src/public/operations/prolog-json.ts
-    sourceLine: 42
+    sourceLine: 61
   SYM-parity-to-prolog-list:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 52
+    sourceEndLine: 71
     sourceFile: packages/cli/src/public/operations/prolog-json.ts
-    sourceLine: 48
+    sourceLine: 67
   SYM-parity-upsert-input-type:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -5525,9 +5645,9 @@ coordinates:
   SYM-resetProlog:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 223
+    sourceEndLine: 224
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 207
+    sourceLine: 208
   SYM-resetSessionModulePromise:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5561,9 +5681,9 @@ coordinates:
   SYM-resolveKbPlPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 67
+    sourceEndLine: 70
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 29
+    sourceLine: 32
   SYM-resolveManifestPath:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -5984,12 +6104,6 @@ coordinates:
     sourceEndLine: 50
     sourceFile: scripts/skillopt-eval/adoption.ts
     sourceLine: 48
-  SYM-skillopt-auto-adoption-input:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 57
-    sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 52
   SYM-skillopt-adoption-input:
     sourceColumn: 12
     sourceEndColumn: 5
@@ -6062,6 +6176,12 @@ coordinates:
     sourceEndLine: 136
     sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
     sourceLine: 91
+  SYM-skillopt-auto-adoption-input:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 57
+    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceLine: 52
   SYM-skillopt-bridge-request:
     sourceColumn: 12
     sourceEndColumn: 74
@@ -6317,15 +6437,15 @@ coordinates:
   SYM-skillopt-codex-optimizer-options:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 81
+    sourceEndLine: 82
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
-    sourceLine: 74
+    sourceLine: 75
   SYM-skillopt-codex-optimizer-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 171
+    sourceEndLine: 172
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
-    sourceLine: 84
+    sourceLine: 85
   SYM-skillopt-codex-violation-type:
     sourceColumn: 12
     sourceEndColumn: 63
@@ -7220,12 +7340,312 @@ coordinates:
     sourceEndLine: 252
     sourceFile: scripts/skillopt-eval/adoption.ts
     sourceLine: 247
+  SYM-skillopt-preflight-check:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 17
+    sourceFile: scripts/skillopt-eval/preflight-host-checks.ts
+    sourceLine: 8
+  SYM-skillopt-preflight-check-state:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 45
+    sourceFile: scripts/skillopt-eval/preflight-host-model.ts
+    sourceLine: 42
+  SYM-skillopt-preflight-digest:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 22
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    sourceLine: 20
+  SYM-skillopt-preflight-ensure-inside:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 139
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    sourceLine: 129
+  SYM-skillopt-preflight-evaluate-host:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 127
+    sourceFile: scripts/skillopt-eval/preflight-host-checks.ts
+    sourceLine: 19
+  SYM-skillopt-preflight-external-path:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 17
+    sourceFile: scripts/skillopt-eval/preflight-host-runtime.ts
+    sourceLine: 10
+  SYM-skillopt-preflight-external-root:
+    sourceColumn: 13
+    sourceEndColumn: 58
+    sourceEndLine: 6
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 6
+  SYM-skillopt-preflight-external-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 110
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 97
+  SYM-skillopt-preflight-fd-inventory:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 12
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 7
+  SYM-skillopt-preflight-fixture:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 58
+    sourceFile: scripts/skillopt-eval/tests/preflight-fixture.ts
+    sourceLine: 46
+  SYM-skillopt-preflight-fixture-create:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 260
+    sourceFile: scripts/skillopt-eval/tests/preflight-fixture.ts
+    sourceLine: 86
+  SYM-skillopt-preflight-fixture-host-probe:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 44
+    sourceFile: scripts/skillopt-eval/tests/preflight-fixture.ts
+    sourceLine: 9
+  SYM-skillopt-preflight-fixture-invoke:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 71
+    sourceFile: scripts/skillopt-eval/tests/preflight-fixture-runtime.ts
+    sourceLine: 24
+  SYM-skillopt-preflight-fixture-update:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 22
+    sourceFile: scripts/skillopt-eval/tests/preflight-fixture-runtime.ts
+    sourceLine: 6
+  SYM-skillopt-preflight-host-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 33
+    sourceFile: scripts/skillopt-eval/preflight-host-model.ts
+    sourceLine: 27
+  SYM-skillopt-preflight-host-probe:
+    sourceColumn: 12
+    sourceEndColumn: 56
+    sourceEndLine: 156
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 156
+  SYM-skillopt-preflight-host-qualification:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 240
+    sourceFile: scripts/skillopt-eval/preflight-host.ts
+    sourceLine: 29
+  SYM-skillopt-preflight-host-receipt:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 139
+    sourceFile: scripts/skillopt-eval/preflight-host-model.ts
+    sourceLine: 74
+  SYM-skillopt-preflight-host-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 148
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 112
+  SYM-skillopt-preflight-input-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 18
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    sourceLine: 6
+  SYM-skillopt-preflight-input-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 40
+    sourceEndLine: 7
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    sourceLine: 7
+  SYM-skillopt-preflight-installer-command:
+    sourceColumn: 13
+    sourceEndColumn: 120
+    sourceEndLine: 4
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 3
+  SYM-skillopt-preflight-launch-attestation:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 67
+    sourceFile: scripts/skillopt-eval/preflight-host-runtime.ts
+    sourceLine: 50
+  SYM-skillopt-preflight-launcher:
+    sourceColumn: 13
+    sourceEndColumn: 77
+    sourceEndLine: 5
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 5
+  SYM-skillopt-preflight-launcher-process:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 23
+    sourceFile: scripts/skillopt-eval/preflight-host-model.ts
+    sourceLine: 18
+  SYM-skillopt-preflight-launcher-spawner:
+    sourceColumn: 12
+    sourceEndColumn: 79
+    sourceEndLine: 25
+    sourceFile: scripts/skillopt-eval/preflight-host-model.ts
+    sourceLine: 25
+  SYM-skillopt-preflight-load-attestation:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 48
+    sourceFile: scripts/skillopt-eval/preflight-host-runtime.ts
+    sourceLine: 37
+  SYM-skillopt-preflight-load-locks:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 72
+    sourceFile: scripts/skillopt-eval/preflight-host-model.ts
+    sourceLine: 54
+  SYM-skillopt-preflight-loaded-locks:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 40
+    sourceFile: scripts/skillopt-eval/preflight-host-model.ts
+    sourceLine: 35
+  SYM-skillopt-preflight-main:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 233
+    sourceFile: scripts/skillopt-eval/preflight.ts
+    sourceLine: 173
+  SYM-skillopt-preflight-no-go:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 52
+    sourceFile: scripts/skillopt-eval/preflight-host-model.ts
+    sourceLine: 47
+  SYM-skillopt-preflight-no-go-name:
+    sourceColumn: 11
+    sourceEndColumn: 34
+    sourceEndLine: 48
+    sourceFile: scripts/skillopt-eval/preflight-host-model.ts
+    sourceLine: 48
+  SYM-skillopt-preflight-parent:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 143
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    sourceLine: 141
+  SYM-skillopt-preflight-parse-lock:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 127
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    sourceLine: 112
+  SYM-skillopt-preflight-provider-lock:
+    sourceColumn: 12
+    sourceEndColumn: 62
+    sourceEndLine: 154
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 154
+  SYM-skillopt-preflight-provider-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 74
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 42
+  SYM-skillopt-preflight-read-no-follow:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 82
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    sourceLine: 38
+  SYM-skillopt-preflight-reason:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 162
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 158
+  SYM-skillopt-preflight-receipt:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 201
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 163
+  SYM-skillopt-preflight-result-schema:
+    sourceColumn: 13
+    sourceEndColumn: 2
+    sourceEndLine: 26
+    sourceFile: scripts/skillopt-eval/tests/preflight-result.ts
+    sourceLine: 3
   SYM-skillopt-preflight-run:
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 261
     sourceFile: scripts/skillopt-eval/legacy-preflight.ts
     sourceLine: 178
+  SYM-skillopt-preflight-same-json:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 6
+    sourceFile: scripts/skillopt-eval/preflight-host-checks.ts
+    sourceLine: 4
+  SYM-skillopt-preflight-sandbox-lock:
+    sourceColumn: 12
+    sourceEndColumn: 60
+    sourceEndLine: 153
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 153
+  SYM-skillopt-preflight-sandbox-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 40
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 19
+  SYM-skillopt-preflight-signed-host-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 152
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 150
+  SYM-skillopt-preflight-unsupported-case:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 11
+    sourceFile: scripts/skillopt-eval/tests/preflight-unsupported-cases.ts
+    sourceLine: 7
+  SYM-skillopt-preflight-unsupported-cases:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 133
+    sourceFile: scripts/skillopt-eval/tests/preflight-unsupported-cases.ts
+    sourceLine: 13
+  SYM-skillopt-preflight-validate-trust-directory:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 110
+    sourceFile: scripts/skillopt-eval/preflight-io.ts
+    sourceLine: 84
+  SYM-skillopt-preflight-validate-trust-root:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 35
+    sourceFile: scripts/skillopt-eval/preflight-host-runtime.ts
+    sourceLine: 19
+  SYM-skillopt-preflight-verifier-lock:
+    sourceColumn: 12
+    sourceEndColumn: 62
+    sourceEndLine: 155
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 155
+  SYM-skillopt-preflight-verifier-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 95
+    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
+    sourceLine: 82
   SYM-skillopt-prepared-login-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -8375,9 +8795,9 @@ coordinates:
   SYM-withDiagnosticTelemetrySchema:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 88
+    sourceEndLine: 115
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 68
+    sourceLine: 95
   SYM-writeCoordinateArtifact:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8390,303 +8810,3 @@ coordinates:
     sourceEndLine: 52
     sourceFile: packages/cli/src/operations/modeling/requirement-applyplan.ts
     sourceLine: 50
-  SYM-skillopt-preflight-installer-command:
-    sourceColumn: 13
-    sourceEndColumn: 120
-    sourceEndLine: 4
-    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
-    sourceLine: 3
-  SYM-skillopt-preflight-launcher:
-    sourceColumn: 13
-    sourceEndColumn: 77
-    sourceEndLine: 5
-    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
-    sourceLine: 5
-  SYM-skillopt-preflight-external-root:
-    sourceColumn: 13
-    sourceEndColumn: 58
-    sourceEndLine: 6
-    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
-    sourceLine: 6
-  SYM-skillopt-preflight-fd-inventory:
-    sourceColumn: 13
-    sourceEndColumn: 10
-    sourceEndLine: 12
-    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
-    sourceLine: 7
-  SYM-skillopt-preflight-sandbox-lock:
-    sourceColumn: 12
-    sourceEndColumn: 60
-    sourceEndLine: 153
-    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
-    sourceLine: 153
-  SYM-skillopt-preflight-provider-lock:
-    sourceColumn: 12
-    sourceEndColumn: 62
-    sourceEndLine: 154
-    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
-    sourceLine: 154
-  SYM-skillopt-preflight-verifier-lock:
-    sourceColumn: 12
-    sourceEndColumn: 62
-    sourceEndLine: 155
-    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
-    sourceLine: 155
-  SYM-skillopt-preflight-host-probe:
-    sourceColumn: 12
-    sourceEndColumn: 56
-    sourceEndLine: 156
-    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
-    sourceLine: 156
-  SYM-skillopt-preflight-reason:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 162
-    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
-    sourceLine: 158
-  SYM-skillopt-preflight-receipt:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 201
-    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
-    sourceLine: 163
-  SYM-skillopt-preflight-sandbox-schema:
-    sourceColumn: 13
-    sourceEndColumn: 11
-    sourceEndLine: 40
-    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
-    sourceLine: 19
-  SYM-skillopt-preflight-provider-schema:
-    sourceColumn: 13
-    sourceEndColumn: 11
-    sourceEndLine: 74
-    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
-    sourceLine: 42
-  SYM-skillopt-preflight-verifier-schema:
-    sourceColumn: 13
-    sourceEndColumn: 11
-    sourceEndLine: 95
-    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
-    sourceLine: 82
-  SYM-skillopt-preflight-external-schema:
-    sourceColumn: 13
-    sourceEndColumn: 11
-    sourceEndLine: 110
-    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
-    sourceLine: 97
-  SYM-skillopt-preflight-host-schema:
-    sourceColumn: 13
-    sourceEndColumn: 11
-    sourceEndLine: 148
-    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
-    sourceLine: 112
-  SYM-skillopt-preflight-signed-host-schema:
-    sourceColumn: 13
-    sourceEndColumn: 11
-    sourceEndLine: 152
-    sourceFile: scripts/skillopt-eval/preflight-contracts.ts
-    sourceLine: 150
-  SYM-skillopt-preflight-host-qualification:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 240
-    sourceFile: scripts/skillopt-eval/preflight-host.ts
-    sourceLine: 29
-  SYM-skillopt-preflight-no-go:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 52
-    sourceFile: scripts/skillopt-eval/preflight-host-model.ts
-    sourceLine: 47
-  SYM-skillopt-preflight-no-go-name:
-    sourceColumn: 11
-    sourceEndColumn: 34
-    sourceEndLine: 48
-    sourceFile: scripts/skillopt-eval/preflight-host-model.ts
-    sourceLine: 48
-  SYM-skillopt-preflight-host-options:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 33
-    sourceFile: scripts/skillopt-eval/preflight-host-model.ts
-    sourceLine: 27
-  SYM-skillopt-preflight-digest:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 22
-    sourceFile: scripts/skillopt-eval/preflight-io.ts
-    sourceLine: 20
-  SYM-skillopt-preflight-read-no-follow:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 82
-    sourceFile: scripts/skillopt-eval/preflight-io.ts
-    sourceLine: 38
-  SYM-skillopt-preflight-parse-lock:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 127
-    sourceFile: scripts/skillopt-eval/preflight-io.ts
-    sourceLine: 112
-  SYM-skillopt-preflight-ensure-inside:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 139
-    sourceFile: scripts/skillopt-eval/preflight-io.ts
-    sourceLine: 129
-  SYM-skillopt-preflight-parent:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 143
-    sourceFile: scripts/skillopt-eval/preflight-io.ts
-    sourceLine: 141
-  SYM-skillopt-preflight-input-error:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 18
-    sourceFile: scripts/skillopt-eval/preflight-io.ts
-    sourceLine: 6
-  SYM-skillopt-preflight-input-error-name:
-    sourceColumn: 11
-    sourceEndColumn: 40
-    sourceEndLine: 7
-    sourceFile: scripts/skillopt-eval/preflight-io.ts
-    sourceLine: 7
-  SYM-skillopt-preflight-validate-trust-directory:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 110
-    sourceFile: scripts/skillopt-eval/preflight-io.ts
-    sourceLine: 84
-  SYM-skillopt-preflight-main:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 233
-    sourceFile: scripts/skillopt-eval/preflight.ts
-    sourceLine: 173
-  SYM-skillopt-preflight-fixture-create:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 260
-    sourceFile: scripts/skillopt-eval/tests/preflight-fixture.ts
-    sourceLine: 86
-  SYM-skillopt-preflight-fixture-update:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 22
-    sourceFile: scripts/skillopt-eval/tests/preflight-fixture-runtime.ts
-    sourceLine: 6
-  SYM-skillopt-preflight-fixture-invoke:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 71
-    sourceFile: scripts/skillopt-eval/tests/preflight-fixture-runtime.ts
-    sourceLine: 24
-  SYM-skillopt-preflight-fixture-host-probe:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 44
-    sourceFile: scripts/skillopt-eval/tests/preflight-fixture.ts
-    sourceLine: 9
-  SYM-skillopt-preflight-fixture:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 58
-    sourceFile: scripts/skillopt-eval/tests/preflight-fixture.ts
-    sourceLine: 46
-  SYM-skillopt-preflight-same-json:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 6
-    sourceFile: scripts/skillopt-eval/preflight-host-checks.ts
-    sourceLine: 4
-  SYM-skillopt-preflight-check:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 17
-    sourceFile: scripts/skillopt-eval/preflight-host-checks.ts
-    sourceLine: 8
-  SYM-skillopt-preflight-evaluate-host:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 127
-    sourceFile: scripts/skillopt-eval/preflight-host-checks.ts
-    sourceLine: 19
-  SYM-skillopt-preflight-load-locks:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 72
-    sourceFile: scripts/skillopt-eval/preflight-host-model.ts
-    sourceLine: 54
-  SYM-skillopt-preflight-host-receipt:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 139
-    sourceFile: scripts/skillopt-eval/preflight-host-model.ts
-    sourceLine: 74
-  SYM-skillopt-preflight-loaded-locks:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 40
-    sourceFile: scripts/skillopt-eval/preflight-host-model.ts
-    sourceLine: 35
-  SYM-skillopt-preflight-check-state:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 45
-    sourceFile: scripts/skillopt-eval/preflight-host-model.ts
-    sourceLine: 42
-  SYM-skillopt-preflight-external-path:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 17
-    sourceFile: scripts/skillopt-eval/preflight-host-runtime.ts
-    sourceLine: 10
-  SYM-skillopt-preflight-validate-trust-root:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 35
-    sourceFile: scripts/skillopt-eval/preflight-host-runtime.ts
-    sourceLine: 19
-  SYM-skillopt-preflight-load-attestation:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 48
-    sourceFile: scripts/skillopt-eval/preflight-host-runtime.ts
-    sourceLine: 37
-  SYM-skillopt-preflight-launch-attestation:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 67
-    sourceFile: scripts/skillopt-eval/preflight-host-runtime.ts
-    sourceLine: 50
-  SYM-skillopt-preflight-launcher-process:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 23
-    sourceFile: scripts/skillopt-eval/preflight-host-model.ts
-    sourceLine: 18
-  SYM-skillopt-preflight-launcher-spawner:
-    sourceColumn: 12
-    sourceEndColumn: 79
-    sourceEndLine: 25
-    sourceFile: scripts/skillopt-eval/preflight-host-model.ts
-    sourceLine: 25
-  SYM-skillopt-preflight-result-schema:
-    sourceColumn: 13
-    sourceEndColumn: 2
-    sourceEndLine: 26
-    sourceFile: scripts/skillopt-eval/tests/preflight-result.ts
-    sourceLine: 3
-  SYM-skillopt-preflight-unsupported-case:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 11
-    sourceFile: scripts/skillopt-eval/tests/preflight-unsupported-cases.ts
-    sourceLine: 7
-  SYM-skillopt-preflight-unsupported-cases:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 133
-    sourceFile: scripts/skillopt-eval/tests/preflight-unsupported-cases.ts
-    sourceLine: 13

@@ -84,6 +84,8 @@ export const searchSpec = {
     properties: {
       query: {
         type: "string",
+        minLength: 1,
+        maxLength: 4096,
         description:
           "Free-text query for metadata and markdown body discovery. Example: 'OAuth login flow'.",
       },
@@ -95,11 +97,13 @@ export const searchSpec = {
       },
       limit: {
         type: "integer",
+        minimum: 0,
         default: 20,
         description: "Optional max rows to return after ranking. Default: 20.",
       },
       offset: {
         type: "integer",
+        minimum: 0,
         default: 0,
         description: "Optional zero-based pagination offset. Default: 0.",
       },
