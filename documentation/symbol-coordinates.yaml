@@ -4196,6 +4196,12 @@ coordinates:
     sourceEndLine: 20
     sourceFile: packages/mcp/src/tools/query-plan-safety.ts
     sourceLine: 9
+  SYM-mcp-connectTransport:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 96
+    sourceFile: packages/mcp/src/server/transport.ts
+    sourceLine: 91
   SYM-mcp-createIntegrationProlog:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4292,6 +4298,12 @@ coordinates:
     sourceEndLine: 67
     sourceFile: packages/mcp/src/server/session.ts
     sourceLine: 67
+  SYM-mcp-session-attachedBranchKbPath:
+    sourceColumn: 11
+    sourceEndColumn: 53
+    sourceEndLine: 70
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 70
   SYM-mcp-session-ensureBranchKbExists:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4346,6 +4358,12 @@ coordinates:
     sourceEndLine: 103
     sourceFile: packages/mcp/src/server/session.ts
     sourceLine: 98
+  SYM-mcp-session-updateAttachedBranchStamp:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 75
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 73
   SYM-mcp-setupTransportHandlers:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4370,6 +4388,48 @@ coordinates:
     sourceEndLine: 63
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
     sourceLine: 56
+  SYM-mcp-test-node-driver-isAlive:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 116
+    sourceFile: packages/mcp/tests/drivers/node-mcp-driver-helpers.mjs
+    sourceLine: 108
+  SYM-mcp-test-node-driver-readChildPid:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 106
+    sourceFile: packages/mcp/tests/drivers/node-mcp-driver-helpers.mjs
+    sourceLine: 91
+  SYM-mcp-test-node-driver-request:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 59
+    sourceFile: packages/mcp/tests/drivers/node-mcp-driver-helpers.mjs
+    sourceLine: 54
+  SYM-mcp-test-node-driver-startServer:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 89
+    sourceFile: packages/mcp/tests/drivers/node-mcp-driver-helpers.mjs
+    sourceLine: 61
+  SYM-mcp-test-node-driver-stopServer:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 135
+    sourceFile: packages/mcp/tests/drivers/node-mcp-driver-helpers.mjs
+    sourceLine: 126
+  SYM-mcp-test-node-driver-waitForExit:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 29
+    sourceFile: packages/mcp/tests/drivers/node-mcp-driver-helpers.mjs
+    sourceLine: 15
+  SYM-mcp-test-node-driver-waitUntilReaped:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 124
+    sourceFile: packages/mcp/tests/drivers/node-mcp-driver-helpers.mjs
+    sourceLine: 118
   SYM-mcp-test-serialized-broad-search-entities:
     sourceColumn: 9
     sourceEndColumn: 1

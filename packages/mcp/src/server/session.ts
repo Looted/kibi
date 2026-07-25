@@ -160,6 +160,18 @@ export async function initiateGracefulShutdown(exitCode = 0): Promise<void> {
   isShuttingDown = true;
   debugLog(`[KIBI-MCP] Initiating graceful shutdown (exit code: ${exitCode})`);
 
+  const currentProlog = prologProcess;
+  prologProcess = null;
+  if (currentProlog?.isRunning()) {
+    debugLog("[KIBI-MCP] Cancelling active Prolog work...");
+    try {
+      await currentProlog.terminate();
+      debugLog("[KIBI-MCP] Prolog process terminated");
+    } catch (error) {
+      console.error("[KIBI-MCP] Error terminating Prolog:", error);
+    }
+  }
+
   // Wait for in-flight requests
   if (inFlightRequests.size > 0) {
     debugLog(
@@ -185,17 +197,6 @@ export async function initiateGracefulShutdown(exitCode = 0): Promise<void> {
         clearTimeout(shutdownTimeout);
         shutdownTimeout = null;
       }
-    }
-  }
-
-  // Cleanup Prolog process
-  if (prologProcess?.isRunning()) {
-    debugLog("[KIBI-MCP] Terminating Prolog process...");
-    try {
-      await prologProcess.terminate();
-      debugLog("[KIBI-MCP] Prolog process terminated");
-    } catch (error) {
-      console.error("[KIBI-MCP] Error terminating Prolog:", error);
     }
   }
 

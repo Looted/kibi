@@ -29,7 +29,7 @@ function debugLog(...args: Parameters<typeof console.error>): void {
 }
 
 export function setupTransportHandlers(
-  server: McpServer,
+  _server: McpServer,
   transport: StdioServerTransport,
 ): void {
   transport.onerror = (error: Error) => {
@@ -80,10 +80,12 @@ export function setupTransportHandlers(
     initiateGracefulShutdown(0);
   };
 
-  process.on("SIGTERM", () => {
-    debugLog("[KIBI-MCP] Received SIGTERM, initiating graceful shutdown");
-    void initiateGracefulShutdown(0);
-  });
+  for (const signal of ["SIGINT", "SIGTERM"] as const) {
+    process.on(signal, () => {
+      debugLog(`[KIBI-MCP] Received ${signal}, initiating graceful shutdown`);
+      void initiateGracefulShutdown(0);
+    });
+  }
 }
 
 export async function connectTransport(
