@@ -10,36 +10,39 @@ tags:
   - traceability
   - agent-guidance
 ---
-
 ## Goal
 
-Validate and strengthen traceability before and after code changes.
+Validate and strengthen requirement, scenario, test, and source-file traceability before and after code changes.
 
 ## Interface Selection
 
-1. If Kibi MCP tools are positively visible and approved, use MCP.
-2. Otherwise, in a trusted workspace, use the project-local CLI through `npx --no-install kibi ...` or `bunx --no-install kibi ...`.
-3. If the CLI is unavailable or too old, stop and tell the operator to enable or install Kibi.
+1. If Kibi MCP tools are positively visible and approved, use the MCP surface.
+2. Otherwise, in a trusted workspace, use the canonical project-local CLI fallback through `npx --no-install kibi ...` or `bunx --no-install kibi ...`.
+3. If neither approved MCP tools nor the project-local CLI are available, or if the CLI is unavailable or too old, stop and tell the operator to enable or install Kibi.
 4. Never use a global fallback or an installing runner.
 
-Use `kibi-usage/resources/operation-access.md` for exact routes and JSON input. For example, run impact diagnostics through the dedicated project-local CLI route with:
+Use MCP routes as the primary authority for modeling, querying, checking, and cleanup. Use the project-local CLI only as the fallback interface, with JSON input passed through stdin. For example:
 
 ```bash
 echo '{"sourceFiles":["src/auth/login.ts"],"includeImpactDiagnostics":true,"includeWorkingTreeDiff":true}' | npx --no-install kibi check --input -
 ```
 
-## Capability workflow
+## Capability Workflow
 
-- Locate requirements with `kb_search`/`search --input` and inspect exact details with `kb_query`/`query --input`.
+- Locate requirements through `kb_search` or `search --input`, then inspect exact records through `kb_query` or `query --input`.
+- Before meaningful edits, identify linked requirements, scenarios, tests, facts, source files, and behavioral symbols relevant to the planned change.
 - After meaningful source edits, run `kb_check({sourceFiles:[...], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})` or the equivalent `check --input` JSON recipe before deciding whether traceability is current.
-- Apply updates sequentially with `kb_upsert` or `upsert --input` for requirements, scenarios, tests, or facts.
-- Validate constraints and consistency with `kb_check` or `check --input`.
+- Apply traceability updates sequentially through `kb_upsert` or `upsert --input` for requirements, scenarios, tests, facts, and source-linked relationships.
+- Validate constraints and consistency through `kb_check` or `check --input` after updates.
+- Use `kb_delete` or `delete --input` only for explicit cleanup of obsolete records or relationships.
 
 ## Guidance
 
-- Prefer source-linked relationships so symbols and files can be traced back cleanly.
-- Treat `symbol_semantic_review_needed` as a prompt to inspect linked requirements/tests; Kibi reports graph links but does not prove prose semantics.
-- Include `kb_query`/`query` and `kb_delete`/`delete` only when explicit cleanups are required.
-- Never directly edit `.kb/**`; all modeling and cleanup goes through the selected Kibi interface.
+- Prefer source-linked relationships so requirements, scenarios, tests, symbols, and files can be traced cleanly.
+- Preserve source-file traceability whenever adding or changing requirements, scenarios, tests, facts, or implementation links.
 - Preserve the canonical chain `REQ-* -> SCEN-* -> TEST-*` when adding or changing requirements.
 - Production symbols should implement requirements; test symbols should remain executable evidence for tests.
+- Resolve impact at behavioral-symbol granularity when Kibi reports symbol-level diagnostics; avoid treating a whole file as impacted when the report identifies narrower linked behavior.
+- Treat `symbol_semantic_review_needed` as a prompt to inspect linked requirements and tests; Kibi reports graph links but does not prove prose semantics.
+- Do not read or edit files inside `.kb` directly; all modeling and cleanup goes through the selected Kibi interface.
+- Keep approval boundaries intact: only use Kibi MCP tools that are visible and approved, and only use the project-local CLI fallback in a trusted workspace.
