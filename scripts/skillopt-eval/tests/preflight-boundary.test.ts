@@ -58,6 +58,7 @@ test("qualifySkillOptHost throws typed PreflightNoGo for rejected hosts", async 
       fixtureRoot: fixture.root,
     });
   } catch (error) {
+    if (!(error instanceof PreflightNoGo)) throw error;
     captured = error;
   }
   expect(captured).toBeInstanceOf(PreflightNoGo);
