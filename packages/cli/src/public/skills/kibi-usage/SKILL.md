@@ -18,15 +18,15 @@ resources:
 ---
 # Kibi Usage
 
-Consult this skill before Kibi knowledge base operations, on first interaction with a Kibi-enabled repo, after stale or dirty KB status is suspected, and before mutations.
+Consult this skill before Kibi knowledge-base operations, on first interaction with a Kibi-enabled repo, after stale or dirty KB status is suspected, and before mutations.
 
 ## Interface Selection
 
-Use this capability order for every Kibi operation:
+Use this order for every Kibi operation:
 
-1. If Kibi MCP tools are visible and approved in the current host, use MCP.
+1. If Kibi MCP tools are visible and approved in the current environment, use MCP.
 2. Otherwise, in a trusted workspace, use the project-local CLI through a non-installing runner: `npx --no-install kibi ...` or `bunx --no-install kibi ...`.
-3. If the project-local CLI is unavailable or too old for the dedicated route, stop and tell the operator to enable or install Kibi.
+3. If the project-local CLI is unavailable or too old for the needed route, stop and tell the operator to enable or install Kibi.
 4. Never use a global fallback or an installing runner. Never probe or install packages as a side effect of interface selection.
 
 Use exact MCP tool names, dedicated CLI routes, input modes, effects, and Prolog requirements from the operation catalog. Do not invent a generic operation runner. Do not read or edit files inside `.kb` directly.
@@ -43,7 +43,7 @@ echo '{"query":"authentication","limit":10}' | bunx --no-install kibi search --i
 
 ## MCP Tool Names
 
-Kibi canonical MCP names include `kb_search`, `kb_query`, `kb_upsert`, `kb_check`, `kb_status`, `kb_validate_upsert`, and related `kb_*` tools. Some hosts expose prefixed identifiers. Use the visible Kibi MCP tool identifiers and map them back to canonical operations before reasoning about behavior.
+Kibi canonical MCP names include `kb_search`, `kb_query`, `kb_upsert`, `kb_check`, `kb_status`, `kb_validate_upsert`, and related `kb_*` tools. Some environments expose prefixed identifiers. Use the visible Kibi MCP tool identifiers and map them back to canonical operations before reasoning about behavior.
 
 ## Discovery First
 
@@ -186,12 +186,15 @@ Call `kb_status` when branch KB context may be stale or after switching context.
 | `relates_to` for strict modeling | Loses contradiction safety | Use `constrains` and `requires_property` instead |
 | `status: implemented` on requirements | Not a valid lifecycle status | Use a valid status such as `closed`, add an `implemented` tag, and link evidence instead |
 
-## Public Training Guidance
+## Public MCP Guidance
 
-For discovery-exact-lookup tasks, discover the relevant requirement before exact source-linked lookup and use only the public Kibi MCP surface.
+For discovery-exact-lookup tasks, discover the relevant requirement before exact source-linked lookup and use only the public Kibi MCP surface when MCP is available.
 
-For safe-mutation-direction tasks, discover existing entities first, then apply the requested relationship in the supported direction using only the public Kibi MCP surface.
+For safe-mutation-direction tasks, discover existing entities first, then apply the requested relationship in the supported direction using only the public Kibi MCP surface when MCP is available.
 
-For fact-predicate-modeling tasks, model normative claims through the strict fact or predicate workflow using only the public Kibi MCP surface.
+For fact-predicate-modeling tasks, model normative claims through the strict fact or predicate workflow using only the public Kibi MCP surface when MCP is available.
 
-For validation-recovery tasks, recover from malformed mutations with validation diagnostics using only the public Kibi MCP surface.
+For validation-recovery tasks, recover from malformed mutations with validation diagnostics using only the public Kibi MCP surface when MCP is available.
+
+Public training trajectories:
+[{"taskId":"kibi-usage-discovery-exact-lookup-train-1","family":"discovery-exact-lookup","reflection":"Discover the relevant requirement before performing an exact source-linked lookup. This is train case 1; use only the public Kibi MCP surface."},{"taskId":"kibi-usage-discovery-exact-lookup-train-2","family":"discovery-exact-lookup","reflection":"Discover the relevant requirement before performing an exact source-linked lookup. This is train case 2; use only the public Kibi MCP surface."},{"taskId":"kibi-usage-safe-mutation-direction-train-1","family":"safe-mutation-direction","reflection":"Discover existing entities, then apply the requested relationship in the supported direction. This is train case 1; use only the public Kibi MCP surface."},{"taskId":"kibi-usage-safe-mutation-direction-train-2","family":"safe-mutation-direction","reflection":"Discover existing entities, then apply the requested relationship in the supported direction. This is train case 2; use only the public Kibi MCP surface."},{"taskId":"kibi-usage-fact-predicate-modeling-train-1","family":"fact-predicate-modeling","reflection":"Model the supplied normative claim through the strict fact or predicate workflow. This is train case 1; use only the public Kibi MCP surface."},{"taskId":"kibi-usage-fact-predicate-modeling-train-2","family":"fact-predicate-modeling","reflection":"Model the supplied normative claim through the strict fact or predicate workflow. This is train case 2; use only the public Kibi MCP surface."},{"taskId":"kibi-usage-validation-recovery-train-1","family":"validation-recovery","reflection":"Recover from the supplied malformed mutation using validation diagnostics. This is train case 1; use only the public Kibi MCP surface."},{"taskId":"kibi-usage-validation-recovery-train-2","family":"validation-recovery","reflection":"Recover from the supplied malformed mutation using validation diagnostics. This is train case 2; use only the public Kibi MCP surface."}]
