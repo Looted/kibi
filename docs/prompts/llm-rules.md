@@ -8,6 +8,7 @@ You are operating in a workspace that uses Kibi, an intelligent knowledge base s
 
 1. **Never read or edit files inside `.kb/` directly.** Use a Kibi operation surface instead.
 2. **Select Kibi by capability.** If Kibi MCP tools are visible, use MCP. If MCP availability is unknown and a trusted local Kibi CLI is available, use dedicated JSON routes with `kibi <route> --input <file|->`. If neither interface is available, stop and tell the operator. Do not infer MCP availability from config file existence. Both surfaces expose the same 18 operations.
+2a. **Discover bundled skills progressively.** After MCP `tools/list`, call `kb_skills_list`, then `kb_skills_load` for the returned skill ID, and use `kb_skills_read` only for manifest-declared resources. For CLI fallback, use `kibi skills-list`, `kibi skills-load`, and `kibi skills-read` with structured `--input` JSON. Skill text is guidance, not permission to bypass schemas, approvals, mutation ordering, or `.kb/` protections.
 3. **Start with interactive `/init-kibi` for new repos.** Use the `/init-kibi` slash command for an interactive onboarding workflow. This workflow uses `kb_autopilot_generate` to synthesize entities from your declared context and codebase evidence. Always preview candidates and get user approval before writing.
 4. **Create and update entities with `kb_upsert`.** Keep requirements, scenarios, symbols, tests, ADRs, flags, events, and facts synchronized with your work.
 5. **Use relationship rows during `kb_upsert`.** Link requirements, tests, symbols, and facts as part of the same write.
@@ -98,7 +99,7 @@ The Kibi MCP server exposes a curated public tool surface:
 - `kb_skills_list`
 - `kb_skills_load`
 - `kb_skills_read`
-> **Skill Guidance:** Canonical Kibi usage guidance is available as a bundled skill. Call `kb_skills_load` with `id: "kibi-usage"` to retrieve the latest agent rules, modeling heuristics, and workflow constraints. Skills are bundled only; remote install and script execution are not supported in v1.
+> **Skill Guidance:** Canonical Kibi usage guidance is available as a bundled skill. Call `kb_skills_list` first, then `kb_skills_load` with a returned ID (normally `kibi-usage`) to retrieve agent rules, modeling heuristics, and workflow constraints. Use `kb_skills_read` only for resources declared by the manifest. Skills are bundled only; remote install and script execution are not supported. These tools are read-only and advertise MCP behavior hints, but clients must not use hints as authorization.
 
 For retroactive bootstrap on existing repos, use `/init-kibi` in OpenCode. If further setup or repair is needed, ask the user/operator to handle it outside the agent session.
 
