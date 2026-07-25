@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import process from "node:process";
+import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import {
   type RuntimeOperationSpec,
@@ -30,7 +31,6 @@ import {
 import { jsonSchemaToZod } from "./json-schema-to-zod.js";
 import { registerConfiguredTools } from "./tool-registration.js";
 import type {
-  DefaultRuntimeProlog,
   ToolHandler,
   ToolHandlerArgs,
   ToolsRuntime,
@@ -112,6 +112,7 @@ export function addTool<TProlog>(
   // because the runtime object satisfies the full ToolsRuntime contract at runtime.
   runtime: ToolsRuntime<TProlog> = DEFAULT_TOOLS_RUNTIME as unknown as ToolsRuntime<TProlog>,
   spec?: RuntimeOperationSpec<Record<string, unknown>, unknown>,
+  annotations?: ToolAnnotations,
 ): void {
   const wrappedHandler: ToolHandler = async (args) => {
     const startedAt = new Date();
@@ -238,13 +239,21 @@ export function addTool<TProlog>(
     server as McpServer & {
       registerTool: (
         n: string,
-        c: { description: string; inputSchema: z.ZodTypeAny },
+        c: {
+          description: string;
+          inputSchema: z.ZodTypeAny;
+          annotations?: ToolAnnotations;
+        },
         h: ToolHandler,
       ) => void;
     }
   ).registerTool(
     name,
-    { description, inputSchema: jsonSchemaToZod(inputSchema) },
+    {
+      description,
+      inputSchema: jsonSchemaToZod(inputSchema),
+      ...(annotations ? { annotations } : {}),
+    },
     wrappedHandler,
   );
 }

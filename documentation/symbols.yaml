@@ -3578,9 +3578,9 @@ symbols:
         target: TEST-mcp-relationship-preflight
       - type: covered_by
         target: TEST-mcp-semantic-advisor-preflight
-    sourceLine: 48
+    sourceLine: 53
     sourceColumn: 16
-    sourceEndLine: 191
+    sourceEndLine: 197
     sourceEndColumn: 1
   - id: SYM-addTool
     title: addTool
@@ -3596,20 +3596,21 @@ symbols:
         target: TEST-005
     sourceLine: 104
     sourceColumn: 16
-    sourceEndLine: 250
+    sourceEndLine: 259
     sourceEndColumn: 1
   - id: SYM-registerAllTools
     title: registerAllTools
     sourceFile: packages/mcp/src/server/tools.ts
     symbol_role: structural
+    granularity_reason: module-level-behavior
     relationships:
       - type: implements
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 253
+    sourceLine: 262
     sourceColumn: 16
-    sourceEndLine: 259
+    sourceEndLine: 268
     sourceEndColumn: 1
   - id: SYM-ToolConfig
     title: ToolConfig
