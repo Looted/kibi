@@ -7155,6 +7155,8 @@ symbols:
         target: REQ-mcp-search-discovery
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-mcp-search-discovery
   - id: SYM-discovery-execute-status
     title: executeStatus
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
@@ -9561,20 +9563,6 @@ symbols:
     sourceLine: 16
     sourceColumn: 22
     sourceEndLine: 44
-    sourceEndColumn: 1
-  - id: SYM-parity-run-interactive-module-query
-    title: runInteractiveModuleQuery
-    sourceFile: packages/cli/src/public/operations/prolog-json.ts
-    symbol_role: behavioral
-    granularity_reason: extractor-miss
-    relationships:
-      - type: implements
-        target: REQ-mcp-search-discovery
-      - type: covered_by
-        target: TEST-mcp-search-discovery
-    sourceLine: 46
-    sourceColumn: 15
-    sourceEndLine: 59
     sourceEndColumn: 1
   - id: SYM-parity-to-prolog-atom
     title: toPrologAtom

@@ -22,7 +22,11 @@ export async function runOperationJsonQuery<T>(
   const modulePath = escapeAtom(
     resolveCoreModulePath(fileName).replaceAll("\\", "/"),
   );
-  const result = await prolog.query(`(use_module('${modulePath}'), ${goal})`);
+  const oneShotMode =
+    typeof (globalThis as { Bun?: unknown }).Bun !== "undefined";
+  const result = oneShotMode
+    ? await prolog.query(`(use_module('${modulePath}'), ${goal})`)
+    : await runInteractiveModuleQuery(prolog, modulePath, goal, errorLabel);
   if (!result.success) {
     throw new Error(
       `${errorLabel} query failed: ${result.error ?? "Unknown error"}`,
@@ -37,6 +41,21 @@ export async function runOperationJsonQuery<T>(
     parsed = JSON.parse(parsed);
   }
   return parsed as T;
+}
+
+async function runInteractiveModuleQuery(
+  prolog: PrologPort,
+  modulePath: string,
+  goal: string,
+  errorLabel: string,
+) {
+  const loadResult = await prolog.query(`use_module('${modulePath}')`);
+  if (!loadResult.success) {
+    throw new Error(
+      `${errorLabel} module load failed: ${loadResult.error ?? "Unknown error"}`,
+    );
+  }
+  return prolog.query(goal);
 }
 
 export function toPrologAtom(value?: string): string {

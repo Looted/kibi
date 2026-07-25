@@ -1,6 +1,3 @@
-import path from "node:path";
-import { resolveKbPlPath } from "../../prolog.js";
-import { escapeAtomContent } from "../../prolog/codec.js";
 import { rankEntities } from "../../search-ranking.js";
 import type { SearchMatch } from "../../search-ranking.js";
 import {
@@ -8,6 +5,7 @@ import {
   paginateResults,
   validateEntityType,
 } from "./discovery-entities.js";
+import { runOperationJsonQuery } from "./prolog-json.js";
 import type { OperationContext, PrologPort } from "./runtime-types.js";
 import type { OperationResult } from "./types.js";
 
@@ -112,7 +110,9 @@ export async function executeSearch(
   const { query, type, limit = 20, offset = 0 } = input;
   const trimmedQuery = query.trim();
   if (!trimmedQuery) {
-    throw new Error("Search execution failed: query must be a non-empty string");
+    throw new Error(
+      "Search execution failed: query must be a non-empty string",
+    );
   }
   validateEntityType(type);
   try {
@@ -151,25 +151,12 @@ export async function executeStatus(
 ): Promise<OperationResult<StatusPayload>> {
   // implements REQ-kibi-operation-interface-parity, REQ-cli-status-pre-first-sync
   try {
-    const modulePath = escapeAtomContent(
-      path
-        .join(path.dirname(resolveKbPlPath()), "status.pl")
-        .replace(/\\/g, "/"),
+    const payload = await runOperationJsonQuery<StatusPayload>(
+      requireProlog(context),
+      "status.pl",
+      "status:kb_status_json(JsonString)",
+      "Status execution",
     );
-    const result = await requireProlog(context).query(
-      `(use_module('${modulePath}'), status:kb_status_json(JsonString))`,
-    );
-    if (!result.success) {
-      throw new Error(
-        `Status execution query failed: ${result.error || "Unknown error"}`,
-      );
-    }
-    const rawJson = result.bindings.JsonString;
-    if (!rawJson) {
-      throw new Error("Status execution query returned no JsonString binding");
-    }
-    let payload: unknown = JSON.parse(rawJson);
-    if (typeof payload === "string") payload = JSON.parse(payload);
     if (!isStatusPayload(payload)) {
       throw new Error("Status execution query returned an invalid payload");
     }

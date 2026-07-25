@@ -5288,12 +5288,6 @@ coordinates:
     sourceEndLine: 4
     sourceFile: packages/cli/src/operations/mutation/types.ts
     sourceLine: 4
-  SYM-parity-run-interactive-module-query:
-    sourceColumn: 15
-    sourceEndColumn: 1
-    sourceEndLine: 59
-    sourceFile: packages/cli/src/public/operations/prolog-json.ts
-    sourceLine: 46
   SYM-parity-run-operation-json-query:
     sourceColumn: 22
     sourceEndColumn: 1
