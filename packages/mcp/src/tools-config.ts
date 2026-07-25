@@ -18,12 +18,12 @@
 
 import { getSpec } from "kibi-cli/operations";
 import type { OperationName } from "kibi-cli/operations";
+import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 
 import {
   DIAGNOSTIC_MODE_ENABLED,
   DIAGNOSTIC_TELEMETRY_SCHEMA,
 } from "./diagnostics.js";
-import type { ToolAnnotations } from "./server/tool-types.js";
 
 interface ToolConfig {
   name: string;
