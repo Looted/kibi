@@ -7,11 +7,6 @@ type: scenario
 tags:
   - authentication
   - e2e
-links:
-  - type: specified_by
-    target: REQ-001
-  - type: relates_to
-    target: SCEN-002
 ---
 
 # Login Flow Test Scenario
