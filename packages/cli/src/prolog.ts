@@ -24,6 +24,9 @@ import { fileURLToPath } from "node:url";
 import { getKbPlPathOverride, isPrologDebugEnabled } from "./env.js";
 
 const importMetaDir = path.dirname(fileURLToPath(import.meta.url));
+const PROLOG_OUTPUT_MAX_BUFFER_BYTES = 8 * 1024 * 1024;
+const PROLOG_OUTPUT_OVERFLOW_ERROR =
+  "Query exceeded bounded Prolog output capacity (ENOBUFS); narrow the operation or reduce stored entity size";
 
 const require = createRequire(import.meta.url);
 export function resolveKbPlPath(): string {
@@ -81,7 +84,10 @@ export class PrologProcess {
   private swiplPath: string;
   private timeout: number;
   private outputBuffer = "";
+  private outputBufferBytes = 0;
+  private outputOverflowed = false;
   private errorBuffer = "";
+  private errorBufferBytes = 0;
   private cache: Map<string, QueryResult> = new Map();
   private interactiveQueryTail: Promise<void> = Promise.resolve();
   private terminationPromise: Promise<void> | null = null;
@@ -114,12 +120,12 @@ export class PrologProcess {
       throw new Error("Failed to spawn Prolog process");
     }
 
-    this.process.stdout.on("data", (chunk) => {
-      this.outputBuffer += chunk.toString();
+    this.process.stdout.on("data", (chunk: Buffer) => {
+      this.appendOutputChunk(chunk);
     });
 
-    this.process.stderr.on("data", (chunk) => {
-      this.errorBuffer += chunk.toString();
+    this.process.stderr.on("data", (chunk: Buffer) => {
+      this.appendErrorChunk(chunk);
     });
 
     this.process.stdin.write("true.\n");
@@ -155,8 +161,7 @@ export class PrologProcess {
       }
 
       if (this.outputBuffer.includes("true.")) {
-        this.outputBuffer = "";
-        this.errorBuffer = "";
+        this.clearQueryBuffers();
         return;
       }
 
@@ -172,8 +177,7 @@ export class PrologProcess {
       );
     }
 
-    this.outputBuffer = "";
-    this.errorBuffer = "";
+    this.clearQueryBuffers();
   }
 
   // implements REQ-core-prolog-process-management
@@ -246,6 +250,28 @@ export class PrologProcess {
           if (settled) {
             return;
           }
+          if (this.outputOverflowed) {
+            clearTimeout(timeoutId);
+            settled = true;
+            void this.terminate().finally(() => {
+              resolve({
+                success: false,
+                bindings: {},
+                error: PROLOG_OUTPUT_OVERFLOW_ERROR,
+              });
+            });
+            return;
+          }
+          if (!this.isProcessUsable()) {
+            clearTimeout(timeoutId);
+            settled = true;
+            resolve({
+              success: false,
+              bindings: {},
+              error: "Query interrupted because the Prolog process terminated",
+            });
+            return;
+          }
           if (
             this.errorBuffer.length > 0 &&
             this.errorBuffer.includes("ERROR")
@@ -268,7 +294,7 @@ export class PrologProcess {
           if (
             this.outputBuffer.includes("true.") ||
             this.outputBuffer.match(/^[A-Z_][A-Za-z0-9_]*\s*=\s*.+\./m) ||
-            this.outputBuffer.match(/\]\s*$/m)
+            this.outputBuffer.match(/\]\s*$/)
           ) {
             clearTimeout(timeoutId);
             settled = true;
@@ -466,6 +492,7 @@ export class PrologProcess {
       {
         encoding: "utf8",
         timeout: this.timeout,
+        maxBuffer: PROLOG_OUTPUT_MAX_BUFFER_BYTES,
         env: {
           ...process.env,
           KIBI_GOAL: combinedGoal,
@@ -482,6 +509,14 @@ export class PrologProcess {
         result.error.message.includes("ETIMEDOUT"))
     ) {
       throw new Error(`Query timeout after ${this.timeout / 1000}s`);
+    }
+
+    if (result.error?.message.includes("ENOBUFS")) {
+      return {
+        success: false,
+        bindings: {},
+        error: PROLOG_OUTPUT_OVERFLOW_ERROR,
+      };
     }
 
     const stdout = result.stdout ?? "";
@@ -527,7 +562,36 @@ export class PrologProcess {
 
   private clearQueryBuffers(): void {
     this.outputBuffer = "";
+    this.outputBufferBytes = 0;
+    this.outputOverflowed = false;
     this.errorBuffer = "";
+    this.errorBufferBytes = 0;
+  }
+
+  private appendOutputChunk(chunk: Buffer): void {
+    if (this.outputOverflowed) return;
+    const remaining = PROLOG_OUTPUT_MAX_BUFFER_BYTES - this.outputBufferBytes;
+    if (chunk.byteLength > remaining) {
+      this.outputBuffer += chunk.subarray(0, remaining).toString();
+      this.outputBufferBytes = PROLOG_OUTPUT_MAX_BUFFER_BYTES;
+      this.outputOverflowed = true;
+      return;
+    }
+    this.outputBuffer += chunk.toString();
+    this.outputBufferBytes += chunk.byteLength;
+  }
+
+  private appendErrorChunk(chunk: Buffer): void {
+    if (this.outputOverflowed) return;
+    const remaining = PROLOG_OUTPUT_MAX_BUFFER_BYTES - this.errorBufferBytes;
+    if (chunk.byteLength > remaining) {
+      this.errorBuffer += chunk.subarray(0, remaining).toString();
+      this.errorBufferBytes = PROLOG_OUTPUT_MAX_BUFFER_BYTES;
+      this.outputOverflowed = true;
+      return;
+    }
+    this.errorBuffer += chunk.toString();
+    this.errorBufferBytes += chunk.byteLength;
   }
 
   // implements REQ-009
