@@ -1,4 +1,5 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { type OperationName, getSpec } from "kibi-cli/operations";
 import type {
   OperationContext,
@@ -24,7 +25,10 @@ import type { SparqlArgs } from "../tools/sparql.js";
 import type { StatusArgs } from "../tools/status.js";
 import type { SuggestPredicatesArgs } from "../tools/suggest-predicates.js";
 import type { UpsertArgs } from "../tools/upsert.js";
-import type { ToolHandler, ToolsRuntime } from "./tool-types.js";
+import type {
+  ToolHandler,
+  ToolsRuntime,
+} from "./tool-types.js";
 
 type ToolRegistrar<TProlog> = (
   server: McpServer,
@@ -34,6 +38,7 @@ type ToolRegistrar<TProlog> = (
   handler: ToolHandler,
   runtime: ToolsRuntime<TProlog>,
   spec?: RuntimeOperationSpec<Record<string, unknown>, unknown>,
+  annotations?: ToolAnnotations,
 ) => void;
 
 type ToolRegistration = {
@@ -53,7 +58,7 @@ export function registerConfiguredTools<TProlog>(
   const toolDef = (name: string) => {
     const t = runtime.tools.find((tool) => tool.name === name);
     if (!t) throw new Error(`Unknown tool: ${name}`);
-    return t;
+    return t as typeof t & { annotations?: ToolAnnotations };
   };
   const prologFor = (context: OperationContext): TProlog => {
     const prolog = runtime.operationRuntime.sessionProlog(context);
@@ -79,6 +84,7 @@ export function registerConfiguredTools<TProlog>(
       async () => undefined,
       runtime,
       spec,
+      definition.annotations,
     );
   };
 

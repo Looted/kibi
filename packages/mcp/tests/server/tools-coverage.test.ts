@@ -51,6 +51,13 @@ type RegisteredTool = {
     inputSchema: {
       safeParse: (value: unknown) => { success: boolean };
     };
+    annotations?: {
+      title?: string;
+      readOnlyHint?: boolean;
+      destructiveHint?: boolean;
+      idempotentHint?: boolean;
+      openWorldHint?: boolean;
+    };
   };
   handler: ToolHandlerLike;
 };
@@ -175,16 +182,22 @@ function createDeferred<T>() {
 }
 
 function createToolConfigs(): ToolConfig[] {
-  return TOOL_NAMES.map((name) => ({
-    name,
-    description: `${name} description`,
-    inputSchema: {
-      type: "object",
-      properties: {
-        marker: { type: "string" },
+  return TOOL_NAMES.map((name) => {
+    const configuredTool = TOOLS.find((tool) => tool.name === name);
+    return {
+      name,
+      description: `${name} description`,
+      inputSchema: {
+        type: "object",
+        properties: {
+          marker: { type: "string" },
+        },
       },
-    },
-  }));
+      ...(configuredTool?.annotations
+        ? { annotations: configuredTool.annotations }
+        : {}),
+    };
+  });
 }
 
 function createSessionModuleMock(
@@ -384,10 +397,7 @@ function createRuntime() {
     }),
   );
   const handleSparql: ToolsRuntime<MockProlog>["handleSparql"] = mock(
-    async (
-      _args: SparqlArgs,
-      context: OperationContext,
-    ): Promise<unknown> => ({
+    async (_args: SparqlArgs, context: OperationContext): Promise<unknown> => ({
       tool: "kb_sparql_remote",
       args: context,
     }),
@@ -714,6 +724,23 @@ describe.serial("server tools coverage", () => {
     expect(spies.handleKbUpsert).toHaveBeenCalledTimes(1);
     expect(spies.ensureProlog).toHaveBeenCalledTimes(1);
     expect(spies.refreshAttachedBranchStamp).toHaveBeenCalledTimes(1);
+  });
+
+  test("registerAllTools publishes read-only annotations for bundled skill tools", () => {
+    const { runtime } = createRuntime();
+    const { server, registered } = createCapturingServer();
+
+    registerAllTools(server, runtime);
+
+    for (const name of ["kb_skills_list", "kb_skills_load", "kb_skills_read"]) {
+      expect(getRegisteredTool(registered, name).config.annotations).toEqual({
+        title: expect.any(String),
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      });
+    }
   });
 
   test("addTool extracts telemetry and appends usage logs on success in diagnostic mode", async () => {

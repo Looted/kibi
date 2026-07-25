@@ -1589,7 +1589,7 @@ coordinates:
   SYM-addTool:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 250
+    sourceEndLine: 259
     sourceFile: packages/mcp/src/server/tools.ts
     sourceLine: 104
   SYM-analyzeSemanticAdvisorInput:
@@ -5459,15 +5459,15 @@ coordinates:
   SYM-registerAllTools:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 259
+    sourceEndLine: 268
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 253
+    sourceLine: 262
   SYM-registerConfiguredTools:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 191
+    sourceEndLine: 197
     sourceFile: packages/mcp/src/server/tool-registration.ts
-    sourceLine: 48
+    sourceLine: 53
   SYM-registerIndexCoverageTests:
     sourceColumn: 16
     sourceEndColumn: 1
