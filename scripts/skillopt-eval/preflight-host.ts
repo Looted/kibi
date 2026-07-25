@@ -16,6 +16,7 @@ import {
 } from "./preflight-host-model";
 import {
   externalPath,
+  launchAttestation,
   loadAttestation,
   validateTrustRoot,
 } from "./preflight-host-runtime";
@@ -211,12 +212,9 @@ export async function qualifySkillOptHost(
     if (result.status === "no-go") throw new PreflightNoGo(result);
     if (
       options.fixtureRoot !== undefined &&
-      process.env.KIBI_SKILLOPT_TEST_SPAWN_SENTINEL !== undefined
+      options.launcherSpawner !== undefined
     )
-      await Bun.write(
-        process.env.KIBI_SKILLOPT_TEST_SPAWN_SENTINEL,
-        "spawn-boundary\n",
-      );
+      await launchAttestation(options.launcherSpawner);
     return result;
   } catch (error) {
     if (error instanceof PreflightNoGo) throw error;

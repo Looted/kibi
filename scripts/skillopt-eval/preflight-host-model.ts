@@ -15,11 +15,21 @@ import {
 } from "./preflight-contracts";
 import { parseLock } from "./preflight-io";
 
+export type LauncherProcess = Readonly<{
+  stdout: ReadableStream<Uint8Array>;
+  stderr: ReadableStream<Uint8Array>;
+  exited: Promise<number>;
+  kill(signal: NodeJS.Signals): void;
+}>;
+
+export type LauncherSpawner = (argv: [string, ...string[]]) => LauncherProcess;
+
 export type HostPreflightOptions = Readonly<{
   sandboxLock: string;
   providerLock: string;
   verifierLock: string;
   fixtureRoot?: string;
+  launcherSpawner?: LauncherSpawner;
 }>;
 
 export type LoadedLocks = Readonly<{
