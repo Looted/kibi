@@ -2084,30 +2084,12 @@ coordinates:
     sourceEndLine: 582
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 571
-  SYM-cli-PrologProcess-attachedKbPath:
-    sourceColumn: 10
-    sourceEndColumn: 47
-    sourceEndLine: 96
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 96
-  SYM-cli-PrologProcess-cache:
-    sourceColumn: 10
-    sourceEndColumn: 54
-    sourceEndLine: 91
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 91
   SYM-cli-PrologProcess-clearQueryBuffers:
     sourceColumn: 10
     sourceEndColumn: 3
     sourceEndLine: 569
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 563
-  SYM-cli-PrologProcess-errorBuffer:
-    sourceColumn: 10
-    sourceEndColumn: 27
-    sourceEndLine: 89
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 89
   SYM-cli-PrologProcess-errorBufferBytes:
     sourceColumn: 10
     sourceEndColumn: 31
@@ -2132,12 +2114,6 @@ coordinates:
     sourceEndLine: 693
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 691
-  SYM-cli-PrologProcess-interactiveQueryTail:
-    sourceColumn: 10
-    sourceEndColumn: 66
-    sourceEndLine: 92
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 92
   SYM-cli-PrologProcess-invalidateCache:
     sourceColumn: 2
     sourceEndColumn: 3
@@ -2180,18 +2156,6 @@ coordinates:
     sourceEndLine: 561
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 559
-  SYM-cli-PrologProcess-onProcessExit:
-    sourceColumn: 10
-    sourceEndColumn: 52
-    sourceEndLine: 97
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 97
-  SYM-cli-PrologProcess-outputBuffer:
-    sourceColumn: 10
-    sourceEndColumn: 28
-    sourceEndLine: 86
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 86
   SYM-cli-PrologProcess-outputBufferBytes:
     sourceColumn: 10
     sourceEndColumn: 32
@@ -2204,12 +2168,6 @@ coordinates:
     sourceEndLine: 88
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 88
-  SYM-cli-PrologProcess-process:
-    sourceColumn: 10
-    sourceEndColumn: 46
-    sourceEndLine: 83
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 83
   SYM-cli-PrologProcess-query:
     sourceColumn: 8
     sourceEndColumn: 3
@@ -2228,42 +2186,18 @@ coordinates:
     sourceEndLine: 141
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 104
-  SYM-cli-PrologProcess-swiplPath:
-    sourceColumn: 10
-    sourceEndColumn: 28
-    sourceEndLine: 84
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 84
   SYM-cli-PrologProcess-terminate:
     sourceColumn: 8
     sourceEndColumn: 3
     sourceEndLine: 734
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 695
-  SYM-cli-PrologProcess-terminationPromise:
-    sourceColumn: 10
-    sourceEndColumn: 58
-    sourceEndLine: 93
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 93
-  SYM-cli-PrologProcess-timeout:
-    sourceColumn: 10
-    sourceEndColumn: 26
-    sourceEndLine: 85
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 85
   SYM-cli-PrologProcess-translateError:
     sourceColumn: 10
     sourceEndColumn: 3
     sourceEndLine: 683
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 624
-  SYM-cli-PrologProcess-useOneShotMode:
-    sourceColumn: 10
-    sourceEndColumn: 65
-    sourceEndLine: 95
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 94
   SYM-cli-PrologProcess-waitForReady:
     sourceColumn: 16
     sourceEndColumn: 3
@@ -4298,12 +4232,6 @@ coordinates:
     sourceEndLine: 67
     sourceFile: packages/mcp/src/server/session.ts
     sourceLine: 67
-  SYM-mcp-session-attachedBranchKbPath:
-    sourceColumn: 11
-    sourceEndColumn: 53
-    sourceEndLine: 70
-    sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 70
   SYM-mcp-session-ensureBranchKbExists:
     sourceColumn: 16
     sourceEndColumn: 1
