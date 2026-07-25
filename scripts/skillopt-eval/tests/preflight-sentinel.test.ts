@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
-import { readFile, rm } from "node:fs/promises";
+import { rm } from "node:fs/promises";
 import { PreflightNoGo, qualifySkillOptHost } from "../preflight";
 import { createPreflightFixture, updateProbe } from "./preflight-fixture";
 
