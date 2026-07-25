@@ -255,6 +255,20 @@ If your client supports a working-directory setting, point it at the project whe
 
 </details>
 
+### Generic agent skill onboarding
+
+Skills are bundled Markdown guidance and are not automatically loaded by arbitrary agent hosts. An MCP-capable agent should use `tools/list`, then call `kb_skills_list`, `kb_skills_load` (normally with `kibi-usage`), and `kb_skills_read` only for resources declared by the loaded manifest. The skill tools are read-only and do not install remote content or execute scripts.
+
+When MCP is unavailable, use a trusted project-local CLI with structured JSON routes:
+
+```bash
+printf '%s\n' '{}' | kibi skills-list --input -
+printf '%s\n' '{"id":"kibi-usage"}' | kibi skills-load --input -
+printf '%s\n' '{"id":"kibi-usage","resource":"resources/workflows.md"}' | kibi skills-read --input -
+```
+
+If neither capability is available, the agent should ask the operator to enable Kibi MCP or the trusted local CLI rather than infer availability from configuration files or access `.kb/` directly. See the [MCP Reference](docs/mcp-reference.md#generic-agent-onboarding) for the complete progressive-disclosure and safety contract.
+
 If your project uses a different package manager, keep the same MCP shape and swap the command/args for your local runner, for example `pnpm exec kibi-mcp`, `yarn exec kibi-mcp`, or `bunx --no-install kibi-mcp`.
 
 Optional OpenCode plugin usage is separate from the MCP server command:
