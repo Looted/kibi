@@ -17,15 +17,19 @@
         "limit": {
           "default": 20,
           "description": "Optional max rows to return after ranking. Default: 20.",
+          "minimum": 0,
           "type": "integer"
         },
         "offset": {
           "default": 0,
           "description": "Optional zero-based pagination offset. Default: 0.",
+          "minimum": 0,
           "type": "integer"
         },
         "query": {
           "description": "Free-text query for metadata and markdown body discovery. Example: 'OAuth login flow'.",
+          "maxLength": 4096,
+          "minLength": 1,
           "type": "string"
         },
         "type": {
