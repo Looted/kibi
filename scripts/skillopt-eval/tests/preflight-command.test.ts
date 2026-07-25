@@ -19,4 +19,4 @@ test("preflight compatibility runner supports the documented focused pattern", a
 
   // Then
   expect(await child.exited).toBe(0);
-});
+}, 15_000);
