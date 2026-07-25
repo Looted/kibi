@@ -6,8 +6,6 @@ import { join } from "node:path";
 
 export { invokePreflight, updateProbe } from "./preflight-fixture-runtime";
 
-const sha256 = new Bun.CryptoHasher("sha256");
-
 export type HostProbe = Readonly<{
   platform: "linux" | "darwin";
   identities: Readonly<{
@@ -60,7 +58,7 @@ export type PreflightFixture = Readonly<{
 }>;
 
 function digest(data: string | Buffer): string {
-  return sha256.update(data).digest("hex");
+  return new Bun.CryptoHasher("sha256").update(data).digest("hex");
 }
 
 async function writeJson(

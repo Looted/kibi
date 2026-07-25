@@ -1,7 +1,10 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { EXTERNAL_ROOT, LAUNCHER } from "./preflight-contracts";
-import type { HostPreflightOptions } from "./preflight-host-model";
+import type {
+  HostPreflightOptions,
+  LauncherSpawner,
+} from "./preflight-host-model";
 import { PreflightInputError, validateTrustDirectory } from "./preflight-io";
 
 export function externalPath(
@@ -41,12 +44,13 @@ export async function loadAttestation(
       process.env.KIBI_SKILLOPT_PREFLIGHT_SENTINEL,
       "launcher-spawned\n",
     );
-  const child = Bun.spawn([LAUNCHER, "preflight", "--format", "json"], {
-    env: {},
-    stdin: "ignore",
-    stdout: "pipe",
-    stderr: "pipe",
-  });
+  return launchAttestation(options.launcherSpawner);
+}
+
+export async function launchAttestation(
+  spawner: LauncherSpawner = spawnLauncher,
+): Promise<string> {
+  const child = spawner([LAUNCHER, "preflight", "--format", "json"]);
   const timeout = setTimeout(() => child.kill("SIGKILL"), 30_000);
   try {
     const [stdout, , exitCode] = await Promise.all([
@@ -61,6 +65,14 @@ export async function loadAttestation(
     clearTimeout(timeout);
   }
 }
+
+const spawnLauncher: LauncherSpawner = (argv) =>
+  Bun.spawn(argv, {
+    env: {},
+    stdin: "ignore",
+    stdout: "pipe",
+    stderr: "pipe",
+  });
 
 async function readBounded(
   stream: ReadableStream<Uint8Array>,

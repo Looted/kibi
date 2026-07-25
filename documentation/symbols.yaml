@@ -12854,7 +12854,7 @@ symbols:
     title: qualifySkillOptHost
     sourceFile: scripts/skillopt-eval/preflight-host.ts
     symbol_role: behavioral
-    text_ref: scripts/skillopt-eval/preflight-host.ts#qualifySkillOptHost
+    text_ref: scripts/skillopt-eval/preflight-host.ts#L29-L240
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -17806,6 +17806,36 @@ symbols:
     sourceFile: scripts/skillopt-eval/tests/preflight-unsupported-cases.ts
     text_ref: scripts/skillopt-eval/tests/preflight-unsupported-cases.ts#unsupportedCases
     symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-launcher-process
+    title: LauncherProcess
+    sourceFile: scripts/skillopt-eval/preflight-host-model.ts
+    text_ref: scripts/skillopt-eval/preflight-host-model.ts#LauncherProcess
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-launcher-spawner
+    title: LauncherSpawner
+    sourceFile: scripts/skillopt-eval/preflight-host-model.ts
+    text_ref: scripts/skillopt-eval/preflight-host-model.ts#LauncherSpawner
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-preflight-launch-attestation
+    title: launchAttestation
+    sourceFile: scripts/skillopt-eval/preflight-host-runtime.ts
+    text_ref: scripts/skillopt-eval/preflight-host-runtime.ts#launchAttestation
+    symbol_role: behavioral
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
