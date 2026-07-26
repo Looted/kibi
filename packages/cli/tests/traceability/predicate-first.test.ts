@@ -91,7 +91,10 @@ function loadPredicateFirstGraph(): GraphFixture {
     "utf8",
   );
   const symbolBlock = symbols.match(
-    new RegExp(`- id: ${TEST_SYMBOL_ID}\\n([\\s\\S]*?)(?=\\n- id:|$)`),
+    new RegExp(
+      `^([ \\t]*)- id: ${TEST_SYMBOL_ID}\\n([\\s\\S]*?)(?=^\\1- id: |$(?![\\s\\S]))`,
+      "m",
+    ),
   )?.[0];
   if (!symbolBlock) throw new TypeError(`${TEST_SYMBOL_ID} must be manifested`);
   const symbolEdges = [
