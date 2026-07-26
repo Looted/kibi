@@ -27,6 +27,7 @@ const importMetaDir = path.dirname(fileURLToPath(import.meta.url));
 const PROLOG_OUTPUT_MAX_BUFFER_BYTES = 8 * 1024 * 1024;
 const PROLOG_OUTPUT_OVERFLOW_ERROR =
   "Query exceeded bounded Prolog output capacity (ENOBUFS); narrow the operation or reduce stored entity size";
+const INTERACTIVE_QUERY_FRAME_END = "__KIBI_QUERY_FRAME_END__";
 
 const require = createRequire(import.meta.url);
 export function resolveKbPlPath(): string {
@@ -227,7 +228,9 @@ export class PrologProcess {
         console.error(`[prolog debug] start query: ${normalizedGoal}`);
       }
 
-      this.process?.stdin?.write(`${wrappedGoal}.\n`);
+      this.process?.stdin?.write(
+        `${wrappedGoal}.\nwriteln('${INTERACTIVE_QUERY_FRAME_END}').\n`,
+      );
 
       return new Promise((resolve, reject) => {
         let settled = false;
@@ -291,16 +294,24 @@ export class PrologProcess {
             return;
           }
 
-          if (
-            this.outputBuffer.includes("true.") ||
-            this.outputBuffer.match(/^[A-Z_][A-Za-z0-9_]*\s*=\s*.+\./m) ||
-            this.outputBuffer.match(/\]\s*$/)
-          ) {
+          const frameEnd = this.outputBuffer.indexOf(
+            INTERACTIVE_QUERY_FRAME_END,
+          );
+          if (frameEnd >= 0) {
             clearTimeout(timeoutId);
             settled = true;
+            const framedOutput = this.outputBuffer.slice(0, frameEnd).trimEnd();
+            if (/(?:^|\n)(?:false|fail)\.\s*$/.test(framedOutput)) {
+              resolve({
+                success: false,
+                bindings: {},
+                error: "Query failed",
+              });
+              return;
+            }
             const result = {
               success: true,
-              bindings: this.extractBindings(this.outputBuffer),
+              bindings: this.extractBindings(framedOutput),
             };
             // Treat any batch/compound goal as non-cacheable to preserve
             // read-after-write consistency. A batch goal is produced when
@@ -320,31 +331,6 @@ export class PrologProcess {
               );
             }
             resolve(result);
-            return;
-          }
-
-          if (
-            this.outputBuffer.includes("false.") ||
-            this.outputBuffer.includes("fail.")
-          ) {
-            clearTimeout(timeoutId);
-            settled = true;
-            if (debug) {
-              console.error(
-                `[prolog debug] query failed (false): ${normalizedGoal}`,
-              );
-            }
-            // Check errorBuffer first — Prolog catch/3 writes ERROR to stderr
-            // then fail to stdout. If stderr has the real error, surface it.
-            const errorMessage =
-              this.errorBuffer.length > 0 && this.errorBuffer.includes("ERROR")
-                ? this.translateError(this.errorBuffer)
-                : "Query failed";
-            resolve({
-              success: false,
-              bindings: {},
-              error: errorMessage,
-            });
             return;
           }
 

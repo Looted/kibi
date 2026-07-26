@@ -5,9 +5,9 @@ coordinates:
   SYM-001:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 735
+    sourceEndLine: 721
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 82
+    sourceLine: 83
   SYM-003:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -797,9 +797,9 @@ coordinates:
   SYM-ManifestSymbolEntry:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 54
+    sourceEndLine: 55
     sourceFile: packages/cli/src/extractors/symbols-ts.ts
-    sourceLine: 43
+    sourceLine: 44
   SYM-ManifestSymbolRecord:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -953,9 +953,9 @@ coordinates:
   SYM-PrologOptions:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 74
+    sourceEndLine: 75
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 71
+    sourceLine: 72
   SYM-PromptContext:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -995,9 +995,9 @@ coordinates:
   SYM-QueryResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 80
+    sourceEndLine: 81
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 76
+    sourceLine: 77
   SYM-ReconcileResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1373,9 +1373,9 @@ coordinates:
   SYM-SymbolCoordinates:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 41
+    sourceEndLine: 42
     sourceFile: packages/cli/src/extractors/symbols-ts.ts
-    sourceLine: 35
+    sourceLine: 36
   SYM-SymbolCoordinatesArtifact:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -2072,138 +2072,42 @@ coordinates:
     sourceEndLine: 103
     sourceFile: packages/cli/src/commands/sync/persistence.ts
     sourceLine: 99
-  SYM-cli-PrologProcess-appendErrorChunk:
-    sourceColumn: 10
-    sourceEndColumn: 3
-    sourceEndLine: 595
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 584
-  SYM-cli-PrologProcess-appendOutputChunk:
-    sourceColumn: 10
-    sourceEndColumn: 3
-    sourceEndLine: 582
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 571
-  SYM-cli-PrologProcess-clearQueryBuffers:
-    sourceColumn: 10
-    sourceEndColumn: 3
-    sourceEndLine: 569
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 563
-  SYM-cli-PrologProcess-errorBufferBytes:
-    sourceColumn: 10
-    sourceEndColumn: 31
-    sourceEndLine: 90
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 90
-  SYM-cli-PrologProcess-execOneShot:
-    sourceColumn: 10
-    sourceEndColumn: 3
-    sourceEndLine: 557
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 450
-  SYM-cli-PrologProcess-extractBindings:
-    sourceColumn: 10
-    sourceEndColumn: 3
-    sourceEndLine: 621
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 606
   SYM-cli-PrologProcess-getPid:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 693
+    sourceEndLine: 679
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 691
+    sourceLine: 677
   SYM-cli-PrologProcess-invalidateCache:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 377
+    sourceEndLine: 363
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 375
-  SYM-cli-PrologProcess-isCacheableGoal:
-    sourceColumn: 10
-    sourceEndColumn: 3
-    sourceEndLine: 389
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 379
-  SYM-cli-PrologProcess-isExplicitSaveGoal:
-    sourceColumn: 10
-    sourceEndColumn: 3
-    sourceEndLine: 403
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 401
-  SYM-cli-PrologProcess-isMutatingGoal:
-    sourceColumn: 10
-    sourceEndColumn: 3
-    sourceEndLine: 398
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 392
-  SYM-cli-PrologProcess-isProcessUsable:
-    sourceColumn: 10
-    sourceEndColumn: 3
-    sourceEndLine: 604
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 598
+    sourceLine: 361
   SYM-cli-PrologProcess-isRunning:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 689
+    sourceEndLine: 675
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 685
-  SYM-cli-PrologProcess-normalizeGoal:
-    sourceColumn: 10
-    sourceEndColumn: 3
-    sourceEndLine: 561
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 559
-  SYM-cli-PrologProcess-outputBufferBytes:
-    sourceColumn: 10
-    sourceEndColumn: 32
-    sourceEndLine: 87
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 87
-  SYM-cli-PrologProcess-outputOverflowed:
-    sourceColumn: 10
-    sourceEndColumn: 35
-    sourceEndLine: 88
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 88
+    sourceLine: 671
   SYM-cli-PrologProcess-query:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 373
+    sourceEndLine: 359
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 184
-  SYM-cli-PrologProcess-queryOneShot:
-    sourceColumn: 16
-    sourceEndColumn: 3
-    sourceEndLine: 445
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 405
+    sourceLine: 185
   SYM-cli-PrologProcess-start:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 141
+    sourceEndLine: 142
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 104
+    sourceLine: 105
   SYM-cli-PrologProcess-terminate:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 734
+    sourceEndLine: 720
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 695
-  SYM-cli-PrologProcess-translateError:
-    sourceColumn: 10
-    sourceEndColumn: 3
-    sourceEndLine: 683
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 624
-  SYM-cli-PrologProcess-waitForReady:
-    sourceColumn: 16
-    sourceEndColumn: 3
-    sourceEndLine: 181
-    sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 143
+    sourceLine: 681
   SYM-cli-PrologQueryPlanSafetyViolation:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -3071,9 +2975,9 @@ coordinates:
   SYM-createTsMorphSourceAnalysisProvider:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 99
+    sourceEndLine: 100
     sourceFile: packages/cli/src/extractors/symbols-ts.ts
-    sourceLine: 68
+    sourceLine: 69
   SYM-createUniqueStagingPath:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3521,9 +3425,9 @@ coordinates:
   SYM-enrichSymbolCoordinatesWithTsMorph:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 175
+    sourceEndLine: 176
     sourceFile: packages/cli/src/extractors/symbols-ts.ts
-    sourceLine: 101
+    sourceLine: 102
   SYM-ensureSymbolsManifestFile:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4334,12 +4238,6 @@ coordinates:
     sourceEndLine: 59
     sourceFile: packages/mcp/tests/drivers/node-mcp-driver-helpers.mjs
     sourceLine: 54
-  SYM-mcp-test-node-driver-startServer:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 89
-    sourceFile: packages/mcp/tests/drivers/node-mcp-driver-helpers.mjs
-    sourceLine: 61
   SYM-mcp-test-node-driver-stopServer:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -5663,9 +5561,9 @@ coordinates:
   SYM-resolveKbPlPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 70
+    sourceEndLine: 71
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 32
+    sourceLine: 33
   SYM-resolveManifestPath:
     sourceColumn: 22
     sourceEndColumn: 1
