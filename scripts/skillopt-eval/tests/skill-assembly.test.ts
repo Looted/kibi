@@ -26,7 +26,7 @@ async function workspace(): Promise<string> {
 }
 
 describe("canonical skill assembly", () => {
-  test("Given a body-only candidate When assembled Then four skills remain discoverable with immutable companion surfaces", async () => {
+  test("predicate guidance accepts body-only candidate mutation while resources remain immutable", async () => {
     // Given
     const root = await workspace();
     const baseline = loadBundledSkill("kibi-usage");
@@ -60,7 +60,7 @@ describe("canonical skill assembly", () => {
     ).toBe(readBundledSkillResource("kibi-usage", "resources/workflows.md"));
   });
 
-  test("Given candidate frontmatter When it differs Then assembly rejects the immutable surface", async () => {
+  test("predicate guidance rejects malformed frontmatter version mutation", async () => {
     // Given
     const root = await workspace();
     const baseline = loadBundledSkill("kibi-freshness");
@@ -82,7 +82,7 @@ describe("canonical skill assembly", () => {
     });
   });
 
-  test("Given candidate resources When one byte differs Then assembly rejects the immutable resource surface", async () => {
+  test("predicate guidance rejects forbidden resource mutation", async () => {
     // Given
     const root = await workspace();
     const baseline = loadBundledSkill("kibi-usage");

@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Guides agents to use Kibi MCP, facts, relationships, and validation correctly
-version: 1.0.1
+version: 1.1.0
 kibiCompatibility: ">=0.11.0"
 tags:
   - kibi
@@ -18,7 +18,7 @@ resources:
 ---
 # Kibi Usage
 
-Consult this skill before Kibi knowledge-base operations, on first interaction with a Kibi-enabled repo, after stale or dirty KB status is suspected, and before mutations.
+Consult this skill before any Kibi knowledge base operation, on first interaction with a Kibi-enabled repo, after stale or dirty KB status is suspected, and before mutations.
 
 ## Interface Selection
 
@@ -29,7 +29,7 @@ Use this order for every Kibi operation:
 3. If the project-local CLI is unavailable or too old for the needed route, stop and tell the operator to enable or install Kibi.
 4. Never use a global fallback or an installing runner. Never probe or install packages as a side effect of interface selection.
 
-Use exact MCP tool names, dedicated CLI routes, input modes, effects, and Prolog requirements from the operation catalog. Do not invent a generic operation runner. Do not read or edit files inside `.kb` directly.
+Use exact MCP tool names, dedicated CLI routes, input modes, effects, and Prolog requirements from `resources/operation-access.md`. Do not invent a generic operation runner. Do not read or edit files inside `.kb/` directly.
 
 CLI JSON mode accepts MCP-shaped business input at `--input <file|->`.
 
@@ -43,11 +43,11 @@ echo '{"query":"authentication","limit":10}' | bunx --no-install kibi search --i
 
 ## MCP Tool Names
 
-Kibi canonical MCP names include `kb_search`, `kb_query`, `kb_upsert`, `kb_check`, `kb_status`, `kb_validate_upsert`, and related `kb_*` tools. Some environments expose prefixed identifiers. Use the visible Kibi MCP tool identifiers and map them back to canonical operations before reasoning about behavior.
+Kibi canonical MCP names include `kb_search`, `kb_query`, `kb_upsert`, `kb_check`, `kb_status`, `kb_validate_upsert`, and related `kb_*` tools. OpenCode may expose prefixed identifiers such as `kibi_kb_search`, `kibi_kb_query`, and `kibi_kb_upsert`. Use the visible Kibi MCP tool identifiers and map them back to canonical operations before reasoning about behavior.
 
 ## Discovery First
 
-Always discover before mutation. Start exploratory work with `kb_search` across metadata and markdown body text. Split broad queries into one to three focused probes and review top hits before concluding knowledge is absent.
+Always discover before you mutate. Start exploratory work with `kb_search` across metadata and markdown body text. Split broad queries into one to three focused probes and review top hits before concluding knowledge is absent.
 
 Use `kb_query` for exact lookups by `id`, `type`, `tags`, or `sourceFile`. Use `kb_status` when branch attachment, freshness, or stale context could affect the decision. Mutate only after discovery confirms the target state.
 
@@ -89,9 +89,9 @@ Before/after for reversed direction:
 - Wrong: `relationships: [{ type: "implements", from: "REQ-001", to: "SYM-001" }]`
 - Right: `relationships: [{ type: "implements", from: "SYM-001", to: "REQ-001" }]`
 
-## Source-File Traceability
+## Symbol-First Traceability
 
-Preserve source-file traceability whenever creating or updating requirements, facts, scenarios, tests, or symbols. Prefer durable `sourceFile` references and symbol coordinates that point to tracked repository files. For code ownership, create or update `symbol` entities and link them to requirements with `implements`; link symbols to tests with `covered_by` when coverage evidence is needed.
+Preserve source-file traceability whenever creating or updating requirements, facts, scenarios, tests, or symbols. Prefer durable `sourceFile` references and symbol coordinates that point to tracked repository files. For code ownership, create or update a `symbol` entity and add an `implements` relationship from the symbol to the requirement; link symbols to tests with `covered_by` when coverage evidence is needed.
 
 Do not use legacy `// implements REQ-xxx` comments as the primary marker for new or modified code. Use comments only as a temporary compatibility fallback when symbol metadata cannot be updated in the same task.
 
@@ -134,9 +134,23 @@ Model one semantic claim per strict `property_value` fact. Reusing the same `sub
 
 Use `kb_model_requirement` for automated strict-fact modeling when available. It generates subject and property_value facts, links them with `constrains` and `requires_property`, and handles low-confidence downgrades to observation facts automatically.
 
+Granular fact examples for coherence checks include `REQ-ROLE-SET-2` versus `REQ-ROLE-SET-3` on `user.roles.allowed_set` (`user,admin` versus `user,admin,superadmin`) and `REQ-ADMIN-CAN-MANAGE-BILLING` versus `REQ-ONLY-SUPERADMIN-MANAGES-BILLING` on `billing.manage.allowed_actor`. See `resources/fact-lanes.md`; `domain-contradictions` uses these canonical keys.
+
+## Predicate Ontology Decision Tree
+
+Preserve the readable requirement prose. Do not force every requirement into predicates.
+
+1. Call `kb_semantic_advisor` on normative prose and review its suggested lane.
+2. For a relational claim, call `kb_suggest_predicates`. Use a returned built-in or project-local schema only when its meaning and arguments fit; create the suggested `fact_kind: predicate` and link requirement -> fact with `requires_predicate`. A prohibition uses the suggested predicate with `polarity: deny` rather than an invented negative predicate name.
+3. For scalar, threshold, duration, boolean, enum-set, or cardinality claims, use `kb_model_requirement` and the strict subject/property lane instead.
+4. For ambiguity, a false-positive candidate, or no suitable schema, preserve the claim as `fact_kind: observation`; mark a true ontology gap for review rather than inventing a predicate.
+5. Validate each payload, create endpoints first, and apply validated `kb_upsert` calls sequentially. Finish with a full `kb_check`.
+
+Detailed built-in, project-local, deny, strict-scalar, ambiguous, false-positive, and ontology-gap examples are immutable reference material in `resources/fact-lanes.md` and `resources/workflows.md`.
+
 ## Fact vs Flag
 
-Use `flag` only for runtime or config gates such as feature flags, kill-switches, and deferred capabilities.
+Use `flag` for runtime or config gates only, such as feature flags, kill-switches, and deferred capabilities.
 
 Bugs, incidents, and workarounds belong in `fact` entities with `fact_kind: observation` or `meta`. These fact kinds are excluded from contradiction inference, making them appropriate for non-blocking evidence. Do not create a `flag` named like a bug to track a defect.
 
@@ -144,15 +158,15 @@ Bugs, incidents, and workarounds belong in `fact` entities with `fact_kind: obse
 
 Always confirm or create endpoint entities before linking them. Query target IDs with `kb_query` first. If an endpoint does not exist, create it with `kb_upsert` before creating the relationship. Relationships to missing entities produce dangling references that `kb_check` will flag.
 
-For `kb_upsert`, keep relationship rows anchored to the entity being upserted: each row's `from` must equal that entity ID. If you need a `SYM -> REQ` link, upsert the symbol endpoint first, then link that symbol to the requirement.
+For `kb_upsert`, keep relationship rows anchored to the entity being upserted: each row's `from` must equal the upserted entity ID. If you need a `SYM -> REQ` link, upsert the symbol endpoint first, then link that symbol to the requirement.
 
 Keep symbol payloads minimal: include only fields needed to identify the symbol, status, and source traceability. Put extra prose, examples, or audit notes in documentation or evidence artifacts instead of custom `kb_upsert.properties`; strict `kb_upsert.properties` rejects unknown fields.
 
 When a generic `Query failed` appears, do not keep retrying the same payload. First call `kb_validate_upsert`, query or create missing endpoints, reduce the payload to required fields, and retry once. If it still fails, report the blocker.
 
-## Behavior Fix Evidence
+## Small Behavior Fix Impact Evidence
 
-For a behavior-changing source edit with no existing requirement, create a requirement for the corrected behavior. Model strict facts from that requirement when the invariant is contradiction-sensitive.
+For a behavior-changing source edit, first query for an existing requirement. If no requirement exists, create one for the corrected behavior. Model strict facts from that requirement when the invariant is contradiction-sensitive.
 
 Do not link facts directly to tests. Facts describe invariants; requirements or scenarios are verified by executable tests. Use `REQ -> TEST` with `verified_by` or `TEST -> REQ` with `validates`, then link the requirement to facts with `constrains` and `requires_property`. Link touched production symbols to requirements with `implements` and to tests with `covered_by` when coverage evidence is needed.
 
@@ -172,7 +186,7 @@ The `domain-contradictions` rule detects conflicts between strict-lane facts lin
 
 Call `kb_status` when branch KB context may be stale or after switching context. Report freshness findings to the user rather than relying on outdated KB context. If `kb_status` indicates a schema migration is needed, ask the user or operator to handle it outside the agent session.
 
-## Anti-Patterns
+## Anti-Patterns and Remediation
 
 | Anti-Pattern | Problem | Remediation |
 |-------------|---------|-------------|
