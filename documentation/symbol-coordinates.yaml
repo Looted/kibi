@@ -8594,6 +8594,12 @@ coordinates:
     sourceEndLine: 51
     sourceFile: packages/mcp/src/tools/upsert.ts
     sourceLine: 29
+  SYM-test-predicate-first-graph:
+    sourceColumn: 1
+    sourceEndColumn: 1
+    sourceEndLine: 245
+    sourceFile: packages/cli/tests/traceability/predicate-first.test.ts
+    sourceLine: 1
   SYM-test-root-batch-timeout-minutes:
     sourceColumn: 13
     sourceEndColumn: 39
