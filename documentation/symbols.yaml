@@ -13581,11 +13581,15 @@ symbols:
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
     sourceLine: 1
     sourceColumn: 13
-    sourceEndLine: 9
+    sourceEndLine: 13
     sourceEndColumn: 10
   - id: SYM-skillopt-broker-options
     title: BrokerOptions
@@ -13597,9 +13601,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 61
+    sourceLine: 65
     sourceColumn: 12
-    sourceEndLine: 67
+    sourceEndLine: 71
     sourceEndColumn: 3
   - id: SYM-skillopt-mcp-broker-error
     title: McpBrokerError
@@ -13611,9 +13615,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 69
+    sourceLine: 73
     sourceColumn: 13
-    sourceEndLine: 77
+    sourceEndLine: 81
     sourceEndColumn: 1
   - id: SYM-skillopt-mcp-broker-error-name
     title: McpBrokerError.name
@@ -13625,9 +13629,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 70
+    sourceLine: 74
     sourceColumn: 11
-    sourceEndLine: 70
+    sourceEndLine: 74
     sourceEndColumn: 35
   - id: SYM-skillopt-filter-advertised-tools
     title: filterAdvertisedTools
@@ -13638,9 +13642,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 30
+    sourceLine: 34
     sourceColumn: 16
-    sourceEndLine: 53
+    sourceEndLine: 57
     sourceEndColumn: 1
   - id: SYM-skillopt-run-mcp-broker
     title: runMcpBroker
@@ -15383,6 +15387,416 @@ symbols:
     sourceFile: packages/cli/tests/traceability/predicate-first.test.ts
     symbol_role: behavioral
     granularity_reason: module-level-behavior
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-root-authorization-schema
+    title: RootAuthorizationSchema
+    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-supervisor-parent-schema
+    title: SupervisorParentSchema
+    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-launcher-session-schema
+    title: LauncherSessionSchema
+    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-generated-artifact-receipt-schema
+    title: GeneratedArtifactReceiptSchema
+    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-root-authorization-type
+    title: RootAuthorization
+    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-supervisor-parent-type
+    title: SupervisorParent
+    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-launcher-session-type
+    title: LauncherSession
+    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-generated-artifact-receipt-type
+    title: GeneratedArtifactReceipt
+    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-trust-plane-binding-error
+    title: TrustPlaneBindingError
+    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-trust-plane-binding-error-name
+    title: TrustPlaneBindingError.name
+    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-parse-root-authorization
+    title: parseRootAuthorization
+    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-parse-supervisor-parent
+    title: parseSupervisorParent
+    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-parse-launcher-session
+    title: parseLauncherSession
+    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-parse-generated-artifact-receipt
+    title: parseGeneratedArtifactReceipt
+    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-external-trust-client-main
+    title: externalTrustClientMain
+    sourceFile: scripts/skillopt-eval/runtime/external-trust-client-cli.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-external-provisioning-command
+    title: EXTERNAL_PROVISIONING_COMMAND
+    sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-external-trust-paths
+    title: EXTERNAL_TRUST_PATHS
+    sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-external-trust-probe
+    title: ExternalTrustProbe
+    sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-external-trust-receipt
+    title: ExternalTrustReceipt
+    sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-external-prerequisite-missing-error
+    title: ExternalPrerequisiteMissingError
+    sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-external-prerequisite-missing-error-name
+    title: ExternalPrerequisiteMissingError.name
+    sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-external-prerequisite-missing-error-code
+    title: ExternalPrerequisiteMissingError.code
+    sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-external-prerequisite-missing-error-installer
+    title: ExternalPrerequisiteMissingError.installerCommand
+    sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-require-external-trust-plane
+    title: requireExternalTrustPlane
+    sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-fake-provider-hash-schema
+    title: HashSchema
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-fake-provider-model-schema
+    title: ModelSchema
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-fake-provider-configuration-schema
+    title: ConfigurationSchema
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-fake-provider-request-schema
+    title: RequestSchema
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-fake-provider-capability-schema
+    title: CapabilitySchema
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-fake-provider-outcome-schema
+    title: OutcomeSchema
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-fake-provider-configuration-type
+    title: Configuration
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-fake-provider-request-type
+    title: Request
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-fake-provider-outcome-type
+    title: Outcome
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-fake-provider-capability-type
+    title: Capability
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-fake-provider-debit-receipt-type
+    title: DebitReceipt
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-fake-provider-reservation-type
+    title: Reservation
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-gateway-policy-error
+    title: GatewayPolicyError
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-gateway-policy-error-name
+    title: GatewayPolicyError.name
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-fake-provider-supervisor
+    title: FakeProviderSupervisor
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-fake-provider-configuration
+    title: FakeProviderSupervisor.configuration
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-fake-provider-reserve
+    title: FakeProviderSupervisor.reserve
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-fake-provider-forward
+    title: FakeProviderSupervisor.forward
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-fake-provider-execute-with-crash
+    title: FakeProviderSupervisor.executeWithCrash
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-fake-provider-recover
+    title: FakeProviderSupervisor.recover
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-fake-provider-reconcile
+    title: FakeProviderSupervisor.reconcile
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-fake-provider-zero-budget-parent
+    title: FakeProviderSupervisor.zeroBudgetVerificationParent
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-authorization-broker-tests
+    title: trusted broker authorization contracts
+    sourceFile: scripts/skillopt-eval/tests/authorization-broker.test.ts
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-model-gateway-tests
+    title: trusted broker model gateway
+    sourceFile: scripts/skillopt-eval/tests/model-gateway.test.ts
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-trust-fixture-hash
+    title: fixtureHash
+    sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-root-authorization-fixture
+    title: rootAuthorizationFixture
+    sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-supervisor-parent-fixture
+    title: supervisorParentFixture
+    sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-launcher-session-fixture
+    title: launcherSessionFixture
+    sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
     relationships:
       - type: executable_for
         target: TEST-skillopt-predicate-first-requirements

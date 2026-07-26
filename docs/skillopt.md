@@ -32,6 +32,51 @@ runtime authorization, materialization, paid access, spawn, or adoption.
 | Verify the committed source lock | `uv run --project tools/skillopt python tools/skillopt/verify_pin.py` | Confirms the checked in commit, version, and receipt still match. |
 | Run the isolated Python tests | `uv run --project tools/skillopt python -m unittest discover -s tools/skillopt/tests` | Checks the embedded evaluator without touching the main workspace. |
 
+The repository-side readiness client is deliberately narrower than the
+operator-owned launcher. Run it without fixture flags to verify the real
+prerequisites:
+
+```bash
+bun run scripts/skillopt-eval/runtime/external-trust-client-cli.ts
+```
+
+If any service asset is absent, it exits nonzero with
+`EXTERNAL_PREREQUISITE_MISSING`, the exact installer command above, and explicit
+`processSpawned: false`, `providerContacted: false`, and `ledgerWritten: false`
+fields. It does not fall back to an environment credential, `PATH` executable,
+pathname socket, direct provider connection, or repository-owned broker.
+
+## Trust-plane and paid-launch boundary
+
+Root Authority authorization covers only the immutable corpus, evaluator,
+query-set, baseline, verifier-release, and artifact-schema roots plus the frozen
+schema/protocol version. It does not authorize source bytes, candidates,
+invocations, matrices, generated snapshots, or generated artifacts.
+
+After that authorization exists, the external ProviderSupervisor separately
+binds the clean source root, baseline/one-shot/SkillOpt candidate hashes,
+invocation hash, matrix ID, expected artifact-schema digest, exact model/request/
+token/retry/time ceilings, integer micro-USD pricing, and total authorization.
+Generated evaluator and verifier receipts chain back to this parent; their roots
+must not claim equality with a Root Authority immutable root. Root Authority,
+ProviderSupervisor, Evaluator, and zero-budget Verifier use distinct role keys.
+
+The launcher must supply an already-connected control socket, authenticated
+service pidfd, sealed authorization FD, and sealed snapshot/artifact FD. The
+external supervisor—not repository code—authenticates peers, mints sealed
+one-request capabilities, reserves integer authorization before forwarding,
+reconciles invoices separately, retains debits across crashes, returns cached
+idempotent receipts, and charges the conservative maximum when forwarding is
+ambiguous. It also owns credentials, the authoritative ledger, DNS resolution,
+TLS/provider sockets, and pinned-CA HTTPS enforcement with exact host, port,
+SNI, selected pinned IP, and no redirects, proxies, or tunnels.
+
+The isolated target MCP broker exposes only its fixed Kibi allowlist. In
+addition to discovery, graph, check, and write operations, that list includes
+`kb_semantic_advisor`, `kb_suggest_predicates`, `kb_model_requirement`, and
+`kb_validate_upsert`; destructive delete and remote-network tools remain absent.
+Provider/model output is untrusted data and cannot alter this list or policy.
+
 ## Package scripts
 
 | Script | Command | Notes |
