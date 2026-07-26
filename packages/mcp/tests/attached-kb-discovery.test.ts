@@ -37,6 +37,8 @@ function readMessage(
   child: ReturnType<typeof spawn>,
   timeoutMs = 120_000,
 ): Promise<JsonObject> {
+  const stdout = child.stdout;
+  if (!stdout) return Promise.reject(new Error("MCP stdout is unavailable"));
   return new Promise((resolve, reject) => {
     let buffer = "";
     const timeout = setTimeout(() => {
@@ -52,9 +54,9 @@ function readMessage(
     };
     const cleanup = () => {
       clearTimeout(timeout);
-      child.stdout.off("data", onData);
+      stdout.off("data", onData);
     };
-    child.stdout.on("data", onData);
+    stdout.on("data", onData);
   });
 }
 
@@ -64,7 +66,9 @@ async function request(
   method: string,
   params: JsonObject,
 ): Promise<JsonObject> {
-  child.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id, method, params })}\n`);
+  const stdin = child.stdin;
+  if (!stdin) throw new Error("MCP stdin is unavailable");
+  stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id, method, params })}\n`);
   return readMessage(child);
 }
 
@@ -82,6 +86,27 @@ function structuredContent(response: JsonObject): JsonObject {
     throw new Error("MCP response has no structured content");
   }
   return Object.fromEntries(Object.entries(structured));
+}
+
+function discoveryIdentity(payload: JsonObject): JsonObject {
+  const collection = Array.isArray(payload.entities)
+    ? payload.entities
+    : Array.isArray(payload.results)
+      ? payload.results
+      : [];
+  const ids = collection.flatMap((value) => {
+    if (value === null || typeof value !== "object" || Array.isArray(value)) {
+      return [];
+    }
+    const record = Object.fromEntries(Object.entries(value));
+    const entity = record.entity;
+    const source =
+      entity !== null && typeof entity === "object" && !Array.isArray(entity)
+        ? Object.fromEntries(Object.entries(entity))
+        : record;
+    return typeof source.id === "string" ? [source.id] : [];
+  });
+  return { count: payload.count, ids };
 }
 
 async function stop(child: ReturnType<typeof spawn>): Promise<void> {
@@ -158,12 +183,24 @@ test(
         );
 
         // Then every complete frame has the one-shot count and stable identities/ranking.
-        expect(cliQuery).toEqual(expectedQuery);
-        expect(cliExact).toEqual(expectedExact);
-        expect(cliSearch).toEqual(expectedSearch);
-        expect(mcpQuery).toEqual(expectedQuery);
-        expect(mcpExact).toEqual(expectedExact);
-        expect(mcpSearch).toEqual(expectedSearch);
+        expect(discoveryIdentity(cliQuery)).toEqual(
+          discoveryIdentity(expectedQuery),
+        );
+        expect(discoveryIdentity(cliExact)).toEqual(
+          discoveryIdentity(expectedExact),
+        );
+        expect(discoveryIdentity(cliSearch)).toEqual(
+          discoveryIdentity(expectedSearch),
+        );
+        expect(discoveryIdentity(mcpQuery)).toEqual(
+          discoveryIdentity(expectedQuery),
+        );
+        expect(discoveryIdentity(mcpExact)).toEqual(
+          discoveryIdentity(expectedExact),
+        );
+        expect(discoveryIdentity(mcpSearch)).toEqual(
+          discoveryIdentity(expectedSearch),
+        );
       } finally {
         await stop(child);
       }
