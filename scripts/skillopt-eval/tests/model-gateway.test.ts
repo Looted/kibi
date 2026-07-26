@@ -119,6 +119,33 @@ describe("trusted broker model gateway", () => {
     }
   });
 
+  test("rejects a completed request id when its request hash changes", () => {
+    // Given
+    const supervisor = fixture();
+    const original = request("request-1");
+    supervisor.executeWithCrash(original, "finalize");
+
+    // When
+    const reserveWithChangedHash = () =>
+      supervisor.reserve({ ...original, requestHash: hash("d") });
+
+    // Then
+    expect(reserveWithChangedHash).toThrow("request_idempotency_mismatch");
+  });
+
+  test("returns a byte-identical receipt when a completed request is retried", () => {
+    // Given
+    const supervisor = fixture();
+    const original = request("request-1");
+    const completed = supervisor.executeWithCrash(original, "finalize");
+
+    // When
+    const retried = supervisor.reserve(original);
+
+    // Then
+    expect(JSON.stringify(retried.receipt)).toBe(JSON.stringify(completed));
+  });
+
   test("rejects forged capabilities pricing DNS TLS proxy replay and ceilings", () => {
     // Given
     const cases = [
