@@ -22,8 +22,8 @@ import {
   type Node,
   Project,
   ScriptKind,
-  SyntaxKind,
   type SourceFile,
+  SyntaxKind,
   type VariableDeclaration,
 } from "ts-morph";
 import type {
@@ -410,7 +410,8 @@ function isPrivateClassMember(member: {
   getName(): string;
 }): boolean {
   return (
-    member.hasModifier(SyntaxKind.PrivateKeyword) || member.getName().startsWith("#")
+    member.hasModifier(SyntaxKind.PrivateKeyword) ||
+    member.getName().startsWith("#")
   );
 }
 
