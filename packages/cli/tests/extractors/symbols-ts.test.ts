@@ -531,6 +531,17 @@ describe("enrichSymbolCoordinatesWithTsMorph", () => {
       "fixtures/common.cjs",
       "exports.commonValue = 1;\n",
     );
+    const privatePropertyAnalysis = provider.analyzeText(
+      "fixtures/private-property.ts",
+      [
+        "export class Session {",
+        "  private attachedPath: string | null = null;",
+        "  public generation = 0;",
+        "  private reset(): void {}",
+        "  public run(): void {}",
+        "}",
+      ].join("\n"),
+    );
 
     expect(jsxAnalysis.language).toBe("javascript");
     expect(jsxAnalysis.module.language).toBe("javascript");
@@ -547,5 +558,8 @@ describe("enrichSymbolCoordinatesWithTsMorph", () => {
       expect.objectContaining({ name: "ctsValue", kind: "variable" }),
     ]);
     expect(cjsAnalysis.language).toBe("javascript");
+    expect(
+      privatePropertyAnalysis.symbols.map((symbol) => symbol.name),
+    ).toEqual(["Session", "Session.run", "Session.generation"]);
   });
 });

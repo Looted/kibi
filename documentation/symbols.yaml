@@ -19,9 +19,9 @@ symbols:
         target: REQ-core-persistence
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 82
+    sourceLine: 83
     sourceColumn: 13
-    sourceEndLine: 735
+    sourceEndLine: 721
     sourceEndColumn: 1
   - id: SYM-PrologOptions
     title: PrologOptions
@@ -37,9 +37,9 @@ symbols:
         target: REQ-core-persistence
       - type: covered_by
         target: TEST-001
-    sourceLine: 71
+    sourceLine: 72
     sourceColumn: 17
-    sourceEndLine: 74
+    sourceEndLine: 75
     sourceEndColumn: 1
   - id: SYM-QueryResult
     title: QueryResult
@@ -55,9 +55,9 @@ symbols:
         target: REQ-core-persistence
       - type: covered_by
         target: TEST-001
-    sourceLine: 76
+    sourceLine: 77
     sourceColumn: 17
-    sourceEndLine: 80
+    sourceEndLine: 81
     sourceEndColumn: 1
   - id: SYM-resolveKbPlPath
     title: resolveKbPlPath
@@ -79,22 +79,18 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: implements
+        target: REQ-mcp-search-discovery
       - type: covered_by
         target: TEST-001
-    sourceLine: 184
+      - type: covered_by
+        target: TEST-mcp-search-discovery
+    sourceLine: 185
     sourceColumn: 8
-    sourceEndLine: 373
+    sourceEndLine: 359
     sourceEndColumn: 3
   - id: SYM-cli-PrologProcess-start
     title: PrologProcess.start
-    sourceFile: packages/cli/src/prolog.ts
-    relationships:
-      - type: implements
-        target: REQ-core-prolog-process-management
-      - type: covered_by
-        target: TEST-001
-  - id: SYM-cli-PrologProcess-waitForReady
-    title: PrologProcess.waitForReady
     sourceFile: packages/cli/src/prolog.ts
     relationships:
       - type: implements
@@ -110,170 +106,6 @@ symbols:
         target: REQ-core-prolog-process-management
       - type: covered_by
         target: TEST-001
-  - id: SYM-cli-PrologProcess-isCacheableGoal
-    title: PrologProcess.isCacheableGoal
-    sourceFile: packages/cli/src/prolog.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-core-prolog-process-management
-      - type: covered_by
-        target: TEST-001
-  - id: SYM-cli-PrologProcess-isMutatingGoal
-    title: PrologProcess.isMutatingGoal
-    sourceFile: packages/cli/src/prolog.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-core-prolog-process-management
-      - type: covered_by
-        target: TEST-001
-  - id: SYM-cli-PrologProcess-isExplicitSaveGoal
-    title: PrologProcess.isExplicitSaveGoal
-    sourceFile: packages/cli/src/prolog.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-core-prolog-process-management
-      - type: covered_by
-        target: TEST-001
-  - id: SYM-cli-PrologProcess-queryOneShot
-    title: PrologProcess.queryOneShot
-    sourceFile: packages/cli/src/prolog.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-core-prolog-process-management
-      - type: covered_by
-        target: TEST-001
-  - id: SYM-cli-PrologProcess-execOneShot
-    title: PrologProcess.execOneShot
-    sourceFile: packages/cli/src/prolog.ts
-    relationships:
-      - type: implements
-        target: REQ-core-prolog-process-management
-      - type: covered_by
-        target: TEST-001
-  - id: SYM-cli-PrologProcess-normalizeGoal
-    title: PrologProcess.normalizeGoal
-    sourceFile: packages/cli/src/prolog.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-core-prolog-process-management
-      - type: covered_by
-        target: TEST-001
-  - id: SYM-cli-PrologProcess-clearQueryBuffers
-    title: PrologProcess.clearQueryBuffers
-    sourceFile: packages/cli/src/prolog.ts
-    relationships:
-      - type: implements
-        target: REQ-core-prolog-process-management
-      - type: implements
-        target: REQ-mcp-search-discovery
-      - type: covered_by
-        target: TEST-001
-      - type: covered_by
-        target: TEST-mcp-search-discovery
-  - id: SYM-cli-PrologProcess-appendOutputChunk
-    title: PrologProcess.appendOutputChunk
-    sourceFile: packages/cli/src/prolog.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-search-discovery
-      - type: covered_by
-        target: TEST-mcp-search-discovery
-    sourceLine: 571
-    sourceColumn: 10
-    sourceEndLine: 582
-    sourceEndColumn: 3
-  - id: SYM-cli-PrologProcess-appendErrorChunk
-    title: PrologProcess.appendErrorChunk
-    sourceFile: packages/cli/src/prolog.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-search-discovery
-      - type: covered_by
-        target: TEST-mcp-search-discovery
-    sourceLine: 584
-    sourceColumn: 10
-    sourceEndLine: 595
-    sourceEndColumn: 3
-  - id: SYM-cli-PrologProcess-outputBufferBytes
-    title: PrologProcess.outputBufferBytes
-    sourceFile: packages/cli/src/prolog.ts
-    symbol_role: behavioral
-    granularity_reason: extractor-miss
-    relationships:
-      - type: implements
-        target: REQ-mcp-search-discovery
-      - type: covered_by
-        target: TEST-mcp-search-discovery
-    sourceLine: 87
-    sourceColumn: 10
-    sourceEndLine: 87
-    sourceEndColumn: 32
-  - id: SYM-cli-PrologProcess-errorBufferBytes
-    title: PrologProcess.errorBufferBytes
-    sourceFile: packages/cli/src/prolog.ts
-    symbol_role: behavioral
-    granularity_reason: extractor-miss
-    relationships:
-      - type: implements
-        target: REQ-mcp-search-discovery
-      - type: covered_by
-        target: TEST-mcp-search-discovery
-    sourceLine: 90
-    sourceColumn: 10
-    sourceEndLine: 90
-    sourceEndColumn: 31
-  - id: SYM-cli-PrologProcess-outputOverflowed
-    title: PrologProcess.outputOverflowed
-    sourceFile: packages/cli/src/prolog.ts
-    symbol_role: behavioral
-    granularity_reason: extractor-miss
-    relationships:
-      - type: implements
-        target: REQ-mcp-search-discovery
-      - type: covered_by
-        target: TEST-mcp-search-discovery
-    sourceLine: 88
-    sourceColumn: 10
-    sourceEndLine: 88
-    sourceEndColumn: 35
-  - id: SYM-cli-PrologProcess-isProcessUsable
-    title: PrologProcess.isProcessUsable
-    sourceFile: packages/cli/src/prolog.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-core-prolog-process-management
-      - type: covered_by
-        target: TEST-001
-  - id: SYM-cli-PrologProcess-extractBindings
-    title: PrologProcess.extractBindings
-    sourceFile: packages/cli/src/prolog.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-core-prolog-process-management
-      - type: covered_by
-        target: TEST-001
-  - id: SYM-cli-PrologProcess-translateError
-    title: PrologProcess.translateError
-    sourceFile: packages/cli/src/prolog.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-core-prolog-process-management
-      - type: covered_by
-        target: TEST-001
-    sourceLine: 624
-    sourceColumn: 10
-    sourceEndLine: 683
-    sourceEndColumn: 3
   - id: SYM-cli-PrologProcess-isRunning
     title: PrologProcess.isRunning
     sourceFile: packages/cli/src/prolog.ts
@@ -15396,6 +15228,14 @@ symbols:
     sourceColumn: 9
     sourceEndLine: 17
     sourceEndColumn: 1
+  - id: SYM-mcp-test-attached-kb-discovery
+    title: Real attached-KB Node CLI and MCP discovery regression
+    sourceFile: packages/mcp/tests/attached-kb-discovery.test.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-search-discovery
   - id: SYM-mcp-test-search-transport-node-driver
     title: Node MCP search, query, reporting, overflow, and signal driver
     sourceFile: packages/mcp/tests/drivers/search-transport-node.mjs
