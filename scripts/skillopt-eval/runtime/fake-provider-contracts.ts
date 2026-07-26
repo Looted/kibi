@@ -9,6 +9,7 @@ export const ConfigurationSchema = z
     parentHash: HashSchema,
     authorizationMicrousd: z.int().nonnegative(),
     maxRequests: z.int().positive(),
+    pricingHash: HashSchema,
     providerKeyId: z.string().min(1),
     verifierKeyId: z.string().min(1),
     destination: z
@@ -70,7 +71,9 @@ export const CapabilitySchema = z
   .object({
     capabilityId: HashSchema,
     parentHash: HashSchema,
+    requestId: z.string().min(1),
     requestHash: HashSchema,
+    pricingHash: HashSchema,
     sealed: z.literal(true),
     oneUse: z.literal(true),
   })

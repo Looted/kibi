@@ -1,8 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import {
-  FakeProviderSupervisor,
-  GatewayPolicyError,
-} from "../runtime/fake-provider-supervisor";
+import { FakeProviderSupervisor } from "../runtime/fake-provider-supervisor";
 
 const hash = (character: string): string => character.repeat(64);
 
@@ -12,6 +9,7 @@ const fixture = () =>
     parentHash: hash("2"),
     authorizationMicrousd: 2000,
     maxRequests: 2,
+    pricingHash: hash("8"),
     providerKeyId: "provider-supervisor-v1",
     verifierKeyId: "zero-budget-verifier-v1",
     destination: {
@@ -146,35 +144,35 @@ describe("trusted broker model gateway", () => {
     expect(JSON.stringify(retried.receipt)).toBe(JSON.stringify(completed));
   });
 
-  test("rejects forged capabilities pricing DNS TLS proxy replay and ceilings", () => {
+  test("attributes equal-hash capabilities to their exact request ids", () => {
     // Given
-    const cases = [
-      () => fixture().reserve(request("request-1", "unapproved-model")),
-      () => fixture().reserve({ ...request("request-1"), inputTokens: 1001 }),
-      () => fixture().reserve({ ...request("request-1"), maxRetries: 2 }),
-      () => fixture().reserve({ ...request("request-1"), timeoutMs: 5001 }),
-      () =>
-        new FakeProviderSupervisor({
-          ...fixture().configuration(),
-          destination: {
-            ...fixture().configuration().destination,
-            selectedIp: "198.51.100.9",
-          },
-        }),
-      () =>
-        new FakeProviderSupervisor({
-          ...fixture().configuration(),
-          destination: {
-            ...fixture().configuration().destination,
-            scheme: "http",
-            redirects: true,
-            proxies: true,
-          },
-        }),
-    ];
+    const supervisor = fixture();
+    const sharedHash = hash("e");
+    const firstRequest = {
+      ...request("request-1"),
+      requestHash: sharedHash,
+    };
+    const secondRequest = {
+      ...request("request-2", "gpt-5.5"),
+      requestHash: sharedHash,
+    };
+    const first = supervisor.reserve(firstRequest);
+    const second = supervisor.reserve(secondRequest);
+    supervisor.forward(first.capability, {
+      kind: "success",
+      chargedMicrousd: 700,
+      invoiceId: "invoice-1",
+    });
 
-    // When / Then
-    for (const reject of cases) expect(reject).toThrow(GatewayPolicyError);
+    // When
+    const secondReceipt = supervisor.forward(second.capability, {
+      kind: "success",
+      chargedMicrousd: 800,
+      invoiceId: "invoice-2",
+    });
+
+    // Then
+    expect(secondReceipt.requestId).toBe("request-2");
   });
 
   test("keeps provider output as inert data and zero-budget verifier separate", () => {

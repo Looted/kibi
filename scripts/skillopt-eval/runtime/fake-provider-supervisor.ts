@@ -18,13 +18,13 @@ export class GatewayPolicyError extends Error {
 }
 
 export class FakeProviderSupervisor {
-  // implements REQ-skillopt-predicate-first-requirements
+  // implements REQ-skillopt-paid-launch-accounting
   private readonly config: Configuration;
-  // implements REQ-skillopt-predicate-first-requirements
+  // implements REQ-skillopt-paid-launch-accounting
   private readonly capabilities = new Map<string, Capability>();
-  // implements REQ-skillopt-predicate-first-requirements
+  // implements REQ-skillopt-paid-launch-accounting
   private readonly requests = new Map<string, Request>();
-  // implements REQ-skillopt-predicate-first-requirements
+  // implements REQ-skillopt-paid-launch-accounting
   private readonly receipts = new Map<string, DebitReceipt>();
 
   constructor(configuration: unknown) {
@@ -67,6 +67,7 @@ export class FakeProviderSupervisor {
     return { capability };
   }
 
+  // implements REQ-skillopt-paid-launch-accounting
   forward(value: unknown, outcomeValue: unknown): DebitReceipt {
     const capability = this.parseCapability(value);
     const stored = this.capabilities.get(capability.capabilityId);
@@ -74,9 +75,7 @@ export class FakeProviderSupervisor {
     if (JSON.stringify(stored) !== JSON.stringify(capability)) {
       throw new GatewayPolicyError("capability_forged");
     }
-    const request = [...this.requests.values()].find(
-      (candidate) => candidate.requestHash === capability.requestHash,
-    );
+    const request = this.requests.get(capability.requestId);
     if (request === undefined)
       throw new GatewayPolicyError("capability_forged");
     const receipt = this.receiptFor(request, this.parseOutcome(outcomeValue));
@@ -125,7 +124,7 @@ export class FakeProviderSupervisor {
     };
   }
 
-  // implements REQ-skillopt-predicate-first-requirements
+  // implements REQ-skillopt-paid-launch-accounting
   private parseRequest(value: unknown): Request {
     try {
       const request = RequestSchema.parse(value);
@@ -149,7 +148,7 @@ export class FakeProviderSupervisor {
     }
   }
 
-  // implements REQ-skillopt-predicate-first-requirements
+  // implements REQ-skillopt-paid-launch-accounting
   private parseCapability(value: unknown): Capability {
     try {
       return CapabilitySchema.parse(value);
@@ -161,7 +160,7 @@ export class FakeProviderSupervisor {
     }
   }
 
-  // implements REQ-skillopt-predicate-first-requirements
+  // implements REQ-skillopt-paid-launch-accounting
   private parseOutcome(value: unknown): Outcome {
     try {
       return OutcomeSchema.parse(value);
@@ -173,7 +172,7 @@ export class FakeProviderSupervisor {
     }
   }
 
-  // implements REQ-skillopt-predicate-first-requirements
+  // implements REQ-skillopt-paid-launch-accounting
   private capability(request: Request): Capability {
     return {
       capabilityId: createHash("sha256")
@@ -182,13 +181,15 @@ export class FakeProviderSupervisor {
         )
         .digest("hex"),
       parentHash: this.config.parentHash,
+      requestId: request.requestId,
       requestHash: request.requestHash,
+      pricingHash: this.config.pricingHash,
       sealed: true,
       oneUse: true,
     };
   }
 
-  // implements REQ-skillopt-predicate-first-requirements
+  // implements REQ-skillopt-paid-launch-accounting
   private maxChargeReceipt(
     request: Request,
     status: DebitReceipt["status"],
@@ -206,7 +207,7 @@ export class FakeProviderSupervisor {
     };
   }
 
-  // implements REQ-skillopt-predicate-first-requirements
+  // implements REQ-skillopt-paid-launch-accounting
   private receiptFor(request: Request, outcome: Outcome): DebitReceipt {
     if (outcome.kind === "ambiguous") {
       return this.maxChargeReceipt(request, "ambiguous-max-charged");

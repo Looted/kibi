@@ -6734,6 +6734,24 @@ coordinates:
     sourceEndLine: 158
     sourceFile: scripts/skillopt-eval/optimize.ts
     sourceLine: 109
+  SYM-skillopt-debit-subentry-receipt-fixture:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 116
+    sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
+    sourceLine: 110
+  SYM-skillopt-debit-subentry-receipt-schema:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 48
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    sourceLine: 38
+  SYM-skillopt-debit-subentry-receipt-type:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 85
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    sourceLine: 83
   SYM-skillopt-default-codex-cell-dependencies:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6821,15 +6839,15 @@ coordinates:
   SYM-skillopt-fake-provider-capability-schema:
     sourceColumn: 13
     sourceEndColumn: 11
-    sourceEndLine: 77
+    sourceEndLine: 80
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 69
+    sourceLine: 70
   SYM-skillopt-fake-provider-capability-type:
     sourceColumn: 12
     sourceEndColumn: 68
-    sourceEndLine: 94
+    sourceEndLine: 97
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 94
+    sourceLine: 97
   SYM-skillopt-fake-provider-configuration:
     sourceColumn: 2
     sourceEndColumn: 3
@@ -6839,33 +6857,33 @@ coordinates:
   SYM-skillopt-fake-provider-configuration-schema:
     sourceColumn: 13
     sourceEndColumn: 4
-    sourceEndLine: 55
+    sourceEndLine: 56
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     sourceLine: 6
   SYM-skillopt-fake-provider-configuration-type:
     sourceColumn: 12
     sourceEndColumn: 74
-    sourceEndLine: 91
+    sourceEndLine: 94
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 91
+    sourceLine: 94
   SYM-skillopt-fake-provider-debit-receipt-type:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 105
+    sourceEndLine: 108
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 95
+    sourceLine: 98
   SYM-skillopt-fake-provider-execute-with-crash:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 98
+    sourceEndLine: 97
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    sourceLine: 88
+    sourceLine: 87
   SYM-skillopt-fake-provider-forward:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 86
+    sourceEndLine: 85
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    sourceLine: 70
+    sourceLine: 71
   SYM-skillopt-fake-provider-hash-schema:
     sourceColumn: 13
     sourceEndColumn: 60
@@ -6881,45 +6899,45 @@ coordinates:
   SYM-skillopt-fake-provider-outcome-schema:
     sourceColumn: 13
     sourceEndColumn: 2
-    sourceEndLine: 89
+    sourceEndLine: 92
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 79
+    sourceLine: 82
   SYM-skillopt-fake-provider-outcome-type:
     sourceColumn: 12
     sourceEndColumn: 62
-    sourceEndLine: 93
+    sourceEndLine: 96
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 93
+    sourceLine: 96
   SYM-skillopt-fake-provider-reconcile:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 118
+    sourceEndLine: 117
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    sourceLine: 104
+    sourceLine: 103
   SYM-skillopt-fake-provider-recover:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 102
+    sourceEndLine: 101
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    sourceLine: 100
+    sourceLine: 99
   SYM-skillopt-fake-provider-request-schema:
     sourceColumn: 13
     sourceEndColumn: 11
-    sourceEndLine: 67
+    sourceEndLine: 68
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 57
+    sourceLine: 58
   SYM-skillopt-fake-provider-request-type:
     sourceColumn: 12
     sourceEndColumn: 62
-    sourceEndLine: 92
+    sourceEndLine: 95
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 92
+    sourceLine: 95
   SYM-skillopt-fake-provider-reservation-type:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 110
+    sourceEndLine: 113
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 107
+    sourceLine: 110
   SYM-skillopt-fake-provider-reserve:
     sourceColumn: 2
     sourceEndColumn: 3
@@ -6929,15 +6947,15 @@ coordinates:
   SYM-skillopt-fake-provider-supervisor:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 235
+    sourceEndLine: 236
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
     sourceLine: 20
   SYM-skillopt-fake-provider-zero-budget-parent:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 126
+    sourceEndLine: 125
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    sourceLine: 120
+    sourceLine: 119
   SYM-skillopt-file-bridge:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -6980,6 +6998,24 @@ coordinates:
     sourceEndLine: 57
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
     sourceLine: 34
+  SYM-skillopt-final-debit-receipt-fixture:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 145
+    sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
+    sourceLine: 139
+  SYM-skillopt-final-debit-receipt-schema:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 65
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    sourceLine: 50
+  SYM-skillopt-final-debit-receipt-type:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 88
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    sourceLine: 86
   SYM-skillopt-final-state-context-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -6998,6 +7034,24 @@ coordinates:
     sourceEndLine: 50
     sourceFile: scripts/skillopt-eval/runtime/final-state.ts
     sourceLine: 41
+  SYM-skillopt-final-verdict-receipt-fixture:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 173
+    sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
+    sourceLine: 167
+  SYM-skillopt-final-verdict-receipt-schema:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 81
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    sourceLine: 67
+  SYM-skillopt-final-verdict-receipt-type:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 91
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    sourceLine: 89
   SYM-skillopt-fixture-blinded-order:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7148,6 +7202,12 @@ coordinates:
     sourceEndLine: 203
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
     sourceLine: 137
+  SYM-skillopt-fixture-receipt-signature:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 99
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    sourceLine: 97
   SYM-skillopt-fixture-serialize:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7325,9 +7385,9 @@ coordinates:
   SYM-skillopt-launcher-session-fixture:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 81
+    sourceEndLine: 82
     sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
-    sourceLine: 62
+    sourceLine: 63
   SYM-skillopt-launcher-session-schema:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -7424,6 +7484,36 @@ coordinates:
     sourceEndLine: 341
     sourceFile: scripts/skillopt-eval/optimize.ts
     sourceLine: 189
+  SYM-skillopt-paid-launch-receipt-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 95
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    sourceLine: 93
+  SYM-skillopt-paid-launch-receipt-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 43
+    sourceEndLine: 94
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    sourceLine: 94
+  SYM-skillopt-parse-debit-subentry-receipt:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 117
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    sourceLine: 111
+  SYM-skillopt-parse-final-debit-receipt:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 143
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    sourceLine: 119
+  SYM-skillopt-parse-final-verdict-receipt:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 161
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    sourceLine: 145
   SYM-skillopt-parse-generated-artifact-receipt:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8057,9 +8147,9 @@ coordinates:
   SYM-skillopt-root-authorization-fixture:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 22
+    sourceEndLine: 23
     sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
-    sourceLine: 5
+    sourceLine: 6
   SYM-skillopt-root-authorization-schema:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -8699,9 +8789,9 @@ coordinates:
   SYM-skillopt-supervisor-parent-fixture:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 60
+    sourceEndLine: 61
     sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
-    sourceLine: 24
+    sourceLine: 25
   SYM-skillopt-supervisor-parent-schema:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -8735,9 +8825,9 @@ coordinates:
   SYM-skillopt-trust-fixture-hash:
     sourceColumn: 13
     sourceEndColumn: 78
-    sourceEndLine: 3
+    sourceEndLine: 4
     sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
-    sourceLine: 3
+    sourceLine: 4
   SYM-skillopt-trust-plane-binding-error:
     sourceColumn: 13
     sourceEndColumn: 1
