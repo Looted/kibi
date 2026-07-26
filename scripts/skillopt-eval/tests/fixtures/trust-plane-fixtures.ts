@@ -1,4 +1,5 @@
 import { JsonValueSchema, contractHash } from "../../contracts/common";
+import { fixtureReceiptSignature } from "../../contracts/paid-launch-receipts";
 
 export const fixtureHash = (character: string): string => character.repeat(64);
 
@@ -78,4 +79,95 @@ export const launcherSessionFixture = {
   connectedSocket: true,
   pidfdAuthenticated: true,
   authorizationSeals: ["seal-grow", "seal-shrink", "seal-write", "seal-seal"],
+};
+
+const launchBinding = {
+  requestId: "request-fixture-1",
+  requestHash: fixtureHash("b"),
+  parentHash: fixtureHash("c"),
+  capabilityId: fixtureHash("d"),
+  invoiceId: "invoice-fixture-1",
+  usageHash: fixtureHash("e"),
+  pricingHash: fixtureHash("f"),
+  model: "gpt-5.5" as const,
+  leaseId: "00000000-0000-4000-8000-000000000504",
+};
+
+const unsignedDebitSubentryReceipt = {
+  schemaVersion: "1.0.0",
+  artifactType: "provider-debit-subentry-receipt",
+  launchBinding,
+  chargedMicrousd: 800,
+  signer: {
+    role: "provider-supervisor",
+    keyId: "provider-supervisor-fixture-v1",
+    signatureAlgorithm: "fixture-sha256-digest",
+    signatureProvenance: "deterministic-test-fixture",
+    externallySigned: false,
+  },
+} as const;
+
+export const debitSubentryReceiptFixture = {
+  ...unsignedDebitSubentryReceipt,
+  signer: {
+    ...unsignedDebitSubentryReceipt.signer,
+    signature: fixtureReceiptSignature(unsignedDebitSubentryReceipt),
+  },
+};
+
+const unsignedFinalDebitReceipt = {
+  schemaVersion: "1.0.0",
+  artifactType: "final-debit-reconciliation-receipt",
+  parentHash: launchBinding.parentHash,
+  debitSubentryHashes: [
+    contractHash(JsonValueSchema.parse(debitSubentryReceiptFixture)),
+  ],
+  launchBindings: [launchBinding],
+  authorizationMicrousd: 2000,
+  totalChargedMicrousd: 800,
+  remainingMicrousd: 1200,
+  reconciled: true,
+  signer: {
+    role: "ledger-reconciler",
+    keyId: "ledger-reconciler-fixture-v1",
+    signatureAlgorithm: "fixture-sha256-digest",
+    signatureProvenance: "deterministic-test-fixture",
+    externallySigned: false,
+  },
+} as const;
+
+export const finalDebitReceiptFixture = {
+  ...unsignedFinalDebitReceipt,
+  signer: {
+    ...unsignedFinalDebitReceipt.signer,
+    signature: fixtureReceiptSignature(unsignedFinalDebitReceipt),
+  },
+};
+
+const unsignedFinalVerdictReceipt = {
+  schemaVersion: "1.0.0",
+  artifactType: "final-verdict-receipt",
+  parentHash: launchBinding.parentHash,
+  finalDebitReceiptHash: contractHash(
+    JsonValueSchema.parse(finalDebitReceiptFixture),
+  ),
+  launchBindings: [launchBinding],
+  evidenceRootHash: fixtureHash("a"),
+  verdict: "pass",
+  reasons: [],
+  signer: {
+    role: "verifier",
+    keyId: "verifier-fixture-v1",
+    signatureAlgorithm: "fixture-sha256-digest",
+    signatureProvenance: "deterministic-test-fixture",
+    externallySigned: false,
+  },
+} as const;
+
+export const finalVerdictReceiptFixture = {
+  ...unsignedFinalVerdictReceipt,
+  signer: {
+    ...unsignedFinalVerdictReceipt.signer,
+    signature: fixtureReceiptSignature(unsignedFinalVerdictReceipt),
+  },
 };

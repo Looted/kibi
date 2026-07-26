@@ -179,9 +179,9 @@ symbols:
         target: REQ-mcp-tool-query
       - type: covered_by
         target: TEST-001
-    sourceLine: 11
+    sourceLine: 17
     sourceColumn: 22
-    sourceEndLine: 17
+    sourceEndLine: 23
     sourceEndColumn: 1
   - id: SYM-004
     title: handleKbCheck
@@ -200,7 +200,7 @@ symbols:
         target: TEST-001
     sourceLine: 30
     sourceColumn: 22
-    sourceEndLine: 49
+    sourceEndLine: 46
     sourceEndColumn: 1
   - id: SYM-mcp-loadChecksConfig
     title: loadChecksConfig
@@ -396,7 +396,7 @@ symbols:
         target: TEST-001
     sourceLine: 40
     sourceColumn: 17
-    sourceEndLine: 62
+    sourceEndLine: 59
     sourceEndColumn: 1
   - id: SYM-010
     title: startServer
@@ -5315,9 +5315,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-prolog-library-adoption-mcp
-    sourceLine: 4
+    sourceLine: 7
     sourceColumn: 12
-    sourceEndLine: 8
+    sourceEndLine: 11
     sourceEndColumn: 2
   - id: SYM-SparqlResult
     title: SparqlResult
@@ -5335,9 +5335,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-prolog-library-adoption-mcp
-    sourceLine: 10
+    sourceLine: 13
     sourceColumn: 12
-    sourceEndLine: 10
+    sourceEndLine: 13
     sourceEndColumn: 80
   - id: SYM-handleSparql
     title: handleSparql
@@ -5353,9 +5353,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-prolog-library-adoption-mcp
-    sourceLine: 13
+    sourceLine: 16
     sourceColumn: 22
-    sourceEndLine: 29
+    sourceEndLine: 32
     sourceEndColumn: 1
   - id: SYM-SYMBOL_ROLES
     title: SYMBOL_ROLES
@@ -7030,8 +7030,8 @@ symbols:
         target: TEST-kibi-operation-interface-parity
     sourceLine: 13
     sourceColumn: 13
-    sourceEndLine: 79
-    sourceEndColumn: 1
+    sourceEndLine: 76
+    sourceEndColumn: 101
   - id: SYM-operation-suggest-predicates-spec
     title: suggestPredicatesSpec
     sourceFile: packages/cli/src/public/operations/specs/modeling.ts
@@ -7041,10 +7041,10 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 81
+    sourceLine: 78
     sourceColumn: 13
-    sourceEndLine: 140
-    sourceEndColumn: 1
+    sourceEndLine: 134
+    sourceEndColumn: 103
   - id: SYM-operation-upsert-spec
     title: upsertSpec
     sourceFile: packages/cli/src/public/operations/specs/upsert.ts
@@ -7068,9 +7068,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 115
+    sourceLine: 112
     sourceColumn: 22
-    sourceEndLine: 120
+    sourceEndLine: 117
     sourceEndColumn: 1
   - id: SYM-model-requirement-core-handler
     title: handleKbModelRequirement
@@ -7081,9 +7081,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 54
+    sourceLine: 51
     sourceColumn: 22
-    sourceEndLine: 113
+    sourceEndLine: 110
     sourceEndColumn: 1
   - id: SYM-execute-suggest-predicates
     title: executeSuggestPredicates
@@ -7095,9 +7095,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 99
+    sourceLine: 76
     sourceColumn: 22
-    sourceEndLine: 104
+    sourceEndLine: 81
     sourceEndColumn: 1
   - id: SYM-operation-modeling-tests
     title: shared modeling operation executor tests
@@ -7164,9 +7164,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 29
+    sourceLine: 15
     sourceColumn: 22
-    sourceEndLine: 97
+    sourceEndLine: 74
     sourceEndColumn: 1
   - id: SYM-operation-execute-check
     title: executeCheck
@@ -8554,9 +8554,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 38
+    sourceLine: 42
     sourceColumn: 13
-    sourceEndLine: 56
+    sourceEndLine: 60
     sourceEndColumn: 1
   - id: SYM-operation-node-git
     title: nodeGit
@@ -8567,9 +8567,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 58
+    sourceLine: 62
     sourceColumn: 13
-    sourceEndLine: 74
+    sourceEndLine: 78
     sourceEndColumn: 1
   - id: SYM-autopilot-test-set-dependencies
     title: setTestDependencies
@@ -8684,9 +8684,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 76
+    sourceLine: 80
     sourceColumn: 13
-    sourceEndLine: 78
+    sourceEndLine: 82
     sourceEndColumn: 1
   - id: SYM-operation-sparql-remote-input
     title: SparqlRemoteInput
@@ -9045,9 +9045,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 9
+    sourceLine: 6
     sourceColumn: 22
-    sourceEndLine: 22
+    sourceEndLine: 17
     sourceEndColumn: 1
   - id: SYM-parity-record-relationship-audits
     title: recordRelationshipAudits
@@ -9059,9 +9059,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 24
+    sourceLine: 19
     sourceColumn: 22
-    sourceEndLine: 40
+    sourceEndLine: 33
     sourceEndColumn: 1
   - id: SYM-parity-build-entity-delete-audit-goal
     title: buildEntityDeleteAuditGoal
@@ -9072,9 +9072,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 42
+    sourceLine: 35
     sourceColumn: 16
-    sourceEndLine: 51
+    sourceEndLine: 44
     sourceEndColumn: 1
   - id: SYM-parity-execute-delete
     title: executeDelete
@@ -9085,9 +9085,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 38
+    sourceLine: 34
     sourceColumn: 22
-    sourceEndLine: 86
+    sourceEndLine: 72
     sourceEndColumn: 1
   - id: SYM-parity-dependent-relationships-goal
     title: dependentRelationshipsGoal
@@ -9112,9 +9112,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 65
+    sourceLine: 55
     sourceColumn: 16
-    sourceEndLine: 69
+    sourceEndLine: 57
     sourceEndColumn: 1
   - id: SYM-parity-format-invalid-relationship-error
     title: formatInvalidRelationshipError
@@ -9126,9 +9126,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 71
+    sourceLine: 59
     sourceColumn: 16
-    sourceEndLine: 85
+    sourceEndLine: 68
     sourceEndColumn: 1
   - id: SYM-parity-validate-relationship-sources
     title: validateRelationshipSources
@@ -9140,9 +9140,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 87
+    sourceLine: 70
     sourceColumn: 16
-    sourceEndLine: 96
+    sourceEndLine: 79
     sourceEndColumn: 1
   - id: SYM-parity-format-relationship-source-mismatch
     title: formatRelationshipSourceMismatch
@@ -9154,9 +9154,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 98
+    sourceLine: 81
     sourceColumn: 16
-    sourceEndLine: 105
+    sourceEndLine: 88
     sourceEndColumn: 1
   - id: SYM-parity-validate-live-relationship-targets
     title: validateLiveRelationshipTargets
@@ -9168,9 +9168,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 128
+    sourceLine: 108
     sourceColumn: 22
-    sourceEndLine: 155
+    sourceEndLine: 123
     sourceEndColumn: 1
   - id: SYM-parity-validate-strict-lane-pairing
     title: validateStrictLanePairing
@@ -9182,9 +9182,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 157
+    sourceLine: 125
     sourceColumn: 22
-    sourceEndLine: 181
+    sourceEndLine: 145
     sourceEndColumn: 1
   - id: SYM-parity-existing-relationships
     title: existingRelationships
@@ -9196,9 +9196,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 183
+    sourceLine: 147
     sourceColumn: 22
-    sourceEndLine: 201
+    sourceEndLine: 159
     sourceEndColumn: 1
   - id: SYM-parity-save-mutation
     title: saveMutation
@@ -9211,7 +9211,7 @@ symbols:
         target: TEST-kibi-operation-interface-parity
     sourceLine: 3
     sourceColumn: 22
-    sourceEndLine: 14
+    sourceEndLine: 12
     sourceEndColumn: 1
   - id: SYM-parity-save-atomic-mutation
     title: saveAtomicMutation
@@ -9222,9 +9222,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 16
+    sourceLine: 14
     sourceColumn: 22
-    sourceEndLine: 30
+    sourceEndLine: 26
     sourceEndColumn: 1
   - id: SYM-parity-relationship-input-type
     title: RelationshipInput
@@ -9471,9 +9471,9 @@ symbols:
         target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 11
+    sourceLine: 7
     sourceColumn: 16
-    sourceEndLine: 29
+    sourceEndLine: 25
     sourceEndColumn: 1
   - id: SYM-predicate-infer-permission-rule
     title: inferPermissionRuleArgs
@@ -9484,9 +9484,9 @@ symbols:
         target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 9
+    sourceLine: 4
     sourceColumn: 16
-    sourceEndLine: 31
+    sourceEndLine: 26
     sourceEndColumn: 1
   - id: SYM-predicate-infer-conflict-resolution
     title: inferConflictResolutionRuleArgs
@@ -9510,9 +9510,9 @@ symbols:
         target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 10
+    sourceLine: 4
     sourceColumn: 16
-    sourceEndLine: 19
+    sourceEndLine: 13
     sourceEndColumn: 1
   - id: SYM-predicate-infer-args
     title: inferArgs
@@ -9523,9 +9523,9 @@ symbols:
         target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 71
+    sourceLine: 8
     sourceColumn: 16
-    sourceEndLine: 217
+    sourceEndLine: 154
     sourceEndColumn: 1
   - id: SYM-predicate-schema-for-candidate
     title: schemaForCandidate
@@ -9536,9 +9536,9 @@ symbols:
         target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 14
+    sourceLine: 8
     sourceColumn: 16
-    sourceEndLine: 34
+    sourceEndLine: 28
     sourceEndColumn: 1
   - id: SYM-predicate-score-schema
     title: scoreSchema
@@ -9549,9 +9549,9 @@ symbols:
         target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 14
+    sourceLine: 10
     sourceColumn: 16
-    sourceEndLine: 31
+    sourceEndLine: 27
     sourceEndColumn: 1
   - id: SYM-predicate-score-exact-1
     title: scoreExactPredicates1
@@ -10683,9 +10683,9 @@ symbols:
         target: REQ-skillopt-automatic-adoption
       - type: covered_by
         target: TEST-skillopt-automatic-adoption
-    sourceLine: 151
+    sourceLine: 153
     sourceColumn: 22
-    sourceEndLine: 297
+    sourceEndLine: 296
     sourceEndColumn: 1
   - id: SYM-skillopt-real-optimization-options
     title: RealOptimizationOptions
@@ -10741,7 +10741,7 @@ symbols:
         target: TEST-skillopt-codex-optimization
     sourceLine: 91
     sourceColumn: 12
-    sourceEndLine: 98
+    sourceEndLine: 100
     sourceEndColumn: 3
   - id: SYM-skillopt-build-skill-catalog
     title: buildSkillCatalog
@@ -15395,415 +15395,554 @@ symbols:
     sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-supervisor-parent-schema
     title: SupervisorParentSchema
     sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-launcher-session-schema
     title: LauncherSessionSchema
     sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-generated-artifact-receipt-schema
     title: GeneratedArtifactReceiptSchema
     sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-root-authorization-type
     title: RootAuthorization
     sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-supervisor-parent-type
     title: SupervisorParent
     sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-launcher-session-type
     title: LauncherSession
     sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-generated-artifact-receipt-type
     title: GeneratedArtifactReceipt
     sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-trust-plane-binding-error
     title: TrustPlaneBindingError
     sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
     granularity_reason: module-level-behavior
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-trust-plane-binding-error-name
     title: TrustPlaneBindingError.name
     sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-parse-root-authorization
     title: parseRootAuthorization
     sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-parse-supervisor-parent
     title: parseSupervisorParent
     sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-parse-launcher-session
     title: parseLauncherSession
     sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-parse-generated-artifact-receipt
     title: parseGeneratedArtifactReceipt
     sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-external-trust-client-main
     title: externalTrustClientMain
     sourceFile: scripts/skillopt-eval/runtime/external-trust-client-cli.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-external-provisioning-command
     title: EXTERNAL_PROVISIONING_COMMAND
     sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-external-trust-paths
     title: EXTERNAL_TRUST_PATHS
     sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-external-trust-probe
     title: ExternalTrustProbe
     sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-external-trust-receipt
     title: ExternalTrustReceipt
     sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-external-prerequisite-missing-error
     title: ExternalPrerequisiteMissingError
     sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
     granularity_reason: module-level-behavior
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-external-prerequisite-missing-error-name
     title: ExternalPrerequisiteMissingError.name
     sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-external-prerequisite-missing-error-code
     title: ExternalPrerequisiteMissingError.code
     sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-external-prerequisite-missing-error-installer
     title: ExternalPrerequisiteMissingError.installerCommand
     sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-require-external-trust-plane
     title: requireExternalTrustPlane
     sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-fake-provider-hash-schema
     title: HashSchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-fake-provider-model-schema
     title: ModelSchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-fake-provider-configuration-schema
     title: ConfigurationSchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-fake-provider-request-schema
     title: RequestSchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-fake-provider-capability-schema
     title: CapabilitySchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-fake-provider-outcome-schema
     title: OutcomeSchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-fake-provider-configuration-type
     title: Configuration
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-fake-provider-request-type
     title: Request
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-fake-provider-outcome-type
     title: Outcome
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-fake-provider-capability-type
     title: Capability
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-fake-provider-debit-receipt-type
     title: DebitReceipt
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-fake-provider-reservation-type
     title: Reservation
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-gateway-policy-error
     title: GatewayPolicyError
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
     granularity_reason: module-level-behavior
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-gateway-policy-error-name
     title: GatewayPolicyError.name
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-skillopt-predicate-first-requirements
-      - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+    symbol_role: structural
   - id: SYM-skillopt-fake-provider-supervisor
     title: FakeProviderSupervisor
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
     granularity_reason: module-level-behavior
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-fake-provider-configuration
     title: FakeProviderSupervisor.configuration
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-skillopt-predicate-first-requirements
-      - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts#FakeProviderSupervisor.configuration
   - id: SYM-skillopt-fake-provider-reserve
     title: FakeProviderSupervisor.reserve
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    relationships:
-      - type: implements
-        target: REQ-skillopt-predicate-first-requirements
-      - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts#FakeProviderSupervisor.reserve
   - id: SYM-skillopt-fake-provider-forward
     title: FakeProviderSupervisor.forward
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    granularity_reason: legacy-link
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts#FakeProviderSupervisor.forward
     relationships:
       - type: implements
-        target: REQ-skillopt-predicate-first-requirements
+        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-fake-provider-execute-with-crash
     title: FakeProviderSupervisor.executeWithCrash
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-skillopt-predicate-first-requirements
-      - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts#FakeProviderSupervisor.executeWithCrash
   - id: SYM-skillopt-fake-provider-recover
     title: FakeProviderSupervisor.recover
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-skillopt-predicate-first-requirements
-      - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts#FakeProviderSupervisor.recover
   - id: SYM-skillopt-fake-provider-reconcile
     title: FakeProviderSupervisor.reconcile
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-skillopt-predicate-first-requirements
-      - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts#FakeProviderSupervisor.reconcile
   - id: SYM-skillopt-fake-provider-zero-budget-parent
     title: FakeProviderSupervisor.zeroBudgetVerificationParent
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-skillopt-predicate-first-requirements
-      - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts#FakeProviderSupervisor.zeroBudgetVerificationParent
   - id: SYM-skillopt-authorization-broker-tests
     title: trusted broker authorization contracts
     sourceFile: scripts/skillopt-eval/tests/authorization-broker.test.ts
     granularity_reason: extractor-miss
     relationships:
       - type: executable_for
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-model-gateway-tests
     title: trusted broker model gateway
     sourceFile: scripts/skillopt-eval/tests/model-gateway.test.ts
     granularity_reason: extractor-miss
     relationships:
       - type: executable_for
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-trust-fixture-hash
     title: fixtureHash
     sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
     relationships:
       - type: executable_for
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-root-authorization-fixture
     title: rootAuthorizationFixture
     sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
     relationships:
       - type: executable_for
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-supervisor-parent-fixture
     title: supervisorParentFixture
     sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
     relationships:
       - type: executable_for
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-launcher-session-fixture
     title: launcherSessionFixture
     sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
     relationships:
       - type: executable_for
-        target: TEST-skillopt-predicate-first-requirements
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-debit-subentry-receipt-schema
+    title: DebitSubentryReceiptSchema
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-final-debit-receipt-schema
+    title: FinalDebitReceiptSchema
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-final-verdict-receipt-schema
+    title: FinalVerdictReceiptSchema
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-debit-subentry-receipt-type
+    title: DebitSubentryReceipt
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+    sourceLine: 83
+    sourceColumn: 12
+    sourceEndLine: 85
+    sourceEndColumn: 2
+  - id: SYM-skillopt-final-debit-receipt-type
+    title: FinalDebitReceipt
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+    sourceLine: 86
+    sourceColumn: 12
+    sourceEndLine: 88
+    sourceEndColumn: 2
+  - id: SYM-skillopt-final-verdict-receipt-type
+    title: FinalVerdictReceipt
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+    sourceLine: 89
+    sourceColumn: 12
+    sourceEndLine: 91
+    sourceEndColumn: 2
+  - id: SYM-skillopt-paid-launch-receipt-error
+    title: PaidLaunchReceiptError
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    symbol_role: structural
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+    sourceLine: 93
+    sourceColumn: 13
+    sourceEndLine: 95
+    sourceEndColumn: 1
+  - id: SYM-skillopt-paid-launch-receipt-error-name
+    title: PaidLaunchReceiptError.name
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+    sourceLine: 94
+    sourceColumn: 11
+    sourceEndLine: 94
+    sourceEndColumn: 43
+  - id: SYM-skillopt-fixture-receipt-signature
+    title: fixtureReceiptSignature
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-parse-debit-subentry-receipt
+    title: parseDebitSubentryReceipt
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-parse-final-debit-receipt
+    title: parseFinalDebitReceipt
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-parse-final-verdict-receipt
+    title: parseFinalVerdictReceipt
+    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-model-gateway-security-tests
+    title: trusted broker model gateway security
+    sourceFile: scripts/skillopt-eval/tests/model-gateway-security.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-paid-launch-receipt-tests
+    title: paid launch fixture receipt contracts
+    sourceFile: scripts/skillopt-eval/tests/paid-launch-receipts.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-debit-subentry-receipt-fixture
+    title: debitSubentryReceiptFixture
+    sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
+    symbol_role: config
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-final-debit-receipt-fixture
+    title: finalDebitReceiptFixture
+    sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
+    symbol_role: config
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-final-verdict-receipt-fixture
+    title: finalVerdictReceiptFixture
+    sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
+    symbol_role: config
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-paid-launch-accounting
