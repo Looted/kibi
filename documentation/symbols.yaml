@@ -15318,3 +15318,11 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-mcp-search-discovery
+  - id: SYM-test-predicate-first-graph
+    title: predicate-first graph traceability tests
+    sourceFile: packages/cli/tests/traceability/predicate-first.test.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-predicate-first-requirements
