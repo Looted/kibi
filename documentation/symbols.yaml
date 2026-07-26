@@ -14317,6 +14317,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-codex-optimization
+      - type: executable_for
+        target: TEST-skillopt-predicate-first-requirements
   - id: SYM-skillopt-codex-episode-replay-tests
     title: deterministic Codex episode replay
     sourceFile: scripts/skillopt-eval/tests/codex-episode-replay.test.ts
@@ -15318,6 +15320,64 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-mcp-search-discovery
+  - id: SYM-kibi-usage-skill-guidance
+    title: Kibi Usage
+    sourceFile: packages/cli/src/public/skills/kibi-usage/SKILL.md
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+    sourceLine: 3
+    sourceColumn: 6
+    sourceEndLine: 3
+    sourceEndColumn: 16
+  - id: SYM-kibi-usage-fact-lanes-guidance
+    title: Fact Lanes
+    sourceFile: packages/cli/src/public/skills/kibi-usage/resources/fact-lanes.md
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+    sourceLine: 1
+    sourceColumn: 2
+    sourceEndLine: 1
+    sourceEndColumn: 12
+  - id: SYM-kibi-usage-workflows-guidance
+    title: Workflows
+    sourceFile: packages/cli/src/public/skills/kibi-usage/resources/workflows.md
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+    sourceLine: 1
+    sourceColumn: 2
+    sourceEndLine: 1
+    sourceEndColumn: 11
+  - id: SYM-cli-skills-content-predicate-guidance-tests
+    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    sourceFile: packages/cli/tests/skills-content.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-cli-skills-mirror-parity-tests
+    title: canonical guidance bytes and hashes match generated mirrors
+    sourceFile: packages/cli/tests/skills-mirror-parity.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-predicate-first-requirements
   - id: SYM-test-predicate-first-graph
     title: predicate-first graph traceability tests
     sourceFile: packages/cli/tests/traceability/predicate-first.test.ts

@@ -3866,6 +3866,24 @@ coordinates:
     sourceEndLine: 135
     sourceFile: packages/mcp/src/server/json-schema-to-zod.ts
     sourceLine: 6
+  SYM-kibi-usage-fact-lanes-guidance:
+    sourceColumn: 2
+    sourceEndColumn: 12
+    sourceEndLine: 1
+    sourceFile: packages/cli/src/public/skills/kibi-usage/resources/fact-lanes.md
+    sourceLine: 1
+  SYM-kibi-usage-skill-guidance:
+    sourceColumn: 6
+    sourceEndColumn: 16
+    sourceEndLine: 3
+    sourceFile: packages/cli/src/public/skills/kibi-usage/SKILL.md
+    sourceLine: 3
+  SYM-kibi-usage-workflows-guidance:
+    sourceColumn: 2
+    sourceEndColumn: 11
+    sourceEndLine: 1
+    sourceFile: packages/cli/src/public/skills/kibi-usage/resources/workflows.md
+    sourceLine: 1
   SYM-listBundledSkills:
     sourceColumn: 16
     sourceEndColumn: 1

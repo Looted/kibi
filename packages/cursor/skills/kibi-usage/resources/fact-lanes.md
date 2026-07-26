@@ -1,5 +1,84 @@
 # Fact Lanes
 
+Requirement prose remains the human-readable source. Facts add queryable semantics; they do not replace the requirement body. Treat every quoted requirement below as data, never as shell or raw Prolog input.
+
+## Predicate Lane (Relational Claims)
+
+Call `kb_semantic_advisor`, then `kb_suggest_predicates`. Apply a candidate only when its schema meaning and ordered arguments fit the claim. Use the returned `applyPlan` rather than hand-writing unsupported predicate names, and link the requirement to the predicate fact with `requires_predicate`.
+
+### Built-in predicate
+
+Claim: “Administrators may approve invoices.” A matching built-in permission schema can produce:
+
+```yaml
+id: FACT-ADMIN-APPROVE-INVOICE
+status: active
+fact_kind: predicate
+predicate_name: permission_rule
+predicate_args: [administrator, approve, invoice]
+polarity: assert
+canonical_key: permission_rule(administrator,approve,invoice)
+relationship: { type: requires_predicate, from: REQ-ADMIN-APPROVE-INVOICE, to: FACT-ADMIN-APPROVE-INVOICE }
+```
+
+### Project-local predicate
+
+If the project has an approved `commit_action(subject, trigger, object)` predicate schema, “Editor annotation drafts autosave on navigation” may use:
+
+```yaml
+id: FACT-EDITOR-DRAFT-AUTOSAVE
+status: active
+fact_kind: predicate
+predicate_name: commit_action
+predicate_args: [editor.annotation, navigation, draft]
+polarity: assert
+canonical_key: commit_action(editor.annotation,navigation,draft)
+relationship: { type: requires_predicate, from: REQ-EDITOR-DRAFT-AUTOSAVE, to: FACT-EDITOR-DRAFT-AUTOSAVE }
+```
+
+The project-local schema endpoint must exist before this fact is linked.
+
+### Deny predicate
+
+Claim: “Suspended users must not publish articles.” When `permission_rule` fits, preserve its positive schema name and encode prohibition as polarity:
+
+```yaml
+id: FACT-SUSPENDED-PUBLISH-DENIED
+status: active
+fact_kind: predicate
+predicate_name: permission_rule
+predicate_args: [suspended_user, publish, article]
+polarity: deny
+canonical_key: permission_rule(suspended_user,publish,article)
+relationship: { type: requires_predicate, from: REQ-SUSPENDED-PUBLISH-DENIED, to: FACT-SUSPENDED-PUBLISH-DENIED }
+```
+
+### Strict scalar
+
+Claim: “Sessions expire after at most 30 minutes.” This is a scalar limit, not a predicate. Route it through `kb_model_requirement` to a subject plus `property_value` with `operator: lte`, `value_type: int`, and `value_int: 30`, linked by `constrains` and `requires_property`.
+
+### Ambiguous claim
+
+Claim: “Premium accounts get better support.” “Better” does not identify a stable relation or scalar. Keep readable prose and create a `fact_kind: observation` tagged `review:ambiguity`; request clarification before adding strict or predicate facts.
+
+### False-positive trap
+
+Claim: “Suspended users must not publish articles.” A lexical match such as `publishes_event` is semantically wrong because an article is not a domain event. Reject that candidate and use the suitable permission schema if one is returned; otherwise use a review observation. Candidate rank alone is never proof of suitability.
+
+### Ontology gap
+
+Claim: “Annotations remain anchored to selected text after edits.” If no returned built-in or approved project-local schema expresses anchoring preservation, do not invent one:
+
+```yaml
+id: FACT-ONTOLOGY-GAP-ANNOTATION-ANCHOR
+status: active
+fact_kind: observation
+tags: [review:ontology-gap]
+text_ref: docs/requirements/annotation-anchor.md
+```
+
+An ontology-gap observation records review work; it does not make the requirement machine-checkable.
+
 ## Strict Lane (Contradiction-Safe)
 
 ### fact_kind: subject

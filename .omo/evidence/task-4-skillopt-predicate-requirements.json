@@ -1,0 +1,183 @@
+{
+  "task": 4,
+  "skill": "kibi-usage",
+  "trustedSurface": "project-local CLI JSON routes",
+  "metadata": {
+    "id": "kibi-usage",
+    "name": "Kibi Usage",
+    "description": "Guides agents to use Kibi MCP, facts, relationships, and validation correctly",
+    "version": "1.1.0",
+    "kibiCompatibility": ">=0.11.0",
+    "tags": [
+      "kibi",
+      "mcp",
+      "knowledge-base",
+      "traceability",
+      "agent-guidance"
+    ],
+    "resources": [
+      "resources/relationship-directions.md",
+      "resources/fact-lanes.md",
+      "resources/workflows.md",
+      "resources/operation-access.md"
+    ]
+  },
+  "contentHash": "70eb3b18cf1a7f70523d79eaab807f19faae7578efc69baf1e68980bca805466",
+  "loadedBytes": {
+    "body": 15644,
+    "factLanes": 7132,
+    "workflows": 3888
+  },
+  "loadedSha256": {
+    "body": "70eb3b18cf1a7f70523d79eaab807f19faae7578efc69baf1e68980bca805466",
+    "factLanes": "4f7390a31326571efff969023304284d4ae9c2a36eabc0401d5ec82b1c1bb8bd",
+    "workflows": "636ae9f76844428cad3aee09a61a6b6bedee057da0d87ec1cf3dee1ba0e5382f"
+  },
+  "verificationChronology": {
+    "parentCommit": "fe914c5e8b2ec25feca145b63ed31e04ea79de95",
+    "note": "The RED result was reconstructed after implementation by applying the current tests to the parent implementation in an isolated worktree. It proves regression sensitivity but cannot prove original authoring chronology.",
+    "parentBaseline": {
+      "command": "bun test ./packages/cli/tests/skills-content.test.ts",
+      "exitCode": 1,
+      "passed": 13,
+      "failed": 11,
+      "classification": "known parent failures outside Todo 4"
+    },
+    "reconstructedRed": {
+      "command": "bun test ./packages/cli/tests/skills-content.test.ts ./packages/cli/tests/skills-mirror-parity.test.ts ./scripts/skillopt-eval/tests/skill-assembly.test.ts --test-name-pattern 'predicate guidance|canonical guidance bytes and hashes match generated mirrors'",
+      "exitCode": 1,
+      "passed": 4,
+      "failed": 1,
+      "failure": "predicate guidance loads a canonical decision tree with immutable resource examples"
+    },
+    "focusedGreen": {
+      "command": "bun test ./packages/cli/tests/skills-content.test.ts ./packages/cli/tests/skills-mirror-parity.test.ts ./scripts/skillopt-eval/tests/skill-assembly.test.ts --test-name-pattern 'predicate guidance|canonical guidance bytes and hashes match generated mirrors' && bun run scripts/sync-agent-skills.ts --check",
+      "exitCode": 0,
+      "passed": 5,
+      "failed": 0,
+      "filtered": 25,
+      "generatorCheck": "sync-agent-skills: checked 2 mirror(s) (cursor, codex)"
+    },
+    "fullGreenRuns": [
+      {
+        "command": "bun test ./packages/cli/tests/skills-content.test.ts ./packages/cli/tests/skills-mirror-parity.test.ts ./scripts/skillopt-eval/tests/skill-assembly.test.ts",
+        "exitCode": 0,
+        "passed": 30,
+        "failed": 0
+      },
+      {
+        "command": "bun test ./packages/cli/tests/skills-content.test.ts ./packages/cli/tests/skills-mirror-parity.test.ts ./scripts/skillopt-eval/tests/skill-assembly.test.ts",
+        "exitCode": 0,
+        "passed": 30,
+        "failed": 0
+      }
+    ]
+  },
+  "artifactSha256": {
+    "parentImplementation": {
+      "packages/cli/src/public/skills/kibi-usage/SKILL.md": "3c2bc069aeb00de24a5267c9b4aea509015d8fdf3002725a83f5326a0614dbb9",
+      "packages/cli/src/public/skills/kibi-usage/resources/fact-lanes.md": "507896c30b5c902822b4c4335445059e374698fd00bad3964b88994259cd9ecd",
+      "packages/cli/src/public/skills/kibi-usage/resources/workflows.md": "3abdeac16365dcd6fd4d88a670bcd1d3d24ec712b173fae0b226cc4d53677317"
+    },
+    "parentTests": {
+      "packages/cli/tests/skills-content.test.ts": "640323162bd836af7d719cd0f36b3bb722fc760d1b2c23769b1cd79323efed5f",
+      "scripts/skillopt-eval/tests/skill-assembly.test.ts": "f75ad32b5e1cea19431a8d0210ec2b9e8110e00a7b3dd868334bcbf1f7acbae9"
+    },
+    "currentImplementation": {
+      "packages/cli/src/public/skills/kibi-usage/SKILL.md": "6e30b8a300e8e7c8d3b4f8c2f71c2ce7f829218574bbca397c39390f57370a5d",
+      "packages/cli/src/public/skills/kibi-usage/resources/fact-lanes.md": "4f7390a31326571efff969023304284d4ae9c2a36eabc0401d5ec82b1c1bb8bd",
+      "packages/cli/src/public/skills/kibi-usage/resources/workflows.md": "636ae9f76844428cad3aee09a61a6b6bedee057da0d87ec1cf3dee1ba0e5382f"
+    },
+    "currentTests": {
+      "packages/cli/tests/skills-content.test.ts": "7eedc91ff2ca1faf203e736adf8e102a01a997c15f281f3dcd94efd4c65a453a",
+      "packages/cli/tests/skills-mirror-parity.test.ts": "96c6e605a7142bea2693e15b6df08ac08bd71d6e97daee08408c0fddcb263342",
+      "scripts/skillopt-eval/tests/skill-assembly.test.ts": "92d26cd52f79a27bedff5b4dda42509e1c4efe18d9ba521df85cd5be930dbd8b"
+    }
+  },
+  "requiredOperations": {
+    "kb_semantic_advisor": {
+      "body": true,
+      "workflows": true
+    },
+    "kb_suggest_predicates": {
+      "body": true,
+      "workflows": true
+    },
+    "kb_model_requirement": {
+      "body": true,
+      "workflows": true
+    },
+    "requires_predicate": {
+      "body": true,
+      "workflows": true
+    },
+    "kb_upsert": {
+      "body": true,
+      "workflows": true
+    },
+    "kb_check": {
+      "body": true,
+      "workflows": true
+    }
+  },
+  "mirrorParity": {
+    "codex": {
+      "SKILL.md": {
+        "bytesEqual": true,
+        "canonicalSha256": "6e30b8a300e8e7c8d3b4f8c2f71c2ce7f829218574bbca397c39390f57370a5d",
+        "manifestSha256": "6e30b8a300e8e7c8d3b4f8c2f71c2ce7f829218574bbca397c39390f57370a5d",
+        "hashEqual": true
+      },
+      "resources/fact-lanes.md": {
+        "bytesEqual": true,
+        "canonicalSha256": "4f7390a31326571efff969023304284d4ae9c2a36eabc0401d5ec82b1c1bb8bd",
+        "manifestSha256": "4f7390a31326571efff969023304284d4ae9c2a36eabc0401d5ec82b1c1bb8bd",
+        "hashEqual": true
+      },
+      "resources/workflows.md": {
+        "bytesEqual": true,
+        "canonicalSha256": "636ae9f76844428cad3aee09a61a6b6bedee057da0d87ec1cf3dee1ba0e5382f",
+        "manifestSha256": "636ae9f76844428cad3aee09a61a6b6bedee057da0d87ec1cf3dee1ba0e5382f",
+        "hashEqual": true
+      }
+    },
+    "cursor": {
+      "SKILL.md": {
+        "bytesEqual": true,
+        "canonicalSha256": "6e30b8a300e8e7c8d3b4f8c2f71c2ce7f829218574bbca397c39390f57370a5d",
+        "manifestSha256": "6e30b8a300e8e7c8d3b4f8c2f71c2ce7f829218574bbca397c39390f57370a5d",
+        "hashEqual": true
+      },
+      "resources/fact-lanes.md": {
+        "bytesEqual": true,
+        "canonicalSha256": "4f7390a31326571efff969023304284d4ae9c2a36eabc0401d5ec82b1c1bb8bd",
+        "manifestSha256": "4f7390a31326571efff969023304284d4ae9c2a36eabc0401d5ec82b1c1bb8bd",
+        "hashEqual": true
+      },
+      "resources/workflows.md": {
+        "bytesEqual": true,
+        "canonicalSha256": "636ae9f76844428cad3aee09a61a6b6bedee057da0d87ec1cf3dee1ba0e5382f",
+        "manifestSha256": "636ae9f76844428cad3aee09a61a6b6bedee057da0d87ec1cf3dee1ba0e5382f",
+        "hashEqual": true
+      }
+    }
+  },
+  "candidateAssembly": {
+    "bodyOnlySucceeded": true,
+    "malformedVersion": "frontmatter_changed",
+    "malformedFrontmatter": "frontmatter_changed",
+    "forbiddenResourceMutation": "resources_changed"
+  },
+  "adversarial": {
+    "untrustedRequirementTextRemainsData": true,
+    "staleStateRejected": true,
+    "generatorCheckStdout": "sync-agent-skills: checked 2 mirror(s) (cursor, codex)",
+    "interruptTest": {
+      "applicable": false,
+      "reason": "sync-agent-skills write mode removes and rewrites mirror roots synchronously; Todo 4 does not alter the generator or claim atomic interruption safety"
+    }
+  },
+  "candidateRoot": "/tmp/kibi-task4-candidate-kvydiV",
+  "cleanupComplete": true,
+  "cleanupVerifiedAfterRemoval": true
+}

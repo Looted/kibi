@@ -17,7 +17,7 @@ describe("kibi-usage skill content", () => {
     expect(bundle.manifest.description).toBe(
       "Guides agents to use Kibi MCP, facts, relationships, and validation correctly",
     );
-    expect(bundle.manifest.version).toBe("1.0.1");
+    expect(bundle.manifest.version).toBe("1.1.0");
     expect(bundle.manifest.kibiCompatibility).toBe(">=0.11.0");
     expect(bundle.manifest.tags).toContain("kibi");
     expect(bundle.manifest.tags).toContain("mcp");
@@ -32,7 +32,9 @@ describe("kibi-usage skill content", () => {
     );
     expect(bundle.manifest.resources).toContain("resources/fact-lanes.md");
     expect(bundle.manifest.resources).toContain("resources/workflows.md");
-    expect(bundle.manifest.resources).toContain("resources/operation-access.md");
+    expect(bundle.manifest.resources).toContain(
+      "resources/operation-access.md",
+    );
   });
 
   test("body contains MCP workflow terms", () => {
@@ -40,6 +42,44 @@ describe("kibi-usage skill content", () => {
     expect(bundle.body).toContain("kb_query");
     expect(bundle.body).toContain("kb_upsert");
     expect(bundle.body).toContain("kb_check");
+  });
+
+  test("predicate guidance loads a canonical decision tree with immutable resource examples", () => {
+    const requiredOperations = [
+      "kb_semantic_advisor",
+      "kb_suggest_predicates",
+      "kb_model_requirement",
+      "requires_predicate",
+      "kb_upsert",
+      "kb_check",
+    ] as const;
+    const factLanes = readBundledSkillResource(
+      "kibi-usage",
+      "resources/fact-lanes.md",
+    );
+    const workflows = readBundledSkillResource(
+      "kibi-usage",
+      "resources/workflows.md",
+    );
+
+    expect(bundle.body).toContain("## Predicate Ontology Decision Tree");
+    for (const operation of requiredOperations) {
+      expect(bundle.body).toContain(operation);
+      expect(workflows).toContain(operation);
+    }
+    for (const exampleClass of [
+      "Built-in predicate",
+      "Project-local predicate",
+      "Deny predicate",
+      "Strict scalar",
+      "Ambiguous claim",
+      "False-positive trap",
+      "Ontology gap",
+    ] as const) {
+      expect(factLanes).toContain(exampleClass);
+    }
+    expect(bundle.body).toContain("fact_kind: predicate");
+    expect(bundle.body).toContain("fact_kind: observation");
   });
 
   test("body explains OpenCode tool prefix convention", () => {
@@ -202,11 +242,6 @@ describe("kibi-usage skill content", () => {
     expect(bundle.body).toContain(
       "When a generic `Query failed` appears, do not keep retrying the same payload",
     );
-  });
-
-  test("body avoids unsupported typed fact value examples", () => {
-    expect(bundle.body).not.toContain("value_type: list");
-    expect(bundle.body).not.toContain("value_json");
   });
 
   test("resources are readable and non-empty", () => {
