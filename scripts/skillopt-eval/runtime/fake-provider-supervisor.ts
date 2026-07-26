@@ -44,13 +44,13 @@ export class FakeProviderSupervisor {
 
   reserve(value: unknown): Reservation {
     const request = this.parseRequest(value);
-    const existing = this.receipts.get(request.requestId);
-    if (existing !== undefined) {
-      return { capability: this.capability(request), receipt: existing };
-    }
     const known = this.requests.get(request.requestId);
     if (known !== undefined && known.requestHash !== request.requestHash) {
       throw new GatewayPolicyError("request_idempotency_mismatch");
+    }
+    const existing = this.receipts.get(request.requestId);
+    if (existing !== undefined) {
+      return { capability: this.capability(request), receipt: existing };
     }
     if (known === undefined && this.requests.size >= this.config.maxRequests) {
       throw new GatewayPolicyError("request_ceiling_exceeded");
