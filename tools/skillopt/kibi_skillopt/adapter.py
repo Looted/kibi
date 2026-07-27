@@ -5,26 +5,35 @@ import json
 import subprocess
 from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import final
+from typing import TypedDict, final
 
 from .bridge import BridgeError, FileBridge
-from .common import contract_hash
+from .common import JsonValue, contract_hash
 from .dataloader import SplitDataLoader
 from .models import AdapterCheckpoint, BridgeRequest
 
-Task = Mapping[str, object]
+Task = Mapping[str, JsonValue]
 
 
-def _text(value: object, field: str) -> str:
+class RolloutRow(TypedDict):
+    id: str
+    hard: int
+    soft: float
+    failure_category: str | None
+    conversation_path: str
+    evidence_refs: tuple[str, ...]
+
+
+def _text(value: JsonValue, field: str) -> str:
     if not isinstance(value, str) or not value:
         raise BridgeError(f"task_missing_{field}")
     return value
 
 
-def _batch_items(payload: object) -> tuple[Task, ...]:
-    if not isinstance(payload, tuple) or not all(isinstance(item, Mapping) for item in payload):
+def _batch_items(payload: tuple[Task, ...] | None) -> tuple[Task, ...]:
+    if payload is None:
         raise BridgeError("invalid_batch_payload")
-    return tuple(item for item in payload)
+    return payload
 
 
 @final
@@ -54,12 +63,12 @@ class EnvAdapter:
     def get_dataloader(self) -> SplitDataLoader:
         return self._loader
 
-    def build_train_env(self, batch_size: int, seed: int, **kwargs: object) -> tuple[Task, ...]:
+    def build_train_env(self, batch_size: int, seed: int, **kwargs: JsonValue) -> tuple[Task, ...]:
         batch = self._loader.build_train_batch(batch_size, seed, **kwargs)
         return _batch_items(batch.payload)
 
     def build_eval_env(
-        self, env_num: int, split: str, seed: int, **kwargs: object
+        self, env_num: int, split: str, seed: int, **kwargs: JsonValue
     ) -> tuple[Task, ...]:
         batch = self._loader.build_eval_batch(env_num, split, seed, **kwargs)
         return _batch_items(batch.payload)
@@ -88,25 +97,24 @@ class EnvAdapter:
 
     def rollout(
         self,
-        env_manager: object,
+        env_manager: Sequence[Task],
         skill_content: str,
         out_dir: str,
-        **_: object,
-    ) -> list[dict[str, object]]:
-        items = tuple(env_manager) if isinstance(env_manager, (list, tuple)) else ()
-        if not items or not all(isinstance(item, Mapping) for item in items):
+        **_kwargs: JsonValue,
+    ) -> list[RolloutRow]:
+        items = tuple(env_manager)
+        if not items:
             raise BridgeError("rollout_requires_public_task_items")
         output_root = Path(out_dir).resolve()
         bridge = FileBridge(output_root / "requests", output_root / "results")
-        rows: list[dict[str, object]] = []
+        rows: list[RolloutRow] = []
         for item in items:
-            task = item if isinstance(item, Mapping) else {}
-            task_id = _text(task.get("id"), "id")
-            split = str(task.get("split", "train"))
+            task_id = _text(item.get("id"), "id")
+            split = _text(item.get("split", "train"), "split")
             request = self.build_request(task_id, skill_content, split)
             request_name = f"{request.batch_id}.json"
             result_name = f"{request.batch_id}.json"
-            bridge.write_request(request_name, request)
+            _ = bridge.write_request(request_name, request)
             self._invoke_bridge(
                 bridge.resolve(request_name, "public"),
                 bridge.resolve(result_name, "public"),
@@ -129,11 +137,11 @@ class EnvAdapter:
 
     def reflect(
         self,
-        _results: list[dict[str, object]],
+        _results: list[RolloutRow],
         _skill_content: str,
         _out_dir: str,
-        **_: object,
-    ) -> list[dict[str, object] | None]:
+        **_kwargs: JsonValue,
+    ) -> list[RolloutRow | None]:
         return []
 
     def save_checkpoint(
@@ -156,7 +164,7 @@ class EnvAdapter:
             }
         )
         self.run_root.mkdir(parents=True, exist_ok=True)
-        (self.run_root / "adapter-checkpoint.json").write_text(
+        _ = (self.run_root / "adapter-checkpoint.json").write_text(
             json.dumps(checkpoint.model_dump(by_alias=True, mode="json"), sort_keys=True) + "\n",
             encoding="utf-8",
         )
