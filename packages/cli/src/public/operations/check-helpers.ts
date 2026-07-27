@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 /*
  Kibi — repo-local, per-branch, queryable long-term memory for software projects
  Copyright (C) 2026 Piotr Franczyk
@@ -16,18 +17,17 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import { readFile } from "node:fs/promises";
-import { readFileSync } from "node:fs";
 import path from "node:path";
 import { getKbPlPathOverride } from "../../env.js";
 import { resolveKbPlPath } from "../../prolog.js";
+import { analyzePrologQueryPlanSafety } from "../../utils/prolog-query-plan-safety.js";
 import {
+  type ChecksConfig,
   DEFAULT_CHECKS_CONFIG,
   RULE_NAMES,
-  type ChecksConfig,
   type Violation,
   getEffectiveRules,
 } from "../../utils/rule-registry.js";
-import { analyzePrologQueryPlanSafety } from "../../utils/prolog-query-plan-safety.js";
 import {
   type ChangedFileImpactResult,
   type QualityDiagnostic,

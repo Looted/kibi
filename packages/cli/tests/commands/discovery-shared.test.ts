@@ -167,10 +167,7 @@ describe("discovery-shared", () => {
   });
 
   test("withAttachedBranchProlog cleans up prolog when callback throws", async () => {
-    state.queryResponses = [
-      { success: true },
-      { success: true },
-    ];
+    state.queryResponses = [{ success: true }, { success: true }];
 
     await expect(
       discovery.withAttachedBranchProlog(async () => {

@@ -21,7 +21,9 @@ describe("human and JSON discovery command parity", () => {
     });
 
   beforeAll(() => {
-    workspaceRoot = mkdtempSync(path.join(os.tmpdir(), "kibi-discovery-parity-"));
+    workspaceRoot = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-discovery-parity-"),
+    );
     execFileSync("git", ["init", "-b", "main"], {
       cwd: workspaceRoot,
       stdio: "pipe",

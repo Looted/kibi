@@ -127,14 +127,18 @@ describe("kibi search", () => {
       "Apple Sign-In authentication premium recovery RevenueCat entitlement logged out unable to log in";
 
     // First invocation
-    const output1 = execSync(
-      `bun ${kibiBin} search "${query}" --format json`,
-      { cwd: tmpDir, encoding: "utf8" },
-    );
+    const output1 = execSync(`bun ${kibiBin} search "${query}" --format json`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
 
     const result1 = JSON.parse(output1) as {
       count: number;
-      results: Array<{ entity: { id: string }; score: number; reasons: string[] }>;
+      results: Array<{
+        entity: { id: string };
+        score: number;
+        reasons: string[];
+      }>;
     };
 
     expect(result1.count).toBeGreaterThan(0);
@@ -143,19 +147,21 @@ describe("kibi search", () => {
     );
 
     const firstIds = result1.results.map((r) => r.entity.id);
-    expect(firstIds).not.toContain(
-      "FACT-search-unrelated-sync-feedback",
-    );
+    expect(firstIds).not.toContain("FACT-search-unrelated-sync-feedback");
 
     // Second invocation — deterministic across two consecutive CLI invocations
-    const output2 = execSync(
-      `bun ${kibiBin} search "${query}" --format json`,
-      { cwd: tmpDir, encoding: "utf8" },
-    );
+    const output2 = execSync(`bun ${kibiBin} search "${query}" --format json`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
 
     const result2 = JSON.parse(output2) as {
       count: number;
-      results: Array<{ entity: { id: string }; score: number; reasons: string[] }>;
+      results: Array<{
+        entity: { id: string };
+        score: number;
+        reasons: string[];
+      }>;
     };
 
     expect(result2.count).toBe(result1.count);

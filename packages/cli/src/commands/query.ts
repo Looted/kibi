@@ -1,15 +1,12 @@
 import Table from "cli-table3";
+import { parseListOfLists, parsePrologValue } from "../prolog/codec.js";
 import {
+  VALID_ENTITY_TYPES,
   executeOperation,
   querySpec,
-  VALID_ENTITY_TYPES,
 } from "../public/operations/index.js";
-import { createCliRuntime } from "../runtime/cli-runtime.js";
-import {
-  parseListOfLists,
-  parsePrologValue,
-} from "../prolog/codec.js";
 import relationshipSchema from "../public/schemas/relationship.js";
+import { createCliRuntime } from "../runtime/cli-runtime.js";
 import { withAttachedBranchProlog } from "./discovery-shared.js";
 
 const REL_TYPES = relationshipSchema.properties.type.enum;
@@ -69,9 +66,7 @@ export async function queryCommand(
         ...(type !== undefined ? { type } : {}),
         ...(options.id !== undefined ? { id: options.id } : {}),
         ...(options.tag !== undefined ? { tags: [options.tag] } : {}),
-        ...(options.source !== undefined
-          ? { sourceFile: options.source }
-          : {}),
+        ...(options.source !== undefined ? { sourceFile: options.source } : {}),
         limit,
         offset,
       },
@@ -86,7 +81,9 @@ export async function queryCommand(
   }
 }
 
-async function queryRelationships(fromId: string): Promise<QueryRelationship[]> {
+async function queryRelationships(
+  fromId: string,
+): Promise<QueryRelationship[]> {
   return withAttachedBranchProlog(async (prolog) => {
     const safeFromId = fromId.replaceAll("'", "''");
     const goal = `findall([Type,From,To], (member(Type, [${REL_TYPES.join(", ")}]), kb_relationship(Type, '${safeFromId}', To), From='${safeFromId}'), Results)`;

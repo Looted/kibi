@@ -1,5 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
-import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type {
@@ -113,7 +113,8 @@ describe("shared check operation executor", () => {
                 {
                   rule: "must-priority-coverage",
                   entityId: "REQ-MUST-001",
-                  description: "Must-priority requirement lacks scenario coverage",
+                  description:
+                    "Must-priority requirement lacks scenario coverage",
                   suggestion: "Create scenario that covers this requirement",
                   source: "documentation/requirements/REQ-MUST-001.md",
                 },
@@ -188,10 +189,7 @@ describe("shared check operation executor", () => {
     });
 
     // When: running the check with rules: [].
-    const result = await checkSpec.execute(
-      { rules: [] },
-      createContext(query),
-    );
+    const result = await checkSpec.execute({ rules: [] }, createContext(query));
 
     // Then: no aggregated Prolog call runs and the result stays clean.
     expect(query).not.toHaveBeenCalled();
