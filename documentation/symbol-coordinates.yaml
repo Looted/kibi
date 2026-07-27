@@ -6746,24 +6746,6 @@ coordinates:
     sourceEndLine: 158
     sourceFile: scripts/skillopt-eval/optimize.ts
     sourceLine: 109
-  SYM-skillopt-debit-subentry-receipt-fixture:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 116
-    sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
-    sourceLine: 110
-  SYM-skillopt-debit-subentry-receipt-schema:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 48
-    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
-    sourceLine: 38
-  SYM-skillopt-debit-subentry-receipt-type:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 85
-    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
-    sourceLine: 83
   SYM-skillopt-default-codex-cell-dependencies:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6794,96 +6776,12 @@ coordinates:
     sourceEndLine: 60
     sourceFile: scripts/skillopt-eval/orchestration.ts
     sourceLine: 31
-  SYM-skillopt-external-prerequisite-missing-error:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 28
-    sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
-    sourceLine: 20
-  SYM-skillopt-external-prerequisite-missing-error-code:
-    sourceColumn: 11
-    sourceEndColumn: 59
-    sourceEndLine: 22
-    sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
-    sourceLine: 22
-  SYM-skillopt-external-prerequisite-missing-error-installer:
-    sourceColumn: 11
-    sourceEndColumn: 60
-    sourceEndLine: 23
-    sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
-    sourceLine: 23
-  SYM-skillopt-external-prerequisite-missing-error-name:
-    sourceColumn: 11
-    sourceEndColumn: 53
-    sourceEndLine: 21
-    sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
-    sourceLine: 21
-  SYM-skillopt-external-provisioning-command:
-    sourceColumn: 13
-    sourceEndColumn: 120
-    sourceEndLine: 2
-    sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
-    sourceLine: 1
   SYM-skillopt-external-trust-client-main:
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 77
     sourceFile: scripts/skillopt-eval/runtime/external-trust-client-cli.ts
     sourceLine: 42
-  SYM-skillopt-external-trust-paths:
-    sourceColumn: 13
-    sourceEndColumn: 10
-    sourceEndLine: 8
-    sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
-    sourceLine: 4
-  SYM-skillopt-external-trust-probe:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 12
-    sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
-    sourceLine: 10
-  SYM-skillopt-external-trust-receipt:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 18
-    sourceFile: scripts/skillopt-eval/runtime/external-trust-client.ts
-    sourceLine: 14
-  SYM-skillopt-fake-provider-capability-schema:
-    sourceColumn: 13
-    sourceEndColumn: 11
-    sourceEndLine: 83
-    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 71
-  SYM-skillopt-fake-provider-capability-type:
-    sourceColumn: 12
-    sourceEndColumn: 68
-    sourceEndLine: 100
-    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 100
-  SYM-skillopt-fake-provider-configuration:
-    sourceColumn: 2
-    sourceEndColumn: 3
-    sourceEndLine: 39
-    sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    sourceLine: 37
-  SYM-skillopt-fake-provider-configuration-schema:
-    sourceColumn: 13
-    sourceEndColumn: 4
-    sourceEndLine: 56
-    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 6
-  SYM-skillopt-fake-provider-configuration-type:
-    sourceColumn: 12
-    sourceEndColumn: 74
-    sourceEndLine: 97
-    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 97
-  SYM-skillopt-fake-provider-debit-receipt-type:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 111
-    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 101
   SYM-skillopt-fake-provider-execute-with-crash:
     sourceColumn: 2
     sourceEndColumn: 3
@@ -6896,30 +6794,6 @@ coordinates:
     sourceEndLine: 86
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
     sourceLine: 72
-  SYM-skillopt-fake-provider-hash-schema:
-    sourceColumn: 13
-    sourceEndColumn: 60
-    sourceEndLine: 3
-    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 3
-  SYM-skillopt-fake-provider-model-schema:
-    sourceColumn: 13
-    sourceEndColumn: 62
-    sourceEndLine: 4
-    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 4
-  SYM-skillopt-fake-provider-outcome-schema:
-    sourceColumn: 13
-    sourceEndColumn: 2
-    sourceEndLine: 95
-    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 85
-  SYM-skillopt-fake-provider-outcome-type:
-    sourceColumn: 12
-    sourceEndColumn: 62
-    sourceEndLine: 99
-    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 99
   SYM-skillopt-fake-provider-reconcile:
     sourceColumn: 2
     sourceEndColumn: 3
@@ -6932,36 +6806,12 @@ coordinates:
     sourceEndLine: 102
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
     sourceLine: 100
-  SYM-skillopt-fake-provider-request-schema:
-    sourceColumn: 13
-    sourceEndColumn: 11
-    sourceEndLine: 69
-    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 58
-  SYM-skillopt-fake-provider-request-type:
-    sourceColumn: 12
-    sourceEndColumn: 62
-    sourceEndLine: 98
-    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 98
-  SYM-skillopt-fake-provider-reservation-type:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 116
-    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 113
   SYM-skillopt-fake-provider-reserve:
     sourceColumn: 2
     sourceEndColumn: 3
     sourceEndLine: 69
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
     sourceLine: 41
-  SYM-skillopt-fake-provider-supervisor:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 239
-    sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    sourceLine: 20
   SYM-skillopt-fake-provider-zero-budget-parent:
     sourceColumn: 2
     sourceEndColumn: 3
@@ -7010,24 +6860,6 @@ coordinates:
     sourceEndLine: 57
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
     sourceLine: 34
-  SYM-skillopt-final-debit-receipt-fixture:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 145
-    sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
-    sourceLine: 139
-  SYM-skillopt-final-debit-receipt-schema:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 65
-    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
-    sourceLine: 50
-  SYM-skillopt-final-debit-receipt-type:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 88
-    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
-    sourceLine: 86
   SYM-skillopt-final-state-context-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -7046,24 +6878,6 @@ coordinates:
     sourceEndLine: 50
     sourceFile: scripts/skillopt-eval/runtime/final-state.ts
     sourceLine: 41
-  SYM-skillopt-final-verdict-receipt-fixture:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 173
-    sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
-    sourceLine: 167
-  SYM-skillopt-final-verdict-receipt-schema:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 81
-    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
-    sourceLine: 67
-  SYM-skillopt-final-verdict-receipt-type:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 91
-    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
-    sourceLine: 89
   SYM-skillopt-fixture-blinded-order:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7214,12 +7028,6 @@ coordinates:
     sourceEndLine: 203
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
     sourceLine: 137
-  SYM-skillopt-fixture-receipt-signature:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 99
-    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
-    sourceLine: 97
   SYM-skillopt-fixture-serialize:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7298,36 +7106,12 @@ coordinates:
     sourceEndLine: 27
     sourceFile: scripts/skillopt-eval/variants.ts
     sourceLine: 16
-  SYM-skillopt-gateway-policy-error:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 18
-    sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    sourceLine: 16
-  SYM-skillopt-gateway-policy-error-name:
-    sourceColumn: 11
-    sourceEndColumn: 39
-    sourceEndLine: 17
-    sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    sourceLine: 17
   SYM-skillopt-generate-one-shot-variant:
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 233
     sourceFile: scripts/skillopt-eval/variants.ts
     sourceLine: 185
-  SYM-skillopt-generated-artifact-receipt-schema:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 154
-    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
-    sourceLine: 141
-  SYM-skillopt-generated-artifact-receipt-type:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 163
-    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
-    sourceLine: 161
   SYM-skillopt-jsonrpc-append-trace:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7394,24 +7178,6 @@ coordinates:
     sourceEndLine: 24
     sourceFile: scripts/skillopt-eval/catalog.ts
     sourceLine: 24
-  SYM-skillopt-launcher-session-fixture:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 82
-    sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
-    sourceLine: 63
-  SYM-skillopt-launcher-session-schema:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 139
-    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
-    sourceLine: 100
-  SYM-skillopt-launcher-session-type:
-    sourceColumn: 12
-    sourceEndColumn: 78
-    sourceEndLine: 160
-    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
-    sourceLine: 160
   SYM-skillopt-max-candidate-body-bytes:
     sourceColumn: 13
     sourceEndColumn: 47
@@ -7496,18 +7262,6 @@ coordinates:
     sourceEndLine: 341
     sourceFile: scripts/skillopt-eval/optimize.ts
     sourceLine: 189
-  SYM-skillopt-paid-launch-receipt-error:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 95
-    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
-    sourceLine: 93
-  SYM-skillopt-paid-launch-receipt-error-name:
-    sourceColumn: 11
-    sourceEndColumn: 43
-    sourceEndLine: 94
-    sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
-    sourceLine: 94
   SYM-skillopt-parse-debit-subentry-receipt:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8156,24 +7910,6 @@ coordinates:
     sourceEndLine: 69
     sourceFile: scripts/skillopt-eval/runtime/artifact-root.ts
     sourceLine: 57
-  SYM-skillopt-root-authorization-fixture:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 23
-    sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
-    sourceLine: 6
-  SYM-skillopt-root-authorization-schema:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 41
-    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
-    sourceLine: 21
-  SYM-skillopt-root-authorization-type:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 158
-    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
-    sourceLine: 156
   SYM-skillopt-run-codex-cell:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -8798,24 +8534,6 @@ coordinates:
     sourceEndLine: 47
     sourceFile: scripts/skillopt-eval/optimize.ts
     sourceLine: 45
-  SYM-skillopt-supervisor-parent-fixture:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 61
-    sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
-    sourceLine: 25
-  SYM-skillopt-supervisor-parent-schema:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 91
-    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
-    sourceLine: 67
-  SYM-skillopt-supervisor-parent-type:
-    sourceColumn: 12
-    sourceEndColumn: 80
-    sourceEndLine: 159
-    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
-    sourceLine: 159
   SYM-skillopt-task-spec-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -8834,24 +8552,6 @@ coordinates:
     sourceEndLine: 23
     sourceFile: scripts/skillopt-eval/optimize.ts
     sourceLine: 19
-  SYM-skillopt-trust-fixture-hash:
-    sourceColumn: 13
-    sourceEndColumn: 78
-    sourceEndLine: 4
-    sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
-    sourceLine: 4
-  SYM-skillopt-trust-plane-binding-error:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 167
-    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
-    sourceLine: 165
-  SYM-skillopt-trust-plane-binding-error-name:
-    sourceColumn: 11
-    sourceEndColumn: 43
-    sourceEndLine: 166
-    sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
-    sourceLine: 166
   SYM-skillopt-validate-approval:
     sourceColumn: 16
     sourceEndColumn: 1
