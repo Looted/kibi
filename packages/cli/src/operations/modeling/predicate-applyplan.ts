@@ -1,6 +1,10 @@
 import { inferArgs } from "./predicate-inference.js";
 import { schemaForCandidate } from "./predicate-loader.js";
-import type { PredicateSchemaCandidate, PredicateSuggestion, SuggestPredicatesArgs } from "./predicate-types.js";
+import type {
+  PredicateSchemaCandidate,
+  PredicateSuggestion,
+  SuggestPredicatesArgs,
+} from "./predicate-types.js";
 import { hashId } from "./predicate-utils.js";
 
 // implements REQ-mcp-suggest-predicates

@@ -1,4 +1,9 @@
-import { slug, normalizePredicateToken, singularize, normalizeSubjectKey } from "./predicate-utils.js";
+import {
+  normalizePredicateToken,
+  normalizeSubjectKey,
+  singularize,
+  slug,
+} from "./predicate-utils.js";
 
 // implements REQ-mcp-suggest-predicates
 export function inferPermissionRuleArgs(text: string): string[] {
@@ -47,7 +52,10 @@ export function inferGuardArgs(text: string, subject: string): string[] {
 }
 
 // implements REQ-mcp-suggest-predicates
-export function inferExceptionRuleArgs(text: string, subject: string): string[] {
+export function inferExceptionRuleArgs(
+  text: string,
+  subject: string,
+): string[] {
   const exception = text.match(
     /^(?:the\s+)?(?<subject>[a-z][a-z\s_-]*?)\s+(?:must|shall|should)\s+(?<behavior>.+?)\s+unless\s+(?:the\s+)?(?<exception>.+?)\.?$/i,
   );

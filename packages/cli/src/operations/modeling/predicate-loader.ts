@@ -1,7 +1,13 @@
 import { parseEntityFromList, parseListOfLists } from "../../prolog/codec.js";
 import type { PrologPort } from "../../public/operations/runtime-types.js";
-import { DEFAULT_USAGE_HINTS, USAGE_HINTS_BY_PREDICATE } from "./predicate-catalog.js";
-import type { PredicateSchemaCandidate, PredicateUsageHints } from "./predicate-types.js";
+import {
+  DEFAULT_USAGE_HINTS,
+  USAGE_HINTS_BY_PREDICATE,
+} from "./predicate-catalog.js";
+import type {
+  PredicateSchemaCandidate,
+  PredicateUsageHints,
+} from "./predicate-types.js";
 import { hashId, normalizeOptionalString } from "./predicate-utils.js";
 
 // implements REQ-mcp-suggest-predicates

@@ -1,12 +1,16 @@
 import Ajv, { type ErrorObject } from "ajv";
+import entitySchema from "../../public/schemas/entity.js";
+import relationshipSchema from "../../public/schemas/relationship.js";
 // implements REQ-kibi-operation-interface-parity
 import {
   SYMBOL_ROLES,
   isAllowedGranularityReason,
 } from "../../public/symbol-granularity.js";
-import entitySchema from "../../public/schemas/entity.js";
-import relationshipSchema from "../../public/schemas/relationship.js";
-import { factKindShapeHints, validateFactModelingShape, valueFieldHint } from "./strict-fact.js";
+import {
+  factKindShapeHints,
+  validateFactModelingShape,
+  valueFieldHint,
+} from "./strict-fact.js";
 import type { UpsertInput, ValidatedUpsert } from "./types.js";
 
 const ajv = new Ajv({ strict: false });
@@ -21,7 +25,12 @@ const validateEntity = ajv.compile({
     ...properties,
     granularity_reason: {
       type: "string",
-      enum: ["config-artifact", "module-level-behavior", "extractor-miss", "legacy-link"],
+      enum: [
+        "config-artifact",
+        "module-level-behavior",
+        "extractor-miss",
+        "legacy-link",
+      ],
     },
     symbol_role: { type: "string", enum: [...SYMBOL_ROLES] },
   },
@@ -65,12 +74,20 @@ function formatEntityErrors(
   const hints = factKindShapeHints(entity);
   for (const [alias, canonical] of ALIASES) {
     if (Object.hasOwn(entity, alias)) {
-      hints.push(`Unknown property '${alias}'. Use '${canonical}' in kb_upsert.properties.`);
+      hints.push(
+        `Unknown property '${alias}'. Use '${canonical}' in kb_upsert.properties.`,
+      );
     }
   }
   if (Object.hasOwn(entity, "value")) hints.push(valueFieldHint(entity.value));
-  if (hints.length > 0 && (Object.hasOwn(entity, "value") || [...ALIASES.keys()].some((key) => Object.hasOwn(entity, key)))) {
-    hints.push("Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.");
+  if (
+    hints.length > 0 &&
+    (Object.hasOwn(entity, "value") ||
+      [...ALIASES.keys()].some((key) => Object.hasOwn(entity, key)))
+  ) {
+    hints.push(
+      "Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.",
+    );
   }
   return [...messages, ...hints].join("; ");
 }
@@ -102,7 +119,9 @@ export function validateUpsertInput(
       const details = (validateRelationship.errors ?? [])
         .map((error) => `${error.instancePath || "root"}: ${error.message}`)
         .join("; ");
-      throw new Error(`Relationship validation failed at index ${index}: ${details}`);
+      throw new Error(
+        `Relationship validation failed at index ${index}: ${details}`,
+      );
     }
   });
   return { entity, relationships };

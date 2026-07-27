@@ -62,7 +62,10 @@ export function hashId(prefix: string, parts: string[]): string {
 }
 
 // implements REQ-mcp-suggest-predicates
-export function inferSubject(text: string, subjectHint: string | undefined): string {
+export function inferSubject(
+  text: string,
+  subjectHint: string | undefined,
+): string {
   const explicit = normalizeOptionalString(subjectHint);
   if (explicit) return explicit;
 

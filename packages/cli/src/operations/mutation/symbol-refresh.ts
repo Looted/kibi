@@ -23,17 +23,26 @@ function record(value: unknown): value is Record<string, unknown> {
 
 function coordinate(value: unknown): CoordinateRecord | null {
   if (!record(value)) return null;
-  const { sourceFile, sourceLine, sourceColumn, sourceEndLine, sourceEndColumn } = value;
-  return typeof sourceFile === "string"
-    && typeof sourceLine === "number"
-    && typeof sourceColumn === "number"
-    && typeof sourceEndLine === "number"
-    && typeof sourceEndColumn === "number"
+  const {
+    sourceFile,
+    sourceLine,
+    sourceColumn,
+    sourceEndLine,
+    sourceEndColumn,
+  } = value;
+  return typeof sourceFile === "string" &&
+    typeof sourceLine === "number" &&
+    typeof sourceColumn === "number" &&
+    typeof sourceEndLine === "number" &&
+    typeof sourceEndColumn === "number"
     ? { sourceFile, sourceLine, sourceColumn, sourceEndLine, sourceEndColumn }
     : null;
 }
 
-async function exists(context: OperationContext, filePath: string): Promise<boolean> {
+async function exists(
+  context: OperationContext,
+  filePath: string,
+): Promise<boolean> {
   try {
     return context.fs?.stat(filePath).then((stat) => stat.isFile()) ?? false;
   } catch (error) {
@@ -50,11 +59,12 @@ async function manifestPath(context: OperationContext): Promise<string> {
     const config = JSON.parse(await fs.readFile(configPath));
     if (record(config)) {
       const paths = config.paths;
-      const configured = record(paths) && typeof paths.symbols === "string"
-        ? paths.symbols
-        : typeof config.symbolsManifest === "string"
-          ? config.symbolsManifest
-          : null;
+      const configured =
+        record(paths) && typeof paths.symbols === "string"
+          ? paths.symbols
+          : typeof config.symbolsManifest === "string"
+            ? config.symbolsManifest
+            : null;
       if (configured) return path.resolve(context.workspaceRoot, configured);
     }
   } catch (error) {
@@ -78,9 +88,12 @@ async function defaultRefresh(
   if (!record(parsed) || !Array.isArray(parsed.symbols)) {
     return { refreshed: false, found: false };
   }
-  const entry = parsed.symbols.find((value) => record(value) && value.id === symbolId);
+  const entry = parsed.symbols.find(
+    (value) => record(value) && value.id === symbolId,
+  );
   if (!record(entry)) return { refreshed: false, found: false };
-  const sourceFile = typeof entry.sourceFile === "string" ? entry.sourceFile : "";
+  const sourceFile =
+    typeof entry.sourceFile === "string" ? entry.sourceFile : "";
   const title = typeof entry.title === "string" ? entry.title : "";
   const [enriched] = await enrichSymbolCoordinates(
     [{ ...entry, id: symbolId, title, sourceFile }],
@@ -88,7 +101,10 @@ async function defaultRefresh(
   );
   const next = coordinate(enriched);
   if (next === null) return { refreshed: false, found: true };
-  const artifactPath = path.join(path.dirname(manifest), "symbol-coordinates.yaml");
+  const artifactPath = path.join(
+    path.dirname(manifest),
+    "symbol-coordinates.yaml",
+  );
   let coordinates: Record<string, CoordinateRecord> = {};
   try {
     const artifact = parseYaml(await fs.readFile(artifactPath));
@@ -105,7 +121,9 @@ async function defaultRefresh(
   }
   coordinates[symbolId] = next;
   const sorted = Object.fromEntries(
-    Object.entries(coordinates).sort(([left], [right]) => left.localeCompare(right)),
+    Object.entries(coordinates).sort(([left], [right]) =>
+      left.localeCompare(right),
+    ),
   );
   const content = `# symbol-coordinates.yaml\n# GENERATED coordinate artifact — do not edit manually.\n# Run \`kibi sync --refresh-symbol-coordinates\` to refresh.\n${dumpYaml({ coordinates: sorted }, { lineWidth: -1, noRefs: true, sortKeys: true })}`;
   await fs.writeFile(artifactPath, content);

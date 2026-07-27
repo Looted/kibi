@@ -1,5 +1,6 @@
 import path from "node:path";
 import { Project, ScriptKind } from "ts-morph";
+import type { OperationContext } from "../../public/operations/runtime-types.js";
 import {
   type GranularSymbolCandidate,
   type SymbolKind,
@@ -9,7 +10,6 @@ import {
   isAllowedGranularityReason,
   isTraceabilityRelationshipType,
 } from "../../public/symbol-granularity.js";
-import type { OperationContext } from "../../public/operations/runtime-types.js";
 import type { RelationshipInput } from "./types.js";
 
 function scriptKind(filePath: string): ScriptKind {
@@ -24,12 +24,16 @@ function candidate(name: string, kind: SymbolKind): GranularSymbolCandidate {
   return { name, kind, role: inferSymbolRole(kind) };
 }
 
-function candidates(filePath: string, content: string): GranularSymbolCandidate[] {
-  const source = new Project({ skipAddingFilesFromTsConfig: true }).createSourceFile(
-    `${filePath}::granularity`,
-    content,
-    { overwrite: true, scriptKind: scriptKind(filePath) },
-  );
+function candidates(
+  filePath: string,
+  content: string,
+): GranularSymbolCandidate[] {
+  const source = new Project({
+    skipAddingFilesFromTsConfig: true,
+  }).createSourceFile(`${filePath}::granularity`, content, {
+    overwrite: true,
+    scriptKind: scriptKind(filePath),
+  });
   const found: GranularSymbolCandidate[] = [];
   const methodCounts = new Map<string, number>();
   const bareMethods = new Map<string, GranularSymbolCandidate>();
@@ -77,9 +81,15 @@ export async function validateSymbolGranularity(
   context: OperationContext,
 ): Promise<void> {
   if (entity.type !== "symbol") return;
-  if (!relationships.some((relationship) => isTraceabilityRelationshipType(relationship.type))) return;
+  if (
+    !relationships.some((relationship) =>
+      isTraceabilityRelationshipType(relationship.type),
+    )
+  )
+    return;
   if (isAllowedGranularityReason(entity.granularity_reason)) return;
-  if (typeof entity.sourceFile !== "string" || typeof entity.title !== "string") return;
+  if (typeof entity.sourceFile !== "string" || typeof entity.title !== "string")
+    return;
   const fs = context.fs;
   if (fs === undefined) return;
   const sourcePath = path.isAbsolute(entity.sourceFile)
@@ -99,9 +109,10 @@ export async function validateSymbolGranularity(
   const behavioral = getBehavioralSymbolNames(available);
   if (behavioral.length === 0) return;
   const nonBehavioral = getNonBehavioralSymbolNames(available);
-  const ignored = nonBehavioral.length > 0
-    ? ` Non-behavioral symbols in the file were ignored for this decision: ${summarized(nonBehavioral)}.`
-    : "";
+  const ignored =
+    nonBehavioral.length > 0
+      ? ` Non-behavioral symbols in the file were ignored for this decision: ${summarized(nonBehavioral)}.`
+      : "";
   throw new Error(
     `Symbol ${String(entity.id)} links ${entity.sourceFile} coarsely while granular symbols are available (behavioral only): ${summarized(behavioral)}. Move relationships to a behavioral symbol, add a manifest behavioral anchor, or set granularity_reason to config-artifact, module-level-behavior, extractor-miss, or legacy-link.${ignored}`,
   );

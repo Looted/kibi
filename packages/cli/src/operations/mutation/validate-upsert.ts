@@ -1,8 +1,11 @@
-import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
 // implements REQ-kibi-operation-interface-parity
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import type { OperationResult } from "../../public/operations/types.js";
-import { validateLiveRelationshipTargets, validateRelationshipSources } from "./relationships.js";
+import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
+import {
+  validateLiveRelationshipTargets,
+  validateRelationshipSources,
+} from "./relationships.js";
 import { validateSymbolGranularity } from "./symbol-granularity.js";
 import type { UpsertInput, ValidateUpsertPayload } from "./types.js";
 import { validateUpsertInput } from "./validation.js";
@@ -14,7 +17,11 @@ export async function executeValidateUpsert(
   try {
     const validated = validateUpsertInput(input, context.clock());
     validateRelationshipSources(input.id, validated.relationships);
-    await validateSymbolGranularity(validated.entity, validated.relationships, context);
+    await validateSymbolGranularity(
+      validated.entity,
+      validated.relationships,
+      context,
+    );
     if (context.prolog !== undefined) {
       await validateLiveRelationshipTargets(
         context.prolog,
@@ -50,7 +57,10 @@ export async function executeValidateUpsert(
     };
     return {
       content: [
-        { type: "text", text: `kb_validate_upsert: payload is invalid. ${message}` },
+        {
+          type: "text",
+          text: `kb_validate_upsert: payload is invalid. ${message}`,
+        },
       ],
       structuredContent: payload,
     };

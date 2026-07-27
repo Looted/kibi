@@ -7,7 +7,9 @@ export async function saveMutation(
   prolog.invalidateCache?.();
   const result = await prolog.save();
   if (!result.success) {
-    throw new Error(`Failed to save KB after ${operation}: ${result.error ?? "Unknown error"}`);
+    throw new Error(
+      `Failed to save KB after ${operation}: ${result.error ?? "Unknown error"}`,
+    );
   }
 }
 
@@ -20,7 +22,9 @@ export async function saveAtomicMutation(
     `rdf_transaction((${[...goals, "kb_save"].join(", ")}))`,
   );
   if (!result.success) {
-    throw new Error(`Failed to save KB after ${operation}: ${result.error ?? "Unknown error"}`);
+    throw new Error(
+      `Failed to save KB after ${operation}: ${result.error ?? "Unknown error"}`,
+    );
   }
   prolog.invalidateCache?.();
 }

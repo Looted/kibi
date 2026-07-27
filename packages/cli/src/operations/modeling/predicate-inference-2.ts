@@ -1,4 +1,4 @@
-import { slug, normalizePredicateToken } from "./predicate-utils.js";
+import { normalizePredicateToken, slug } from "./predicate-utils.js";
 
 // implements REQ-mcp-suggest-predicates
 export function inferConflictResolutionRuleArgs(text: string): string[] {

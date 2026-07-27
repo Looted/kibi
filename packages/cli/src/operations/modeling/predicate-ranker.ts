@@ -1,10 +1,14 @@
-import type { PredicateSchemaCandidate } from "./predicate-types.js";
-import { matchesKeyword } from "./predicate-utils.js";
 import { scoreExactPredicates1 } from "./predicate-score-1.js";
 import { scoreExactPredicates2 } from "./predicate-score-2.js";
 import { scoreExactPredicates3 } from "./predicate-score-3.js";
+import type { PredicateSchemaCandidate } from "./predicate-types.js";
+import { matchesKeyword } from "./predicate-utils.js";
 
-const EXACT_SCORERS = [scoreExactPredicates1, scoreExactPredicates2, scoreExactPredicates3];
+const EXACT_SCORERS = [
+  scoreExactPredicates1,
+  scoreExactPredicates2,
+  scoreExactPredicates3,
+];
 
 // implements REQ-mcp-suggest-predicates
 export function scoreSchema(

@@ -42,9 +42,7 @@ export function clampConfidence(confidence: number | undefined): number {
 }
 
 // implements REQ-002
-export function normalizeClaimValue(
-  value: unknown,
-): string | number | boolean {
+export function normalizeClaimValue(value: unknown): string | number | boolean {
   if (
     typeof value === "string" ||
     typeof value === "number" ||
