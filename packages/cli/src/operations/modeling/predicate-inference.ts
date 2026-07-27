@@ -1,8 +1,71 @@
+import {
+  inferAuditEventRuleArgs,
+  inferAvailabilitySlaArgs,
+  inferConsentRuleArgs,
+  inferDataResidencyRuleArgs,
+  inferDependencyRuleArgs,
+  inferEscalationRuleArgs,
+  inferExceptionRuleArgs,
+  inferGuardArgs,
+  inferIdempotencyRuleArgs,
+  inferLifecycleRuleArgs,
+  inferMutualExclusionArgs,
+  inferNotificationRouteArgs,
+  inferOwnershipRuleArgs,
+  inferPermissionRuleArgs,
+  inferRetryPolicyArgs,
+} from "./predicate-inference-1.js";
+import {
+  inferAbsenceRequirementArgs,
+  inferAbstractionBoundaryRuleArgs,
+  inferBatchOperationRuleArgs,
+  inferBuildConstraintArgs,
+  inferCodingStandardRuleArgs,
+  inferConflictResolutionRuleArgs,
+  inferConsistencyRuleArgs,
+  inferEnvironmentSafetyRuleArgs,
+  inferFallbackRuleArgs,
+  inferMigrationBoundaryRuleArgs,
+  inferOfflineBehaviorRuleArgs,
+  inferOrderedStrategyRuleArgs,
+  inferPlatformConsistencyRuleArgs,
+  inferPreservationRuleArgs,
+  inferRefreshPolicyRuleArgs,
+  inferReleaseGateRuleArgs,
+  inferSchemaInvariantRuleArgs,
+  inferSecurityConfigurationRuleArgs,
+} from "./predicate-inference-2.js";
+import {
+  inferConditionalBehaviorArgs,
+  inferDefaultValueArgs,
+  inferDocumentationStandardRuleArgs,
+  inferEnforcementLocationRuleArgs,
+  inferRateLimitArgs,
+  inferReconciliationRuleArgs,
+  inferScopedAuthorizationRuleArgs,
+  inferStateMembershipArgs,
+  inferStateTransitionArgs,
+  inferTemporalOrderArgs,
+  inferThrottlePolicyRuleArgs,
+  inferUniquenessArgs,
+  inferVisualLayoutRuleArgs,
+  inferWarmupPolicyRuleArgs,
+} from "./predicate-inference-3.js";
 import type { PredicateSchemaCandidate } from "./predicate-types.js";
-import { inferPermissionRuleArgs, inferGuardArgs, inferExceptionRuleArgs, inferMutualExclusionArgs, inferDependencyRuleArgs, inferOwnershipRuleArgs, inferRetryPolicyArgs, inferEscalationRuleArgs, inferAvailabilitySlaArgs, inferNotificationRouteArgs, inferIdempotencyRuleArgs, inferDataResidencyRuleArgs, inferAuditEventRuleArgs, inferConsentRuleArgs, inferLifecycleRuleArgs } from "./predicate-inference-1.js";
-import { inferConflictResolutionRuleArgs, inferFallbackRuleArgs, inferBatchOperationRuleArgs, inferConsistencyRuleArgs, inferBuildConstraintArgs, inferEnvironmentSafetyRuleArgs, inferSchemaInvariantRuleArgs, inferCodingStandardRuleArgs, inferMigrationBoundaryRuleArgs, inferAbsenceRequirementArgs, inferOfflineBehaviorRuleArgs, inferReleaseGateRuleArgs, inferPlatformConsistencyRuleArgs, inferPreservationRuleArgs, inferAbstractionBoundaryRuleArgs, inferSecurityConfigurationRuleArgs, inferOrderedStrategyRuleArgs, inferRefreshPolicyRuleArgs } from "./predicate-inference-2.js";
-import { inferScopedAuthorizationRuleArgs, inferDocumentationStandardRuleArgs, inferWarmupPolicyRuleArgs, inferVisualLayoutRuleArgs, inferEnforcementLocationRuleArgs, inferReconciliationRuleArgs, inferThrottlePolicyRuleArgs, inferDefaultValueArgs, inferUniquenessArgs, inferStateMembershipArgs, inferTemporalOrderArgs, inferConditionalBehaviorArgs, inferStateTransitionArgs, inferRateLimitArgs } from "./predicate-inference-3.js";
-import { inferDuration, inferDurationUnit, inferEvent, inferGate, inferNumber, inferOperator, inferResource, inferScope, inferSubject, inferTrigger, inferUnit, slug } from "./predicate-utils.js";
+import {
+  inferDuration,
+  inferDurationUnit,
+  inferEvent,
+  inferGate,
+  inferNumber,
+  inferOperator,
+  inferResource,
+  inferScope,
+  inferSubject,
+  inferTrigger,
+  inferUnit,
+  slug,
+} from "./predicate-utils.js";
 
 // implements REQ-mcp-suggest-predicates
 export function inferArgs(

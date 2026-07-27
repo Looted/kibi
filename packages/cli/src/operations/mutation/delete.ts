@@ -22,11 +22,15 @@ async function loadEntity(
     `findall(['${safeId}',Type,Props], kb_entity('${safeId}', Type, Props), Results)`,
   );
   if (!result.success) {
-    throw new Error(`Failed to load metadata for entity ${id}: ${result.error ?? "Unknown error"}`);
+    throw new Error(
+      `Failed to load metadata for entity ${id}: ${result.error ?? "Unknown error"}`,
+    );
   }
   const rows = parseListOfLists(result.bindings.Results ?? "[]");
   if (rows.length === 0) {
-    throw new Error(`Failed to load metadata for entity ${id}: Entity not found`);
+    throw new Error(
+      `Failed to load metadata for entity ${id}: Entity not found`,
+    );
   }
   return { ...parseEntityFromList(rows[0] ?? []), id };
 }
@@ -36,7 +40,8 @@ export async function executeDelete(
   context: OperationContext,
 ): Promise<OperationResult<DeletePayload>> {
   const prolog = requireProlog(context);
-  if (input.ids.length === 0) throw new Error("At least one ID required for delete");
+  if (input.ids.length === 0)
+    throw new Error("At least one ID required for delete");
   try {
     const errors: string[] = [];
     const goals: string[] = [];
@@ -49,11 +54,15 @@ export async function executeDelete(
       }
       const dependents = await prolog.query(dependentRelationshipsGoal(id));
       if (!dependents.success) {
-        errors.push(`Failed to inspect dependents for entity ${id}: ${dependents.error ?? "Query failed"}`);
+        errors.push(
+          `Failed to inspect dependents for entity ${id}: ${dependents.error ?? "Query failed"}`,
+        );
         continue;
       }
       if ((dependents.bindings.Dependents ?? "[]") !== "[]") {
-        errors.push(`Cannot delete entity ${id}: has dependents (other entities reference it)`);
+        errors.push(
+          `Cannot delete entity ${id}: has dependents (other entities reference it)`,
+        );
         continue;
       }
       goals.push(buildEntityDeleteAuditGoal(await loadEntity(prolog, id)));
@@ -62,7 +71,12 @@ export async function executeDelete(
     else await saveMutation(prolog, "delete");
     const payload = { deleted: goals.length, skipped: errors.length, errors };
     return {
-      content: [{ type: "text", text: `Deleted ${payload.deleted} entities. Skipped ${payload.skipped}.${errors.length > 0 ? ` Errors: ${errors.join("; ")}` : ""}` }],
+      content: [
+        {
+          type: "text",
+          text: `Deleted ${payload.deleted} entities. Skipped ${payload.skipped}.${errors.length > 0 ? ` Errors: ${errors.join("; ")}` : ""}`,
+        },
+      ],
       structuredContent: payload,
     };
   } catch (error) {

@@ -1,4 +1,10 @@
-import { slug, inferTrigger, normalizePredicateToken, singularize, normalizeSubjectKey } from "./predicate-utils.js";
+import {
+  inferTrigger,
+  normalizePredicateToken,
+  normalizeSubjectKey,
+  singularize,
+  slug,
+} from "./predicate-utils.js";
 
 // implements REQ-mcp-suggest-predicates
 export function inferScopedAuthorizationRuleArgs(text: string): string[] {
@@ -111,7 +117,10 @@ export function inferUniquenessArgs(text: string): string[] {
 }
 
 // implements REQ-mcp-suggest-predicates
-export function inferStateMembershipArgs(text: string, subject: string): string[] {
+export function inferStateMembershipArgs(
+  text: string,
+  subject: string,
+): string[] {
   const stateMembership = text.match(
     /^(?<subject>.+?)\s+(?:terminal\s+)?states\s+are\s+(?<states>.+?)\.?$/i,
   );
@@ -130,7 +139,10 @@ export function inferStateMembershipArgs(text: string, subject: string): string[
 }
 
 // implements REQ-mcp-suggest-predicates
-export function inferTemporalOrderArgs(text: string, subject: string): string[] {
+export function inferTemporalOrderArgs(
+  text: string,
+  subject: string,
+): string[] {
   const initializesAfter = text.match(
     /^(?:the\s+)?(?<subject>.+?)\s+initializes\s+after\s+(?:the\s+)?(?<ready>.+?)\s+is\s+ready\.?$/i,
   );
@@ -155,7 +167,10 @@ export function inferTemporalOrderArgs(text: string, subject: string): string[] 
 }
 
 // implements REQ-mcp-suggest-predicates
-export function inferConditionalBehaviorArgs(text: string, subject: string): string[] {
+export function inferConditionalBehaviorArgs(
+  text: string,
+  subject: string,
+): string[] {
   const whenMust = text.match(
     /^when\s+(?<condition>.+?),\s*(?:the\s+)?(?<subject>.+?)\s+(?:must|shall|should)\s+(?<behavior>.+?)\.?$/i,
   );
@@ -180,7 +195,10 @@ export function inferConditionalBehaviorArgs(text: string, subject: string): str
 }
 
 // implements REQ-mcp-suggest-predicates
-export function inferStateTransitionArgs(text: string, subject: string): string[] {
+export function inferStateTransitionArgs(
+  text: string,
+  subject: string,
+): string[] {
   const transition = text.match(
     /^when\s+(?<trigger>.+?),\s*(?:the\s+)?(?<subject>[a-z][a-z\s_-]*?)\s+transitions?\s+from\s+(?<from>[a-z][a-z0-9_-]*)\s+to\s+(?<to>[a-z][a-z0-9_-]*)\.?$/i,
   );

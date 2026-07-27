@@ -20,7 +20,10 @@ import {
   normalizeSourceFiles,
 } from "./requirement-utils.js";
 
-export type { ModelRequirementArgs, ModelRequirementResult } from "./requirement-types.js";
+export type {
+  ModelRequirementArgs,
+  ModelRequirementResult,
+} from "./requirement-types.js";
 export {
   estimateNormativeSignalConfidence,
   extractRequirementClaim,

@@ -1,8 +1,8 @@
-import { executeUpsert } from "../../../operations/mutation/upsert.js";
 import type {
   UpsertInput,
   UpsertPayload,
 } from "../../../operations/mutation/types.js";
+import { executeUpsert } from "../../../operations/mutation/upsert.js";
 import type { OperationSpec } from "../types.js";
 import {
   ENTITY_PROPERTIES_SCHEMA,

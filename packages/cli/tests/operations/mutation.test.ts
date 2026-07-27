@@ -75,12 +75,14 @@ describe("shared mutation operation specs", () => {
 
   test("upsert persists through the Prolog save port after one atomic write", async () => {
     // Given
-    const { context, query, save } = createContext((goal): PrologQueryResult => {
-      if (goal.startsWith("once(kb_entity(")) {
-        return { success: false, bindings: {} };
-      }
-      return { success: true, bindings: {} };
-    });
+    const { context, query, save } = createContext(
+      (goal): PrologQueryResult => {
+        if (goal.startsWith("once(kb_entity(")) {
+          return { success: false, bindings: {} };
+        }
+        return { success: true, bindings: {} };
+      },
+    );
 
     // When
     const result = await upsertSpec.execute(payload, context);
@@ -92,7 +94,9 @@ describe("shared mutation operation specs", () => {
       relationships_created: 0,
     });
     expect(
-      query.mock.calls.filter(([goal]) => String(goal).startsWith("rdf_transaction")),
+      query.mock.calls.filter(([goal]) =>
+        String(goal).startsWith("rdf_transaction"),
+      ),
     ).toHaveLength(1);
     expect(save).toHaveBeenCalledTimes(1);
   });
@@ -129,30 +133,32 @@ describe("shared mutation operation specs", () => {
 
   test("delete classifies mixed existing and missing ids", async () => {
     // Given
-    const { context, query, save } = createContext((goal): PrologQueryResult => {
-      if (goal === "once(kb_entity('REQ-DELETE', _, _))") {
-        return { success: true, bindings: {} };
-      }
-      if (goal === "once(kb_entity('REQ-MISSING', _, _))") {
-        return { success: false, bindings: {} };
-      }
-      if (goal.includes("Dependents")) {
-        return { success: true, bindings: { Dependents: "[]" } };
-      }
-      if (goal.includes("findall(['REQ-DELETE',Type,Props]")) {
-        return {
-          success: true,
-          bindings: {
-            Results:
-              "[['REQ-DELETE',req,[id='REQ-DELETE',title=\"Delete me\",source=\"test://delete\"]]]",
-          },
-        };
-      }
-      if (goal.startsWith("rdf_transaction((kb_retract_entity(")) {
-        return { success: true, bindings: {} };
-      }
-      throw new Error(`Unexpected goal: ${goal}`);
-    });
+    const { context, query, save } = createContext(
+      (goal): PrologQueryResult => {
+        if (goal === "once(kb_entity('REQ-DELETE', _, _))") {
+          return { success: true, bindings: {} };
+        }
+        if (goal === "once(kb_entity('REQ-MISSING', _, _))") {
+          return { success: false, bindings: {} };
+        }
+        if (goal.includes("Dependents")) {
+          return { success: true, bindings: { Dependents: "[]" } };
+        }
+        if (goal.includes("findall(['REQ-DELETE',Type,Props]")) {
+          return {
+            success: true,
+            bindings: {
+              Results:
+                "[['REQ-DELETE',req,[id='REQ-DELETE',title=\"Delete me\",source=\"test://delete\"]]]",
+            },
+          };
+        }
+        if (goal.startsWith("rdf_transaction((kb_retract_entity(")) {
+          return { success: true, bindings: {} };
+        }
+        throw new Error(`Unexpected goal: ${goal}`);
+      },
+    );
 
     // When
     const result = await deleteSpec.execute(
@@ -199,33 +205,37 @@ describe("shared mutation operation specs", () => {
       ],
     });
     expect(
-      query.mock.calls.some(([goal]) => String(goal).includes("kb_retract_entity")),
+      query.mock.calls.some(([goal]) =>
+        String(goal).includes("kb_retract_entity"),
+      ),
     ).toBe(false);
   });
 
   test("delete keeps mutation and save in one rollback-safe transaction", async () => {
     // Given
-    const { context, query, save } = createContext((goal): PrologQueryResult => {
-      if (goal.startsWith("once(kb_entity(")) {
-        return { success: true, bindings: {} };
-      }
-      if (goal.includes("Dependents")) {
-        return { success: true, bindings: { Dependents: "[]" } };
-      }
-      if (goal.includes("findall(['REQ-SAVE-FAIL',Type,Props]")) {
-        return {
-          success: true,
-          bindings: {
-            Results:
-              "[['REQ-SAVE-FAIL',req,[id='REQ-SAVE-FAIL',title=\"Rollback\"]]]",
-          },
-        };
-      }
-      if (goal.startsWith("rdf_transaction(")) {
-        return { success: false, bindings: {}, error: "disk full" };
-      }
-      throw new Error(`Unexpected goal: ${goal}`);
-    });
+    const { context, query, save } = createContext(
+      (goal): PrologQueryResult => {
+        if (goal.startsWith("once(kb_entity(")) {
+          return { success: true, bindings: {} };
+        }
+        if (goal.includes("Dependents")) {
+          return { success: true, bindings: { Dependents: "[]" } };
+        }
+        if (goal.includes("findall(['REQ-SAVE-FAIL',Type,Props]")) {
+          return {
+            success: true,
+            bindings: {
+              Results:
+                "[['REQ-SAVE-FAIL',req,[id='REQ-SAVE-FAIL',title=\"Rollback\"]]]",
+            },
+          };
+        }
+        if (goal.startsWith("rdf_transaction(")) {
+          return { success: false, bindings: {}, error: "disk full" };
+        }
+        throw new Error(`Unexpected goal: ${goal}`);
+      },
+    );
 
     // When
     const invocation = deleteSpec.execute({ ids: ["REQ-SAVE-FAIL"] }, context);

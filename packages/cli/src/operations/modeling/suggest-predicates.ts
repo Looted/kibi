@@ -1,13 +1,27 @@
-import type { OperationContext, PrologPort } from "../../public/operations/runtime-types.js";
-import { buildGapApplyPlan, buildPredicateApplyPlan, buildRelationshipPlan, buildSuggestion } from "./predicate-applyplan.js";
+import type {
+  OperationContext,
+  PrologPort,
+} from "../../public/operations/runtime-types.js";
+import {
+  buildGapApplyPlan,
+  buildPredicateApplyPlan,
+  buildRelationshipPlan,
+  buildSuggestion,
+} from "./predicate-applyplan.js";
 import { BUILT_IN_PREDICATE_SCHEMAS } from "./predicate-catalog.js";
 import { inferSubject } from "./predicate-inference.js";
 import { loadExistingPredicateSchemas } from "./predicate-loader.js";
 import { scoreSchema } from "./predicate-ranker.js";
-import type { SuggestPredicatesArgs, SuggestPredicatesResult } from "./predicate-types.js";
+import type {
+  SuggestPredicatesArgs,
+  SuggestPredicatesResult,
+} from "./predicate-types.js";
 import { clampInteger, clampScore, normalizeText } from "./predicate-utils.js";
 
-export type { SuggestPredicatesArgs, SuggestPredicatesResult } from "./predicate-types.js";
+export type {
+  SuggestPredicatesArgs,
+  SuggestPredicatesResult,
+} from "./predicate-types.js";
 
 const DEFAULT_MAX_CANDIDATES = 5;
 
@@ -17,7 +31,12 @@ export async function handleKbSuggestPredicates(
   args: SuggestPredicatesArgs,
 ): Promise<SuggestPredicatesResult> {
   const text = normalizeText(args.text);
-  const maxCandidates = clampInteger(args.maxCandidates, DEFAULT_MAX_CANDIDATES, 1, 20);
+  const maxCandidates = clampInteger(
+    args.maxCandidates,
+    DEFAULT_MAX_CANDIDATES,
+    1,
+    20,
+  );
   const minScore = clampScore(args.minScore);
   const warnings: string[] = [];
   const subject = inferSubject(text, args.subjectHint);
@@ -32,19 +51,22 @@ export async function handleKbSuggestPredicates(
     .filter((scored) => scored.score >= minScore)
     .sort((left, right) => {
       if (right.score !== left.score) return right.score - left.score;
-      return left.schema.predicate_name.localeCompare(right.schema.predicate_name);
+      return left.schema.predicate_name.localeCompare(
+        right.schema.predicate_name,
+      );
     })
     .slice(0, maxCandidates)
-    .map((scored) => buildSuggestion(scored.schema, text, subject, scored.score));
+    .map((scored) =>
+      buildSuggestion(scored.schema, text, subject, scored.score),
+    );
   if (candidates.length === 0) {
     warnings.push(
       "No predicate candidate met minScore. If this is recurring domain language, create a fact_kind=predicate_schema fact; otherwise keep the generated review:ontology-gap observation. Do not invent unsupported predicate names without a predicate_schema.",
     );
   }
 
-  const recommendedAction = candidates.length > 0
-    ? "apply_requires_predicate"
-    : "record_ontology_gap";
+  const recommendedAction =
+    candidates.length > 0 ? "apply_requires_predicate" : "record_ontology_gap";
   const firstCandidate = candidates[0];
   const applyPlan = firstCandidate
     ? buildPredicateApplyPlan(firstCandidate, args)
@@ -52,9 +74,10 @@ export async function handleKbSuggestPredicates(
   const relationshipPlan = firstCandidate
     ? buildRelationshipPlan(String(applyPlan[0]?.id ?? ""), args.requirementId)
     : null;
-  const textSummary = candidates.length > 0
-    ? `Suggested ${candidates.length} predicate candidate(s). Top match: ${candidates[0]?.predicate_name}. Apply structured predicate facts before falling back to prose.`
-    : "No predicate candidate met the confidence threshold; record an ontology gap instead of silently writing prose.";
+  const textSummary =
+    candidates.length > 0
+      ? `Suggested ${candidates.length} predicate candidate(s). Top match: ${candidates[0]?.predicate_name}. Apply structured predicate facts before falling back to prose.`
+      : "No predicate candidate met the confidence threshold; record an ontology gap instead of silently writing prose.";
 
   return {
     content: [{ type: "text", text: textSummary }],

@@ -1,8 +1,11 @@
-import type { PredicateSchemaCandidate, PredicateUsageHints } from "./predicate-types.js";
 import { PREDICATE_CATALOG_1 } from "./predicate-catalog-1.js";
 import { PREDICATE_CATALOG_2 } from "./predicate-catalog-2.js";
 import { PREDICATE_CATALOG_3 } from "./predicate-catalog-3.js";
 import { PREDICATE_CATALOG_4 } from "./predicate-catalog-4.js";
+import type {
+  PredicateSchemaCandidate,
+  PredicateUsageHints,
+} from "./predicate-types.js";
 import { PREDICATE_USAGE_HINTS_1 } from "./predicate-usage-hints-1.js";
 import { PREDICATE_USAGE_HINTS_2 } from "./predicate-usage-hints-2.js";
 import { PREDICATE_USAGE_HINTS_3 } from "./predicate-usage-hints-3.js";

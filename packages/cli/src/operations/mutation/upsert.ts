@@ -1,8 +1,8 @@
-import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
+import { escapeAtom } from "../../prolog/codec.js";
 // implements REQ-kibi-operation-interface-parity
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import type { OperationResult } from "../../public/operations/types.js";
-import { escapeAtom } from "../../prolog/codec.js";
+import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
 import { recordEntityAudit, recordRelationshipAudits } from "./audit.js";
 import { buildUpsertTransaction, formatUpsertError } from "./contradictions.js";
 import {
@@ -56,7 +56,11 @@ export async function executeUpsert(
   try {
     const validated = validateUpsertInput(input, context.clock());
     validateRelationshipSources(input.id, validated.relationships);
-    await validateSymbolGranularity(validated.entity, validated.relationships, context);
+    await validateSymbolGranularity(
+      validated.entity,
+      validated.relationships,
+      context,
+    );
     const relationships = await effectiveRelationships(
       input,
       validated.entity,
@@ -64,7 +68,11 @@ export async function executeUpsert(
       context,
     );
     await validateStrictLanePairing(prolog, relationships);
-    await validateLiveRelationshipTargets(prolog, validated.entity, relationships);
+    await validateLiveRelationshipTargets(
+      prolog,
+      validated.entity,
+      relationships,
+    );
     const exists = await prolog.query(
       `once(kb_entity('${escapeAtom(input.id)}', _, _))`,
     );
@@ -108,7 +116,9 @@ export async function executeUpsert(
       ...(input.type === "req"
         ? {
             contradictionCheck: {
-              outcome: input._skipContradictionCheck ? "skipped" : "no-conflict",
+              outcome: input._skipContradictionCheck
+                ? "skipped"
+                : "no-conflict",
               checked_req_id: input.id,
               strict_readiness:
                 semantic.receipt.logic_readiness === "modeled"
