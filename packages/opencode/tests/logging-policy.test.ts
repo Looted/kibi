@@ -23,6 +23,8 @@ describe("logging policy", () => {
   const logger = require("../src/logger") as typeof import("../src/logger");
 
   beforeEach(() => {
+    logger.resetClient();
+    logger._setConsoleError(null);
     logCalls = [];
     errorCalls = [];
     originalConsoleLog = console.log;

@@ -58,7 +58,13 @@ const BATCHES: Batch[] = [
   },
   {
     label: "opencode",
-    args: ["test", "--timeout", "15000", "./packages/opencode"],
+    args: [
+      "test",
+      "--timeout",
+      "15000",
+      "--max-concurrency=1",
+      "./packages/opencode",
+    ],
   },
   {
     label: "codex",
