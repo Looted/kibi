@@ -1,13 +1,28 @@
-import { afterEach, describe, expect, setDefaultTimeout, test } from "bun:test";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  setDefaultTimeout,
+  test,
+} from "bun:test";
+import {
+  chmod,
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { isAbsolute, join, relative } from "node:path";
+import { dirname, isAbsolute, join, relative } from "node:path";
 import {
   RequiredMcpStartupError,
   RuntimePrerequisiteError,
 } from "../runtime/canary-runtime";
 import type { ProcessResult } from "../runtime/process";
-import { runCapabilityCanary } from "../runtime/workspace";
+import { runCapabilityCanary as baseRunCapabilityCanary } from "../runtime/workspace";
 
 const roots: string[] = [];
 setDefaultTimeout(15_000);
@@ -15,6 +30,31 @@ afterEach(async () => {
   for (const root of roots.splice(0))
     await rm(root, { recursive: true, force: true });
 });
+
+let fakeCodexExecutable = "";
+beforeAll(async () => {
+  const root = await mkdtemp(join(tmpdir(), "skillopt-canary-fake-codex-"));
+  fakeCodexExecutable = join(root, "codex");
+  await writeFile(fakeCodexExecutable, "#!/bin/sh\nexit 0\n", {
+    encoding: "utf8",
+    mode: 0o700,
+  });
+  await chmod(fakeCodexExecutable, 0o500);
+});
+afterAll(async () => {
+  if (fakeCodexExecutable !== "")
+    await rm(dirname(fakeCodexExecutable), { recursive: true, force: true });
+});
+
+async function runCapabilityCanary(
+  options: Parameters<typeof baseRunCapabilityCanary>[0],
+  deps: NonNullable<Parameters<typeof baseRunCapabilityCanary>[1]>,
+): ReturnType<typeof baseRunCapabilityCanary> {
+  return baseRunCapabilityCanary(options, {
+    ...deps,
+    stageDependencies: { codexExecutable: fakeCodexExecutable },
+  });
+}
 
 async function authEnvironment(): Promise<
   Readonly<{
