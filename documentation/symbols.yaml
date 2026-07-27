@@ -18508,6 +18508,16 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-generate-todo5-evidence
+    title: Todo-5 paid launch evidence generator
+    sourceFile: scripts/skillopt-eval/generate-todo-5-evidence.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-authorization-broker-tests
     title: trusted broker authorization contracts
     sourceFile: scripts/skillopt-eval/tests/authorization-broker.test.ts
