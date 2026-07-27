@@ -15845,12 +15845,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-predicate-first-requirements
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-      - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
   - id: SYM-skillopt-broker-options
     title: BrokerOptions
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
