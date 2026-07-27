@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { cp, mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { main } from "../cli";
 import { adoptSkillOptCandidate } from "../adoption";
+import { main } from "../cli";
 import { runRealOptimization } from "../real-workflow";
 import { freezeCandidateVariant } from "../variants";
 
@@ -90,10 +90,7 @@ describe("real SkillOpt workflow", () => {
     const root = await mkdtemp(join(tmpdir(), "skillopt-real-auto-"));
     const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-real-repo-"));
     try {
-      const canonicalRoot = join(
-        repoRoot,
-        "packages/cli/src/public/skills",
-      );
+      const canonicalRoot = join(repoRoot, "packages/cli/src/public/skills");
       await mkdir(canonicalRoot, { recursive: true });
       await cp(
         join(process.cwd(), "packages/cli/src/public/skills"),
@@ -169,10 +166,7 @@ describe("real SkillOpt workflow", () => {
       expect(result.status).toBe("auto-adopted");
       expect(
         await readFile(
-          join(
-            repoRoot,
-            "packages/cli/src/public/skills/kibi-usage/SKILL.md",
-          ),
+          join(repoRoot, "packages/cli/src/public/skills/kibi-usage/SKILL.md"),
           "utf8",
         ),
       ).toContain("Automatically improved guidance");

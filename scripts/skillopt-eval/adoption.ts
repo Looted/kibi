@@ -131,7 +131,9 @@ async function loadCanonicalSurface(
   input: AutoAdoptionInput,
 ): Promise<CanonicalSnapshot> {
   if (input.candidate.variant !== "skillopt") {
-    throw new AdoptionIntegrityError("automatic adoption requires skillopt candidate");
+    throw new AdoptionIntegrityError(
+      "automatic adoption requires skillopt candidate",
+    );
   }
   if (
     input.candidate.frontmatterHash !== input.frontmatterHash ||
@@ -285,11 +287,7 @@ export async function adoptApprovedSkill(
   dependencies: AdoptionDependencies = { runMirrorSync: defaultRunMirrorSync },
 ): Promise<AdoptionReceipt> {
   const snapshot = await loadCanonicalSnapshot(input);
-  return adoptSnapshot(
-    input.repoRoot,
-    snapshot,
-    dependencies,
-  );
+  return adoptSnapshot(input.repoRoot, snapshot, dependencies);
 }
 
 // implements REQ-skillopt-automatic-adoption
@@ -301,7 +299,8 @@ export async function adoptSkillOptCandidate(
   const baselineBody = snapshot.markdown.slice(snapshot.frontmatter.length);
   if (
     REQUIRED_CANONICAL_GUIDANCE.some(
-      (phrase) => baselineBody.includes(phrase) && !input.candidate.body.includes(phrase),
+      (phrase) =>
+        baselineBody.includes(phrase) && !input.candidate.body.includes(phrase),
     )
   ) {
     return { ...publicPlan(snapshot), status: "blocked" };

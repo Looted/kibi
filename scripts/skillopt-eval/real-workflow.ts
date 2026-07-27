@@ -6,6 +6,11 @@ import {
   readBundledSkillResource,
 } from "../../packages/cli/src/public/skills";
 import {
+  type AdoptionReceipt,
+  type AutoAdoptionInput,
+  adoptSkillOptCandidate,
+} from "./adoption";
+import {
   CANONICAL_SKILLS,
   type CanonicalSkill,
   buildSkillCatalog,
@@ -15,11 +20,6 @@ import { type OptimizationResult, optimizeSkillOptVariant } from "./optimize";
 import { RunStore } from "./orchestration-store";
 import { sourceWorktreeIsClean } from "./preflight";
 import { runCodexSkillOptStep } from "./runtime/codex-optimizer";
-import {
-  adoptSkillOptCandidate,
-  type AdoptionReceipt,
-  type AutoAdoptionInput,
-} from "./adoption";
 import { createBaselineVariant } from "./variants";
 
 const ReviewSchema = z
@@ -94,9 +94,7 @@ export type RealOptimizationDependencies = Readonly<{
     env: NodeJS.ProcessEnv,
   ) => Promise<boolean>;
   optimize: (input: OptimizeInput) => Promise<OptimizationResult>;
-  adopt: (
-    input: AutoAdoptionInput,
-  ) => Promise<AdoptionReceipt>;
+  adopt: (input: AutoAdoptionInput) => Promise<AdoptionReceipt>;
 }>;
 
 function canonicalHash(value: unknown): string {
@@ -227,7 +225,8 @@ export async function runRealOptimization(
           mode: 0o600,
         }),
       ]);
-      const generatedCandidate = result.steps.length > 0 && candidate.variant === "skillopt";
+      const generatedCandidate =
+        result.steps.length > 0 && candidate.variant === "skillopt";
       const adoptionReceipt = generatedCandidate
         ? await adopt({
             repoRoot: resolve(options.sourceWorktree),
@@ -253,7 +252,9 @@ export async function runRealOptimization(
       });
     }
     const blocked = candidates.some(({ adoption }) => adoption === "blocked");
-    const adopted = candidates.some(({ adoption }) => adoption === "auto-adopted");
+    const adopted = candidates.some(
+      ({ adoption }) => adoption === "auto-adopted",
+    );
     const status = blocked ? "blocked" : adopted ? "auto-adopted" : "no-change";
     const review = ReviewSchema.parse({
       schemaVersion: "1.0.0",

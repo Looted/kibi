@@ -350,9 +350,7 @@ describe("Codex evaluator-owned permissions", () => {
       );
     }
     expect(config).toContain(`${JSON.stringify(paths.workspace)} = true`);
-    expect(config).toContain(
-      'command = "/run/work/.runtime/mcp/broker/bun"',
-    );
+    expect(config).toContain('command = "/run/work/.runtime/mcp/broker/bun"');
     expect(config).toContain(
       'args = ["/run/work/.runtime/mcp/broker/broker.js"]',
     );

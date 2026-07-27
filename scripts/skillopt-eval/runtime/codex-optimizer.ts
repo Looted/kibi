@@ -2,12 +2,12 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { z } from "zod";
 import type { SkillOptStepRequest, SkillOptStepResult } from "../optimize";
+import { resolveIsolationArtifactRoot } from "./artifact-root";
 import {
   RequiredMcpStartupError,
   stageCapabilityCanary,
 } from "./canary-runtime";
 import { prepareExistingLogin } from "./codex-auth";
-import { resolveIsolationArtifactRoot } from "./artifact-root";
 import { createIsolationWorkspace } from "./isolation-workspace";
 import { buildCodexConfig, buildCodexExecArgv } from "./permissions";
 import { runBoundedProcess } from "./process";

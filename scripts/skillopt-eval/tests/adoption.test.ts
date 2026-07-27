@@ -247,9 +247,12 @@ describe("SkillOpt adoption transaction", () => {
     );
 
     expect(receipt).toMatchObject({ skill, status: "adopted" });
-    expect(await readFile(join(repoRoot, "packages/cursor/skills/kibi-usage/SKILL.md"), "utf8")).toBe(
-      frontmatter + candidateBody,
-    );
+    expect(
+      await readFile(
+        join(repoRoot, "packages/cursor/skills/kibi-usage/SKILL.md"),
+        "utf8",
+      ),
+    ).toBe(frontmatter + candidateBody);
   });
 
   test("Given a candidate that drops canonical safety guidance When auto-adopted Then adoption is blocked", async () => {
