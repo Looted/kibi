@@ -4,11 +4,7 @@ import { promisify } from "node:util";
 import fg from "fast-glob";
 
 import { createRepoIgnorePolicy } from "../ignore-policy.js";
-import type {
-  FilesystemPort,
-  GitPort,
-  NetworkPort,
-} from "./runtime-types.js";
+import type { FilesystemPort, GitPort, NetworkPort } from "./runtime-types.js";
 
 type NodeFilesystemPort = FilesystemPort & {
   readonly glob: (

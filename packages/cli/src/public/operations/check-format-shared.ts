@@ -1,3 +1,4 @@
+import type { Violation } from "../check-types.js";
 /*
  Kibi — repo-local, per-branch, queryable long-term memory for software projects
  Copyright (C) 2026 Piotr Franczyk
@@ -17,7 +18,6 @@
  */
 import type { ChangedFileImpactResult } from "../impact-diagnostics.js";
 import type { QualityDiagnostic } from "../impact-diagnostics.js";
-import type { Violation } from "../check-types.js";
 
 // implements REQ-mcp-tool-check
 export interface CheckDiagnostic {

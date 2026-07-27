@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { nodeNetwork } from "../../src/public/operations/node-ports.js";
-import { sparqlRemoteSpec } from "../../src/public/operations/specs/sparql.js";
 import type { OperationContext } from "../../src/public/operations/runtime-types.js";
+import { sparqlRemoteSpec } from "../../src/public/operations/specs/sparql.js";
 import {
   SPARQL_FIXTURE_ROWS,
   startSparqlHttpFixture,

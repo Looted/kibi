@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
+import type { OperationContext } from "../../src/public/operations/runtime-types.js";
 import {
   skillsListSpec,
   skillsLoadSpec,
   skillsReadSpec,
 } from "../../src/public/operations/specs/skills.js";
-import type { OperationContext } from "../../src/public/operations/runtime-types.js";
 
 function testContext(): OperationContext {
   return {

@@ -1,3 +1,4 @@
+import { runAggregatedChecks } from "../../commands/aggregated-checks.js";
 /*
  Kibi — repo-local, per-branch, queryable long-term memory for software projects
  Copyright (C) 2026 Piotr Franczyk
@@ -16,10 +17,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import type { Violation } from "../check-types.js";
-import { runAggregatedChecks } from "../../commands/aggregated-checks.js";
 import { collectFullKbQualityDiagnostics } from "../impact-diagnostics.js";
-import type { OperationContext, PrologPort } from "./runtime-types.js";
-import type { OperationResult } from "./types.js";
 import {
   type CheckDiagnostic,
   type CheckStructuredContent,
@@ -33,6 +31,8 @@ import {
   loadChecksConfig,
   qualityDiagnosticsFromImpact,
 } from "./check-helpers.js";
+import type { OperationContext, PrologPort } from "./runtime-types.js";
+import type { OperationResult } from "./types.js";
 
 // implements REQ-kibi-operation-interface-parity, REQ-002
 export type CheckInput = {
@@ -97,13 +97,13 @@ export async function executeCheck(
       const qualityDiagnostics =
         hasExplicitRules &&
         options.collectFullQualityDiagnosticsForExplicitRules !== true
-        ? []
-        : impactResult
-          ? impactQualityDiagnostics
-          : await collectFullKbQualityDiagnostics({
-              prolog,
-              ...maxDiagnosticsOption,
-            });
+          ? []
+          : impactResult
+            ? impactQualityDiagnostics
+            : await collectFullKbQualityDiagnostics({
+                prolog,
+                ...maxDiagnosticsOption,
+              });
       return {
         content: [
           {
@@ -156,9 +156,7 @@ export async function executeCheck(
         ? impactQualityDiagnostics
         : await collectFullKbQualityDiagnostics({
             prolog,
-            hardViolationEntityIds: new Set(
-              violations.map((v) => v.entityId),
-            ),
+            hardViolationEntityIds: new Set(violations.map((v) => v.entityId)),
             ...maxDiagnosticsOption,
           });
 

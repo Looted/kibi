@@ -9,10 +9,7 @@ const resourcePath = resolve(
   "../src/public/skills/kibi-usage/resources/operation-access.md",
 );
 
-const VALID_INPUT_MODES = new Set([
-  "--input JSON",
-  "--input JSON or flags",
-]);
+const VALID_INPUT_MODES = new Set(["--input JSON", "--input JSON or flags"]);
 
 type OperationAccessRow = {
   readonly mcpName: string;
@@ -34,8 +31,15 @@ function parseOperationRows(markdown: string): readonly OperationAccessRow[] {
       .split("|")
       .slice(1, -1)
       .map((cell) => cell.trim().replaceAll("`", ""));
-    const [mcpName, cliRoute, inputMode, mutability, requiresProlog, effects, preference] =
-      cells;
+    const [
+      mcpName,
+      cliRoute,
+      inputMode,
+      mutability,
+      requiresProlog,
+      effects,
+      preference,
+    ] = cells;
     return {
       mcpName: mcpName ?? "",
       cliRoute: cliRoute ?? "",
@@ -71,7 +75,9 @@ describe("operation-access skill resource", () => {
       expect(row).toBeDefined();
       expect(VALID_INPUT_MODES.has(row?.inputMode ?? "")).toBe(true);
       expect(row?.mutability).toBe(
-        spec.effects.some((effect) => effect.endsWith("write")) ? "write" : "read",
+        spec.effects.some((effect) => effect.endsWith("write"))
+          ? "write"
+          : "read",
       );
       expect(row?.requiresProlog).toBe(spec.requiresProlog ? "yes" : "no");
       expect(row?.effects.split(", ")).toEqual([...spec.effects]);

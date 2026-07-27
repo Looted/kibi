@@ -30,11 +30,7 @@ describe("skills CLI and MCP parity", () => {
           parityCase.spec.cliName,
           parityCase.input,
         ),
-        runMCPAdapter(
-          workspaceRoot,
-          parityCase.spec.name,
-          parityCase.input,
-        ),
+        runMCPAdapter(workspaceRoot, parityCase.spec.name, parityCase.input),
       ]);
 
       // Then: both transports expose the same normalized semantic payload.
