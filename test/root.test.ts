@@ -12,6 +12,8 @@ type Batch = {
   args: string[];
 };
 
+// implements REQ-root-suite-batch-diagnostics
+// covered_by TEST-root-suite-batch-diagnostics
 export const BATCH_TIMEOUT_MINUTES = 25;
 
 type BatchOutcome = {
@@ -21,6 +23,7 @@ type BatchOutcome = {
 };
 
 // implements REQ-root-suite-batch-diagnostics
+// covered_by TEST-root-suite-batch-diagnostics
 export function getBatchFailureMessage(
   label: string,
   outcome: BatchOutcome,
@@ -157,6 +160,7 @@ function formatSuiteSummary(
 }
 
 // implements REQ-root-suite-batch-diagnostics
+// covered_by TEST-root-suite-batch-diagnostics
 async function runBatch(
   batch: Batch,
 ): Promise<SuiteSummary & { label: string }> {

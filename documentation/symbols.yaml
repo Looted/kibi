@@ -3196,9 +3196,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 77
+    sourceLine: 79
     sourceColumn: 11
-    sourceEndLine: 77
+    sourceEndLine: 79
     sourceEndColumn: 33
   - id: SYM-mcp-session-inFlightRequests
     title: inFlightRequests
@@ -3209,9 +3209,9 @@ symbols:
         target: REQ-008
       - type: covered_by
         target: TEST-005
-    sourceLine: 79
+    sourceLine: 81
     sourceColumn: 13
-    sourceEndLine: 79
+    sourceEndLine: 81
     sourceEndColumn: 67
   - id: SYM-mcp-session-resetSessionStateForTests
     title: resetSessionStateForTests
@@ -3222,9 +3222,9 @@ symbols:
         target: REQ-008
       - type: covered_by
         target: TEST-005
-    sourceLine: 82
+    sourceLine: 84
     sourceColumn: 16
-    sourceEndLine: 96
+    sourceEndLine: 98
     sourceEndColumn: 1
   - id: SYM-mcp-session-setSessionDepsForTests
     title: _setSessionDepsForTests
@@ -3235,9 +3235,9 @@ symbols:
         target: REQ-008
       - type: covered_by
         target: TEST-005
-    sourceLine: 98
+    sourceLine: 100
     sourceColumn: 16
-    sourceEndLine: 103
+    sourceEndLine: 105
     sourceEndColumn: 1
   - id: SYM-mcp-session-resetSessionDepsForTests
     title: _resetSessionDepsForTests
@@ -3248,9 +3248,9 @@ symbols:
         target: REQ-008
       - type: covered_by
         target: TEST-005
-    sourceLine: 105
+    sourceLine: 107
     sourceColumn: 16
-    sourceEndLine: 108
+    sourceEndLine: 110
     sourceEndColumn: 1
   - id: SYM-mcp-session-ensureBranchKbExists
     title: ensureBranchKbExists
@@ -3261,9 +3261,9 @@ symbols:
         target: REQ-008
       - type: covered_by
         target: TEST-005
-    sourceLine: 116
+    sourceLine: 118
     sourceColumn: 16
-    sourceEndLine: 153
+    sourceEndLine: 155
     sourceEndColumn: 1
   - id: SYM-mcp-session-initiateGracefulShutdown
     title: initiateGracefulShutdown
@@ -3277,9 +3277,9 @@ symbols:
         target: TEST-005
       - type: covered_by
         target: TEST-mcp-search-discovery
-    sourceLine: 155
+    sourceLine: 157
     sourceColumn: 22
-    sourceEndLine: 205
+    sourceEndLine: 207
     sourceEndColumn: 1
   - id: SYM-resetProlog
     title: resetProlog
@@ -3299,9 +3299,9 @@ symbols:
         target: REQ-008
       - type: covered_by
         target: TEST-005
-    sourceLine: 496
+    sourceLine: 498
     sourceColumn: 22
-    sourceEndLine: 509
+    sourceEndLine: 511
     sourceEndColumn: 1
   - id: SYM-DIAGNOSTIC_MODE_ENABLED
     title: DIAGNOSTIC_MODE_ENABLED
@@ -17772,18 +17772,28 @@ symbols:
     title: connectTransport
     sourceFile: packages/mcp/src/server/transport.ts
     symbol_role: behavioral
-    sourceLine: 91
+    sourceLine: 93
     sourceColumn: 22
-    sourceEndLine: 96
+    sourceEndLine: 98
     sourceEndColumn: 1
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-mcp-kb-freshness
   - id: SYM-mcp-session-updateAttachedBranchStamp
     title: updateAttachedBranchStamp
     sourceFile: packages/mcp/src/server/session.ts
     symbol_role: behavioral
-    sourceLine: 73
+    sourceLine: 75
     sourceColumn: 16
-    sourceEndLine: 75
+    sourceEndLine: 77
     sourceEndColumn: 1
+    relationships:
+      - type: implements
+        target: REQ-mcp-kb-freshness
+      - type: covered_by
+        target: TEST-mcp-kb-freshness
   - id: SYM-cli-test-large-entity-goal
     title: largeEntityGoal
     sourceFile: packages/cli/tests/operations/discovery.test.ts
