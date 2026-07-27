@@ -37,10 +37,10 @@ class BridgeTests(unittest.TestCase):
                 "request.json",
                 json.dumps(request().model_dump(by_alias=True, mode="json")),
             )
-            payload = json.loads(bridge.read_public("request.json"))
-            self.assertEqual(payload["batchId"], "batch-001")
+            payload = BridgeRequest.model_validate_json(bridge.read_public("request.json"))
+            self.assertEqual(payload.batch_id, "batch-001")
             with self.assertRaises(BridgeError):
-                bridge.read_public("../private/secret.json")
+                _ = bridge.read_public("../private/secret.json")
 
     def test_adapter_rejects_held_out_ids_and_resumes_checkpoint(self) -> None:
         adapter = EnvAdapter(
@@ -52,7 +52,7 @@ class BridgeTests(unittest.TestCase):
             development_items=({"id": "dev-1", "prompt": "p"},),
         )
         with self.assertRaises(BridgeError):
-            adapter.build_request("held-out-1", "body", "held-out")
+            _ = adapter.build_request("held-out-1", "body", "held-out")
         checkpoint = adapter.save_checkpoint(1, "body", ("train-1",))
         self.assertEqual(checkpoint.next_step, 2)
         self.assertEqual(adapter.load_checkpoint().completed_steps, 1)
@@ -107,4 +107,4 @@ class BridgeTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    _ = unittest.main()
