@@ -70,6 +70,8 @@ let prologResetGeneration = 0;
 export let attachedBranchKbPath: string | null = null;
 let attachedBranchStamp: BranchKbStamp | null = null;
 
+// implements REQ-mcp-kb-freshness
+// covered_by TEST-mcp-kb-freshness
 export function updateAttachedBranchStamp(stamp: BranchKbStamp): void {
   attachedBranchStamp = stamp;
 }

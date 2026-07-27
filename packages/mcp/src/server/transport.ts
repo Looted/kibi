@@ -88,6 +88,8 @@ export function setupTransportHandlers(
   }
 }
 
+// implements REQ-002
+// covered_by TEST-mcp-kb-freshness
 export async function connectTransport(
   server: McpServer,
   transport: StdioServerTransport,

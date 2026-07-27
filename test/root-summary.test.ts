@@ -6,6 +6,7 @@ import {
   parseSuiteSummaries,
 } from "./root.test.ts";
 
+// executable_for TEST-root-suite-batch-diagnostics
 describe("getBatchFailureMessage", () => {
   it("reports a killed batch timeout before a missing summary", () => {
     expect(
