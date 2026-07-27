@@ -6839,21 +6839,21 @@ coordinates:
   SYM-skillopt-fake-provider-capability-schema:
     sourceColumn: 13
     sourceEndColumn: 11
-    sourceEndLine: 80
+    sourceEndLine: 83
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 70
+    sourceLine: 71
   SYM-skillopt-fake-provider-capability-type:
     sourceColumn: 12
     sourceEndColumn: 68
-    sourceEndLine: 97
+    sourceEndLine: 100
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 97
+    sourceLine: 100
   SYM-skillopt-fake-provider-configuration:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 43
+    sourceEndLine: 39
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    sourceLine: 41
+    sourceLine: 37
   SYM-skillopt-fake-provider-configuration-schema:
     sourceColumn: 13
     sourceEndColumn: 4
@@ -6863,27 +6863,27 @@ coordinates:
   SYM-skillopt-fake-provider-configuration-type:
     sourceColumn: 12
     sourceEndColumn: 74
-    sourceEndLine: 94
+    sourceEndLine: 97
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 94
+    sourceLine: 97
   SYM-skillopt-fake-provider-debit-receipt-type:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 108
+    sourceEndLine: 111
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 98
+    sourceLine: 101
   SYM-skillopt-fake-provider-execute-with-crash:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 97
+    sourceEndLine: 98
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    sourceLine: 87
+    sourceLine: 88
   SYM-skillopt-fake-provider-forward:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 85
+    sourceEndLine: 86
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    sourceLine: 71
+    sourceLine: 72
   SYM-skillopt-fake-provider-hash-schema:
     sourceColumn: 13
     sourceEndColumn: 60
@@ -6899,63 +6899,63 @@ coordinates:
   SYM-skillopt-fake-provider-outcome-schema:
     sourceColumn: 13
     sourceEndColumn: 2
-    sourceEndLine: 92
+    sourceEndLine: 95
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 82
+    sourceLine: 85
   SYM-skillopt-fake-provider-outcome-type:
     sourceColumn: 12
     sourceEndColumn: 62
-    sourceEndLine: 96
+    sourceEndLine: 99
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 96
+    sourceLine: 99
   SYM-skillopt-fake-provider-reconcile:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 117
+    sourceEndLine: 118
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    sourceLine: 103
+    sourceLine: 104
   SYM-skillopt-fake-provider-recover:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 101
+    sourceEndLine: 102
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    sourceLine: 99
+    sourceLine: 100
   SYM-skillopt-fake-provider-request-schema:
     sourceColumn: 13
     sourceEndColumn: 11
-    sourceEndLine: 68
+    sourceEndLine: 69
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     sourceLine: 58
   SYM-skillopt-fake-provider-request-type:
     sourceColumn: 12
     sourceEndColumn: 62
-    sourceEndLine: 95
+    sourceEndLine: 98
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 95
+    sourceLine: 98
   SYM-skillopt-fake-provider-reservation-type:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 113
+    sourceEndLine: 116
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
-    sourceLine: 110
+    sourceLine: 113
   SYM-skillopt-fake-provider-reserve:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 68
+    sourceEndLine: 69
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    sourceLine: 45
+    sourceLine: 41
   SYM-skillopt-fake-provider-supervisor:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 236
+    sourceEndLine: 239
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
     sourceLine: 20
   SYM-skillopt-fake-provider-zero-budget-parent:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 125
+    sourceEndLine: 126
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    sourceLine: 119
+    sourceLine: 120
   SYM-skillopt-file-bridge:
     sourceColumn: 13
     sourceEndColumn: 1

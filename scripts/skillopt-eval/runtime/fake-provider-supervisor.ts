@@ -18,13 +18,9 @@ export class GatewayPolicyError extends Error {
 }
 
 export class FakeProviderSupervisor {
-  // implements REQ-skillopt-paid-launch-accounting
   private readonly config: Configuration;
-  // implements REQ-skillopt-paid-launch-accounting
   private readonly capabilities = new Map<string, Capability>();
-  // implements REQ-skillopt-paid-launch-accounting
   private readonly requests = new Map<string, Request>();
-  // implements REQ-skillopt-paid-launch-accounting
   private readonly receipts = new Map<string, DebitReceipt>();
 
   constructor(configuration: unknown) {
@@ -45,7 +41,12 @@ export class FakeProviderSupervisor {
   reserve(value: unknown): Reservation {
     const request = this.parseRequest(value);
     const known = this.requests.get(request.requestId);
-    if (known !== undefined && known.requestHash !== request.requestHash) {
+    if (
+      known !== undefined &&
+      (known.requestHash !== request.requestHash ||
+        known.model !== request.model ||
+        known.leaseId !== request.leaseId)
+    ) {
       throw new GatewayPolicyError("request_idempotency_mismatch");
     }
     const existing = this.receipts.get(request.requestId);
@@ -177,13 +178,15 @@ export class FakeProviderSupervisor {
     return {
       capabilityId: createHash("sha256")
         .update(
-          `${this.config.parentHash}:${request.requestId}:${request.requestHash}`,
+          `${this.config.parentHash}:${request.requestId}:${request.requestHash}:${request.model}:${request.leaseId}`,
         )
         .digest("hex"),
       parentHash: this.config.parentHash,
       requestId: request.requestId,
       requestHash: request.requestHash,
       pricingHash: this.config.pricingHash,
+      model: request.model,
+      leaseId: request.leaseId,
       sealed: true,
       oneUse: true,
     };
