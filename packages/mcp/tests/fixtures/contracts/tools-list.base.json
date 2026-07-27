@@ -104,6 +104,13 @@
       "inputSchema": {
         "properties": {},
         "type": "object"
+      },
+      "annotations": {
+        "title": "List bundled Kibi skills",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
       }
     },
     {
@@ -118,6 +125,13 @@
         },
         "required": ["id"],
         "type": "object"
+      },
+      "annotations": {
+        "title": "Load a bundled Kibi skill",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
       }
     },
     {
@@ -136,6 +150,13 @@
         },
         "required": ["id", "resource"],
         "type": "object"
+      },
+      "annotations": {
+        "title": "Read a bundled Kibi skill resource",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
       }
     },
     {
