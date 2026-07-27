@@ -6188,6 +6188,12 @@ coordinates:
     sourceEndLine: 158
     sourceFile: scripts/skillopt-eval/offline-artifacts.ts
     sourceLine: 80
+  SYM-skillopt-build-paid-launch-receipt-evidence:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 69
+    sourceFile: scripts/skillopt-eval/runtime/paid-launch-evidence.ts
+    sourceLine: 50
   SYM-skillopt-build-proposal:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6224,6 +6230,12 @@ coordinates:
     sourceEndLine: 146
     sourceFile: scripts/skillopt-eval/catalog.ts
     sourceLine: 127
+  SYM-skillopt-build-todo5-evidence-document:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 93
+    sourceFile: scripts/skillopt-eval/runtime/paid-launch-evidence.ts
+    sourceLine: 71
   SYM-skillopt-candidate-surface-error:
     sourceColumn: 13
     sourceEndColumn: 1
