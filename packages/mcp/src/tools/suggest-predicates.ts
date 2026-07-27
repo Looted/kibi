@@ -1,6 +1,6 @@
 import {
-  suggestPredicatesSpec,
   type OperationContext,
+  suggestPredicatesSpec,
 } from "kibi-cli/operations";
 import type {
   SuggestPredicatesArgs,

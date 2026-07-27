@@ -1,11 +1,5 @@
-import {
-  querySpec,
-  VALID_ENTITY_TYPES,
-} from "kibi-cli/operations";
-import type {
-  QueryInput,
-  QueryPayload,
-} from "kibi-cli/operations";
+import { VALID_ENTITY_TYPES, querySpec } from "kibi-cli/operations";
+import type { QueryInput, QueryPayload } from "kibi-cli/operations";
 import type { OperationResult } from "kibi-cli/operations";
 import type { PrologProcess } from "kibi-cli/prolog";
 import { createDiscoveryContext } from "./discovery-adapter.js";

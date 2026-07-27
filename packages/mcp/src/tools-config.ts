@@ -16,9 +16,9 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { getSpec } from "kibi-cli/operations";
 import type { OperationName } from "kibi-cli/operations";
-import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 
 import {
   DIAGNOSTIC_MODE_ENABLED,

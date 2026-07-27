@@ -1,8 +1,8 @@
+import { getSpec } from "kibi-cli/operations";
 import type {
   PrologPort,
   PrologQueryResult,
 } from "kibi-cli/operations/runtime-types";
-import { getSpec } from "kibi-cli/operations";
 import type { PrologProcess } from "kibi-cli/prolog";
 import {
   DIAGNOSTIC_MODE_ENABLED,

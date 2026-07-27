@@ -17,15 +17,18 @@ const filesystem: FilesystemPort = {
 };
 
 // implements REQ-kibi-operation-interface-parity
-export function createMutationContext(prolog?: PrologProcess): OperationContext {
-  const port: PrologPort | undefined = prolog === undefined
-    ? undefined
-    : {
-        query: (goal) => prolog.query(goal),
-        nextSolution: async () => null,
-        invalidateCache: () => prolog.invalidateCache(),
-        save: () => prolog.query("kb_save"),
-      };
+export function createMutationContext(
+  prolog?: PrologProcess,
+): OperationContext {
+  const port: PrologPort | undefined =
+    prolog === undefined
+      ? undefined
+      : {
+          query: (goal) => prolog.query(goal),
+          nextSolution: async () => null,
+          invalidateCache: () => prolog.invalidateCache(),
+          save: () => prolog.query("kb_save"),
+        };
   return {
     workspaceRoot: resolveWorkspaceRoot(),
     signal: new AbortController().signal,

@@ -1,3 +1,4 @@
+import { checkSpec } from "kibi-cli/operations";
 /*
  Kibi — repo-local, per-branch, queryable long-term memory for software projects
  Copyright (C) 2026 Piotr Franczyk
@@ -16,7 +17,6 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import type { PrologProcess } from "kibi-cli/prolog";
-import { checkSpec } from "kibi-cli/operations";
 import { resolveWorkspaceRoot } from "../workspace.js";
 import type { CheckArgs, CheckResult } from "./check-types.js";
 
@@ -32,15 +32,18 @@ export async function handleKbCheck(
   args: CheckArgs,
 ): Promise<CheckResult> {
   const workspaceRoot = args.workspaceRoot ?? resolveWorkspaceRoot();
-  return checkSpec.execute({ ...args }, {
-    workspaceRoot,
-    signal: new AbortController().signal,
-    clock: () => new Date(),
-    prolog: {
-      query: (goal) => prolog.query(goal),
-      nextSolution: async () => null,
-      invalidateCache: () => prolog.invalidateCache(),
-      save: () => prolog.query("kb_save"),
+  return checkSpec.execute(
+    { ...args },
+    {
+      workspaceRoot,
+      signal: new AbortController().signal,
+      clock: () => new Date(),
+      prolog: {
+        query: (goal) => prolog.query(goal),
+        nextSolution: async () => null,
+        invalidateCache: () => prolog.invalidateCache(),
+        save: () => prolog.query("kb_save"),
+      },
     },
-  });
+  );
 }
