@@ -85,21 +85,15 @@ export function createCliRuntime(
         await prolog.start?.();
         let branch = process.env.KIBI_BRANCH?.trim();
         if (!branch) {
-          if (merged.git) {
-            try {
-              branch = git.currentBranch
-                ? await git.currentBranch()
-                : await git.revParse("--abbrev-ref", "HEAD");
-            } catch {
-              branch = "main";
-            }
-          } else {
-            const resolved = resolveActiveBranch(root);
-            branch = "branch" in resolved ? resolved.branch : "main";
+          const resolved = resolveActiveBranch(root);
+          if ("error" in resolved) {
+            throw new Error(
+              `Failed to resolve active branch: ${resolved.error}`,
+            );
           }
+          branch = resolved.branch;
         }
-        const branchName = branch === "master" ? "main" : (branch ?? "main");
-        const kbPath = path.join(root, ".kb", "branches", branchName);
+        const kbPath = path.join(root, ".kb", "branches", branch);
         const attached = await prolog.query(
           `kb_attach('${quoteProlog(kbPath)}')`,
         );

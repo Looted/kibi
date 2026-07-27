@@ -194,4 +194,40 @@ describe("CLI operation runtime", () => {
       });
     }
   });
+
+  test("propagates branch resolution errors instead of falling back to main", async () => {
+    // When resolveActiveBranch cannot determine the branch (e.g. not a git repo),
+    // the runtime must propagate the error rather than silently attaching to
+    // .kb/branches/main. A silent main fallback causes read-side operations to
+    // return empty results when the real branch KB exists at a different path.
+    const events: string[] = [];
+    const failingExecSync = (() => {
+      throw new Error("fatal: not a git repository");
+    }) as unknown as typeof import("node:child_process").execSync;
+    _setBranchResolverDepsForTests({ execSync: failingExecSync });
+    try {
+      const runtime = createCliRuntime({
+        workspaceRoot: "/not-a-git-repo",
+        prolog: createManagedProlog(events),
+      });
+
+      const rejection = await runtime.open(readSpec).then(
+        () => new Error("Expected open to reject when branch resolution fails"),
+        (error) => error,
+      );
+      expect(rejection).toBeInstanceOf(Error);
+      if (rejection instanceof Error) {
+        expect(rejection.message).toMatch(/branch/i);
+      }
+      // Prolog must still be terminated on the error path.
+      expect(events).toContain("terminate");
+      expect(events).not.toContain(
+        "query:kb_attach('/not-a-git-repo/.kb/branches/main')",
+      );
+    } finally {
+      _setBranchResolverDepsForTests({
+        execSync: fakeBranchExecSync("feature/runtime"),
+      });
+    }
+  });
 });

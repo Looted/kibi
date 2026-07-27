@@ -179,9 +179,9 @@ symbols:
         target: REQ-mcp-tool-query
       - type: covered_by
         target: TEST-001
-    sourceLine: 11
+    sourceLine: 17
     sourceColumn: 22
-    sourceEndLine: 17
+    sourceEndLine: 23
     sourceEndColumn: 1
   - id: SYM-004
     title: handleKbCheck
@@ -200,7 +200,7 @@ symbols:
         target: TEST-001
     sourceLine: 30
     sourceColumn: 22
-    sourceEndLine: 49
+    sourceEndLine: 46
     sourceEndColumn: 1
   - id: SYM-mcp-loadChecksConfig
     title: loadChecksConfig
@@ -396,7 +396,7 @@ symbols:
         target: TEST-001
     sourceLine: 40
     sourceColumn: 17
-    sourceEndLine: 62
+    sourceEndLine: 59
     sourceEndColumn: 1
   - id: SYM-010
     title: startServer
@@ -5315,9 +5315,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-prolog-library-adoption-mcp
-    sourceLine: 4
+    sourceLine: 7
     sourceColumn: 12
-    sourceEndLine: 8
+    sourceEndLine: 11
     sourceEndColumn: 2
   - id: SYM-SparqlResult
     title: SparqlResult
@@ -5335,9 +5335,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-prolog-library-adoption-mcp
-    sourceLine: 10
+    sourceLine: 13
     sourceColumn: 12
-    sourceEndLine: 10
+    sourceEndLine: 13
     sourceEndColumn: 80
   - id: SYM-handleSparql
     title: handleSparql
@@ -5353,9 +5353,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-prolog-library-adoption-mcp
-    sourceLine: 13
+    sourceLine: 16
     sourceColumn: 22
-    sourceEndLine: 29
+    sourceEndLine: 32
     sourceEndColumn: 1
   - id: SYM-SYMBOL_ROLES
     title: SYMBOL_ROLES
@@ -7030,8 +7030,8 @@ symbols:
         target: TEST-kibi-operation-interface-parity
     sourceLine: 13
     sourceColumn: 13
-    sourceEndLine: 79
-    sourceEndColumn: 1
+    sourceEndLine: 76
+    sourceEndColumn: 101
   - id: SYM-operation-suggest-predicates-spec
     title: suggestPredicatesSpec
     sourceFile: packages/cli/src/public/operations/specs/modeling.ts
@@ -7041,10 +7041,10 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 81
+    sourceLine: 78
     sourceColumn: 13
-    sourceEndLine: 140
-    sourceEndColumn: 1
+    sourceEndLine: 134
+    sourceEndColumn: 103
   - id: SYM-operation-upsert-spec
     title: upsertSpec
     sourceFile: packages/cli/src/public/operations/specs/upsert.ts
@@ -7068,9 +7068,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 115
+    sourceLine: 112
     sourceColumn: 22
-    sourceEndLine: 120
+    sourceEndLine: 117
     sourceEndColumn: 1
   - id: SYM-model-requirement-core-handler
     title: handleKbModelRequirement
@@ -7081,9 +7081,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 54
+    sourceLine: 51
     sourceColumn: 22
-    sourceEndLine: 113
+    sourceEndLine: 110
     sourceEndColumn: 1
   - id: SYM-execute-suggest-predicates
     title: executeSuggestPredicates
@@ -7095,9 +7095,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 99
+    sourceLine: 76
     sourceColumn: 22
-    sourceEndLine: 104
+    sourceEndLine: 81
     sourceEndColumn: 1
   - id: SYM-operation-modeling-tests
     title: shared modeling operation executor tests
@@ -7164,9 +7164,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 29
+    sourceLine: 15
     sourceColumn: 22
-    sourceEndLine: 97
+    sourceEndLine: 74
     sourceEndColumn: 1
   - id: SYM-operation-execute-check
     title: executeCheck
@@ -8554,9 +8554,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 38
+    sourceLine: 42
     sourceColumn: 13
-    sourceEndLine: 56
+    sourceEndLine: 60
     sourceEndColumn: 1
   - id: SYM-operation-node-git
     title: nodeGit
@@ -8567,7 +8567,7 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 58
+    sourceLine: 62
     sourceColumn: 13
     sourceEndLine: 78
     sourceEndColumn: 1
@@ -9045,9 +9045,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 9
+    sourceLine: 6
     sourceColumn: 22
-    sourceEndLine: 22
+    sourceEndLine: 17
     sourceEndColumn: 1
   - id: SYM-parity-record-relationship-audits
     title: recordRelationshipAudits
@@ -9059,9 +9059,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 24
+    sourceLine: 19
     sourceColumn: 22
-    sourceEndLine: 40
+    sourceEndLine: 33
     sourceEndColumn: 1
   - id: SYM-parity-build-entity-delete-audit-goal
     title: buildEntityDeleteAuditGoal
@@ -9072,9 +9072,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 42
+    sourceLine: 35
     sourceColumn: 16
-    sourceEndLine: 51
+    sourceEndLine: 44
     sourceEndColumn: 1
   - id: SYM-parity-execute-delete
     title: executeDelete
@@ -9085,9 +9085,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 38
+    sourceLine: 34
     sourceColumn: 22
-    sourceEndLine: 86
+    sourceEndLine: 72
     sourceEndColumn: 1
   - id: SYM-parity-dependent-relationships-goal
     title: dependentRelationshipsGoal
@@ -9112,9 +9112,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 65
+    sourceLine: 55
     sourceColumn: 16
-    sourceEndLine: 69
+    sourceEndLine: 57
     sourceEndColumn: 1
   - id: SYM-parity-format-invalid-relationship-error
     title: formatInvalidRelationshipError
@@ -9126,9 +9126,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 71
+    sourceLine: 59
     sourceColumn: 16
-    sourceEndLine: 85
+    sourceEndLine: 68
     sourceEndColumn: 1
   - id: SYM-parity-validate-relationship-sources
     title: validateRelationshipSources
@@ -9140,9 +9140,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 87
+    sourceLine: 70
     sourceColumn: 16
-    sourceEndLine: 96
+    sourceEndLine: 79
     sourceEndColumn: 1
   - id: SYM-parity-format-relationship-source-mismatch
     title: formatRelationshipSourceMismatch
@@ -9154,9 +9154,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 98
+    sourceLine: 81
     sourceColumn: 16
-    sourceEndLine: 105
+    sourceEndLine: 88
     sourceEndColumn: 1
   - id: SYM-parity-validate-live-relationship-targets
     title: validateLiveRelationshipTargets
@@ -9168,9 +9168,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 128
+    sourceLine: 108
     sourceColumn: 22
-    sourceEndLine: 155
+    sourceEndLine: 123
     sourceEndColumn: 1
   - id: SYM-parity-validate-strict-lane-pairing
     title: validateStrictLanePairing
@@ -9182,9 +9182,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 157
+    sourceLine: 125
     sourceColumn: 22
-    sourceEndLine: 181
+    sourceEndLine: 145
     sourceEndColumn: 1
   - id: SYM-parity-existing-relationships
     title: existingRelationships
@@ -9196,9 +9196,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 183
+    sourceLine: 147
     sourceColumn: 22
-    sourceEndLine: 201
+    sourceEndLine: 159
     sourceEndColumn: 1
   - id: SYM-parity-save-mutation
     title: saveMutation
@@ -9211,7 +9211,7 @@ symbols:
         target: TEST-kibi-operation-interface-parity
     sourceLine: 3
     sourceColumn: 22
-    sourceEndLine: 14
+    sourceEndLine: 12
     sourceEndColumn: 1
   - id: SYM-parity-save-atomic-mutation
     title: saveAtomicMutation
@@ -9222,9 +9222,9 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-    sourceLine: 16
+    sourceLine: 14
     sourceColumn: 22
-    sourceEndLine: 30
+    sourceEndLine: 26
     sourceEndColumn: 1
   - id: SYM-parity-relationship-input-type
     title: RelationshipInput
@@ -9471,9 +9471,9 @@ symbols:
         target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 11
+    sourceLine: 7
     sourceColumn: 16
-    sourceEndLine: 29
+    sourceEndLine: 25
     sourceEndColumn: 1
   - id: SYM-predicate-infer-permission-rule
     title: inferPermissionRuleArgs
@@ -9484,9 +9484,9 @@ symbols:
         target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 9
+    sourceLine: 4
     sourceColumn: 16
-    sourceEndLine: 31
+    sourceEndLine: 26
     sourceEndColumn: 1
   - id: SYM-predicate-infer-conflict-resolution
     title: inferConflictResolutionRuleArgs
@@ -9510,9 +9510,9 @@ symbols:
         target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 10
+    sourceLine: 4
     sourceColumn: 16
-    sourceEndLine: 19
+    sourceEndLine: 13
     sourceEndColumn: 1
   - id: SYM-predicate-infer-args
     title: inferArgs
@@ -9523,9 +9523,9 @@ symbols:
         target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 71
+    sourceLine: 8
     sourceColumn: 16
-    sourceEndLine: 217
+    sourceEndLine: 154
     sourceEndColumn: 1
   - id: SYM-predicate-schema-for-candidate
     title: schemaForCandidate
@@ -9536,9 +9536,9 @@ symbols:
         target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 14
+    sourceLine: 8
     sourceColumn: 16
-    sourceEndLine: 34
+    sourceEndLine: 28
     sourceEndColumn: 1
   - id: SYM-predicate-score-schema
     title: scoreSchema
@@ -9549,9 +9549,9 @@ symbols:
         target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 14
+    sourceLine: 10
     sourceColumn: 16
-    sourceEndLine: 31
+    sourceEndLine: 27
     sourceEndColumn: 1
   - id: SYM-predicate-score-exact-1
     title: scoreExactPredicates1
@@ -10396,9 +10396,9 @@ symbols:
         target: REQ-root-suite-batch-diagnostics
       - type: covered_by
         target: TEST-root-suite-batch-diagnostics
-    sourceLine: 160
+    sourceLine: 154
     sourceColumn: 15
-    sourceEndLine: 208
+    sourceEndLine: 202
     sourceEndColumn: 1
   - id: SYM-test-root-summary-timeout-diagnostic
     title: getBatchFailureMessage timeout regression
@@ -10683,9 +10683,9 @@ symbols:
         target: REQ-skillopt-automatic-adoption
       - type: covered_by
         target: TEST-skillopt-automatic-adoption
-    sourceLine: 151
+    sourceLine: 153
     sourceColumn: 22
-    sourceEndLine: 297
+    sourceEndLine: 296
     sourceEndColumn: 1
   - id: SYM-skillopt-real-optimization-options
     title: RealOptimizationOptions
@@ -10741,7 +10741,7 @@ symbols:
         target: TEST-skillopt-codex-optimization
     sourceLine: 91
     sourceColumn: 12
-    sourceEndLine: 98
+    sourceEndLine: 100
     sourceEndColumn: 3
   - id: SYM-skillopt-build-skill-catalog
     title: buildSkillCatalog
