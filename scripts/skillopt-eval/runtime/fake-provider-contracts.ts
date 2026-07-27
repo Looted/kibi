@@ -60,6 +60,7 @@ export const RequestSchema = z
     requestId: z.string().min(1),
     requestHash: HashSchema,
     model: ModelSchema,
+    leaseId: z.uuid(),
     inputTokens: z.int().nonnegative(),
     maxOutputTokens: z.int().nonnegative(),
     maxRetries: z.int().nonnegative(),
@@ -74,6 +75,8 @@ export const CapabilitySchema = z
     requestId: z.string().min(1),
     requestHash: HashSchema,
     pricingHash: HashSchema,
+    model: ModelSchema,
+    leaseId: z.uuid(),
     sealed: z.literal(true),
     oneUse: z.literal(true),
   })

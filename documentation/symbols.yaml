@@ -15587,6 +15587,11 @@ symbols:
   - id: SYM-skillopt-fake-provider-hash-schema
     title: HashSchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    sourceLine: 3
+    sourceColumn: 13
+    sourceEndLine: 3
+    sourceEndColumn: 60
     relationships:
       - type: implements
         target: REQ-skillopt-paid-launch-accounting
@@ -15595,6 +15600,11 @@ symbols:
   - id: SYM-skillopt-fake-provider-model-schema
     title: ModelSchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    sourceLine: 4
+    sourceColumn: 13
+    sourceEndLine: 4
+    sourceEndColumn: 62
     relationships:
       - type: implements
         target: REQ-skillopt-paid-launch-accounting
@@ -15603,6 +15613,11 @@ symbols:
   - id: SYM-skillopt-fake-provider-configuration-schema
     title: ConfigurationSchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    sourceLine: 6
+    sourceColumn: 13
+    sourceEndLine: 56
+    sourceEndColumn: 4
     relationships:
       - type: implements
         target: REQ-skillopt-paid-launch-accounting
@@ -15611,6 +15626,11 @@ symbols:
   - id: SYM-skillopt-fake-provider-request-schema
     title: RequestSchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    sourceLine: 58
+    sourceColumn: 13
+    sourceEndLine: 69
+    sourceEndColumn: 11
     relationships:
       - type: implements
         target: REQ-skillopt-paid-launch-accounting
@@ -15619,6 +15639,11 @@ symbols:
   - id: SYM-skillopt-fake-provider-capability-schema
     title: CapabilitySchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    sourceLine: 71
+    sourceColumn: 13
+    sourceEndLine: 83
+    sourceEndColumn: 11
     relationships:
       - type: implements
         target: REQ-skillopt-paid-launch-accounting
@@ -15627,6 +15652,11 @@ symbols:
   - id: SYM-skillopt-fake-provider-outcome-schema
     title: OutcomeSchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    sourceLine: 85
+    sourceColumn: 13
+    sourceEndLine: 95
+    sourceEndColumn: 2
     relationships:
       - type: implements
         target: REQ-skillopt-paid-launch-accounting
@@ -15635,6 +15665,11 @@ symbols:
   - id: SYM-skillopt-fake-provider-configuration-type
     title: Configuration
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    sourceLine: 97
+    sourceColumn: 12
+    sourceEndLine: 97
+    sourceEndColumn: 74
     relationships:
       - type: implements
         target: REQ-skillopt-paid-launch-accounting
@@ -15643,6 +15678,11 @@ symbols:
   - id: SYM-skillopt-fake-provider-request-type
     title: Request
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    sourceLine: 98
+    sourceColumn: 12
+    sourceEndLine: 98
+    sourceEndColumn: 62
     relationships:
       - type: implements
         target: REQ-skillopt-paid-launch-accounting
@@ -15651,6 +15691,11 @@ symbols:
   - id: SYM-skillopt-fake-provider-outcome-type
     title: Outcome
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    sourceLine: 99
+    sourceColumn: 12
+    sourceEndLine: 99
+    sourceEndColumn: 62
     relationships:
       - type: implements
         target: REQ-skillopt-paid-launch-accounting
@@ -15659,6 +15704,11 @@ symbols:
   - id: SYM-skillopt-fake-provider-capability-type
     title: Capability
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    sourceLine: 100
+    sourceColumn: 12
+    sourceEndLine: 100
+    sourceEndColumn: 68
     relationships:
       - type: implements
         target: REQ-skillopt-paid-launch-accounting
@@ -15667,6 +15717,11 @@ symbols:
   - id: SYM-skillopt-fake-provider-debit-receipt-type
     title: DebitReceipt
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    sourceLine: 101
+    sourceColumn: 12
+    sourceEndLine: 111
+    sourceEndColumn: 3
     relationships:
       - type: implements
         target: REQ-skillopt-paid-launch-accounting
@@ -15675,6 +15730,11 @@ symbols:
   - id: SYM-skillopt-fake-provider-reservation-type
     title: Reservation
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    sourceLine: 113
+    sourceColumn: 12
+    sourceEndLine: 116
+    sourceEndColumn: 3
     relationships:
       - type: implements
         target: REQ-skillopt-paid-launch-accounting
@@ -15683,7 +15743,12 @@ symbols:
   - id: SYM-skillopt-gateway-policy-error
     title: GatewayPolicyError
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    granularity_reason: module-level-behavior
+    symbol_role: structural
+    granularity_reason: extractor-miss
+    sourceLine: 16
+    sourceColumn: 13
+    sourceEndLine: 18
+    sourceEndColumn: 1
     relationships:
       - type: implements
         target: REQ-skillopt-paid-launch-accounting
@@ -15693,10 +15758,25 @@ symbols:
     title: GatewayPolicyError.name
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
     symbol_role: structural
+    granularity_reason: extractor-miss
+    sourceLine: 17
+    sourceColumn: 11
+    sourceEndLine: 17
+    sourceEndColumn: 39
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-fake-provider-supervisor
     title: FakeProviderSupervisor
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
-    granularity_reason: module-level-behavior
+    symbol_role: structural
+    granularity_reason: extractor-miss
+    sourceLine: 20
+    sourceColumn: 13
+    sourceEndLine: 239
+    sourceEndColumn: 1
     relationships:
       - type: implements
         target: REQ-skillopt-paid-launch-accounting
@@ -15706,17 +15786,41 @@ symbols:
     title: FakeProviderSupervisor.configuration
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
     symbol_role: behavioral
+    granularity_reason: extractor-miss
     text_ref: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts#FakeProviderSupervisor.configuration
+    sourceLine: 37
+    sourceColumn: 2
+    sourceEndLine: 39
+    sourceEndColumn: 3
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-fake-provider-reserve
     title: FakeProviderSupervisor.reserve
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
     symbol_role: behavioral
     text_ref: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts#FakeProviderSupervisor.reserve
+    sourceLine: 41
+    sourceColumn: 2
+    sourceEndLine: 69
+    sourceEndColumn: 3
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-fake-provider-forward
     title: FakeProviderSupervisor.forward
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
     symbol_role: behavioral
+    granularity_reason: extractor-miss
     text_ref: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts#FakeProviderSupervisor.forward
+    sourceLine: 72
+    sourceColumn: 2
+    sourceEndLine: 86
+    sourceEndColumn: 3
     relationships:
       - type: implements
         target: REQ-skillopt-paid-launch-accounting
@@ -15726,22 +15830,62 @@ symbols:
     title: FakeProviderSupervisor.executeWithCrash
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
     symbol_role: behavioral
+    granularity_reason: extractor-miss
     text_ref: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts#FakeProviderSupervisor.executeWithCrash
+    sourceLine: 88
+    sourceColumn: 2
+    sourceEndLine: 98
+    sourceEndColumn: 3
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-fake-provider-recover
     title: FakeProviderSupervisor.recover
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
     symbol_role: behavioral
+    granularity_reason: extractor-miss
     text_ref: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts#FakeProviderSupervisor.recover
+    sourceLine: 100
+    sourceColumn: 2
+    sourceEndLine: 102
+    sourceEndColumn: 3
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-fake-provider-reconcile
     title: FakeProviderSupervisor.reconcile
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
     symbol_role: behavioral
+    granularity_reason: extractor-miss
     text_ref: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts#FakeProviderSupervisor.reconcile
+    sourceLine: 104
+    sourceColumn: 2
+    sourceEndLine: 118
+    sourceEndColumn: 3
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-fake-provider-zero-budget-parent
     title: FakeProviderSupervisor.zeroBudgetVerificationParent
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
     symbol_role: behavioral
+    granularity_reason: extractor-miss
     text_ref: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts#FakeProviderSupervisor.zeroBudgetVerificationParent
+    sourceLine: 120
+    sourceColumn: 2
+    sourceEndLine: 126
+    sourceEndColumn: 3
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-authorization-broker-tests
     title: trusted broker authorization contracts
     sourceFile: scripts/skillopt-eval/tests/authorization-broker.test.ts

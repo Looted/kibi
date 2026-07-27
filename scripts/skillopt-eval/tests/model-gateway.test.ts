@@ -38,6 +38,9 @@ const request = (id: string, model = "gpt-5.4-mini") => ({
   requestId: id,
   requestHash: hash(id.endsWith("1") ? "b" : "c"),
   model,
+  leaseId: id.endsWith("1")
+    ? "00000000-0000-4000-8000-000000000511"
+    : "00000000-0000-4000-8000-000000000512",
   inputTokens: 800,
   maxOutputTokens: 100,
   maxRetries: 1,
@@ -65,7 +68,12 @@ describe("trusted broker model gateway", () => {
     const reconciliation = supervisor.reconcile();
 
     // Then
-    expect(first.capability).toMatchObject({ sealed: true, oneUse: true });
+    expect(first.capability).toMatchObject({
+      model: "gpt-5.4-mini",
+      leaseId: "00000000-0000-4000-8000-000000000511",
+      sealed: true,
+      oneUse: true,
+    });
     expect(firstReceipt.authorization).toEqual({
       reservedMicrousd: 1000,
       chargedMicrousd: 700,
@@ -129,6 +137,26 @@ describe("trusted broker model gateway", () => {
 
     // Then
     expect(reserveWithChangedHash).toThrow("request_idempotency_mismatch");
+  });
+
+  test("rejects request id reuse when its model or lease binding changes", () => {
+    // Given
+    const supervisor = fixture();
+    const original = request("request-1");
+    supervisor.reserve(original);
+
+    // When
+    const reserveWithChangedModel = () =>
+      supervisor.reserve({ ...original, model: "gpt-5.5" });
+    const reserveWithChangedLease = () =>
+      supervisor.reserve({
+        ...original,
+        leaseId: "00000000-0000-4000-8000-000000000599",
+      });
+
+    // Then
+    expect(reserveWithChangedModel).toThrow("request_idempotency_mismatch");
+    expect(reserveWithChangedLease).toThrow("request_idempotency_mismatch");
   });
 
   test("returns a byte-identical receipt when a completed request is retried", () => {

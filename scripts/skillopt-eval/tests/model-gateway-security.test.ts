@@ -41,6 +41,9 @@ const request = (id = "request-1", model = "gpt-5.4-mini") => ({
   requestId: id,
   requestHash: hash(id.endsWith("1") ? "b" : "c"),
   model,
+  leaseId: id.endsWith("1")
+    ? "00000000-0000-4000-8000-000000000511"
+    : "00000000-0000-4000-8000-000000000512",
   inputTokens: 800,
   maxOutputTokens: 100,
   maxRetries: 1,
@@ -68,6 +71,60 @@ describe("trusted broker model gateway security", () => {
     expect(() =>
       supervisor.forward(
         { ...capability, pricingHash: hash("9") },
+        { kind: "ambiguous" },
+      ),
+    ).toThrow("capability_forged");
+  });
+
+  test("rejects non-integer authorization pricing", () => {
+    // Given
+    const config = fixture().configuration();
+
+    // When / Then
+    expect(
+      () =>
+        new FakeProviderSupervisor({
+          ...config,
+          ceilings: { ...config.ceilings, maxChargeMicrousd: 1000.5 },
+        }),
+    ).toThrow(GatewayPolicyError);
+    expect(
+      () =>
+        new FakeProviderSupervisor({
+          ...config,
+          authorizationMicrousd: 2000.5,
+        }),
+    ).toThrow(GatewayPolicyError);
+  });
+
+  test("binds the approved model and rejects model rebinding", () => {
+    // Given
+    const supervisor = fixture();
+    const { capability } = supervisor.reserve(request());
+
+    // When / Then
+    expect(capability.model).toBe("gpt-5.4-mini");
+    expect(() =>
+      supervisor.forward(
+        { ...capability, model: "gpt-5.5" },
+        { kind: "ambiguous" },
+      ),
+    ).toThrow("capability_forged");
+  });
+
+  test("binds the approved lease and rejects lease rebinding", () => {
+    // Given
+    const supervisor = fixture();
+    const { capability } = supervisor.reserve(request());
+
+    // When / Then
+    expect(capability.leaseId).toBe("00000000-0000-4000-8000-000000000511");
+    expect(() =>
+      supervisor.forward(
+        {
+          ...capability,
+          leaseId: "00000000-0000-4000-8000-000000000599",
+        },
         { kind: "ambiguous" },
       ),
     ).toThrow("capability_forged");
