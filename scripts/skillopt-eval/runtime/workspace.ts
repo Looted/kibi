@@ -4,7 +4,11 @@ import {
   resolveIsolationArtifactRoot,
 } from "./artifact-root";
 import { runModelCanary } from "./canary-run";
-import { probeCodexSandbox, probeRequiredMcp } from "./canary-runtime";
+import {
+  probeCodexSandbox,
+  probeRequiredMcp,
+  type stageCapabilityCanary,
+} from "./canary-runtime";
 import {
   type IsolationWorkspace,
   type WorkspaceOptions,
@@ -49,10 +53,13 @@ export async function runCapabilityCanary(
     run: CanaryRunner;
     probeSandbox?: typeof probeCodexSandbox;
     probeRequiredMcp?: typeof probeRequiredMcp;
+    stageDependencies?: Parameters<typeof stageCapabilityCanary>[2];
   }>,
 ): Promise<CapabilityCanaryReceipt> {
   const sourceWorktree = resolve(options.sourceWorktree ?? process.cwd());
-  const configuredArtifactRoot = await resolveArtifactRoot(options.artifactRoot);
+  const configuredArtifactRoot = await resolveArtifactRoot(
+    options.artifactRoot,
+  );
   const artifactRoot = resolveIsolationArtifactRoot(
     configuredArtifactRoot,
     sourceWorktree,
@@ -77,6 +84,7 @@ export async function runCapabilityCanary(
       run,
       probeSandbox: dependencies?.probeSandbox ?? probeCodexSandbox,
       probeMcp: dependencies?.probeRequiredMcp ?? probeRequiredMcp,
+      stageDependencies: dependencies?.stageDependencies,
     });
     authMode = result.authMode ?? authMode;
     if (result.kind === "pass") {

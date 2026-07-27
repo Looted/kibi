@@ -59,6 +59,7 @@ export type ModelCanaryContext = Readonly<{
   run: CanaryRunner;
   probeSandbox: typeof probeCodexSandbox;
   probeMcp: (launch: McpServerLaunch) => Promise<unknown>;
+  stageDependencies?: Parameters<typeof stageCapabilityCanary>[2];
 }>;
 
 function modelRun(
@@ -122,6 +123,7 @@ export async function runModelCanary(
     const staged = await stageCapabilityCanary(
       workspace,
       context.sourceWorktree,
+      context.stageDependencies,
     );
     const runtimeEnv = { ...auth.env, PATH: "/usr/bin:/bin" };
     await writeFile(
