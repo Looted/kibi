@@ -114,7 +114,7 @@ class PriceEquivalentEstimate(ContractModel):
 
 def canonical_json(value: JsonValue) -> str:
     canonical = jcs.canonicalize(value)
-    return canonical.decode("utf-8") if isinstance(canonical, bytes) else canonical
+    return canonical.decode("utf-8")
 
 
 def contract_hash(value: JsonValue) -> str:
