@@ -1,8 +1,8 @@
 import { validateUpsertSpec } from "kibi-cli/operations";
 import type { ValidateUpsertPayload } from "kibi-cli/operations/mutation/types";
 import type { PrologProcess } from "kibi-cli/prolog";
-import type { UpsertArgs } from "./upsert.js";
 import { createMutationContext } from "./mutation-context.js";
+import type { UpsertArgs } from "./upsert.js";
 
 export type ValidateUpsertResult = Awaited<
   ReturnType<typeof validateUpsertSpec.execute>
@@ -29,9 +29,10 @@ export async function handleKbValidateUpsert(
   if (args === null) {
     throw new Error("kb_validate_upsert requires an upsert payload");
   }
-  const prolog = maybeArgs === undefined || isUpsertArgs(prologOrArgs)
-    ? undefined
-    : prologOrArgs;
+  const prolog =
+    maybeArgs === undefined || isUpsertArgs(prologOrArgs)
+      ? undefined
+      : prologOrArgs;
   const result = await validateUpsertSpec.execute(
     args,
     createMutationContext(prolog),

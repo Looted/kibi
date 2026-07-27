@@ -38,7 +38,10 @@ export interface Diagnostic {
 }
 
 export interface CheckResult {
-  readonly content: readonly { readonly type: string; readonly text?: string }[];
+  readonly content: readonly {
+    readonly type: string;
+    readonly text?: string;
+  }[];
   readonly structuredContent?: {
     readonly violations: readonly Violation[];
     readonly count: number;

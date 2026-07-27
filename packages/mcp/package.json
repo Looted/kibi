@@ -28,10 +28,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepack": "npm run build"
   },
-  "files": [
-    "dist",
-    "bin"
-  ],
+  "files": ["dist", "bin"],
   "engines": {
     "node": ">=18",
     "bun": ">=1.0"

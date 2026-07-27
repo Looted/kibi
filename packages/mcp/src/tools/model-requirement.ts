@@ -1,6 +1,6 @@
 import {
-  modelRequirementSpec,
   type OperationContext,
+  modelRequirementSpec,
 } from "kibi-cli/operations";
 import {
   estimateNormativeSignalConfidence,

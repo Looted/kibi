@@ -25,10 +25,7 @@ import type { SparqlArgs } from "../tools/sparql.js";
 import type { StatusArgs } from "../tools/status.js";
 import type { SuggestPredicatesArgs } from "../tools/suggest-predicates.js";
 import type { UpsertArgs } from "../tools/upsert.js";
-import type {
-  ToolHandler,
-  ToolsRuntime,
-} from "./tool-types.js";
+import type { ToolHandler, ToolsRuntime } from "./tool-types.js";
 
 type ToolRegistrar<TProlog> = (
   server: McpServer,

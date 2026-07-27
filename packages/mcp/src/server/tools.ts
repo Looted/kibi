@@ -16,8 +16,8 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import process from "node:process";
-import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import {
   type RuntimeOperationSpec,
   executeOperation,

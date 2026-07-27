@@ -13,7 +13,8 @@ type PrologResult = {
 
 function createProlog(): PrologProcess {
   const prolog = new PrologProcess();
-  prolog.query = mock(async (goal: string | string[]): Promise<PrologResult> => {
+  prolog.query = mock(
+    async (goal: string | string[]): Promise<PrologResult> => {
       if (Array.isArray(goal)) {
         return { success: false, bindings: {}, error: "unexpected batch" };
       }
@@ -39,7 +40,8 @@ function createProlog(): PrologProcess {
         return { success: true, bindings: {} };
       }
       return { success: false, bindings: {}, error: "unexpected mutation" };
-    });
+    },
+  );
   prolog.invalidateCache = mock(() => undefined);
   return prolog;
 }
@@ -62,6 +64,8 @@ describe("MCP delete thin adapter", () => {
     expect(JSON.stringify(adapter.structuredContent)).toBe(
       JSON.stringify(shared.structuredContent),
     );
-    expect(JSON.stringify(adapter.content)).toBe(JSON.stringify(shared.content));
+    expect(JSON.stringify(adapter.content)).toBe(
+      JSON.stringify(shared.content),
+    );
   });
 });
