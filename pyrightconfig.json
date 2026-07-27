@@ -1,0 +1,12 @@
+{
+  "typeCheckingMode": "all",
+  "include": [
+    "tools/skillopt/verify_pin.py",
+    "tools/skillopt/kibi_skillopt",
+    "tools/skillopt/tests"
+  ],
+  "extraPaths": ["."],
+  "stubPath": "tools/skillopt/typings",
+  "venvPath": "tools/skillopt",
+  "venv": ".venv"
+}
