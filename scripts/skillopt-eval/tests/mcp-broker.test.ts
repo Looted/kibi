@@ -150,9 +150,9 @@ describe("evaluator-owned Kibi MCP evidence", () => {
       // Then
       const runtimeRoot = resolve(workspace.target, ".runtime/mcp");
       expect(staged.command.startsWith(`${runtimeRoot}/broker/`)).toBe(true);
-      expect(
-        staged.downstream.command.startsWith(`${runtimeRoot}/kibi/`),
-      ).toBe(true);
+      expect(staged.downstream.command.startsWith(`${runtimeRoot}/kibi/`)).toBe(
+        true,
+      );
       expect(staged.tracePath.startsWith(`${workspace.privateEvidence}/`)).toBe(
         true,
       );

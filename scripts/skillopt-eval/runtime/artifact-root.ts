@@ -59,7 +59,10 @@ export function resolveIsolationArtifactRoot(
   sourceWorktree: string,
   tempRoot = tmpdir(),
 ): string {
-  const relativeRoot = relative(resolve(sourceWorktree), resolve(configuredRoot));
+  const relativeRoot = relative(
+    resolve(sourceWorktree),
+    resolve(configuredRoot),
+  );
   const nested =
     relativeRoot === "" ||
     (!relativeRoot.startsWith("..") && !isAbsolute(relativeRoot));

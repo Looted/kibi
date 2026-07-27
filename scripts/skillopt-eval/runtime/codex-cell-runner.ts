@@ -2,6 +2,7 @@ import { cp, mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { EpisodeRequestSchema } from "../contracts/episode";
 import { hashWorkspace } from "../fixtures/workspace";
+import { resolveIsolationArtifactRoot } from "./artifact-root";
 import { RequiredMcpStartupError } from "./canary-runtime";
 import {
   persistCodexEpisode,
@@ -15,7 +16,6 @@ import {
   FixtureIntegrityError,
 } from "./codex-cell-types";
 import { replayCodexEpisode } from "./codex-episode";
-import { resolveIsolationArtifactRoot } from "./artifact-root";
 import { createIsolationWorkspace } from "./isolation-workspace";
 import { buildCodexConfig, buildCodexExecArgv } from "./permissions";
 import { ProcessControlError } from "./process";

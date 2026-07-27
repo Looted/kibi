@@ -42,12 +42,17 @@ export async function createIsolationWorkspace(
   const privateScorer = join(root, "private-scorer");
   const siblingRun = join(root, "sibling-run");
   await Promise.all(
-    [codexHome, sandboxHome, target, privateEvidence, privateScorer, siblingRun].map(
-      async (directory) => {
-        await mkdir(directory, { recursive: true, mode: 0o700 });
-        await chmod(directory, 0o700);
-      },
-    ),
+    [
+      codexHome,
+      sandboxHome,
+      target,
+      privateEvidence,
+      privateScorer,
+      siblingRun,
+    ].map(async (directory) => {
+      await mkdir(directory, { recursive: true, mode: 0o700 });
+      await chmod(directory, 0o700);
+    }),
   );
   await writeFile(join(privateScorer, "sentinel"), "private\n", {
     encoding: "utf8",
