@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from typing import final
 
 from skillopt.datasets.base import BaseDataLoader, BatchSpec
+from typing_extensions import override
 
 from .bridge import BridgeError
+from .common import JsonValue
 
-Task = Mapping[str, object]
+Task = Mapping[str, JsonValue]
 
 
 def _task_id(task: Task) -> str:
@@ -16,30 +19,35 @@ def _task_id(task: Task) -> str:
     return value
 
 
+@final
 class SplitDataLoader(BaseDataLoader):
     def __init__(
         self,
         train_items: Sequence[Task],
         development_items: Sequence[Task],
     ) -> None:
-        self._train = tuple(dict(item) for item in train_items)
-        self._development = tuple(dict(item) for item in development_items)
+        self._train: tuple[Task, ...] = tuple(dict(item) for item in train_items)
+        self._development: tuple[Task, ...] = tuple(dict(item) for item in development_items)
         self._state: dict[str, int] = {"train_batches": 0, "development_batches": 0}
 
+    @override
     def get_train_size(self) -> int:
         return len(self._train)
 
+    @override
     def state_dict(self) -> dict[str, int]:
         return dict(self._state)
 
-    def load_state_dict(self, state: Mapping[str, object]) -> None:
+    @override
+    def load_state_dict(self, state: Mapping[str, JsonValue]) -> None:
         for key in self._state:
             value = state.get(key, 0)
             if not isinstance(value, int) or value < 0:
                 raise BridgeError("invalid_dataloader_state")
             self._state[key] = value
 
-    def build_train_batch(self, batch_size: int, seed: int, **_: object) -> BatchSpec:
+    @override
+    def build_train_batch(self, batch_size: int, seed: int, **_: JsonValue) -> BatchSpec:
         if batch_size < 1:
             raise BridgeError("invalid_batch_size")
         self._state["train_batches"] += 1
@@ -54,11 +62,12 @@ class SplitDataLoader(BaseDataLoader):
             seed=seed,
             batch_size=batch_size,
             payload=items,
-            metadata={"taskIds": tuple(_task_id(item) for item in items)},
+            metadata={"taskIds": [_task_id(item) for item in items]},
         )
 
+    @override
     def build_eval_batch(
-        self, env_num: int, split: str, seed: int, **_: object
+        self, env_num: int, split: str, seed: int, **_: JsonValue
     ) -> BatchSpec:
         if split not in {"development", "valid_seen", "selection", "val"}:
             raise BridgeError("held-out-split-requested")
@@ -72,5 +81,5 @@ class SplitDataLoader(BaseDataLoader):
             seed=seed,
             batch_size=env_num,
             payload=items,
-            metadata={"taskIds": tuple(_task_id(item) for item in items)},
+            metadata={"taskIds": [_task_id(item) for item in items]},
         )
