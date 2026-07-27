@@ -132,6 +132,7 @@ function buildToolListSnapshot(
     name: string;
     description: string;
     inputSchema: JsonRecord;
+    annotations?: JsonRecord;
   }[],
 ) {
   return {
@@ -139,6 +140,9 @@ function buildToolListSnapshot(
       name: tool.name,
       description: tool.description,
       inputSchema: stable(tool.inputSchema) as JsonRecord,
+      ...(tool.annotations
+        ? { annotations: stable(tool.annotations) as JsonRecord }
+        : {}),
     })),
   };
 }
