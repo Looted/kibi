@@ -13,6 +13,7 @@ import type {
   PrologQueryResult,
   RuntimeOptions,
 } from "../public/operations/runtime-types.js";
+import { resolveActiveBranch } from "../utils/branch-resolver.js";
 
 type ManagedPrologPort = PrologPort & {
   readonly start?: () => Promise<void>;
@@ -84,14 +85,21 @@ export function createCliRuntime(
         await prolog.start?.();
         let branch = process.env.KIBI_BRANCH?.trim();
         if (!branch) {
-          try {
-            branch = await git.revParse("--abbrev-ref", "HEAD");
-          } catch {
-            branch = "main";
+          if (merged.git) {
+            try {
+              branch = git.currentBranch
+                ? await git.currentBranch()
+                : await git.revParse("--abbrev-ref", "HEAD");
+            } catch {
+              branch = "main";
+            }
+          } else {
+            const resolved = resolveActiveBranch(root);
+            branch = "branch" in resolved ? resolved.branch : "main";
           }
         }
-        if (branch === "master") branch = "main";
-        const kbPath = path.join(root, ".kb", "branches", branch);
+        const branchName = branch === "master" ? "main" : (branch ?? "main");
+        const kbPath = path.join(root, ".kb", "branches", branchName);
         const attached = await prolog.query(
           `kb_attach('${quoteProlog(kbPath)}')`,
         );

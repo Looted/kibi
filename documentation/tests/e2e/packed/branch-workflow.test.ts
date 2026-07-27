@@ -12,7 +12,6 @@ import {
   type Tarballs,
   type TestSandbox,
   checkPrologAvailable,
-  createMarkdownFile,
   createSandbox,
   kibi,
   packAll,
@@ -523,6 +522,8 @@ status: open
           cwd: sandbox.repoDir,
           env: sandbox.env,
         });
+
+        await kibi(sandbox, ["init", "--no-hooks"]);
 
         mkdirSync(reqDir, { recursive: true });
 

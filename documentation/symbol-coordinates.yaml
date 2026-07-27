@@ -11,13 +11,13 @@ coordinates:
   SYM-003:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 23
+    sourceEndLine: 17
     sourceFile: packages/mcp/src/tools/query.ts
-    sourceLine: 17
+    sourceLine: 11
   SYM-004:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 46
+    sourceEndLine: 49
     sourceFile: packages/mcp/src/tools/check.ts
     sourceLine: 30
   SYM-010:
@@ -1307,15 +1307,15 @@ coordinates:
   SYM-SparqlArgs:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 11
+    sourceEndLine: 8
     sourceFile: packages/mcp/src/tools/sparql.ts
-    sourceLine: 7
+    sourceLine: 4
   SYM-SparqlResult:
     sourceColumn: 12
     sourceEndColumn: 80
-    sourceEndLine: 13
+    sourceEndLine: 10
     sourceFile: packages/mcp/src/tools/sparql.ts
-    sourceLine: 13
+    sourceLine: 10
   SYM-StableRequirementIds:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1949,9 +1949,9 @@ coordinates:
   SYM-built-in-predicate-schemas:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 33
+    sourceEndLine: 36
     sourceFile: packages/cli/src/operations/modeling/predicate-catalog.ts
-    sourceLine: 28
+    sourceLine: 31
   SYM-checkCommand:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2525,9 +2525,9 @@ coordinates:
   SYM-cli-query-command:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 87
+    sourceEndLine: 82
     sourceFile: packages/cli/src/commands/query.ts
-    sourceLine: 35
+    sourceLine: 32
   SYM-cli-register-foundation-commands:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2903,9 +2903,9 @@ coordinates:
   SYM-createCliRuntime:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 115
+    sourceEndLine: 123
     sourceFile: packages/cli/src/runtime/cli-runtime.ts
-    sourceLine: 54
+    sourceLine: 55
   SYM-createConfigFile:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3467,15 +3467,15 @@ coordinates:
   SYM-execute-model-requirement:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 117
+    sourceEndLine: 120
     sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
-    sourceLine: 112
+    sourceLine: 115
   SYM-execute-suggest-predicates:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 81
+    sourceEndLine: 104
     sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
-    sourceLine: 76
+    sourceLine: 99
   SYM-executeOperation:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3491,15 +3491,15 @@ coordinates:
   SYM-executeUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 134
+    sourceEndLine: 144
     sourceFile: packages/cli/src/operations/mutation/upsert.ts
     sourceLine: 51
   SYM-executeValidateUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 58
+    sourceEndLine: 68
     sourceFile: packages/cli/src/operations/mutation/validate-upsert.ts
-    sourceLine: 10
+    sourceLine: 13
   SYM-extractFromManifest:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3665,9 +3665,9 @@ coordinates:
   SYM-getWorkspaceMigrationWarning:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 49
+    sourceEndLine: 52
     sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
-    sourceLine: 31
+    sourceLine: 34
   SYM-handleKbAutopilotGenerate:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3731,15 +3731,15 @@ coordinates:
   SYM-handleKbValidateUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 43
+    sourceEndLine: 44
     sourceFile: packages/mcp/src/tools/validate-upsert.ts
     sourceLine: 24
   SYM-handleSparql:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 32
+    sourceEndLine: 29
     sourceFile: packages/mcp/src/tools/sparql.ts
-    sourceLine: 16
+    sourceLine: 13
   SYM-hasAllGeneratedCoordinates:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4013,7 +4013,7 @@ coordinates:
   SYM-mcp-CheckResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 59
+    sourceEndLine: 62
     sourceFile: packages/mcp/src/tools/check-types.ts
     sourceLine: 40
   SYM-mcp-Diagnostic:
@@ -4295,9 +4295,9 @@ coordinates:
   SYM-model-requirement-core-handler:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 110
+    sourceEndLine: 113
     sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
-    sourceLine: 51
+    sourceLine: 54
   SYM-modelRequirementClaims:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4307,105 +4307,105 @@ coordinates:
   SYM-modeling-predicate-applyplan-buildGapApplyPlan:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 107
+    sourceEndLine: 111
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
-    sourceLine: 82
+    sourceLine: 86
   SYM-modeling-predicate-applyplan-buildPredicateApplyPlan:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 60
+    sourceEndLine: 64
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
-    sourceLine: 28
+    sourceLine: 32
   SYM-modeling-predicate-applyplan-buildRelationshipPlan:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 79
+    sourceEndLine: 83
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
-    sourceLine: 63
+    sourceLine: 67
   SYM-modeling-predicate-inference-1-inferAuditEventRuleArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 191
+    sourceEndLine: 199
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-1.ts
-    sourceLine: 183
+    sourceLine: 191
   SYM-modeling-predicate-inference-1-inferAvailabilitySlaArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 135
+    sourceEndLine: 143
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-1.ts
-    sourceLine: 123
+    sourceLine: 131
   SYM-modeling-predicate-inference-1-inferConsentRuleArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 203
+    sourceEndLine: 211
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-1.ts
-    sourceLine: 194
+    sourceLine: 202
   SYM-modeling-predicate-inference-1-inferDataResidencyRuleArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 180
+    sourceEndLine: 188
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-1.ts
-    sourceLine: 172
+    sourceLine: 180
   SYM-modeling-predicate-inference-1-inferDependencyRuleArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 84
+    sourceEndLine: 92
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-1.ts
-    sourceLine: 75
+    sourceLine: 83
   SYM-modeling-predicate-inference-1-inferEscalationRuleArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 120
+    sourceEndLine: 128
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-1.ts
-    sourceLine: 110
+    sourceLine: 118
   SYM-modeling-predicate-inference-1-inferExceptionRuleArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 61
+    sourceEndLine: 69
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-1.ts
-    sourceLine: 50
+    sourceLine: 55
   SYM-modeling-predicate-inference-1-inferGuardArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 47
+    sourceEndLine: 52
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-1.ts
-    sourceLine: 29
+    sourceLine: 34
   SYM-modeling-predicate-inference-1-inferIdempotencyRuleArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 169
+    sourceEndLine: 177
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-1.ts
-    sourceLine: 150
+    sourceLine: 158
   SYM-modeling-predicate-inference-1-inferLifecycleRuleArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 216
+    sourceEndLine: 224
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-1.ts
-    sourceLine: 206
+    sourceLine: 214
   SYM-modeling-predicate-inference-1-inferMutualExclusionArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 72
+    sourceEndLine: 80
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-1.ts
-    sourceLine: 64
+    sourceLine: 72
   SYM-modeling-predicate-inference-1-inferNotificationRouteArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 147
+    sourceEndLine: 155
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-1.ts
-    sourceLine: 138
+    sourceLine: 146
   SYM-modeling-predicate-inference-1-inferOwnershipRuleArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 95
+    sourceEndLine: 103
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-1.ts
-    sourceLine: 87
+    sourceLine: 95
   SYM-modeling-predicate-inference-1-inferRetryPolicyArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 107
+    sourceEndLine: 115
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-1.ts
-    sourceLine: 98
+    sourceLine: 106
   SYM-modeling-predicate-inference-2-inferAbsenceRequirementArgs:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4511,105 +4511,105 @@ coordinates:
   SYM-modeling-predicate-inference-3-inferConditionalBehaviorArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 180
+    sourceEndLine: 195
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-3.ts
-    sourceLine: 158
+    sourceLine: 170
   SYM-modeling-predicate-inference-3-inferDefaultValueArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 97
+    sourceEndLine: 103
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-3.ts
-    sourceLine: 86
+    sourceLine: 92
   SYM-modeling-predicate-inference-3-inferDocumentationStandardRuleArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 25
+    sourceEndLine: 31
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-3.ts
-    sourceLine: 16
+    sourceLine: 22
   SYM-modeling-predicate-inference-3-inferEnforcementLocationRuleArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 59
+    sourceEndLine: 65
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-3.ts
-    sourceLine: 51
+    sourceLine: 57
   SYM-modeling-predicate-inference-3-inferRateLimitArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 211
+    sourceEndLine: 229
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-3.ts
-    sourceLine: 198
+    sourceLine: 216
   SYM-modeling-predicate-inference-3-inferReconciliationRuleArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 72
+    sourceEndLine: 78
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-3.ts
-    sourceLine: 62
+    sourceLine: 68
   SYM-modeling-predicate-inference-3-inferStateMembershipArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 130
+    sourceEndLine: 139
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-3.ts
-    sourceLine: 114
+    sourceLine: 120
   SYM-modeling-predicate-inference-3-inferStateTransitionArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 195
+    sourceEndLine: 213
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-3.ts
-    sourceLine: 183
+    sourceLine: 198
   SYM-modeling-predicate-inference-3-inferTemporalOrderArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 155
+    sourceEndLine: 167
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-3.ts
-    sourceLine: 133
+    sourceLine: 142
   SYM-modeling-predicate-inference-3-inferThrottlePolicyRuleArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 83
+    sourceEndLine: 89
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-3.ts
-    sourceLine: 75
+    sourceLine: 81
   SYM-modeling-predicate-inference-3-inferUniquenessArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 111
+    sourceEndLine: 117
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-3.ts
-    sourceLine: 100
+    sourceLine: 106
   SYM-modeling-predicate-inference-3-inferVisualLayoutRuleArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 48
+    sourceEndLine: 54
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-3.ts
-    sourceLine: 39
+    sourceLine: 45
   SYM-modeling-predicate-inference-3-inferWarmupPolicyRuleArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 36
+    sourceEndLine: 42
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-3.ts
-    sourceLine: 28
+    sourceLine: 34
   SYM-modeling-predicate-loader-loadExistingPredicateSchemas:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 59
+    sourceEndLine: 65
     sourceFile: packages/cli/src/operations/modeling/predicate-loader.ts
-    sourceLine: 31
+    sourceLine: 37
   SYM-modeling-predicate-loader-predicateSchemaFromEntity:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 95
+    sourceEndLine: 101
     sourceFile: packages/cli/src/operations/modeling/predicate-loader.ts
-    sourceLine: 62
+    sourceLine: 68
   SYM-modeling-predicate-loader-stringArray:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 118
+    sourceEndLine: 124
     sourceFile: packages/cli/src/operations/modeling/predicate-loader.ts
-    sourceLine: 110
+    sourceLine: 116
   SYM-modeling-predicate-loader-usageHintsFromEntity:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 107
+    sourceEndLine: 113
     sourceFile: packages/cli/src/operations/modeling/predicate-loader.ts
-    sourceLine: 98
+    sourceLine: 104
   SYM-modeling-predicate-utils-clampInteger:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4625,81 +4625,81 @@ coordinates:
   SYM-modeling-predicate-utils-escapeRegExp:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 122
+    sourceEndLine: 125
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 120
+    sourceLine: 123
   SYM-modeling-predicate-utils-inferDuration:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 141
+    sourceEndLine: 144
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 139
+    sourceLine: 142
   SYM-modeling-predicate-utils-inferDurationUnit:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 150
+    sourceEndLine: 153
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 144
+    sourceLine: 147
   SYM-modeling-predicate-utils-inferEvent:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 203
+    sourceEndLine: 206
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 200
+    sourceLine: 203
   SYM-modeling-predicate-utils-inferGate:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 197
+    sourceEndLine: 200
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 193
+    sourceLine: 196
   SYM-modeling-predicate-utils-inferNumber:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 181
+    sourceEndLine: 184
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 179
+    sourceLine: 182
   SYM-modeling-predicate-utils-inferOperator:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 176
+    sourceEndLine: 179
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 162
+    sourceLine: 165
   SYM-modeling-predicate-utils-inferResource:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 159
+    sourceEndLine: 162
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 153
+    sourceLine: 156
   SYM-modeling-predicate-utils-inferScope:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 95
+    sourceEndLine: 98
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 89
+    sourceLine: 92
   SYM-modeling-predicate-utils-inferSubject:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 76
+    sourceEndLine: 79
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
     sourceLine: 65
   SYM-modeling-predicate-utils-inferTrigger:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 86
+    sourceEndLine: 89
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 79
+    sourceLine: 82
   SYM-modeling-predicate-utils-inferUnit:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 190
+    sourceEndLine: 193
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 184
+    sourceLine: 187
   SYM-modeling-predicate-utils-matchesKeyword:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 136
+    sourceEndLine: 139
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 125
+    sourceLine: 128
   SYM-modeling-predicate-utils-normalizeOptionalString:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4709,15 +4709,15 @@ coordinates:
   SYM-modeling-predicate-utils-normalizePredicateToken:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 106
+    sourceEndLine: 109
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 98
+    sourceLine: 101
   SYM-modeling-predicate-utils-normalizeSubjectKey:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 117
+    sourceEndLine: 120
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 115
+    sourceLine: 118
   SYM-modeling-predicate-utils-normalizeText:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4727,9 +4727,9 @@ coordinates:
   SYM-modeling-predicate-utils-singularize:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 112
+    sourceEndLine: 115
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 109
+    sourceLine: 112
   SYM-modeling-predicate-utils-slug:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4751,19 +4751,19 @@ coordinates:
   SYM-modeling-requirement-utils-cleanPredicate:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 87
+    sourceEndLine: 85
     sourceFile: packages/cli/src/operations/modeling/requirement-utils.ts
-    sourceLine: 85
+    sourceLine: 83
   SYM-modeling-requirement-utils-cleanSubject:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 82
+    sourceEndLine: 80
     sourceFile: packages/cli/src/operations/modeling/requirement-utils.ts
-    sourceLine: 79
+    sourceLine: 77
   SYM-modeling-requirement-utils-normalizeClaimValue:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 63
+    sourceEndLine: 61
     sourceFile: packages/cli/src/operations/modeling/requirement-utils.ts
     sourceLine: 45
   SYM-modeling-requirement-utils-normalizeOptionalString:
@@ -4781,15 +4781,15 @@ coordinates:
   SYM-modeling-requirement-utils-stripListPrefix:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 71
+    sourceEndLine: 69
     sourceFile: packages/cli/src/operations/modeling/requirement-utils.ts
-    sourceLine: 66
+    sourceLine: 64
   SYM-modeling-requirement-utils-trimSentenceTail:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 76
+    sourceEndLine: 74
     sourceFile: packages/cli/src/operations/modeling/requirement-utils.ts
-    sourceLine: 74
+    sourceLine: 72
   SYM-mutation-entity-properties-schema:
     sourceColumn: 13
     sourceEndColumn: 10
@@ -4907,7 +4907,7 @@ coordinates:
   SYM-operation-execute-check:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 187
+    sourceEndLine: 185
     sourceFile: packages/cli/src/public/operations/check-executor.ts
     sourceLine: 73
   SYM-operation-find-gaps-spec:
@@ -4924,8 +4924,8 @@ coordinates:
     sourceLine: 224
   SYM-operation-model-requirement-spec:
     sourceColumn: 13
-    sourceEndColumn: 101
-    sourceEndLine: 76
+    sourceEndColumn: 1
+    sourceEndLine: 79
     sourceFile: packages/cli/src/public/operations/specs/modeling.ts
     sourceLine: 13
   SYM-operation-name-type:
@@ -4937,15 +4937,15 @@ coordinates:
   SYM-operation-node-filesystem:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 60
+    sourceEndLine: 56
     sourceFile: packages/cli/src/public/operations/node-ports.ts
-    sourceLine: 42
+    sourceLine: 38
   SYM-operation-node-git:
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 78
     sourceFile: packages/cli/src/public/operations/node-ports.ts
-    sourceLine: 62
+    sourceLine: 58
   SYM-operation-node-network:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -5026,10 +5026,10 @@ coordinates:
     sourceLine: 117
   SYM-operation-suggest-predicates-spec:
     sourceColumn: 13
-    sourceEndColumn: 103
-    sourceEndLine: 134
+    sourceEndColumn: 1
+    sourceEndLine: 140
     sourceFile: packages/cli/src/public/operations/specs/modeling.ts
-    sourceLine: 78
+    sourceLine: 81
   SYM-operation-upsert-spec:
     sourceColumn: 13
     sourceEndColumn: 62
@@ -5135,9 +5135,9 @@ coordinates:
   SYM-parity-build-entity-delete-audit-goal:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 44
+    sourceEndLine: 51
     sourceFile: packages/cli/src/operations/mutation/audit.ts
-    sourceLine: 35
+    sourceLine: 42
   SYM-parity-dependent-relationships-goal:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5147,45 +5147,45 @@ coordinates:
   SYM-parity-execute-delete:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 72
+    sourceEndLine: 86
     sourceFile: packages/cli/src/operations/mutation/delete.ts
-    sourceLine: 34
+    sourceLine: 38
   SYM-parity-existing-relationships:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 159
+    sourceEndLine: 201
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 147
+    sourceLine: 183
   SYM-parity-format-invalid-relationship-error:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 68
+    sourceEndLine: 85
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 59
+    sourceLine: 71
   SYM-parity-format-invalid-relationship-tuple:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 57
+    sourceEndLine: 69
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 55
+    sourceLine: 65
   SYM-parity-format-relationship-source-mismatch:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 88
+    sourceEndLine: 105
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 81
+    sourceLine: 98
   SYM-parity-record-entity-audit:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 17
+    sourceEndLine: 22
     sourceFile: packages/cli/src/operations/mutation/audit.ts
-    sourceLine: 6
+    sourceLine: 9
   SYM-parity-record-relationship-audits:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 33
+    sourceEndLine: 40
     sourceFile: packages/cli/src/operations/mutation/audit.ts
-    sourceLine: 19
+    sourceLine: 24
   SYM-parity-relationship-input-type:
     sourceColumn: 12
     sourceEndColumn: 66
@@ -5201,13 +5201,13 @@ coordinates:
   SYM-parity-save-atomic-mutation:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 26
+    sourceEndLine: 30
     sourceFile: packages/cli/src/operations/mutation/save.ts
-    sourceLine: 14
+    sourceLine: 16
   SYM-parity-save-mutation:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 12
+    sourceEndLine: 14
     sourceFile: packages/cli/src/operations/mutation/save.ts
     sourceLine: 3
   SYM-parity-to-prolog-atom:
@@ -5237,21 +5237,21 @@ coordinates:
   SYM-parity-validate-live-relationship-targets:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 123
+    sourceEndLine: 155
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 108
+    sourceLine: 128
   SYM-parity-validate-relationship-sources:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 79
+    sourceEndLine: 96
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 70
+    sourceLine: 87
   SYM-parity-validate-strict-lane-pairing:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 145
+    sourceEndLine: 181
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 125
+    sourceLine: 157
   SYM-parity-validate-upsert-payload-type:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -5291,9 +5291,9 @@ coordinates:
   SYM-predicate-build-suggestion:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 25
+    sourceEndLine: 29
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
-    sourceLine: 7
+    sourceLine: 11
   SYM-predicate-catalog-part-1:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -5321,9 +5321,9 @@ coordinates:
   SYM-predicate-default-usage-hints:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 18
+    sourceEndLine: 21
     sourceFile: packages/cli/src/operations/modeling/predicate-catalog.ts
-    sourceLine: 11
+    sourceLine: 14
   SYM-predicate-hash-id:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5333,9 +5333,9 @@ coordinates:
   SYM-predicate-infer-args:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 154
+    sourceEndLine: 217
     sourceFile: packages/cli/src/operations/modeling/predicate-inference.ts
-    sourceLine: 8
+    sourceLine: 71
   SYM-predicate-infer-conflict-resolution:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5345,21 +5345,21 @@ coordinates:
   SYM-predicate-infer-permission-rule:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 26
+    sourceEndLine: 31
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-1.ts
-    sourceLine: 4
+    sourceLine: 9
   SYM-predicate-infer-scoped-authorization:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 13
+    sourceEndLine: 19
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-3.ts
-    sourceLine: 4
+    sourceLine: 10
   SYM-predicate-schema-for-candidate:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 28
+    sourceEndLine: 34
     sourceFile: packages/cli/src/operations/modeling/predicate-loader.ts
-    sourceLine: 8
+    sourceLine: 14
   SYM-predicate-score-exact-1:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5381,15 +5381,15 @@ coordinates:
   SYM-predicate-score-schema:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 27
+    sourceEndLine: 31
     sourceFile: packages/cli/src/operations/modeling/predicate-ranker.ts
-    sourceLine: 10
+    sourceLine: 14
   SYM-predicate-usage-hints-catalog:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 25
+    sourceEndLine: 28
     sourceFile: packages/cli/src/operations/modeling/predicate-catalog.ts
-    sourceLine: 21
+    sourceLine: 24
   SYM-predicate-usage-hints-part-1:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -5483,9 +5483,9 @@ coordinates:
   SYM-registerConfiguredTools:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 197
+    sourceEndLine: 194
     sourceFile: packages/mcp/src/server/tool-registration.ts
-    sourceLine: 53
+    sourceLine: 50
   SYM-registerIndexCoverageTests:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5981,9 +5981,9 @@ coordinates:
   SYM-skillopt-adopt-approved-skill:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 293
+    sourceEndLine: 291
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 283
+    sourceLine: 285
   SYM-skillopt-adopt-offline-approved-skill:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -5993,9 +5993,9 @@ coordinates:
   SYM-skillopt-adopt-skill-opt-candidate:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 310
+    sourceEndLine: 309
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 296
+    sourceLine: 294
   SYM-skillopt-adoption-dependencies:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -7331,9 +7331,9 @@ coordinates:
   SYM-skillopt-plan-skill-adoption:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 252
+    sourceEndLine: 254
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 247
+    sourceLine: 249
   SYM-skillopt-preflight-check:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7829,7 +7829,7 @@ coordinates:
   SYM-skillopt-real-optimization-dependencies:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 100
+    sourceEndLine: 98
     sourceFile: scripts/skillopt-eval/real-workflow.ts
     sourceLine: 91
   SYM-skillopt-real-optimization-input:
@@ -7853,9 +7853,9 @@ coordinates:
   SYM-skillopt-real-optimization-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 296
+    sourceEndLine: 297
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 153
+    sourceLine: 151
   SYM-skillopt-render-report-markdown:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7907,7 +7907,7 @@ coordinates:
   SYM-skillopt-resolve-isolation-artifact-root:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 69
+    sourceEndLine: 72
     sourceFile: scripts/skillopt-eval/runtime/artifact-root.ts
     sourceLine: 57
   SYM-skillopt-run-codex-cell:
@@ -8105,7 +8105,7 @@ coordinates:
   SYM-skillopt-runtime-create-workspace:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 75
+    sourceEndLine: 80
     sourceFile: scripts/skillopt-eval/runtime/isolation-workspace.ts
     sourceLine: 29
   SYM-skillopt-runtime-isolated-env:
@@ -8297,7 +8297,7 @@ coordinates:
   SYM-skillopt-runtime-run-canary:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 111
+    sourceEndLine: 113
     sourceFile: scripts/skillopt-eval/runtime/workspace.ts
     sourceLine: 46
   SYM-skillopt-runtime-run-model-canary:
@@ -8669,9 +8669,9 @@ coordinates:
   SYM-suggest-predicates-core-handler:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 74
+    sourceEndLine: 97
     sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
-    sourceLine: 15
+    sourceLine: 29
   SYM-sync-agent-skills-diff-mirror:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -8711,7 +8711,7 @@ coordinates:
   SYM-test:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 51
+    sourceEndLine: 52
     sourceFile: packages/mcp/src/tools/upsert.ts
     sourceLine: 29
   SYM-test-root-batch-timeout-minutes:
@@ -8729,9 +8729,9 @@ coordinates:
   SYM-test-root-runBatch:
     sourceColumn: 15
     sourceEndColumn: 1
-    sourceEndLine: 202
+    sourceEndLine: 208
     sourceFile: test/root.test.ts
-    sourceLine: 154
+    sourceLine: 160
   SYM-test-sparql-fixture-request:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -8783,9 +8783,9 @@ coordinates:
   SYM-validateUpsertInput:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 109
+    sourceEndLine: 128
     sourceFile: packages/cli/src/operations/mutation/validation.ts
-    sourceLine: 78
+    sourceLine: 95
   SYM-warn:
     sourceColumn: 16
     sourceEndColumn: 1

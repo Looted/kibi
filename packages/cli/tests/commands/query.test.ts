@@ -12,8 +12,40 @@ import {
 import * as os from "node:os";
 import * as path from "node:path";
 import relationshipSchema from "../../src/public/schemas/relationship.js";
+import { createCliRuntime } from "../../src/runtime/cli-runtime.js";
 
 describe("kibi query", () => {
+  test("attaches the supplied workspace branch instead of the injected ambient branch", async () => {
+    const workspace = mkdtempSync(path.join(os.tmpdir(), "kibi-runtime-"));
+    execSync("git init -b develop", { cwd: workspace });
+    const goals: string[] = [];
+    const runtime = createCliRuntime({
+      workspaceRoot: workspace,
+      prolog: {
+        query: async (goal: string) => {
+          goals.push(goal);
+          return { success: true, bindings: {} };
+        },
+        nextSolution: async () => null,
+        save: async () => ({ success: true, bindings: {} }),
+      },
+    });
+
+    try {
+      await runtime.open({
+        name: "kb_query",
+        effects: ["kb-read"],
+        requiresProlog: true,
+        execute: async () => ({}),
+      });
+
+      expect(goals).toContainEqual(
+        expect.stringContaining(".kb/branches/develop"),
+      );
+    } finally {
+      rmSync(workspace, { force: true, recursive: true });
+    }
+  });
   const TEST_TIMEOUT_MS = 20000;
   let tmpDir: string;
   const kibiBin = path.resolve(__dirname, "../../bin/kibi");
