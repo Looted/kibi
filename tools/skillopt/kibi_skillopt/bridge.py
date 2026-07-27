@@ -27,7 +27,7 @@ def _atomic_write(path: Path, text: str) -> None:
     temporary = Path(temporary_name)
     try:
         with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
-            handle.write(text)
+            _ = handle.write(text)
             handle.flush()
             _ = os.fsync(handle.fileno())
         os.replace(temporary, path)
@@ -47,7 +47,7 @@ class FileBridge:
         root = self.public_root if visibility == "public" else self.private_root
         path = (root / candidate).resolve()
         try:
-            path.relative_to(root)
+            _ = path.relative_to(root)
         except ValueError as error:
             raise BridgeError("bridge_path_escape") from error
         return path
