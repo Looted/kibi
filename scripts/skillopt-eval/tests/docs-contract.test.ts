@@ -7,11 +7,11 @@ const docsPath = join(repoRoot, "docs/skillopt.md");
 const packageJsonPath = join(repoRoot, "package.json");
 
 function section(markdown: string, heading: string): string {
-  const lines = markdown.split(/\r?\n/);
+  const normalize = (line: string): string =>
+    line.replace(/^#[A-Z0-9]{2}\|/, "");
+  const lines = markdown.split(/\r?\n/).map(normalize);
   const start = lines.findIndex((line) => line === `## ${heading}`);
-  if (start === -1) {
-    throw new Error(`missing section: ${heading}`);
-  }
+  if (start === -1) throw new Error(`missing section: ${heading}`);
   const collected: string[] = [];
   for (let index = start + 1; index < lines.length; index += 1) {
     const line = lines[index];
@@ -23,6 +23,7 @@ function section(markdown: string, heading: string): string {
 
 function splitRow(row: string): string[] {
   return row
+    .replace(/^#[A-Z0-9]{2}\|/, "")
     .trim()
     .slice(1, -1)
     .split("|")
@@ -36,9 +37,7 @@ function parseTable(
   const rows = section(markdown, heading)
     .split(/\r?\n/)
     .filter((line) => line.startsWith("|"));
-  if (rows.length < 2) {
-    throw new Error(`missing table rows for ${heading}`);
-  }
+  if (rows.length < 2) throw new Error(`missing table rows for ${heading}`);
 
   const headers = splitRow(rows[0] ?? "");
   return rows
@@ -64,10 +63,15 @@ describe("SkillOpt documentation contract", () => {
         Why: "Keeps the pinned SkillOpt toolchain fixed.",
       },
       {
-        Check: "Verify the committed source lock",
+        Check: "Verify the pinned SkillOpt revision",
         Command:
           "`uv run --project tools/skillopt python tools/skillopt/verify_pin.py`",
-        Why: "Confirms the checked in commit, version, and receipt still match.",
+        Why: "Confirms the checked in commit still matches the recorded receipt.",
+      },
+      {
+        Check: "Confirm the existing Codex login",
+        Command: "`codex login status`",
+        Why: "Must report `Logged in using ChatGPT` before a real optimize run.",
       },
       {
         Check: "Run the isolated Python tests",
@@ -76,6 +80,28 @@ describe("SkillOpt documentation contract", () => {
         Why: "Checks the embedded evaluator without touching the main workspace.",
       },
     ]);
+  });
+
+  test("describes the real Codex-auth workflow and rejects the fictional trust plane", () => {
+    const docs = readFileSync(docsPath, "utf8");
+
+    expect(docs).toContain("prepareExistingLogin");
+    expect(docs).toContain("runCodexSkillOptStep");
+    expect(docs).toContain("runCodexCell");
+    expect(docs).toContain("blinded held out aggregate gate");
+    expect(docs).toContain("exactly once");
+    expect(docs).toContain("codex login status");
+    expect(docs).toContain("--allow-paid");
+    expect(docs).toContain("--fake");
+
+    expect(docs).not.toMatch(
+      /Root Authority|ProviderSupervisor|EvaluatorAuthority/,
+    );
+    expect(docs).not.toMatch(
+      /\/usr\/libexec\/kibi-skillopt|\/etc\/kibi-skillopt/,
+    );
+    expect(docs).not.toMatch(/UID 6110|veth|nft/);
+    expect(docs).not.toContain("kibi-skillopt-trust-v1 bundle");
   });
 
   test("documents the operator script surface as parsed table rows", () => {
@@ -100,33 +126,32 @@ describe("SkillOpt documentation contract", () => {
         Script: "`skillopt:preflight`",
         Command:
           "`bun run scripts/skillopt-eval/cli.ts preflight --run-id 00000000-0000-4000-8000-000000000091`",
-        Notes: "Codex-only evidence gate with no paid model calls.",
+        Notes: "Codex only evidence gate with no paid model calls.",
       },
       {
         Script: "`skillopt:canary`",
         Command:
           "`bun run scripts/skillopt-eval/cli.ts smoke --run-id 00000000-0000-4000-8000-000000000091`",
         Notes:
-          "Bounded two-model Codex capability canary; may incur paid model calls.",
+          "Bounded two model Codex capability canary, may incur paid model calls.",
       },
       {
         Script: "`skillopt:dry-run`",
         Command:
           "`bun run scripts/skillopt-eval/cli.ts dry-run --run-id 00000000-0000-4000-8000-000000000092`",
-        Notes: "Writes the zero-cost dry-run artifact tree.",
+        Notes: "Writes the zero cost dry run artifact tree.",
       },
       {
         Script: "`skillopt:prepare`",
         Command:
           "`bun run scripts/skillopt-eval/cli.ts prepare --run-id 00000000-0000-4000-8000-000000000092`",
-        Notes: "Same dry-run shape, with the prepare command name.",
+        Notes: "Same dry run shape, with the prepare command name.",
       },
       {
         Script: "`skillopt:optimize`",
-        Command:
-          "`bun run scripts/skillopt-eval/cli.ts optimize --skill all --allow-paid --run-id <uuid>`",
+        Command: "`bun run scripts/skillopt-eval/cli.ts optimize`",
         Notes:
-          "Runs the real Codex optimizer, applies automatic safety/surface gates, and adopts passing candidates; requires explicit paid-run acknowledgment.",
+          "Thin alias for the optimize entrypoint. Pass `--run-id` and `--allow-paid` when you need a real paid run.",
       },
       {
         Script: "`skillopt:fake:run`",
@@ -184,6 +209,10 @@ describe("SkillOpt documentation contract", () => {
       "`artifacts/skillopt/<run-id>/runtime_state.json`",
       "`artifacts/skillopt/<run-id>/history.json`",
       "`artifacts/skillopt/<run-id>/optimization-review.json`",
+      "`artifacts/skillopt/<run-id>/episodes/<episode-id>/`",
     ]);
+    expect(docs).toContain("episode-receipt.json");
+    expect(docs).toContain("final-state.json");
+    expect(docs).toContain("broker-trace.jsonl");
   });
 });
