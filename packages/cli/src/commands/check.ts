@@ -115,6 +115,34 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
   const authoredSymbolResults: ExtractionResult[] = [];
   const stagedAuthoredSymbolResults: ExtractionResult[] = [];
 
+  const makeLookupKey = (entry: ExtractionResult): string => {
+    if (typeof entry.entity.id === "string" && entry.entity.id.length > 0) {
+      return `id:${entry.entity.id}`;
+    }
+    return `fallback:${entry.sourceFile ?? entry.entity.source ?? ""}\u0000${entry.entity.title}`;
+  };
+
+  const authoredSymbolIndexByKey = new Map<string, number>();
+  const manifestResultIndexByKey = new Map<string, number>();
+
+  const upsertResult = (
+    results: ExtractionResult[],
+    indexByKey: Map<string, number>,
+    result: ExtractionResult,
+    preferNew = false,
+  ): void => {
+    const key = makeLookupKey(result);
+    const existingIndex = indexByKey.get(key);
+    if (existingIndex === undefined) {
+      indexByKey.set(key, results.length);
+      results.push(result);
+      return;
+    }
+    if (preferNew) {
+      results[existingIndex] = result;
+    }
+  };
+
   // Pre-populate lookup from working-tree manifests so that code-only changes
   // (where symbols.yaml is not staged) still resolve to the correct symbol IDs
   // and relationships already defined on disk.
@@ -126,7 +154,7 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
       try {
         const entries = extractFromManifest(absSymbolsPath);
         for (const entry of entries) {
-          authoredSymbolResults.push(entry);
+          upsertResult(authoredSymbolResults, authoredSymbolIndexByKey, entry);
           const sourceFile =
             entry.sourceFile || entry.entity.source || absSymbolsPath;
           const key = `${sourceFile}:${entry.entity.title}`;
@@ -178,13 +206,6 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
         manifestFile.path,
       );
       for (const entry of entries) {
-        manifestResults.push({
-          entity: entry.entity,
-          relationships: entry.relationships,
-          ...(entry.sourceFile !== undefined
-            ? { sourceFile: entry.sourceFile }
-            : {}),
-        });
         const authoredSymbolResult = {
           entity: entry.entity,
           relationships: entry.relationships,
@@ -192,8 +213,31 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
             ? { sourceFile: entry.sourceFile }
             : {}),
         };
-        authoredSymbolResults.push(authoredSymbolResult);
-        stagedAuthoredSymbolResults.push(authoredSymbolResult);
+        const manifestResult = {
+          entity: entry.entity,
+          relationships: entry.relationships,
+          ...(entry.sourceFile !== undefined
+            ? { sourceFile: entry.sourceFile }
+            : {}),
+        };
+
+        upsertResult(
+          manifestResults,
+          manifestResultIndexByKey,
+          manifestResult,
+          true,
+        );
+        upsertResult(
+          authoredSymbolResults,
+          authoredSymbolIndexByKey,
+          authoredSymbolResult,
+          true,
+        );
+        upsertResult(
+          stagedAuthoredSymbolResults,
+          authoredSymbolIndexByKey,
+          authoredSymbolResult,
+        );
 
         const sourceFile =
           entry.sourceFile || entry.entity.source || manifestFile.path;
