@@ -10,6 +10,17 @@ from tools.skillopt.kibi_skillopt.bridge import BridgeError, FileBridge
 from tools.skillopt.kibi_skillopt.models import BridgeRequest, BridgeResult
 
 HASH = "a" * 64
+CORPUS_ROOTS = {
+    "corpus": "b" * 64,
+    "evaluator": "c" * 64,
+    "querySet": "d" * 64,
+    "baseline": "e" * 64,
+    "catalog": "f" * 64,
+    "verifier": "1" * 64,
+    "publicRoot": "2" * 64,
+    "privateRoot": "3" * 64,
+    "artifactSchema": "4" * 64,
+}
 
 
 def request() -> BridgeRequest:
@@ -48,8 +59,9 @@ class BridgeTests(unittest.TestCase):
             run_root=Path(tempfile.mkdtemp()),
             skill="kibi-usage",
             source_lock_hash=HASH,
-            train_items=({"id": "train-1", "prompt": "p"},),
-            development_items=({"id": "dev-1", "prompt": "p"},),
+            corpus_roots=CORPUS_ROOTS,
+            train_items=({"id": "train-1", "family": "contract", "prompt": "p"},),
+            development_items=({"id": "dev-1", "family": "contract", "prompt": "p"},),
         )
         with self.assertRaises(BridgeError):
             _ = adapter.build_request("held-out-1", "body", "held-out")
@@ -95,11 +107,21 @@ class BridgeTests(unittest.TestCase):
                 run_root=root / "run",
                 skill="kibi-usage",
                 source_lock_hash=HASH,
-                train_items=({"id": "train-1", "split": "train", "prompt": "p"},),
-                development_items=({"id": "dev-1", "split": "development", "prompt": "p"},),
+                corpus_roots=CORPUS_ROOTS,
+                train_items=(
+                    {"id": "train-1", "family": "contract", "split": "train", "prompt": "p"},
+                ),
+                development_items=(
+                    {
+                        "id": "dev-1",
+                        "family": "contract",
+                        "split": "development",
+                        "prompt": "p",
+                    },
+                ),
             )
             rows = adapter.rollout(
-                ({"id": "train-1", "split": "train"},),
+                ({"id": "train-1", "family": "contract", "split": "train"},),
                 "Use Kibi through MCP.",
                 str(root / "bridge"),
             )
