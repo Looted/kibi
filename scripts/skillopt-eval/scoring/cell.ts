@@ -1,4 +1,10 @@
+import {
+  EvidenceBindingError,
+  type PredicateCaseSnapshot,
+  decodePredicateCaseSnapshot,
+} from "../contracts/evidence";
 import type { parsePrivateEvaluatorManifest } from "../fixtures/private";
+import { decodeFinalStatePredicateSnapshot } from "../runtime/final-state";
 
 type Manifest = ReturnType<typeof parsePrivateEvaluatorManifest>;
 type EvidenceValue = string | number | boolean | null;
@@ -12,6 +18,7 @@ type EvidenceSource = Readonly<{
   complete: boolean;
   integrityValid: boolean;
   claims: readonly EvidenceClaim[];
+  snapshot?: unknown;
 }>;
 
 export type CellEvidence = Readonly<{
@@ -118,6 +125,92 @@ function protocolPasses(manifest: Manifest, evidence: CellEvidence): boolean {
   );
 }
 
+function predicateFailures(
+  manifest: Manifest,
+  snapshot: PredicateCaseSnapshot,
+): readonly string[] {
+  const expectation = manifest.predicateExpectation;
+  if (expectation === null) return [];
+  const failures: string[] = [];
+  const laneMatches = (() => {
+    switch (expectation.expectedLane) {
+      case "predicate":
+        return snapshot.facts.some((fact) => fact.factKind === "predicate");
+      case "strict_property":
+        return (
+          snapshot.facts.some((fact) => fact.factKind === "subject") &&
+          snapshot.facts.some((fact) => fact.factKind === "property_value")
+        );
+      case "observation":
+      case "ontology_gap_observation":
+        return snapshot.facts.some((fact) => fact.factKind === "observation");
+      default:
+        return expectation.expectedLane satisfies never;
+    }
+  })();
+  if (!laneMatches) failures.push("predicate-lane");
+  if (expectation.expectedPredicateName !== null) {
+    const fact = snapshot.facts.find(
+      (entry) =>
+        entry.factKind === "predicate" &&
+        entry.predicateName === expectation.expectedPredicateName,
+    );
+    if (fact === undefined) {
+      failures.push("predicate-name");
+    } else {
+      if (
+        expectation.expectedPredicateArgs !== null &&
+        JSON.stringify(fact.predicateArgs) !==
+          JSON.stringify(expectation.expectedPredicateArgs)
+      ) {
+        failures.push("predicate-args");
+      }
+      if (fact.polarity !== expectation.expectedPolarity) {
+        failures.push("predicate-polarity");
+      }
+    }
+  }
+  for (const edge of expectation.expectedEdges) {
+    if (
+      !snapshot.relationships.some(
+        (observed) =>
+          observed.relationship === edge.relationship &&
+          observed.target === edge.target,
+      )
+    ) {
+      failures.push("predicate-edges");
+      break;
+    }
+  }
+  return failures;
+}
+
+function predicateSnapshot(
+  manifest: Manifest,
+  evidence: CellEvidence,
+): PredicateCaseSnapshot | null {
+  if (manifest.predicateExpectation === null) return null;
+  if (evidence.finalState.snapshot === undefined) {
+    throw new EvidenceBindingError("malformed-snapshot");
+  }
+  const binding = {
+    caseId: manifest.taskId,
+    roots: {
+      publicManifestHash: manifest.publicManifestHash,
+      workspaceHash: manifest.workspaceHash,
+      fixtureSeedHash: manifest.fixtureSeedHash,
+    },
+    sequence: 1,
+  } as const;
+  if (typeof evidence.finalState.snapshot === "string") {
+    return decodeFinalStatePredicateSnapshot(
+      evidence.finalState.snapshot,
+      binding,
+    );
+  }
+  return decodePredicateCaseSnapshot(evidence.finalState.snapshot, binding);
+}
+
 export function scoreCell(
   manifest: Manifest,
   evidence: CellEvidence,
@@ -139,6 +232,18 @@ export function scoreCell(
       outcome: "ambiguous",
       terminalCategory: "incomplete_evidence",
     });
+  }
+  let snapshot: PredicateCaseSnapshot | null;
+  try {
+    snapshot = predicateSnapshot(manifest, evidence);
+  } catch (error) {
+    if (error instanceof EvidenceBindingError) {
+      return terminalReceipt({
+        outcome: "ambiguous",
+        terminalCategory: "evidence_conflict",
+      });
+    }
+    throw error;
   }
   const conflictKeys = evidenceConflictKeys(sources);
   if (conflictKeys.length > 0) {
@@ -166,10 +271,13 @@ export function scoreCell(
     (assertion) =>
       !Object.is(finalClaims.get(assertion.key), assertion.expected),
   );
-  const criticalFailures = failedAssertions
-    .filter((assertion) => assertion.critical)
-    .map((assertion) => assertion.key)
-    .sort();
+  const criticalFailures = [
+    ...failedAssertions
+      .filter((assertion) => assertion.critical)
+      .map((assertion) => assertion.key)
+      .sort(),
+    ...(snapshot === null ? [] : predicateFailures(manifest, snapshot)),
+  ].sort();
   const securityFailures = [
     ...evidence.isolation.violations.map(
       (_, index) => `isolation-${index + 1}`,
@@ -187,7 +295,7 @@ export function scoreCell(
   }
 
   const components = {
-    finalState: failedAssertions.length === 0 ? manifest.rubric[0].points : 0,
+    finalState: criticalFailures.length === 0 ? manifest.rubric[0].points : 0,
     protocol: protocolPasses(manifest, evidence)
       ? manifest.rubric[1].points
       : 0,

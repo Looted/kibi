@@ -4,6 +4,12 @@ import { dirname, resolve } from "node:path";
 import { z } from "zod";
 import { Client } from "../../../packages/mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js";
 import { StdioClientTransport } from "../../../packages/mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/client/stdio.js";
+import {
+  type EvidenceBinding,
+  EvidenceBindingError,
+  type PredicateCaseSnapshot,
+  decodePredicateCaseSnapshot,
+} from "../contracts/evidence";
 import { redactJsonRpcValue } from "./jsonrpc";
 
 const FINAL_STATE_TOOLS = [
@@ -38,16 +44,26 @@ const FinalStateOptionsSchema = z
 export type FinalStateOptions = Readonly<
   z.infer<typeof FinalStateOptionsSchema>
 >;
-export type FinalStateReceipt = Readonly<{
-  schemaVersion: "1.0.0";
-  workspaceRoot: string;
-  requests: readonly Readonly<{
-    tool: z.infer<typeof FinalStateToolSchema>;
-    args: Readonly<Record<string, unknown>>;
-    result: unknown;
-    resultHash: string;
-  }>[];
-}>;
+// implements REQ-skillopt-predicate-first-requirements
+export const FinalStateReceiptSchema = z
+  .object({
+    schemaVersion: z.literal("1.0.0"),
+    workspaceRoot: z.string().min(1),
+    requests: z.array(
+      z
+        .object({
+          tool: FinalStateToolSchema,
+          args: z.record(z.string(), z.unknown()),
+          result: z.unknown(),
+          resultHash: z.string().regex(/^[a-f0-9]{64}$/),
+        })
+        .strict(),
+    ),
+  })
+  .strict();
+export type FinalStateReceipt = Readonly<
+  z.infer<typeof FinalStateReceiptSchema>
+>;
 
 function stringEnvironment(env: NodeJS.ProcessEnv): Record<string, string> {
   return Object.fromEntries(
@@ -76,6 +92,37 @@ async function writeDurableJson(path: string, value: unknown): Promise<void> {
   } finally {
     await directory.close();
   }
+}
+
+// implements REQ-skillopt-predicate-first-requirements
+export function decodeFinalStatePredicateSnapshot(
+  text: string,
+  binding: EvidenceBinding,
+): PredicateCaseSnapshot {
+  let parsed: FinalStateReceipt;
+  try {
+    parsed = FinalStateReceiptSchema.parse(JSON.parse(text));
+  } catch (error) {
+    if (error instanceof SyntaxError || error instanceof z.ZodError) {
+      throw new EvidenceBindingError("malformed-snapshot");
+    }
+    throw error;
+  }
+  const snapshots = parsed.requests.filter(({ tool }) => tool === "kb_query");
+  if (snapshots.length !== 1) {
+    throw new EvidenceBindingError("malformed-snapshot");
+  }
+  const snapshot = snapshots[0];
+  if (snapshot === undefined) {
+    throw new EvidenceBindingError("malformed-snapshot");
+  }
+  const resultHash = createHash("sha256")
+    .update(JSON.stringify(snapshot.result))
+    .digest("hex");
+  if (resultHash !== snapshot.resultHash) {
+    throw new EvidenceBindingError("snapshot-hash");
+  }
+  return decodePredicateCaseSnapshot(snapshot.result, binding);
 }
 
 // implements REQ-skillopt-codex-optimization
