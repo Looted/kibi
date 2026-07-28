@@ -17,6 +17,106 @@ export const EvidenceEnvelopeSchema = z
   })
   .strict();
 
+const EvidenceRootsSchema = z
+  .object({
+    publicManifestHash: Sha256Schema,
+    workspaceHash: Sha256Schema,
+    fixtureSeedHash: Sha256Schema,
+  })
+  .strict();
+
+// implements REQ-skillopt-predicate-first-requirements
+export const EvidenceBindingSchema = z
+  .object({
+    caseId: z.string().min(1),
+    roots: EvidenceRootsSchema,
+    sequence: z.int().positive(),
+  })
+  .strict();
+
+const FinalStateFactSchema = z
+  .object({
+    id: z.string().min(1),
+    factKind: z.enum([
+      "subject",
+      "property_value",
+      "predicate",
+      "predicate_schema",
+      "observation",
+      "meta",
+    ]),
+    canonicalKey: z.string().min(1).optional(),
+    predicateName: z.string().min(1).optional(),
+    predicateArgs: z.array(z.string().min(1)).optional(),
+    polarity: z.enum(["assert", "deny"]).optional(),
+  })
+  .strict();
+
+const FinalStateRelationshipSchema = z
+  .object({
+    relationship: z.string().min(1),
+    target: z.string().min(1),
+  })
+  .strict();
+
+// implements REQ-skillopt-predicate-first-requirements
+export const PredicateCaseSnapshotSchema = z
+  .object({
+    binding: EvidenceBindingSchema,
+    facts: z.array(FinalStateFactSchema),
+    relationships: z.array(FinalStateRelationshipSchema),
+  })
+  .strict();
+
+// implements REQ-skillopt-predicate-first-requirements
+export type EvidenceBinding = Readonly<z.infer<typeof EvidenceBindingSchema>>;
+// implements REQ-skillopt-predicate-first-requirements
+export type PredicateCaseSnapshot = Readonly<
+  z.infer<typeof PredicateCaseSnapshotSchema>
+>;
+
+// implements REQ-skillopt-predicate-first-requirements
+export class EvidenceBindingError extends Error {
+  readonly name = "EvidenceBindingError";
+
+  constructor(
+    readonly reason:
+      | "case-id"
+      | "roots"
+      | "sequence"
+      | "snapshot-hash"
+      | "malformed-snapshot",
+  ) {
+    super(`evidence_binding_${reason}`);
+  }
+}
+
+// implements REQ-skillopt-predicate-first-requirements
+export function decodePredicateCaseSnapshot(
+  value: unknown,
+  expected: EvidenceBinding,
+): PredicateCaseSnapshot {
+  const parsed = PredicateCaseSnapshotSchema.safeParse(value);
+  if (!parsed.success) {
+    throw new EvidenceBindingError("malformed-snapshot");
+  }
+  if (parsed.data.binding.caseId !== expected.caseId) {
+    throw new EvidenceBindingError("case-id");
+  }
+  if (
+    parsed.data.binding.roots.publicManifestHash !==
+      expected.roots.publicManifestHash ||
+    parsed.data.binding.roots.workspaceHash !== expected.roots.workspaceHash ||
+    parsed.data.binding.roots.fixtureSeedHash !== expected.roots.fixtureSeedHash
+  ) {
+    throw new EvidenceBindingError("roots");
+  }
+  if (parsed.data.binding.sequence !== expected.sequence) {
+    throw new EvidenceBindingError("sequence");
+  }
+  return parsed.data;
+}
+
 // implements REQ-skillopt-codex-optimization
 export const EvidenceIndexSchema = boundedContractSchema(
   z
