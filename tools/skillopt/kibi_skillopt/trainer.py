@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from importlib import import_module
 from pathlib import Path
 from typing import Protocol, cast
@@ -76,7 +77,52 @@ def _trajectory_payloads(adapter: EnvAdapter) -> tuple[dict[str, JsonValue], ...
     return tuple(payloads)
 
 
+def _frozen_candidate_path(out_root: Path) -> Path:
+    return out_root / "frozen-candidate.json"
+
+
+def _resume_frozen_candidate(out_root: Path) -> dict[str, object] | None:
+    frozen_path = _frozen_candidate_path(out_root)
+    if not frozen_path.is_file():
+        return None
+    payload = parse_json_value(frozen_path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise TypeError("frozen candidate artifact must be an object")
+    result = payload.get("result")
+    if not isinstance(result, dict):
+        raise TypeError("frozen candidate artifact missing result")
+    return dict(result)
+
+
+def _write_frozen_candidate(
+    out_root: Path,
+    *,
+    candidate_body: str,
+    candidate_body_hash: str,
+    trainer_checkpoint_hash: str,
+    trajectory_hashes: tuple[str, ...],
+    corpus_roots: dict[str, JsonValue],
+    result: dict[str, object],
+) -> None:
+    payload = {
+        "schemaVersion": "1.0.0",
+        "artifactType": "skillopt-frozen-candidate",
+        "candidateBody": candidate_body,
+        "candidateBodyHash": candidate_body_hash,
+        "trainerCheckpointHash": trainer_checkpoint_hash,
+        "trajectoryHashes": list(trajectory_hashes),
+        "corpusRoots": corpus_roots,
+        "result": result,
+    }
+    _ = _frozen_candidate_path(out_root).write_text(
+        json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8"
+    )
+
+
 def run_training(adapter: EnvAdapter, out_root: Path, *, max_steps: int = 4) -> dict[str, object]:
+    resumed = _resume_frozen_candidate(out_root)
+    if resumed is not None:
+        return resumed
     config = build_training_config(out_root, max_steps=max_steps)
     module = import_module("skillopt.engine.trainer")
     factory = cast(_TrainerFactory, getattr(module, "ReflACTTrainer"))
@@ -107,6 +153,19 @@ def run_training(adapter: EnvAdapter, out_root: Path, *, max_steps: int = 4) -> 
         trajectories=trajectories,
     )
     normalized_result["codex_candidate_body_hash"] = contract_hash(optimized.body)
+    normalized_result["codex_candidate_body"] = optimized.body
     normalized_result["trainer_checkpoint_hash"] = checkpoint.trainer_checkpoint_hash
-    normalized_result["trajectory_hashes"] = checkpoint.trajectory_hashes
+    normalized_result["trajectory_hashes"] = list(checkpoint.trajectory_hashes)
+    normalized_result["corpus_roots"] = checkpoint.corpus_roots.model_dump(
+        by_alias=True, mode="json"
+    )
+    _write_frozen_candidate(
+        out_root,
+        candidate_body=optimized.body,
+        candidate_body_hash=checkpoint.candidate_body_hash,
+        trainer_checkpoint_hash=checkpoint.trainer_checkpoint_hash,
+        trajectory_hashes=checkpoint.trajectory_hashes,
+        corpus_roots=checkpoint.corpus_roots.model_dump(by_alias=True, mode="json"),
+        result=normalized_result,
+    )
     return normalized_result
