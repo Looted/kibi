@@ -124,6 +124,7 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
 
   const authoredSymbolIndexByKey = new Map<string, number>();
   const manifestResultIndexByKey = new Map<string, number>();
+  const stagedAuthoredSymbolIndexByKey = new Map<string, number>();
 
   const upsertResult = (
     results: ExtractionResult[],
@@ -235,7 +236,7 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
         );
         upsertResult(
           stagedAuthoredSymbolResults,
-          authoredSymbolIndexByKey,
+          stagedAuthoredSymbolIndexByKey,
           authoredSymbolResult,
         );
 
@@ -507,16 +508,12 @@ function buildStagedKibiImpactEvidence(options: {
     };
   }
 
-  if (stagedAuthoredSymbolsEvidence.entries.length > 0) {
+  if (stagedAuthoredSymbolsEvidence.changedEntityIds.length > 0) {
     resolvedKbArtifacts.push({
       kind: "symbols_manifest",
       path: stagedAuthoredSymbolsEvidence.path,
       entityTypes: ["symbol"],
-      entityIds: uniqueSorted(
-        stagedAuthoredSymbolsEvidence.entries.flatMap(
-          (entry) => entry.entityIds,
-        ),
-      ),
+      entityIds: stagedAuthoredSymbolsEvidence.changedEntityIds,
       sourcePaths: uniqueSorted(
         stagedAuthoredSymbolsEvidence.entries.map((entry) => entry.sourcePath),
       ),
@@ -683,11 +680,10 @@ export async function checkCommand(
                 .flatMap((artifact) => artifact.entityIds)
             : [],
         );
-        const stagedAuthoredSymbolSet = new Set(stagedAuthoredSymbolResults);
         const stagedSourcePaths = new Set(sourceFiles.map((file) => file.path));
         const activeGranularityResults = authoredSymbolResults.filter(
           (result) =>
-            stagedAuthoredSymbolSet.has(result) ||
+            activeStagedSymbolEntityIds.has(result.entity.id) ||
             (result.sourceFile !== undefined &&
               stagedSourcePaths.has(result.sourceFile)),
         );

@@ -1325,7 +1325,7 @@ coordinates:
   SYM-StagedAuthoredSymbolsManifestEvidence:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 54
+    sourceEndLine: 55
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
     sourceLine: 51
   SYM-StagedSymbolsManifestAssessment:
@@ -1625,9 +1625,9 @@ coordinates:
   SYM-assessStagedSymbolsManifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 439
+    sourceEndLine: 440
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
-    sourceLine: 357
+    sourceLine: 358
   SYM-atomicPublish:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1955,9 +1955,9 @@ coordinates:
   SYM-checkCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 901
+    sourceEndLine: 897
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 543
+    sourceLine: 540
   SYM-checkWorkspaceHealth:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2345,15 +2345,15 @@ coordinates:
   SYM-cli-impact-createSemanticReviewDiagnostics:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 178
+    sourceEndLine: 185
     sourceFile: packages/cli/src/public/impact/diagnostics.ts
-    sourceLine: 154
+    sourceLine: 161
   SYM-cli-impact-createSymbolGranularityDiagnostics:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 152
+    sourceEndLine: 159
     sourceFile: packages/cli/src/public/impact/diagnostics.ts
-    sourceLine: 103
+    sourceLine: 110
   SYM-cli-impact-createSymbolQualityDiagnostics:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2369,15 +2369,15 @@ coordinates:
   SYM-cli-impact-hasBlockingImpactDiagnostics:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 184
+    sourceEndLine: 191
     sourceFile: packages/cli/src/public/impact/diagnostics.ts
-    sourceLine: 180
+    sourceLine: 187
   SYM-cli-impact-hasBlockingQualityDiagnostics:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 192
+    sourceEndLine: 199
     sourceFile: packages/cli/src/public/impact/diagnostics.ts
-    sourceLine: 186
+    sourceLine: 193
   SYM-cli-impact-hasMeaningfulSourceDiff:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2855,9 +2855,9 @@ coordinates:
   SYM-collectStagedAuthoredSymbolsManifestEvidence:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 510
+    sourceEndLine: 512
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
-    sourceLine: 459
+    sourceLine: 442
   SYM-collectStagedKibiDiagnostics:
     sourceColumn: 16
     sourceEndColumn: 1
