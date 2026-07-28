@@ -1881,7 +1881,7 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-    sourceLine: 19
+    sourceLine: 11
     sourceColumn: 16
     sourceEndLine: 41
     sourceEndColumn: 1
@@ -3371,7 +3371,7 @@ symbols:
         target: TEST-mcp-suggest-predicates
     sourceLine: 15
     sourceColumn: 22
-    sourceEndLine: 28
+    sourceEndLine: 20
     sourceEndColumn: 1
   - id: SYM-ModelRequirementArgs
     title: ModelRequirementArgs
@@ -14010,7 +14010,7 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 73
+    sourceLine: 70
     sourceColumn: 13
     sourceEndLine: 81
     sourceEndColumn: 1
@@ -14555,16 +14555,81 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-bridge-cli-argument
-    title: bridge-cli argument parser
+  - id: SYM-skillopt-bridge-cli-main
+    title: bridgeMain
     sourceFile: scripts/skillopt-eval/bridge-cli.ts
     symbol_role: behavioral
     granularity_reason: extractor-miss
+    text_ref: scripts/skillopt-eval/bridge-cli.ts#bridgeMain
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+    sourceLine: 19
+    sourceColumn: 22
+    sourceEndLine: 28
+    sourceEndColumn: 1
+  - id: SYM-skillopt-bridge-cli-options-parse
+    title: parseBridgeOptions
+    sourceFile: scripts/skillopt-eval/runtime/bridge-cli-options.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    text_ref: scripts/skillopt-eval/runtime/bridge-cli-options.ts#parseBridgeOptions
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 73
+    sourceColumn: 16
+    sourceEndLine: 143
+    sourceEndColumn: 1
+  - id: SYM-skillopt-bridge-cli-execution-run
+    title: runBridge
+    sourceFile: scripts/skillopt-eval/runtime/bridge-cli-execution.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    text_ref: scripts/skillopt-eval/runtime/bridge-cli-execution.ts#runBridge
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 164
+    sourceColumn: 16
+    sourceEndLine: 172
+    sourceEndColumn: 1
+  - id: SYM-skillopt-bridge-cli-options-failure
+    title: bridgeFailure
+    sourceFile: scripts/skillopt-eval/runtime/bridge-cli-options.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    text_ref: scripts/skillopt-eval/runtime/bridge-cli-options.ts#bridgeFailure
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 146
+    sourceColumn: 16
+    sourceEndLine: 159
+    sourceEndColumn: 1
+  - id: SYM-skillopt-bridge-cli-options-error-code
+    title: bridgeErrorCode
+    sourceFile: scripts/skillopt-eval/runtime/bridge-cli-options.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    text_ref: scripts/skillopt-eval/runtime/bridge-cli-options.ts#bridgeErrorCode
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 161
+    sourceColumn: 16
+    sourceEndLine: 167
+    sourceEndColumn: 1
   - id: SYM-skillopt-normalize-codex-jsonl
     title: normalizeCodexJsonl
     sourceFile: scripts/skillopt-eval/runtime/codex-events.ts

@@ -6080,6 +6080,36 @@ coordinates:
     sourceEndLine: 57
     sourceFile: scripts/skillopt-eval/adoption.ts
     sourceLine: 52
+  SYM-skillopt-bridge-cli-execution-run:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 172
+    sourceFile: scripts/skillopt-eval/runtime/bridge-cli-execution.ts
+    sourceLine: 164
+  SYM-skillopt-bridge-cli-main:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 20
+    sourceFile: scripts/skillopt-eval/bridge-cli.ts
+    sourceLine: 11
+  SYM-skillopt-bridge-cli-options-error-code:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 167
+    sourceFile: scripts/skillopt-eval/runtime/bridge-cli-options.ts
+    sourceLine: 161
+  SYM-skillopt-bridge-cli-options-failure:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 159
+    sourceFile: scripts/skillopt-eval/runtime/bridge-cli-options.ts
+    sourceLine: 146
+  SYM-skillopt-bridge-cli-options-parse:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 143
+    sourceFile: scripts/skillopt-eval/runtime/bridge-cli-options.ts
+    sourceLine: 70
   SYM-skillopt-bridge-request:
     sourceColumn: 12
     sourceEndColumn: 74
