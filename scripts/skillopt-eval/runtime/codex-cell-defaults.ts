@@ -57,6 +57,30 @@ export function defaultCodexCellDependencies(
     },
     diagnosticReceipt: (workspace) =>
       readOptionalArtifact(join(workspace.target, ".kb/usage.log")),
+    evaluateSealedEvidence: async ({
+      finalState,
+      brokerTrace,
+      diagnosticReceipt,
+    }) => ({
+      finalState: {
+        complete: finalState.trim().length > 0,
+        integrityValid: true,
+        claims: [],
+      },
+      broker: {
+        complete: brokerTrace.trim().length > 0,
+        integrityValid: true,
+        claims: [],
+        orderedCalls: [],
+      },
+      diagnostic: {
+        complete: diagnosticReceipt.trim().length > 0,
+        integrityValid: true,
+        claims: [],
+      },
+      codex: { complete: true, integrityValid: true, claims: [] },
+      isolation: { observedSentinels: [], violations: [] },
+    }),
     clock: () => new Date(),
   };
 }

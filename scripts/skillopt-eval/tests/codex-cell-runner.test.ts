@@ -11,6 +11,11 @@ import type { IsolationWorkspace } from "../runtime/isolation-workspace";
 import type { StagedBrokerLaunch } from "../runtime/mcp-broker-stage";
 import { ProcessControlError, type ProcessResult } from "../runtime/process";
 import type { CellReceipt } from "../scoring/cell";
+import {
+  evaluatorEvidence,
+  evaluatorManifest,
+  predicateSnapshot,
+} from "./fixtures/evaluator-authority-fixtures";
 
 const roots: string[] = [];
 const SCORE: CellReceipt = {
@@ -79,7 +84,90 @@ function fakeBroker(workspace: IsolationWorkspace): StagedBrokerLaunch {
   };
 }
 
+function predicateFinalState(): string {
+  const snapshot = predicateSnapshot();
+  return JSON.stringify({
+    schemaVersion: "1.0.0",
+    workspaceRoot: "/isolated/workspace",
+    requests: [
+      {
+        tool: "kb_query",
+        args: { type: "fact" },
+        result: snapshot,
+        resultHash: new Bun.CryptoHasher("sha256")
+          .update(JSON.stringify(snapshot))
+          .digest("hex"),
+      },
+    ],
+  });
+}
+
+function sealedEvidence(finalState: string) {
+  const evidence = evaluatorEvidence(finalState);
+  const { snapshot: _snapshot, ...sealedFinalState } = evidence.finalState;
+  return { ...evidence, finalState: sealedFinalState };
+}
+
 describe("Codex cell runner", () => {
+  test("Given a caller-supplied score When a cell starts Then score injection is rejected before execution", async () => {
+    // Given
+    const publicFixture = await fixture();
+    const artifactRoot = await mkdtemp(
+      join(tmpdir(), "skillopt-cell-score-injection-"),
+    );
+    roots.push(artifactRoot);
+    const options = {
+      request: request(publicFixture.hash),
+      fixtureRoot: publicFixture.root,
+      sourceWorktree: process.cwd(),
+      artifactRoot,
+      targetSkill: "kibi-usage" as const,
+      codexExecutable: process.execPath,
+      bwrapExecutable: "/usr/bin/bwrap",
+      env: process.env,
+      finalStateRequests: [{ tool: "kb_status" as const, args: {} }],
+      score: SCORE,
+      evaluatorManifest: evaluatorManifest("predicate"),
+      hiddenMarkers: [],
+      pricingHash: "e".repeat(64),
+      priceAmount: 0,
+      timeoutMs: 1_000,
+    };
+
+    // When / Then
+    const attempt = runCodexCell(options, {
+      prepareLogin: async ({ privateCodexHome }) => ({
+        mode: "file",
+        env: { CODEX_HOME: privateCodexHome },
+        realCodexHome: "/private/real-codex",
+      }),
+      stageBroker: async (workspace) => fakeBroker(workspace),
+      probeMcp: async () => ({ toolNames: ["kb_status"] }),
+      run: async () => ({
+        argv: [],
+        stdout: HAPPY_STDOUT,
+        stderr: "",
+        exitCode: 0,
+        signal: null,
+      }),
+      finalState: async () => "",
+      diagnosticReceipt: async () => "",
+      evaluateSealedEvidence: async () => {
+        throw new Error("score injection must fail before scoring");
+      },
+      clock: () => new Date("2026-07-23T11:00:00Z"),
+    });
+    await attempt.then(
+      () => {
+        throw new Error("caller score injection must reject");
+      },
+      (error) => {
+        if (!(error instanceof Error)) throw error;
+        expect(error.message).toBe("caller_score_injection");
+      },
+    );
+  });
+
   test("Given fake runtime evidence When one target episode runs Then it is ephemeral, sealed, durable, and cleaned", async () => {
     // Given
     const publicFixture = await fixture();
@@ -103,7 +191,7 @@ describe("Codex cell runner", () => {
         bwrapExecutable: "/usr/bin/bwrap",
         env: process.env,
         finalStateRequests: [{ tool: "kb_status", args: {} }],
-        score: SCORE,
+        evaluatorManifest: evaluatorManifest("predicate"),
         hiddenMarkers: [],
         pricingHash: "e".repeat(64),
         priceAmount: 0,
@@ -138,8 +226,10 @@ describe("Codex cell runner", () => {
             signal: null,
           };
         },
-        finalState: async () => '{"status":"fresh"}\n',
+        finalState: async () => predicateFinalState(),
         diagnosticReceipt: async () => '{"tool":"kb_status"}\n',
+        evaluateSealedEvidence: async ({ finalState }) =>
+          sealedEvidence(finalState),
         clock: (() => {
           const values = [
             new Date("2026-07-23T11:00:00Z"),
@@ -187,7 +277,7 @@ describe("Codex cell runner", () => {
         bwrapExecutable: "/usr/bin/bwrap",
         env: process.env,
         finalStateRequests: [{ tool: "kb_status", args: {} }],
-        score: SCORE,
+        evaluatorManifest: evaluatorManifest("predicate"),
         hiddenMarkers: [],
         pricingHash: "e".repeat(64),
         priceAmount: 0,
@@ -212,6 +302,8 @@ describe("Codex cell runner", () => {
         },
         finalState: async () => "",
         diagnosticReceipt: async () => "",
+        evaluateSealedEvidence: async ({ finalState }) =>
+          sealedEvidence(finalState),
         clock: () => new Date("2026-07-23T11:00:00Z"),
       },
     );
@@ -246,7 +338,7 @@ describe("Codex cell runner", () => {
         bwrapExecutable: "/usr/bin/bwrap",
         env: process.env,
         finalStateRequests: [{ tool: "kb_status", args: {} }],
-        score: SCORE,
+        evaluatorManifest: evaluatorManifest("predicate"),
         hiddenMarkers: [],
         pricingHash: "e".repeat(64),
         priceAmount: 0,
@@ -274,8 +366,10 @@ describe("Codex cell runner", () => {
             signal: "SIGTERM",
           });
         },
-        finalState: async () => '{"status":"partial"}\n',
+        finalState: async () => predicateFinalState(),
         diagnosticReceipt: async () => '{"tool":"kb_status"}\n',
+        evaluateSealedEvidence: async ({ finalState }) =>
+          sealedEvidence(finalState),
         clock: () => new Date("2026-07-23T11:00:00Z"),
       },
     );
