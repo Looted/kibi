@@ -69,15 +69,22 @@ function readSourceSymbols(
 function getGranularSymbolsForSourceFile(
   sourceFile: string,
   options: SymbolGranularityDiagnosticsOptions,
-): readonly ExtractedSymbol[] {
-  return (
-    options.symbolsByFile.get(sourceFile) ??
-    readSourceSymbols(
-      sourceFile,
-      options.sourceContentByFile,
-      options.workspaceRoot ?? process.cwd(),
-    )
+): {
+  readonly candidateSymbols: readonly ExtractedSymbol[];
+  readonly sourceSymbols: readonly ExtractedSymbol[];
+} {
+  const sourceSymbols = readSourceSymbols(
+    sourceFile,
+    options.sourceContentByFile,
+    options.workspaceRoot ?? process.cwd(),
   );
+  const changedSymbols = options.symbolsByFile.get(sourceFile);
+
+  return {
+    candidateSymbols: changedSymbols ?? sourceSymbols,
+    sourceSymbols:
+      sourceSymbols.length > 0 ? sourceSymbols : (changedSymbols ?? []),
+  };
 }
 
 function formatRelationshipTargets(symbol: ExtractedSymbol): string {
@@ -116,12 +123,12 @@ export function createSymbolGranularityDiagnostics(
     if (!hasTraceabilityRelationship(result)) continue;
     if (hasValidGranularityReason(result)) continue;
 
-    const granularSymbols = getGranularSymbolsForSourceFile(
+    const { candidateSymbols, sourceSymbols } = getGranularSymbolsForSourceFile(
       result.sourceFile,
       options,
     );
-    const narrowerSymbols = granularSymbols.filter((symbol) =>
-      isNarrowerSymbol(result.entity.title, symbol, granularSymbols),
+    const narrowerSymbols = candidateSymbols.filter((symbol) =>
+      isNarrowerSymbol(result.entity.title, symbol, sourceSymbols),
     );
     if (narrowerSymbols.length === 0) continue;
 

@@ -199,6 +199,25 @@ describe("impact diagnostics", () => {
     ]);
   });
 
+  it("does not treat a changed sibling as narrower when the manifest anchor exists in staged source", () => {
+    const sourceFile = "src/app/pages/upload/upload-page.component.ts";
+    const sourceContent = [
+      'export function stableAnchor() { return "stable"; }',
+      'export function changedAction() { return "changed"; }',
+      "",
+    ].join("\n");
+
+    expect(
+      createSymbolGranularityDiagnostics({
+        manifestResults: [makeManifestResult("stableAnchor")],
+        symbolsByFile: new Map([
+          [sourceFile, [makeSymbol({ name: "changedAction" })]],
+        ]),
+        sourceContentByFile: new Map([[sourceFile, sourceContent]]),
+      }),
+    ).toEqual([]);
+  });
+
   it("mentions ignored non-behavioral symbols when narrower type-shape candidates exist", () => {
     const behavioral = makeSymbol({
       name: "UploadPageComponent.processingProgressLabel",

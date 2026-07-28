@@ -212,6 +212,75 @@ describe("assessStagedSymbolsManifest", () => {
       ).toEqual({
         path: "documentation/symbols.yaml",
         entries: [{ sourcePath: "src/app.ts", entityIds: ["SYM-App-run"] }],
+        changedEntityIds: ["SYM-App-run"],
+      });
+    } finally {
+      process.chdir(previousCwd);
+    }
+  });
+
+  it("ignores comment-only staged manifest changes when selecting changed symbols", () => {
+    writeFile(
+      tmpDir,
+      "src/duplicate.ts",
+      `export function duplicate() {
+  return "ok";
+}
+`,
+    );
+    writeFile(
+      tmpDir,
+      "documentation/symbols.yaml",
+      `symbols:
+  - id: SYM-DUP-001
+    title: duplicate
+    sourceFile: src/duplicate.ts
+    status: active
+  - id: SYM-DUP-002
+    title: duplicate
+    sourceFile: src/duplicate.ts
+    status: active
+`,
+    );
+    commitAll(tmpDir, "initial");
+    writeFile(
+      tmpDir,
+      "documentation/symbols.yaml",
+      `symbols:
+  - id: SYM-DUP-001
+    title: duplicate
+    sourceFile: src/duplicate.ts
+    status: active
+  - id: SYM-DUP-002
+    title: duplicate
+    sourceFile: src/duplicate.ts
+    status: active
+    # staged overlap marker
+`,
+    );
+
+    const previousCwd = process.cwd();
+    process.chdir(tmpDir);
+    try {
+      const result = collectStagedAuthoredSymbolsManifestEvidence({
+        sourceFiles: [],
+        stagedFiles: [
+          {
+            path: "documentation/symbols.yaml",
+            status: "M",
+            hunkRanges: [],
+            content: readFileSync(
+              path.join(tmpDir, "documentation", "symbols.yaml"),
+              "utf8",
+            ),
+          },
+        ],
+      });
+
+      expect(result).toEqual({
+        path: "documentation/symbols.yaml",
+        entries: [],
+        changedEntityIds: [],
       });
     } finally {
       process.chdir(previousCwd);
