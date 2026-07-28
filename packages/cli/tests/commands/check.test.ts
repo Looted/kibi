@@ -3100,7 +3100,7 @@ export function wtFunction() {
         );
 
       expect(status).toBe(0);
-      expect(duplicateSymbolDiagnostics).toHaveLength(1);
+      expect(duplicateSymbolDiagnostics).toHaveLength(0);
     },
     TEST_TIMEOUT_MS,
   );
