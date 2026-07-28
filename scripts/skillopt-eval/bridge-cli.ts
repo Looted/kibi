@@ -1,6 +1,4 @@
-import {
-  runBridge,
-} from "./runtime/bridge-cli-execution";
+import { runBridge } from "./runtime/bridge-cli-execution";
 import {
   bridgeErrorCode,
   parseBridgeOptions,
@@ -25,7 +23,9 @@ if (import.meta.main) {
       process.exitCode = exitCode;
     },
     (error: unknown) => {
-      process.stderr.write(`${JSON.stringify({ code: bridgeErrorCode(error) })}\n`);
+      process.stderr.write(
+        `${JSON.stringify({ code: bridgeErrorCode(error) })}\n`,
+      );
       process.exitCode = 1;
     },
   );

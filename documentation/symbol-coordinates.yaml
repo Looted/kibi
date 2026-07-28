@@ -6089,9 +6089,9 @@ coordinates:
   SYM-skillopt-bridge-cli-main:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 20
+    sourceEndLine: 18
     sourceFile: scripts/skillopt-eval/bridge-cli.ts
-    sourceLine: 11
+    sourceLine: 9
   SYM-skillopt-bridge-cli-options-error-code:
     sourceColumn: 16
     sourceEndColumn: 1

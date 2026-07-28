@@ -179,7 +179,7 @@ symbols:
         target: REQ-mcp-tool-query
       - type: covered_by
         target: TEST-001
-    sourceLine: 11
+    sourceLine: 9
     sourceColumn: 22
     sourceEndLine: 17
     sourceEndColumn: 1
@@ -3371,7 +3371,7 @@ symbols:
         target: TEST-mcp-suggest-predicates
     sourceLine: 15
     sourceColumn: 22
-    sourceEndLine: 20
+    sourceEndLine: 18
     sourceEndColumn: 1
   - id: SYM-ModelRequirementArgs
     title: ModelRequirementArgs
