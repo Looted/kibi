@@ -5981,9 +5981,15 @@ coordinates:
   SYM-skillopt-adopt-approved-skill:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 291
+    sourceEndLine: 62
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 285
+    sourceLine: 53
+  SYM-skillopt-adopt-approved-snapshot:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 84
+    sourceFile: scripts/skillopt-eval/adoption-approved.ts
+    sourceLine: 59
   SYM-skillopt-adopt-offline-approved-skill:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -5993,57 +5999,69 @@ coordinates:
   SYM-skillopt-adopt-skill-opt-candidate:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 309
+    sourceEndLine: 90
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 294
+    sourceLine: 65
   SYM-skillopt-adoption-dependencies:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 50
-    sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 48
+    sourceEndLine: 38
+    sourceFile: scripts/skillopt-eval/adoption-types.ts
+    sourceLine: 34
   SYM-skillopt-adoption-input:
     sourceColumn: 12
     sourceEndColumn: 5
-    sourceEndLine: 31
-    sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 28
+    sourceEndLine: 10
+    sourceFile: scripts/skillopt-eval/adoption-types.ts
+    sourceLine: 7
   SYM-skillopt-adoption-integrity-error:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 74
-    sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 72
+    sourceEndLine: 63
+    sourceFile: scripts/skillopt-eval/adoption-types.ts
+    sourceLine: 61
   SYM-skillopt-adoption-integrity-error-name:
     sourceColumn: 11
     sourceEndColumn: 43
-    sourceEndLine: 73
-    sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 73
+    sourceEndLine: 62
+    sourceFile: scripts/skillopt-eval/adoption-types.ts
+    sourceLine: 62
+  SYM-skillopt-adoption-phases:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 20
+    sourceFile: scripts/skillopt-eval/adoption-journal.ts
+    sourceLine: 15
   SYM-skillopt-adoption-plan:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 39
-    sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 33
+    sourceEndLine: 18
+    sourceFile: scripts/skillopt-eval/adoption-types.ts
+    sourceLine: 12
   SYM-skillopt-adoption-receipt:
     sourceColumn: 12
     sourceEndColumn: 5
-    sourceEndLine: 44
-    sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 41
+    sourceEndLine: 24
+    sourceFile: scripts/skillopt-eval/adoption-types.ts
+    sourceLine: 20
   SYM-skillopt-adoption-transaction-error:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 82
-    sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 76
+    sourceEndLine: 71
+    sourceFile: scripts/skillopt-eval/adoption-types.ts
+    sourceLine: 65
   SYM-skillopt-adoption-transaction-error-name:
     sourceColumn: 11
     sourceEndColumn: 45
-    sourceEndLine: 77
-    sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 77
+    sourceEndLine: 66
+    sourceFile: scripts/skillopt-eval/adoption-types.ts
+    sourceLine: 66
+  SYM-skillopt-advance-phase:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 151
+    sourceFile: scripts/skillopt-eval/adoption-journal.ts
+    sourceLine: 135
   SYM-skillopt-adversarial-case-type:
     sourceColumn: 12
     sourceEndColumn: 24
@@ -6074,12 +6092,24 @@ coordinates:
     sourceEndLine: 136
     sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
     sourceLine: 91
+  SYM-skillopt-assert-file-identity:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 100
+    sourceFile: scripts/skillopt-eval/adoption-durable.ts
+    sourceLine: 91
+  SYM-skillopt-assert-secure-directory:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 43
+    sourceFile: scripts/skillopt-eval/adoption-durable.ts
+    sourceLine: 38
   SYM-skillopt-auto-adoption-input:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 57
-    sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 52
+    sourceEndLine: 59
+    sourceFile: scripts/skillopt-eval/adoption-types.ts
+    sourceLine: 53
   SYM-skillopt-bridge-cli-execution-run:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6320,6 +6350,18 @@ coordinates:
     sourceEndLine: 13
     sourceFile: scripts/skillopt-eval/catalog.ts
     sourceLine: 8
+  SYM-skillopt-canonical-snapshot:
+    sourceColumn: 12
+    sourceEndColumn: 5
+    sourceEndLine: 23
+    sourceFile: scripts/skillopt-eval/adoption-snapshot.ts
+    sourceLine: 17
+  SYM-skillopt-canonical-target-set:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 111
+    sourceFile: scripts/skillopt-eval/adoption-snapshot.ts
+    sourceLine: 102
   SYM-skillopt-catalog-hash:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6782,6 +6824,12 @@ coordinates:
     sourceEndLine: 163
     sourceFile: scripts/skillopt-eval/variants.ts
     sourceLine: 145
+  SYM-skillopt-create-journal:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 234
+    sourceFile: scripts/skillopt-eval/adoption-journal.ts
+    sourceLine: 203
   SYM-skillopt-create-pinned-runner:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6806,6 +6854,18 @@ coordinates:
     sourceEndLine: 86
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
     sourceLine: 23
+  SYM-skillopt-default-run-mirror-sync:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 32
+    sourceFile: scripts/skillopt-eval/adoption-approved.ts
+    sourceLine: 20
+  SYM-skillopt-derive-adoption-id:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 100
+    sourceFile: scripts/skillopt-eval/adoption-snapshot.ts
+    sourceLine: 89
   SYM-skillopt-deterministic-variant-label:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6818,6 +6878,36 @@ coordinates:
     sourceEndLine: 29
     sourceFile: scripts/skillopt-eval/optimize.ts
     sourceLine: 25
+  SYM-skillopt-durability-observer:
+    sourceColumn: 12
+    sourceEndColumn: 73
+    sourceEndLine: 17
+    sourceFile: scripts/skillopt-eval/adoption-durable.ts
+    sourceLine: 17
+  SYM-skillopt-durability-step:
+    sourceColumn: 12
+    sourceEndColumn: 21
+    sourceEndLine: 15
+    sourceFile: scripts/skillopt-eval/adoption-durable.ts
+    sourceLine: 10
+  SYM-skillopt-durable-no-replace:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 190
+    sourceFile: scripts/skillopt-eval/adoption-durable.ts
+    sourceLine: 158
+  SYM-skillopt-durable-replace:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 156
+    sourceFile: scripts/skillopt-eval/adoption-durable.ts
+    sourceLine: 140
+  SYM-skillopt-ensure-secure-directory:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 48
+    sourceFile: scripts/skillopt-eval/adoption-durable.ts
+    sourceLine: 45
   SYM-skillopt-episode-replay-input-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -6884,6 +6974,30 @@ coordinates:
     sourceEndLine: 1
     sourceFile: scripts/skillopt-eval/scoring/evidence-utils.ts
     sourceLine: 1
+  SYM-skillopt-exact-adoption-dependencies:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 57
+    sourceFile: scripts/skillopt-eval/adoption-journal.ts
+    sourceLine: 53
+  SYM-skillopt-exact-adoption-input:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 66
+    sourceFile: scripts/skillopt-eval/adoption-journal.ts
+    sourceLine: 59
+  SYM-skillopt-exact-adoption-receipt:
+    sourceColumn: 12
+    sourceEndColumn: 65
+    sourceEndLine: 51
+    sourceFile: scripts/skillopt-eval/adoption-journal.ts
+    sourceLine: 51
+  SYM-skillopt-execute-exact-adoption:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 176
+    sourceFile: scripts/skillopt-eval/adoption-transaction.ts
+    sourceLine: 145
   SYM-skillopt-external-trust-client-main:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -6962,6 +7076,12 @@ coordinates:
     sourceEndLine: 174
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     sourceLine: 172
+  SYM-skillopt-file-identity:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 8
+    sourceFile: scripts/skillopt-eval/adoption-durable.ts
+    sourceLine: 5
   SYM-skillopt-filter-advertised-tools:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7220,6 +7340,12 @@ coordinates:
     sourceEndLine: 27
     sourceFile: scripts/skillopt-eval/variants.ts
     sourceLine: 16
+  SYM-skillopt-fsync-directory:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 112
+    sourceFile: scripts/skillopt-eval/adoption-durable.ts
+    sourceLine: 102
   SYM-skillopt-generate-one-shot-variant:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7244,6 +7370,36 @@ coordinates:
     sourceEndLine: 20
     sourceFile: scripts/skillopt-eval/scoring/held-out-predicate.ts
     sourceLine: 18
+  SYM-skillopt-install-receipt:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 180
+    sourceFile: scripts/skillopt-eval/adoption-journal.ts
+    sourceLine: 167
+  SYM-skillopt-install-terminal:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 201
+    sourceFile: scripts/skillopt-eval/adoption-journal.ts
+    sourceLine: 182
+  SYM-skillopt-is-missing:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 242
+    sourceFile: scripts/skillopt-eval/adoption-journal.ts
+    sourceLine: 240
+  SYM-skillopt-journal:
+    sourceColumn: 12
+    sourceEndColumn: 52
+    sourceEndLine: 50
+    sourceFile: scripts/skillopt-eval/adoption-journal.ts
+    sourceLine: 50
+  SYM-skillopt-journal-path:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 74
+    sourceFile: scripts/skillopt-eval/adoption-journal.ts
+    sourceLine: 72
   SYM-skillopt-jsonrpc-append-trace:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7310,6 +7466,18 @@ coordinates:
     sourceEndLine: 24
     sourceFile: scripts/skillopt-eval/catalog.ts
     sourceLine: 24
+  SYM-skillopt-load-canonical-snapshot:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 123
+    sourceFile: scripts/skillopt-eval/adoption-snapshot.ts
+    sourceLine: 113
+  SYM-skillopt-load-canonical-surface:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 198
+    sourceFile: scripts/skillopt-eval/adoption-snapshot.ts
+    sourceLine: 125
   SYM-skillopt-max-candidate-body-bytes:
     sourceColumn: 13
     sourceEndColumn: 47
@@ -7424,6 +7592,12 @@ coordinates:
     sourceEndLine: 193
     sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
     sourceLine: 191
+  SYM-skillopt-parse-receipt:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 238
+    sourceFile: scripts/skillopt-eval/adoption-journal.ts
+    sourceLine: 236
   SYM-skillopt-parse-root-authorization:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7463,9 +7637,9 @@ coordinates:
   SYM-skillopt-plan-skill-adoption:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 254
+    sourceEndLine: 51
     sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 249
+    sourceLine: 47
   SYM-skillopt-predicate-assert-distinct-classes:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7556,6 +7730,12 @@ coordinates:
     sourceEndLine: 86
     sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
     sourceLine: 85
+  SYM-skillopt-predicate-eligibility-receipt:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 51
+    sourceFile: scripts/skillopt-eval/adoption-types.ts
+    sourceLine: 40
   SYM-skillopt-predicate-expected-edge:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -8048,6 +8228,12 @@ coordinates:
     sourceEndLine: 24
     sourceFile: scripts/skillopt-eval/prototype.ts
     sourceLine: 19
+  SYM-skillopt-public-plan:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 208
+    sourceFile: scripts/skillopt-eval/adoption-snapshot.ts
+    sourceLine: 200
   SYM-skillopt-python-approval:
     sourceColumn: 6
     sourceEndColumn: 14
@@ -8174,42 +8360,72 @@ coordinates:
     sourceEndLine: 149
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     sourceLine: 131
+  SYM-skillopt-read-durable-text:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 197
+    sourceFile: scripts/skillopt-eval/adoption-durable.ts
+    sourceLine: 192
+  SYM-skillopt-read-journal:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 116
+    sourceFile: scripts/skillopt-eval/adoption-journal.ts
+    sourceLine: 96
   SYM-skillopt-read-optional-artifact:
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 14
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-artifacts.ts
     sourceLine: 5
+  SYM-skillopt-read-secure-file:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 89
+    sourceFile: scripts/skillopt-eval/adoption-durable.ts
+    sourceLine: 62
   SYM-skillopt-real-optimization-dependencies:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 194
+    sourceEndLine: 200
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 164
+    sourceLine: 169
   SYM-skillopt-real-optimization-input:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 135
+    sourceEndLine: 140
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 126
+    sourceLine: 131
   SYM-skillopt-real-optimization-options:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 145
+    sourceEndLine: 150
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 137
+    sourceLine: 142
   SYM-skillopt-real-optimization-result:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 157
+    sourceEndLine: 162
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 147
+    sourceLine: 152
   SYM-skillopt-real-optimization-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 629
+    sourceEndLine: 659
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 491
+    sourceLine: 497
+  SYM-skillopt-receipt-path:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 78
+    sourceFile: scripts/skillopt-eval/adoption-journal.ts
+    sourceLine: 76
+  SYM-skillopt-recover-adoption-wals:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 143
+    sourceFile: scripts/skillopt-eval/adoption-transaction.ts
+    sourceLine: 118
   SYM-skillopt-render-report-markdown:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8285,9 +8501,9 @@ coordinates:
   SYM-skillopt-run-mirror-sync:
     sourceColumn: 12
     sourceEndColumn: 64
-    sourceEndLine: 46
-    sourceFile: scripts/skillopt-eval/adoption.ts
-    sourceLine: 46
+    sourceEndLine: 26
+    sourceFile: scripts/skillopt-eval/adoption-types.ts
+    sourceLine: 26
   SYM-skillopt-run-offline-workflow:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -8912,6 +9128,18 @@ coordinates:
     sourceEndLine: 17
     sourceFile: scripts/skillopt-eval/catalog.ts
     sourceLine: 17
+  SYM-skillopt-terminal-json:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 94
+    sourceFile: scripts/skillopt-eval/adoption-journal.ts
+    sourceLine: 92
+  SYM-skillopt-terminal-path:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 82
+    sourceFile: scripts/skillopt-eval/adoption-journal.ts
+    sourceLine: 80
   SYM-skillopt-train-trajectory:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -8942,6 +9170,12 @@ coordinates:
     sourceEndLine: 210
     sourceFile: scripts/skillopt-eval/catalog.ts
     sourceLine: 177
+  SYM-skillopt-validate-predicate-eligibility:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 87
+    sourceFile: scripts/skillopt-eval/adoption-snapshot.ts
+    sourceLine: 63
   SYM-skillopt-variant-schema:
     sourceColumn: 13
     sourceEndColumn: 73
@@ -8960,6 +9194,12 @@ coordinates:
     sourceEndLine: 9
     sourceFile: scripts/skillopt-eval/variants.ts
     sourceLine: 9
+  SYM-skillopt-verify-installed-receipt:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 165
+    sourceFile: scripts/skillopt-eval/adoption-journal.ts
+    sourceLine: 153
   SYM-skillopt-verify-installed-revision:
     sourceColumn: 4
     sourceEndColumn: 22
@@ -8978,6 +9218,18 @@ coordinates:
     sourceEndLine: 29
     sourceFile: scripts/skillopt-eval/tests/process-control.test.ts
     sourceLine: 20
+  SYM-skillopt-with-exclusive-adoption-lock:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 63
+    sourceFile: scripts/skillopt-eval/adoption-lock.ts
+    sourceLine: 58
+  SYM-skillopt-with-shared-adoption-lock:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 70
+    sourceFile: scripts/skillopt-eval/adoption-lock.ts
+    sourceLine: 65
   SYM-skillopt-worktree-state-type:
     sourceColumn: 12
     sourceEndColumn: 46

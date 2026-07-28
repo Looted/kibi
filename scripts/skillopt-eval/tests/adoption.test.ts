@@ -33,6 +33,18 @@ const frontmatter = `---\nid: ${skill}\nname: Kibi Usage\ndescription: Test fixt
 const baselineBody = "\n# Baseline\n";
 const candidateBody = "\n# Adopted candidate\n";
 const resourceBody = "workflow fixture\n";
+const checkpointHash = "a".repeat(64);
+const predicateRoots = {
+  corpus: "b".repeat(64),
+  evaluator: "c".repeat(64),
+  querySet: "d".repeat(64),
+  baseline: "e".repeat(64),
+  catalog: "f".repeat(64),
+  verifier: "1".repeat(64),
+  publicRoot: "2".repeat(64),
+  privateRoot: "3".repeat(64),
+  artifactSchema: "4".repeat(64),
+};
 
 afterEach(async () => {
   for (const root of roots.splice(0)) {
@@ -131,6 +143,36 @@ function approvalArtifacts(repoRoot: string) {
     decidedAt: "2026-07-23T12:03:00Z",
   });
   return { repoRoot, approval, proposal, candidate, runLock, report };
+}
+
+function automaticInput(input: ReturnType<typeof approvalArtifacts>) {
+  const candidate = freezeCandidateVariant({
+    skill: input.candidate.skill,
+    variant: "skillopt",
+    body: input.candidate.body,
+    frontmatterHash: input.candidate.frontmatterHash,
+    resourcesHash: input.candidate.resourcesHash,
+    provenance: "skillopt",
+    sourceRequestHash: checkpointHash,
+  });
+  return {
+    repoRoot: input.repoRoot,
+    candidate,
+    frontmatterHash: candidate.frontmatterHash,
+    resourcesHash: candidate.resourcesHash,
+    eligibility: {
+      runId: "run-a",
+      signedEligibilityId: checkpointHash,
+      heldOutEligibility: "eligible" as const,
+      candidateHash: candidate.bodyHash,
+      authorizedRootSet: predicateRoots,
+      lineage: {
+        candidateHash: candidate.bodyHash,
+        signedEligibilityId: checkpointHash,
+        authorizedRootSet: predicateRoots,
+      },
+    },
+  };
 }
 
 async function snapshot(repoRoot: string): Promise<readonly string[]> {
@@ -236,15 +278,9 @@ describe("SkillOpt adoption transaction", () => {
     const repoRoot = await createRepo();
     const input = approvalArtifacts(repoRoot);
 
-    const receipt = await adoptSkillOptCandidate(
-      {
-        repoRoot,
-        candidate: input.candidate,
-        frontmatterHash: input.candidate.frontmatterHash,
-        resourcesHash: input.candidate.resourcesHash,
-      },
-      { runMirrorSync: syncMirrors },
-    );
+    const receipt = await adoptSkillOptCandidate(automaticInput(input), {
+      runMirrorSync: syncMirrors,
+    });
 
     expect(receipt).toMatchObject({ skill, status: "adopted" });
     expect(
@@ -263,15 +299,9 @@ describe("SkillOpt adoption transaction", () => {
       `${frontmatter}npx --no-install kibi\nbunx --no-install kibi\nDo not read or edit files inside \`.kb\` directly\n`,
     );
 
-    const receipt = await adoptSkillOptCandidate(
-      {
-        repoRoot,
-        candidate: input.candidate,
-        frontmatterHash: input.candidate.frontmatterHash,
-        resourcesHash: input.candidate.resourcesHash,
-      },
-      { runMirrorSync: syncMirrors },
-    );
+    const receipt = await adoptSkillOptCandidate(automaticInput(input), {
+      runMirrorSync: syncMirrors,
+    });
 
     expect(receipt.status).toBe("blocked");
     expect(
