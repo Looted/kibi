@@ -1,5 +1,21 @@
 # kibi-codex
 
+## 0.19.0
+
+### Minor Changes
+
+- b2b1792: Kibi guidance now helps agents distinguish suitable relational predicates from scalar constraints and review-only claims without replacing readable requirements. CLI, Codex, and Cursor users receive the same predicate-first decision tree and authoritative examples, reducing invented predicates and unsafe modeling.
+
+  - Add built-in, project-local, deny, strict-scalar, ambiguity, false-positive, and ontology-gap guidance to the canonical `kibi-usage` skill.
+  - Regenerate the Codex and Cursor mirrors with matching canonical hashes.
+
+### Patch Changes
+
+- 610b5be: The improved Kibi guidance skills will ship to CLI, Codex, and Cursor users in the next package release. This keeps the canonical CLI skill bundle and the generated client-plugin mirrors aligned for downstream installs.
+
+  - Release the canonical skills bundled by `kibi-cli`.
+  - Release the generated `kibi-codex` and `kibi-cursor` skill mirrors.
+
 ## 0.18.0
 
 ### Minor Changes
