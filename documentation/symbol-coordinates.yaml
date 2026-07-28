@@ -8183,33 +8183,33 @@ coordinates:
   SYM-skillopt-real-optimization-dependencies:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 98
+    sourceEndLine: 194
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 91
+    sourceLine: 164
   SYM-skillopt-real-optimization-input:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 89
+    sourceEndLine: 135
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 74
+    sourceLine: 126
   SYM-skillopt-real-optimization-options:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 61
+    sourceEndLine: 145
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 54
+    sourceLine: 137
   SYM-skillopt-real-optimization-result:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 72
+    sourceEndLine: 157
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 63
+    sourceLine: 147
   SYM-skillopt-real-optimization-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 297
+    sourceEndLine: 629
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 151
+    sourceLine: 491
   SYM-skillopt-render-report-markdown:
     sourceColumn: 16
     sourceEndColumn: 1
