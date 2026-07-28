@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { main } from "../cli";
 
 describe("SkillOpt workflow CLI", () => {
-  test("supports help and zero-cost dry-run", async () => {
+  test("supports help and zero cost dry run", async () => {
     expect(await main(["--help"])).toBe(0);
     const root = await mkdtemp(join(tmpdir(), "skillopt-cli-"));
     try {
@@ -21,6 +21,25 @@ describe("SkillOpt workflow CLI", () => {
       expect(await readFile(join(root, "dry-run.json"), "utf8")).toContain(
         '"mode":"dry-run"',
       );
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test("rejects real optimize until paid mode is acknowledged", async () => {
+    const root = await mkdtemp(join(tmpdir(), "skillopt-cli-paid-"));
+    try {
+      expect(
+        await main([
+          "optimize",
+          "--skill",
+          "kibi-usage",
+          "--run-id",
+          "00000000-0000-4000-8000-000000000094",
+          "--artifact-root",
+          root,
+        ]),
+      ).toBe(2);
     } finally {
       await rm(root, { recursive: true, force: true });
     }
@@ -55,7 +74,7 @@ describe("SkillOpt workflow CLI", () => {
     }
   });
 
-  test("publishes a fake report, exact approval, and adoption dry-run", async () => {
+  test("publishes a fake report, exact approval, and adoption dry run", async () => {
     const root = await mkdtemp(join(tmpdir(), "skillopt-cli-review-"));
     const runId = "00000000-0000-4000-8000-000000000094";
     const args = ["--fake", "--run-id", runId, "--artifact-root", root];

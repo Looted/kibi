@@ -1,6 +1,6 @@
 # Kibi SkillOpt evaluation environment
 
-This directory is an isolated research tool, not a Kibi runtime dependency. It pins Microsoft SkillOpt v0.2.0 to commit `b860a5cf88ce75e2bd02ca981ac21fb28cffba83`.
+This directory pins Microsoft SkillOpt v0.2.0 for the evaluator. Real runs use the existing authenticated Codex CLI login in `~/.codex/auth.json`. You do not need root owned SkillOpt services, provider API keys, or `/etc/kibi-skillopt`.
 
 For the operator workflow guide, see [docs/skillopt.md](../../docs/skillopt.md).
 
@@ -8,6 +8,7 @@ For the operator workflow guide, see [docs/skillopt.md](../../docs/skillopt.md).
 
 ```bash
 uv sync --project tools/skillopt --frozen
+codex login status
 uv run --project tools/skillopt python tools/skillopt/verify_pin.py
 uv run --project tools/skillopt python -m unittest discover -s tools/skillopt/tests
 ```
