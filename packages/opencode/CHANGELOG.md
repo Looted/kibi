@@ -1,5 +1,16 @@
 # kibi-opencode
 
+## 0.19.1
+
+### Patch Changes
+
+- Updated dependencies [80d5173]
+- Updated dependencies
+- Updated dependencies
+- Updated dependencies [b2b1792]
+- Updated dependencies [610b5be]
+  - kibi-cli@0.16.0
+
 ## 0.19.0
 
 ### Minor Changes

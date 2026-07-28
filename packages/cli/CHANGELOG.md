@@ -1,5 +1,41 @@
 # kibi-cli
 
+## 0.16.0
+
+### Minor Changes
+
+- b2b1792: Kibi guidance now helps agents distinguish suitable relational predicates from scalar constraints and review-only claims without replacing readable requirements. CLI, Codex, and Cursor users receive the same predicate-first decision tree and authoritative examples, reducing invented predicates and unsafe modeling.
+
+  - Add built-in, project-local, deny, strict-scalar, ambiguity, false-positive, and ontology-gap guidance to the canonical `kibi-usage` skill.
+  - Regenerate the Codex and Cursor mirrors with matching canonical hashes.
+
+### Patch Changes
+
+- 80d5173: Broad Kibi searches now return ranked results even when the serialized entity set is larger than the subprocess runtime's former default output capacity. Searches that exceed Kibi's explicit safety bound now report a clear bounded-capacity failure instead of returning truncated output or a misleading generic Prolog error. Graph, status, and other JSON reporting commands now also load their Prolog module correctly in fresh Node CLI and MCP sessions.
+
+  - Bound one-shot and interactive Node Prolog stdout and stderr capture at 8 MiB, and require a complete response terminator before parsing, while preserving query timeouts and ranking-before-pagination.
+  - Translate `ENOBUFS` into a deterministic nonempty query error shared by CLI and MCP discovery paths.
+  - Reject negative pagination and search queries above 4,096 characters through the existing typed input-validation boundary.
+  - Load reporting modules before executing module-qualified goals in interactive Prolog sessions.
+
+- Staged Kibi checks no longer emit duplicate `symbol_coordinate_review` diagnostics when both staged and working-tree symbol manifests contain entries for the same source files. The manifest lookup now deduplicates by symbol ID and source-signature before running impact validation.
+
+  - Deduplicate authored and manifest symbol extraction results by stable lookup key before building the staged impact lookup.
+  - Prefer staged entries over working-tree entries when both exist for the same symbol.
+
+- CLI read-side operations (query, search, status, gaps, coverage, graph) now resolve the active branch correctly on unborn repositories (fresh `git init` with no commits). Previously, these operations silently fell back to `main` when `git rev-parse --abbrev-ref HEAD` failed on an unborn HEAD, causing empty results while `kibi sync` correctly wrote to the actual branch.
+
+  - Replace `git rev-parse --abbrev-ref HEAD` with `resolveActiveBranch(root)` for all read-side CLI operations.
+  - Propagate branch resolution errors instead of silently falling back to `main`.
+
+- 610b5be: The improved Kibi guidance skills will ship to CLI, Codex, and Cursor users in the next package release. This keeps the canonical CLI skill bundle and the generated client-plugin mirrors aligned for downstream installs.
+
+  - Release the canonical skills bundled by `kibi-cli`.
+  - Release the generated `kibi-codex` and `kibi-cursor` skill mirrors.
+
+- Updated dependencies [28dba1f]
+  - kibi-core@0.7.1
+
 ## 0.15.0
 
 ### Minor Changes

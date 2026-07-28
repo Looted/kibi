@@ -1,5 +1,28 @@
 # kibi-mcp
 
+## 0.19.2
+
+### Patch Changes
+
+- 610b5be: Generic agents can now discover and load Kibi's bundled skills through a documented MCP-first flow, with a structured CLI fallback when MCP is unavailable. Skill tools also advertise that they are local, read-only, idempotent operations so compatible agent hosts can present safer tool affordances without treating those hints as authorization.
+
+  - Add host-neutral progressive-disclosure onboarding guidance to the agent and MCP references.
+  - Advertise MCP behavior annotations for `kb_skills_list`, `kb_skills_load`, and `kb_skills_read`.
+
+- e21c62e: Stopping Kibi MCP during an active search now cancels the Prolog work immediately instead of leaving shutdown blocked behind the request. Both SIGINT and SIGTERM complete graceful parent shutdown and reap the SWI-Prolog child.
+
+  - Register graceful shutdown for SIGINT as well as SIGTERM.
+  - Terminate the Prolog worker before awaiting in-flight request settlement.
+
+- Updated dependencies [80d5173]
+- Updated dependencies
+- Updated dependencies
+- Updated dependencies [28dba1f]
+- Updated dependencies [b2b1792]
+- Updated dependencies [610b5be]
+  - kibi-cli@0.16.0
+  - kibi-core@0.7.1
+
 ## 0.19.1
 
 ### Patch Changes

@@ -3068,10 +3068,10 @@ export function wtFunction() {
       );
       writeFileSync(
         path.join(docDir, "symbols.yaml"),
-        'symbols:\n  - id: SYMBOL-DUP-001\n    title: duplicateSymbol\n    sourceFile: src/duplicate-symbol.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 3\n    sourceEndColumn: 1\n    status: active\n  - id: SYMBOL-DUP-002\n    title: duplicateSymbol\n    sourceFile: src/duplicate-symbol.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 3\n    sourceEndColumn: 1\n    status: active\n',
+        "symbols:\n  - id: SYMBOL-DUP-001\n    title: duplicateSymbol\n    sourceFile: src/duplicate-symbol.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 3\n    sourceEndColumn: 1\n    status: active\n  - id: SYMBOL-DUP-002\n    title: duplicateSymbol\n    sourceFile: src/duplicate-symbol.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 3\n    sourceEndColumn: 1\n    status: active\n",
       );
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
-      execSync("git commit -m \"baseline\" --no-verify", {
+      execSync('git commit -m "baseline" --no-verify', {
         cwd: tmpDir,
         stdio: "pipe",
       });
@@ -3080,7 +3080,7 @@ export function wtFunction() {
 
       writeFileSync(
         path.join(docDir, "symbols.yaml"),
-        'symbols:\n  - id: SYMBOL-DUP-001\n    title: duplicateSymbol\n    sourceFile: src/duplicate-symbol.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 3\n    sourceEndColumn: 1\n    status: active\n  - id: SYMBOL-DUP-002\n    title: duplicateSymbol\n    sourceFile: src/duplicate-symbol.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 3\n    sourceEndColumn: 1\n    status: active\n    # staged-overlap marker\n',
+        "symbols:\n  - id: SYMBOL-DUP-001\n    title: duplicateSymbol\n    sourceFile: src/duplicate-symbol.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 3\n    sourceEndColumn: 1\n    status: active\n  - id: SYMBOL-DUP-002\n    title: duplicateSymbol\n    sourceFile: src/duplicate-symbol.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 3\n    sourceEndColumn: 1\n    status: active\n    # staged-overlap marker\n",
       );
       execSync("git add documentation/symbols.yaml", {
         cwd: tmpDir,
