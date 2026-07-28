@@ -74,6 +74,54 @@ class BridgeResult(ContractModel):
         return self
 
 
+class CorpusRoots(ContractModel):
+    corpus: Sha256
+    evaluator: Sha256
+    query_set: Annotated[Sha256, Field(alias="querySet")]
+    baseline: Sha256
+    catalog: Sha256
+    verifier: Sha256
+    public_root: Annotated[Sha256, Field(alias="publicRoot")]
+    private_root: Annotated[Sha256, Field(alias="privateRoot")]
+    artifact_schema: Annotated[Sha256, Field(alias="artifactSchema")]
+
+
+class TrainTrajectory(ContractModel):
+    task_id: Annotated[NonEmptyString, Field(alias="taskId")]
+    family: NonEmptyString
+    reflection: NonEmptyString
+
+
+class DevelopmentGate(ContractModel):
+    mean: Annotated[JsonNumber, Field(ge=0, le=1)]
+    hard_passes: Annotated[JsonInteger, Field(alias="hardPasses", ge=0)]
+    worst_family_mean: Annotated[JsonNumber, Field(alias="worstFamilyMean", ge=0, le=1)]
+
+
+class OptimizerRequest(ContractModel):
+    schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
+    artifact_type: Annotated[Literal["skillopt-optimizer-request"], Field(alias="artifactType")]
+    run_id: Annotated[NonEmptyString, Field(alias="runId")]
+    skill: BridgeSkill
+    step: Annotated[JsonInteger, Field(ge=1)]
+    max_steps: Annotated[JsonInteger, Field(alias="maxSteps", ge=1)]
+    current_body: Annotated[str, Field(alias="currentBody", min_length=1, max_length=100_000)]
+    train_trajectories: Annotated[
+        tuple[TrainTrajectory, ...], Field(alias="trainTrajectories", min_length=1, max_length=8)
+    ]
+    previous_development: Annotated[DevelopmentGate, Field(alias="previousDevelopment")]
+    source_lock_hash: Annotated[Sha256, Field(alias="sourceLockHash")]
+    corpus_roots: Annotated[CorpusRoots, Field(alias="corpusRoots")]
+
+
+class OptimizerResult(ContractModel):
+    schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
+    artifact_type: Annotated[Literal["skillopt-optimizer-result"], Field(alias="artifactType")]
+    request_hash: Annotated[Sha256, Field(alias="requestHash")]
+    body: Annotated[str, Field(min_length=1, max_length=100_000)]
+    development: DevelopmentGate
+
+
 class AdapterCheckpoint(ContractModel):
     schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
     artifact_type: Annotated[Literal["skillopt-adapter-checkpoint"], Field(alias="artifactType")]
@@ -81,5 +129,8 @@ class AdapterCheckpoint(ContractModel):
     completed_steps: Annotated[JsonInteger, Field(alias="completedSteps", ge=0)]
     next_step: Annotated[JsonInteger, Field(alias="nextStep", ge=1)]
     candidate_body_hash: Annotated[Sha256, Field(alias="candidateBodyHash")]
+    trajectory_hashes: Annotated[tuple[Sha256, ...], Field(alias="trajectoryHashes")]
+    trainer_checkpoint_hash: Annotated[Sha256, Field(alias="trainerCheckpointHash")]
+    corpus_roots: Annotated[CorpusRoots, Field(alias="corpusRoots")]
     completed_task_ids: Annotated[tuple[NonEmptyString, ...], Field(alias="completedTaskIds")]
     interrupted: JsonBoolean
