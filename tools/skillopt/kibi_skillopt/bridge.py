@@ -2,17 +2,44 @@ from __future__ import annotations
 
 import os
 import tempfile
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
 from .common import JsonValue, canonical_json, contract_hash, parse_json_value
-from .models import BridgeRequest, BridgeResult
+from .lineage import parse_trajectories
+from .models import (
+    BridgeRequest,
+    BridgeResult,
+    CorpusRoots,
+    OptimizerRequest,
+    OptimizerResult,
+)
 
 
 class BridgeError(ValueError):
     pass
 
 Visibility = Literal["public", "private"]
+
+
+@dataclass(frozen=True, slots=True)
+class OptimizerBridgeContext:
+    run_id: str
+    skill: str
+    source_lock_hash: str
+    corpus_roots: CorpusRoots
+    train_ids: frozenset[str]
+
+
+@dataclass(frozen=True, slots=True)
+class OptimizerInput:
+    current_body: str
+    trajectories: Sequence[Mapping[str, JsonValue]]
+    previous_development: Mapping[str, JsonValue]
+    step: int
+    max_steps: int
 
 
 def _json_text(value: JsonValue) -> str:
@@ -81,3 +108,54 @@ class FileBridge:
         if result.request_hash != expected_hash:
             raise BridgeError("bridge_request_hash_mismatch")
         return result
+
+
+def build_optimizer_request(
+    context: OptimizerBridgeContext,
+    optimization: OptimizerInput,
+) -> OptimizerRequest:
+    trajectories = parse_trajectories(optimization.trajectories)
+    for trajectory in trajectories:
+        normalized = trajectory.task_id.lower()
+        if "held-out" in normalized or "heldout" in normalized:
+            raise BridgeError("held-out task ids are not optimizer inputs")
+        if trajectory.task_id not in context.train_ids:
+            raise BridgeError("optimizer requires public train task ids")
+    return OptimizerRequest.model_validate(
+        {
+            "schemaVersion": "1.0.0",
+            "artifactType": "skillopt-optimizer-request",
+            "runId": context.run_id,
+            "skill": context.skill,
+            "step": optimization.step,
+            "maxSteps": optimization.max_steps,
+            "currentBody": optimization.current_body,
+            "trainTrajectories": [
+                trajectory.model_dump(by_alias=True, mode="json") for trajectory in trajectories
+            ],
+            "previousDevelopment": optimization.previous_development,
+            "sourceLockHash": context.source_lock_hash,
+            "corpusRoots": context.corpus_roots.model_dump(by_alias=True, mode="json"),
+        }
+    )
+
+
+def write_optimizer_request(bridge: FileBridge, name: str, request: OptimizerRequest) -> str:
+    payload = request.model_dump(by_alias=True, mode="json")
+    bridge.write_public(name, _json_text(payload))
+    return contract_hash(payload)
+
+
+def read_optimizer_result(
+    bridge: FileBridge,
+    name: str,
+    request: OptimizerRequest,
+) -> OptimizerResult:
+    payload = parse_json_value(bridge.read_public(name))
+    if not isinstance(payload, dict):
+        raise BridgeError("optimizer_result_not_object")
+    result = OptimizerResult.model_validate(payload)
+    request_hash = contract_hash(request.model_dump(by_alias=True, mode="json"))
+    if result.request_hash != request_hash:
+        raise BridgeError("optimizer_request_hash_mismatch")
+    return result
