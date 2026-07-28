@@ -13589,8 +13589,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
   - id: SYM-skillopt-scoring-infrastructure-failure
     title: classifyPreActionInfrastructureFailure
     sourceFile: scripts/skillopt-eval/scoring/cell.ts
@@ -13613,7 +13617,7 @@ symbols:
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-scoring-redaction
     title: redactEvidence
-    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    sourceFile: scripts/skillopt-eval/scoring/evidence-utils.ts
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
@@ -13659,7 +13663,7 @@ symbols:
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-scoring-evidence-claim
     title: EvidenceClaim
-    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    sourceFile: scripts/skillopt-eval/scoring/evidence-utils.ts
     symbol_role: type-shape
     granularity_reason: legacy-link
     relationships:
@@ -13695,8 +13699,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
   - id: SYM-skillopt-scoring-gate-cell
     title: GateCell
     sourceFile: scripts/skillopt-eval/scoring/gates.ts
@@ -14645,11 +14653,15 @@ symbols:
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 32
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+    sourceLine: 40
     sourceColumn: 22
-    sourceEndLine: 186
+    sourceEndLine: 204
     sourceEndColumn: 1
   - id: SYM-skillopt-persist-codex-episode
     title: persistCodexEpisode
@@ -14676,7 +14688,7 @@ symbols:
         target: TEST-skillopt-codex-optimization
     sourceLine: 23
     sourceColumn: 16
-    sourceEndLine: 62
+    sourceEndLine: 86
     sourceEndColumn: 1
   - id: SYM-skillopt-fixture-integrity-error
     title: FixtureIntegrityError
@@ -14688,9 +14700,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 68
+    sourceLine: 84
     sourceColumn: 13
-    sourceEndLine: 74
+    sourceEndLine: 90
     sourceEndColumn: 1
   - id: SYM-skillopt-codex-events-tests
     title: Codex JSONL normalization
@@ -16040,6 +16052,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
   - id: SYM-skillopt-predicate-case-snapshot-schema
     title: PredicateCaseSnapshotSchema
     sourceFile: scripts/skillopt-eval/contracts/evidence.ts
@@ -16047,6 +16061,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
   - id: SYM-skillopt-evidence-binding-type
     title: EvidenceBinding
     sourceFile: scripts/skillopt-eval/contracts/evidence.ts
@@ -16054,6 +16070,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
   - id: SYM-skillopt-predicate-case-snapshot-type
     title: PredicateCaseSnapshot
     sourceFile: scripts/skillopt-eval/contracts/evidence.ts
@@ -16061,6 +16079,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
   - id: SYM-skillopt-evidence-binding-error
     title: EvidenceBindingError
     sourceFile: scripts/skillopt-eval/contracts/evidence.ts
@@ -16082,6 +16102,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
     sourceLine: 80
     sourceColumn: 11
     sourceEndLine: 80
@@ -16100,9 +16122,158 @@ symbols:
     relationships:
       - type: implements
         target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
   - id: SYM-skillopt-evaluator-authority-fixtures
     title: evaluator authority fixture helpers
     sourceFile: scripts/skillopt-eval/tests/fixtures/evaluator-authority-fixtures.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-case-failure
+    title: PredicateCaseFailure
+    sourceFile: scripts/skillopt-eval/scoring/predicate-evidence.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-case-evidence
+    title: PredicateCaseEvidence
+    sourceFile: scripts/skillopt-eval/scoring/predicate-evidence.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-held-out-predicate-gate
+    title: evaluateHeldOutPredicateGate
+    sourceFile: scripts/skillopt-eval/scoring/held-out-predicate.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-evaluate-predicate-case
+    title: evaluatePredicateCase
+    sourceFile: scripts/skillopt-eval/scoring/predicate-evidence.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-binding-failure
+    title: predicateBindingFailure
+    sourceFile: scripts/skillopt-eval/scoring/predicate-evidence.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-evidence-conflict-keys
+    title: evidenceConflictKeys
+    sourceFile: scripts/skillopt-eval/scoring/evidence-utils.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 15
+    sourceColumn: 16
+    sourceEndLine: 31
+    sourceEndColumn: 1
+  - id: SYM-skillopt-evidence-value
+    title: EvidenceValue
+    sourceFile: scripts/skillopt-eval/scoring/evidence-utils.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 1
+    sourceColumn: 12
+    sourceEndLine: 1
+    sourceEndColumn: 61
+  - id: SYM-skillopt-evidence-source
+    title: EvidenceSource
+    sourceFile: scripts/skillopt-eval/scoring/evidence-utils.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 8
+    sourceColumn: 12
+    sourceEndLine: 13
+    sourceEndColumn: 3
+  - id: SYM-skillopt-predicate-case-evaluation
+    title: PredicateCaseEvaluation
+    sourceFile: scripts/skillopt-eval/scoring/predicate-evidence.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-held-out-predicate-gate-cell
+    title: HeldOutPredicateGateCell
+    sourceFile: scripts/skillopt-eval/scoring/held-out-predicate.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-held-out-predicate-gate-verdict
+    title: HeldOutPredicateGateVerdict
+    sourceFile: scripts/skillopt-eval/scoring/held-out-predicate.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-sealed-cell-evidence
+    title: SealedCellEvidence
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-sealed-cell-evidence-context
+    title: SealedCellEvidenceContext
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-caller-score-injection-error
+    title: CallerScoreInjectionError
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    symbol_role: structural
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-held-out-predicate-gate-tests
+    title: held-out predicate matrix gate
+    sourceFile: scripts/skillopt-eval/tests/scoring-gates.test.ts
     symbol_role: behavioral
     granularity_reason: module-level-behavior
     relationships:

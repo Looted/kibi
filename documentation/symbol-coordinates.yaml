@@ -6236,6 +6236,12 @@ coordinates:
     sourceEndLine: 93
     sourceFile: scripts/skillopt-eval/runtime/paid-launch-evidence.ts
     sourceLine: 71
+  SYM-skillopt-caller-score-injection-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 98
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    sourceLine: 92
   SYM-skillopt-candidate-surface-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -6299,15 +6305,15 @@ coordinates:
   SYM-skillopt-codex-cell-dependencies-type:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 60
+    sourceEndLine: 76
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
-    sourceLine: 45
+    sourceLine: 58
   SYM-skillopt-codex-cell-options-type:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 43
+    sourceEndLine: 56
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
-    sourceLine: 27
+    sourceLine: 40
   SYM-skillopt-codex-episode-receipt-schema:
     sourceColumn: 13
     sourceEndColumn: 11
@@ -6371,9 +6377,9 @@ coordinates:
   SYM-skillopt-completed-codex-cell-type:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 66
+    sourceEndLine: 82
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
-    sourceLine: 62
+    sourceLine: 78
   SYM-skillopt-contract-approval-schema:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -6761,7 +6767,7 @@ coordinates:
   SYM-skillopt-default-codex-cell-dependencies:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 62
+    sourceEndLine: 86
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
     sourceLine: 23
   SYM-skillopt-deterministic-variant-label:
@@ -6788,6 +6794,12 @@ coordinates:
     sourceEndLine: 60
     sourceFile: scripts/skillopt-eval/orchestration.ts
     sourceLine: 31
+  SYM-skillopt-evaluate-predicate-case:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 146
+    sourceFile: scripts/skillopt-eval/scoring/predicate-evidence.ts
+    sourceLine: 135
   SYM-skillopt-evaluator-roots:
     sourceColumn: 13
     sourceEndColumn: 10
@@ -6818,6 +6830,24 @@ coordinates:
     sourceEndLine: 72
     sourceFile: scripts/skillopt-eval/contracts/evidence.ts
     sourceLine: 72
+  SYM-skillopt-evidence-conflict-keys:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 31
+    sourceFile: scripts/skillopt-eval/scoring/evidence-utils.ts
+    sourceLine: 15
+  SYM-skillopt-evidence-source:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 13
+    sourceFile: scripts/skillopt-eval/scoring/evidence-utils.ts
+    sourceLine: 8
+  SYM-skillopt-evidence-value:
+    sourceColumn: 12
+    sourceEndColumn: 61
+    sourceEndLine: 1
+    sourceFile: scripts/skillopt-eval/scoring/evidence-utils.ts
+    sourceLine: 1
   SYM-skillopt-external-trust-client-main:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -6905,9 +6935,9 @@ coordinates:
   SYM-skillopt-final-state-context-type:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 25
+    sourceEndLine: 26
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
-    sourceLine: 18
+    sourceLine: 19
   SYM-skillopt-final-state-options:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -6989,15 +7019,15 @@ coordinates:
   SYM-skillopt-fixture-integrity-error:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 74
+    sourceEndLine: 90
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
-    sourceLine: 68
+    sourceLine: 84
   SYM-skillopt-fixture-integrity-error-name:
     sourceColumn: 11
     sourceEndColumn: 42
-    sourceEndLine: 69
+    sourceEndLine: 85
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
-    sourceLine: 69
+    sourceLine: 85
   SYM-skillopt-fixture-materialize-run:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7160,6 +7190,24 @@ coordinates:
     sourceEndLine: 233
     sourceFile: scripts/skillopt-eval/variants.ts
     sourceLine: 185
+  SYM-skillopt-held-out-predicate-gate:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 69
+    sourceFile: scripts/skillopt-eval/scoring/held-out-predicate.ts
+    sourceLine: 40
+  SYM-skillopt-held-out-predicate-gate-cell:
+    sourceColumn: 12
+    sourceEndColumn: 5
+    sourceEndLine: 16
+    sourceFile: scripts/skillopt-eval/scoring/held-out-predicate.ts
+    sourceLine: 11
+  SYM-skillopt-held-out-predicate-gate-verdict:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 20
+    sourceFile: scripts/skillopt-eval/scoring/held-out-predicate.ts
+    sourceLine: 18
   SYM-skillopt-jsonrpc-append-trace:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7388,6 +7436,12 @@ coordinates:
     sourceEndLine: 132
     sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
     sourceLine: 122
+  SYM-skillopt-predicate-binding-failure:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 182
+    sourceFile: scripts/skillopt-eval/scoring/predicate-evidence.ts
+    sourceLine: 148
   SYM-skillopt-predicate-build-expectation:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -7412,6 +7466,24 @@ coordinates:
     sourceEndLine: 120
     sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
     sourceLine: 108
+  SYM-skillopt-predicate-case-evaluation:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 37
+    sourceFile: scripts/skillopt-eval/scoring/predicate-evidence.ts
+    sourceLine: 34
+  SYM-skillopt-predicate-case-evidence:
+    sourceColumn: 12
+    sourceEndColumn: 7
+    sourceEndLine: 32
+    sourceFile: scripts/skillopt-eval/scoring/predicate-evidence.ts
+    sourceLine: 23
+  SYM-skillopt-predicate-case-failure:
+    sourceColumn: 12
+    sourceEndColumn: 25
+    sourceEndLine: 21
+    sourceFile: scripts/skillopt-eval/scoring/predicate-evidence.ts
+    sourceLine: 12
   SYM-skillopt-predicate-case-snapshot-schema:
     sourceColumn: 13
     sourceEndColumn: 11
@@ -7889,9 +7961,9 @@ coordinates:
   SYM-skillopt-prepared-login-type:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 16
+    sourceEndLine: 17
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
-    sourceLine: 12
+    sourceLine: 13
   SYM-skillopt-process-group-exists:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -8159,9 +8231,9 @@ coordinates:
   SYM-skillopt-run-codex-cell:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 186
+    sourceEndLine: 204
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
-    sourceLine: 32
+    sourceLine: 40
   SYM-skillopt-run-independent-final-state:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -8645,33 +8717,33 @@ coordinates:
   SYM-skillopt-scoring-budget-stop:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 344
+    sourceEndLine: 248
     sourceFile: scripts/skillopt-eval/scoring/cell.ts
-    sourceLine: 339
+    sourceLine: 243
   SYM-skillopt-scoring-bundle-gate:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 242
+    sourceEndLine: 248
     sourceFile: scripts/skillopt-eval/scoring/gates.ts
-    sourceLine: 211
+    sourceLine: 217
   SYM-skillopt-scoring-cell:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 324
+    sourceEndLine: 228
     sourceFile: scripts/skillopt-eval/scoring/cell.ts
-    sourceLine: 214
+    sourceLine: 113
   SYM-skillopt-scoring-cell-evidence:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 38
+    sourceEndLine: 34
     sourceFile: scripts/skillopt-eval/scoring/cell.ts
-    sourceLine: 24
+    sourceLine: 20
   SYM-skillopt-scoring-cell-receipt:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 63
+    sourceEndLine: 60
     sourceFile: scripts/skillopt-eval/scoring/cell.ts
-    sourceLine: 48
+    sourceLine: 44
   SYM-skillopt-scoring-cell-summary:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -8681,39 +8753,39 @@ coordinates:
   SYM-skillopt-scoring-evidence-claim:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 15
-    sourceFile: scripts/skillopt-eval/scoring/cell.ts
-    sourceLine: 12
+    sourceEndLine: 6
+    sourceFile: scripts/skillopt-eval/scoring/evidence-utils.ts
+    sourceLine: 3
   SYM-skillopt-scoring-gate-cell:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 17
+    sourceEndLine: 23
     sourceFile: scripts/skillopt-eval/scoring/gates.ts
-    sourceLine: 9
+    sourceLine: 15
   SYM-skillopt-scoring-gate-verdict:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 52
+    sourceEndLine: 58
     sourceFile: scripts/skillopt-eval/scoring/gates.ts
-    sourceLine: 47
+    sourceLine: 53
   SYM-skillopt-scoring-infrastructure-failure:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 337
+    sourceEndLine: 241
     sourceFile: scripts/skillopt-eval/scoring/cell.ts
-    sourceLine: 326
+    sourceLine: 230
   SYM-skillopt-scoring-redaction:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 367
-    sourceFile: scripts/skillopt-eval/scoring/cell.ts
-    sourceLine: 346
+    sourceEndLine: 54
+    sourceFile: scripts/skillopt-eval/scoring/evidence-utils.ts
+    sourceLine: 33
   SYM-skillopt-scoring-skill-gate:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 209
+    sourceEndLine: 215
     sourceFile: scripts/skillopt-eval/scoring/gates.ts
-    sourceLine: 164
+    sourceLine: 170
   SYM-skillopt-scoring-summary:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8723,9 +8795,21 @@ coordinates:
   SYM-skillopt-scoring-terminal-category:
     sourceColumn: 12
     sourceEndColumn: 24
-    sourceEndLine: 46
+    sourceEndLine: 42
     sourceFile: scripts/skillopt-eval/scoring/cell.ts
-    sourceLine: 40
+    sourceLine: 36
+  SYM-skillopt-sealed-cell-evidence:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 32
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    sourceLine: 28
+  SYM-skillopt-sealed-cell-evidence-context:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 38
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    sourceLine: 34
   SYM-skillopt-skill-assembly-receipt-type:
     sourceColumn: 12
     sourceEndColumn: 3

@@ -1,25 +1,21 @@
-import {
-  EvidenceBindingError,
-  type PredicateCaseSnapshot,
-  decodePredicateCaseSnapshot,
-} from "../contracts/evidence";
+import { EvidenceBindingError } from "../contracts/evidence";
 import type { parsePrivateEvaluatorManifest } from "../fixtures/private";
-import { decodeFinalStatePredicateSnapshot } from "../runtime/final-state";
+import { evidenceConflictKeys } from "./evidence-utils";
+import type { EvidenceSource } from "./evidence-utils";
+import {
+  evaluatePredicateCase,
+  predicateBindingFailure,
+} from "./predicate-evidence";
+import type { PredicateCaseEvidence } from "./predicate-evidence";
+
+export { redactEvidence } from "./evidence-utils";
+export type { EvidenceClaim } from "./evidence-utils";
+export type {
+  PredicateCaseEvidence,
+  PredicateCaseFailure,
+} from "./predicate-evidence";
 
 type Manifest = ReturnType<typeof parsePrivateEvaluatorManifest>;
-type EvidenceValue = string | number | boolean | null;
-
-export type EvidenceClaim = Readonly<{
-  key: string;
-  value: EvidenceValue;
-}>;
-
-type EvidenceSource = Readonly<{
-  complete: boolean;
-  integrityValid: boolean;
-  claims: readonly EvidenceClaim[];
-  snapshot?: unknown;
-}>;
 
 export type CellEvidence = Readonly<{
   finalState: EvidenceSource;
@@ -60,6 +56,7 @@ export type CellReceipt = Readonly<{
   }>;
   criticalFailures: readonly string[];
   conflictKeys: readonly string[];
+  predicateEvidence?: PredicateCaseEvidence;
 }>;
 
 const ZERO_COMPONENTS = {
@@ -74,6 +71,7 @@ function terminalReceipt(input: {
   readonly retryable?: boolean;
   readonly criticalFailures?: readonly string[];
   readonly conflictKeys?: readonly string[];
+  readonly predicateEvidence?: PredicateCaseEvidence;
 }): CellReceipt {
   return {
     outcome: input.outcome,
@@ -86,23 +84,10 @@ function terminalReceipt(input: {
     components: ZERO_COMPONENTS,
     criticalFailures: input.criticalFailures ?? [],
     conflictKeys: input.conflictKeys ?? [],
+    ...(input.predicateEvidence === undefined
+      ? {}
+      : { predicateEvidence: input.predicateEvidence }),
   };
-}
-
-function evidenceConflictKeys(sources: readonly EvidenceSource[]): string[] {
-  const observed = new Map<string, EvidenceValue>();
-  const conflicts = new Set<string>();
-  for (const source of sources) {
-    for (const claim of source.claims) {
-      const previous = observed.get(claim.key);
-      if (previous !== undefined && !Object.is(previous, claim.value)) {
-        conflicts.add(claim.key);
-      } else {
-        observed.set(claim.key, claim.value);
-      }
-    }
-  }
-  return [...conflicts].sort();
 }
 
 function protocolPasses(manifest: Manifest, evidence: CellEvidence): boolean {
@@ -123,92 +108,6 @@ function protocolPasses(manifest: Manifest, evidence: CellEvidence): boolean {
         call.tool === forbidden.tool && call.predicate === forbidden.predicate,
     ),
   );
-}
-
-function predicateFailures(
-  manifest: Manifest,
-  snapshot: PredicateCaseSnapshot,
-): readonly string[] {
-  const expectation = manifest.predicateExpectation;
-  if (expectation === null) return [];
-  const failures: string[] = [];
-  const laneMatches = (() => {
-    switch (expectation.expectedLane) {
-      case "predicate":
-        return snapshot.facts.some((fact) => fact.factKind === "predicate");
-      case "strict_property":
-        return (
-          snapshot.facts.some((fact) => fact.factKind === "subject") &&
-          snapshot.facts.some((fact) => fact.factKind === "property_value")
-        );
-      case "observation":
-      case "ontology_gap_observation":
-        return snapshot.facts.some((fact) => fact.factKind === "observation");
-      default:
-        return expectation.expectedLane satisfies never;
-    }
-  })();
-  if (!laneMatches) failures.push("predicate-lane");
-  if (expectation.expectedPredicateName !== null) {
-    const fact = snapshot.facts.find(
-      (entry) =>
-        entry.factKind === "predicate" &&
-        entry.predicateName === expectation.expectedPredicateName,
-    );
-    if (fact === undefined) {
-      failures.push("predicate-name");
-    } else {
-      if (
-        expectation.expectedPredicateArgs !== null &&
-        JSON.stringify(fact.predicateArgs) !==
-          JSON.stringify(expectation.expectedPredicateArgs)
-      ) {
-        failures.push("predicate-args");
-      }
-      if (fact.polarity !== expectation.expectedPolarity) {
-        failures.push("predicate-polarity");
-      }
-    }
-  }
-  for (const edge of expectation.expectedEdges) {
-    if (
-      !snapshot.relationships.some(
-        (observed) =>
-          observed.relationship === edge.relationship &&
-          observed.target === edge.target,
-      )
-    ) {
-      failures.push("predicate-edges");
-      break;
-    }
-  }
-  return failures;
-}
-
-function predicateSnapshot(
-  manifest: Manifest,
-  evidence: CellEvidence,
-): PredicateCaseSnapshot | null {
-  if (manifest.predicateExpectation === null) return null;
-  if (evidence.finalState.snapshot === undefined) {
-    throw new EvidenceBindingError("malformed-snapshot");
-  }
-  const binding = {
-    caseId: manifest.taskId,
-    roots: {
-      publicManifestHash: manifest.publicManifestHash,
-      workspaceHash: manifest.workspaceHash,
-      fixtureSeedHash: manifest.fixtureSeedHash,
-    },
-    sequence: 1,
-  } as const;
-  if (typeof evidence.finalState.snapshot === "string") {
-    return decodeFinalStatePredicateSnapshot(
-      evidence.finalState.snapshot,
-      binding,
-    );
-  }
-  return decodePredicateCaseSnapshot(evidence.finalState.snapshot, binding);
 }
 
 export function scoreCell(
@@ -233,14 +132,18 @@ export function scoreCell(
       terminalCategory: "incomplete_evidence",
     });
   }
-  let snapshot: PredicateCaseSnapshot | null;
+  let predicateEvidence: PredicateCaseEvidence | undefined;
+  let predicateFailureCodes: readonly string[] = [];
   try {
-    snapshot = predicateSnapshot(manifest, evidence);
+    const predicateCase = evaluatePredicateCase(manifest, evidence);
+    predicateEvidence = predicateCase.predicateEvidence;
+    predicateFailureCodes = predicateCase.failureCodes;
   } catch (error) {
     if (error instanceof EvidenceBindingError) {
       return terminalReceipt({
         outcome: "ambiguous",
         terminalCategory: "evidence_conflict",
+        predicateEvidence: predicateBindingFailure(manifest, error),
       });
     }
     throw error;
@@ -276,7 +179,7 @@ export function scoreCell(
       .filter((assertion) => assertion.critical)
       .map((assertion) => assertion.key)
       .sort(),
-    ...(snapshot === null ? [] : predicateFailures(manifest, snapshot)),
+    ...predicateFailureCodes,
   ].sort();
   const securityFailures = [
     ...evidence.isolation.violations.map(
@@ -320,6 +223,7 @@ export function scoreCell(
     components,
     criticalFailures,
     conflictKeys: [],
+    ...(predicateEvidence === undefined ? {} : { predicateEvidence }),
   };
 }
 
@@ -341,27 +245,4 @@ export function classifyBudgetStop(): CellReceipt {
     outcome: "ambiguous",
     terminalCategory: "budget_stop",
   });
-}
-
-export function redactEvidence(
-  value: unknown,
-  sentinels: readonly string[],
-): unknown {
-  if (typeof value === "string") {
-    return sentinels.some((sentinel) => value.includes(sentinel))
-      ? "[REDACTED]"
-      : value;
-  }
-  if (Array.isArray(value)) {
-    return value.map((entry) => redactEvidence(entry, sentinels));
-  }
-  if (value === null || typeof value !== "object") return value;
-  return Object.fromEntries(
-    Object.entries(value).map(([key, entry]) => [
-      key,
-      /(?:api[-_]?key|auth|credential|password|secret|token)/i.test(key)
-        ? "[REDACTED]"
-        : redactEvidence(entry, sentinels),
-    ]),
-  );
 }
