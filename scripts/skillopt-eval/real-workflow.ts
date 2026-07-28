@@ -7,6 +7,11 @@ import {
   loadBundledSkill,
   readBundledSkillResource,
 } from "../../packages/cli/src/public/skills";
+import {
+  type AdoptionReceipt,
+  type AutoAdoptionInput,
+  adoptSkillOptCandidate,
+} from "./adoption";
 import { CANONICAL_SKILLS, type CanonicalSkill } from "./catalog";
 import { JsonValueSchema, contractHash } from "./contracts/common";
 import {
@@ -79,12 +84,12 @@ const ReviewSchema = z
               "HELD_OUT_MATRIX_INELIGIBLE",
             ]),
             heldOutCellCount: z.literal(36),
-            adoption: z.literal("unchanged"),
+            adoption: z.enum(["adopted", "unchanged", "blocked"]),
           })
           .strict(),
       )
       .min(1),
-    sourceModified: z.literal(false),
+    sourceModified: z.boolean(),
     generatedAt: z.iso.datetime(),
   })
   .strict();
@@ -191,6 +196,7 @@ export type RealOptimizationDependencies = Readonly<{
     }>,
   ) => Promise<HeldOutEvaluation>;
   oneShot: (input: TrainingInput) => Promise<FrozenVariant>;
+  adopt: (input: AutoAdoptionInput) => Promise<AdoptionReceipt>;
 }>;
 
 function canonicalHash(value: unknown): string {
@@ -510,6 +516,7 @@ export async function runRealOptimization(
       dependencies.evaluateDevelopment ?? defaultEvaluateDevelopment;
     const evaluateHeldOut =
       dependencies.evaluateHeldOut ?? defaultEvaluateHeldOut;
+    const adopt = dependencies.adopt ?? adoptSkillOptCandidate;
     const candidates: Array<{
       skill: CanonicalSkill;
       baselineBodyHash: string;
@@ -518,7 +525,7 @@ export async function runRealOptimization(
       development: DevelopmentGate;
       heldOutEligibility: HeldOutEvaluation["eligibility"];
       heldOutCellCount: 36;
-      adoption: "unchanged";
+      adoption: "adopted" | "unchanged" | "blocked";
     }> = [];
     for (const skill of options.skills) {
       const loaded = await surface(skill);
@@ -574,6 +581,27 @@ export async function runRealOptimization(
           ? {}
           : { runtime: options.cellRuntime }),
       });
+      const adoption =
+        heldOut.eligibility === "eligible"
+          ? await adopt({
+              repoRoot: trainingInput.sourceWorktree,
+              candidate,
+              frontmatterHash: candidate.frontmatterHash,
+              resourcesHash: candidate.resourcesHash,
+              eligibility: {
+                runId: options.runId,
+                signedEligibilityId: trained.trainerCheckpointHash,
+                heldOutEligibility: heldOut.eligibility,
+                candidateHash: candidate.bodyHash,
+                authorizedRootSet: roots,
+                lineage: {
+                  candidateHash: candidate.bodyHash,
+                  signedEligibilityId: trained.trainerCheckpointHash,
+                  authorizedRootSet: roots,
+                },
+              },
+            })
+          : { status: "unchanged" as const };
       await mkdir(trainingInput.artifactRoot, { recursive: true, mode: 0o700 });
       await writeFile(
         join(trainingInput.artifactRoot, "candidate_skill.md"),
@@ -588,7 +616,7 @@ export async function runRealOptimization(
         development,
         heldOutEligibility: heldOut.eligibility,
         heldOutCellCount: heldOut.cellCount,
-        adoption: "unchanged",
+        adoption: adoption.status,
       });
     }
     const heldOutEligibility = candidates.every(
@@ -604,7 +632,9 @@ export async function runRealOptimization(
       artifactRoot: root,
       skills: [...options.skills],
       candidates,
-      sourceModified: false,
+      sourceModified: candidates.some(
+        (candidate) => candidate.adoption === "adopted",
+      ),
       generatedAt: new Date().toISOString(),
     });
     await writeFile(

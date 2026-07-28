@@ -12473,6 +12473,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-automatic-adoption
       - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
@@ -17464,7 +17466,7 @@ symbols:
     sourceEndColumn: 1
   - id: SYM-skillopt-adoption-integrity-error
     title: AdoptionIntegrityError
-    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceFile: scripts/skillopt-eval/adoption-types.ts
     symbol_role: behavioral
     granularity_reason: extractor-miss
     relationships:
@@ -17472,13 +17474,13 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 72
+    sourceLine: 61
     sourceColumn: 13
-    sourceEndLine: 74
+    sourceEndLine: 63
     sourceEndColumn: 1
   - id: SYM-skillopt-adoption-integrity-error-name
     title: AdoptionIntegrityError.name
-    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceFile: scripts/skillopt-eval/adoption-types.ts
     symbol_role: structural
     granularity_reason: extractor-miss
     relationships:
@@ -17486,13 +17488,13 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 73
+    sourceLine: 62
     sourceColumn: 11
-    sourceEndLine: 73
+    sourceEndLine: 62
     sourceEndColumn: 43
   - id: SYM-skillopt-adoption-transaction-error
     title: AdoptionTransactionError
-    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceFile: scripts/skillopt-eval/adoption-types.ts
     symbol_role: behavioral
     granularity_reason: extractor-miss
     relationships:
@@ -17500,13 +17502,13 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 76
+    sourceLine: 65
     sourceColumn: 13
-    sourceEndLine: 82
+    sourceEndLine: 71
     sourceEndColumn: 1
   - id: SYM-skillopt-adoption-transaction-error-name
     title: AdoptionTransactionError.name
-    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceFile: scripts/skillopt-eval/adoption-types.ts
     symbol_role: structural
     granularity_reason: extractor-miss
     relationships:
@@ -17514,13 +17516,13 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 77
+    sourceLine: 66
     sourceColumn: 11
-    sourceEndLine: 77
+    sourceEndLine: 66
     sourceEndColumn: 45
   - id: SYM-skillopt-adoption-input
     title: AdoptionInput
-    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceFile: scripts/skillopt-eval/adoption-types.ts
     symbol_role: type-shape
     granularity_reason: extractor-miss
     relationships:
@@ -17528,13 +17530,13 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 28
+    sourceLine: 7
     sourceColumn: 12
-    sourceEndLine: 31
+    sourceEndLine: 10
     sourceEndColumn: 5
   - id: SYM-skillopt-adoption-plan
     title: AdoptionPlan
-    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceFile: scripts/skillopt-eval/adoption-types.ts
     symbol_role: type-shape
     granularity_reason: extractor-miss
     relationships:
@@ -17542,13 +17544,13 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 33
+    sourceLine: 12
     sourceColumn: 12
-    sourceEndLine: 39
+    sourceEndLine: 18
     sourceEndColumn: 3
   - id: SYM-skillopt-adoption-receipt
     title: AdoptionReceipt
-    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceFile: scripts/skillopt-eval/adoption-types.ts
     symbol_role: type-shape
     granularity_reason: extractor-miss
     relationships:
@@ -17556,13 +17558,13 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 41
+    sourceLine: 20
     sourceColumn: 12
-    sourceEndLine: 44
+    sourceEndLine: 24
     sourceEndColumn: 5
   - id: SYM-skillopt-run-mirror-sync
     title: RunMirrorSync
-    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceFile: scripts/skillopt-eval/adoption-types.ts
     symbol_role: type-shape
     granularity_reason: extractor-miss
     relationships:
@@ -17570,13 +17572,13 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 46
+    sourceLine: 26
     sourceColumn: 12
-    sourceEndLine: 46
+    sourceEndLine: 26
     sourceEndColumn: 64
   - id: SYM-skillopt-adoption-dependencies
     title: AdoptionDependencies
-    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceFile: scripts/skillopt-eval/adoption-types.ts
     symbol_role: type-shape
     granularity_reason: extractor-miss
     relationships:
@@ -17584,13 +17586,13 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 48
+    sourceLine: 34
     sourceColumn: 12
-    sourceEndLine: 50
+    sourceEndLine: 38
     sourceEndColumn: 3
   - id: SYM-skillopt-auto-adoption-input
     title: AutoAdoptionInput
-    sourceFile: scripts/skillopt-eval/adoption.ts
+    sourceFile: scripts/skillopt-eval/adoption-types.ts
     symbol_role: type-shape
     granularity_reason: extractor-miss
     relationships:
@@ -17598,9 +17600,9 @@ symbols:
         target: REQ-skillopt-automatic-adoption
       - type: covered_by
         target: TEST-skillopt-automatic-adoption
-    sourceLine: 52
+    sourceLine: 53
     sourceColumn: 12
-    sourceEndLine: 57
+    sourceEndLine: 59
     sourceEndColumn: 3
   - id: SYM-skillopt-plan-skill-adoption
     title: planSkillAdoption
@@ -17646,6 +17648,48 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 309
     sourceEndColumn: 1
+  - { id: SYM-skillopt-default-run-mirror-sync, title: defaultRunMirrorSync, sourceFile: scripts/skillopt-eval/adoption-approved.ts, symbol_role: behavioral, relationships: &automatic_adoption_traceability [{ type: implements, target: REQ-skillopt-automatic-adoption }, { type: covered_by, target: TEST-skillopt-automatic-adoption }], sourceLine: 20, sourceColumn: 22, sourceEndLine: 32, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-derive-adoption-id, title: deriveAdoptionId, sourceFile: scripts/skillopt-eval/adoption-snapshot.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 89, sourceColumn: 16, sourceEndLine: 100, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-with-exclusive-adoption-lock, title: withExclusiveAdoptionLock, sourceFile: scripts/skillopt-eval/adoption-lock.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 58, sourceColumn: 16, sourceEndLine: 63, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-recover-adoption-wals, title: recoverAdoptionWals, sourceFile: scripts/skillopt-eval/adoption-transaction.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 118, sourceColumn: 22, sourceEndLine: 143, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-execute-exact-adoption, title: executeExactAdoption, sourceFile: scripts/skillopt-eval/adoption-transaction.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 145, sourceColumn: 22, sourceEndLine: 176, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-adopt-approved-snapshot, title: adoptApprovedSnapshot, sourceFile: scripts/skillopt-eval/adoption-approved.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 59, sourceColumn: 22, sourceEndLine: 84, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-assert-secure-directory, title: assertSecureDirectory, sourceFile: scripts/skillopt-eval/adoption-durable.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 38, sourceColumn: 22, sourceEndLine: 43, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-ensure-secure-directory, title: ensureSecureDirectory, sourceFile: scripts/skillopt-eval/adoption-durable.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 45, sourceColumn: 22, sourceEndLine: 48, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-read-secure-file, title: readSecureFile, sourceFile: scripts/skillopt-eval/adoption-durable.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 62, sourceColumn: 22, sourceEndLine: 89, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-assert-file-identity, title: assertFileIdentity, sourceFile: scripts/skillopt-eval/adoption-durable.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 91, sourceColumn: 22, sourceEndLine: 100, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-fsync-directory, title: fsyncDirectory, sourceFile: scripts/skillopt-eval/adoption-durable.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 102, sourceColumn: 22, sourceEndLine: 112, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-durable-replace, title: durableReplace, sourceFile: scripts/skillopt-eval/adoption-durable.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 140, sourceColumn: 22, sourceEndLine: 156, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-durable-no-replace, title: durableNoReplace, sourceFile: scripts/skillopt-eval/adoption-durable.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 158, sourceColumn: 22, sourceEndLine: 190, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-read-durable-text, title: readDurableText, sourceFile: scripts/skillopt-eval/adoption-durable.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 192, sourceColumn: 22, sourceEndLine: 197, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-file-identity, title: FileIdentity, sourceFile: scripts/skillopt-eval/adoption-durable.ts, symbol_role: type-shape, relationships: *automatic_adoption_traceability, sourceLine: 5, sourceColumn: 12, sourceEndLine: 8, sourceEndColumn: 3 }
+  - { id: SYM-skillopt-durability-step, title: DurabilityStep, sourceFile: scripts/skillopt-eval/adoption-durable.ts, symbol_role: type-shape, relationships: *automatic_adoption_traceability, sourceLine: 10, sourceColumn: 12, sourceEndLine: 15, sourceEndColumn: 21 }
+  - { id: SYM-skillopt-durability-observer, title: DurabilityObserver, sourceFile: scripts/skillopt-eval/adoption-durable.ts, symbol_role: type-shape, relationships: *automatic_adoption_traceability, sourceLine: 17, sourceColumn: 12, sourceEndLine: 17, sourceEndColumn: 73 }
+  - { id: SYM-skillopt-journal-path, title: journalPath, sourceFile: scripts/skillopt-eval/adoption-journal.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 72, sourceColumn: 16, sourceEndLine: 74, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-receipt-path, title: receiptPath, sourceFile: scripts/skillopt-eval/adoption-journal.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 76, sourceColumn: 16, sourceEndLine: 78, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-terminal-path, title: terminalPath, sourceFile: scripts/skillopt-eval/adoption-journal.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 80, sourceColumn: 16, sourceEndLine: 82, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-terminal-json, title: terminalJson, sourceFile: scripts/skillopt-eval/adoption-journal.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 92, sourceColumn: 16, sourceEndLine: 94, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-read-journal, title: readJournal, sourceFile: scripts/skillopt-eval/adoption-journal.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 96, sourceColumn: 22, sourceEndLine: 116, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-advance-phase, title: advancePhase, sourceFile: scripts/skillopt-eval/adoption-journal.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 135, sourceColumn: 22, sourceEndLine: 151, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-verify-installed-receipt, title: verifyInstalledReceipt, sourceFile: scripts/skillopt-eval/adoption-journal.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 153, sourceColumn: 22, sourceEndLine: 165, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-install-receipt, title: installReceipt, sourceFile: scripts/skillopt-eval/adoption-journal.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 167, sourceColumn: 22, sourceEndLine: 180, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-install-terminal, title: installTerminal, sourceFile: scripts/skillopt-eval/adoption-journal.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 182, sourceColumn: 22, sourceEndLine: 201, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-create-journal, title: createJournal, sourceFile: scripts/skillopt-eval/adoption-journal.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 203, sourceColumn: 22, sourceEndLine: 234, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-parse-receipt, title: parseReceipt, sourceFile: scripts/skillopt-eval/adoption-journal.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 236, sourceColumn: 16, sourceEndLine: 238, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-is-missing, title: isMissing, sourceFile: scripts/skillopt-eval/adoption-journal.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 240, sourceColumn: 16, sourceEndLine: 242, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-journal, title: Journal, sourceFile: scripts/skillopt-eval/adoption-journal.ts, symbol_role: type-shape, relationships: *automatic_adoption_traceability, sourceLine: 50, sourceColumn: 12, sourceEndLine: 50, sourceEndColumn: 52 }
+  - { id: SYM-skillopt-exact-adoption-receipt, title: ExactAdoptionReceipt, sourceFile: scripts/skillopt-eval/adoption-journal.ts, symbol_role: type-shape, relationships: *automatic_adoption_traceability, sourceLine: 51, sourceColumn: 12, sourceEndLine: 51, sourceEndColumn: 65 }
+  - { id: SYM-skillopt-exact-adoption-dependencies, title: ExactAdoptionDependencies, sourceFile: scripts/skillopt-eval/adoption-journal.ts, symbol_role: type-shape, relationships: *automatic_adoption_traceability, sourceLine: 53, sourceColumn: 12, sourceEndLine: 57, sourceEndColumn: 3 }
+  - { id: SYM-skillopt-exact-adoption-input, title: ExactAdoptionInput, sourceFile: scripts/skillopt-eval/adoption-journal.ts, symbol_role: type-shape, relationships: *automatic_adoption_traceability, sourceLine: 59, sourceColumn: 12, sourceEndLine: 66, sourceEndColumn: 3 }
+  - { id: SYM-skillopt-adoption-phases, title: ADOPTION_PHASES, sourceFile: scripts/skillopt-eval/adoption-journal.ts, symbol_role: structural, relationships: *automatic_adoption_traceability, sourceLine: 15, sourceColumn: 13, sourceEndLine: 20, sourceEndColumn: 10 }
+  - { id: SYM-skillopt-with-shared-adoption-lock, title: withSharedAdoptionLock, sourceFile: scripts/skillopt-eval/adoption-lock.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 65, sourceColumn: 16, sourceEndLine: 70, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-validate-predicate-eligibility, title: validatePredicateEligibility, sourceFile: scripts/skillopt-eval/adoption-snapshot.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 63, sourceColumn: 16, sourceEndLine: 87, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-canonical-target-set, title: canonicalTargetSet, sourceFile: scripts/skillopt-eval/adoption-snapshot.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 102, sourceColumn: 16, sourceEndLine: 111, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-load-canonical-snapshot, title: loadCanonicalSnapshot, sourceFile: scripts/skillopt-eval/adoption-snapshot.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 113, sourceColumn: 22, sourceEndLine: 123, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-load-canonical-surface, title: loadCanonicalSurface, sourceFile: scripts/skillopt-eval/adoption-snapshot.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 125, sourceColumn: 22, sourceEndLine: 198, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-public-plan, title: publicPlan, sourceFile: scripts/skillopt-eval/adoption-snapshot.ts, symbol_role: behavioral, relationships: *automatic_adoption_traceability, sourceLine: 200, sourceColumn: 16, sourceEndLine: 208, sourceEndColumn: 1 }
+  - { id: SYM-skillopt-canonical-snapshot, title: CanonicalSnapshot, sourceFile: scripts/skillopt-eval/adoption-snapshot.ts, symbol_role: type-shape, relationships: *automatic_adoption_traceability, sourceLine: 17, sourceColumn: 12, sourceEndLine: 23, sourceEndColumn: 5 }
+  - { id: SYM-skillopt-predicate-eligibility-receipt, title: PredicateEligibilityReceipt, sourceFile: scripts/skillopt-eval/adoption-types.ts, symbol_role: type-shape, relationships: *automatic_adoption_traceability, sourceLine: 40, sourceColumn: 12, sourceEndLine: 51, sourceEndColumn: 3 }
   - id: SYM-skillopt-contract-run-state-type
     title: RunState
     sourceFile: scripts/skillopt-eval/contracts/workflow.ts

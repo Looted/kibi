@@ -3,7 +3,10 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { main } from "../cli";
-import { runRealOptimization } from "../real-workflow";
+import {
+  type RealOptimizationDependencies,
+  runRealOptimization,
+} from "../real-workflow";
 import { freezeCandidateVariant } from "../variants";
 
 const RUN_ID = "00000000-0000-4000-8000-000000000201";
@@ -87,13 +90,58 @@ describe("real SkillOpt workflow", () => {
     }
   });
 
-  test("trains only on public descriptors and never adopts evaluated candidates", async () => {
+  test("trains only on public descriptors and adopts a held-out eligible candidate", async () => {
     // Given
     const root = await mkdtemp(join(tmpdir(), "skillopt-real-auto-"));
     try {
       const trainerInputs: unknown[] = [];
       const developmentCandidates: string[] = [];
       const heldOutVariants: string[][] = [];
+      const adoptedCandidates: unknown[] = [];
+      const dependencies: Partial<RealOptimizationDependencies> & {
+        readonly adopt: (input: unknown) => Promise<unknown>;
+      } = {
+        sourceClean: async () => true,
+        train: async (input) => {
+          trainerInputs.push(input);
+          return {
+            status: "frozen" as const,
+            candidateBody:
+              "# Frozen candidate\n\nnpx --no-install kibi\nbunx --no-install kibi\nDo not read or edit files inside `.kb` directly\n",
+            trainerCheckpointHash: "c".repeat(64),
+            trajectoryHashes: ["d".repeat(64)],
+          };
+        },
+        oneShot: async (input) =>
+          freezeCandidateVariant({
+            skill: input.skill,
+            variant: "one-shot",
+            body: "# Frozen one-shot\n\nnpx --no-install kibi\nbunx --no-install kibi\nDo not read or edit files inside `.kb` directly\n",
+            frontmatterHash: input.baseline.frontmatterHash,
+            resourcesHash: input.baseline.resourcesHash,
+            provenance: "codex-one-shot",
+          }),
+        evaluateDevelopment: async (input) => {
+          developmentCandidates.push(input.candidate.body);
+          return { mean: 1, hardPasses: 1, worstFamilyMean: 1 };
+        },
+        evaluateHeldOut: async (input) => {
+          heldOutVariants.push(input.variants.map((variant) => variant.body));
+          return { eligibility: "eligible" as const, cellCount: 36 as const };
+        },
+        adopt: async (input: unknown) => {
+          adoptedCandidates.push(input);
+          return {
+            skill: "kibi-usage" as const,
+            canonicalPath: "fixture",
+            currentBodyHash: "0".repeat(64),
+            candidateBodyHash: "1".repeat(64),
+            mutationRequired: true,
+            status: "adopted" as const,
+            adoptionId: "2".repeat(64),
+          };
+        },
+      };
 
       // When
       const result = await runRealOptimization(
@@ -104,36 +152,7 @@ describe("real SkillOpt workflow", () => {
           skills: ["kibi-usage"],
           maxSteps: 1,
         },
-        {
-          sourceClean: async () => true,
-          train: async (input) => {
-            trainerInputs.push(input);
-            return {
-              status: "frozen",
-              candidateBody:
-                "# Frozen candidate\n\nnpx --no-install kibi\nbunx --no-install kibi\nDo not read or edit files inside `.kb` directly\n",
-              trainerCheckpointHash: "c".repeat(64),
-              trajectoryHashes: ["d".repeat(64)],
-            };
-          },
-          oneShot: async (input) =>
-            freezeCandidateVariant({
-              skill: input.skill,
-              variant: "one-shot",
-              body: "# Frozen one-shot\n\nnpx --no-install kibi\nbunx --no-install kibi\nDo not read or edit files inside `.kb` directly\n",
-              frontmatterHash: input.baseline.frontmatterHash,
-              resourcesHash: input.baseline.resourcesHash,
-              provenance: "codex-one-shot",
-            }),
-          evaluateDevelopment: async (input) => {
-            developmentCandidates.push(input.candidate.body);
-            return { mean: 1, hardPasses: 1, worstFamilyMean: 1 };
-          },
-          evaluateHeldOut: async (input) => {
-            heldOutVariants.push(input.variants.map((variant) => variant.body));
-            return { eligibility: "eligible", cellCount: 36 };
-          },
-        },
+        dependencies,
       );
 
       // Then
@@ -144,6 +163,7 @@ describe("real SkillOpt workflow", () => {
       expect(heldOutVariants).toHaveLength(1);
       expect(heldOutVariants[0]).toHaveLength(3);
       expect(result.heldOutEligibility).toBe("eligible");
+      expect(adoptedCandidates).toHaveLength(1);
     } finally {
       await rm(root, { recursive: true, force: true });
     }
