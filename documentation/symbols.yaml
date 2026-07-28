@@ -685,9 +685,9 @@ symbols:
         target: REQ-cli-check
       - type: covered_by
         target: TEST-004
-    sourceLine: 499
+    sourceLine: 543
     sourceColumn: 22
-    sourceEndLine: 857
+    sourceEndLine: 901
     sourceEndColumn: 1
   - id: SYM-CheckOptions
     title: CheckOptions
@@ -14124,9 +14124,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 124
+    sourceLine: 157
     sourceColumn: 16
-    sourceEndLine: 128
+    sourceEndLine: 161
     sourceEndColumn: 1
   - id: SYM-skillopt-fixture-parse-public-value
     title: parsePublicTaskManifestValue
@@ -14164,9 +14164,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 130
+    sourceLine: 163
     sourceColumn: 16
-    sourceEndLine: 132
+    sourceEndLine: 165
     sourceEndColumn: 1
   - id: SYM-skillopt-fixture-parse-corpus-index
     title: parseCorpusIndexValue
@@ -14186,14 +14186,15 @@ symbols:
     title: blindedVariantOrder
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
     symbol_role: behavioral
+    granularity_reason: module-level-behavior
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 31
+    sourceLine: 32
     sourceColumn: 16
-    sourceEndLine: 47
+    sourceEndLine: 48
     sourceEndColumn: 1
   - id: SYM-skillopt-fixture-private-manifest
     title: buildPrivateManifest
@@ -14204,22 +14205,23 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 137
+    sourceLine: 157
     sourceColumn: 16
-    sourceEndLine: 203
+    sourceEndLine: 225
     sourceEndColumn: 1
   - id: SYM-skillopt-fixture-private-integrity
     title: verifyPrivateManifestIntegrity
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
     symbol_role: behavioral
+    granularity_reason: module-level-behavior
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 206
+    sourceLine: 228
     sourceColumn: 16
-    sourceEndLine: 216
+    sourceEndLine: 238
     sourceEndColumn: 1
   - id: SYM-skillopt-fixture-materialize-run
     title: materializeFixtureRun
@@ -14308,35 +14310,37 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 191
+    sourceLine: 257
     sourceColumn: 16
-    sourceEndLine: 196
+    sourceEndLine: 265
     sourceEndColumn: 1
   - id: SYM-skillopt-fixture-build-bundle-payload
     title: buildBundlePayload
     sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
     symbol_role: behavioral
+    granularity_reason: module-level-behavior
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 199
+    sourceLine: 268
     sourceColumn: 16
-    sourceEndLine: 208
+    sourceEndLine: 277
     sourceEndColumn: 1
   - id: SYM-skillopt-fixture-family-payload-type
     title: FamilyPayload
     sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
     symbol_role: type-shape
+    granularity_reason: module-level-behavior
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 27
+    sourceLine: 30
     sourceColumn: 12
-    sourceEndLine: 44
+    sourceEndLine: 47
     sourceEndColumn: 3
   - id: SYM-skillopt-fixture-definition-type
     title: Definition
@@ -14413,9 +14417,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 114
+    sourceLine: 128
     sourceColumn: 16
-    sourceEndLine: 123
+    sourceEndLine: 137
     sourceEndColumn: 1
   - id: SYM-skillopt-fixture-write-workspace
     title: writePublicWorkspace
@@ -14426,10 +14430,324 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 126
+    sourceLine: 140
     sourceColumn: 16
-    sourceEndLine: 175
+    sourceEndLine: 195
     sourceEndColumn: 1
+  - id: SYM-skillopt-predicate-cases-registry
+    title: PREDICATE_CASES
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-case-data.ts
+    symbol_role: fixture
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+    sourceLine: 206
+    sourceColumn: 13
+    sourceEndLine: 256
+    sourceEndColumn: 1
+  - id: SYM-skillopt-predicate-materialize-corpus
+    title: materializePredicateCorpus
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-corpus.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+    sourceLine: 160
+    sourceColumn: 16
+    sourceEndLine: 203
+    sourceEndColumn: 1
+  - id: SYM-skillopt-predicate-reserve-matrix
+    title: reservePredicateMatrix
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-matrix.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+    sourceLine: 48
+    sourceColumn: 16
+    sourceEndLine: 80
+    sourceEndColumn: 1
+  - id: SYM-skillopt-predicate-freeze-materialization
+    title: freezeMaterialization
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-materialization.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+    sourceLine: 36
+    sourceColumn: 16
+    sourceEndLine: 103
+    sourceEndColumn: 1
+  - id: SYM-skillopt-predicate-reset-matrix-cache
+    title: __resetPredicateMatrixCacheForTests
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-matrix.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+    sourceLine: 160
+    sourceColumn: 16
+    sourceEndLine: 163
+    sourceEndColumn: 1
+  - id: SYM-skillopt-predicate-payload
+    title: predicatePayload
+    sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+    sourceLine: 149
+    sourceColumn: 9
+    sourceEndLine: 204
+    sourceEndColumn: 1
+  - id: SYM-skillopt-predicate-write-claim
+    title: writePublicPredicateClaim
+    sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+    sourceLine: 115
+    sourceColumn: 9
+    sourceEndLine: 125
+    sourceEndColumn: 1
+  - id: SYM-skillopt-predicate-build-expectation
+    title: buildPredicateExpectation
+    sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+    sourceLine: 138
+    sourceColumn: 9
+    sourceEndLine: 153
+    sourceEndColumn: 1
+  - id: SYM-skillopt-predicate-semantic-class
+    title: PredicateSemanticClass
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-expected-lane
+    title: ExpectedLane
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-expected-edge
+    title: ExpectedEdge
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-public-claim
+    title: PublicClaim
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-private-expectation
+    title: PrivateExpectation
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-case-type
+    title: PredicateCase
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-train-case-ids
+    title: PREDICATE_TRAIN_CASE_IDS
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-development-case-id
+    title: PREDICATE_DEVELOPMENT_CASE_ID
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-held-out-case-ids
+    title: PREDICATE_HELD_OUT_CASE_IDS
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-semantic-classes
+    title: PREDICATE_SEMANTIC_CLASSES
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-case-by-id
+    title: predicateCaseById
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-case-by-split-index
+    title: predicateCaseBySplitIndex
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-assert-distinct-classes
+    title: assertDistinctSemanticClasses
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-roots-type
+    title: PredicateRoots
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-corpus.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-candidate-root-manifest
+    title: CandidateRootManifest
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-corpus.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-frozen-candidate-hashes
+    title: FrozenCandidateHashes
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-corpus.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-orchestration-eligibility
+    title: OrchestrationEligibility
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-corpus.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-materialization-type
+    title: PredicateMaterialization
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-corpus.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-deterministic-candidates
+    title: DETERMINISTIC_CANDIDATES
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-corpus.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-frozen-materialization-input
+    title: FrozenMaterializationInput
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-materialization.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-matrix-state
+    title: MatrixState
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-matrix.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-matrix-receipt
+    title: PredicateMatrixReceipt
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-matrix.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-predicate-reserved-matrix
+    title: ReservedPredicateMatrix
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-matrix.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
   - id: SYM-skillopt-fixture-catalog-tests
     title: SkillOpt fixture catalog
     sourceFile: scripts/skillopt-eval/tests/catalog.test.ts
@@ -14438,6 +14756,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-codex-optimization
+      - type: executable_for
+        target: TEST-skillopt-predicate-first-requirements
   - id: SYM-skillopt-fixture-public-tests
     title: public SkillOpt fixture corpus
     sourceFile: scripts/skillopt-eval/tests/fixture-public.test.ts
@@ -14446,6 +14766,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-codex-optimization
+      - type: executable_for
+        target: TEST-skillopt-predicate-first-requirements
   - id: SYM-skillopt-fixture-private-tests
     title: private SkillOpt fixture corpus
     sourceFile: scripts/skillopt-eval/tests/fixture-private.test.ts
@@ -14454,6 +14776,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-codex-optimization
+      - type: executable_for
+        target: TEST-skillopt-predicate-first-requirements
   - id: SYM-skillopt-fixture-resilience-tests
     title: SkillOpt fixture adversarial resilience
     sourceFile: scripts/skillopt-eval/tests/fixture-resilience.test.ts
@@ -17772,28 +18096,28 @@ symbols:
     title: connectTransport
     sourceFile: packages/mcp/src/server/transport.ts
     symbol_role: behavioral
-    sourceLine: 93
-    sourceColumn: 22
-    sourceEndLine: 98
-    sourceEndColumn: 1
     relationships:
       - type: implements
         target: REQ-002
       - type: covered_by
         target: TEST-mcp-kb-freshness
+    sourceLine: 93
+    sourceColumn: 22
+    sourceEndLine: 98
+    sourceEndColumn: 1
   - id: SYM-mcp-session-updateAttachedBranchStamp
     title: updateAttachedBranchStamp
     sourceFile: packages/mcp/src/server/session.ts
     symbol_role: behavioral
-    sourceLine: 75
-    sourceColumn: 16
-    sourceEndLine: 77
-    sourceEndColumn: 1
     relationships:
       - type: implements
         target: REQ-mcp-kb-freshness
       - type: covered_by
         target: TEST-mcp-kb-freshness
+    sourceLine: 75
+    sourceColumn: 16
+    sourceEndLine: 77
+    sourceEndColumn: 1
   - id: SYM-cli-test-large-entity-goal
     title: largeEntityGoal
     sourceFile: packages/cli/tests/operations/discovery.test.ts

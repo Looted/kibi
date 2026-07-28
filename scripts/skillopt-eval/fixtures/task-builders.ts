@@ -8,6 +8,10 @@ import type {
   TaskSplit,
   WorktreeState,
 } from "../catalog";
+import {
+  type PredicateSemanticClass,
+  predicateCaseBySplitIndex,
+} from "./predicate-cases";
 import type { Definition } from "./task-definition-types";
 import {
   INIT_DEFINITIONS,
@@ -17,7 +21,6 @@ import {
   FRESHNESS_DEFINITIONS,
   USAGE_DEFINITIONS,
 } from "./task-definitions-usage";
-
 type BuilderContext = Readonly<{
   skill: CanonicalSkill;
   family: string;
@@ -138,6 +141,68 @@ const BUNDLE_DEFINITIONS: Readonly<Record<string, Definition>> = {
   ),
 };
 
+/**
+ * Predicate-family cases are dispatched to the semantically distinct registry
+ * so each of the seven cases carries a distinct claim-derived prompt and
+ * objective. This avoids split-suffix semantics (e.g. "train case 1").
+ */
+function predicatePayload(
+  definition: Definition,
+  split: TaskSplit,
+  index: number,
+): FamilyPayload {
+  const semanticCase = predicateCaseBySplitIndex(split, index);
+  const claimPrompt = `Model the following normative claim through the predicate-first Kibi workflow using only the public MCP surface. Claim: "${semanticCase.publicClaim.claimText}"`;
+  const objectiveByClass: Readonly<Record<PredicateSemanticClass, string>> = {
+    builtin_relational: "model_predicate_builtin_relational",
+    strict_scalar_counterexample: "model_predicate_strict_scalar",
+    project_local_schema: "model_predicate_project_local_schema",
+    deny_polarity: "model_predicate_deny_polarity",
+    ambiguous: "model_predicate_ambiguous",
+    ontology_gap: "model_predicate_ontology_gap",
+    keyword_false_positive: "model_predicate_keyword_false_positive",
+  };
+  const conditionalFiles = [
+    ...(definition.worktree === "dirty" ? ["changes/uncommitted.patch"] : []),
+    ...(definition.kb === "stale" ? ["generated/stale-snapshot.json"] : []),
+    ...(definition.approvalPhase === "not-applicable"
+      ? []
+      : ["approval-state.json"]),
+    ...(definition.adversarialCases.includes("malformed-input")
+      ? ["inputs/malformed.json"]
+      : []),
+    ...(definition.adversarialCases.includes("misleading-success")
+      ? ["agent-output.txt"]
+      : []),
+    ...(definition.adversarialCases.includes("interruption-cleanup")
+      ? ["interruption-plan.json"]
+      : []),
+    "predicate-claim.json",
+  ];
+  return {
+    prompt: claimPrompt,
+    activationMode: definition.activationMode,
+    initialState: {
+      repository: definition.repository,
+      kb: definition.kb,
+      worktree: definition.worktree,
+      setupBoundary: "external-kibi-adapter",
+    },
+    allowedPublicFiles: [
+      ...BASE_FILES,
+      ...SKILL_FILES,
+      ...conditionalFiles,
+    ].sort(),
+    taskData: {
+      objectiveCode: objectiveByClass[semanticCase.semanticClass],
+      sourceFile: definition.sourceFile,
+      mutation: definition.mutation,
+      approvalPhase: definition.approvalPhase,
+      adversarialCases: definition.adversarialCases,
+    },
+  };
+}
+
 function payload(
   definition: Definition,
   split: TaskSplit,
@@ -187,11 +252,15 @@ class TaskDefinitionError extends Error {
   readonly name = "TaskDefinitionError";
 }
 
+// implements REQ-skillopt-predicate-first-requirements
 // implements REQ-skillopt-codex-optimization
 export function buildFamilyPayload(context: BuilderContext): FamilyPayload {
   const definition = DEFINITIONS[context.skill][context.family];
   if (definition === undefined)
     throw new TaskDefinitionError(`unknown task family: ${context.family}`);
+  if (context.family === "fact-predicate-modeling") {
+    return predicatePayload(definition, context.split, context.index);
+  }
   return payload(definition, context.split, context.index);
 }
 

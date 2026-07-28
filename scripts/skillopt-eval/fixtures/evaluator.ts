@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import type { CatalogSkill } from "../catalog";
 import type { parseTaskSpec } from "./contracts";
 import type { parsePrivateEvaluatorManifest } from "./evaluator-contracts";
+import { predicateCaseById } from "./predicate-cases";
 
 type FixtureTaskSpec = ReturnType<typeof parseTaskSpec>;
 type PrivateEvaluatorManifest = ReturnType<
@@ -133,6 +134,25 @@ function requiredTools(task: FixtureTaskSpec): readonly string[] {
   return [...READ_TOOLS[task.skill], "kb_upsert", "kb_check"];
 }
 
+// implements REQ-skillopt-predicate-first-requirements
+function buildPredicateExpectation(task: FixtureTaskSpec) {
+  if (task.family !== "fact-predicate-modeling") {
+    return null;
+  }
+  const semanticCase = predicateCaseById(task.id);
+  const expectation = semanticCase.privateExpectation;
+  return {
+    semanticClass: expectation.semanticClass,
+    expectedLane: expectation.expectedLane,
+    expectedPredicateName: expectation.expectedPredicateName,
+    expectedPredicateArgs: expectation.expectedPredicateArgs,
+    expectedPolarity: expectation.expectedPolarity,
+    expectedEdges: [...expectation.expectedEdges],
+    privateRationale: expectation.privateRationale,
+  };
+}
+
+// implements REQ-skillopt-predicate-first-requirements
 // implements REQ-skillopt-codex-optimization
 export function buildPrivateManifest(input: {
   readonly task: FixtureTaskSpec;
@@ -141,6 +161,7 @@ export function buildPrivateManifest(input: {
 }) {
   const criticalKey = `final-${input.task.family}`;
   const workspaceKey = "workspace-isolated";
+  const predicateExpectation = buildPredicateExpectation(input.task);
   return {
     schemaVersion: "1.1.0" as const,
     taskId: input.task.id,
@@ -199,6 +220,7 @@ export function buildPrivateManifest(input: {
     ],
     blindedVariants: [...blindedVariantOrder(input.task.id, input.task.skill)],
     adversarialAssessments: adversarialAssessments(input.task),
+    predicateExpectation,
   };
 }
 

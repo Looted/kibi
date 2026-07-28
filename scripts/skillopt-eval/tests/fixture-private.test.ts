@@ -15,6 +15,7 @@ import {
 } from "../fixtures/private";
 import {
   CANONICAL_SKILL_ROOT,
+  readTree,
   temporaryRoot,
   treeHash,
 } from "./fixture-test-helpers";
@@ -150,5 +151,28 @@ describe("private SkillOpt fixture corpus", () => {
         item.applicable ? item.fixturePath !== null : item.reason.length > 0,
       ),
     ).toBe(true);
+  });
+
+  test("predicate corpus private map records expected lane predicate and edges per case", () => {
+    const root = temporaryRoot();
+    roots.push(root);
+    const {
+      materializePredicateCorpus,
+      PREDICATE_SEMANTIC_CLASSES,
+    } = require("../fixtures/predicate-corpus");
+    const corpus = materializePredicateCorpus({
+      artifactRoot: path.join(root, "corpus"),
+    });
+    const privateText = readTree(corpus.privateRootDir);
+
+    expect(privateText).toMatch(/expectedLane/);
+    for (const semanticClass of PREDICATE_SEMANTIC_CLASSES.keys()) {
+      const entry = corpus.privateCaseMap.get(semanticClass);
+      if (entry === undefined)
+        throw new Error(`missing private case: ${semanticClass}`);
+      expect(entry.expectedLane.length).toBeGreaterThan(0);
+      expect(Array.isArray(entry.expectedEdges)).toBe(true);
+    }
+    expect(corpus.privateCaseMap.size).toBe(7);
   });
 });
