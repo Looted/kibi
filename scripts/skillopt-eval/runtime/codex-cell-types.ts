@@ -1,6 +1,7 @@
 import type { CanonicalSkill } from "../catalog";
 import type { EpisodeRequest } from "../contracts/episode";
-import type { CellReceipt } from "../scoring/cell";
+import type { parsePrivateEvaluatorManifest } from "../fixtures/private";
+import type { CellEvidence } from "../scoring/cell";
 import type { probeRequiredMcp } from "./canary-runtime";
 import type { CodexEpisodeReceipt } from "./codex-episode";
 import type { FinalStateOptions } from "./final-state";
@@ -24,6 +25,18 @@ export type FinalStateContext = Readonly<{
   receiptPath: string;
 }>;
 
+export type SealedCellEvidence = Readonly<
+  Omit<CellEvidence, "finalState"> & {
+    readonly finalState: Omit<CellEvidence["finalState"], "snapshot">;
+  }
+>;
+
+export type SealedCellEvidenceContext = Readonly<{
+  finalState: string;
+  brokerTrace: string;
+  diagnosticReceipt: string;
+}>;
+
 export type CodexCellOptions = Readonly<{
   request: EpisodeRequest;
   fixtureRoot: string;
@@ -35,7 +48,7 @@ export type CodexCellOptions = Readonly<{
   bwrapExecutable: string;
   env: NodeJS.ProcessEnv;
   finalStateRequests: FinalStateOptions["requests"];
-  score: CellReceipt;
+  evaluatorManifest: ReturnType<typeof parsePrivateEvaluatorManifest>;
   hiddenMarkers: readonly string[];
   pricingHash: string;
   priceAmount: number;
@@ -56,6 +69,9 @@ export type CodexCellDependencies = Readonly<{
   run: CanaryRunner;
   finalState: (context: FinalStateContext) => Promise<string>;
   diagnosticReceipt: (workspace: IsolationWorkspace) => Promise<string>;
+  evaluateSealedEvidence: (
+    context: SealedCellEvidenceContext,
+  ) => Promise<SealedCellEvidence>;
   clock: () => Date;
 }>;
 
@@ -70,5 +86,13 @@ export class FixtureIntegrityError extends Error {
 
   constructor() {
     super("workspace_fixture_hash_mismatch");
+  }
+}
+
+export class CallerScoreInjectionError extends Error {
+  readonly name = "CallerScoreInjectionError";
+
+  constructor() {
+    super("caller_score_injection");
   }
 }

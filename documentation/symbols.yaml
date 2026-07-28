@@ -14649,7 +14649,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
     symbol_role: behavioral
     granularity_reason: legacy-link
-    text_ref: scripts/skillopt-eval/tests/codex-cell-runner.test.ts#runCodexCell
+    text_ref: scripts/skillopt-eval/runtime/codex-cell-runner.ts#runCodexCell
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -14681,6 +14681,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
     symbol_role: behavioral
     granularity_reason: legacy-link
+    text_ref: scripts/skillopt-eval/runtime/codex-cell-defaults.ts#defaultCodexCellDependencies
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -14772,6 +14773,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
     symbol_role: type-shape
     granularity_reason: legacy-link
+    text_ref: scripts/skillopt-eval/runtime/codex-cell-types.ts#CodexCellOptions
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -16248,6 +16250,7 @@ symbols:
     title: SealedCellEvidence
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
     symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/runtime/codex-cell-types.ts#SealedCellEvidence
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -16267,6 +16270,17 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
     symbol_role: structural
     granularity_reason: legacy-link
+    text_ref: scripts/skillopt-eval/runtime/codex-cell-types.ts#CallerScoreInjectionError
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-caller-score-injection-error-name
+    title: CallerScoreInjectionError.name
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/runtime/codex-cell-types.ts#CallerScoreInjectionError.name
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization

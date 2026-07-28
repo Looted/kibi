@@ -2,6 +2,7 @@ import { cp, mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { EpisodeRequestSchema } from "../contracts/episode";
 import { hashWorkspace } from "../fixtures/workspace";
+import { scoreCell } from "../scoring/cell";
 import { resolveIsolationArtifactRoot } from "./artifact-root";
 import { RequiredMcpStartupError } from "./canary-runtime";
 import {
@@ -10,6 +11,7 @@ import {
 } from "./codex-cell-artifacts";
 import { defaultCodexCellDependencies } from "./codex-cell-defaults";
 import {
+  CallerScoreInjectionError,
   type CodexCellDependencies,
   type CodexCellOptions,
   type CompletedCodexCell,
@@ -28,11 +30,18 @@ export type {
   CompletedCodexCell,
 } from "./codex-cell-types";
 
+function assertNoCallerScoreInjection(options: CodexCellOptions): void {
+  if (Object.hasOwn(options, "score") || Object.hasOwn(options, "receipt")) {
+    throw new CallerScoreInjectionError();
+  }
+}
+
 // implements REQ-skillopt-codex-optimization
 export async function runCodexCell(
   options: CodexCellOptions,
   dependencies: CodexCellDependencies = defaultCodexCellDependencies(options),
 ): Promise<CompletedCodexCell> {
+  assertNoCallerScoreInjection(options);
   const request = EpisodeRequestSchema.parse(options.request);
   const artifactDirectory = resolve(
     options.artifactRoot,
@@ -150,6 +159,15 @@ export async function runCodexCell(
         receiptPath: join(artifactDirectory, "final-state.json"),
       });
     }
+    const sealedEvidence = await dependencies.evaluateSealedEvidence({
+      finalState,
+      brokerTrace,
+      diagnosticReceipt,
+    });
+    const score = scoreCell(options.evaluatorManifest, {
+      ...sealedEvidence,
+      finalState: { ...sealedEvidence.finalState, snapshot: finalState },
+    });
     const receipt = replayCodexEpisode({
       request,
       transcript,
@@ -159,7 +177,7 @@ export async function runCodexCell(
       startedAt,
       finishedAt: dependencies.clock().toISOString(),
       evidence: { brokerTrace, diagnosticReceipt, finalState },
-      score: options.score,
+      score,
       hiddenMarkers: options.hiddenMarkers,
       forbiddenRoots: [
         options.sourceWorktree,

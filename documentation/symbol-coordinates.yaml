@@ -6242,6 +6242,12 @@ coordinates:
     sourceEndLine: 98
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
     sourceLine: 92
+  SYM-skillopt-caller-score-injection-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 46
+    sourceEndLine: 93
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    sourceLine: 93
   SYM-skillopt-candidate-surface-error:
     sourceColumn: 13
     sourceEndColumn: 1
