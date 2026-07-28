@@ -16154,6 +16154,7 @@ symbols:
     title: evaluateHeldOutPredicateGate
     sourceFile: scripts/skillopt-eval/scoring/held-out-predicate.ts
     symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/scoring/held-out-predicate.ts#evaluateHeldOutPredicateGate
     relationships:
       - type: implements
         target: REQ-skillopt-predicate-first-requirements

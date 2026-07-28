@@ -1,7 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import { PREDICATE_HELD_OUT_CASE_IDS } from "../fixtures/predicate-corpus";
 import {
   type GateCell,
+  type HeldOutPredicateGateCell,
   evaluateBundleGate,
+  evaluateHeldOutPredicateGate,
   evaluateSkillGate,
 } from "../scoring/gates";
 import { pairedBootstrapLowerBound } from "../scoring/statistics";
@@ -45,6 +48,24 @@ function passingSkillMatrix() {
       (index) => (index < 12 ? 1 : 0),
     ),
   } as const;
+}
+
+function passingHeldOutPredicateCells(): readonly HeldOutPredicateGateCell[] {
+  const variants = ["baseline", "one-shot", "skillopt"] as const;
+  return PREDICATE_HELD_OUT_CASE_IDS.flatMap((caseId) =>
+    variants.map((variant) => ({
+      taskId: `${caseId}:${variant}`,
+      family: "fact-predicate-modeling",
+      score: 100,
+      hard: 1 as const,
+      outcome: "pass" as const,
+      terminalCategory: null,
+      criticalFailureCount: 0,
+      caseId,
+      variant,
+      predicateEvidence: { outcome: "pass" as const, caseId },
+    })),
+  );
 }
 
 describe("SkillOpt deterministic statistics", () => {
@@ -204,6 +225,61 @@ describe("SkillOpt per-skill gate", () => {
     expect(verdict.outcome).toBe("ambiguous");
     expect(verdict.adoptionEligible).toBe(false);
     expect(verdict.reasons).toEqual(["matrix:malformed-cell-evidence"]);
+  });
+
+  test("keeps detailed train and development statistics available to optimization", () => {
+    // Given
+    const matrix = passingSkillMatrix();
+
+    // When
+    const verdict = evaluateSkillGate(matrix);
+
+    // Then
+    expect(verdict.statistics?.candidate.count).toBe(16);
+    expect(verdict.statistics?.familySlices).toHaveLength(4);
+    expect(verdict.reasons).toEqual([]);
+  });
+});
+
+describe("held-out predicate matrix gate", () => {
+  test("returns only eligible when all four held-out cases pass in every blinded variant", () => {
+    // Given
+    const cells = passingHeldOutPredicateCells();
+
+    // When
+    const verdict = evaluateHeldOutPredicateGate(cells);
+
+    // Then
+    expect(verdict).toEqual({ eligibility: "eligible" });
+  });
+
+  test("returns a generic ineligible result without per-case diagnostics when one held-out case fails", () => {
+    // Given
+    const cells = passingHeldOutPredicateCells().map((cell, index) =>
+      index === 0
+        ? {
+            ...cell,
+            score: 0,
+            hard: 0 as const,
+            outcome: "fail" as const,
+            terminalCategory: "behavioral_failure",
+            criticalFailureCount: 1,
+            predicateEvidence: {
+              outcome: "fail" as const,
+              caseId: cell.caseId,
+              failure: "predicate-lane" as const,
+            },
+          }
+        : cell,
+    );
+
+    // When
+    const verdict = evaluateHeldOutPredicateGate(cells);
+
+    // Then
+    expect(verdict).toEqual({ eligibility: "HELD_OUT_MATRIX_INELIGIBLE" });
+    expect(JSON.stringify(verdict)).not.toContain(cells[0]?.caseId ?? "");
+    expect(JSON.stringify(verdict)).not.toContain("predicate-lane");
   });
 });
 

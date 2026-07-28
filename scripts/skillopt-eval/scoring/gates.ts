@@ -6,6 +6,12 @@ import {
   summarizeCells,
 } from "./statistics";
 
+export {
+  evaluateHeldOutPredicateGate,
+  type HeldOutPredicateGateCell,
+  type HeldOutPredicateGateVerdict,
+} from "./held-out-predicate";
+
 export type GateCell = Readonly<{
   taskId: string;
   family: string;
