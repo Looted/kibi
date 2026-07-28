@@ -1,36 +1,32 @@
+import {
+  runBridge,
+} from "./runtime/bridge-cli-execution";
+import {
+  bridgeErrorCode,
+  parseBridgeOptions,
+} from "./runtime/bridge-cli-options";
 import { readBridgeRequest, writeBridgeResult } from "./runtime/file-bridge";
 
 // implements REQ-skillopt-codex-optimization
-function argument(name: string): string {
-  const index = process.argv.indexOf(name);
-  const value = index >= 0 ? process.argv[index + 1] : undefined;
-  if (value === undefined || value.length === 0) {
-    throw new Error(`missing_${name.slice(2)}`);
-  }
-  return value;
+export async function bridgeMain(
+  args: readonly string[],
+  dependencies?: Parameters<typeof runBridge>[2],
+): Promise<number> {
+  const options = parseBridgeOptions(args);
+  const request = await readBridgeRequest(options.requestPath);
+  const result = await runBridge(options, request, dependencies);
+  await writeBridgeResult(options.resultPath, result, request);
+  return 0;
 }
 
-const requestPath = argument("--request");
-const resultPath = argument("--result");
-if (!process.argv.includes("--fake")) {
-  throw new Error("bridge_runner_not_configured");
+if (import.meta.main) {
+  bridgeMain(process.argv.slice(2)).then(
+    (exitCode) => {
+      process.exitCode = exitCode;
+    },
+    (error: unknown) => {
+      process.stderr.write(`${JSON.stringify({ code: bridgeErrorCode(error) })}\n`);
+      process.exitCode = 1;
+    },
+  );
 }
-const request = await readBridgeRequest(requestPath);
-const result = {
-  schemaVersion: "1.0.0" as const,
-  artifactType: "skillopt-bridge-result" as const,
-  runId: request.runId,
-  batchId: request.batchId,
-  requestHash: "0".repeat(64),
-  rows: request.taskIds.map((id) => ({
-    id,
-    hard: 1 as const,
-    soft: 1,
-    status: "completed" as const,
-    failureCategory: null,
-    conversationPath: `predictions/${id}/conversation.json`,
-    evidenceRefs: [`episode/${id}/receipt.json`],
-  })),
-  checkpoint: { maxSteps: 1, completedSteps: 1, nextStep: 2 },
-};
-await writeBridgeResult(resultPath, result, request);
