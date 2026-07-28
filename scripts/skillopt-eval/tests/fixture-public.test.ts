@@ -39,7 +39,17 @@ describe("public SkillOpt fixture corpus", () => {
       ).toHaveLength(4);
       expect(
         new Set(skillTasks.map((task) => task.taskData.objectiveCode)).size,
-      ).toBe(4);
+      ).toBe(skill === "kibi-usage" ? 6 : 4);
+      // Predicate family carries a distinct objective per semantic case;
+      // remaining families keep one objective per family.
+      if (skill === "kibi-usage") {
+        const predicateObjectives = new Set(
+          skillTasks
+            .filter((task) => task.family === "fact-predicate-modeling")
+            .map((task) => task.taskData.objectiveCode),
+        );
+        expect(predicateObjectives.size).toBe(3);
+      }
     }
   });
 
@@ -140,6 +150,24 @@ describe("public SkillOpt fixture corpus", () => {
     expect(text).not.toMatch(/"(?:baseline|one-shot|skillopt)"/);
     expect(text).not.toMatch(
       /PRIVATE_SENTINEL|SIBLING_SENTINEL|credential|privateTrace/i,
+    );
+  });
+
+  test("predicate corpus public workspace exposes claim and schema without expected outcome", () => {
+    const root = temporaryRoot();
+    roots.push(root);
+    const {
+      materializePredicateCorpus,
+    } = require("../fixtures/predicate-corpus");
+    const corpus = materializePredicateCorpus({
+      artifactRoot: path.join(root, "corpus"),
+    });
+    const publicText = readTree(corpus.publicRootDir);
+
+    expect(publicText).toMatch(/claimText/i);
+    expect(publicText).toMatch(/publicSchema/i);
+    expect(publicText).not.toMatch(
+      /expectedLane|expectedPredicate|expectedEdges|expectedPredicateName|expectedPredicateArgs|expectedPolarity|privateExpectation|PRIVATE_EXPECTED/i,
     );
   });
 });

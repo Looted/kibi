@@ -10,6 +10,7 @@ import {
 import path from "node:path";
 import { CANONICAL_SKILLS } from "../catalog";
 import type { parseTaskSpec } from "./contracts";
+import { predicateCaseById } from "./predicate-cases";
 
 type FixtureTaskSpec = ReturnType<typeof parseTaskSpec>;
 type WorkspaceInput = Readonly<{
@@ -110,6 +111,19 @@ function copyCanonicalSkills(input: WorkspaceInput): void {
   });
 }
 
+// implements REQ-skillopt-predicate-first-requirements
+function writePublicPredicateClaim(input: WorkspaceInput): void {
+  const semanticCase = predicateCaseById(input.task.id);
+  // Public view: claim text + public schema only. Never the expected outcome.
+  writeJson(input.root, "predicate-claim.json", {
+    caseId: semanticCase.caseId,
+    semanticClass: semanticCase.semanticClass,
+    split: semanticCase.split,
+    claimText: semanticCase.publicClaim.claimText,
+    publicSchema: semanticCase.publicClaim.publicSchema,
+  });
+}
+
 // implements REQ-skillopt-codex-optimization
 export function hashWorkspace(root: string): string {
   const hash = createHash("sha256");
@@ -158,6 +172,12 @@ export function writePublicWorkspace(input: WorkspaceInput): string {
   });
   copyCanonicalSkills(input);
   writeAdversarialFiles(input);
+  // Predicate-family tasks materialize the public claim and schema (no expected
+  // outcome) from the semantically distinct registry. The private expectation
+  // lives only in the evaluator/verifier lane.
+  if (input.task.family === "fact-predicate-modeling") {
+    writePublicPredicateClaim(input);
+  }
   const materializedFiles = [...listFiles(input.root)].sort();
   if (
     JSON.stringify(materializedFiles) !==

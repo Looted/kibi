@@ -1955,9 +1955,9 @@ coordinates:
   SYM-checkCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 857
+    sourceEndLine: 901
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 499
+    sourceLine: 543
   SYM-checkWorkspaceHealth:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6881,21 +6881,21 @@ coordinates:
   SYM-skillopt-fixture-blinded-order:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 47
+    sourceEndLine: 48
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    sourceLine: 31
+    sourceLine: 32
   SYM-skillopt-fixture-build-bundle-payload:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 208
+    sourceEndLine: 277
     sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
-    sourceLine: 199
+    sourceLine: 268
   SYM-skillopt-fixture-build-family-payload:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 196
+    sourceEndLine: 265
     sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
-    sourceLine: 191
+    sourceLine: 257
   SYM-skillopt-fixture-build-index:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6917,9 +6917,9 @@ coordinates:
   SYM-skillopt-fixture-family-payload-type:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 44
+    sourceEndLine: 47
     sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
-    sourceLine: 27
+    sourceLine: 30
   SYM-skillopt-fixture-freshness-definitions:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -6929,9 +6929,9 @@ coordinates:
   SYM-skillopt-fixture-hash-workspace:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 123
+    sourceEndLine: 137
     sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
-    sourceLine: 114
+    sourceLine: 128
   SYM-skillopt-fixture-init-definitions:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -6983,15 +6983,15 @@ coordinates:
   SYM-skillopt-fixture-parse-private-manifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 128
+    sourceEndLine: 161
     sourceFile: scripts/skillopt-eval/fixtures/evaluator-contracts.ts
-    sourceLine: 124
+    sourceLine: 157
   SYM-skillopt-fixture-parse-private-value:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 132
+    sourceEndLine: 165
     sourceFile: scripts/skillopt-eval/fixtures/evaluator-contracts.ts
-    sourceLine: 130
+    sourceLine: 163
   SYM-skillopt-fixture-parse-public-manifest:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7019,15 +7019,15 @@ coordinates:
   SYM-skillopt-fixture-private-integrity:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 216
+    sourceEndLine: 238
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    sourceLine: 206
+    sourceLine: 228
   SYM-skillopt-fixture-private-manifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 203
+    sourceEndLine: 225
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    sourceLine: 137
+    sourceLine: 157
   SYM-skillopt-fixture-serialize:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7091,9 +7091,9 @@ coordinates:
   SYM-skillopt-fixture-write-workspace:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 175
+    sourceEndLine: 195
     sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
-    sourceLine: 126
+    sourceLine: 140
   SYM-skillopt-freeze-candidate-variant:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7334,6 +7334,192 @@ coordinates:
     sourceEndLine: 254
     sourceFile: scripts/skillopt-eval/adoption.ts
     sourceLine: 249
+  SYM-skillopt-predicate-assert-distinct-classes:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 132
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    sourceLine: 122
+  SYM-skillopt-predicate-build-expectation:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 153
+    sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
+    sourceLine: 138
+  SYM-skillopt-predicate-candidate-root-manifest:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 68
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-corpus.ts
+    sourceLine: 62
+  SYM-skillopt-predicate-case-by-id:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 106
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    sourceLine: 100
+  SYM-skillopt-predicate-case-by-split-index:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 120
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    sourceLine: 108
+  SYM-skillopt-predicate-case-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 71
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    sourceLine: 65
+  SYM-skillopt-predicate-cases-registry:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 256
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-case-data.ts
+    sourceLine: 206
+  SYM-skillopt-predicate-deterministic-candidates:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 120
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-corpus.ts
+    sourceLine: 110
+  SYM-skillopt-predicate-development-case-id:
+    sourceColumn: 13
+    sourceEndColumn: 78
+    sourceEndLine: 86
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    sourceLine: 85
+  SYM-skillopt-predicate-expected-edge:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 38
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    sourceLine: 34
+  SYM-skillopt-predicate-expected-lane:
+    sourceColumn: 12
+    sourceEndColumn: 31
+    sourceEndLine: 32
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    sourceLine: 28
+  SYM-skillopt-predicate-freeze-materialization:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 103
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-materialization.ts
+    sourceLine: 36
+  SYM-skillopt-predicate-frozen-candidate-hashes:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 74
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-corpus.ts
+    sourceLine: 70
+  SYM-skillopt-predicate-frozen-materialization-input:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 28
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-materialization.ts
+    sourceLine: 19
+  SYM-skillopt-predicate-held-out-case-ids:
+    sourceColumn: 13
+    sourceEndColumn: 3
+    sourceEndLine: 91
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    sourceLine: 88
+  SYM-skillopt-predicate-materialization-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 96
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-corpus.ts
+    sourceLine: 80
+  SYM-skillopt-predicate-materialize-corpus:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 203
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-corpus.ts
+    sourceLine: 160
+  SYM-skillopt-predicate-matrix-receipt:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 22
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-matrix.ts
+    sourceLine: 17
+  SYM-skillopt-predicate-matrix-state:
+    sourceColumn: 12
+    sourceEndColumn: 61
+    sourceEndLine: 15
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-matrix.ts
+    sourceLine: 15
+  SYM-skillopt-predicate-orchestration-eligibility:
+    sourceColumn: 12
+    sourceEndColumn: 71
+    sourceEndLine: 76
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-corpus.ts
+    sourceLine: 76
+  SYM-skillopt-predicate-payload:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 204
+    sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
+    sourceLine: 149
+  SYM-skillopt-predicate-private-expectation:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 63
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    sourceLine: 53
+  SYM-skillopt-predicate-public-claim:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 51
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    sourceLine: 40
+  SYM-skillopt-predicate-reserve-matrix:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 80
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-matrix.ts
+    sourceLine: 48
+  SYM-skillopt-predicate-reserved-matrix:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 31
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-matrix.ts
+    sourceLine: 24
+  SYM-skillopt-predicate-reset-matrix-cache:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 163
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-matrix.ts
+    sourceLine: 160
+  SYM-skillopt-predicate-roots-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 60
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-corpus.ts
+    sourceLine: 50
+  SYM-skillopt-predicate-semantic-class:
+    sourceColumn: 12
+    sourceEndColumn: 29
+    sourceEndLine: 26
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    sourceLine: 19
+  SYM-skillopt-predicate-semantic-classes:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 98
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    sourceLine: 93
+  SYM-skillopt-predicate-train-case-ids:
+    sourceColumn: 13
+    sourceEndColumn: 3
+    sourceEndLine: 83
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    sourceLine: 80
+  SYM-skillopt-predicate-write-claim:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 125
+    sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
+    sourceLine: 115
   SYM-skillopt-preflight-check:
     sourceColumn: 16
     sourceEndColumn: 1

@@ -59,6 +59,38 @@ const RubricSchema = z.tuple([
     .strict(),
 ]);
 
+const PredicateExpectationSchema = z
+  .object({
+    semanticClass: z.enum([
+      "builtin_relational",
+      "strict_scalar_counterexample",
+      "project_local_schema",
+      "deny_polarity",
+      "ambiguous",
+      "ontology_gap",
+      "keyword_false_positive",
+    ]),
+    expectedLane: z.enum([
+      "predicate",
+      "strict_property",
+      "observation",
+      "ontology_gap_observation",
+    ]),
+    expectedPredicateName: z.string().min(1).nullable(),
+    expectedPredicateArgs: z.array(z.string().min(1)).nullable(),
+    expectedPolarity: z.enum(["assert", "deny"]).nullable(),
+    expectedEdges: z.array(
+      z
+        .object({
+          relationship: z.string().min(1),
+          target: z.string().min(1),
+        })
+        .strict(),
+    ),
+    privateRationale: z.string().min(1),
+  })
+  .strict();
+
 const PrivateEvaluatorManifestSchema = z
   .object({
     schemaVersion: z.literal("1.1.0"),
@@ -89,6 +121,7 @@ const PrivateEvaluatorManifestSchema = z
         .strict(),
     ]),
     adversarialAssessments: z.array(AssessmentSchema).length(8),
+    predicateExpectation: PredicateExpectationSchema.nullable().default(null),
   })
   .strict()
   .superRefine((manifest, context) => {
