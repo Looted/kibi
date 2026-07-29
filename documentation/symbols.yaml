@@ -14851,6 +14851,81 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-codex-cell-fixture-cleanupRoots
+    title: cleanupRoots
+    sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts#cleanupRoots
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-codex-cell-fixture-fixture
+    title: fixture
+    sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts#fixture
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-codex-cell-fixture-request
+    title: request
+    sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts#request
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-codex-cell-fixture-fakeBroker
+    title: fakeBroker
+    sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts#fakeBroker
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-codex-cell-fixture-predicateFinalState
+    title: predicateFinalState
+    sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts#predicateFinalState
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-codex-cell-fixture-sealedEvidence
+    title: sealedEvidence
+    sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts#sealedEvidence
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-codex-cell-fixture-roots
+    title: roots
+    sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts#roots
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-codex-cell-fixture-SCORE
+    title: SCORE
+    sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts#SCORE
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-codex-cell-fixture-HAPPY_STDOUT
+    title: HAPPY_STDOUT
+    sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts#HAPPY_STDOUT
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-read-optional-artifact
     title: readOptionalArtifact
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-artifacts.ts
