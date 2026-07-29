@@ -31,12 +31,12 @@ def exiting_bun_tree_harness() -> str:
     return "\n".join(
         (
             'import { appendFileSync, writeFileSync } from "node:fs";',
-            "const pidPath = process.argv[process.argv.indexOf(\"--request\") + 1];",
-            "const authMarker = process.argv[process.argv.indexOf(\"--result\") + 1];",
+            'const pidPath = process.argv[process.argv.indexOf("--request") + 1];',
+            'const authMarker = process.argv[process.argv.indexOf("--result") + 1];',
             'writeFileSync(pidPath, `${process.pid} `, "utf8");',
             'writeFileSync(authMarker, "private-auth", "utf8");',
             "const childCommand =",
-            '  `trap \'\' TERM; (trap \'\' TERM; sleep 30) & echo "$$ $!" >> "$1"; wait`;',
+            "  `trap '' TERM; (trap '' TERM; sleep 30) & echo \"$$ $!\" >> \"$1\"; wait`;",
             "const child = Bun.spawn(",
             '  ["bash", "-c", childCommand, "bridge-child", pidPath],',
             '  { stdout: "ignore", stderr: "ignore" },',
@@ -55,9 +55,7 @@ class BridgeProcessCleanupTests(unittest.TestCase):
             runner = root / "tree.ts"
             pid_path = root / "pids"
             auth_marker = root / "auth-marker"
-            _ = runner.write_text(
-                exiting_bun_tree_harness(), encoding="utf-8"
-            )
+            _ = runner.write_text(exiting_bun_tree_harness(), encoding="utf-8")
 
             # When
             with self.assertRaises(BridgeProcessError) as raised:
@@ -91,9 +89,7 @@ class BridgeProcessCleanupTests(unittest.TestCase):
             runner = root / "tree.ts"
             pid_path = root / "pids"
             auth_marker = root / "auth-marker"
-            _ = runner.write_text(
-                exiting_bun_tree_harness(), encoding="utf-8"
-            )
+            _ = runner.write_text(exiting_bun_tree_harness(), encoding="utf-8")
             interrupt = threading.Timer(1, os.kill, args=(os.getpid(), signal.SIGTERM))
             interrupt.start()
 
@@ -132,9 +128,7 @@ class BridgeProcessCleanupTests(unittest.TestCase):
             runner = root / "tree.ts"
             pid_path = root / "pids"
             auth_marker = root / "auth-marker"
-            _ = runner.write_text(
-                exiting_bun_tree_harness(), encoding="utf-8"
-            )
+            _ = runner.write_text(exiting_bun_tree_harness(), encoding="utf-8")
             interrupt = threading.Timer(1, os.kill, args=(os.getpid(), signal.SIGINT))
             interrupt.start()
 
