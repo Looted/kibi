@@ -6014,6 +6014,84 @@ coordinates:
     sourceEndLine: 38
     sourceFile: scripts/skillopt-eval/adoption-types.ts
     sourceLine: 34
+  SYM-skillopt-adoption-fixture-approval-artifacts:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 135
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-fixtures.ts
+    sourceLine: 73
+  SYM-skillopt-adoption-fixture-automatic-input:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 168
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-fixtures.ts
+    sourceLine: 136
+  SYM-skillopt-adoption-fixture-baseline-body:
+    sourceColumn: 13
+    sourceEndColumn: 44
+    sourceEndLine: 20
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-fixtures.ts
+    sourceLine: 20
+  SYM-skillopt-adoption-fixture-candidate-body:
+    sourceColumn: 13
+    sourceEndColumn: 54
+    sourceEndLine: 21
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-fixtures.ts
+    sourceLine: 21
+  SYM-skillopt-adoption-fixture-cleanup-roots:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 46
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-fixtures.ts
+    sourceLine: 43
+  SYM-skillopt-adoption-fixture-create-repo:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 72
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-fixtures.ts
+    sourceLine: 56
+  SYM-skillopt-adoption-fixture-frontmatter:
+    sourceColumn: 13
+    sourceEndColumn: 184
+    sourceEndLine: 19
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-fixtures.ts
+    sourceLine: 19
+  SYM-skillopt-adoption-fixture-resource-body:
+    sourceColumn: 13
+    sourceEndColumn: 48
+    sourceEndLine: 22
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-fixtures.ts
+    sourceLine: 22
+  SYM-skillopt-adoption-fixture-roots:
+    sourceColumn: 13
+    sourceEndColumn: 33
+    sourceEndLine: 16
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-fixtures.ts
+    sourceLine: 16
+  SYM-skillopt-adoption-fixture-sha-256:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 49
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-fixtures.ts
+    sourceLine: 47
+  SYM-skillopt-adoption-fixture-skill:
+    sourceColumn: 13
+    sourceEndColumn: 42
+    sourceEndLine: 17
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-fixtures.ts
+    sourceLine: 17
+  SYM-skillopt-adoption-fixture-snapshot:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 180
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-fixtures.ts
+    sourceLine: 169
+  SYM-skillopt-adoption-fixture-sync-mirrors:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 189
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-fixtures.ts
+    sourceLine: 181
   SYM-skillopt-adoption-input:
     sourceColumn: 12
     sourceEndColumn: 5
