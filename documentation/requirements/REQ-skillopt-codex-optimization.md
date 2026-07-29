@@ -20,4 +20,4 @@ SkillOpt behavioral evaluation must use Codex as its sole host. Candidate adopti
 
 Versioned evaluation artifacts must enforce the same completion, identity, timestamp, uniqueness, size, source-pin, and approval-integrity rules in JSON Schema, TypeScript, and Python.
 
-The authenticated bridge must own a single POSIX process group spanning Bun, Codex, and MCP descendants; timeout or interruption must terminate and reap that group. Copied ChatGPT auth must be mode `0600` and every private workspace root must remain cleanup-retryable until all removals succeed.
+The authenticated bridge must own a single POSIX process group spanning Bun, Codex, and MCP descendants; the TypeScript cell and MCP broker runtimes must inherit that group rather than detach. Timeout or interruption must terminate and reap the group. Copied ChatGPT auth must be mode `0600` and every private workspace root must remain cleanup-retryable until all removals succeed.

@@ -29,6 +29,28 @@ async function waitForProcessGroupReaping(groupId: number): Promise<number> {
 }
 
 describe("bounded process groups", () => {
+  test("keeps Codex descendants in the bridge-owned parent group", async () => {
+    // Given
+    const processPromise = runBoundedProcess({
+      argv: [
+        "bash",
+        "-c",
+        'printf \'%s %s\\n\' "$(ps -o pgid= -p $PPID)" "$(ps -o pgid= -p $$)"',
+      ],
+      cwd: process.cwd(),
+      env: process.env,
+      timeoutMs: 1_000,
+      groupMode: "inherited",
+    });
+
+    // When
+    const result = await processPromise;
+
+    // Then
+    const [parentGroup, childGroup] = result.stdout.trim().split(/\s+/);
+    expect(childGroup).toBe(parentGroup);
+  });
+
   test.each([1, 2, 3])(
     "terminates and reaps a hung process group on repeated run %d",
     async () => {

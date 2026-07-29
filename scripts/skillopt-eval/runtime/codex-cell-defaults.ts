@@ -85,8 +85,12 @@ function sealedBroker(brokerTrace: string) {
 export function defaultCodexCellDependencies(
   options: CodexCellOptions,
 ): CodexCellDependencies {
+  const groupMode =
+    options.env.KIBI_SKILLOPT_PROCESS_GROUP === "python_bridge"
+      ? "inherited"
+      : "owned";
   const run: CanaryRunner = (argv, cwd, env, timeoutMs, stdin) =>
-    runBoundedProcess({ argv, cwd, env, timeoutMs, stdin });
+    runBoundedProcess({ argv, cwd, env, timeoutMs, stdin, groupMode });
   return {
     prepareLogin: ({ privateCodexHome, sandboxHome, env }) =>
       prepareExistingLogin({
@@ -99,6 +103,7 @@ export function defaultCodexCellDependencies(
             cwd: options.sourceWorktree,
             env: childEnv,
             timeoutMs: 15_000,
+            groupMode,
           }),
       }),
     stageBroker: stageKibiMcpBroker,
