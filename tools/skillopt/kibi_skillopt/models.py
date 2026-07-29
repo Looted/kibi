@@ -18,9 +18,7 @@ class BridgeRequest(ContractModel):
     batch_id: Annotated[NonEmptyString, Field(alias="batchId")]
     skill: BridgeSkill
     phase: BridgePhase
-    candidate_body: Annotated[
-        str, Field(alias="candidateBody", min_length=1, max_length=100_000)
-    ]
+    candidate_body: Annotated[str, Field(alias="candidateBody", min_length=1, max_length=100_000)]
     task_ids: Annotated[
         tuple[NonEmptyString, ...], Field(alias="taskIds", min_length=1, max_length=8)
     ]
