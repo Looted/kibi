@@ -1,27 +1,34 @@
 from __future__ import annotations
 
 import json
-from importlib import import_module
 from pathlib import Path
-from typing import Protocol, cast
+
+from skillopt.engine.trainer import ReflACTTrainer
 
 from .adapter import EnvAdapter
 from .common import JsonValue, contract_hash, parse_json_value
 from .run_lock import load_skillopt_source_lock
 
 
-class _TrainerProtocol:
-    def train(self) -> dict[object, object]:
-        raise NotImplementedError
+class TrainingConfigError(ValueError):
+    max_steps: int
+
+    def __init__(self, max_steps: int) -> None:
+        self.max_steps = max_steps
+        super().__init__(f"max_steps must be between 1 and 4; received {max_steps}")
 
 
-class _TrainerFactory(Protocol):
-    def __call__(self, config: dict[str, object], adapter: EnvAdapter) -> _TrainerProtocol: ...
+class TrainingArtifactError(TypeError):
+    detail: str
+
+    def __init__(self, detail: str) -> None:
+        self.detail = detail
+        super().__init__(detail)
 
 
-def build_training_config(out_root: Path, *, max_steps: int = 4) -> dict[str, object]:
+def build_training_config(out_root: Path, *, max_steps: int = 4) -> dict[str, JsonValue]:
     if max_steps < 1 or max_steps > 4:
-        raise ValueError("max_steps must be between 1 and 4")
+        raise TrainingConfigError(max_steps)
     lock = load_skillopt_source_lock()
     return {
         "out_root": str(out_root),
@@ -57,7 +64,7 @@ def build_training_config(out_root: Path, *, max_steps: int = 4) -> dict[str, ob
     }
 
 
-def _development_gate(result: dict[str, object], trajectory_count: int) -> dict[str, JsonValue]:
+def _development_gate(result: dict[str, JsonValue], trajectory_count: int) -> dict[str, JsonValue]:
     score = result.get("best_selection_hard")
     mean = float(score) if isinstance(score, (int, float)) and not isinstance(score, bool) else 0.0
     return {
@@ -72,7 +79,7 @@ def _trajectory_payloads(adapter: EnvAdapter) -> tuple[dict[str, JsonValue], ...
     for trajectory in adapter.train_trajectories:
         payload = parse_json_value(trajectory.model_dump_json(by_alias=True))
         if not isinstance(payload, dict):
-            raise TypeError("SkillOpt trajectory payload must be an object")
+            raise TrainingArtifactError("SkillOpt trajectory payload must be a mapping")
         payloads.append(payload)
     return tuple(payloads)
 
@@ -81,17 +88,17 @@ def _frozen_candidate_path(out_root: Path) -> Path:
     return out_root / "frozen-candidate.json"
 
 
-def _resume_frozen_candidate(out_root: Path) -> dict[str, object] | None:
+def _resume_frozen_candidate(out_root: Path) -> dict[str, JsonValue] | None:
     frozen_path = _frozen_candidate_path(out_root)
     if not frozen_path.is_file():
         return None
     payload = parse_json_value(frozen_path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
-        raise TypeError("frozen candidate artifact must be an object")
+        raise TrainingArtifactError("frozen candidate artifact must be a mapping")
     result = payload.get("result")
     if not isinstance(result, dict):
-        raise TypeError("frozen candidate artifact missing result")
-    return dict(result)
+        raise TrainingArtifactError("frozen candidate artifact missing result")
+    return {str(key): value for key, value in result.items()}
 
 
 def _write_frozen_candidate(
@@ -102,7 +109,7 @@ def _write_frozen_candidate(
     trainer_checkpoint_hash: str,
     trajectory_hashes: tuple[str, ...],
     corpus_roots: dict[str, JsonValue],
-    result: dict[str, object],
+    result: dict[str, JsonValue],
 ) -> None:
     payload = {
         "schemaVersion": "1.0.0",
@@ -119,19 +126,16 @@ def _write_frozen_candidate(
     )
 
 
-def run_training(adapter: EnvAdapter, out_root: Path, *, max_steps: int = 4) -> dict[str, object]:
+def run_training(
+    adapter: EnvAdapter, out_root: Path, *, max_steps: int = 4
+) -> dict[str, JsonValue]:
     resumed = _resume_frozen_candidate(out_root)
     if resumed is not None:
         return resumed
     config = build_training_config(out_root, max_steps=max_steps)
-    module = import_module("skillopt.engine.trainer")
-    factory = cast(_TrainerFactory, getattr(module, "ReflACTTrainer"))
-    trainer = factory(config, adapter)
-    result = cast(object, trainer.train())
-    if not isinstance(result, dict):
-        raise TypeError("SkillOpt trainer returned a non-object result")
-    typed_result = cast(dict[object, object], result)
-    normalized_result = {str(key): value for key, value in typed_result.items()}
+    trainer = ReflACTTrainer(config, adapter)
+    result = trainer.train()
+    normalized_result = {str(key): value for key, value in result.items()}
     trajectories = _trajectory_payloads(adapter)
     if not trajectories:
         return normalized_result
