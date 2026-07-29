@@ -9746,3 +9746,57 @@ coordinates:
     sourceEndLine: 52
     sourceFile: packages/cli/src/operations/modeling/requirement-applyplan.ts
     sourceLine: 50
+  SYM-skillopt-codex-cell-fixture-cleanupRoots:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 38
+    sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
+    sourceLine: 35
+  SYM-skillopt-codex-cell-fixture-fixture:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 48
+    sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
+    sourceLine: 39
+  SYM-skillopt-codex-cell-fixture-request:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 62
+    sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
+    sourceLine: 49
+  SYM-skillopt-codex-cell-fixture-fakeBroker:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 77
+    sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
+    sourceLine: 64
+  SYM-skillopt-codex-cell-fixture-predicateFinalState:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 94
+    sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
+    sourceLine: 78
+  SYM-skillopt-codex-cell-fixture-sealedEvidence:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 99
+    sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
+    sourceLine: 95
+  SYM-skillopt-codex-cell-fixture-roots:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 15
+    sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
+    sourceLine: 15
+  SYM-skillopt-codex-cell-fixture-SCORE:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 27
+    sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
+    sourceLine: 16
+  SYM-skillopt-codex-cell-fixture-HAPPY_STDOUT:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 34
+    sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
+    sourceLine: 28
