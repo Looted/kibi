@@ -10,7 +10,6 @@ import time
 import unittest
 from pathlib import Path
 
-from tools.skillopt.kibi_skillopt import bridge_runner
 from tools.skillopt.kibi_skillopt.bridge_runner import BridgeProcessError, run_bridge
 
 
@@ -86,52 +85,60 @@ class BridgeProcessCleanupTests(unittest.TestCase):
                     if process_exists(pid):
                         os.kill(pid, signal.SIGKILL)
 
-    def test_reap_escalates_after_term_acknowledgement(self) -> None:
+    def test_run_bridge_escalates_after_term_acknowledgement(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             # Given
             root = Path(directory)
+            pid_path = root / "pid"
             term_path = root / "term"
-            ready_path = root / "ready"
             source = "\n".join(
                 (
+                    "import os",
                     "import signal",
                     "import sys",
                     "from pathlib import Path",
-                    "term_path = Path(sys.argv[1])",
-                    "ready_path = Path(sys.argv[2])",
+                    'request_path = Path(sys.argv[sys.argv.index("--request") + 1])',
+                    'result_path = Path(sys.argv[sys.argv.index("--result") + 1])',
                     "def acknowledge_term(_signal, _frame):",
-                    "    term_path.write_text('SIGTERM', encoding='utf-8')",
+                    "    result_path.write_text('SIGTERM', encoding='utf-8')",
                     "signal.signal(signal.SIGTERM, acknowledge_term)",
-                    "ready_path.write_text('ready', encoding='utf-8')",
+                    "request_path.write_text(f'{os.getpid()} ready', encoding='utf-8')",
                     "while True:",
                     "    signal.pause()",
                 )
             )
-            process = subprocess.Popen(
-                (sys.executable, "-c", source, str(term_path), str(ready_path)),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                start_new_session=True,
-            )
+            pid: int | None = None
             try:
-                deadline = time.monotonic() + 2
-                while not ready_path.exists():
-                    if time.monotonic() >= deadline:
-                        self.fail("term-acknowledging process did not become ready")
-                    time.sleep(0.01)
-
                 # When
-                getattr(bridge_runner, "_reap_process_group")(process, grace_seconds=0.05)
+                with self.assertRaises(BridgeProcessError) as raised:
+                    run_bridge(
+                        (sys.executable, "-c", source),
+                        root,
+                        pid_path,
+                        term_path,
+                        timeout_seconds=1,
+                        kill_grace_seconds=0.05,
+                    )
+
+                deadline = time.monotonic() + 2
+                while not pid_path.exists():
+                    if time.monotonic() >= deadline:
+                        self.fail("term-acknowledging bridge runner did not become ready")
+                    time.sleep(0.01)
+                pid_text, readiness = pid_path.read_text(encoding="utf-8").split()
+                pid = int(pid_text)
 
                 # Then
+                self.assertEqual(raised.exception.kind, "timeout")
+                self.assertIsInstance(raised.exception.__cause__, subprocess.TimeoutExpired)
+                self.assertEqual(readiness, "ready")
                 self.assertEqual(term_path.read_text(encoding="utf-8"), "SIGTERM")
-                self.assertEqual(process.returncode, -signal.SIGKILL)
-                self.assertIsNotNone(process.poll())
+                wait_for_process_exit(pid)
             finally:
-                if process.poll() is None:
-                    process.kill()
-                    _ = process.communicate()
+                if pid is None and pid_path.exists():
+                    pid = int(pid_path.read_text(encoding="utf-8").split()[0])
+                if pid is not None and process_exists(pid):
+                    os.kill(pid, signal.SIGKILL)
 
     def test_sigterm_kills_descendants_after_bun_exits_on_term(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
