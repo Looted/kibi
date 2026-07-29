@@ -14420,9 +14420,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 127
+    sourceLine: 128
     sourceColumn: 16
-    sourceEndLine: 136
+    sourceEndLine: 137
     sourceEndColumn: 1
   - id: SYM-skillopt-fixture-write-workspace
     title: writePublicWorkspace
@@ -14433,9 +14433,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 139
+    sourceLine: 140
     sourceColumn: 16
-    sourceEndLine: 194
+    sourceEndLine: 195
     sourceEndColumn: 1
   - id: SYM-skillopt-predicate-cases-registry
     title: PREDICATE_CASES
@@ -14459,9 +14459,9 @@ symbols:
         target: REQ-skillopt-predicate-first-requirements
       - type: covered_by
         target: TEST-skillopt-predicate-first-requirements
-    sourceLine: 159
+    sourceLine: 160
     sourceColumn: 16
-    sourceEndLine: 202
+    sourceEndLine: 203
     sourceEndColumn: 1
   - id: SYM-skillopt-predicate-reserve-matrix
     title: reservePredicateMatrix
@@ -14528,7 +14528,7 @@ symbols:
         target: TEST-skillopt-predicate-first-requirements
     sourceLine: 115
     sourceColumn: 9
-    sourceEndLine: 124
+    sourceEndLine: 125
     sourceEndColumn: 1
   - id: SYM-skillopt-predicate-build-expectation
     title: buildPredicateExpectation
@@ -17670,9 +17670,9 @@ symbols:
         target: REQ-skillopt-automatic-adoption
       - type: covered_by
         target: TEST-skillopt-automatic-adoption
-    sourceLine: 103
+    sourceLine: 104
     sourceColumn: 16
-    sourceEndLine: 114
+    sourceEndLine: 115
     sourceEndColumn: 1
   - id: SYM-skillopt-with-exclusive-adoption-lock
     title: withExclusiveAdoptionLock
@@ -18112,9 +18112,9 @@ symbols:
         target: REQ-skillopt-automatic-adoption
       - type: covered_by
         target: TEST-skillopt-automatic-adoption
-    sourceLine: 63
+    sourceLine: 64
     sourceColumn: 16
-    sourceEndLine: 101
+    sourceEndLine: 102
     sourceEndColumn: 1
   - id: SYM-skillopt-canonical-target-set
     title: canonicalTargetSet
@@ -18125,9 +18125,9 @@ symbols:
         target: REQ-skillopt-automatic-adoption
       - type: covered_by
         target: TEST-skillopt-automatic-adoption
-    sourceLine: 116
+    sourceLine: 117
     sourceColumn: 16
-    sourceEndLine: 125
+    sourceEndLine: 126
     sourceEndColumn: 1
   - id: SYM-skillopt-load-canonical-snapshot
     title: loadCanonicalSnapshot
@@ -18138,9 +18138,9 @@ symbols:
         target: REQ-skillopt-automatic-adoption
       - type: covered_by
         target: TEST-skillopt-automatic-adoption
-    sourceLine: 127
+    sourceLine: 128
     sourceColumn: 22
-    sourceEndLine: 137
+    sourceEndLine: 138
     sourceEndColumn: 1
   - id: SYM-skillopt-load-canonical-surface
     title: loadCanonicalSurface
@@ -18151,9 +18151,9 @@ symbols:
         target: REQ-skillopt-automatic-adoption
       - type: covered_by
         target: TEST-skillopt-automatic-adoption
-    sourceLine: 139
+    sourceLine: 140
     sourceColumn: 22
-    sourceEndLine: 212
+    sourceEndLine: 213
     sourceEndColumn: 1
   - id: SYM-skillopt-public-plan
     title: publicPlan
@@ -18164,9 +18164,9 @@ symbols:
         target: REQ-skillopt-automatic-adoption
       - type: covered_by
         target: TEST-skillopt-automatic-adoption
-    sourceLine: 214
+    sourceLine: 215
     sourceColumn: 16
-    sourceEndLine: 222
+    sourceEndLine: 223
     sourceEndColumn: 1
   - id: SYM-skillopt-canonical-snapshot
     title: CanonicalSnapshot
@@ -18185,6 +18185,7 @@ symbols:
     title: PredicateEligibilityReceipt
     sourceFile: scripts/skillopt-eval/adoption-types.ts
     symbol_role: type-shape
+    granularity_reason: extractor-miss
     relationships:
       - type: implements
         target: REQ-skillopt-automatic-adoption

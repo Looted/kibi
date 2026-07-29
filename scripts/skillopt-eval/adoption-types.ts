@@ -43,6 +43,7 @@ export type PredicateEligibilityReceipt = Readonly<{
   heldOutEligibility: "eligible" | "HELD_OUT_MATRIX_INELIGIBLE";
   candidateHash: string;
   authorizedRootSet: PredicateRoots;
+  sealedEvidenceHash?: string;
   lineage: Readonly<{
     candidateHash: string;
     signedEligibilityId: string;
