@@ -16860,6 +16860,104 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-scoring-gate-fixture-cells
+    title: cells
+    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts#cells
+    symbol_role: behavioral
+    sourceLine: 11
+    sourceColumn: 1
+    sourceEndLine: 28
+    sourceEndColumn: 1
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-scoring-gate-fixture-passing-skill-matrix
+    title: passingSkillMatrix
+    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts#passingSkillMatrix
+    symbol_role: behavioral
+    sourceLine: 29
+    sourceColumn: 1
+    sourceEndLine: 47
+    sourceEndColumn: 1
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-scoring-gate-fixture-passing-held-out-predicate-cells
+    title: passingHeldOutPredicateCells
+    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts#passingHeldOutPredicateCells
+    symbol_role: behavioral
+    sourceLine: 48
+    sourceColumn: 1
+    sourceEndLine: 64
+    sourceEndColumn: 1
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-scoring-gate-fixture-passing-bundle-gate-matrix
+    title: passingBundleGateMatrix
+    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts#passingBundleGateMatrix
+    symbol_role: behavioral
+    sourceLine: 74
+    sourceColumn: 1
+    sourceEndLine: 92
+    sourceEndColumn: 1
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-scoring-gate-fixture-bundle-gate-candidate-failure-at
+    title: bundleGateCandidateFailureAt
+    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts#bundleGateCandidateFailureAt
+    symbol_role: behavioral
+    sourceLine: 94
+    sourceColumn: 1
+    sourceEndLine: 115
+    sourceEndColumn: 1
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-scoring-gate-fixture-bundle-gate-candidate-failure-with-weak-baseline
+    title: bundleGateCandidateFailureWithWeakBaseline
+    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts#bundleGateCandidateFailureWithWeakBaseline
+    symbol_role: behavioral
+    sourceLine: 117
+    sourceColumn: 1
+    sourceEndLine: 140
+    sourceEndColumn: 1
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-scoring-gate-fixture-families
+    title: FAMILIES
+    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts#FAMILIES
+    symbol_role: config
+    granularity_reason: config-artifact
+    sourceLine: 5
+    sourceColumn: 1
+    sourceEndLine: 10
+    sourceEndColumn: 1
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-scoring-gate-fixture-bundle-gate-task-count
+    title: BUNDLE_GATE_TASK_COUNT
+    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts#BUNDLE_GATE_TASK_COUNT
+    symbol_role: config
+    granularity_reason: config-artifact
+    sourceLine: 72
+    sourceColumn: 1
+    sourceEndLine: 72
+    sourceEndColumn: 1
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-parse-run-id
     title: parseRunId
     sourceFile: scripts/skillopt-eval/cli-options.ts

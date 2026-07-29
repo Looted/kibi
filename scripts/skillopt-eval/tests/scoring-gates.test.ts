@@ -1,72 +1,18 @@
 import { describe, expect, test } from "bun:test";
-import { PREDICATE_HELD_OUT_CASE_IDS } from "../fixtures/predicate-corpus";
 import {
-  type GateCell,
-  type HeldOutPredicateGateCell,
   evaluateBundleGate,
   evaluateHeldOutPredicateGate,
   evaluateSkillGate,
 } from "../scoring/gates";
 import { pairedBootstrapLowerBound } from "../scoring/statistics";
-
-const FAMILIES = ["discovery", "mutation", "quality", "resilience"] as const;
-
-function cells(
-  count: number,
-  scoreAt: (index: number) => number,
-  hardAt: (index: number) => 0 | 1,
-): readonly GateCell[] {
-  return Array.from({ length: count }, (_, index) => {
-    const hard = hardAt(index);
-    return {
-      taskId: `task-${String(index + 1).padStart(2, "0")}`,
-      family: FAMILIES[index % FAMILIES.length] ?? "discovery",
-      score: scoreAt(index),
-      hard,
-      outcome: hard === 1 ? ("pass" as const) : ("fail" as const),
-      terminalCategory: hard === 1 ? null : "behavioral_failure",
-      criticalFailureCount: 0,
-    };
-  });
-}
-
-function passingSkillMatrix() {
-  return {
-    candidate: cells(
-      16,
-      (index) => (index < 13 ? 90 : 84),
-      (index) => (index < 13 ? 1 : 0),
-    ),
-    baseline: cells(
-      16,
-      (index) => (index < 11 ? 85 : 70),
-      (index) => (index < 11 ? 1 : 0),
-    ),
-    oneShot: cells(
-      16,
-      (index) => (index < 12 ? 85 : 80),
-      (index) => (index < 12 ? 1 : 0),
-    ),
-  } as const;
-}
-
-function passingHeldOutPredicateCells(): readonly HeldOutPredicateGateCell[] {
-  const variants = ["baseline", "one-shot", "skillopt"] as const;
-  return PREDICATE_HELD_OUT_CASE_IDS.flatMap((caseId) =>
-    variants.map((variant) => ({
-      taskId: `${caseId}:${variant}`,
-      family: "fact-predicate-modeling",
-      score: 100,
-      hard: 1 as const,
-      outcome: "pass" as const,
-      terminalCategory: null,
-      criticalFailureCount: 0,
-      caseId,
-      variant,
-      predicateEvidence: { outcome: "pass" as const, caseId },
-    })),
-  );
-}
+import {
+  FAMILIES,
+  bundleGateCandidateFailureWithWeakBaseline,
+  cells,
+  passingBundleGateMatrix,
+  passingHeldOutPredicateCells,
+  passingSkillMatrix,
+} from "./fixtures/scoring-gates-fixtures";
 
 describe("SkillOpt deterministic statistics", () => {
   test("uses the fixed 10,000-resample seed for paired lower bounds", () => {
@@ -286,23 +232,7 @@ describe("held-out predicate matrix gate", () => {
 describe("SkillOpt bundle gate", () => {
   test("passes the exact eight-task bundle thresholds", () => {
     // Given
-    const matrix = {
-      candidate: cells(
-        8,
-        () => 88,
-        () => 1,
-      ),
-      baseline: cells(
-        8,
-        () => 84,
-        () => 0,
-      ),
-      oneShot: cells(
-        8,
-        () => 85,
-        () => 1,
-      ),
-    };
+    const matrix = passingBundleGateMatrix();
 
     // When
     const verdict = evaluateBundleGate(matrix);
@@ -315,35 +245,7 @@ describe("SkillOpt bundle gate", () => {
 
   test("rejects candidate critical failures even when numeric gates pass", () => {
     // Given
-    const candidate = cells(
-      8,
-      () => 90,
-      () => 1,
-    ).map((cell, index) =>
-      index === 0
-        ? {
-            ...cell,
-            score: 84,
-            hard: 0 as const,
-            outcome: "fail" as const,
-            terminalCategory: "behavioral_failure",
-            criticalFailureCount: 1,
-          }
-        : cell,
-    );
-    const matrix = {
-      candidate,
-      baseline: cells(
-        8,
-        () => 80,
-        () => 0,
-      ),
-      oneShot: cells(
-        8,
-        () => 85,
-        () => 1,
-      ),
-    };
+    const matrix = bundleGateCandidateFailureWithWeakBaseline();
 
     // When
     const verdict = evaluateBundleGate(matrix);

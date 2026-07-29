@@ -9800,3 +9800,51 @@ coordinates:
     sourceEndLine: 34
     sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
     sourceLine: 28
+  SYM-skillopt-scoring-gate-fixture-cells:
+    sourceColumn: 1
+    sourceEndColumn: 1
+    sourceEndLine: 28
+    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
+    sourceLine: 11
+  SYM-skillopt-scoring-gate-fixture-passing-skill-matrix:
+    sourceColumn: 1
+    sourceEndColumn: 1
+    sourceEndLine: 47
+    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
+    sourceLine: 29
+  SYM-skillopt-scoring-gate-fixture-passing-held-out-predicate-cells:
+    sourceColumn: 1
+    sourceEndColumn: 1
+    sourceEndLine: 64
+    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
+    sourceLine: 48
+  SYM-skillopt-scoring-gate-fixture-passing-bundle-gate-matrix:
+    sourceColumn: 1
+    sourceEndColumn: 1
+    sourceEndLine: 92
+    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
+    sourceLine: 74
+  SYM-skillopt-scoring-gate-fixture-bundle-gate-candidate-failure-at:
+    sourceColumn: 1
+    sourceEndColumn: 1
+    sourceEndLine: 115
+    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
+    sourceLine: 94
+  SYM-skillopt-scoring-gate-fixture-bundle-gate-candidate-failure-with-weak-baseline:
+    sourceColumn: 1
+    sourceEndColumn: 1
+    sourceEndLine: 140
+    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
+    sourceLine: 117
+  SYM-skillopt-scoring-gate-fixture-families:
+    sourceColumn: 1
+    sourceEndColumn: 1
+    sourceEndLine: 10
+    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
+    sourceLine: 5
+  SYM-skillopt-scoring-gate-fixture-bundle-gate-task-count:
+    sourceColumn: 1
+    sourceEndColumn: 1
+    sourceEndLine: 72
+    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
+    sourceLine: 72
