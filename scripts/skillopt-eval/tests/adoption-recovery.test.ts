@@ -17,6 +17,7 @@ import {
   type RunMirrorSync,
   adoptSkillOptCandidate,
 } from "../adoption";
+import { recoverAdoptionWals } from "../adoption-transaction";
 import { freezeCandidateVariant } from "../variants";
 
 const roots: string[] = [];
@@ -277,4 +278,54 @@ test("Given a durable automatic adoption When files are installed Then every ren
   expect(steps[rename + 1]).toBe("directory-fsynced");
   expect(receipt).toBeGreaterThan(-1);
   expect(steps[receipt + 1]).toBe("parent-fsynced");
+});
+
+test("Given a crash after a partial mirror swap When WAL recovery runs Then every canonical and mirror preimage is restored before retry", async () => {
+  // Given
+  const { repoRoot, input } = await fixture();
+  const before = await Promise.all([
+    readFile(
+      join(repoRoot, "packages/cli/src/public/skills/kibi-usage/SKILL.md"),
+      "utf8",
+    ),
+    readFile(
+      join(repoRoot, "packages/cursor/skills/kibi-usage/SKILL.md"),
+      "utf8",
+    ),
+    readFile(
+      join(repoRoot, "packages/codex/skills/kibi-usage/SKILL.md"),
+      "utf8",
+    ),
+  ]);
+  const failingSync: RunMirrorSync = async (root) => {
+    await writeFile(
+      join(root, "packages/cursor/skills/kibi-usage/SKILL.md"),
+      "partial mirror mutation\n",
+    );
+    throw new Error("injected mirror failure");
+  };
+  await expect(
+    adoptSkillOptCandidate(input, { runMirrorSync: failingSync }),
+  ).rejects.toThrow("injected mirror failure");
+
+  // When
+  await recoverAdoptionWals(repoRoot, { runMirrorSync: syncMirrors });
+
+  // Then
+  await expect(
+    Promise.all([
+      readFile(
+        join(repoRoot, "packages/cli/src/public/skills/kibi-usage/SKILL.md"),
+        "utf8",
+      ),
+      readFile(
+        join(repoRoot, "packages/cursor/skills/kibi-usage/SKILL.md"),
+        "utf8",
+      ),
+      readFile(
+        join(repoRoot, "packages/codex/skills/kibi-usage/SKILL.md"),
+        "utf8",
+      ),
+    ]),
+  ).resolves.toEqual(before);
 });
