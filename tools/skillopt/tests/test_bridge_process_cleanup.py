@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import os
 import signal
+import subprocess
+import sys
 import tempfile
 import threading
 import time
 import unittest
 from pathlib import Path
 
+from tools.skillopt.kibi_skillopt import bridge_runner
 from tools.skillopt.kibi_skillopt.bridge_runner import BridgeProcessError, run_bridge
 
 
@@ -70,6 +73,7 @@ class BridgeProcessCleanupTests(unittest.TestCase):
 
             # Then
             self.assertEqual(raised.exception.kind, "timeout")
+            self.assertIsInstance(raised.exception.__cause__, subprocess.TimeoutExpired)
             parent_pid, child_pid, grandchild_pid = (
                 int(part) for part in pid_path.read_text(encoding="utf-8").split()
             )
@@ -81,6 +85,53 @@ class BridgeProcessCleanupTests(unittest.TestCase):
                 for pid in (parent_pid, child_pid, grandchild_pid):
                     if process_exists(pid):
                         os.kill(pid, signal.SIGKILL)
+
+    def test_reap_escalates_after_term_acknowledgement(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            # Given
+            root = Path(directory)
+            term_path = root / "term"
+            ready_path = root / "ready"
+            source = "\n".join(
+                (
+                    "import signal",
+                    "import sys",
+                    "from pathlib import Path",
+                    "term_path = Path(sys.argv[1])",
+                    "ready_path = Path(sys.argv[2])",
+                    "def acknowledge_term(_signal, _frame):",
+                    "    term_path.write_text('SIGTERM', encoding='utf-8')",
+                    "signal.signal(signal.SIGTERM, acknowledge_term)",
+                    "ready_path.write_text('ready', encoding='utf-8')",
+                    "while True:",
+                    "    signal.pause()",
+                )
+            )
+            process = subprocess.Popen(
+                (sys.executable, "-c", source, str(term_path), str(ready_path)),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                start_new_session=True,
+            )
+            try:
+                deadline = time.monotonic() + 2
+                while not ready_path.exists():
+                    if time.monotonic() >= deadline:
+                        self.fail("term-acknowledging process did not become ready")
+                    time.sleep(0.01)
+
+                # When
+                getattr(bridge_runner, "_reap_process_group")(process, grace_seconds=0.05)
+
+                # Then
+                self.assertEqual(term_path.read_text(encoding="utf-8"), "SIGTERM")
+                self.assertEqual(process.returncode, -signal.SIGKILL)
+                self.assertIsNotNone(process.poll())
+            finally:
+                if process.poll() is None:
+                    process.kill()
+                    _ = process.communicate()
 
     def test_sigterm_kills_descendants_after_bun_exits_on_term(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

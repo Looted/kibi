@@ -80,8 +80,9 @@ def _reap_process_group(process: subprocess.Popen[str], grace_seconds: float) ->
     try:
         _ = process.communicate(timeout=grace_seconds)
     except subprocess.TimeoutExpired:
-        pass
-    _signal_process_group(process, signal.SIGKILL)
+        _signal_process_group(process, signal.SIGKILL)
+    else:
+        _signal_process_group(process, signal.SIGKILL)
     if process.poll() is None:
         _ = process.communicate()
 
