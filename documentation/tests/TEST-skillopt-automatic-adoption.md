@@ -1,11 +1,11 @@
 ---
 id: TEST-skillopt-automatic-adoption
-title: SkillOpt preserves evaluated candidates without adoption
+title: SkillOpt adopts eligible predicate candidates exactly once
 type: test
 status: passing
 created_at: 2026-07-24T00:00:00Z
-updated_at: 2026-07-24T00:00:00Z
-source: scripts/skillopt-eval/tests/real-workflow.test.ts
+updated_at: 2026-07-29T00:00:00Z
+source: scripts/skillopt-eval/tests/adoption.test.ts
 priority: must
 tags: [skillopt, codex, evaluation, integration, security, self-improvement]
 verification_scope: integration
@@ -15,4 +15,4 @@ links:
     target: SCEN-skillopt-automatic-adoption
 ---
 
-The real workflow integration suite verifies that training receives only public descriptors, evaluates a frozen candidate on a fresh development cell and a blinded 36-cell held-out matrix, then preserves the canonical skill and mirrors unchanged. It also verifies that the review receipt exposes only aggregate held-out eligibility and never adopts a candidate during training or evaluation.
+The adoption suite verifies that eligible predicate candidates are adopted exactly once: the canonical skill and mirrors install in one transaction, retries return the existing receipt, ineligible candidates remain unchanged, and rollback or recovery prevents partial state. See scripts/skillopt-eval/tests/adoption.test.ts, adoption-exactly-once.test.ts, and real-workflow.test.ts.

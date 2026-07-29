@@ -10587,7 +10587,7 @@ symbols:
   - id: SYM-skillopt-cli-main
     title: main
     sourceFile: scripts/skillopt-eval/cli.ts
-    text_ref: scripts/skillopt-eval/tests/cli-workflow.test.ts#main
+    text_ref: scripts/skillopt-eval/cli.ts#main
     symbol_role: behavioral
     relationships:
       - type: implements
@@ -10689,60 +10689,44 @@ symbols:
     sourceEndColumn: 1
   - id: SYM-skillopt-real-optimization-options
     title: RealOptimizationOptions
-    sourceFile: scripts/skillopt-eval/real-workflow.ts
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
     symbol_role: type-shape
-    granularity_reason: legacy-link
+    text_ref: scripts/skillopt-eval/real-workflow-types.ts#RealOptimizationOptions
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 142
-    sourceColumn: 12
-    sourceEndLine: 150
-    sourceEndColumn: 3
   - id: SYM-skillopt-real-optimization-result
     title: RealOptimizationResult
-    sourceFile: scripts/skillopt-eval/real-workflow.ts
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
     symbol_role: type-shape
-    granularity_reason: legacy-link
+    text_ref: scripts/skillopt-eval/real-workflow-types.ts#RealOptimizationResult
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 152
-    sourceColumn: 12
-    sourceEndLine: 162
-    sourceEndColumn: 3
   - id: SYM-skillopt-real-optimization-input
     title: CodexCellRuntime
-    sourceFile: scripts/skillopt-eval/real-workflow.ts
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
     symbol_role: type-shape
-    granularity_reason: legacy-link
+    text_ref: scripts/skillopt-eval/real-workflow-types.ts#CodexCellRuntime
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 131
-    sourceColumn: 12
-    sourceEndLine: 140
-    sourceEndColumn: 3
   - id: SYM-skillopt-real-optimization-dependencies
     title: RealOptimizationDependencies
-    sourceFile: scripts/skillopt-eval/real-workflow.ts
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
     symbol_role: type-shape
-    granularity_reason: legacy-link
+    text_ref: scripts/skillopt-eval/real-workflow-types.ts#RealOptimizationDependencies
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    sourceLine: 169
-    sourceColumn: 12
-    sourceEndLine: 200
-    sourceEndColumn: 3
   - id: SYM-skillopt-build-skill-catalog
     title: buildSkillCatalog
     sourceFile: scripts/skillopt-eval/catalog.ts
@@ -16801,3 +16785,234 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-parse-run-id
+    title: parseRunId
+    sourceFile: scripts/skillopt-eval/cli-options.ts
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/cli-options.ts#parseRunId
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-parse-workflow-options
+    title: parseWorkflowOptions
+    sourceFile: scripts/skillopt-eval/cli-options.ts
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/cli-options.ts#parseWorkflowOptions
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-print-help
+    title: printHelp
+    sourceFile: scripts/skillopt-eval/cli-options.ts
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/cli-options.ts#printHelp
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-run-workflow-command
+    title: runWorkflowCommand
+    sourceFile: scripts/skillopt-eval/cli-workflow.ts
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/cli-workflow.ts#runWorkflowCommand
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-cli-usage-error
+    title: CliUsageError
+    sourceFile: scripts/skillopt-eval/cli-options.ts
+    symbol_role: structural
+    granularity_reason: legacy-link
+    text_ref: scripts/skillopt-eval/cli-options.ts#CliUsageError
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-cli-usage-error-name
+    title: CliUsageError.name
+    sourceFile: scripts/skillopt-eval/cli-options.ts
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/cli-options.ts#CliUsageError.name
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-workflow-options
+    title: WorkflowOptions
+    sourceFile: scripts/skillopt-eval/cli-options.ts
+    symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/cli-options.ts#WorkflowOptions
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-default-evaluate-held-out
+    title: defaultEvaluateHeldOut
+    sourceFile: scripts/skillopt-eval/held-out-evaluation.ts
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/held-out-evaluation.ts#defaultEvaluateHeldOut
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-real-workflow-types-roots-schema
+    title: RootsSchema
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/real-workflow-types.ts#RootsSchema
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-real-workflow-types-corpus-roots
+    title: CorpusRoots
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/real-workflow-types.ts#CorpusRoots
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-real-workflow-types-train-result-schema
+    title: TrainResultSchema
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/real-workflow-types.ts#TrainResultSchema
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-real-workflow-types-review-schema
+    title: ReviewSchema
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/real-workflow-types.ts#ReviewSchema
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-real-workflow-types-predicate-descriptor
+    title: PredicateDescriptor
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/real-workflow-types.ts#PredicateDescriptor
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-real-workflow-types-development-gate
+    title: DevelopmentGate
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/real-workflow-types.ts#DevelopmentGate
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-real-workflow-types-training-input
+    title: TrainingInput
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/real-workflow-types.ts#TrainingInput
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-real-workflow-types-training-output
+    title: TrainingOutput
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/real-workflow-types.ts#TrainingOutput
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-real-workflow-types-held-out-evaluation
+    title: HeldOutEvaluation
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/real-workflow-types.ts#HeldOutEvaluation
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-real-workflow-types-canonical-hash
+    title: canonicalHash
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/real-workflow-types.ts#canonicalHash
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-real-workflow-types-require-runtime
+    title: requireRuntime
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/real-workflow-types.ts#requireRuntime
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-default-train
+    title: defaultTrain
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/training-setup.ts#defaultTrain
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-default-evaluate-development
+    title: defaultEvaluateDevelopment
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/training-setup.ts#defaultEvaluateDevelopment
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-one-shot-variant
+    title: oneShotVariant
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/training-setup.ts#oneShotVariant
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-adopt-eligible-candidate
+    title: adoptEligibleCandidate
+    sourceFile: scripts/skillopt-eval/adoption-integration.ts
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/adoption-integration.ts#adoptEligibleCandidate
+    relationships:
+      - type: implements
+        target: REQ-skillopt-automatic-adoption
+      - type: covered_by
+        target: TEST-skillopt-automatic-adoption
