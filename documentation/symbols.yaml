@@ -17120,3 +17120,118 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-automatic-adoption
+  - id: SYM-skillopt-adoption-once-fixture-adoption-id-of
+    title: adoptionIdOf
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts#adoptionIdOf
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-automatic-adoption
+  - id: SYM-skillopt-adoption-once-fixture-automatic-input
+    title: automaticInput
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts#automaticInput
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-automatic-adoption
+  - id: SYM-skillopt-adoption-once-fixture-baseline-body
+    title: baselineBody
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts#baselineBody
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-automatic-adoption
+  - id: SYM-skillopt-adoption-once-fixture-candidate-body
+    title: candidateBody
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts#candidateBody
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-automatic-adoption
+  - id: SYM-skillopt-adoption-once-fixture-checkpoint-hash
+    title: checkpointHash
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts#checkpointHash
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-automatic-adoption
+  - id: SYM-skillopt-adoption-once-fixture-canonical-hash
+    title: canonicalHash
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts#canonicalHash
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-automatic-adoption
+  - id: SYM-skillopt-adoption-once-fixture-cleanup-roots
+    title: cleanupRoots
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts#cleanupRoots
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-automatic-adoption
+  - id: SYM-skillopt-adoption-once-fixture-create-repo
+    title: createRepo
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts#createRepo
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-automatic-adoption
+  - id: SYM-skillopt-adoption-once-fixture-frontmatter
+    title: frontmatter
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts#frontmatter
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-automatic-adoption
+  - id: SYM-skillopt-adoption-once-fixture-manifest
+    title: manifest
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts#manifest
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-automatic-adoption
+  - id: SYM-skillopt-adoption-once-fixture-root-set
+    title: rootSet
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts#rootSet
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-automatic-adoption
+  - id: SYM-skillopt-adoption-once-fixture-resource-body
+    title: resourceBody
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts#resourceBody
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-automatic-adoption
+  - id: SYM-skillopt-adoption-once-fixture-roots
+    title: roots
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts#roots
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-automatic-adoption
+  - id: SYM-skillopt-adoption-once-fixture-skill
+    title: skill
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    text_ref: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts#skill
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-automatic-adoption

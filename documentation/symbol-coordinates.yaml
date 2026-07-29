@@ -6092,6 +6092,90 @@ coordinates:
     sourceEndLine: 189
     sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-fixtures.ts
     sourceLine: 181
+  SYM-skillopt-adoption-once-fixture-adoption-id-of:
+    sourceColumn: 17
+    sourceEndColumn: 2
+    sourceEndLine: 67
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    sourceLine: 62
+  SYM-skillopt-adoption-once-fixture-automatic-input:
+    sourceColumn: 17
+    sourceEndColumn: 2
+    sourceEndLine: 100
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    sourceLine: 68
+  SYM-skillopt-adoption-once-fixture-baseline-body:
+    sourceColumn: 14
+    sourceEndColumn: 46
+    sourceEndLine: 12
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    sourceLine: 12
+  SYM-skillopt-adoption-once-fixture-candidate-body:
+    sourceColumn: 14
+    sourceEndColumn: 56
+    sourceEndLine: 13
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    sourceLine: 13
+  SYM-skillopt-adoption-once-fixture-checkpoint-hash:
+    sourceColumn: 7
+    sourceEndColumn: 39
+    sourceEndLine: 15
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    sourceLine: 15
+  SYM-skillopt-adoption-once-fixture-canonical-hash:
+    sourceColumn: 10
+    sourceEndColumn: 2
+    sourceEndLine: 61
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    sourceLine: 56
+  SYM-skillopt-adoption-once-fixture-cleanup-roots:
+    sourceColumn: 23
+    sourceEndColumn: 2
+    sourceEndLine: 38
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    sourceLine: 35
+  SYM-skillopt-adoption-once-fixture-create-repo:
+    sourceColumn: 23
+    sourceEndColumn: 2
+    sourceEndLine: 55
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    sourceLine: 39
+  SYM-skillopt-adoption-once-fixture-frontmatter:
+    sourceColumn: 14
+    sourceEndColumn: 186
+    sourceEndLine: 11
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    sourceLine: 11
+  SYM-skillopt-adoption-once-fixture-manifest:
+    sourceColumn: 7
+    sourceEndColumn: 3
+    sourceEndLine: 23
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    sourceLine: 16
+  SYM-skillopt-adoption-once-fixture-root-set:
+    sourceColumn: 14
+    sourceEndColumn: 3
+    sourceEndLine: 34
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    sourceLine: 24
+  SYM-skillopt-adoption-once-fixture-resource-body:
+    sourceColumn: 14
+    sourceEndColumn: 50
+    sourceEndLine: 14
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    sourceLine: 14
+  SYM-skillopt-adoption-once-fixture-roots:
+    sourceColumn: 14
+    sourceEndColumn: 35
+    sourceEndLine: 9
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    sourceLine: 9
+  SYM-skillopt-adoption-once-fixture-skill:
+    sourceColumn: 14
+    sourceEndColumn: 44
+    sourceEndLine: 10
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    sourceLine: 10
   SYM-skillopt-adoption-input:
     sourceColumn: 12
     sourceEndColumn: 5
