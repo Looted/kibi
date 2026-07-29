@@ -21,6 +21,7 @@ from .models import (
 class BridgeError(ValueError):
     pass
 
+
 Visibility = Literal["public", "private"]
 
 
