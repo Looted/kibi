@@ -1,4 +1,4 @@
-import { cp, mkdir, readdir } from "node:fs/promises";
+import { cp, mkdir, readdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import {
   assertSecureDirectory,
@@ -8,6 +8,7 @@ import {
   readDurableText,
   readSecureFile,
 } from "./adoption-durable";
+import { recoverNoReplaceIntents } from "./adoption-intent";
 import {
   type ExactAdoptionDependencies,
   type ExactAdoptionInput,
@@ -51,14 +52,58 @@ async function synchronizeMirrors(
   for (const target of ["cursor", "codex"] as const) {
     const source = join(repoRoot, "packages", target, "skills");
     await assertSecureDirectory(source);
-    await cp(source, join(backups, target), {
-      recursive: true,
-      dereference: false,
-      errorOnExist: true,
-    });
+    const backup = join(backups, target);
+    try {
+      await assertSecureDirectory(backup);
+    } catch (error) {
+      if (
+        !(error instanceof Error && "code" in error && error.code === "ENOENT")
+      )
+        throw error;
+      await cp(source, backup, {
+        recursive: true,
+        dereference: false,
+        errorOnExist: true,
+      });
+      await fsyncDirectory(backups);
+    }
   }
   await fsyncDirectory(backups);
   await dependencies.runMirrorSync(repoRoot);
+}
+
+async function restorePreimages(
+  repoRoot: string,
+  wal: string,
+  journal: Journal,
+  dependencies: ExactAdoptionDependencies,
+): Promise<void> {
+  const canonical = await readSecureFile(repoRoot, journal.canonicalPath);
+  if (canonical.bytes.toString("utf8") !== journal.canonicalBefore) {
+    await durableReplace(
+      repoRoot,
+      journal.canonicalPath,
+      journal.canonicalBefore,
+      canonical.identity,
+      dependencies.durabilityObserver,
+    );
+  }
+  const backups = join(wal, "mirror-backups");
+  try {
+    await assertSecureDirectory(backups);
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "ENOENT")
+      return;
+    throw error;
+  }
+  for (const target of ["cursor", "codex"] as const) {
+    const source = join(repoRoot, "packages", target, "skills");
+    const backup = join(backups, target);
+    await assertSecureDirectory(backup);
+    await rm(source, { recursive: true, force: true });
+    await cp(backup, source, { recursive: true, dereference: false });
+    await fsyncDirectory(join(repoRoot, "packages", target));
+  }
 }
 
 async function completeJournal(
@@ -125,6 +170,7 @@ export async function recoverAdoptionWals(
     if (!entry.isDirectory()) continue;
     const wal = join(root, entry.name);
     await assertSecureDirectory(wal);
+    await recoverNoReplaceIntents(repoRoot, wal);
     const journal = await readJournal(repoRoot, journalPath(wal));
     let terminal: string | undefined;
     try {
@@ -133,7 +179,8 @@ export async function recoverAdoptionWals(
       if (!isMissing(error)) throw error;
     }
     if (terminal === undefined) {
-      await completeJournal(repoRoot, wal, journal, dependencies);
+      await restorePreimages(repoRoot, wal, journal, dependencies);
+      await advancePhase(repoRoot, wal, journal, "prepared", dependencies);
       continue;
     }
     if (terminal !== terminalJson(journal))
@@ -159,13 +206,6 @@ export async function executeExactAdoption(
     ) {
       throw error;
     }
-  }
-  try {
-    return parseReceipt(
-      await readDurableText(input.repoRoot, receiptPath(wal)),
-    );
-  } catch (error) {
-    if (!isMissing(error)) throw error;
   }
   return completeJournal(
     input.repoRoot,
