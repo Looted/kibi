@@ -69,25 +69,36 @@ describe("bounded process groups", () => {
 
   test("handles repeated parent interruption once and kills the group", async () => {
     // Given
-    const processPromise = runBoundedProcess({
-      argv: ["bash", "-c", "trap '' TERM; sleep 30 & wait"],
-      cwd: process.cwd(),
-      env: process.env,
-      timeoutMs: 5_000,
-      killGraceMs: 25,
-    });
+    const runtimeUrl = new URL("../runtime/process.ts", import.meta.url).href;
+    const harness = `
+      import { runBoundedProcess, ProcessControlError } from ${JSON.stringify(runtimeUrl)};
+      const running = runBoundedProcess({
+        argv: ["bash", "-c", "trap '' TERM; sleep 30 & wait"],
+        cwd: process.cwd(),
+        env: process.env,
+        timeoutMs: 5000,
+        killGraceMs: 25,
+      });
+      queueMicrotask(() => {
+        process.emit("SIGINT", "SIGINT");
+        process.emit("SIGINT", "SIGINT");
+      });
+      const error = await running.catch((caught) => caught);
+      if (!(error instanceof ProcessControlError) || error.kind !== "interrupted") {
+        process.exitCode = 3;
+      }
+    `;
 
     // When
-    queueMicrotask(() => {
-      process.emit("SIGINT", "SIGINT");
-      process.emit("SIGINT", "SIGINT");
+    const child = Bun.spawn([process.execPath, "-e", harness], {
+      cwd: process.cwd(),
+      stdout: "pipe",
+      stderr: "pipe",
     });
-    const error = await processPromise.catch((caught: unknown) => caught);
+    const exitCode = await child.exited;
 
     // Then
-    expect(error).toBeInstanceOf(ProcessControlError);
-    if (!(error instanceof ProcessControlError)) throw error;
-    expect(error.kind).toBe("interrupted");
+    expect(exitCode).toBe(0);
   });
 
   test("reaps descendants after a real OS interrupt lets the leader exit", async () => {
