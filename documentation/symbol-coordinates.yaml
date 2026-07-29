@@ -6095,15 +6095,15 @@ coordinates:
   SYM-skillopt-assert-file-identity:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 100
+    sourceEndLine: 108
     sourceFile: scripts/skillopt-eval/adoption-durable.ts
-    sourceLine: 91
+    sourceLine: 99
   SYM-skillopt-assert-secure-directory:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 43
+    sourceEndLine: 51
     sourceFile: scripts/skillopt-eval/adoption-durable.ts
-    sourceLine: 38
+    sourceLine: 46
   SYM-skillopt-auto-adoption-input:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -6851,7 +6851,7 @@ coordinates:
   SYM-skillopt-default-codex-cell-dependencies:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 139
+    sourceEndLine: 144
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
     sourceLine: 85
   SYM-skillopt-default-run-mirror-sync:
@@ -6881,33 +6881,33 @@ coordinates:
   SYM-skillopt-durability-observer:
     sourceColumn: 12
     sourceEndColumn: 73
-    sourceEndLine: 17
+    sourceEndLine: 25
     sourceFile: scripts/skillopt-eval/adoption-durable.ts
-    sourceLine: 17
+    sourceLine: 25
   SYM-skillopt-durability-step:
     sourceColumn: 12
     sourceEndColumn: 21
-    sourceEndLine: 15
+    sourceEndLine: 23
     sourceFile: scripts/skillopt-eval/adoption-durable.ts
-    sourceLine: 10
+    sourceLine: 18
   SYM-skillopt-durable-no-replace:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 190
+    sourceEndLine: 220
     sourceFile: scripts/skillopt-eval/adoption-durable.ts
-    sourceLine: 158
+    sourceLine: 166
   SYM-skillopt-durable-replace:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 156
+    sourceEndLine: 164
     sourceFile: scripts/skillopt-eval/adoption-durable.ts
-    sourceLine: 140
+    sourceLine: 148
   SYM-skillopt-ensure-secure-directory:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 48
+    sourceEndLine: 56
     sourceFile: scripts/skillopt-eval/adoption-durable.ts
-    sourceLine: 45
+    sourceLine: 53
   SYM-skillopt-episode-replay-input-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -6995,9 +6995,9 @@ coordinates:
   SYM-skillopt-execute-exact-adoption:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 176
+    sourceEndLine: 216
     sourceFile: scripts/skillopt-eval/adoption-transaction.ts
-    sourceLine: 145
+    sourceLine: 192
   SYM-skillopt-external-trust-client-main:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7079,9 +7079,9 @@ coordinates:
   SYM-skillopt-file-identity:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 8
+    sourceEndLine: 16
     sourceFile: scripts/skillopt-eval/adoption-durable.ts
-    sourceLine: 5
+    sourceLine: 13
   SYM-skillopt-filter-advertised-tools:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7343,9 +7343,9 @@ coordinates:
   SYM-skillopt-fsync-directory:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 112
+    sourceEndLine: 120
     sourceFile: scripts/skillopt-eval/adoption-durable.ts
-    sourceLine: 102
+    sourceLine: 110
   SYM-skillopt-generate-one-shot-variant:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -8252,6 +8252,12 @@ coordinates:
     sourceEndLine: 237
     sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
     sourceLine: 237
+  SYM-skillopt-python-bridge-runner:
+    sourceColumn: 4
+    sourceEndColumn: 14
+    sourceEndLine: 91
+    sourceFile: tools/skillopt/kibi_skillopt/bridge_runner.py
+    sourceLine: 91
   SYM-skillopt-python-canonical-json:
     sourceColumn: 4
     sourceEndColumn: 18
@@ -8363,9 +8369,9 @@ coordinates:
   SYM-skillopt-read-durable-text:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 197
+    sourceEndLine: 227
     sourceFile: scripts/skillopt-eval/adoption-durable.ts
-    sourceLine: 192
+    sourceLine: 222
   SYM-skillopt-read-journal:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -8381,9 +8387,9 @@ coordinates:
   SYM-skillopt-read-secure-file:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 89
+    sourceEndLine: 97
     sourceFile: scripts/skillopt-eval/adoption-durable.ts
-    sourceLine: 62
+    sourceLine: 70
   SYM-skillopt-real-optimization-dependencies:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -8423,9 +8429,9 @@ coordinates:
   SYM-skillopt-recover-adoption-wals:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 143
+    sourceEndLine: 190
     sourceFile: scripts/skillopt-eval/adoption-transaction.ts
-    sourceLine: 118
+    sourceLine: 163
   SYM-skillopt-render-report-markdown:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8495,9 +8501,9 @@ coordinates:
   SYM-skillopt-run-mcp-broker:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 242
+    sourceEndLine: 251
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker-process.ts
-    sourceLine: 55
+    sourceLine: 62
   SYM-skillopt-run-mirror-sync:
     sourceColumn: 12
     sourceEndColumn: 64
@@ -8675,9 +8681,9 @@ coordinates:
   SYM-skillopt-runtime-create-workspace:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 80
+    sourceEndLine: 116
     sourceFile: scripts/skillopt-eval/runtime/isolation-workspace.ts
-    sourceLine: 29
+    sourceLine: 45
   SYM-skillopt-runtime-isolated-env:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8693,21 +8699,21 @@ coordinates:
   SYM-skillopt-runtime-json-error:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 50
+    sourceEndLine: 51
     sourceFile: scripts/skillopt-eval/runtime/process.ts
-    sourceLine: 41
+    sourceLine: 42
   SYM-skillopt-runtime-json-error-name:
     sourceColumn: 11
     sourceEndColumn: 35
-    sourceEndLine: 42
+    sourceEndLine: 43
     sourceFile: scripts/skillopt-eval/runtime/process.ts
-    sourceLine: 42
+    sourceLine: 43
   SYM-skillopt-runtime-json-line:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 39
+    sourceEndLine: 40
     sourceFile: scripts/skillopt-eval/runtime/process.ts
-    sourceLine: 36
+    sourceLine: 37
   SYM-skillopt-runtime-mcp-probe-result:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -8759,9 +8765,9 @@ coordinates:
   SYM-skillopt-runtime-parse-jsonl:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 66
+    sourceEndLine: 67
     sourceFile: scripts/skillopt-eval/runtime/process.ts
-    sourceLine: 53
+    sourceLine: 54
   SYM-skillopt-runtime-permission-paths:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -8825,19 +8831,19 @@ coordinates:
   SYM-skillopt-runtime-process-error:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 32
+    sourceEndLine: 33
     sourceFile: scripts/skillopt-eval/runtime/process.ts
-    sourceLine: 22
+    sourceLine: 23
   SYM-skillopt-runtime-process-error-name:
     sourceColumn: 11
     sourceEndColumn: 40
-    sourceEndLine: 23
+    sourceEndLine: 24
     sourceFile: scripts/skillopt-eval/runtime/process.ts
-    sourceLine: 23
+    sourceLine: 24
   SYM-skillopt-runtime-process-options:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 20
+    sourceEndLine: 21
     sourceFile: scripts/skillopt-eval/runtime/process.ts
     sourceLine: 13
   SYM-skillopt-runtime-process-result:
@@ -8879,9 +8885,9 @@ coordinates:
   SYM-skillopt-runtime-run-process:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 153
+    sourceEndLine: 165
     sourceFile: scripts/skillopt-eval/runtime/process.ts
-    sourceLine: 81
+    sourceLine: 89
   SYM-skillopt-runtime-sha256-file:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -8936,10 +8942,22 @@ coordinates:
     sourceEndLine: 62
     sourceFile: scripts/skillopt-eval/runtime/canary-evidence.ts
     sourceLine: 38
+  SYM-skillopt-runtime-workspace-cleanup-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 35
+    sourceFile: scripts/skillopt-eval/runtime/isolation-workspace.ts
+    sourceLine: 29
+  SYM-skillopt-runtime-workspace-cleanup-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 42
+    sourceEndLine: 30
+    sourceFile: scripts/skillopt-eval/runtime/isolation-workspace.ts
+    sourceLine: 30
   SYM-skillopt-runtime-workspace-options:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 19
+    sourceEndLine: 20
     sourceFile: scripts/skillopt-eval/runtime/isolation-workspace.ts
     sourceLine: 15
   SYM-skillopt-runtime-write-probe:
