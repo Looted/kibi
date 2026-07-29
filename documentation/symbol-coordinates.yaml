@@ -6851,9 +6851,9 @@ coordinates:
   SYM-skillopt-default-codex-cell-dependencies:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 128
+    sourceEndLine: 139
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    sourceLine: 82
+    sourceLine: 85
   SYM-skillopt-default-run-mirror-sync:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -8411,9 +8411,9 @@ coordinates:
   SYM-skillopt-real-optimization-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 688
+    sourceEndLine: 690
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 514
+    sourceLine: 516
   SYM-skillopt-receipt-path:
     sourceColumn: 16
     sourceEndColumn: 1
