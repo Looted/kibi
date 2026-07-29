@@ -8612,30 +8612,6 @@ coordinates:
     sourceEndLine: 97
     sourceFile: scripts/skillopt-eval/adoption-durable.ts
     sourceLine: 70
-  SYM-skillopt-real-optimization-dependencies:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 186
-    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
-    sourceLine: 155
-  SYM-skillopt-real-optimization-input:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 122
-    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
-    sourceLine: 113
-  SYM-skillopt-real-optimization-options:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 133
-    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
-    sourceLine: 125
-  SYM-skillopt-real-optimization-result:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 146
-    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
-    sourceLine: 136
   SYM-skillopt-real-optimization-run:
     sourceColumn: 22
     sourceEndColumn: 1
