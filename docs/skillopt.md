@@ -13,7 +13,9 @@ SkillOpt is an isolated research tool, not a runtime dependency of Kibi. Real ru
 
 The implemented path does not need root owned launchers, private service directories, root owned UIDs, socket activated services, provider API keys, or any external trust plane service.
 
-`prepareExistingLogin` copies an existing `~/.codex/auth.json` into a private Codex home, rejects provider API key env vars, and revalidates `codex login status`.
+`prepareExistingLogin` copies an existing `~/.codex/auth.json` into a private Codex home with mode `0600`, rejects provider API key env vars, and revalidates `codex login status`.
+
+The Python bridge owns one POSIX process group for its Bun bridge and all inherited Codex and MCP descendants. On timeout, `SIGINT`, or `SIGTERM`, it sends `TERM` to that group, waits a bounded grace period, then sends `KILL` to the group even if its direct Bun child exited first, and reaps that child. The TypeScript runtime inherits that group rather than detaching another one. Workspace cleanup removes every private root best-effort; an error stays retryable until every removal succeeds, so copied auth is never treated as cleaned before it is removed.
 
 ## Real workflow
 

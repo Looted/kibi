@@ -17,6 +17,7 @@ export type ProcessOptions = Readonly<{
   timeoutMs: number;
   killGraceMs?: number;
   stdin?: string;
+  groupMode?: "owned" | "inherited";
 }>;
 
 export class ProcessControlError extends Error {
@@ -77,17 +78,25 @@ function terminateGroup(pid: number, signal: NodeJS.Signals): void {
   }
 }
 
+function terminateChild(
+  child: ReturnType<typeof spawn>,
+  signal: NodeJS.Signals,
+): void {
+  child.kill(signal);
+}
+
 // implements REQ-skillopt-codex-optimization
 export function runBoundedProcess(
   options: ProcessOptions,
 ): Promise<ProcessResult> {
   const killGraceMs = options.killGraceMs ?? 2_000;
+  const ownsGroup = options.groupMode !== "inherited";
   return new Promise((resolve, reject) => {
     const [command, ...args] = options.argv;
     const child = spawn(command, args, {
       cwd: options.cwd,
       env: options.env,
-      detached: true,
+      detached: ownsGroup,
       stdio: ["pipe", "pipe", "pipe"],
     });
     let stdout = "";
@@ -98,9 +107,12 @@ export function runBoundedProcess(
     const beginTermination = (kind: "timeout" | "interrupted"): void => {
       if (terminalKind !== null || child.pid === undefined) return;
       terminalKind = kind;
-      terminateGroup(child.pid, "SIGTERM");
+      if (ownsGroup) terminateGroup(child.pid, "SIGTERM");
+      else terminateChild(child, "SIGTERM");
       killTimer = setTimeout(() => {
-        if (child.pid !== undefined) terminateGroup(child.pid, "SIGKILL");
+        if (child.pid === undefined) return;
+        if (ownsGroup) terminateGroup(child.pid, "SIGKILL");
+        else terminateChild(child, "SIGKILL");
       }, killGraceMs);
     };
     const interrupt = (): void => beginTermination("interrupted");

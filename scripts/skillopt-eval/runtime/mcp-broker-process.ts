@@ -37,6 +37,13 @@ function terminateGroup(pid: number, signal: NodeJS.Signals): void {
   }
 }
 
+function terminateChild(
+  child: ReturnType<typeof spawn>,
+  signal: NodeJS.Signals,
+): void {
+  child.kill(signal);
+}
+
 type PendingRequest = Readonly<{
   correlationId: string;
   method?: string;
@@ -60,13 +67,14 @@ export async function runMcpBroker(
     error: process.stderr,
   },
 ): Promise<void> {
+  const ownsGroup = process.env.KIBI_SKILLOPT_PROCESS_GROUP !== "python_bridge";
   const child = spawn(
     options.downstream.command,
     [...options.downstream.args],
     {
       cwd: options.downstream.cwd,
       env: process.env,
-      detached: true,
+      detached: ownsGroup,
       stdio: ["pipe", "pipe", "pipe"],
     },
   );
@@ -91,11 +99,12 @@ export async function runMcpBroker(
       kind: "error",
       payload: { kind: error.kind },
     });
-    terminateGroup(pid, "SIGTERM");
-    setTimeout(
-      () => terminateGroup(pid, "SIGKILL"),
-      options.killGraceMs,
-    ).unref();
+    if (ownsGroup) terminateGroup(pid, "SIGTERM");
+    else terminateChild(child, "SIGTERM");
+    setTimeout(() => {
+      if (ownsGroup) terminateGroup(pid, "SIGKILL");
+      else terminateChild(child, "SIGKILL");
+    }, options.killGraceMs).unref();
   };
   const startupTimer = setTimeout(
     () => fail(new McpBrokerError("startup")),
