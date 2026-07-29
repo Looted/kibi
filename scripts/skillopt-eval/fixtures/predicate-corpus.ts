@@ -138,7 +138,7 @@ function publicCaseView(entry: PredicateCase): JsonValue {
   return toJsonValue({
     caseId: entry.caseId,
     split: entry.split,
-    semanticClass: entry.semanticClass,
+
     publicClaim: entry.publicClaim,
   });
 }

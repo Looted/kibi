@@ -175,4 +175,25 @@ describe("private SkillOpt fixture corpus", () => {
     }
     expect(corpus.privateCaseMap.size).toBe(7);
   });
+
+  test("Given public corpus and workspace artifacts When materialized Then opaque case IDs are the only predicate classification", () => {
+    // Given
+    const root = temporaryRoot();
+    roots.push(root);
+    const {
+      materializePredicateCorpus,
+    } = require("../fixtures/predicate-corpus");
+    const corpus = materializePredicateCorpus({
+      artifactRoot: path.join(root, "corpus"),
+    });
+
+    // When
+    const publicText = readTree(corpus.publicRootDir);
+
+    // Then
+    expect(publicText).not.toContain("semanticClass");
+    expect(publicText).not.toMatch(
+      /builtin_relational|strict_scalar_counterexample|project_local_schema|deny_polarity|ontology_gap|keyword_false_positive/,
+    );
+  });
 });

@@ -117,7 +117,7 @@ function writePublicPredicateClaim(input: WorkspaceInput): void {
   // Public view: claim text + public schema only. Never the expected outcome.
   writeJson(input.root, "predicate-claim.json", {
     caseId: semanticCase.caseId,
-    semanticClass: semanticCase.semanticClass,
+
     split: semanticCase.split,
     claimText: semanticCase.publicClaim.claimText,
     publicSchema: semanticCase.publicClaim.publicSchema,
