@@ -31,7 +31,7 @@ describe("bridge CLI", () => {
       skill: "kibi-usage" as const,
       phase: "train" as const,
       candidateBody: "Use the Kibi MCP workflow.\n",
-      taskIds: ["bridge-task-1"],
+      taskIds: ["kibi-usage-fact-predicate-modeling-held-out-3"],
       sourceLockHash: "a".repeat(64),
     };
     await writeBridgeRequest(requestPath, request);
@@ -62,6 +62,11 @@ describe("bridge CLI", () => {
         expect(options.fixtureRoot).toBe(join(root, "fixture"));
         expect(options.targetSkill).toBe("kibi-usage");
         expect(options.candidate).toEqual({ body: request.candidateBody });
+        expect(options.finalStateRequests.map(({ tool }) => tool)).toEqual([
+          "kb_query",
+          "kb_check",
+          "kb_status",
+        ]);
         return {
           receipt: {
             result: {
@@ -109,7 +114,7 @@ describe("bridge CLI", () => {
     expect(runCodexCellCalled).toBe(true);
     expect((await readBridgeResult(resultPath, request)).rows).toEqual([
       {
-        id: "bridge-task-1",
+        id: "kibi-usage-fact-predicate-modeling-held-out-3",
         hard: 1,
         soft: 1,
         status: "completed",
@@ -118,5 +123,62 @@ describe("bridge CLI", () => {
         evidenceRefs: ["episodes/episode-1/episode-receipt.json"],
       },
     ]);
+  });
+
+  test("Given a task request and evaluator manifest for different task IDs When bridgeMain executes Then no cell is launched", async () => {
+    // Given
+    const root = await mkdtemp(
+      join(tmpdir(), "skillopt-bridge-manifest-mismatch-"),
+    );
+    roots.push(root);
+    const requestPath = join(root, "request.json");
+    const resultPath = join(root, "result.json");
+    const evaluatorPath = join(root, "evaluator.json");
+    await writeBridgeRequest(requestPath, {
+      schemaVersion: "1.0.0",
+      artifactType: "skillopt-bridge-request",
+      runId: "00000000-0000-4000-8000-000000000022",
+      batchId: "bridge-manifest-mismatch",
+      skill: "kibi-usage",
+      phase: "train",
+      candidateBody: "Use the Kibi MCP workflow.\n",
+      taskIds: ["wrong-task"],
+      sourceLockHash: "a".repeat(64),
+    });
+    await writeFile(
+      evaluatorPath,
+      JSON.stringify(evaluatorManifest("predicate")),
+    );
+    let cellLaunches = 0;
+
+    // When
+    const attempt = bridgeMain(
+      [
+        "--request",
+        requestPath,
+        "--result",
+        resultPath,
+        "--source-worktree",
+        process.cwd(),
+        "--artifact-root",
+        join(root, "artifacts"),
+        "--fixture-root",
+        join(root, "fixture"),
+        "--evaluator-manifest",
+        evaluatorPath,
+      ],
+      {
+        defaultCodexCellDependencies: (options) =>
+          defaultCodexCellDependencies(options),
+        runCodexCell: async () => {
+          cellLaunches += 1;
+          throw new Error("cell must not launch");
+        },
+      },
+    );
+
+    // Then
+    await expect(attempt).rejects.toThrow("bridge_execution_failed");
+    expect(cellLaunches).toBe(0);
   });
 });

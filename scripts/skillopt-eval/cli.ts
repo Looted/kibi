@@ -9,7 +9,7 @@ import {
 import { RunStore, runOfflineWorkflow } from "./orchestration";
 import { runCapabilityCanary, runPreflight } from "./preflight";
 import { type PrototypeScenario, runPrototype } from "./prototype";
-import { runRealOptimization } from "./real-workflow";
+import { type CodexCellRuntime, runRealOptimization } from "./real-workflow";
 
 class CliUsageError extends Error {
   readonly name = "CliUsageError";
@@ -22,6 +22,7 @@ type WorkflowOptions = Readonly<{
   skill: CanonicalSkill | "all" | undefined;
   allowPaid: boolean;
   maxSteps: number;
+  cellRuntime?: CodexCellRuntime;
 }>;
 
 function parseSkill(value: string): CanonicalSkill | "all" {
@@ -50,6 +51,8 @@ function parseWorkflowOptions(args: readonly string[]): WorkflowOptions {
   let skill: CanonicalSkill | "all" | undefined;
   let allowPaid = false;
   let maxSteps = 1;
+  let fixtureRoot: string | undefined;
+  let evaluatorManifestPath: string | undefined;
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
     if (arg === "--fake") {
@@ -77,13 +80,20 @@ function parseWorkflowOptions(args: readonly string[]): WorkflowOptions {
       index += 1;
       continue;
     }
-    if (arg === "--run-id" || arg === "--artifact-root") {
+    if (
+      arg === "--run-id" ||
+      arg === "--artifact-root" ||
+      arg === "--fixture-root" ||
+      arg === "--evaluator-manifest"
+    ) {
       const value = args[index + 1];
       if (value === undefined || value.startsWith("--")) {
         throw new CliUsageError(`${arg} requires a value`);
       }
       if (arg === "--run-id") runId = value;
-      else artifactRoot = value;
+      else if (arg === "--artifact-root") artifactRoot = value;
+      else if (arg === "--fixture-root") fixtureRoot = value;
+      else evaluatorManifestPath = value;
       index += 1;
       continue;
     }
@@ -100,6 +110,9 @@ function parseWorkflowOptions(args: readonly string[]): WorkflowOptions {
     skill,
     allowPaid,
     maxSteps,
+    ...(fixtureRoot === undefined || evaluatorManifestPath === undefined
+      ? {}
+      : { cellRuntime: { fixtureRoot, evaluatorManifestPath } }),
   };
 }
 
@@ -117,7 +130,7 @@ function printHelp(): void {
     `${[
       "Usage: cli.ts <command> [options]",
       "Commands: preflight, smoke, dry-run, prepare, optimize, evaluate, bundle, run, resume, status, report, approve, adopt, prototype",
-      "Workflow options: --run-id RUN_ID --artifact-root PATH [--fake] [--skill SKILL|all] [--max-steps 1..4]",
+      "Workflow options: --run-id RUN_ID --artifact-root PATH [--fake] [--skill SKILL|all] [--max-steps 1..4] [--fixture-root PATH --evaluator-manifest PATH]",
       "Real optimize requires --allow-paid after preflight and smoke; held-out eligible candidates adopt automatically.",
     ].join("\n")}\n`,
   );
@@ -180,6 +193,11 @@ async function runWorkflowCommand(
         "optimize requires --allow-paid after preflight and smoke",
       );
     }
+    if (options.cellRuntime === undefined) {
+      throw new CliUsageError(
+        "optimize requires --fixture-root and --evaluator-manifest for bounded Codex cells",
+      );
+    }
     const preflight = await runPreflight({
       runId: options.runId,
       sourceWorktree: process.cwd(),
@@ -212,6 +230,7 @@ async function runWorkflowCommand(
       sourceWorktree: process.cwd(),
       skills,
       maxSteps: options.maxSteps,
+      cellRuntime: options.cellRuntime,
     });
     process.stdout.write(
       `${JSON.stringify({

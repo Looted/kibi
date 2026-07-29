@@ -97,6 +97,9 @@ async function realResult(
   const sourceWorktree = options.sourceWorktree ?? "";
   const artifactRoot = options.artifactRoot ?? "";
   const fixtureRoot = options.fixtureRoot ?? "";
+  if (request.taskIds.some((taskId) => taskId !== evaluatorManifest.taskId)) {
+    throw bridgeFailure(new Error("evaluator_manifest_task_mismatch"));
+  }
   const rows = await Promise.all(
     request.taskIds.map(async (taskId) => {
       const cellOptions: CodexCellOptions = {
@@ -121,7 +124,11 @@ async function realResult(
         codexExecutable: options.codexExecutable,
         bwrapExecutable: options.bwrapExecutable,
         env: process.env,
-        finalStateRequests: [{ tool: "kb_status", args: {} }],
+        finalStateRequests: [
+          { tool: "kb_query", args: { type: "fact" } },
+          { tool: "kb_check", args: {} },
+          { tool: "kb_status", args: {} },
+        ],
         evaluatorManifest,
         hiddenMarkers: options.hiddenMarkers,
         pricingHash: options.pricingHash,
