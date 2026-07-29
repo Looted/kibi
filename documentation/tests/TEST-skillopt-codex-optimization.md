@@ -4,7 +4,7 @@ title: Codex SkillOpt contract rejects stale hosts and gates
 type: test
 status: passing
 created_at: 2026-07-21T00:00:00Z
-updated_at: 2026-07-28T00:00:00Z
+updated_at: 2026-07-29T00:00:00Z
 source: scripts/skillopt-eval/tests/methodology-contract.test.ts
 priority: must
 tags: [skillopt, codex, evaluation, integration, security]
@@ -17,6 +17,6 @@ links:
 
 The parsed methodology and run-lock contracts require the same Codex-only host, held-out, family, bootstrap, and bundle gate values. The run-lock schema rejects stale evaluation-host arrays before a run can start.
 
-The offline Codex cell-runner suite verifies canonical four-skill assembly with body-only candidate replacement, immutable frontmatter and resources, required diagnostic-mode Kibi MCP startup, sealed network and `.kb` permissions, deterministic variant blinding, sanitized tolerant JSONL replay, terminal evidence receipts, and bounded cleanup. Adversarial cases cover candidate surface edits, direct `.kb` access, missing MCP evidence, forbidden writes, malformed or empty JSONL, timeout, and hidden-data leakage without paid model calls.
+The offline Codex cell-runner suite verifies canonical four-skill assembly with body-only candidate replacement, immutable frontmatter and resources, required diagnostic-mode Kibi MCP startup, sealed network and `.kb` permissions, deterministic variant blinding, sanitized tolerant JSONL replay, terminal evidence receipts, and bounded cleanup. Adversarial cases cover candidate surface edits, direct `.kb` access, missing MCP evidence, forbidden writes, malformed or empty JSONL, timeout, and hidden-data leakage without paid model calls. Process-tree harnesses prove that Python-owned Bun, Codex, and grandchild processes are reaped after timeout and interruption; cleanup fault injection proves private auth/workspaces remain retryable until removal succeeds.
 
 The bridge CLI suite verifies that non-fake requests construct a Codex cell from bridge inputs and delegate it through the real default dependency factory rather than returning synthetic scores.

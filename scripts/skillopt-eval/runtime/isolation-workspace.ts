@@ -16,7 +16,23 @@ export type WorkspaceOptions = Readonly<{
   artifactRoot: string;
   runId: string;
   role: "optimizer" | "target";
+  remove?: WorkspaceRemover;
 }>;
+
+type WorkspaceRemover = (path: string) => Promise<void>;
+
+type WorkspaceCleanupFailure = Readonly<{
+  path: string;
+  cause: unknown;
+}>;
+
+export class WorkspaceCleanupError extends Error {
+  readonly name = "WorkspaceCleanupError";
+
+  constructor(readonly failures: readonly WorkspaceCleanupFailure[]) {
+    super("workspace_cleanup_failed");
+  }
+}
 
 function safeSegment(value: string): string {
   if (!/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,79}$/.test(value)) {
@@ -30,6 +46,9 @@ export async function createIsolationWorkspace(
   options: WorkspaceOptions,
 ): Promise<IsolationWorkspace> {
   const artifactRoot = resolve(options.artifactRoot);
+  const remove =
+    options.remove ??
+    ((path: string) => rm(path, { recursive: true, force: true }));
   await mkdir(artifactRoot, { recursive: true, mode: 0o700 });
   const root = await mkdtemp(
     join(artifactRoot, `${safeSegment(options.runId)}-${options.role}-`),
@@ -63,6 +82,15 @@ export async function createIsolationWorkspace(
     mode: 0o600,
   });
   let cleaned = false;
+  const cleanupRoots = [
+    codexHome,
+    sandboxHome,
+    target,
+    privateEvidence,
+    privateScorer,
+    siblingRun,
+    root,
+  ];
   return {
     root,
     codexHome,
@@ -73,8 +101,16 @@ export async function createIsolationWorkspace(
     siblingRun,
     cleanup: async () => {
       if (cleaned) return;
+      const failures: WorkspaceCleanupFailure[] = [];
+      for (const cleanupRoot of cleanupRoots) {
+        try {
+          await remove(cleanupRoot);
+        } catch (cause) {
+          failures.push({ path: cleanupRoot, cause });
+        }
+      }
+      if (failures.length > 0) throw new WorkspaceCleanupError(failures);
       cleaned = true;
-      await rm(root, { recursive: true, force: true });
     },
   };
 }
