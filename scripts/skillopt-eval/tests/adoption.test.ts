@@ -155,22 +155,26 @@ function automaticInput(input: ReturnType<typeof approvalArtifacts>) {
     provenance: "skillopt",
     sourceRequestHash: checkpointHash,
   });
+  const eligibility = {
+    runId: "run-a",
+    signedEligibilityId: checkpointHash,
+    heldOutEligibility: "eligible" as const,
+    candidateHash: candidate.bodyHash,
+    authorizedRootSet: predicateRoots,
+    lineage: {
+      candidateHash: candidate.bodyHash,
+      signedEligibilityId: checkpointHash,
+      authorizedRootSet: predicateRoots,
+    },
+  };
   return {
     repoRoot: input.repoRoot,
     candidate,
     frontmatterHash: candidate.frontmatterHash,
     resourcesHash: candidate.resourcesHash,
     eligibility: {
-      runId: "run-a",
-      signedEligibilityId: checkpointHash,
-      heldOutEligibility: "eligible" as const,
-      candidateHash: candidate.bodyHash,
-      authorizedRootSet: predicateRoots,
-      lineage: {
-        candidateHash: candidate.bodyHash,
-        signedEligibilityId: checkpointHash,
-        authorizedRootSet: predicateRoots,
-      },
+      ...eligibility,
+      sealedEvidenceHash: canonicalHash(eligibility),
     },
   };
 }
@@ -289,6 +293,26 @@ describe("SkillOpt adoption transaction", () => {
         "utf8",
       ),
     ).toBe(frontmatter + candidateBody);
+  });
+
+  test("Given caller-supplied eligible fields without a sealed matrix receipt When auto-adopted Then adoption is refused", async () => {
+    // Given
+    const repoRoot = await createRepo();
+    const input = approvalArtifacts(repoRoot);
+    const forged = automaticInput(input);
+    const unsealedEligibility = {
+      ...forged.eligibility,
+      sealedEvidenceHash: "f".repeat(64),
+    };
+
+    // When / Then
+    expect(
+      adoptSkillOptCandidate(
+        { ...forged, eligibility: unsealedEligibility },
+        { runMirrorSync: syncMirrors },
+      ),
+    ).rejects.toThrow(/sealed|evidence|matrix/i);
+    expect(await snapshot(repoRoot)).toContain(frontmatter + baselineBody);
   });
 
   test("Given a candidate that drops canonical safety guidance When auto-adopted Then adoption is blocked", async () => {

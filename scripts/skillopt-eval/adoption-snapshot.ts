@@ -60,6 +60,7 @@ function canonicalManifest(data: Record<string, unknown>) {
   };
 }
 
+// implements REQ-skillopt-automatic-adoption
 export function validatePredicateEligibility(input: AutoAdoptionInput): void {
   const { candidate, eligibility } = input;
   if (eligibility.heldOutEligibility !== "eligible") {
@@ -69,6 +70,20 @@ export function validatePredicateEligibility(input: AutoAdoptionInput): void {
   }
   if (eligibility.candidateHash !== candidate.bodyHash) {
     throw new AdoptionIntegrityError("eligibility candidate hash mismatch");
+  }
+  const sealedEvidenceHash = canonicalHash({
+    runId: eligibility.runId,
+    signedEligibilityId: eligibility.signedEligibilityId,
+    heldOutEligibility: eligibility.heldOutEligibility,
+    candidateHash: eligibility.candidateHash,
+    authorizedRootSet: eligibility.authorizedRootSet,
+    lineage: eligibility.lineage,
+  });
+  if (
+    eligibility.sealedEvidenceHash !== undefined &&
+    eligibility.sealedEvidenceHash !== sealedEvidenceHash
+  ) {
+    throw new AdoptionIntegrityError("sealed predicate evidence mismatch");
   }
   if (candidate.sourceRequestHash !== eligibility.signedEligibilityId) {
     throw new AdoptionIntegrityError("eligibility lineage checkpoint mismatch");

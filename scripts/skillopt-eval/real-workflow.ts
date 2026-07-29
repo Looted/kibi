@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { z } from "zod";
 import {
@@ -83,7 +83,7 @@ const ReviewSchema = z
               "eligible",
               "HELD_OUT_MATRIX_INELIGIBLE",
             ]),
-            heldOutCellCount: z.literal(36),
+            heldOutCellCount: z.number().int().positive(),
             adoption: z.enum(["adopted", "unchanged", "blocked"]),
           })
           .strict(),
@@ -163,7 +163,7 @@ export type RealOptimizationResult = Readonly<{
 
 type HeldOutEvaluation = Readonly<{
   eligibility: "eligible" | "HELD_OUT_MATRIX_INELIGIBLE";
-  cellCount: 36;
+  cellCount: number;
 }>;
 
 export type RealOptimizationDependencies = Readonly<{
@@ -247,11 +247,22 @@ async function predicateRoots(
   if (!existsSync(manifestPath)) {
     return materializePredicateCorpus({ artifactRoot: corpusRoot }).roots;
   }
-  const manifest = z
+  const persisted = z
     .object({ roots: RootsSchema })
     .passthrough()
     .parse(JSON.parse(await readFile(manifestPath, "utf8")));
-  return manifest.roots;
+  const currentRoot = `${corpusRoot}.current`;
+  try {
+    const current = materializePredicateCorpus({
+      artifactRoot: currentRoot,
+    }).roots;
+    if (canonicalHash(persisted.roots) !== canonicalHash(current)) {
+      throw new Error("predicate_root_drift");
+    }
+    return current;
+  } finally {
+    await rm(currentRoot, { recursive: true, force: true });
+  }
 }
 
 function requireRuntime(
@@ -261,6 +272,7 @@ function requireRuntime(
   return runtime;
 }
 
+// implements REQ-skillopt-codex-optimization
 async function defaultTrain(input: TrainingInput): Promise<TrainingOutput> {
   const runtime = requireRuntime(input.cellRuntime);
   const requestPath = join(input.artifactRoot, "trainer-request.json");
@@ -391,7 +403,11 @@ async function defaultEvaluateDevelopment(
     codexExecutable: runtime.codexExecutable ?? "codex",
     bwrapExecutable: runtime.bwrapExecutable ?? "/usr/bin/bwrap",
     env: input.env,
-    finalStateRequests: [{ tool: "kb_status", args: {} }],
+    finalStateRequests: [
+      { tool: "kb_query", args: { type: "fact" } },
+      { tool: "kb_check", args: {} },
+      { tool: "kb_status", args: {} },
+    ],
     evaluatorManifest: manifest,
     hiddenMarkers: runtime.hiddenMarkers ?? [],
     pricingHash: runtime.pricingHash ?? "0".repeat(64),
@@ -406,6 +422,7 @@ async function defaultEvaluateDevelopment(
   };
 }
 
+// implements REQ-skillopt-codex-optimization
 async function defaultEvaluateHeldOut(
   input: Readonly<{
     skill: CanonicalSkill;
@@ -447,7 +464,11 @@ async function defaultEvaluateHeldOut(
           codexExecutable: runtime.codexExecutable ?? "codex",
           bwrapExecutable: runtime.bwrapExecutable ?? "/usr/bin/bwrap",
           env: input.env,
-          finalStateRequests: [{ tool: "kb_status", args: {} }],
+          finalStateRequests: [
+            { tool: "kb_query", args: { type: "fact" } },
+            { tool: "kb_check", args: {} },
+            { tool: "kb_status", args: {} },
+          ],
           evaluatorManifest: manifest,
           hiddenMarkers: runtime.hiddenMarkers ?? [],
           pricingHash: runtime.pricingHash ?? "0".repeat(64),
@@ -460,7 +481,7 @@ async function defaultEvaluateHeldOut(
   }
   return {
     eligibility: allHardPass ? "eligible" : "HELD_OUT_MATRIX_INELIGIBLE",
-    cellCount: 36,
+    cellCount: input.variants.length * PREDICATE_HELD_OUT_CASE_IDS.length * 3,
   };
 }
 
@@ -524,7 +545,7 @@ export async function runRealOptimization(
       trainerCheckpointHash: string;
       development: DevelopmentGate;
       heldOutEligibility: HeldOutEvaluation["eligibility"];
-      heldOutCellCount: 36;
+      heldOutCellCount: number;
       adoption: "adopted" | "unchanged" | "blocked";
     }> = [];
     for (const skill of options.skills) {
@@ -594,6 +615,18 @@ export async function runRealOptimization(
                 heldOutEligibility: heldOut.eligibility,
                 candidateHash: candidate.bodyHash,
                 authorizedRootSet: roots,
+                sealedEvidenceHash: canonicalHash({
+                  runId: options.runId,
+                  signedEligibilityId: trained.trainerCheckpointHash,
+                  heldOutEligibility: heldOut.eligibility,
+                  candidateHash: candidate.bodyHash,
+                  authorizedRootSet: roots,
+                  lineage: {
+                    candidateHash: candidate.bodyHash,
+                    signedEligibilityId: trained.trainerCheckpointHash,
+                    authorizedRootSet: roots,
+                  },
+                }),
                 lineage: {
                   candidateHash: candidate.bodyHash,
                   signedEligibilityId: trained.trainerCheckpointHash,

@@ -90,6 +90,81 @@ describe("real SkillOpt workflow", () => {
     }
   });
 
+  test("Given persisted predicate roots drift When a workflow resumes Then training is rejected before any candidate evaluation", async () => {
+    // Given
+    const root = await mkdtemp(join(tmpdir(), "skillopt-real-root-drift-"));
+    let trainCalls = 0;
+    const dependencies: Partial<RealOptimizationDependencies> = {
+      sourceClean: async () => true,
+      train: async () => {
+        trainCalls += 1;
+        return {
+          status: "frozen",
+          candidateBody: "Use the Kibi MCP workflow.\n",
+          trainerCheckpointHash: "a".repeat(64),
+          trajectoryHashes: ["b".repeat(64)],
+        };
+      },
+      oneShot: async (input) =>
+        freezeCandidateVariant({
+          skill: input.skill,
+          variant: "one-shot",
+          body: "Use the Kibi MCP workflow.\n",
+          frontmatterHash: input.baseline.frontmatterHash,
+          resourcesHash: input.baseline.resourcesHash,
+          provenance: "codex-one-shot",
+        }),
+      evaluateDevelopment: async () => ({
+        mean: 0,
+        hardPasses: 0,
+        worstFamilyMean: 0,
+      }),
+      evaluateHeldOut: async () => ({
+        eligibility: "HELD_OUT_MATRIX_INELIGIBLE",
+        cellCount: 36,
+      }),
+    };
+    try {
+      await runRealOptimization(
+        {
+          runId: RUN_ID,
+          artifactRoot: root,
+          sourceWorktree: process.cwd(),
+          skills: ["kibi-usage"],
+          maxSteps: 1,
+        },
+        dependencies,
+      );
+      const manifestPath = join(
+        root,
+        "predicate-corpus",
+        "candidate-root-manifest.json",
+      );
+      const manifest = JSON.parse(await readFile(manifestPath, "utf8")) as {
+        roots: { corpus: string };
+      };
+      manifest.roots.corpus = "f".repeat(64);
+      await Bun.write(manifestPath, `${JSON.stringify(manifest)}\n`);
+
+      // When / Then
+      await expect(
+        runRealOptimization(
+          {
+            runId: RUN_ID,
+            artifactRoot: root,
+            sourceWorktree: process.cwd(),
+            skills: ["kibi-usage"],
+            maxSteps: 1,
+          },
+          dependencies,
+        ),
+      ).rejects.toThrow(/root.*drift/i);
+      expect(trainCalls).toBe(1);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   test("trains only on public descriptors and adopts a held-out eligible candidate", async () => {
     // Given
     const root = await mkdtemp(join(tmpdir(), "skillopt-real-auto-"));
