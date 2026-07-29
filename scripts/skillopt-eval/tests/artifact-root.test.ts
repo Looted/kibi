@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { mkdir, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -9,9 +9,7 @@ import {
 
 describe("SkillOpt artifact root", () => {
   test("falls back to a writable user cache when XDG runtime is unavailable", async () => {
-    const cacheRoot = await mkdir(join(tmpdir(), "skillopt-cache-root"), {
-      recursive: true,
-    }).then(() => join(tmpdir(), "skillopt-cache-root"));
+    const cacheRoot = await mkdtemp(join(tmpdir(), "skillopt-cache-root-"));
 
     try {
       const root = await resolveArtifactRoot(undefined, {
