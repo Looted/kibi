@@ -5990,6 +5990,12 @@ coordinates:
     sourceEndLine: 84
     sourceFile: scripts/skillopt-eval/adoption-approved.ts
     sourceLine: 59
+  SYM-skillopt-adopt-eligible-candidate:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 54
+    sourceFile: scripts/skillopt-eval/adoption-integration.ts
+    sourceLine: 17
   SYM-skillopt-adopt-offline-approved-skill:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -6377,9 +6383,21 @@ coordinates:
   SYM-skillopt-cli-main:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 316
+    sourceEndLine: 77
     sourceFile: scripts/skillopt-eval/cli.ts
-    sourceLine: 260
+    sourceLine: 36
+  SYM-skillopt-cli-usage-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 11
+    sourceFile: scripts/skillopt-eval/cli-options.ts
+    sourceLine: 7
+  SYM-skillopt-cli-usage-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 34
+    sourceEndLine: 10
+    sourceFile: scripts/skillopt-eval/cli-options.ts
+    sourceLine: 10
   SYM-skillopt-codex-cell-dependencies-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -6854,11 +6872,29 @@ coordinates:
     sourceEndLine: 144
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
     sourceLine: 85
+  SYM-skillopt-default-evaluate-development:
+    sourceColumn: 13
+    sourceEndColumn: 3
+    sourceEndLine: 126
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    sourceLine: 78
+  SYM-skillopt-default-evaluate-held-out:
+    sourceColumn: 13
+    sourceEndColumn: 3
+    sourceEndLine: 63
+    sourceFile: scripts/skillopt-eval/held-out-evaluation.ts
+    sourceLine: 14
   SYM-skillopt-default-run-mirror-sync:
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 32
     sourceFile: scripts/skillopt-eval/adoption-approved.ts
+    sourceLine: 20
+  SYM-skillopt-default-train:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 74
+    sourceFile: scripts/skillopt-eval/training-setup.ts
     sourceLine: 20
   SYM-skillopt-derive-adoption-id:
     sourceColumn: 16
@@ -7538,6 +7574,12 @@ coordinates:
     sourceEndLine: 55
     sourceFile: scripts/skillopt-eval/variants.ts
     sourceLine: 41
+  SYM-skillopt-one-shot-variant:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 159
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    sourceLine: 130
   SYM-skillopt-optimization-checkpoint:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -7604,12 +7646,24 @@ coordinates:
     sourceEndLine: 171
     sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
     sourceLine: 169
+  SYM-skillopt-parse-run-id:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 41
+    sourceFile: scripts/skillopt-eval/cli-options.ts
+    sourceLine: 33
   SYM-skillopt-parse-supervisor-parent:
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 189
     sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
     sourceLine: 173
+  SYM-skillopt-parse-workflow-options:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 113
+    sourceFile: scripts/skillopt-eval/cli-options.ts
+    sourceLine: 45
   SYM-skillopt-persist-artifacts:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -8180,6 +8234,12 @@ coordinates:
     sourceEndLine: 17
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
     sourceLine: 13
+  SYM-skillopt-print-help:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 126
+    sourceFile: scripts/skillopt-eval/cli-options.ts
+    sourceLine: 117
   SYM-skillopt-process-group-exists:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -8393,33 +8453,99 @@ coordinates:
   SYM-skillopt-real-optimization-dependencies:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 200
-    sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 169
+    sourceEndLine: 186
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    sourceLine: 155
   SYM-skillopt-real-optimization-input:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 140
-    sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 131
+    sourceEndLine: 122
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    sourceLine: 113
   SYM-skillopt-real-optimization-options:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 150
-    sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 142
+    sourceEndLine: 133
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    sourceLine: 125
   SYM-skillopt-real-optimization-result:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 162
-    sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 152
+    sourceEndLine: 146
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    sourceLine: 136
   SYM-skillopt-real-optimization-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 692
+    sourceEndLine: 249
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 518
+    sourceLine: 99
+  SYM-skillopt-real-workflow-types-canonical-hash:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 191
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    sourceLine: 189
+  SYM-skillopt-real-workflow-types-corpus-roots:
+    sourceColumn: 12
+    sourceEndColumn: 54
+    sourceEndLine: 24
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    sourceLine: 24
+  SYM-skillopt-real-workflow-types-development-gate:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 87
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    sourceLine: 83
+  SYM-skillopt-real-workflow-types-held-out-evaluation:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 152
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    sourceLine: 149
+  SYM-skillopt-real-workflow-types-predicate-descriptor:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 80
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    sourceLine: 75
+  SYM-skillopt-real-workflow-types-require-runtime:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 199
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    sourceLine: 194
+  SYM-skillopt-real-workflow-types-review-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 72
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    sourceLine: 36
+  SYM-skillopt-real-workflow-types-roots-schema:
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 21
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    sourceLine: 9
+  SYM-skillopt-real-workflow-types-train-result-schema:
+    sourceColumn: 13
+    sourceEndColumn: 2
+    sourceEndLine: 33
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    sourceLine: 27
+  SYM-skillopt-real-workflow-types-training-input:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 102
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    sourceLine: 90
+  SYM-skillopt-real-workflow-types-training-output:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 110
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    sourceLine: 105
   SYM-skillopt-receipt-path:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8564,6 +8690,12 @@ coordinates:
     sourceEndLine: 75
     sourceFile: scripts/skillopt-eval/orchestration-store.ts
     sourceLine: 72
+  SYM-skillopt-run-workflow-command:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 73
+    sourceFile: scripts/skillopt-eval/cli-workflow.ts
+    sourceLine: 16
   SYM-skillopt-runtime-assert-existing-login:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -9248,6 +9380,12 @@ coordinates:
     sourceEndLine: 70
     sourceFile: scripts/skillopt-eval/adoption-lock.ts
     sourceLine: 65
+  SYM-skillopt-workflow-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 23
+    sourceFile: scripts/skillopt-eval/cli-options.ts
+    sourceLine: 15
   SYM-skillopt-worktree-state-type:
     sourceColumn: 12
     sourceEndColumn: 46
