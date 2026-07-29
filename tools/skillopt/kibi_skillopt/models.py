@@ -5,7 +5,15 @@ from typing import Annotated, Literal
 from pydantic import Field, model_validator
 from typing_extensions import Self
 
-from .common import ContractModel, JsonBoolean, JsonInteger, JsonNumber, NonEmptyString, Sha256
+from .common import (
+    ContractModel,
+    ContractValidationError,
+    JsonBoolean,
+    JsonInteger,
+    JsonNumber,
+    NonEmptyString,
+    Sha256,
+)
 
 BridgePhase = Literal["train", "development"]
 BridgeSkill = Literal["kibi-usage", "kibi-freshness", "kibi-traceability", "init-kibi"]
@@ -27,7 +35,7 @@ class BridgeRequest(ContractModel):
     @model_validator(mode="after")
     def reject_held_out_ids(self) -> Self:
         if any("held-out" in task_id or "heldout" in task_id for task_id in self.task_ids):
-            raise ValueError("held-out task ids are not bridge inputs")
+            raise ContractValidationError("held-out task ids are not bridge inputs")
         return self
 
 
@@ -49,9 +57,9 @@ class BridgeCheckpoint(ContractModel):
     @model_validator(mode="after")
     def verify_next_step(self) -> Self:
         if self.next_step != self.completed_steps + 1:
-            raise ValueError("checkpoint nextStep must follow completedSteps")
+            raise ContractValidationError("checkpoint nextStep must follow completedSteps")
         if self.completed_steps > self.max_steps:
-            raise ValueError("checkpoint completedSteps exceeds maxSteps")
+            raise ContractValidationError("checkpoint completedSteps exceeds maxSteps")
         return self
 
 
@@ -68,7 +76,7 @@ class BridgeResult(ContractModel):
     def verify_unique_rows(self) -> Self:
         ids = tuple(row.id for row in self.rows)
         if len(set(ids)) != len(ids):
-            raise ValueError("bridge result task ids must be unique")
+            raise ContractValidationError("bridge result task ids must be unique")
         return self
 
 
