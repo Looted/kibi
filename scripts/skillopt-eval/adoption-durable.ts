@@ -1,6 +1,14 @@
 import { constants } from "node:fs";
 import { link, lstat, mkdir, open, rename, rm } from "node:fs/promises";
 import { dirname, relative, resolve } from "node:path";
+import {
+  type DurableFault,
+  fault,
+  finalizeIntent,
+  intentPath,
+  readIntent,
+  writeIntent,
+} from "./adoption-intent";
 
 export type FileIdentity = Readonly<{
   dev: number | bigint;
@@ -160,16 +168,34 @@ export async function durableNoReplace(
   path: string,
   bytes: Buffer | string,
   observer: DurabilityObserver | undefined,
+  injection?: DurableFault,
 ): Promise<boolean> {
   await secureParent(repoRoot, path);
   const stage = await stageFile(path, bytes);
   await observe(observer, "stage-fsynced");
   try {
-    await link(stage, path);
+    await writeIntent(path, stage, bytes, injection);
   } catch (error) {
+    await rm(stage, { force: true });
+    throw error;
+  }
+  let linked = false;
+  try {
+    await link(stage, path);
+    linked = true;
+    await fault(injection, "link");
+  } catch (error) {
+    if (linked) throw error;
     await rm(stage, { force: true });
     await fsyncDirectory(dirname(path));
     if (error instanceof Error && "code" in error && error.code === "EEXIST") {
+      const intent = await readIntent(path);
+      if (intent?.stage === stage) {
+        await rm(intentPath(path));
+        await fsyncDirectory(dirname(path));
+      } else if (intent !== undefined) {
+        await finalizeIntent(repoRoot, path, intent, injection);
+      }
       return false;
     }
     throw error;
@@ -184,8 +210,12 @@ export async function durableNoReplace(
   }
   await observe(observer, "receipt-fsynced");
   await rm(stage);
+  await fault(injection, "stage-unlink");
   await fsyncDirectory(dirname(path));
   await observe(observer, "parent-fsynced");
+  await rm(intentPath(path));
+  await fault(injection, "intent-unlink");
+  await fsyncDirectory(dirname(path));
   return true;
 }
 
