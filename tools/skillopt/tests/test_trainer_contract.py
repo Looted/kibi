@@ -5,11 +5,10 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
-from types import SimpleNamespace
 from unittest.mock import patch
 
 from tools.skillopt.kibi_skillopt.adapter import EnvAdapter
-from tools.skillopt.kibi_skillopt.common import contract_hash, parse_json_value
+from tools.skillopt.kibi_skillopt.common import JsonValue, contract_hash, parse_json_value
 from tools.skillopt.kibi_skillopt.models import OptimizerResult, TrainTrajectory
 from tools.skillopt.kibi_skillopt.trainer import run_training
 
@@ -50,10 +49,10 @@ class TrainerContractTests(unittest.TestCase):
             )
 
             class FakeTrainer:
-                def __init__(self, config: dict[str, object], _adapter: EnvAdapter) -> None:
-                    self._config: dict[str, object] = config
+                def __init__(self, config: dict[str, JsonValue], _adapter: EnvAdapter) -> None:
+                    self._config: dict[str, JsonValue] = config
 
-                def train(self) -> dict[str, float]:
+                def train(self) -> dict[str, JsonValue]:
                     out_root = Path(str(self._config["out_root"]))
                     out_root.mkdir(parents=True, exist_ok=True)
                     _ = (out_root / "best_skill.md").write_text(
@@ -74,8 +73,8 @@ class TrainerContractTests(unittest.TestCase):
             # When
             with (
                 patch(
-                    "tools.skillopt.kibi_skillopt.trainer.import_module",
-                    return_value=SimpleNamespace(ReflACTTrainer=FakeTrainer),
+                    "tools.skillopt.kibi_skillopt.trainer.ReflACTTrainer",
+                    FakeTrainer,
                 ),
                 patch.object(subject, "optimize", return_value=optimized) as optimize,
             ):
@@ -88,16 +87,12 @@ class TrainerContractTests(unittest.TestCase):
             )
             self.assertEqual(result["codex_candidate_body_hash"], contract_hash(optimized.body))
             self.assertTrue((root / "training" / "codex-optimized-skill.md").is_file())
-            frozen = parse_json_value(
-                (root / "training" / "frozen-candidate.json").read_text()
-            )
+            frozen = parse_json_value((root / "training" / "frozen-candidate.json").read_text())
             self.assertIsInstance(frozen, dict)
             if not isinstance(frozen, dict):
                 self.fail("frozen candidate artifact must be an object")
             self.assertEqual(frozen["candidateBodyHash"], contract_hash(optimized.body))
-            self.assertEqual(
-                frozen["trainerCheckpointHash"], result["trainer_checkpoint_hash"]
-            )
+            self.assertEqual(frozen["trainerCheckpointHash"], result["trainer_checkpoint_hash"])
             self.assertEqual(frozen["trajectoryHashes"], result["trajectory_hashes"])
 
     def test_training_resumes_a_frozen_candidate_without_reinvoking_reflact(self) -> None:
@@ -112,9 +107,7 @@ class TrainerContractTests(unittest.TestCase):
                 source_lock_hash=HASH,
                 corpus_roots=CORPUS_ROOTS,
                 train_items=({"id": "predicate-train-1", "family": "predicate"},),
-                development_items=(
-                    {"id": "predicate-development-1", "family": "predicate"},
-                ),
+                development_items=({"id": "predicate-development-1", "family": "predicate"},),
             )
             subject.record_train_trajectory(
                 TrainTrajectory.model_validate(
@@ -124,10 +117,10 @@ class TrainerContractTests(unittest.TestCase):
             calls = 0
 
             class FakeTrainer:
-                def __init__(self, config: dict[str, object], _adapter: EnvAdapter) -> None:
-                    self._config: dict[str, object] = config
+                def __init__(self, config: dict[str, JsonValue], _adapter: EnvAdapter) -> None:
+                    self._config: dict[str, JsonValue] = config
 
-                def train(self) -> dict[str, float]:
+                def train(self) -> dict[str, JsonValue]:
                     nonlocal calls
                     calls += 1
                     out_root = Path(str(self._config["out_root"]))
@@ -150,8 +143,8 @@ class TrainerContractTests(unittest.TestCase):
             # When
             with (
                 patch(
-                    "tools.skillopt.kibi_skillopt.trainer.import_module",
-                    return_value=SimpleNamespace(ReflACTTrainer=FakeTrainer),
+                    "tools.skillopt.kibi_skillopt.trainer.ReflACTTrainer",
+                    FakeTrainer,
                 ),
                 patch.object(subject, "optimize", return_value=optimized),
             ):
