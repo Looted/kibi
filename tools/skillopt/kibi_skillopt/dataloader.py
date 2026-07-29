@@ -53,8 +53,7 @@ class SplitDataLoader(BaseDataLoader):
         self._state["train_batches"] += 1
         offset = (seed - 1) % max(len(self._train), 1)
         items = tuple(
-            self._train[(offset + index) % len(self._train)]
-            for index in range(batch_size)
+            self._train[(offset + index) % len(self._train)] for index in range(batch_size)
         )
         return BatchSpec(
             phase="train",
@@ -66,9 +65,7 @@ class SplitDataLoader(BaseDataLoader):
         )
 
     @override
-    def build_eval_batch(
-        self, env_num: int, split: str, seed: int, **_: JsonValue
-    ) -> BatchSpec:
+    def build_eval_batch(self, env_num: int, split: str, seed: int, **_: JsonValue) -> BatchSpec:
         if split not in {"development", "valid_seen", "selection", "val"}:
             raise BridgeError("held-out-split-requested")
         if env_num < 1:
