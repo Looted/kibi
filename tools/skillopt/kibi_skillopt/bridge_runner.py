@@ -14,9 +14,7 @@ from typing_extensions import override
 
 from .bridge import BridgeError
 
-BridgeProcessFailureKind = Literal[
-    "group_unavailable", "startup", "timeout", "interrupted"
-]
+BridgeProcessFailureKind = Literal["group_unavailable", "startup", "timeout", "interrupted"]
 
 
 @dataclass(frozen=True, slots=True)
