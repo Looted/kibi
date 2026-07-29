@@ -30,7 +30,7 @@ The implemented path does not need root owned launchers, private service directo
 
 4. Prepare, train, and optimize.
    - `runCodexSkillOptStep` uses the real authenticated Codex CLI to rewrite skill bodies.
-   - `runCodexCell` evaluates each candidate in a fresh isolated workspace with MCP broker startup and final state capture.
+   - `runCodexCell` evaluates each candidate in a fresh isolated workspace with MCP broker startup and independently captures fact queries, validation output, and status. The evaluator manifest must match the requested task ID before a cell can launch.
 
 5. Run a fresh development evaluation.
    - Development scoring happens on a fresh workspace, not on the training transcript.
@@ -48,7 +48,7 @@ The implemented path does not need root owned launchers, private service directo
 
 | Mode | Command shape | What it does |
 | --- | --- | --- |
-| Real authenticated Codex | `bun run scripts/skillopt-eval/cli.ts optimize --skill <id\|all> --allow-paid --run-id <uuid>` | Uses the existing Codex login, may make paid calls, and runs the full train, evaluate, gate, and adopt flow. |
+| Real authenticated Codex | `bun run scripts/skillopt-eval/cli.ts optimize --skill <id\|all> --allow-paid --run-id <uuid> --fixture-root <path> --evaluator-manifest <path>` | Uses the existing Codex login, a bounded fixture root, and a private evaluator manifest; may make paid calls and runs the full train, evaluate, gate, and adopt flow. |
 | Offline fake | `--fake` on `run`, `resume`, `status`, `report`, `approve`, `adopt` | Stays offline, writes review artifacts, and never makes paid calls. |
 | Zero cost setup | `dry-run`, `prepare`, `preflight`, `smoke` | Proves the environment and write path without a paid model call. |
 
@@ -77,7 +77,7 @@ uv run --project tools/skillopt python tools/skillopt/verify_pin.py
 codex login status
 bun run scripts/skillopt-eval/cli.ts preflight --run-id <uuid>
 bun run scripts/skillopt-eval/cli.ts smoke --run-id <uuid>
-bun run scripts/skillopt-eval/cli.ts optimize --skill kibi-usage --allow-paid --run-id <uuid>
+bun run scripts/skillopt-eval/cli.ts optimize --skill kibi-usage --allow-paid --run-id <uuid> --fixture-root <path> --evaluator-manifest <path>
 ```
 
 Use a fresh run id for each paid run. Keep `--fake` for offline review work only.
