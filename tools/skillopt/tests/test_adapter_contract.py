@@ -332,6 +332,7 @@ class AdapterContractTests(unittest.TestCase):
                     "CODEX_HOME": "/home/tester/.codex",
                     "LANG": "C",
                     "LC_ALL": "C",
+                    "KIBI_SKILLOPT_PROCESS_GROUP": "python_bridge",
                 },
             )
 
