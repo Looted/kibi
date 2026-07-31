@@ -296,6 +296,12 @@ symbols:
   title: assertCanonicalSourceComplete
   sourceFile: scripts/sync-agent-skills.ts
   symbol_role: behavioral
+  relationships: &id001
+  - type: implements
+    target: REQ-reusable-skill-subsystem
+  - type: covered_by
+    target: TEST-skill-cli-load-validate
+  granularity_reason: module-level-behavior
 - id: SYM-assertComponentsAreNotSymlinks
   title: assertComponentsAreNotSymlinks
   sourceFile: scripts/skillopt-eval/preflight-io.ts
@@ -1228,6 +1234,8 @@ symbols:
   title: canonicalSkillsDir
   sourceFile: scripts/sync-agent-skills.ts
   symbol_role: behavioral
+  relationships: *id001
+  granularity_reason: module-level-behavior
 - id: SYM-checkCommand
   title: checkCommand
   sourceFile: packages/cli/src/commands/check.ts
@@ -3078,6 +3086,8 @@ symbols:
   title: computeHashManifest
   sourceFile: scripts/sync-agent-skills.ts
   symbol_role: behavioral
+  relationships: *id001
+  granularity_reason: module-level-behavior
 - id: SYM-consultOverlay
   title: consultOverlay
   sourceFile: packages/cli/src/traceability/temp-kb.ts
@@ -4374,6 +4384,8 @@ symbols:
   title: diffMirror
   sourceFile: scripts/sync-agent-skills.ts
   symbol_role: behavioral
+  relationships: *id001
+  granularity_reason: module-level-behavior
 - id: SYM-discoverProviderEvidence
   title: discoverProviderEvidence
   sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
@@ -7854,6 +7866,8 @@ symbols:
   title: mirrorSkillsDir
   sourceFile: scripts/sync-agent-skills.ts
   symbol_role: behavioral
+  relationships: *id001
+  granularity_reason: module-level-behavior
 - id: SYM-model-requirement-core-handler
   title: handleKbModelRequirement
   sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
@@ -9860,6 +9874,8 @@ symbols:
   title: parseArgs
   sourceFile: scripts/sync-agent-skills.ts
   symbol_role: behavioral
+  relationships: *id001
+  granularity_reason: module-level-behavior
 - id: SYM-ParsedKibiImpactOverride
   title: ParsedKibiImpactOverride
   sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
@@ -9961,10 +9977,14 @@ symbols:
   title: PlannedFile
   sourceFile: scripts/sync-agent-skills.ts
   symbol_role: behavioral
+  relationships: *id001
+  granularity_reason: module-level-behavior
 - id: SYM-planSkillMirror
   title: planSkillMirror
   sourceFile: scripts/sync-agent-skills.ts
   symbol_role: behavioral
+  relationships: *id001
+  granularity_reason: module-level-behavior
 - id: SYM-Plugin
   title: Plugin
   sourceFile: packages/opencode/src/plugin.ts
@@ -10399,6 +10419,12 @@ symbols:
   title: prepareArtifactPath
   sourceFile: scripts/skillopt-eval/artifact-path.ts
   symbol_role: behavioral
+  relationships: &id002
+  - type: implements
+    target: REQ-skillopt-codex-optimization
+  - type: covered_by
+    target: TEST-skillopt-codex-optimization
+  granularity_reason: module-level-behavior
 - id: SYM-PrepareArtifactPathOptions
   title: PrepareArtifactPathOptions
   sourceFile: scripts/skillopt-eval/artifact-path.ts
@@ -10470,6 +10496,8 @@ symbols:
   title: processTarget
   sourceFile: scripts/sync-agent-skills.ts
   symbol_role: behavioral
+  relationships: *id001
+  granularity_reason: module-level-behavior
 - id: SYM-ProductionAdoption
   title: ProductionAdoption
   sourceFile: scripts/skillopt-eval/real-workflow-types.ts
@@ -10776,6 +10804,8 @@ symbols:
   title: RealOptimizationResult
   sourceFile: scripts/skillopt-eval/real-workflow-types.ts
   symbol_role: behavioral
+  relationships: *id002
+  granularity_reason: module-level-behavior
 - id: SYM-receipt
   title: receipt
   sourceFile: scripts/skillopt-eval/tests/held-out-evaluation-test-helpers.ts
@@ -11007,6 +11037,8 @@ symbols:
   title: repoRootFromScript
   sourceFile: scripts/sync-agent-skills.ts
   symbol_role: behavioral
+  relationships: *id001
+  granularity_reason: module-level-behavior
 - id: SYM-request
   title: request
   sourceFile: scripts/skillopt-eval/tests/held-out-evaluation-test-helpers.ts
@@ -21411,6 +21443,8 @@ symbols:
   title: SyncOptions
   sourceFile: scripts/sync-agent-skills.ts
   symbol_role: behavioral
+  relationships: *id001
+  granularity_reason: module-level-behavior
 - id: SYM-syncPluginManifestVersions
   title: syncPluginManifestVersions
   sourceFile: scripts/sync-plugin-manifest-versions.ts
@@ -21499,6 +21533,8 @@ symbols:
   title: Target
   sourceFile: scripts/sync-agent-skills.ts
   symbol_role: behavioral
+  relationships: *id001
+  granularity_reason: module-level-behavior
 - id: SYM-TaskFixtureResolutionError
   title: TaskFixtureResolutionError
   sourceFile: scripts/skillopt-eval/runtime/task-fixture.ts
