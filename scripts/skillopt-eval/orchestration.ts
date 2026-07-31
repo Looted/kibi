@@ -1,3 +1,5 @@
+import type { ArtifactPath } from "./artifact-path";
+
 import { randomUUID } from "node:crypto";
 import { CANONICAL_SKILLS, type CanonicalSkill } from "./catalog";
 import { type RunState, RunStateSchema } from "./contracts/workflow";
@@ -146,9 +148,10 @@ export async function runOfflineWorkflow(
     runId: string;
     runLockHash: string;
     failSkill?: CanonicalSkill;
+    artifactPath?: ArtifactPath;
   }>,
 ): Promise<OfflineWorkflowResult> {
-  const store = new RunStore(input.root, input.runId);
+  const store = new RunStore(input.root, input.runId, input.artifactPath);
   await store.acquire();
   try {
     const existing = await store.readState();

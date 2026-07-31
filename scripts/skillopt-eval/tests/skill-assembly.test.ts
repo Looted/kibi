@@ -34,6 +34,7 @@ describe("canonical skill assembly", () => {
 
     // When
     const receipt = await assembleCanonicalSkills({
+      sourceRepoRoot: resolve(import.meta.dir, "../../.."),
       workspace: root,
       targetSkill: "kibi-usage",
       candidate: { body: candidateBody },
@@ -67,6 +68,7 @@ describe("canonical skill assembly", () => {
 
     // When
     const attempt = assembleCanonicalSkills({
+      sourceRepoRoot: resolve(import.meta.dir, "../../.."),
       workspace: root,
       targetSkill: "kibi-freshness",
       candidate: {
@@ -76,7 +78,7 @@ describe("canonical skill assembly", () => {
     });
 
     // Then
-    expect(attempt).rejects.toMatchObject({
+    await expect(attempt).rejects.toMatchObject({
       name: "CandidateSurfaceError",
       kind: "frontmatter_changed",
     });
@@ -95,6 +97,7 @@ describe("canonical skill assembly", () => {
 
     // When
     const attempt = assembleCanonicalSkills({
+      sourceRepoRoot: resolve(import.meta.dir, "../../.."),
       workspace: root,
       targetSkill: "kibi-usage",
       candidate: {
@@ -104,8 +107,8 @@ describe("canonical skill assembly", () => {
     });
 
     // Then
-    expect(attempt).rejects.toBeInstanceOf(CandidateSurfaceError);
-    expect(attempt).rejects.toMatchObject({ kind: "resources_changed" });
+    await expect(attempt).rejects.toBeInstanceOf(CandidateSurfaceError);
+    await expect(attempt).rejects.toMatchObject({ kind: "resources_changed" });
   });
 
   test("Given a candidate body containing YAML frontmatter When assembled Then it is rejected before writing", async () => {
@@ -114,13 +117,16 @@ describe("canonical skill assembly", () => {
 
     // When
     const attempt = assembleCanonicalSkills({
+      sourceRepoRoot: resolve(import.meta.dir, "../../.."),
       workspace: root,
       targetSkill: "init-kibi",
       candidate: { body: "---\nid: changed\n---\nbody\n" },
     });
 
     // Then
-    expect(attempt).rejects.toMatchObject({ kind: "frontmatter_changed" });
+    await expect(attempt).rejects.toMatchObject({
+      kind: "frontmatter_changed",
+    });
     expect(resolve(root)).not.toContain(".kb");
   });
 });

@@ -27,20 +27,39 @@ CORPUS_ROOTS = {
 DEVELOPMENT = {"mean": 0.5, "hardPasses": 1, "worstFamilyMean": 0.5}
 
 
+def public_claim(task_id: str) -> JsonValue:
+    return {
+        "taskId": task_id,
+        "text": "Preserve the structured public claim.",
+        "publicManifestHash": HASH,
+        "workspaceHash": HASH,
+    }
+
+
 class TrainerContractTests(unittest.TestCase):
     def test_training_submits_reflection_trajectories_to_the_codex_optimizer(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             # Given
             root = Path(directory)
             subject = EnvAdapter(
-                bridge_command=(sys.executable, "scripts/skillopt-eval/bridge-cli.ts", "--fake"),
-                bridge_cwd=Path.cwd(),
                 run_root=root / "run",
                 skill="kibi-usage",
                 source_lock_hash=HASH,
                 corpus_roots=CORPUS_ROOTS,
-                train_items=({"id": "predicate-train-1", "family": "predicate"},),
-                development_items=({"id": "predicate-development-1", "family": "predicate"},),
+                train_items=(
+                    {
+                        "id": "predicate-train-1",
+                        "family": "predicate",
+                        "publicClaim": public_claim("predicate-train-1"),
+                    },
+                ),
+                development_items=(
+                    {
+                        "id": "predicate-development-1",
+                        "family": "predicate",
+                        "publicClaim": public_claim("predicate-development-1"),
+                    },
+                ),
             )
             subject.record_train_trajectory(
                 TrainTrajectory.model_validate(
@@ -100,14 +119,24 @@ class TrainerContractTests(unittest.TestCase):
             # Given
             root = Path(directory)
             subject = EnvAdapter(
-                bridge_command=(sys.executable, "scripts/skillopt-eval/bridge-cli.ts", "--fake"),
-                bridge_cwd=Path.cwd(),
                 run_root=root / "run",
                 skill="kibi-usage",
                 source_lock_hash=HASH,
                 corpus_roots=CORPUS_ROOTS,
-                train_items=({"id": "predicate-train-1", "family": "predicate"},),
-                development_items=({"id": "predicate-development-1", "family": "predicate"},),
+                train_items=(
+                    {
+                        "id": "predicate-train-1",
+                        "family": "predicate",
+                        "publicClaim": public_claim("predicate-train-1"),
+                    },
+                ),
+                development_items=(
+                    {
+                        "id": "predicate-development-1",
+                        "family": "predicate",
+                        "publicClaim": public_claim("predicate-development-1"),
+                    },
+                ),
             )
             subject.record_train_trajectory(
                 TrainTrajectory.model_validate(
@@ -172,20 +201,20 @@ class TrainEntrypointTests(unittest.TestCase):
                 "sourceLockHash": HASH,
                 "corpusRoots": CORPUS_ROOTS,
                 "trainDescriptors": [
-                    {"id": "predicate-train-1", "family": "predicate", "split": "train"}
+                    {
+                        "id": "predicate-train-1",
+                        "family": "predicate",
+                        "split": "train",
+                        "publicClaim": public_claim("predicate-train-1"),
+                    }
                 ],
                 "developmentDescriptors": [
                     {
                         "id": "predicate-development-1",
                         "family": "predicate",
                         "split": "development",
+                        "publicClaim": public_claim("predicate-development-1"),
                     }
-                ],
-                "bridgeCommand": [sys.executable, "scripts/skillopt-eval/bridge-cli.ts", "--fake"],
-                "optimizerBridgeCommand": [
-                    sys.executable,
-                    "scripts/skillopt-eval/optimizer-bridge-cli.ts",
-                    "--fake",
                 ],
             }
             request_path = root / "request.json"
@@ -231,6 +260,10 @@ class TrainEntrypointTests(unittest.TestCase):
             self.assertEqual(
                 tuple(item["id"] for item in adapter.build_train_env(1, 5417)),
                 ("predicate-train-1",),
+            )
+            self.assertEqual(
+                adapter.build_train_env(1, 5417)[0]["publicClaim"],
+                public_claim("predicate-train-1"),
             )
             self.assertEqual(
                 json.loads(result_path.read_text(encoding="utf-8"))["codex_candidate_body_hash"],

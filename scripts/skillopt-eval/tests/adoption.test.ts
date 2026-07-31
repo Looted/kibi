@@ -7,6 +7,7 @@ import {
   adoptSkillOptCandidate,
   planSkillAdoption,
 } from "../adoption";
+import { sealedPredicateEligibilityEvidence } from "../adoption-snapshot";
 import {
   approvalArtifacts,
   automaticInput,
@@ -14,6 +15,7 @@ import {
   candidateBody,
   cleanupRoots,
   createRepo,
+  externalVerdict,
   frontmatter,
   resourceBody,
   sha256,
@@ -23,6 +25,40 @@ import {
 } from "./fixtures/adoption-fixtures";
 
 afterEach(cleanupRoots);
+
+async function adopt(
+  input: ReturnType<typeof terminalInput>,
+  dependencies: NonNullable<Parameters<typeof adoptSkillOptCandidate>[2]>,
+) {
+  return adoptSkillOptCandidate(input, externalVerdict(input), {
+    ...dependencies,
+    verifyExternalAdoptionVerdict: async () => true,
+  });
+}
+
+function terminalInput(input: ReturnType<typeof automaticInput>) {
+  const legacy = input.eligibility;
+  const eligibility = {
+    runId: legacy.runId,
+    eligibilityReceiptId: "terminal-receipt-a",
+    heldOutEligibility: legacy.heldOutEligibility,
+    candidateHash: legacy.candidateHash,
+    authorizedRootSet: legacy.authorizedRootSet,
+    lineage: {
+      candidateHash: legacy.lineage.candidateHash,
+      trainerCheckpointHash: legacy.lineage.signedEligibilityId,
+      authorizedRootSet: legacy.lineage.authorizedRootSet,
+    },
+  };
+  return {
+    ...input,
+    eligibility: {
+      ...eligibility,
+      sealedEvidenceHash: sealedPredicateEligibilityEvidence(eligibility),
+    },
+  };
+}
+
 describe("SkillOpt adoption transaction", () => {
   test("Given exact approved artifacts When adoption is planned Then dry-run reports the replacement without mutation", async () => {
     const repoRoot = await createRepo();
@@ -48,7 +84,7 @@ describe("SkillOpt adoption transaction", () => {
       "stale resource\n",
     );
     const before = await snapshot(repoRoot);
-    expect(planSkillAdoption(input)).rejects.toThrow(
+    await expect(planSkillAdoption(input)).rejects.toThrow(
       "canonical resource hash mismatch",
     );
     expect(await snapshot(repoRoot)).toEqual(before);
@@ -57,7 +93,7 @@ describe("SkillOpt adoption transaction", () => {
     const repoRoot = await createRepo();
     const input = approvalArtifacts(repoRoot);
     const before = await snapshot(repoRoot);
-    expect(
+    await expect(
       planSkillAdoption({
         ...input,
         approval: { ...input.approval, candidateBodyHash: "9".repeat(64) },
@@ -80,35 +116,71 @@ describe("SkillOpt adoption transaction", () => {
       resourceBody,
     ]);
   });
-  test("Given a safety-passing SkillOpt candidate When auto-adopted Then canonical and mirrors change transactionally", async () => {
+  test("Given a local eligibility receipt without an external verdict When adoption is requested Then canonical and mirrors remain unchanged", async () => {
     const repoRoot = await createRepo();
-    const receipt = await adoptSkillOptCandidate(
-      automaticInput(approvalArtifacts(repoRoot)),
+    const before = await snapshot(repoRoot);
+    await expect(
+      adoptSkillOptCandidate(
+        terminalInput(automaticInput(approvalArtifacts(repoRoot))),
+        undefined,
+        { runMirrorSync: syncMirrors },
+      ),
+    ).rejects.toThrow("external adoption verdict is required");
+    expect(await snapshot(repoRoot)).toEqual(before);
+  });
+  test("Given an authenticated external verdict When a SkillOpt candidate is adopted Then canonical and mirrors change transactionally", async () => {
+    const repoRoot = await createRepo();
+    const receipt = await adopt(
+      terminalInput(automaticInput(approvalArtifacts(repoRoot))),
       { runMirrorSync: syncMirrors },
     );
     expect(receipt).toMatchObject({ skill, status: "adopted" });
-    expect(
+    await expect(
       await Bun.file(
         join(repoRoot, "packages/cursor/skills/kibi-usage/SKILL.md"),
       ).text(),
     ).toBe(frontmatter + candidateBody);
   });
-  test("Given caller-supplied eligible fields without a sealed matrix receipt When auto-adopted Then adoption is refused", async () => {
+  test("Given a tampered authenticated verdict When adoption is requested Then it fails closed", async () => {
     const repoRoot = await createRepo();
-    const forged = automaticInput(approvalArtifacts(repoRoot));
-    expect(
+    const input = terminalInput(automaticInput(approvalArtifacts(repoRoot)));
+    await expect(
       adoptSkillOptCandidate(
+        input,
+        { ...externalVerdict(input), candidateHash: "f".repeat(64) },
         {
-          ...forged,
-          eligibility: {
-            ...forged.eligibility,
-            sealedEvidenceHash: "f".repeat(64),
-          },
+          runMirrorSync: syncMirrors,
+          verifyExternalAdoptionVerdict: async () => true,
         },
-        { runMirrorSync: syncMirrors },
       ),
-    ).rejects.toThrow(/sealed|evidence|matrix/i);
+    ).rejects.toThrow("external adoption verdict candidate mismatch");
     expect(await snapshot(repoRoot)).toContain(frontmatter + baselineBody);
+  });
+  test("Given an approved adoption holding the exclusive lock When canonical planning starts Then the planner waits for the post-adoption snapshot", async () => {
+    // Given
+    const repoRoot = await createRepo();
+    const input = approvalArtifacts(repoRoot);
+    let plannerFinished = false;
+    let planner:
+      | Promise<Awaited<ReturnType<typeof planSkillAdoption>>>
+      | undefined;
+
+    // When
+    const receipt = await adoptApprovedSkill(input, {
+      runMirrorSync: async () => {
+        planner = planSkillAdoption(input).finally(() => {
+          plannerFinished = true;
+        });
+        await new Promise<void>((resolve) => setTimeout(resolve, 25));
+        expect(plannerFinished).toBe(false);
+        await syncMirrors(repoRoot);
+      },
+    });
+
+    // Then
+    expect(receipt.status).toBe("adopted");
+    if (planner === undefined) throw new Error("planner was not started");
+    await expect(planner).resolves.toMatchObject({ mutationRequired: false });
   });
   test("Given a candidate that drops canonical safety guidance When auto-adopted Then adoption is blocked", async () => {
     const repoRoot = await createRepo();
@@ -117,11 +189,21 @@ describe("SkillOpt adoption transaction", () => {
       join(repoRoot, "packages/cli/src/public/skills/kibi-usage/SKILL.md"),
       `${frontmatter}npx --no-install kibi\nbunx --no-install kibi\nDo not read or edit files inside \`.kb\` directly\n`,
     );
-    const receipt = await adoptSkillOptCandidate(automaticInput(input), {
-      runMirrorSync: syncMirrors,
-    });
+    const changedCanonical = `${frontmatter}npx --no-install kibi\nbunx --no-install kibi\nDo not read or edit files inside \`.kb\` directly\n`;
+    const candidate = terminalInput(automaticInput(input));
+    const receipt = await adoptSkillOptCandidate(
+      candidate,
+      {
+        ...externalVerdict(candidate),
+        sourceCanonicalPreimageHash: sha256(changedCanonical),
+      },
+      {
+        runMirrorSync: syncMirrors,
+        verifyExternalAdoptionVerdict: async () => true,
+      },
+    );
     expect(receipt.status).toBe("blocked");
-    expect(
+    await expect(
       await Bun.file(
         join(repoRoot, "packages/cli/src/public/skills/kibi-usage/SKILL.md"),
       ).text(),
@@ -141,7 +223,7 @@ describe("SkillOpt adoption transaction", () => {
       );
       throw new Error("injected sync failure");
     };
-    expect(
+    await expect(
       adoptApprovedSkill(input, { runMirrorSync: failingSync }),
     ).rejects.toThrow("adoption transaction failed");
     expect(await snapshot(repoRoot)).toEqual(before);

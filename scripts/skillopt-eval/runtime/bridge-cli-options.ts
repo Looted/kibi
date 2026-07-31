@@ -4,13 +4,13 @@ import { FixtureIntegrityError } from "./codex-cell-runner";
 import { ProcessControlError } from "./process";
 
 type BridgeOptions = Readonly<{
-  requestPath: string;
-  resultPath: string;
+  pipe: boolean;
+  requestPath?: string;
+  resultPath?: string;
   fake: boolean;
   sourceWorktree?: string;
   artifactRoot?: string;
-  fixtureRoot?: string;
-  evaluatorManifestPath?: string;
+  fixtureRunRoot?: string;
   codexExecutable: string;
   bwrapExecutable: string;
   timeoutMs: number;
@@ -72,20 +72,24 @@ export function parseBridgeOptions(args: readonly string[]): BridgeOptions {
   let resultPath: string | undefined;
   let sourceWorktree: string | undefined;
   let artifactRoot: string | undefined;
-  let fixtureRoot: string | undefined;
-  let evaluatorManifestPath: string | undefined;
+  let fixtureRunRoot: string | undefined;
   let codexExecutable = "codex";
   let bwrapExecutable = "/usr/bin/bwrap";
   let timeoutMs = 180_000;
   let pricingHash = "0".repeat(64);
   let priceAmount = 0;
   let fake = false;
+  let pipe = false;
   const hiddenMarkers: string[] = [];
 
   for (let index = 0; index < args.length; index += 1) {
     const option = args[index];
     if (option === "--fake") {
       fake = true;
+      continue;
+    }
+    if (option === "--pipe") {
+      pipe = true;
       continue;
     }
     if (option === "--hidden-marker") {
@@ -98,9 +102,7 @@ export function parseBridgeOptions(args: readonly string[]): BridgeOptions {
     else if (option === "--result") resultPath = resolve(value);
     else if (option === "--source-worktree") sourceWorktree = resolve(value);
     else if (option === "--artifact-root") artifactRoot = resolve(value);
-    else if (option === "--fixture-root") fixtureRoot = resolve(value);
-    else if (option === "--evaluator-manifest")
-      evaluatorManifestPath = resolve(value);
+    else if (option === "--fixture-run-root") fixtureRunRoot = resolve(value);
     else if (option === "--codex-executable") codexExecutable = value;
     else if (option === "--bwrap-executable") bwrapExecutable = value;
     else if (option === "--timeout-ms")
@@ -113,26 +115,28 @@ export function parseBridgeOptions(args: readonly string[]): BridgeOptions {
     index += 1;
   }
 
-  if (requestPath === undefined)
+  if (pipe && (requestPath !== undefined || resultPath !== undefined))
+    throw new BridgeCliInputError("pipe_with_paths");
+  if (!pipe && requestPath === undefined)
     throw new BridgeCliInputError("missing_request");
-  if (resultPath === undefined) throw new BridgeCliInputError("missing_result");
+  if (!pipe && resultPath === undefined)
+    throw new BridgeCliInputError("missing_result");
   if (
     !fake &&
     (sourceWorktree === undefined ||
       artifactRoot === undefined ||
-      fixtureRoot === undefined ||
-      evaluatorManifestPath === undefined)
+      fixtureRunRoot === undefined)
   ) {
     throw new BridgeCliInputError("missing_real_execution_options");
   }
   return {
+    pipe,
     requestPath,
     resultPath,
     fake,
     sourceWorktree,
     artifactRoot,
-    fixtureRoot,
-    evaluatorManifestPath,
+    fixtureRunRoot,
     codexExecutable,
     bwrapExecutable,
     timeoutMs,

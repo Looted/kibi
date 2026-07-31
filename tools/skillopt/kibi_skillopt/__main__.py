@@ -10,8 +10,8 @@ from typing import Annotated, Final, Literal, TypeAlias
 from pydantic import Field
 
 from .adapter import EnvAdapter
-from .common import ContractModel, JsonNode, JsonValue, NonEmptyString, Sha256
-from .models import BridgeRequest, CorpusRoots
+from .common import ContractModel, JsonValue, NonEmptyString, Sha256
+from .models import BridgeRequest, CorpusRoots, PublicTaskClaim
 from .trainer import run_training
 
 USAGE: Final = " | ".join(
@@ -26,10 +26,15 @@ class TrainDescriptor(ContractModel):
     id: NonEmptyString
     family: NonEmptyString
     split: Literal["train", "development"]
-    public_claim: JsonNode | None = Field(default=None, alias="publicClaim")
+    public_claim: PublicTaskClaim = Field(alias="publicClaim")
 
     def to_task(self) -> dict[str, JsonValue]:
-        return {"id": self.id, "family": self.family, "split": self.split}
+        return {
+            "id": self.id,
+            "family": self.family,
+            "split": self.split,
+            "publicClaim": self.public_claim.model_dump(by_alias=True, mode="json"),
+        }
 
 
 class TrainRequest(ContractModel):
@@ -44,11 +49,6 @@ class TrainRequest(ContractModel):
     development_descriptors: tuple[TrainDescriptor, ...] = Field(
         alias="developmentDescriptors", min_length=1
     )
-    bridge_command: tuple[NonEmptyString, ...] = Field(alias="bridgeCommand", min_length=1)
-    optimizer_bridge_command: tuple[NonEmptyString, ...] = Field(
-        alias="optimizerBridgeCommand", min_length=1
-    )
-    bridge_cwd: Path | None = Field(default=None, alias="bridgeCwd")
 
 
 @dataclass(frozen=True, slots=True)
@@ -81,9 +81,6 @@ def parse_command(argv: Sequence[str]) -> Command:
 def _train(request_path: Path, result_path: Path) -> None:
     request = TrainRequest.model_validate_json(request_path.read_text(encoding="utf-8"))
     adapter = EnvAdapter(
-        bridge_command=request.bridge_command,
-        optimizer_bridge_command=request.optimizer_bridge_command,
-        bridge_cwd=request.bridge_cwd,
         run_root=request.run_root,
         skill=request.skill,
         source_lock_hash=request.source_lock_hash,

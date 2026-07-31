@@ -11,6 +11,14 @@ import {
 } from "../contracts/common";
 
 const TaskIdSchema = z.string().regex(/^[a-z0-9][a-z0-9-]{0,127}$/);
+export const PublicTaskClaimSchema = z
+  .object({
+    taskId: TaskIdSchema,
+    text: z.string().min(1).max(100_000),
+    publicManifestHash: Sha256Schema,
+    workspaceHash: Sha256Schema,
+  })
+  .strict();
 const RowSchema = z
   .object({
     id: TaskIdSchema,
@@ -40,10 +48,21 @@ export const BridgeRequestSchema = z
       "kibi-traceability",
       "init-kibi",
     ]),
-    phase: z.enum(["train", "development"]),
+    phase: z.enum(["train", "development", "held-out"]),
     candidateBody: z.string().min(1).max(100_000),
-    taskIds: z.array(TaskIdSchema).min(1).max(8),
+    taskIds: z.array(TaskIdSchema).length(1),
+    publicClaim: PublicTaskClaimSchema,
     sourceLockHash: Sha256Schema,
+  })
+  .superRefine((request, context) => {
+    const [taskId] = request.taskIds;
+    if (taskId !== request.publicClaim.taskId) {
+      context.addIssue({
+        code: "custom",
+        message: "public claim task identity must match the bridge task",
+        path: ["publicClaim", "taskId"],
+      });
+    }
   })
   .strict();
 
@@ -68,6 +87,7 @@ export const BridgeResultSchema = z
 
 // implements REQ-skillopt-codex-optimization
 export type BridgeRequest = Readonly<z.infer<typeof BridgeRequestSchema>>;
+export type PublicTaskClaim = Readonly<z.infer<typeof PublicTaskClaimSchema>>;
 // implements REQ-skillopt-codex-optimization
 export type BridgeResult = Readonly<z.infer<typeof BridgeResultSchema>>;
 
@@ -96,6 +116,18 @@ function assertRequestMatches(
   }
 }
 
+export function bindBridgeResult(
+  result: BridgeResult,
+  request: BridgeRequest,
+): BridgeResult {
+  const requestHash = contractHash(
+    JsonValueSchema.parse(BridgeRequestSchema.parse(request)),
+  );
+  const parsed = BridgeResultSchema.parse({ ...result, requestHash });
+  assertRequestMatches(parsed, request);
+  return parsed;
+}
+
 // implements REQ-skillopt-codex-optimization
 export async function writeBridgeRequest(
   path: string,
@@ -118,13 +150,9 @@ export async function writeBridgeResult(
   result: BridgeResult,
   request: BridgeRequest,
 ): Promise<string> {
-  const requestHash = contractHash(
-    JsonValueSchema.parse(BridgeRequestSchema.parse(request)),
-  );
-  const parsed = BridgeResultSchema.parse({ ...result, requestHash });
-  assertRequestMatches(parsed, request);
+  const parsed = bindBridgeResult(result, request);
   await atomicWrite(path, canonicalText(parsed));
-  return requestHash;
+  return parsed.requestHash;
 }
 
 // implements REQ-skillopt-codex-optimization

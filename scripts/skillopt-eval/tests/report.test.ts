@@ -1,6 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import { JsonValueSchema, contractHash } from "../contracts/common";
-import { buildReportArtifacts, renderReportMarkdown } from "../report";
+import {
+  buildReportArtifacts,
+  deriveMeasuredReportMetrics,
+  renderReportMarkdown,
+} from "../report";
 
 const RUN_ID = "00000000-0000-4000-8000-000000000101";
 const RUN_LOCK_HASH = "a".repeat(64);
@@ -85,5 +89,51 @@ describe("SkillOpt report artifacts", () => {
 
     // Then
     expect(build).toThrow("passing report requires every applicable gate");
+  });
+
+  test("derives development and paid metrics only from reconciled receipts", () => {
+    expect(
+      deriveMeasuredReportMetrics({
+        developmentReceipts: [
+          { reconciled: true, family: "alpha", score: 90 },
+          { reconciled: true, family: "alpha", score: 80 },
+          { reconciled: true, family: "beta", score: 70 },
+        ],
+        paidReceipts: [
+          {
+            reconciled: true,
+            receiptId: "debit-1",
+            launchRequestIds: ["request-1", "request-2"],
+            debitCount: 2,
+            chargedMicrousd: 600,
+          },
+          {
+            reconciled: true,
+            receiptId: "debit-2",
+            launchRequestIds: ["request-2"],
+            debitCount: 1,
+            chargedMicrousd: 400,
+          },
+        ],
+      }),
+    ).toEqual({
+      developmentMean: 80,
+      developmentFamilyMinima: { alpha: 80, beta: 70 },
+      paidRequests: 2,
+      paidCalls: 3,
+      paidDebits: 3,
+      paidChargedMicrousd: 1000,
+    });
+  });
+
+  test("measures absent receipts as zero for fake and local reports", () => {
+    expect(deriveMeasuredReportMetrics({})).toEqual({
+      developmentMean: 0,
+      developmentFamilyMinima: {},
+      paidRequests: 0,
+      paidCalls: 0,
+      paidDebits: 0,
+      paidChargedMicrousd: 0,
+    });
   });
 });

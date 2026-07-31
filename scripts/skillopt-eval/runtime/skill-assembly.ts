@@ -4,9 +4,10 @@ import { join } from "node:path";
 import canonicalize from "canonicalize";
 import {
   type SkillManifest,
-  loadBundledSkill,
-  readBundledSkillResource,
+  loadBundledSkillFrom,
+  readBundledSkillResourceFrom,
 } from "../../../packages/cli/src/public/skills";
+import { withSharedAdoptionLock } from "../adoption-lock";
 import { CANONICAL_SKILLS, type CanonicalSkill } from "../catalog";
 
 export type SkillCandidateSurface = Readonly<{
@@ -52,13 +53,17 @@ function frontmatterPrefix(markdown: string): string {
 }
 
 function canonicalResources(
+  skillsDir: string,
   skill: CanonicalSkill,
   manifest: Readonly<SkillManifest>,
 ): Readonly<Record<string, string>> {
   return Object.fromEntries(
     [...(manifest.resources ?? [])]
       .sort()
-      .map((resource) => [resource, readBundledSkillResource(skill, resource)]),
+      .map((resource) => [
+        resource,
+        readBundledSkillResourceFrom(skillsDir, skill, resource),
+      ]),
   );
 }
 
@@ -90,16 +95,34 @@ function assertCandidateSurface(
 // implements REQ-skillopt-codex-optimization
 export async function assembleCanonicalSkills(
   input: Readonly<{
+    sourceRepoRoot: string;
     workspace: string;
     targetSkill: CanonicalSkill;
     candidate?: SkillCandidateSurface;
   }>,
 ): Promise<SkillAssemblyReceipt> {
+  return withSharedAdoptionLock(input.sourceRepoRoot, async () =>
+    assembleCanonicalSkillsUnlocked(input),
+  );
+}
+
+async function assembleCanonicalSkillsUnlocked(
+  input: Readonly<{
+    sourceRepoRoot: string;
+    workspace: string;
+    targetSkill: CanonicalSkill;
+    candidate?: SkillCandidateSurface;
+  }>,
+): Promise<SkillAssemblyReceipt> {
+  const skillsDir = join(
+    input.sourceRepoRoot,
+    "packages/cli/src/public/skills",
+  );
   const loaded = await Promise.all(
     CANONICAL_SKILLS.map(async (id) => {
-      const bundle = loadBundledSkill(id);
+      const bundle = loadBundledSkillFrom(skillsDir, id);
       const markdown = await readFile(join(bundle.rootDir, "SKILL.md"), "utf8");
-      const resources = canonicalResources(id, bundle.manifest);
+      const resources = canonicalResources(skillsDir, id, bundle.manifest);
       if (id === input.targetSkill && input.candidate !== undefined) {
         assertCandidateSurface(input.candidate, bundle.manifest, resources);
       }

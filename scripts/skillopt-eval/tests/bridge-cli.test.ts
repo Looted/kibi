@@ -1,11 +1,13 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { bridgeMain } from "../bridge-cli";
+import { buildPublicCatalog } from "../catalog";
+import { materializeFixtureRun } from "../fixtures/private";
 import { defaultCodexCellDependencies } from "../runtime/codex-cell-defaults";
 import { readBridgeResult, writeBridgeRequest } from "../runtime/file-bridge";
-import { evaluatorManifest } from "./fixtures/evaluator-authority-fixtures";
+import { CANONICAL_SKILL_ROOT } from "./fixture-test-helpers";
 
 const roots: string[] = [];
 
@@ -22,7 +24,20 @@ describe("bridge CLI", () => {
     roots.push(root);
     const requestPath = join(root, "request.json");
     const resultPath = join(root, "result.json");
-    const evaluatorPath = join(root, "evaluator.json");
+    const [task] = buildPublicCatalog();
+    if (task === undefined) {
+      throw new Error("public catalog must contain a task");
+    }
+    const fixtureRun = materializeFixtureRun({
+      runRoot: join(root, "fixture-run"),
+      canonicalSkillRoot: CANONICAL_SKILL_ROOT,
+      publicTasks: [task],
+      heldOutTasks: [],
+    });
+    const [entry] = fixtureRun.publicIndex.tasks;
+    if (entry === undefined) {
+      throw new Error("public fixture index must contain the task");
+    }
     const request = {
       schemaVersion: "1.0.0" as const,
       artifactType: "skillopt-bridge-request" as const,
@@ -31,14 +46,16 @@ describe("bridge CLI", () => {
       skill: "kibi-usage" as const,
       phase: "train" as const,
       candidateBody: "Use the Kibi MCP workflow.\n",
-      taskIds: ["kibi-usage-fact-predicate-modeling-held-out-3"],
+      taskIds: [task.id],
+      publicClaim: {
+        taskId: task.id,
+        text: task.prompt,
+        publicManifestHash: entry.manifestHash,
+        workspaceHash: entry.workspaceHash,
+      },
       sourceLockHash: "a".repeat(64),
     };
     await writeBridgeRequest(requestPath, request);
-    await writeFile(
-      evaluatorPath,
-      JSON.stringify(evaluatorManifest("predicate")),
-    );
     let defaultDependenciesCalled = false;
     let defaultDependenciesPassed = false;
     let runCodexCellCalled = false;
@@ -59,9 +76,20 @@ describe("bridge CLI", () => {
         }
         expect(options.sourceWorktree).toBe(process.cwd());
         expect(options.artifactRoot).toBe(join(root, "artifacts"));
-        expect(options.fixtureRoot).toBe(join(root, "fixture"));
+        expect(options.fixtureRoot).toBe(
+          join(
+            fixtureRun.roots.publicRoot,
+            task.split,
+            "tasks",
+            task.id,
+            "workspace",
+          ),
+        );
         expect(options.targetSkill).toBe("kibi-usage");
         expect(options.candidate).toEqual({ body: request.candidateBody });
+        expect(options.request.prompt).toBe(request.publicClaim.text);
+        expect(options.request.prompt).not.toBe(request.candidateBody);
+        expect(options.evaluatorManifest.taskId).toBe(task.id);
         expect(options.finalStateRequests.map(({ tool }) => tool)).toEqual([
           "kb_query",
           "kb_check",
@@ -99,10 +127,8 @@ describe("bridge CLI", () => {
         process.cwd(),
         "--artifact-root",
         join(root, "artifacts"),
-        "--fixture-root",
-        join(root, "fixture"),
-        "--evaluator-manifest",
-        evaluatorPath,
+        "--fixture-run-root",
+        fixtureRun.roots.runRoot,
       ],
       dependencies,
     );
@@ -114,7 +140,7 @@ describe("bridge CLI", () => {
     expect(runCodexCellCalled).toBe(true);
     expect((await readBridgeResult(resultPath, request)).rows).toEqual([
       {
-        id: "kibi-usage-fact-predicate-modeling-held-out-3",
+        id: task.id,
         hard: 1,
         soft: 1,
         status: "completed",
@@ -125,7 +151,7 @@ describe("bridge CLI", () => {
     ]);
   });
 
-  test("Given a task request and evaluator manifest for different task IDs When bridgeMain executes Then no cell is launched", async () => {
+  test("Given a task request with an unbound public fixture hash When bridgeMain executes Then no cell is launched", async () => {
     // Given
     const root = await mkdtemp(
       join(tmpdir(), "skillopt-bridge-manifest-mismatch-"),
@@ -133,7 +159,20 @@ describe("bridge CLI", () => {
     roots.push(root);
     const requestPath = join(root, "request.json");
     const resultPath = join(root, "result.json");
-    const evaluatorPath = join(root, "evaluator.json");
+    const [task] = buildPublicCatalog();
+    if (task === undefined) {
+      throw new Error("public catalog must contain a task");
+    }
+    const fixtureRun = materializeFixtureRun({
+      runRoot: join(root, "fixture-run"),
+      canonicalSkillRoot: CANONICAL_SKILL_ROOT,
+      publicTasks: [task],
+      heldOutTasks: [],
+    });
+    const [entry] = fixtureRun.publicIndex.tasks;
+    if (entry === undefined) {
+      throw new Error("public fixture index must contain the task");
+    }
     await writeBridgeRequest(requestPath, {
       schemaVersion: "1.0.0",
       artifactType: "skillopt-bridge-request",
@@ -142,13 +181,15 @@ describe("bridge CLI", () => {
       skill: "kibi-usage",
       phase: "train",
       candidateBody: "Use the Kibi MCP workflow.\n",
-      taskIds: ["wrong-task"],
+      taskIds: [task.id],
+      publicClaim: {
+        taskId: task.id,
+        text: task.prompt,
+        publicManifestHash: "f".repeat(64),
+        workspaceHash: entry.workspaceHash,
+      },
       sourceLockHash: "a".repeat(64),
     });
-    await writeFile(
-      evaluatorPath,
-      JSON.stringify(evaluatorManifest("predicate")),
-    );
     let cellLaunches = 0;
 
     // When
@@ -162,10 +203,8 @@ describe("bridge CLI", () => {
         process.cwd(),
         "--artifact-root",
         join(root, "artifacts"),
-        "--fixture-root",
-        join(root, "fixture"),
-        "--evaluator-manifest",
-        evaluatorPath,
+        "--fixture-run-root",
+        fixtureRun.roots.runRoot,
       ],
       {
         defaultCodexCellDependencies: (options) =>

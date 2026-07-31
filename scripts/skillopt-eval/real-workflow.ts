@@ -1,25 +1,26 @@
-import { existsSync } from "node:fs";
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import type { ArtifactPath } from "./artifact-path";
+
+import { mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import {
-  loadBundledSkill,
-  readBundledSkillResource,
+  loadBundledSkillFrom,
+  readBundledSkillResourceFrom,
 } from "../../packages/cli/src/public/skills";
-import { adoptEligibleCandidate } from "./adoption-integration";
+import { withSharedAdoptionLock } from "./adoption-lock";
 import type { CanonicalSkill } from "./catalog";
-import { PREDICATE_CASES } from "./fixtures/predicate-cases";
-import { materializePredicateCorpus } from "./fixtures/predicate-corpus";
 import { defaultEvaluateHeldOut } from "./held-out-evaluation";
 import { RunStore } from "./orchestration-store";
 import { sourceWorktreeIsClean } from "./preflight";
 import {
-  type CorpusRoots,
-  type PredicateDescriptor,
+  predicateDescriptors,
+  predicateRoots,
+  taskScopedDescriptors,
+} from "./real-workflow-setup";
+import {
   type RealOptimizationDependencies,
   type RealOptimizationOptions,
   type RealOptimizationResult,
   ReviewSchema,
-  RootsSchema,
   type TrainingInput,
   canonicalHash,
 } from "./real-workflow-types";
@@ -37,61 +38,36 @@ export type {
   RealOptimizationResult,
 } from "./real-workflow-types";
 
-async function surface(skill: CanonicalSkill): Promise<{
+export async function surface(
+  sourceRepoRoot: string,
+  skill: CanonicalSkill,
+): Promise<{
   readonly body: string;
   readonly frontmatterHash: string;
   readonly resourcesHash: string;
 }> {
-  const bundle = loadBundledSkill(skill);
-  const resources = Object.fromEntries(
-    await Promise.all(
-      [...(bundle.manifest.resources ?? [])]
-        .sort()
-        .map(async (resource) => [
-          resource,
-          readBundledSkillResource(skill, resource),
-        ]),
-    ),
-  );
-  return {
-    body: bundle.body,
-    frontmatterHash: canonicalHash(bundle.manifest),
-    resourcesHash: canonicalHash(resources),
-  };
-}
-
-function publicDescriptors(
-  split: "train" | "development",
-): readonly PredicateDescriptor[] {
-  return PREDICATE_CASES.filter((entry) => entry.split === split).map(
-    (entry) => ({
-      id: entry.caseId,
-      family: entry.semanticClass,
-      split,
-      publicClaim: entry.publicClaim,
-    }),
-  );
-}
-
-async function predicateRoots(artifactRoot: string): Promise<CorpusRoots> {
-  const corpusRoot = join(artifactRoot, "predicate-corpus");
-  const manifestPath = join(corpusRoot, "candidate-root-manifest.json");
-  if (!existsSync(manifestPath))
-    return materializePredicateCorpus({ artifactRoot: corpusRoot }).roots;
-  const persisted = RootsSchema.parse(
-    JSON.parse(await readFile(manifestPath, "utf8")).roots,
-  );
-  const currentRoot = `${corpusRoot}.current`;
-  try {
-    const current = materializePredicateCorpus({
-      artifactRoot: currentRoot,
-    }).roots;
-    if (canonicalHash(persisted) !== canonicalHash(current))
-      throw new Error("predicate_root_drift");
-    return current;
-  } finally {
-    await rm(currentRoot, { recursive: true, force: true });
-  }
+  return withSharedAdoptionLock(sourceRepoRoot, async () => {
+    const skillsDir = join(
+      resolve(sourceRepoRoot),
+      "packages/cli/src/public/skills",
+    );
+    const bundle = loadBundledSkillFrom(skillsDir, skill);
+    const resources = Object.fromEntries(
+      await Promise.all(
+        [...(bundle.manifest.resources ?? [])]
+          .sort()
+          .map(async (resource) => [
+            resource,
+            readBundledSkillResourceFrom(skillsDir, skill, resource),
+          ]),
+      ),
+    );
+    return {
+      body: bundle.body,
+      frontmatterHash: canonicalHash(bundle.manifest),
+      resourcesHash: canonicalHash(resources),
+    };
+  });
 }
 
 // implements REQ-skillopt-codex-optimization
@@ -100,6 +76,9 @@ export async function runRealOptimization(
   options: RealOptimizationOptions,
   dependencies: Partial<RealOptimizationDependencies> = {},
 ): Promise<RealOptimizationResult> {
+  const [skill] = options.skills;
+  if (skill !== "kibi-usage" || options.skills.length !== 1)
+    throw new Error("real optimization accepts only kibi-usage");
   const root = resolve(options.artifactRoot);
   const env = options.env ?? process.env;
   const sourceClean =
@@ -107,11 +86,25 @@ export async function runRealOptimization(
     ((source, currentEnv) => sourceWorktreeIsClean(source, currentEnv));
   if (!(await sourceClean(resolve(options.sourceWorktree), env)))
     throw new Error("source_not_clean");
-  const store = new RunStore(root, options.runId);
+  const store = new RunStore(root, options.runId, options.artifactPath);
   await store.acquire();
   try {
     await mkdir(root, { recursive: true, mode: 0o700 });
     const roots = await predicateRoots(root);
+    const trainDescriptors =
+      options.cellRuntime === undefined
+        ? predicateDescriptors("train")
+        : await taskScopedDescriptors(
+            "train",
+            options.cellRuntime.fixtureRunRoot,
+          );
+    const developmentDescriptors =
+      options.cellRuntime === undefined
+        ? predicateDescriptors("development")
+        : await taskScopedDescriptors(
+            "development",
+            options.cellRuntime.fixtureRunRoot,
+          );
     const candidates: Array<{
       skill: CanonicalSkill;
       baselineBodyHash: string;
@@ -124,12 +117,12 @@ export async function runRealOptimization(
       };
       heldOutEligibility: "eligible" | "HELD_OUT_MATRIX_INELIGIBLE";
       heldOutCellCount: number;
-      adoption: "adopted" | "unchanged" | "blocked";
+      productionAdoption: "external-verdict-required";
     }> = [];
     for (const skill of options.skills) {
       const baseline = createBaselineVariant({
         skill,
-        ...(await surface(skill)),
+        ...(await surface(resolve(options.sourceWorktree), skill)),
       });
       const training: TrainingInput = {
         runId: options.runId,
@@ -138,8 +131,8 @@ export async function runRealOptimization(
         artifactRoot: join(root, "skills", skill),
         maxSteps: options.maxSteps,
         baseline,
-        trainDescriptors: publicDescriptors("train"),
-        developmentDescriptors: publicDescriptors("development"),
+        trainDescriptors,
+        developmentDescriptors,
         corpusRoots: roots,
         env,
         ...(options.cellRuntime === undefined
@@ -179,18 +172,11 @@ export async function runRealOptimization(
         sourceWorktree: training.sourceWorktree,
         artifactRoot: training.artifactRoot,
         runId: options.runId,
+        roots,
         env,
         ...(options.cellRuntime === undefined
           ? {}
           : { runtime: options.cellRuntime }),
-      });
-      const adoption = await adoptEligibleCandidate({
-        training,
-        trained,
-        candidate,
-        heldOut,
-        roots,
-        adopt: dependencies.adopt,
       });
       await mkdir(training.artifactRoot, { recursive: true, mode: 0o700 });
       await writeFile(
@@ -206,7 +192,7 @@ export async function runRealOptimization(
         development,
         heldOutEligibility: heldOut.eligibility,
         heldOutCellCount: heldOut.cellCount,
-        adoption: adoption.status,
+        productionAdoption: "external-verdict-required",
       });
     }
     const heldOutEligibility = candidates.every(
@@ -222,16 +208,21 @@ export async function runRealOptimization(
       artifactRoot: root,
       skills: [...options.skills],
       candidates,
-      sourceModified: candidates.some(
-        (candidate) => candidate.adoption === "adopted",
-      ),
+      sourceModified: false,
       generatedAt: new Date().toISOString(),
     });
-    await writeFile(
-      join(root, "optimization-review.json"),
-      `${JSON.stringify(review, null, 2)}\n`,
-      { encoding: "utf8", mode: 0o600 },
-    );
+    const reviewJson = `${JSON.stringify(review, null, 2)}\n`;
+    if (options.artifactPath !== undefined) {
+      await options.artifactPath.writeText(
+        "optimization-review.json",
+        reviewJson,
+      );
+    } else {
+      await writeFile(join(root, "optimization-review.json"), reviewJson, {
+        encoding: "utf8",
+        mode: 0o600,
+      });
+    }
     return {
       status: review.status,
       runId: options.runId,
@@ -241,7 +232,10 @@ export async function runRealOptimization(
         candidateBodyHash,
       })),
       heldOutEligibility,
-      paidModelCalls: options.skills.length * (options.maxSteps + 1),
+      // This review workflow has no independently authenticated invocation
+      // receipt. Never infer paid usage from requested work; report only
+      // measured receipt-backed calls.
+      paidModelCalls: 0,
     };
   } finally {
     await store.release();

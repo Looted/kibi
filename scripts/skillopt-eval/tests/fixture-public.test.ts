@@ -122,6 +122,25 @@ describe("public SkillOpt fixture corpus", () => {
       "workspace",
     );
     expect(files(workspace)).toEqual(firstTask.allowedPublicFiles);
+    const publicManifest = parsePublicTaskManifest(
+      readFileSync(
+        path.join(
+          publicRoot,
+          firstTask.split,
+          "tasks",
+          firstTask.id,
+          "task.json",
+        ),
+        "utf8",
+      ),
+    );
+    expect(publicManifest.task.prompt).toBe(firstTask.prompt);
+    expect(publicManifest.task.prompt).not.toBe(
+      readFileSync(
+        path.join(workspace, "skills", firstTask.skill, "SKILL.md"),
+        "utf8",
+      ),
+    );
     expect(
       files(workspace).some((relative) => relative.startsWith(".kb")),
     ).toBe(false);

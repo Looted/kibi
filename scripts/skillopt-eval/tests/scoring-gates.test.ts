@@ -188,9 +188,15 @@ describe("SkillOpt per-skill gate", () => {
 });
 
 describe("held-out predicate matrix gate", () => {
-  test("returns only eligible when all four held-out cases pass in every blinded variant", () => {
+  function allPredicateReplicates() {
+    return passingHeldOutPredicateCells().flatMap((cell) =>
+      ([1, 2, 3] as const).map((replicate) => ({ ...cell, replicate })),
+    );
+  }
+
+  test("returns only eligible when all four held-out cases pass in every blinded variant and replicate", () => {
     // Given
-    const cells = passingHeldOutPredicateCells();
+    const cells = allPredicateReplicates();
 
     // When
     const verdict = evaluateHeldOutPredicateGate(cells);
@@ -201,7 +207,7 @@ describe("held-out predicate matrix gate", () => {
 
   test("returns a generic ineligible result without per-case diagnostics when one held-out case fails", () => {
     // Given
-    const cells = passingHeldOutPredicateCells().map((cell, index) =>
+    const cells = allPredicateReplicates().map((cell, index) =>
       index === 0
         ? {
             ...cell,
@@ -226,6 +232,23 @@ describe("held-out predicate matrix gate", () => {
     expect(verdict).toEqual({ eligibility: "HELD_OUT_MATRIX_INELIGIBLE" });
     expect(JSON.stringify(verdict)).not.toContain(cells[0]?.caseId ?? "");
     expect(JSON.stringify(verdict)).not.toContain("predicate-lane");
+  });
+
+  test("rejects a duplicate replicate instead of weakening the held-out denominator", () => {
+    // Given
+    const cells = allPredicateReplicates();
+    const first = cells[0];
+    if (first === undefined) throw new TypeError("expected held-out cell");
+    const duplicate = { ...first, replicate: 2 as const };
+
+    // When
+    const verdict = evaluateHeldOutPredicateGate([
+      duplicate,
+      ...cells.slice(1),
+    ]);
+
+    // Then
+    expect(verdict).toEqual({ eligibility: "HELD_OUT_MATRIX_INELIGIBLE" });
   });
 });
 

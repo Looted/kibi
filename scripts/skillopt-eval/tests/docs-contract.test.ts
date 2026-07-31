@@ -82,26 +82,45 @@ describe("SkillOpt documentation contract", () => {
     ]);
   });
 
-  test("describes the real Codex-auth workflow and rejects the fictional trust plane", () => {
+  test("distinguishes Codex authentication from the externally provisioned F3 trust plane", () => {
     const docs = readFileSync(docsPath, "utf8");
 
     expect(docs).toContain("prepareExistingLogin");
     expect(docs).toContain("runCodexSkillOptStep");
     expect(docs).toContain("runCodexCell");
     expect(docs).toContain("blinded held out aggregate gate");
-    expect(docs).toContain("exactly once");
+    expect(docs).toContain("Local review is non-mutating");
+    expect(docs).toContain("external-verdict-required");
+    expect(docs).toContain("planning-only");
     expect(docs).toContain("codex login status");
     expect(docs).toContain("--allow-paid");
     expect(docs).toContain("--fake");
+    expect(docs).toContain("existing authenticated Codex CLI login");
+    expect(docs).toContain("does not need a root or provider-key service");
+    expect(docs).toContain("F1 free/local QA");
+    expect(docs).toContain(
+      "F3 independent production verification/adoption evidence",
+    );
+    expect(docs).toContain("operator-provisioned external trust bundle");
+    expect(docs).toContain(
+      "does not install, sign, or substitute that external trust bundle",
+    );
+    expect(docs).toContain(
+      "sudo /usr/libexec/kibi-skillopt-installer install --bundle <signed-bundle> --version kibi-skillopt-trust-v1",
+    );
 
     expect(docs).not.toMatch(
       /Root Authority|ProviderSupervisor|EvaluatorAuthority/,
     );
-    expect(docs).not.toMatch(
-      /\/usr\/libexec\/kibi-skillopt|\/etc\/kibi-skillopt/,
-    );
     expect(docs).not.toMatch(/UID 6110|veth|nft/);
-    expect(docs).not.toContain("kibi-skillopt-trust-v1 bundle");
+    expect(docs).not.toContain(
+      "does not need root owned launchers, private service directories, root owned UIDs, socket activated services, provider API keys, or any external trust plane service",
+    );
+    expect(docs).not.toContain("<id|all>");
+    expect(docs).not.toContain("--fixture-root");
+    expect(docs).not.toContain("--evaluator-manifest");
+    expect(docs).not.toContain("adopt exactly once");
+    expect(docs).not.toContain("zero cost");
   });
 
   test("documents the operator script surface as parsed table rows", () => {
@@ -131,7 +150,7 @@ describe("SkillOpt documentation contract", () => {
       {
         Script: "`skillopt:canary`",
         Command:
-          "`bun run scripts/skillopt-eval/cli.ts smoke --run-id 00000000-0000-4000-8000-000000000091`",
+          "`bun run scripts/skillopt-eval/cli.ts smoke --allow-paid --run-id 00000000-0000-4000-8000-000000000091`",
         Notes:
           "Bounded two model Codex capability canary, may incur paid model calls.",
       },
@@ -139,19 +158,20 @@ describe("SkillOpt documentation contract", () => {
         Script: "`skillopt:dry-run`",
         Command:
           "`bun run scripts/skillopt-eval/cli.ts dry-run --run-id 00000000-0000-4000-8000-000000000092`",
-        Notes: "Writes the zero cost dry run artifact tree.",
+        Notes: "Writes a non-mutating local review artifact tree.",
       },
       {
         Script: "`skillopt:prepare`",
         Command:
           "`bun run scripts/skillopt-eval/cli.ts prepare --run-id 00000000-0000-4000-8000-000000000092`",
-        Notes: "Same dry run shape, with the prepare command name.",
+        Notes: "Writes the same non-mutating local review artifact shape.",
       },
       {
         Script: "`skillopt:optimize`",
-        Command: "`bun run scripts/skillopt-eval/cli.ts optimize`",
+        Command:
+          "`bun run scripts/skillopt-eval/cli.ts optimize --fake --run-id 00000000-0000-4000-8000-000000000092`",
         Notes:
-          "Thin alias for the optimize entrypoint. Pass `--run-id` and `--allow-paid` when you need a real paid run.",
+          "Runs non-mutating local optimization review without adopting a candidate.",
       },
       {
         Script: "`skillopt:fake:run`",
@@ -171,6 +191,13 @@ describe("SkillOpt documentation contract", () => {
           "`bun run scripts/skillopt-eval/cli.ts run --fake --run-id 00000000-0000-4000-8000-000000000093 && bun run scripts/skillopt-eval/cli.ts status --run-id 00000000-0000-4000-8000-000000000093`",
         Notes: "Boots a fake run, then reads back its state.",
       },
+      {
+        Script: "`skillopt:fake:adopt`",
+        Command:
+          "`bun run scripts/skillopt-eval/cli.ts adopt --fake --run-id 00000000-0000-4000-8000-000000000093`",
+        Notes:
+          "Emits a planning-only adoption plan and never changes the canonical skill.",
+      },
     ]);
 
     expect(packageJson.scripts).toMatchObject({
@@ -179,19 +206,28 @@ describe("SkillOpt documentation contract", () => {
       "skillopt:preflight":
         "bun run scripts/skillopt-eval/cli.ts preflight --run-id 00000000-0000-4000-8000-000000000091",
       "skillopt:canary":
-        "bun run scripts/skillopt-eval/cli.ts smoke --run-id 00000000-0000-4000-8000-000000000091",
+        "bun run scripts/skillopt-eval/cli.ts smoke --allow-paid --run-id 00000000-0000-4000-8000-000000000091",
       "skillopt:dry-run":
         "bun run scripts/skillopt-eval/cli.ts dry-run --run-id 00000000-0000-4000-8000-000000000092",
       "skillopt:prepare":
         "bun run scripts/skillopt-eval/cli.ts prepare --run-id 00000000-0000-4000-8000-000000000092",
-      "skillopt:optimize": "bun run scripts/skillopt-eval/cli.ts optimize",
+      "skillopt:optimize":
+        "bun run scripts/skillopt-eval/cli.ts optimize --fake --run-id 00000000-0000-4000-8000-000000000092",
       "skillopt:fake:run":
         "bun run scripts/skillopt-eval/cli.ts run --fake --run-id 00000000-0000-4000-8000-000000000093",
       "skillopt:fake:resume":
         "bun run scripts/skillopt-eval/cli.ts resume --fake --run-id 00000000-0000-4000-8000-000000000093",
       "skillopt:fake:status":
         "bun run scripts/skillopt-eval/cli.ts run --fake --run-id 00000000-0000-4000-8000-000000000093 && bun run scripts/skillopt-eval/cli.ts status --run-id 00000000-0000-4000-8000-000000000093",
+      "skillopt:fake:adopt":
+        "bun run scripts/skillopt-eval/cli.ts adopt --fake --run-id 00000000-0000-4000-8000-000000000093",
     });
+    expect(
+      packageJson.scripts["skillopt:canary"].match(/--allow-paid/g),
+    ).toHaveLength(1);
+    expect(docs).toContain(
+      "optimize --skill kibi-usage --allow-paid --run-id <uuid> --fixture-run-root <path>",
+    );
   });
 
   test("documents the artifact layout as parsed table rows", () => {

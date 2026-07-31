@@ -25,7 +25,9 @@ function containsTraversal(path: string): boolean {
   return path.split(sep).includes("..");
 }
 
-async function assertComponentsAreNotSymlinks(path: string): Promise<void> {
+export async function assertComponentsAreNotSymlinks(
+  path: string,
+): Promise<void> {
   let current: string = sep;
   for (const part of resolve(path).split(sep).filter(Boolean)) {
     current = resolve(current, part);
@@ -61,6 +63,52 @@ export async function readNoFollow(
           "PREFLIGHT_NO_GO",
         );
       return { text: await handle.readFile("utf8"), mode, uid: stats.uid };
+    } finally {
+      await handle.close();
+    }
+  } catch (error) {
+    if (error instanceof PreflightInputError) throw error;
+    if (error instanceof Error && "code" in error && error.code === "ENOENT") {
+      throw new PreflightInputError(
+        kind === "external" ? "external-bundle-lock" : "lock-missing",
+        kind === "external" ? "EXTERNAL_PREREQUISITE_MISSING" : "LOCK_INVALID",
+        { cause: error },
+      );
+    }
+    throw new PreflightInputError(
+      `${kind}-read`,
+      kind === "external" ? "EXTERNAL_PREREQUISITE_MISSING" : "LOCK_INVALID",
+      { cause: error },
+    );
+  }
+}
+
+export async function readNoFollowBytes(
+  path: string,
+  kind: "lock" | "external",
+  requireImmutable = false,
+): Promise<Readonly<{ bytes: Buffer; mode: number; uid: number }>> {
+  if (containsTraversal(path))
+    throw new PreflightInputError("path-traversal", "LOCK_INVALID");
+  try {
+    await assertComponentsAreNotSymlinks(path);
+    const handle = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW);
+    try {
+      const stats = await handle.stat();
+      if (!stats.isFile())
+        throw new PreflightInputError(
+          `${kind}-regular-file`,
+          kind === "external"
+            ? "EXTERNAL_PREREQUISITE_MISSING"
+            : "LOCK_INVALID",
+        );
+      const mode = stats.mode & 0o777;
+      if (requireImmutable && (mode & 0o222) !== 0)
+        throw new PreflightInputError(
+          "external-bundle-mode",
+          "PREFLIGHT_NO_GO",
+        );
+      return { bytes: await handle.readFile(), mode, uid: stats.uid };
     } finally {
       await handle.close();
     }

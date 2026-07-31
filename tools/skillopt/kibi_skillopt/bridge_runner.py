@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import os
-import shutil
 import signal
 import subprocess
-from collections.abc import Mapping, Sequence
+import threading
+import time
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from types import FrameType
@@ -14,7 +15,10 @@ from typing_extensions import override
 
 from .bridge import BridgeError
 
-BridgeProcessFailureKind = Literal["group_unavailable", "startup", "timeout", "interrupted"]
+BridgeProcessFailureKind = Literal[
+    "group_unavailable", "startup", "timeout", "interrupted", "output_overflow"
+]
+MAX_BRIDGE_OUTPUT_BYTES = 1_000_000
 
 
 @dataclass(frozen=True, slots=True)
@@ -30,24 +34,39 @@ class _BridgeInterruptedError(Exception):
     pass
 
 
-def resolve_bridge_command(command: Sequence[str], cwd: Path) -> tuple[str, ...]:
-    if not command:
-        raise BridgeError("bridge_command_missing")
-    resolved: list[str] = []
-    for index, part in enumerate(command):
-        path = Path(part)
-        if path.is_absolute():
-            resolved.append(str(path.resolve()))
-            continue
-        if index == 0:
-            executable = shutil.which(part)
-            resolved.append(executable if executable is not None else part)
-            continue
-        if path.suffix in {".ts", ".js", ".mjs", ".cjs"} or "/" in part:
-            resolved.append(str((cwd / path).resolve()))
-            continue
-        resolved.append(part)
-    return tuple(resolved)
+def bridge_source_root() -> Path:
+    root = Path(__file__).resolve().parents[3]
+    if not (root / "scripts" / "skillopt-eval" / "bridge-cli.ts").is_file():
+        raise BridgeError("bridge_entrypoint_missing")
+    return root
+
+
+def bridge_command() -> tuple[str, ...]:
+    entrypoint = bridge_source_root() / "scripts" / "skillopt-eval" / "bridge-cli.ts"
+    return ("bun", "run", str(entrypoint), "--pipe")
+
+
+def run_optimizer_bridge(request_path: Path, result_path: Path) -> None:
+    entrypoint = bridge_source_root() / "scripts" / "skillopt-eval" / "optimizer-bridge-cli.ts"
+    try:
+        _ = subprocess.run(
+            (
+                "bun",
+                "run",
+                str(entrypoint),
+                "--request",
+                str(request_path.resolve()),
+                "--result",
+                str(result_path.resolve()),
+            ),
+            cwd=bridge_source_root(),
+            env=sanitized_bridge_environment(os.environ),
+            check=True,
+        )
+    except OSError as error:
+        raise BridgeProcessError("startup") from error
+    except subprocess.CalledProcessError as error:
+        raise BridgeError(f"bridge_exit:{error.returncode}") from error
 
 
 def sanitized_bridge_environment(environment: Mapping[str, str]) -> dict[str, str]:
@@ -68,69 +87,102 @@ def _interrupt_bridge(_signal_number: int, _frame: FrameType | None) -> None:
     raise _BridgeInterruptedError
 
 
-def _signal_process_group(process: subprocess.Popen[str], signal_number: int) -> None:
+def _signal_process_group(process: subprocess.Popen[bytes], signal_number: int) -> None:
     try:
         os.killpg(process.pid, signal_number)
     except ProcessLookupError:
         return
 
 
-def _reap_process_group(process: subprocess.Popen[str], grace_seconds: float) -> None:
+def _reap_process_group(process: subprocess.Popen[bytes], grace_seconds: float) -> None:
     _signal_process_group(process, signal.SIGTERM)
     try:
-        _ = process.communicate(timeout=grace_seconds)
+        _ = process.wait(timeout=grace_seconds)
     except subprocess.TimeoutExpired:
         _signal_process_group(process, signal.SIGKILL)
     else:
         _signal_process_group(process, signal.SIGKILL)
     if process.poll() is None:
-        _ = process.communicate()
+        _ = process.wait()
+
+
+def _drain(stream: object, output: bytearray, overflow: threading.Event) -> None:
+    read_attr = getattr(stream, "read", None)
+    if not callable(read_attr):
+        raise TypeError("bridge stream is not readable")
+    while True:
+        raw = read_attr(8192)
+        if not raw:
+            return
+        if not isinstance(raw, (bytes, bytearray)):
+            raise TypeError("bridge stream produced non-bytes")
+        chunk = bytes(raw)
+        if len(output) + len(chunk) > MAX_BRIDGE_OUTPUT_BYTES:
+            overflow.set()
+            continue
+        output.extend(chunk)
 
 
 def run_bridge(
-    bridge_command: Sequence[str],
-    cwd: Path,
-    request_path: Path,
-    result_path: Path,
+    request_json: str,
     *,
     timeout_seconds: float = 15 * 60,
     kill_grace_seconds: float = 2,
-) -> None:
+) -> str:
     if os.name != "posix":
         raise BridgeProcessError("group_unavailable")
-    command = [
-        *bridge_command,
-        "--request",
-        str(request_path.resolve()),
-        "--result",
-        str(result_path.resolve()),
-    ]
     previous_sigint = signal.getsignal(signal.SIGINT)
     previous_sigterm = signal.getsignal(signal.SIGTERM)
-    process: subprocess.Popen[str] | None = None
+    process: subprocess.Popen[bytes] | None = None
+    stdout = bytearray()
+    stderr = bytearray()
+    overflow = threading.Event()
     try:
         _ = signal.signal(signal.SIGINT, _interrupt_bridge)
         _ = signal.signal(signal.SIGTERM, _interrupt_bridge)
         try:
             process = subprocess.Popen(
-                command,
-                cwd=cwd,
+                bridge_command(),
+                cwd=bridge_source_root(),
+                stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                text=True,
                 env=sanitized_bridge_environment(os.environ),
                 start_new_session=True,
             )
         except OSError as error:
             raise BridgeProcessError("startup") from error
-        try:
-            _ = process.communicate(timeout=timeout_seconds)
-        except subprocess.TimeoutExpired as error:
+        if process.stdin is None or process.stdout is None or process.stderr is None:
+            raise BridgeProcessError("startup")
+        stdin = process.stdin
+        def write_request() -> None:
+            try:
+                _ = stdin.write(request_json.encode("utf-8"))
+            except BrokenPipeError:
+                pass
+            finally:
+                stdin.close()
+        writer = threading.Thread(target=write_request, daemon=True)
+        stdout_reader = threading.Thread(target=_drain, args=(process.stdout, stdout, overflow))
+        stderr_reader = threading.Thread(target=_drain, args=(process.stderr, stderr, overflow))
+        writer.start()
+        stdout_reader.start()
+        stderr_reader.start()
+        deadline = time.monotonic() + timeout_seconds
+        while process.poll() is None:
+            if overflow.is_set():
+                _reap_process_group(process, kill_grace_seconds)
+                raise BridgeProcessError("output_overflow")
+            if time.monotonic() >= deadline:
+                _reap_process_group(process, kill_grace_seconds)
+                raise BridgeProcessError("timeout")
+            time.sleep(0.01)
+        writer.join()
+        stdout_reader.join()
+        stderr_reader.join()
+        if overflow.is_set():
             _reap_process_group(process, kill_grace_seconds)
-            raise BridgeProcessError("timeout") from error
-        except (KeyboardInterrupt, _BridgeInterruptedError) as error:
-            _reap_process_group(process, kill_grace_seconds)
-            raise BridgeProcessError("interrupted") from error
+            raise BridgeProcessError("output_overflow")
     except (KeyboardInterrupt, _BridgeInterruptedError) as error:
         if process is not None:
             _reap_process_group(process, kill_grace_seconds)
@@ -141,3 +193,4 @@ def run_bridge(
     if process.returncode != 0:
         _reap_process_group(process, kill_grace_seconds)
         raise BridgeError(f"bridge_exit:{process.returncode}")
+    return stdout.decode("utf-8")

@@ -2,25 +2,30 @@ import {
   adoptApprovedSnapshot,
   defaultRunMirrorSync,
 } from "./adoption-approved";
-import { withExclusiveAdoptionLock } from "./adoption-lock";
+import {
+  withExclusiveAdoptionLock,
+  withSharedAdoptionLock,
+} from "./adoption-lock";
 import {
   canonicalTargetSet,
   deriveAdoptionId,
   loadCanonicalSnapshot,
   loadCanonicalSurface,
   publicPlan,
-  validatePredicateEligibility,
+  validateExternalAdoptionVerdict,
 } from "./adoption-snapshot";
 import {
   executeExactAdoption,
   recoverAdoptionWals,
 } from "./adoption-transaction";
+import { AdoptionIntegrityError } from "./adoption-types";
 import type {
   AdoptionDependencies,
   AdoptionInput,
   AdoptionPlan,
   AdoptionReceipt,
   AutoAdoptionInput,
+  ExternalAdoptionVerdict,
 } from "./adoption-types";
 
 export {
@@ -33,8 +38,10 @@ export type {
   AdoptionPlan,
   AdoptionReceipt,
   AutoAdoptionInput,
+  ExternalAdoptionVerdict,
   PredicateEligibilityReceipt,
   RunMirrorSync,
+  TerminalEligibilityReceipt,
 } from "./adoption-types";
 export { deriveAdoptionId } from "./adoption-snapshot";
 
@@ -47,30 +54,42 @@ const REQUIRED_CANONICAL_GUIDANCE = [
 export async function planSkillAdoption(
   input: AdoptionInput,
 ): Promise<AdoptionPlan> {
-  return publicPlan(await loadCanonicalSnapshot(input));
+  return withSharedAdoptionLock(input.repoRoot, async () =>
+    publicPlan(await loadCanonicalSnapshot(input)),
+  );
 }
 
 export async function adoptApprovedSkill(
   input: AdoptionInput,
   dependencies: AdoptionDependencies = { runMirrorSync: defaultRunMirrorSync },
 ): Promise<AdoptionReceipt> {
-  return adoptApprovedSnapshot(
-    input.repoRoot,
-    await loadCanonicalSnapshot(input),
-    dependencies,
+  return withExclusiveAdoptionLock(input.repoRoot, async () =>
+    adoptApprovedSnapshot(
+      input.repoRoot,
+      await loadCanonicalSnapshot(input),
+      dependencies,
+    ),
   );
 }
 
 // implements REQ-skillopt-automatic-adoption
 export async function adoptSkillOptCandidate(
   input: AutoAdoptionInput,
+  verdict: ExternalAdoptionVerdict | undefined,
   dependencies: AdoptionDependencies = { runMirrorSync: defaultRunMirrorSync },
 ): Promise<AdoptionReceipt> {
-  validatePredicateEligibility(input);
   return withExclusiveAdoptionLock(input.repoRoot, async () => {
+    if (verdict === undefined)
+      throw new AdoptionIntegrityError("external adoption verdict is required");
     await recoverAdoptionWals(input.repoRoot, dependencies);
     const snapshot = await loadCanonicalSurface(input);
-    const adoptionId = deriveId(input, snapshot);
+    await validateExternalAdoptionVerdict(
+      input,
+      verdict,
+      snapshot,
+      dependencies.verifyExternalAdoptionVerdict,
+    );
+    const adoptionId = deriveId(input, verdict, snapshot);
     const baselineBody = snapshot.markdown.slice(snapshot.frontmatter.length);
     if (dropsRequiredGuidance(baselineBody, input.candidate.body)) {
       return { ...publicPlan(snapshot), status: "blocked", adoptionId };
@@ -91,10 +110,11 @@ export async function adoptSkillOptCandidate(
 
 function deriveId(
   input: AutoAdoptionInput,
+  verdict: ExternalAdoptionVerdict,
   snapshot: Awaited<ReturnType<typeof loadCanonicalSurface>>,
 ): string {
   return deriveAdoptionId(
-    input.eligibility,
+    verdict,
     canonicalTargetSet(input.repoRoot, snapshot),
   );
 }

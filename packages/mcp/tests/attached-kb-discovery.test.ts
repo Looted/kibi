@@ -9,6 +9,18 @@ const cliPath = path.join(repoRoot, "packages/cli/dist/cli.js");
 const mcpPath = path.join(repoRoot, "packages/mcp/bin/kibi-mcp");
 const repetitions = 10;
 
+function attachedBranch(): string {
+  const result = spawnSync("git", ["branch", "--show-current"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+  const branch = result.stdout.trim();
+  if (result.status !== 0 || branch.length === 0) {
+    throw new Error(result.stderr || "Attached KB test requires a Git branch");
+  }
+  return branch;
+}
+
 function parseObject(raw: string): JsonObject {
   const value: unknown = JSON.parse(raw);
   if (value === null || typeof value !== "object" || Array.isArray(value)) {
@@ -150,7 +162,7 @@ test("Node CLI and MCP consume complete attached-KB discovery frames repeatedly"
       cwd: repoRoot,
       env: {
         ...process.env,
-        KIBI_BRANCH: "develop",
+        KIBI_BRANCH: attachedBranch(),
         KIBI_WORKSPACE: repoRoot,
       },
       stdio: ["pipe", "pipe", "pipe"],

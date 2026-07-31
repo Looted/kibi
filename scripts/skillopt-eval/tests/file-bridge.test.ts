@@ -22,6 +22,12 @@ const REQUEST = {
   phase: "train",
   candidateBody: "Use Kibi through MCP.",
   taskIds: ["usage-train-1"],
+  publicClaim: {
+    taskId: "usage-train-1",
+    text: "Use the public task claim.",
+    publicManifestHash: "c".repeat(64),
+    workspaceHash: "d".repeat(64),
+  },
   sourceLockHash: HASH,
 } as const;
 const RESULT = {
@@ -72,13 +78,50 @@ describe("versioned SkillOpt file bridge", () => {
     }
   });
 
-  test("rejects a held-out task and hidden-root file access", async () => {
+  test("accepts held-out task identity while rejecting hidden-root file access", async () => {
     expect(() =>
-      BridgeRequestSchema.parse({ ...REQUEST, phase: "held-out" }),
-    ).toThrow();
+      BridgeRequestSchema.parse({
+        ...REQUEST,
+        phase: "held-out",
+        taskIds: ["usage-held-out-1"],
+        publicClaim: { ...REQUEST.publicClaim, taskId: "usage-held-out-1" },
+      }),
+    ).not.toThrow();
     const bridge = new FileBridge("/tmp/public-bridge", "/tmp/private-bridge");
     expect(() => bridge.resolve("../private.json", "public")).toThrow(
       BridgeVisibilityError,
     );
+  });
+
+  test("Given public task identity When a bridge request is hashed Then the public claim is required and bound into that hash", async () => {
+    // Given
+    const root = await mkdtemp(join(tmpdir(), "skillopt-bridge-claim-test-"));
+    try {
+      const firstPath = join(root, "first.json");
+      const secondPath = join(root, "second.json");
+      const request = BridgeRequestSchema.parse(REQUEST);
+
+      // When
+      const firstHash = await writeBridgeRequest(firstPath, request);
+      const secondHash = await writeBridgeRequest(secondPath, {
+        ...request,
+        publicClaim: {
+          ...request.publicClaim,
+          text: "A different public claim.",
+        },
+      });
+
+      // Then
+      expect(() => {
+        BridgeRequestSchema.parse(
+          Object.fromEntries(
+            Object.entries(REQUEST).filter(([key]) => key !== "publicClaim"),
+          ),
+        );
+      }).toThrow();
+      expect(secondHash).not.toBe(firstHash);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 });

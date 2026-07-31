@@ -25,6 +25,31 @@ export type AdoptionReceipt = AdoptionPlan &
 
 export type RunMirrorSync = (repoRoot: string) => Promise<void>;
 
+/**
+ * Opaque, independently authenticated authorization for production mutation.
+ * Repository-local evidence is deliberately absent from this contract: it may
+ * support review, but cannot authorize an install.
+ */
+export type ExternalAdoptionVerdict = Readonly<{
+  verdictId: string;
+  authentication: string;
+  sourceCanonicalPreimageHash: string;
+  rootAuthorization: PredicateRoots;
+  supervisorParentId: string;
+  invocationId: string;
+  runId: string;
+  skill: CanonicalSkill;
+  matrixId: string;
+  fixtureClaimHash: string;
+  candidateHash: string;
+  terminalEvidenceHash: string;
+  targetSet: readonly string[];
+}>;
+
+export type ExternalAdoptionVerdictVerifier = (
+  verdict: ExternalAdoptionVerdict,
+) => Promise<boolean>;
+
 type AdoptionPhase =
   | "prepared"
   | "canonical-installed"
@@ -33,23 +58,36 @@ type AdoptionPhase =
 
 export type AdoptionDependencies = Readonly<{
   runMirrorSync: RunMirrorSync;
+  /**
+   * Supplied by the production installer boundary. There is intentionally no
+   * repository-hosted verifier or permissive default.
+   */
+  verifyExternalAdoptionVerdict?: ExternalAdoptionVerdictVerifier;
   durabilityObserver?: DurabilityObserver;
   afterPhase?: (phase: AdoptionPhase) => Promise<void>;
 }>;
 
-export type PredicateEligibilityReceipt = Readonly<{
-  runId: string;
-  signedEligibilityId: string;
-  heldOutEligibility: "eligible" | "HELD_OUT_MATRIX_INELIGIBLE";
-  candidateHash: string;
-  authorizedRootSet: PredicateRoots;
-  sealedEvidenceHash?: string;
-  lineage: Readonly<{
-    candidateHash: string;
-    signedEligibilityId: string;
-    authorizedRootSet: PredicateRoots;
+/**
+ * Local integration seam for the held-out terminal eligibility receipt.
+ * The terminal evaluator owns how it is produced; adoption only consumes it.
+ */
+export interface TerminalEligibilityReceipt {
+  readonly eligibilityReceiptId: string;
+  readonly heldOutEligibility: "eligible" | "HELD_OUT_MATRIX_INELIGIBLE";
+  readonly candidateHash: string;
+  readonly authorizedRootSet: PredicateRoots;
+  readonly sealedEvidenceHash: string;
+}
+
+export type PredicateEligibilityReceipt = TerminalEligibilityReceipt &
+  Readonly<{
+    runId: string;
+    lineage: Readonly<{
+      candidateHash: string;
+      trainerCheckpointHash: string;
+      authorizedRootSet: PredicateRoots;
+    }>;
   }>;
-}>;
 
 export type AutoAdoptionInput = Readonly<{
   repoRoot: string;

@@ -2,7 +2,7 @@ import { PREDICATE_HELD_OUT_CASE_IDS } from "../fixtures/predicate-cases";
 import type { PredicateCaseEvidence } from "./cell";
 import type { GateCell } from "./gates";
 
-type PredicateVariant = "baseline" | "one-shot" | "skillopt";
+export type PredicateVariant = "baseline" | "one-shot" | "skillopt";
 type PassingPredicateEvidence = Extract<
   PredicateCaseEvidence,
   Readonly<{ outcome: "pass" }>
@@ -12,6 +12,7 @@ export type HeldOutPredicateGateCell = GateCell &
   Readonly<{
     caseId: string;
     variant: PredicateVariant;
+    replicate?: 1 | 2 | 3;
     predicateEvidence: PredicateCaseEvidence;
   }>;
 
@@ -45,21 +46,21 @@ export function evaluateHeldOutPredicateGate(
     "one-shot",
     "skillopt",
   ];
+  const replicates = [1, 2, 3] as const;
   const expectedCaseIds = new Set(PREDICATE_HELD_OUT_CASE_IDS);
   const complete =
-    cells.length === expectedCaseIds.size * variants.length &&
+    cells.length ===
+      expectedCaseIds.size * variants.length * replicates.length &&
     cells.every((cell) => expectedCaseIds.has(cell.caseId)) &&
-    [...expectedCaseIds].every((caseId) => {
-      const caseCells = cells.filter((cell) => cell.caseId === caseId);
-      return (
-        caseCells.length === variants.length &&
-        new Set(caseCells.map((cell) => cell.variant)).size ===
-          variants.length &&
-        variants.every((variant) =>
-          caseCells.some((cell) => cell.variant === variant),
-        )
-      );
-    });
+    cells.every((cell) =>
+      replicates.some((replicate) => cell.replicate === replicate),
+    ) &&
+    new Set(
+      cells.map(
+        (cell) => `${cell.caseId}\u0000${cell.variant}\u0000${cell.replicate}`,
+      ),
+    ).size ===
+      expectedCaseIds.size * variants.length * replicates.length;
   return {
     eligibility:
       complete && cells.every(isHardPassingHeldOutCell)

@@ -1,7 +1,13 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdtemp } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { CANONICAL_SKILLS } from "./catalog";
+import {
+  type ArtifactPath,
+  ArtifactRootRequiredError,
+  prepareArtifactPath,
+} from "./artifact-path";
 import { CliUsageError, type WorkflowOptions } from "./cli-options";
+import { defaultEvaluateHeldOut } from "./held-out-evaluation";
 import {
   buildOfflineReviewArtifacts,
   planOfflineAdoption,
@@ -9,29 +15,134 @@ import {
 } from "./offline-artifacts";
 import { RunStore, runOfflineWorkflow } from "./orchestration";
 import { runCapabilityCanary, runPreflight } from "./preflight";
+import { prepareArtifact } from "./prepared-root";
 import { runRealOptimization } from "./real-workflow";
+import type { HeldOutCellRunner } from "./real-workflow-types";
+import { runCodexCell } from "./runtime/codex-cell-runner";
+
+const STATEFUL_COMMANDS = new Set([
+  "run",
+  "resume",
+  "status",
+  "report",
+  "approve",
+  "adopt",
+  "optimize",
+]);
+
+export type WorkflowDependencies = Readonly<{
+  readonly runPreflight: typeof runPreflight;
+  readonly runCapabilityCanary: typeof runCapabilityCanary;
+  readonly runRealOptimization: typeof runRealOptimization;
+  readonly evaluateHeldOut: typeof defaultEvaluateHeldOut;
+  readonly cellRunner: HeldOutCellRunner;
+}>;
+
+export const defaultWorkflowDependencies = {
+  runPreflight,
+  runCapabilityCanary,
+  runRealOptimization,
+  evaluateHeldOut: defaultEvaluateHeldOut,
+  cellRunner: runCodexCell,
+} satisfies WorkflowDependencies;
+
+type WorkflowExecution = Readonly<{
+  options: WorkflowOptions;
+  dependencies: WorkflowDependencies;
+  artifactPath: ArtifactPath;
+}>;
 
 // implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export async function runWorkflowCommand(
   command: string,
   options: WorkflowOptions,
+  dependencies: WorkflowDependencies = defaultWorkflowDependencies,
 ): Promise<number> {
-  if (command === "dry-run" || command === "prepare") {
-    await mkdir(options.artifactRoot, { recursive: true, mode: 0o700 });
-    await writeFile(
-      join(options.artifactRoot, "dry-run.json"),
-      `${JSON.stringify({ schemaVersion: "1.0.0", artifactType: "skillopt-dry-run", mode: "dry-run", runId: options.runId, artifactRoot: options.artifactRoot })}\n`,
-      { encoding: "utf8", mode: 0o600 },
+  const sourceRoot = options.sourceRoot ?? process.cwd();
+
+  if (STATEFUL_COMMANDS.has(command) && !options.artifactRootExplicit) {
+    throw new ArtifactRootRequiredError(
+      `${command} requires explicit --artifact-root`,
+    );
+  }
+
+  let tempRoot: string | undefined;
+  const isTemp = options.artifactRootExplicit === false;
+  const artRoot = isTemp
+    ? await mkdtemp(join(tmpdir(), "kibi-skillopt-"))
+    : options.artifactRoot;
+  if (isTemp) tempRoot = artRoot;
+  const artifactPath = await prepareArtifactPath({
+    artifactRoot: artRoot,
+    sourceRoot,
+    canonicalRoots: [
+      join(sourceRoot, "packages", "cli", "src", "public", "skills"),
+    ],
+  });
+  try {
+    return await runWorkflowAtRoot(command, {
+      options: { ...options, artifactRoot: artRoot, sourceRoot },
+      dependencies,
+      artifactPath,
+    });
+  } finally {
+    await artifactPath.close();
+    if (tempRoot !== undefined) {
+      const { rm } = await import("node:fs/promises");
+      await rm(tempRoot, { recursive: true, force: true }).catch(
+        () => undefined,
+      );
+    }
+  }
+}
+
+async function runWorkflowAtRoot(
+  command: string,
+  execution: WorkflowExecution,
+): Promise<number> {
+  const { artifactPath, dependencies, options } = execution;
+  if (command === "dry-run") {
+    await artifactPath.writeText(
+      "dry-run.json",
+      `${JSON.stringify({
+        schemaVersion: "1.0.0",
+        artifactType: "skillopt-dry-run",
+        mode: "dry-run",
+        runId: options.runId,
+        artifactRoot: options.artifactRoot,
+      })}\n`,
     );
     process.stdout.write(`${JSON.stringify({ verdict: "pass", command })}\n`);
     return 0;
   }
+  if (command === "prepare") {
+    const prepared = await prepareArtifact({
+      preparedRoot: options.artifactRoot,
+      runId: options.runId,
+      sourceRoot: options.sourceRoot ?? process.cwd(),
+      candidates: {
+        baseline: "# baseline\n",
+        oneShot: "# one-shot\n",
+        skillopt: "# skillopt\n",
+      },
+    });
+    process.stdout.write(
+      `${JSON.stringify({
+        verdict: "pass",
+        command,
+        preparedArtifactRoot: prepared.generatedArtifactRoot,
+      })}\n`,
+    );
+    return 0;
+  }
   if (command === "status") {
-    const state = await new RunStore(
+    const store = new RunStore(
       options.artifactRoot,
       options.runId,
-    ).readState();
+      artifactPath,
+    );
+    const state = await store.readState();
     process.stdout.write(
       `${JSON.stringify({ runId: options.runId, state })}\n`,
     );
@@ -43,10 +154,11 @@ export async function runWorkflowCommand(
         `${command} requires --fake for offline review artifacts`,
       );
     const artifacts = await buildOfflineReviewArtifacts(
+      process.cwd(),
       options.runId,
       options.artifactRoot,
     );
-    await writeOfflineReviewArtifacts(options.artifactRoot, artifacts);
+    await writeOfflineReviewArtifacts(artifactPath, artifacts);
     if (command === "adopt") {
       const plan = await planOfflineAdoption(process.cwd(), artifacts);
       process.stdout.write(
@@ -58,7 +170,12 @@ export async function runWorkflowCommand(
     return 0;
   }
   if (command === "optimize" && !options.fake)
-    return await runPaidOptimization(command, options);
+    return await runPaidOptimization(
+      command,
+      options,
+      dependencies,
+      artifactPath,
+    );
   if (!options.fake)
     throw new CliUsageError(
       `${command} requires --fake until the bounded real smoke gate is enabled`,
@@ -67,6 +184,7 @@ export async function runWorkflowCommand(
     root: options.artifactRoot,
     runId: options.runId,
     runLockHash: "0".repeat(64),
+    artifactPath,
   });
   process.stdout.write(`${JSON.stringify({ command, ...result })}\n`);
   return result.phase === "complete" ? 0 : 1;
@@ -75,16 +193,20 @@ export async function runWorkflowCommand(
 async function runPaidOptimization(
   command: string,
   options: WorkflowOptions,
+  dependencies: WorkflowDependencies,
+  artifactPath: ArtifactPath,
 ): Promise<number> {
   if (!options.allowPaid)
     throw new CliUsageError(
       "optimize requires --allow-paid after preflight and smoke",
     );
+  if (options.skill !== "kibi-usage")
+    throw new CliUsageError("real optimize accepts only --skill kibi-usage");
   if (options.cellRuntime === undefined)
     throw new CliUsageError(
-      "optimize requires --fixture-root and --evaluator-manifest for bounded Codex cells",
+      "optimize requires --fixture-run-root for bounded Codex cells",
     );
-  const preflight = await runPreflight({
+  const preflight = await dependencies.runPreflight({
     runId: options.runId,
     sourceWorktree: process.cwd(),
     artifactRoot: options.artifactRoot,
@@ -95,7 +217,7 @@ async function runPaidOptimization(
     );
     return 1;
   }
-  const smoke = await runCapabilityCanary({
+  const smoke = await dependencies.runCapabilityCanary({
     runId: options.runId,
     sourceWorktree: process.cwd(),
     artifactRoot: options.artifactRoot,
@@ -106,18 +228,24 @@ async function runPaidOptimization(
     );
     return 1;
   }
-  const skills =
-    options.skill === undefined || options.skill === "all"
-      ? [...CANONICAL_SKILLS]
-      : [options.skill];
-  const result = await runRealOptimization({
-    runId: options.runId,
-    artifactRoot: options.artifactRoot,
-    sourceWorktree: process.cwd(),
-    skills,
-    maxSteps: options.maxSteps,
-    cellRuntime: options.cellRuntime,
-  });
+  const result = await dependencies.runRealOptimization(
+    {
+      runId: options.runId,
+      artifactRoot: options.artifactRoot,
+      sourceWorktree: process.cwd(),
+      skills: [options.skill],
+      maxSteps: options.maxSteps,
+      cellRuntime: options.cellRuntime,
+      artifactPath,
+    },
+    {
+      evaluateHeldOut: (input) =>
+        dependencies.evaluateHeldOut({
+          ...input,
+          cellRunner: dependencies.cellRunner,
+        }),
+    },
+  );
   process.stdout.write(
     `${JSON.stringify({ command, preflight, smoke, ...result })}\n`,
   );
