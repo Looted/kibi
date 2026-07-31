@@ -42,6 +42,7 @@ desktop.ini
 coverage/
 *.lcov
 documentation/tests/e2e/packed/.compiled/
+.kibi/
 
 # --- Bun ---
 .bun/

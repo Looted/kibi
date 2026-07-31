@@ -4,9 +4,21 @@ import {
   parseWorkflowOptions,
   printHelp,
 } from "./cli-options";
-import { runWorkflowCommand } from "./cli-workflow";
+import {
+  type WorkflowDependencies,
+  defaultWorkflowDependencies,
+  runWorkflowCommand,
+} from "./cli-workflow";
 import { runCapabilityCanary, runPreflight } from "./preflight";
 import { type PrototypeScenario, runPrototype } from "./prototype";
+
+export type CliDependencies = WorkflowDependencies;
+
+export const defaultCliDependencies = {
+  ...defaultWorkflowDependencies,
+  runPreflight,
+  runCapabilityCanary,
+} satisfies CliDependencies;
 
 function prototypeScenario(runId: string): PrototypeScenario {
   return {
@@ -33,7 +45,10 @@ const WORKFLOW_COMMANDS = new Set([
 
 // implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
-export async function main(args: readonly string[]): Promise<number> {
+export async function main(
+  args: readonly string[],
+  dependencies: CliDependencies = defaultCliDependencies,
+): Promise<number> {
   try {
     const command = args[0];
     if (command === undefined || command === "--help" || command === "help") {
@@ -41,13 +56,24 @@ export async function main(args: readonly string[]): Promise<number> {
       return 0;
     }
     if (command === "preflight" || command === "smoke") {
+      const commandArgs = args.slice(1);
+      if (command === "smoke") {
+        const acknowledgements = commandArgs.filter(
+          (arg) => arg === "--allow-paid",
+        );
+        if (acknowledgements.length !== 1) {
+          throw new CliUsageError(
+            "smoke requires exactly one --allow-paid acknowledgement; paidModelCalls=0",
+          );
+        }
+      }
       const runId = parseRunId(
-        args.slice(1),
-        `Usage: cli.ts ${command} --run-id RUN_ID`,
+        commandArgs.filter((arg) => arg !== "--allow-paid"),
+        `Usage: cli.ts ${command}${command === "smoke" ? " --allow-paid" : ""} --run-id RUN_ID`,
       );
       const receipt = await (command === "preflight"
-        ? runPreflight({ runId })
-        : runCapabilityCanary({ runId }));
+        ? dependencies.runPreflight({ runId })
+        : dependencies.runCapabilityCanary({ runId }));
       process.stdout.write(`${JSON.stringify(receipt)}\n`);
       return receipt.verdict === "pass" ? 0 : 1;
     }
@@ -65,6 +91,7 @@ export async function main(args: readonly string[]): Promise<number> {
       return await runWorkflowCommand(
         command,
         parseWorkflowOptions(args.slice(1)),
+        dependencies,
       );
     throw new CliUsageError(`Unknown command: ${command}`);
   } catch (error) {

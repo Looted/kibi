@@ -72,6 +72,7 @@ export async function runCodexCell(
       throw new FixtureIntegrityError();
     }
     await assembleCanonicalSkills({
+      sourceRepoRoot: options.sourceWorktree,
       workspace: workspace.target,
       targetSkill: options.targetSkill,
       ...(options.candidate === undefined

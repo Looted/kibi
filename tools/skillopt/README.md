@@ -1,8 +1,14 @@
 # Kibi SkillOpt evaluation environment
 
-This directory pins Microsoft SkillOpt v0.2.0 for the evaluator. Real runs use the existing authenticated Codex CLI login in `~/.codex/auth.json`. You do not need root owned SkillOpt services, provider API keys, or `/etc/kibi-skillopt`.
+This directory pins Microsoft SkillOpt v0.2.0 for the evaluator. Real Codex-authenticated runs use the existing login in `~/.codex/auth.json` and do not need provider API keys in this tree.
 
-For the operator workflow guide, see [docs/skillopt.md](../../docs/skillopt.md).
+F1 free/local review stays independent of the external verifier. F3 independent production verification and adoption evidence require a separately operator-provisioned external trust bundle under `/etc/kibi-skillopt` and the installer handoff:
+
+```bash
+sudo /usr/libexec/kibi-skillopt-installer install --bundle <signed-bundle> --version kibi-skillopt-trust-v1
+```
+
+Repository code does not install, sign, or substitute that trust plane. For the full operator workflow, see [docs/skillopt.md](../../docs/skillopt.md).
 
 ## Verify
 

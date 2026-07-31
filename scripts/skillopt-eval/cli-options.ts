@@ -15,10 +15,12 @@ export class CliUsageError extends Error {
 export type WorkflowOptions = Readonly<{
   runId: string;
   artifactRoot: string;
+  artifactRootExplicit?: boolean;
   fake: boolean;
   skill: CanonicalSkill | "all" | undefined;
   allowPaid: boolean;
   maxSteps: number;
+  sourceRoot?: string;
   cellRuntime?: CodexCellRuntime;
 }>;
 
@@ -49,8 +51,8 @@ export function parseWorkflowOptions(args: readonly string[]): WorkflowOptions {
   let skill: CanonicalSkill | "all" | undefined;
   let allowPaid = false;
   let maxSteps = 1;
-  let fixtureRoot: string | undefined;
-  let evaluatorManifestPath: string | undefined;
+  let fixtureRunRoot: string | undefined;
+  let sourceRoot: string | undefined;
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
     if (arg === "--fake") {
@@ -80,8 +82,8 @@ export function parseWorkflowOptions(args: readonly string[]): WorkflowOptions {
       [
         "--run-id",
         "--artifact-root",
-        "--fixture-root",
-        "--evaluator-manifest",
+        "--fixture-run-root",
+        "--source-root",
       ].includes(arg ?? "")
     ) {
       const value = args[index + 1];
@@ -89,8 +91,8 @@ export function parseWorkflowOptions(args: readonly string[]): WorkflowOptions {
         throw new CliUsageError(`${arg} requires a value`);
       if (arg === "--run-id") runId = value;
       else if (arg === "--artifact-root") artifactRoot = value;
-      else if (arg === "--fixture-root") fixtureRoot = value;
-      else evaluatorManifestPath = value;
+      else if (arg === "--source-root") sourceRoot = value;
+      else fixtureRunRoot = value;
       index += 1;
       continue;
     }
@@ -102,13 +104,15 @@ export function parseWorkflowOptions(args: readonly string[]): WorkflowOptions {
     runId,
     artifactRoot:
       artifactRoot ?? join(process.cwd(), "artifacts", "skillopt", runId),
+    artifactRootExplicit: artifactRoot !== undefined,
     fake,
     skill,
     allowPaid,
     maxSteps,
-    ...(fixtureRoot === undefined || evaluatorManifestPath === undefined
+    ...(fixtureRunRoot === undefined
       ? {}
-      : { cellRuntime: { fixtureRoot, evaluatorManifestPath } }),
+      : { cellRuntime: { fixtureRunRoot } }),
+    ...(sourceRoot === undefined ? {} : { sourceRoot }),
   };
 }
 
@@ -119,8 +123,8 @@ export function printHelp(): void {
     `${[
       "Usage: cli.ts <command> [options]",
       "Commands: preflight, smoke, dry-run, prepare, optimize, evaluate, bundle, run, resume, status, report, approve, adopt, prototype",
-      "Workflow options: --run-id RUN_ID --artifact-root PATH [--fake] [--skill SKILL|all] [--max-steps 1..4] [--fixture-root PATH --evaluator-manifest PATH]",
-      "Real optimize requires --allow-paid after preflight and smoke; held-out eligible candidates adopt automatically.",
+      "Workflow options: --run-id RUN_ID --artifact-root PATH [--fake] [--skill SKILL|all] [--max-steps 1..4] [--fixture-run-root PATH]",
+      "Real optimize requires --allow-paid after preflight and smoke; eligible candidates remain review-only until an external verdict authorizes adoption.",
     ].join("\n")}\n`,
   );
 }

@@ -15,9 +15,10 @@
  *   --target <name>    Limit to a single mirror ("cursor" or "codex").
  *                      When omitted, both mirrors are processed.
  *
- * The generator only depends on Node.js built-ins. It must fail loudly when
- * any of the expected canonical skill IDs is missing.
+ * The generator must fail loudly when any expected canonical skill ID is
+ * missing.
  */
+// allow: SIZE_OK — mirror planning, drift reporting, and writes stay atomic.
 import { createHash } from "node:crypto";
 import {
   existsSync,
@@ -25,11 +26,14 @@ import {
   readFileSync,
   readdirSync,
   rmSync,
-  statSync,
   writeFileSync,
 } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  withExclusiveMirrorWriterLock,
+  withSharedAdoptionLock,
+} from "./skillopt-eval/adoption-lock";
 
 const EXPECTED_SKILL_IDS = [
   "init-kibi",
@@ -48,6 +52,10 @@ interface SyncOptions {
 }
 
 interface ParsedArgs extends SyncOptions {}
+
+interface SyncResult {
+  driftedTargets: readonly Target[];
+}
 
 function parseArgs(argv: string[]): ParsedArgs {
   const targets: Target[] = [];
@@ -347,7 +355,40 @@ function processTarget(
   };
 }
 
-function main(argv: string[]): void {
+export function syncAgentSkillsUnlocked(
+  repoRoot: string,
+  options: SyncOptions,
+): SyncResult {
+  const canonicalRoot = canonicalSkillsDir(repoRoot);
+  assertCanonicalSourceComplete(canonicalRoot);
+  const driftedTargets: Target[] = [];
+  for (const target of options.targets) {
+    const result = processTarget(repoRoot, canonicalRoot, target, options.mode);
+    if (result.drifted) {
+      driftedTargets.push(target);
+      if (result.summary) {
+        process.stderr.write(`${result.summary}\n`);
+      }
+    }
+  }
+  return { driftedTargets };
+}
+
+export function syncAgentSkills(
+  repoRoot: string,
+  options: SyncOptions,
+): Promise<SyncResult> {
+  return withSharedAdoptionLock(repoRoot, async () => {
+    if (options.mode === "check") {
+      return syncAgentSkillsUnlocked(repoRoot, options);
+    }
+    return withExclusiveMirrorWriterLock(repoRoot, async () =>
+      syncAgentSkillsUnlocked(repoRoot, options),
+    );
+  });
+}
+
+async function main(argv: string[]): Promise<void> {
   let options: ParsedArgs;
   try {
     options = parseArgs(argv);
@@ -361,30 +402,18 @@ function main(argv: string[]): void {
   }
 
   const repoRoot = repoRootFromScript();
-  const canonicalRoot = canonicalSkillsDir(repoRoot);
-
+  let result: SyncResult;
   try {
-    assertCanonicalSourceComplete(canonicalRoot);
+    result = await syncAgentSkills(repoRoot, options);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     process.stderr.write(`sync-agent-skills: ${message}\n`);
     process.exit(1);
   }
 
-  const driftedTargets: string[] = [];
-  for (const target of options.targets) {
-    const result = processTarget(repoRoot, canonicalRoot, target, options.mode);
-    if (result.drifted) {
-      driftedTargets.push(target);
-      if (result.summary) {
-        process.stderr.write(`${result.summary}\n`);
-      }
-    }
-  }
-
-  if (driftedTargets.length > 0) {
+  if (result.driftedTargets.length > 0) {
     process.stderr.write(
-      `sync-agent-skills: drift detected in: ${driftedTargets.join(", ")} (run with --write to regenerate)\n`,
+      `sync-agent-skills: drift detected in: ${result.driftedTargets.join(", ")} (run with --write to regenerate)\n`,
     );
     process.exit(1);
   }
@@ -404,7 +433,7 @@ const invokedDirectly =
   process.argv[1] !== undefined &&
   resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (invokedDirectly) {
-  main(args);
+  await main(args);
 }
 
 export {

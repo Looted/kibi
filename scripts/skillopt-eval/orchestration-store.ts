@@ -8,6 +8,7 @@ import {
   writeFile,
 } from "node:fs/promises";
 import { join } from "node:path";
+import type { ArtifactPath } from "./artifact-path";
 import { JsonValueSchema, contractHash } from "./contracts/common";
 import {
   LedgerEntrySchema,
@@ -22,6 +23,7 @@ export class RunStore {
   constructor(
     readonly root: string,
     readonly runId: string,
+    private readonly artifactPath?: ArtifactPath,
   ) {}
 
   async acquire(): Promise<void> {
@@ -54,9 +56,11 @@ export class RunStore {
 
   async readState(): Promise<RunState | undefined> {
     try {
-      return RunStateSchema.parse(
-        JSON.parse(await readFile(join(this.root, "state.json"), "utf8")),
-      );
+      const raw =
+        this.artifactPath === undefined
+          ? await readFile(join(this.root, "state.json"), "utf8")
+          : await this.artifactPath.readText("state.json");
+      return RunStateSchema.parse(JSON.parse(raw));
     } catch (error) {
       if (
         error instanceof Error &&
@@ -71,7 +75,12 @@ export class RunStore {
 
   async writeState(state: RunState): Promise<void> {
     const parsed = RunStateSchema.parse(state);
-    await this.atomicWrite("state.json", `${JSON.stringify(parsed)}\n`);
+    const content = `${JSON.stringify(parsed)}\n`;
+    if (this.artifactPath !== undefined) {
+      await this.artifactPath.writeText("state.json", content);
+      return;
+    }
+    await this.atomicWrite("state.json", content);
   }
 
   async appendLedger(input: {

@@ -37,15 +37,8 @@ export {
   PREDICATE_TRAIN_CASE_IDS,
 } from "./predicate-cases";
 export type { PredicateCase } from "./predicate-cases";
-export {
-  reservePredicateMatrix,
-  __resetPredicateMatrixCacheForTests,
-} from "./predicate-matrix";
-export type {
-  MatrixState,
-  ReservedPredicateMatrix,
-  PredicateMatrixReceipt,
-} from "./predicate-matrix";
+export { reservePredicateMatrix } from "./predicate-matrix";
+export type { ReservedPredicateMatrix } from "./predicate-matrix";
 
 export type PredicateRoots = Readonly<{
   corpus: string;

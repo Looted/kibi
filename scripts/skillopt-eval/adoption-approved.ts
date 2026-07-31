@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { cp, mkdtemp, rename, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { syncAgentSkillsUnlocked } from "../sync-agent-skills";
 import { type CanonicalSnapshot, publicPlan } from "./adoption-snapshot";
 import {
   type AdoptionDependencies,
@@ -18,16 +19,13 @@ type MirrorSnapshot = Readonly<{
 }>;
 
 export async function defaultRunMirrorSync(repoRoot: string): Promise<void> {
-  const process = Bun.spawn(
-    ["bun", "run", join(repoRoot, "scripts/sync-agent-skills.ts"), "--write"],
-    { cwd: repoRoot, stdout: "pipe", stderr: "pipe" },
-  );
-  const exitCode = await process.exited;
-  if (exitCode !== 0) {
-    const stderr = await new Response(process.stderr).text();
-    throw new AdoptionTransactionError(
-      new Error(`skill mirror sync failed (${exitCode}): ${stderr.trim()}`),
-    );
+  try {
+    syncAgentSkillsUnlocked(repoRoot, {
+      mode: "write",
+      targets: ["cursor", "codex"],
+    });
+  } catch (error) {
+    throw new AdoptionTransactionError(error);
   }
 }
 

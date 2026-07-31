@@ -115,6 +115,6 @@ describe("required Kibi MCP stdio startup", () => {
     });
 
     // Then
-    expect(attempt).rejects.toBeInstanceOf(RequiredMcpStartupError);
+    await expect(attempt).rejects.toBeInstanceOf(RequiredMcpStartupError);
   });
 });

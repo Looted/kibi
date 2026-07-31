@@ -25,6 +25,12 @@ class ModelValidationErrorTests(unittest.TestCase):
                     "phase": "train",
                     "candidateBody": "Use Kibi through MCP.",
                     "taskIds": ["held-out-1"],
+                    "publicClaim": {
+                        "taskId": "held-out-1",
+                        "text": "Preserve the structured public claim.",
+                        "publicManifestHash": HASH,
+                        "workspaceHash": HASH,
+                    },
                     "sourceLockHash": HASH,
                 }
             )

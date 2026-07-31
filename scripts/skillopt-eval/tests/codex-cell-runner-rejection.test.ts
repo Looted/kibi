@@ -60,5 +60,5 @@ test("Given a caller-supplied score When a cell starts Then score injection is r
     },
     clock: () => new Date("2026-07-23T11:00:00Z"),
   });
-  expect(attempt).rejects.toThrow("caller_score_injection");
+  await expect(attempt).rejects.toThrow("caller_score_injection");
 });

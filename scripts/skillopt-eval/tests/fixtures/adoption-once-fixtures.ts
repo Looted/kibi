@@ -3,6 +3,10 @@ import { cp, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import canonicalize from "canonicalize";
+import type {
+  AutoAdoptionInput,
+  ExternalAdoptionVerdict,
+} from "../../adoption";
 import { freezeCandidateVariant } from "../../variants";
 
 // executable_for TEST-skillopt-automatic-adoption
@@ -39,6 +43,9 @@ export async function cleanupRoots(): Promise<void> {
 export async function createRepo(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), "skillopt-adoption-once-"));
   roots.push(root);
+  const { chmod } = await import("node:fs/promises");
+  await mkdir(join(root, ".kibi"), { recursive: true, mode: 0o700 });
+  await chmod(join(root, ".kibi"), 0o700);
   const canonical = join(root, "packages/cli/src/public/skills", skill);
   await mkdir(join(canonical, "resources"), { recursive: true });
   await writeFile(join(canonical, "SKILL.md"), frontmatter + baselineBody);
@@ -96,5 +103,30 @@ export function automaticInput(
         authorizedRootSet: rootSet,
       },
     },
+  };
+}
+export function externalVerdict(
+  input: AutoAdoptionInput,
+): ExternalAdoptionVerdict {
+  return {
+    verdictId: "external-verdict-a",
+    authentication: "test-external-authentication",
+    sourceCanonicalPreimageHash: createHash("sha256")
+      .update(frontmatter + baselineBody, "utf8")
+      .digest("hex"),
+    rootAuthorization: input.eligibility.authorizedRootSet,
+    supervisorParentId: "supervisor-parent-a",
+    invocationId: "invocation-a",
+    runId: input.eligibility.runId,
+    skill: input.candidate.skill,
+    matrixId: "held-out-matrix-a",
+    fixtureClaimHash: "5".repeat(64),
+    candidateHash: input.candidate.bodyHash,
+    terminalEvidenceHash: "6".repeat(64),
+    targetSet: [
+      "packages/cli/src/public/skills/kibi-usage/SKILL.md",
+      "packages/cursor/skills",
+      "packages/codex/skills",
+    ],
   };
 }

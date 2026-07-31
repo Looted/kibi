@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 import json
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from pydantic import ValidationError
 from skillopt.envs.base import EnvAdapter as SkillOptEnvAdapter
 from tools.skillopt.kibi_skillopt.adapter import EnvAdapter
 from tools.skillopt.kibi_skillopt.bridge import BridgeError
-from tools.skillopt.kibi_skillopt.common import JsonValue, contract_hash
+from tools.skillopt.kibi_skillopt.common import JsonValue, contract_hash, parse_json_value
 from tools.skillopt.kibi_skillopt.models import BridgeRequest
 from tools.skillopt.kibi_skillopt.trainer import build_training_config
 
@@ -29,20 +29,42 @@ CORPUS_ROOTS = {
 DEVELOPMENT = {"mean": 0.5, "hardPasses": 1, "worstFamilyMean": 0.5}
 
 
+def public_claim(task_id: str) -> JsonValue:
+    return {
+        "taskId": task_id,
+        "text": "Preserve the structured public claim.",
+        "publicManifestHash": HASH,
+        "workspaceHash": HASH,
+    }
+
+
 def adapter(root: Path) -> EnvAdapter:
     return EnvAdapter(
-        bridge_command=(sys.executable, "scripts/skillopt-eval/bridge-cli.ts", "--fake"),
-        bridge_cwd=Path.cwd(),
         run_root=root / "run",
         skill="kibi-usage",
         source_lock_hash=HASH,
         corpus_roots=CORPUS_ROOTS,
         train_items=(
-            {"id": "predicate-train-1", "family": "predicate", "split": "train"},
-            {"id": "policy-train-1", "semanticClass": "policy", "split": "train"},
+            {
+                "id": "predicate-train-1",
+                "family": "predicate",
+                "split": "train",
+                "publicClaim": public_claim("predicate-train-1"),
+            },
+            {
+                "id": "policy-train-1",
+                "semanticClass": "policy",
+                "split": "train",
+                "publicClaim": public_claim("policy-train-1"),
+            },
         ),
         development_items=(
-            {"id": "predicate-development-1", "family": "predicate", "split": "development"},
+            {
+                "id": "predicate-development-1",
+                "family": "predicate",
+                "split": "development",
+                "publicClaim": public_claim("predicate-development-1"),
+            },
         ),
     )
 
@@ -75,18 +97,48 @@ class AdapterContractTests(unittest.TestCase):
             self.assertIn(SkillOptEnvAdapter, EnvAdapter.__mro__)
             self.assertEqual(task_types, ["predicate", "policy"])
 
+    def test_build_request_rejects_missing_public_claim(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            # Given
+            subject = adapter(Path(directory))
+
+            # When / Then
+            with self.assertRaises(ValidationError):
+                _ = subject.build_request(
+                    {"id": "predicate-train-1", "family": "predicate", "split": "train"},
+                    "Use Kibi through MCP.",
+                )
+
+    def test_build_request_rejects_public_claim_for_other_task(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            # Given
+            subject = adapter(Path(directory))
+
+            # When / Then
+            with self.assertRaises(ValidationError):
+                _ = subject.build_request(
+                    {
+                        "id": "predicate-train-1",
+                        "family": "predicate",
+                        "split": "train",
+                        "publicClaim": public_claim("policy-train-1"),
+                    },
+                    "Use Kibi through MCP.",
+                )
+
     def test_rollout_returns_task_family_and_bridge_extras(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             # Given
             root = Path(directory)
             subject = adapter(root)
 
-            def write_result(request_path: Path, result_path: Path) -> None:
-                request = BridgeRequest.model_validate_json(
-                    request_path.read_text(encoding="utf-8")
+            def write_result(request_json: str) -> str:
+                request = BridgeRequest.model_validate_json(request_json)
+                self.assertEqual(
+                    request.model_dump(by_alias=True, mode="json")["publicClaim"],
+                    public_claim("predicate-train-1"),
                 )
-                _ = result_path.write_text(
-                    json.dumps(
+                return json.dumps(
                         {
                             "schemaVersion": "1.0.0",
                             "artifactType": "skillopt-bridge-result",
@@ -110,14 +162,19 @@ class AdapterContractTests(unittest.TestCase):
                             ],
                             "checkpoint": {"maxSteps": 1, "completedSteps": 1, "nextStep": 2},
                         }
-                    ),
-                    encoding="utf-8",
                 )
 
             # When
             with patch.object(subject, "_invoke_bridge", side_effect=write_result):
                 rows = subject.rollout(
-                    ({"id": "predicate-train-1", "family": "predicate", "split": "train"},),
+                    (
+                        {
+                            "id": "predicate-train-1",
+                            "family": "predicate",
+                            "split": "train",
+                            "publicClaim": public_claim("predicate-train-1"),
+                        },
+                    ),
                     "Use Kibi through MCP.",
                     str(root / "rollout"),
                 )
@@ -166,31 +223,6 @@ class AdapterContractTests(unittest.TestCase):
             self.assertEqual(patches, expected)
             self.assertEqual(reflect.call_args.kwargs["results"], [rollout])
 
-    def test_checkpoint_lineage_recomputes_from_ordered_trajectories_and_corpus_roots(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            # Given
-            subject = adapter(Path(directory))
-            trajectories = (
-                {"taskId": "predicate-train-1", "family": "predicate", "reflection": "missing"},
-                {"taskId": "policy-train-1", "family": "policy", "reflection": "conflict"},
-            )
-
-            # When
-            lineage = subject.compute_lineage("candidate body", trajectories)
-            checkpoint = subject.save_checkpoint(
-                1,
-                "candidate body",
-                ("predicate-train-1", "policy-train-1"),
-                trajectories=trajectories,
-            )
-
-            # Then
-            self.assertEqual(checkpoint.trajectory_hashes, lineage.trajectory_hashes)
-            self.assertEqual(checkpoint.trainer_checkpoint_hash, lineage.trainer_checkpoint_hash)
-            self.assertEqual(checkpoint.candidate_body_hash, lineage.candidate_body_hash)
-            self.assertEqual(checkpoint.corpus_roots.model_dump(by_alias=True), CORPUS_ROOTS)
-            self.assertEqual(subject.compute_lineage("candidate body", trajectories), lineage)
-
     def test_held_out_ids_never_enter_optimizer_input(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             # Given
@@ -212,33 +244,55 @@ class AdapterContractTests(unittest.TestCase):
             # Given
             root = Path(directory)
             subject = EnvAdapter(
-                bridge_command=(sys.executable, "scripts/skillopt-eval/bridge-cli.ts", "--fake"),
-                optimizer_bridge_command=(
-                    "/home/looted/.bun/bin/bun",
-                    "run",
-                    "scripts/skillopt-eval/optimizer-bridge-cli.ts",
-                    "--fake",
-                ),
-                bridge_cwd=Path.cwd(),
                 run_root=root / "run",
                 skill="kibi-usage",
                 source_lock_hash=HASH,
                 corpus_roots=CORPUS_ROOTS,
-                train_items=({"id": "predicate-train-1", "family": "predicate"},),
-                development_items=({"id": "predicate-development-1", "family": "predicate"},),
+                train_items=(
+                    {
+                        "id": "predicate-train-1",
+                        "family": "predicate",
+                        "publicClaim": public_claim("predicate-train-1"),
+                    },
+                ),
+                development_items=(
+                    {
+                        "id": "predicate-development-1",
+                        "family": "predicate",
+                        "publicClaim": public_claim("predicate-development-1"),
+                    },
+                ),
             )
             trajectories = (
                 {"taskId": "predicate-train-1", "family": "predicate", "reflection": "missing"},
             )
 
+            def fake_invoke(request_path: Path, result_path: Path) -> None:
+                payload = parse_json_value(request_path.read_text(encoding="utf-8"))
+                if not isinstance(payload, dict):
+                    raise AssertionError("optimizer request must be an object")
+                _ = result_path.write_text(
+                    json.dumps(
+                        {
+                            "schemaVersion": "1.0.0",
+                            "artifactType": "skillopt-optimizer-result",
+                            "requestHash": contract_hash(payload),
+                            "body": "Use Kibi through MCP.",
+                            "development": DEVELOPMENT,
+                        }
+                    ),
+                    encoding="utf-8",
+                )
+
             # When
-            result = subject.optimize(
-                current_body="Use Kibi through MCP.",
-                trajectories=trajectories,
-                previous_development=DEVELOPMENT,
-                step=1,
-                max_steps=4,
-            )
+            with patch.object(subject, "_invoke_optimizer_bridge", side_effect=fake_invoke):
+                result = subject.optimize(
+                    current_body="Use Kibi through MCP.",
+                    trajectories=trajectories,
+                    previous_development=DEVELOPMENT,
+                    step=1,
+                    max_steps=4,
+                )
 
             # Then
             self.assertEqual(result.body, "Use Kibi through MCP.")

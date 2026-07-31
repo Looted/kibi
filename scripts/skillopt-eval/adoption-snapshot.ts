@@ -9,6 +9,8 @@ import {
   AdoptionIntegrityError,
   type AdoptionPlan,
   type AutoAdoptionInput,
+  type ExternalAdoptionVerdict,
+  type ExternalAdoptionVerdictVerifier,
   type PredicateEligibilityReceipt,
 } from "./adoption-types";
 import { validateApproval } from "./approval";
@@ -63,6 +65,18 @@ function canonicalManifest(data: Record<string, unknown>) {
 // implements REQ-skillopt-automatic-adoption
 export function validatePredicateEligibility(input: AutoAdoptionInput): void {
   const { candidate, eligibility } = input;
+  if (
+    typeof eligibility.eligibilityReceiptId !== "string" ||
+    eligibility.eligibilityReceiptId.length === 0
+  ) {
+    throw new AdoptionIntegrityError("eligibility receipt ID is required");
+  }
+  if (
+    typeof eligibility.sealedEvidenceHash !== "string" ||
+    eligibility.sealedEvidenceHash.length === 0
+  ) {
+    throw new AdoptionIntegrityError("sealed predicate evidence is required");
+  }
   if (eligibility.heldOutEligibility !== "eligible") {
     throw new AdoptionIntegrityError(
       "held-out predicate matrix is not eligible",
@@ -71,47 +85,113 @@ export function validatePredicateEligibility(input: AutoAdoptionInput): void {
   if (eligibility.candidateHash !== candidate.bodyHash) {
     throw new AdoptionIntegrityError("eligibility candidate hash mismatch");
   }
-  const sealedEvidenceHash = canonicalHash({
-    runId: eligibility.runId,
-    signedEligibilityId: eligibility.signedEligibilityId,
-    heldOutEligibility: eligibility.heldOutEligibility,
-    candidateHash: eligibility.candidateHash,
-    authorizedRootSet: eligibility.authorizedRootSet,
-    lineage: eligibility.lineage,
-  });
-  if (
-    eligibility.sealedEvidenceHash !== undefined &&
-    eligibility.sealedEvidenceHash !== sealedEvidenceHash
-  ) {
+  const sealedEvidenceHash = sealedPredicateEligibilityEvidence(eligibility);
+  if (eligibility.sealedEvidenceHash !== sealedEvidenceHash) {
     throw new AdoptionIntegrityError("sealed predicate evidence mismatch");
   }
-  if (candidate.sourceRequestHash !== eligibility.signedEligibilityId) {
+  if (
+    candidate.sourceRequestHash !== eligibility.lineage.trainerCheckpointHash
+  ) {
     throw new AdoptionIntegrityError("eligibility lineage checkpoint mismatch");
   }
   if (eligibility.lineage.candidateHash !== candidate.bodyHash) {
     throw new AdoptionIntegrityError("eligibility lineage candidate mismatch");
   }
   if (
-    eligibility.lineage.signedEligibilityId !==
-      eligibility.signedEligibilityId ||
     canonicalHash(eligibility.lineage.authorizedRootSet) !==
-      canonicalHash(eligibility.authorizedRootSet)
+    canonicalHash(eligibility.authorizedRootSet)
   ) {
     throw new AdoptionIntegrityError("eligibility lineage root mismatch");
   }
 }
 
+export function sealedPredicateEligibilityEvidence(
+  eligibility: Omit<PredicateEligibilityReceipt, "sealedEvidenceHash">,
+): string {
+  return canonicalHash({
+    runId: eligibility.runId,
+    eligibilityReceiptId: eligibility.eligibilityReceiptId,
+    heldOutEligibility: eligibility.heldOutEligibility,
+    candidateHash: eligibility.candidateHash,
+    authorizedRootSet: eligibility.authorizedRootSet,
+    lineage: eligibility.lineage,
+  });
+}
+
 export function deriveAdoptionId(
-  eligibility: PredicateEligibilityReceipt,
+  verdict: ExternalAdoptionVerdict,
   canonicalTargetSet: readonly string[],
 ): string {
   return canonicalHash({
     domain: "kibi.skillopt.predicate-adoption.v1",
-    signedEligibilityId: eligibility.signedEligibilityId,
-    candidateHash: eligibility.candidateHash,
-    authorizedRootSet: eligibility.authorizedRootSet,
+    verdictId: verdict.verdictId,
+    sourceCanonicalPreimageHash: verdict.sourceCanonicalPreimageHash,
+    candidateHash: verdict.candidateHash,
+    rootAuthorization: verdict.rootAuthorization,
+    supervisorParentId: verdict.supervisorParentId,
+    invocationId: verdict.invocationId,
+    runId: verdict.runId,
+    skill: verdict.skill,
+    matrixId: verdict.matrixId,
+    fixtureClaimHash: verdict.fixtureClaimHash,
+    terminalEvidenceHash: verdict.terminalEvidenceHash,
     canonicalTargetSet: [...canonicalTargetSet].sort(),
   });
+}
+
+export async function validateExternalAdoptionVerdict(
+  input: Omit<AutoAdoptionInput, "eligibility">,
+  verdict: ExternalAdoptionVerdict | undefined,
+  snapshot: CanonicalSnapshot,
+  verify: ExternalAdoptionVerdictVerifier | undefined,
+): Promise<void> {
+  if (verdict === undefined)
+    throw new AdoptionIntegrityError("external adoption verdict is required");
+  if (verify === undefined)
+    throw new AdoptionIntegrityError(
+      "external adoption verdict verifier is required",
+    );
+  if (
+    verdict.verdictId.length === 0 ||
+    verdict.authentication.length === 0 ||
+    verdict.supervisorParentId.length === 0 ||
+    verdict.invocationId.length === 0 ||
+    verdict.runId.length === 0 ||
+    verdict.matrixId.length === 0 ||
+    verdict.fixtureClaimHash.length === 0 ||
+    verdict.terminalEvidenceHash.length === 0
+  ) {
+    throw new AdoptionIntegrityError("external adoption verdict is incomplete");
+  }
+  const currentPreimageHash = sha256(snapshot.markdown);
+  if (
+    snapshot.mutationRequired &&
+    verdict.sourceCanonicalPreimageHash !== currentPreimageHash &&
+    verdict.sourceCanonicalPreimageHash !== sha256(snapshot.candidateMarkdown)
+  ) {
+    throw new AdoptionIntegrityError(
+      "external adoption verdict canonical preimage mismatch",
+    );
+  }
+  if (
+    verdict.candidateHash !== input.candidate.bodyHash ||
+    verdict.skill !== input.candidate.skill
+  ) {
+    throw new AdoptionIntegrityError(
+      "external adoption verdict candidate mismatch",
+    );
+  }
+  const targetSet = canonicalTargetSet(input.repoRoot, snapshot);
+  if (
+    canonicalHash([...verdict.targetSet].sort()) !==
+    canonicalHash([...targetSet].sort())
+  ) {
+    throw new AdoptionIntegrityError(
+      "external adoption verdict target set mismatch",
+    );
+  }
+  if (!(await verify(verdict)))
+    throw new AdoptionIntegrityError("external adoption verdict rejected");
 }
 
 export function canonicalTargetSet(

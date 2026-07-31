@@ -1,6 +1,5 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { parsePrivateEvaluatorManifest } from "./fixtures/private";
 import {
   type DevelopmentGate,
   type RealOptimizationDependencies,
@@ -12,7 +11,9 @@ import {
 } from "./real-workflow-types";
 import { runCodexCell } from "./runtime/codex-cell-runner";
 import { runCodexSkillOptStep } from "./runtime/codex-optimizer";
+import { PublicTaskClaimSchema } from "./runtime/file-bridge";
 import { runBoundedProcess } from "./runtime/process";
+import { resolveTaskFixture } from "./runtime/task-fixture";
 import { freezeCandidateVariant } from "./variants";
 
 // implements REQ-skillopt-codex-optimization
@@ -26,7 +27,7 @@ export const defaultTrain: RealOptimizationDependencies["train"] = async (
   await mkdir(input.artifactRoot, { recursive: true, mode: 0o700 });
   await writeFile(
     requestPath,
-    `${JSON.stringify({ runId: input.runId, skill: input.skill, runRoot: join(input.artifactRoot, "trainer-run"), outRoot: join(input.artifactRoot, "trainer-output"), maxSteps: input.maxSteps, sourceLockHash: canonicalHash({ skill: input.skill, roots: input.corpusRoots }), corpusRoots: input.corpusRoots, trainDescriptors: input.trainDescriptors, developmentDescriptors: input.developmentDescriptors, bridgeCommand: ["bun", "run", "scripts/skillopt-eval/bridge-cli.ts", "--source-worktree", input.sourceWorktree, "--artifact-root", join(input.artifactRoot, "cells"), "--fixture-root", runtime.fixtureRoot, "--evaluator-manifest", runtime.evaluatorManifestPath], optimizerBridgeCommand: ["bun", "run", "scripts/skillopt-eval/optimizer-bridge-cli.ts"], bridgeCwd: input.sourceWorktree })}\n`,
+    `${JSON.stringify({ runId: input.runId, skill: input.skill, runRoot: join(input.artifactRoot, "trainer-run"), outRoot: join(input.artifactRoot, "trainer-output"), maxSteps: input.maxSteps, sourceLockHash: canonicalHash({ skill: input.skill, roots: input.corpusRoots }), corpusRoots: input.corpusRoots, trainDescriptors: input.trainDescriptors, developmentDescriptors: input.developmentDescriptors, bridgeCommand: ["bun", "run", "scripts/skillopt-eval/bridge-cli.ts", "--source-worktree", input.sourceWorktree, "--artifact-root", join(input.artifactRoot, "cells"), "--fixture-run-root", runtime.fixtureRunRoot], optimizerBridgeCommand: ["bun", "run", "scripts/skillopt-eval/optimizer-bridge-cli.ts"], bridgeCwd: input.sourceWorktree })}\n`,
     { encoding: "utf8", mode: 0o600 },
   );
   const result = await runBoundedProcess({
@@ -78,50 +79,59 @@ export const defaultTrain: RealOptimizationDependencies["train"] = async (
 export const defaultEvaluateDevelopment: RealOptimizationDependencies["evaluateDevelopment"] =
   async (input): Promise<DevelopmentGate> => {
     const runtime = requireRuntime(input.runtime);
-    const descriptor = input.descriptors[0];
-    if (descriptor === undefined)
+    if (input.descriptors.length === 0)
       throw new Error("development_descriptor_missing");
-    const manifest = parsePrivateEvaluatorManifest(
-      await readFile(runtime.evaluatorManifestPath, "utf8"),
+    const completed = await Promise.all(
+      input.descriptors.map(async (descriptor) => {
+        const publicClaim = PublicTaskClaimSchema.parse(descriptor.publicClaim);
+        const fixture = await resolveTaskFixture({
+          fixtureRunRoot: runtime.fixtureRunRoot,
+          taskId: descriptor.id,
+          publicClaim,
+        });
+        return runCodexCell({
+          request: {
+            schemaVersion: "1.0.0",
+            artifactType: "episode-request",
+            episodeId: crypto.randomUUID(),
+            runId: input.runId,
+            runLockHash: input.candidate.bodyHash,
+            variant: "skillopt",
+            skill: input.skill,
+            taskId: descriptor.id,
+            attempt: 1,
+            prompt: fixture.publicClaim.text,
+            workspaceFixtureHash: fixture.workspaceHash,
+          },
+          fixtureRoot: fixture.workspaceRoot,
+          sourceWorktree: input.sourceWorktree,
+          artifactRoot: input.artifactRoot,
+          targetSkill: input.skill,
+          candidate: { body: input.candidate.body },
+          codexExecutable: runtime.codexExecutable ?? "codex",
+          bwrapExecutable: runtime.bwrapExecutable ?? "/usr/bin/bwrap",
+          env: input.env,
+          finalStateRequests: [
+            { tool: "kb_query", args: { type: "fact" } },
+            { tool: "kb_check", args: {} },
+            { tool: "kb_status", args: {} },
+          ],
+          evaluatorManifest: fixture.evaluatorManifest,
+          hiddenMarkers: runtime.hiddenMarkers ?? [],
+          pricingHash: runtime.pricingHash ?? "0".repeat(64),
+          priceAmount: runtime.priceAmount ?? 0,
+          timeoutMs: runtime.timeoutMs ?? 180_000,
+        });
+      }),
     );
-    const completed = await runCodexCell({
-      request: {
-        schemaVersion: "1.0.0",
-        artifactType: "episode-request",
-        episodeId: crypto.randomUUID(),
-        runId: input.runId,
-        runLockHash: input.candidate.bodyHash,
-        variant: "skillopt",
-        skill: input.skill,
-        taskId: descriptor.id,
-        attempt: 1,
-        prompt: input.candidate.body,
-        workspaceFixtureHash: manifest.workspaceHash,
-      },
-      fixtureRoot: runtime.fixtureRoot,
-      sourceWorktree: input.sourceWorktree,
-      artifactRoot: input.artifactRoot,
-      targetSkill: input.skill,
-      candidate: { body: input.candidate.body },
-      codexExecutable: runtime.codexExecutable ?? "codex",
-      bwrapExecutable: runtime.bwrapExecutable ?? "/usr/bin/bwrap",
-      env: input.env,
-      finalStateRequests: [
-        { tool: "kb_query", args: { type: "fact" } },
-        { tool: "kb_check", args: {} },
-        { tool: "kb_status", args: {} },
-      ],
-      evaluatorManifest: manifest,
-      hiddenMarkers: runtime.hiddenMarkers ?? [],
-      pricingHash: runtime.pricingHash ?? "0".repeat(64),
-      priceAmount: runtime.priceAmount ?? 0,
-      timeoutMs: runtime.timeoutMs ?? 180_000,
-    });
-    const hardPass = completed.receipt.result.hardPass;
+    const hardPasses = completed.filter(
+      (cell) => cell.receipt.result.hardPass,
+    ).length;
+    const mean = hardPasses / completed.length;
     return {
-      mean: hardPass ? 1 : 0,
-      hardPasses: hardPass ? 1 : 0,
-      worstFamilyMean: hardPass ? 1 : 0,
+      mean,
+      hardPasses,
+      worstFamilyMean: mean,
     };
   };
 

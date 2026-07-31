@@ -74,7 +74,7 @@ function prospectiveRoot(requestedRoot: string): ProspectiveRoot {
   };
 }
 
-function writeHeldOutEvaluator(
+function writeEvaluator(
   evaluatorRoot: string,
   task: FixtureTaskSpec,
   targetEntry: CorpusEntry,
@@ -123,16 +123,18 @@ export function materializeFixtureRun(options: FixtureRunOptions) {
   mkdirSync(path.join(evaluatorRoot, "manifests"), { recursive: true });
 
   try {
-    const publicEntries = publicTasks.map((task) =>
-      writeTargetTask({
+    const privateEntries: CorpusEntry[] = [];
+    const publicEntries = publicTasks.map((task) => {
+      const targetEntry = writeTargetTask({
         root: path.join(publicRoot, task.split),
         task,
         canonicalSkillRoot: options.canonicalSkillRoot,
         visibility: "public",
-      }),
-    );
+      });
+      privateEntries.push(writeEvaluator(evaluatorRoot, task, targetEntry));
+      return targetEntry;
+    });
     const heldOutEntries: CorpusEntry[] = [];
-    const privateEntries: CorpusEntry[] = [];
     for (const task of heldOutTasks) {
       const targetEntry = writeTargetTask({
         root: heldOutRoot,
@@ -141,9 +143,7 @@ export function materializeFixtureRun(options: FixtureRunOptions) {
         visibility: "held-out",
       });
       heldOutEntries.push(targetEntry);
-      privateEntries.push(
-        writeHeldOutEvaluator(evaluatorRoot, task, targetEntry),
-      );
+      privateEntries.push(writeEvaluator(evaluatorRoot, task, targetEntry));
       options.onHeldOutTaskMaterialized?.(task.id);
     }
     const publicIndex = buildIndex(publicEntries);

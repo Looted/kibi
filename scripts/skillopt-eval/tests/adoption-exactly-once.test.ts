@@ -1,40 +1,82 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { link, mkdir, readdir, rm, symlink, writeFile } from "node:fs/promises";
+import { link, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { adoptSkillOptCandidate } from "../adoption";
+import { sealedPredicateEligibilityEvidence } from "../adoption-snapshot";
 import {
   adoptionIdOf,
-  automaticInput,
   baselineBody,
   cleanupRoots,
   createRepo,
+  externalVerdict,
   frontmatter,
+  automaticInput as legacyAutomaticInput,
   rootSet,
 } from "./fixtures/adoption-once-fixtures";
 
 afterEach(cleanupRoots);
 
+function adopt(
+  input: ReturnType<typeof automaticInput>,
+  dependencies: NonNullable<Parameters<typeof adoptSkillOptCandidate>[2]>,
+) {
+  return adoptSkillOptCandidate(input, externalVerdict(input), {
+    ...dependencies,
+    verifyExternalAdoptionVerdict: async () => true,
+  });
+}
+
+function automaticInput(
+  repoRoot: string,
+  heldOutEligibility: "eligible" | "HELD_OUT_MATRIX_INELIGIBLE" = "eligible",
+  runId = "run-a",
+) {
+  const input = legacyAutomaticInput(repoRoot, heldOutEligibility, runId);
+  const legacy = input.eligibility;
+  const eligibility = {
+    runId: legacy.runId,
+    eligibilityReceiptId: "terminal-receipt-a",
+    heldOutEligibility: legacy.heldOutEligibility,
+    candidateHash: legacy.candidateHash,
+    authorizedRootSet: legacy.authorizedRootSet,
+    lineage: {
+      candidateHash: legacy.lineage.candidateHash,
+      trainerCheckpointHash: legacy.lineage.signedEligibilityId,
+      authorizedRootSet: legacy.lineage.authorizedRootSet,
+    },
+  };
+  return {
+    ...input,
+    eligibility: {
+      ...eligibility,
+      sealedEvidenceHash: sealedPredicateEligibilityEvidence(eligibility),
+    },
+  };
+}
+
 describe("exactly-once predicate candidate adoption", () => {
-  test("Given an ineligible held-out receipt When automatic adoption is requested Then it rejects before mutating the canonical skill", async () => {
+  test("Given local held-out evidence When production adoption is requested without a verdict Then it rejects before mutating the canonical skill", async () => {
     // Given
     const repoRoot = await createRepo();
     const input = automaticInput(repoRoot, "HELD_OUT_MATRIX_INELIGIBLE");
 
     // When
-    const attempt = adoptSkillOptCandidate(input, {
+    const attempt = adoptSkillOptCandidate(input, undefined, {
       runMirrorSync: async () => {},
     });
 
     // Then
-    expect(attempt).rejects.toThrow("held-out predicate matrix");
-    expect(
+    await expect(attempt).rejects.toThrow(
+      "external adoption verdict is required",
+    );
+    await expect(
       Bun.file(
         join(repoRoot, "packages/cli/src/public/skills/kibi-usage/SKILL.md"),
       ).text(),
     ).resolves.toBe(frontmatter + baselineBody);
   });
 
-  test("Given receipt lineage that names a different corpus root set When automatic adoption is requested Then it rejects before creating a WAL", async () => {
+  test("Given locally modified root evidence When production adoption is requested without a verdict Then it cannot create a WAL", async () => {
     // Given
     const repoRoot = await createRepo();
     const input = automaticInput(repoRoot);
@@ -51,18 +93,20 @@ describe("exactly-once predicate candidate adoption", () => {
     };
 
     // When
-    const attempt = adoptSkillOptCandidate(mismatched, {
+    const attempt = adoptSkillOptCandidate(mismatched, undefined, {
       runMirrorSync: async () => {},
     });
 
     // Then
-    expect(attempt).rejects.toThrow("eligibility lineage root mismatch");
-    expect(
+    await expect(attempt).rejects.toThrow(
+      "external adoption verdict is required",
+    );
+    await expect(
       Bun.file(join(repoRoot, ".kibi/adoption-wals")).exists(),
     ).resolves.toBe(false);
   });
 
-  test("Given an eligibility receipt for a different candidate hash When automatic adoption is requested Then it rejects before creating a WAL", async () => {
+  test("Given locally modified candidate evidence When production adoption is requested without a verdict Then it cannot create a WAL", async () => {
     // Given
     const repoRoot = await createRepo();
     const input = automaticInput(repoRoot);
@@ -72,27 +116,29 @@ describe("exactly-once predicate candidate adoption", () => {
     };
 
     // When
-    const attempt = adoptSkillOptCandidate(mismatched, {
+    const attempt = adoptSkillOptCandidate(mismatched, undefined, {
       runMirrorSync: async () => {},
     });
 
     // Then
-    expect(attempt).rejects.toThrow("eligibility candidate hash mismatch");
-    expect(
+    await expect(attempt).rejects.toThrow(
+      "external adoption verdict is required",
+    );
+    await expect(
       Bun.file(join(repoRoot, ".kibi/adoption-wals")).exists(),
     ).resolves.toBe(false);
   });
 
-  test("Given retries from different run IDs When the same authorized candidate is adopted Then they resolve to one stable adoption ID", async () => {
+  test("Given verdicts from different runs When the same candidate is adopted Then their authorization IDs remain distinct", async () => {
     // Given
     const firstRepo = await createRepo();
     const secondRepo = await createRepo();
 
     // When
-    const first = await adoptSkillOptCandidate(automaticInput(firstRepo), {
+    const first = await adopt(automaticInput(firstRepo), {
       runMirrorSync: async () => {},
     });
-    const second = await adoptSkillOptCandidate(
+    const second = await adopt(
       automaticInput(secondRepo, "eligible", "run-b"),
       { runMirrorSync: async () => {} },
     );
@@ -100,13 +146,12 @@ describe("exactly-once predicate candidate adoption", () => {
     // Then
     expect("adoptionId" in first).toBe(true);
     expect("adoptionId" in second).toBe(true);
-    expect(adoptionIdOf(first)).toBe(adoptionIdOf(second));
+    expect(adoptionIdOf(first)).not.toBe(adoptionIdOf(second));
   });
 
   test("Given repeated automatic adoption calls When the first transaction finishes Then one terminal WAL and identical receipt are reused", async () => {
     // Given
     const repoRoot = await createRepo();
-    await mkdir(join(repoRoot, ".kibi/adoption-wals"), { recursive: true });
     let mirrorSyncs = 0;
     const dependencies = {
       runMirrorSync: async () => {
@@ -115,14 +160,8 @@ describe("exactly-once predicate candidate adoption", () => {
     };
 
     // When
-    const first = await adoptSkillOptCandidate(
-      automaticInput(repoRoot),
-      dependencies,
-    );
-    const second = await adoptSkillOptCandidate(
-      automaticInput(repoRoot),
-      dependencies,
-    );
+    const first = await adopt(automaticInput(repoRoot), dependencies);
+    const second = await adopt(automaticInput(repoRoot), dependencies);
 
     // Then
     const walEntries = await readdir(join(repoRoot, ".kibi/adoption-wals"));
@@ -155,7 +194,7 @@ describe("exactly-once predicate candidate adoption", () => {
     // When
     const receipts = await Promise.all(
       Array.from({ length: 4 }, () =>
-        adoptSkillOptCandidate(automaticInput(repoRoot), dependencies),
+        adopt(automaticInput(repoRoot), dependencies),
       ),
     );
 
@@ -180,12 +219,12 @@ describe("exactly-once predicate candidate adoption", () => {
     await symlink(outside, canonical);
 
     // When
-    const attempt = adoptSkillOptCandidate(automaticInput(repoRoot), {
+    const attempt = adopt(automaticInput(repoRoot), {
       runMirrorSync: async () => {},
     });
 
     // Then
-    expect(attempt).rejects.toThrow("symlink");
+    await expect(attempt).rejects.toThrow("symlink");
   });
 
   test("Given a hardlinked canonical skill file When automatic adoption is requested Then it rejects inode aliasing", async () => {
@@ -201,11 +240,11 @@ describe("exactly-once predicate candidate adoption", () => {
     await link(outside, canonical);
 
     // When
-    const attempt = adoptSkillOptCandidate(automaticInput(repoRoot), {
+    const attempt = adopt(automaticInput(repoRoot), {
       runMirrorSync: async () => {},
     });
 
     // Then
-    expect(attempt).rejects.toThrow("hardlink");
+    await expect(attempt).rejects.toThrow("hardlink");
   });
 });

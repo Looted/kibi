@@ -4,7 +4,11 @@ import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import canonicalize from "canonicalize";
-import type { RunMirrorSync } from "../../adoption";
+import type {
+  AutoAdoptionInput,
+  ExternalAdoptionVerdict,
+  RunMirrorSync,
+} from "../../adoption";
 import { JsonValueSchema, contractHash } from "../../contracts/common";
 import { ApprovalSchema } from "../../contracts/review";
 import { parseRunLockText, runLockHash } from "../../contracts/run-lock";
@@ -164,6 +168,29 @@ export function automaticInput(input: ReturnType<typeof approvalArtifacts>) {
       ...eligibility,
       sealedEvidenceHash: canonicalHash(eligibility),
     },
+  };
+}
+export function externalVerdict(
+  input: AutoAdoptionInput,
+): ExternalAdoptionVerdict {
+  return {
+    verdictId: "external-verdict-a",
+    authentication: "test-external-authentication",
+    sourceCanonicalPreimageHash: sha256(frontmatter + baselineBody),
+    rootAuthorization: input.eligibility.authorizedRootSet,
+    supervisorParentId: "supervisor-parent-a",
+    invocationId: "invocation-a",
+    runId: input.eligibility.runId,
+    skill: input.candidate.skill,
+    matrixId: "held-out-matrix-a",
+    fixtureClaimHash: "5".repeat(64),
+    candidateHash: input.candidate.bodyHash,
+    terminalEvidenceHash: input.eligibility.sealedEvidenceHash,
+    targetSet: [
+      "packages/cli/src/public/skills/kibi-usage/SKILL.md",
+      "packages/cursor/skills",
+      "packages/codex/skills",
+    ],
   };
 }
 export async function snapshot(repoRoot: string): Promise<readonly string[]> {

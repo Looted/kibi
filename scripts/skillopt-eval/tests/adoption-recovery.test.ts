@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import {
   cp,
@@ -51,6 +51,10 @@ function hash(value: unknown): string {
   return createHash("sha256").update(serialized, "utf8").digest("hex");
 }
 
+function sha256(value: string): string {
+  return createHash("sha256").update(value, "utf8").digest("hex");
+}
+
 async function fixture(): Promise<
   Readonly<{ repoRoot: string; input: AutoAdoptionInput }>
 > {
@@ -96,15 +100,27 @@ async function fixture(): Promise<
       resourcesHash: candidate.resourcesHash,
       eligibility: {
         runId: "run-a",
-        signedEligibilityId: checkpointHash,
+        eligibilityReceiptId: checkpointHash,
         heldOutEligibility: "eligible",
         candidateHash: candidate.bodyHash,
         authorizedRootSet: rootSet,
         lineage: {
           candidateHash: candidate.bodyHash,
-          signedEligibilityId: checkpointHash,
+          trainerCheckpointHash: checkpointHash,
           authorizedRootSet: rootSet,
         },
+        sealedEvidenceHash: hash({
+          runId: "run-a",
+          eligibilityReceiptId: checkpointHash,
+          heldOutEligibility: "eligible",
+          candidateHash: candidate.bodyHash,
+          authorizedRootSet: rootSet,
+          lineage: {
+            candidateHash: candidate.bodyHash,
+            trainerCheckpointHash: checkpointHash,
+            authorizedRootSet: rootSet,
+          },
+        }),
       },
     },
   };
@@ -119,6 +135,65 @@ const syncMirrors: RunMirrorSync = async (repoRoot) => {
     });
   }
 };
+
+function externalVerdict(input: AutoAdoptionInput) {
+  return {
+    verdictId: "external-verdict-a",
+    authentication: "test-external-authentication",
+    sourceCanonicalPreimageHash: sha256(frontmatter + baselineBody),
+    rootAuthorization: input.eligibility.authorizedRootSet,
+    supervisorParentId: "supervisor-parent-a",
+    invocationId: "invocation-a",
+    runId: input.eligibility.runId,
+    skill: input.candidate.skill,
+    matrixId: "held-out-matrix-a",
+    fixtureClaimHash: "5".repeat(64),
+    candidateHash: input.candidate.bodyHash,
+    terminalEvidenceHash: input.eligibility.sealedEvidenceHash,
+    targetSet: [
+      "packages/cli/src/public/skills/kibi-usage/SKILL.md",
+      "packages/cursor/skills",
+      "packages/codex/skills",
+    ],
+  } as const;
+}
+
+function adopt(
+  input: AutoAdoptionInput,
+  dependencies: NonNullable<Parameters<typeof adoptSkillOptCandidate>[2]>,
+) {
+  return adoptSkillOptCandidate(input, externalVerdict(input), {
+    ...dependencies,
+    verifyExternalAdoptionVerdict: async () => true,
+  });
+}
+
+type PromiseSettlement<T> =
+  | {
+      readonly kind: "ok";
+      readonly value: T;
+    }
+  | {
+      readonly kind: "err";
+      readonly error: unknown;
+    };
+
+async function settlePromise<T>(
+  promise: Promise<T>,
+): Promise<PromiseSettlement<T>> {
+  return promise.then(
+    (value) => ({ kind: "ok" as const, value }),
+    (error) => ({ kind: "err" as const, error }),
+  );
+}
+
+function toError(value: unknown): Error {
+  if (value instanceof Error) {
+    return value;
+  }
+
+  return new Error(String(value));
+}
 
 for (const crashPhase of [
   "prepared",
@@ -137,28 +212,37 @@ for (const crashPhase of [
     };
 
     // When
-    await expect(
-      adoptSkillOptCandidate(input, crashingDependencies),
-    ).rejects.toThrow(`crash:${crashPhase}`);
-    const receipt = await adoptSkillOptCandidate(input, {
+    const crash = await settlePromise(adopt(input, crashingDependencies));
+    if (crash.kind === "ok") {
+      throw new Error(
+        `expected adoption failure for crash phase ${crashPhase}`,
+      );
+    }
+    expect(crash.kind).toBe("err");
+    expect(toError(crash.error).message).toBe(`crash:${crashPhase}`);
+    const receipt = await adopt(input, {
       runMirrorSync: syncMirrors,
     });
 
     // Then
     expect(receipt.status).toBe("adopted");
-    await expect(
+    const written = await settlePromise(
       readFile(
         join(repoRoot, "packages/codex/skills/kibi-usage/SKILL.md"),
         "utf8",
       ),
-    ).resolves.toBe(frontmatter + candidateBody);
+    );
+    expect(written.kind).toBe("ok");
+    if (written.kind === "ok") {
+      expect(written.value).toBe(frontmatter + candidateBody);
+    }
   });
 }
 
 test("Given a terminal WAL with a replaced receipt When the same candidate is retried Then the receipt hash mismatch is rejected", async () => {
   // Given
   const { repoRoot, input } = await fixture();
-  const first = await adoptSkillOptCandidate(input, {
+  const first = await adopt(input, {
     runMirrorSync: syncMirrors,
   });
   if (first.adoptionId === undefined) throw new Error("missing adoption ID");
@@ -171,16 +255,20 @@ test("Given a terminal WAL with a replaced receipt When the same candidate is re
   );
 
   // When
-  const attempt = adoptSkillOptCandidate(input, { runMirrorSync: syncMirrors });
+  const attempt = adopt(input, { runMirrorSync: syncMirrors });
 
   // Then
-  await expect(attempt).rejects.toThrow("receipt mismatch");
+  const mismatch = await settlePromise(attempt);
+  expect(mismatch.kind).toBe("err");
+  if (mismatch.kind === "err") {
+    expect(toError(mismatch.error).message).toContain("receipt mismatch");
+  }
 });
 
 test("Given a terminal WAL receipt replaced by a symlink When the candidate is retried Then recovery rejects the substituted inode", async () => {
   // Given
   const { repoRoot, input } = await fixture();
-  const first = await adoptSkillOptCandidate(input, {
+  const first = await adopt(input, {
     runMirrorSync: syncMirrors,
   });
   if (first.adoptionId === undefined) throw new Error("missing adoption ID");
@@ -196,10 +284,14 @@ test("Given a terminal WAL receipt replaced by a symlink When the candidate is r
   await symlink(outside, receipt);
 
   // When
-  const attempt = adoptSkillOptCandidate(input, { runMirrorSync: syncMirrors });
+  const attempt = adopt(input, { runMirrorSync: syncMirrors });
 
   // Then
-  await expect(attempt).rejects.toThrow("symlink");
+  const symlinkFailure = await settlePromise(attempt);
+  expect(symlinkFailure.kind).toBe("err");
+  if (symlinkFailure.kind === "err") {
+    expect(toError(symlinkFailure.error).message).toContain("symlink");
+  }
 });
 
 test("Given canonical bytes replaced after WAL preparation When automatic adoption continues Then inode drift is rejected", async () => {
@@ -211,7 +303,7 @@ test("Given canonical bytes replaced after WAL preparation When automatic adopti
   );
 
   // When
-  const attempt = adoptSkillOptCandidate(input, {
+  const attempt = adopt(input, {
     runMirrorSync: syncMirrors,
     afterPhase: async (phase) => {
       if (phase === "prepared") {
@@ -222,13 +314,19 @@ test("Given canonical bytes replaced after WAL preparation When automatic adopti
   });
 
   // Then
-  await expect(attempt).rejects.toThrow("canonical bytes drifted");
+  const canonicalFailure = await settlePromise(attempt);
+  expect(canonicalFailure.kind).toBe("err");
+  if (canonicalFailure.kind === "err") {
+    expect(toError(canonicalFailure.error).message).toContain(
+      "canonical bytes drifted",
+    );
+  }
 });
 
 test("Given a WAL journal targeting another repository file When the candidate is retried Then recovery rejects the redirected path", async () => {
   // Given
   const { repoRoot, input } = await fixture();
-  const first = await adoptSkillOptCandidate(input, {
+  const first = await adopt(input, {
     runMirrorSync: syncMirrors,
   });
   if (first.adoptionId === undefined) throw new Error("missing adoption ID");
@@ -252,10 +350,16 @@ test("Given a WAL journal targeting another repository file When the candidate i
   );
 
   // When
-  const attempt = adoptSkillOptCandidate(input, { runMirrorSync: syncMirrors });
+  const attempt = adopt(input, { runMirrorSync: syncMirrors });
 
   // Then
-  await expect(attempt).rejects.toThrow("journal target mismatch");
+  const journalFailure = await settlePromise(attempt);
+  expect(journalFailure.kind).toBe("err");
+  if (journalFailure.kind === "err") {
+    expect(toError(journalFailure.error).message).toContain(
+      "journal target mismatch",
+    );
+  }
 });
 
 test("Given a durable automatic adoption When files are installed Then every rename and no-replace receipt follows fsync ordering", async () => {
@@ -264,7 +368,7 @@ test("Given a durable automatic adoption When files are installed Then every ren
   const steps: string[] = [];
 
   // When
-  await adoptSkillOptCandidate(input, {
+  await adopt(input, {
     runMirrorSync: syncMirrors,
     durabilityObserver: async (step) => {
       steps.push(step);
@@ -304,15 +408,21 @@ test("Given a crash after a partial mirror swap When WAL recovery runs Then ever
     );
     throw new Error("injected mirror failure");
   };
-  await expect(
-    adoptSkillOptCandidate(input, { runMirrorSync: failingSync }),
-  ).rejects.toThrow("injected mirror failure");
+  const recoverableFailure = await settlePromise(
+    adopt(input, { runMirrorSync: failingSync }),
+  );
+  expect(recoverableFailure.kind).toBe("err");
+  if (recoverableFailure.kind === "err") {
+    expect(toError(recoverableFailure.error).message).toBe(
+      "injected mirror failure",
+    );
+  }
 
   // When
   await recoverAdoptionWals(repoRoot, { runMirrorSync: syncMirrors });
 
   // Then
-  await expect(
+  const restored = await settlePromise(
     Promise.all([
       readFile(
         join(repoRoot, "packages/cli/src/public/skills/kibi-usage/SKILL.md"),
@@ -327,5 +437,9 @@ test("Given a crash after a partial mirror swap When WAL recovery runs Then ever
         "utf8",
       ),
     ]),
-  ).resolves.toEqual(before);
+  );
+  expect(restored.kind).toBe("ok");
+  if (restored.kind === "ok") {
+    expect(restored.value).toEqual(before);
+  }
 });

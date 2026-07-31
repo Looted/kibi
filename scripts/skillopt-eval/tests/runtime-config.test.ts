@@ -107,7 +107,7 @@ describe("Codex existing-login isolation", () => {
     });
 
     // Then
-    expect(attempt).rejects.toMatchObject({
+    await expect(attempt).rejects.toMatchObject({
       name: "CodexAuthError",
       kind: "auth_file",
     });
@@ -131,7 +131,7 @@ describe("Codex existing-login isolation", () => {
     });
 
     // Then
-    expect(attempt).rejects.toMatchObject({
+    await expect(attempt).rejects.toMatchObject({
       name: "CodexAuthError",
       kind: "login",
     });
@@ -158,7 +158,7 @@ describe("Codex existing-login isolation", () => {
 
     // Then
     for (const attempt of attempts) {
-      expect(attempt).rejects.toBeInstanceOf(CodexAuthError);
+      await expect(attempt).rejects.toBeInstanceOf(CodexAuthError);
     }
   });
 
@@ -293,7 +293,7 @@ describe("Codex evaluator-owned permissions", () => {
     });
 
     // Then
-    expect(attempt).rejects.toMatchObject({
+    await expect(attempt).rejects.toMatchObject({
       name: "RuntimePrerequisiteError",
       message: "source_isolation_probe_failed",
     });

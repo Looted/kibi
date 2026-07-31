@@ -161,8 +161,10 @@ describe("trusted broker authorization contracts", () => {
     });
 
     // Then
-    expect(attempt).rejects.toBeInstanceOf(ExternalPrerequisiteMissingError);
-    expect(attempt).rejects.toMatchObject({
+    await expect(attempt).rejects.toBeInstanceOf(
+      ExternalPrerequisiteMissingError,
+    );
+    await expect(attempt).rejects.toMatchObject({
       code: "EXTERNAL_PREREQUISITE_MISSING",
       installerCommand: EXTERNAL_PROVISIONING_COMMAND,
     });

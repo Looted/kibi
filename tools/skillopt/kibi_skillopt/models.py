@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import Annotated, Final, Literal
 
 from pydantic import Field, model_validator
 from typing_extensions import Self
@@ -17,6 +17,14 @@ from .common import (
 
 BridgePhase = Literal["train", "development"]
 BridgeSkill = Literal["kibi-usage", "kibi-freshness", "kibi-traceability", "init-kibi"]
+TASK_ID_PATTERN: Final = r"^[a-z0-9][a-z0-9-]{0,127}$"
+
+
+class PublicTaskClaim(ContractModel):
+    task_id: Annotated[str, Field(alias="taskId", pattern=TASK_ID_PATTERN)]
+    text: Annotated[str, Field(min_length=1, max_length=100_000)]
+    public_manifest_hash: Annotated[Sha256, Field(alias="publicManifestHash")]
+    workspace_hash: Annotated[Sha256, Field(alias="workspaceHash")]
 
 
 class BridgeRequest(ContractModel):
@@ -31,11 +39,14 @@ class BridgeRequest(ContractModel):
         tuple[NonEmptyString, ...], Field(alias="taskIds", min_length=1, max_length=8)
     ]
     source_lock_hash: Annotated[Sha256, Field(alias="sourceLockHash")]
+    public_claim: PublicTaskClaim = Field(alias="publicClaim")
 
     @model_validator(mode="after")
     def reject_held_out_ids(self) -> Self:
         if any("held-out" in task_id or "heldout" in task_id for task_id in self.task_ids):
             raise ContractValidationError("held-out task ids are not bridge inputs")
+        if self.public_claim.task_id != self.task_ids[0]:
+            raise ContractValidationError("public claim task identity must match the bridge task")
         return self
 
 

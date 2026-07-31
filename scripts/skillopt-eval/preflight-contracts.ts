@@ -155,47 +155,66 @@ export type ProviderLock = z.infer<typeof ProviderLockSchema>;
 export type VerifierLock = z.infer<typeof VerifierLockSchema>;
 export type HostProbe = z.infer<typeof HostProbeSchema>;
 
-export type PreflightReason = Readonly<{
-  check: string;
-  expected: unknown;
-  observed?: unknown;
-}>;
-export type PreflightReceipt = Readonly<{
-  schemaVersion: "1.0.0";
-  artifactType: "skillopt-host-preflight";
-  status: "qualified" | "no-go";
-  code:
-    | "OK"
-    | "EXTERNAL_PREREQUISITE_MISSING"
-    | "LOCK_INVALID"
-    | "PREFLIGHT_NO_GO";
-  reasons: readonly PreflightReason[];
-  lockDigests: Readonly<{
-    sandbox: string;
-    provider: string;
-    verifier: string;
-  }>;
-  expected: Readonly<{
-    externalRoot: typeof EXTERNAL_ROOT;
-    launcher: typeof LAUNCHER;
-    installerCommand: typeof INSTALLER_COMMAND;
-    paths: readonly string[];
-    identities: readonly string[];
-    fdInventory: readonly string[];
-    digests: Readonly<{
-      publisherKey?: string;
-      externalBundleLock?: string;
-      protocols?: Readonly<Record<string, string>>;
-      pinnedCa?: string;
-      tools?: Readonly<Record<string, string>>;
-    }>;
-    systemdSocketActivation: true;
-  }>;
-  checks: readonly Readonly<{ name: string; status: "pass" }>[];
-  verifierAttestation: Readonly<{
-    payload: HostProbe | null;
-    signature: string;
-  }>;
-  paidModelCalls: 0;
-  runtimeAuthorized: false;
-}>;
+export const PreflightReasonSchema = z
+  .object({
+    check: z.string().min(1),
+    expected: z.unknown(),
+    observed: z.unknown().optional(),
+  })
+  .strict();
+
+export const PreflightReceiptSchema = z
+  .object({
+    schemaVersion: z.literal("1.0.0"),
+    artifactType: z.literal("skillopt-host-preflight"),
+    status: z.enum(["qualified", "no-go"]),
+    code: z.enum([
+      "OK",
+      "EXTERNAL_PREREQUISITE_MISSING",
+      "LOCK_INVALID",
+      "PREFLIGHT_NO_GO",
+    ]),
+    reasons: z.array(PreflightReasonSchema),
+    lockDigests: z
+      .object({
+        sandbox: z.string(),
+        provider: z.string(),
+        verifier: z.string(),
+      })
+      .strict(),
+    expected: z
+      .object({
+        externalRoot: z.literal(EXTERNAL_ROOT),
+        launcher: z.literal(LAUNCHER),
+        installerCommand: z.literal(INSTALLER_COMMAND),
+        paths: z.array(z.string()),
+        identities: z.array(z.string()),
+        fdInventory: z.array(z.string()),
+        digests: z
+          .object({
+            publisherKey: DigestSchema.optional(),
+            externalBundleLock: DigestSchema.optional(),
+            protocols: z.record(z.string(), DigestSchema).optional(),
+            pinnedCa: DigestSchema.optional(),
+            tools: z.record(z.string(), DigestSchema).optional(),
+          })
+          .strict(),
+        systemdSocketActivation: z.literal(true),
+      })
+      .strict(),
+    checks: z.array(
+      z.object({ name: z.string(), status: z.literal("pass") }).strict(),
+    ),
+    verifierAttestation: z
+      .object({
+        payload: HostProbeSchema.nullable(),
+        signature: z.string().min(1),
+      })
+      .strict(),
+    paidModelCalls: z.literal(0),
+    runtimeAuthorized: z.literal(false),
+  })
+  .strict();
+
+export type PreflightReason = Readonly<z.infer<typeof PreflightReasonSchema>>;
+export type PreflightReceipt = Readonly<z.infer<typeof PreflightReceiptSchema>>;

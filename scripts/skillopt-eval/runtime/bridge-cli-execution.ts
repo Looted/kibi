@@ -1,13 +1,12 @@
 import { randomUUID } from "node:crypto";
-import { readFile } from "node:fs/promises";
 import { relative } from "node:path";
-import { parsePrivateEvaluatorManifest } from "../fixtures/private";
 import { bridgeFailure } from "./bridge-cli-options";
 import type { parseBridgeOptions } from "./bridge-cli-options";
 import { defaultCodexCellDependencies } from "./codex-cell-defaults";
 import { type CodexCellOptions, runCodexCell } from "./codex-cell-runner";
 import type { CodexCellDependencies } from "./codex-cell-types";
 import type { BridgeRequest, BridgeResult } from "./file-bridge";
+import { resolveTaskFixture } from "./task-fixture";
 
 type BridgeCellCompletion = Readonly<{
   receipt: Readonly<{
@@ -87,57 +86,52 @@ async function realResult(
   request: BridgeRequest,
   dependencies: BridgeCliDependencies,
 ): Promise<BridgeResult> {
-  const evaluatorManifestText = await readFile(
-    options.evaluatorManifestPath ?? "",
-    "utf8",
-  );
-  const evaluatorManifest = parsePrivateEvaluatorManifest(
-    evaluatorManifestText,
-  );
   const sourceWorktree = options.sourceWorktree ?? "";
   const artifactRoot = options.artifactRoot ?? "";
-  const fixtureRoot = options.fixtureRoot ?? "";
-  if (request.taskIds.some((taskId) => taskId !== evaluatorManifest.taskId)) {
-    throw bridgeFailure(new Error("evaluator_manifest_task_mismatch"));
-  }
+  const fixtureRunRoot = options.fixtureRunRoot ?? "";
   const rows = await Promise.all(
     request.taskIds.map(async (taskId) => {
-      const cellOptions: CodexCellOptions = {
-        request: {
-          schemaVersion: "1.0.0",
-          artifactType: "episode-request",
-          episodeId: randomUUID(),
-          runId: request.runId,
-          runLockHash: request.sourceLockHash,
-          variant: "skillopt",
-          skill: request.skill,
-          taskId,
-          attempt: 1,
-          prompt: request.candidateBody,
-          workspaceFixtureHash: evaluatorManifest.workspaceHash,
-        },
-        fixtureRoot,
-        sourceWorktree,
-        artifactRoot,
-        targetSkill: request.skill,
-        candidate: { body: request.candidateBody },
-        codexExecutable: options.codexExecutable,
-        bwrapExecutable: options.bwrapExecutable,
-        env: process.env,
-        finalStateRequests: [
-          { tool: "kb_query", args: { type: "fact" } },
-          { tool: "kb_check", args: {} },
-          { tool: "kb_status", args: {} },
-        ],
-        evaluatorManifest,
-        hiddenMarkers: options.hiddenMarkers,
-        pricingHash: options.pricingHash,
-        priceAmount: options.priceAmount,
-        timeoutMs: options.timeoutMs,
-      };
-      const runtimeDependencies =
-        dependencies.defaultCodexCellDependencies(cellOptions);
       try {
+        const fixture = await resolveTaskFixture({
+          fixtureRunRoot,
+          taskId,
+          publicClaim: request.publicClaim,
+        });
+        const cellOptions: CodexCellOptions = {
+          request: {
+            schemaVersion: "1.0.0",
+            artifactType: "episode-request",
+            episodeId: randomUUID(),
+            runId: request.runId,
+            runLockHash: request.sourceLockHash,
+            variant: "skillopt",
+            skill: request.skill,
+            taskId,
+            attempt: 1,
+            prompt: fixture.publicClaim.text,
+            workspaceFixtureHash: fixture.workspaceHash,
+          },
+          fixtureRoot: fixture.workspaceRoot,
+          sourceWorktree,
+          artifactRoot,
+          targetSkill: request.skill,
+          candidate: { body: request.candidateBody },
+          codexExecutable: options.codexExecutable,
+          bwrapExecutable: options.bwrapExecutable,
+          env: process.env,
+          finalStateRequests: [
+            { tool: "kb_query", args: { type: "fact" } },
+            { tool: "kb_check", args: {} },
+            { tool: "kb_status", args: {} },
+          ],
+          evaluatorManifest: fixture.evaluatorManifest,
+          hiddenMarkers: options.hiddenMarkers,
+          pricingHash: options.pricingHash,
+          priceAmount: options.priceAmount,
+          timeoutMs: options.timeoutMs,
+        };
+        const runtimeDependencies =
+          dependencies.defaultCodexCellDependencies(cellOptions);
         const completed = await dependencies.runCodexCell(
           cellOptions,
           runtimeDependencies,

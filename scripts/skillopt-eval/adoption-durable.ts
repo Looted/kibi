@@ -52,7 +52,15 @@ export async function assertSecureDirectory(path: string): Promise<void> {
 
 export async function ensureSecureDirectory(path: string): Promise<void> {
   await mkdir(path, { recursive: true, mode: 0o700 });
-  await assertSecureDirectory(path);
+  const stats = await lstat(path);
+  if (stats.isSymbolicLink()) throw new Error("adoption directory symlink");
+  if (!stats.isDirectory()) throw new Error("adoption path is not a directory");
+  const euid = process.geteuid?.();
+  if (euid === undefined) throw new Error("current euid unavailable");
+  if (stats.uid !== euid)
+    throw new Error("adoption directory not owned by current euid");
+  if ((stats.mode & 0o077) !== 0)
+    throw new Error("adoption directory is not private");
 }
 
 async function secureParent(repoRoot: string, path: string): Promise<void> {

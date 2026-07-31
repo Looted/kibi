@@ -16,8 +16,6 @@ import {
   PREDICATE_HELD_OUT_CASE_IDS,
   PREDICATE_SEMANTIC_CLASSES,
   PREDICATE_TRAIN_CASE_IDS,
-  type PredicateMaterialization,
-  __resetPredicateMatrixCacheForTests,
   materializePredicateCorpus,
   reservePredicateMatrix,
 } from "../fixtures/predicate-corpus";
@@ -27,7 +25,6 @@ const predicateRoots: string[] = [];
 afterEach(() => {
   for (const root of predicateRoots.splice(0))
     rmSync(root, { recursive: true, force: true });
-  __resetPredicateMatrixCacheForTests();
 });
 
 describe("SkillOpt fixture catalog", () => {
@@ -184,7 +181,7 @@ describe("predicate corpus rejects leak duplicate root drift or adaptive held-ou
     expect(corpus.eligibility().eligible).toBe(false);
   });
 
-  test("freezes the 36-cell terminal matrix before cell one and caches retries", () => {
+  test("reserves a stateless generic 36-cell matrix before cell one", () => {
     const root = temporaryRoot();
     predicateRoots.push(root);
     const corpus = materializePredicateCorpus({
@@ -193,6 +190,8 @@ describe("predicate corpus rejects leak duplicate root drift or adaptive held-ou
     const matrix = reservePredicateMatrix({
       corpus,
       candidateHashes: corpus.frozenCandidateHashes,
+      runId: "00000000-0000-4000-8000-000000000096",
+      fixtureClaimRoot: corpus.roots.corpus,
     });
 
     expect(matrix.matrixId).toMatch(
@@ -200,21 +199,32 @@ describe("predicate corpus rejects leak duplicate root drift or adaptive held-ou
     );
     expect(matrix.cellCount).toBe(36);
     expect(matrix.reservedBeforeCellOne).toBe(true);
-    expect(matrix.transition("pending")).toBe(false);
-    expect(matrix.transition("running")).toBe(true);
-    expect(matrix.transition("running")).toBe(false);
-    expect(matrix.transition("terminal")).toBe(true);
-    expect(matrix.transition("terminal")).toBe(false);
-
+    expect("transition" in matrix).toBe(false);
+    for (const caseId of PREDICATE_HELD_OUT_CASE_IDS)
+      for (const variant of ["baseline", "one-shot", "skillopt"] as const)
+        for (const replicate of [1, 2, 3] as const)
+          expect(matrix.isReservedCell({ caseId, variant, replicate })).toBe(
+            true,
+          );
+    expect(
+      matrix.isReservedCell({
+        caseId: "unreserved-held-out-case",
+        variant: "skillopt",
+        replicate: 1,
+      }),
+    ).toBe(false);
     const retry = reservePredicateMatrix({
       corpus,
       candidateHashes: corpus.frozenCandidateHashes,
+      runId: "00000000-0000-4000-8000-000000000096",
+      fixtureClaimRoot: corpus.roots.corpus,
     });
     expect(retry.receiptBytes).toEqual(matrix.receiptBytes);
     expect(retry.matrixId).toBe(matrix.matrixId);
+    expect(retry).not.toBe(matrix);
   });
 
-  test("rejects adaptive candidate after held-out and hides per-case detail", () => {
+  test("hides per-case detail from the pure reservation view", () => {
     const root = temporaryRoot();
     predicateRoots.push(root);
     const corpus = materializePredicateCorpus({
@@ -223,20 +233,9 @@ describe("predicate corpus rejects leak duplicate root drift or adaptive held-ou
     const first = reservePredicateMatrix({
       corpus,
       candidateHashes: corpus.frozenCandidateHashes,
+      runId: "00000000-0000-4000-8000-000000000096",
+      fixtureClaimRoot: corpus.roots.corpus,
     });
-    first.transition("running");
-    first.transition("terminal");
-
-    const adapted = corpus.withAdaptiveCandidate();
-    expect(() =>
-      reservePredicateMatrix({
-        corpus: adapted,
-        candidateHashes: adapted.frozenCandidateHashes,
-      }),
-    ).toThrow(/adaptive|held_out|ineligible/i);
-
-    const view = first.orchestrationView();
-    expect(view).toBe("ineligible");
     expect(JSON.stringify(first)).not.toMatch(
       /case-[a-z]|predicate_name|expectedLane/,
     );

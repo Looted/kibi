@@ -34,6 +34,7 @@ export const EpisodeRequestSchema = boundedContractSchema(
       skill: SkillSchema,
       taskId: NonEmptyStringSchema,
       attempt: z.int().min(1).max(2),
+      replicate: z.int().min(1).max(3).optional(),
       prompt: z.string().min(1).max(100_000),
       workspaceFixtureHash: Sha256Schema,
     })

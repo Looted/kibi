@@ -1,13 +1,15 @@
 import { createHash } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { readFile } from "node:fs/promises";
+import { join, resolve } from "node:path";
 import canonicalize from "canonicalize";
 import {
-  loadBundledSkill,
-  readBundledSkillResource,
+  loadBundledSkillFrom,
+  readBundledSkillResourceFrom,
 } from "../../packages/cli/src/public/skills";
-import { adoptApprovedSkill, planSkillAdoption } from "./adoption";
+import { planSkillAdoption } from "./adoption";
+import { withSharedAdoptionLock } from "./adoption-lock";
 import { validateApproval } from "./approval";
+import { type ArtifactPath, prepareArtifactPath } from "./artifact-path";
 import { JsonValueSchema, contractHash } from "./contracts/common";
 import type { Approval } from "./contracts/review";
 import {
@@ -16,7 +18,12 @@ import {
   runLockHash,
 } from "./contracts/run-lock";
 import { buildProposal } from "./proposal";
-import { type ReportArtifacts, buildReportArtifacts } from "./report";
+import {
+  type MeasuredReportMetrics,
+  type ReportArtifacts,
+  buildReportArtifacts,
+  deriveMeasuredReportMetrics,
+} from "./report";
 import {
   type FrozenVariant,
   createBaselineVariant,
@@ -34,6 +41,7 @@ export type OfflineReviewArtifacts = Readonly<{
   baseline: FrozenVariant;
   candidate: FrozenVariant;
   report: ReportArtifacts;
+  metrics: MeasuredReportMetrics;
   proposal: ReturnType<typeof buildProposal>;
   approval: Approval;
 }>;
@@ -49,46 +57,67 @@ function canonicalHash(value: unknown): string {
   return hash(serialized);
 }
 
-async function loadSurface(): Promise<{
+export async function loadSurface(sourceRepoRoot: string): Promise<{
   body: string;
   frontmatterHash: string;
   resourcesHash: string;
 }> {
-  const bundle = loadBundledSkill(SKILL);
-  const markdown = await readFile(join(bundle.rootDir, "SKILL.md"), "utf8");
-  if (!/^---\r?\n[\s\S]*?\r?\n---\r?\n/.test(markdown)) {
-    throw new Error("offline_skill_frontmatter_missing");
-  }
-  const resources = Object.fromEntries(
-    await Promise.all(
-      [...(bundle.manifest.resources ?? [])]
-        .sort()
-        .map(async (resource) => [
-          resource,
-          readBundledSkillResource(SKILL, resource),
-        ]),
-    ),
-  );
-  return {
-    body: bundle.body,
-    frontmatterHash: canonicalHash(bundle.manifest),
-    resourcesHash: canonicalHash(resources),
-  };
+  return withSharedAdoptionLock(sourceRepoRoot, async () => {
+    const skillsDir = join(
+      resolve(sourceRepoRoot),
+      "packages/cli/src/public/skills",
+    );
+    const bundle = loadBundledSkillFrom(skillsDir, SKILL);
+    const markdown = await readFile(join(bundle.rootDir, "SKILL.md"), "utf8");
+    if (!/^---\r?\n[\s\S]*?\r?\n---\r?\n/.test(markdown)) {
+      throw new Error("offline_skill_frontmatter_missing");
+    }
+    const resources = Object.fromEntries(
+      await Promise.all(
+        [...(bundle.manifest.resources ?? [])]
+          .sort()
+          .map(async (resource) => [
+            resource,
+            readBundledSkillResourceFrom(skillsDir, SKILL, resource),
+          ]),
+      ),
+    );
+    return {
+      body: bundle.body,
+      frontmatterHash: canonicalHash(bundle.manifest),
+      resourcesHash: canonicalHash(resources),
+    };
+  });
 }
 
 // implements REQ-skillopt-codex-optimization
-export async function buildOfflineReviewArtifacts(
+export function buildOfflineReviewArtifacts(
+  sourceRepoRoot: string,
   runId: string,
   artifactRoot: string,
+): Promise<OfflineReviewArtifacts>;
+export function buildOfflineReviewArtifacts(
+  runId: string,
+  artifactRoot: string,
+): Promise<OfflineReviewArtifacts>;
+export async function buildOfflineReviewArtifacts(
+  sourceRepoRootOrRunId: string,
+  runIdOrArtifactRoot: string,
+  artifactRoot?: string,
 ): Promise<OfflineReviewArtifacts> {
+  const sourceRepoRoot =
+    artifactRoot === undefined ? process.cwd() : sourceRepoRootOrRunId;
+  const runId =
+    artifactRoot === undefined ? sourceRepoRootOrRunId : runIdOrArtifactRoot;
+  const root = artifactRoot ?? runIdOrArtifactRoot;
   const fixture = JSON.parse(await readFile(FIXTURE_PATH, "utf8")) as Record<
     string,
     unknown
   >;
   const runLock = parseRunLockText(
-    JSON.stringify({ ...fixture, runId, artifactRoot }),
+    JSON.stringify({ ...fixture, runId, artifactRoot: root }),
   );
-  const loadedSurface = await loadSurface();
+  const loadedSurface = await loadSurface(sourceRepoRoot);
   const surface = {
     frontmatterHash: loadedSurface.frontmatterHash,
     resourcesHash: loadedSurface.resourcesHash,
@@ -127,6 +156,7 @@ export async function buildOfflineReviewArtifacts(
     },
     generatedAt: "2026-07-23T00:00:00.000Z",
   });
+  const metrics = deriveMeasuredReportMetrics({});
   const proposal = buildProposal({
     proposalId: runId,
     createdAt: "2026-07-23T00:00:01.000Z",
@@ -154,39 +184,52 @@ export async function buildOfflineReviewArtifacts(
     runLock,
     report: report.report,
   });
-  return { runLock, baseline, candidate, report, proposal, approval };
+  return { runLock, baseline, candidate, report, metrics, proposal, approval };
 }
 
 // implements REQ-skillopt-codex-optimization
 export async function writeOfflineReviewArtifacts(
-  root: string,
+  root: ArtifactPath | string,
   artifacts: OfflineReviewArtifacts,
 ): Promise<void> {
-  await mkdir(root, { recursive: true, mode: 0o700 });
-  await Promise.all([
-    writeFile(
-      join(root, "run-lock.json"),
-      `${JSON.stringify(artifacts.runLock, null, 2)}\n`,
-    ),
-    writeFile(
-      join(root, "baseline-variant.json"),
-      `${JSON.stringify(artifacts.baseline, null, 2)}\n`,
-    ),
-    writeFile(
-      join(root, "candidate-variant.json"),
-      `${JSON.stringify(artifacts.candidate, null, 2)}\n`,
-    ),
-    writeFile(join(root, "report.json"), artifacts.report.json),
-    writeFile(join(root, "report.md"), artifacts.report.markdown),
-    writeFile(
-      join(root, "proposal.json"),
-      `${JSON.stringify(artifacts.proposal, null, 2)}\n`,
-    ),
-    writeFile(
-      join(root, "approval.json"),
-      `${JSON.stringify(artifacts.approval, null, 2)}\n`,
-    ),
-  ]);
+  const artifactPath =
+    typeof root === "string"
+      ? await prepareArtifactPath({
+          artifactRoot: root,
+          sourceRoot: process.cwd(),
+          canonicalRoots: [
+            join(process.cwd(), "packages", "cli", "src", "public", "skills"),
+          ],
+        })
+      : root;
+  try {
+    await Promise.all([
+      artifactPath.writeText(
+        "run-lock.json",
+        `${JSON.stringify(artifacts.runLock, null, 2)}\n`,
+      ),
+      artifactPath.writeText(
+        "baseline-variant.json",
+        `${JSON.stringify(artifacts.baseline, null, 2)}\n`,
+      ),
+      artifactPath.writeText(
+        "candidate-variant.json",
+        `${JSON.stringify(artifacts.candidate, null, 2)}\n`,
+      ),
+      artifactPath.writeText("report.json", artifacts.report.json),
+      artifactPath.writeText("report.md", artifacts.report.markdown),
+      artifactPath.writeText(
+        "proposal.json",
+        `${JSON.stringify(artifacts.proposal, null, 2)}\n`,
+      ),
+      artifactPath.writeText(
+        "approval.json",
+        `${JSON.stringify(artifacts.approval, null, 2)}\n`,
+      ),
+    ]);
+  } finally {
+    if (artifactPath !== root) await artifactPath.close();
+  }
 }
 
 // implements REQ-skillopt-codex-optimization
@@ -202,21 +245,4 @@ export async function planOfflineAdoption(
     runLock: artifacts.runLock,
     report: artifacts.report.report,
   });
-}
-
-export async function adoptOfflineApprovedSkill(
-  repoRoot: string,
-  artifacts: OfflineReviewArtifacts,
-) {
-  return adoptApprovedSkill(
-    {
-      repoRoot,
-      approval: artifacts.approval,
-      proposal: artifacts.proposal,
-      candidate: artifacts.candidate,
-      runLock: artifacts.runLock,
-      report: artifacts.report.report,
-    },
-    { runMirrorSync: async () => undefined },
-  );
 }
