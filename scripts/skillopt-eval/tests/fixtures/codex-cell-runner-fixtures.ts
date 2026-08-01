@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { EpisodeRequest } from "../../contracts/episode";
@@ -42,8 +42,6 @@ export async function fixture(): Promise<
   const root = await mkdtemp(join(tmpdir(), "skillopt-cell-fixture-"));
   roots.push(root);
   await writeFile(join(root, "package.json"), '{"private":true}\n');
-  await mkdir(join(root, ".kb"), { recursive: true });
-  await writeFile(join(root, ".kb/sentinel"), "private\n");
   return { root, hash: hashWorkspace(root) };
 }
 export function request(workspaceFixtureHash: string): EpisodeRequest {

@@ -7439,27 +7439,27 @@ coordinates:
   SYM-skillopt-codex-cell-fixture-fakeBroker:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 77
+    sourceEndLine: 75
     sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
-    sourceLine: 64
+    sourceLine: 62
   SYM-skillopt-codex-cell-fixture-fixture:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 48
+    sourceEndLine: 46
     sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
     sourceLine: 39
   SYM-skillopt-codex-cell-fixture-predicateFinalState:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 94
+    sourceEndLine: 92
     sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
-    sourceLine: 78
+    sourceLine: 76
   SYM-skillopt-codex-cell-fixture-request:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 63
+    sourceEndLine: 61
     sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
-    sourceLine: 49
+    sourceLine: 47
   SYM-skillopt-codex-cell-fixture-roots:
     sourceColumn: 13
     sourceEndColumn: 33
@@ -7469,9 +7469,9 @@ coordinates:
   SYM-skillopt-codex-cell-fixture-sealedEvidence:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 99
+    sourceEndLine: 97
     sourceFile: scripts/skillopt-eval/tests/fixtures/codex-cell-runner-fixtures.ts
-    sourceLine: 95
+    sourceLine: 93
   SYM-skillopt-codex-cell-options-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -9833,7 +9833,7 @@ coordinates:
   SYM-skillopt-run-codex-cell:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 213
+    sourceEndLine: 220
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
     sourceLine: 50
   SYM-skillopt-run-independent-final-state:

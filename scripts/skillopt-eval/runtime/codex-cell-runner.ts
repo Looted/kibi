@@ -81,6 +81,13 @@ export async function runCodexCell(
     if (hashWorkspace(workspace.target) !== request.workspaceFixtureHash) {
       throw new FixtureIntegrityError();
     }
+    // Real materialized fixtures intentionally omit .kb. Create its directory
+    // before Codex applies the direct-access deny rule so the brokered Kibi MCP
+    // runtime can initialize diagnostic usage logging beneath it.
+    await mkdir(join(workspace.target, ".kb"), {
+      recursive: true,
+      mode: 0o700,
+    });
     await assembleCanonicalSkills({
       sourceRepoRoot: options.sourceWorktree,
       workspace: workspace.target,
