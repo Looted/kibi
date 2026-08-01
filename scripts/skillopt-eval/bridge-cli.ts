@@ -52,8 +52,16 @@ if (import.meta.main) {
       process.exitCode = exitCode;
     },
     (error: unknown) => {
+      const cause =
+        error instanceof Error && error.cause instanceof Error
+          ? error.cause.message
+          : undefined;
       process.stderr.write(
-        `${JSON.stringify({ code: bridgeErrorCode(error) })}\n`,
+        `${JSON.stringify({
+          code: bridgeErrorCode(error),
+          message: error instanceof Error ? error.message : String(error),
+          ...(cause === undefined ? {} : { cause }),
+        })}\n`,
       );
       process.exitCode = 1;
     },
