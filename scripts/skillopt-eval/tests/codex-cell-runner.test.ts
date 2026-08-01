@@ -63,6 +63,10 @@ describe("Codex cell runner", () => {
           ephemeralRoot = workspace.root;
           const broker = fakeBroker(workspace);
           await writeFile(broker.tracePath, '{"kind":"tools/call"}\n');
+          await writeFile(
+            join(workspace.target, ".kb/usage.log"),
+            '{"tool":"kb_status"}\n',
+          );
           return broker;
         },
         probeMcp: async () => ({ toolNames: ["kb_status"] }),
@@ -75,7 +79,10 @@ describe("Codex cell runner", () => {
           expect(
             JSON.parse(
               await readFile(
-                join(ephemeralRoot, "workspace/.runtime/episode-output.schema.json"),
+                join(
+                  ephemeralRoot,
+                  "workspace/.runtime/episode-output.schema.json",
+                ),
                 "utf8",
               ),
             ),
@@ -92,7 +99,8 @@ describe("Codex cell runner", () => {
           };
         },
         finalState: async () => predicateFinalState(),
-        diagnosticReceipt: async () => '{"tool":"kb_status"}\n',
+        diagnosticReceipt: async (workspace) =>
+          readFile(join(workspace.target, ".kb/usage.log"), "utf8"),
         evaluateSealedEvidence: async ({ finalState }) =>
           sealedEvidence(finalState),
         clock: (() => {
