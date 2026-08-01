@@ -6,6 +6,7 @@ import { join } from "node:path";
 import {
   type OperatorDependencies,
   buildOptimizeLayout,
+  parseOperatorArgs,
   resolveOperatorBase,
   runOperatorCommand,
 } from "../operator";
@@ -167,7 +168,65 @@ describe("SkillOpt operator entrypoints", () => {
         layout.artifactRoot,
         "--fixture-run-root",
         layout.fixtureRunRoot,
+        "--max-steps",
+        "1",
       ],
     ]);
+  });
+
+  test("optimize forwards --max-steps to the paid CLI", async () => {
+    const root = await mkdtemp(join(tmpdir(), "skillopt-operator-steps-"));
+    const operatorBase = await mkdtemp(join(tmpdir(), "skillopt-op-steps-"));
+    roots.push(root, operatorBase);
+    const cliCalls: string[][] = [];
+    const dependencies: OperatorDependencies = {
+      cwd: root,
+      randomId: () => "00000000-0000-4000-8000-000000000103",
+      runCli: async (args) => {
+        cliCalls.push([...args]);
+        return 0;
+      },
+      materialize: (options) =>
+        ({
+          roots: {
+            runRoot: options.runRoot,
+            publicRoot: join(options.runRoot, "public"),
+            heldOutRoot: join(options.runRoot, "held-out"),
+            evaluatorRoot: join(options.runRoot, "evaluator"),
+          },
+          publicIndex: { tasks: [] },
+          heldOutIndex: { tasks: [] },
+        }) as never,
+      resolveOperatorBase: async () => operatorBase,
+      runProcess: async (argv) => {
+        if (argv.includes("login")) {
+          return {
+            exitCode: 0,
+            stdout: "Logged in using ChatGPT\n",
+            stderr: "",
+          };
+        }
+        return { exitCode: 0, stdout: "ok\n", stderr: "" };
+      },
+      which: (command) => `/bin/${command}`,
+    };
+
+    const exitCode = await runOperatorCommand("optimize", dependencies, {
+      maxSteps: 4,
+    });
+
+    expect(exitCode).toBe(0);
+    expect(cliCalls[0]?.slice(-2)).toEqual(["--max-steps", "4"]);
+  });
+
+  test("parseOperatorArgs accepts optimize --max-steps", () => {
+    expect(parseOperatorArgs(["optimize", "--max-steps", "3"])).toEqual({
+      command: "optimize",
+      maxSteps: 3,
+    });
+    expect(parseOperatorArgs(["smoke"])).toEqual({
+      command: "smoke",
+      maxSteps: 1,
+    });
   });
 });

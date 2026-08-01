@@ -8024,6 +8024,12 @@ coordinates:
     sourceEndLine: 64
     sourceFile: scripts/skillopt-eval/adoption-durable.ts
     sourceLine: 53
+  SYM-skillopt-episode-output-schema:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 41
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
+    sourceLine: 34
   SYM-skillopt-episode-replay-input-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -8717,15 +8723,15 @@ coordinates:
   SYM-skillopt-operator-base-resolution-options:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 23
+    sourceEndLine: 36
     sourceFile: scripts/skillopt-eval/operator.ts
-    sourceLine: 19
+    sourceLine: 32
   SYM-skillopt-operator-build-optimize-layout:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 142
+    sourceEndLine: 155
     sourceFile: scripts/skillopt-eval/operator.ts
-    sourceLine: 124
+    sourceLine: 137
   SYM-skillopt-operator-command:
     sourceColumn: 12
     sourceEndColumn: 51
@@ -8735,39 +8741,69 @@ coordinates:
   SYM-skillopt-operator-default-dependencies:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 121
+    sourceEndLine: 134
     sourceFile: scripts/skillopt-eval/operator.ts
-    sourceLine: 113
+    sourceLine: 126
   SYM-skillopt-operator-dependencies:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 36
+    sourceEndLine: 49
     sourceFile: scripts/skillopt-eval/operator.ts
-    sourceLine: 25
+    sourceLine: 38
   SYM-skillopt-operator-main:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 274
+    sourceEndLine: 333
     sourceFile: scripts/skillopt-eval/operator.ts
-    sourceLine: 256
+    sourceLine: 310
   SYM-skillopt-operator-optimize-layout:
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 17
     sourceFile: scripts/skillopt-eval/operator.ts
     sourceLine: 12
+  SYM-skillopt-operator-parse-args:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 266
+    sourceFile: scripts/skillopt-eval/operator.ts
+    sourceLine: 235
+  SYM-skillopt-operator-parsed-args:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 22
+    sourceFile: scripts/skillopt-eval/operator.ts
+    sourceLine: 19
   SYM-skillopt-operator-resolve-base:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 111
+    sourceEndLine: 124
     sourceFile: scripts/skillopt-eval/operator.ts
-    sourceLine: 85
+    sourceLine: 98
   SYM-skillopt-operator-run-command:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 254
+    sourceEndLine: 308
     sourceFile: scripts/skillopt-eval/operator.ts
-    sourceLine: 222
+    sourceLine: 269
+  SYM-skillopt-operator-run-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 26
+    sourceFile: scripts/skillopt-eval/operator.ts
+    sourceLine: 24
+  SYM-skillopt-operator-usage-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 30
+    sourceFile: scripts/skillopt-eval/operator.ts
+    sourceLine: 28
+  SYM-skillopt-operator-usage-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 39
+    sourceEndLine: 29
+    sourceFile: scripts/skillopt-eval/operator.ts
+    sourceLine: 29
   SYM-skillopt-optimization-checkpoint:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -9797,9 +9833,9 @@ coordinates:
   SYM-skillopt-run-codex-cell:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 205
+    sourceEndLine: 213
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
-    sourceLine: 40
+    sourceLine: 50
   SYM-skillopt-run-independent-final-state:
     sourceColumn: 22
     sourceEndColumn: 1

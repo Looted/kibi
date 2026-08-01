@@ -16,6 +16,19 @@ export type OptimizeLayout = Readonly<{
   canonicalSkillRoot: string;
 }>;
 
+export type ParsedOperatorArgs = Readonly<{
+  command: OperatorCommand;
+  maxSteps: number;
+}>;
+
+export type OperatorRunOptions = Readonly<{
+  maxSteps?: number;
+}>;
+
+export class OperatorUsageError extends Error {
+  readonly name = "OperatorUsageError";
+}
+
 export type OperatorBaseResolutionOptions = Readonly<{
   runtimeDir?: string;
   cacheRoot?: string;
@@ -219,9 +232,44 @@ async function preparePaidOptimize(
 }
 
 // implements REQ-skillopt-codex-optimization
+export function parseOperatorArgs(args: readonly string[]): ParsedOperatorArgs {
+  const command = args[0];
+  if (command !== "smoke" && command !== "optimize") {
+    throw new OperatorUsageError(
+      "Usage: bun run scripts/skillopt-eval/operator.ts <smoke|optimize> [--max-steps 1..4]",
+    );
+  }
+  let maxSteps = 1;
+  for (let index = 1; index < args.length; index += 1) {
+    const arg = args[index];
+    if (arg === "--max-steps") {
+      if (command !== "optimize") {
+        throw new OperatorUsageError("--max-steps is only valid for optimize");
+      }
+      const value = args[index + 1];
+      if (value === undefined || value.startsWith("--")) {
+        throw new OperatorUsageError("--max-steps requires a value");
+      }
+      const parsed = Number(value);
+      if (!Number.isInteger(parsed) || parsed < 1 || parsed > 4) {
+        throw new OperatorUsageError(
+          "--max-steps must be an integer from 1 to 4",
+        );
+      }
+      maxSteps = parsed;
+      index += 1;
+      continue;
+    }
+    throw new OperatorUsageError(`Unknown operator option: ${arg}`);
+  }
+  return { command, maxSteps };
+}
+
+// implements REQ-skillopt-codex-optimization
 export async function runOperatorCommand(
   command: OperatorCommand,
   dependencies: OperatorDependencies = defaultOperatorDependencies,
+  options: OperatorRunOptions = {},
 ): Promise<number> {
   await ensureUvPin(dependencies);
   await ensureCodexLogin(dependencies);
@@ -235,9 +283,13 @@ export async function runOperatorCommand(
       runId,
     ]);
   }
+  const maxSteps = options.maxSteps ?? 1;
+  if (!Number.isInteger(maxSteps) || maxSteps < 1 || maxSteps > 4) {
+    throw new OperatorUsageError("--max-steps must be an integer from 1 to 4");
+  }
   const layout = await preparePaidOptimize(dependencies);
   process.stderr.write(
-    `skillopt optimize run-id=${layout.runId}\nartifact-root=${layout.artifactRoot}\nfixture-run-root=${layout.fixtureRunRoot}\n`,
+    `skillopt optimize run-id=${layout.runId}\nmax-steps=${maxSteps}\nartifact-root=${layout.artifactRoot}\nfixture-run-root=${layout.fixtureRunRoot}\n`,
   );
   return await dependencies.runCli([
     "optimize",
@@ -250,6 +302,8 @@ export async function runOperatorCommand(
     layout.artifactRoot,
     "--fixture-run-root",
     layout.fixtureRunRoot,
+    "--max-steps",
+    String(maxSteps),
   ]);
 }
 
@@ -257,15 +311,20 @@ export async function main(
   args: readonly string[],
   dependencies: OperatorDependencies = defaultOperatorDependencies,
 ): Promise<number> {
-  const command = args[0];
-  if (command !== "smoke" && command !== "optimize") {
-    process.stderr.write(
-      "Usage: bun run scripts/skillopt-eval/operator.ts <smoke|optimize>\n",
-    );
-    return 2;
+  let parsed: ParsedOperatorArgs;
+  try {
+    parsed = parseOperatorArgs(args);
+  } catch (error) {
+    if (error instanceof OperatorUsageError) {
+      process.stderr.write(`${error.message}\n`);
+      return 2;
+    }
+    throw error;
   }
   try {
-    return await runOperatorCommand(command, dependencies);
+    return await runOperatorCommand(parsed.command, dependencies, {
+      maxSteps: parsed.maxSteps,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     process.stderr.write(`${message}\n`);
