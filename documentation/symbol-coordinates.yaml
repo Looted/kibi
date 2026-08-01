@@ -8684,6 +8684,60 @@ coordinates:
     sourceEndLine: 169
     sourceFile: scripts/skillopt-eval/training-setup.ts
     sourceLine: 140
+  SYM-skillopt-operator-base-resolution-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 23
+    sourceFile: scripts/skillopt-eval/operator.ts
+    sourceLine: 19
+  SYM-skillopt-operator-build-optimize-layout:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 142
+    sourceFile: scripts/skillopt-eval/operator.ts
+    sourceLine: 124
+  SYM-skillopt-operator-command:
+    sourceColumn: 12
+    sourceEndColumn: 51
+    sourceEndLine: 10
+    sourceFile: scripts/skillopt-eval/operator.ts
+    sourceLine: 10
+  SYM-skillopt-operator-default-dependencies:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 121
+    sourceFile: scripts/skillopt-eval/operator.ts
+    sourceLine: 113
+  SYM-skillopt-operator-dependencies:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 36
+    sourceFile: scripts/skillopt-eval/operator.ts
+    sourceLine: 25
+  SYM-skillopt-operator-main:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 274
+    sourceFile: scripts/skillopt-eval/operator.ts
+    sourceLine: 256
+  SYM-skillopt-operator-optimize-layout:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 17
+    sourceFile: scripts/skillopt-eval/operator.ts
+    sourceLine: 12
+  SYM-skillopt-operator-resolve-base:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 111
+    sourceFile: scripts/skillopt-eval/operator.ts
+    sourceLine: 85
+  SYM-skillopt-operator-run-command:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 254
+    sourceFile: scripts/skillopt-eval/operator.ts
+    sourceLine: 222
   SYM-skillopt-optimization-checkpoint:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -9839,9 +9893,9 @@ coordinates:
   SYM-skillopt-runtime-build-sandbox-probe-argv:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 51
+    sourceEndLine: 54
     sourceFile: scripts/skillopt-eval/runtime/canary-probes.ts
-    sourceLine: 32
+    sourceLine: 35
   SYM-skillopt-runtime-canary-evidence-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -10049,9 +10103,9 @@ coordinates:
   SYM-skillopt-runtime-probe-sandbox:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 79
+    sourceEndLine: 82
     sourceFile: scripts/skillopt-eval/runtime/canary-probes.ts
-    sourceLine: 53
+    sourceLine: 56
   SYM-skillopt-runtime-process-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -10127,7 +10181,7 @@ coordinates:
   SYM-skillopt-runtime-source-isolation-paths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 30
+    sourceEndLine: 33
     sourceFile: scripts/skillopt-eval/runtime/canary-probes.ts
     sourceLine: 11
   SYM-skillopt-runtime-stage-canary:
@@ -10163,7 +10217,7 @@ coordinates:
   SYM-skillopt-runtime-verify-canary-evidence:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 62
+    sourceEndLine: 67
     sourceFile: scripts/skillopt-eval/runtime/canary-evidence.ts
     sourceLine: 38
   SYM-skillopt-runtime-workspace-cleanup-error:
@@ -10187,9 +10241,9 @@ coordinates:
   SYM-skillopt-runtime-write-probe:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 102
+    sourceEndLine: 105
     sourceFile: scripts/skillopt-eval/runtime/canary-probes.ts
-    sourceLine: 81
+    sourceLine: 84
   SYM-skillopt-scoring-bootstrap:
     sourceColumn: 16
     sourceEndColumn: 1

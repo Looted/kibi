@@ -15,7 +15,10 @@ export function sourceIsolationDeniedPaths(
 ): readonly string[] {
   return [
     join(realCodexHome, "auth.json"),
-    workspace.codexHome,
+    // Agent command_execution mounts PATH aliases under private CODEX_HOME/tmp,
+    // so the directory itself is readable. Secrets beside that mount must stay denied.
+    join(workspace.codexHome, "auth.json"),
+    join(workspace.codexHome, "config.toml"),
     join(sourceWorktree, "packages/mcp/dist/server.js"),
     join(sourceWorktree, "packages/cli/dist/cli.js"),
     join(sourceWorktree, "packages/core/src/kb.pl"),
