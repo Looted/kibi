@@ -129,6 +129,10 @@ describe("bridge CLI", () => {
         join(root, "artifacts"),
         "--fixture-run-root",
         fixtureRun.roots.runRoot,
+        "--codex-executable",
+        "/staged/codex",
+        "--bwrap-executable",
+        "/staged/codex-resources/bwrap",
       ],
       dependencies,
     );
@@ -205,6 +209,10 @@ describe("bridge CLI", () => {
         join(root, "artifacts"),
         "--fixture-run-root",
         fixtureRun.roots.runRoot,
+        "--codex-executable",
+        "/staged/codex",
+        "--bwrap-executable",
+        "/staged/codex-resources/bwrap",
       ],
       {
         defaultCodexCellDependencies: (options) =>

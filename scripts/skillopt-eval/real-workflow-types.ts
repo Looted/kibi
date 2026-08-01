@@ -129,13 +129,21 @@ const CodexCellRuntimeSchema = z
 // implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export type CodexCellRuntime = Readonly<z.infer<typeof CodexCellRuntimeSchema>>;
+export type ResolvedCodexCellRuntime = CodexCellRuntime &
+  Readonly<{
+    codexExecutable: string;
+    bwrapExecutable: string;
+  }>;
 export type HeldOutCellRunner = typeof runCodexCell;
 
 export class CodexRuntimeError extends Error {
   readonly name = "CodexRuntimeError";
 
   constructor(
-    readonly code: "codex_cell_runtime_required" | "codex_cell_runtime_invalid",
+    readonly code:
+      | "codex_cell_runtime_required"
+      | "codex_cell_runtime_invalid"
+      | "codex_cell_runtime_unstaged",
   ) {
     super(code);
   }
@@ -197,6 +205,7 @@ export type RealOptimizationDependencies = Readonly<{
       artifactRoot: string;
       runId: string;
       env: NodeJS.ProcessEnv;
+      cellRunner?: HeldOutCellRunner;
     }>,
   ) => Promise<DevelopmentGate>;
   evaluateHeldOut: (
@@ -221,11 +230,17 @@ export function canonicalHash(value: unknown): string {
 }
 // implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
-export function requireRuntime(runtime: unknown): CodexCellRuntime {
+export function requireRuntime(runtime: unknown): ResolvedCodexCellRuntime {
   if (runtime === undefined)
     throw new CodexRuntimeError("codex_cell_runtime_required");
   const parsed = CodexCellRuntimeSchema.safeParse(runtime);
   if (!parsed.success)
     throw new CodexRuntimeError("codex_cell_runtime_invalid");
-  return parsed.data;
+  if (
+    parsed.data.codexExecutable === undefined ||
+    parsed.data.bwrapExecutable === undefined
+  ) {
+    throw new CodexRuntimeError("codex_cell_runtime_unstaged");
+  }
+  return parsed.data as ResolvedCodexCellRuntime;
 }

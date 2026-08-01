@@ -17,6 +17,7 @@ import {
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, isAbsolute, join, relative } from "node:path";
+import { verifyProbeEvidence } from "../runtime/canary-evidence";
 import {
   RequiredMcpStartupError,
   RuntimePrerequisiteError,
@@ -53,6 +54,7 @@ async function runCapabilityCanary(
   return baseRunCapabilityCanary(options, {
     ...deps,
     stageDependencies: { codexExecutable: fakeCodexExecutable },
+    verifyEvidence: async (events, probe) => verifyProbeEvidence(events, probe),
   });
 }
 

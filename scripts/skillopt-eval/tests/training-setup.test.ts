@@ -5,6 +5,8 @@ import { join } from "node:path";
 import { runBoundedProcess } from "../runtime/process";
 import {
   BRIDGE_ARTIFACT_ROOT_ENV,
+  BRIDGE_BWRAP_EXECUTABLE_ENV,
+  BRIDGE_CODEX_EXECUTABLE_ENV,
   BRIDGE_FIXTURE_RUN_ROOT_ENV,
   BRIDGE_SOURCE_WORKTREE_ENV,
   type TrainerRequestPayload,
@@ -83,6 +85,8 @@ function sampleInput(artifactRoot: string) {
     env: { PATH: "/usr/bin:/bin" },
     cellRuntime: {
       fixtureRunRoot: "/fixtures/run",
+      codexExecutable: "/runtime/codex",
+      bwrapExecutable: "/runtime/codex-resources/bwrap",
     },
   };
 }
@@ -138,11 +142,15 @@ describe("SkillOpt trainer request contract", () => {
   test("passes bridge execution roots through trainer environment", () => {
     const env = trainerBridgeEnvironment(
       sampleInput("/artifacts/run"),
-      "/fixtures/run",
+      sampleInput("/artifacts/run").cellRuntime,
     );
     expect(env[BRIDGE_SOURCE_WORKTREE_ENV]).toBe("/repo");
     expect(env[BRIDGE_ARTIFACT_ROOT_ENV]).toBe("/artifacts/run/cells");
     expect(env[BRIDGE_FIXTURE_RUN_ROOT_ENV]).toBe("/fixtures/run");
+    expect(env[BRIDGE_CODEX_EXECUTABLE_ENV]).toBe("/runtime/codex");
+    expect(env[BRIDGE_BWRAP_EXECUTABLE_ENV]).toBe(
+      "/runtime/codex-resources/bwrap",
+    );
   });
 
   test("Python TrainRequest accepts the TypeScript trainer payload", async () => {

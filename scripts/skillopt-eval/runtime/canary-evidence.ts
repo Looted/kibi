@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { z } from "zod";
+import { parseTraceReceipts, verifyTraceChain } from "./jsonrpc";
 
 const CommandEventSchema = z.object({
   type: z.literal("item.completed"),
@@ -23,7 +24,15 @@ export type CapabilityProbeEvidence = Readonly<{
 export class CanaryEvidenceError extends Error {
   readonly name = "CanaryEvidenceError";
 
-  constructor(readonly kind: "missing_probe_execution" | "probe_changed") {
+  constructor(
+    readonly kind:
+      | "missing_probe_execution"
+      | "probe_changed"
+      | "invalid_broker_trace"
+      | "missing_mcp_tool_call"
+      | "invalid_diagnostic_receipt"
+      | "missing_diagnostic_receipt",
+  ) {
     super(kind);
   }
 }
@@ -36,6 +45,69 @@ export async function sha256File(path: string): Promise<string> {
 
 // implements REQ-skillopt-codex-optimization
 export async function verifyCapabilityEvidence(
+  events: readonly Readonly<Record<string, unknown>>[],
+  probe: CapabilityProbeEvidence,
+  mcpEvidence?: Readonly<{
+    brokerTrace: string;
+    diagnosticReceipt: string;
+    toolName: string;
+  }>,
+): Promise<void> {
+  await verifyProbeEvidence(events, probe);
+  if (mcpEvidence === undefined) return;
+  const verification = verifyTraceChain(mcpEvidence.brokerTrace);
+  if (!verification.valid || verification.entries === 0) {
+    throw new CanaryEvidenceError("invalid_broker_trace");
+  }
+  const trace = parseTraceReceipts(mcpEvidence.brokerTrace);
+  const requests = trace.filter(
+    (receipt) =>
+      receipt.direction === "target_to_server" &&
+      receipt.kind === "request" &&
+      receipt.method === "tools/call" &&
+      receipt.toolName === mcpEvidence.toolName,
+  );
+  const completed = requests.filter((request) =>
+    trace.some(
+      (receipt) =>
+        receipt.correlationId === request.correlationId &&
+        receipt.direction === "server_to_target" &&
+        receipt.kind === "response" &&
+        receipt.method === "tools/call" &&
+        receipt.toolName === mcpEvidence.toolName,
+    ),
+  );
+  if (requests.length !== 1 || completed.length !== 1) {
+    throw new CanaryEvidenceError("missing_mcp_tool_call");
+  }
+  const diagnosticLines = mcpEvidence.diagnosticReceipt
+    .split("\n")
+    .filter((line) => line.trim() !== "");
+  if (diagnosticLines.length === 0) {
+    throw new CanaryEvidenceError("missing_diagnostic_receipt");
+  }
+  let diagnostics: unknown[];
+  try {
+    diagnostics = diagnosticLines.map((line) => JSON.parse(line));
+  } catch {
+    throw new CanaryEvidenceError("invalid_diagnostic_receipt");
+  }
+  const matchingDiagnostics = diagnostics.filter(
+    (value) =>
+      value !== null &&
+      typeof value === "object" &&
+      !Array.isArray(value) &&
+      (value as Record<string, unknown>).tool === mcpEvidence.toolName &&
+      (value as Record<string, unknown>).status === "success" &&
+      (value as Record<string, unknown>).telemetry !== null &&
+      typeof (value as Record<string, unknown>).telemetry === "object",
+  );
+  if (matchingDiagnostics.length !== 1) {
+    throw new CanaryEvidenceError("invalid_diagnostic_receipt");
+  }
+}
+
+export async function verifyProbeEvidence(
   events: readonly Readonly<Record<string, unknown>>[],
   probe: CapabilityProbeEvidence,
 ): Promise<void> {

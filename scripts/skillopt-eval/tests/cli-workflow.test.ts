@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { type CliDependencies, main } from "../cli";
 import { parseWorkflowOptions } from "../cli-options";
+import { EvaluationInfrastructureError } from "../evaluation-infrastructure";
 import type { RealOptimizationDependencies } from "../real-workflow";
 import {
   type CapabilityCanaryReceipt,
@@ -16,6 +17,10 @@ let canaryCalls = 0;
 let realOptimizationCalls = 0;
 let realOptimizationDependencies:
   | Partial<RealOptimizationDependencies>
+  | undefined;
+let stagedRuntimeCleanups = 0;
+let realOptimizationOptions:
+  | Parameters<CliDependencies["runRealOptimization"]>[0]
   | undefined;
 
 function fakeDependencies(): CliDependencies {
@@ -51,6 +56,7 @@ function fakeDependencies(): CliDependencies {
     },
     runRealOptimization: async (options, dependencies) => {
       realOptimizationCalls += 1;
+      realOptimizationOptions = options;
       realOptimizationDependencies = dependencies;
       return {
         status: "evaluated",
@@ -70,6 +76,17 @@ function fakeDependencies(): CliDependencies {
         "fake cell runner should be reached only by held-out evaluation",
       );
     },
+    createCodexRuntimeLease: async ({ artifactRoot }) => ({
+      root: join(artifactRoot, ".runtime/test-runtime"),
+      codexExecutable: join(artifactRoot, ".runtime/test-runtime/codex"),
+      bwrapExecutable: join(
+        artifactRoot,
+        ".runtime/test-runtime/codex-resources/bwrap",
+      ),
+      cleanup: async () => {
+        stagedRuntimeCleanups += 1;
+      },
+    }),
   };
 }
 
@@ -79,6 +96,8 @@ describe("SkillOpt workflow CLI", () => {
     canaryCalls = 0;
     realOptimizationCalls = 0;
     realOptimizationDependencies = undefined;
+    stagedRuntimeCleanups = 0;
+    realOptimizationOptions = undefined;
   });
 
   test("supports help and zero cost dry run", async () => {
@@ -247,9 +266,75 @@ describe("SkillOpt workflow CLI", () => {
       expect(preflightCalls).toBe(1);
       expect(canaryCalls).toBe(1);
       expect(realOptimizationCalls).toBe(1);
+      expect(stagedRuntimeCleanups).toBe(1);
+      expect(realOptimizationOptions?.cellRuntime).toMatchObject({
+        codexExecutable: expect.stringContaining(".runtime/test-runtime/codex"),
+        bwrapExecutable: expect.stringContaining(
+          ".runtime/test-runtime/codex-resources/bwrap",
+        ),
+      });
       expect(realOptimizationDependencies?.evaluateHeldOut).toEqual(
         expect.any(Function),
       );
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test("returns a structured no-go and cleans the shared runtime after an infrastructure failure", async () => {
+    const root = await mkdtemp(join(tmpdir(), "skillopt-cli-infra-"));
+    const dependencies: CliDependencies = {
+      ...fakeDependencies(),
+    };
+    let cleaned = 0;
+    const createCodexRuntimeLease = async ({
+      artifactRoot,
+    }: { artifactRoot: string }) => ({
+      root: join(artifactRoot, ".runtime/failing-runtime"),
+      codexExecutable: join(artifactRoot, ".runtime/failing-runtime/codex"),
+      bwrapExecutable: join(
+        artifactRoot,
+        ".runtime/failing-runtime/codex-resources/bwrap",
+      ),
+      cleanup: async () => {
+        cleaned += 1;
+      },
+    });
+    const runRealOptimization: CliDependencies["runRealOptimization"] =
+      async () => {
+        throw new EvaluationInfrastructureError({
+          stage: "held-out",
+          taskId: "task-1",
+          variant: "skillopt",
+          status: "infrastructure-failure",
+          criticalFailures: ["missing_diagnostic_receipt"],
+          receiptPath: "/tmp/receipt.json",
+        });
+      };
+
+    try {
+      expect(
+        await main(
+          [
+            "optimize",
+            "--allow-paid",
+            "--skill",
+            "kibi-usage",
+            "--run-id",
+            "00000000-0000-4000-8000-000000000097",
+            "--artifact-root",
+            root,
+            "--fixture-run-root",
+            "/tmp/fixture-run",
+          ],
+          {
+            ...dependencies,
+            createCodexRuntimeLease,
+            runRealOptimization,
+          },
+        ),
+      ).toBe(1);
+      expect(cleaned).toBe(1);
     } finally {
       await rm(root, { recursive: true, force: true });
     }

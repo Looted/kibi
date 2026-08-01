@@ -3,6 +3,7 @@ import {
   resolveArtifactRoot,
   resolveIsolationArtifactRoot,
 } from "./artifact-root";
+import type { verifyCapabilityEvidence } from "./canary-evidence";
 import { runModelCanary } from "./canary-run";
 import {
   probeCodexSandbox,
@@ -54,6 +55,7 @@ export async function runCapabilityCanary(
     probeSandbox?: typeof probeCodexSandbox;
     probeRequiredMcp?: typeof probeRequiredMcp;
     stageDependencies?: Parameters<typeof stageCapabilityCanary>[2];
+    verifyEvidence?: typeof verifyCapabilityEvidence;
   }>,
 ): Promise<CapabilityCanaryReceipt> {
   const sourceWorktree = resolve(options.sourceWorktree ?? process.cwd());
@@ -85,6 +87,7 @@ export async function runCapabilityCanary(
       probeSandbox: dependencies?.probeSandbox ?? probeCodexSandbox,
       probeMcp: dependencies?.probeRequiredMcp ?? probeRequiredMcp,
       stageDependencies: dependencies?.stageDependencies,
+      verifyEvidence: dependencies?.verifyEvidence,
     });
     authMode = result.authMode ?? authMode;
     if (result.kind === "pass") {

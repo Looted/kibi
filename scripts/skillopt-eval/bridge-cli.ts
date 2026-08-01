@@ -1,4 +1,9 @@
 import { JsonValueSchema, canonicalJson } from "./contracts/common";
+import {
+  EVALUATION_INFRASTRUCTURE_MARKER,
+  EvaluationInfrastructureError,
+  evaluationInfrastructurePayload,
+} from "./evaluation-infrastructure";
 import { runBridge } from "./runtime/bridge-cli-execution";
 import {
   bridgeErrorCode,
@@ -52,6 +57,13 @@ if (import.meta.main) {
       process.exitCode = exitCode;
     },
     (error: unknown) => {
+      if (error instanceof EvaluationInfrastructureError) {
+        process.stderr.write(
+          `${EVALUATION_INFRASTRUCTURE_MARKER}${JSON.stringify(evaluationInfrastructurePayload(error))}\n`,
+        );
+        process.exitCode = 1;
+        return;
+      }
       const cause =
         error instanceof Error && error.cause instanceof Error
           ? error.cause.message
