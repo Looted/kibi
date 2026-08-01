@@ -14946,9 +14946,9 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
-    sourceLine: 104
+    sourceLine: 179
     sourceColumn: 13
-    sourceEndLine: 161
+    sourceEndLine: 236
     sourceEndColumn: 3
   - id: SYM-skillopt-default-evaluate-held-out
     title: defaultEvaluateHeldOut
@@ -15004,6 +15004,93 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-build-trainer-request
+    title: buildTrainerRequest
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-seed-trainer-initial-skill
+    title: seedTrainerInitialSkill
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-trainer-bridge-environment
+    title: trainerBridgeEnvironment
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 97
+    sourceColumn: 16
+    sourceEndLine: 107
+    sourceEndColumn: 1
+  - id: SYM-skillopt-bridge-source-worktree-env
+    title: BRIDGE_SOURCE_WORKTREE_ENV
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    symbol_role: config
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 21
+    sourceColumn: 13
+    sourceEndLine: 21
+    sourceEndColumn: 73
+  - id: SYM-skillopt-bridge-artifact-root-env
+    title: BRIDGE_ARTIFACT_ROOT_ENV
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    symbol_role: config
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 22
+    sourceColumn: 13
+    sourceEndLine: 22
+    sourceEndColumn: 69
+  - id: SYM-skillopt-bridge-fixture-run-root-env
+    title: BRIDGE_FIXTURE_RUN_ROOT_ENV
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    symbol_role: config
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 23
+    sourceColumn: 13
+    sourceEndLine: 23
+    sourceEndColumn: 75
+  - id: SYM-skillopt-trainer-request-payload
+    title: TrainerRequestPayload
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    symbol_role: type-shape
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+    sourceLine: 25
+    sourceColumn: 12
+    sourceEndLine: 35
+    sourceEndColumn: 3
   - id: SYM-skillopt-derive-adoption-id
     title: deriveAdoptionId
     sourceFile: scripts/skillopt-eval/adoption-snapshot.ts
@@ -16759,9 +16846,9 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
-    sourceLine: 165
+    sourceLine: 240
     sourceColumn: 13
-    sourceEndLine: 194
+    sourceEndLine: 269
     sourceEndColumn: 1
   - id: SYM-skillopt-operator-base-resolution-options
     title: OperatorBaseResolutionOptions

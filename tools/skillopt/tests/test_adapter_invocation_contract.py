@@ -16,7 +16,15 @@ from tools.skillopt.tests.test_adapter_contract import CORPUS_ROOTS, HASH, publi
 
 class BridgeInvocationContractTests(unittest.TestCase):
     def test_bridge_entrypoint_is_fixed_from_module_root(self) -> None:
-        command = bridge_command()
+        with patch.dict(
+            "os.environ",
+            {
+                "KIBI_SKILLOPT_SOURCE_WORKTREE": "",
+                "KIBI_SKILLOPT_ARTIFACT_ROOT": "",
+                "KIBI_SKILLOPT_FIXTURE_RUN_ROOT": "",
+            },
+        ):
+            command = bridge_command()
         root = bridge_source_root()
         self.assertEqual(command[0], "bun")
         self.assertEqual(command[1], "run")
@@ -26,6 +34,38 @@ class BridgeInvocationContractTests(unittest.TestCase):
             root / "scripts" / "skillopt-eval" / "bridge-cli.ts",
         )
         self.assertEqual(command[3], "--pipe")
+        self.assertEqual(len(command), 4)
+
+    def test_bridge_command_includes_execution_roots_from_environment(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source"
+            artifacts = root / "artifacts"
+            fixtures = root / "fixtures"
+            source.mkdir()
+            artifacts.mkdir()
+            fixtures.mkdir()
+            with patch.dict(
+                "os.environ",
+                {
+                    "KIBI_SKILLOPT_SOURCE_WORKTREE": str(source),
+                    "KIBI_SKILLOPT_ARTIFACT_ROOT": str(artifacts),
+                    "KIBI_SKILLOPT_FIXTURE_RUN_ROOT": str(fixtures),
+                },
+            ):
+                command = bridge_command()
+            self.assertEqual(command[3], "--pipe")
+            self.assertEqual(
+                command[4:],
+                (
+                    "--source-worktree",
+                    str(source),
+                    "--artifact-root",
+                    str(artifacts),
+                    "--fixture-run-root",
+                    str(fixtures),
+                ),
+            )
 
     def test_bridge_environment_is_minimal(self) -> None:
         environment = {

@@ -19,6 +19,9 @@ BridgeProcessFailureKind = Literal[
     "group_unavailable", "startup", "timeout", "interrupted", "output_overflow"
 ]
 MAX_BRIDGE_OUTPUT_BYTES = 1_000_000
+BRIDGE_SOURCE_WORKTREE_ENV = "KIBI_SKILLOPT_SOURCE_WORKTREE"
+BRIDGE_ARTIFACT_ROOT_ENV = "KIBI_SKILLOPT_ARTIFACT_ROOT"
+BRIDGE_FIXTURE_RUN_ROOT_ENV = "KIBI_SKILLOPT_FIXTURE_RUN_ROOT"
 
 
 @dataclass(frozen=True, slots=True)
@@ -43,7 +46,28 @@ def bridge_source_root() -> Path:
 
 def bridge_command() -> tuple[str, ...]:
     entrypoint = bridge_source_root() / "scripts" / "skillopt-eval" / "bridge-cli.ts"
-    return ("bun", "run", str(entrypoint), "--pipe")
+    command = ["bun", "run", str(entrypoint), "--pipe"]
+    source_worktree = os.environ.get(BRIDGE_SOURCE_WORKTREE_ENV) or None
+    artifact_root = os.environ.get(BRIDGE_ARTIFACT_ROOT_ENV) or None
+    fixture_run_root = os.environ.get(BRIDGE_FIXTURE_RUN_ROOT_ENV) or None
+    configured = (source_worktree, artifact_root, fixture_run_root)
+    if any(configured) and not all(configured):
+        raise BridgeError("incomplete_bridge_execution_roots")
+    if all(configured):
+        assert source_worktree is not None
+        assert artifact_root is not None
+        assert fixture_run_root is not None
+        command.extend(
+            (
+                "--source-worktree",
+                source_worktree,
+                "--artifact-root",
+                artifact_root,
+                "--fixture-run-root",
+                fixture_run_root,
+            )
+        )
+    return tuple(command)
 
 
 def run_optimizer_bridge(request_path: Path, result_path: Path) -> None:
@@ -192,5 +216,10 @@ def run_bridge(
         _ = signal.signal(signal.SIGTERM, previous_sigterm)
     if process.returncode != 0:
         _reap_process_group(process, kill_grace_seconds)
-        raise BridgeError(f"bridge_exit:{process.returncode}")
+        detail = stderr.decode("utf-8", errors="replace").strip().replace("\n", " ")
+        if len(detail) > 500:
+            detail = detail[:500]
+        raise BridgeError(
+            f"bridge_exit:{process.returncode}:{detail or 'no_stderr'}"
+        )
     return stdout.decode("utf-8")

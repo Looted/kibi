@@ -18,6 +18,22 @@ import { freezeCandidateVariant } from "./variants";
 
 const SKILLOPT_PROJECT_DIR = "tools/skillopt";
 
+export const BRIDGE_SOURCE_WORKTREE_ENV = "KIBI_SKILLOPT_SOURCE_WORKTREE";
+export const BRIDGE_ARTIFACT_ROOT_ENV = "KIBI_SKILLOPT_ARTIFACT_ROOT";
+export const BRIDGE_FIXTURE_RUN_ROOT_ENV = "KIBI_SKILLOPT_FIXTURE_RUN_ROOT";
+
+export type TrainerRequestPayload = Readonly<{
+  runId: string;
+  skill: string;
+  runRoot: string;
+  outRoot: string;
+  maxSteps: number;
+  sourceLockHash: string;
+  corpusRoots: TrainingInput["corpusRoots"];
+  trainDescriptors: TrainingInput["trainDescriptors"];
+  developmentDescriptors: TrainingInput["developmentDescriptors"];
+}>;
+
 // implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export function skilloptModuleArgv(
@@ -37,12 +53,65 @@ export function skilloptModuleArgv(
   ];
 }
 
+// implements REQ-skillopt-codex-optimization
+// covered_by TEST-skillopt-codex-optimization
+export function buildTrainerRequest(
+  input: TrainingInput,
+): TrainerRequestPayload {
+  return {
+    runId: input.runId,
+    skill: input.skill,
+    runRoot: join(input.artifactRoot, "trainer-run"),
+    outRoot: join(input.artifactRoot, "trainer-output"),
+    maxSteps: input.maxSteps,
+    sourceLockHash: canonicalHash({
+      skill: input.skill,
+      roots: input.corpusRoots,
+    }),
+    corpusRoots: input.corpusRoots,
+    trainDescriptors: input.trainDescriptors,
+    developmentDescriptors: input.developmentDescriptors,
+  };
+}
+
+// implements REQ-skillopt-codex-optimization
+// covered_by TEST-skillopt-codex-optimization
+export async function seedTrainerInitialSkill(
+  outRoot: string,
+  baselineBody: string,
+): Promise<string> {
+  if (baselineBody.trim().length === 0) {
+    throw new Error("trainer_initial_skill_empty");
+  }
+  await mkdir(outRoot, { recursive: true, mode: 0o700 });
+  const initialSkillPath = join(outRoot, "initial-skill.md");
+  await writeFile(initialSkillPath, baselineBody, {
+    encoding: "utf8",
+    mode: 0o600,
+  });
+  return initialSkillPath;
+}
+
+// implements REQ-skillopt-codex-optimization
+// covered_by TEST-skillopt-codex-optimization
+export function trainerBridgeEnvironment(
+  input: TrainingInput,
+  fixtureRunRoot: string,
+): NodeJS.ProcessEnv {
+  return {
+    ...input.env,
+    [BRIDGE_SOURCE_WORKTREE_ENV]: input.sourceWorktree,
+    [BRIDGE_ARTIFACT_ROOT_ENV]: join(input.artifactRoot, "cells"),
+    [BRIDGE_FIXTURE_RUN_ROOT_ENV]: fixtureRunRoot,
+  };
+}
+
 function trainerFailureDetail(result: ProcessResult): string {
   const detail = (result.stderr.trim() || result.stdout.trim()).replace(
     /\s+/g,
     " ",
   );
-  return detail.length > 0 ? detail.slice(0, 500) : "no_output";
+  return detail.length > 0 ? detail.slice(0, 2_000) : "no_output";
 }
 
 // implements REQ-skillopt-codex-optimization
@@ -53,12 +122,14 @@ export const defaultTrain: RealOptimizationDependencies["train"] = async (
   const runtime = requireRuntime(input.cellRuntime);
   const requestPath = join(input.artifactRoot, "trainer-request.json");
   const resultPath = join(input.artifactRoot, "trainer-result.json");
+  const stderrPath = join(input.artifactRoot, "trainer-stderr.log");
   await mkdir(input.artifactRoot, { recursive: true, mode: 0o700 });
-  await writeFile(
-    requestPath,
-    `${JSON.stringify({ runId: input.runId, skill: input.skill, runRoot: join(input.artifactRoot, "trainer-run"), outRoot: join(input.artifactRoot, "trainer-output"), maxSteps: input.maxSteps, sourceLockHash: canonicalHash({ skill: input.skill, roots: input.corpusRoots }), corpusRoots: input.corpusRoots, trainDescriptors: input.trainDescriptors, developmentDescriptors: input.developmentDescriptors, bridgeCommand: ["bun", "run", "scripts/skillopt-eval/bridge-cli.ts", "--source-worktree", input.sourceWorktree, "--artifact-root", join(input.artifactRoot, "cells"), "--fixture-run-root", runtime.fixtureRunRoot], optimizerBridgeCommand: ["bun", "run", "scripts/skillopt-eval/optimizer-bridge-cli.ts"], bridgeCwd: input.sourceWorktree })}\n`,
-    { encoding: "utf8", mode: 0o600 },
-  );
+  const request = buildTrainerRequest(input);
+  await writeFile(requestPath, `${JSON.stringify(request)}\n`, {
+    encoding: "utf8",
+    mode: 0o600,
+  });
+  await seedTrainerInitialSkill(request.outRoot, input.baseline.body);
   const result = await runBoundedProcess({
     argv: skilloptModuleArgv([
       "train",
@@ -68,12 +139,16 @@ export const defaultTrain: RealOptimizationDependencies["train"] = async (
       resultPath,
     ]),
     cwd: input.sourceWorktree,
-    env: input.env,
+    env: trainerBridgeEnvironment(input, runtime.fixtureRunRoot),
     timeoutMs: 15 * 60 * 1000,
   });
   if (result.exitCode !== 0) {
+    await writeFile(stderrPath, result.stderr || result.stdout, {
+      encoding: "utf8",
+      mode: 0o600,
+    });
     throw new Error(
-      `reflact_trainer_exit:${result.exitCode}:${trainerFailureDetail(result)}`,
+      `reflact_trainer_exit:${result.exitCode}:${stderrPath}:${trainerFailureDetail(result)}`,
     );
   }
   const output = TrainResultSchema.parse(

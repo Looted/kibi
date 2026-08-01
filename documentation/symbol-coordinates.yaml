@@ -7112,6 +7112,12 @@ coordinates:
     sourceEndLine: 100
     sourceFile: scripts/skillopt-eval/held-out-cell-binding.ts
     sourceLine: 90
+  SYM-skillopt-bridge-artifact-root-env:
+    sourceColumn: 13
+    sourceEndColumn: 69
+    sourceEndLine: 22
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    sourceLine: 22
   SYM-skillopt-bridge-cli-execution-run:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7142,6 +7148,12 @@ coordinates:
     sourceEndLine: 147
     sourceFile: scripts/skillopt-eval/runtime/bridge-cli-options.ts
     sourceLine: 70
+  SYM-skillopt-bridge-fixture-run-root-env:
+    sourceColumn: 13
+    sourceEndColumn: 75
+    sourceEndLine: 23
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    sourceLine: 23
   SYM-skillopt-bridge-request:
     sourceColumn: 12
     sourceEndColumn: 74
@@ -7166,6 +7178,12 @@ coordinates:
     sourceEndLine: 86
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     sourceLine: 70
+  SYM-skillopt-bridge-source-worktree-env:
+    sourceColumn: 13
+    sourceEndColumn: 73
+    sourceEndLine: 21
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    sourceLine: 21
   SYM-skillopt-bridge-visibility-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -7292,6 +7310,12 @@ coordinates:
     sourceEndLine: 93
     sourceFile: scripts/skillopt-eval/runtime/paid-launch-evidence.ts
     sourceLine: 71
+  SYM-skillopt-build-trainer-request:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 75
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    sourceLine: 58
   SYM-skillopt-caller-score-injection-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -7925,9 +7949,9 @@ coordinates:
   SYM-skillopt-default-evaluate-development:
     sourceColumn: 13
     sourceEndColumn: 3
-    sourceEndLine: 161
+    sourceEndLine: 236
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 104
+    sourceLine: 179
   SYM-skillopt-default-evaluate-held-out:
     sourceColumn: 13
     sourceEndColumn: 3
@@ -7943,9 +7967,9 @@ coordinates:
   SYM-skillopt-default-train:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 100
+    sourceEndLine: 175
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 50
+    sourceLine: 119
   SYM-skillopt-derive-adoption-id:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8639,9 +8663,9 @@ coordinates:
   SYM-skillopt-module-argv:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 38
+    sourceEndLine: 54
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 23
+    sourceLine: 39
   SYM-skillopt-normalize-codex-jsonl:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8687,9 +8711,9 @@ coordinates:
   SYM-skillopt-one-shot-variant:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 194
+    sourceEndLine: 269
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 165
+    sourceLine: 240
   SYM-skillopt-operator-base-resolution-options:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -9467,9 +9491,9 @@ coordinates:
   SYM-skillopt-python-bridge-runner:
     sourceColumn: 4
     sourceEndColumn: 14
-    sourceEndLine: 126
+    sourceEndLine: 150
     sourceFile: tools/skillopt/kibi_skillopt/bridge_runner.py
-    sourceLine: 126
+    sourceLine: 150
   SYM-skillopt-python-canonical-json:
     sourceColumn: 4
     sourceEndColumn: 18
@@ -10412,6 +10436,12 @@ coordinates:
     sourceEndLine: 38
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
     sourceLine: 34
+  SYM-skillopt-seed-trainer-initial-skill:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 93
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    sourceLine: 79
   SYM-skillopt-skill-assembly-receipt-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -10502,6 +10532,18 @@ coordinates:
     sourceEndLine: 23
     sourceFile: scripts/skillopt-eval/optimize.ts
     sourceLine: 19
+  SYM-skillopt-trainer-bridge-environment:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 107
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    sourceLine: 97
+  SYM-skillopt-trainer-request-payload:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 35
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    sourceLine: 25
   SYM-skillopt-validate-approval:
     sourceColumn: 16
     sourceEndColumn: 1
