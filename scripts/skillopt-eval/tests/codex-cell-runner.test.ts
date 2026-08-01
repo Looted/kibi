@@ -4,7 +4,10 @@ import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { RequiredMcpStartupError } from "../runtime/canary-runtime";
-import { runCodexCell } from "../runtime/codex-cell-runner";
+import {
+  EPISODE_OUTPUT_SCHEMA,
+  runCodexCell,
+} from "../runtime/codex-cell-runner";
 import { ProcessControlError, type ProcessResult } from "../runtime/process";
 import {
   HAPPY_STDOUT,
@@ -69,6 +72,15 @@ describe("Codex cell runner", () => {
             join(ephemeralRoot, "codex-home/config.toml"),
             "utf8",
           );
+          expect(
+            JSON.parse(
+              await readFile(
+                join(ephemeralRoot, "workspace/.runtime/episode-output.schema.json"),
+                "utf8",
+              ),
+            ),
+          ).toEqual(EPISODE_OUTPUT_SCHEMA);
+          expect(EPISODE_OUTPUT_SCHEMA.additionalProperties).toBe(false);
           expect(cwd).toContain("/workspace");
           expect(stdin).toBe("Run the fixture task.");
           return {

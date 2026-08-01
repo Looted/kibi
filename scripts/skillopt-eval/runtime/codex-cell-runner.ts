@@ -30,6 +30,16 @@ export type {
   CompletedCodexCell,
 } from "./codex-cell-types";
 
+/** Codex rejects open object schemas; keep this strict like canary/optimizer. */
+export const EPISODE_OUTPUT_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["completed"],
+  properties: {
+    completed: { type: "boolean" },
+  },
+} as const;
+
 function assertNoCallerScoreInjection(options: CodexCellOptions): void {
   if (Object.hasOwn(options, "score") || Object.hasOwn(options, "receipt")) {
     throw new CallerScoreInjectionError();
@@ -91,11 +101,9 @@ export async function runCodexCell(
     const runtimeRoot = join(workspace.target, ".runtime");
     await mkdir(runtimeRoot, { recursive: true, mode: 0o700 });
     const outputSchema = join(runtimeRoot, "episode-output.schema.json");
-    await writeFile(
-      outputSchema,
-      JSON.stringify({ type: "object", additionalProperties: true }),
-      { mode: 0o600 },
-    );
+    await writeFile(outputSchema, JSON.stringify(EPISODE_OUTPUT_SCHEMA), {
+      mode: 0o600,
+    });
     await writeFile(
       join(workspace.codexHome, "config.toml"),
       buildCodexConfig({

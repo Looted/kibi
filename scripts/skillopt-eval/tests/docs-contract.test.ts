@@ -127,7 +127,7 @@ describe("SkillOpt documentation contract", () => {
         Script: "`skillopt:optimize`",
         Command: "`bun run scripts/skillopt-eval/operator.ts optimize`",
         Notes:
-          "Verifies pin and login, materializes fixtures, allocates artifact roots, then runs paid `kibi-usage` optimize (preflight, smoke, Codex rewrite, held-out gates). Writes non-mutating review evidence only.",
+          "Verifies pin and login, materializes fixtures, allocates artifact roots, then runs paid `kibi-usage` optimize (preflight, smoke, Codex rewrite, held-out gates). Writes non-mutating review evidence only. Defaults to `--max-steps 1`; pass `--max-steps 1..4` for more rewrite rounds.",
       },
     ]);
 
@@ -138,6 +138,10 @@ describe("SkillOpt documentation contract", () => {
     });
     expect(docs).toContain("bun run skillopt:smoke");
     expect(docs).toContain("bun run skillopt:optimize");
+    expect(docs).toContain(
+      "bun run scripts/skillopt-eval/operator.ts optimize --max-steps 4",
+    );
+    expect(docs).toContain("max-steps");
   });
 
   test("documents the artifact layout as parsed table rows", () => {
