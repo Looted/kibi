@@ -1,116 +1,63 @@
 # SkillOpt operator guide
 
-SkillOpt is an isolated review tool, not a runtime dependency of Kibi. Real runs use the existing authenticated Codex CLI login from your home directory, then copy that login into a private Codex home before any paid call. Local review is non-mutating: it never changes a canonical skill and every production outcome remains `external-verdict-required`.
+SkillOpt is an isolated review tool, not a runtime dependency of Kibi. Real runs use the existing authenticated Codex CLI login from your home directory, then copy that login into a private Codex home before any paid call. Local review remains non-mutating: it never changes a canonical skill and every production outcome remains `external-verdict-required`.
 
 ## Prerequisites
 
 | Check | Command | Why |
 | --- | --- | --- |
-| Lock the isolated Python environment | `uv sync --project tools/skillopt --frozen` | Keeps the pinned SkillOpt toolchain fixed. |
-| Verify the pinned SkillOpt revision | `uv run --project tools/skillopt python tools/skillopt/verify_pin.py` | Confirms the checked in commit still matches the recorded receipt. |
-| Confirm the existing Codex login | `codex login status` | Must report `Logged in using ChatGPT` before a real optimize run. |
-| Run the isolated Python tests | `uv run --project tools/skillopt python -m unittest discover -s tools/skillopt/tests` | Checks the embedded evaluator without touching the main workspace. |
+| `uv` on PATH | `uv --version` | Operator scripts sync and verify the pinned SkillOpt Python toolchain. |
+| Authenticated Codex CLI | `codex login status` | Must report `Logged in using ChatGPT` before paid smoke or optimize. |
+| Bubblewrap | `bwrap --version` | Required for the isolated Codex capability canary and cell sandboxes. |
+| Clean source worktree | `git status --porcelain` must be empty | Paid optimize preflight rejects dirty trees (`source_not_clean`). |
 
 ## Trust-plane scope
 
-**Primary path for improving `kibi-usage`:** authenticated Codex CLI SkillOpt. Confirm `codex login status` reports `Logged in using ChatGPT`, then use `smoke --allow-paid` / `optimize --skill kibi-usage --allow-paid` as an explicit paid operator action. `prepareExistingLogin` only mirrors that operator-owned session into a private Codex home; it does not provision credentials and does not need a root or provider-key service.
+**Primary path for improving `kibi-usage`:** authenticated Codex CLI SkillOpt. Use the two package scripts below. They verify the pin, confirm the Codex login, and run the paid pipeline. `prepareExistingLogin` only mirrors that operator-owned session into a private Codex home; it does not provision credentials.
 
-Local/fake review (`--fake`, dry-run, prepare) stays non-mutating and never makes paid calls. Canonical skill mutation still requires a separate production-adoption verdict when that lane is used; SkillOpt review artifacts alone do not rewrite production skills.
+Canonical skill mutation still requires a separate production-adoption verdict; SkillOpt review artifacts alone do not rewrite production skills.
 
-An optional privileged verifier/installer lane (`kibi-skillopt-trust-v1`) exists for independent production verification/adoption evidence. It is **not** a prerequisite for Codex SkillOpt review runs or for merging this harness. Repository code does not install, sign, or substitute that bundle. If you need that lane:
-
-```bash
-sudo /usr/libexec/kibi-skillopt-installer install --bundle <signed-bundle> --version kibi-skillopt-trust-v1
-```
+An optional privileged verifier/installer lane (`kibi-skillopt-trust-v1`) exists for independent production verification/adoption evidence. It is **not** a prerequisite for Codex SkillOpt review runs or for merging this harness.
 
 `prepareExistingLogin` copies an existing `~/.codex/auth.json` into a private Codex home with mode `0600`, rejects provider API key env vars, and revalidates `codex login status`.
-
-The Python bridge owns one POSIX process group for its Bun bridge and all inherited Codex and MCP descendants. On timeout, `SIGINT`, or `SIGTERM`, it sends `TERM` to that group, waits a bounded grace period, then sends `KILL` to the group even if its direct Bun child exited first, and reaps that child. The TypeScript runtime inherits that group rather than detaching another one. Workspace cleanup removes every private root best-effort; an error stays retryable until every removal succeeds, so copied auth is never treated as cleaned before it is removed.
-
-## Real workflow
-
-1. Verify the pin.
-   - Run `verify_pin.py` before any paid work.
-
-2. Confirm the Codex login.
-   - `codex login status` must already say `Logged in using ChatGPT`.
-   - The private login setup only mirrors that existing session, it does not provision new provider credentials.
-
-3. Run preflight and canary.
-   - `preflight` checks the source tree, isolated Codex config, and login state.
-   - `smoke --allow-paid` runs the bounded capability canary and may make paid model calls.
-
-4. Prepare, train, and optimize.
-   - `runCodexSkillOptStep` uses the real authenticated Codex CLI to rewrite skill bodies.
-   - `runCodexCell` evaluates each candidate in a fresh isolated workspace with MCP broker startup and independently captures fact queries, validation output, and status. The evaluator manifest must match the requested task ID before a cell can launch.
-
-5. Run a fresh development evaluation.
-   - Development scoring happens on a fresh workspace, not on the training transcript.
-   - The result is recorded in the optimizer review artifact.
-
-6. Run the blinded held out aggregate gate.
-   - Baseline, one shot, and SkillOpt candidates are scored over blinded predicate matrices.
-   - Held out task IDs stay private to the evaluator and do not leak into optimizer input.
-
-7. Hand off the external production verdict.
-   - `runRealOptimization` writes `optimization-review.json` without modifying a canonical skill.
-   - A qualified production decision remains `external-verdict-required`; use the external trust installer handoff above rather than a local CLI adoption command.
-
-## Real versus fake modes
-
-| Mode | Command shape | What it does |
-| --- | --- | --- |
-| Real authenticated Codex | `bun run scripts/skillopt-eval/cli.ts optimize --skill kibi-usage --allow-paid --run-id <uuid> --fixture-run-root <path>` | Uses the existing Codex login and bounded fixture run; it may make paid calls but only writes non-mutating review evidence. |
-| Offline fake | `--fake` on `run`, `resume`, `status`, `report`, `approve`, `adopt` | Stays offline, writes review artifacts, and never makes paid calls. Fake `adopt` is planning-only and never changes the canonical skill. |
-| Local review setup | `dry-run`, `prepare`, `preflight` | Produces review receipts without a paid model call. |
-
-`--fake` is only for offline review artifacts and tests. Real optimize never uses `--fake`.
 
 ## Package scripts
 
 | Script | Command | Notes |
 | --- | --- | --- |
-| `skillopt:help` | `bun run scripts/skillopt-eval/cli.ts --help` | Prints the supported command set and workflow flags. |
-| `skillopt:prototype` | `bun run scripts/skillopt-eval/cli.ts` | Legacy alias that still falls through to help. |
-| `skillopt:preflight` | `bun run scripts/skillopt-eval/cli.ts preflight --run-id 00000000-0000-4000-8000-000000000091` | Codex only evidence gate with no paid model calls. |
-| `skillopt:canary` | `bun run scripts/skillopt-eval/cli.ts smoke --allow-paid --run-id 00000000-0000-4000-8000-000000000091` | Bounded two model Codex capability canary, may incur paid model calls. |
-| `skillopt:dry-run` | `bun run scripts/skillopt-eval/cli.ts dry-run --run-id 00000000-0000-4000-8000-000000000092` | Writes a non-mutating local review artifact tree. |
-| `skillopt:prepare` | `bun run scripts/skillopt-eval/cli.ts prepare --run-id 00000000-0000-4000-8000-000000000092` | Writes the same non-mutating local review artifact shape. |
-| `skillopt:optimize` | `bun run scripts/skillopt-eval/cli.ts optimize --fake --run-id 00000000-0000-4000-8000-000000000092` | Runs non-mutating local optimization review without adopting a candidate. |
-| `skillopt:fake:run` | `bun run scripts/skillopt-eval/cli.ts run --fake --run-id 00000000-0000-4000-8000-000000000093` | Runs the offline workflow without paid calls. |
-| `skillopt:fake:resume` | `bun run scripts/skillopt-eval/cli.ts resume --fake --run-id 00000000-0000-4000-8000-000000000093` | Resumes the same offline workflow. |
-| `skillopt:fake:status` | `bun run scripts/skillopt-eval/cli.ts run --fake --run-id 00000000-0000-4000-8000-000000000093 && bun run scripts/skillopt-eval/cli.ts status --run-id 00000000-0000-4000-8000-000000000093` | Boots a fake run, then reads back its state. |
-| `skillopt:fake:adopt` | `bun run scripts/skillopt-eval/cli.ts adopt --fake --run-id 00000000-0000-4000-8000-000000000093` | Emits a planning-only adoption plan and never changes the canonical skill. |
-
-## Direct CLI commands
+| `skillopt:smoke` | `bun run scripts/skillopt-eval/operator.ts smoke` | Verifies the SkillOpt pin and Codex login, then runs the paid two-model capability canary. |
+| `skillopt:optimize` | `bun run scripts/skillopt-eval/operator.ts optimize` | Verifies pin and login, materializes fixtures, allocates artifact roots, then runs paid `kibi-usage` optimize (preflight, smoke, Codex rewrite, held-out gates). Writes non-mutating review evidence only. |
 
 ```bash
-uv sync --project tools/skillopt --frozen
-uv run --project tools/skillopt python tools/skillopt/verify_pin.py
-codex login status
-bun run scripts/skillopt-eval/cli.ts preflight --run-id <uuid>
-bun run scripts/skillopt-eval/cli.ts smoke --allow-paid --run-id <uuid>
-bun run scripts/skillopt-eval/cli.ts optimize --skill kibi-usage --allow-paid --run-id <uuid> --fixture-run-root <path>
+bun run skillopt:smoke
+bun run skillopt:optimize
 ```
 
-Use a fresh run id for each paid run. Keep `--fake` for offline review work only; fake `adopt` is planning-only and never mutates the canonical skill.
+`skillopt:optimize` prints `run-id`, `artifact-root`, and `fixture-run-root` on stderr. Review output is stored **outside the source worktree** under `$XDG_RUNTIME_DIR/kibi-skillopt/operator/` (falling back to `~/.cache` or the process temp dir), including `optimization-review.json`.
+
+## What optimize runs
+
+1. `uv sync --project tools/skillopt --frozen` and `verify_pin.py`
+2. `codex login status` must already say `Logged in using ChatGPT`
+3. Fresh run id, explicit artifact root outside the protected source tree, and materialized fixture corpus
+4. Preflight, paid capability canary, Codex SkillOpt rewrite of `kibi-usage`, development scoring, and blinded held-out aggregate gates
+5. External production verdict handoff (`external-verdict-required`); no local canonical skill adoption
 
 ## Artifact layout
 
 | Path | Produced by | Meaning |
 | --- | --- | --- |
-| `artifacts/skillopt/<run-id>/dry-run.json` | `dry-run`, `prepare` | Non-mutating local review command receipt. |
-| `artifacts/skillopt/<run-id>/run.lock` | `run`, `resume` | Run lock for the offline workflow. |
-| `artifacts/skillopt/<run-id>/state.json` | `run`, `resume` | Current run state, which `status` reads back. |
-| `artifacts/skillopt/<run-id>/ledger.jsonl` | `run`, `resume` | Append only cost ledger with price equivalent entries. |
-| `artifacts/skillopt/<run-id>/skills/` | `optimize` | Baseline and candidate skill snapshots. |
-| `artifacts/skillopt/<run-id>/steps/` | `optimize` | Per step candidate and development receipts. |
-| `artifacts/skillopt/<run-id>/best_skill.md` | `optimize` | The current best candidate body. |
-| `artifacts/skillopt/<run-id>/runtime_state.json` | `optimize` | Runtime state summary for the optimizer. |
-| `artifacts/skillopt/<run-id>/history.json` | `optimize` | Step history for the optimizer. |
-| `artifacts/skillopt/<run-id>/optimization-review.json` | `optimize` | Candidate hashes, safety results, and the external-verdict-required production handoff. |
-| `artifacts/skillopt/<run-id>/episodes/<episode-id>/` | `runCodexCell` | Ephemeral Codex episode evidence, including `raw-host.jsonl`, `raw-stderr.log`, `normalized-events.jsonl`, `broker-trace.jsonl`, `diagnostic-receipt.jsonl`, `final-state.json`, `evidence-index.json`, and `episode-receipt.json`. |
+| `$OPERATOR_BASE/optimize/<run-id>/skills/` | `optimize` | Baseline and candidate skill snapshots. |
+| `$OPERATOR_BASE/optimize/<run-id>/steps/` | `optimize` | Per step candidate and development receipts. |
+| `$OPERATOR_BASE/optimize/<run-id>/best_skill.md` | `optimize` | The current best candidate body. |
+| `$OPERATOR_BASE/optimize/<run-id>/runtime_state.json` | `optimize` | Runtime state summary for the optimizer. |
+| `$OPERATOR_BASE/optimize/<run-id>/history.json` | `optimize` | Step history for the optimizer. |
+| `$OPERATOR_BASE/optimize/<run-id>/optimization-review.json` | `optimize` | Candidate hashes, safety results, and the external-verdict-required production handoff. |
+| `$OPERATOR_BASE/optimize/<run-id>/episodes/<episode-id>/` | `runCodexCell` | Ephemeral Codex episode evidence, including broker and host receipts. |
+| `$OPERATOR_BASE/fixtures/<run-id>/` | `optimize` | Materialized public/held-out fixture corpus for that run. |
+
+`$OPERATOR_BASE` is `$XDG_RUNTIME_DIR/kibi-skillopt/operator` when the runtime dir is writable; otherwise `~/.cache/kibi-skillopt/operator` or a private temp directory.
 
 ## Recovery
 
-If a fake or real run stalls, rerun with the same `--run-id` to reuse the existing run root. If you need a clean restart, delete `artifacts/skillopt/<run-id>` first. If the source pin changes, rerun `verify_pin.py` and preflight before any paid call. Local review remains non-mutating on retries; production adoption is an external verdict and installer handoff.
+If a run stalls, start a new `bun run skillopt:optimize` (fresh run id). To discard a partial tree, delete the printed `artifact-root` and `fixture-run-root` paths. Local review remains non-mutating on retries; production adoption is an external verdict and installer handoff.

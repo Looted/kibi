@@ -34,4 +34,4 @@ No skill candidate was generated or adopted. The canonical skill sources and gen
 
 ## Scope limitation
 
-This is a hard no-go for the approved Codex-only experiment in this environment, not evidence that SkillOpt cannot improve Kibi skills. Re-run `SKILLOPT_MODEL_ACCESS=true bun run skillopt:preflight -- --run-id <id>` in an environment with an authenticated `codex` CLI, the pinned models, auditable usage, and the required isolation boundary.
+This is a hard no-go for the approved Codex-only experiment in this environment, not evidence that SkillOpt cannot improve Kibi skills. Re-run `bun run skillopt:smoke` in an environment with an authenticated `codex` CLI, the pinned models, auditable usage, and the required isolation boundary.

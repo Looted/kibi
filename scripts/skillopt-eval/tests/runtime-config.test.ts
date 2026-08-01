@@ -12,6 +12,7 @@ import { join } from "node:path";
 import {
   buildCodexSandboxProbeArgv,
   probeCodexSandbox,
+  sourceIsolationDeniedPaths,
 } from "../runtime/canary-runtime";
 import {
   CodexAuthError,
@@ -367,5 +368,31 @@ describe("Codex evaluator-owned permissions", () => {
     expect(config).toContain("allow_local_binding = false");
     expect(config).not.toContain("danger-full-access");
     expect(config).not.toContain("prompt");
+  });
+
+  test("denies private Codex secrets without forbidding the arg0 helper mount", () => {
+    const workspace = {
+      root: "/run/root",
+      codexHome: "/run/root/codex-home",
+      sandboxHome: "/run/root/workspace/.sandbox-home",
+      target: "/run/root/workspace",
+      privateEvidence: "/run/root/private-evidence",
+      privateScorer: "/run/root/private-scorer",
+      siblingRun: "/run/root/sibling-run",
+      cleanup: async () => {},
+    } as const;
+
+    const denied = sourceIsolationDeniedPaths(
+      workspace,
+      "/source",
+      "/home/user/.codex",
+    );
+
+    expect(denied).toContain("/home/user/.codex/auth.json");
+    expect(denied).toContain("/run/root/codex-home/auth.json");
+    expect(denied).toContain("/run/root/codex-home/config.toml");
+    expect(denied).not.toContain("/run/root/codex-home");
+    expect(denied).toContain("/tmp");
+    expect(denied).toContain("/var/tmp");
   });
 });
