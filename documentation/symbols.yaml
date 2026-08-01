@@ -14946,9 +14946,9 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
-    sourceLine: 79
+    sourceLine: 104
     sourceColumn: 13
-    sourceEndLine: 136
+    sourceEndLine: 161
     sourceEndColumn: 3
   - id: SYM-skillopt-default-evaluate-held-out
     title: defaultEvaluateHeldOut
@@ -14995,10 +14995,15 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
-    sourceLine: 21
-    sourceColumn: 13
-    sourceEndLine: 75
-    sourceEndColumn: 1
+  - id: SYM-skillopt-module-argv
+    title: skilloptModuleArgv
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-derive-adoption-id
     title: deriveAdoptionId
     sourceFile: scripts/skillopt-eval/adoption-snapshot.ts
@@ -16754,9 +16759,9 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
-    sourceLine: 140
+    sourceLine: 165
     sourceColumn: 13
-    sourceEndLine: 169
+    sourceEndLine: 194
     sourceEndColumn: 1
   - id: SYM-skillopt-operator-base-resolution-options
     title: OperatorBaseResolutionOptions
@@ -16883,6 +16888,14 @@ symbols:
   - id: SYM-skillopt-operator-tests
     title: operator entrypoint tests
     sourceFile: scripts/skillopt-eval/tests/operator.test.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-training-setup-tests
+    title: training setup tests
+    sourceFile: scripts/skillopt-eval/tests/training-setup.test.ts
     symbol_role: behavioral
     granularity_reason: module-level-behavior
     relationships:

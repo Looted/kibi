@@ -7925,9 +7925,9 @@ coordinates:
   SYM-skillopt-default-evaluate-development:
     sourceColumn: 13
     sourceEndColumn: 3
-    sourceEndLine: 136
+    sourceEndLine: 161
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 79
+    sourceLine: 104
   SYM-skillopt-default-evaluate-held-out:
     sourceColumn: 13
     sourceEndColumn: 3
@@ -7943,9 +7943,9 @@ coordinates:
   SYM-skillopt-default-train:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 75
+    sourceEndLine: 100
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 21
+    sourceLine: 50
   SYM-skillopt-derive-adoption-id:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8636,6 +8636,12 @@ coordinates:
     sourceEndLine: 70
     sourceFile: scripts/skillopt-eval/report.ts
     sourceLine: 63
+  SYM-skillopt-module-argv:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 38
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    sourceLine: 23
   SYM-skillopt-normalize-codex-jsonl:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8681,9 +8687,9 @@ coordinates:
   SYM-skillopt-one-shot-variant:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 169
+    sourceEndLine: 194
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 140
+    sourceLine: 165
   SYM-skillopt-operator-base-resolution-options:
     sourceColumn: 12
     sourceEndColumn: 3

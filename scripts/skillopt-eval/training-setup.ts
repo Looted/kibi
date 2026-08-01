@@ -12,9 +12,38 @@ import {
 import { runCodexCell } from "./runtime/codex-cell-runner";
 import { runCodexSkillOptStep } from "./runtime/codex-optimizer";
 import { PublicTaskClaimSchema } from "./runtime/file-bridge";
-import { runBoundedProcess } from "./runtime/process";
+import { type ProcessResult, runBoundedProcess } from "./runtime/process";
 import { resolveTaskFixture } from "./runtime/task-fixture";
 import { freezeCandidateVariant } from "./variants";
+
+const SKILLOPT_PROJECT_DIR = "tools/skillopt";
+
+// implements REQ-skillopt-codex-optimization
+// covered_by TEST-skillopt-codex-optimization
+export function skilloptModuleArgv(
+  moduleArgs: readonly string[],
+): readonly [string, ...string[]] {
+  // uv adds the project directory to import path; --directory keeps that
+  // rooted at tools/skillopt even when the process cwd is the repo root.
+  return [
+    "uv",
+    "run",
+    "--directory",
+    SKILLOPT_PROJECT_DIR,
+    "python",
+    "-m",
+    "kibi_skillopt",
+    ...moduleArgs,
+  ];
+}
+
+function trainerFailureDetail(result: ProcessResult): string {
+  const detail = (result.stderr.trim() || result.stdout.trim()).replace(
+    /\s+/g,
+    " ",
+  );
+  return detail.length > 0 ? detail.slice(0, 500) : "no_output";
+}
 
 // implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
@@ -31,26 +60,22 @@ export const defaultTrain: RealOptimizationDependencies["train"] = async (
     { encoding: "utf8", mode: 0o600 },
   );
   const result = await runBoundedProcess({
-    argv: [
-      "uv",
-      "run",
-      "--project",
-      "tools/skillopt",
-      "python",
-      "-m",
-      "kibi_skillopt",
+    argv: skilloptModuleArgv([
       "train",
       "--request",
       requestPath,
       "--result",
       resultPath,
-    ],
+    ]),
     cwd: input.sourceWorktree,
     env: input.env,
     timeoutMs: 15 * 60 * 1000,
   });
-  if (result.exitCode !== 0)
-    throw new Error(`reflact_trainer_exit:${result.exitCode}`);
+  if (result.exitCode !== 0) {
+    throw new Error(
+      `reflact_trainer_exit:${result.exitCode}:${trainerFailureDetail(result)}`,
+    );
+  }
   const output = TrainResultSchema.parse(
     JSON.parse(await readFile(resultPath, "utf8")),
   );
