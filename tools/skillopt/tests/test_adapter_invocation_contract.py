@@ -22,6 +22,8 @@ class BridgeInvocationContractTests(unittest.TestCase):
                 "KIBI_SKILLOPT_SOURCE_WORKTREE": "",
                 "KIBI_SKILLOPT_ARTIFACT_ROOT": "",
                 "KIBI_SKILLOPT_FIXTURE_RUN_ROOT": "",
+                "KIBI_SKILLOPT_CODEX_EXECUTABLE": "",
+                "KIBI_SKILLOPT_BWRAP_EXECUTABLE": "",
             },
         ):
             command = bridge_command()
@@ -51,6 +53,8 @@ class BridgeInvocationContractTests(unittest.TestCase):
                     "KIBI_SKILLOPT_SOURCE_WORKTREE": str(source),
                     "KIBI_SKILLOPT_ARTIFACT_ROOT": str(artifacts),
                     "KIBI_SKILLOPT_FIXTURE_RUN_ROOT": str(fixtures),
+                    "KIBI_SKILLOPT_CODEX_EXECUTABLE": "/runtime/codex",
+                    "KIBI_SKILLOPT_BWRAP_EXECUTABLE": "/runtime/codex-resources/bwrap",
                 },
             ):
                 command = bridge_command()
@@ -64,8 +68,26 @@ class BridgeInvocationContractTests(unittest.TestCase):
                     str(artifacts),
                     "--fixture-run-root",
                     str(fixtures),
+                    "--codex-executable",
+                    "/runtime/codex",
+                    "--bwrap-executable",
+                    "/runtime/codex-resources/bwrap",
                 ),
             )
+
+    def test_bridge_command_rejects_partial_staged_runtime(self) -> None:
+        with patch.dict(
+            "os.environ",
+            {
+                "KIBI_SKILLOPT_SOURCE_WORKTREE": "/repo",
+                "KIBI_SKILLOPT_ARTIFACT_ROOT": "/artifacts",
+                "KIBI_SKILLOPT_FIXTURE_RUN_ROOT": "/fixtures",
+                "KIBI_SKILLOPT_CODEX_EXECUTABLE": "/runtime/codex",
+                "KIBI_SKILLOPT_BWRAP_EXECUTABLE": "",
+            },
+        ):
+            with self.assertRaisesRegex(Exception, "incomplete_bridge_execution_roots"):
+                _ = bridge_command()
 
     def test_bridge_environment_is_minimal(self) -> None:
         environment = {

@@ -75,6 +75,13 @@ const TOOL_ANNOTATIONS: Partial<Record<OperationName, ToolAnnotations>> = {
     idempotentHint: true,
     openWorldHint: false,
   },
+  kb_semantic_advisor: {
+    title: "Advise on Kibi requirement modeling",
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
 };
 
 const BASE_TOOLS: readonly ToolConfig[] = MCP_TOOL_ORDER.map((name) => {

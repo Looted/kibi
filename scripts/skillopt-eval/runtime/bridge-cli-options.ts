@@ -1,4 +1,5 @@
 import { resolve } from "node:path";
+import { EvaluationInfrastructureError } from "../evaluation-infrastructure";
 import { CodexAuthError } from "./codex-auth";
 import { FixtureIntegrityError } from "./codex-cell-runner";
 import { ProcessControlError } from "./process";
@@ -11,8 +12,8 @@ type BridgeOptions = Readonly<{
   sourceWorktree?: string;
   artifactRoot?: string;
   fixtureRunRoot?: string;
-  codexExecutable: string;
-  bwrapExecutable: string;
+  codexExecutable?: string;
+  bwrapExecutable?: string;
   timeoutMs: number;
   pricingHash: string;
   priceAmount: number;
@@ -73,8 +74,8 @@ export function parseBridgeOptions(args: readonly string[]): BridgeOptions {
   let sourceWorktree: string | undefined;
   let artifactRoot: string | undefined;
   let fixtureRunRoot: string | undefined;
-  let codexExecutable = "codex";
-  let bwrapExecutable = "/usr/bin/bwrap";
+  let codexExecutable: string | undefined;
+  let bwrapExecutable: string | undefined;
   let timeoutMs = 180_000;
   let pricingHash = "0".repeat(64);
   let priceAmount = 0;
@@ -103,8 +104,8 @@ export function parseBridgeOptions(args: readonly string[]): BridgeOptions {
     else if (option === "--source-worktree") sourceWorktree = resolve(value);
     else if (option === "--artifact-root") artifactRoot = resolve(value);
     else if (option === "--fixture-run-root") fixtureRunRoot = resolve(value);
-    else if (option === "--codex-executable") codexExecutable = value;
-    else if (option === "--bwrap-executable") bwrapExecutable = value;
+    else if (option === "--codex-executable") codexExecutable = resolve(value);
+    else if (option === "--bwrap-executable") bwrapExecutable = resolve(value);
     else if (option === "--timeout-ms")
       timeoutMs = parsePositiveInteger(value, option);
     else if (option === "--pricing-hash") pricingHash = value;
@@ -125,7 +126,9 @@ export function parseBridgeOptions(args: readonly string[]): BridgeOptions {
     !fake &&
     (sourceWorktree === undefined ||
       artifactRoot === undefined ||
-      fixtureRunRoot === undefined)
+      fixtureRunRoot === undefined ||
+      codexExecutable === undefined ||
+      bwrapExecutable === undefined)
   ) {
     throw new BridgeCliInputError("missing_real_execution_options");
   }
@@ -163,6 +166,8 @@ export function bridgeFailure(error: unknown): BridgeExecutionError {
 }
 
 export function bridgeErrorCode(error: unknown): string {
+  if (error instanceof EvaluationInfrastructureError)
+    return "BRIDGE_CELL_INFRASTRUCTURE_FAILED";
   if (error instanceof BridgeCliInputError) return "BRIDGE_INPUT_INVALID";
   if (error instanceof BridgeExecutionError) {
     return `BRIDGE_${error.kind.toUpperCase()}_FAILED`;

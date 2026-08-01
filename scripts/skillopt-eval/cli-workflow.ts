@@ -7,6 +7,10 @@ import {
   prepareArtifactPath,
 } from "./artifact-path";
 import { CliUsageError, type WorkflowOptions } from "./cli-options";
+import {
+  EvaluationInfrastructureError,
+  evaluationInfrastructurePayload,
+} from "./evaluation-infrastructure";
 import { defaultEvaluateHeldOut } from "./held-out-evaluation";
 import {
   buildOfflineReviewArtifacts,
@@ -19,6 +23,10 @@ import { prepareArtifact } from "./prepared-root";
 import { runRealOptimization } from "./real-workflow";
 import type { HeldOutCellRunner } from "./real-workflow-types";
 import { runCodexCell } from "./runtime/codex-cell-runner";
+import {
+  type CodexRuntimeLease,
+  createCodexRuntimeLease,
+} from "./runtime/codex-runtime";
 
 const STATEFUL_COMMANDS = new Set([
   "run",
@@ -36,6 +44,9 @@ export type WorkflowDependencies = Readonly<{
   readonly runRealOptimization: typeof runRealOptimization;
   readonly evaluateHeldOut: typeof defaultEvaluateHeldOut;
   readonly cellRunner: HeldOutCellRunner;
+  readonly createCodexRuntimeLease: (
+    options: Readonly<{ artifactRoot: string }>,
+  ) => Promise<CodexRuntimeLease>;
 }>;
 
 export const defaultWorkflowDependencies = {
@@ -44,6 +55,7 @@ export const defaultWorkflowDependencies = {
   runRealOptimization,
   evaluateHeldOut: defaultEvaluateHeldOut,
   cellRunner: runCodexCell,
+  createCodexRuntimeLease,
 } satisfies WorkflowDependencies;
 
 type WorkflowExecution = Readonly<{
@@ -228,26 +240,61 @@ async function runPaidOptimization(
     );
     return 1;
   }
-  const result = await dependencies.runRealOptimization(
-    {
-      runId: options.runId,
+  let runtimeLease: CodexRuntimeLease;
+  try {
+    runtimeLease = await dependencies.createCodexRuntimeLease({
       artifactRoot: options.artifactRoot,
-      sourceWorktree: process.cwd(),
-      skills: [options.skill],
-      maxSteps: options.maxSteps,
-      cellRuntime: options.cellRuntime,
-      artifactPath,
-    },
-    {
-      evaluateHeldOut: (input) =>
-        dependencies.evaluateHeldOut({
-          ...input,
-          cellRunner: dependencies.cellRunner,
-        }),
-    },
-  );
-  process.stdout.write(
-    `${JSON.stringify({ command, preflight, smoke, ...result })}\n`,
-  );
-  return 0;
+    });
+  } catch (error) {
+    const failure = new EvaluationInfrastructureError({
+      stage: "runtime",
+      taskId: "runtime-staging",
+      variant: "skillopt",
+      status: "runtime-staging-failure",
+      criticalFailures: [
+        error instanceof Error ? error.message : "runtime_staging_failure",
+      ],
+      receiptPath: null,
+    });
+    process.stdout.write(
+      `${JSON.stringify({ command, ...evaluationInfrastructurePayload(failure) })}\n`,
+    );
+    return 1;
+  }
+  try {
+    const result = await dependencies.runRealOptimization(
+      {
+        runId: options.runId,
+        artifactRoot: options.artifactRoot,
+        sourceWorktree: process.cwd(),
+        skills: [options.skill],
+        maxSteps: options.maxSteps,
+        cellRuntime: {
+          ...options.cellRuntime,
+          codexExecutable: runtimeLease.codexExecutable,
+          bwrapExecutable: runtimeLease.bwrapExecutable,
+        },
+        artifactPath,
+      },
+      {
+        evaluateHeldOut: (input) =>
+          dependencies.evaluateHeldOut({
+            ...input,
+            cellRunner: dependencies.cellRunner,
+          }),
+      },
+    );
+    process.stdout.write(
+      `${JSON.stringify({ command, preflight, smoke, ...result })}\n`,
+    );
+    return 0;
+  } catch (error) {
+    if (!(error instanceof EvaluationInfrastructureError)) throw error;
+    process.stdout.write(
+      `${JSON.stringify({ command, ...evaluationInfrastructurePayload(error) })}\n`,
+    );
+    return 1;
+  } finally {
+    await runtimeLease.cleanup();
+  }
 }

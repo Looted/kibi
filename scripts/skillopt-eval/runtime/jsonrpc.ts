@@ -131,6 +131,10 @@ function parsedLines(text: string): readonly TraceReceipt[] {
     .map((line) => parseTraceReceipt(JSON.parse(line)));
 }
 
+export function parseTraceReceipts(text: string): readonly TraceReceipt[] {
+  return parsedLines(text);
+}
+
 // implements REQ-skillopt-codex-optimization
 export async function appendTraceReceipt(
   tracePath: string,

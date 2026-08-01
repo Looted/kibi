@@ -287,15 +287,15 @@ coordinates:
   SYM-CodexRuntimeError:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 142
+    sourceEndLine: 150
     sourceFile: scripts/skillopt-eval/real-workflow-types.ts
-    sourceLine: 134
+    sourceLine: 139
   SYM-CodexRuntimeError-name:
     sourceColumn: 11
     sourceEndColumn: 38
-    sourceEndLine: 135
+    sourceEndLine: 140
     sourceFile: scripts/skillopt-eval/real-workflow-types.ts
-    sourceLine: 135
+    sourceLine: 140
   SYM-DEFAULT-CONFIG:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -491,9 +491,9 @@ coordinates:
   SYM-ExtractedSymbol:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 39
+    sourceEndLine: 34
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
-    sourceLine: 26
+    sourceLine: 21
   SYM-ExtractionResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -569,9 +569,9 @@ coordinates:
   SYM-HeldOutCellRunner:
     sourceColumn: 12
     sourceEndColumn: 52
-    sourceEndLine: 132
+    sourceEndLine: 137
     sourceFile: scripts/skillopt-eval/real-workflow-types.ts
-    sourceLine: 132
+    sourceLine: 137
   SYM-HeldOutEligibilityReceipt:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -1019,15 +1019,15 @@ coordinates:
   SYM-ManifestLookup:
     sourceColumn: 12
     sourceEndColumn: 62
-    sourceEndLine: 46
+    sourceEndLine: 41
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
-    sourceLine: 46
+    sourceLine: 41
   SYM-ManifestLookupEntry:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 44
+    sourceEndLine: 39
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
-    sourceLine: 41
+    sourceLine: 36
   SYM-ManifestSymbolEntry:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1355,21 +1355,21 @@ coordinates:
   SYM-RealOptimizationDependencies:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 216
+    sourceEndLine: 225
     sourceFile: scripts/skillopt-eval/real-workflow-types.ts
-    sourceLine: 184
+    sourceLine: 192
   SYM-RealOptimizationOptions:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 156
+    sourceEndLine: 164
     sourceFile: scripts/skillopt-eval/real-workflow-types.ts
-    sourceLine: 147
+    sourceLine: 155
   SYM-RealOptimizationResult:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 169
+    sourceEndLine: 177
     sourceFile: scripts/skillopt-eval/real-workflow-types.ts
-    sourceLine: 159
+    sourceLine: 167
   SYM-ReconcileResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1907,9 +1907,9 @@ coordinates:
   SYM-TOOLS:
     sourceColumn: 13
     sourceEndColumn: 19
-    sourceEndLine: 123
+    sourceEndLine: 130
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 121
+    sourceLine: 128
   SYM-TRACEABILITY_RELATIONSHIP_TYPES:
     sourceColumn: 13
     sourceEndColumn: 10
@@ -2081,9 +2081,9 @@ coordinates:
   SYM-WorkflowDependencies:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 39
+    sourceEndLine: 50
     sourceFile: scripts/skillopt-eval/cli-workflow.ts
-    sourceLine: 33
+    sourceLine: 41
   SYM-activate:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3515,9 +3515,9 @@ coordinates:
   SYM-createManifestLookupSentinelKey:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 51
+    sourceEndLine: 46
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
-    sourceLine: 48
+    sourceLine: 43
   SYM-createMcpRuntime:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3893,9 +3893,9 @@ coordinates:
   SYM-defaultWorkflowDependencies:
     sourceColumn: 13
     sourceEndColumn: 32
-    sourceEndLine: 47
+    sourceEndLine: 59
     sourceFile: scripts/skillopt-eval/cli-workflow.ts
-    sourceLine: 41
+    sourceLine: 52
   SYM-deriveDiagnosticFields:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4163,9 +4163,9 @@ coordinates:
   SYM-extractSymbolsFromStagedFile:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 581
+    sourceEndLine: 576
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
-    sourceLine: 278
+    sourceLine: 273
   SYM-extractToolCallPayload:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7082,6 +7082,12 @@ coordinates:
     sourceEndLine: 107
     sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
     sourceLine: 96
+  SYM-skillopt-assert-cell-infrastructure-healthy:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 68
+    sourceFile: scripts/skillopt-eval/evaluation-infrastructure.ts
+    sourceLine: 49
   SYM-skillopt-assert-file-identity:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7115,45 +7121,57 @@ coordinates:
   SYM-skillopt-bridge-artifact-root-env:
     sourceColumn: 13
     sourceEndColumn: 69
-    sourceEndLine: 22
+    sourceEndLine: 26
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 22
+    sourceLine: 26
+  SYM-skillopt-bridge-bwrap-executable-env:
+    sourceColumn: 13
+    sourceEndColumn: 75
+    sourceEndLine: 29
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    sourceLine: 29
   SYM-skillopt-bridge-cli-execution-run:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 173
+    sourceEndLine: 185
     sourceFile: scripts/skillopt-eval/runtime/bridge-cli-execution.ts
-    sourceLine: 165
+    sourceLine: 177
   SYM-skillopt-bridge-cli-main:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 47
+    sourceEndLine: 52
     sourceFile: scripts/skillopt-eval/bridge-cli.ts
-    sourceLine: 31
+    sourceLine: 36
   SYM-skillopt-bridge-cli-options-error-code:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 171
+    sourceEndLine: 176
     sourceFile: scripts/skillopt-eval/runtime/bridge-cli-options.ts
-    sourceLine: 165
+    sourceLine: 168
   SYM-skillopt-bridge-cli-options-failure:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 163
+    sourceEndLine: 166
     sourceFile: scripts/skillopt-eval/runtime/bridge-cli-options.ts
-    sourceLine: 150
+    sourceLine: 153
   SYM-skillopt-bridge-cli-options-parse:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 147
+    sourceEndLine: 150
     sourceFile: scripts/skillopt-eval/runtime/bridge-cli-options.ts
-    sourceLine: 70
+    sourceLine: 71
+  SYM-skillopt-bridge-codex-executable-env:
+    sourceColumn: 13
+    sourceEndColumn: 75
+    sourceEndLine: 28
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    sourceLine: 28
   SYM-skillopt-bridge-fixture-run-root-env:
     sourceColumn: 13
     sourceEndColumn: 75
-    sourceEndLine: 23
+    sourceEndLine: 27
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 23
+    sourceLine: 27
   SYM-skillopt-bridge-request:
     sourceColumn: 12
     sourceEndColumn: 74
@@ -7181,9 +7199,9 @@ coordinates:
   SYM-skillopt-bridge-source-worktree-env:
     sourceColumn: 13
     sourceEndColumn: 73
-    sourceEndLine: 21
+    sourceEndLine: 25
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 21
+    sourceLine: 25
   SYM-skillopt-bridge-visibility-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -7313,9 +7331,9 @@ coordinates:
   SYM-skillopt-build-trainer-request:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 75
+    sourceEndLine: 81
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 58
+    sourceLine: 64
   SYM-skillopt-caller-score-injection-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -7526,6 +7544,18 @@ coordinates:
     sourceEndLine: 172
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
     sourceLine: 85
+  SYM-skillopt-codex-runtime-lease:
+    sourceColumn: 12
+    sourceEndColumn: 5
+    sourceEndLine: 23
+    sourceFile: scripts/skillopt-eval/runtime/codex-runtime.ts
+    sourceLine: 19
+  SYM-skillopt-codex-runtime-staging-dependencies:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 28
+    sourceFile: scripts/skillopt-eval/runtime/codex-runtime.ts
+    sourceLine: 25
   SYM-skillopt-codex-violation-type:
     sourceColumn: 12
     sourceEndColumn: 63
@@ -7916,6 +7946,12 @@ coordinates:
     sourceEndLine: 163
     sourceFile: scripts/skillopt-eval/variants.ts
     sourceLine: 145
+  SYM-skillopt-create-codex-runtime-lease:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 108
+    sourceFile: scripts/skillopt-eval/runtime/codex-runtime.ts
+    sourceLine: 83
   SYM-skillopt-create-journal:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7949,15 +7985,15 @@ coordinates:
   SYM-skillopt-default-evaluate-development:
     sourceColumn: 13
     sourceEndColumn: 3
-    sourceEndLine: 236
+    sourceEndLine: 254
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 179
+    sourceLine: 191
   SYM-skillopt-default-evaluate-held-out:
     sourceColumn: 13
     sourceEndColumn: 3
-    sourceEndLine: 208
+    sourceEndLine: 214
     sourceFile: scripts/skillopt-eval/held-out-evaluation.ts
-    sourceLine: 115
+    sourceLine: 116
   SYM-skillopt-default-run-mirror-sync:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7967,9 +8003,9 @@ coordinates:
   SYM-skillopt-default-train:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 175
+    sourceEndLine: 187
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 119
+    sourceLine: 127
   SYM-skillopt-derive-adoption-id:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8054,6 +8090,42 @@ coordinates:
     sourceEndLine: 146
     sourceFile: scripts/skillopt-eval/scoring/predicate-evidence.ts
     sourceLine: 135
+  SYM-skillopt-evaluation-infrastructure-details:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 25
+    sourceFile: scripts/skillopt-eval/evaluation-infrastructure.ts
+    sourceLine: 18
+  SYM-skillopt-evaluation-infrastructure-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 35
+    sourceFile: scripts/skillopt-eval/evaluation-infrastructure.ts
+    sourceLine: 29
+  SYM-skillopt-evaluation-infrastructure-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 50
+    sourceEndLine: 30
+    sourceFile: scripts/skillopt-eval/evaluation-infrastructure.ts
+    sourceLine: 30
+  SYM-skillopt-evaluation-infrastructure-marker:
+    sourceColumn: 13
+    sourceEndColumn: 79
+    sourceEndLine: 10
+    sourceFile: scripts/skillopt-eval/evaluation-infrastructure.ts
+    sourceLine: 10
+  SYM-skillopt-evaluation-infrastructure-payload:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 85
+    sourceFile: scripts/skillopt-eval/evaluation-infrastructure.ts
+    sourceLine: 70
+  SYM-skillopt-evaluation-infrastructure-stage:
+    sourceColumn: 12
+    sourceEndColumn: 15
+    sourceEndLine: 16
+    sourceFile: scripts/skillopt-eval/evaluation-infrastructure.ts
+    sourceLine: 12
   SYM-skillopt-evaluator-roots:
     sourceColumn: 13
     sourceEndColumn: 10
@@ -8567,27 +8639,33 @@ coordinates:
   SYM-skillopt-jsonrpc-append-trace:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 166
+    sourceEndLine: 170
     sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
-    sourceLine: 135
+    sourceLine: 139
   SYM-skillopt-jsonrpc-id:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 212
+    sourceEndLine: 216
     sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
-    sourceLine: 205
+    sourceLine: 209
   SYM-skillopt-jsonrpc-method:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 218
+    sourceEndLine: 222
     sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
-    sourceLine: 214
+    sourceLine: 218
   SYM-skillopt-jsonrpc-parse-object:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 203
+    sourceEndLine: 207
     sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
-    sourceLine: 199
+    sourceLine: 203
+  SYM-skillopt-jsonrpc-parse-trace-receipts:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 136
+    sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
+    sourceLine: 134
   SYM-skillopt-jsonrpc-redact:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8597,9 +8675,9 @@ coordinates:
   SYM-skillopt-jsonrpc-tool-name:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 226
+    sourceEndLine: 230
     sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
-    sourceLine: 220
+    sourceLine: 224
   SYM-skillopt-jsonrpc-trace-input:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -8615,15 +8693,15 @@ coordinates:
   SYM-skillopt-jsonrpc-trace-verification:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 172
+    sourceEndLine: 176
     sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
-    sourceLine: 168
+    sourceLine: 172
   SYM-skillopt-jsonrpc-verify-trace:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 197
+    sourceEndLine: 201
     sourceFile: scripts/skillopt-eval/runtime/jsonrpc.ts
-    sourceLine: 175
+    sourceLine: 179
   SYM-skillopt-knowledge-state-type:
     sourceColumn: 12
     sourceEndColumn: 70
@@ -8669,9 +8747,9 @@ coordinates:
   SYM-skillopt-module-argv:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 54
+    sourceEndLine: 60
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 39
+    sourceLine: 45
   SYM-skillopt-normalize-codex-jsonl:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8717,9 +8795,9 @@ coordinates:
   SYM-skillopt-one-shot-variant:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 269
+    sourceEndLine: 287
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 240
+    sourceLine: 258
   SYM-skillopt-operator-base-resolution-options:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -8834,6 +8912,12 @@ coordinates:
     sourceEndLine: 117
     sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
     sourceLine: 111
+  SYM-skillopt-parse-evaluation-infrastructure-marker:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 123
+    sourceFile: scripts/skillopt-eval/evaluation-infrastructure.ts
+    sourceLine: 87
   SYM-skillopt-parse-final-debit-receipt:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -9527,9 +9611,9 @@ coordinates:
   SYM-skillopt-python-bridge-runner:
     sourceColumn: 4
     sourceEndColumn: 14
-    sourceEndLine: 150
+    sourceEndLine: 166
     sourceFile: tools/skillopt/kibi_skillopt/bridge_runner.py
-    sourceLine: 150
+    sourceLine: 166
   SYM-skillopt-python-canonical-json:
     sourceColumn: 4
     sourceEndColumn: 18
@@ -9677,9 +9761,9 @@ coordinates:
   SYM-skillopt-real-workflow-types-canonical-hash:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 221
+    sourceEndLine: 230
     sourceFile: scripts/skillopt-eval/real-workflow-types.ts
-    sourceLine: 219
+    sourceLine: 228
   SYM-skillopt-real-workflow-types-corpus-roots:
     sourceColumn: 12
     sourceEndColumn: 54
@@ -9695,9 +9779,9 @@ coordinates:
   SYM-skillopt-real-workflow-types-held-out-evaluation:
     sourceColumn: 12
     sourceEndColumn: 7
-    sourceEndLine: 181
+    sourceEndLine: 189
     sourceFile: scripts/skillopt-eval/real-workflow-types.ts
-    sourceLine: 172
+    sourceLine: 180
   SYM-skillopt-real-workflow-types-predicate-descriptor:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -9707,9 +9791,9 @@ coordinates:
   SYM-skillopt-real-workflow-types-require-runtime:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 231
+    sourceEndLine: 246
     sourceFile: scripts/skillopt-eval/real-workflow-types.ts
-    sourceLine: 224
+    sourceLine: 233
   SYM-skillopt-real-workflow-types-review-schema:
     sourceColumn: 13
     sourceEndColumn: 11
@@ -9824,6 +9908,12 @@ coordinates:
     sourceEndLine: 176
     sourceFile: scripts/skillopt-eval/runtime/task-fixture.ts
     sourceLine: 87
+  SYM-skillopt-resolved-codex-cell-runtime:
+    sourceColumn: 12
+    sourceEndColumn: 5
+    sourceEndLine: 136
+    sourceFile: scripts/skillopt-eval/real-workflow-types.ts
+    sourceLine: 132
   SYM-skillopt-review-held-out-matrix:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -9905,9 +9995,9 @@ coordinates:
   SYM-skillopt-run-workflow-command:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 98
+    sourceEndLine: 110
     sourceFile: scripts/skillopt-eval/cli-workflow.ts
-    sourceLine: 57
+    sourceLine: 69
   SYM-skillopt-runtime-assert-existing-login:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -9965,15 +10055,15 @@ coordinates:
   SYM-skillopt-runtime-canary-evidence-error:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 29
+    sourceEndLine: 38
     sourceFile: scripts/skillopt-eval/runtime/canary-evidence.ts
-    sourceLine: 23
+    sourceLine: 24
   SYM-skillopt-runtime-canary-evidence-error-name:
     sourceColumn: 11
     sourceEndColumn: 40
-    sourceEndLine: 24
+    sourceEndLine: 25
     sourceFile: scripts/skillopt-eval/runtime/canary-evidence.ts
-    sourceLine: 24
+    sourceLine: 25
   SYM-skillopt-runtime-canary-model:
     sourceColumn: 12
     sourceEndColumn: 71
@@ -10013,9 +10103,9 @@ coordinates:
   SYM-skillopt-runtime-capability-probe-evidence:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 21
+    sourceEndLine: 22
     sourceFile: scripts/skillopt-eval/runtime/canary-evidence.ts
-    sourceLine: 16
+    sourceLine: 17
   SYM-skillopt-runtime-config-options:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -10061,15 +10151,15 @@ coordinates:
   SYM-skillopt-runtime-mcp-probe-result:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 49
+    sourceEndLine: 42
     sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
-    sourceLine: 47
+    sourceLine: 40
   SYM-skillopt-runtime-mcp-server-launch:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 45
+    sourceEndLine: 38
     sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
-    sourceLine: 40
+    sourceLine: 33
   SYM-skillopt-runtime-mcp-startup-timeout:
     sourceColumn: 13
     sourceEndColumn: 54
@@ -10085,15 +10175,15 @@ coordinates:
   SYM-skillopt-runtime-model-canary-context:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 63
+    sourceEndLine: 65
     sourceFile: scripts/skillopt-eval/runtime/canary-run.ts
-    sourceLine: 53
+    sourceLine: 54
   SYM-skillopt-runtime-model-canary-result:
     sourceColumn: 12
     sourceEndColumn: 7
-    sourceEndLine: 51
+    sourceEndLine: 52
     sourceFile: scripts/skillopt-eval/runtime/canary-run.ts
-    sourceLine: 39
+    sourceLine: 40
   SYM-skillopt-runtime-model-effort:
     sourceColumn: 13
     sourceEndColumn: 52
@@ -10163,9 +10253,9 @@ coordinates:
   SYM-skillopt-runtime-probe-required-mcp:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 194
+    sourceEndLine: 155
     sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
-    sourceLine: 167
+    sourceLine: 128
   SYM-skillopt-runtime-probe-sandbox:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -10199,9 +10289,9 @@ coordinates:
   SYM-skillopt-runtime-process-summary:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 199
+    sourceEndLine: 160
     sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
-    sourceLine: 196
+    sourceLine: 157
   SYM-skillopt-runtime-required-mcp-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -10217,15 +10307,15 @@ coordinates:
   SYM-skillopt-runtime-run-canary:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 119
+    sourceEndLine: 122
     sourceFile: scripts/skillopt-eval/runtime/workspace.ts
-    sourceLine: 50
+    sourceLine: 51
   SYM-skillopt-runtime-run-model-canary:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 244
+    sourceEndLine: 282
     sourceFile: scripts/skillopt-eval/runtime/canary-run.ts
-    sourceLine: 103
+    sourceLine: 105
   SYM-skillopt-runtime-run-process:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -10235,9 +10325,9 @@ coordinates:
   SYM-skillopt-runtime-sha256-file:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 35
+    sourceEndLine: 44
     sourceFile: scripts/skillopt-eval/runtime/canary-evidence.ts
-    sourceLine: 31
+    sourceLine: 40
   SYM-skillopt-runtime-source-clean:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -10253,9 +10343,9 @@ coordinates:
   SYM-skillopt-runtime-stage-canary:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 149
+    sourceEndLine: 110
     sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
-    sourceLine: 70
+    sourceLine: 51
   SYM-skillopt-runtime-stage-kibi-mcp:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -10265,9 +10355,9 @@ coordinates:
   SYM-skillopt-runtime-staged-canary:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 56
+    sourceEndLine: 49
     sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
-    sourceLine: 51
+    sourceLine: 44
   SYM-skillopt-runtime-staged-mcp-launch:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -10283,9 +10373,9 @@ coordinates:
   SYM-skillopt-runtime-verify-canary-evidence:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 67
+    sourceEndLine: 108
     sourceFile: scripts/skillopt-eval/runtime/canary-evidence.ts
-    sourceLine: 38
+    sourceLine: 47
   SYM-skillopt-runtime-workspace-cleanup-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -10475,9 +10565,9 @@ coordinates:
   SYM-skillopt-seed-trainer-initial-skill:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 93
+    sourceEndLine: 99
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 79
+    sourceLine: 85
   SYM-skillopt-skill-assembly-receipt-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -10502,6 +10592,12 @@ coordinates:
     sourceEndLine: 170
     sourceFile: scripts/skillopt-eval/source-tree-hash.ts
     sourceLine: 154
+  SYM-skillopt-stage-codex-runtime:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 79
+    sourceFile: scripts/skillopt-eval/runtime/codex-runtime.ts
+    sourceLine: 44
   SYM-skillopt-stage-kibi-mcp-broker:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -10514,6 +10610,12 @@ coordinates:
     sourceEndLine: 15
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker-stage.ts
     sourceLine: 8
+  SYM-skillopt-staged-codex-runtime:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 17
+    sourceFile: scripts/skillopt-eval/runtime/codex-runtime.ts
+    sourceLine: 14
   SYM-skillopt-staged-mcp-options:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -10571,15 +10673,15 @@ coordinates:
   SYM-skillopt-trainer-bridge-environment:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 107
+    sourceEndLine: 115
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 97
+    sourceLine: 103
   SYM-skillopt-trainer-request-payload:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 35
+    sourceEndLine: 41
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 25
+    sourceLine: 31
   SYM-skillopt-validate-approval:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -10652,6 +10754,12 @@ coordinates:
     sourceEndLine: 62
     sourceFile: tools/skillopt/verify_pin.py
     sourceLine: 62
+  SYM-skillopt-verify-probe-evidence:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 139
+    sourceFile: scripts/skillopt-eval/runtime/canary-evidence.ts
+    sourceLine: 110
   SYM-skillopt-wait-process-group-reaping:
     sourceColumn: 15
     sourceEndColumn: 1
@@ -10877,9 +10985,9 @@ coordinates:
   SYM-withDiagnosticTelemetrySchema:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 115
+    sourceEndLine: 122
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 95
+    sourceLine: 102
   SYM-withExclusiveMirrorWriterLock:
     sourceColumn: 16
     sourceEndColumn: 1

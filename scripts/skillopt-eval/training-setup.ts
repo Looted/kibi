@@ -1,6 +1,10 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
+  assertCellInfrastructureHealthy,
+  parseEvaluationInfrastructureMarker,
+} from "./evaluation-infrastructure";
+import {
   type DevelopmentGate,
   type RealOptimizationDependencies,
   TrainResultSchema,
@@ -21,6 +25,8 @@ const SKILLOPT_PROJECT_DIR = "tools/skillopt";
 export const BRIDGE_SOURCE_WORKTREE_ENV = "KIBI_SKILLOPT_SOURCE_WORKTREE";
 export const BRIDGE_ARTIFACT_ROOT_ENV = "KIBI_SKILLOPT_ARTIFACT_ROOT";
 export const BRIDGE_FIXTURE_RUN_ROOT_ENV = "KIBI_SKILLOPT_FIXTURE_RUN_ROOT";
+export const BRIDGE_CODEX_EXECUTABLE_ENV = "KIBI_SKILLOPT_CODEX_EXECUTABLE";
+export const BRIDGE_BWRAP_EXECUTABLE_ENV = "KIBI_SKILLOPT_BWRAP_EXECUTABLE";
 
 export type TrainerRequestPayload = Readonly<{
   runId: string;
@@ -96,13 +102,15 @@ export async function seedTrainerInitialSkill(
 // covered_by TEST-skillopt-codex-optimization
 export function trainerBridgeEnvironment(
   input: TrainingInput,
-  fixtureRunRoot: string,
+  runtime: ReturnType<typeof requireRuntime>,
 ): NodeJS.ProcessEnv {
   return {
     ...input.env,
     [BRIDGE_SOURCE_WORKTREE_ENV]: input.sourceWorktree,
     [BRIDGE_ARTIFACT_ROOT_ENV]: join(input.artifactRoot, "cells"),
-    [BRIDGE_FIXTURE_RUN_ROOT_ENV]: fixtureRunRoot,
+    [BRIDGE_FIXTURE_RUN_ROOT_ENV]: runtime.fixtureRunRoot,
+    [BRIDGE_CODEX_EXECUTABLE_ENV]: runtime.codexExecutable,
+    [BRIDGE_BWRAP_EXECUTABLE_ENV]: runtime.bwrapExecutable,
   };
 }
 
@@ -139,7 +147,7 @@ export const defaultTrain: RealOptimizationDependencies["train"] = async (
       resultPath,
     ]),
     cwd: input.sourceWorktree,
-    env: trainerBridgeEnvironment(input, runtime.fixtureRunRoot),
+    env: trainerBridgeEnvironment(input, runtime),
     timeoutMs: 15 * 60 * 1000,
   });
   if (result.exitCode !== 0) {
@@ -147,6 +155,10 @@ export const defaultTrain: RealOptimizationDependencies["train"] = async (
       encoding: "utf8",
       mode: 0o600,
     });
+    const infrastructureFailure = parseEvaluationInfrastructureMarker(
+      result.stderr || result.stdout,
+    );
+    if (infrastructureFailure !== null) throw infrastructureFailure;
     throw new Error(
       `reflact_trainer_exit:${result.exitCode}:${stderrPath}:${trainerFailureDetail(result)}`,
     );
@@ -181,49 +193,55 @@ export const defaultEvaluateDevelopment: RealOptimizationDependencies["evaluateD
     const runtime = requireRuntime(input.runtime);
     if (input.descriptors.length === 0)
       throw new Error("development_descriptor_missing");
-    const completed = await Promise.all(
-      input.descriptors.map(async (descriptor) => {
-        const publicClaim = PublicTaskClaimSchema.parse(descriptor.publicClaim);
-        const fixture = await resolveTaskFixture({
-          fixtureRunRoot: runtime.fixtureRunRoot,
+    const cellRunner = input.cellRunner ?? runCodexCell;
+    const completed = [];
+    for (const descriptor of input.descriptors) {
+      const publicClaim = PublicTaskClaimSchema.parse(descriptor.publicClaim);
+      const fixture = await resolveTaskFixture({
+        fixtureRunRoot: runtime.fixtureRunRoot,
+        taskId: descriptor.id,
+        publicClaim,
+      });
+      const cell = await cellRunner({
+        request: {
+          schemaVersion: "1.0.0",
+          artifactType: "episode-request",
+          episodeId: crypto.randomUUID(),
+          runId: input.runId,
+          runLockHash: input.candidate.bodyHash,
+          variant: "skillopt",
+          skill: input.skill,
           taskId: descriptor.id,
-          publicClaim,
-        });
-        return runCodexCell({
-          request: {
-            schemaVersion: "1.0.0",
-            artifactType: "episode-request",
-            episodeId: crypto.randomUUID(),
-            runId: input.runId,
-            runLockHash: input.candidate.bodyHash,
-            variant: "skillopt",
-            skill: input.skill,
-            taskId: descriptor.id,
-            attempt: 1,
-            prompt: fixture.publicClaim.text,
-            workspaceFixtureHash: fixture.workspaceHash,
-          },
-          fixtureRoot: fixture.workspaceRoot,
-          sourceWorktree: input.sourceWorktree,
-          artifactRoot: input.artifactRoot,
-          targetSkill: input.skill,
-          candidate: { body: input.candidate.body },
-          codexExecutable: runtime.codexExecutable ?? "codex",
-          bwrapExecutable: runtime.bwrapExecutable ?? "/usr/bin/bwrap",
-          env: input.env,
-          finalStateRequests: [
-            { tool: "kb_query", args: { type: "fact" } },
-            { tool: "kb_check", args: {} },
-            { tool: "kb_status", args: {} },
-          ],
-          evaluatorManifest: fixture.evaluatorManifest,
-          hiddenMarkers: runtime.hiddenMarkers ?? [],
-          pricingHash: runtime.pricingHash ?? "0".repeat(64),
-          priceAmount: runtime.priceAmount ?? 0,
-          timeoutMs: runtime.timeoutMs ?? 180_000,
-        });
-      }),
-    );
+          attempt: 1,
+          prompt: fixture.publicClaim.text,
+          workspaceFixtureHash: fixture.workspaceHash,
+        },
+        fixtureRoot: fixture.workspaceRoot,
+        sourceWorktree: input.sourceWorktree,
+        artifactRoot: input.artifactRoot,
+        targetSkill: input.skill,
+        candidate: { body: input.candidate.body },
+        codexExecutable: runtime.codexExecutable,
+        bwrapExecutable: runtime.bwrapExecutable,
+        env: input.env,
+        finalStateRequests: [
+          { tool: "kb_query", args: { type: "fact" } },
+          { tool: "kb_check", args: {} },
+          { tool: "kb_status", args: {} },
+        ],
+        evaluatorManifest: fixture.evaluatorManifest,
+        hiddenMarkers: runtime.hiddenMarkers ?? [],
+        pricingHash: runtime.pricingHash ?? "0".repeat(64),
+        priceAmount: runtime.priceAmount ?? 0,
+        timeoutMs: runtime.timeoutMs ?? 180_000,
+      });
+      assertCellInfrastructureHealthy(cell, {
+        stage: "development",
+        taskId: descriptor.id,
+        variant: "skillopt",
+      });
+      completed.push(cell);
+    }
     const hardPasses = completed.filter(
       (cell) => cell.receipt.result.hardPass,
     ).length;

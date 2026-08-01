@@ -1,19 +1,12 @@
-import { constants as fsConstants } from "node:fs";
-import {
-  access,
-  chmod,
-  cp,
-  mkdir,
-  realpath,
-  writeFile,
-} from "node:fs/promises";
-import { dirname, resolve } from "node:path";
+import { cp, mkdir, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { Client } from "../../../packages/mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js";
 import { StdioClientTransport } from "../../../packages/mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/client/stdio.js";
 import {
   RequiredMcpStartupError,
   RuntimePrerequisiteError,
 } from "./canary-errors";
+import { stageCodexRuntime } from "./codex-runtime";
 import type { IsolationWorkspace } from "./isolation-workspace";
 import {
   type StagedBrokerLaunch,
@@ -55,18 +48,6 @@ export type StagedCanaryRuntime = Readonly<{
   mcpServer: StagedBrokerLaunch;
 }>;
 
-async function executableFile(path: string): Promise<boolean> {
-  try {
-    await access(path, fsConstants.X_OK);
-    return true;
-  } catch (error) {
-    if (error instanceof Error && "code" in error && error.code === "ENOENT") {
-      return false;
-    }
-    throw error;
-  }
-}
-
 export async function stageCapabilityCanary(
   workspace: IsolationWorkspace,
   sourceWorktree: string,
@@ -92,34 +73,14 @@ export async function stageCapabilityCanary(
     "utf8",
   );
   const runtimeRoot = resolve(workspace.target, ".runtime");
-  await mkdir(runtimeRoot, { mode: 0o700 });
-  const installedCodex = await realpath(
-    dependencies.codexExecutable ?? Bun.which("codex") ?? "codex",
-  );
-  const codexCommand = resolve(runtimeRoot, "codex");
-  await cp(installedCodex, codexCommand);
-  await chmod(codexCommand, 0o500);
-
-  const bundledSource = resolve(
-    dirname(installedCodex),
-    "../codex-resources/bwrap",
-  );
-  const bundledTarget = resolve(runtimeRoot, "codex-resources/bwrap");
-  await mkdir(dirname(bundledTarget), { recursive: true, mode: 0o700 });
-  const bwrapSource = (await executableFile(bundledSource))
-    ? bundledSource
-    : await (async () => {
-        const systemBwrap =
-          "systemBwrapExecutable" in dependencies
-            ? dependencies.systemBwrapExecutable
-            : Bun.which("bwrap");
-        if (systemBwrap === null || systemBwrap === undefined) {
-          throw new RuntimePrerequisiteError("missing_bwrap");
-        }
-        return await realpath(systemBwrap);
-      })();
-  await cp(bwrapSource, bundledTarget);
-  await chmod(bundledTarget, 0o500);
+  const stagedCodex = await stageCodexRuntime(runtimeRoot, {
+    ...(dependencies.codexExecutable === undefined
+      ? {}
+      : { codexExecutable: dependencies.codexExecutable }),
+    ...(Object.hasOwn(dependencies, "systemBwrapExecutable")
+      ? { systemBwrapExecutable: dependencies.systemBwrapExecutable }
+      : {}),
+  });
 
   const schemaPath = resolve(workspace.target, ".runtime/output.schema.json");
   await writeFile(
@@ -142,8 +103,8 @@ export async function stageCapabilityCanary(
   );
   return {
     schemaPath,
-    codexCommand,
-    bwrapExecutable: bundledTarget,
+    codexCommand: stagedCodex.codexExecutable,
+    bwrapExecutable: stagedCodex.bwrapExecutable,
     mcpServer,
   };
 }

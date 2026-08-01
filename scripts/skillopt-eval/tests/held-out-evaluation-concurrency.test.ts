@@ -96,7 +96,11 @@ describe("held-out terminal evaluation concurrency", () => {
     const input = {
       skill: "kibi-usage" as const,
       variants,
-      runtime: { fixtureRunRoot: fixtureRun.roots.runRoot },
+      runtime: {
+        fixtureRunRoot: fixtureRun.roots.runRoot,
+        codexExecutable: "/staged/codex",
+        bwrapExecutable: "/staged/codex-resources/bwrap",
+      },
       sourceWorktree: process.cwd(),
       artifactRoot: path.join(root, "evaluation"),
       runId: RUN_ID,

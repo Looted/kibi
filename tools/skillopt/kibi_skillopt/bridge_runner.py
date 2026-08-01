@@ -22,6 +22,8 @@ MAX_BRIDGE_OUTPUT_BYTES = 1_000_000
 BRIDGE_SOURCE_WORKTREE_ENV = "KIBI_SKILLOPT_SOURCE_WORKTREE"
 BRIDGE_ARTIFACT_ROOT_ENV = "KIBI_SKILLOPT_ARTIFACT_ROOT"
 BRIDGE_FIXTURE_RUN_ROOT_ENV = "KIBI_SKILLOPT_FIXTURE_RUN_ROOT"
+BRIDGE_CODEX_EXECUTABLE_ENV = "KIBI_SKILLOPT_CODEX_EXECUTABLE"
+BRIDGE_BWRAP_EXECUTABLE_ENV = "KIBI_SKILLOPT_BWRAP_EXECUTABLE"
 
 
 @dataclass(frozen=True, slots=True)
@@ -50,13 +52,23 @@ def bridge_command() -> tuple[str, ...]:
     source_worktree = os.environ.get(BRIDGE_SOURCE_WORKTREE_ENV) or None
     artifact_root = os.environ.get(BRIDGE_ARTIFACT_ROOT_ENV) or None
     fixture_run_root = os.environ.get(BRIDGE_FIXTURE_RUN_ROOT_ENV) or None
-    configured = (source_worktree, artifact_root, fixture_run_root)
+    codex_executable = os.environ.get(BRIDGE_CODEX_EXECUTABLE_ENV) or None
+    bwrap_executable = os.environ.get(BRIDGE_BWRAP_EXECUTABLE_ENV) or None
+    configured = (
+        source_worktree,
+        artifact_root,
+        fixture_run_root,
+        codex_executable,
+        bwrap_executable,
+    )
     if any(configured) and not all(configured):
         raise BridgeError("incomplete_bridge_execution_roots")
     if all(configured):
         assert source_worktree is not None
         assert artifact_root is not None
         assert fixture_run_root is not None
+        assert codex_executable is not None
+        assert bwrap_executable is not None
         command.extend(
             (
                 "--source-worktree",
@@ -65,6 +77,10 @@ def bridge_command() -> tuple[str, ...]:
                 artifact_root,
                 "--fixture-run-root",
                 fixture_run_root,
+                "--codex-executable",
+                codex_executable,
+                "--bwrap-executable",
+                bwrap_executable,
             )
         )
     return tuple(command)

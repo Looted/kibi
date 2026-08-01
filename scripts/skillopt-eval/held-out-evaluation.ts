@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { buildBundleCatalog, buildSkillCatalog } from "./catalog";
+import { assertCellInfrastructureHealthy } from "./evaluation-infrastructure";
 import { parseHeldOutTaskManifest } from "./fixtures/contracts";
 import {
   PREDICATE_HELD_OUT_CASE_IDS,
@@ -161,8 +162,8 @@ export const defaultEvaluateHeldOut: RealOptimizationDependencies["evaluateHeldO
               artifactRoot: input.artifactRoot,
               targetSkill: input.skill,
               candidate: { body: variant.body },
-              codexExecutable: runtime.codexExecutable ?? "codex",
-              bwrapExecutable: runtime.bwrapExecutable ?? "/usr/bin/bwrap",
+              codexExecutable: runtime.codexExecutable,
+              bwrapExecutable: runtime.bwrapExecutable,
               env: input.env,
               finalStateRequests: [
                 { tool: "kb_query", args: { type: "fact" } },
@@ -174,6 +175,11 @@ export const defaultEvaluateHeldOut: RealOptimizationDependencies["evaluateHeldO
               pricingHash: runtime.pricingHash ?? "0".repeat(64),
               priceAmount: runtime.priceAmount ?? 0,
               timeoutMs: runtime.timeoutMs ?? 180_000,
+            });
+            assertCellInfrastructureHealthy(completed, {
+              stage: "held-out",
+              taskId: task.taskId,
+              variant: variant.variant,
             });
             cells.push({
               kind: task.kind,

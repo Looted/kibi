@@ -1,10 +1,5 @@
 import { createHash } from "node:crypto";
-import {
-  Project,
-  Scope,
-  ScriptKind,
-  type SourceFile,
-} from "ts-morph";
+import { Project, Scope, ScriptKind, type SourceFile } from "ts-morph";
 import { readManifestWithCoordinateOverlay } from "../extractors/manifest.js";
 import {
   type SymbolKind,

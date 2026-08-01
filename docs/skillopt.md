@@ -41,7 +41,7 @@ bun run scripts/skillopt-eval/operator.ts optimize --max-steps 4
 1. `uv sync --project tools/skillopt --frozen` and `verify_pin.py`
 2. `codex login status` must already say `Logged in using ChatGPT`
 3. Fresh run id, explicit artifact root outside the protected source tree, and materialized fixture corpus
-4. Preflight, paid capability canary, Codex SkillOpt rewrite of `kibi-usage`, development scoring, and blinded held-out aggregate gates
+4. Preflight, paid capability canary, Codex SkillOpt rewrite of `kibi-usage`, development scoring, and blinded held-out aggregate gates. The real cells reuse one private staged Codex/bwrap runtime for the entire run.
 5. External production verdict handoff (`external-verdict-required`); no local canonical skill adoption
 
 ## Artifact layout
@@ -58,6 +58,8 @@ bun run scripts/skillopt-eval/operator.ts optimize --max-steps 4
 | `$OPERATOR_BASE/fixtures/<run-id>/` | `optimize` | Materialized public/held-out fixture corpus for that run. |
 
 `$OPERATOR_BASE` is `$XDG_RUNTIME_DIR/kibi-skillopt/operator` when the runtime dir is writable; otherwise `~/.cache/kibi-skillopt/operator` or a private temp directory.
+
+The smoke gate requires both the shell isolation probe and one model-originated `kb_semantic_advisor` MCP call. It verifies the broker hash chain and a successful diagnostic usage receipt before optimization starts. If a real cell reports infrastructure failure, the command stops immediately and emits a structured `cell_infrastructure_failure` no-go result; this is distinct from `HELD_OUT_MATRIX_INELIGIBLE`, which is reserved for a complete matrix with behavioral gate failures.
 
 ## Recovery
 

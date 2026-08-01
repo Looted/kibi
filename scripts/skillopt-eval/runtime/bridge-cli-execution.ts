@@ -1,5 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { relative } from "node:path";
+import {
+  EvaluationInfrastructureError,
+  assertCellInfrastructureHealthy,
+} from "../evaluation-infrastructure";
 import { bridgeFailure } from "./bridge-cli-options";
 import type { parseBridgeOptions } from "./bridge-cli-options";
 import { defaultCodexCellDependencies } from "./codex-cell-defaults";
@@ -89,6 +93,8 @@ async function realResult(
   const sourceWorktree = options.sourceWorktree ?? "";
   const artifactRoot = options.artifactRoot ?? "";
   const fixtureRunRoot = options.fixtureRunRoot ?? "";
+  const codexExecutable = options.codexExecutable ?? "";
+  const bwrapExecutable = options.bwrapExecutable ?? "";
   const rows = await Promise.all(
     request.taskIds.map(async (taskId) => {
       try {
@@ -116,8 +122,8 @@ async function realResult(
           artifactRoot,
           targetSkill: request.skill,
           candidate: { body: request.candidateBody },
-          codexExecutable: options.codexExecutable,
-          bwrapExecutable: options.bwrapExecutable,
+          codexExecutable,
+          bwrapExecutable,
           env: process.env,
           finalStateRequests: [
             { tool: "kb_query", args: { type: "fact" } },
@@ -136,8 +142,14 @@ async function realResult(
           cellOptions,
           runtimeDependencies,
         );
+        assertCellInfrastructureHealthy(completed, {
+          stage: request.phase === "train" ? "training" : request.phase,
+          taskId,
+          variant: "skillopt",
+        });
         return bridgeRow(taskId, artifactRoot, completed);
       } catch (error) {
+        if (error instanceof EvaluationInfrastructureError) throw error;
         throw bridgeFailure(error);
       }
     }),
