@@ -53,7 +53,15 @@ const MCP_TOOL_ORDER = [
   "kb_autopilot_generate",
 ] as const satisfies readonly OperationName[];
 
+// implements REQ-002
 const TOOL_ANNOTATIONS: Partial<Record<OperationName, ToolAnnotations>> = {
+  kb_status: {
+    title: "Inspect Kibi branch status",
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   kb_skills_list: {
     title: "List bundled Kibi skills",
     readOnlyHint: true,
