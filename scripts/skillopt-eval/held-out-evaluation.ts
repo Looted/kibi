@@ -166,7 +166,7 @@ export const defaultEvaluateHeldOut: RealOptimizationDependencies["evaluateHeldO
               bwrapExecutable: runtime.bwrapExecutable,
               env: input.env,
               finalStateRequests: [
-                { tool: "kb_query", args: { type: "fact" } },
+                { tool: "kb_query", args: {} },
                 { tool: "kb_check", args: {} },
                 { tool: "kb_status", args: {} },
               ],

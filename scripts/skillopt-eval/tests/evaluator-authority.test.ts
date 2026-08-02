@@ -118,6 +118,11 @@ describe("evaluator authority", () => {
     const finalState = JSON.stringify({
       schemaVersion: "1.0.0",
       workspaceRoot: "/isolated/workspace",
+      binding: {
+        caseId: "kibi-usage-fact-predicate-modeling-held-out-3",
+        roots: evaluatorRoots,
+        sequence: 1,
+      },
       requests: [
         {
           tool: "kb_query",
@@ -147,6 +152,11 @@ describe("evaluator authority", () => {
     const receipt = JSON.stringify({
       schemaVersion: "1.0.0",
       workspaceRoot: "/isolated/workspace",
+      binding: {
+        caseId: "kibi-usage-fact-predicate-modeling-held-out-3",
+        roots: evaluatorRoots,
+        sequence: 1,
+      },
       requests: [
         {
           tool: "kb_query",
@@ -168,6 +178,11 @@ describe("evaluator authority", () => {
     const finalState = JSON.stringify({
       schemaVersion: "1.0.0",
       workspaceRoot: "/isolated/workspace",
+      binding: {
+        caseId: "kibi-usage-fact-predicate-modeling-held-out-3",
+        roots: evaluatorRoots,
+        sequence: 1,
+      },
       requests: [
         {
           tool: "kb_query",
@@ -184,5 +199,129 @@ describe("evaluator authority", () => {
       evaluatorEvidence(finalState),
     );
     expect(receipt.outcome).toBe("pass");
+  });
+
+  test("Given an authentic MCP query result When final-state evidence is decoded Then predicate facts and incoming edges are bound", () => {
+    const result = {
+      content: [{ type: "text", text: "Found 2 entities." }],
+      structuredContent: {
+        entities: [
+          {
+            id: "REQ-held-out-matrix",
+            type: "req",
+            requires_predicate: "kb:entity/FACT-held-out-matrix",
+          },
+          {
+            id: "FACT-held-out-matrix",
+            type: "fact",
+            fact_kind: "predicate",
+            canonical_key:
+              "held_out_matrix(terminal_matrix_id,frozen_skillopt_candidate_hash)",
+            predicate_name: "held_out_matrix",
+            predicate_args: [
+              "terminal_matrix_id",
+              "frozen_skillopt_candidate_hash",
+            ],
+            polarity: "deny",
+          },
+        ],
+        count: 2,
+      },
+    };
+    const finalState = JSON.stringify({
+      schemaVersion: "1.0.0",
+      workspaceRoot: "/isolated/workspace",
+      binding: {
+        caseId: "kibi-usage-fact-predicate-modeling-held-out-3",
+        roots: evaluatorRoots,
+        sequence: 1,
+      },
+      requests: [
+        {
+          tool: "kb_query",
+          args: {},
+          result,
+          resultHash: new Bun.CryptoHasher("sha256")
+            .update(JSON.stringify(result))
+            .digest("hex"),
+        },
+      ],
+    });
+
+    expect(
+      decodeFinalStatePredicateSnapshot(finalState, {
+        caseId: "kibi-usage-fact-predicate-modeling-held-out-3",
+        roots: evaluatorRoots,
+        sequence: 1,
+      }),
+    ).toEqual({
+      binding: {
+        caseId: "kibi-usage-fact-predicate-modeling-held-out-3",
+        roots: evaluatorRoots,
+        sequence: 1,
+      },
+      facts: [
+        {
+          id: "FACT-held-out-matrix",
+          factKind: "predicate",
+          canonicalKey:
+            "held_out_matrix(terminal_matrix_id,frozen_skillopt_candidate_hash)",
+          predicateName: "held_out_matrix",
+          predicateArgs: [
+            "terminal_matrix_id",
+            "frozen_skillopt_candidate_hash",
+          ],
+          polarity: "deny",
+        },
+      ],
+      relationships: [
+        { relationship: "requires_predicate", target: "held_out_matrix" },
+      ],
+    });
+  });
+
+  test("Given an authentic wrong-lane MCP query result When scored Then it is a behavioral failure", () => {
+    const result = {
+      content: [{ type: "text", text: "Found 1 entity." }],
+      structuredContent: {
+        entities: [
+          {
+            id: "FACT-ontology-gap",
+            type: "fact",
+            fact_kind: "observation",
+            tags: ["review:ontology-gap"],
+          },
+        ],
+        count: 1,
+      },
+    };
+    const finalState = JSON.stringify({
+      schemaVersion: "1.0.0",
+      workspaceRoot: "/isolated/workspace",
+      binding: {
+        caseId: "kibi-usage-fact-predicate-modeling-held-out-3",
+        roots: evaluatorRoots,
+        sequence: 1,
+      },
+      requests: [
+        {
+          tool: "kb_query",
+          args: {},
+          result,
+          resultHash: new Bun.CryptoHasher("sha256")
+            .update(JSON.stringify(result))
+            .digest("hex"),
+        },
+      ],
+    });
+
+    const receipt = scoreCell(
+      evaluatorManifest("predicate"),
+      evaluatorEvidence(finalState),
+    );
+
+    expect(receipt.terminalCategory).toBe("behavioral_failure");
+    expect(receipt.criticalFailures).toContain("predicate-lane");
+    expect(receipt.criticalFailures).toContain("predicate-name");
   });
 });

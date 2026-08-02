@@ -97,17 +97,40 @@ function protocolPasses(manifest: Manifest, evidence: CellEvidence): boolean {
       (call, index) =>
         index >= cursor &&
         call.tool === required.tool &&
-        call.predicate === required.predicate,
+        (required.predicate.startsWith("sequence=") ||
+          call.predicate === required.predicate),
     );
     if (found < 0) return false;
     cursor = found + 1;
   }
-  return !manifest.orderedMcpPredicates.forbidden.some((forbidden) =>
-    evidence.broker.orderedCalls.some(
-      (call) =>
-        call.tool === forbidden.tool && call.predicate === forbidden.predicate,
-    ),
-  );
+  return !manifest.orderedMcpPredicates.forbidden.some((forbidden) => {
+    const matching = evidence.broker.orderedCalls
+      .map((call, index) => ({ call, index }))
+      .filter(({ call }) => call.tool === forbidden.tool);
+    if (matching.length === 0) return false;
+    if (forbidden.predicate.startsWith("unless ")) return true;
+    if (!forbidden.predicate.startsWith("before ")) {
+      return matching.some(
+        ({ call }) => call.predicate === forbidden.predicate,
+      );
+    }
+    const requiredIndex = manifest.orderedMcpPredicates.required.findIndex(
+      ({ tool }) => tool === forbidden.tool,
+    );
+    if (requiredIndex < 0) return true;
+    let requiredCursor = 0;
+    for (const required of manifest.orderedMcpPredicates.required.slice(
+      0,
+      requiredIndex,
+    )) {
+      const found = evidence.broker.orderedCalls.findIndex(
+        (call, index) => index >= requiredCursor && call.tool === required.tool,
+      );
+      if (found < 0) return true;
+      requiredCursor = found + 1;
+    }
+    return matching.some(({ index }) => index < requiredCursor);
+  });
 }
 
 export function scoreCell(

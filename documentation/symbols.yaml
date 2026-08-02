@@ -11716,6 +11716,29 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-seal-default-cell-evidence
+    title: sealDefaultCellEvidence
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-default-cell-evidence-tests
+    title: default Codex cell evidence sealing
+    sourceFile: scripts/skillopt-eval/tests/default-cell-evidence.test.ts
+    symbol_role: test
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+      - type: executable_for
+        target: TEST-skillopt-predicate-first-requirements
   - id: SYM-skillopt-default-evaluate-development
     title: defaultEvaluateDevelopment
     sourceFile: scripts/skillopt-eval/training-setup.ts

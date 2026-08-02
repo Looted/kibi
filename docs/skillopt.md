@@ -61,6 +61,8 @@ bun run scripts/skillopt-eval/operator.ts optimize --max-steps 4
 
 The smoke gate requires the shell isolation probe, one model-originated `kb_semantic_advisor` call, and one model-originated branch-dependent `kb_status` call that reports `skillopt-eval`. It verifies both broker hash-chain entries and their successful diagnostic usage receipts before optimization starts. The probe suppresses the expected read-only-write denial so exact-output evidence contains only its pass token. If a real cell reports infrastructure failure, the command stops immediately and emits a structured `cell_infrastructure_failure` no-go result; this is distinct from `HELD_OUT_MATRIX_INELIGIBLE`, which is reserved for a complete matrix with behavioral gate failures.
 
+Real cell final-state scoring uses the independent verifier's all-entity `kb_query`, `kb_check`, and `kb_status` receipts. Valid evidence that shows a wrong fact or predicate lane is a behavioral failure and the optimizer may continue; `evidence-conflict` is reserved for malformed, unbound, hash-invalid, or contradictory evidence.
+
 ## Recovery
 
 If a run stalls, start a new `bun run skillopt:optimize` (fresh run id). To discard a partial tree, delete the printed `artifact-root` and `fixture-run-root` paths. Local review remains non-mutating on retries; production adoption is an external verdict and installer handoff.
