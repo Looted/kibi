@@ -1907,9 +1907,9 @@ coordinates:
   SYM-TOOLS:
     sourceColumn: 13
     sourceEndColumn: 19
-    sourceEndLine: 137
+    sourceEndLine: 145
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 135
+    sourceLine: 143
   SYM-TRACEABILITY_RELATIONSHIP_TYPES:
     sourceColumn: 13
     sourceEndColumn: 10
@@ -10997,9 +10997,9 @@ coordinates:
   SYM-withDiagnosticTelemetrySchema:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 129
+    sourceEndLine: 137
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 109
+    sourceLine: 117
   SYM-withExclusiveMirrorWriterLock:
     sourceColumn: 16
     sourceEndColumn: 1

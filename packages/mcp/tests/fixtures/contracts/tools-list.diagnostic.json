@@ -175,6 +175,13 @@
           }
         },
         "type": "object"
+      },
+      "annotations": {
+        "title": "Inspect Kibi branch status",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
       }
     },
     {
