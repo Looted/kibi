@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { join } from "node:path";
 import type { EvidenceClaim } from "../scoring/evidence-utils";
 import { probeRequiredMcp } from "./canary-runtime";
@@ -7,8 +8,12 @@ import type {
   CodexCellDependencies,
   CodexCellOptions,
 } from "./codex-cell-types";
-import { runIndependentFinalState } from "./final-state";
-import { FinalStateReceiptSchema } from "./final-state";
+import {
+  type FinalStateReceipt,
+  FinalStateReceiptSchema,
+  runIndependentFinalState,
+} from "./final-state";
+import { parseTraceReceipts, verifyTraceChain } from "./jsonrpc";
 import { stageKibiMcpBroker } from "./mcp-broker-stage";
 import type { CanaryRunner } from "./permissions";
 import { runBoundedProcess } from "./process";
@@ -44,40 +49,172 @@ function scalarClaims(
   );
 }
 
-function sealedFinalState(finalState: string) {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function structuredContent(value: unknown): Record<string, unknown> | null {
+  if (!isRecord(value)) return null;
+  const content = value.structuredContent ?? value.structured_content;
+  return isRecord(content) ? content : null;
+}
+
+function successfulResult(value: unknown): boolean {
+  return !isRecord(value) || value.isError !== true;
+}
+
+function cleanCheckResult(value: unknown): boolean {
+  const content = structuredContent(value);
+  return (
+    successfulResult(value) &&
+    content?.count === 0 &&
+    Array.isArray(content.violations) &&
+    content.violations.length === 0
+  );
+}
+
+function sameRequest(
+  actual: FinalStateReceipt["requests"][number],
+  expected: CodexCellOptions["finalStateRequests"][number],
+): boolean {
+  return (
+    actual.tool === expected.tool &&
+    JSON.stringify(actual.args) === JSON.stringify(expected.args)
+  );
+}
+
+function sealedFinalState(
+  finalState: string,
+  options: Pick<CodexCellOptions, "evaluatorManifest" | "finalStateRequests">,
+) {
   const receipt = FinalStateReceiptSchema.parse(JSON.parse(finalState));
+  const integrityValid = receipt.requests.every(
+    (request) =>
+      createHash("sha256")
+        .update(JSON.stringify(request.result))
+        .digest("hex") === request.resultHash,
+  );
+  const complete =
+    receipt.requests.length === options.finalStateRequests.length &&
+    options.finalStateRequests.every((request, index) => {
+      const actual = receipt.requests[index];
+      return actual !== undefined && sameRequest(actual, request);
+    });
+  const taskComplete =
+    complete &&
+    receipt.requests.some(
+      (request) =>
+        request.tool === "kb_query" && successfulResult(request.result),
+    ) &&
+    receipt.requests.some(
+      (request) =>
+        request.tool === "kb_check" && cleanCheckResult(request.result),
+    );
+  const evaluatorClaims = options.evaluatorManifest.expectedFinalState.flatMap(
+    (assertion): readonly EvidenceClaim[] => {
+      if (assertion.query.startsWith("state://")) {
+        return [{ key: assertion.key, value: taskComplete }];
+      }
+      if (assertion.query === "workspace://isolation/sentinel-count") {
+        return [{ key: assertion.key, value: 0 }];
+      }
+      return [];
+    },
+  );
   return {
-    complete: receipt.requests.length > 0,
-    integrityValid: true,
-    claims: receipt.requests.flatMap((request) =>
-      scalarClaims(request.result, `final-state.${request.tool}`),
-    ),
-    snapshot: receipt,
+    complete,
+    integrityValid,
+    claims: [
+      ...receipt.requests.flatMap((request) =>
+        scalarClaims(request.result, `final-state.${request.tool}`),
+      ),
+      ...evaluatorClaims,
+    ],
+    snapshot: finalState,
   };
 }
 
-function traceCall(value: unknown, sequence: number) {
-  if (value === null || typeof value !== "object") return [];
-  const method = "method" in value ? value.method : undefined;
-  const toolName = "toolName" in value ? value.toolName : undefined;
-  return method === "tools/call" && typeof toolName === "string"
-    ? [{ tool: toolName, predicate: `sequence=${sequence}` }]
-    : [];
-}
-
 function sealedBroker(brokerTrace: string) {
-  const calls = brokerTrace
-    .split("\n")
-    .filter((line) => line.length > 0)
-    .flatMap((line, index) => {
-      const value: unknown = JSON.parse(line);
-      return traceCall(value, index + 1);
-    });
+  const verification = verifyTraceChain(brokerTrace);
+  const receipts = verification.valid ? parseTraceReceipts(brokerTrace) : [];
+  const calls = receipts
+    .filter(
+      (receipt) =>
+        receipt.direction === "target_to_server" &&
+        receipt.kind === "request" &&
+        receipt.method === "tools/call" &&
+        receipt.toolName !== undefined,
+    )
+    .map((receipt, index) => ({
+      tool: receipt.toolName ?? "",
+      predicate: `sequence=${index + 1}`,
+    }));
   return {
-    complete: brokerTrace.trim().length > 0,
-    integrityValid: true,
+    complete: verification.entries > 0 && calls.length > 0,
+    integrityValid: verification.valid,
     claims: [],
     orderedCalls: calls,
+  };
+}
+
+function sealedDiagnostic(
+  diagnosticReceipt: string,
+  calls: readonly Readonly<{ tool: string }>[],
+) {
+  const lines = diagnosticReceipt
+    .split("\n")
+    .filter((line) => line.trim().length > 0);
+  let integrityValid = true;
+  const records: Record<string, unknown>[] = [];
+  try {
+    for (const line of lines) {
+      const record: unknown = JSON.parse(line);
+      if (!isRecord(record)) {
+        integrityValid = false;
+      } else {
+        records.push(record);
+      }
+    }
+  } catch {
+    integrityValid = false;
+  }
+  const expectedTools = calls.map(({ tool }) => tool).sort();
+  const receiptTools = records
+    .flatMap((record) =>
+      typeof record.tool === "string" &&
+      record.status === "success" &&
+      isRecord(record.telemetry)
+        ? [record.tool]
+        : [],
+    )
+    .sort();
+  integrityValid &&=
+    JSON.stringify(receiptTools) === JSON.stringify(expectedTools);
+  return {
+    complete: lines.length > 0,
+    integrityValid,
+    claims: [] as readonly EvidenceClaim[],
+  };
+}
+
+export function sealDefaultCellEvidence(
+  options: Pick<CodexCellOptions, "evaluatorManifest" | "finalStateRequests">,
+  evidence: Readonly<{
+    finalState: string;
+    brokerTrace: string;
+    diagnosticReceipt: string;
+  }>,
+) {
+  const broker = sealedBroker(evidence.brokerTrace);
+  return {
+    finalState: sealedFinalState(evidence.finalState, options),
+    broker,
+    diagnostic: sealedDiagnostic(
+      evidence.diagnosticReceipt,
+      broker.orderedCalls,
+    ),
+    codex: { complete: true, integrityValid: true, claims: [] },
+    isolation: { observedSentinels: [], violations: [] },
   };
 }
 
@@ -118,6 +255,15 @@ export function defaultCodexCellDependencies(
         },
         receiptPath: context.receiptPath,
         requests: context.requests,
+        binding: {
+          caseId: options.evaluatorManifest.taskId,
+          roots: {
+            publicManifestHash: options.evaluatorManifest.publicManifestHash,
+            workspaceHash: options.evaluatorManifest.workspaceHash,
+            fixtureSeedHash: options.evaluatorManifest.fixtureSeedHash,
+          },
+          sequence: 1,
+        },
         timeoutMs: context.timeoutMs,
       });
       return `${JSON.stringify(receipt)}\n`;
@@ -128,17 +274,12 @@ export function defaultCodexCellDependencies(
       finalState,
       brokerTrace,
       diagnosticReceipt,
-    }) => ({
-      finalState: sealedFinalState(finalState),
-      broker: sealedBroker(brokerTrace),
-      diagnostic: {
-        complete: diagnosticReceipt.trim().length > 0,
-        integrityValid: true,
-        claims: [],
-      },
-      codex: { complete: true, integrityValid: true, claims: [] },
-      isolation: { observedSentinels: [], violations: [] },
-    }),
+    }) =>
+      sealDefaultCellEvidence(options, {
+        finalState,
+        brokerTrace,
+        diagnosticReceipt,
+      }),
     clock: () => new Date(),
   };
 }

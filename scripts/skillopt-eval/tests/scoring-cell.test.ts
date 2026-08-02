@@ -160,6 +160,43 @@ describe("SkillOpt cell scoring", () => {
     expect(receipt.criticalFailures).toEqual(["final-discovery"]);
   });
 
+  test("allows advisory calls between required MCP operations while preserving order", () => {
+    const complete = completeEvidence();
+    const evidence = {
+      ...complete,
+      broker: {
+        ...complete.broker,
+        orderedCalls: [
+          { tool: "kb_search", predicate: "sequence=4" },
+          { tool: "kb_semantic_advisor", predicate: "sequence=5" },
+          { tool: "kb_query", predicate: "sequence=6" },
+        ],
+      },
+    };
+
+    expect(scoreCell(manifest, evidence).components.protocol).toBe(25);
+  });
+
+  test("rejects a forbidden mutation before required discovery", () => {
+    const complete = completeEvidence();
+    const evidence = {
+      ...complete,
+      broker: {
+        ...complete.broker,
+        orderedCalls: [
+          { tool: "kb_upsert", predicate: "sequence=1" },
+          { tool: "kb_search", predicate: "sequence=2" },
+          { tool: "kb_query", predicate: "sequence=3" },
+        ],
+      },
+    };
+
+    const receipt = scoreCell(manifest, evidence);
+
+    expect(receipt.components.protocol).toBe(0);
+    expect(receipt.terminalCategory).toBe("behavioral_failure");
+  });
+
   test("scores zero and blocks adoption for a critical isolation breach", () => {
     // Given
     const complete = completeEvidence();
