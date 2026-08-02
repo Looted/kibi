@@ -50,7 +50,7 @@ export async function verifyCapabilityEvidence(
   mcpEvidence?: Readonly<{
     brokerTrace: string;
     diagnosticReceipt: string;
-    toolName: string;
+    toolNames: readonly string[];
   }>,
 ): Promise<void> {
   await verifyProbeEvidence(events, probe);
@@ -60,25 +60,27 @@ export async function verifyCapabilityEvidence(
     throw new CanaryEvidenceError("invalid_broker_trace");
   }
   const trace = parseTraceReceipts(mcpEvidence.brokerTrace);
-  const requests = trace.filter(
-    (receipt) =>
-      receipt.direction === "target_to_server" &&
-      receipt.kind === "request" &&
-      receipt.method === "tools/call" &&
-      receipt.toolName === mcpEvidence.toolName,
-  );
-  const completed = requests.filter((request) =>
-    trace.some(
+  for (const toolName of mcpEvidence.toolNames) {
+    const requests = trace.filter(
       (receipt) =>
-        receipt.correlationId === request.correlationId &&
-        receipt.direction === "server_to_target" &&
-        receipt.kind === "response" &&
+        receipt.direction === "target_to_server" &&
+        receipt.kind === "request" &&
         receipt.method === "tools/call" &&
-        receipt.toolName === mcpEvidence.toolName,
-    ),
-  );
-  if (requests.length !== 1 || completed.length !== 1) {
-    throw new CanaryEvidenceError("missing_mcp_tool_call");
+        receipt.toolName === toolName,
+    );
+    const completed = requests.filter((request) =>
+      trace.some(
+        (receipt) =>
+          receipt.correlationId === request.correlationId &&
+          receipt.direction === "server_to_target" &&
+          receipt.kind === "response" &&
+          receipt.method === "tools/call" &&
+          receipt.toolName === toolName,
+      ),
+    );
+    if (requests.length !== 1 || completed.length !== 1) {
+      throw new CanaryEvidenceError("missing_mcp_tool_call");
+    }
   }
   const diagnosticLines = mcpEvidence.diagnosticReceipt
     .split("\n")
@@ -92,18 +94,20 @@ export async function verifyCapabilityEvidence(
   } catch {
     throw new CanaryEvidenceError("invalid_diagnostic_receipt");
   }
-  const matchingDiagnostics = diagnostics.filter(
-    (value) =>
-      value !== null &&
-      typeof value === "object" &&
-      !Array.isArray(value) &&
-      (value as Record<string, unknown>).tool === mcpEvidence.toolName &&
-      (value as Record<string, unknown>).status === "success" &&
-      (value as Record<string, unknown>).telemetry !== null &&
-      typeof (value as Record<string, unknown>).telemetry === "object",
-  );
-  if (matchingDiagnostics.length !== 1) {
-    throw new CanaryEvidenceError("invalid_diagnostic_receipt");
+  for (const toolName of mcpEvidence.toolNames) {
+    const matchingDiagnostics = diagnostics.filter(
+      (value) =>
+        value !== null &&
+        typeof value === "object" &&
+        !Array.isArray(value) &&
+        (value as Record<string, unknown>).tool === toolName &&
+        (value as Record<string, unknown>).status === "success" &&
+        (value as Record<string, unknown>).telemetry !== null &&
+        typeof (value as Record<string, unknown>).telemetry === "object",
+    );
+    if (matchingDiagnostics.length !== 1) {
+      throw new CanaryEvidenceError("invalid_diagnostic_receipt");
+    }
   }
 }
 

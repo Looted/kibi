@@ -57,9 +57,8 @@ function resolveDeps(overrides?: Partial<ManifestDeps>): ManifestDeps {
 export const SYMBOLS_MANIFEST_COMMENT_BLOCK = `# symbols.yaml
 # AUTHORED fields (edit freely):
 #   id, title, sourceFile, links, status, tags, owner, priority
-# GENERATED fields (never edit manually — overwritten by kibi sync and kb.symbols.refresh):
-#   sourceLine, sourceColumn, sourceEndLine, sourceEndColumn
-# Run \`kibi sync\` or call the \`kb.symbols.refresh\` MCP tool to refresh coordinates.
+# Generated coordinates are stored separately in symbol-coordinates.yaml.
+# Run \`kibi sync --refresh-symbol-coordinates\` to refresh them.
 `;
 
 const SYMBOL_COORD_EXTENSIONS = new Set([
@@ -79,6 +78,10 @@ const GENERATED_COORD_FIELDS = [
   "sourceEndLine",
   "sourceEndColumn",
 ] as const;
+const GENERATED_MANIFEST_FIELDS = new Set<string>([
+  ...GENERATED_COORD_FIELDS,
+  "coordinatesGeneratedAt",
+]);
 
 export async function refreshManifestCoordinates(
   // implements REQ-003
@@ -155,22 +158,15 @@ export async function refreshManifestCoordinates(
     }
   }
 
-  // Strip generated fields from symbols.yaml entries only if original had them
-  const strippedEnriched = enriched.map((current, idx) => {
-    const prev = before[idx] ?? ({} as ManifestSymbolEntry);
-    const out: Record<string, unknown> = { ...current };
-    const originalHadGenerated = GENERATED_COORD_FIELDS.some(
-      (f) => prev[f as keyof ManifestSymbolEntry] !== undefined,
-    );
-    if (originalHadGenerated) {
-      for (const field of GENERATED_COORD_FIELDS) {
-        delete out[field as string];
-      }
-    }
-    // Ensure we never write coordinatesGeneratedAt
-    out.coordinatesGeneratedAt = undefined;
-    return out;
-  });
+  // Coordinates belong exclusively to the generated artifact. Always strip
+  // them from the authored manifest so consecutive refreshes are idempotent.
+  const strippedEnriched = enriched.map((current) =>
+    Object.fromEntries(
+      Object.entries(current).filter(
+        ([field]) => !GENERATED_MANIFEST_FIELDS.has(field),
+      ),
+    ),
+  );
 
   parsed.symbols = strippedEnriched;
 

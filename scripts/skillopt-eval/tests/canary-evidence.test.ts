@@ -16,34 +16,45 @@ afterEach(async () => {
   }
 });
 
-async function mcpEvidence(root: string) {
+async function mcpEvidence(
+  root: string,
+  toolNames: readonly string[] = ["kb_semantic_advisor", "kb_status"],
+) {
   const tracePath = join(root, "broker-trace.jsonl");
-  await appendTraceReceipt(tracePath, {
-    correlationId: "rpc-1",
-    direction: "target_to_server",
-    kind: "request",
-    method: "tools/call",
-    toolName: "kb_semantic_advisor",
-    requestId: 1,
-    payload: { method: "tools/call" },
-  });
-  await appendTraceReceipt(tracePath, {
-    correlationId: "rpc-1",
-    direction: "server_to_target",
-    kind: "response",
-    method: "tools/call",
-    toolName: "kb_semantic_advisor",
-    requestId: 1,
-    payload: { result: { content: [] } },
-  });
+  for (const [index, toolName] of toolNames.entries()) {
+    const requestId = index + 1;
+    const correlationId = `rpc-${requestId}`;
+    await appendTraceReceipt(tracePath, {
+      correlationId,
+      direction: "target_to_server",
+      kind: "request",
+      method: "tools/call",
+      toolName,
+      requestId,
+      payload: { method: "tools/call" },
+    });
+    await appendTraceReceipt(tracePath, {
+      correlationId,
+      direction: "server_to_target",
+      kind: "response",
+      method: "tools/call",
+      toolName,
+      requestId,
+      payload: { result: { content: [] } },
+    });
+  }
   return {
     brokerTrace: await readFile(tracePath, "utf8"),
-    diagnosticReceipt: `${JSON.stringify({
-      tool: "kb_semantic_advisor",
-      status: "success",
-      telemetry: { attempt_number: 1 },
-    })}\n`,
-    toolName: "kb_semantic_advisor",
+    diagnosticReceipt: `${toolNames
+      .map((tool) =>
+        JSON.stringify({
+          tool,
+          status: "success",
+          telemetry: { attempt_number: 1 },
+        }),
+      )
+      .join("\n")}\n`,
+    toolNames,
   } as const;
 }
 
@@ -186,6 +197,20 @@ describe("Codex capability evidence", () => {
         brokerTrace: failedTrace,
       }),
     ).rejects.toThrow(/invalid_broker_trace|missing_mcp_tool_call/);
+
+    const advisorOnlyRoot = await mkdtemp(
+      join(tmpdir(), "skillopt-evidence-mcp-branch-"),
+    );
+    roots.push(advisorOnlyRoot);
+    const advisorOnly = await mcpEvidence(advisorOnlyRoot, [
+      "kb_semantic_advisor",
+    ]);
+    await expect(
+      verifyCapabilityEvidence(events, probe, {
+        ...advisorOnly,
+        toolNames: ["kb_semantic_advisor", "kb_status"],
+      }),
+    ).rejects.toThrow("missing_mcp_tool_call");
   });
 
   test("rejects an empty or mismatched diagnostic receipt", async () => {

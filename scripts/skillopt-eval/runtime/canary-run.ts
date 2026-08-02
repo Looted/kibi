@@ -26,6 +26,7 @@ import {
   type CapabilityCanaryModelRun,
   type CapabilityCanaryOptions,
   OPTIMIZER_MODEL,
+  SKILLOPT_EVALUATION_BRANCH,
   TARGET_MODEL,
   buildCodexConfig,
   buildCodexExecArgv,
@@ -127,7 +128,11 @@ export async function runModelCanary(
       context.sourceWorktree,
       context.stageDependencies,
     );
-    const runtimeEnv = { ...auth.env, PATH: "/usr/bin:/bin" };
+    const runtimeEnv = {
+      ...auth.env,
+      KIBI_BRANCH: SKILLOPT_EVALUATION_BRANCH,
+      PATH: "/usr/bin:/bin",
+    };
     await writeFile(
       join(workspace.codexHome, "config.toml"),
       buildCodexConfig({
@@ -165,8 +170,9 @@ export async function runModelCanary(
         ? `Use shell_command exactly once to execute ${probe.command}. Do not infer or claim success without that tool event. If it exits zero, return probeExecuted=true; otherwise fail.`
         : [
             "Call the kibi MCP tool kb_semantic_advisor exactly once first with requirement text `A session timeout must be 30 minutes.` and complete diagnostic telemetry (is_autonomous=true, a brief reasoning string, confidence_score=1, attempt_number=1, missing_context empty). Wait for its successful result.",
+            "Then call the kibi MCP tool kb_status exactly once with complete diagnostic telemetry (is_autonomous=true, a brief reasoning string, confidence_score=1, attempt_number=1, missing_context empty). Wait for its successful result and confirm it reports branch `skillopt-eval`.",
             `Then use shell_command exactly once to execute ${probe.command}.`,
-            "Do not call any other shell or MCP tool. Do not infer or claim success without both completed tool calls. If both succeed, return probeExecuted=true; otherwise fail.",
+            "Do not call any other shell or MCP tool. Do not infer or claim success without all three completed tool calls. If all three succeed, return probeExecuted=true; otherwise fail.",
           ].join(" ");
     const result = await context.run(
       buildCodexExecArgv({
@@ -241,7 +247,7 @@ export async function runModelCanary(
         {
           brokerTrace,
           diagnosticReceipt,
-          toolName: "kb_semantic_advisor",
+          toolNames: ["kb_semantic_advisor", "kb_status"],
         },
       );
     }
