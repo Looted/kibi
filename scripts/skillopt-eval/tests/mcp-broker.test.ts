@@ -1,6 +1,13 @@
 import { afterEach, describe, expect, setDefaultTimeout, test } from "bun:test";
 import { once } from "node:events";
-import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import {
+  chmod,
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { PassThrough } from "node:stream";
@@ -219,6 +226,44 @@ await new Promise(() => {});
 });
 
 describe("independent final-state client", () => {
+  test("queries the staged Kibi runtime on the fixed non-Git evaluation branch", async () => {
+    const artifactRoot = await temporaryRoot("skillopt-final-state-branch-");
+    const workspace = await createIsolationWorkspace({
+      artifactRoot,
+      runId: "final-state-branch",
+      role: "target",
+    });
+
+    try {
+      await mkdir(join(workspace.target, ".kb"), { mode: 0o700 });
+      const staged = await stageKibiMcpBroker(workspace, process.cwd());
+      const receipt = await runIndependentFinalState({
+        launch: {
+          ...staged.downstream,
+          args: [...staged.downstream.args],
+          env: { ...process.env, KIBI_BRANCH: "skillopt-eval" },
+        },
+        receiptPath: join(workspace.privateEvidence, "final-state.json"),
+        requests: [
+          { tool: "kb_status", args: {} },
+          { tool: "kb_query", args: { type: "fact" } },
+          { tool: "kb_check", args: {} },
+        ],
+        timeoutMs: 15_000,
+      });
+
+      expect(receipt.requests).toHaveLength(3);
+      for (const request of receipt.requests) {
+        expect(request.result).not.toMatchObject({ isError: true });
+      }
+      expect(receipt.requests[0]?.result).toMatchObject({
+        structuredContent: { branch: "skillopt-eval" },
+      });
+    } finally {
+      await workspace.cleanup();
+    }
+  });
+
   test("queries evaluator-selected state and writes a durable receipt", async () => {
     // Given
     const root = await temporaryRoot("skillopt-final-state-");

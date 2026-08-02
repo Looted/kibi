@@ -30,6 +30,7 @@ function restoreEnv(): void {
 }
 
 afterEach(() => {
+  mock.restore();
   restoreEnv();
 });
 

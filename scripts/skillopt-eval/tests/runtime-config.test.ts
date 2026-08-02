@@ -362,12 +362,41 @@ describe("Codex evaluator-owned permissions", () => {
     expect(config).not.toContain('"/source/packages/');
     expect(config).not.toContain('"/source/node_modules');
     expect(config).toContain("required = true");
-    expect(config).toContain('default_tools_approval_mode = "auto"');
+    expect(config).toContain('default_tools_approval_mode = "approve"');
+    expect(config).toContain('"KIBI_BRANCH"');
     expect(config).toContain("enabled = false");
     expect(config).toContain("allow_upstream_proxy = false");
     expect(config).toContain("allow_local_binding = false");
     expect(config).not.toContain("danger-full-access");
     expect(config).not.toContain("prompt");
+  });
+
+  test("keeps optimizer MCP tools on annotation-based automatic approval", () => {
+    const paths = {
+      workspace: "/run/work",
+      runPrivateHome: "/run/home",
+      realCodexHome: "/home/user/.codex",
+      sourceWorktree: "/source",
+      fixtureKb: "/run/work/.kb",
+      privateScorer: "/run/scorer",
+      privateEvidence: "/run/evidence",
+      siblingRuns: "/run/sibling",
+    } as const;
+
+    const config = buildCodexConfig({
+      role: "optimizer",
+      authMode: "file",
+      paths,
+      bwrapExecutable: "/run/work/.runtime/codex-resources/bwrap",
+      codexExecutable: "/run/work/.runtime/codex",
+      mcpServer: {
+        command: "/run/work/.runtime/mcp/broker/bun",
+        args: ["/run/work/.runtime/mcp/broker/broker.js"],
+        cwd: paths.workspace,
+      },
+    });
+
+    expect(config).toContain('default_tools_approval_mode = "auto"');
   });
 
   test("denies private Codex secrets without forbidding the arg0 helper mount", () => {

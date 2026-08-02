@@ -101,6 +101,7 @@ export async function runCodexCell(
       sandboxHome: workspace.sandboxHome,
       env: options.env,
     });
+    const cellEnv = { ...login.env, KIBI_BRANCH: "skillopt-eval" };
     const broker = await dependencies.stageBroker(
       workspace,
       options.sourceWorktree,
@@ -134,7 +135,7 @@ export async function runCodexCell(
     );
     let launched = false;
     try {
-      await dependencies.probeMcp({ ...broker, env: login.env });
+      await dependencies.probeMcp({ ...broker, env: cellEnv });
       launched = true;
       const result = await dependencies.run(
         buildCodexExecArgv({
@@ -144,7 +145,7 @@ export async function runCodexCell(
           role: "target",
         }),
         workspace.target,
-        login.env,
+        cellEnv,
         options.timeoutMs,
         request.prompt,
       );
@@ -171,7 +172,7 @@ export async function runCodexCell(
         broker,
         requests: options.finalStateRequests,
         timeoutMs: options.timeoutMs,
-        env: login.env,
+        env: cellEnv,
         receiptPath: join(artifactDirectory, "final-state.json"),
       });
     }

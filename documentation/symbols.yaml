@@ -6992,15 +6992,28 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
+  - id: SYM-mcp-session-attachedBranchKbPath
+    title: attachedBranchKbPath
+    sourceFile: packages/mcp/src/server/session.ts
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-mcp-kb-freshness
+      - type: covered_by
+        target: TEST-mcp-kb-freshness
   - id: SYM-mcp-session-ensureBranchKbExists
     title: ensureBranchKbExists
     sourceFile: packages/mcp/src/server/session.ts
     granularity_reason: legacy-link
     relationships:
       - type: implements
-        target: REQ-008
+        target: REQ-012
+      - type: implements
+        target: REQ-skillopt-codex-optimization
       - type: covered_by
-        target: TEST-005
+        target: TEST-009
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
   - id: SYM-mcp-session-ensureProlog
     title: ensureProlog
     sourceFile: packages/mcp/src/server/session.ts
@@ -10339,9 +10352,9 @@ symbols:
         target: REQ-008
       - type: covered_by
         target: TEST-005
-    sourceLine: 210
+    sourceLine: 211
     sourceColumn: 22
-    sourceEndLine: 226
+    sourceEndLine: 227
     sourceEndColumn: 1
   - id: SYM-resetSessionModulePromise
     title: _resetSessionModulePromise
@@ -17319,7 +17332,7 @@ symbols:
         target: TEST-skillopt-predicate-first-requirements
     sourceLine: 50
     sourceColumn: 22
-    sourceEndLine: 220
+    sourceEndLine: 221
     sourceEndColumn: 1
   - id: SYM-skillopt-run-independent-final-state
     title: runIndependentFinalState

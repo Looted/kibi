@@ -82,6 +82,13 @@ const TOOL_ANNOTATIONS: Partial<Record<OperationName, ToolAnnotations>> = {
     idempotentHint: true,
     openWorldHint: false,
   },
+  kb_suggest_predicates: {
+    title: "Suggest Kibi ontology predicates",
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
 };
 
 const BASE_TOOLS: readonly ToolConfig[] = MCP_TOOL_ORDER.map((name) => {

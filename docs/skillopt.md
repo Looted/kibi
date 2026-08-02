@@ -41,7 +41,7 @@ bun run scripts/skillopt-eval/operator.ts optimize --max-steps 4
 1. `uv sync --project tools/skillopt --frozen` and `verify_pin.py`
 2. `codex login status` must already say `Logged in using ChatGPT`
 3. Fresh run id, explicit artifact root outside the protected source tree, and materialized fixture corpus
-4. Preflight, paid capability canary, Codex SkillOpt rewrite of `kibi-usage`, development scoring, and blinded held-out aggregate gates. The real cells reuse one private staged Codex/bwrap runtime for the entire run.
+4. Preflight, paid capability canary, Codex SkillOpt rewrite of `kibi-usage`, development scoring, and blinded held-out aggregate gates. The real cells reuse one private staged Codex/bwrap runtime for the entire run. Each non-Git fixture pins the target, broker, and independent verifier to the same `skillopt-eval` Kibi branch; target-only MCP approval is limited to the evaluator-owned allowlisted broker.
 5. External production verdict handoff (`external-verdict-required`); no local canonical skill adoption
 
 ## Artifact layout
