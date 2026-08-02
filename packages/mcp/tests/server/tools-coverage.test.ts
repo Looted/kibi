@@ -726,13 +726,19 @@ describe.serial("server tools coverage", () => {
     expect(spies.refreshAttachedBranchStamp).toHaveBeenCalledTimes(1);
   });
 
-  test("registerAllTools publishes read-only annotations for bundled skill tools", () => {
+  test("registerAllTools publishes read-only annotations for noninteractive modeling tools", () => {
     const { runtime } = createRuntime();
     const { server, registered } = createCapturingServer();
 
     registerAllTools(server, runtime);
 
-    for (const name of ["kb_skills_list", "kb_skills_load", "kb_skills_read"]) {
+    for (const name of [
+      "kb_skills_list",
+      "kb_skills_load",
+      "kb_skills_read",
+      "kb_semantic_advisor",
+      "kb_suggest_predicates",
+    ]) {
       expect(getRegisteredTool(registered, name).config.annotations).toEqual({
         title: expect.any(String),
         readOnlyHint: true,

@@ -118,7 +118,7 @@ function debugLog(...args: Parameters<typeof console.error>): void {
 export function ensureBranchKbExists(
   workspaceRoot: string,
   branch: string,
-): void {
+): boolean {
   // implements REQ-008
   if (!sessionDeps.isValidBranchName(branch)) {
     throw new Error(`Invalid branch name: ${branch}`);
@@ -126,7 +126,7 @@ export function ensureBranchKbExists(
 
   const branchPath = sessionDeps.resolveKbPath(workspaceRoot, branch);
   if (sessionDeps.fs.existsSync(branchPath)) {
-    return;
+    return false;
   }
 
   // Try to copy from the previously active branch if available
@@ -146,12 +146,13 @@ export function ensureBranchKbExists(
     debugLog(
       `[KIBI-MCP] Created branch KB for '${branch}' from '${previousBranch}'`,
     );
-    return;
+    return false;
   }
 
   // No previous branch available - create empty KB
   sessionDeps.fs.mkdirSync(branchPath, { recursive: true });
   debugLog(`[KIBI-MCP] Created empty branch KB for '${branch}'`);
+  return true;
 }
 
 export async function initiateGracefulShutdown(exitCode = 0): Promise<void> {
@@ -397,7 +398,10 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
     }
 
     // Ensure new branch KB exists
-    ensureBranchKbExists(workspaceRoot, targetBranch);
+    const createdEmptyBranch = ensureBranchKbExists(
+      workspaceRoot,
+      targetBranch,
+    );
 
     // Attach to new branch KB
     const attachResult = await prologProcess.query(`kb_attach('${kbPath}')`);
@@ -406,6 +410,15 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
       throw new Error(
         `Failed to attach to new branch KB: ${attachResult.error || "Unknown error"}`,
       );
+    }
+    if (createdEmptyBranch) {
+      const initialSaveResult = await prologProcess.query("kb_save");
+      await assertGeneration();
+      if (!initialSaveResult.success) {
+        throw new Error(
+          `Failed to initialize empty branch KB: ${initialSaveResult.error || "Unknown error"}`,
+        );
+      }
     }
 
     activeBranchName = targetBranch;
@@ -473,7 +486,7 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
   debugLog(`[KIBI-MCP]   Resolved branch: ${targetBranch}`);
 
   activeBranchName = targetBranch;
-  ensureBranchKbExists(workspaceRoot, targetBranch);
+  const createdEmptyBranch = ensureBranchKbExists(workspaceRoot, targetBranch);
   const kbPath = sessionDeps.resolveKbPath(workspaceRoot, targetBranch);
   const attachResult = await prologProcess.query(`kb_attach('${kbPath}')`);
   await assertGeneration();
@@ -482,6 +495,15 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
     throw new Error(
       `Failed to attach KB: ${attachResult.error || "Unknown error"}`,
     );
+  }
+  if (createdEmptyBranch) {
+    const initialSaveResult = await prologProcess.query("kb_save");
+    await assertGeneration();
+    if (!initialSaveResult.success) {
+      throw new Error(
+        `Failed to initialize empty branch KB: ${initialSaveResult.error || "Unknown error"}`,
+      );
+    }
   }
 
   attachedBranchKbPath = kbPath;

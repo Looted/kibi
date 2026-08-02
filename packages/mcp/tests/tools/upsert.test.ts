@@ -15,7 +15,7 @@ type QueryResult = {
 };
 
 const initialKibiMcpDebug: string | undefined = process.env.KIBI_MCP_DEBUG;
-const initialCwd = process.cwd();
+const initialKibiWorkspace: string | undefined = process.env.KIBI_WORKSPACE;
 let tempWorkspace: string | undefined;
 
 function createMockProlog(
@@ -40,7 +40,6 @@ function createMockProlog(
 afterEach(() => {
   mock.restore();
   __test__.setRefreshCoordinatesForSymbolIdForTests(undefined);
-  process.chdir(initialCwd);
   if (tempWorkspace) {
     rmSync(tempWorkspace, { recursive: true, force: true });
     tempWorkspace = undefined;
@@ -50,11 +49,16 @@ afterEach(() => {
   } else {
     process.env.KIBI_MCP_DEBUG = initialKibiMcpDebug;
   }
+  if (initialKibiWorkspace === undefined) {
+    Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
+  } else {
+    process.env.KIBI_WORKSPACE = initialKibiWorkspace;
+  }
 });
 
 function createTempWorkspace(): string {
   tempWorkspace = mkdtempSync(path.join(tmpdir(), "kibi-mcp-upsert-"));
-  process.chdir(tempWorkspace);
+  process.env.KIBI_WORKSPACE = tempWorkspace;
   return tempWorkspace;
 }
 

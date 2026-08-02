@@ -598,7 +598,24 @@ describe.serial("session module", () => {
 
       expect(firstResult).toBe(secondResult);
       expect(mockPrologProcessInstance.start).toHaveBeenCalledTimes(1);
-      expect(mockPrologProcessInstance.query).toHaveBeenCalledTimes(1);
+      expect(mockPrologProcessInstance.query).toHaveBeenCalledTimes(2);
+      expect(mockPrologProcessInstance.query).toHaveBeenCalledWith("kb_save");
+    });
+
+    test("should fail when a new empty branch cannot be persisted", async () => {
+      process.env.KIBI_BRANCH = "empty-save-failure";
+      mockExistsSync.mockImplementation(() => false);
+      mockPrologProcessInstance.query.mockImplementation(async (command) =>
+        command === "kb_save"
+          ? { success: false, error: "save denied" }
+          : { success: true },
+      );
+
+      const session = await importSession();
+
+      await expect(session.ensureProlog()).rejects.toThrow(
+        "Failed to initialize empty branch KB: save denied",
+      );
     });
 
     test("should release the ensureProlog tail after a failed initialization", async () => {

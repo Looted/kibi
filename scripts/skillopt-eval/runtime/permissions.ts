@@ -72,6 +72,10 @@ function tomlString(value: string): string {
 export function buildCodexConfig(options: CodexConfigOptions): string {
   const model = options.role === "target" ? TARGET_MODEL : OPTIMIZER_MODEL;
   const deniedRoots = new Set([options.paths.fixtureKb]);
+  // Target cells are noninteractive and can only reach the evaluator-owned,
+  // allowlisted Kibi broker inside their disposable workspace. Approve that
+  // broker explicitly so intended KB mutations are not cancelled as prompts.
+  const mcpApprovalMode = options.role === "target" ? "approve" : "auto";
   return [
     `model = ${JSON.stringify(model)}`,
     `model_reasoning_effort = ${JSON.stringify(MODEL_REASONING_EFFORT)}`,
@@ -96,7 +100,7 @@ export function buildCodexConfig(options: CodexConfigOptions): string {
     "",
     "[shell_environment_policy]",
     'inherit = "none"',
-    'include_only = ["HOME", "LANG", "LC_ALL", "PATH", "TERM", "TZ"]',
+    'include_only = ["HOME", "KIBI_BRANCH", "LANG", "LC_ALL", "PATH", "TERM", "TZ"]',
     "",
     "[permissions.skillopt-isolated.workspace_roots]",
     `${tomlString(options.paths.workspace)} = true`,
@@ -130,7 +134,7 @@ export function buildCodexConfig(options: CodexConfigOptions): string {
     "required = true",
     `startup_timeout_sec = ${MCP_STARTUP_TIMEOUT_SECONDS}`,
     `tool_timeout_sec = ${MCP_TOOL_TIMEOUT_SECONDS}`,
-    'default_tools_approval_mode = "auto"',
+    `default_tools_approval_mode = ${JSON.stringify(mcpApprovalMode)}`,
     "",
   ].join("\n");
 }

@@ -174,6 +174,9 @@ def run_bridge(
     previous_sigint = signal.getsignal(signal.SIGINT)
     previous_sigterm = signal.getsignal(signal.SIGTERM)
     process: subprocess.Popen[bytes] | None = None
+    writer: threading.Thread | None = None
+    stdout_reader: threading.Thread | None = None
+    stderr_reader: threading.Thread | None = None
     stdout = bytearray()
     stderr = bytearray()
     overflow = threading.Event()
@@ -203,8 +206,12 @@ def run_bridge(
             finally:
                 stdin.close()
         writer = threading.Thread(target=write_request, daemon=True)
-        stdout_reader = threading.Thread(target=_drain, args=(process.stdout, stdout, overflow))
-        stderr_reader = threading.Thread(target=_drain, args=(process.stderr, stderr, overflow))
+        stdout_reader = threading.Thread(
+            target=_drain, args=(process.stdout, stdout, overflow)
+        )
+        stderr_reader = threading.Thread(
+            target=_drain, args=(process.stderr, stderr, overflow)
+        )
         writer.start()
         stdout_reader.start()
         stderr_reader.start()
@@ -228,6 +235,15 @@ def run_bridge(
             _reap_process_group(process, kill_grace_seconds)
         raise BridgeProcessError("interrupted") from error
     finally:
+        if process is not None:
+            if process.poll() is None:
+                _reap_process_group(process, kill_grace_seconds)
+            for thread in (writer, stdout_reader, stderr_reader):
+                if thread is not None:
+                    thread.join(timeout=kill_grace_seconds)
+            for stream in (process.stdin, process.stdout, process.stderr):
+                if stream is not None and not stream.closed:
+                    stream.close()
         _ = signal.signal(signal.SIGINT, previous_sigint)
         _ = signal.signal(signal.SIGTERM, previous_sigterm)
     if process.returncode != 0:

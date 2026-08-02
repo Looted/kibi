@@ -141,6 +141,7 @@ function restoreProcessState(): void {
 }
 
 afterEach(() => {
+  mock.restore();
   restoreProcessState();
 });
 

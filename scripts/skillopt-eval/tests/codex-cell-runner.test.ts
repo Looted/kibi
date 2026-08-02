@@ -34,6 +34,9 @@ describe("Codex cell runner", () => {
     let ephemeralRoot = "";
     let observedArgv: readonly string[] = [];
     let observedConfig = "";
+    let probeBranch: string | undefined;
+    let runBranch: string | undefined;
+    let finalStateBranch: string | undefined;
 
     // When
     const completed = await runCodexCell(
@@ -69,9 +72,13 @@ describe("Codex cell runner", () => {
           );
           return broker;
         },
-        probeMcp: async () => ({ toolNames: ["kb_status"] }),
-        run: async (argv, cwd, _env, _timeout, stdin) => {
+        probeMcp: async ({ env }) => {
+          probeBranch = env.KIBI_BRANCH;
+          return { toolNames: ["kb_status"] };
+        },
+        run: async (argv, cwd, env, _timeout, stdin) => {
           observedArgv = argv;
+          runBranch = env.KIBI_BRANCH;
           observedConfig = await readFile(
             join(ephemeralRoot, "codex-home/config.toml"),
             "utf8",
@@ -98,7 +105,10 @@ describe("Codex cell runner", () => {
             signal: null,
           };
         },
-        finalState: async () => predicateFinalState(),
+        finalState: async ({ env }) => {
+          finalStateBranch = env.KIBI_BRANCH;
+          return predicateFinalState();
+        },
         diagnosticReceipt: async (workspace) =>
           readFile(join(workspace.target, ".kb/usage.log"), "utf8"),
         evaluateSealedEvidence: async ({ finalState }) =>
@@ -121,6 +131,9 @@ describe("Codex cell runner", () => {
     expect(observedConfig).toContain("enabled = false");
     expect(observedConfig).toContain('".kb" = "deny"');
     expect(observedConfig).toContain("required = true");
+    expect(probeBranch).toBe("skillopt-eval");
+    expect(runBranch).toBe("skillopt-eval");
+    expect(finalStateBranch).toBe("skillopt-eval");
     expect(existsSync(ephemeralRoot)).toBe(false);
     expect(existsSync(completed.artifactDirectory)).toBe(true);
     expect(JSON.parse(await readFile(completed.receiptPath, "utf8"))).toEqual(

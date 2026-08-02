@@ -4,7 +4,7 @@ title: Codex-only SkillOpt candidates are gated before adoption
 type: scenario
 status: active
 created_at: 2026-07-21T00:00:00Z
-updated_at: 2026-08-01T00:00:00Z
+updated_at: 2026-08-02T00:00:00Z
 source: documentation/facts/FACT-skillopt-methodology.md
 priority: must
 tags: [skillopt, codex, evaluation, security]
@@ -18,3 +18,5 @@ Given frozen baseline, one-shot, and SkillOpt skill-body variants with unchanged
 Given a non-fake bridge request with the source worktree, fixture, evaluator manifest, and artifact root, when the bridge evaluates a candidate, then it delegates the episode to the isolated Codex cell runner with the real login and MCP dependencies.
 
 Given a paid optimization run with development, trainer-bridge, and held-out cells, when runtime staging completes, then every cell receives the same absolute staged Codex and bwrap paths and the private lease is removed after the run. If any infrastructure, interruption, budget, or evidence-conflict failure occurs, later cells are not launched and the run returns a structured no-go without a terminal eligibility review; ordinary behavioral failures continue through the gates.
+
+Given a target fixture without Git metadata or an existing branch KB, when the target and independent verifier launch Kibi, then both use the `skillopt-eval` branch, the first attachment persists an empty snapshot, and repeated query/check/status calls remain valid. Target calls to the evaluator-owned allowlisted broker may execute noninteractively, while optimizer calls still rely on read-only annotations.

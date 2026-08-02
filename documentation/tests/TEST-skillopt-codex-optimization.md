@@ -4,7 +4,7 @@ title: Codex SkillOpt contract rejects stale hosts and gates
 type: test
 status: passing
 created_at: 2026-07-21T00:00:00Z
-updated_at: 2026-08-01T00:00:00Z
+updated_at: 2026-08-02T00:00:00Z
 source: scripts/skillopt-eval/tests/methodology-contract.test.ts
 priority: must
 tags: [skillopt, codex, evaluation, integration, security]
@@ -24,3 +24,5 @@ The bridge CLI suite verifies that non-fake requests construct a Codex cell from
 The current contract tests also cover CLI parsing and dispatch, schema compatibility for unknown fields, official trainer request and result lineage, fresh development and blinded held-out evaluation, and the guard that no adoption happens before eligibility.
 
 The runtime and smoke suites additionally verify one private runtime staging lease, identical executable propagation through every real evaluation lane, cleanup on success and failure, explicit bridge flags with rejection of partial configuration, and smoke evidence for the shell probe, model-originated semantic-advisor call, broker hash chain, and diagnostic receipt. Workflow tests verify that infrastructure failures stop subsequent cells and emit exit code 1 with stage/task/variant/failure/receipt details, while behavioral failures remain eligible for ordinary gate evaluation.
+
+The staged-MCP integration suite launches a real server in a non-Git fixture and verifies that status, query, and check all succeed on the fixed `skillopt-eval` branch. Runtime configuration tests prove the same branch reaches the probe, target process, and independent verifier, and that only target cells pre-approve the allowlisted evaluation broker.
