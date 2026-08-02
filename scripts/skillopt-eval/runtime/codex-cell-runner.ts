@@ -19,7 +19,11 @@ import {
 } from "./codex-cell-types";
 import { replayCodexEpisode } from "./codex-episode";
 import { createIsolationWorkspace } from "./isolation-workspace";
-import { buildCodexConfig, buildCodexExecArgv } from "./permissions";
+import {
+  SKILLOPT_EVALUATION_BRANCH,
+  buildCodexConfig,
+  buildCodexExecArgv,
+} from "./permissions";
 import { ProcessControlError } from "./process";
 import { assembleCanonicalSkills } from "./skill-assembly";
 
@@ -101,7 +105,10 @@ export async function runCodexCell(
       sandboxHome: workspace.sandboxHome,
       env: options.env,
     });
-    const cellEnv = { ...login.env, KIBI_BRANCH: "skillopt-eval" };
+    const cellEnv = {
+      ...login.env,
+      KIBI_BRANCH: SKILLOPT_EVALUATION_BRANCH,
+    };
     const broker = await dependencies.stageBroker(
       workspace,
       options.sourceWorktree,

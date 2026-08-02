@@ -6,6 +6,7 @@ import type { ProcessResult } from "./process";
 export const TARGET_MODEL = "gpt-5.4-mini" as const;
 export const OPTIMIZER_MODEL = "gpt-5.5" as const;
 export const MODEL_REASONING_EFFORT = "low" as const;
+export const SKILLOPT_EVALUATION_BRANCH = "skillopt-eval" as const;
 export const MCP_STARTUP_TIMEOUT_SECONDS = 15 as const;
 export const MCP_TOOL_TIMEOUT_SECONDS = 120 as const;
 export type CanaryRole = "optimizer" | "target";
@@ -135,6 +136,9 @@ export function buildCodexConfig(options: CodexConfigOptions): string {
     `startup_timeout_sec = ${MCP_STARTUP_TIMEOUT_SECONDS}`,
     `tool_timeout_sec = ${MCP_TOOL_TIMEOUT_SECONDS}`,
     `default_tools_approval_mode = ${JSON.stringify(mcpApprovalMode)}`,
+    "",
+    "[mcp_servers.kibi.env]",
+    `KIBI_BRANCH = ${JSON.stringify(SKILLOPT_EVALUATION_BRANCH)}`,
     "",
   ].join("\n");
 }
