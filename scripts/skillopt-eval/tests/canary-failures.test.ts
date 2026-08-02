@@ -18,10 +18,12 @@ import {
 import { tmpdir } from "node:os";
 import { dirname, isAbsolute, join, relative } from "node:path";
 import { verifyProbeEvidence } from "../runtime/canary-evidence";
+import { writeCapabilityProbe } from "../runtime/canary-probes";
 import {
   RequiredMcpStartupError,
   RuntimePrerequisiteError,
 } from "../runtime/canary-runtime";
+import { createIsolationWorkspace } from "../runtime/isolation-workspace";
 import type { ProcessResult } from "../runtime/process";
 import { runCapabilityCanary as baseRunCapabilityCanary } from "../runtime/workspace";
 
@@ -484,6 +486,51 @@ describe("Codex capability canary failures", () => {
       for (const deniedPath of deniedRepresentatives) {
         expect(script).toContain(JSON.stringify(deniedPath));
       }
+    }
+  });
+
+  test("suppresses the expected read-only runtime write diagnostic", async () => {
+    const artifactRoot = await mkdtemp(
+      join(tmpdir(), "skillopt-canary-probe-shell-"),
+    );
+    roots.push(artifactRoot);
+    const workspace = await createIsolationWorkspace({
+      artifactRoot,
+      runId: "quiet-readonly-write",
+      role: "optimizer",
+    });
+    for (const name of ["one", "two", "three", "four"]) {
+      const skillRoot = join(workspace.target, ".agents", "skills", name);
+      await mkdir(skillRoot, { recursive: true });
+      await writeFile(join(skillRoot, "SKILL.md"), `# ${name}\n`);
+    }
+    const binRoot = join(workspace.root, "bin");
+    await mkdir(binRoot);
+    const fakePython = join(binRoot, "python3");
+    await writeFile(fakePython, "#!/bin/sh\nexit 1\n", { mode: 0o500 });
+    await chmod(fakePython, 0o500);
+    const probe = await writeCapabilityProbe(workspace, []);
+    const runtimeRoot = join(workspace.target, ".runtime");
+    await chmod(runtimeRoot, 0o500);
+
+    try {
+      const child = Bun.spawn(["/bin/sh", probe.absolutePath], {
+        cwd: workspace.target,
+        env: { PATH: binRoot },
+        stdout: "pipe",
+        stderr: "pipe",
+      });
+      const [exitCode, stdout, stderr] = await Promise.all([
+        child.exited,
+        new Response(child.stdout).text(),
+        new Response(child.stderr).text(),
+      ]);
+
+      expect(exitCode).toBe(0);
+      expect(stdout).toBe(probe.expectedOutput);
+      expect(stderr).toBe("");
+    } finally {
+      await chmod(runtimeRoot, 0o700);
     }
   });
 
