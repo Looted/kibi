@@ -117,6 +117,45 @@ async function brokerTrace(): Promise<string> {
   return readFile(path, "utf8");
 }
 
+async function brokerTraceWithFailedThenSuccessfulCall(): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), "skillopt-default-evidence-"));
+  roots.push(root);
+  const path = join(root, "broker-trace.jsonl");
+  await appendTraceReceipt(path, {
+    correlationId: "rpc-1",
+    direction: "target_to_server",
+    kind: "request",
+    method: "tools/call",
+    toolName: "kb_query",
+    payload: {},
+  });
+  await appendTraceReceipt(path, {
+    correlationId: "rpc-1",
+    direction: "server_to_target",
+    kind: "response",
+    method: "tools/call",
+    toolName: "kb_query",
+    payload: { result: { isError: true } },
+  });
+  await appendTraceReceipt(path, {
+    correlationId: "rpc-2",
+    direction: "target_to_server",
+    kind: "request",
+    method: "tools/call",
+    toolName: "kb_query",
+    payload: {},
+  });
+  await appendTraceReceipt(path, {
+    correlationId: "rpc-2",
+    direction: "server_to_target",
+    kind: "response",
+    method: "tools/call",
+    toolName: "kb_query",
+    payload: { result: {} },
+  });
+  return readFile(path, "utf8");
+}
+
 describe("default Codex cell evidence sealing", () => {
   test("binds authentic final-state MCP output and derives evaluator claims", async () => {
     const manifest = evaluatorManifest("predicate");
@@ -253,6 +292,33 @@ describe("default Codex cell evidence sealing", () => {
       },
     );
 
+    expect(evidence.diagnostic.integrityValid).toBe(true);
+    expect(scoreCell(manifest, evidence).terminalCategory).toBeNull();
+  });
+
+  test("requires success receipts only for successfully completed broker calls", async () => {
+    const manifest = evaluatorManifest("predicate");
+    const evidence = sealDefaultCellEvidence(
+      {
+        evaluatorManifest: manifest,
+        finalStateRequests: [
+          { tool: "kb_query", args: {} },
+          { tool: "kb_check", args: {} },
+          { tool: "kb_status", args: {} },
+        ],
+      },
+      {
+        finalState: finalStateReceipt(),
+        brokerTrace: await brokerTraceWithFailedThenSuccessfulCall(),
+        diagnosticReceipt:
+          '{"tool":"kb_query","status":"success","telemetry":null}\n',
+      },
+    );
+
+    expect(evidence.broker.orderedCalls).toEqual([
+      { tool: "kb_query", predicate: "sequence=1" },
+      { tool: "kb_query", predicate: "sequence=2" },
+    ]);
     expect(evidence.diagnostic.integrityValid).toBe(true);
     expect(scoreCell(manifest, evidence).terminalCategory).toBeNull();
   });

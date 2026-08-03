@@ -137,7 +137,7 @@ function sealedFinalState(
 function sealedBroker(brokerTrace: string) {
   const verification = verifyTraceChain(brokerTrace);
   const receipts = verification.valid ? parseTraceReceipts(brokerTrace) : [];
-  const calls = receipts
+  const requestCalls = receipts
     .filter(
       (receipt) =>
         receipt.direction === "target_to_server" &&
@@ -146,20 +146,45 @@ function sealedBroker(brokerTrace: string) {
         receipt.toolName !== undefined,
     )
     .map((receipt, index) => ({
+      correlationId: receipt.correlationId,
       tool: receipt.toolName ?? "",
       predicate: `sequence=${index + 1}`,
     }));
+  const successfulTools = requestCalls.flatMap((call) => {
+    const completed = receipts.some((receipt) => {
+      if (
+        receipt.correlationId !== call.correlationId ||
+        receipt.direction !== "server_to_target" ||
+        receipt.kind !== "response" ||
+        receipt.method !== "tools/call" ||
+        receipt.toolName !== call.tool ||
+        !isRecord(receipt.payload) ||
+        !Object.hasOwn(receipt.payload, "result")
+      ) {
+        return false;
+      }
+      const result = receipt.payload.result;
+      return !isRecord(result) || result.isError !== true;
+    });
+    return completed ? [call.tool] : [];
+  });
   return {
-    complete: verification.entries > 0 && calls.length > 0,
-    integrityValid: verification.valid,
-    claims: [],
-    orderedCalls: calls,
+    evidence: {
+      complete: verification.entries > 0 && requestCalls.length > 0,
+      integrityValid: verification.valid,
+      claims: [],
+      orderedCalls: requestCalls.map(({ tool, predicate }) => ({
+        tool,
+        predicate,
+      })),
+    },
+    successfulTools,
   };
 }
 
 function sealedDiagnostic(
   diagnosticReceipt: string,
-  calls: readonly Readonly<{ tool: string }>[],
+  successfulTools: readonly string[],
 ) {
   const lines = diagnosticReceipt
     .split("\n")
@@ -178,7 +203,7 @@ function sealedDiagnostic(
   } catch {
     integrityValid = false;
   }
-  const expectedTools = calls.map(({ tool }) => tool).sort();
+  const expectedTools = [...successfulTools].sort();
   const receiptTools = records
     .flatMap((record) =>
       typeof record.tool === "string" &&
@@ -209,10 +234,10 @@ export function sealDefaultCellEvidence(
   const broker = sealedBroker(evidence.brokerTrace);
   return {
     finalState: sealedFinalState(evidence.finalState, options),
-    broker,
+    broker: broker.evidence,
     diagnostic: sealedDiagnostic(
       evidence.diagnosticReceipt,
-      broker.orderedCalls,
+      broker.successfulTools,
     ),
     codex: { complete: true, integrityValid: true, claims: [] },
     isolation: { observedSentinels: [], violations: [] },
