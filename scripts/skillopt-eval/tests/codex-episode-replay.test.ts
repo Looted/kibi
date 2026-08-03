@@ -172,6 +172,33 @@ describe("deterministic Codex episode replay", () => {
     expect(receipt.result.reconciliation.brokerTrace).toBe(false);
   });
 
+  test("Given no successful model call When replayed Then an empty diagnostic multiset is behavioral evidence", () => {
+    const receipt = replay({
+      evidence: { ...EVIDENCE, diagnosticReceipt: "" },
+      diagnosticReceiptRequired: false,
+      score: {
+        ...PASS_SCORE,
+        outcome: "fail",
+        terminalCategory: "behavioral_failure",
+        score: 75,
+        soft: 0.75,
+        hard: 0,
+        adoptionEligible: false,
+        components: { finalState: 60, protocol: 0, isolation: 15 },
+      },
+    });
+
+    expect(receipt.result).toMatchObject({
+      status: "behavioral-failure",
+      score: 75,
+      hardPass: false,
+      reconciliation: { diagnosticReceipt: true },
+    });
+    expect(receipt.result.criticalFailures).not.toContain(
+      "missing_diagnostic_receipt",
+    );
+  });
+
   test("Given missing final-state evidence When replayed Then it is an infrastructure failure", () => {
     const receipt = replay({
       evidence: { ...EVIDENCE, finalState: "" },

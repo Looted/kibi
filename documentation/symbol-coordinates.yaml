@@ -7985,9 +7985,9 @@ coordinates:
   SYM-skillopt-default-codex-cell-dependencies:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 311
+    sourceEndLine: 317
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    sourceLine: 248
+    sourceLine: 254
   SYM-skillopt-default-evaluate-development:
     sourceColumn: 13
     sourceEndColumn: 3
@@ -8075,7 +8075,7 @@ coordinates:
   SYM-skillopt-episode-replay-input-type:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 74
+    sourceEndLine: 75
     sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
     sourceLine: 55
   SYM-skillopt-estimate-price-equivalent:
@@ -9971,9 +9971,9 @@ coordinates:
   SYM-skillopt-replay-codex-episode:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 268
+    sourceEndLine: 276
     sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
-    sourceLine: 163
+    sourceLine: 171
   SYM-skillopt-report-artifacts-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -10037,7 +10037,7 @@ coordinates:
   SYM-skillopt-run-codex-cell:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 228
+    sourceEndLine: 229
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
     sourceLine: 54
   SYM-skillopt-run-independent-final-state:
@@ -10679,9 +10679,9 @@ coordinates:
   SYM-skillopt-seal-default-cell-evidence:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 245
+    sourceEndLine: 251
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    sourceLine: 226
+    sourceLine: 232
   SYM-skillopt-sealed-cell-evidence:
     sourceColumn: 12
     sourceEndColumn: 2

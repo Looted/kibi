@@ -71,6 +71,7 @@ export type EpisodeReplayInput = Readonly<{
   pricingHash: string;
   priceAmount: number;
   infrastructureFailure?: string;
+  diagnosticReceiptRequired?: boolean;
 }>;
 
 function sha256(value: string): string {
@@ -83,6 +84,13 @@ function artifactRef(path: string, content: string) {
 
 function evidencePresent(value: string): boolean {
   return value.trim().length > 0;
+}
+
+function diagnosticReceiptReconciled(input: EpisodeReplayInput): boolean {
+  return (
+    evidencePresent(input.evidence.diagnosticReceipt) ||
+    input.diagnosticReceiptRequired === false
+  );
 }
 
 function scoreStatus(score: CellReceipt): EpisodeResult["status"] {
@@ -115,7 +123,7 @@ function terminalState(
   if (!evidencePresent(input.evidence.brokerTrace)) {
     failures.add("missing_mcp_evidence");
   }
-  if (!evidencePresent(input.evidence.diagnosticReceipt)) {
+  if (!diagnosticReceiptReconciled(input)) {
     failures.add("missing_diagnostic_receipt");
   }
   if (!evidencePresent(input.evidence.finalState)) {
@@ -139,7 +147,7 @@ function terminalState(
   }
   if (
     !evidencePresent(input.evidence.brokerTrace) ||
-    !evidencePresent(input.evidence.diagnosticReceipt) ||
+    !diagnosticReceiptReconciled(input) ||
     !evidencePresent(input.evidence.finalState)
   ) {
     return { status: "infrastructure-failure", failures: [...failures] };
@@ -226,7 +234,7 @@ export function replayCodexEpisode(
     evidenceIndexHash: contractHash(JsonValueSchema.parse(evidenceIndex)),
     reconciliation: {
       brokerTrace: evidencePresent(input.evidence.brokerTrace),
-      diagnosticReceipt: evidencePresent(input.evidence.diagnosticReceipt),
+      diagnosticReceipt: diagnosticReceiptReconciled(input),
       finalStateQuery: evidencePresent(input.evidence.finalState),
     },
     usage: normalized.usage,

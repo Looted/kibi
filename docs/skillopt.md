@@ -48,6 +48,8 @@ bun run scripts/skillopt-eval/operator.ts optimize --max-steps 4
 
 The outer trainer deadline is derived from the internal four-case baseline selection, all 12 target cells per requested round, one optimizer allowance per round, and startup grace. A four-round run therefore cannot be cut off by the old fixed 15-minute `uv` deadline; an actual outer timeout is reported as a structured training infrastructure no-go with its diagnostic path.
 
+Diagnostic reconciliation is the multiset of successful model-originated Kibi calls. When the model makes no Kibi call, the matching usage-receipt multiset is legitimately empty and the missing required call is scored as a behavioral protocol failure. A non-empty successful-call multiset without matching usage receipts remains an infrastructure no-go.
+
 ## Artifact layout
 
 | Path | Produced by | Meaning |

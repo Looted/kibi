@@ -170,7 +170,10 @@ function sealedBroker(brokerTrace: string) {
   });
   return {
     evidence: {
-      complete: verification.entries > 0 && requestCalls.length > 0,
+      // Completeness means the broker emitted a structurally verifiable trace.
+      // Whether the model made required tool calls is behavioral protocol
+      // evidence and is scored below; it is not an infrastructure property.
+      complete: verification.entries > 0,
       integrityValid: verification.valid,
       claims: [],
       orderedCalls: requestCalls.map(({ tool, predicate }) => ({
@@ -217,7 +220,10 @@ function sealedDiagnostic(
   integrityValid &&=
     JSON.stringify(receiptTools) === JSON.stringify(expectedTools);
   return {
-    complete: lines.length > 0,
+    // An empty receipt is the correct reconciliation for an empty multiset of
+    // successful model-originated calls. Do not turn "model used no MCP tool"
+    // into an infrastructure failure before the protocol rubric can score it.
+    complete: lines.length > 0 || successfulTools.length === 0,
     integrityValid,
     claims: [] as readonly EvidenceClaim[],
   };

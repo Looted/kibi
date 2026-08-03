@@ -212,6 +212,7 @@ export async function runCodexCell(
       ],
       pricingHash: options.pricingHash,
       priceAmount: options.priceAmount,
+      diagnosticReceiptRequired: !sealedEvidence.diagnostic.complete,
       ...(infrastructureFailure === undefined ? {} : { infrastructureFailure }),
     });
     const receiptPath = await persistCodexEpisode(artifactDirectory, receipt, {
