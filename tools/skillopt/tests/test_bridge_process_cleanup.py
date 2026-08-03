@@ -32,13 +32,15 @@ class BridgeProcessCleanupTests(unittest.TestCase):
     def test_timeout_reaps_process_group_while_stderr_is_drained(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             pid_path = Path(directory) / "pid"
-            source = "\n".join((
-                "import os, sys, time",
-                "from pathlib import Path",
-                f"Path({str(pid_path)!r}).write_text(str(os.getpid()))",
-                "sys.stderr.write('diagnostic\\n' * 1000); sys.stderr.flush()",
-                "time.sleep(30)",
-            ))
+            source = "\n".join(
+                (
+                    "import os, sys, time",
+                    "from pathlib import Path",
+                    f"Path({str(pid_path)!r}).write_text(str(os.getpid()))",
+                    "sys.stderr.write('diagnostic\\n' * 1000); sys.stderr.flush()",
+                    "time.sleep(30)",
+                )
+            )
             with patch(
                 "tools.skillopt.kibi_skillopt.bridge_runner.bridge_command",
                 return_value=(sys.executable, "-c", source),

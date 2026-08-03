@@ -56,6 +56,13 @@ class BridgeRow(ContractModel):
     soft: Annotated[JsonNumber, Field(ge=0, le=1)]
     status: Literal["completed", "behavioral-failure", "infrastructure-failure"]
     failure_category: Annotated[NonEmptyString | None, Field(alias="failureCategory")]
+    failure_categories: Annotated[
+        tuple[NonEmptyString, ...], Field(alias="failureCategories", max_length=100)
+    ] = ()
+    tool_sequence: Annotated[
+        tuple[NonEmptyString, ...], Field(alias="toolSequence", max_length=100)
+    ] = ()
+    final_state_summary: Annotated[str, Field(alias="finalStateSummary", max_length=20_000)] = "{}"
     conversation_path: Annotated[NonEmptyString, Field(alias="conversationPath")]
     evidence_refs: Annotated[tuple[NonEmptyString, ...], Field(alias="evidenceRefs", min_length=1)]
 
@@ -107,6 +114,16 @@ class TrainTrajectory(ContractModel):
     task_id: Annotated[NonEmptyString, Field(alias="taskId")]
     family: NonEmptyString
     reflection: NonEmptyString
+    status: Literal["completed", "behavioral-failure"] = "behavioral-failure"
+    soft: Annotated[JsonNumber, Field(ge=0, le=1)] = 0
+    hard: Annotated[JsonInteger, Field(ge=0, le=1)] = 0
+    failure_categories: Annotated[
+        tuple[NonEmptyString, ...], Field(alias="failureCategories", max_length=100)
+    ] = ()
+    tool_sequence: Annotated[
+        tuple[NonEmptyString, ...], Field(alias="toolSequence", max_length=100)
+    ] = ()
+    final_state_summary: Annotated[str, Field(alias="finalStateSummary", max_length=20_000)] = "{}"
 
 
 class DevelopmentGate(ContractModel):
@@ -121,7 +138,7 @@ class OptimizerRequest(ContractModel):
     run_id: Annotated[NonEmptyString, Field(alias="runId")]
     skill: BridgeSkill
     step: Annotated[JsonInteger, Field(ge=1)]
-    max_steps: Annotated[JsonInteger, Field(alias="maxSteps", ge=1)]
+    max_steps: Annotated[JsonInteger, Field(alias="maxSteps", ge=1, le=4)]
     current_body: Annotated[str, Field(alias="currentBody", min_length=1, max_length=100_000)]
     train_trajectories: Annotated[
         tuple[TrainTrajectory, ...], Field(alias="trainTrajectories", min_length=1, max_length=8)
@@ -142,7 +159,7 @@ class OptimizerResult(ContractModel):
 class AdapterCheckpoint(ContractModel):
     schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
     artifact_type: Annotated[Literal["skillopt-adapter-checkpoint"], Field(alias="artifactType")]
-    max_steps: Annotated[JsonInteger, Field(alias="maxSteps", ge=0)]
+    max_steps: Annotated[JsonInteger, Field(alias="maxSteps", ge=0, le=4)]
     completed_steps: Annotated[JsonInteger, Field(alias="completedSteps", ge=0)]
     next_step: Annotated[JsonInteger, Field(alias="nextStep", ge=1)]
     candidate_body_hash: Annotated[Sha256, Field(alias="candidateBodyHash")]

@@ -19,6 +19,7 @@ import {
   materializePredicateCorpus,
   reservePredicateMatrix,
 } from "../fixtures/predicate-corpus";
+import { publicSkillDescriptors } from "../real-workflow-setup";
 import { temporaryRoot } from "./fixture-test-helpers";
 
 const predicateRoots: string[] = [];
@@ -28,6 +29,22 @@ afterEach(() => {
 });
 
 describe("SkillOpt fixture catalog", () => {
+  test("uses the balanced 8/4 public corpus across all four families", () => {
+    const train = publicSkillDescriptors("train");
+    const development = publicSkillDescriptors("development");
+
+    expect(train).toHaveLength(8);
+    expect(development).toHaveLength(4);
+    const families = new Set(train.map(({ family }) => family));
+    expect(families.size).toBe(4);
+    expect(new Set(development.map(({ family }) => family))).toEqual(families);
+    expect(
+      [...families].map(
+        (family) => train.filter((entry) => entry.family === family).length,
+      ),
+    ).toEqual([2, 2, 2, 2]);
+  });
+
   test("builds the frozen 8/4/16 split for one skill", () => {
     const tasks = buildSkillCatalog("kibi-usage");
 

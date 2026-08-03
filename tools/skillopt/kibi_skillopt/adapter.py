@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import final
@@ -52,10 +53,28 @@ class EnvAdapter(OptimizerAdapterMixin, SkillOptEnvAdapter):
         )
         self._loader = SplitDataLoader(self._train_items, self._development_items)
         self._recorded_train_trajectories: list[TrainTrajectory] = []
+        self._development_by_body_hash: dict[str, dict[str, JsonValue]] = {}
+        self._optimizer_step = max(
+            (
+                int(path.name.removeprefix("step-"))
+                for path in (resolved_run_root / "optimizer").glob("step-*")
+                if path.name.removeprefix("step-").isdigit()
+            ),
+            default=0,
+        )
+        self._max_steps = 4
         self.analyst_workers = 2
         self.failure_only = False
         self.minibatch_size = 4
         self.edit_budget = 4
+
+    @override
+    def setup(self, cfg: dict[str, JsonValue]) -> None:
+        super().setup(cfg)
+        configured = cfg.get("max_steps", 4)
+        if not isinstance(configured, int) or isinstance(configured, bool):
+            raise BridgeError("invalid_max_steps")
+        self._max_steps = configured
 
     @override
     def get_dataloader(self) -> SplitDataLoader:
@@ -94,6 +113,58 @@ class EnvAdapter(OptimizerAdapterMixin, SkillOptEnvAdapter):
         if trajectory.task_id not in self._train_ids:
             raise BridgeError("optimizer requires public train task ids")
         self._recorded_train_trajectories.append(trajectory)
+
+    def development_gate_for(self, skill_content: str) -> dict[str, JsonValue] | None:
+        gate = self._development_by_body_hash.get(contract_hash(skill_content))
+        return None if gate is None else dict(gate)
+
+    def record_development_gate(
+        self, skill_content: str, rows: Sequence[dict[str, JsonValue]]
+    ) -> None:
+        if not rows:
+            raise BridgeError("development_requires_rows")
+        by_family: dict[str, list[float]] = {}
+        soft_scores: list[float] = []
+        hard_passes = 0
+        for row in rows:
+            soft = float(row["soft"])
+            family = str(row["task_type"])
+            soft_scores.append(soft)
+            by_family.setdefault(family, []).append(soft)
+            hard_passes += int(row["hard"])
+        family_means = [sum(scores) / len(scores) for scores in by_family.values()]
+        self._development_by_body_hash[contract_hash(skill_content)] = {
+            "mean": sum(soft_scores) / len(soft_scores),
+            "hardPasses": hard_passes,
+            "worstFamilyMean": min(family_means),
+        }
+
+    @staticmethod
+    def _write_conversation(
+        out_dir: str,
+        task_id: str,
+        public_claim: PublicTaskClaim,
+        trajectory: TrainTrajectory,
+    ) -> None:
+        prediction_root = Path(out_dir) / "predictions" / task_id
+        prediction_root.mkdir(parents=True, mode=0o700, exist_ok=True)
+        conversation: list[dict[str, JsonValue]] = []
+        for tool_call in trajectory.tool_sequence:
+            conversation.append(
+                {"type": "tool_call", "cmd": tool_call, "obs": "brokered tool call completed"}
+            )
+        conversation.append(
+            {
+                "role": "system",
+                "content": trajectory.reflection,
+            }
+        )
+        _ = (prediction_root / "conversation.json").write_text(
+            json.dumps(conversation, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        _ = (prediction_root / "target_user_prompt.txt").write_text(
+            public_claim.text, encoding="utf-8"
+        )
 
     def build_request(self, task: Task, skill_content: str) -> BridgeRequest:
         task_id = task_text(task.get("id"), "id")
@@ -144,13 +215,38 @@ class EnvAdapter(OptimizerAdapterMixin, SkillOptEnvAdapter):
             row = next((candidate for candidate in result.rows if candidate.id == task_id), None)
             if row is None:
                 raise BridgeError("bridge_result_missing_task")
-            reflection = row.failure_category or row.conversation_path
+            failure_categories = row.failure_categories or (
+                (row.failure_category,) if row.failure_category is not None else ()
+            )
+            reflection = json.dumps(
+                {
+                    "status": row.status,
+                    "score": row.soft,
+                    "hardPass": bool(row.hard),
+                    "failureCategories": list(failure_categories),
+                    "toolSequence": list(row.tool_sequence),
+                    "finalStateSummary": row.final_state_summary,
+                },
+                sort_keys=True,
+                separators=(",", ":"),
+            )
             trajectory = TrainTrajectory.model_validate(
-                {"taskId": row.id, "family": family, "reflection": reflection}
+                {
+                    "taskId": row.id,
+                    "family": family,
+                    "reflection": reflection,
+                    "status": row.status,
+                    "soft": row.soft,
+                    "hard": row.hard,
+                    "failureCategories": list(failure_categories),
+                    "toolSequence": list(row.tool_sequence),
+                    "finalStateSummary": row.final_state_summary,
+                }
             )
             trajectory_payload = trajectory.model_dump(by_alias=True, mode="json")
             if split == "train":
                 self.record_train_trajectory(trajectory)
+            self._write_conversation(out_dir, row.id, request.public_claim, trajectory)
             rollout_row: dict[str, JsonValue] = {
                 "id": row.id,
                 "hard": row.hard,
@@ -164,7 +260,55 @@ class EnvAdapter(OptimizerAdapterMixin, SkillOptEnvAdapter):
                 "trajectory_hash": contract_hash(trajectory_payload),
             }
             rows.append(rollout_row)
+        if all(task_text(item.get("split", "train"), "split") == "development" for item in items):
+            self.record_development_gate(skill_content, rows)
         return rows
+
+    @override
+    def reflect(
+        self,
+        results: list[dict[str, JsonValue]],
+        skill_content: str,
+        out_dir: str,
+        **_kwargs: JsonValue,
+    ) -> list[dict[str, JsonValue] | None]:
+        del out_dir
+        trajectories = tuple(
+            TrainTrajectory.model_validate(result.get("trajectory")) for result in results
+        )
+        if not trajectories:
+            raise BridgeError("reflection_requires_trajectories")
+        previous = self.development_gate_for(skill_content)
+        if previous is None:
+            raise BridgeError("reflection_requires_development_baseline")
+        self._optimizer_step += 1
+        optimized = self.optimize(
+            current_body=skill_content,
+            trajectories=tuple(
+                trajectory.model_dump(by_alias=True, mode="json") for trajectory in trajectories
+            ),
+            previous_development=previous,
+            step=self._optimizer_step,
+            max_steps=self._max_steps,
+        )
+        return [
+            {
+                "source_type": "failure",
+                "batch_size": len(trajectories),
+                "patch": {
+                    "reasoning": "Kibi-specific reflection from scored public trajectories",
+                    "skill_candidates": [
+                        {
+                            "title": f"Kibi SkillOpt proposal {self._optimizer_step}",
+                            "new_skill": optimized.body,
+                            "change_summary": [
+                                "Translated scored public failures into procedural guidance"
+                            ],
+                        }
+                    ],
+                },
+            }
+        ]
 
     def _invoke_bridge(self, request_json: str) -> str:
         return run_bridge(request_json)

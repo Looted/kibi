@@ -32,6 +32,13 @@ export const TrainResultSchema = z.looseObject({
   trainer_checkpoint_hash: z.string().regex(/^[a-f0-9]{64}$/),
   trajectory_hashes: z.array(z.string().regex(/^[a-f0-9]{64}$/)),
   corpus_roots: RootsSchema,
+  candidate_development: z
+    .object({
+      mean: z.number().min(0).max(1),
+      hardPasses: z.number().int().min(0),
+      worstFamilyMean: z.number().min(0).max(1),
+    })
+    .strict(),
 });
 // implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
@@ -58,11 +65,31 @@ export const ReviewSchema = z
                 worstFamilyMean: z.number().min(0).max(1),
               })
               .strict(),
+            developmentComparators: z
+              .object({
+                baseline: z
+                  .object({
+                    mean: z.number().min(0).max(1),
+                    hardPasses: z.number().int().min(0),
+                    worstFamilyMean: z.number().min(0).max(1),
+                  })
+                  .strict(),
+                oneShot: z
+                  .object({
+                    mean: z.number().min(0).max(1),
+                    hardPasses: z.number().int().min(0),
+                    worstFamilyMean: z.number().min(0).max(1),
+                  })
+                  .strict(),
+              })
+              .strict(),
+            developmentEligible: z.boolean(),
             heldOutEligibility: z.enum([
               "eligible",
               "HELD_OUT_MATRIX_INELIGIBLE",
+              "not-run",
             ]),
-            heldOutCellCount: z.number().int().positive(),
+            heldOutCellCount: z.number().int().nonnegative(),
             productionAdoption: ProductionAdoptionSchema,
           })
           .strict(),
@@ -74,7 +101,7 @@ export const ReviewSchema = z
   .strict();
 // implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
-export type PredicateDescriptor = Readonly<{
+export type PublicTaskDescriptor = Readonly<{
   id: string;
   family: string;
   split: "train" | "development";
@@ -96,8 +123,9 @@ export type TrainingInput = Readonly<{
   artifactRoot: string;
   maxSteps: number;
   baseline: FrozenVariant;
-  trainDescriptors: readonly PredicateDescriptor[];
-  developmentDescriptors: readonly PredicateDescriptor[];
+  initialVariant?: FrozenVariant;
+  trainDescriptors: readonly PublicTaskDescriptor[];
+  developmentDescriptors: readonly PublicTaskDescriptor[];
   corpusRoots: CorpusRoots;
   env: NodeJS.ProcessEnv;
   cellRuntime?: CodexCellRuntime;
@@ -109,6 +137,7 @@ export type TrainingOutput = Readonly<{
   candidateBody: string;
   trainerCheckpointHash: string;
   trajectoryHashes: readonly string[];
+  development?: DevelopmentGate;
 }>;
 // implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
@@ -172,8 +201,9 @@ export type RealOptimizationResult = Readonly<{
     skill: CanonicalSkill;
     candidateBodyHash: string;
   }>[];
-  heldOutEligibility: "eligible" | "HELD_OUT_MATRIX_INELIGIBLE";
+  heldOutEligibility: "eligible" | "HELD_OUT_MATRIX_INELIGIBLE" | "not-run";
   paidModelCalls: number;
+  reason?: "development_gate_ineligible";
 }>;
 // implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
@@ -199,7 +229,7 @@ export type RealOptimizationDependencies = Readonly<{
     input: Readonly<{
       skill: CanonicalSkill;
       candidate: FrozenVariant;
-      descriptors: readonly PredicateDescriptor[];
+      descriptors: readonly PublicTaskDescriptor[];
       runtime?: CodexCellRuntime;
       sourceWorktree: string;
       artifactRoot: string;

@@ -28,7 +28,7 @@ const fixture = () =>
       tunnels: false,
     },
     ceilings: {
-      models: ["gpt-5.4-mini", "gpt-5.5"],
+      models: ["gpt-5.4-mini", "gpt-5.6-sol"],
       maxInputTokens: 1000,
       maxOutputTokens: 200,
       maxRetries: 1,
@@ -106,7 +106,7 @@ describe("trusted broker model gateway security", () => {
     expect(capability.model).toBe("gpt-5.4-mini");
     expect(() =>
       supervisor.forward(
-        { ...capability, model: "gpt-5.5" },
+        { ...capability, model: "gpt-5.6-sol" },
         { kind: "ambiguous" },
       ),
     ).toThrow("capability_forged");

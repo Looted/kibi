@@ -8151,13 +8151,17 @@ symbols:
         target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-  - id: SYM-predicateDescriptors
-    title: predicateDescriptors
+  - id: SYM-publicSkillDescriptors
+    title: publicSkillDescriptors
     sourceFile: scripts/skillopt-eval/real-workflow-setup.ts
     symbol_role: behavioral
     relationships:
       - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: implements
         target: REQ-skillopt-external-adoption-verdict
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
   - id: SYM-predicateGate
@@ -10442,6 +10446,8 @@ symbols:
     granularity_reason: module-level-behavior
     relationships:
       - type: executable_for
+        target: TEST-skillopt-codex-optimization
+      - type: executable_for
         target: TEST-skillopt-external-adoption-verdict
   - id: SYM-skillopt-bridge-request
     title: BridgeRequest
@@ -11054,7 +11060,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
     symbol_role: behavioral
     granularity_reason: legacy-link
-    text_ref: scripts/skillopt-eval/tests/optimize.test.ts#runCodexSkillOptStep
+    text_ref: scripts/skillopt-eval/runtime/codex-optimizer.ts#runCodexSkillOptStep
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -12160,6 +12166,8 @@ symbols:
     granularity_reason: module-level-behavior
     relationships:
       - type: executable_for
+        target: TEST-skillopt-codex-optimization
+      - type: executable_for
         target: TEST-skillopt-external-adoption-verdict
   - id: SYM-skillopt-external-python-adapter-invocation-tests
     title: Python bridge invocation claim tests
@@ -12200,6 +12208,8 @@ symbols:
     granularity_reason: module-level-behavior
     relationships:
       - type: executable_for
+        target: TEST-skillopt-codex-optimization
+      - type: executable_for
         target: TEST-skillopt-external-adoption-verdict
   - id: SYM-skillopt-external-real-workflow-tests
     title: external verdict real workflow tests
@@ -12207,6 +12217,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: module-level-behavior
     relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
       - type: executable_for
         target: TEST-skillopt-external-adoption-verdict
   - id: SYM-skillopt-external-source-tree-hash-tests
@@ -14618,11 +14630,22 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-python-build-bridge-request
-    title: EnvAdapter.build_request
+  - id: SYM-skillopt-python-bridge-row
+    title: BridgeRow
+    sourceFile: tools/skillopt/kibi_skillopt/models.py
+    symbol_role: type-shape
+    text_ref: tools/skillopt/kibi_skillopt/models.py#BridgeRow
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-python-env-adapter
+    title: EnvAdapter
     sourceFile: tools/skillopt/kibi_skillopt/adapter.py
     symbol_role: behavioral
-    text_ref: tools/skillopt/kibi_skillopt/adapter.py#EnvAdapter.build_request
+    granularity_reason: extractor-miss
+    text_ref: tools/skillopt/kibi_skillopt/adapter.py#EnvAdapter
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -14787,10 +14810,40 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-python-run-training
+    title: run_training
+    sourceFile: tools/skillopt/kibi_skillopt/trainer.py
+    symbol_role: behavioral
+    text_ref: tools/skillopt/kibi_skillopt/trainer.py#run_training
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-python-source-lock
     title: SourceLock
     sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
     symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-python-train-trajectory
+    title: TrainTrajectory
+    sourceFile: tools/skillopt/kibi_skillopt/models.py
+    symbol_role: type-shape
+    text_ref: tools/skillopt/kibi_skillopt/models.py#TrainTrajectory
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-python-training-config
+    title: build_training_config
+    sourceFile: tools/skillopt/kibi_skillopt/trainer.py
+    symbol_role: behavioral
+    text_ref: tools/skillopt/kibi_skillopt/trainer.py#build_training_config
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -14865,6 +14918,16 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
+  - id: SYM-skillopt-passes-development-gate
+    title: passesDevelopmentGate
+    sourceFile: scripts/skillopt-eval/real-workflow.ts
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/real-workflow.ts#passesDevelopmentGate
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-real-workflow-types-canonical-hash
     title: canonicalHash
     sourceFile: scripts/skillopt-eval/real-workflow-types.ts
@@ -14905,11 +14968,11 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-real-workflow-types-predicate-descriptor
-    title: PredicateDescriptor
+  - id: SYM-skillopt-real-workflow-types-public-task-descriptor
+    title: PublicTaskDescriptor
     sourceFile: scripts/skillopt-eval/real-workflow-types.ts
     symbol_role: type-shape
-    text_ref: scripts/skillopt-eval/real-workflow-types.ts#PredicateDescriptor
+    text_ref: scripts/skillopt-eval/real-workflow-types.ts#PublicTaskDescriptor
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -15481,6 +15544,8 @@ symbols:
     granularity_reason: module-level-behavior
     relationships:
       - type: executable_for
+        target: TEST-skillopt-codex-optimization
+      - type: executable_for
         target: TEST-skillopt-external-adoption-verdict
   - id: SYM-skillopt-runtime-create-workspace
     title: createIsolationWorkspace
@@ -15600,8 +15665,18 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-runtime-model-effort
-    title: MODEL_REASONING_EFFORT
+  - id: SYM-skillopt-runtime-optimizer-effort
+    title: OPTIMIZER_REASONING_EFFORT
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-target-effort
+    title: TARGET_REASONING_EFFORT
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     symbol_role: config
     granularity_reason: config-artifact
@@ -17269,13 +17344,17 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
-  - id: SYM-taskScopedDescriptors
-    title: taskScopedDescriptors
+  - id: SYM-taskScopedPublicSkillDescriptors
+    title: taskScopedPublicSkillDescriptors
     sourceFile: scripts/skillopt-eval/real-workflow-setup.ts
     symbol_role: behavioral
     relationships:
       - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: implements
         target: REQ-skillopt-external-adoption-verdict
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
   - id: SYM-TempKbContext
@@ -17934,3 +18013,137 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-fake-provider-hash-schema
+    title: HashSchema
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#HashSchema
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-fake-provider-configuration-schema
+    title: ConfigurationSchema
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#ConfigurationSchema
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-fake-provider-request-schema
+    title: RequestSchema
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#RequestSchema
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-fake-provider-capability-schema
+    title: CapabilitySchema
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#CapabilitySchema
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-fake-provider-outcome-schema
+    title: OutcomeSchema
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#OutcomeSchema
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-fake-provider-configuration
+    title: Configuration
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#Configuration
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-fake-provider-request
+    title: Request
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#Request
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-fake-provider-outcome
+    title: Outcome
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#Outcome
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-fake-provider-capability
+    title: Capability
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#Capability
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-fake-provider-debit-receipt
+    title: DebitReceipt
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#DebitReceipt
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-fake-provider-reservation
+    title: Reservation
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#Reservation
+    relationships:
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-model-schema
+    title: ModelSchema
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    symbol_role: config
+    text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#ModelSchema
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-supervisor-parent-fixture
+    title: supervisorParentFixture
+    sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
+    symbol_role: behavioral
+    text_ref: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts#supervisorParentFixture
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-paid-launch-accounting
+      - type: executable_for
+        target: TEST-skillopt-external-adoption-verdict

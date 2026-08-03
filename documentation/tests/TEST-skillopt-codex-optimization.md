@@ -4,7 +4,7 @@ title: Codex SkillOpt contract rejects stale hosts and gates
 type: test
 status: passing
 created_at: 2026-07-21T00:00:00Z
-updated_at: 2026-08-02T00:00:00Z
+updated_at: 2026-08-03T00:00:00Z
 source: scripts/skillopt-eval/tests/methodology-contract.test.ts
 priority: must
 tags: [skillopt, codex, evaluation, integration, security]
@@ -22,6 +22,8 @@ The offline Codex cell-runner suite verifies canonical four-skill assembly with 
 The bridge CLI suite verifies that non-fake requests construct a Codex cell from bridge inputs and delegate it through the real default dependency factory rather than returning synthetic scores.
 
 The current contract tests also cover CLI parsing and dispatch, schema compatibility for unknown fields, official trainer request and result lineage, fresh development and blinded held-out evaluation, and the guard that no adoption happens before eligibility.
+
+Learning-loop regressions prove that behavioral misses retain partial score, the bridge forwards structured public failure/tool/final-state evidence, the trainer uses the balanced 8/4 corpus, and `--max-steps` configures the same number of full ReflACT proposal rounds. Runtime configuration asserts `gpt-5.4-mini`/low for targets and `gpt-5.6-sol`/xhigh for the optimizer. Development workflow tests compare baseline and one-shot, seed with the stronger variant, require a strict mean improvement without hard or family regression, and prove a failed public gate launches zero held-out cells. Predicate-gate tests require matrix completeness and every candidate replicate while proving weak comparator cells do not veto candidate success.
 
 The runtime and smoke suites additionally verify one private runtime staging lease, identical executable propagation through every real evaluation lane, cleanup on success and failure, explicit bridge flags with rejection of partial configuration, and smoke evidence for the shell probe, model-originated semantic-advisor and branch-status calls, broker hash chain, and matching diagnostic receipts. The generated probe is executed against a genuinely read-only `.runtime` directory to prove the expected denial produces no stderr and preserves the exact pass token. The evidence validator rejects a trace that omits the branch-dependent call. Workflow tests verify that infrastructure failures stop subsequent cells and emit exit code 1 with stage/task/variant/failure/receipt details, while behavioral failures remain eligible for ordinary gate evaluation.
 

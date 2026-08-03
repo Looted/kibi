@@ -101,7 +101,7 @@
       "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString"
     },
     "targetModel": { "const": "gpt-5.4-mini" },
-    "optimizerModel": { "const": "gpt-5.5" },
+    "optimizerModel": { "const": "gpt-5.6-sol" },
     "skillopt": {
       "type": "object",
       "additionalProperties": false,
@@ -164,10 +164,10 @@
         "models": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["gpt-5.4-mini", "gpt-5.5"],
+          "required": ["gpt-5.4-mini", "gpt-5.6-sol"],
           "properties": {
             "gpt-5.4-mini": { "$ref": "#/$defs/modelPricing" },
-            "gpt-5.5": { "$ref": "#/$defs/modelPricing" }
+            "gpt-5.6-sol": { "$ref": "#/$defs/modelPricing" }
           }
         }
       }

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const HashSchema = z.string().regex(/^[a-f0-9]{64}$/);
-export const ModelSchema = z.enum(["gpt-5.4-mini", "gpt-5.5"]);
+export const ModelSchema = z.enum(["gpt-5.4-mini", "gpt-5.6-sol"]);
 
 export const ConfigurationSchema = z
   .object({

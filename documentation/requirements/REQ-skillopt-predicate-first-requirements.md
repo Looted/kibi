@@ -3,7 +3,7 @@ id: REQ-skillopt-predicate-first-requirements
 title: Agents model suitable relational requirements as predicates without losing readable prose
 status: open
 created_at: 2026-07-26T00:00:00Z
-updated_at: 2026-07-26T00:00:00Z
+updated_at: 2026-08-03T00:00:00Z
 source: .omo/plans/skillopt-predicate-requirements.md
 priority: must
 tags: [skillopt, agents, requirements, predicates, ontology, traceability]
@@ -25,3 +25,5 @@ The machine-checkable relational claim for this requirement is that semantic adv
 The private evaluator must decode the independent verifier's authentic `kb_query` MCP response into its bound predicate snapshot. A valid but semantically wrong lane, predicate, argument list, polarity, or relationship is behavioral evidence and must not be mislabeled as an infrastructure evidence conflict. Hash, root, case, sequence, or malformed-response binding failures remain evidence conflicts.
 
 Predicate modeling may reject an invalid first tool attempt before the agent corrects it. The evaluator retains both attempts for protocol and ordering scores, but reconciles diagnostic success receipts only for broker responses that complete without MCP `isError`; a rejected predicate call cannot create an infrastructure evidence conflict merely because no success usage row exists for it.
+
+Held-out predicate evaluation must reserve the complete four-case, three-variant, three-replicate matrix. Every SkillOpt predicate cell must hard-pass. Baseline and one-shot predicate failures remain comparison evidence and do not independently make a successful candidate ineligible; one representative replicate per variant still feeds the ordinary paired behavioral gate.

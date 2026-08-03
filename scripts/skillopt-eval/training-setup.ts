@@ -146,7 +146,10 @@ export const defaultTrain: RealOptimizationDependencies["train"] = async (
     encoding: "utf8",
     mode: 0o600,
   });
-  await seedTrainerInitialSkill(request.outRoot, input.baseline.body);
+  await seedTrainerInitialSkill(
+    request.outRoot,
+    input.initialVariant?.body ?? input.baseline.body,
+  );
   const result = await runBoundedProcess({
     argv: skilloptModuleArgv([
       "train",
@@ -190,6 +193,7 @@ export const defaultTrain: RealOptimizationDependencies["train"] = async (
     candidateBody: output.codex_candidate_body,
     trainerCheckpointHash: output.trainer_checkpoint_hash,
     trajectoryHashes: output.trajectory_hashes,
+    development: output.candidate_development,
   };
 };
 
@@ -201,7 +205,10 @@ export const defaultEvaluateDevelopment: RealOptimizationDependencies["evaluateD
     if (input.descriptors.length === 0)
       throw new Error("development_descriptor_missing");
     const cellRunner = input.cellRunner ?? runCodexCell;
-    const completed = [];
+    const completed: Array<{
+      descriptor: (typeof input.descriptors)[number];
+      cell: Awaited<ReturnType<typeof cellRunner>>;
+    }> = [];
     for (const descriptor of input.descriptors) {
       const publicClaim = PublicTaskClaimSchema.parse(descriptor.publicClaim);
       const fixture = await resolveTaskFixture({
@@ -216,7 +223,7 @@ export const defaultEvaluateDevelopment: RealOptimizationDependencies["evaluateD
           episodeId: crypto.randomUUID(),
           runId: input.runId,
           runLockHash: input.candidate.bodyHash,
-          variant: "skillopt",
+          variant: input.candidate.variant,
           skill: input.skill,
           taskId: descriptor.id,
           attempt: 1,
@@ -245,18 +252,31 @@ export const defaultEvaluateDevelopment: RealOptimizationDependencies["evaluateD
       assertCellInfrastructureHealthy(cell, {
         stage: "development",
         taskId: descriptor.id,
-        variant: "skillopt",
+        variant: input.candidate.variant,
       });
-      completed.push(cell);
+      completed.push({ descriptor, cell });
     }
     const hardPasses = completed.filter(
-      (cell) => cell.receipt.result.hardPass,
+      ({ cell }) => cell.receipt.result.hardPass,
     ).length;
-    const mean = hardPasses / completed.length;
+    const mean =
+      completed.reduce((sum, { cell }) => sum + cell.receipt.result.score, 0) /
+      (completed.length * 100);
+    const familyMeans = new Map<string, number[]>();
+    for (const { descriptor, cell } of completed) {
+      const values = familyMeans.get(descriptor.family) ?? [];
+      values.push(cell.receipt.result.score / 100);
+      familyMeans.set(descriptor.family, values);
+    }
     return {
       mean,
       hardPasses,
-      worstFamilyMean: mean,
+      worstFamilyMean: Math.min(
+        ...[...familyMeans.values()].map(
+          (values) =>
+            values.reduce((sum, value) => sum + value, 0) / values.length,
+        ),
+      ),
     };
   };
 

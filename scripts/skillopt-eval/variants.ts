@@ -27,7 +27,7 @@ export type FrozenVariant = VariantSurface &
   }>;
 
 export type OneShotRequest = Readonly<{
-  model: "gpt-5.5";
+  model: "gpt-5.6-sol";
   baselineBody: string;
   objectives: readonly string[];
   familyNames: readonly string[];
@@ -194,7 +194,7 @@ export async function generateOneShotVariant(
   optimizer: OneShotOptimizer,
 ): Promise<OneShotResult> {
   const request: OneShotRequest = {
-    model: "gpt-5.5",
+    model: "gpt-5.6-sol",
     baselineBody: input.baselineBody,
     objectives: [...input.objectives],
     familyNames: [...input.familyNames],

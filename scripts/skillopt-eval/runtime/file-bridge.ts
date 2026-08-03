@@ -30,6 +30,9 @@ const RowSchema = z
       "infrastructure-failure",
     ]),
     failureCategory: z.string().min(1).nullable(),
+    failureCategories: z.array(z.string().min(1)).max(100).default([]),
+    toolSequence: z.array(z.string().min(1).max(20_000)).max(100).default([]),
+    finalStateSummary: z.string().max(20_000).default("{}"),
     conversationPath: z.string().min(1),
     evidenceRefs: z.array(z.string().min(1)).min(1),
   })

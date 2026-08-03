@@ -25,7 +25,7 @@ const fixture = () =>
       tunnels: false,
     },
     ceilings: {
-      models: ["gpt-5.4-mini", "gpt-5.5"],
+      models: ["gpt-5.4-mini", "gpt-5.6-sol"],
       maxInputTokens: 1000,
       maxOutputTokens: 200,
       maxRetries: 1,
@@ -52,7 +52,7 @@ describe("trusted broker model gateway", () => {
     // Given
     const supervisor = fixture();
     const first = supervisor.reserve(request("request-1"));
-    const second = supervisor.reserve(request("request-2", "gpt-5.5"));
+    const second = supervisor.reserve(request("request-2", "gpt-5.6-sol"));
 
     // When
     const firstReceipt = supervisor.forward(first.capability, {
@@ -147,7 +147,7 @@ describe("trusted broker model gateway", () => {
 
     // When
     const reserveWithChangedModel = () =>
-      supervisor.reserve({ ...original, model: "gpt-5.5" });
+      supervisor.reserve({ ...original, model: "gpt-5.6-sol" });
     const reserveWithChangedLease = () =>
       supervisor.reserve({
         ...original,
@@ -181,7 +181,7 @@ describe("trusted broker model gateway", () => {
       requestHash: sharedHash,
     };
     const secondRequest = {
-      ...request("request-2", "gpt-5.5"),
+      ...request("request-2", "gpt-5.6-sol"),
       requestHash: sharedHash,
     };
     const first = supervisor.reserve(firstRequest);

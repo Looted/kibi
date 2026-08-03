@@ -80,9 +80,12 @@ class AdapterContractTests(unittest.TestCase):
 
             # Then
             self.assertEqual(config["out_root"], str(out_root))
-            self.assertEqual(config["num_epochs"], 1)
-            self.assertEqual(config["batch_size"], 4)
+            self.assertEqual(config["num_epochs"], 4)
+            self.assertEqual(config["batch_size"], 8)
             self.assertEqual(config["accumulation"], 1)
+            self.assertEqual(config["gate_metric"], "soft")
+            self.assertFalse(config["use_meta_skill"])
+            self.assertEqual(config["skill_update_mode"], "full_rewrite_minibatch")
             self.assertEqual(config["seed"], 5417)
 
     def test_adapter_subclasses_skillopt_and_derives_task_types_from_families(self) -> None:
@@ -139,29 +142,35 @@ class AdapterContractTests(unittest.TestCase):
                     public_claim("predicate-train-1"),
                 )
                 return json.dumps(
-                        {
-                            "schemaVersion": "1.0.0",
-                            "artifactType": "skillopt-bridge-result",
-                            "runId": request.run_id,
-                            "batchId": request.batch_id,
-                            "requestHash": contract_hash(
-                                request.model_dump(by_alias=True, mode="json")
-                            ),
-                            "rows": [
-                                {
-                                    "id": "predicate-train-1",
-                                    "hard": 0,
-                                    "soft": 0.25,
-                                    "status": "behavioral-failure",
-                                    "failureCategory": "predicate_missing",
-                                    "conversationPath": (
-                                        "predictions/predicate-train-1/conversation.json"
-                                    ),
-                                    "evidenceRefs": ["episode/predicate-train-1/receipt.json"],
-                                }
-                            ],
-                            "checkpoint": {"maxSteps": 1, "completedSteps": 1, "nextStep": 2},
-                        }
+                    {
+                        "schemaVersion": "1.0.0",
+                        "artifactType": "skillopt-bridge-result",
+                        "runId": request.run_id,
+                        "batchId": request.batch_id,
+                        "requestHash": contract_hash(
+                            request.model_dump(by_alias=True, mode="json")
+                        ),
+                        "rows": [
+                            {
+                                "id": "predicate-train-1",
+                                "hard": 0,
+                                "soft": 0.25,
+                                "status": "behavioral-failure",
+                                "failureCategory": "predicate_missing",
+                                "failureCategories": [
+                                    "predicate_missing",
+                                    "wrong_relationship",
+                                ],
+                                "toolSequence": ['{"tool":"kb_search","outcome":"success"}'],
+                                "finalStateSummary": '{"entities":[]}',
+                                "conversationPath": (
+                                    "predictions/predicate-train-1/conversation.json"
+                                ),
+                                "evidenceRefs": ["episode/predicate-train-1/receipt.json"],
+                            }
+                        ],
+                        "checkpoint": {"maxSteps": 1, "completedSteps": 1, "nextStep": 2},
+                    }
                 )
 
             # When
@@ -188,8 +197,17 @@ class AdapterContractTests(unittest.TestCase):
             )
             self.assertEqual(rows[0]["evidence_refs"], ["episode/predicate-train-1/receipt.json"])
             self.assertEqual(rows[0]["trajectory_hash"], contract_hash(rows[0]["trajectory"]))
+            self.assertEqual(
+                rows[0]["trajectory"]["failureCategories"],
+                ["predicate_missing", "wrong_relationship"],
+            )
+            self.assertEqual(
+                rows[0]["trajectory"]["toolSequence"],
+                ['{"tool":"kb_search","outcome":"success"}'],
+            )
+            self.assertEqual(rows[0]["trajectory"]["finalStateSummary"], '{"entities":[]}')
 
-    def test_failed_rollout_uses_skillopt_default_reflection(self) -> None:
+    def test_failed_rollout_uses_kibi_specific_structured_reflection(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             # Given
             subject = adapter(Path(directory))
@@ -205,23 +223,54 @@ class AdapterContractTests(unittest.TestCase):
                     "taskId": "predicate-train-1",
                     "family": "predicate",
                     "reflection": "predicate_missing",
+                    "status": "behavioral-failure",
+                    "soft": 0.25,
+                    "hard": 0,
+                    "failureCategories": ["predicate_missing"],
+                    "toolSequence": ['{"tool":"kb_search","outcome":"success"}'],
+                    "finalStateSummary": '{"entities":[]}',
                 },
                 "trajectory_hash": HASH,
             }
-            expected: list[dict[str, JsonValue] | None] = [
-                {"source_type": "failure", "patch": {"edits": []}}
-            ]
+            subject.record_development_gate(
+                "body",
+                [
+                    {
+                        "soft": 0.5,
+                        "hard": 0,
+                        "task_type": "predicate",
+                    }
+                ],
+            )
+            optimized = {
+                "body": "Use exact Kibi decision rules.",
+                "development": DEVELOPMENT,
+            }
 
             # When
-            with patch(
-                "skillopt.gradient.reflect.run_minibatch_reflect", return_value=expected
-            ) as reflect:
+            with patch.object(subject, "optimize") as optimize:
+                optimize.return_value = type("Result", (), optimized)()
                 patches = subject.reflect([rollout], "body", directory)
 
             # Then
-            self.assertIs(EnvAdapter.reflect, SkillOptEnvAdapter.reflect)
-            self.assertEqual(patches, expected)
-            self.assertEqual(reflect.call_args.kwargs["results"], [rollout])
+            self.assertIsNot(EnvAdapter.reflect, SkillOptEnvAdapter.reflect)
+            self.assertEqual(
+                patches[0]["patch"]["skill_candidates"][0]["new_skill"],
+                "Use exact Kibi decision rules.",
+            )
+            self.assertEqual(optimize.call_args.kwargs["step"], 1)
+            self.assertEqual(
+                optimize.call_args.kwargs["trajectories"][0]["failureCategories"],
+                ["predicate_missing"],
+            )
+            self.assertEqual(
+                optimize.call_args.kwargs["trajectories"][0]["toolSequence"],
+                ['{"tool":"kb_search","outcome":"success"}'],
+            )
+            self.assertEqual(
+                optimize.call_args.kwargs["trajectories"][0]["finalStateSummary"],
+                '{"entities":[]}',
+            )
 
     def test_held_out_ids_never_enter_optimizer_input(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

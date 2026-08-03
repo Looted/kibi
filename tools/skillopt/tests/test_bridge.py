@@ -146,6 +146,7 @@ class BridgeTests(unittest.TestCase):
                     },
                 ),
             )
+
             def fake_bridge(request_json: str) -> str:
                 payload = BridgeRequest.model_validate_json(request_json)
                 return json.dumps(
@@ -171,6 +172,7 @@ class BridgeTests(unittest.TestCase):
                         "checkpoint": {"maxSteps": 1, "completedSteps": 1, "nextStep": 2},
                     }
                 )
+
             adapter._invoke_bridge = fake_bridge  # pyright: ignore[reportPrivateUsage]
             rows = adapter.rollout(
                 (

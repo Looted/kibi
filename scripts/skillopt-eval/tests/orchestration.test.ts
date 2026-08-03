@@ -24,14 +24,14 @@ describe("SkillOpt orchestration", () => {
 
   test("estimates price-equivalent cost from the pinned model table and caps requests", () => {
     expect(
-      estimatePriceEquivalent("gpt-5.5", {
+      estimatePriceEquivalent("gpt-5.6-sol", {
         inputTokens: 1_000_000,
         cachedInputTokens: 100_000,
         outputTokens: 10_000,
       }),
-    ).toBeCloseTo(1.2375, 6);
+    ).toBeCloseTo(4.85, 6);
     expect(() =>
-      estimatePriceEquivalent("gpt-5.5", {
+      estimatePriceEquivalent("gpt-5.6-sol", {
         inputTokens: 1_000_001,
         cachedInputTokens: 0,
         outputTokens: 0,

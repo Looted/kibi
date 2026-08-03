@@ -4,8 +4,9 @@ import type { AuthMode } from "./codex-auth";
 import type { ProcessResult } from "./process";
 
 export const TARGET_MODEL = "gpt-5.4-mini" as const;
-export const OPTIMIZER_MODEL = "gpt-5.5" as const;
-export const MODEL_REASONING_EFFORT = "low" as const;
+export const OPTIMIZER_MODEL = "gpt-5.6-sol" as const;
+export const TARGET_REASONING_EFFORT = "low" as const;
+export const OPTIMIZER_REASONING_EFFORT = "xhigh" as const;
 export const SKILLOPT_EVALUATION_BRANCH = "skillopt-eval" as const;
 export const MCP_STARTUP_TIMEOUT_SECONDS = 15 as const;
 export const MCP_TOOL_TIMEOUT_SECONDS = 120 as const;
@@ -72,6 +73,10 @@ function tomlString(value: string): string {
 // implements REQ-skillopt-codex-optimization
 export function buildCodexConfig(options: CodexConfigOptions): string {
   const model = options.role === "target" ? TARGET_MODEL : OPTIMIZER_MODEL;
+  const reasoningEffort =
+    options.role === "target"
+      ? TARGET_REASONING_EFFORT
+      : OPTIMIZER_REASONING_EFFORT;
   const deniedRoots = new Set([options.paths.fixtureKb]);
   // Target cells are noninteractive and can only reach the evaluator-owned,
   // allowlisted Kibi broker inside their disposable workspace. Approve that
@@ -79,7 +84,7 @@ export function buildCodexConfig(options: CodexConfigOptions): string {
   const mcpApprovalMode = options.role === "target" ? "approve" : "auto";
   return [
     `model = ${JSON.stringify(model)}`,
-    `model_reasoning_effort = ${JSON.stringify(MODEL_REASONING_EFFORT)}`,
+    `model_reasoning_effort = ${JSON.stringify(reasoningEffort)}`,
     'model_provider = "openai"',
     'approval_policy = "never"',
     `cli_auth_credentials_store = ${JSON.stringify(options.authMode)}`,

@@ -36,6 +36,14 @@ const TrajectorySchema = z
     taskId: z.string().min(1),
     family: z.string().min(1),
     reflection: z.string().min(1),
+    status: z
+      .enum(["completed", "behavioral-failure"])
+      .default("behavioral-failure"),
+    soft: z.number().min(0).max(1).default(0),
+    hard: z.union([z.literal(0), z.literal(1)]).default(0),
+    failureCategories: z.array(z.string().min(1)).max(100).default([]),
+    toolSequence: z.array(z.string().min(1).max(20_000)).max(100).default([]),
+    finalStateSummary: z.string().max(20_000).default("{}"),
   })
   .strict();
 const OptimizerRequestSchema = z
@@ -45,7 +53,7 @@ const OptimizerRequestSchema = z
     runId: z.string().uuid(),
     skill: SkillSchema,
     step: z.number().int().min(1),
-    maxSteps: z.number().int().min(1),
+    maxSteps: z.number().int().min(1).max(4),
     currentBody: z.string().min(1).max(100_000),
     trainTrajectories: z.array(TrajectorySchema).min(1).max(8),
     previousDevelopment: DevelopmentGateSchema,

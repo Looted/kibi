@@ -37,7 +37,7 @@ def public_claim(task_id: str) -> JsonValue:
 
 
 class TrainerContractTests(unittest.TestCase):
-    def test_training_submits_reflection_trajectories_to_the_codex_optimizer(self) -> None:
+    def test_training_freezes_candidate_without_second_optimizer_call(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             # Given
             root = Path(directory)
@@ -68,8 +68,11 @@ class TrainerContractTests(unittest.TestCase):
             )
 
             class FakeTrainer:
-                def __init__(self, config: dict[str, JsonValue], _adapter: EnvAdapter) -> None:
+                def __init__(
+                    self, config: dict[str, JsonValue], trainer_adapter: EnvAdapter
+                ) -> None:
                     self._config: dict[str, JsonValue] = config
+                    self._adapter = trainer_adapter
 
                 def train(self) -> dict[str, JsonValue]:
                     out_root = Path(str(self._config["out_root"]))
@@ -77,7 +80,11 @@ class TrainerContractTests(unittest.TestCase):
                     _ = (out_root / "best_skill.md").write_text(
                         "Use Kibi through MCP.", encoding="utf-8"
                     )
-                    return {"best_selection_hard": 0.5}
+                    self._adapter.record_development_gate(
+                        "Use Kibi through MCP.",
+                        [{"soft": 0.5, "hard": 1, "task_type": "predicate"}],
+                    )
+                    return {"best_selection_hard": 0.5, "total_steps": 4}
 
             optimized = OptimizerResult.model_validate(
                 {
@@ -100,11 +107,9 @@ class TrainerContractTests(unittest.TestCase):
                 result = run_training(subject, root / "training")
 
             # Then
-            self.assertEqual(
-                optimize.call_args.kwargs["trajectories"][0]["taskId"],
-                "predicate-train-1",
-            )
+            self.assertIsNone(optimize.call_args)
             self.assertEqual(result["codex_candidate_body_hash"], contract_hash(optimized.body))
+            self.assertEqual(result["candidate_development"]["mean"], 0.5)
             self.assertTrue((root / "training" / "codex-optimized-skill.md").is_file())
             frozen = parse_json_value((root / "training" / "frozen-candidate.json").read_text())
             self.assertIsInstance(frozen, dict)
@@ -146,8 +151,11 @@ class TrainerContractTests(unittest.TestCase):
             calls = 0
 
             class FakeTrainer:
-                def __init__(self, config: dict[str, JsonValue], _adapter: EnvAdapter) -> None:
+                def __init__(
+                    self, config: dict[str, JsonValue], trainer_adapter: EnvAdapter
+                ) -> None:
                     self._config: dict[str, JsonValue] = config
+                    self._adapter = trainer_adapter
 
                 def train(self) -> dict[str, JsonValue]:
                     nonlocal calls
@@ -156,6 +164,10 @@ class TrainerContractTests(unittest.TestCase):
                     out_root.mkdir(parents=True, exist_ok=True)
                     _ = (out_root / "best_skill.md").write_text(
                         "Use Kibi through MCP.", encoding="utf-8"
+                    )
+                    self._adapter.record_development_gate(
+                        "Use Kibi through MCP.",
+                        [{"soft": 0.5, "hard": 1, "task_type": "predicate"}],
                     )
                     return {"best_selection_hard": 0.5}
 

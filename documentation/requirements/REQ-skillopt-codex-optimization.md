@@ -3,7 +3,7 @@ id: REQ-skillopt-codex-optimization
 title: SkillOpt optimization must use Codex-only behavioral evidence
 status: open
 created_at: 2026-07-21T00:00:00Z
-updated_at: 2026-08-02T00:00:00Z
+updated_at: 2026-08-03T00:00:00Z
 source: documentation/facts/FACT-skillopt-methodology.md
 priority: must
 tags: [skillopt, codex, evaluation, security]
@@ -17,6 +17,12 @@ links:
 ---
 
 SkillOpt behavioral evaluation must use Codex as its sole host. Candidate adoption remains forbidden until every individual and bundle gate passes and a reviewer explicitly approves the exact candidate hashes. Optimization may change skill bodies only; skill frontmatter and declared resources remain immutable.
+
+Target cells must use `gpt-5.4-mini` at low effort. One-shot and iterative optimizer calls must use `gpt-5.6-sol` at xhigh effort. The trainer must use all eight balanced public training cases and all four balanced public development cases. `--max-steps` must represent 1–4 complete rollout/reflection/proposal/development rounds rather than a display-only or post-training limit.
+
+Behavioral failures must preserve their earned 60/25/15 score for optimizer feedback while infrastructure, interruption, budget, evidence-conflict, and critical-security failures remain zero. Reflection must receive structured public status, score, failure categories, model-originated Kibi tool sequence, and final-state evidence, and must produce reusable procedural guidance without copying raw evidence into the skill.
+
+Baseline and one-shot must both be scored on development before training, the stronger result must seed the trainer, and a frozen candidate may enter held-out only if it strictly improves mean without regressing hard passes or worst-family mean. A development miss must emit a blocked `development_gate_ineligible` review with held-out `not-run`. The complete 36-cell predicate supplement remains required for integrity, but only SkillOpt predicate cells determine the supplemental behavioral predicate pass; comparator misses remain paired calibration evidence.
 
 Versioned evaluation artifacts must enforce the same completion, identity, timestamp, uniqueness, size, source-pin, and approval-integrity rules in JSON Schema, TypeScript, and Python.
 

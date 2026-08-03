@@ -63,7 +63,10 @@ export function evaluateHeldOutPredicateGate(
       expectedCaseIds.size * variants.length * replicates.length;
   return {
     eligibility:
-      complete && cells.every(isHardPassingHeldOutCell)
+      complete &&
+      cells
+        .filter((cell) => cell.variant === "skillopt")
+        .every(isHardPassingHeldOutCell)
         ? "eligible"
         : "HELD_OUT_MATRIX_INELIGIBLE",
   };

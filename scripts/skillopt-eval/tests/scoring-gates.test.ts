@@ -194,7 +194,7 @@ describe("held-out predicate matrix gate", () => {
     );
   }
 
-  test("returns only eligible when all four held-out cases pass in every blinded variant and replicate", () => {
+  test("returns eligible when the complete matrix has candidate passes in every replicate", () => {
     // Given
     const cells = allPredicateReplicates();
 
@@ -205,7 +205,7 @@ describe("held-out predicate matrix gate", () => {
     expect(verdict).toEqual({ eligibility: "eligible" });
   });
 
-  test("returns a generic ineligible result without per-case diagnostics when one held-out case fails", () => {
+  test("does not let a comparator behavioral miss veto an otherwise eligible candidate", () => {
     // Given
     const cells = allPredicateReplicates().map((cell, index) =>
       index === 0
@@ -229,9 +229,33 @@ describe("held-out predicate matrix gate", () => {
     const verdict = evaluateHeldOutPredicateGate(cells);
 
     // Then
-    expect(verdict).toEqual({ eligibility: "HELD_OUT_MATRIX_INELIGIBLE" });
+    expect(verdict).toEqual({ eligibility: "eligible" });
     expect(JSON.stringify(verdict)).not.toContain(cells[0]?.caseId ?? "");
     expect(JSON.stringify(verdict)).not.toContain("predicate-lane");
+  });
+
+  test("returns generic ineligibility when one candidate predicate replicate fails", () => {
+    const cells = allPredicateReplicates().map((cell) =>
+      cell.variant === "skillopt" && cell.replicate === 1
+        ? {
+            ...cell,
+            score: 40,
+            hard: 0 as const,
+            outcome: "fail" as const,
+            terminalCategory: "behavioral_failure",
+            criticalFailureCount: 1,
+            predicateEvidence: {
+              outcome: "fail" as const,
+              caseId: cell.caseId,
+              failure: "predicate-lane" as const,
+            },
+          }
+        : cell,
+    );
+
+    expect(evaluateHeldOutPredicateGate(cells)).toEqual({
+      eligibility: "HELD_OUT_MATRIX_INELIGIBLE",
+    });
   });
 
   test("rejects a duplicate replicate instead of weakening the held-out denominator", () => {

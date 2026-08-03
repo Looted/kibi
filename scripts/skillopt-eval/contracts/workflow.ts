@@ -31,7 +31,7 @@ export const LedgerEntrySchema = boundedContractSchema(
         "bundle",
         "infrastructure",
       ]),
-      model: z.enum(["gpt-5.4-mini", "gpt-5.5", "none"]),
+      model: z.enum(["gpt-5.4-mini", "gpt-5.6-sol", "none"]),
       usage: UsageSchema,
       priceEquivalentEstimate: PriceEquivalentEstimateSchema,
     })
