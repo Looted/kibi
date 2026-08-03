@@ -183,7 +183,8 @@ function sealedDiagnostic(
     .flatMap((record) =>
       typeof record.tool === "string" &&
       record.status === "success" &&
-      isRecord(record.telemetry)
+      Object.hasOwn(record, "telemetry") &&
+      (record.telemetry === null || isRecord(record.telemetry))
         ? [record.tool]
         : [],
     )
