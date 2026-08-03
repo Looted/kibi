@@ -117,6 +117,20 @@ async function brokerTrace(): Promise<string> {
   return readFile(path, "utf8");
 }
 
+async function brokerTraceWithoutToolCalls(): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), "skillopt-default-evidence-"));
+  roots.push(root);
+  const path = join(root, "broker-trace.jsonl");
+  await appendTraceReceipt(path, {
+    correlationId: "rpc-1",
+    direction: "target_to_server",
+    kind: "request",
+    method: "initialize",
+    payload: {},
+  });
+  return readFile(path, "utf8");
+}
+
 async function brokerTraceWithFailedThenSuccessfulCall(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), "skillopt-default-evidence-"));
   roots.push(root);
@@ -294,6 +308,40 @@ describe("default Codex cell evidence sealing", () => {
 
     expect(evidence.diagnostic.integrityValid).toBe(true);
     expect(scoreCell(manifest, evidence).terminalCategory).toBeNull();
+  });
+
+  test("scores no model-originated MCP call as behavioral with an empty diagnostic multiset", async () => {
+    const manifest = evaluatorManifest("predicate");
+    const evidence = sealDefaultCellEvidence(
+      {
+        evaluatorManifest: manifest,
+        finalStateRequests: [
+          { tool: "kb_query", args: {} },
+          { tool: "kb_check", args: {} },
+          { tool: "kb_status", args: {} },
+        ],
+      },
+      {
+        finalState: finalStateReceipt(),
+        brokerTrace: await brokerTraceWithoutToolCalls(),
+        diagnosticReceipt: "",
+      },
+    );
+
+    expect(evidence.broker).toMatchObject({
+      complete: true,
+      integrityValid: true,
+      orderedCalls: [],
+    });
+    expect(evidence.diagnostic).toMatchObject({
+      complete: true,
+      integrityValid: true,
+    });
+    expect(scoreCell(manifest, evidence)).toMatchObject({
+      terminalCategory: "behavioral_failure",
+      score: 75,
+      components: { finalState: 60, protocol: 0, isolation: 15 },
+    });
   });
 
   test("requires success receipts only for successfully completed broker calls", async () => {
