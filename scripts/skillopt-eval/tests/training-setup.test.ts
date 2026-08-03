@@ -14,6 +14,7 @@ import {
   seedTrainerInitialSkill,
   skilloptModuleArgv,
   trainerBridgeEnvironment,
+  trainerProcessInfrastructureError,
 } from "../training-setup";
 
 const roots: string[] = [];
@@ -196,5 +197,27 @@ describe("SkillOpt trainer request contract", () => {
     await expect(seedTrainerInitialSkill(outRoot, "   ")).rejects.toThrow(
       "trainer_initial_skill_empty",
     );
+  });
+
+  test("classifies an unmarked trainer crash as structured infrastructure", () => {
+    const failure = trainerProcessInfrastructureError(
+      {
+        argv: ["uv", "run"],
+        stdout: "",
+        stderr: "ENOSPC: no space left on device",
+        exitCode: 1,
+        signal: null,
+      },
+      "/artifacts/trainer-stderr.log",
+    );
+
+    expect(failure.details).toEqual({
+      stage: "training",
+      taskId: "trainer-process",
+      variant: "skillopt",
+      status: "infrastructure-failure",
+      criticalFailures: ["trainer-exit-1"],
+      receiptPath: "/artifacts/trainer-stderr.log",
+    });
   });
 });

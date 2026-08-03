@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
+  EvaluationInfrastructureError,
   assertCellInfrastructureHealthy,
   parseEvaluationInfrastructureMarker,
 } from "./evaluation-infrastructure";
@@ -114,12 +115,20 @@ export function trainerBridgeEnvironment(
   };
 }
 
-function trainerFailureDetail(result: ProcessResult): string {
-  const detail = (result.stderr.trim() || result.stdout.trim()).replace(
-    /\s+/g,
-    " ",
-  );
-  return detail.length > 0 ? detail.slice(0, 2_000) : "no_output";
+// implements REQ-skillopt-codex-optimization
+// covered_by TEST-skillopt-codex-optimization
+export function trainerProcessInfrastructureError(
+  result: ProcessResult,
+  stderrPath: string,
+): EvaluationInfrastructureError {
+  return new EvaluationInfrastructureError({
+    stage: "training",
+    taskId: "trainer-process",
+    variant: "skillopt",
+    status: "infrastructure-failure",
+    criticalFailures: [`trainer-exit-${result.exitCode}`],
+    receiptPath: stderrPath,
+  });
 }
 
 // implements REQ-skillopt-codex-optimization
@@ -159,9 +168,7 @@ export const defaultTrain: RealOptimizationDependencies["train"] = async (
       result.stderr || result.stdout,
     );
     if (infrastructureFailure !== null) throw infrastructureFailure;
-    throw new Error(
-      `reflact_trainer_exit:${result.exitCode}:${stderrPath}:${trainerFailureDetail(result)}`,
-    );
+    throw trainerProcessInfrastructureError(result, stderrPath);
   }
   const output = TrainResultSchema.parse(
     JSON.parse(await readFile(resultPath, "utf8")),

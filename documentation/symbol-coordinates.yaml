@@ -7127,15 +7127,15 @@ coordinates:
   SYM-skillopt-bridge-artifact-root-env:
     sourceColumn: 13
     sourceEndColumn: 69
-    sourceEndLine: 26
+    sourceEndLine: 27
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 26
+    sourceLine: 27
   SYM-skillopt-bridge-bwrap-executable-env:
     sourceColumn: 13
     sourceEndColumn: 75
-    sourceEndLine: 29
+    sourceEndLine: 30
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 29
+    sourceLine: 30
   SYM-skillopt-bridge-cli-execution-run:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7169,15 +7169,15 @@ coordinates:
   SYM-skillopt-bridge-codex-executable-env:
     sourceColumn: 13
     sourceEndColumn: 75
-    sourceEndLine: 28
+    sourceEndLine: 29
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 28
+    sourceLine: 29
   SYM-skillopt-bridge-fixture-run-root-env:
     sourceColumn: 13
     sourceEndColumn: 75
-    sourceEndLine: 27
+    sourceEndLine: 28
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 27
+    sourceLine: 28
   SYM-skillopt-bridge-request:
     sourceColumn: 12
     sourceEndColumn: 74
@@ -7205,9 +7205,9 @@ coordinates:
   SYM-skillopt-bridge-source-worktree-env:
     sourceColumn: 13
     sourceEndColumn: 73
-    sourceEndLine: 25
+    sourceEndLine: 26
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 25
+    sourceLine: 26
   SYM-skillopt-bridge-visibility-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -7337,9 +7337,9 @@ coordinates:
   SYM-skillopt-build-trainer-request:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 81
+    sourceEndLine: 82
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 64
+    sourceLine: 65
   SYM-skillopt-caller-score-injection-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -7991,9 +7991,9 @@ coordinates:
   SYM-skillopt-default-evaluate-development:
     sourceColumn: 13
     sourceEndColumn: 3
-    sourceEndLine: 254
+    sourceEndLine: 261
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 191
+    sourceLine: 198
   SYM-skillopt-default-evaluate-held-out:
     sourceColumn: 13
     sourceEndColumn: 3
@@ -8009,9 +8009,9 @@ coordinates:
   SYM-skillopt-default-train:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 187
+    sourceEndLine: 194
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 127
+    sourceLine: 136
   SYM-skillopt-derive-adoption-id:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8753,9 +8753,9 @@ coordinates:
   SYM-skillopt-module-argv:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 60
+    sourceEndLine: 61
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 45
+    sourceLine: 46
   SYM-skillopt-normalize-codex-jsonl:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8801,9 +8801,9 @@ coordinates:
   SYM-skillopt-one-shot-variant:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 287
+    sourceEndLine: 294
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 258
+    sourceLine: 265
   SYM-skillopt-operator-base-resolution-options:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -9941,7 +9941,7 @@ coordinates:
   SYM-skillopt-run-mcp-broker:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 251
+    sourceEndLine: 275
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker-process.ts
     sourceLine: 62
   SYM-skillopt-run-mirror-sync:
@@ -10043,13 +10043,13 @@ coordinates:
   SYM-skillopt-runtime-build-argv:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 173
+    sourceEndLine: 174
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
-    sourceLine: 147
+    sourceLine: 148
   SYM-skillopt-runtime-build-config:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 144
+    sourceEndLine: 145
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     sourceLine: 73
   SYM-skillopt-runtime-build-sandbox-probe-argv:
@@ -10583,9 +10583,9 @@ coordinates:
   SYM-skillopt-seed-trainer-initial-skill:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 99
+    sourceEndLine: 100
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 85
+    sourceLine: 86
   SYM-skillopt-skill-assembly-receipt-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -10691,15 +10691,21 @@ coordinates:
   SYM-skillopt-trainer-bridge-environment:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 115
+    sourceEndLine: 116
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 103
+    sourceLine: 104
+  SYM-skillopt-trainer-process-infrastructure-error:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 132
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    sourceLine: 120
   SYM-skillopt-trainer-request-payload:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 41
+    sourceEndLine: 42
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    sourceLine: 31
+    sourceLine: 32
   SYM-skillopt-validate-approval:
     sourceColumn: 16
     sourceEndColumn: 1
