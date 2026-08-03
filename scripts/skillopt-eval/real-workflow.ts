@@ -12,9 +12,9 @@ import { defaultEvaluateHeldOut } from "./held-out-evaluation";
 import { RunStore } from "./orchestration-store";
 import { sourceWorktreeIsClean } from "./preflight";
 import {
-  predicateDescriptors,
   predicateRoots,
-  taskScopedDescriptors,
+  publicSkillDescriptors,
+  taskScopedPublicSkillDescriptors,
 } from "./real-workflow-setup";
 import {
   type RealOptimizationDependencies,
@@ -70,6 +70,48 @@ export async function surface(
   });
 }
 
+function developmentRank(gate: {
+  mean: number;
+  hardPasses: number;
+  worstFamilyMean: number;
+}): readonly [number, number, number] {
+  return [gate.mean, gate.hardPasses, gate.worstFamilyMean];
+}
+
+function compareDevelopment(
+  left: ReturnType<typeof developmentRank>,
+  right: ReturnType<typeof developmentRank>,
+): number {
+  for (let index = 0; index < left.length; index += 1) {
+    const delta = (left[index] ?? 0) - (right[index] ?? 0);
+    if (delta !== 0) return delta;
+  }
+  return 0;
+}
+
+// implements REQ-skillopt-codex-optimization
+// covered_by TEST-skillopt-codex-optimization
+export function passesDevelopmentGate(
+  input: Readonly<{
+    candidate: { mean: number; hardPasses: number; worstFamilyMean: number };
+    baseline: { mean: number; hardPasses: number; worstFamilyMean: number };
+    oneShot: { mean: number; hardPasses: number; worstFamilyMean: number };
+  }>,
+): boolean {
+  const stronger =
+    compareDevelopment(
+      developmentRank(input.baseline),
+      developmentRank(input.oneShot),
+    ) >= 0
+      ? input.baseline
+      : input.oneShot;
+  return (
+    input.candidate.mean > stronger.mean &&
+    input.candidate.hardPasses >= stronger.hardPasses &&
+    input.candidate.worstFamilyMean >= stronger.worstFamilyMean
+  );
+}
+
 // implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export async function runRealOptimization(
@@ -93,15 +135,15 @@ export async function runRealOptimization(
     const roots = await predicateRoots(root);
     const trainDescriptors =
       options.cellRuntime === undefined
-        ? predicateDescriptors("train")
-        : await taskScopedDescriptors(
+        ? publicSkillDescriptors("train")
+        : await taskScopedPublicSkillDescriptors(
             "train",
             options.cellRuntime.fixtureRunRoot,
           );
     const developmentDescriptors =
       options.cellRuntime === undefined
-        ? predicateDescriptors("development")
-        : await taskScopedDescriptors(
+        ? publicSkillDescriptors("development")
+        : await taskScopedPublicSkillDescriptors(
             "development",
             options.cellRuntime.fixtureRunRoot,
           );
@@ -115,7 +157,12 @@ export async function runRealOptimization(
         hardPasses: number;
         worstFamilyMean: number;
       };
-      heldOutEligibility: "eligible" | "HELD_OUT_MATRIX_INELIGIBLE";
+      developmentComparators: {
+        baseline: { mean: number; hardPasses: number; worstFamilyMean: number };
+        oneShot: { mean: number; hardPasses: number; worstFamilyMean: number };
+      };
+      developmentEligible: boolean;
+      heldOutEligibility: "eligible" | "HELD_OUT_MATRIX_INELIGIBLE" | "not-run";
       heldOutCellCount: number;
       productionAdoption: "external-verdict-required";
     }> = [];
@@ -139,21 +186,12 @@ export async function runRealOptimization(
           ? {}
           : { cellRuntime: options.cellRuntime }),
       };
-      const trained = await (dependencies.train ?? defaultTrain)(training);
-      const candidate = freezeCandidateVariant({
+      const oneShot = await (dependencies.oneShot ?? oneShotVariant)(training);
+      const evaluateDevelopment =
+        dependencies.evaluateDevelopment ?? defaultEvaluateDevelopment;
+      const baselineDevelopment = await evaluateDevelopment({
         skill,
-        variant: "skillopt",
-        body: trained.candidateBody,
-        frontmatterHash: baseline.frontmatterHash,
-        resourcesHash: baseline.resourcesHash,
-        provenance: "skillopt",
-        sourceRequestHash: trained.trainerCheckpointHash,
-      });
-      const development = await (
-        dependencies.evaluateDevelopment ?? defaultEvaluateDevelopment
-      )({
-        skill,
-        candidate,
+        candidate: baseline,
         descriptors: training.developmentDescriptors,
         sourceWorktree: training.sourceWorktree,
         artifactRoot: training.artifactRoot,
@@ -163,21 +201,71 @@ export async function runRealOptimization(
           ? {}
           : { runtime: options.cellRuntime }),
       });
-      const oneShot = await (dependencies.oneShot ?? oneShotVariant)(training);
-      const heldOut = await (
-        dependencies.evaluateHeldOut ?? defaultEvaluateHeldOut
-      )({
+      const oneShotDevelopment = await evaluateDevelopment({
         skill,
-        variants: [baseline, oneShot, candidate],
+        candidate: oneShot,
+        descriptors: training.developmentDescriptors,
         sourceWorktree: training.sourceWorktree,
         artifactRoot: training.artifactRoot,
         runId: options.runId,
-        roots,
         env,
         ...(options.cellRuntime === undefined
           ? {}
           : { runtime: options.cellRuntime }),
       });
+      const initialVariant =
+        compareDevelopment(
+          developmentRank(baselineDevelopment),
+          developmentRank(oneShotDevelopment),
+        ) >= 0
+          ? baseline
+          : oneShot;
+      const trained = await (dependencies.train ?? defaultTrain)({
+        ...training,
+        initialVariant,
+      });
+      const candidate = freezeCandidateVariant({
+        skill,
+        variant: "skillopt",
+        body: trained.candidateBody,
+        frontmatterHash: baseline.frontmatterHash,
+        resourcesHash: baseline.resourcesHash,
+        provenance: "skillopt",
+        sourceRequestHash: trained.trainerCheckpointHash,
+      });
+      const development =
+        trained.development ??
+        (await evaluateDevelopment({
+          skill,
+          candidate,
+          descriptors: training.developmentDescriptors,
+          sourceWorktree: training.sourceWorktree,
+          artifactRoot: training.artifactRoot,
+          runId: options.runId,
+          env,
+          ...(options.cellRuntime === undefined
+            ? {}
+            : { runtime: options.cellRuntime }),
+        }));
+      const developmentEligible = passesDevelopmentGate({
+        candidate: development,
+        baseline: baselineDevelopment,
+        oneShot: oneShotDevelopment,
+      });
+      const heldOut = developmentEligible
+        ? await (dependencies.evaluateHeldOut ?? defaultEvaluateHeldOut)({
+            skill,
+            variants: [baseline, oneShot, candidate],
+            sourceWorktree: training.sourceWorktree,
+            artifactRoot: training.artifactRoot,
+            runId: options.runId,
+            roots,
+            env,
+            ...(options.cellRuntime === undefined
+              ? {}
+              : { runtime: options.cellRuntime }),
+          })
+        : ({ eligibility: "not-run", cellCount: 0 } as const);
       await mkdir(training.artifactRoot, { recursive: true, mode: 0o700 });
       await writeFile(
         join(training.artifactRoot, "candidate_skill.md"),
@@ -190,6 +278,11 @@ export async function runRealOptimization(
         candidateBodyHash: candidate.bodyHash,
         trainerCheckpointHash: trained.trainerCheckpointHash,
         development,
+        developmentComparators: {
+          baseline: baselineDevelopment,
+          oneShot: oneShotDevelopment,
+        },
+        developmentEligible,
         heldOutEligibility: heldOut.eligibility,
         heldOutCellCount: heldOut.cellCount,
         productionAdoption: "external-verdict-required",
@@ -199,7 +292,11 @@ export async function runRealOptimization(
       (candidate) => candidate.heldOutEligibility === "eligible",
     )
       ? "eligible"
-      : "HELD_OUT_MATRIX_INELIGIBLE";
+      : candidates.some(
+            (candidate) => candidate.heldOutEligibility === "not-run",
+          )
+        ? "not-run"
+        : "HELD_OUT_MATRIX_INELIGIBLE";
     const review = ReviewSchema.parse({
       schemaVersion: "1.0.0",
       artifactType: "skillopt-optimization-review",
@@ -236,6 +333,9 @@ export async function runRealOptimization(
       // receipt. Never infer paid usage from requested work; report only
       // measured receipt-backed calls.
       paidModelCalls: 0,
+      ...(heldOutEligibility === "not-run"
+        ? { reason: "development_gate_ineligible" as const }
+        : {}),
     };
   } finally {
     await store.release();

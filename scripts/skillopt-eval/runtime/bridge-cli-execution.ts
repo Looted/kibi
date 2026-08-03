@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { relative } from "node:path";
+import { readFile } from "node:fs/promises";
+import { join, relative } from "node:path";
 import {
   EvaluationInfrastructureError,
   assertCellInfrastructureHealthy,
@@ -26,6 +27,11 @@ type BridgeCellCompletion = Readonly<{
       score: number;
       criticalFailures: readonly string[];
     }>;
+    evidenceIndex?: Readonly<{
+      events: readonly Readonly<{
+        event: unknown;
+      }>[];
+    }>;
   }>;
   artifactDirectory: string;
   receiptPath: string;
@@ -46,6 +52,7 @@ function bridgeRow(
   taskId: string,
   artifactRoot: string,
   completed: BridgeCellCompletion,
+  finalStateSummary: string,
 ) {
   const result = completed.receipt.result;
   const status: "completed" | "behavioral-failure" | "infrastructure-failure" =
@@ -60,6 +67,49 @@ function bridgeRow(
     soft: result.score / 100,
     status,
     failureCategory: result.criticalFailures[0] ?? null,
+    failureCategories: [...result.criticalFailures],
+    toolSequence: (completed.receipt.evidenceIndex?.events ?? []).flatMap(
+      ({ event }) => {
+        if (typeof event !== "object" || event === null || Array.isArray(event))
+          return [];
+        const eventRecord = event as Record<string, unknown>;
+        if (eventRecord.type !== "item.completed") return [];
+        const payload = eventRecord.payload;
+        if (
+          typeof payload !== "object" ||
+          payload === null ||
+          Array.isArray(payload)
+        )
+          return [];
+        const item = (payload as Record<string, unknown>).item;
+        if (typeof item !== "object" || item === null || Array.isArray(item))
+          return [];
+        const itemRecord = item as Record<string, unknown>;
+        if (
+          itemRecord.type !== "mcp_tool_call" ||
+          typeof itemRecord.tool !== "string"
+        )
+          return [];
+        const args =
+          typeof itemRecord.arguments === "object" &&
+          itemRecord.arguments !== null &&
+          !Array.isArray(itemRecord.arguments)
+            ? Object.fromEntries(
+                Object.entries(itemRecord.arguments).filter(
+                  ([key]) => key !== "_diagnostic_telemetry",
+                ),
+              )
+            : itemRecord.arguments;
+        return [
+          JSON.stringify({
+            tool: itemRecord.tool,
+            arguments: args,
+            outcome: itemRecord.error === null ? "success" : "error",
+          }),
+        ];
+      },
+    ),
+    finalStateSummary: finalStateSummary.slice(0, 20_000),
     conversationPath: relative(artifactRoot, completed.artifactDirectory),
     evidenceRefs: [relative(artifactRoot, completed.receiptPath)],
   };
@@ -78,6 +128,9 @@ function fakeResult(request: BridgeRequest): BridgeResult {
       soft: 1,
       status: "completed",
       failureCategory: null,
+      failureCategories: [],
+      toolSequence: [],
+      finalStateSummary: "{}",
       conversationPath: `predictions/${id}/conversation.json`,
       evidenceRefs: [`episode/${id}/receipt.json`],
     })),
@@ -147,7 +200,23 @@ async function realResult(
           taskId,
           variant: "skillopt",
         });
-        return bridgeRow(taskId, artifactRoot, completed);
+        let finalStateSummary: string;
+        try {
+          finalStateSummary = await readFile(
+            join(completed.artifactDirectory, "final-state.json"),
+            "utf8",
+          );
+        } catch {
+          throw new EvaluationInfrastructureError({
+            stage: request.phase === "train" ? "training" : request.phase,
+            taskId,
+            variant: "skillopt",
+            status: "infrastructure-failure",
+            criticalFailures: ["missing_final_state_artifact"],
+            receiptPath: completed.receiptPath,
+          });
+        }
+        return bridgeRow(taskId, artifactRoot, completed, finalStateSummary);
       } catch (error) {
         if (error instanceof EvaluationInfrastructureError) throw error;
         throw bridgeFailure(error);

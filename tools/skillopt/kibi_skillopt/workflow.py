@@ -35,7 +35,7 @@ class LedgerEntry(ContractModel):
     category: Literal[
         "preflight", "development", "optimization", "held-out", "bundle", "infrastructure"
     ]
-    model: Literal["gpt-5.4-mini", "gpt-5.5", "none"]
+    model: Literal["gpt-5.4-mini", "gpt-5.6-sol", "none"]
     usage: Usage
     price_equivalent_estimate: Annotated[
         PriceEquivalentEstimate, Field(alias="priceEquivalentEstimate")

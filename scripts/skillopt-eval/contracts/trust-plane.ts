@@ -45,7 +45,7 @@ const RunCeilingsSchema = z
     totalMicrousd: z.int().nonnegative(),
     maxRequests: z.int().positive(),
     models: z
-      .array(z.enum(["gpt-5.4-mini", "gpt-5.5"]))
+      .array(z.enum(["gpt-5.4-mini", "gpt-5.6-sol"]))
       .min(1)
       .max(2),
     maxInputTokens: z.int().positive(),

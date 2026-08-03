@@ -198,6 +198,7 @@ def run_bridge(
         if process.stdin is None or process.stdout is None or process.stderr is None:
             raise BridgeProcessError("startup")
         stdin = process.stdin
+
         def write_request() -> None:
             try:
                 _ = stdin.write(request_json.encode("utf-8"))
@@ -205,13 +206,10 @@ def run_bridge(
                 pass
             finally:
                 stdin.close()
+
         writer = threading.Thread(target=write_request, daemon=True)
-        stdout_reader = threading.Thread(
-            target=_drain, args=(process.stdout, stdout, overflow)
-        )
-        stderr_reader = threading.Thread(
-            target=_drain, args=(process.stderr, stderr, overflow)
-        )
+        stdout_reader = threading.Thread(target=_drain, args=(process.stdout, stdout, overflow))
+        stderr_reader = threading.Thread(target=_drain, args=(process.stderr, stderr, overflow))
         writer.start()
         stdout_reader.start()
         stderr_reader.start()
@@ -251,7 +249,5 @@ def run_bridge(
         detail = stderr.decode("utf-8", errors="replace").strip().replace("\n", " ")
         if len(detail) > 500:
             detail = detail[:500]
-        raise BridgeError(
-            f"bridge_exit:{process.returncode}:{detail or 'no_stderr'}"
-        )
+        raise BridgeError(f"bridge_exit:{process.returncode}:{detail or 'no_stderr'}")
     return stdout.decode("utf-8")

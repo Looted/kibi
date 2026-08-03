@@ -22,10 +22,10 @@ const MODEL_PRICING = {
     cachedInputPerMillionTokens: 0.1,
     outputPerMillionTokens: 1.6,
   },
-  "gpt-5.5": {
-    inputPerMillionTokens: 1.25,
-    cachedInputPerMillionTokens: 0.125,
-    outputPerMillionTokens: 10,
+  "gpt-5.6-sol": {
+    inputPerMillionTokens: 5,
+    cachedInputPerMillionTokens: 0.5,
+    outputPerMillionTokens: 30,
   },
 } as const;
 

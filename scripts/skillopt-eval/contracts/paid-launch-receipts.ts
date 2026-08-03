@@ -18,7 +18,7 @@ const LaunchBindingSchema = z
     invoiceId: NonEmptyStringSchema,
     usageHash: Sha256Schema,
     pricingHash: Sha256Schema,
-    model: z.enum(["gpt-5.4-mini", "gpt-5.5"]),
+    model: z.enum(["gpt-5.4-mini", "gpt-5.6-sol"]),
     leaseId: ArtifactIdSchema,
   })
   .strict();

@@ -14,7 +14,7 @@
   "cliArgs": ["exec", "--json", "--model", "gpt-5.4-mini"],
   "artifactRoot": ".artifacts/skillopt/00000000-0000-4000-8000-000000000001",
   "targetModel": "gpt-5.4-mini",
-  "optimizerModel": "gpt-5.5",
+  "optimizerModel": "gpt-5.6-sol",
   "skillopt": {
     "package": "skillopt",
     "version": "0.2.0",
@@ -33,7 +33,7 @@
   "fixtureGeneratorHash": "6161616161616161616161616161616161616161616161616161616161616161",
   "pricing": {
     "name": "price-equivalent-estimates",
-    "effectiveFrom": "2026-07-21",
+    "effectiveFrom": "2026-08-03",
     "currency": "USD",
     "source": "Pinned public list-price snapshot for estimates; not invoices",
     "models": {
@@ -42,14 +42,14 @@
         "cachedInputPerMillionTokens": 0.1,
         "outputPerMillionTokens": 1.6
       },
-      "gpt-5.5": {
-        "inputPerMillionTokens": 1.25,
-        "cachedInputPerMillionTokens": 0.125,
-        "outputPerMillionTokens": 10
+      "gpt-5.6-sol": {
+        "inputPerMillionTokens": 5,
+        "cachedInputPerMillionTokens": 0.5,
+        "outputPerMillionTokens": 30
       }
     }
   },
-  "pricingHash": "fe84a3054dd1734aef7c5bb819bf7afda9f4021b210292a07af8a1c4ba77d312",
+  "pricingHash": "6fc51350249bd59ac3bcd57949978364870db1aab8d1ccafa1b7794d32900aa3",
   "baselineSkillHashes": {
     "kibi-usage": {
       "bodyHash": "7777777777777777777777777777777777777777777777777777777777777777",

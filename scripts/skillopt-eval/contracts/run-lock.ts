@@ -73,7 +73,7 @@ export const PricingTableSchema = z
     models: z
       .object({
         "gpt-5.4-mini": ModelPricingSchema,
-        "gpt-5.5": ModelPricingSchema,
+        "gpt-5.6-sol": ModelPricingSchema,
       })
       .strict(),
   })
@@ -101,7 +101,7 @@ export function createRunLockSchema(sourceLockPath = DEFAULT_SOURCE_LOCK_PATH) {
         cliArgs: z.array(NonEmptyStringSchema).min(1),
         artifactRoot: NonEmptyStringSchema,
         targetModel: z.literal("gpt-5.4-mini"),
-        optimizerModel: z.literal("gpt-5.5"),
+        optimizerModel: z.literal("gpt-5.6-sol"),
         skillopt: z
           .object({
             package: z.literal("skillopt"),

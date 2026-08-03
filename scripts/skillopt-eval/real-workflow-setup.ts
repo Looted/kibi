@@ -2,52 +2,62 @@ import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
+import { buildSkillCatalog } from "./catalog";
 import { parsePublicTaskManifest } from "./fixtures/contracts";
-import { PREDICATE_CASES } from "./fixtures/predicate-cases";
 import { materializePredicateCorpus } from "./fixtures/predicate-corpus";
 import {
   type CorpusRoots,
-  type PredicateDescriptor,
+  type PublicTaskDescriptor,
   RootsSchema,
   canonicalHash,
 } from "./real-workflow-types";
 
-export function predicateDescriptors(
+// implements REQ-skillopt-codex-optimization
+// covered_by TEST-skillopt-codex-optimization
+export function publicSkillDescriptors(
   split: "train" | "development",
-): readonly PredicateDescriptor[] {
-  return PREDICATE_CASES.filter((entry) => entry.split === split).map(
-    (entry) => ({
-      id: entry.caseId,
-      family: entry.semanticClass,
+): readonly PublicTaskDescriptor[] {
+  return buildSkillCatalog("kibi-usage")
+    .filter((entry) => entry.split === split)
+    .map((entry) => ({
+      id: entry.id,
+      family: entry.family,
       split,
-      publicClaim: entry.publicClaim,
-    }),
-  );
+      publicClaim: {
+        taskId: entry.id,
+        text: entry.prompt,
+        publicManifestHash: canonicalHash(entry),
+        workspaceHash: entry.fixtureSeed,
+      },
+    }));
 }
 
-export async function taskScopedDescriptors(
+// implements REQ-skillopt-codex-optimization
+// covered_by TEST-skillopt-codex-optimization
+export async function taskScopedPublicSkillDescriptors(
   split: "train" | "development",
   fixtureRunRoot: string,
-): Promise<readonly PredicateDescriptor[]> {
+): Promise<readonly PublicTaskDescriptor[]> {
   return Promise.all(
-    PREDICATE_CASES.filter((entry) => entry.split === split).map(
-      async (entry) => {
+    buildSkillCatalog("kibi-usage")
+      .filter((entry) => entry.split === split)
+      .map(async (entry) => {
         const taskPath = join(
           fixtureRunRoot,
           "public",
           split,
           "tasks",
-          entry.caseId,
+          entry.id,
           "task.json",
         );
         const text = await readFile(taskPath, "utf8");
         const manifest = parsePublicTaskManifest(text);
         return {
-          id: entry.caseId,
-          family: entry.semanticClass,
+          id: entry.id,
+          family: entry.family,
           split,
           publicClaim: {
-            taskId: entry.caseId,
+            taskId: entry.id,
             text: manifest.task.prompt,
             publicManifestHash: createHash("sha256")
               .update(text, "utf8")
@@ -55,8 +65,7 @@ export async function taskScopedDescriptors(
             workspaceHash: manifest.workspaceHash,
           },
         };
-      },
-    ),
+      }),
   );
 }
 

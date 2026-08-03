@@ -42,7 +42,7 @@ export const supervisorParentFixture = {
   ceilings: {
     totalMicrousd: 2000,
     maxRequests: 2,
-    models: ["gpt-5.4-mini", "gpt-5.5"],
+    models: ["gpt-5.4-mini", "gpt-5.6-sol"],
     maxInputTokens: 1000,
     maxOutputTokens: 200,
     maxRetries: 1,
@@ -89,7 +89,7 @@ const launchBinding = {
   invoiceId: "invoice-fixture-1",
   usageHash: fixtureHash("e"),
   pricingHash: fixtureHash("f"),
-  model: "gpt-5.5" as const,
+  model: "gpt-5.6-sol" as const,
   leaseId: "00000000-0000-4000-8000-000000000504",
 };
 

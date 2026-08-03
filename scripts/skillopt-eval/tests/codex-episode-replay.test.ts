@@ -136,6 +136,29 @@ describe("deterministic Codex episode replay", () => {
     expect(receipt.result.criticalFailures).toContain("empty_jsonl");
   });
 
+  test("Given a scored behavioral miss When replayed Then its partial score is preserved", () => {
+    const receipt = replay({
+      score: {
+        outcome: "fail",
+        terminalCategory: "behavioral_failure",
+        score: 40,
+        soft: 0.4,
+        hard: 0,
+        retryable: false,
+        adoptionEligible: false,
+        components: { finalState: 0, protocol: 25, isolation: 15 },
+        criticalFailures: ["predicate-edges"],
+        conflictKeys: [],
+      },
+    });
+
+    expect(receipt.result).toMatchObject({
+      status: "behavioral-failure",
+      score: 40,
+      hardPass: false,
+    });
+  });
+
   test("Given missing broker evidence When replayed Then required MCP failure cannot claim completion", () => {
     // Given
     const evidence = { ...EVIDENCE, brokerTrace: "" };
@@ -149,15 +172,41 @@ describe("deterministic Codex episode replay", () => {
     expect(receipt.result.reconciliation.brokerTrace).toBe(false);
   });
 
+  test("Given missing final-state evidence When replayed Then it is an infrastructure failure", () => {
+    const receipt = replay({
+      evidence: { ...EVIDENCE, finalState: "" },
+    });
+
+    expect(receipt.result).toMatchObject({
+      status: "infrastructure-failure",
+      score: 0,
+      hardPass: false,
+    });
+    expect(receipt.result.criticalFailures).toContain("missing_final_state");
+  });
+
   test("Given a post-launch timeout When replayed Then it is terminal and non-passing", () => {
     // Given
     const termination = "timeout" as const;
 
     // When
-    const receipt = replay({ termination, exitCode: null });
+    const receipt = replay({
+      termination,
+      exitCode: null,
+      score: {
+        ...PASS_SCORE,
+        outcome: "fail",
+        terminalCategory: "behavioral_failure",
+        score: 40,
+        soft: 0.4,
+        hard: 0,
+        adoptionEligible: false,
+      },
+    });
 
     // Then
     expect(receipt.result.status).toBe("behavioral-failure");
+    expect(receipt.result.score).toBe(0);
     expect(receipt.result.exitCode).toBeNull();
     expect(receipt.result.criticalFailures).toContain("timeout");
   });

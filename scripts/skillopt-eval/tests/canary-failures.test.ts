@@ -374,12 +374,12 @@ describe("Codex capability canary failures", () => {
       paidModelCalls: 2,
       modelRuns: [
         { role: "target", model: "gpt-5.4-mini" },
-        { role: "optimizer", model: "gpt-5.5" },
+        { role: "optimizer", model: "gpt-5.6-sol" },
       ],
     });
     expect(modelArgv.map((argv) => argv[argv.indexOf("--model") + 1])).toEqual([
       "gpt-5.4-mini",
-      "gpt-5.5",
+      "gpt-5.6-sol",
     ]);
   });
 

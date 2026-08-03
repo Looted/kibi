@@ -137,7 +137,11 @@ function terminalState(
   if (input.termination === "interrupted") {
     return { status: "interrupted", failures: [...failures] };
   }
-  if (!evidencePresent(input.evidence.brokerTrace)) {
+  if (
+    !evidencePresent(input.evidence.brokerTrace) ||
+    !evidencePresent(input.evidence.diagnosticReceipt) ||
+    !evidencePresent(input.evidence.finalState)
+  ) {
     return { status: "infrastructure-failure", failures: [...failures] };
   }
   if (input.infrastructureFailure !== undefined) {
@@ -195,6 +199,14 @@ export function replayCodexEpisode(
     .join("\n");
   const terminal = terminalState(input, normalized);
   const completed = terminal.status === "completed";
+  const behavioralScore =
+    terminal.status === "behavioral-failure" &&
+    input.score.terminalCategory === "behavioral_failure" &&
+    input.termination === "exit" &&
+    input.exitCode === 0 &&
+    normalized.violations.length === 0
+      ? input.score.score
+      : 0;
   const result = EpisodeResultSchema.parse({
     schemaVersion: CONTRACT_SCHEMA_VERSION,
     artifactType: "episode-result",
@@ -205,7 +217,10 @@ export function replayCodexEpisode(
     startedAt: input.startedAt,
     finishedAt: input.finishedAt,
     exitCode: input.exitCode,
-    score: completed ? input.score.score : 0,
+    // Behavioral misses retain the evaluator's 60/25/15 partial score so the
+    // optimizer receives a useful gradient. Transport, evidence, timeout, and
+    // security failures remain zero because they are not behavioral evidence.
+    score: completed ? input.score.score : behavioralScore,
     hardPass: completed && input.score.hard === 1,
     criticalFailures: terminal.failures,
     evidenceIndexHash: contractHash(JsonValueSchema.parse(evidenceIndex)),

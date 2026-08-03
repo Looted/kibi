@@ -26,7 +26,7 @@ An optional privileged verifier/installer lane (`kibi-skillopt-trust-v1`) exists
 | Script | Command | Notes |
 | --- | --- | --- |
 | `skillopt:smoke` | `bun run scripts/skillopt-eval/operator.ts smoke` | Verifies the SkillOpt pin and Codex login, then runs the paid two-model capability canary. |
-| `skillopt:optimize` | `bun run scripts/skillopt-eval/operator.ts optimize` | Verifies pin and login, materializes fixtures, allocates artifact roots, then runs paid `kibi-usage` optimize (preflight, smoke, Codex rewrite, held-out gates). Writes non-mutating review evidence only. Defaults to `--max-steps 1`; pass `--max-steps 1..4` for more rewrite rounds. |
+| `skillopt:optimize` | `bun run scripts/skillopt-eval/operator.ts optimize` | Verifies pin and login, materializes fixtures, allocates artifact roots, then runs paid `kibi-usage` optimize (preflight, smoke, Codex rewrite, public development gate, held-out gates). Writes non-mutating review evidence only. Defaults to `--max-steps 1`; pass `--max-steps 1..4` for that many complete proposal rounds. |
 
 ```bash
 bun run skillopt:smoke
@@ -41,8 +41,10 @@ bun run scripts/skillopt-eval/operator.ts optimize --max-steps 4
 1. `uv sync --project tools/skillopt --frozen` and `verify_pin.py`
 2. `codex login status` must already say `Logged in using ChatGPT`
 3. Fresh run id, explicit artifact root outside the protected source tree, and materialized fixture corpus
-4. Preflight, paid capability canary, Codex SkillOpt rewrite of `kibi-usage`, development scoring, and blinded held-out aggregate gates. The real cells reuse one private staged Codex/bwrap runtime for the entire run. Each non-Git fixture pins the target, Codex MCP configuration, broker, and independent verifier to the same `skillopt-eval` Kibi branch; target-only MCP approval is limited to the evaluator-owned allowlisted broker.
-5. External production verdict handoff (`external-verdict-required`); no local canonical skill adoption
+4. Preflight and paid capability canary. Target rollouts use `gpt-5.4-mini` at low effort; the one-shot and iterative optimizer use `gpt-5.6-sol` at xhigh effort.
+5. Score baseline and one-shot on the balanced four-case public development set, seed the trainer with the stronger result, then run `--max-steps` complete rounds over all eight balanced training cases. Behavioral misses retain partial scores and structured public evidence for reflection.
+6. Require the candidate to improve development mean without hard-pass or worst-family regression. A miss returns `development_gate_ineligible` with held-out `not-run`; a pass proceeds to the blinded held-out aggregate gates. The real cells reuse one private staged Codex/bwrap runtime for the entire run. Each non-Git fixture pins the target, Codex MCP configuration, broker, and independent verifier to the same `skillopt-eval` Kibi branch; target-only MCP approval is limited to the evaluator-owned allowlisted broker.
+7. External production verdict handoff (`external-verdict-required`); no local canonical skill adoption
 
 ## Artifact layout
 
@@ -62,6 +64,8 @@ bun run scripts/skillopt-eval/operator.ts optimize --max-steps 4
 The smoke gate requires the shell isolation probe, one model-originated `kb_semantic_advisor` call, and one model-originated branch-dependent `kb_status` call that reports `skillopt-eval`. It verifies both broker hash-chain entries and their successful diagnostic usage receipts before optimization starts. The probe suppresses the expected read-only-write denial so exact-output evidence contains only its pass token. If a real cell reports infrastructure failure, the command stops immediately and emits a structured `cell_infrastructure_failure` no-go result; this is distinct from `HELD_OUT_MATRIX_INELIGIBLE`, which is reserved for a complete matrix with behavioral gate failures.
 
 Real cell final-state scoring uses the independent verifier's all-entity `kb_query`, `kb_check`, and `kb_status` receipts. Valid evidence that shows a wrong fact or predicate lane is a behavioral failure and the optimizer may continue; `evidence-conflict` is reserved for malformed, unbound, hash-invalid, or contradictory evidence.
+
+The held-out predicate supplement always reserves all 36 cells for four cases, three variants, and three replicates. All SkillOpt predicate cells must hard-pass. Baseline and one-shot misses remain comparator evidence and do not by themselves veto a successful candidate; the ordinary paired and bundle gates still compare all three variants.
 
 ## Recovery
 

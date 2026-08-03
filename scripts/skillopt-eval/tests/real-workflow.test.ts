@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { main } from "../cli";
 import {
   type RealOptimizationDependencies,
+  passesDevelopmentGate,
   runRealOptimization,
 } from "../real-workflow";
 import { requireRuntime } from "../real-workflow-types";
@@ -13,6 +14,38 @@ import { freezeCandidateVariant } from "../variants";
 const RUN_ID = "00000000-0000-4000-8000-000000000201";
 
 describe("real SkillOpt workflow", () => {
+  test("requires soft improvement without hard-pass or family regression", () => {
+    const comparators = {
+      baseline: { mean: 0.5, hardPasses: 2, worstFamilyMean: 0.4 },
+      oneShot: { mean: 0.6, hardPasses: 2, worstFamilyMean: 0.5 },
+    } as const;
+
+    expect(
+      passesDevelopmentGate({
+        ...comparators,
+        candidate: { mean: 0.61, hardPasses: 2, worstFamilyMean: 0.5 },
+      }),
+    ).toBe(true);
+    expect(
+      passesDevelopmentGate({
+        ...comparators,
+        candidate: { mean: 0.6, hardPasses: 3, worstFamilyMean: 0.6 },
+      }),
+    ).toBe(false);
+    expect(
+      passesDevelopmentGate({
+        ...comparators,
+        candidate: { mean: 0.7, hardPasses: 1, worstFamilyMean: 0.6 },
+      }),
+    ).toBe(false);
+    expect(
+      passesDevelopmentGate({
+        ...comparators,
+        candidate: { mean: 0.7, hardPasses: 3, worstFamilyMean: 0.49 },
+      }),
+    ).toBe(false);
+  });
+
   test("rejects a singular evaluator runtime in favor of a materialized fixture run", () => {
     const legacyRuntime = JSON.parse(
       '{"fixtureRoot":"/tmp/fixture","evaluatorManifestPath":"/tmp/evaluator.json"}',
@@ -93,6 +126,7 @@ describe("real SkillOpt workflow", () => {
               "Use the Kibi MCP workflow and preserve approval boundaries.\n",
             trainerCheckpointHash: "a".repeat(64),
             trajectoryHashes: ["b".repeat(64)],
+            development: { mean: 0.8, hardPasses: 3, worstFamilyMean: 0.6 },
           }),
           oneShot: async (input) =>
             freezeCandidateVariant({
@@ -103,11 +137,10 @@ describe("real SkillOpt workflow", () => {
               resourcesHash: input.baseline.resourcesHash,
               provenance: "codex-one-shot",
             }),
-          evaluateDevelopment: async () => ({
-            mean: 0,
-            hardPasses: 0,
-            worstFamilyMean: 0,
-          }),
+          evaluateDevelopment: async ({ candidate }) =>
+            candidate.variant === "baseline"
+              ? { mean: 0.4, hardPasses: 1, worstFamilyMean: 0.25 }
+              : { mean: 0.5, hardPasses: 2, worstFamilyMean: 0.4 },
           evaluateHeldOut: async () => ({
             eligibility: "HELD_OUT_MATRIX_INELIGIBLE",
             cellCount: 36,
@@ -235,6 +268,7 @@ describe("real SkillOpt workflow", () => {
               "# Frozen candidate\n\nnpx --no-install kibi\nbunx --no-install kibi\nDo not read or edit files inside `.kb` directly\n",
             trainerCheckpointHash: "c".repeat(64),
             trajectoryHashes: ["d".repeat(64)],
+            development: { mean: 0.9, hardPasses: 4, worstFamilyMean: 0.85 },
           };
         },
         oneShot: async (input) =>
@@ -252,7 +286,9 @@ describe("real SkillOpt workflow", () => {
         evaluateDevelopment: async (input) => {
           steps.push("development");
           developmentCandidates.push(input.candidate.body);
-          return { mean: 1, hardPasses: 1, worstFamilyMean: 1 };
+          return input.candidate.variant === "baseline"
+            ? { mean: 0.5, hardPasses: 2, worstFamilyMean: 0.4 }
+            : { mean: 0.6, hardPasses: 2, worstFamilyMean: 0.5 };
         },
         evaluateHeldOut: async (input) => {
           steps.push("held-out");
@@ -281,11 +317,17 @@ describe("real SkillOpt workflow", () => {
       expect(result.status).toBe("evaluated");
       expect(trainerInputs).toHaveLength(1);
       expect(JSON.stringify(trainerInputs)).not.toContain("held-out");
-      expect(developmentCandidates).toHaveLength(1);
+      expect(developmentCandidates).toHaveLength(2);
       expect(heldOutVariants).toHaveLength(1);
       expect(heldOutVariants[0]).toHaveLength(3);
       expect(result.heldOutEligibility).toBe("eligible");
-      expect(steps).toEqual(["train", "development", "one-shot", "held-out"]);
+      expect(steps).toEqual([
+        "one-shot",
+        "development",
+        "development",
+        "train",
+        "held-out",
+      ]);
       const review = JSON.parse(
         await readFile(join(root, "optimization-review.json"), "utf8"),
       ) as {
@@ -298,6 +340,83 @@ describe("real SkillOpt workflow", () => {
       expect(review.candidates?.[0]?.productionAdoption).toBe(
         "external-verdict-required",
       );
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test("Given a candidate that misses the development comparator gate Then held-out cells are not launched", async () => {
+    const root = await mkdtemp(join(tmpdir(), "skillopt-real-dev-gate-"));
+    let heldOutCalls = 0;
+    try {
+      const result = await runRealOptimization(
+        {
+          runId: RUN_ID,
+          artifactRoot: root,
+          sourceWorktree: process.cwd(),
+          skills: ["kibi-usage"],
+          maxSteps: 4,
+        },
+        {
+          sourceClean: async () => true,
+          oneShot: async (input) =>
+            freezeCandidateVariant({
+              skill: input.skill,
+              variant: "one-shot",
+              body: "Use Kibi through MCP.\n",
+              frontmatterHash: input.baseline.frontmatterHash,
+              resourcesHash: input.baseline.resourcesHash,
+              provenance: "codex-one-shot",
+            }),
+          evaluateDevelopment: async ({ candidate }) =>
+            candidate.variant === "baseline"
+              ? { mean: 0.5, hardPasses: 2, worstFamilyMean: 0.4 }
+              : { mean: 0.6, hardPasses: 3, worstFamilyMean: 0.5 },
+          train: async (input) => {
+            expect(input.initialVariant?.variant).toBe("one-shot");
+            return {
+              status: "frozen",
+              candidateBody: "Use Kibi through MCP with exact recovery.\n",
+              trainerCheckpointHash: "a".repeat(64),
+              trajectoryHashes: ["b".repeat(64)],
+              development: {
+                mean: 0.7,
+                hardPasses: 2,
+                worstFamilyMean: 0.6,
+              },
+            };
+          },
+          evaluateHeldOut: async () => {
+            heldOutCalls += 1;
+            return {
+              eligibility: "eligible",
+              cellCount: 36,
+              productionAdoption: "external-verdict-required",
+            };
+          },
+        },
+      );
+
+      expect(heldOutCalls).toBe(0);
+      expect(result).toMatchObject({
+        status: "blocked",
+        heldOutEligibility: "not-run",
+        reason: "development_gate_ineligible",
+      });
+      const review = JSON.parse(
+        await readFile(join(root, "optimization-review.json"), "utf8"),
+      ) as {
+        candidates?: Array<{
+          developmentEligible?: boolean;
+          heldOutEligibility?: string;
+          heldOutCellCount?: number;
+        }>;
+      };
+      expect(review.candidates?.[0]).toMatchObject({
+        developmentEligible: false,
+        heldOutEligibility: "not-run",
+        heldOutCellCount: 0,
+      });
     } finally {
       await rm(root, { recursive: true, force: true });
     }

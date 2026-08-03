@@ -37,8 +37,8 @@ def build_training_config(out_root: Path, *, max_steps: int = 4) -> dict[str, Js
         "train_size": 0,
         "sel_env_num": 4,
         "test_env_num": 0,
-        "num_epochs": 1,
-        "batch_size": 4,
+        "num_epochs": max_steps,
+        "batch_size": 8,
         "accumulation": 1,
         "seed": 5417,
         "max_steps": max_steps,
@@ -46,31 +46,21 @@ def build_training_config(out_root: Path, *, max_steps: int = 4) -> dict[str, Js
         "min_edit_budget": 2,
         "lr_scheduler": "constant",
         "use_gate": True,
-        "gate_metric": "hard",
+        "gate_metric": "soft",
         "use_slow_update": False,
-        "use_meta_skill": True,
+        "use_meta_skill": False,
         "minibatch_size": 4,
         "merge_batch_size": 4,
         "analyst_workers": 2,
         "max_api_workers": 2,
         "failure_only": False,
-        "skill_update_mode": "patch",
+        "skill_update_mode": "full_rewrite_minibatch",
         "eval_test": False,
         "model_backend": "codex_exec",
         "optimizer_backend": "codex_exec",
         "target_backend": "codex_exec",
         "optimizer_model": "codex",
         "target_model": "codex",
-    }
-
-
-def _development_gate(result: dict[str, JsonValue], trajectory_count: int) -> dict[str, JsonValue]:
-    score = result.get("best_selection_hard")
-    mean = float(score) if isinstance(score, (int, float)) and not isinstance(score, bool) else 0.0
-    return {
-        "mean": mean,
-        "hardPasses": round(mean * trajectory_count),
-        "worstFamilyMean": mean,
     }
 
 
@@ -138,26 +128,31 @@ def run_training(
     normalized_result = {str(key): value for key, value in result.items()}
     trajectories = _trajectory_payloads(adapter)
     if not trajectories:
-        return normalized_result
+        raise TrainingArtifactError("SkillOpt completed without public trajectories")
     current_body = (out_root / "best_skill.md").read_text(encoding="utf-8")
-    optimized = adapter.optimize(
-        current_body=current_body,
-        trajectories=trajectories,
-        previous_development=_development_gate(normalized_result, len(trajectories)),
-        step=max(1, min(max_steps, len(trajectories))),
-        max_steps=max_steps,
-    )
-    _ = (out_root / "codex-optimized-skill.md").write_text(optimized.body, encoding="utf-8")
+    development = adapter.development_gate_for(current_body)
+    if development is None:
+        raise TrainingArtifactError(
+            "SkillOpt best candidate is missing its scored development gate"
+        )
+    _ = (out_root / "codex-optimized-skill.md").write_text(current_body, encoding="utf-8")
     completed_task_ids = tuple(trajectory.task_id for trajectory in adapter.train_trajectories)
+    completed_steps_value = normalized_result.get("total_steps", max_steps)
+    completed_steps = (
+        completed_steps_value
+        if isinstance(completed_steps_value, int) and not isinstance(completed_steps_value, bool)
+        else max_steps
+    )
     checkpoint = adapter.save_checkpoint(
-        min(max_steps, len(trajectories)),
-        optimized.body,
+        min(max_steps, completed_steps),
+        current_body,
         completed_task_ids,
         max_steps=max_steps,
         trajectories=trajectories,
     )
-    normalized_result["codex_candidate_body_hash"] = contract_hash(optimized.body)
-    normalized_result["codex_candidate_body"] = optimized.body
+    normalized_result["codex_candidate_body_hash"] = contract_hash(current_body)
+    normalized_result["codex_candidate_body"] = current_body
+    normalized_result["candidate_development"] = development
     normalized_result["trainer_checkpoint_hash"] = checkpoint.trainer_checkpoint_hash
     normalized_result["trajectory_hashes"] = list(checkpoint.trajectory_hashes)
     normalized_result["corpus_roots"] = checkpoint.corpus_roots.model_dump(
@@ -165,7 +160,7 @@ def run_training(
     )
     _write_frozen_candidate(
         out_root,
-        candidate_body=optimized.body,
+        candidate_body=current_body,
         candidate_body_hash=checkpoint.candidate_body_hash,
         trainer_checkpoint_hash=checkpoint.trainer_checkpoint_hash,
         trajectory_hashes=checkpoint.trajectory_hashes,

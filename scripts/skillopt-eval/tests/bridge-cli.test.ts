@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { bridgeMain } from "../bridge-cli";
@@ -95,6 +95,17 @@ describe("bridge CLI", () => {
           "kb_check",
           "kb_status",
         ]);
+        const artifactDirectory = join(
+          root,
+          "artifacts",
+          "episodes",
+          "episode-1",
+        );
+        await mkdir(artifactDirectory, { recursive: true });
+        await writeFile(
+          join(artifactDirectory, "final-state.json"),
+          '{"status":"fresh"}\n',
+        );
         return {
           receipt: {
             result: {
@@ -103,8 +114,27 @@ describe("bridge CLI", () => {
               score: 100,
               criticalFailures: [],
             },
+            evidenceIndex: {
+              events: [
+                {
+                  event: {
+                    type: "item.completed",
+                    payload: {
+                      item: {
+                        type: "mcp_tool_call",
+                        tool: "kb_status",
+                        arguments: {
+                          _diagnostic_telemetry: { reasoning: "private" },
+                        },
+                        error: null,
+                      },
+                    },
+                  },
+                },
+              ],
+            },
           },
-          artifactDirectory: join(root, "artifacts", "episodes", "episode-1"),
+          artifactDirectory,
           receiptPath: join(
             root,
             "artifacts",
@@ -149,6 +179,15 @@ describe("bridge CLI", () => {
         soft: 1,
         status: "completed",
         failureCategory: null,
+        failureCategories: [],
+        toolSequence: [
+          JSON.stringify({
+            tool: "kb_status",
+            arguments: {},
+            outcome: "success",
+          }),
+        ],
+        finalStateSummary: '{"status":"fresh"}\n',
         conversationPath: "episodes/episode-1",
         evidenceRefs: ["episodes/episode-1/episode-receipt.json"],
       },

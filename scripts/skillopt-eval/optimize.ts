@@ -20,6 +20,12 @@ export type TrainTrajectory = Readonly<{
   taskId: string;
   family: string;
   reflection: string;
+  status?: "completed" | "behavioral-failure";
+  soft?: number;
+  hard?: 0 | 1;
+  failureCategories?: readonly string[];
+  toolSequence?: readonly string[];
+  finalStateSummary?: string;
 }>;
 
 export type DevelopmentGate = Readonly<{
@@ -125,9 +131,7 @@ export function createPinnedSkillOptRunner(
         maxSteps: request.maxSteps,
         currentBody: request.currentBody,
         trainTrajectories: request.trainTrajectories.map((trajectory) => ({
-          taskId: trajectory.taskId,
-          family: trajectory.family,
-          reflection: trajectory.reflection,
+          ...trajectory,
         })),
         previousDevelopment: request.previousDevelopment,
       };
