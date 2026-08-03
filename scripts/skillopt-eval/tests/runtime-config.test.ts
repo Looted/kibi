@@ -220,6 +220,28 @@ describe("Codex evaluator-owned permissions", () => {
     ]);
   });
 
+  test("captures the optimizer's final structured message separately from progress events", () => {
+    // Given
+    const options = {
+      codexCommand: "/bin/codex",
+      workspace: "/run/work",
+      outputSchema: "/run/schema.json",
+      outputLastMessage: "/run/optimizer-last-message.json",
+      role: "optimizer" as const,
+    };
+
+    // When
+    const argv = buildCodexExecArgv(options);
+
+    // Then
+    expect(argv).toContain("gpt-5.6-sol");
+    expect(argv.slice(-3)).toEqual([
+      "--output-last-message",
+      "/run/optimizer-last-message.json",
+      "-",
+    ]);
+  });
+
   test("builds an offline production-profile sandbox probe", () => {
     // Given
     const options = {

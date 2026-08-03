@@ -155,6 +155,7 @@ export function buildCodexExecArgv(
     codexCommand: string;
     workspace: string;
     outputSchema: string;
+    outputLastMessage?: string;
     role: "optimizer" | "target";
   }>,
 ): readonly [string, ...string[]] {
@@ -174,6 +175,9 @@ export function buildCodexExecArgv(
     resolve(options.workspace),
     "--output-schema",
     resolve(options.outputSchema),
+    ...(options.outputLastMessage === undefined
+      ? []
+      : ["--output-last-message", resolve(options.outputLastMessage)]),
     "-",
   ];
 }

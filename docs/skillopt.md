@@ -46,6 +46,10 @@ bun run scripts/skillopt-eval/operator.ts optimize --max-steps 4
 6. Require the candidate to improve development mean without hard-pass or worst-family regression. A miss returns `development_gate_ineligible` with held-out `not-run`; a pass proceeds to the blinded held-out aggregate gates. The real cells reuse one private staged Codex/bwrap runtime for the entire run. Each non-Git fixture pins the target, Codex MCP configuration, broker, and independent verifier to the same `skillopt-eval` Kibi branch; target-only MCP approval is limited to the evaluator-owned allowlisted broker.
 7. External production verdict handoff (`external-verdict-required`); no local canonical skill adoption
 
+Optimizer responses are captured from Codex's dedicated final-message file. JSONL progress messages are audit events only and cannot become a candidate. The harness rejects a short progress note or a replacement that drops required CLI, `.kb`, discovery, mutation, or validation guidance before spending target-cell budget on it.
+
+Each accepted one-shot or iterative response is copied to `accepted-output/candidate-body.md` with a hash-bound `accepted-output/receipt.json` before its ephemeral optimizer workspace is removed. These artifacts preserve paid optimizer progress even if a later development, training, or held-out gate stops the run.
+
 The outer trainer deadline is derived from the internal four-case baseline selection, all 12 target cells per requested round, one optimizer allowance per round, and startup grace. A four-round run therefore cannot be cut off by the old fixed 15-minute `uv` deadline; an actual outer timeout is reported as a structured training infrastructure no-go with its diagnostic path.
 
 Diagnostic reconciliation is the multiset of successful model-originated Kibi calls. When the model makes no Kibi call, the matching usage-receipt multiset is legitimately empty and the missing required call is scored as a behavioral protocol failure. A non-empty successful-call multiset without matching usage receipts remains an infrastructure no-go.
@@ -55,6 +59,7 @@ Diagnostic reconciliation is the multiset of successful model-originated Kibi ca
 | Path | Produced by | Meaning |
 | --- | --- | --- |
 | `$OPERATOR_BASE/optimize/<run-id>/skills/` | `optimize` | Baseline and candidate skill snapshots. |
+| `$OPERATOR_BASE/optimize/<run-id>/skills/kibi-usage/**/accepted-output/` | optimizer | Durable accepted one-shot and per-step optimizer bodies with hash receipts. |
 | `$OPERATOR_BASE/optimize/<run-id>/steps/` | `optimize` | Per step candidate and development receipts. |
 | `$OPERATOR_BASE/optimize/<run-id>/best_skill.md` | `optimize` | The current best candidate body. |
 | `$OPERATOR_BASE/optimize/<run-id>/runtime_state.json` | `optimize` | Runtime state summary for the optimizer. |

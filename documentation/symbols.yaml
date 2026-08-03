@@ -11055,6 +11055,24 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-codex-optimizer-parse-body
+    title: parseCodexOptimizerBody
+    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-codex-optimizer-persist-body
+    title: persistCodexOptimizerBody
+    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-codex-optimizer-run
     title: runCodexSkillOptStep
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
@@ -15567,6 +15585,14 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: executable_for
         target: TEST-skillopt-external-adoption-verdict
+  - id: SYM-skillopt-runtime-codex-optimizer-tests
+    title: Codex optimizer final-output tests
+    sourceFile: scripts/skillopt-eval/tests/codex-optimizer.test.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-runtime-create-workspace
     title: createIsolationWorkspace
     sourceFile: scripts/skillopt-eval/runtime/isolation-workspace.ts

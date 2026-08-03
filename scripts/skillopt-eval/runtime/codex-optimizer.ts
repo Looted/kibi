@@ -1,7 +1,9 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { z } from "zod";
 import type { SkillOptStepRequest, SkillOptStepResult } from "../optimize";
+import { validateCandidateBody } from "../variants";
 import { resolveIsolationArtifactRoot } from "./artifact-root";
 import {
   RequiredMcpStartupError,
@@ -13,14 +15,16 @@ import { buildCodexConfig, buildCodexExecArgv } from "./permissions";
 import { runBoundedProcess } from "./process";
 
 const BodySchema = z.object({ body: z.string().min(1) }).strict();
-const AgentMessageSchema = z
-  .object({
-    type: z.literal("item.completed"),
-    item: z
-      .object({ type: z.literal("agent_message"), text: z.string() })
-      .loose(),
-  })
-  .loose();
+const MIN_COMPLETE_BODY_BYTES = 1_000;
+const REQUIRED_BODY_GUIDANCE = [
+  "npx --no-install kibi",
+  "bunx --no-install kibi",
+  "Do not read or edit files inside `.kb` directly",
+  "kb_search",
+  "kb_query",
+  "kb_upsert",
+  "kb_check",
+] as const;
 
 // implements REQ-skillopt-codex-optimization
 export class CodexOptimizerError extends Error {
@@ -28,32 +32,65 @@ export class CodexOptimizerError extends Error {
   readonly name = "CodexOptimizerError";
 }
 
-function parseJsonLine(line: string): unknown {
+function parseJson(text: string): unknown {
   try {
-    return JSON.parse(line);
+    return JSON.parse(text);
   } catch (error) {
     if (error instanceof SyntaxError) return undefined;
     throw error;
   }
 }
 
-function bodyFromText(text: string): string | undefined {
-  const parsed = BodySchema.safeParse(parseJsonLine(text));
-  return parsed.success ? parsed.data.body : undefined;
+// implements REQ-skillopt-codex-optimization
+export function parseCodexOptimizerBody(lastMessage: string): string {
+  const parsed = BodySchema.safeParse(parseJson(lastMessage));
+  if (!parsed.success) {
+    throw new CodexOptimizerError("optimizer_output_missing_body");
+  }
+  const body = parsed.data.body;
+  validateCandidateBody(body);
+  if (
+    Buffer.byteLength(body, "utf8") < MIN_COMPLETE_BODY_BYTES ||
+    REQUIRED_BODY_GUIDANCE.some((guidance) => !body.includes(guidance))
+  ) {
+    throw new CodexOptimizerError("optimizer_output_incomplete_body");
+  }
+  return body;
 }
 
-function extractBody(stdout: string): string {
-  for (const line of stdout.split("\n")) {
-    const value = parseJsonLine(line);
-    const direct = BodySchema.safeParse(value);
-    if (direct.success) return direct.data.body;
-    const message = AgentMessageSchema.safeParse(value);
-    if (message.success) {
-      const body = bodyFromText(message.data.item.text);
-      if (body !== undefined) return body;
-    }
-  }
-  throw new CodexOptimizerError("optimizer_output_missing_body");
+// implements REQ-skillopt-codex-optimization
+export async function persistCodexOptimizerBody(
+  artifactRoot: string,
+  sourceWorktree: string,
+  input: Readonly<{
+    runId: string;
+    skill: string;
+    step: number;
+    body: string;
+  }>,
+): Promise<void> {
+  const acceptedRoot = resolveIsolationArtifactRoot(
+    resolve(artifactRoot, "accepted-output"),
+    sourceWorktree,
+  );
+  await mkdir(acceptedRoot, { recursive: true, mode: 0o700 });
+  await writeFile(join(acceptedRoot, "candidate-body.md"), input.body, {
+    encoding: "utf8",
+    mode: 0o600,
+  });
+  await writeFile(
+    join(acceptedRoot, "receipt.json"),
+    `${JSON.stringify({
+      schemaVersion: "1.0.0",
+      artifactType: "skillopt-accepted-optimizer-output",
+      runId: input.runId,
+      skill: input.skill,
+      step: input.step,
+      bodyHash: createHash("sha256").update(input.body, "utf8").digest("hex"),
+      bodyBytes: Buffer.byteLength(input.body, "utf8"),
+    })}\n`,
+    { encoding: "utf8", mode: 0o600 },
+  );
 }
 
 function promptFor(request: SkillOptStepRequest): string {
@@ -116,6 +153,10 @@ export async function runCodexSkillOptStep(
     const runtimeRoot = join(workspace.target, ".runtime");
     await mkdir(runtimeRoot, { recursive: true, mode: 0o700 });
     const outputSchema = join(runtimeRoot, "optimizer-output.schema.json");
+    const outputLastMessage = join(
+      runtimeRoot,
+      "optimizer-output-last-message.json",
+    );
     await writeFile(
       outputSchema,
       JSON.stringify({
@@ -126,6 +167,10 @@ export async function runCodexSkillOptStep(
       }),
       { encoding: "utf8", mode: 0o600 },
     );
+    await writeFile(outputLastMessage, "", {
+      encoding: "utf8",
+      mode: 0o600,
+    });
     await writeFile(
       join(workspace.codexHome, "config.toml"),
       buildCodexConfig({
@@ -152,6 +197,7 @@ export async function runCodexSkillOptStep(
         codexCommand: staged.codexCommand,
         workspace: workspace.target,
         outputSchema,
+        outputLastMessage,
         role: "optimizer",
       }),
       cwd: workspace.target,
@@ -162,7 +208,15 @@ export async function runCodexSkillOptStep(
     if (result.exitCode !== 0) {
       throw new CodexOptimizerError(`optimizer_exit:${result.exitCode}`);
     }
-    const body = extractBody(result.stdout);
+    const body = parseCodexOptimizerBody(
+      await readFile(outputLastMessage, "utf8"),
+    );
+    await persistCodexOptimizerBody(options.artifactRoot, sourceWorktree, {
+      runId: options.runId,
+      skill: options.request.skill,
+      step: options.request.step,
+      body,
+    });
     return { body, development: options.request.previousDevelopment };
   } catch (error) {
     if (error instanceof RequiredMcpStartupError) throw error;

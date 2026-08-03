@@ -150,6 +150,7 @@ describe("SkillOpt documentation contract", () => {
 
     expect(artifacts.map((row) => row.Path)).toEqual([
       "`$OPERATOR_BASE/optimize/<run-id>/skills/`",
+      "`$OPERATOR_BASE/optimize/<run-id>/skills/kibi-usage/**/accepted-output/`",
       "`$OPERATOR_BASE/optimize/<run-id>/steps/`",
       "`$OPERATOR_BASE/optimize/<run-id>/best_skill.md`",
       "`$OPERATOR_BASE/optimize/<run-id>/runtime_state.json`",
