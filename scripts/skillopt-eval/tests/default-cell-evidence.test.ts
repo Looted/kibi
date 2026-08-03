@@ -233,4 +233,27 @@ describe("default Codex cell evidence sealing", () => {
       "evidence_conflict",
     );
   });
+
+  test("accepts a matching successful diagnostic record without optional telemetry", async () => {
+    const manifest = evaluatorManifest("predicate");
+    const evidence = sealDefaultCellEvidence(
+      {
+        evaluatorManifest: manifest,
+        finalStateRequests: [
+          { tool: "kb_query", args: {} },
+          { tool: "kb_check", args: {} },
+          { tool: "kb_status", args: {} },
+        ],
+      },
+      {
+        finalState: finalStateReceipt(),
+        brokerTrace: await brokerTrace(),
+        diagnosticReceipt:
+          '{"tool":"kb_query","status":"success","telemetry":null,"telemetry_status":"missing"}\n',
+      },
+    );
+
+    expect(evidence.diagnostic.integrityValid).toBe(true);
+    expect(scoreCell(manifest, evidence).terminalCategory).toBeNull();
+  });
 });
