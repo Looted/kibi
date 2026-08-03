@@ -223,6 +223,51 @@ await new Promise(() => {});
     expect(() => process.kill(-childPid, 0)).toThrow();
     expect(await readFile(tracePath, "utf8")).toContain('"kind":"startup"');
   });
+
+  test("reaps an unresponsive downstream group when the target transport closes", async () => {
+    // Given
+    const root = await temporaryRoot("skillopt-broker-close-");
+    const pidPath = join(root, "pid");
+    const serverPath = join(root, "hung.ts");
+    const tracePath = join(root, "trace.jsonl");
+    await writeFile(
+      serverPath,
+      `import { writeFileSync } from "node:fs";
+writeFileSync(${JSON.stringify(pidPath)}, String(process.pid));
+console.error("ready");
+process.on("SIGTERM", () => {});
+await new Promise(() => {});
+`,
+      { mode: 0o700 },
+    );
+    const input = new PassThrough();
+    const output = new PassThrough();
+    const stderr = new PassThrough();
+    const ready = once(stderr, "data");
+    const attempt = runMcpBroker(
+      {
+        downstream: {
+          command: process.execPath,
+          args: [serverPath],
+          cwd: root,
+        },
+        tracePath,
+        startupTimeoutMs: 10_000,
+        toolTimeoutMs: 100,
+        killGraceMs: 25,
+      },
+      { input, output, error: stderr },
+    );
+    await ready;
+    const childPid = Number.parseInt(await readFile(pidPath, "utf8"), 10);
+
+    // When
+    input.end();
+    await attempt;
+
+    // Then
+    expect(() => process.kill(-childPid, 0)).toThrow();
+  });
 });
 
 describe("independent final-state client", () => {

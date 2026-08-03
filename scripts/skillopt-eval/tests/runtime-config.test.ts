@@ -364,7 +364,7 @@ describe("Codex evaluator-owned permissions", () => {
     expect(config).toContain("required = true");
     expect(config).toContain('default_tools_approval_mode = "approve"');
     expect(config).toContain(
-      '[mcp_servers.kibi.env]\nKIBI_BRANCH = "skillopt-eval"',
+      '[mcp_servers.kibi.env]\nKIBI_BRANCH = "skillopt-eval"\nKIBI_SKILLOPT_PROCESS_GROUP = "python_bridge"',
     );
     expect(config).toContain('"KIBI_BRANCH"');
     expect(config).toContain("enabled = false");
@@ -401,7 +401,7 @@ describe("Codex evaluator-owned permissions", () => {
 
     expect(config).toContain('default_tools_approval_mode = "auto"');
     expect(config).toContain(
-      '[mcp_servers.kibi.env]\nKIBI_BRANCH = "skillopt-eval"',
+      '[mcp_servers.kibi.env]\nKIBI_BRANCH = "skillopt-eval"\nKIBI_SKILLOPT_PROCESS_GROUP = "python_bridge"',
     );
   });
 

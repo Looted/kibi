@@ -83,12 +83,26 @@ export async function runMcpBroker(
   const pending = new Map<string, PendingRequest>();
   let sequence = 0;
   let initialized = false;
+  let shutdownRequested = false;
+  let downstreamClosed = false;
   let terminalError: McpBrokerError | null = null;
+  let killTimer: NodeJS.Timeout | undefined;
   let receiptQueue = Promise.resolve();
   const record = (input: Parameters<typeof appendTraceReceipt>[1]): void => {
     receiptQueue = receiptQueue
       .then(() => appendTraceReceipt(options.tracePath, input))
       .then(() => undefined);
+  };
+  const requestShutdown = (): void => {
+    if (shutdownRequested) return;
+    shutdownRequested = true;
+    if (downstreamClosed) return;
+    if (ownsGroup) terminateGroup(pid, "SIGTERM");
+    else terminateChild(child, "SIGTERM");
+    killTimer = setTimeout(() => {
+      if (ownsGroup) terminateGroup(pid, "SIGKILL");
+      else terminateChild(child, "SIGKILL");
+    }, options.killGraceMs);
   };
   const fail = (error: McpBrokerError): void => {
     if (terminalError !== null) return;
@@ -99,13 +113,11 @@ export async function runMcpBroker(
       kind: "error",
       payload: { kind: error.kind },
     });
-    if (ownsGroup) terminateGroup(pid, "SIGTERM");
-    else terminateChild(child, "SIGTERM");
-    setTimeout(() => {
-      if (ownsGroup) terminateGroup(pid, "SIGKILL");
-      else terminateChild(child, "SIGKILL");
-    }, options.killGraceMs).unref();
+    requestShutdown();
   };
+  const interrupt = (): void => requestShutdown();
+  process.on("SIGINT", interrupt);
+  process.on("SIGTERM", interrupt);
   const startupTimer = setTimeout(
     () => fail(new McpBrokerError("startup")),
     options.startupTimeoutMs,
@@ -185,7 +197,10 @@ export async function runMcpBroker(
     }
     child.stdin.write(`${line}\n`);
   });
-  targetLines.once("close", () => child.stdin.end());
+  targetLines.once("close", () => {
+    child.stdin.end();
+    requestShutdown();
+  });
 
   const serverLines = createInterface({
     input: child.stdout,
@@ -237,15 +252,24 @@ export async function runMcpBroker(
     io.output.write(`${JSON.stringify(forwarded)}\n`);
   });
 
-  const exit = await new Promise<number | null>((resolveExit, rejectExit) => {
-    child.once("error", rejectExit);
-    child.once("close", (code) => resolveExit(code));
-  });
-  clearTimeout(startupTimer);
-  for (const request of pending.values()) clearTimeout(request.timer);
-  if (pending.size > 0 && terminalError === null)
+  let exit: number | null;
+  try {
+    exit = await new Promise<number | null>((resolveExit, rejectExit) => {
+      child.once("error", rejectExit);
+      child.once("close", (code) => resolveExit(code));
+    });
+    downstreamClosed = true;
+  } finally {
+    clearTimeout(startupTimer);
+    if (killTimer !== undefined) clearTimeout(killTimer);
+    for (const request of pending.values()) clearTimeout(request.timer);
+    process.off("SIGINT", interrupt);
+    process.off("SIGTERM", interrupt);
+  }
+  if (pending.size > 0 && terminalError === null && !shutdownRequested)
     fail(new McpBrokerError("server_exit"));
   await receiptQueue;
   if (terminalError !== null) throw terminalError;
-  if (!initialized || exit !== 0) throw new McpBrokerError("server_exit");
+  if (!shutdownRequested && (!initialized || exit !== 0))
+    throw new McpBrokerError("server_exit");
 }

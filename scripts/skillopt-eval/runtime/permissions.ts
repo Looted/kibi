@@ -139,6 +139,7 @@ export function buildCodexConfig(options: CodexConfigOptions): string {
     "",
     "[mcp_servers.kibi.env]",
     `KIBI_BRANCH = ${JSON.stringify(SKILLOPT_EVALUATION_BRANCH)}`,
+    'KIBI_SKILLOPT_PROCESS_GROUP = "python_bridge"',
     "",
   ].join("\n");
 }
