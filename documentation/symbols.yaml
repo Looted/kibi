@@ -11806,6 +11806,26 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-trainer-process-timeout-ms
+    title: trainerProcessTimeoutMs
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    text_ref: scripts/skillopt-eval/training-setup.ts#trainerProcessTimeoutMs
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-trainer-process-thrown-infrastructure-error
+    title: trainerProcessThrownInfrastructureError
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    text_ref: scripts/skillopt-eval/training-setup.ts#trainerProcessThrownInfrastructureError
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-module-argv
     title: skilloptModuleArgv
     sourceFile: scripts/skillopt-eval/training-setup.ts

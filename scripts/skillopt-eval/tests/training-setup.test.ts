@@ -15,6 +15,8 @@ import {
   skilloptModuleArgv,
   trainerBridgeEnvironment,
   trainerProcessInfrastructureError,
+  trainerProcessThrownInfrastructureError,
+  trainerProcessTimeoutMs,
 } from "../training-setup";
 
 const roots: string[] = [];
@@ -217,6 +219,48 @@ describe("SkillOpt trainer request contract", () => {
       variant: "skillopt",
       status: "infrastructure-failure",
       criticalFailures: ["trainer-exit-1"],
+      receiptPath: "/artifacts/trainer-stderr.log",
+    });
+  });
+
+  test("sizes the parent timeout for every baseline, round, and optimizer call", () => {
+    const input = sampleInput("/artifacts/run");
+    expect(trainerProcessTimeoutMs(input, input.cellRuntime)).toBe(1_560_000);
+    const [trainDescriptor] = input.trainDescriptors;
+    const [developmentDescriptor] = input.developmentDescriptors;
+    if (trainDescriptor === undefined || developmentDescriptor === undefined) {
+      throw new Error("sample descriptors are required");
+    }
+
+    const balancedFourRoundInput = {
+      ...input,
+      maxSteps: 4,
+      trainDescriptors: Array.from({ length: 8 }, () => trainDescriptor),
+      developmentDescriptors: Array.from(
+        { length: 4 },
+        () => developmentDescriptor,
+      ),
+    };
+    expect(
+      trainerProcessTimeoutMs(
+        balancedFourRoundInput,
+        balancedFourRoundInput.cellRuntime,
+      ),
+    ).toBe(13_080_000);
+  });
+
+  test("classifies an outer trainer timeout as structured infrastructure", () => {
+    const failure = trainerProcessThrownInfrastructureError(
+      new Error("process_timeout:uv"),
+      "/artifacts/trainer-stderr.log",
+    );
+
+    expect(failure.details).toEqual({
+      stage: "training",
+      taskId: "trainer-process",
+      variant: "skillopt",
+      status: "infrastructure-failure",
+      criticalFailures: ["trainer-process-timeout"],
       receiptPath: "/artifacts/trainer-stderr.log",
     });
   });

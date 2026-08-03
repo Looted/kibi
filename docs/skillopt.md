@@ -46,6 +46,8 @@ bun run scripts/skillopt-eval/operator.ts optimize --max-steps 4
 6. Require the candidate to improve development mean without hard-pass or worst-family regression. A miss returns `development_gate_ineligible` with held-out `not-run`; a pass proceeds to the blinded held-out aggregate gates. The real cells reuse one private staged Codex/bwrap runtime for the entire run. Each non-Git fixture pins the target, Codex MCP configuration, broker, and independent verifier to the same `skillopt-eval` Kibi branch; target-only MCP approval is limited to the evaluator-owned allowlisted broker.
 7. External production verdict handoff (`external-verdict-required`); no local canonical skill adoption
 
+The outer trainer deadline is derived from the internal four-case baseline selection, all 12 target cells per requested round, one optimizer allowance per round, and startup grace. A four-round run therefore cannot be cut off by the old fixed 15-minute `uv` deadline; an actual outer timeout is reported as a structured training infrastructure no-go with its diagnostic path.
+
 ## Artifact layout
 
 | Path | Produced by | Meaning |

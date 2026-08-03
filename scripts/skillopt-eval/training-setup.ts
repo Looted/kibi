@@ -22,6 +22,9 @@ import { resolveTaskFixture } from "./runtime/task-fixture";
 import { freezeCandidateVariant } from "./variants";
 
 const SKILLOPT_PROJECT_DIR = "tools/skillopt";
+const DEFAULT_TRAINER_CELL_TIMEOUT_MS = 180_000;
+const TRAINER_OPTIMIZER_TIMEOUT_MS = 15 * 60 * 1000;
+const TRAINER_STARTUP_GRACE_MS = 2 * 60 * 1000;
 
 export const BRIDGE_SOURCE_WORKTREE_ENV = "KIBI_SKILLOPT_SOURCE_WORKTREE";
 export const BRIDGE_ARTIFACT_ROOT_ENV = "KIBI_SKILLOPT_ARTIFACT_ROOT";
@@ -133,6 +136,50 @@ export function trainerProcessInfrastructureError(
 
 // implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
+export function trainerProcessTimeoutMs(
+  input: Pick<
+    TrainingInput,
+    "maxSteps" | "trainDescriptors" | "developmentDescriptors"
+  >,
+  runtime: ReturnType<typeof requireRuntime>,
+): number {
+  const targetCellTimeoutMs =
+    runtime.timeoutMs ?? DEFAULT_TRAINER_CELL_TIMEOUT_MS;
+  const baselineSelectionCells = input.developmentDescriptors.length;
+  const cellsPerRound =
+    input.trainDescriptors.length + input.developmentDescriptors.length;
+  const targetCellCount =
+    baselineSelectionCells + input.maxSteps * cellsPerRound;
+  return (
+    TRAINER_STARTUP_GRACE_MS +
+    targetCellCount * targetCellTimeoutMs +
+    input.maxSteps * TRAINER_OPTIMIZER_TIMEOUT_MS
+  );
+}
+
+// implements REQ-skillopt-codex-optimization
+// covered_by TEST-skillopt-codex-optimization
+export function trainerProcessThrownInfrastructureError(
+  error: unknown,
+  stderrPath: string,
+): EvaluationInfrastructureError {
+  const message = error instanceof Error ? error.message : String(error);
+  return new EvaluationInfrastructureError({
+    stage: "training",
+    taskId: "trainer-process",
+    variant: "skillopt",
+    status: "infrastructure-failure",
+    criticalFailures: [
+      message.startsWith("process_timeout:")
+        ? "trainer-process-timeout"
+        : "trainer-process-error",
+    ],
+    receiptPath: stderrPath,
+  });
+}
+
+// implements REQ-skillopt-codex-optimization
+// covered_by TEST-skillopt-codex-optimization
 export const defaultTrain: RealOptimizationDependencies["train"] = async (
   input: TrainingInput,
 ): Promise<TrainingOutput> => {
@@ -150,18 +197,28 @@ export const defaultTrain: RealOptimizationDependencies["train"] = async (
     request.outRoot,
     input.initialVariant?.body ?? input.baseline.body,
   );
-  const result = await runBoundedProcess({
-    argv: skilloptModuleArgv([
-      "train",
-      "--request",
-      requestPath,
-      "--result",
-      resultPath,
-    ]),
-    cwd: input.sourceWorktree,
-    env: trainerBridgeEnvironment(input, runtime),
-    timeoutMs: 15 * 60 * 1000,
-  });
+  let result: ProcessResult;
+  try {
+    result = await runBoundedProcess({
+      argv: skilloptModuleArgv([
+        "train",
+        "--request",
+        requestPath,
+        "--result",
+        resultPath,
+      ]),
+      cwd: input.sourceWorktree,
+      env: trainerBridgeEnvironment(input, runtime),
+      timeoutMs: trainerProcessTimeoutMs(input, runtime),
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    await writeFile(stderrPath, message, {
+      encoding: "utf8",
+      mode: 0o600,
+    });
+    throw trainerProcessThrownInfrastructureError(error, stderrPath);
+  }
   if (result.exitCode !== 0) {
     await writeFile(stderrPath, result.stderr || result.stdout, {
       encoding: "utf8",
