@@ -7529,27 +7529,39 @@ coordinates:
   SYM-skillopt-codex-optimizer-error:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 29
+    sourceEndLine: 33
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
-    sourceLine: 26
+    sourceLine: 30
   SYM-skillopt-codex-optimizer-error-name:
     sourceColumn: 11
     sourceEndColumn: 40
-    sourceEndLine: 28
+    sourceEndLine: 32
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
-    sourceLine: 28
+    sourceLine: 32
   SYM-skillopt-codex-optimizer-options:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 86
+    sourceEndLine: 123
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
-    sourceLine: 79
+    sourceLine: 116
+  SYM-skillopt-codex-optimizer-parse-body:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 59
+    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    sourceLine: 45
+  SYM-skillopt-codex-optimizer-persist-body:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 94
+    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    sourceLine: 62
   SYM-skillopt-codex-optimizer-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 176
+    sourceEndLine: 230
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
-    sourceLine: 89
+    sourceLine: 126
   SYM-skillopt-codex-runtime-lease:
     sourceColumn: 12
     sourceEndColumn: 5
@@ -10151,7 +10163,7 @@ coordinates:
   SYM-skillopt-runtime-build-argv:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 179
+    sourceEndLine: 183
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     sourceLine: 153
   SYM-skillopt-runtime-build-config:

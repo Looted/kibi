@@ -17,6 +17,8 @@ Given frozen baseline, one-shot, and SkillOpt skill-body variants with unchanged
 
 Given the balanced public corpus, when optimization runs with `--max-steps 4`, then `gpt-5.6-sol` at xhigh effort performs four complete proposal rounds over all eight training cases, each proposal is scored across all four development families, and behavioral partial scores plus structured failure/tool/final-state evidence remain available to reflection.
 
+Given an optimizer turn that emits structured progress before its final structured response, when the harness captures the proposed body, then it reads Codex's dedicated last-message artifact, rejects an incomplete or safety-invalid replacement before launching any target evaluation cell, and persists an accepted body plus hash receipt outside the ephemeral runtime before cleanup.
+
 Given baseline and one-shot development results, when training begins, then the stronger comparator seeds the trainer. If the frozen candidate does not strictly improve its development mean without hard-pass or worst-family regression, held-out evaluation is not launched and the review reports `development_gate_ineligible`; otherwise the blinded matrix runs. Comparator misses in the complete 36-cell predicate supplement do not veto candidate predicate success, while any SkillOpt predicate miss does.
 
 Given a non-fake bridge request with the source worktree, fixture, evaluator manifest, and artifact root, when the bridge evaluates a candidate, then it delegates the episode to the isolated Codex cell runner with the real login and MCP dependencies.
