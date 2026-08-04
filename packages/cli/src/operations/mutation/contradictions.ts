@@ -39,8 +39,13 @@ export function formatUpsertError(entityId: string, raw?: string): string {
   const contradiction = raw.match(/kb_contradiction\(\s*\[([^\]]+)\]\s*\)/);
   if (contradiction) {
     const details = contradiction[1] ?? "";
-    const conflicts = [...details.matchAll(/'([^']+)'-'([^']+)'/g)].map(
-      (match) => `  - Conflicts with ${String(match[2])}: ${String(match[1])}`,
+    const conflicts = [
+      ...details.matchAll(
+        /(?:'([^']+)'|"([^"\\]*(?:\\.[^"\\]*)*)")-'([^']+)'/g,
+      ),
+    ].map(
+      (match) =>
+        `  - Conflicts with ${String(match[3])}: ${String(match[1] ?? match[2])}`,
     );
     if (conflicts.length > 0) {
       return `Contradiction detected for requirement ${entityId}:\n${[...new Set(conflicts)].join("\n")}\n\nTo resolve:\n  1. Add a supersedes relationship from the new requirement to the conflicting one, OR\n  2. Deprecate the conflicting requirement before creating the new one.`;

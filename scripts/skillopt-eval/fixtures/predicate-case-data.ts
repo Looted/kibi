@@ -4,6 +4,7 @@ import type {
   PredicateSemanticClass,
   PrivateExpectation,
   PublicClaim,
+  PublicPredicateSchema,
 } from "./predicate-cases";
 
 // implements REQ-skillopt-predicate-first-requirements
@@ -14,15 +15,7 @@ import type {
  * claimText and projectLocalSchemas vary per case.
  */
 
-const PUBLIC_SCHEMA_VERSION = "predicate-corpus-1.0.0";
-
-const BUILTIN_PREDICATES = [
-  "requires_property",
-  "requires_predicate",
-  "constrains",
-  "specified_by",
-  "verified_by",
-] as const;
+const PUBLIC_SCHEMA_VERSION = "predicate-corpus-1.2.0";
 
 const FACT_KINDS = [
   "subject",
@@ -35,16 +28,19 @@ const FACT_KINDS = [
 
 function makeClaim(
   claimText: string,
-  projectLocalSchemas: readonly string[] = [],
+  projectLocalSchemas: readonly PublicPredicateSchema[] = [],
 ): PublicClaim {
   return {
     claimText,
     publicSchema: {
       kind: "predicate-modeling-task",
       schemaVersion: PUBLIC_SCHEMA_VERSION,
-      availableBuiltinPredicates: [...BUILTIN_PREDICATES],
       availableFactKinds: [...FACT_KINDS],
-      projectLocalSchemas: [...projectLocalSchemas],
+      projectLocalSchemas: projectLocalSchemas.map((schema) => ({
+        ...schema,
+        argumentNames: [...schema.argumentNames],
+        argumentTypes: [...schema.argumentTypes],
+      })),
     },
   };
 }
@@ -52,18 +48,32 @@ function makeClaim(
 // --- Public claims. Wording is distinct per case and never leaks the answer. ---
 
 const BUILTIN_RELATIONAL_CLAIM = makeClaim(
-  "Every release requirement in the publishable package set must be linked to at least one executable test before a release proposal is created.",
+  "Checkout requires payment authorization before order submission, and customer data must be retained for 7 years.",
 );
 const STRICT_SCALAR_CLAIM = makeClaim(
-  "A merge proposal for the traceability package is blocked when the cumulative test wall-clock time across the verified_by chain exceeds 300 seconds.",
+  "Customer data must be retained for 7 years.",
 );
 const PROJECT_LOCAL_SCHEMA_CLAIM = makeClaim(
-  "An adoption candidate is recordable only when its lineage binds the ordered trajectory hashes to the authorized corpus, baseline, and evaluator roots.",
-  ["adoption_lineage"],
+  "A deployment candidate is releasable only when its lineage binds the artifact digest, test evidence, and source revision.",
+  [
+    {
+      id: "FACT-SCHEMA-DELIVERY-LINEAGE",
+      predicateName: "delivery_lineage",
+      argumentNames: ["artifact_digest", "test_evidence", "source_revision"],
+      argumentTypes: ["hash", "evidence_set", "revision"],
+    },
+  ],
 );
 const DENY_POLARITY_CLAIM = makeClaim(
   "A held-out evaluation matrix must never be retried with a candidate whose bytes differ from the frozen SkillOpt candidate hash bound to the terminal matrix id.",
-  ["held_out_matrix"],
+  [
+    {
+      id: "FACT-SCHEMA-HELD-OUT-MATRIX",
+      predicateName: "held_out_matrix",
+      argumentNames: ["terminal_matrix_id", "frozen_skillopt_candidate_hash"],
+      argumentTypes: ["identifier", "hash"],
+    },
+  ],
 );
 const AMBIGUOUS_CLAIM = makeClaim(
   "Release readiness improves when the knowledge base looks complete enough and the team is comfortable with the current state of the graph.",
@@ -80,14 +90,22 @@ const KEYWORD_FALSE_POSITIVE_CLAIM = makeClaim(
 const BUILTIN_RELATIONAL_EXPECTATION: PrivateExpectation = {
   semanticClass: "builtin_relational",
   expectedLane: "predicate",
-  expectedPredicateName: "verified_by",
-  expectedPredicateArgs: ["requirement", "executable_test"],
+  expectedPredicateName: "dependency_rule",
+  expectedPredicateArgs: [
+    "checkout",
+    "payment_authorization",
+    "order_submission",
+  ],
   expectedPolarity: "assert",
   expectedEdges: [
-    { relationship: "requires_predicate", target: "verified_by" },
+    { relationship: "requires_predicate", target: "dependency_rule" },
+    { relationship: "constrains", target: "customer_data" },
+    { relationship: "requires_property", target: "retention_years=7" },
   ],
+  expectedGroundFactKinds: ["predicate", "subject", "property_value"],
+  expectedLogicClaimCount: 2,
   privateRationale:
-    "Relational normative claim maps cleanly onto a builtin predicate with a requires_predicate edge.",
+    "Both atomic clauses must be grounded: dependency_rule for the prerequisite and strict subject/property facts for retention, with two distinct claim keys in the requirement manifest.",
 };
 
 const STRICT_SCALAR_EXPECTATION: PrivateExpectation = {
@@ -97,12 +115,14 @@ const STRICT_SCALAR_EXPECTATION: PrivateExpectation = {
   expectedPredicateArgs: null,
   expectedPolarity: null,
   expectedEdges: [
-    { relationship: "constrains", target: "merge_proposal.wall_clock_seconds" },
+    { relationship: "constrains", target: "customer_data" },
     {
       relationship: "requires_property",
-      target: "merge_proposal.max_wall_clock_seconds=300",
+      target: "retention_years=7",
     },
   ],
+  expectedGroundFactKinds: ["subject", "property_value"],
+  expectedLogicClaimCount: 1,
   privateRationale:
     "Scalar threshold claim is a counterexample to predicate modeling and must use strict subject/property_value facts instead.",
 };
@@ -110,19 +130,20 @@ const STRICT_SCALAR_EXPECTATION: PrivateExpectation = {
 const PROJECT_LOCAL_SCHEMA_EXPECTATION: PrivateExpectation = {
   semanticClass: "project_local_schema",
   expectedLane: "predicate",
-  expectedPredicateName: "adoption_lineage",
+  expectedPredicateName: "delivery_lineage",
   expectedPredicateArgs: [
-    "trajectory_hashes",
-    "corpus_root",
-    "baseline_root",
-    "evaluator_root",
+    "artifact_digest",
+    "test_evidence",
+    "source_revision",
   ],
   expectedPolarity: "assert",
   expectedEdges: [
-    { relationship: "requires_predicate", target: "adoption_lineage" },
+    { relationship: "requires_predicate", target: "delivery_lineage" },
   ],
+  expectedGroundFactKinds: ["predicate"],
+  expectedLogicClaimCount: 1,
   privateRationale:
-    "Project-local relational claim fits a declared project-local predicate schema and links via requires_predicate.",
+    "Project-local relational claim fits the declared delivery_lineage schema and links via requires_predicate.",
 };
 
 const DENY_POLARITY_EXPECTATION: PrivateExpectation = {
@@ -137,6 +158,8 @@ const DENY_POLARITY_EXPECTATION: PrivateExpectation = {
   expectedEdges: [
     { relationship: "requires_predicate", target: "held_out_matrix" },
   ],
+  expectedGroundFactKinds: ["predicate"],
+  expectedLogicClaimCount: 1,
   privateRationale:
     "Normative prohibition maps onto a project-local predicate with deny polarity rather than an observation.",
 };
@@ -150,6 +173,8 @@ const AMBIGUOUS_EXPECTATION: PrivateExpectation = {
   expectedEdges: [
     { relationship: "relates_to", target: "review:ambiguous-claim" },
   ],
+  expectedGroundFactKinds: ["observation"],
+  expectedLogicClaimCount: 0,
   privateRationale:
     "Vague, non-machine-checkable claim must remain a review observation rather than an invented predicate.",
 };
@@ -163,6 +188,8 @@ const ONTOLOGY_GAP_EXPECTATION: PrivateExpectation = {
   expectedEdges: [
     { relationship: "relates_to", target: "review:ontology-gap" },
   ],
+  expectedGroundFactKinds: ["observation"],
+  expectedLogicClaimCount: 0,
   privateRationale:
     "A suitable predicate does not yet exist in the supported schema, so the correct outcome is an ontology-gap observation, not an invented predicate.",
 };
@@ -176,6 +203,8 @@ const KEYWORD_FALSE_POSITIVE_EXPECTATION: PrivateExpectation = {
   expectedEdges: [
     { relationship: "relates_to", target: "review:keyword-false-positive" },
   ],
+  expectedGroundFactKinds: ["observation"],
+  expectedLogicClaimCount: 0,
   privateRationale:
     "The keyword 'predicate' appears in prose, but the claim is narrative and non-relational; correct outcome is an observation, not a predicate.",
 };

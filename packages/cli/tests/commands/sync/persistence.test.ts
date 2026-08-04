@@ -390,6 +390,58 @@ describe("persistEntities", () => {
     expect(assertCall).toContain("text_ref=");
   });
 
+  test("serializes requirement manifests and predicate claim provenance", async () => {
+    const requirement = makeEntity({
+      logic_claims: ["CLAIM-AAAAAAAAAAAAAAAA"],
+    });
+    const predicate = makeEntity({
+      id: "FACT-LOGICAL",
+      type: "fact",
+      status: "active",
+      fact_kind: "predicate",
+      predicate_namespace: "product",
+      predicate_name: "dependency_rule",
+      predicate_args: ["checkout", "payment", "submission"],
+      canonical_key: "dependency_rule(checkout,payment,submission)",
+      polarity: "assert",
+      claim_key: "CLAIM-AAAAAAAAAAAAAAAA",
+      claim_text: "Checkout requires payment before submission.",
+    });
+    const prolog = makeProlog({
+      "findall(Id, kb_entity(Id, _, _), ExistingIds)": {
+        success: true,
+        bindings: { ExistingIds: "[]" },
+      },
+    });
+
+    await persistEntities(
+      asPrologProcess(prolog),
+      [
+        { entity: requirement, relationships: [] },
+        { entity: predicate, relationships: [] },
+      ],
+      new Set(),
+    );
+
+    const requirementCall = prolog.callLog.find((goal) =>
+      goal.includes("REQ-001"),
+    );
+    const predicateCall = prolog.callLog.find((goal) =>
+      goal.includes("FACT-LOGICAL"),
+    );
+    expect(requirementCall).toContain(
+      "logic_claims=['CLAIM-AAAAAAAAAAAAAAAA']",
+    );
+    expect(predicateCall).toContain('predicate_name="dependency_rule"');
+    expect(predicateCall).toContain(
+      'predicate_args=["checkout","payment","submission"]',
+    );
+    expect(predicateCall).toContain('claim_key="CLAIM-AAAAAAAAAAAAAAAA"');
+    expect(predicateCall).toContain(
+      'claim_text="Checkout requires payment before submission."',
+    );
+  });
+
   test("handles entity with sourceFile", async () => {
     const entity = makeEntity();
     const sourceFile = "packages/opencode/src/brief-intent.ts";

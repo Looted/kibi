@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -28,6 +28,13 @@ type CapturedTool = {
 const CONTRACT_FIXTURES_ROOT = path.resolve(
   import.meta.dir,
   "../fixtures/contracts",
+);
+const REPOSITORY_ROOT = path.resolve(import.meta.dir, "../../../..");
+const BIOME_EXECUTABLE = path.join(
+  REPOSITORY_ROOT,
+  "node_modules",
+  ".bin",
+  "biome",
 );
 const SEED_PATH = path.join(CONTRACT_FIXTURES_ROOT, "seed", "seed.json");
 const TOOL_LIST_BASE_PATH = path.join(
@@ -123,6 +130,20 @@ function stableStringify(value: unknown): string {
   return JSON.stringify(stable(value), null, 2);
 }
 
+function formatUpdatedFixtures(filePaths: readonly string[]): void {
+  const result = Bun.spawnSync({
+    cmd: [BIOME_EXECUTABLE, "format", "--write", ...filePaths],
+    cwd: REPOSITORY_ROOT,
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  if (result.exitCode !== 0) {
+    throw new Error(
+      `Failed to format updated MCP contract fixtures: ${result.stderr.toString()}`,
+    );
+  }
+}
+
 function loadSeed(): ContractSeed {
   return readJson<ContractSeed>(SEED_PATH);
 }
@@ -215,6 +236,8 @@ function buildOperationFixture(
 
 describe("mcp contract fixtures", () => {
   test("regenerates frozen tools and operation contracts", () => {
+    const updateFixtures = process.env.UPDATE_MCP_CONTRACT_FIXTURES === "1";
+    const updatedFixturePaths: string[] = [];
     const seed = loadSeed();
     const registered = createRegisteredToolsSnapshot();
     const toolDefinitions = new Map(TOOLS.map((tool) => [tool.name, tool]));
@@ -229,12 +252,21 @@ describe("mcp contract fixtures", () => {
       withDiagnosticTelemetrySchema(TOOLS),
     );
 
-    expect(stableStringify(baseTools)).toBe(
-      stableStringify(readJson(TOOL_LIST_BASE_PATH)),
-    );
-    expect(stableStringify(diagnosticTools)).toBe(
-      stableStringify(readJson(TOOL_LIST_DIAGNOSTIC_PATH)),
-    );
+    if (updateFixtures) {
+      writeFileSync(TOOL_LIST_BASE_PATH, `${stableStringify(baseTools)}\n`);
+      writeFileSync(
+        TOOL_LIST_DIAGNOSTIC_PATH,
+        `${stableStringify(diagnosticTools)}\n`,
+      );
+      updatedFixturePaths.push(TOOL_LIST_BASE_PATH, TOOL_LIST_DIAGNOSTIC_PATH);
+    } else {
+      expect(stableStringify(baseTools)).toBe(
+        stableStringify(readJson(TOOL_LIST_BASE_PATH)),
+      );
+      expect(stableStringify(diagnosticTools)).toBe(
+        stableStringify(readJson(TOOL_LIST_DIAGNOSTIC_PATH)),
+      );
+    }
 
     const registeredByName = new Map(
       registered.map((tool) => [tool.name, tool]),
@@ -265,16 +297,38 @@ describe("mcp contract fixtures", () => {
         "failure.json",
       );
 
-      expect(
-        stableStringify(
-          buildOperationFixture(toolDefinition, operation, "success"),
-        ),
-      ).toBe(stableStringify(readJson(successFixturePath)));
-      expect(
-        stableStringify(
-          buildOperationFixture(toolDefinition, operation, "failure"),
-        ),
-      ).toBe(stableStringify(readJson(failureFixturePath)));
+      const successFixture = buildOperationFixture(
+        toolDefinition,
+        operation,
+        "success",
+      );
+      const failureFixture = buildOperationFixture(
+        toolDefinition,
+        operation,
+        "failure",
+      );
+      if (updateFixtures) {
+        writeFileSync(
+          successFixturePath,
+          `${stableStringify(successFixture)}\n`,
+        );
+        writeFileSync(
+          failureFixturePath,
+          `${stableStringify(failureFixture)}\n`,
+        );
+        updatedFixturePaths.push(successFixturePath, failureFixturePath);
+      } else {
+        expect(stableStringify(successFixture)).toBe(
+          stableStringify(readJson(successFixturePath)),
+        );
+        expect(stableStringify(failureFixture)).toBe(
+          stableStringify(readJson(failureFixturePath)),
+        );
+      }
+    }
+
+    if (updateFixtures) {
+      formatUpdatedFixtures(updatedFixturePaths);
     }
   });
 });

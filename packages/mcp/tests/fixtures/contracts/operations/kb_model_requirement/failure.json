@@ -26,6 +26,15 @@
           "minimum": 0,
           "type": "number"
         },
+        "existingLogicClaims": {
+          "description": "Existing requirement logic_claims values. The returned requirement update merges the new atomic claim key into this manifest instead of replacing prior claims.",
+          "items": {
+            "pattern": "^CLAIM-[A-F0-9]{16}$",
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
         "operator": {
           "description": "Optional extracted semantic claim operator. Example: 'eq'.",
           "enum": ["eq", "gte", "lte", "neq", "bool", "polarity"],

@@ -132,6 +132,27 @@ class DevelopmentGate(ContractModel):
     worst_family_mean: Annotated[JsonNumber, Field(alias="worstFamilyMean", ge=0, le=1)]
 
 
+class FailureCount(ContractModel):
+    category: NonEmptyString
+    count: Annotated[JsonInteger, Field(ge=1)]
+
+
+class FamilyEvidenceSummary(ContractModel):
+    family: NonEmptyString
+    attempts: Annotated[JsonInteger, Field(ge=1)]
+    hard_passes: Annotated[JsonInteger, Field(alias="hardPasses", ge=0)]
+    mean_soft: Annotated[JsonNumber, Field(alias="meanSoft", ge=0, le=1)]
+    failure_counts: Annotated[
+        tuple[FailureCount, ...], Field(alias="failureCounts", max_length=100)
+    ] = ()
+
+
+class PublicEvidenceSummary(ContractModel):
+    attempts: Annotated[JsonInteger, Field(ge=1)]
+    hard_passes: Annotated[JsonInteger, Field(alias="hardPasses", ge=0)]
+    families: Annotated[tuple[FamilyEvidenceSummary, ...], Field(min_length=1)]
+
+
 class OptimizerRequest(ContractModel):
     schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
     artifact_type: Annotated[Literal["skillopt-optimizer-request"], Field(alias="artifactType")]
@@ -142,6 +163,9 @@ class OptimizerRequest(ContractModel):
     current_body: Annotated[str, Field(alias="currentBody", min_length=1, max_length=100_000)]
     train_trajectories: Annotated[
         tuple[TrainTrajectory, ...], Field(alias="trainTrajectories", min_length=1, max_length=8)
+    ]
+    public_evidence_summary: Annotated[
+        PublicEvidenceSummary, Field(alias="publicEvidenceSummary")
     ]
     previous_development: Annotated[DevelopmentGate, Field(alias="previousDevelopment")]
     source_lock_hash: Annotated[Sha256, Field(alias="sourceLockHash")]

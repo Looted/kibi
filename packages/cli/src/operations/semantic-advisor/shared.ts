@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 
+import { semanticClaimKey } from "./clauses.js";
 import type {
   SemanticModelingSuggestion,
   SemanticPredicateClaim,
@@ -110,6 +111,7 @@ export function strictSuggestion(
   rationale: string,
   confidence = 0.9,
 ): SemanticModelingSuggestion {
+  const claimText = statementOf(payload);
   const reqId =
     stringValue(payload.id) || `REQ-SEMANTIC-${shortHash(claim.subject_key)}`;
   const subjectId = `FACT-SUBJECT-${shortHash(claim.subject_key)}`;
@@ -133,6 +135,8 @@ export function strictSuggestion(
   };
   return {
     kind: "strict_property",
+    claim_key: semanticClaimKey(claimText),
+    claim_text: claimText,
     confidence,
     evidence,
     rationale,
@@ -202,6 +206,7 @@ export function predicateSuggestion(
   rationale: string,
   polarity: "assert" | "deny" = "assert",
 ): SemanticModelingSuggestion {
+  const claimText = statementOf(payload);
   const canonicalKey = `${name}(${args.join(",")})`;
   const predicate: SemanticPredicateClaim = {
     predicate_name: name,
@@ -213,6 +218,8 @@ export function predicateSuggestion(
   const reqId = stringValue(payload.id);
   return {
     kind: "predicate",
+    claim_key: semanticClaimKey(claimText),
+    claim_text: claimText,
     confidence: 0.84,
     evidence,
     rationale,

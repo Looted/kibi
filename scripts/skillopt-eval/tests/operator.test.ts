@@ -213,16 +213,31 @@ describe("SkillOpt operator entrypoints", () => {
 
     const exitCode = await runOperatorCommand("optimize", dependencies, {
       maxSteps: 4,
+      seedCandidate: "candidate.md",
     });
 
     expect(exitCode).toBe(0);
-    expect(cliCalls[0]?.slice(-2)).toEqual(["--max-steps", "4"]);
+    expect(cliCalls[0]).toContain("--max-steps");
+    expect(cliCalls[0]).toContain("4");
+    expect(cliCalls[0]?.slice(-2)).toEqual([
+      "--seed-candidate",
+      join(root, "candidate.md"),
+    ]);
   });
 
   test("parseOperatorArgs accepts optimize --max-steps", () => {
-    expect(parseOperatorArgs(["optimize", "--max-steps", "3"])).toEqual({
+    expect(
+      parseOperatorArgs([
+        "optimize",
+        "--max-steps",
+        "3",
+        "--seed-candidate",
+        ".git/skillopt-candidates/run/candidate_skill.md",
+      ]),
+    ).toEqual({
       command: "optimize",
       maxSteps: 3,
+      seedCandidate: ".git/skillopt-candidates/run/candidate_skill.md",
     });
     expect(parseOperatorArgs(["smoke"])).toEqual({
       command: "smoke",

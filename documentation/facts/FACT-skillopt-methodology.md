@@ -3,7 +3,7 @@ id: FACT-skillopt-methodology
 title: SkillOpt behavioral efficacy methodology
 status: active
 created_at: 2026-07-21T16:00:00Z
-updated_at: 2026-08-03T00:00:00Z
+updated_at: 2026-08-04T00:00:00Z
 source: documentation/facts/FACT-skillopt-methodology.md
 tags:
   - skillopt
@@ -41,6 +41,10 @@ The candidate must beat unchanged by 8 points and the one-shot comparator by 5 p
 Before training, the unchanged baseline and frozen one-shot variant are scored on all four public development cases. The stronger comparator by mean score, then hard passes, then worst-family mean becomes the trainer's initial skill. Each optimizer proposal is scored on the same development set and the best public candidate is retained by soft score. The frozen candidate may enter held-out evaluation only when its development mean is strictly greater than the stronger comparator while its hard-pass count and worst-family mean do not regress. A miss produces `development_gate_ineligible`, records held-out as `not-run`, and launches no held-out cells.
 
 Trainer reflection receives the full public behavioral evidence needed to learn: status, partial score, all failure categories, sanitized model-originated Kibi tool sequence, and evaluator-owned final-state summary. It must translate that evidence into concise reusable workflow guidance rather than append task IDs, raw JSON, scores, or failure logs to the skill.
+
+Every round also receives a compact cumulative summary of all completed public rollouts: attempts, hard passes, mean soft score, and failure-category counts per family. This retains recurring lessons without repeatedly sending every prior full trajectory. Candidate text is rejected if it embeds Kibi repository release policy, evaluator case identifiers, or public trajectory payloads. The reusable skill must stay package-manager and branch neutral while making clause-complete prose-to-ground-predicate/property modeling explicit. The public predicate training slice includes one compound relational-plus-scalar claim and scores its complete keyed fact manifest, so a candidate cannot improve by teaching only lane selection.
+
+A paid run may start from an explicitly supplied preserved candidate. That seed is the trainer's initial skill, while the fresh canonical baseline and one-shot remain independent comparators. The new run records the seed body hash and byte count before training.
 
 ## Machine-readable Codex gates
 

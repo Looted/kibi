@@ -16,6 +16,20 @@ const REQUIRED_GUIDANCE = [
   "kb_query",
   "kb_upsert",
   "kb_check",
+  "kb_semantic_advisor",
+  "kb_suggest_predicates",
+  "kb_model_requirement",
+  "fact_kind: predicate",
+  "predicate_name",
+  "predicate_args",
+  "canonical_key",
+  "polarity",
+  "predicate_schema",
+  "requires_predicate",
+  "logic_claims",
+  "claim_key",
+  "claim_text",
+  "logic-coverage",
 ].join("\n");
 const roots: string[] = [];
 
@@ -55,6 +69,24 @@ describe("Codex optimizer output", () => {
         }),
       ),
     ).toThrow("candidate_direct_kb_guidance");
+  });
+
+  test("rejects repository release policy and optimizer-corpus leakage", () => {
+    for (const leaked of [
+      "Run bun run version-packages before release.",
+      "Merge the `develop` branch into `master`.",
+      "Public training trajectories should be appended here.",
+      "Use kibi-usage-fact-predicate-modeling-train-1 as the example.",
+      "Apply this to the publishable package set.",
+    ]) {
+      expect(() =>
+        parseCodexOptimizerBody(
+          JSON.stringify({
+            body: `# Kibi Usage\n\n${REQUIRED_GUIDANCE}\n\n${leaked}\n\n${"Portable guidance. ".repeat(60)}`,
+          }),
+        ),
+      ).toThrow("optimizer_output_repository_policy_leak");
+    }
   });
 
   test("persists an accepted body outside the ephemeral optimizer workspace", async () => {

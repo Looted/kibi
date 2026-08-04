@@ -269,6 +269,9 @@ async function runPaidOptimization(
         sourceWorktree: process.cwd(),
         skills: [options.skill],
         maxSteps: options.maxSteps,
+        ...(options.seedCandidate === undefined
+          ? {}
+          : { seedCandidatePath: options.seedCandidate }),
         cellRuntime: {
           ...options.cellRuntime,
           codexExecutable: runtimeLease.codexExecutable,

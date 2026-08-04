@@ -44,6 +44,14 @@ Use the enum values shown in the MCP `inputSchema`. For property facts, common v
 
 Call `kb_suggest_predicates` before hand-writing ontology predicates.
 
+## Incomplete logical claim provenance
+
+`claim_key` and `claim_text` are an auditable pair. If either is present on a fact, supply both. Use the stable key returned by `kb_semantic_advisor` for that exact atomic clause; do not invent or reuse a key for different prose.
+
+If `kb_check` reports `logic-coverage`, compare the requirement `logic_claims` manifest with its linked `property_value` and `predicate` facts. Ground every missing key, add any omitted linked key to the manifest, and keep ambiguity or ontology gaps explicitly unresolved rather than satisfying the check with an observation.
+
+If validation reports `Logical Claim Provenance Mismatch`, the fact's `claim_key` was copied, invented, or derived from different text. Re-run `kb_semantic_advisor` for the exact atomic clause and preserve its returned `claim_key` and canonicalized `claim_text` together.
+
 ## Relationship source mismatch
 
 Same-call relationship rows must start from the entity being upserted. To link `REQ-001 -> TEST-001`, create `TEST-001` first, then upsert `REQ-001` with `verified_by`.

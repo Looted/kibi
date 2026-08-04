@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { main } from "../cli";
@@ -417,6 +417,79 @@ describe("real SkillOpt workflow", () => {
         heldOutEligibility: "not-run",
         heldOutCellCount: 0,
       });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test("Given a preserved candidate seed Then training starts from its exact body", async () => {
+    const root = await mkdtemp(join(tmpdir(), "skillopt-real-seed-"));
+    const seedPath = join(root, "preserved-candidate.md");
+    const seedBody =
+      "Use Kibi through MCP with preserved predicate guidance.\n";
+    await writeFile(seedPath, seedBody, "utf8");
+    try {
+      const result = await runRealOptimization(
+        {
+          runId: RUN_ID,
+          artifactRoot: join(root, "artifacts"),
+          sourceWorktree: process.cwd(),
+          skills: ["kibi-usage"],
+          maxSteps: 1,
+          seedCandidatePath: seedPath,
+        },
+        {
+          sourceClean: async () => true,
+          oneShot: async (input) =>
+            freezeCandidateVariant({
+              skill: input.skill,
+              variant: "one-shot",
+              body: "Use Kibi through MCP.\n",
+              frontmatterHash: input.baseline.frontmatterHash,
+              resourcesHash: input.baseline.resourcesHash,
+              provenance: "codex-one-shot",
+            }),
+          evaluateDevelopment: async ({ candidate }) =>
+            candidate.variant === "baseline"
+              ? { mean: 0.5, hardPasses: 2, worstFamilyMean: 0.4 }
+              : { mean: 0.6, hardPasses: 3, worstFamilyMean: 0.5 },
+          train: async (input) => {
+            expect(input.initialVariant?.variant).toBe("skillopt");
+            expect(input.initialVariant?.body).toBe(seedBody);
+            return {
+              status: "frozen",
+              candidateBody: `${seedBody}Refined.\n`,
+              trainerCheckpointHash: "a".repeat(64),
+              trajectoryHashes: ["b".repeat(64)],
+              development: {
+                mean: 0.7,
+                hardPasses: 2,
+                worstFamilyMean: 0.6,
+              },
+            };
+          },
+        },
+      );
+
+      expect(result.heldOutEligibility).toBe("not-run");
+      const receipt = JSON.parse(
+        await readFile(
+          join(
+            root,
+            "artifacts",
+            "skills",
+            "kibi-usage",
+            "seed-candidate.json",
+          ),
+          "utf8",
+        ),
+      ) as { artifactType?: string; bodyBytes?: number };
+      expect(receipt).toEqual(
+        expect.objectContaining({
+          artifactType: "skillopt-resume-seed",
+          bodyBytes: Buffer.byteLength(seedBody, "utf8"),
+        }),
+      );
     } finally {
       await rm(root, { recursive: true, force: true });
     }

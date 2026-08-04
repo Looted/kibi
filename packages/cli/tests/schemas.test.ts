@@ -69,6 +69,25 @@ describe("Entity Schema", () => {
     expect(validate({ ...base, type: "symbol", status: "removed" })).toBe(true);
   });
 
+  test("accepts a requirement logical-claim manifest", () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    const validate = ajv.compile(entitySchema as AnySchema);
+
+    expect(
+      validate({
+        id: "REQ-LOGIC-COVERAGE",
+        title: "Requirement with complete logical claims",
+        status: "open",
+        created_at: "2026-08-04T00:00:00Z",
+        updated_at: "2026-08-04T00:00:00Z",
+        source: "docs/requirements/logic.md",
+        type: "req",
+        logic_claims: ["CLAIM-0123456789ABCDEF"],
+      }),
+    ).toBe(true);
+  });
+
   test("rejects entity missing title", async () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
@@ -315,9 +334,37 @@ describe("Typed Fact Schema", () => {
       argument_types: ["role", "action", "resource"],
       polarity: "assert",
       canonical_key: "auth.can.role:user.action:delete.resource:post.assert",
+      claim_key: "CLAIM-0123456789ABCDEF",
+      claim_text: "A user may delete a post.",
     };
 
     expect(validate(predicateFact)).toBe(true);
+  });
+
+  test("rejects incomplete logical-claim provenance", () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    const validate = ajv.compile(entitySchema as AnySchema);
+    const propertyFact = {
+      id: "FACT-SESSION-TIMEOUT-30",
+      title: "Session timeout is 30 minutes",
+      status: "active",
+      created_at: "2026-08-04T00:00:00Z",
+      updated_at: "2026-08-04T00:00:00Z",
+      source: "facts/FACT-SESSION-TIMEOUT-30.md",
+      type: "fact",
+      fact_kind: "property_value",
+      subject_key: "user.session",
+      property_key: "timeout_minutes",
+      operator: "eq",
+      value_type: "int",
+      value_int: 30,
+      polarity: "require",
+      canonical_key: "user.session.timeout_minutes.eq.30",
+      claim_key: "CLAIM-0123456789ABCDEF",
+    };
+
+    expect(validate(propertyFact)).toBe(false);
   });
 
   test("rejects predicate fact missing required ontology fields", async () => {

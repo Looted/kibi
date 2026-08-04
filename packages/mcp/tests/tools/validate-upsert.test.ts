@@ -7,6 +7,7 @@ import {
   test,
 } from "bun:test";
 import fs from "node:fs/promises";
+import { semanticClaimKey } from "kibi-cli/operations/semantic-advisor/analyze-prose";
 import type { PrologProcess } from "kibi-cli/prolog";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
 import { handleKbValidateUpsert } from "../../src/tools/validate-upsert.js";
@@ -65,6 +66,9 @@ describe("kb_validate_upsert", () => {
         status: "open",
         source: "docs/requirements/sessions.md",
         text_ref: "Session timeout must equal 30 minutes.",
+        logic_claims: [
+          semanticClaimKey("Session timeout must equal 30 minutes."),
+        ],
       },
       relationships: [
         { type: "constrains", from: "REQ-MODELED", to: "FACT-SUBJECT" },

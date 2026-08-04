@@ -35,6 +35,15 @@ type VerificationPerspective = "internal" | "consumer";
 const factConditionals = JSON.parse(`[
   {
     "if": {
+      "anyOf": [
+        { "required": ["claim_key"] },
+        { "required": ["claim_text"] }
+      ]
+    },
+    "then": { "required": ["claim_key", "claim_text"] }
+  },
+  {
+    "if": {
       "properties": {
         "type": { "const": "fact" },
         "fact_kind": { "const": "predicate_schema" }
@@ -121,6 +130,12 @@ const entitySchema: Record<string, unknown> = {
     severity: { type: "string" },
     links: { type: "array", items: { type: "string" } },
     text_ref: { type: "string" },
+    logic_claims: {
+      type: "array",
+      minItems: 1,
+      uniqueItems: true,
+      items: { type: "string", pattern: "^CLAIM-[A-F0-9]{16}$" },
+    },
     sourceFile: { type: "string" },
     granularity_reason: {
       type: "string",
@@ -186,6 +201,8 @@ const entitySchema: Record<string, unknown> = {
     valid_from: { type: "string" },
     valid_to: { type: "string" },
     canonical_key: { type: "string" },
+    claim_key: { type: "string", pattern: "^CLAIM-[A-F0-9]{16}$" },
+    claim_text: { type: "string" },
     predicate_name: { type: "string" },
     predicate_namespace: { type: "string" },
     predicate_arity: { type: "integer", minimum: 1 },
@@ -206,6 +223,14 @@ const entitySchema: Record<string, unknown> = {
     "type",
   ],
   allOf: [
+    {
+      if: {
+        properties: { type: { const: "req" } },
+      },
+      else: {
+        not: { required: ["logic_claims"] },
+      },
+    },
     // Forbid fact-only fields on non-fact entities
     {
       if: {
@@ -232,6 +257,8 @@ const entitySchema: Record<string, unknown> = {
             { required: ["valid_from"] },
             { required: ["valid_to"] },
             { required: ["canonical_key"] },
+            { required: ["claim_key"] },
+            { required: ["claim_text"] },
             { required: ["predicate_name"] },
             { required: ["predicate_namespace"] },
             { required: ["predicate_arity"] },

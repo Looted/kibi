@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { parsePrivateEvaluatorManifest } from "../fixtures/private";
 import { decodeFinalStatePredicateSnapshot } from "../runtime/final-state";
 import { scoreCell } from "../scoring/cell";
 import {
@@ -9,6 +10,98 @@ import {
 } from "./fixtures/evaluator-authority-fixtures";
 
 describe("evaluator authority", () => {
+  test("Given compound normative prose When only one clause is grounded Then logical coverage fails behaviorally", () => {
+    const taskId = "kibi-usage-fact-predicate-modeling-train-1";
+    const manifest = parsePrivateEvaluatorManifest(
+      JSON.stringify({
+        ...evaluatorManifest("predicate"),
+        taskId,
+        predicateExpectation: {
+          semanticClass: "builtin_relational",
+          expectedLane: "predicate",
+          expectedPredicateName: "dependency_rule",
+          expectedPredicateArgs: [
+            "checkout",
+            "payment_authorization",
+            "order_submission",
+          ],
+          expectedPolarity: "assert",
+          expectedEdges: [
+            { relationship: "requires_predicate", target: "dependency_rule" },
+            { relationship: "constrains", target: "customer_data" },
+            {
+              relationship: "requires_property",
+              target: "retention_years=7",
+            },
+          ],
+          expectedGroundFactKinds: ["predicate", "subject", "property_value"],
+          expectedLogicClaimCount: 2,
+          privateRationale: "Both atomic clauses must be grounded.",
+        },
+      }),
+    );
+    const complete = predicateSnapshot({
+      binding: { caseId: taskId, roots: evaluatorRoots, sequence: 1 },
+      facts: [
+        {
+          id: "FACT-dependency",
+          factKind: "predicate",
+          predicateName: "dependency_rule",
+          predicateArgs: [
+            "checkout",
+            "payment_authorization",
+            "order_submission",
+          ],
+          polarity: "assert",
+          claimKey: "CLAIM-AAAAAAAAAAAAAAAA",
+          claimText:
+            "Checkout requires payment authorization before order submission.",
+        },
+        { id: "FACT-customer-data", factKind: "subject" },
+        {
+          id: "FACT-retention",
+          factKind: "property_value",
+          claimKey: "CLAIM-BBBBBBBBBBBBBBBB",
+          claimText: "Customer data must be retained for 7 years.",
+        },
+      ],
+      relationships: [
+        { relationship: "requires_predicate", target: "dependency_rule" },
+        { relationship: "constrains", target: "customer_data" },
+        { relationship: "requires_property", target: "retention_years=7" },
+      ],
+      logicClaims: ["CLAIM-AAAAAAAAAAAAAAAA", "CLAIM-BBBBBBBBBBBBBBBB"],
+    });
+
+    expect(scoreCell(manifest, evaluatorEvidence(complete)).outcome).toBe(
+      "pass",
+    );
+
+    const incomplete = scoreCell(
+      manifest,
+      evaluatorEvidence(
+        predicateSnapshot({
+          ...complete,
+          facts: complete.facts.filter(
+            (fact) => fact.factKind !== "property_value",
+          ),
+          relationships: complete.relationships.filter(
+            (edge) => edge.relationship !== "requires_property",
+          ),
+          logicClaims: ["CLAIM-AAAAAAAAAAAAAAAA"],
+        }),
+      ),
+    );
+    expect(incomplete.terminalCategory).toBe("behavioral_failure");
+    expect(incomplete.criticalFailures).toEqual(
+      expect.arrayContaining([
+        "logical-fact-lanes",
+        "logic-claim-manifest",
+        "logic-claim-grounding",
+      ]),
+    );
+  });
+
   test("Given a read-only predicate snapshot When the required deny predicate is present Then it passes", () => {
     const receipt = scoreCell(
       evaluatorManifest("predicate"),
@@ -60,6 +153,7 @@ describe("evaluator authority", () => {
           relationships: [
             { relationship: "relates_to", target: "review:ontology-gap" },
           ],
+          logicClaims: [],
         }),
       ),
     );
@@ -209,6 +303,7 @@ describe("evaluator authority", () => {
           {
             id: "REQ-held-out-matrix",
             type: "req",
+            logic_claims: ["CLAIM-AAAAAAAAAAAAAAAA"],
             requires_predicate: "kb:entity/FACT-held-out-matrix",
           },
           {
@@ -223,6 +318,8 @@ describe("evaluator authority", () => {
               "frozen_skillopt_candidate_hash",
             ],
             polarity: "deny",
+            claim_key: "CLAIM-AAAAAAAAAAAAAAAA",
+            claim_text: "The matrix must deny changed candidate bytes.",
           },
         ],
         count: 2,
@@ -272,11 +369,14 @@ describe("evaluator authority", () => {
             "frozen_skillopt_candidate_hash",
           ],
           polarity: "deny",
+          claimKey: "CLAIM-AAAAAAAAAAAAAAAA",
+          claimText: "The matrix must deny changed candidate bytes.",
         },
       ],
       relationships: [
         { relationship: "requires_predicate", target: "held_out_matrix" },
       ],
+      logicClaims: ["CLAIM-AAAAAAAAAAAAAAAA"],
     });
   });
 

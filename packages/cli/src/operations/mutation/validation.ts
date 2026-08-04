@@ -6,6 +6,7 @@ import {
   SYMBOL_ROLES,
   isAllowedGranularityReason,
 } from "../../public/symbol-granularity.js";
+import { semanticClaimKey } from "../semantic-advisor/clauses.js";
 import {
   factKindShapeHints,
   validateFactModelingShape,
@@ -113,6 +114,18 @@ export function validateUpsertInput(
     );
   }
   validateFactModelingShape(entity);
+  if (
+    entity.type === "fact" &&
+    typeof entity.claim_key === "string" &&
+    typeof entity.claim_text === "string"
+  ) {
+    const expectedClaimKey = semanticClaimKey(entity.claim_text);
+    if (entity.claim_key !== expectedClaimKey) {
+      throw new Error(
+        `Entity validation failed: claim_key must equal the stable key derived from claim_text (expected '${expectedClaimKey}')`,
+      );
+    }
+  }
   const relationships = input.relationships ?? [];
   relationships.forEach((relationship, index) => {
     if (!validateRelationship(relationship)) {

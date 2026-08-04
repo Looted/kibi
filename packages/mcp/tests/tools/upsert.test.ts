@@ -917,6 +917,36 @@ export function greet() {
     expect(invalidateCache).not.toHaveBeenCalled();
   });
 
+  test("preserves double-quoted predicate contradiction reasons", async () => {
+    const { prolog } = createMockProlog(async (goal) => {
+      if (goal === "once(kb_entity('REQ-PRED-CONTRA', _, _))") {
+        return { success: false };
+      }
+      if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,")) {
+        return {
+          success: false,
+          error:
+            "kb_contradiction([\"Predicate conflict on auth:permission_rule(user,publish,article)\"-'REQ-PRED-OLD'])",
+        };
+      }
+      throw new Error(`Unexpected goal: ${goal}`);
+    });
+
+    await expect(
+      handleKbUpsert(prolog, {
+        type: "req",
+        id: "REQ-PRED-CONTRA",
+        properties: {
+          title: "Predicate contradiction",
+          status: "open",
+          source: "test://upsert",
+        },
+      }),
+    ).rejects.toThrow(
+      /Conflicts with REQ-PRED-OLD: Predicate conflict on auth:permission_rule/,
+    );
+  });
+
   test("falls back to a generic contradiction message when conflict details cannot be parsed", async () => {
     const { prolog } = createMockProlog(async (goal) => {
       if (goal === "once(kb_entity('REQ-CONTRA-FALLBACK', _, _))") {

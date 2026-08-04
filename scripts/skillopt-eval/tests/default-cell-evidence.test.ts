@@ -31,6 +31,7 @@ function finalStateReceipt(): string {
         {
           id: "REQ-held-out-matrix",
           type: "req",
+          logic_claims: ["CLAIM-AAAAAAAAAAAAAAAA"],
           requires_predicate: "kb:entity/FACT-held-out-matrix",
         },
         {
@@ -43,6 +44,8 @@ function finalStateReceipt(): string {
             "frozen_skillopt_candidate_hash",
           ],
           polarity: "deny",
+          claim_key: "CLAIM-AAAAAAAAAAAAAAAA",
+          claim_text: "The matrix must deny changed candidate bytes.",
         },
       ],
       count: 2,

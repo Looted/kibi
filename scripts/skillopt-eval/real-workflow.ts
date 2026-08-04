@@ -1,6 +1,6 @@
 import type { ArtifactPath } from "./artifact-path";
 
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import {
   loadBundledSkillFrom,
@@ -87,6 +87,26 @@ function compareDevelopment(
     if (delta !== 0) return delta;
   }
   return 0;
+}
+
+async function loadSeedCandidate(
+  path: string,
+  baseline: ReturnType<typeof createBaselineVariant>,
+) {
+  const body = await readFile(resolve(path), "utf8");
+  const candidate = freezeCandidateVariant({
+    skill: baseline.skill,
+    variant: "skillopt",
+    body,
+    frontmatterHash: baseline.frontmatterHash,
+    resourcesHash: baseline.resourcesHash,
+    provenance: "skillopt",
+    sourceRequestHash: canonicalHash({
+      artifactType: "skillopt-resume-seed",
+      bodyHash: canonicalHash(body),
+    }),
+  });
+  return candidate;
 }
 
 // implements REQ-skillopt-codex-optimization
@@ -213,13 +233,32 @@ export async function runRealOptimization(
           ? {}
           : { runtime: options.cellRuntime }),
       });
+      const seedCandidate =
+        options.seedCandidatePath === undefined
+          ? undefined
+          : await loadSeedCandidate(options.seedCandidatePath, baseline);
+      if (seedCandidate !== undefined) {
+        await mkdir(training.artifactRoot, { recursive: true, mode: 0o700 });
+        await writeFile(
+          join(training.artifactRoot, "seed-candidate.json"),
+          `${JSON.stringify({
+            schemaVersion: "1.0.0",
+            artifactType: "skillopt-resume-seed",
+            bodyHash: seedCandidate.bodyHash,
+            bodyBytes: Buffer.byteLength(seedCandidate.body, "utf8"),
+          })}\n`,
+          { encoding: "utf8", mode: 0o600 },
+        );
+      }
       const initialVariant =
-        compareDevelopment(
-          developmentRank(baselineDevelopment),
-          developmentRank(oneShotDevelopment),
-        ) >= 0
-          ? baseline
-          : oneShot;
+        seedCandidate === undefined
+          ? compareDevelopment(
+              developmentRank(baselineDevelopment),
+              developmentRank(oneShotDevelopment),
+            ) >= 0
+            ? baseline
+            : oneShot
+          : seedCandidate;
       const trained = await (dependencies.train ?? defaultTrain)({
         ...training,
         initialVariant,

@@ -209,7 +209,7 @@ function createSessionModuleMock(
     ensureProlog: async () => {
       throw new Error("ensureProlog should not be called in this test");
     },
-    ensureBranchKbExists: (): void => {},
+    ensureBranchKbExists: (): boolean => false,
     inFlightRequests: trackedRequests,
     initiateGracefulShutdown: async (): Promise<void> => {},
     isShuttingDown: false,

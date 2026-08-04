@@ -51,6 +51,7 @@ class OptimizerAdapterMixin:
         previous_development: DevelopmentInput,
         step: int,
         max_steps: int,
+        public_evidence_summary: Mapping[str, JsonValue] | None = None,
     ) -> OptimizerRequest:
         return build_optimizer_request(
             self._optimizer_context,
@@ -60,6 +61,23 @@ class OptimizerAdapterMixin:
                 previous_development=previous_development,
                 step=step,
                 max_steps=max_steps,
+                public_evidence_summary=(
+                    public_evidence_summary
+                    if public_evidence_summary is not None
+                    else {
+                        "attempts": len(trajectories),
+                        "hardPasses": 0,
+                        "families": [
+                            {
+                                "family": "unclassified",
+                                "attempts": len(trajectories),
+                                "hardPasses": 0,
+                                "meanSoft": 0,
+                                "failureCounts": [],
+                            }
+                        ],
+                    }
+                ),
             ),
         )
 
@@ -71,6 +89,7 @@ class OptimizerAdapterMixin:
         previous_development: DevelopmentInput,
         step: int,
         max_steps: int,
+        public_evidence_summary: Mapping[str, JsonValue] | None = None,
     ) -> OptimizerResult:
         request = self.build_optimizer_request(
             current_body=current_body,
@@ -78,6 +97,7 @@ class OptimizerAdapterMixin:
             previous_development=previous_development,
             step=step,
             max_steps=max_steps,
+            public_evidence_summary=public_evidence_summary,
         )
         output_root = self.run_root / "optimizer" / f"step-{step:04d}"
         bridge = FileBridge(output_root / "requests", output_root / "results")

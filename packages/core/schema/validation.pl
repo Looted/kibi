@@ -59,17 +59,24 @@ validate_entity_shape(fact, Props) :-
     !,
     valid_optional_fact_enums(Props),
     valid_polarity_in_props(Props),
+    valid_claim_provenance(Props),
     ( memberchk(fact_kind=RawKind, Props) -> validate_fact_shape(RawKind, Props) ; true ).
 validate_entity_shape(test, Props) :-
     !,
     valid_optional_test_enums(Props),
     forall(member(Key=_, Props), \+ is_fact_only_field(Key)).
+validate_entity_shape(req, Props) :-
+    !,
+    forall(member(Key=_, Props), \+ is_fact_only_field(Key)),
+    forall(member(Key=_, Props), \+ is_test_only_field(Key)).
 validate_entity_shape(Type, Props) :-
     Type \= fact,
     Type \= test,
+    Type \= req,
     % Non-fact/non-test entities cannot have type-specific fields
     forall(member(Key=_, Props), \+ is_fact_only_field(Key)),
-    forall(member(Key=_, Props), \+ is_test_only_field(Key)).
+    forall(member(Key=_, Props), \+ is_test_only_field(Key)),
+    forall(member(Key=_, Props), Key \= logic_claims).
 
 % is_fact_only_field(+Key) - true if Key is a fact-specific field
 is_fact_only_field(fact_kind).
@@ -88,6 +95,8 @@ is_fact_only_field(closed_world).
 is_fact_only_field(valid_from).
 is_fact_only_field(valid_to).
 is_fact_only_field(canonical_key).
+is_fact_only_field(claim_key).
+is_fact_only_field(claim_text).
 is_fact_only_field(predicate_name).
 is_fact_only_field(predicate_namespace).
 is_fact_only_field(predicate_arity).
@@ -171,6 +180,18 @@ valid_strict_polarity_in_props(Props) :-
 
 valid_predicate_polarity_in_props(Props) :-
     ( memberchk(polarity=P, Props) -> valid_predicate_polarity(P) ; true ).
+
+% claim_key and claim_text form one auditable provenance pair.
+valid_claim_provenance(Props) :-
+    (   memberchk(claim_key=Key, Props)
+    ->  memberchk(claim_text=Text, Props),
+        nonempty_claim_value(Key),
+        nonempty_claim_value(Text)
+    ;   \+ memberchk(claim_text=_, Props)
+    ).
+
+nonempty_claim_value(Value) :- string(Value), Value \= "".
+nonempty_claim_value(Value) :- atom(Value), Value \= ''.
 
 % valid_optional_fact_enums(+Props)
 % Validates enum-typed fact fields whenever they are present

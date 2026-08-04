@@ -26,13 +26,21 @@ An optional privileged verifier/installer lane (`kibi-skillopt-trust-v1`) exists
 | Script | Command | Notes |
 | --- | --- | --- |
 | `skillopt:smoke` | `bun run scripts/skillopt-eval/operator.ts smoke` | Verifies the SkillOpt pin and Codex login, then runs the paid two-model capability canary. |
-| `skillopt:optimize` | `bun run scripts/skillopt-eval/operator.ts optimize` | Verifies pin and login, materializes fixtures, allocates artifact roots, then runs paid `kibi-usage` optimize (preflight, smoke, Codex rewrite, public development gate, held-out gates). Writes non-mutating review evidence only. Defaults to `--max-steps 1`; pass `--max-steps 1..4` for that many complete proposal rounds. |
+| `skillopt:optimize` | `bun run scripts/skillopt-eval/operator.ts optimize` | Verifies pin and login, materializes fixtures, allocates artifact roots, then runs paid `kibi-usage` optimize (preflight, smoke, Codex rewrite, public development gate, held-out gates). Writes non-mutating review evidence only. Defaults to `--max-steps 1`; pass `--max-steps 1..4` for complete proposal rounds and `--seed-candidate PATH` to continue from preserved work. |
 
 ```bash
 bun run skillopt:smoke
 bun run skillopt:optimize
 bun run scripts/skillopt-eval/operator.ts optimize --max-steps 4
 ```
+
+To reuse a preserved candidate instead of starting the trainer from a fresh comparator:
+
+```bash
+bun run scripts/skillopt-eval/operator.ts optimize --max-steps 4 --seed-candidate /path/to/candidate_skill.md
+```
+
+The seed is safety-validated, rebound to the current immutable skill surface, and recorded as `skills/kibi-usage/seed-candidate.json`. Baseline and one-shot remain fresh comparators; seeding does not adopt or overwrite the canonical skill.
 
 `skillopt:optimize` prints `run-id`, `max-steps`, `artifact-root`, and `fixture-run-root` on stderr. Review output is stored **outside the source worktree** under `$XDG_RUNTIME_DIR/kibi-skillopt/operator/` (falling back to `~/.cache` or the process temp dir), including `optimization-review.json`.
 
@@ -42,9 +50,12 @@ bun run scripts/skillopt-eval/operator.ts optimize --max-steps 4
 2. `codex login status` must already say `Logged in using ChatGPT`
 3. Fresh run id, explicit artifact root outside the protected source tree, and materialized fixture corpus
 4. Preflight and paid capability canary. Target rollouts use `gpt-5.4-mini` at low effort; the one-shot and iterative optimizer use `gpt-5.6-sol` at xhigh effort.
-5. Score baseline and one-shot on the balanced four-case public development set, seed the trainer with the stronger result, then run `--max-steps` complete rounds over all eight balanced training cases. Behavioral misses retain partial scores and structured public evidence for reflection.
-6. Require the candidate to improve development mean without hard-pass or worst-family regression. A miss returns `development_gate_ineligible` with held-out `not-run`; a pass proceeds to the blinded held-out aggregate gates. The real cells reuse one private staged Codex/bwrap runtime for the entire run. Each non-Git fixture pins the target, Codex MCP configuration, broker, and independent verifier to the same `skillopt-eval` Kibi branch; target-only MCP approval is limited to the evaluator-owned allowlisted broker.
-7. External production verdict handoff (`external-verdict-required`); no local canonical skill adoption
+5. Score baseline and one-shot on the balanced four-case public development set. Seed the trainer with an explicitly supplied preserved candidate when present, otherwise with the stronger comparator, then run `--max-steps` complete rounds over all eight balanced training cases. Behavioral misses retain partial scores and structured public evidence for reflection.
+6. Give each optimizer round both its current trajectories and a compact cumulative family summary, preventing recurring predicate or mutation failures from disappearing when a later stochastic rollout differs.
+7. Reject candidate bodies that copy repository-specific release policy or evaluator artifacts. The reusable result must be branch/package-manager neutral and explain how every atomic normative clause becomes a keyed ground predicate or strict-property fact rather than confusing ontology predicates with graph relationship types.
+8. Score clause completeness, not merely lane selection. The public compound case requires both relational and scalar facts, distinct fact claim keys, a merged requirement `logic_claims` manifest, and the complete set of graph edges. Missing provenance or one-sided modeling remains a behavioral failure that the optimizer can learn from.
+9. Require the candidate to improve development mean without hard-pass or worst-family regression. A miss returns `development_gate_ineligible` with held-out `not-run`; a pass proceeds to the blinded held-out aggregate gates. The real cells reuse one private staged Codex/bwrap runtime for the entire run. Each non-Git fixture pins the target, Codex MCP configuration, broker, and independent verifier to the same `skillopt-eval` Kibi branch; target-only MCP approval is limited to the evaluator-owned allowlisted broker.
+10. External production verdict handoff (`external-verdict-required`); no local canonical skill adoption
 
 Optimizer responses are captured from Codex's dedicated final-message file. JSONL progress messages are audit events only and cannot become a candidate. The harness rejects a short progress note or a replacement that drops required CLI, `.kb`, discovery, mutation, or validation guidance before spending target-cell budget on it.
 
@@ -78,4 +89,4 @@ The held-out predicate supplement always reserves all 36 cells for four cases, t
 
 ## Recovery
 
-If a run stalls, start a new `bun run skillopt:optimize` (fresh run id). To discard a partial tree, delete the printed `artifact-root` and `fixture-run-root` paths. Local review remains non-mutating on retries; production adoption is an external verdict and installer handoff.
+If a run stalls, start a new `bun run skillopt:optimize` with a fresh run id and pass the prior `candidate_skill.md` through `--seed-candidate` when it is worth retaining. To discard a partial tree, delete the printed `artifact-root` and `fixture-run-root` paths only after preserving any accepted candidate bodies. Local review remains non-mutating on retries; production adoption is an external verdict and installer handoff.

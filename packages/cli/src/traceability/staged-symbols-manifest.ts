@@ -187,9 +187,21 @@ function normalizeRelationships(
 function normalizeManifestSymbolsForSourceFile(
   records: ManifestSymbolRecord[],
   sourceFile: string,
+  expectedTitles: ReadonlySet<string>,
 ): NormalizedManifestSymbol[] {
   return records
     .filter((record) => {
+      const title = typeof record.title === "string" ? record.title : null;
+      const isDocumentedModuleSymbol =
+        typeof record.granularity_reason === "string" &&
+        record.granularity_reason.length > 0;
+      if (
+        title !== null &&
+        isDocumentedModuleSymbol &&
+        !expectedTitles.has(title)
+      ) {
+        return false;
+      }
       const recordSource =
         typeof record.sourceFile === "string"
           ? record.sourceFile
@@ -394,9 +406,13 @@ export function assessStagedSymbolsManifest(options: {
 
   for (const sourceFile of sourceFiles) {
     const expectedSymbols = normalizeExpectedSymbolsForStagedFile(sourceFile);
+    const expectedTitles = new Set(
+      expectedSymbols.map((symbol) => symbol.title),
+    );
     const baselineSymbols = normalizeManifestSymbolsForSourceFile(
       baselineMergedRecords,
       sourceFile.path,
+      expectedTitles,
     );
 
     if (signaturesEqual(expectedSymbols, baselineSymbols)) {
@@ -412,6 +428,7 @@ export function assessStagedSymbolsManifest(options: {
     const stagedSymbols = normalizeManifestSymbolsForSourceFile(
       stagedMergedRecords,
       sourceFile.path,
+      expectedTitles,
     );
 
     if (signaturesEqual(expectedSymbols, stagedSymbols)) {

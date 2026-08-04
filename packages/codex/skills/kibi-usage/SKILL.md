@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Guides agents to use Kibi MCP, facts, relationships, and validation correctly
-version: 1.1.0
+version: 1.2.0
 kibiCompatibility: ">=0.11.0"
 tags:
   - kibi
@@ -55,18 +55,7 @@ Use `kb_query` for exact lookups by `id`, `type`, `tags`, or `sourceFile`. Use `
 
 Do not perform Kibi mutations unless the current task calls for knowledge-base changes or the user explicitly asks for them. Discovery and validation are acceptable when needed to understand impact, freshness, traceability, or existing requirements.
 
-If schema migration, installation, upgrade, publishing, or repository-wide release operation is required, stop and ask the user or operator to handle it outside the agent session. Never publish manually from an agent session. Never use Kibi interface selection to install packages, change dependency manifests, or bypass sandbox and approval boundaries.
-
-## Release Versioning
-
-Release preparation happens on `develop`:
-
-1. Add human-readable changesets for publishable package changes.
-2. Run `bun run version-packages` to consume changesets, update package versions and changelogs, and synchronize plugin manifests.
-3. Review generated package and dependency changes, then run release checks before committing.
-4. Merge `develop` into `master`; publishing is performed by the master-branch CI workflow.
-
-Never publish manually from an agent session, and never merge `master` back into `develop`.
+Kibi guidance does not define a repository's package manager, branch names, release scripts, or publishing workflow. Follow the repository's own instructions for those concerns. Never use Kibi interface selection to install packages, change dependency manifests, or bypass sandbox and approval boundaries.
 
 ## Relationship Directions
 
@@ -81,6 +70,7 @@ Relationship direction is fixed and semantic. Reversed links break traceability 
 | `executable_for` | symbol -> test | Symbol is executable test code for a test entity |
 | `constrains` | req -> fact(subject) | Requirement constrains a domain fact |
 | `requires_property` | req -> fact(property_value) | Requirement requires a property value |
+| `requires_predicate` | req -> fact(predicate) | Requirement requires a ground ontology predicate |
 | `supersedes` | old-req -> new-req | Old requirement is replaced by new requirement |
 | `covered_by` | symbol -> test | Production symbol has coverage evidence from a test |
 
@@ -136,15 +126,62 @@ Use `kb_model_requirement` for automated strict-fact modeling when available. It
 
 Granular fact examples for coherence checks include `REQ-ROLE-SET-2` versus `REQ-ROLE-SET-3` on `user.roles.allowed_set` (`user,admin` versus `user,admin,superadmin`) and `REQ-ADMIN-CAN-MANAGE-BILLING` versus `REQ-ONLY-SUPERADMIN-MANAGES-BILLING` on `billing.manage.allowed_actor`. See `resources/fact-lanes.md`; `domain-contradictions` uses these canonical keys.
 
+## Complete Logical Coverage
+
+Readable prose is not evidence that a requirement is machine-checkable. Before treating a normative requirement as modeled, decompose its entire body into atomic normative clauses and ground every clause. One correct fact or relationship never proves that the other prose is covered.
+
+1. Call `kb_semantic_advisor` with the complete requirement prose. When the automatic split is incomplete or a sentence contains multiple obligations, pass an explicit `clauses` array containing every atomic normative clause.
+2. Use the stable `claim_key` returned for each clause. Every ground `property_value` or `predicate` fact must preserve that key in `claim_key` and preserve the clause in `claim_text`.
+3. Put the complete set of keys in the requirement's `logic_claims` manifest. Merge returned keys with existing values; never overwrite earlier claims while modeling a later clause.
+4. Ground each key through exactly the suitable logical lane: `requires_property` to a strict `property_value` fact, or `requires_predicate` to a ground `predicate` fact. A subject fact supports a strict claim but does not ground a key by itself. Observation, meta, ambiguity, and ontology-gap facts explicitly remain unresolved and do not count as logical coverage.
+5. Run `kb_check` with `logic-coverage`, `predicate-verifiability`, and `domain-contradictions`. `logic-coverage` proves manifest-to-fact correspondence; human or agent review still confirms that the atomic clauses exhaust the prose and that each ground term preserves its meaning.
+
+Kibi emits a non-blocking logical-coverage debt diagnostic for every current requirement without a manifest, independent of title wording. The `logic-coverage` rule is enabled by default for requirements that do declare manifests, so an unfiltered final check catches missing or orphaned ground claims while legacy requirements remain explicit backfill work.
+
+Never invent, reuse across different clauses, or manually alter a claim key. Kibi derives it from `claim_text` and rejects mismatched mutation and Markdown inputs.
+
+For a compound requirement, the manifest and linked facts form a clause-completeness contract:
+
+```yaml
+requirement:
+  id: REQ-CHECKOUT-RETENTION
+  logic_claims: [CLAIM-A1B2C3D4E5F60718, CLAIM-18273645AABBCCDD]
+facts:
+  - fact_kind: predicate
+    claim_key: CLAIM-A1B2C3D4E5F60718
+    claim_text: Checkout requires payment authorization before submission.
+  - fact_kind: property_value
+    claim_key: CLAIM-18273645AABBCCDD
+    claim_text: Customer data must be retained for 7 years.
+```
+
+The example keys are illustrative; use only keys returned for the exact clause text.
+
 ## Predicate Ontology Decision Tree
 
-Preserve the readable requirement prose. Do not force every requirement into predicates.
+Preserve the readable requirement prose. Facts add a machine-queryable model; they do not replace prose, and stored predicate facts are data queried by Kibi's Prolog layer rather than executable Prolog supplied by the agent.
 
-1. Call `kb_semantic_advisor` on normative prose and review its suggested lane.
-2. For a relational claim, call `kb_suggest_predicates`. Use a returned built-in or project-local schema only when its meaning and arguments fit; create the suggested `fact_kind: predicate` and link requirement -> fact with `requires_predicate`. A prohibition uses the suggested predicate with `polarity: deny` rather than an invented negative predicate name.
-3. For scalar, threshold, duration, boolean, enum-set, or cardinality claims, use `kb_model_requirement` and the strict subject/property lane instead.
-4. For ambiguity, a false-positive candidate, or no suitable schema, preserve the claim as `fact_kind: observation`; mark a true ontology gap for review rather than inventing a predicate.
-5. Validate each payload, create endpoints first, and apply validated `kb_upsert` calls sequentially. Finish with a full `kb_check`.
+1. Call `kb_semantic_advisor` on the complete prose, verify its atomic clause inventory, and choose one lane per clause.
+2. For each relational clause, call `kb_suggest_predicates` with that clause and the current `existingLogicClaims`. Read each candidate as a Prolog-shaped ground term `predicate_name(arg1,...,argN)`: the schema fixes the predicate name, arity, argument roles, and argument order.
+3. Accept a candidate only when its meaning and every ordered argument fit the prose. Use the returned `applyPlan`, including its exact `predicate_name`, `predicate_args`, `canonical_key`, and `polarity`; never invent a predicate name, reorder arguments, add variables, or write a raw Prolog clause.
+4. Create or confirm the requirement and `fact_kind: predicate` endpoints, preserve `claim_key` and `claim_text`, merge the returned `logicClaims` into the requirement, then link requirement -> predicate fact with `requires_predicate`. Encode a prohibition with `polarity: deny` on the fitting positive schema, not a made-up negative predicate. An `assert` and `deny` requirement over the same namespace, name, and ordered arguments are a blocking `domain-contradictions` conflict.
+5. Use an existing built-in or project-local `fact_kind: predicate_schema`. Create a new schema only when the task explicitly authorizes ontology extension and supplies a stable name, arity, `argument_names`, and `argument_types`; otherwise record `fact_kind: observation` with `review:ontology-gap`.
+6. For each scalar, threshold, duration, boolean, enum-set, or cardinality clause, use `kb_model_requirement` with the current `existingLogicClaims` and the strict subject/property lane instead. For ambiguity or a lexical false positive, preserve the prose as a review observation and report the requirement as logically incomplete.
+7. Validate every payload, create endpoints first, apply `kb_upsert` calls sequentially, read back all affected IDs, and run targeted `logic-coverage`, `predicate-verifiability`, and `domain-contradictions` checks before the final unfiltered `kb_check`.
+
+Example: “Checkout requires payment authorization before order submission” fits `dependency_rule(subject, prerequisite, dependent)`. The ground model is `dependency_rule(checkout,payment_authorization,order_submission)`, stored as:
+
+```yaml
+fact_kind: predicate
+predicate_name: dependency_rule
+predicate_args: [checkout, payment_authorization, order_submission]
+canonical_key: dependency_rule(checkout,payment_authorization,order_submission)
+polarity: assert
+claim_key: <claim key returned by kb_semantic_advisor>
+claim_text: Checkout requires payment authorization before order submission.
+```
+
+Link the requirement to that predicate fact with `requires_predicate`. Do not use `verified_by`, `requires_predicate`, or another relationship type as the `predicate_name`; graph relationships and ontology predicates are different layers.
 
 Detailed built-in, project-local, deny, strict-scalar, ambiguous, false-positive, and ontology-gap examples are immutable reference material in `resources/fact-lanes.md` and `resources/workflows.md`.
 
@@ -178,7 +215,7 @@ Never fire `kb_upsert` calls in parallel. Execute them sequentially to avoid loc
 
 ## Checks
 
-Run `kb_check` with specific rules during iteration for fast feedback, such as `rules: ["required-fields", "no-dangling-refs"]` after small changes. Run a full `kb_check` without rule filters before declaring Kibi work complete.
+Run `kb_check` with specific rules during iteration for fast feedback. For normative requirement modeling, include `rules: ["logic-coverage", "predicate-verifiability", "domain-contradictions"]`; add `required-fields` and `no-dangling-refs` after writes. Run a full `kb_check` without rule filters before declaring Kibi work complete.
 
 The `domain-contradictions` rule detects conflicts between strict-lane facts linked to requirements. When a contradiction is found, the supported escape hatch is `supersedes`: create a new requirement that supersedes the old one, then link the new requirement to updated facts.
 
@@ -198,17 +235,8 @@ Call `kb_status` when branch KB context may be stale or after switching context.
 | Missing `kb_check` | Undetected dangling refs and violations | Run targeted checks during work, full check at completion |
 | Tags as multi-ID lookup | Tags are metadata, not identifiers | Use `kb_query` with explicit `id` values |
 | `relates_to` for strict modeling | Loses contradiction safety | Use `constrains` and `requires_property` instead |
+| One fact for a compound requirement | Leaves untracked prose outside contradiction checks | Decompose all atomic clauses, preserve claim keys, and validate `logic_claims` with `logic-coverage` |
+| Replacing `logic_claims` on each call | Discards previously grounded clauses | Pass existing keys and merge the returned manifest |
+| Observation counted as coverage | Ambiguity or ontology gaps appear machine-checkable | Keep the claim unresolved until a strict or predicate ground fact exists |
+| Relationship type used as predicate name | Confuses graph edges with ontology terms | Select a declared predicate schema and keep `requires_predicate` as the req -> fact edge |
 | `status: implemented` on requirements | Not a valid lifecycle status | Use a valid status such as `closed`, add an `implemented` tag, and link evidence instead |
-
-## Public MCP Guidance
-
-For discovery-exact-lookup tasks, discover the relevant requirement before exact source-linked lookup and use only the public Kibi MCP surface when MCP is available.
-
-For safe-mutation-direction tasks, discover existing entities first, then apply the requested relationship in the supported direction using only the public Kibi MCP surface when MCP is available.
-
-For fact-predicate-modeling tasks, model normative claims through the strict fact or predicate workflow using only the public Kibi MCP surface when MCP is available.
-
-For validation-recovery tasks, recover from malformed mutations with validation diagnostics using only the public Kibi MCP surface when MCP is available.
-
-Public training trajectories:
-[{"taskId":"kibi-usage-discovery-exact-lookup-train-1","family":"discovery-exact-lookup","reflection":"Discover the relevant requirement before performing an exact source-linked lookup. This is train case 1; use only the public Kibi MCP surface."},{"taskId":"kibi-usage-discovery-exact-lookup-train-2","family":"discovery-exact-lookup","reflection":"Discover the relevant requirement before performing an exact source-linked lookup. This is train case 2; use only the public Kibi MCP surface."},{"taskId":"kibi-usage-safe-mutation-direction-train-1","family":"safe-mutation-direction","reflection":"Discover existing entities, then apply the requested relationship in the supported direction. This is train case 1; use only the public Kibi MCP surface."},{"taskId":"kibi-usage-safe-mutation-direction-train-2","family":"safe-mutation-direction","reflection":"Discover existing entities, then apply the requested relationship in the supported direction. This is train case 2; use only the public Kibi MCP surface."},{"taskId":"kibi-usage-fact-predicate-modeling-train-1","family":"fact-predicate-modeling","reflection":"Model the supplied normative claim through the strict fact or predicate workflow. This is train case 1; use only the public Kibi MCP surface."},{"taskId":"kibi-usage-fact-predicate-modeling-train-2","family":"fact-predicate-modeling","reflection":"Model the supplied normative claim through the strict fact or predicate workflow. This is train case 2; use only the public Kibi MCP surface."},{"taskId":"kibi-usage-validation-recovery-train-1","family":"validation-recovery","reflection":"Recover from the supplied malformed mutation using validation diagnostics. This is train case 1; use only the public Kibi MCP surface."},{"taskId":"kibi-usage-validation-recovery-train-2","family":"validation-recovery","reflection":"Recover from the supplied malformed mutation using validation diagnostics. This is train case 2; use only the public Kibi MCP surface."}]

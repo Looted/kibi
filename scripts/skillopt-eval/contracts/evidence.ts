@@ -49,6 +49,11 @@ const FinalStateFactSchema = z
     predicateName: z.string().min(1).optional(),
     predicateArgs: z.array(z.string().min(1)).optional(),
     polarity: z.enum(["assert", "deny"]).optional(),
+    claimKey: z
+      .string()
+      .regex(/^CLAIM-[A-F0-9]{16}$/)
+      .optional(),
+    claimText: z.string().min(1).optional(),
   })
   .strict();
 
@@ -65,6 +70,7 @@ export const PredicateCaseSnapshotSchema = z
     binding: EvidenceBindingSchema,
     facts: z.array(FinalStateFactSchema),
     relationships: z.array(FinalStateRelationshipSchema),
+    logicClaims: z.array(z.string().regex(/^CLAIM-[A-F0-9]{16}$/)).default([]),
   })
   .strict();
 

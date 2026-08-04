@@ -3,6 +3,7 @@ import path from "node:path";
 import { buildStrictWriteSet } from "../../public/check-types.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { getSchemaVersionStatus } from "../../public/schema-version.js";
+import { semanticClaimKey } from "../semantic-advisor/clauses.js";
 import {
   strictWriteSetToApplyPlan,
   writeSetPrimaryEntityId,
@@ -67,7 +68,33 @@ export async function handleKbModelRequirement(
     claim: extracted.claim,
     statement: extracted.statement,
   });
-  const applyPlan = strictWriteSetToApplyPlan(writeSet);
+  const claimKey = semanticClaimKey(extracted.statement);
+  const logicClaims = Array.from(
+    new Set([...(args.existingLogicClaims ?? []), claimKey]),
+  );
+  const applyPlan = strictWriteSetToApplyPlan(writeSet).map((step) => {
+    const properties =
+      step.properties !== null && typeof step.properties === "object"
+        ? (step.properties as Record<string, unknown>)
+        : {};
+    if (step.type === "fact") {
+      return {
+        ...step,
+        properties: {
+          ...properties,
+          claim_key: claimKey,
+          claim_text: extracted.statement,
+        },
+      };
+    }
+    if (step.type === "req") {
+      return {
+        ...step,
+        properties: { ...properties, logic_claims: logicClaims },
+      };
+    }
+    return step;
+  });
   const migrationWarning = await getWorkspaceMigrationWarning(workspaceRoot);
   const warnings = writeSet.isStrict
     ? []
@@ -84,6 +111,8 @@ export async function handleKbModelRequirement(
     : "Modeled a non-blocking observation review artifact; deterministic claim extraction stayed below the strict threshold.";
   const structuredContent = {
     statement: extracted.statement,
+    claimKey,
+    logicClaims,
     source: extracted.source,
     sourceFiles: extracted.sourceFiles,
     claim: extracted.claim,

@@ -185,8 +185,11 @@ describe("public SkillOpt fixture corpus", () => {
 
     expect(publicText).toMatch(/claimText/i);
     expect(publicText).toMatch(/publicSchema/i);
+    expect(publicText).toMatch(/argumentNames/i);
+    expect(publicText).not.toMatch(/availableBuiltinPredicates/i);
+    expect(publicText).not.toMatch(/"projectLocalSchemas"\s*:\s*\[\s*"/i);
     expect(publicText).not.toMatch(
-      /expectedLane|expectedPredicate|expectedEdges|expectedPredicateName|expectedPredicateArgs|expectedPolarity|privateExpectation|PRIVATE_EXPECTED/i,
+      /expectedLane|expectedPredicate|expectedEdges|expectedGroundFactKinds|expectedLogicClaimCount|expectedPredicateName|expectedPredicateArgs|expectedPolarity|privateExpectation|PRIVATE_EXPECTED/i,
     );
   });
 });

@@ -15,6 +15,9 @@ export type PredicateCaseFailure =
   | "predicate-args"
   | "predicate-polarity"
   | "predicate-edges"
+  | "logical-fact-lanes"
+  | "logic-claim-manifest"
+  | "logic-claim-grounding"
   | "wrong-graph"
   | "replayed-evidence"
   | "mixed-snapshot"
@@ -60,6 +63,35 @@ function predicateFailures(
     }
   })();
   if (!laneMatches) failures.push("predicate-lane");
+  if (
+    expectation.expectedGroundFactKinds.some(
+      (expectedKind) =>
+        !snapshot.facts.some((fact) => fact.factKind === expectedKind),
+    )
+  ) {
+    failures.push("logical-fact-lanes");
+  }
+  const manifestClaims = new Set(snapshot.logicClaims);
+  if (manifestClaims.size !== expectation.expectedLogicClaimCount) {
+    failures.push("logic-claim-manifest");
+  }
+  const groundClaims = new Set(
+    snapshot.facts.flatMap((fact) =>
+      (fact.factKind === "predicate" || fact.factKind === "property_value") &&
+      fact.claimKey !== undefined &&
+      fact.claimText !== undefined
+        ? [fact.claimKey]
+        : [],
+    ),
+  );
+  if (
+    expectation.expectedLogicClaimCount > 0 &&
+    (groundClaims.size !== expectation.expectedLogicClaimCount ||
+      [...manifestClaims].some((claimKey) => !groundClaims.has(claimKey)) ||
+      [...groundClaims].some((claimKey) => !manifestClaims.has(claimKey)))
+  ) {
+    failures.push("logic-claim-grounding");
+  }
   if (expectation.expectedPredicateName !== null) {
     const fact = snapshot.facts.find(
       (entry) =>

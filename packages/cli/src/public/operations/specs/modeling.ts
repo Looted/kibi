@@ -68,6 +68,13 @@ export const modelRequirementSpec = {
         description:
           "Optional extracted text reference. Falls back to source when omitted. Example: 'documentation/requirements/customer-retention.md#L1'.",
       },
+      existingLogicClaims: {
+        type: "array",
+        items: { type: "string", pattern: "^CLAIM-[A-F0-9]{16}$" },
+        uniqueItems: true,
+        description:
+          "Existing requirement logic_claims values. The returned requirement update merges the new atomic claim key into this manifest instead of replacing prior claims.",
+      },
     },
   },
   requiresProlog: true,
@@ -128,6 +135,13 @@ export const suggestPredicatesSpec = {
         default: true,
         description:
           "Whether to include existing KB fact_kind=predicate_schema facts alongside Kibi's built-in predicate catalog. Default: true.",
+      },
+      existingLogicClaims: {
+        type: "array",
+        items: { type: "string", pattern: "^CLAIM-[A-F0-9]{16}$" },
+        uniqueItems: true,
+        description:
+          "Existing requirement logic_claims values. Returned relationship guidance includes a merged manifest so repeated clause modeling does not discard earlier claims.",
       },
     },
   },

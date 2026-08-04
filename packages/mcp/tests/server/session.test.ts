@@ -50,7 +50,7 @@ const defaults = {
 
     return req;
   },
-  prologQuery: async () => ({ success: true }),
+  prologQuery: async (_command: string | string[]) => ({ success: true }),
   prologTerminate: async () => {},
   prologIsRunning: () => true,
   prologGetPid: () => 12345,

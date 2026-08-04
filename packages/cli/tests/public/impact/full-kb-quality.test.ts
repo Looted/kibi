@@ -58,7 +58,7 @@ describe("collectFullKbQualityDiagnostics", () => {
     });
 
     expect(diagnostics.map((diagnostic) => diagnostic.id)).toContain(
-      "strict_fact_modeling_review",
+      "logical_coverage_review",
     );
     expect(diagnostics.map((diagnostic) => diagnostic.id)).toContain(
       "coverage_depth_review",
@@ -80,7 +80,7 @@ describe("collectFullKbQualityDiagnostics", () => {
     });
 
     expect(diagnostics).toHaveLength(1);
-    expect(diagnostics[0]?.id).not.toBe("strict_fact_modeling_review");
+    expect(diagnostics[0]?.id).not.toBe("logical_coverage_review");
   });
 
   it("returns all diagnostics when maxDiagnostics is negative", async () => {

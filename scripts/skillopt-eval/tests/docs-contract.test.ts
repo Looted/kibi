@@ -127,7 +127,7 @@ describe("SkillOpt documentation contract", () => {
         Script: "`skillopt:optimize`",
         Command: "`bun run scripts/skillopt-eval/operator.ts optimize`",
         Notes:
-          "Verifies pin and login, materializes fixtures, allocates artifact roots, then runs paid `kibi-usage` optimize (preflight, smoke, Codex rewrite, public development gate, held-out gates). Writes non-mutating review evidence only. Defaults to `--max-steps 1`; pass `--max-steps 1..4` for that many complete proposal rounds.",
+          "Verifies pin and login, materializes fixtures, allocates artifact roots, then runs paid `kibi-usage` optimize (preflight, smoke, Codex rewrite, public development gate, held-out gates). Writes non-mutating review evidence only. Defaults to `--max-steps 1`; pass `--max-steps 1..4` for complete proposal rounds and `--seed-candidate PATH` to continue from preserved work.",
       },
     ]);
 

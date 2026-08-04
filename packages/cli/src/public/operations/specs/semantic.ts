@@ -42,6 +42,7 @@ export async function executeSemanticAdvisor(
         text_ref: text,
       },
     },
+    ...(args.clauses !== undefined ? { clauses: args.clauses } : {}),
   });
   return {
     content: [
@@ -63,6 +64,11 @@ async function executeSemanticAdvisorInput(
   const title = optionalString(input.title);
   const source = optionalString(input.source);
   const status = optionalString(input.status);
+  const clauses = Array.isArray(input.clauses)
+    ? input.clauses.filter(
+        (value): value is string => typeof value === "string",
+      )
+    : undefined;
   return executeSemanticAdvisor(
     {
       text: requiredText(input.text),
@@ -71,6 +77,7 @@ async function executeSemanticAdvisorInput(
       ...(title ? { title } : {}),
       ...(source ? { source } : {}),
       ...(status ? { status } : {}),
+      ...(clauses !== undefined ? { clauses } : {}),
     },
     context,
   );
@@ -89,6 +96,12 @@ export const semanticAdvisorSpec = {
         type: "string",
         description:
           "Requirement prose to inspect for machine-checkable modeling suggestions.",
+      },
+      clauses: {
+        type: "array",
+        items: { type: "string" },
+        description:
+          "Optional complete list of atomic requirement clauses supplied by the caller. Use this for compound prose so every normative clause receives a stable claim key and independent grounding review.",
       },
       type: {
         type: "string",

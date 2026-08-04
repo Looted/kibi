@@ -114,6 +114,39 @@ class EnvAdapter(OptimizerAdapterMixin, SkillOptEnvAdapter):
             raise BridgeError("optimizer requires public train task ids")
         self._recorded_train_trajectories.append(trajectory)
 
+    @staticmethod
+    def _public_evidence_summary(
+        trajectories: Sequence[TrainTrajectory],
+    ) -> dict[str, JsonValue]:
+        if not trajectories:
+            raise BridgeError("public evidence summary requires trajectories")
+        by_family: dict[str, list[TrainTrajectory]] = {}
+        for trajectory in trajectories:
+            by_family.setdefault(trajectory.family, []).append(trajectory)
+        families: list[dict[str, JsonValue]] = []
+        for family, entries in sorted(by_family.items()):
+            failure_counts: dict[str, int] = {}
+            for entry in entries:
+                for category in entry.failure_categories:
+                    failure_counts[category] = failure_counts.get(category, 0) + 1
+            families.append(
+                {
+                    "family": family,
+                    "attempts": len(entries),
+                    "hardPasses": sum(entry.hard for entry in entries),
+                    "meanSoft": sum(float(entry.soft) for entry in entries) / len(entries),
+                    "failureCounts": [
+                        {"category": category, "count": count}
+                        for category, count in sorted(failure_counts.items())
+                    ],
+                }
+            )
+        return {
+            "attempts": len(trajectories),
+            "hardPasses": sum(entry.hard for entry in trajectories),
+            "families": families,
+        }
+
     def development_gate_for(self, skill_content: str) -> dict[str, JsonValue] | None:
         gate = self._development_by_body_hash.get(contract_hash(skill_content))
         return None if gate is None else dict(gate)
@@ -282,6 +315,7 @@ class EnvAdapter(OptimizerAdapterMixin, SkillOptEnvAdapter):
         if previous is None:
             raise BridgeError("reflection_requires_development_baseline")
         self._optimizer_step += 1
+        cumulative = self.train_trajectories or trajectories
         optimized = self.optimize(
             current_body=skill_content,
             trajectories=tuple(
@@ -290,6 +324,7 @@ class EnvAdapter(OptimizerAdapterMixin, SkillOptEnvAdapter):
             previous_development=previous,
             step=self._optimizer_step,
             max_steps=self._max_steps,
+            public_evidence_summary=self._public_evidence_summary(cumulative),
         )
         return [
             {

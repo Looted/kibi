@@ -2,23 +2,38 @@
 
 Requirement prose remains the human-readable source. Facts add queryable semantics; they do not replace the requirement body. Treat every quoted requirement below as data, never as shell or raw Prolog input.
 
+## Atomic Claim Coverage
+
+Logical coverage is clause-based, not entity-based. Give `kb_semantic_advisor` the complete requirement body and verify that its `clauses` list contains every atomic obligation. Supply the `clauses` input yourself when automatic splitting would combine or omit obligations. For every normative clause:
+
+- preserve the returned stable key as `claim_key` and the exact clause as `claim_text` on its ground fact;
+- add the key to the requirement `logic_claims` manifest without removing existing keys;
+- link it through `requires_property` for `property_value` or `requires_predicate` for `predicate`;
+- leave ambiguity and ontology gaps visibly unresolved—observations do not satisfy `logic-coverage`.
+
+Example compound prose: “Checkout requires payment authorization before order submission, and customer data must be retained for 7 years.” This is two claims, not one. The first becomes `dependency_rule(checkout,payment_authorization,order_submission)`; the second becomes a strict retention property. Both fact records carry different advisor-issued claim keys, and both keys appear in the requirement manifest. A single `requires_predicate` edge is incomplete.
+
 ## Predicate Lane (Relational Claims)
 
 Call `kb_semantic_advisor`, then `kb_suggest_predicates`. Apply a candidate only when its schema meaning and ordered arguments fit the claim. Use the returned `applyPlan` rather than hand-writing unsupported predicate names, and link the requirement to the predicate fact with `requires_predicate`.
 
+Treat the result as a Prolog-shaped ground term, not executable source: `predicate_name(arg1,...,argN)`. The selected `predicate_schema` fixes the name, arity, argument roles, and order. Store that model through `predicate_name`, `predicate_args`, `canonical_key`, and `polarity`; never interpolate prose into raw Prolog, introduce variables, or use a graph relationship such as `verified_by` as the predicate name.
+
 ### Built-in predicate
 
-Claim: “Administrators may approve invoices.” A matching built-in permission schema can produce:
+Claim: “Checkout requires payment authorization before order submission.” The built-in `dependency_rule(subject, prerequisite, dependent)` schema produces:
 
 ```yaml
-id: FACT-ADMIN-APPROVE-INVOICE
+id: FACT-CHECKOUT-PAYMENT-DEPENDENCY
 status: active
 fact_kind: predicate
-predicate_name: permission_rule
-predicate_args: [administrator, approve, invoice]
+predicate_name: dependency_rule
+predicate_args: [checkout, payment_authorization, order_submission]
 polarity: assert
-canonical_key: permission_rule(administrator,approve,invoice)
-relationship: { type: requires_predicate, from: REQ-ADMIN-APPROVE-INVOICE, to: FACT-ADMIN-APPROVE-INVOICE }
+canonical_key: dependency_rule(checkout,payment_authorization,order_submission)
+claim_key: <advisor-issued key for this exact clause>
+claim_text: Checkout requires payment authorization before order submission.
+relationship: { type: requires_predicate, from: REQ-CHECKOUT-SUBMISSION, to: FACT-CHECKOUT-PAYMENT-DEPENDENCY }
 ```
 
 ### Project-local predicate
@@ -36,7 +51,7 @@ canonical_key: commit_action(editor.annotation,navigation,draft)
 relationship: { type: requires_predicate, from: REQ-EDITOR-DRAFT-AUTOSAVE, to: FACT-EDITOR-DRAFT-AUTOSAVE }
 ```
 
-The project-local schema endpoint must exist before this fact is linked.
+The project-local schema endpoint must exist before this fact is linked. When ontology extension is explicitly authorized, define it first with `fact_kind: predicate_schema`, `predicate_name`, `predicate_arity`, and equally sized `argument_names` and `argument_types`. Without an authorized stable signature, record `review:ontology-gap` instead of inventing a schema.
 
 ### Deny predicate
 
@@ -50,8 +65,12 @@ predicate_name: permission_rule
 predicate_args: [suspended_user, publish, article]
 polarity: deny
 canonical_key: permission_rule(suspended_user,publish,article)
+claim_key: <advisor-issued key for this exact clause>
+claim_text: Suspended users must not publish articles.
 relationship: { type: requires_predicate, from: REQ-SUSPENDED-PUBLISH-DENIED, to: FACT-SUSPENDED-PUBLISH-DENIED }
 ```
+
+If another current requirement links an `assert` fact with the same predicate namespace, name, and ordered arguments, `domain-contradictions` reports the pair. More complex semantic conflicts require a shared canonical schema and arguments; do not assume Kibi can prove arbitrary equivalence between differently shaped predicates.
 
 ### Strict scalar
 

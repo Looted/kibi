@@ -478,6 +478,17 @@ describe("temp-kb", () => {
           valid_from: "2026-01-01",
           valid_to: "2026-12-31",
           canonical_key: "canon-1",
+          claim_key: "CLAIM-0000000000000000",
+          claim_text: "Atomic claim text.",
+          predicate_name: "logical_requirement_rule",
+          predicate_namespace: "kibi.requirements",
+          predicate_arity: 3,
+          argument_names: ["subject", "condition", "outcome"],
+          argument_types: ["atom", "atom", "atom"],
+          argument_descriptions: ["Subject", "Condition", "Outcome"],
+          aliases: ["requirement_rule"],
+          examples: ["logical_requirement_rule(a,b,c)"],
+          predicate_args: ["requirement", "atomic_clause", "grounded"],
         },
         relationships: [],
       };
@@ -511,7 +522,65 @@ describe("temp-kb", () => {
       expect(assertGoal).toContain('valid_from="2026-01-01"');
       expect(assertGoal).toContain('valid_to="2026-12-31"');
       expect(assertGoal).toContain('canonical_key="canon-1"');
+      expect(assertGoal).toContain('claim_key="CLAIM-0000000000000000"');
+      expect(assertGoal).toContain('claim_text="Atomic claim text."');
+      expect(assertGoal).toContain('predicate_name="logical_requirement_rule"');
+      expect(assertGoal).toContain('predicate_namespace="kibi.requirements"');
+      expect(assertGoal).toContain("predicate_arity=3");
+      expect(assertGoal).toContain(
+        'argument_names=["subject","condition","outcome"]',
+      );
+      expect(assertGoal).toContain('argument_types=["atom","atom","atom"]');
+      expect(assertGoal).toContain(
+        'argument_descriptions=["Subject","Condition","Outcome"]',
+      );
+      expect(assertGoal).toContain('aliases=["requirement_rule"]');
+      expect(assertGoal).toContain(
+        'examples=["logical_requirement_rule(a,b,c)"]',
+      );
+      expect(assertGoal).toContain(
+        'predicate_args=["requirement","atomic_clause","grounded"]',
+      );
       expect(assertGoal).not.toContain("value_int=7.5");
+    });
+
+    it("serializes requirement manifests and test verification metadata", async () => {
+      const prolog = new StubPrologProcess();
+      await projectStagedEntities(prolog, [
+        {
+          entity: {
+            id: "REQ-LOGIC",
+            type: "req",
+            title: "Logical requirement",
+            status: "open",
+            created_at: FIXED_TIMESTAMP,
+            updated_at: FIXED_TIMESTAMP,
+            source: "documentation/requirements/REQ-LOGIC.md",
+            logic_claims: ["CLAIM-0000000000000000"],
+          },
+          relationships: [],
+        },
+        {
+          entity: {
+            id: "TEST-LOGIC",
+            type: "test",
+            title: "Logical requirement E2E",
+            status: "passing",
+            created_at: FIXED_TIMESTAMP,
+            updated_at: FIXED_TIMESTAMP,
+            source: "documentation/tests/TEST-LOGIC.md",
+            verification_scope: "end_to_end",
+            verification_perspective: "consumer",
+          },
+          relationships: [],
+        },
+      ]);
+
+      expect(prolog.queries[1]).toContain(
+        "logic_claims=['CLAIM-0000000000000000']",
+      );
+      expect(prolog.queries[3]).toContain("verification_scope=end_to_end");
+      expect(prolog.queries[3]).toContain("verification_perspective=consumer");
     });
 
     it("asserts staged entities and relationships into the temp KB", async () => {

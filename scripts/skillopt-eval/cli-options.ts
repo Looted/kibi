@@ -21,6 +21,7 @@ export type WorkflowOptions = Readonly<{
   allowPaid: boolean;
   maxSteps: number;
   sourceRoot?: string;
+  seedCandidate?: string;
   cellRuntime?: CodexCellRuntime;
 }>;
 
@@ -53,6 +54,7 @@ export function parseWorkflowOptions(args: readonly string[]): WorkflowOptions {
   let maxSteps = 1;
   let fixtureRunRoot: string | undefined;
   let sourceRoot: string | undefined;
+  let seedCandidate: string | undefined;
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
     if (arg === "--fake") {
@@ -84,6 +86,7 @@ export function parseWorkflowOptions(args: readonly string[]): WorkflowOptions {
         "--artifact-root",
         "--fixture-run-root",
         "--source-root",
+        "--seed-candidate",
       ].includes(arg ?? "")
     ) {
       const value = args[index + 1];
@@ -92,6 +95,7 @@ export function parseWorkflowOptions(args: readonly string[]): WorkflowOptions {
       if (arg === "--run-id") runId = value;
       else if (arg === "--artifact-root") artifactRoot = value;
       else if (arg === "--source-root") sourceRoot = value;
+      else if (arg === "--seed-candidate") seedCandidate = value;
       else fixtureRunRoot = value;
       index += 1;
       continue;
@@ -113,6 +117,7 @@ export function parseWorkflowOptions(args: readonly string[]): WorkflowOptions {
       ? {}
       : { cellRuntime: { fixtureRunRoot } }),
     ...(sourceRoot === undefined ? {} : { sourceRoot }),
+    ...(seedCandidate === undefined ? {} : { seedCandidate }),
   };
 }
 
@@ -123,7 +128,7 @@ export function printHelp(): void {
     `${[
       "Usage: cli.ts <command> [options]",
       "Commands: preflight, smoke, dry-run, prepare, optimize, evaluate, bundle, run, resume, status, report, approve, adopt, prototype",
-      "Workflow options: --run-id RUN_ID --artifact-root PATH [--fake] [--skill SKILL|all] [--max-steps 1..4] [--fixture-run-root PATH]",
+      "Workflow options: --run-id RUN_ID --artifact-root PATH [--fake] [--skill SKILL|all] [--max-steps 1..4] [--fixture-run-root PATH] [--seed-candidate PATH]",
       "Real optimize requires --allow-paid after preflight and smoke; eligible candidates remain review-only until an external verdict authorizes adoption.",
     ].join("\n")}\n`,
   );

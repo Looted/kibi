@@ -17,7 +17,7 @@ describe("kibi-usage skill content", () => {
     expect(bundle.manifest.description).toBe(
       "Guides agents to use Kibi MCP, facts, relationships, and validation correctly",
     );
-    expect(bundle.manifest.version).toBe("1.1.0");
+    expect(bundle.manifest.version).toBe("1.2.0");
     expect(bundle.manifest.kibiCompatibility).toBe(">=0.11.0");
     expect(bundle.manifest.tags).toContain("kibi");
     expect(bundle.manifest.tags).toContain("mcp");
@@ -158,6 +158,18 @@ describe("kibi-usage skill content", () => {
   test("body covers strict fact lane", () => {
     expect(bundle.body).toContain(
       "Normative requirements that must participate in contradiction blocking",
+    );
+  });
+
+  test("body requires clause-complete logical coverage", () => {
+    expect(bundle.body).toContain("## Complete Logical Coverage");
+    expect(bundle.body).toContain("atomic normative clauses");
+    expect(bundle.body).toContain("claim_key");
+    expect(bundle.body).toContain("claim_text");
+    expect(bundle.body).toContain("logic_claims");
+    expect(bundle.body).toContain("logic-coverage");
+    expect(bundle.body).toContain(
+      "human or agent review still confirms that the atomic clauses exhaust the prose",
     );
   });
 

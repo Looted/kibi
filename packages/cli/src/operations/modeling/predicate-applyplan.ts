@@ -1,3 +1,4 @@
+import { semanticClaimKey } from "../semantic-advisor/clauses.js";
 import { inferArgs } from "./predicate-inference.js";
 import { schemaForCandidate } from "./predicate-loader.js";
 import type {
@@ -33,6 +34,7 @@ export function buildPredicateApplyPlan(
   suggestion: PredicateSuggestion,
   args: SuggestPredicatesArgs,
 ): Array<Record<string, unknown>> {
+  const claimKey = semanticClaimKey(args.text);
   const factId = hashId("FACT-PRED", [
     args.requirementId ?? "",
     args.source ?? "",
@@ -57,6 +59,8 @@ export function buildPredicateApplyPlan(
         predicate_args: suggestion.predicate_args,
         canonical_key: suggestion.canonical_key,
         polarity: suggestion.polarity,
+        claim_key: claimKey,
+        claim_text: args.text.trim(),
       },
       relationships: [],
     },
@@ -67,8 +71,14 @@ export function buildPredicateApplyPlan(
 export function buildRelationshipPlan(
   factId: string | undefined,
   requirementId: string | undefined,
+  claimText?: string,
+  existingLogicClaims: readonly string[] = [],
 ): Record<string, unknown> | null {
   if (!factId || !requirementId) return null;
+  const claimKey = claimText ? semanticClaimKey(claimText) : null;
+  const logicClaims = Array.from(
+    new Set([...existingLogicClaims, ...(claimKey === null ? [] : [claimKey])]),
+  );
   return {
     applyAfter: factId,
     requiresExistingReq: requirementId,
@@ -77,8 +87,15 @@ export function buildRelationshipPlan(
       from: requirementId,
       to: factId,
     },
+    ...(claimText
+      ? {
+          claimKey,
+          claimText: claimText.trim(),
+          logicClaims,
+        }
+      : {}),
     instructions:
-      "Apply the predicate fact first, then attach this relationship from the existing requirement without overwriting requirement metadata.",
+      "Apply the predicate fact first, update the requirement with the returned merged logicClaims manifest, then attach this relationship without overwriting other requirement metadata.",
   };
 }
 
@@ -87,6 +104,7 @@ export function buildGapApplyPlan(
   text: string,
   args: SuggestPredicatesArgs,
 ): Array<Record<string, unknown>> {
+  const claimKey = semanticClaimKey(text);
   const factId = hashId("FACT-ONTOLOGY-GAP", [
     args.requirementId ?? "",
     args.source ?? "",
@@ -104,6 +122,8 @@ export function buildGapApplyPlan(
         tags: ["review:ontology-gap", "needs_schema_extension"],
         fact_kind: "observation",
         value_string: text,
+        claim_key: claimKey,
+        claim_text: text,
       },
       relationships: [],
     },

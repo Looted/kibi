@@ -189,6 +189,12 @@ function normalizeMcpPredicateSnapshot(
         ...(entity.polarity === "assert" || entity.polarity === "deny"
           ? { polarity: entity.polarity }
           : {}),
+        ...(typeof entity.claim_key === "string"
+          ? { claimKey: entity.claim_key }
+          : {}),
+        ...(typeof entity.claim_text === "string"
+          ? { claimText: entity.claim_text }
+          : {}),
       },
     ];
   });
@@ -229,6 +235,17 @@ function normalizeMcpPredicateSnapshot(
     binding,
     facts,
     relationships: [...relationships.values()],
+    logicClaims: Array.from(
+      new Set(
+        entities.flatMap((entity) =>
+          entity.type === "req" && Array.isArray(entity.logic_claims)
+            ? entity.logic_claims.filter(
+                (value): value is string => typeof value === "string",
+              )
+            : [],
+        ),
+      ),
+    ),
   });
 }
 

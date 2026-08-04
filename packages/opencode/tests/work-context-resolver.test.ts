@@ -225,6 +225,36 @@ describe("resolveWorkContext", () => {
     }
   });
 
+  it("does not inherit Git metadata above the declared worktree boundary", () => {
+    const parent = mkdtempSync(join(tmpdir(), "kibi-work-context-parent-"));
+    const root = join(parent, "declared-worktree");
+    try {
+      mkdirSync(join(parent, ".git"), { recursive: true });
+      writeFileSync(join(parent, ".git", "HEAD"), "ref: refs/heads/main\n");
+      mkdirSync(root, { recursive: true });
+      const filePath = join(root, "notes.md");
+      writeFileSync(filePath, "notes\n");
+
+      const context = resolveWorkContext({
+        inputDirectory: root,
+        inputWorktree: root,
+        filePath,
+      });
+
+      expect(context).toMatchObject({
+        worktreeRoot: root,
+        kibiAuthorityRoot: root,
+        branch: "unknown",
+        repoRelativePath: "notes.md",
+        posture: "root_uninitialized",
+        isAuthoritative: false,
+        isLinkedWorktree: false,
+      });
+    } finally {
+      rmSync(parent, { recursive: true, force: true });
+    }
+  });
+
   it("does not treat vendored-only Kibi trees as authoritative roots", () => {
     const root = mkdtempSync(join(tmpdir(), "kibi-work-context-vendored-"));
     try {
