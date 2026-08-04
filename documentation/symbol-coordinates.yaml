@@ -7763,15 +7763,15 @@ coordinates:
   SYM-skillopt-contract-gates:
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 32
+    sourceEndLine: 40
     sourceFile: scripts/skillopt-eval/contracts/gates.ts
-    sourceLine: 4
+    sourceLine: 12
   SYM-skillopt-contract-gates-schema:
     sourceColumn: 13
     sourceEndColumn: 11
-    sourceEndLine: 82
+    sourceEndLine: 90
     sourceFile: scripts/skillopt-eval/contracts/gates.ts
-    sourceLine: 35
+    sourceLine: 43
   SYM-skillopt-contract-hardening-python-tests:
     sourceColumn: 6
     sourceEndColumn: 28
@@ -8096,6 +8096,12 @@ coordinates:
     sourceEndLine: 199
     sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
     sourceLine: 189
+  SYM-skillopt-development-admission-gate:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 9
+    sourceFile: scripts/skillopt-eval/contracts/gates.ts
+    sourceLine: 4
   SYM-skillopt-development-gate:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -8873,9 +8879,9 @@ coordinates:
   SYM-skillopt-load-seed-candidate:
     sourceColumn: 15
     sourceEndColumn: 1
-    sourceEndLine: 110
+    sourceEndLine: 111
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 92
+    sourceLine: 93
   SYM-skillopt-max-candidate-body-bytes:
     sourceColumn: 13
     sourceEndColumn: 47
@@ -9143,9 +9149,9 @@ coordinates:
   SYM-skillopt-passes-development-gate:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 133
+    sourceEndLine: 139
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 114
+    sourceLine: 115
   SYM-skillopt-persist-artifacts:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -9977,9 +9983,9 @@ coordinates:
   SYM-skillopt-real-optimization-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 382
+    sourceEndLine: 388
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 137
+    sourceLine: 143
   SYM-skillopt-real-workflow-types-canonical-hash:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -11111,9 +11117,9 @@ coordinates:
   SYM-surface:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 71
+    sourceEndLine: 72
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 41
+    sourceLine: 42
   SYM-sync-agent-skills-locked:
     sourceColumn: 16
     sourceEndColumn: 1

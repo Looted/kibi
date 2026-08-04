@@ -8,6 +8,7 @@ import {
 } from "../../packages/cli/src/public/skills";
 import { withSharedAdoptionLock } from "./adoption-lock";
 import type { CanonicalSkill } from "./catalog";
+import { DEVELOPMENT_ADMISSION_GATE } from "./contracts/gates";
 import { defaultEvaluateHeldOut } from "./held-out-evaluation";
 import { RunStore } from "./orchestration-store";
 import { sourceWorktreeIsClean } from "./preflight";
@@ -126,6 +127,11 @@ export function passesDevelopmentGate(
       ? input.baseline
       : input.oneShot;
   return (
+    input.candidate.mean >= DEVELOPMENT_ADMISSION_GATE.meanMinimum &&
+    input.candidate.hardPasses >=
+      DEVELOPMENT_ADMISSION_GATE.hardPassesMinimum &&
+    input.candidate.worstFamilyMean >=
+      DEVELOPMENT_ADMISSION_GATE.worstFamilyMeanMinimum &&
     input.candidate.mean > stronger.mean &&
     input.candidate.hardPasses >= stronger.hardPasses &&
     input.candidate.worstFamilyMean >= stronger.worstFamilyMean
