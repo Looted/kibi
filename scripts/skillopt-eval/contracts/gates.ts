@@ -1,6 +1,14 @@
 import { z } from "zod";
 
 // implements REQ-skillopt-codex-optimization
+export const DEVELOPMENT_ADMISSION_GATE = {
+  tasksTotal: 4,
+  meanMinimum: 0.85,
+  hardPassesMinimum: 3,
+  worstFamilyMeanMinimum: 0.75,
+} as const;
+
+// implements REQ-skillopt-codex-optimization
 export const CODEX_GATES = {
   heldOutTasksPerVariant: 16,
   familySlices: 4,

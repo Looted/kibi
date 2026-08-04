@@ -11501,6 +11501,15 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-development-admission-gate
+    title: DEVELOPMENT_ADMISSION_GATE
+    sourceFile: scripts/skillopt-eval/contracts/gates.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-contract-gates-schema
     title: CodexGatesSchema
     sourceFile: scripts/skillopt-eval/contracts/gates.ts

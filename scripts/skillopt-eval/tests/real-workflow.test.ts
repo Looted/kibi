@@ -14,7 +14,7 @@ import { freezeCandidateVariant } from "../variants";
 const RUN_ID = "00000000-0000-4000-8000-000000000201";
 
 describe("real SkillOpt workflow", () => {
-  test("requires soft improvement without hard-pass or family regression", () => {
+  test("requires robust absolute development evidence and comparator improvement", () => {
     const comparators = {
       baseline: { mean: 0.5, hardPasses: 2, worstFamilyMean: 0.4 },
       oneShot: { mean: 0.6, hardPasses: 2, worstFamilyMean: 0.5 },
@@ -23,25 +23,32 @@ describe("real SkillOpt workflow", () => {
     expect(
       passesDevelopmentGate({
         ...comparators,
-        candidate: { mean: 0.61, hardPasses: 2, worstFamilyMean: 0.5 },
+        candidate: { mean: 0.85, hardPasses: 3, worstFamilyMean: 0.75 },
       }),
     ).toBe(true);
     expect(
       passesDevelopmentGate({
         ...comparators,
-        candidate: { mean: 0.6, hardPasses: 3, worstFamilyMean: 0.6 },
+        candidate: { mean: 0.84, hardPasses: 4, worstFamilyMean: 0.8 },
       }),
     ).toBe(false);
     expect(
       passesDevelopmentGate({
         ...comparators,
-        candidate: { mean: 0.7, hardPasses: 1, worstFamilyMean: 0.6 },
+        candidate: { mean: 0.9, hardPasses: 2, worstFamilyMean: 0.8 },
       }),
     ).toBe(false);
     expect(
       passesDevelopmentGate({
         ...comparators,
-        candidate: { mean: 0.7, hardPasses: 3, worstFamilyMean: 0.49 },
+        candidate: { mean: 0.9, hardPasses: 4, worstFamilyMean: 0.74 },
+      }),
+    ).toBe(false);
+    expect(
+      passesDevelopmentGate({
+        baseline: { mean: 0.9, hardPasses: 3, worstFamilyMean: 0.75 },
+        oneShot: comparators.oneShot,
+        candidate: { mean: 0.9, hardPasses: 4, worstFamilyMean: 0.8 },
       }),
     ).toBe(false);
   });
