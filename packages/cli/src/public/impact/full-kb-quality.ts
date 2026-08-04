@@ -88,6 +88,8 @@ function toExtractedEntity(entity: Record<string, unknown>): ExtractedEntity {
   if (severity !== undefined) extracted.severity = severity;
   const textRef = optionalStringField(entity, "text_ref");
   if (textRef !== undefined) extracted.text_ref = textRef;
+  const logicClaims = optionalStringArrayField(entity, "logic_claims");
+  if (logicClaims !== undefined) extracted.logic_claims = logicClaims;
   const granularityReason = optionalStringField(entity, "granularity_reason");
   if (granularityReason !== undefined) {
     extracted.granularity_reason = granularityReason;
@@ -118,9 +120,34 @@ function toExtractedEntity(entity: Record<string, unknown>): ExtractedEntity {
     factKind === "subject" ||
     factKind === "property_value" ||
     factKind === "observation" ||
-    factKind === "meta"
+    factKind === "meta" ||
+    factKind === "predicate_schema" ||
+    factKind === "predicate"
   ) {
     extracted.fact_kind = factKind;
+  }
+  const claimKey = optionalStringField(entity, "claim_key");
+  if (claimKey !== undefined) extracted.claim_key = claimKey;
+  const claimText = optionalStringField(entity, "claim_text");
+  if (claimText !== undefined) extracted.claim_text = claimText;
+  const predicateName = optionalStringField(entity, "predicate_name");
+  if (predicateName !== undefined) extracted.predicate_name = predicateName;
+  const predicateNamespace = optionalStringField(entity, "predicate_namespace");
+  if (predicateNamespace !== undefined) {
+    extracted.predicate_namespace = predicateNamespace;
+  }
+  const predicateArity = optionalNumberField(entity, "predicate_arity");
+  if (predicateArity !== undefined) extracted.predicate_arity = predicateArity;
+  for (const field of [
+    "argument_names",
+    "argument_types",
+    "argument_descriptions",
+    "aliases",
+    "examples",
+    "predicate_args",
+  ] as const) {
+    const values = optionalStringArrayField(entity, field);
+    if (values !== undefined) extracted[field] = values;
   }
   return extracted;
 }

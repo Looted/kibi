@@ -92,6 +92,8 @@ export function evaluatorManifest(
                   target: "held_out_matrix",
                 },
               ],
+              expectedGroundFactKinds: ["predicate"],
+              expectedLogicClaimCount: 1,
               privateRationale:
                 "Held-out matrix changes require a denied predicate.",
             }
@@ -104,6 +106,8 @@ export function evaluatorManifest(
               expectedEdges: [
                 { relationship: "relates_to", target: "review:ontology-gap" },
               ],
+              expectedGroundFactKinds: ["observation"],
+              expectedLogicClaimCount: 0,
               privateRationale:
                 "Unsupported claims remain ontology-gap observations.",
             },
@@ -153,11 +157,14 @@ export function predicateSnapshot(
         predicateName: "held_out_matrix",
         predicateArgs: ["terminal_matrix_id", "frozen_skillopt_candidate_hash"],
         polarity: "deny",
+        claimKey: "CLAIM-AAAAAAAAAAAAAAAA",
+        claimText: "The matrix must deny changed candidate bytes.",
       },
     ],
     relationships: [
       { relationship: "requires_predicate", target: "held_out_matrix" },
     ],
+    logicClaims: ["CLAIM-AAAAAAAAAAAAAAAA"],
     ...overrides,
   };
 }

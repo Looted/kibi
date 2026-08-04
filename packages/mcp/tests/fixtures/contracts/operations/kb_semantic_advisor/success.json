@@ -23,6 +23,13 @@
     "description": "Analyze requirement prose without mutating the KB and return semantic advisor receipts with modeling suggestions. Use before constructing kb_upsert payloads when prose may contain machine-checkable logic. Suggestions can include strict-property facts, predicate facts, ambiguity observations, or ontology-gap observations; all suggestions are advisory and reviewable.",
     "inputSchema": {
       "properties": {
+        "clauses": {
+          "description": "Optional complete list of atomic requirement clauses supplied by the caller. Use this for compound prose so every normative clause receives a stable claim key and independent grounding review.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "id": {
           "description": "Optional requirement ID used for deterministic draft relationship guidance.",
           "type": "string"

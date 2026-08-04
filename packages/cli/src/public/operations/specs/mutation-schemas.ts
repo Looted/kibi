@@ -9,6 +9,16 @@ export const ENTITY_TYPES = [
   "fact",
 ] as const;
 
+const CLAIM_PROVENANCE_CONDITIONAL = JSON.parse(`{
+  "if": {
+    "anyOf": [
+      { "required": ["claim_key"] },
+      { "required": ["claim_text"] }
+    ]
+  },
+  "then": { "required": ["claim_key", "claim_text"] }
+}`) as Record<string, unknown>;
+
 export const ENTITY_PROPERTIES_SCHEMA = {
   type: "object",
   description:
@@ -56,6 +66,14 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       type: "string",
       description:
         "Optional text anchor/reference. Example: 'requirements.md#L40'.",
+    },
+    logic_claims: {
+      type: "array",
+      minItems: 1,
+      uniqueItems: true,
+      items: { type: "string", pattern: "^CLAIM-[A-F0-9]{16}$" },
+      description:
+        "Requirement-only manifest of every atomic normative claim key returned by kb_semantic_advisor. A requirement is logic-complete only when every key is grounded by a linked property_value or predicate fact with the same claim_key.",
     },
     sourceFile: {
       type: "string",
@@ -172,6 +190,17 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       description:
         "Optional canonical identity key for predicate or strict fact claims.",
     },
+    claim_key: {
+      type: "string",
+      pattern: "^CLAIM-[A-F0-9]{16}$",
+      description:
+        "Stable semantic-advisor key for the atomic prose clause grounded by this fact.",
+    },
+    claim_text: {
+      type: "string",
+      description:
+        "Exact atomic requirement clause represented by this fact, retained for human audit.",
+    },
     predicate_name: {
       type: "string",
       description:
@@ -183,7 +212,42 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       description:
         "Optional ordered predicate arguments for ontology predicate facts. Prefer kb_suggest_predicates before hand-writing predicate_args.",
     },
+    predicate_namespace: {
+      type: "string",
+      description: "Optional namespace for a project-local predicate schema.",
+    },
+    predicate_arity: {
+      type: "integer",
+      minimum: 1,
+      description: "Required arity for predicate_schema facts.",
+    },
+    argument_names: {
+      type: "array",
+      items: { type: "string" },
+      description: "Ordered argument role names for predicate_schema facts.",
+    },
+    argument_types: {
+      type: "array",
+      items: { type: "string" },
+      description: "Ordered argument types for predicate_schema facts.",
+    },
+    argument_descriptions: {
+      type: "array",
+      items: { type: "string" },
+      description: "Optional ordered argument explanations.",
+    },
+    aliases: {
+      type: "array",
+      items: { type: "string" },
+      description: "Optional vocabulary aliases for predicate discovery.",
+    },
+    examples: {
+      type: "array",
+      items: { type: "string" },
+      description: "Optional ground-term examples for a predicate schema.",
+    },
   },
+  allOf: [CLAIM_PROVENANCE_CONDITIONAL],
   required: ["title", "status"],
 } as const;
 

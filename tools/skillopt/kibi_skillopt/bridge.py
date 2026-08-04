@@ -41,6 +41,7 @@ class OptimizerInput:
     previous_development: Mapping[str, JsonValue]
     step: int
     max_steps: int
+    public_evidence_summary: Mapping[str, JsonValue]
 
 
 def _json_text(value: JsonValue) -> str:
@@ -134,6 +135,7 @@ def build_optimizer_request(
             "trainTrajectories": [
                 trajectory.model_dump(by_alias=True, mode="json") for trajectory in trajectories
             ],
+            "publicEvidenceSummary": optimization.public_evidence_summary,
             "previousDevelopment": optimization.previous_development,
             "sourceLockHash": context.source_lock_hash,
             "corpusRoots": context.corpus_roots.model_dump(by_alias=True, mode="json"),

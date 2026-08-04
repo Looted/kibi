@@ -1,6 +1,53 @@
 import { z } from "zod";
 
 type JsonPrimitive = string | number | boolean | null;
+type JsonRecord = Record<string, unknown>;
+
+function hasRequiredProperties(value: JsonRecord, schema: unknown): boolean {
+  if (schema === null || typeof schema !== "object") return false;
+  const condition = schema as JsonRecord;
+  const required = Array.isArray(condition.required)
+    ? condition.required.filter(
+        (key): key is string => typeof key === "string" && key.length > 0,
+      )
+    : [];
+  if (
+    required.length > 0 &&
+    !required.every((key) => Object.hasOwn(value, key))
+  ) {
+    return false;
+  }
+  if (
+    Array.isArray(condition.anyOf) &&
+    !condition.anyOf.some((entry) => hasRequiredProperties(value, entry))
+  ) {
+    return false;
+  }
+  if (
+    Array.isArray(condition.allOf) &&
+    !condition.allOf.every((entry) => hasRequiredProperties(value, entry))
+  ) {
+    return false;
+  }
+  return true;
+}
+
+function conditionalRequiredKeys(
+  value: JsonRecord,
+  condition: unknown,
+): readonly string[] {
+  if (condition === null || typeof condition !== "object") return [];
+  const rule = condition as JsonRecord;
+  if (!("if" in rule) || !("then" in rule)) return [];
+  if (!hasRequiredProperties(value, rule.if)) return [];
+  if (rule.then === null || typeof rule.then !== "object") return [];
+  const required = (rule.then as JsonRecord).required;
+  return Array.isArray(required)
+    ? required.filter(
+        (key): key is string => typeof key === "string" && key.length > 0,
+      )
+    : [];
+}
 
 // implements REQ-002
 export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
@@ -68,7 +115,31 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
           : z.looseObject(shape);
       const description =
         typeof obj.description === "string" ? obj.description : undefined;
-      return description ? objectSchema.describe(description) : objectSchema;
+      let result: z.ZodTypeAny = description
+        ? objectSchema.describe(description)
+        : objectSchema;
+      if (Array.isArray(obj.allOf)) {
+        result = result
+          .superRefine((value, context) => {
+            if (value === null || typeof value !== "object") return;
+            for (const condition of obj.allOf as readonly unknown[]) {
+              for (const key of conditionalRequiredKeys(
+                value as JsonRecord,
+                condition,
+              )) {
+                if (!Object.hasOwn(value, key)) {
+                  context.addIssue({
+                    code: "custom",
+                    path: [key],
+                    message: `Required by conditional JSON Schema rule: ${key}`,
+                  });
+                }
+              }
+            }
+          })
+          .meta({ allOf: obj.allOf });
+      }
+      return result;
     }
     case "array": {
       const itemSchema = jsonSchemaToZod(obj.items);
@@ -81,7 +152,21 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
       if (typeof obj.maxItems === "number") {
         arraySchema = arraySchema.max(obj.maxItems);
       }
-      return description ? arraySchema.describe(description) : arraySchema;
+      let result: z.ZodTypeAny = description
+        ? arraySchema.describe(description)
+        : arraySchema;
+      if (obj.uniqueItems === true) {
+        result = result
+          .refine(
+            (values) =>
+              Array.isArray(values) &&
+              new Set(values.map((value) => JSON.stringify(value))).size ===
+                values.length,
+            { message: "Array items must be unique" },
+          )
+          .meta({ uniqueItems: true });
+      }
+      return result;
     }
     case "string": {
       let s = z.string();
@@ -92,6 +177,9 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
       }
       if (typeof obj.maxLength === "number") {
         s = s.max(obj.maxLength);
+      }
+      if (typeof obj.pattern === "string") {
+        s = s.regex(new RegExp(obj.pattern));
       }
       return description ? s.describe(description) : s;
     }

@@ -185,6 +185,8 @@ describe("SkillOpt workflow CLI", () => {
       "00000000-0000-4000-8000-000000000097",
       "--fixture-run-root",
       "/tmp/fixture-run",
+      "--seed-candidate",
+      "/tmp/candidate.md",
     ];
 
     // When
@@ -192,6 +194,7 @@ describe("SkillOpt workflow CLI", () => {
 
     // Then
     expect(options.cellRuntime).toEqual({ fixtureRunRoot: "/tmp/fixture-run" });
+    expect(options.seedCandidate).toBe("/tmp/candidate.md");
     expect(() =>
       parseWorkflowOptions([
         "--run-id",

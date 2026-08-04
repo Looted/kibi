@@ -152,7 +152,7 @@ function predicatePayload(
   index: number,
 ): FamilyPayload {
   const semanticCase = predicateCaseBySplitIndex(split, index);
-  const claimPrompt = `Model the following normative claim through the predicate-first Kibi workflow using only the public MCP surface. Claim: "${semanticCase.publicClaim.claimText}"`;
+  const claimPrompt = `Model the complete normative claim through Kibi's clause-complete logical workflow using only the public MCP surface. Claim: "${semanticCase.publicClaim.claimText}" Decompose every atomic obligation, preserve each advisor-issued claim key on its ground fact, and merge the complete logic_claims manifest; one correct fact is not sufficient for compound prose. Treat structured projectLocalSchemas in predicate-claim.json as approved ontology declarations; when a declared schema endpoint is absent, create that schema before its ground predicate fact. Relationship types remain graph edges, not predicate names.`;
   const objectiveByClass: Readonly<Record<PredicateSemanticClass, string>> = {
     builtin_relational: "model_predicate_builtin_relational",
     strict_scalar_counterexample: "model_predicate_strict_scalar",

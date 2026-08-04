@@ -55,6 +55,8 @@ export interface FactFields {
   valid_from?: string;
   valid_to?: string;
   canonical_key?: string;
+  claim_key?: string;
+  claim_text?: string;
   predicate_name?: string;
   predicate_namespace?: string;
   predicate_arity?: number;
@@ -71,7 +73,10 @@ export interface TestVerificationFields {
   verification_perspective?: "internal" | "consumer";
 }
 
-export type Requirement = BaseEntity & { type: "req" };
+export type Requirement = BaseEntity & {
+  type: "req";
+  logic_claims?: string[];
+};
 export type Scenario = BaseEntity & { type: "scenario" };
 export type TestEntity = BaseEntity & TestVerificationFields & { type: "test" };
 export type ADR = BaseEntity & { type: "adr" };

@@ -32,6 +32,7 @@ describe("kb_suggest_predicates", () => {
       source: "requirements/editor.md#L12",
       subjectHint: "editor.annotation",
       maxCandidates: 4,
+      existingLogicClaims: ["CLAIM-BBBBBBBBBBBBBBBB"],
     });
 
     const structured = result.structuredContent;
@@ -75,7 +76,12 @@ describe("kb_suggest_predicates", () => {
         from: "REQ-EDITOR-004",
         to: applyPlan[0]?.id,
       },
+      logicClaims: [
+        "CLAIM-BBBBBBBBBBBBBBBB",
+        expect.stringMatching(/^CLAIM-[A-F0-9]{16}$/),
+      ],
     });
+    expect(structured.logicClaims).toEqual(relationshipPlan?.logicClaims);
     expect(result.applyPlan).toEqual(applyPlan);
     expect(result.content[0]?.text).toContain("commit_action");
   });

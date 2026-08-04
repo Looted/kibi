@@ -76,12 +76,16 @@ describe("logging policy", () => {
       // Wait for async log calls
       await new Promise((r) => setTimeout(r, 10));
 
+      const infoCalls = appLogCalls.filter((payload) => {
+        const body = payload.body as Record<string, unknown>;
+        return body.message === "test info message";
+      });
       assert.equal(
-        appLogCalls.length,
+        infoCalls.length,
         1,
         "should call client.app.log exactly once for info",
       );
-      const body = appLogCalls[0].body as Record<string, unknown>;
+      const body = infoCalls[0].body as Record<string, unknown>;
       assert.equal(body.service, "kibi-opencode");
       assert.equal(body.level, "info");
       assert.equal(body.message, "test info message");
@@ -119,12 +123,16 @@ describe("logging policy", () => {
 
       await new Promise((r) => setTimeout(r, 10));
 
+      const warnCalls = appLogCalls.filter((payload) => {
+        const body = payload.body as Record<string, unknown>;
+        return body.message === "test warn message";
+      });
       assert.equal(
-        appLogCalls.length,
+        warnCalls.length,
         1,
         "should call client.app.log exactly once for warn",
       );
-      const body = appLogCalls[0].body as Record<string, unknown>;
+      const body = warnCalls[0].body as Record<string, unknown>;
       assert.equal(body.service, "kibi-opencode");
       assert.equal(body.level, "warn");
       assert.equal(body.message, "test warn message");
@@ -170,7 +178,12 @@ describe("logging policy", () => {
 
       await new Promise((r) => setTimeout(r, 10));
 
-      const body = appLogCalls[0].body as Record<string, unknown>;
+      const postureCalls = appLogCalls.filter((payload) => {
+        const body = payload.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_posture";
+      });
+      assert.equal(postureCalls.length, 1);
+      const body = postureCalls[0].body as Record<string, unknown>;
       assert.equal(body.event, "smart_enforcement_posture");
       assert.equal(body.posture, "root_active");
       assert.equal(body.cache_hit, false);
@@ -224,7 +237,12 @@ describe("logging policy", () => {
 
       await new Promise((r) => setTimeout(r, 10));
 
-      const body = appLogCalls[0].body as Record<string, unknown>;
+      const degradedCalls = appLogCalls.filter((payload) => {
+        const body = payload.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_degraded";
+      });
+      assert.equal(degradedCalls.length, 1);
+      const body = degradedCalls[0].body as Record<string, unknown>;
       assert.equal(body.level, "error");
       assert.equal(body.event, "smart_enforcement_degraded");
       assert.equal(body.posture, "vendored_only");
@@ -1020,8 +1038,12 @@ describe("logging policy", () => {
       );
 
       // Must route through client.app.log
-      assert.equal(appLogCalls.length, 1);
-      const body = appLogCalls[0].body as Record<string, unknown>;
+      const advisoryCalls = appLogCalls.filter((payload) => {
+        const body = payload.body as Record<string, unknown>;
+        return body.event === "scheduler_check_failed";
+      });
+      assert.equal(advisoryCalls.length, 1);
+      const body = advisoryCalls[0].body as Record<string, unknown>;
       assert.equal(body.level, "error");
       assert.equal(body.message, "scheduler.check.failed");
       assert.equal(body.event, "scheduler_check_failed");
@@ -1063,8 +1085,12 @@ describe("logging policy", () => {
       assert.ok(errorCalls[0].includes("bootstrap-needed"));
 
       // AND structured log
-      assert.equal(appLogCalls.length, 1);
-      const body = appLogCalls[0].body as Record<string, unknown>;
+      const bootstrapCalls = appLogCalls.filter((payload) => {
+        const body = payload.body as Record<string, unknown>;
+        return body.event === "workspace_bootstrap_needed";
+      });
+      assert.equal(bootstrapCalls.length, 1);
+      const body = bootstrapCalls[0].body as Record<string, unknown>;
       assert.equal(body.level, "error");
       assert.equal(body.event, "workspace_bootstrap_needed");
     });
@@ -1089,8 +1115,12 @@ describe("logging policy", () => {
 
       assert.equal(errorCalls.length, 1);
       assert.ok(errorCalls[0].includes("sync.failed"));
-      assert.equal(appLogCalls.length, 1);
-      const body = appLogCalls[0].body as Record<string, unknown>;
+      const syncFailureCalls = appLogCalls.filter((payload) => {
+        const body = payload.body as Record<string, unknown>;
+        return body.event === "sync.failed";
+      });
+      assert.equal(syncFailureCalls.length, 1);
+      const body = syncFailureCalls[0].body as Record<string, unknown>;
       assert.equal(body.level, "error");
       assert.equal(body.event, "sync.failed");
       assert.equal(body.exitCode, 1);

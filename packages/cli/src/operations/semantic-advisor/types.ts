@@ -8,6 +8,11 @@ export type SemanticAdvisorReadiness =
   | "modeled"
   | "needs_modeling"
   | "not_applicable";
+export type SemanticLogicCoverageStatus =
+  | "complete"
+  | "partial"
+  | "unverified"
+  | "not_applicable";
 export type SemanticSignalKind =
   | "normative_modal"
   | "numeric_cardinality"
@@ -52,6 +57,8 @@ export interface SemanticPredicateClaim {
 export type SemanticModelingSuggestion =
   | {
       readonly kind: "strict_property";
+      readonly claim_key: string;
+      readonly claim_text: string;
       readonly confidence: number;
       readonly evidence: string;
       readonly rationale: string;
@@ -62,6 +69,8 @@ export type SemanticModelingSuggestion =
     }
   | {
       readonly kind: "predicate";
+      readonly claim_key: string;
+      readonly claim_text: string;
       readonly confidence: number;
       readonly evidence: string;
       readonly rationale: string;
@@ -73,6 +82,8 @@ export type SemanticModelingSuggestion =
     }
   | {
       readonly kind: "ambiguity_observation";
+      readonly claim_key: string;
+      readonly claim_text: string;
       readonly confidence: number;
       readonly evidence: string;
       readonly rationale: string;
@@ -84,6 +95,8 @@ export type SemanticModelingSuggestion =
     }
   | {
       readonly kind: "ontology_gap";
+      readonly claim_key: string;
+      readonly claim_text: string;
       readonly confidence: number;
       readonly evidence: string;
       readonly rationale: string;
@@ -92,7 +105,7 @@ export type SemanticModelingSuggestion =
         readonly predicate_name: string;
         readonly argument_names: readonly string[];
         readonly argument_types: readonly string[];
-      };
+      } | null;
       readonly applyPlan: readonly Readonly<Record<string, unknown>>[];
     };
 
@@ -104,12 +117,28 @@ export interface SemanticAdvisorReceipt {
   readonly signals: readonly SemanticSignal[];
   readonly ambiguity_witnesses: readonly SemanticAmbiguityWitness[];
   readonly suggestions: readonly SemanticModelingSuggestion[];
+  readonly clauses: readonly {
+    readonly claim_key: string;
+    readonly text: string;
+    readonly index: number;
+    readonly normative: boolean;
+    readonly source: "detected" | "supplied";
+    readonly suggestion_indexes: readonly number[];
+  }[];
+  readonly logic_coverage: {
+    readonly status: SemanticLogicCoverageStatus;
+    readonly expected_claim_keys: readonly string[];
+    readonly declared_claim_keys: readonly string[];
+    readonly missing_claim_keys: readonly string[];
+    readonly unresolved_claim_keys: readonly string[];
+  };
   readonly suggested_next_tools: readonly string[];
   readonly summary: string;
 }
 
 export interface SemanticAdvisorInput {
   readonly payload: Readonly<Record<string, unknown>>;
+  readonly clauses?: readonly string[];
 }
 
 export interface SemanticAdvisorAnalysisResult {
@@ -119,6 +148,7 @@ export interface SemanticAdvisorAnalysisResult {
 
 export interface SemanticAdvisorArgs {
   readonly text: string;
+  readonly clauses?: readonly string[];
   readonly type?: string;
   readonly id?: string;
   readonly title?: string;

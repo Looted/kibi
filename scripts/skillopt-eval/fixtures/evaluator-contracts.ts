@@ -87,6 +87,10 @@ const PredicateExpectationSchema = z
         })
         .strict(),
     ),
+    expectedGroundFactKinds: z.array(
+      z.enum(["subject", "property_value", "predicate", "observation"]),
+    ),
+    expectedLogicClaimCount: z.number().int().nonnegative(),
     privateRationale: z.string().min(1),
   })
   .strict();

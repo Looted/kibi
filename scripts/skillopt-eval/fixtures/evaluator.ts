@@ -148,6 +148,8 @@ function buildPredicateExpectation(task: FixtureTaskSpec) {
     expectedPredicateArgs: expectation.expectedPredicateArgs,
     expectedPolarity: expectation.expectedPolarity,
     expectedEdges: [...expectation.expectedEdges],
+    expectedGroundFactKinds: [...expectation.expectedGroundFactKinds],
+    expectedLogicClaimCount: expectation.expectedLogicClaimCount,
     privateRationale: expectation.privateRationale,
   };
 }

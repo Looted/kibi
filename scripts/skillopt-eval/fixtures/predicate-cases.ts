@@ -37,6 +37,13 @@ export type ExpectedEdge = Readonly<{
   target: string;
 }>;
 
+export type PublicPredicateSchema = Readonly<{
+  id: string;
+  predicateName: string;
+  argumentNames: readonly string[];
+  argumentTypes: readonly string[];
+}>;
+
 export type PublicClaim = Readonly<{
   /** The normative claim prose an agent receives. Never contains the answer. */
   claimText: string;
@@ -44,9 +51,8 @@ export type PublicClaim = Readonly<{
   publicSchema: Readonly<{
     kind: "predicate-modeling-task";
     schemaVersion: string;
-    availableBuiltinPredicates: readonly string[];
     availableFactKinds: readonly string[];
-    projectLocalSchemas: readonly string[];
+    projectLocalSchemas: readonly PublicPredicateSchema[];
   }>;
 }>;
 
@@ -58,6 +64,14 @@ export type PrivateExpectation = Readonly<{
   expectedPredicateArgs: readonly string[] | null;
   expectedPolarity: "assert" | "deny" | null;
   expectedEdges: readonly ExpectedEdge[];
+  expectedGroundFactKinds: readonly (
+    | "subject"
+    | "property_value"
+    | "predicate"
+    | "observation"
+  )[];
+  /** Zero means the correct result remains explicitly unresolved. */
+  expectedLogicClaimCount: number;
   /** Short rationale kept private for the evaluator/verifier lane only. */
   privateRationale: string;
 }>;

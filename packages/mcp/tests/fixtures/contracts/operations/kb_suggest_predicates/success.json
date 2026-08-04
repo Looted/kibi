@@ -60,6 +60,15 @@
     "description": "Suggest ontology predicate schemas for prose requirements before agents write facts. Read-only guidance returns ranked candidates, a safe predicate-fact applyPlan, a separate requires_predicate relationshipPlan when a requirement ID is supplied, or an explicit ontology-gap observation when no predicate fits.",
     "inputSchema": {
       "properties": {
+        "existingLogicClaims": {
+          "description": "Existing requirement logic_claims values. Returned relationship guidance includes a merged manifest so repeated clause modeling does not discard earlier claims.",
+          "items": {
+            "pattern": "^CLAIM-[A-F0-9]{16}$",
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
         "includeExistingSchemas": {
           "default": true,
           "description": "Whether to include existing KB fact_kind=predicate_schema facts alongside Kibi's built-in predicate catalog. Default: true.",

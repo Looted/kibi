@@ -136,6 +136,65 @@ describe("assessStagedSymbolsManifest", () => {
     }
   });
 
+  it("ignores explicitly justified non-extracted symbols in freshness comparisons", () => {
+    writeFile(
+      tmpDir,
+      "src/app.ts",
+      `export function app() {\n  return "ok";\n}\n\nfunction privateHelper() {\n  return "private";\n}\n`,
+    );
+    writeFile(
+      tmpDir,
+      "documentation/symbols.yaml",
+      "symbols:\n  - id: SYM-app\n    title: app\n    sourceFile: src/app.ts\n  - id: SYM-private-helper\n    title: privateHelper\n    sourceFile: src/app.ts\n    granularity_reason: module-level-behavior\n",
+    );
+    writeFile(
+      tmpDir,
+      "documentation/symbol-coordinates.yaml",
+      "coordinates:\n  SYM-app:\n    sourceFile: src/app.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 3\n    sourceEndColumn: 1\n",
+    );
+    commitAll(tmpDir, "initial");
+
+    writeFile(
+      tmpDir,
+      "src/app.ts",
+      `\nexport function app() {\n  return "ok";\n}\n\nfunction privateHelper() {\n  return "private";\n}\n`,
+    );
+    writeFile(
+      tmpDir,
+      "documentation/symbol-coordinates.yaml",
+      "coordinates:\n  SYM-app:\n    sourceFile: src/app.ts\n    sourceLine: 2\n    sourceColumn: 16\n    sourceEndLine: 4\n    sourceEndColumn: 1\n",
+    );
+
+    const previousCwd = process.cwd();
+    process.chdir(tmpDir);
+    try {
+      const sourceFile = createSourceStagedFile(tmpDir);
+      const coordinatesFile: StagedFile = {
+        path: "documentation/symbol-coordinates.yaml",
+        status: "M",
+        hunkRanges: [],
+        content: readFileSync(
+          path.join(tmpDir, "documentation", "symbol-coordinates.yaml"),
+          "utf8",
+        ),
+      };
+
+      expect(
+        assessStagedSymbolsManifest({
+          symbolsManifestPath: "documentation/symbols.yaml",
+          sourceFiles: [sourceFile],
+          stagedFiles: [sourceFile, coordinatesFile],
+        }),
+      ).toEqual({
+        state: "fresh",
+        sourcePaths: ["src/app.ts"],
+        path: "documentation/symbol-coordinates.yaml",
+      });
+    } finally {
+      process.chdir(previousCwd);
+    }
+  });
+
   it("reports only authored symbol IDs whose staged manifest metadata changed", () => {
     writeFile(
       tmpDir,

@@ -134,6 +134,13 @@ export const RULES: readonly RuleDefinition[] = [
     category: "integrity",
   },
   {
+    name: "logic-coverage",
+    description:
+      "Require every explicitly declared atomic requirement claim to be grounded by a linked strict-property or predicate fact",
+    defaultEnabled: true,
+    category: "integrity",
+  },
+  {
     name: "query-plan-safety",
     description:
       "Detect Prolog validation clauses that place negation before generator calls",

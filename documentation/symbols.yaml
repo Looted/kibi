@@ -115,8 +115,57 @@ symbols:
     relationships:
       - type: implements
         target: REQ-mcp-semantic-advisor-preflight
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-extractSemanticClauses
+    title: extractSemanticClauses
+    sourceFile: packages/cli/src/operations/semantic-advisor/clauses.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-semanticClaimKey
+    title: semanticClaimKey
+    sourceFile: packages/cli/src/operations/semantic-advisor/clauses.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-core-check-logic-coverage
+    title: check_logic_coverage
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-core-contradicting-reqs
+    title: contradicting_reqs
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-core-validate-entity-shape
+    title: validate_entity_shape
+    sourceFile: packages/core/schema/validation.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-analyzeSourceText
     title: analyzeSourceText
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
@@ -1443,8 +1492,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-audit-quality-diagnostics-v1
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-cli-requirement-quality-diagnostics
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-cli-impact-createSemanticReviewDiagnostics
     title: createSemanticReviewDiagnostics
     sourceFile: packages/cli/src/public/impact/diagnostics.ts
@@ -1792,10 +1845,14 @@ symbols:
         target: REQ-core-persistence
       - type: implements
         target: REQ-audit-quality-diagnostics-v1
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-007
       - type: covered_by
         target: TEST-coverage-depth-labels
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-cli-persistRelationships
     title: persistRelationships
     sourceFile: packages/cli/src/commands/sync/persistence.ts
@@ -2030,8 +2087,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-validation-rules
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-004
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-cli-rule-registry-SymbolTraceabilityOptions
     title: SymbolTraceabilityOptions
     sourceFile: packages/cli/src/utils/rule-registry.ts
@@ -3950,8 +4011,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-executeUpsert
     title: executeUpsert
     sourceFile: packages/cli/src/operations/mutation/upsert.ts
@@ -4193,6 +4258,32 @@ symbols:
         target: REQ-skillopt-external-adoption-verdict
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
+  - id: SYM-formatUpsertError
+    title: formatUpsertError
+    sourceFile: packages/cli/src/operations/mutation/contradictions.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-buildUpsertTransaction
+    title: buildUpsertTransaction
+    sourceFile: packages/cli/src/operations/mutation/contradictions.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
   - id: SYM-formatInvalidRelationshipError
     title: formatInvalidRelationshipError
     sourceFile: packages/mcp/src/tools/relationship-validation.ts
@@ -5002,8 +5093,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-002
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-KB_RELATIONSHIP_TYPES
     title: KB_RELATIONSHIP_TYPES
     sourceFile: packages/vscode/src/shared/rdf-parser.ts
@@ -5625,8 +5720,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-extractors
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-markdown-ExtractedRelationship
     title: ExtractedRelationship
     sourceFile: packages/cli/src/extractors/markdown.ts
@@ -5643,8 +5742,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-extractors
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-markdown-extractFromMarkdownString
     title: extractFromMarkdownString
     sourceFile: packages/cli/src/extractors/markdown.ts
@@ -5652,8 +5755,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-extractors
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-markdown-ExtractionResult
     title: ExtractionResult
     sourceFile: packages/cli/src/extractors/markdown.ts
@@ -6113,6 +6220,26 @@ symbols:
         target: REQ-mcp-kb-freshness
       - type: covered_by
         target: TEST-mcp-kb-freshness
+  - id: SYM-mcp-session-tests
+    title: MCP session test suite
+    sourceFile: packages/mcp/tests/server/session.test.ts
+    symbol_role: test
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-005
+      - type: executable_for
+        target: TEST-009
+      - type: executable_for
+        target: TEST-mcp-kb-freshness
+  - id: SYM-mcp-tools-coverage-tests
+    title: MCP tools coverage test suite
+    sourceFile: packages/mcp/tests/server/tools-coverage.test.ts
+    symbol_role: test
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-operation-interface-parity
   - id: SYM-mcp-setupTransportHandlers
     title: setupTransportHandlers
     sourceFile: packages/mcp/src/server/transport.ts
@@ -6281,8 +6408,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-modeling-predicate-applyplan-buildGapApplyPlan
     title: buildGapApplyPlan
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
@@ -6290,8 +6421,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-mcp-suggest-predicates
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-modeling-predicate-applyplan-buildPredicateApplyPlan
     title: buildPredicateApplyPlan
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
@@ -6299,8 +6434,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-mcp-suggest-predicates
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-modeling-predicate-applyplan-buildRelationshipPlan
     title: buildRelationshipPlan
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
@@ -6308,8 +6447,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-mcp-suggest-predicates
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-modeling-predicate-inference-1-inferAuditEventRuleArgs
     title: inferAuditEventRuleArgs
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-1.ts
@@ -7047,8 +7190,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-mutation-entity-types-schema
     title: ENTITY_TYPES
     sourceFile: packages/cli/src/public/operations/specs/mutation-schemas.ts
@@ -8388,8 +8535,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-PrologOptions
     title: PrologOptions
     sourceFile: packages/cli/src/prolog.ts
@@ -9002,6 +9153,24 @@ symbols:
         target: REQ-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
+  - id: SYM-resolveWorkContext
+    title: resolveWorkContext
+    sourceFile: packages/opencode/src/work-context-resolver.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+  - id: SYM-opencode-work-context-resolver-tests
+    title: resolveWorkContext test suite
+    sourceFile: packages/opencode/tests/work-context-resolver.test.ts
+    symbol_role: test
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-opencode-kibi-plugin-v1
   - id: SYM-resolveWorkspaceRoot
     title: resolveWorkspaceRoot
     sourceFile: packages/vscode/src/activation/workspace.ts
@@ -9260,8 +9429,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-mcp-semantic-advisor-preflight
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-semantic-advisor-canonicalize
     title: canonicalize
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
@@ -9416,8 +9589,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-mcp-semantic-advisor-preflight
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-semantic-advisor-PRODUCT_PREDICATE_RULES
     title: PRODUCT_PREDICATE_RULES
     sourceFile: packages/cli/src/operations/semantic-advisor/predicate-rules-product.ts
@@ -9518,8 +9695,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-mcp-semantic-advisor-preflight
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-semantic-advisor-stringValue
     title: stringValue
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
@@ -9575,6 +9756,24 @@ symbols:
         target: REQ-mcp-semantic-advisor-preflight
       - type: covered_by
         target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-SemanticClause
+    title: SemanticClause
+    sourceFile: packages/cli/src/operations/semantic-advisor/clauses.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-SemanticLogicCoverageStatus
+    title: SemanticLogicCoverageStatus
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-SemanticAdvisorResult
     title: SemanticAdvisorResult
     sourceFile: packages/mcp/src/semantic-advisor/types.ts
@@ -12048,8 +12247,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-skillopt-predicate-first-requirements
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-skillopt-evaluator-authority-fixtures
     title: evaluator authority fixture helpers
     sourceFile: scripts/skillopt-eval/tests/fixtures/evaluator-authority-fixtures.ts
@@ -12058,6 +12261,35 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-predicate-first-requirements
+      - type: executable_for
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-skillopt-evaluator-manifest-fixture
+    title: evaluatorManifest
+    sourceFile: scripts/skillopt-eval/tests/fixtures/evaluator-authority-fixtures.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-predicate-first-requirements
+      - type: executable_for
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-skillopt-predicate-snapshot-fixture
+    title: predicateSnapshot
+    sourceFile: scripts/skillopt-eval/tests/fixtures/evaluator-authority-fixtures.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-predicate-first-requirements
+      - type: executable_for
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-skillopt-evaluator-evidence-fixture
+    title: evaluatorEvidence
+    sourceFile: scripts/skillopt-eval/tests/fixtures/evaluator-authority-fixtures.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-predicate-first-requirements
+      - type: executable_for
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-skillopt-evaluator-authority-tests
     title: evaluator authority
     sourceFile: scripts/skillopt-eval/tests/evaluator-authority.test.ts
@@ -13490,6 +13722,16 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-public-evidence-summary
+    title: PublicEvidenceSummary
+    sourceFile: scripts/skillopt-eval/optimize.ts
+    symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/optimize.ts#PublicEvidenceSummary
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-optimization-step
     title: OptimizationStep
     sourceFile: scripts/skillopt-eval/optimize.ts
@@ -13763,8 +14005,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-skillopt-predicate-first-requirements
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-skillopt-predicate-case-snapshot-type
     title: PredicateCaseSnapshot
     sourceFile: scripts/skillopt-eval/contracts/evidence.ts
@@ -13778,6 +14024,16 @@ symbols:
     title: PredicateCase
     sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
     symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
+      - type: covered_by
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-public-predicate-schema
+    title: PublicPredicateSchema
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    symbol_role: type-shape
+    text_ref: scripts/skillopt-eval/fixtures/predicate-cases.ts#PublicPredicateSchema
     relationships:
       - type: implements
         target: REQ-skillopt-predicate-first-requirements
@@ -14678,6 +14934,16 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-python-public-evidence-summary
+    title: PublicEvidenceSummary
+    sourceFile: tools/skillopt/kibi_skillopt/models.py
+    symbol_role: type-shape
+    text_ref: tools/skillopt/kibi_skillopt/models.py#PublicEvidenceSummary
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-python-env-adapter
     title: EnvAdapter
     sourceFile: tools/skillopt/kibi_skillopt/adapter.py
@@ -14956,6 +15222,17 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
+  - id: SYM-skillopt-load-seed-candidate
+    title: loadSeedCandidate
+    sourceFile: scripts/skillopt-eval/real-workflow.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    text_ref: scripts/skillopt-eval/real-workflow.ts#loadSeedCandidate
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-passes-development-gate
     title: passesDevelopmentGate
     sourceFile: scripts/skillopt-eval/real-workflow.ts
@@ -17103,8 +17380,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-SuggestPredicatesArgs
     title: SuggestPredicatesArgs
     sourceFile: packages/cli/src/operations/modeling/predicate-types.ts
@@ -17715,8 +17996,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
   - id: SYM-ValidateUpsertResult
     title: ValidateUpsertResult
     sourceFile: packages/mcp/src/tools/validate-upsert.ts

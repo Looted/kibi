@@ -45,6 +45,7 @@
     contradicting_reqs/3,
     check_req_contradiction/1,
     normalize_term_atom/2,
+    normalize_term_atom_list/2,
     changeset/4, % Export for testing
     kb_uri/1
 ]).
@@ -636,7 +637,7 @@ value_to_literal(Key, Value, Literal) :-
     ;   string(Value)
     ->  Literal = Value^^'http://www.w3.org/2001/XMLSchema#string'
     ;   is_list(Value)
-    ->  format(atom(ListStr), '~w', [Value]),
+    ->  with_output_to(atom(ListStr), write_term(Value, [quoted(true)])),
         Literal = ListStr^^'http://www.w3.org/2001/XMLSchema#string'
     ;   format(atom(Str), '~w', [Value]),
         Literal = Str^^'http://www.w3.org/2001/XMLSchema#string'
@@ -1005,6 +1006,26 @@ req_conflict(ReqA, ReqB, Reason) :-
     ;   property_conflict(SubjectKey, PropertyKey, OpA, ValTypeA, ValA, UnitA, PolarityA,
                           OpB, ValTypeB, ValB, UnitB, PolarityB, Reason)
     ).
+req_conflict(ReqA, ReqB, Reason) :-
+    effective_req_predicate(ReqA, FactA, Namespace, Name, Args, PolarityA),
+    effective_req_predicate(ReqB, FactB, Namespace, Name, Args, PolarityB),
+    FactA \= FactB,
+    opposite_predicate_polarity(PolarityA, PolarityB),
+    atomic_list_concat(Args, ',', ArgsText),
+    format(
+        string(Reason),
+        "Predicate conflict on ~w:~w(~w): ~w asserts ~w while ~w asserts ~w",
+        [Namespace, Name, ArgsText, ReqA, PolarityA, ReqB, PolarityB]
+    ).
+
+%% effective_req_predicate(+ReqId, -FactId, -Namespace, -Name, -Args, -Polarity)
+% Ground predicate claim required by a requirement.
+effective_req_predicate(ReqId, FactId, Namespace, Name, Args, Polarity) :-
+    kb_relationship(requires_predicate, ReqId, FactId),
+    predicate_fact(FactId, Namespace, Name, Args, Polarity).
+
+opposite_predicate_polarity(assert, deny).
+opposite_predicate_polarity(deny, assert).
 
 %% fact_subject_key(+FactId, -SubjectKey)
 % Extract the normalized subject key for strict subject facts.

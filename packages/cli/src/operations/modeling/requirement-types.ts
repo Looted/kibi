@@ -14,6 +14,8 @@ export type ModelRequirementArgs = Readonly<Record<string, unknown>> & {
   readonly operator?: SemanticClaim["operator"];
   readonly value?: string | number | boolean;
   readonly provenance?: string;
+  /** Existing requirement claim manifest. Returned req updates merge this list. */
+  readonly existingLogicClaims?: readonly string[];
 };
 
 // implements REQ-002
@@ -28,6 +30,8 @@ export interface ModelRequirementResult {
   content: Array<{ type: "text"; text: string }>;
   structuredContent: {
     statement: string;
+    claimKey: string;
+    logicClaims: string[];
     source: string;
     sourceFiles: string[];
     claim: SemanticClaim;

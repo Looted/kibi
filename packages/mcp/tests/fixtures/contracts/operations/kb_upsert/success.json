@@ -64,15 +64,76 @@
           "type": "string"
         },
         "properties": {
+          "allOf": [
+            {
+              "if": {
+                "anyOf": [
+                  {
+                    "required": ["claim_key"]
+                  },
+                  {
+                    "required": ["claim_text"]
+                  }
+                ]
+              },
+              "then": {
+                "required": ["claim_key", "claim_text"]
+              }
+            }
+          ],
           "description": "Entity fields to persist. Must include title and status. If created_at, updated_at, or source are omitted, server fills defaults.",
           "properties": {
+            "aliases": {
+              "description": "Optional vocabulary aliases for predicate discovery.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "argument_descriptions": {
+              "description": "Optional ordered argument explanations.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "argument_names": {
+              "description": "Ordered argument role names for predicate_schema facts.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "argument_types": {
+              "description": "Ordered argument types for predicate_schema facts.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
             "canonical_key": {
               "description": "Optional canonical identity key for predicate or strict fact claims.",
+              "type": "string"
+            },
+            "claim_key": {
+              "description": "Stable semantic-advisor key for the atomic prose clause grounded by this fact.",
+              "pattern": "^CLAIM-[A-F0-9]{16}$",
+              "type": "string"
+            },
+            "claim_text": {
+              "description": "Exact atomic requirement clause represented by this fact, retained for human audit.",
               "type": "string"
             },
             "closed_world": {
               "description": "Optional closed-world marker for strict fact interpretation.",
               "type": "boolean"
+            },
+            "examples": {
+              "description": "Optional ground-term examples for a predicate schema.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
             },
             "fact_kind": {
               "description": "Optional fact lane kind for fact entities. Strict lane uses 'subject' and 'property_value'; context lane uses 'observation' or 'meta'; ontology lane uses 'predicate_schema' or 'predicate'. Use kb_model_requirement or kb_suggest_predicates when starting from prose.",
@@ -103,6 +164,16 @@
               },
               "type": "array"
             },
+            "logic_claims": {
+              "description": "Requirement-only manifest of every atomic normative claim key returned by kb_semantic_advisor. A requirement is logic-complete only when every key is grounded by a linked property_value or predicate fact with the same claim_key.",
+              "items": {
+                "pattern": "^CLAIM-[A-F0-9]{16}$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
             "operator": {
               "description": "Optional comparison operator for property_value facts. Example: 'eq'.",
               "enum": ["eq", "neq", "lt", "lte", "gt", "gte"],
@@ -124,8 +195,17 @@
               },
               "type": "array"
             },
+            "predicate_arity": {
+              "description": "Required arity for predicate_schema facts.",
+              "minimum": 1,
+              "type": "integer"
+            },
             "predicate_name": {
               "description": "Optional predicate name for ontology predicate facts. Prefer kb_suggest_predicates before hand-writing predicate_name.",
+              "type": "string"
+            },
+            "predicate_namespace": {
+              "description": "Optional namespace for a project-local predicate schema.",
               "type": "string"
             },
             "priority": {

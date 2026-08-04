@@ -30,6 +30,8 @@ export type SuggestPredicatesArgs = Readonly<Record<string, unknown>> & {
   readonly maxCandidates?: number;
   readonly minScore?: number;
   readonly includeExistingSchemas?: boolean;
+  /** Existing requirement claim manifest. Relationship guidance merges this list. */
+  readonly existingLogicClaims?: readonly string[];
 };
 
 // implements REQ-mcp-suggest-predicates
@@ -51,6 +53,8 @@ export interface SuggestPredicatesResult {
   content: Array<{ type: "text"; text: string }>;
   structuredContent: {
     text: string;
+    claimKey: string;
+    logicClaims: string[];
     source: string | null;
     requirementId: string | null;
     subject: string;

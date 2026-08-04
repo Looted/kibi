@@ -44,9 +44,21 @@ const STRING_FIELDS = new Set([
   "valid_from",
   "valid_to",
   "canonical_key",
+  "claim_key",
+  "claim_text",
+  "predicate_name",
+  "predicate_namespace",
 ]);
-const NUMBER_FIELDS = new Set(["value_int", "value_number"]);
+const NUMBER_FIELDS = new Set(["value_int", "value_number", "predicate_arity"]);
 const BOOLEAN_FIELDS = new Set(["value_bool", "closed_world"]);
+const STRING_ARRAY_FIELDS = new Set([
+  "argument_names",
+  "argument_types",
+  "argument_descriptions",
+  "aliases",
+  "examples",
+  "predicate_args",
+]);
 
 function getEntityField(entity: ExtractedEntity, field: string): unknown {
   // ExtractedEntity declares all fact fields as optional properties, so indexing
@@ -90,6 +102,15 @@ function serializeTypedFactFields(entity: ExtractedEntity): string[] {
     const value = getEntityField(entity, field);
     if (value !== undefined && value !== null && typeof value === "boolean") {
       fields.push(`${field}=${value}`);
+    }
+  }
+
+  for (const field of STRING_ARRAY_FIELDS) {
+    const value = getEntityField(entity, field);
+    if (Array.isArray(value)) {
+      fields.push(
+        `${field}=[${value.map((item) => toPrologString(String(item))).join(",")}]`,
+      );
     }
   }
 
@@ -184,6 +205,11 @@ export async function persistEntities(
         props.push(`severity=${toPrologAtom(entity.severity)}`);
       if (entity.text_ref)
         props.push(`text_ref=${toPrologString(entity.text_ref)}`);
+      if (entity.type === "req" && entity.logic_claims) {
+        props.push(
+          `logic_claims=[${entity.logic_claims.map(toPrologAtom).join(",")}]`,
+        );
+      }
       if (sourceFile) props.push(`sourceFile=${toPrologString(sourceFile)}`);
 
       // Add typed fact fields for fact entities

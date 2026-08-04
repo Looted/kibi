@@ -46,6 +46,32 @@ const TrajectorySchema = z
     finalStateSummary: z.string().max(20_000).default("{}"),
   })
   .strict();
+const PublicEvidenceSummarySchema = z
+  .object({
+    attempts: z.number().int().positive(),
+    hardPasses: z.number().int().nonnegative(),
+    families: z
+      .array(
+        z
+          .object({
+            family: z.string().min(1),
+            attempts: z.number().int().positive(),
+            hardPasses: z.number().int().nonnegative(),
+            meanSoft: z.number().min(0).max(1),
+            failureCounts: z.array(
+              z
+                .object({
+                  category: z.string().min(1),
+                  count: z.number().int().positive(),
+                })
+                .strict(),
+            ),
+          })
+          .strict(),
+      )
+      .min(1),
+  })
+  .strict();
 const OptimizerRequestSchema = z
   .object({
     schemaVersion: z.literal("1.0.0"),
@@ -56,6 +82,7 @@ const OptimizerRequestSchema = z
     maxSteps: z.number().int().min(1).max(4),
     currentBody: z.string().min(1).max(100_000),
     trainTrajectories: z.array(TrajectorySchema).min(1).max(8),
+    publicEvidenceSummary: PublicEvidenceSummarySchema,
     previousDevelopment: DevelopmentGateSchema,
     sourceLockHash: Sha256Schema,
     corpusRoots: CorpusRootsSchema,
@@ -97,6 +124,7 @@ const result = process.argv.includes("--fake")
         maxSteps: request.maxSteps,
         currentBody: request.currentBody,
         trainTrajectories: request.trainTrajectories,
+        publicEvidenceSummary: request.publicEvidenceSummary,
         previousDevelopment: request.previousDevelopment,
       },
       env: process.env,

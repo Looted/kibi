@@ -29,6 +29,7 @@ entity_property(_, severity, atom).
 entity_property(_, links, list).
 entity_property(_, text_ref, uri).
 entity_property(_, sourceFile, uri).
+entity_property(req, logic_claims, list).
 
 % Typed fact fields - only valid for fact entities
 entity_property(fact, fact_kind, atom).
@@ -47,6 +48,8 @@ entity_property(fact, closed_world, boolean).
 entity_property(fact, valid_from, datetime).
 entity_property(fact, valid_to, datetime).
 entity_property(fact, canonical_key, string).
+entity_property(fact, claim_key, string).
+entity_property(fact, claim_text, string).
 entity_property(fact, predicate_name, string).
 entity_property(fact, predicate_namespace, string).
 entity_property(fact, predicate_arity, integer).
@@ -80,6 +83,7 @@ optional_property(Type, priority) :- entity_type(Type).
 optional_property(Type, severity) :- entity_type(Type).
 optional_property(Type, links) :- entity_type(Type).
 optional_property(Type, text_ref) :- entity_type(Type).
+optional_property(req, logic_claims).
 optional_property(test, verification_scope).
 optional_property(test, verification_perspective).
 

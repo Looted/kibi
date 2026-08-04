@@ -103,6 +103,12 @@ describe("rule-registry constants", () => {
     expect(RULE_NAMES.has("predicate-verifiability")).toBe(true);
   });
 
+  test("logic-coverage rule exists and is enabled for declared manifests by default", () => {
+    const rule = RULES.find((candidate) => candidate.name === "logic-coverage");
+    expect(rule).toBeDefined();
+    expect(rule?.defaultEnabled).toBe(true);
+  });
+
   test("query-plan-safety rule exists and is enabled by default", () => {
     const rule = RULES.find((r) => r.name === "query-plan-safety");
     expect(rule).toBeDefined();

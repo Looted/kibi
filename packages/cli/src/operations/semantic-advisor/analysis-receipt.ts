@@ -1,4 +1,5 @@
-import { type Payload, payloadHash } from "./shared.js";
+import type { SemanticClause } from "./clauses.js";
+import { type Payload, payloadHash, propertiesOf } from "./shared.js";
 import type {
   SemanticAdvisorAnalysisResult,
   SemanticAdvisorLane,
@@ -35,7 +36,7 @@ function summary(
   lane: SemanticAdvisorLane,
 ): string {
   if (readiness === "modeled")
-    return "Requirement already links to strict or predicate facts; semantic advisor has no repair warning.";
+    return "Requirement declares every detected atomic claim and has logical fact links; run kb_check logic-coverage to verify each manifest entry is grounded.";
   if (readiness === "not_applicable")
     return "No strong machine-checkable requirement signals were detected.";
   if (lane === "strict_property")
@@ -51,6 +52,7 @@ export function buildAdvisorResult(
   signals: readonly SemanticSignal[],
   modeled: boolean,
   suggestions: readonly SemanticModelingSuggestion[],
+  clauses: readonly SemanticClause[],
 ): SemanticAdvisorAnalysisResult {
   const suggestionLane = suggestions.some(
     ({ kind }) => kind === "strict_property",
@@ -76,6 +78,33 @@ export function buildAdvisorResult(
         : candidateLane === "observation_review"
           ? ["kb_model_requirement", "kb_suggest_predicates"]
           : [];
+  const expectedClaimKeys = clauses
+    .filter((clause) => clause.normative)
+    .map((clause) => clause.claim_key);
+  const rawDeclaredClaimKeys = propertiesOf(payload).logic_claims;
+  const declaredClaimKeys = Array.isArray(rawDeclaredClaimKeys)
+    ? rawDeclaredClaimKeys.filter(
+        (value: unknown): value is string => typeof value === "string",
+      )
+    : [];
+  const missingClaimKeys = expectedClaimKeys.filter(
+    (claimKey) => !declaredClaimKeys.includes(claimKey),
+  );
+  const unresolvedClaimKeys = suggestions
+    .filter(
+      (suggestion) =>
+        suggestion.kind === "ambiguity_observation" ||
+        suggestion.kind === "ontology_gap",
+    )
+    .map((suggestion) => suggestion.claim_key);
+  const coverageStatus =
+    expectedClaimKeys.length === 0
+      ? "not_applicable"
+      : declaredClaimKeys.length === 0
+        ? "unverified"
+        : missingClaimKeys.length > 0 || unresolvedClaimKeys.length > 0
+          ? "partial"
+          : "complete";
   const receipt: SemanticAdvisorReceipt = {
     version: "semantic-advisor-v1",
     payload_hash: payloadHash(payload),
@@ -100,6 +129,19 @@ export function buildAdvisorResult(
               "Numeric cardinality prose can mean an exact count, an upper/lower bound, named membership, or an example; model it explicitly before relying on contradiction checks.",
           })),
     suggestions,
+    clauses: clauses.map((clause) => ({
+      ...clause,
+      suggestion_indexes: suggestions.flatMap((suggestion, index) =>
+        suggestion.claim_key === clause.claim_key ? [index] : [],
+      ),
+    })),
+    logic_coverage: {
+      status: coverageStatus,
+      expected_claim_keys: expectedClaimKeys,
+      declared_claim_keys: declaredClaimKeys,
+      missing_claim_keys: missingClaimKeys,
+      unresolved_claim_keys: unresolvedClaimKeys,
+    },
     suggested_next_tools: tools,
     summary: summary(readiness, candidateLane),
   };

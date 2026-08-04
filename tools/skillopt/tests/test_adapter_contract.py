@@ -271,6 +271,24 @@ class AdapterContractTests(unittest.TestCase):
                 optimize.call_args.kwargs["trajectories"][0]["finalStateSummary"],
                 '{"entities":[]}',
             )
+            self.assertEqual(
+                optimize.call_args.kwargs["public_evidence_summary"],
+                {
+                    "attempts": 1,
+                    "hardPasses": 0,
+                    "families": [
+                        {
+                            "family": "predicate",
+                            "attempts": 1,
+                            "hardPasses": 0,
+                            "meanSoft": 0.25,
+                            "failureCounts": [
+                                {"category": "predicate_missing", "count": 1}
+                            ],
+                        }
+                    ],
+                },
+            )
 
     def test_held_out_ids_never_enter_optimizer_input(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

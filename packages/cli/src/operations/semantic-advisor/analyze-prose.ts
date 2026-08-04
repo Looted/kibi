@@ -1,4 +1,5 @@
 import { buildAdvisorResult } from "./analysis-receipt.js";
+import { type SemanticClause, extractSemanticClauses } from "./clauses.js";
 import { observationPlan } from "./observation-plan.js";
 import { detectPredicateRules } from "./predicate-rule.js";
 import { CORE_PREDICATE_RULES } from "./predicate-rules-core.js";
@@ -23,6 +24,7 @@ import type {
 } from "./types.js";
 
 export const SEMANTIC_ADVISOR_VERSION = "semantic-advisor-v1";
+export { semanticClaimKey } from "./clauses.js";
 
 type SignalPattern = {
   readonly kind: SemanticSignalKind;
@@ -134,6 +136,8 @@ function ambiguitySuggestion(
     return null;
   return {
     kind: "ambiguity_observation",
+    claim_key: "",
+    claim_text: statement,
     confidence: 0.78,
     evidence: `${match.groups.value} ${match.groups.resource}`,
     rationale:
@@ -157,6 +161,8 @@ function ontologyGapSuggestion(
   if (!match?.groups) return null;
   return {
     kind: "ontology_gap",
+    claim_key: "",
+    claim_text: statement,
     confidence: 0.82,
     evidence: match[0],
     rationale:
@@ -190,32 +196,37 @@ function predicateSuggestion(
 function modelingSuggestions(
   payload: Payload,
   modeled: boolean,
+  clauses: readonly SemanticClause[],
 ): readonly SemanticModelingSuggestion[] {
   if (!isRequirement(payload) || modeled) return [];
-  const statement = statementOf(payload);
-  if (!statement) return [];
-  const whole = statement.trim().replace(/[.]+$/g, "");
-  const split = statement
-    .split(
-      /\s+and\s+(?=[a-z][a-z\s_-]*(?:expire|must|shall|should|default|transition|states?\s+are))/i,
-    )
-    .map((part) => part.trim().replace(/[.]+$/g, ""))
-    .filter(Boolean);
-  const statements = Array.from(
-    new Set(
-      /\bmutually\s+exclusive\b/i.test(statement) ? [whole, ...split] : split,
-    ),
-  );
   const suggestions: SemanticModelingSuggestion[] = [];
   const seen = new Set<string>();
-  for (const candidate of statements) {
-    const suggestion =
+  const expectedClaimKeys = clauses
+    .filter((clause) => clause.normative)
+    .map((clause) => clause.claim_key);
+  const rawDeclaredClaimKeys = propertiesOf(payload).logic_claims;
+  const declaredClaimKeys = Array.isArray(rawDeclaredClaimKeys)
+    ? rawDeclaredClaimKeys.filter(
+        (value: unknown): value is string => typeof value === "string",
+      )
+    : [];
+  const mergedClaimKeys = Array.from(
+    new Set([...declaredClaimKeys, ...expectedClaimKeys]),
+  );
+  for (const clause of clauses) {
+    const candidate = clause.text;
+    const rawSuggestion =
       predicateSuggestion(payload, candidate) ??
       ontologyGapSuggestion(payload, candidate) ??
       ambiguitySuggestion(payload, candidate) ??
       detectStrictSuggestion(payload, candidate);
+    const suggestion = rawSuggestion
+      ? withClauseProvenance(rawSuggestion, clause, mergedClaimKeys)
+      : clause.normative
+        ? unmatchedClauseSuggestion(payload, clause, mergedClaimKeys)
+        : null;
     if (!suggestion) continue;
-    const key = `${suggestion.kind}:${suggestion.evidence}:${suggestion.suggested_next_tool}`;
+    const key = `${suggestion.claim_key}:${suggestion.kind}:${suggestion.evidence}:${suggestion.suggested_next_tool}`;
     if (!seen.has(key)) {
       seen.add(key);
       suggestions.push(suggestion);
@@ -224,13 +235,111 @@ function modelingSuggestions(
   return suggestions;
 }
 
+function withClauseProvenance(
+  suggestion: SemanticModelingSuggestion,
+  clause: SemanticClause,
+  expectedClaimKeys: readonly string[],
+): SemanticModelingSuggestion {
+  const applyPlan = suggestion.applyPlan.map((step) => {
+    if (!isRecord(step)) return step;
+    const properties = isRecord(step.properties) ? step.properties : null;
+    if (properties === null) return step;
+    if (step.type === "req") {
+      const existing = Array.isArray(properties.logic_claims)
+        ? properties.logic_claims.filter(
+            (value): value is string => typeof value === "string",
+          )
+        : [];
+      return {
+        ...step,
+        properties: {
+          ...properties,
+          logic_claims: Array.from(
+            new Set([...existing, ...expectedClaimKeys]),
+          ),
+        },
+      };
+    }
+    if (step.type !== "fact") return step;
+    return {
+      ...step,
+      properties: {
+        ...properties,
+        claim_key: clause.claim_key,
+        claim_text: clause.text,
+      },
+    };
+  });
+  return {
+    ...suggestion,
+    claim_key: clause.claim_key,
+    claim_text: clause.text,
+    applyPlan,
+    ...(suggestion.kind === "predicate" && suggestion.relationshipPlan !== null
+      ? {
+          relationshipPlan: {
+            ...suggestion.relationshipPlan,
+            claimKey: clause.claim_key,
+            claimText: clause.text,
+            logicClaims: expectedClaimKeys,
+            instructions:
+              "Create the predicate fact, merge the returned logicClaims into the requirement logic_claims manifest, then add requires_predicate without overwriting other requirement metadata.",
+          },
+        }
+      : {}),
+  };
+}
+
+function unmatchedClauseSuggestion(
+  payload: Payload,
+  clause: SemanticClause,
+  expectedClaimKeys: readonly string[],
+): SemanticModelingSuggestion {
+  return withClauseProvenance(
+    {
+      kind: "ontology_gap",
+      claim_key: clause.claim_key,
+      claim_text: clause.text,
+      confidence: 0.6,
+      evidence: clause.text,
+      rationale:
+        "This normative clause has no deterministic strict-property or declared predicate grounding. Define its domain terms and predicate signature explicitly before grounding it; keep it unresolved instead of treating prose as logic-complete.",
+      suggested_next_tool: "kb_suggest_predicates",
+      recommendedPredicateSchema: null,
+      applyPlan: observationPlan(payload, "Ontology gap: ungrounded clause", [
+        "semantic-advisor-suggestion",
+        "review:ontology-gap",
+        "needs_schema_extension",
+      ]),
+    },
+    clause,
+    expectedClaimKeys,
+  );
+}
+
 export function analyzeSemanticAdvisorInput(
   input: SemanticAdvisorInput,
 ): SemanticAdvisorAnalysisResult {
   const payload = input.payload;
   const requirement = isRequirement(payload);
   const signals = requirement ? detectSignals(proseOf(payload)) : [];
-  const modeled = requirement && isModeled(payload);
-  const suggestions = modelingSuggestions(payload, modeled);
-  return buildAdvisorResult(payload, signals, modeled, suggestions);
+  const clauses = requirement
+    ? extractSemanticClauses(statementOf(payload), input.clauses)
+    : [];
+  const rawDeclaredClaims = propertiesOf(payload).logic_claims;
+  const declaredClaims = Array.isArray(rawDeclaredClaims)
+    ? rawDeclaredClaims.filter(
+        (value: unknown): value is string => typeof value === "string",
+      )
+    : [];
+  const expectedClaims = clauses
+    .filter((clause) => clause.normative)
+    .map((clause) => clause.claim_key);
+  const modeled =
+    requirement &&
+    isModeled(payload) &&
+    expectedClaims.length > 0 &&
+    expectedClaims.every((claimKey) => declaredClaims.includes(claimKey));
+  const suggestions = modelingSuggestions(payload, modeled, clauses);
+  return buildAdvisorResult(payload, signals, modeled, suggestions, clauses);
 }

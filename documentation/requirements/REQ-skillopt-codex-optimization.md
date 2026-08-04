@@ -3,10 +3,10 @@ id: REQ-skillopt-codex-optimization
 title: SkillOpt optimization must use Codex-only behavioral evidence
 status: open
 created_at: 2026-07-21T00:00:00Z
-updated_at: 2026-08-03T00:00:00Z
+updated_at: 2026-08-04T00:00:00Z
 source: documentation/facts/FACT-skillopt-methodology.md
 priority: must
-tags: [skillopt, codex, evaluation, security]
+tags: [skillopt, codex, evaluation, security, umbrella]
 links:
   - type: specified_by
     target: SCEN-skillopt-codex-optimization
@@ -23,6 +23,10 @@ Target cells must use `gpt-5.4-mini` at low effort. One-shot and iterative optim
 Optimizer candidate capture must use Codex's dedicated final-message artifact, never the first `agent_message` in the JSONL progress stream. Before any candidate evaluation cell launches, the captured body must pass body-only safety validation, retain the required non-installing CLI and direct-`.kb` prohibition text, retain the core Kibi discovery/mutation/check operations, and have enough substantive content to be a complete replacement rather than a progress note. Every accepted one-shot and iterative optimizer result must be copied out of the ephemeral runtime into its run artifact tree before cleanup so paid optimization work remains available for seeding, audit, and recovery.
 
 Behavioral failures must preserve their earned 60/25/15 score for optimizer feedback while infrastructure, interruption, budget, evidence-conflict, and critical-security failures remain zero. Reflection must receive structured public status, score, failure categories, model-originated Kibi tool sequence, and final-state evidence, and must produce reusable procedural guidance without copying raw evidence into the skill.
+
+Optimizer output must remain portable across consuming repositories. It may not copy Kibi's own branch names, package manager commands, release scripts, changeset policy, merge flow, publishing policy, evaluator task IDs, or trajectory payloads into the reusable skill. Predicate-first optimization must distinguish graph relationships from ontology predicate schemas and include actionable prose-to-ground-predicate guidance covering schema name and arity, ordered arguments, canonical key, polarity, strict-scalar routing, and observation/ontology-gap fallbacks. Each optimizer round receives a compact cumulative public failure summary so recurring family failures are not forgotten when the latest stochastic rollout differs.
+
+An operator may explicitly seed a new paid run from a preserved candidate body. The seed must pass ordinary candidate safety validation, bind to the current immutable frontmatter and resource hashes, be recorded by hash and byte length in the new run, and become the trainer's initial skill without replacing the canonical baseline or one-shot comparators.
 
 Baseline and one-shot must both be scored on development before training, the stronger result must seed the trainer, and a frozen candidate may enter held-out only if it strictly improves mean without regressing hard passes or worst-family mean. A development miss must emit a blocked `development_gate_ineligible` review with held-out `not-run`. The complete 36-cell predicate supplement remains required for integrity, but only SkillOpt predicate cells determine the supplemental behavioral predicate pass; comparator misses remain paired calibration evidence.
 

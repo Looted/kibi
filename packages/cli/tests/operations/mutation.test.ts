@@ -73,6 +73,44 @@ describe("shared mutation operation specs", () => {
     expect(save).not.toHaveBeenCalled();
   });
 
+  test("validate-upsert rejects logical claim provenance with a mismatched stable key", async () => {
+    const { context, query, save } = createContext(() => ({
+      success: false,
+      bindings: {},
+    }));
+
+    const result = await validateUpsertSpec.execute(
+      {
+        type: "fact",
+        id: "FACT-MISMATCHED-CLAIM",
+        properties: {
+          title: "Mismatched claim",
+          status: "active",
+          source: "test://mutation/claim",
+          fact_kind: "predicate",
+          predicate_name: "dependency_rule",
+          predicate_args: ["checkout", "payment", "submission"],
+          canonical_key: "dependency_rule(checkout,payment,submission)",
+          polarity: "assert",
+          claim_key: "CLAIM-AAAAAAAAAAAAAAAA",
+          claim_text: "Checkout requires payment before submission.",
+        },
+      },
+      context,
+    );
+
+    expect(result.structuredContent).toMatchObject({
+      valid: false,
+      errors: [
+        expect.stringContaining(
+          "claim_key must equal the stable key derived from claim_text",
+        ),
+      ],
+    });
+    expect(query).not.toHaveBeenCalled();
+    expect(save).not.toHaveBeenCalled();
+  });
+
   test("upsert persists through the Prolog save port after one atomic write", async () => {
     // Given
     const { context, query, save } = createContext(

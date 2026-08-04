@@ -19,10 +19,12 @@ export type OptimizeLayout = Readonly<{
 export type ParsedOperatorArgs = Readonly<{
   command: OperatorCommand;
   maxSteps: number;
+  seedCandidate?: string;
 }>;
 
 export type OperatorRunOptions = Readonly<{
   maxSteps?: number;
+  seedCandidate?: string;
 }>;
 
 export class OperatorUsageError extends Error {
@@ -236,33 +238,42 @@ export function parseOperatorArgs(args: readonly string[]): ParsedOperatorArgs {
   const command = args[0];
   if (command !== "smoke" && command !== "optimize") {
     throw new OperatorUsageError(
-      "Usage: bun run scripts/skillopt-eval/operator.ts <smoke|optimize> [--max-steps 1..4]",
+      "Usage: bun run scripts/skillopt-eval/operator.ts <smoke|optimize> [--max-steps 1..4] [--seed-candidate PATH]",
     );
   }
   let maxSteps = 1;
+  let seedCandidate: string | undefined;
   for (let index = 1; index < args.length; index += 1) {
     const arg = args[index];
-    if (arg === "--max-steps") {
+    if (arg === "--max-steps" || arg === "--seed-candidate") {
       if (command !== "optimize") {
-        throw new OperatorUsageError("--max-steps is only valid for optimize");
+        throw new OperatorUsageError(`${arg} is only valid for optimize`);
       }
       const value = args[index + 1];
       if (value === undefined || value.startsWith("--")) {
-        throw new OperatorUsageError("--max-steps requires a value");
+        throw new OperatorUsageError(`${arg} requires a value`);
       }
-      const parsed = Number(value);
-      if (!Number.isInteger(parsed) || parsed < 1 || parsed > 4) {
-        throw new OperatorUsageError(
-          "--max-steps must be an integer from 1 to 4",
-        );
+      if (arg === "--seed-candidate") {
+        seedCandidate = value;
+      } else {
+        const parsed = Number(value);
+        if (!Number.isInteger(parsed) || parsed < 1 || parsed > 4) {
+          throw new OperatorUsageError(
+            "--max-steps must be an integer from 1 to 4",
+          );
+        }
+        maxSteps = parsed;
       }
-      maxSteps = parsed;
       index += 1;
       continue;
     }
     throw new OperatorUsageError(`Unknown operator option: ${arg}`);
   }
-  return { command, maxSteps };
+  return {
+    command,
+    maxSteps,
+    ...(seedCandidate === undefined ? {} : { seedCandidate }),
+  };
 }
 
 // implements REQ-skillopt-codex-optimization
@@ -304,6 +315,9 @@ export async function runOperatorCommand(
     layout.fixtureRunRoot,
     "--max-steps",
     String(maxSteps),
+    ...(options.seedCandidate === undefined
+      ? []
+      : ["--seed-candidate", resolve(dependencies.cwd, options.seedCandidate)]),
   ]);
 }
 
@@ -324,6 +338,9 @@ export async function main(
   try {
     return await runOperatorCommand(parsed.command, dependencies, {
       maxSteps: parsed.maxSteps,
+      ...(parsed.seedCandidate === undefined
+        ? {}
+        : { seedCandidate: parsed.seedCandidate }),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

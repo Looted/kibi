@@ -93,6 +93,7 @@ This section provides guidance on selecting the appropriate entity type for your
 | severity     | No       | string         | Severity level                                   |
 | links[]      | No       | array[string]  | URLs or entity IDs (for relationships)           |
 | text_ref     | No       | string         | Markdown/doc pointer                             |
+| logic_claims | No       | array[string]  | Requirement-only manifest of stable atomic claim keys |
 
 **Canonical Example: REQ + SCEN + TEST (Golden Path)**
 
@@ -171,6 +172,10 @@ relationship:
 > **Rule:** Never embed scenarios or tests inside requirement records. Always create separate files for each entity and link them with explicit typed `links` entries or relationship rows (`specified_by`, `verified_by`). Plain string `links` are generic `relates_to` only.
 
 **Strict Fact Modeling (Normative Lane):**
+
+- Preserve readable requirement prose, but decompose the entire normative body into atomic clauses with `kb_semantic_advisor`.
+- Store all returned normative keys in the requirement `logic_claims` manifest. Each linked ground `property_value` or `predicate` fact must preserve the corresponding `claim_key` and `claim_text` pair.
+- `logic-coverage` checks manifest-to-ground-fact correspondence and is enabled by default. Requirements without manifests remain a gradual-backfill case; quality diagnostics identify every current requirement with this debt, while the default rule prevents explicitly modeled manifests from drifting.
 
 - New contradiction-sensitive requirements should use the strict fact lane:
   - one `fact_kind: subject` fact linked via `constrains`
@@ -482,11 +487,11 @@ Facts support two authoring lanes:
   - `meta`
 - **Ontology lane** for project-local predicate modeling
   - `predicate_schema`: defines an allowed predicate signature; requires `predicate_name`, `predicate_arity`, `argument_names`, and `argument_types`
-  - `predicate`: stores a ground predicate claim; requires `predicate_name`, non-empty `predicate_args`, and `canonical_key`; may use `polarity: assert` or `deny`
+  - `predicate`: stores a ground predicate claim; requires `predicate_name`, non-empty `predicate_args`, and `canonical_key`; may use `polarity: assert` or `deny`; logical coverage also uses the paired `claim_key` and `claim_text` provenance fields
 
 Legacy prose facts without `fact_kind` remain readable during migration, but new requirements should prefer the strict lane when the fact expresses a rule that should block contradictions.
 
-`fact` entities represent atomic domain concepts and invariants (for example domain nouns, cardinalities, property values, and ontology predicates). Requirements can link to strict facts using `constrains` and `requires_property`, or to ontology predicate facts using `requires_predicate`, so domain claims become structural and queryable.
+`fact` entities represent atomic domain concepts and invariants (for example domain nouns, cardinalities, property values, and ontology predicates). Requirements can link to strict facts using `constrains` and `requires_property`, or to ontology predicate facts using `requires_predicate`, so domain claims become structural and queryable. When either `claim_key` or `claim_text` is supplied, both are required.
 
 **Migration note:** `predicate_schema`, `predicate`, and `requires_predicate` are additive. Existing KB documents do not require a data migration, and legacy prose facts remain readable. Projects can adopt the ontology lane incrementally by adding predicate schema facts, then linking new or updated requirements to ground predicate facts via `requires_predicate`.
 

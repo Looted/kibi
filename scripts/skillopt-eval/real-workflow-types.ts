@@ -187,6 +187,7 @@ export type RealOptimizationOptions = Readonly<{
   sourceWorktree: string;
   skills: readonly CanonicalSkill[];
   maxSteps: number;
+  seedCandidatePath?: string;
   env?: NodeJS.ProcessEnv;
   cellRuntime?: CodexCellRuntime;
   artifactPath?: ArtifactPath;

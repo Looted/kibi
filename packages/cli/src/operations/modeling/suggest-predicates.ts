@@ -2,6 +2,7 @@ import type {
   OperationContext,
   PrologPort,
 } from "../../public/operations/runtime-types.js";
+import { semanticClaimKey } from "../semantic-advisor/clauses.js";
 import {
   buildGapApplyPlan,
   buildPredicateApplyPlan,
@@ -72,17 +73,28 @@ export async function handleKbSuggestPredicates(
     ? buildPredicateApplyPlan(firstCandidate, args)
     : buildGapApplyPlan(text, args);
   const relationshipPlan = firstCandidate
-    ? buildRelationshipPlan(String(applyPlan[0]?.id ?? ""), args.requirementId)
+    ? buildRelationshipPlan(
+        String(applyPlan[0]?.id ?? ""),
+        args.requirementId,
+        text,
+        args.existingLogicClaims,
+      )
     : null;
   const textSummary =
     candidates.length > 0
       ? `Suggested ${candidates.length} predicate candidate(s). Top match: ${candidates[0]?.predicate_name}. Apply structured predicate facts before falling back to prose.`
       : "No predicate candidate met the confidence threshold; record an ontology gap instead of silently writing prose.";
+  const claimKey = semanticClaimKey(text);
+  const logicClaims = Array.from(
+    new Set([...(args.existingLogicClaims ?? []), claimKey]),
+  );
 
   return {
     content: [{ type: "text", text: textSummary }],
     structuredContent: {
       text,
+      claimKey,
+      logicClaims,
       source: args.source ?? null,
       requirementId: args.requirementId ?? null,
       subject,

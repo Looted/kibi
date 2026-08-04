@@ -34,12 +34,28 @@ export type DevelopmentGate = Readonly<{
   worstFamilyMean: number;
 }>;
 
+export type PublicEvidenceSummary = Readonly<{
+  attempts: number;
+  hardPasses: number;
+  families: readonly Readonly<{
+    family: string;
+    attempts: number;
+    hardPasses: number;
+    meanSoft: number;
+    failureCounts: readonly Readonly<{
+      category: string;
+      count: number;
+    }>[];
+  }>[];
+}>;
+
 export type SkillOptStepRequest = Readonly<{
   skill: CanonicalSkill;
   step: number;
   maxSteps: number;
   currentBody: string;
   trainTrajectories: readonly TrainTrajectory[];
+  publicEvidenceSummary?: PublicEvidenceSummary;
   previousDevelopment: DevelopmentGate;
 }>;
 
@@ -133,6 +149,9 @@ export function createPinnedSkillOptRunner(
         trainTrajectories: request.trainTrajectories.map((trajectory) => ({
           ...trajectory,
         })),
+        ...(request.publicEvidenceSummary === undefined
+          ? {}
+          : { publicEvidenceSummary: request.publicEvidenceSummary }),
         previousDevelopment: request.previousDevelopment,
       };
       await writeFile(requestPath, `${JSON.stringify(requestPayload)}\n`, {

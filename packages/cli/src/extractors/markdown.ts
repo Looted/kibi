@@ -20,6 +20,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import Ajv from "ajv";
 import { load as yamlLoad } from "js-yaml";
+import { semanticClaimKey } from "../operations/semantic-advisor/clauses.js";
 import entitySchema from "../schemas/entity.schema.json" with { type: "json" };
 
 // Typed fact field constants for extraction
@@ -36,14 +37,31 @@ const FACT_STRING_FIELDS = [
   "valid_from",
   "valid_to",
   "canonical_key",
+  "claim_key",
+  "claim_text",
+  "predicate_name",
+  "predicate_namespace",
 ] as const;
 
-const FACT_NUMBER_FIELDS = ["value_int", "value_number"] as const;
+const FACT_NUMBER_FIELDS = [
+  "value_int",
+  "value_number",
+  "predicate_arity",
+] as const;
 const FACT_BOOLEAN_FIELDS = ["value_bool", "closed_world"] as const;
+const FACT_STRING_ARRAY_FIELDS = [
+  "argument_names",
+  "argument_types",
+  "argument_descriptions",
+  "aliases",
+  "examples",
+  "predicate_args",
+] as const;
 const FACT_ONLY_FIELDS = [
   ...FACT_STRING_FIELDS,
   ...FACT_NUMBER_FIELDS,
   ...FACT_BOOLEAN_FIELDS,
+  ...FACT_STRING_ARRAY_FIELDS,
 ] as const;
 
 const TEST_ENUM_FIELDS = [
@@ -67,6 +85,7 @@ export interface ExtractedEntity {
   priority?: string;
   severity?: string;
   text_ref?: string;
+  logic_claims?: string[];
   granularity_reason?: string;
   symbol_kind?: string;
   symbol_role?: string;
@@ -77,7 +96,13 @@ export interface ExtractedEntity {
   verification_scope?: "unit" | "integration" | "end_to_end";
   verification_perspective?: "internal" | "consumer";
   // Typed fact fields - only present when type === 'fact'
-  fact_kind?: "subject" | "property_value" | "observation" | "meta";
+  fact_kind?:
+    | "subject"
+    | "property_value"
+    | "observation"
+    | "meta"
+    | "predicate_schema"
+    | "predicate";
   subject_key?: string;
   property_key?: string;
   operator?: "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
@@ -88,11 +113,22 @@ export interface ExtractedEntity {
   value_bool?: boolean;
   unit?: string;
   scope?: string;
-  polarity?: "require" | "forbid";
+  polarity?: "require" | "forbid" | "assert" | "deny";
   closed_world?: boolean;
   valid_from?: string;
   valid_to?: string;
   canonical_key?: string;
+  claim_key?: string;
+  claim_text?: string;
+  predicate_name?: string;
+  predicate_namespace?: string;
+  predicate_arity?: number;
+  argument_names?: string[];
+  argument_types?: string[];
+  argument_descriptions?: string[];
+  aliases?: string[];
+  examples?: string[];
+  predicate_args?: string[];
 }
 
 export interface ExtractedRelationship {
@@ -551,6 +587,11 @@ function extractFromMarkdownContent(
     if (data.priority !== undefined) entity.priority = data.priority;
     if (data.severity !== undefined) entity.severity = data.severity;
     if (data.text_ref !== undefined) entity.text_ref = data.text_ref;
+    if (type === "req" && Array.isArray(data.logic_claims)) {
+      entity.logic_claims = data.logic_claims.filter(
+        (value): value is string => typeof value === "string",
+      );
+    }
 
     if (type !== "fact") {
       const invalidFactField = FACT_ONLY_FIELDS.find(
@@ -649,6 +690,14 @@ function extractFromMarkdownContent(
           (entity as unknown as Record<string, unknown>)[field] = data[field];
         }
       }
+
+      for (const field of FACT_STRING_ARRAY_FIELDS) {
+        if (Array.isArray(data[field])) {
+          (entity as unknown as Record<string, unknown>)[field] = data[
+            field
+          ].filter((value): value is string => typeof value === "string");
+        }
+      }
     }
 
     if (!validateExtractedEntity(entity)) {
@@ -663,6 +712,24 @@ function extractFromMarkdownContent(
           hint: "Fix the entity fields so they match the public schema.",
         },
       );
+    }
+
+    if (
+      entity.type === "fact" &&
+      entity.claim_key !== undefined &&
+      entity.claim_text !== undefined
+    ) {
+      const expectedClaimKey = semanticClaimKey(entity.claim_text);
+      if (entity.claim_key !== expectedClaimKey) {
+        throw new FrontmatterError(
+          `Entity validation failed: claim_key must equal the stable key derived from claim_text (expected '${expectedClaimKey}')`,
+          filePath,
+          {
+            classification: "Logical Claim Provenance Mismatch",
+            hint: "Use the claim_key returned by kb_semantic_advisor for this exact atomic clause.",
+          },
+        );
+      }
     }
 
     return {

@@ -1,7 +1,6 @@
 {
   "tools": [
     {
-      "name": "kb_query",
       "description": "Read entities from the KB with filters. Use for discovery and lookup before edits. Do not use for writes. No mutation side effects. Tags filter by metadata tags only, not entity IDs.",
       "inputSchema": {
         "properties": {
@@ -72,10 +71,10 @@
           }
         },
         "type": "object"
-      }
+      },
+      "name": "kb_query"
     },
     {
-      "name": "kb_search",
       "description": "Search KB entities for discovery using metadata and markdown body text. Use for exploratory lookup before exact follow-up with kb_query. No mutation side effects.",
       "inputSchema": {
         "properties": {
@@ -140,10 +139,17 @@
         },
         "required": ["query"],
         "type": "object"
-      }
+      },
+      "name": "kb_search"
     },
     {
-      "name": "kb_status",
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Inspect Kibi branch status"
+      },
       "description": "Report current branch, snapshot, and freshness metadata for the attached KB. Read-only status inspection with no mutation side effects.",
       "inputSchema": {
         "properties": {
@@ -176,16 +182,16 @@
         },
         "type": "object"
       },
-      "annotations": {
-        "title": "Inspect Kibi branch status",
-        "readOnlyHint": true,
-        "destructiveHint": false,
-        "idempotentHint": true,
-        "openWorldHint": false
-      }
+      "name": "kb_status"
     },
     {
-      "name": "kb_skills_list",
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "List bundled Kibi skills"
+      },
       "description": "List bundled Kibi agent skills available for progressive disclosure. Read-only; does not mutate the KB or require Prolog.",
       "inputSchema": {
         "properties": {
@@ -218,16 +224,16 @@
         },
         "type": "object"
       },
-      "annotations": {
-        "title": "List bundled Kibi skills",
-        "readOnlyHint": true,
-        "destructiveHint": false,
-        "idempotentHint": true,
-        "openWorldHint": false
-      }
+      "name": "kb_skills_list"
     },
     {
-      "name": "kb_skills_load",
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Load a bundled Kibi skill"
+      },
       "description": "Load a bundled Kibi agent skill by ID, returning its manifest metadata, Markdown body, declared resources, content hash, and source type. Read-only; does not execute scripts or require Prolog.",
       "inputSchema": {
         "properties": {
@@ -265,16 +271,16 @@
         "required": ["id"],
         "type": "object"
       },
-      "annotations": {
-        "title": "Load a bundled Kibi skill",
-        "readOnlyHint": true,
-        "destructiveHint": false,
-        "idempotentHint": true,
-        "openWorldHint": false
-      }
+      "name": "kb_skills_load"
     },
     {
-      "name": "kb_skills_read",
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Read a bundled Kibi skill resource"
+      },
       "description": "Read a declared resource from a bundled Kibi agent skill. Resource paths are restricted to the skill manifest; arbitrary file paths are not exposed. Read-only; does not require Prolog.",
       "inputSchema": {
         "properties": {
@@ -316,16 +322,9 @@
         "required": ["id", "resource"],
         "type": "object"
       },
-      "annotations": {
-        "title": "Read a bundled Kibi skill resource",
-        "readOnlyHint": true,
-        "destructiveHint": false,
-        "idempotentHint": true,
-        "openWorldHint": false
-      }
+      "name": "kb_skills_read"
     },
     {
-      "name": "kb_find_gaps",
       "description": "Run bulk missing/present relationship analysis over KB entities. Use for questions like which requirements lack scenarios or tests. No mutation side effects.",
       "inputSchema": {
         "properties": {
@@ -399,10 +398,10 @@
           }
         },
         "type": "object"
-      }
+      },
+      "name": "kb_find_gaps"
     },
     {
-      "name": "kb_coverage",
       "description": "Generate curated coverage reports for requirements, symbols, or grouped types. Read-only reporting with no mutation side effects.",
       "inputSchema": {
         "properties": {
@@ -461,10 +460,10 @@
           }
         },
         "type": "object"
-      }
+      },
+      "name": "kb_coverage"
     },
     {
-      "name": "kb_graph",
       "description": "Run bounded graph traversal from one or more seed IDs across curated relationship types. No mutation side effects.",
       "inputSchema": {
         "properties": {
@@ -534,10 +533,10 @@
         },
         "required": ["seedIds"],
         "type": "object"
-      }
+      },
+      "name": "kb_graph"
     },
     {
-      "name": "kb_sparql_remote",
       "description": "Opt-in remote SPARQL query tool for external HTTP(S) RDF endpoints. This does not query Kibi's local RDF store directly, stores no credentials, and depends on network availability.",
       "inputSchema": {
         "properties": {
@@ -582,10 +581,10 @@
         },
         "required": ["endpoint", "query"],
         "type": "object"
-      }
+      },
+      "name": "kb_sparql_remote"
     },
     {
-      "name": "kb_semantic_advisor",
       "annotations": {
         "destructiveHint": false,
         "idempotentHint": true,
@@ -622,6 +621,13 @@
             },
             "type": "object"
           },
+          "clauses": {
+            "description": "Optional complete list of atomic requirement clauses supplied by the caller. Use this for compound prose so every normative clause receives a stable claim key and independent grounding review.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "id": {
             "description": "Optional requirement ID used for deterministic draft relationship guidance.",
             "type": "string"
@@ -651,10 +657,10 @@
         },
         "required": ["text"],
         "type": "object"
-      }
+      },
+      "name": "kb_semantic_advisor"
     },
     {
-      "name": "kb_upsert",
       "description": "Create or update one entity and optional relationships. Use for KB mutations after validating intent; prefer kb_validate_upsert first because it returns semantic advisor receipts for prose-heavy requirements. Use kb_model_requirement before hand-writing strict property facts from prose, and kb_suggest_predicates before hand-writing ontology predicate facts. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`, or `requires_predicate`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. For requirements, the write will be rejected if it contradicts existing current requirements that constrain the same subject with incompatible properties. To replace a conflicting requirement, include a `supersedes` relationship from the new requirement to the old one in the same request. Successful writes may return non-blocking semantic advisor warnings; inspect and repair those warnings before treating prose as contradiction-checkable. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",
       "inputSchema": {
         "properties": {
@@ -689,15 +695,76 @@
             "type": "string"
           },
           "properties": {
+            "allOf": [
+              {
+                "if": {
+                  "anyOf": [
+                    {
+                      "required": ["claim_key"]
+                    },
+                    {
+                      "required": ["claim_text"]
+                    }
+                  ]
+                },
+                "then": {
+                  "required": ["claim_key", "claim_text"]
+                }
+              }
+            ],
             "description": "Entity fields to persist. Must include title and status. If created_at, updated_at, or source are omitted, server fills defaults.",
             "properties": {
+              "aliases": {
+                "description": "Optional vocabulary aliases for predicate discovery.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "argument_descriptions": {
+                "description": "Optional ordered argument explanations.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "argument_names": {
+                "description": "Ordered argument role names for predicate_schema facts.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "argument_types": {
+                "description": "Ordered argument types for predicate_schema facts.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
               "canonical_key": {
                 "description": "Optional canonical identity key for predicate or strict fact claims.",
+                "type": "string"
+              },
+              "claim_key": {
+                "description": "Stable semantic-advisor key for the atomic prose clause grounded by this fact.",
+                "pattern": "^CLAIM-[A-F0-9]{16}$",
+                "type": "string"
+              },
+              "claim_text": {
+                "description": "Exact atomic requirement clause represented by this fact, retained for human audit.",
                 "type": "string"
               },
               "closed_world": {
                 "description": "Optional closed-world marker for strict fact interpretation.",
                 "type": "boolean"
+              },
+              "examples": {
+                "description": "Optional ground-term examples for a predicate schema.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
               },
               "fact_kind": {
                 "description": "Optional fact lane kind for fact entities. Strict lane uses 'subject' and 'property_value'; context lane uses 'observation' or 'meta'; ontology lane uses 'predicate_schema' or 'predicate'. Use kb_model_requirement or kb_suggest_predicates when starting from prose.",
@@ -728,6 +795,16 @@
                 },
                 "type": "array"
               },
+              "logic_claims": {
+                "description": "Requirement-only manifest of every atomic normative claim key returned by kb_semantic_advisor. A requirement is logic-complete only when every key is grounded by a linked property_value or predicate fact with the same claim_key.",
+                "items": {
+                  "pattern": "^CLAIM-[A-F0-9]{16}$",
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array",
+                "uniqueItems": true
+              },
               "operator": {
                 "description": "Optional comparison operator for property_value facts. Example: 'eq'.",
                 "enum": ["eq", "neq", "lt", "lte", "gt", "gte"],
@@ -749,8 +826,17 @@
                 },
                 "type": "array"
               },
+              "predicate_arity": {
+                "description": "Required arity for predicate_schema facts.",
+                "minimum": 1,
+                "type": "integer"
+              },
               "predicate_name": {
                 "description": "Optional predicate name for ontology predicate facts. Prefer kb_suggest_predicates before hand-writing predicate_name.",
+                "type": "string"
+              },
+              "predicate_namespace": {
+                "description": "Optional namespace for a project-local predicate schema.",
                 "type": "string"
               },
               "priority": {
@@ -908,10 +994,10 @@
         },
         "required": ["type", "id", "properties"],
         "type": "object"
-      }
+      },
+      "name": "kb_upsert"
     },
     {
-      "name": "kb_validate_upsert",
       "description": "Validate a kb_upsert payload without mutating the KB. Use this read-only preflight before kb_upsert, especially for requirements, because it returns schema/modeling errors plus semantic advisor receipts that identify prose likely needing kb_model_requirement, kb_suggest_predicates, ambiguity review, or an ontology-gap observation.",
       "inputSchema": {
         "properties": {
@@ -970,10 +1056,10 @@
         },
         "required": ["type", "id", "properties"],
         "type": "object"
-      }
+      },
+      "name": "kb_validate_upsert"
     },
     {
-      "name": "kb_delete",
       "description": "Delete entities by ID. Use only for intentional removals after dependency checks. Do not use as a bulk cleanup shortcut. Side effects: mutates and saves KB; skips entities with dependents.",
       "inputSchema": {
         "properties": {
@@ -1013,10 +1099,10 @@
         },
         "required": ["ids"],
         "type": "object"
-      }
+      },
+      "name": "kb_delete"
     },
     {
-      "name": "kb_check",
       "description": "Run KB validation rules and return violations. Use before or after mutations, and after meaningful source edits with impact options to surface symbol granularity and semantic-review diagnostics. Do not use for point lookups. No write side effects. Prefer explicit rules for faster iteration; omit rules for final full validation plus full-KB qualityDiagnostics review.",
       "inputSchema": {
         "properties": {
@@ -1060,7 +1146,7 @@
             "type": "integer"
           },
           "rules": {
-            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, query-plan-safety. If omitted, server runs all rules plus the full-KB qualityDiagnostics audit scan; if supplied, server preserves scoped validation and skips the full-KB advisory scan.",
+            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, logic-coverage, query-plan-safety. If omitted, server runs all rules plus the full-KB qualityDiagnostics audit scan; if supplied, server preserves scoped validation and skips the full-KB advisory scan.",
             "items": {
               "enum": [
                 "must-priority-coverage",
@@ -1074,6 +1160,7 @@
                 "strict-fact-shape",
                 "strict-req-fact-pairing",
                 "predicate-verifiability",
+                "logic-coverage",
                 "query-plan-safety"
               ],
               "type": "string"
@@ -1097,10 +1184,10 @@
           }
         },
         "type": "object"
-      }
+      },
+      "name": "kb_check"
     },
     {
-      "name": "kb_model_requirement",
       "description": "Convert a prose requirement plus optional extracted claim fields into a deterministic strict-lane write set. Read-only modeling returns a sequential applyPlan for later kb_upsert calls. High-confidence claims emit req+fact strict output; lower-confidence claims emit an observation review artifact. Includes migration warnings when legacy schemaVersion metadata is detected.",
       "inputSchema": {
         "properties": {
@@ -1136,6 +1223,15 @@
             "maximum": 1,
             "minimum": 0,
             "type": "number"
+          },
+          "existingLogicClaims": {
+            "description": "Existing requirement logic_claims values. The returned requirement update merges the new atomic claim key into this manifest instead of replacing prior claims.",
+            "items": {
+              "pattern": "^CLAIM-[A-F0-9]{16}$",
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
           },
           "operator": {
             "description": "Optional extracted semantic claim operator. Example: 'eq'.",
@@ -1175,10 +1271,10 @@
         },
         "required": ["text"],
         "type": "object"
-      }
+      },
+      "name": "kb_model_requirement"
     },
     {
-      "name": "kb_suggest_predicates",
       "annotations": {
         "destructiveHint": false,
         "idempotentHint": true,
@@ -1214,6 +1310,15 @@
               }
             },
             "type": "object"
+          },
+          "existingLogicClaims": {
+            "description": "Existing requirement logic_claims values. Returned relationship guidance includes a merged manifest so repeated clause modeling does not discard earlier claims.",
+            "items": {
+              "pattern": "^CLAIM-[A-F0-9]{16}$",
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
           },
           "includeExistingSchemas": {
             "default": true,
@@ -1253,10 +1358,10 @@
         },
         "required": ["text"],
         "type": "object"
-      }
+      },
+      "name": "kb_suggest_predicates"
     },
     {
-      "name": "kb_autopilot_generate",
       "description": "Generate agent-centric bootstrap output for KB population. Read-only analysis that returns activation state, bootstrap guidance, candidate entities with evidence, payoff summary, and exact applyPlan payloads for later kb_upsert calls. No mutation side effects.",
       "inputSchema": {
         "properties": {
@@ -1353,7 +1458,8 @@
           }
         },
         "type": "object"
-      }
+      },
+      "name": "kb_autopilot_generate"
     }
   ]
 }
