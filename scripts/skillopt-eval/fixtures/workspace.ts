@@ -111,6 +111,45 @@ function copyCanonicalSkills(input: WorkspaceInput): void {
   });
 }
 
+// implements REQ-skillopt-logical-evidence-fidelity
+function fixtureEntityIds(taskId: string) {
+  const suffix = sha256(taskId).slice(0, 12).toUpperCase();
+  return {
+    requirement: `REQ-FIXTURE-${suffix}`,
+    test: `TEST-FIXTURE-${suffix}`,
+    symbol: `SYM-FIXTURE-${suffix}`,
+  } as const;
+}
+
+// implements REQ-skillopt-logical-evidence-fidelity
+function writeSafeMutationEvidence(input: WorkspaceInput): void {
+  if (input.task.taskData.objectiveCode !== "safe_typed_mutation") return;
+  const ids = fixtureEntityIds(input.task.id);
+  mkdirSync(path.join(input.root, "documentation", "tests"), {
+    recursive: true,
+  });
+  writeFileSync(
+    path.join(input.root, "documentation", "tests", "fixture.md"),
+    `---\nid: ${ids.test}\ntitle: Fixture production symbol coverage\nstatus: passing\nvalidates: kb:entity/${ids.requirement}\nverification_scope: integration\n---\n\n# Fixture production symbol coverage\n\nThis supplied test is the coverage evidence for the fixture production symbol.\n`,
+  );
+  writeJson(input.root, "mutation-request.json", {
+    sourceSymbol: {
+      id: ids.symbol,
+      title: "fixtureFamily",
+      status: "active",
+      sourceFile: "src/fixture.ts",
+    },
+    existingEndpoints: {
+      requirementId: ids.requirement,
+      testId: ids.test,
+    },
+    relationships: [
+      { type: "implements", from: ids.symbol, to: ids.requirement },
+      { type: "covered_by", from: ids.symbol, to: ids.test },
+    ],
+  });
+}
+
 // implements REQ-skillopt-predicate-first-requirements
 function writePublicPredicateClaim(input: WorkspaceInput): void {
   const semanticCase = predicateCaseById(input.task.id);
@@ -146,9 +185,10 @@ export function writePublicWorkspace(input: WorkspaceInput): string {
     name: `fixture-${sha256(input.task.id).slice(0, 12)}`,
     private: true,
   });
+  const ids = fixtureEntityIds(input.task.id);
   writeFileSync(
     path.join(input.root, "documentation", "requirements", "fixture.md"),
-    `---\nid: REQ-FIXTURE-${sha256(input.task.id).slice(0, 12).toUpperCase()}\ntitle: ${input.task.family} fixture requirement\nstatus: open\n---\n`,
+    `---\nid: ${ids.requirement}\ntitle: ${input.task.family} fixture requirement\nstatus: open\n---\n`,
   );
   writeFileSync(
     path.join(input.root, "src", "fixture.ts"),
@@ -172,6 +212,7 @@ export function writePublicWorkspace(input: WorkspaceInput): string {
   });
   copyCanonicalSkills(input);
   writeAdversarialFiles(input);
+  writeSafeMutationEvidence(input);
   // Predicate-family tasks materialize the public claim and schema (no expected
   // outcome) from the semantically distinct registry. The private expectation
   // lives only in the evaluator/verifier lane.

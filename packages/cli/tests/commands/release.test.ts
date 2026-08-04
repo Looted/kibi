@@ -19,7 +19,7 @@ describe("release behavior", () => {
 
   beforeEach(() => {
     tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-test-release-"));
-    execSync("git init", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git init -b main", { cwd: tmpDir, stdio: "pipe" });
     execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
     execSync("git config user.name 'Test User'", { cwd: tmpDir });
     execSync("git checkout -b main", { cwd: tmpDir, stdio: "pipe" });

@@ -69,6 +69,10 @@ const BASE_FILES = [
   "kibi-adapter.json",
   "task-input.json",
 ] as const;
+const SAFE_MUTATION_FILES = [
+  "documentation/tests/fixture.md",
+  "mutation-request.json",
+] as const;
 
 function bundle(
   instruction: string,
@@ -222,6 +226,9 @@ function payload(
       : []),
     ...(definition.adversarialCases.includes("interruption-cleanup")
       ? ["interruption-plan.json"]
+      : []),
+    ...(definition.objectiveCode === "safe_typed_mutation"
+      ? SAFE_MUTATION_FILES
       : []),
   ];
   return {

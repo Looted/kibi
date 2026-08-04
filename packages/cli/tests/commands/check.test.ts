@@ -390,7 +390,7 @@ describe("kibi check", () => {
     tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-test-check-"));
 
     // Initialize KB structure
-    execSync("git init", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git init -b main", { cwd: tmpDir, stdio: "pipe" });
     execSync("git branch -M main", { cwd: tmpDir, stdio: "pipe" });
     execSync(`KB_PATH=.kb/branches/main bun ${kibiBin} init`, {
       cwd: tmpDir,

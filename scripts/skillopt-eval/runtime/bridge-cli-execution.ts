@@ -48,6 +48,7 @@ type BridgeCliDependencies = Readonly<{
   ) => CodexCellDependencies;
 }>;
 
+// implements REQ-skillopt-logical-evidence-fidelity
 function bridgeRow(
   taskId: string,
   artifactRoot: string,
@@ -61,13 +62,23 @@ function bridgeRow(
       : result.status === "infrastructure-failure"
         ? "infrastructure-failure"
         : "behavioral-failure";
+  const failureCategories =
+    result.criticalFailures.length > 0
+      ? [...result.criticalFailures]
+      : result.status === "behavioral-failure"
+        ? [
+            result.score === 75
+              ? "protocol-incomplete"
+              : "behavioral-evaluation-miss",
+          ]
+        : [];
   return {
     id: taskId,
     hard: result.hardPass ? (1 as const) : (0 as const),
     soft: result.score / 100,
     status,
-    failureCategory: result.criticalFailures[0] ?? null,
-    failureCategories: [...result.criticalFailures],
+    failureCategory: failureCategories[0] ?? null,
+    failureCategories,
     toolSequence: (completed.receipt.evidenceIndex?.events ?? []).flatMap(
       ({ event }) => {
         if (typeof event !== "object" || event === null || Array.isArray(event))

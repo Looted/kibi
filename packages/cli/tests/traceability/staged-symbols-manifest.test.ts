@@ -39,7 +39,7 @@ describe("assessStagedSymbolsManifest", () => {
 
   beforeEach(() => {
     tmpDir = mkdtempSync(path.join(tmpdir(), "kibi-staged-symbols-manifest-"));
-    execSync("git init", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git init -b main", { cwd: tmpDir, stdio: "pipe" });
     execSync('git config user.email "test@example.com"', {
       cwd: tmpDir,
       stdio: "pipe",

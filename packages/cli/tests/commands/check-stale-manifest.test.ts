@@ -154,7 +154,7 @@ describe("kibi check --staged stale symbols manifest detection", () => {
 
   beforeEach(() => {
     tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-stale-manifest-"));
-    execSync("git init", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git init -b main", { cwd: tmpDir, stdio: "pipe" });
     execSync("git branch -M main", { cwd: tmpDir, stdio: "pipe" });
     execSync('git config user.email "test@example.com"', {
       cwd: tmpDir,

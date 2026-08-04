@@ -19,6 +19,10 @@ Given any current requirement without a logical-claim manifest, when quality dia
 
 Given a fact whose `claim_key` does not match the stable key derived from its `claim_text`, when the fact enters through a Kibi mutation or Markdown sync surface, then Kibi rejects it before persistence.
 
+Given clause text that differs only by trailing sentence or conjunction punctuation, when stable identities are derived, then both forms receive the same claim key. Given one claim linked to multiple ground facts or multiple claim keys linked to the same ground term, when `logic-coverage` runs, then it reports the non-bijective representation.
+
+Given an exact entity query whose source has multiple relationships with one type, when Prolog properties are decoded, then every target remains present rather than the last target overwriting earlier ones.
+
 Given logical-coverage fields in an MCP tool contract, when Kibi converts the authoritative JSON Schema through its runtime Zod registration, then claim-key patterns, logic-claim uniqueness, and paired claim provenance remain advertised and enforced.
 
 Given staged requirements, predicate facts, and verification tests, when Kibi projects them into its temporary validation graph, then requirement manifests, all typed predicate fields, and typed verification metadata remain intact.

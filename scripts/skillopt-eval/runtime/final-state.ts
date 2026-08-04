@@ -112,16 +112,14 @@ function strictPropertyValue(entity: Record<string, unknown>): string | null {
   return null;
 }
 
-function qualifiedPropertyKey(entity: Record<string, unknown>): string | null {
+// implements REQ-skillopt-logical-evidence-fidelity
+function canonicalPropertyKey(entity: Record<string, unknown>): string | null {
   const propertyKey = entity.property_key;
   if (typeof propertyKey !== "string" || propertyKey.length === 0) return null;
-  if (propertyKey.includes(".")) return propertyKey;
-  const subjectKey = entity.subject_key;
-  if (typeof subjectKey !== "string") return propertyKey;
-  const separator = subjectKey.lastIndexOf(".");
-  return separator < 0
-    ? propertyKey
-    : `${subjectKey.slice(0, separator)}.${propertyKey}`;
+  // `property_key` is already the canonical comparison key used by Kibi's
+  // strict-property Prolog lane. A dotted subject describes the governed
+  // entity; it is not a namespace prefix for an otherwise valid property key.
+  return propertyKey;
 }
 
 function factTarget(entity: Record<string, unknown>): string | null {
@@ -129,7 +127,7 @@ function factTarget(entity: Record<string, unknown>): string | null {
     case "subject":
       return typeof entity.subject_key === "string" ? entity.subject_key : null;
     case "property_value": {
-      const key = qualifiedPropertyKey(entity);
+      const key = canonicalPropertyKey(entity);
       const value = strictPropertyValue(entity);
       return key === null || value === null ? null : `${key}=${value}`;
     }

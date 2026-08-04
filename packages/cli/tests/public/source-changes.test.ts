@@ -8,7 +8,7 @@ import { collectSourceChanges } from "../../src/public/impact/source-changes.js"
 
 function createTempRepo(): string {
   const dir = mkdtempSync(join(tmpdir(), "kibi-source-changes-"));
-  execSync("git init", { cwd: dir, stdio: "pipe" });
+  execSync("git init -b main", { cwd: dir, stdio: "pipe" });
   execSync('git config user.name "Kibi Test"', { cwd: dir, stdio: "pipe" });
   execSync('git config user.email "test@kibi.invalid"', {
     cwd: dir,

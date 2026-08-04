@@ -424,7 +424,7 @@ describe("kibi check --staged impact enforcement", () => {
 
   beforeEach(() => {
     tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-staged-enforcement-"));
-    execSync("git init", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git init -b main", { cwd: tmpDir, stdio: "pipe" });
     execSync("git branch -M main", { cwd: tmpDir, stdio: "pipe" });
     execSync('git config user.email "test@example.com"', {
       cwd: tmpDir,

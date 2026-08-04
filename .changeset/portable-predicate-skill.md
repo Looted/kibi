@@ -15,5 +15,10 @@ Kibi can now track whether every atomic clause in a normative requirement has a 
 - Add semantic-advisor clause inventories, merged claim manifests, and the `logic-coverage` check.
 - Enable manifest validation by default and report every current unmanifested requirement as explicit backfill debt.
 - Detect exact `assert`/`deny` conflicts over the same ground predicate.
+- Normalize trailing clause punctuation so formatting variants share one claim identity.
+- Enforce a one-claim/one-ground-fact mapping and reject duplicate logical terms masquerading as separate coverage.
+- Preserve every target when exact query results contain repeated relationship types.
+- Keep semantic-advisor readiness partial until every normative claim has a distinct logical grounding slot.
+- Drain machine-readable CLI output before the explicit process exit so large results are complete without leaving runtime handles alive.
 - Preserve and enforce claim-key patterns, uniqueness, and paired provenance through MCP schema registration.
 - Synchronize the corrected skill into the Codex and Cursor bundles.
