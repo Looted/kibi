@@ -31,4 +31,5 @@ links:
 - The docs describe MCP and CLI as peers, not as primary and secondary surfaces.
 - The CLI reference enumerates all 18 `--input` routes, object-input rules, exit codes `0`/`1`/`2`, and the canonical `find-gaps` command with its `gaps` alias.
 - Symbol coverage includes shared operation executors, CLI protocol modules, CLI/MCP runtime adapters, the Cursor worktree resolver, and the canonical skill generator.
+- CLI lifecycle tests prove that pending JSON output drains before the entrypoint requests explicit process termination.
 - Remote SPARQL operation, CLI JSON, MCP adapter, and parity tests use a loopback-only HTTP fixture and verify shared decoding, HTTP(S)-only validation, and timeout cancellation without public endpoint access.

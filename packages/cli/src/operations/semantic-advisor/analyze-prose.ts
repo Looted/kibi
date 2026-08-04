@@ -88,7 +88,23 @@ function isRequirement(payload: Payload): boolean {
   return stringValue(payload.type) === "req";
 }
 
-function isModeled(payload: Payload): boolean {
+// implements REQ-kibi-logical-requirement-coverage
+// implements REQ-skillopt-logical-evidence-fidelity
+function logicalGroundingSlots(payload: Payload): number {
+  const relationships = Array.isArray(payload.relationships)
+    ? payload.relationships
+    : [];
+  return relationships.filter(
+    (relationship) =>
+      isRecord(relationship) &&
+      ["requires_property", "requires_predicate"].includes(
+        stringValue(relationship.type),
+      ),
+  ).length;
+}
+
+function isModeled(payload: Payload, expectedClaimCount: number): boolean {
+  if (expectedClaimCount === 0) return false;
   const relationships = Array.isArray(payload.relationships)
     ? payload.relationships
     : [];
@@ -99,8 +115,9 @@ function isModeled(payload: Payload): boolean {
       .filter(Boolean),
   );
   return (
-    (types.has("constrains") && types.has("requires_property")) ||
-    types.has("requires_predicate")
+    logicalGroundingSlots(payload) >= expectedClaimCount &&
+    ((types.has("constrains") && types.has("requires_property")) ||
+      types.has("requires_predicate"))
   );
 }
 
@@ -337,7 +354,7 @@ export function analyzeSemanticAdvisorInput(
     .map((clause) => clause.claim_key);
   const modeled =
     requirement &&
-    isModeled(payload) &&
+    isModeled(payload, expectedClaims.length) &&
     expectedClaims.length > 0 &&
     expectedClaims.every((claimKey) => declaredClaims.includes(claimKey));
   const suggestions = modelingSuggestions(payload, modeled, clauses);

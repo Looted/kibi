@@ -16,7 +16,7 @@ export const USAGE_DEFINITIONS: Readonly<Record<string, Definition>> = {
   },
   "safe-mutation-direction": {
     instruction:
-      "Discover existing entities, then apply the requested relationship in the supported direction.",
+      "Discover the existing requirement and test evidence, read mutation-request.json, create or confirm its named production symbol for src/fixture.ts, then apply every requested typed relationship in the supported direction. Validate the payloads, read back the affected endpoints, and finish with an unfiltered check.",
     objectiveCode: "safe_typed_mutation",
     sourceFile: "src/fixture.ts",
     mutation: "write",

@@ -35,6 +35,8 @@ The staged-MCP integration suite launches a real server in a non-Git fixture and
 
 Default-evidence regressions seal authentic all-entity query results, clean checks, status receipts, diagnostic JSONL, and request-only broker calls. They verify per-result hashes, broker hash-chain integrity, derived task/isolation claims, optional calls between required operations, early-mutation rejection, and the distinction between semantic behavioral failure and actual evidence tampering.
 
+Logical-evidence fidelity regressions additionally verify that strict property targets use the stored property key, repeated relationship types retain all targets, safe-mutation fixtures expose real coverage evidence, safe-mutation completion checks the exact requested links, provider quota output becomes typed budget exhaustion, and noncritical behavioral misses retain optimizer feedback categories.
+
 The diagnostic regressions require one successful usage row for each brokered tool call, accept the ordinary MCP logger's explicit `telemetry: null` shape, and continue rejecting missing, malformed, failed, or tool-mismatched rows. Smoke-specific tests separately require complete telemetry for the model-originated canary calls.
 
 Broker-response regressions preserve failed attempts in ordered protocol evidence while excluding MCP `isError` responses from the expected diagnostic-success multiset. They cover an invalid call followed by a corrected successful call and require exactly one matching success receipt. They also cover a valid broker handshake with no model-originated tool call, require an empty diagnostic multiset to reconcile, and score the absent required call as a behavioral protocol miss.

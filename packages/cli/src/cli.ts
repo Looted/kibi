@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { once } from "node:events";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -61,14 +62,21 @@ export function buildProgram(): Command {
 
 // implements REQ-kibi-operation-interface-parity
 export async function main(): Promise<never> {
+  let exitCode = process.exitCode ?? 0;
   try {
     await buildProgram().parseAsync(process.argv);
-    process.exit(process.exitCode ?? 0);
+    exitCode = process.exitCode ?? 0;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(message);
-    process.exit(1);
+    exitCode = 1;
   }
+  await Promise.all(
+    [process.stdout, process.stderr].map((stream) =>
+      stream.writableNeedDrain ? once(stream, "drain") : Promise.resolve(),
+    ),
+  );
+  process.exit(exitCode);
 }
 
 const entryPath = process.argv[1];

@@ -29,7 +29,7 @@ function makeExec(
 
 function createTempRepo(): string {
   const repoDir = mkdtempSync(join(tmpdir(), "kibi-git-staged-"));
-  execSync("git init", { cwd: repoDir, stdio: "pipe" });
+  execSync("git init -b main", { cwd: repoDir, stdio: "pipe" });
   execSync('git config user.name "Test User"', { cwd: repoDir, stdio: "pipe" });
   execSync('git config user.email "test@example.com"', {
     cwd: repoDir,

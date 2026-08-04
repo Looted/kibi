@@ -12,11 +12,16 @@ const NORMATIVE_PATTERN =
   /\b(?:must|shall|should|required|requires?|may\s+only|only\s+.+?\s+(?:may|can)|must\s+not|shall\s+not|cannot|can't|forbidden|denied|defaults?\s+to|before|unless|when|if)\b/i;
 
 function normalizeClause(value: string): string {
-  return value
-    .replace(/^\s*(?:[-*+]\s+|\d+[.)]\s+)/, "")
-    .replace(/\s+/g, " ")
-    .replace(/[.;]+$/g, "")
-    .trim();
+  return (
+    value
+      .replace(/^\s*(?:[-*+]\s+|\d+[.)]\s+)/, "")
+      .replace(/\s+/g, " ")
+      // Clause splitters and copied list items commonly leave a conjunction
+      // comma or sentence punctuation on an otherwise identical atomic claim.
+      // Those formatting artifacts must not mint a second logical identity.
+      .replace(/[,.:;!?]+$/g, "")
+      .trim()
+  );
 }
 
 export function semanticClaimKey(text: string): string {

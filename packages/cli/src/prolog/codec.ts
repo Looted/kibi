@@ -156,7 +156,7 @@ export function parseEntityFromList(data: string[]): Record<string, unknown> {
 }
 
 export function parsePropertyList(propsStr: string): Record<string, unknown> {
-  // implements REQ-009
+  // implements REQ-009, REQ-skillopt-logical-evidence-fidelity
   const props: Record<string, unknown> = {};
 
   let cleaned = propsStr.trim();
@@ -181,7 +181,14 @@ export function parsePropertyList(propsStr: string): Record<string, unknown> {
     }
 
     const parsed = parsePrologValue(value);
-    props[key] = parsed;
+    if (!Object.hasOwn(props, key)) {
+      props[key] = parsed;
+      continue;
+    }
+    const existing = props[key];
+    props[key] = Array.isArray(existing)
+      ? [...existing, parsed]
+      : [existing, parsed];
   }
 
   return props;

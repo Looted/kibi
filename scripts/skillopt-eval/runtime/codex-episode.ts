@@ -112,6 +112,22 @@ function scoreStatus(score: CellReceipt): EpisodeResult["status"] {
   }
 }
 
+const PROVIDER_BUDGET_EXHAUSTED = [
+  /you(?:'|’)ve hit your usage limit/i,
+  /purchase more credits/i,
+  /insufficient[_ -]?quota/i,
+  /billing[_ -]?hard[_ -]?limit[_ -]?reached/i,
+  /credit balance (?:is )?(?:too low|exhausted|depleted)/i,
+] as const;
+
+// implements REQ-skillopt-logical-evidence-fidelity
+function providerBudgetExhausted(input: EpisodeReplayInput): boolean {
+  const terminalOutput = `${input.transcript}\n${input.stderr}`;
+  return PROVIDER_BUDGET_EXHAUSTED.some((pattern) =>
+    pattern.test(terminalOutput),
+  );
+}
+
 function terminalState(
   input: EpisodeReplayInput,
   normalized: ReturnType<typeof normalizeCodexJsonl>,
@@ -120,6 +136,8 @@ function terminalState(
   failures: readonly string[];
 }> {
   const failures = new Set<string>(normalized.violations);
+  const budgetExhausted = providerBudgetExhausted(input);
+  if (budgetExhausted) failures.add("provider_budget_exhausted");
   if (!evidencePresent(input.evidence.brokerTrace)) {
     failures.add("missing_mcp_evidence");
   }
@@ -144,6 +162,9 @@ function terminalState(
 
   if (input.termination === "interrupted") {
     return { status: "interrupted", failures: [...failures] };
+  }
+  if (budgetExhausted) {
+    return { status: "budget-exhausted", failures: [...failures] };
   }
   if (
     !evidencePresent(input.evidence.brokerTrace) ||

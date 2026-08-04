@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { parsePrivateEvaluatorManifest } from "../fixtures/private";
 import { sealDefaultCellEvidence } from "../runtime/codex-cell-defaults";
 import { appendTraceReceipt } from "../runtime/jsonrpc";
 import { scoreCell } from "../scoring/cell";
@@ -67,6 +68,100 @@ function finalStateReceipt(): string {
       roots: evaluatorRoots,
       sequence: 1,
     },
+    requests: [
+      {
+        tool: "kb_query",
+        args: {},
+        result: queryResult,
+        resultHash: resultHash(queryResult),
+      },
+      {
+        tool: "kb_check",
+        args: {},
+        result: checkResult,
+        resultHash: resultHash(checkResult),
+      },
+      {
+        tool: "kb_status",
+        args: {},
+        result: statusResult,
+        resultHash: resultHash(statusResult),
+      },
+    ],
+  })}\n`;
+}
+
+function safeMutationManifest() {
+  const base = evaluatorManifest("predicate");
+  return parsePrivateEvaluatorManifest(
+    JSON.stringify({
+      ...base,
+      taskId: "kibi-usage-safe-mutation-direction-development-1",
+      expectedFinalState: base.expectedFinalState.map((assertion) =>
+        assertion.key === "final-predicate"
+          ? {
+              ...assertion,
+              key: "final-safe-mutation-direction",
+              query: "state://kibi-usage/safe-mutation-direction/complete",
+            }
+          : assertion,
+      ),
+      rubric: base.rubric.map((item) =>
+        item.key === "final_state"
+          ? {
+              ...item,
+              criticalAssertionKeys: ["final-safe-mutation-direction"],
+            }
+          : item,
+      ),
+      predicateExpectation: null,
+    }),
+  );
+}
+
+function safeMutationFinalState(includeCoverage: boolean): string {
+  const taskId = "kibi-usage-safe-mutation-direction-development-1";
+  const suffix = createHash("sha256")
+    .update(taskId)
+    .digest("hex")
+    .slice(0, 12)
+    .toUpperCase();
+  const queryResult = {
+    content: [{ type: "text", text: "Found fixture entities." }],
+    structuredContent: {
+      entities: [
+        {
+          id: `REQ-FIXTURE-${suffix}`,
+          type: "req",
+        },
+        {
+          id: `TEST-FIXTURE-${suffix}`,
+          type: "test",
+        },
+        {
+          id: `SYM-FIXTURE-${suffix}`,
+          type: "symbol",
+          sourceFile: "src/fixture.ts",
+          implements: `kb:entity/REQ-FIXTURE-${suffix}`,
+          ...(includeCoverage
+            ? { covered_by: `kb:entity/TEST-FIXTURE-${suffix}` }
+            : {}),
+        },
+      ],
+      count: 3,
+    },
+  };
+  const checkResult = {
+    content: [{ type: "text", text: "No violations found" }],
+    structuredContent: { violations: [], count: 0, diagnostics: [] },
+  };
+  const statusResult = {
+    content: [{ type: "text", text: "Branch skillopt-eval is fresh" }],
+    structuredContent: { branch: "skillopt-eval", syncState: "fresh" },
+  };
+  return `${JSON.stringify({
+    schemaVersion: "1.0.0",
+    workspaceRoot: "/isolated/workspace",
     requests: [
       {
         tool: "kb_query",
@@ -372,5 +467,38 @@ describe("default Codex cell evidence sealing", () => {
     ]);
     expect(evidence.diagnostic.integrityValid).toBe(true);
     expect(scoreCell(manifest, evidence).terminalCategory).toBeNull();
+  });
+
+  test("requires the exact public safe-mutation ownership and coverage links", async () => {
+    const manifest = safeMutationManifest();
+    const options = {
+      evaluatorManifest: manifest,
+      finalStateRequests: [
+        { tool: "kb_query" as const, args: {} },
+        { tool: "kb_check" as const, args: {} },
+        { tool: "kb_status" as const, args: {} },
+      ],
+    };
+    const complete = sealDefaultCellEvidence(options, {
+      finalState: safeMutationFinalState(true),
+      brokerTrace: await brokerTrace(),
+      diagnosticReceipt:
+        '{"tool":"kb_query","status":"success","telemetry":null}\n',
+    });
+    const missingCoverage = sealDefaultCellEvidence(options, {
+      finalState: safeMutationFinalState(false),
+      brokerTrace: await brokerTrace(),
+      diagnosticReceipt:
+        '{"tool":"kb_query","status":"success","telemetry":null}\n',
+    });
+
+    expect(complete.finalState.claims).toContainEqual({
+      key: "final-safe-mutation-direction",
+      value: true,
+    });
+    expect(missingCoverage.finalState.claims).toContainEqual({
+      key: "final-safe-mutation-direction",
+      value: false,
+    });
   });
 });

@@ -54,7 +54,7 @@ describe("kibi query", () => {
     tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-test-query-"));
 
     // Initialize KB structure
-    execSync("git init", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git init -b main", { cwd: tmpDir, stdio: "pipe" });
     execSync(`node ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",

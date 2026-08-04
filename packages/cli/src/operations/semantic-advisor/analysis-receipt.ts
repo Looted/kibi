@@ -100,11 +100,11 @@ export function buildAdvisorResult(
   const coverageStatus =
     expectedClaimKeys.length === 0
       ? "not_applicable"
-      : declaredClaimKeys.length === 0
-        ? "unverified"
-        : missingClaimKeys.length > 0 || unresolvedClaimKeys.length > 0
-          ? "partial"
-          : "complete";
+      : modeled
+        ? "complete"
+        : declaredClaimKeys.length === 0
+          ? "unverified"
+          : "partial";
   const receipt: SemanticAdvisorReceipt = {
     version: "semantic-advisor-v1",
     payload_hash: payloadHash(payload),

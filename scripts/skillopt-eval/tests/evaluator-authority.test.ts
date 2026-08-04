@@ -380,6 +380,68 @@ describe("evaluator authority", () => {
     });
   });
 
+  test("Given a dotted strict subject and an atomic property key When decoded Then the property target is not rewritten", () => {
+    const result = {
+      content: [{ type: "text", text: "Found 3 entities." }],
+      structuredContent: {
+        entities: [
+          {
+            id: "REQ-retention",
+            type: "req",
+            logic_claims: ["CLAIM-BBBBBBBBBBBBBBBB"],
+            constrains: "kb:entity/FACT-customer-data",
+            requires_property: "kb:entity/FACT-retention-years",
+          },
+          {
+            id: "FACT-customer-data",
+            type: "fact",
+            fact_kind: "subject",
+            subject_key: "customer.data",
+          },
+          {
+            id: "FACT-retention-years",
+            type: "fact",
+            fact_kind: "property_value",
+            subject_key: "customer.data",
+            property_key: "retention_years",
+            value_type: "int",
+            value_int: 7,
+            claim_key: "CLAIM-BBBBBBBBBBBBBBBB",
+            claim_text: "Customer data must be retained for 7 years.",
+          },
+        ],
+        count: 3,
+      },
+    };
+    const binding = {
+      caseId: "kibi-usage-fact-predicate-modeling-train-2",
+      roots: evaluatorRoots,
+      sequence: 1,
+    } as const;
+    const finalState = JSON.stringify({
+      schemaVersion: "1.0.0",
+      workspaceRoot: "/isolated/workspace",
+      binding,
+      requests: [
+        {
+          tool: "kb_query",
+          args: {},
+          result,
+          resultHash: new Bun.CryptoHasher("sha256")
+            .update(JSON.stringify(result))
+            .digest("hex"),
+        },
+      ],
+    });
+
+    expect(
+      decodeFinalStatePredicateSnapshot(finalState, binding).relationships,
+    ).toEqual([
+      { relationship: "constrains", target: "customer.data" },
+      { relationship: "requires_property", target: "retention_years=7" },
+    ]);
+  });
+
   test("Given an authentic wrong-lane MCP query result When scored Then it is a behavioral failure", () => {
     const result = {
       content: [{ type: "text", text: "Found 1 entity." }],

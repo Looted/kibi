@@ -74,4 +74,6 @@ Staged validation overlays must preserve typed test verification metadata.
 
 Human-readable prose remains authoritative for review, but a single logical edge cannot make a compound requirement complete. Kibi validates the explicit `logic_claims` manifest against linked ground facts. The semantic advisor exposes its clause inventory so an agent or operator can correct incomplete automatic decomposition before mutation.
 
+Logical coverage is bijective at the atomic-clause boundary: one claim key corresponds to one linked ground fact. Formatting-only trailing punctuation shares one claim identity, and two distinct keys cannot claim the same canonical property or predicate term as separate coverage. Exact entity readback preserves every repeated relationship target so this correspondence remains auditable.
+
 Kibi does not claim unrestricted natural-language theorem proving. Structural coverage proves that declared clauses were grounded; semantic review proves the clause inventory and term mapping preserve the source meaning. Exact predicate `assert`/`deny` conflicts are a sound generic contradiction rule. Richer ontology-specific conflicts require shared canonical schemas and explicitly modeled arguments rather than guessed equivalence.

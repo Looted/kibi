@@ -183,6 +183,16 @@ describe("parsePropertyList", () => {
     expect(parsePropertyList("")).toEqual({});
     expect(parsePropertyList("[]")).toEqual({});
   });
+
+  test("preserves every target when an entity has repeated relationship properties", () => {
+    expect(
+      parsePropertyList(
+        "[requires_predicate='kb:entity/FACT-A',requires_predicate='kb:entity/FACT-B']",
+      ),
+    ).toEqual({
+      requires_predicate: ["kb:entity/FACT-A", "kb:entity/FACT-B"],
+    });
+  });
 });
 
 describe("parsePrologValue", () => {

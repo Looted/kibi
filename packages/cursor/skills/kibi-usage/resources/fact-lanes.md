@@ -8,8 +8,10 @@ Logical coverage is clause-based, not entity-based. Give `kb_semantic_advisor` t
 
 - preserve the returned stable key as `claim_key` and the exact clause as `claim_text` on its ground fact;
 - add the key to the requirement `logic_claims` manifest without removing existing keys;
-- link it through `requires_property` for `property_value` or `requires_predicate` for `predicate`;
+- link it through exactly one `requires_property` for `property_value` or one `requires_predicate` for `predicate`;
 - leave ambiguity and ontology gaps visibly unresolved—observations do not satisfy `logic-coverage`.
+
+Use the advisor-returned atomic inventory as the identity boundary. Trailing punctuation and copied conjunction commas are formatting, not new claims. `logic-coverage` rejects one claim grounded by multiple facts and distinct claim keys that resolve to the same ground logical term.
 
 Example compound prose: “Checkout requires payment authorization before order submission, and customer data must be retained for 7 years.” This is two claims, not one. The first becomes `dependency_rule(checkout,payment_authorization,order_submission)`; the second becomes a strict retention property. Both fact records carry different advisor-issued claim keys, and both keys appear in the requirement manifest. A single `requires_predicate` edge is incomplete.
 
@@ -71,6 +73,8 @@ relationship: { type: requires_predicate, from: REQ-SUSPENDED-PUBLISH-DENIED, to
 ```
 
 If another current requirement links an `assert` fact with the same predicate namespace, name, and ordered arguments, `domain-contradictions` reports the pair. More complex semantic conflicts require a shared canonical schema and arguments; do not assume Kibi can prove arbitrary equivalence between differently shaped predicates.
+
+The full logical representation of a requirement is the conjunction of all of its linked ground property and predicate terms. Conditions, exceptions, permissions, and ordering constraints remain explicit arguments of their declared schemas. Contradiction detection therefore depends on equivalent prose reusing the same predicate name, argument roles, ordered canonical values, and opposing polarity rather than inventing synonymous terms.
 
 ### Strict scalar
 

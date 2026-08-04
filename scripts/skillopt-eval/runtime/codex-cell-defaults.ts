@@ -83,6 +83,44 @@ function sameRequest(
   );
 }
 
+function referenceTargets(value: unknown): readonly string[] {
+  const values = Array.isArray(value) ? value : [value];
+  return values.flatMap((entry) => {
+    if (typeof entry !== "string") return [];
+    return [
+      entry.startsWith("kb:entity/") ? entry.slice("kb:entity/".length) : entry,
+    ];
+  });
+}
+
+// implements REQ-skillopt-logical-evidence-fidelity
+function safeMutationComplete(
+  receipt: FinalStateReceipt,
+  taskId: string,
+): boolean {
+  if (!taskId.includes("-safe-mutation-direction-")) return true;
+  const suffix = createHash("sha256")
+    .update(taskId)
+    .digest("hex")
+    .slice(0, 12)
+    .toUpperCase();
+  const symbolId = `SYM-FIXTURE-${suffix}`;
+  const requirementId = `REQ-FIXTURE-${suffix}`;
+  const testId = `TEST-FIXTURE-${suffix}`;
+  const query = receipt.requests.find(({ tool }) => tool === "kb_query");
+  const entities = structuredContent(query?.result)?.entities;
+  if (!Array.isArray(entities)) return false;
+  const symbol = entities.find(
+    (entity): entity is Record<string, unknown> =>
+      isRecord(entity) && entity.id === symbolId && entity.type === "symbol",
+  );
+  return (
+    symbol?.sourceFile === "src/fixture.ts" &&
+    referenceTargets(symbol.implements).includes(requirementId) &&
+    referenceTargets(symbol.covered_by).includes(testId)
+  );
+}
+
 function sealedFinalState(
   finalState: string,
   options: Pick<CodexCellOptions, "evaluatorManifest" | "finalStateRequests">,
@@ -109,7 +147,8 @@ function sealedFinalState(
     receipt.requests.some(
       (request) =>
         request.tool === "kb_check" && cleanCheckResult(request.result),
-    );
+    ) &&
+    safeMutationComplete(receipt, options.evaluatorManifest.taskId);
   const evaluatorClaims = options.evaluatorManifest.expectedFinalState.flatMap(
     (assertion): readonly EvidenceClaim[] => {
       if (assertion.query.startsWith("state://")) {

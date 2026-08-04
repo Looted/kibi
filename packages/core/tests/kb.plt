@@ -437,6 +437,62 @@ test(logic_coverage_accepts_complete_ground_manifest, [setup(setup_kb), cleanup(
     check_logic_coverage(Violations),
     \+ member(violation('logic-coverage', 'REQ-LOGIC-COMPLETE', _, _, _), Violations).
 
+test(logic_coverage_rejects_multiple_ground_facts_for_one_claim, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-LOGIC-DUPLICATE-CLAIM', "Duplicate claim", open, [
+        logic_claims=["CLAIM-7777777777777777"]
+    ]),
+    assert_fixture_entity(fact, 'FACT-LOGIC-DUPLICATE-A', "First ground predicate", active, [
+        fact_kind=predicate,
+        predicate_name="dependency_rule",
+        predicate_args=["checkout", "payment", "submission"],
+        polarity=assert,
+        canonical_key="dependency_rule(checkout,payment,submission)",
+        claim_key="CLAIM-7777777777777777",
+        claim_text="Checkout requires payment before submission"
+    ]),
+    assert_fixture_entity(fact, 'FACT-LOGIC-DUPLICATE-B', "Second ground predicate", active, [
+        fact_kind=predicate,
+        predicate_name="temporal_order",
+        predicate_args=["checkout", "payment", "submission"],
+        polarity=assert,
+        canonical_key="temporal_order(checkout,payment,submission)",
+        claim_key="CLAIM-7777777777777777",
+        claim_text="Checkout requires payment before submission"
+    ]),
+    kb_assert_relationship(requires_predicate, 'REQ-LOGIC-DUPLICATE-CLAIM', 'FACT-LOGIC-DUPLICATE-A', []),
+    kb_assert_relationship(requires_predicate, 'REQ-LOGIC-DUPLICATE-CLAIM', 'FACT-LOGIC-DUPLICATE-B', []),
+    check_logic_coverage(Violations),
+    member(violation('logic-coverage', 'REQ-LOGIC-DUPLICATE-CLAIM', Description, _, _), Violations),
+    sub_string(Description, _, _, _, "more than once").
+
+test(logic_coverage_rejects_duplicate_terms_with_distinct_claim_keys, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-LOGIC-DUPLICATE-TERM', "Duplicate term", open, [
+        logic_claims=["CLAIM-8888888888888888", "CLAIM-9999999999999999"]
+    ]),
+    assert_fixture_entity(fact, 'FACT-LOGIC-TERM-A', "First wording", active, [
+        fact_kind=predicate,
+        predicate_name="dependency_rule",
+        predicate_args=["checkout", "payment", "submission"],
+        polarity=assert,
+        canonical_key="dependency_rule(checkout,payment,submission)",
+        claim_key="CLAIM-8888888888888888",
+        claim_text="Checkout requires payment before submission"
+    ]),
+    assert_fixture_entity(fact, 'FACT-LOGIC-TERM-B', "Punctuation variant", active, [
+        fact_kind=predicate,
+        predicate_name="dependency_rule",
+        predicate_args=["checkout", "payment", "submission"],
+        polarity=assert,
+        canonical_key="dependency_rule(checkout,payment,submission)",
+        claim_key="CLAIM-9999999999999999",
+        claim_text="Checkout requires payment before submission,"
+    ]),
+    kb_assert_relationship(requires_predicate, 'REQ-LOGIC-DUPLICATE-TERM', 'FACT-LOGIC-TERM-A', []),
+    kb_assert_relationship(requires_predicate, 'REQ-LOGIC-DUPLICATE-TERM', 'FACT-LOGIC-TERM-B', []),
+    check_logic_coverage(Violations),
+    member(violation('logic-coverage', 'REQ-LOGIC-DUPLICATE-TERM', Description, _, _), Violations),
+    sub_string(Description, _, _, _, "duplicate logical ground term").
+
 test(logical_claim_provenance_requires_key_and_text, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     \+ assert_fixture_entity(fact, 'FACT-INCOMPLETE-CLAIM', "Incomplete logical claim", active, [
         fact_kind=predicate,

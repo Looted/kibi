@@ -238,6 +238,46 @@ describe("deterministic Codex episode replay", () => {
     expect(receipt.result.criticalFailures).toContain("timeout");
   });
 
+  test("Given a provider credit limit When replayed Then it is budget exhaustion rather than model behavior", () => {
+    const receipt = replay({
+      stderr:
+        "You've hit your usage limit. Purchase more credits or try again later.",
+      exitCode: 1,
+    });
+
+    expect(receipt.result).toMatchObject({
+      status: "budget-exhausted",
+      score: 0,
+      hardPass: false,
+    });
+    expect(receipt.result.criticalFailures).toContain(
+      "provider_budget_exhausted",
+    );
+    expect(receipt.result.criticalFailures).toContain("nonzero_exit");
+  });
+
+  test("Given quota exhaustion before evidence is written When replayed Then budget status takes precedence", () => {
+    const receipt = replay({
+      transcript: JSON.stringify({
+        type: "error",
+        message: "insufficient_quota: credit balance is depleted",
+      }),
+      stderr: "",
+      exitCode: 1,
+      evidence: { brokerTrace: "", diagnosticReceipt: "", finalState: "" },
+    });
+
+    expect(receipt.result.status).toBe("budget-exhausted");
+    expect(receipt.result.criticalFailures).toEqual(
+      expect.arrayContaining([
+        "provider_budget_exhausted",
+        "missing_mcp_evidence",
+        "missing_diagnostic_receipt",
+        "missing_final_state",
+      ]),
+    );
+  });
+
   test("Given hidden output and a forbidden write When replayed Then leakage is redacted and scores zero", () => {
     // Given
     const transcript = [

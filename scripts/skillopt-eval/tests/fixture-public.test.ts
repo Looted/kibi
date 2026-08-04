@@ -192,4 +192,60 @@ describe("public SkillOpt fixture corpus", () => {
       /expectedLane|expectedPredicate|expectedEdges|expectedGroundFactKinds|expectedLogicClaimCount|expectedPredicateName|expectedPredicateArgs|expectedPolarity|privateExpectation|PRIVATE_EXPECTED/i,
     );
   });
+
+  test("safe mutation tasks expose the requested links and real test evidence", () => {
+    const root = temporaryRoot();
+    roots.push(root);
+    const task = buildPublicCatalog().find(
+      ({ family, split }) =>
+        family === "safe-mutation-direction" && split === "development",
+    );
+    if (task === undefined) throw new Error("safe mutation task is required");
+    const receipt = materializeFixtureRun({
+      runRoot: path.join(root, "run"),
+      canonicalSkillRoot: CANONICAL_SKILL_ROOT,
+      publicTasks: [task],
+      heldOutTasks: [],
+    });
+    const workspace = path.join(
+      receipt.roots.publicRoot,
+      task.split,
+      "tasks",
+      task.id,
+      "workspace",
+    );
+    const request = JSON.parse(
+      readFileSync(path.join(workspace, "mutation-request.json"), "utf8"),
+    ) as {
+      sourceSymbol: { id: string };
+      existingEndpoints: { requirementId: string; testId: string };
+      relationships: readonly {
+        type: string;
+        from: string;
+        to: string;
+      }[];
+    };
+    const testEvidence = readFileSync(
+      path.join(workspace, "documentation", "tests", "fixture.md"),
+      "utf8",
+    );
+
+    expect(request.relationships).toEqual([
+      {
+        type: "implements",
+        from: request.sourceSymbol.id,
+        to: request.existingEndpoints.requirementId,
+      },
+      {
+        type: "covered_by",
+        from: request.sourceSymbol.id,
+        to: request.existingEndpoints.testId,
+      },
+    ]);
+    expect(testEvidence).toContain(`id: ${request.existingEndpoints.testId}`);
+    expect(testEvidence).toContain(
+      `validates: kb:entity/${request.existingEndpoints.requirementId}`,
+    );
+    expect(task.prompt).toContain("mutation-request.json");
+  });
 });

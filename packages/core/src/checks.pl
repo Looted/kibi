@@ -834,6 +834,45 @@ logic_coverage_violation(violation(
     'logic-coverage',
     ReqId,
     Description,
+    "Keep a one-to-one mapping between each atomic claim key and its linked ground fact; split compound clauses before grounding",
+    Source
+)) :-
+    kb:current_req(ReqId),
+    grounded_requirement_claim_fact(ReqId, ClaimKey, FactA),
+    grounded_requirement_claim_fact(ReqId, ClaimKey, FactB),
+    FactA @< FactB,
+    format(
+        string(Description),
+        "Requirement grounds logical claim ~w more than once through ~w and ~w",
+        [ClaimKey, FactA, FactB]
+    ),
+    violation_source(ReqId, req, Source).
+
+logic_coverage_violation(violation(
+    'logic-coverage',
+    ReqId,
+    Description,
+    "Remove punctuation or wording variants from the atomic inventory and keep one claim key for each distinct logical term",
+    Source
+)) :-
+    kb:current_req(ReqId),
+    grounded_requirement_claim_fact(ReqId, ClaimA, FactA),
+    grounded_requirement_claim_fact(ReqId, ClaimB, FactB),
+    ClaimA \= ClaimB,
+    FactA @< FactB,
+    logical_ground_signature(FactA, Signature),
+    logical_ground_signature(FactB, Signature),
+    format(
+        string(Description),
+        "Requirement declares duplicate logical ground term ~w through claim keys ~w and ~w",
+        [Signature, ClaimA, ClaimB]
+    ),
+    violation_source(ReqId, req, Source).
+
+logic_coverage_violation(violation(
+    'logic-coverage',
+    ReqId,
+    Description,
     "Append the linked fact claim_key to the requirement logic_claims manifest, or remove the stale logical link",
     Source
 )) :-
@@ -854,11 +893,32 @@ requirement_logic_claims(ReqId, ClaimKeys) :-
     kb:normalize_term_atom_list(RawClaimKeys, ClaimKeys).
 
 grounded_requirement_claim(ReqId, ClaimKey) :-
+    grounded_requirement_claim_fact(ReqId, ClaimKey, _FactId).
+
+grounded_requirement_claim_fact(ReqId, ClaimKey, FactId) :-
     kb_relationship(requires_property, ReqId, FactId),
     ground_fact_claim_key(FactId, property_value, ClaimKey).
-grounded_requirement_claim(ReqId, ClaimKey) :-
+grounded_requirement_claim_fact(ReqId, ClaimKey, FactId) :-
     kb_relationship(requires_predicate, ReqId, FactId),
     ground_fact_claim_key(FactId, predicate, ClaimKey).
+
+logical_ground_signature(FactId, predicate(Namespace, Name, Args, Polarity)) :-
+    kb:predicate_fact(FactId, Namespace, Name, Args, Polarity).
+logical_ground_signature(
+    FactId,
+    property(Subject, Property, Operator, ValueType, Value, Unit, Scope, Polarity)
+) :-
+    kb:fact_property_tuple(
+        FactId,
+        Subject,
+        Property,
+        Operator,
+        ValueType,
+        Value,
+        Unit,
+        Scope,
+        Polarity
+    ).
 
 ground_fact_claim_key(FactId, ExpectedKind, ClaimKey) :-
     kb_entity(FactId, fact, Props),

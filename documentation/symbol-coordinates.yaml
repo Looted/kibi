@@ -2111,9 +2111,9 @@ coordinates:
   SYM-analyzeSemanticAdvisorInput:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 345
+    sourceEndLine: 362
     sourceFile: packages/cli/src/operations/semantic-advisor/analyze-prose.ts
-    sourceLine: 320
+    sourceLine: 337
   SYM-analyzeSourceText:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2741,9 +2741,99 @@ coordinates:
   SYM-cli-build-program:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 60
+    sourceEndLine: 61
     sourceFile: packages/cli/src/cli.ts
-    sourceLine: 48
+    sourceLine: 49
+  SYM-cli-codec-escape-atom:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 23
+    sourceFile: packages/cli/src/prolog/codec.ts
+    sourceLine: 20
+  SYM-cli-codec-escape-atom-content:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 60
+    sourceFile: packages/cli/src/prolog/codec.ts
+    sourceLine: 57
+  SYM-cli-codec-parse-atom-list:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 386
+    sourceFile: packages/cli/src/prolog/codec.ts
+    sourceLine: 371
+  SYM-cli-codec-parse-entity-from-binding:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 133
+    sourceFile: packages/cli/src/prolog/codec.ts
+    sourceLine: 110
+  SYM-cli-codec-parse-entity-from-list:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 156
+    sourceFile: packages/cli/src/prolog/codec.ts
+    sourceLine: 135
+  SYM-cli-codec-parse-list-of-lists:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 108
+    sourceFile: packages/cli/src/prolog/codec.ts
+    sourceLine: 62
+  SYM-cli-codec-parse-pair-list:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 407
+    sourceFile: packages/cli/src/prolog/codec.ts
+    sourceLine: 388
+  SYM-cli-codec-parse-prolog-value:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 291
+    sourceFile: packages/cli/src/prolog/codec.ts
+    sourceLine: 197
+  SYM-cli-codec-parse-triples:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 429
+    sourceFile: packages/cli/src/prolog/codec.ts
+    sourceLine: 409
+  SYM-cli-codec-parse-violation-rows:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 556
+    sourceFile: packages/cli/src/prolog/codec.ts
+    sourceLine: 495
+  SYM-cli-codec-parsed-violation:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 493
+    sourceFile: packages/cli/src/prolog/codec.ts
+    sourceLine: 487
+  SYM-cli-codec-split-top-level:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 350
+    sourceFile: packages/cli/src/prolog/codec.ts
+    sourceLine: 347
+  SYM-cli-codec-split-top-level-general:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 345
+    sourceFile: packages/cli/src/prolog/codec.ts
+    sourceLine: 293
+  SYM-cli-codec-to-prolog-atom:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 35
+    sourceFile: packages/cli/src/prolog/codec.ts
+    sourceLine: 29
+  SYM-cli-codec-to-prolog-string:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 51
+    sourceFile: packages/cli/src/prolog/codec.ts
+    sourceLine: 42
   SYM-cli-command-result-type:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -3032,6 +3122,12 @@ coordinates:
     sourceEndLine: 9
     sourceFile: packages/cli/src/cli-input.ts
     sourceLine: 6
+  SYM-cli-main:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 80
+    sourceFile: packages/cli/src/cli.ts
+    sourceLine: 64
   SYM-cli-operation-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -3074,6 +3170,12 @@ coordinates:
     sourceEndLine: 22
     sourceFile: packages/cli/tests/parity/helpers.ts
     sourceLine: 19
+  SYM-cli-parse-property-list:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 195
+    sourceFile: packages/cli/src/prolog/codec.ts
+    sourceLine: 158
   SYM-cli-persistEntities:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3500,6 +3602,18 @@ coordinates:
     sourceEndLine: 134
     sourceFile: packages/core/src/discovery.pl
     sourceLine: 134
+  SYM-core-grounded-requirement-claim-fact:
+    sourceColumn: 4
+    sourceEndColumn: 35
+    sourceEndLine: 841
+    sourceFile: packages/core/src/checks.pl
+    sourceLine: 841
+  SYM-core-logical-ground-signature:
+    sourceColumn: 4
+    sourceEndColumn: 28
+    sourceEndLine: 863
+    sourceFile: packages/core/src/checks.pl
+    sourceLine: 863
   SYM-core-validate-entity-shape:
     sourceColumn: 4
     sourceEndColumn: 25
@@ -4199,9 +4313,9 @@ coordinates:
   SYM-extractSemanticClauses:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 60
+    sourceEndLine: 65
     sourceFile: packages/cli/src/operations/semantic-advisor/clauses.ts
-    sourceLine: 41
+    sourceLine: 46
   SYM-extractSymbolsFromStagedFile:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6728,6 +6842,12 @@ coordinates:
     sourceEndLine: 16
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
     sourceLine: 14
+  SYM-semantic-advisor-logical-grounding-slots:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 104
+    sourceFile: packages/cli/src/operations/semantic-advisor/analyze-prose.ts
+    sourceLine: 93
   SYM-semantic-advisor-normalizeKey:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6809,9 +6929,9 @@ coordinates:
   SYM-semanticClaimKey:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 26
+    sourceEndLine: 31
     sourceFile: packages/cli/src/operations/semantic-advisor/clauses.ts
-    sourceLine: 22
+    sourceLine: 27
   SYM-sendToast:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7193,9 +7313,9 @@ coordinates:
   SYM-skillopt-bridge-cli-execution-run:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 254
+    sourceEndLine: 265
     sourceFile: scripts/skillopt-eval/runtime/bridge-cli-execution.ts
-    sourceLine: 246
+    sourceLine: 257
   SYM-skillopt-bridge-cli-main:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7256,6 +7376,12 @@ coordinates:
     sourceEndLine: 89
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     sourceLine: 73
+  SYM-skillopt-bridge-row:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 127
+    sourceFile: scripts/skillopt-eval/runtime/bridge-cli-execution.ts
+    sourceLine: 52
   SYM-skillopt-bridge-source-worktree-env:
     sourceColumn: 13
     sourceEndColumn: 73
@@ -7436,6 +7562,12 @@ coordinates:
     sourceEndLine: 59
     sourceFile: scripts/skillopt-eval/variants.ts
     sourceLine: 59
+  SYM-skillopt-canonical-property-key:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 123
+    sourceFile: scripts/skillopt-eval/runtime/final-state.ts
+    sourceLine: 116
   SYM-skillopt-canonical-skill-type:
     sourceColumn: 12
     sourceEndColumn: 63
@@ -8039,9 +8171,9 @@ coordinates:
   SYM-skillopt-decode-final-state-predicate-snapshot:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 320
+    sourceEndLine: 318
     sourceFile: scripts/skillopt-eval/runtime/final-state.ts
-    sourceLine: 282
+    sourceLine: 280
   SYM-skillopt-decode-predicate-case-snapshot:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8051,9 +8183,9 @@ coordinates:
   SYM-skillopt-default-codex-cell-dependencies:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 317
+    sourceEndLine: 356
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    sourceLine: 254
+    sourceLine: 293
   SYM-skillopt-default-evaluate-development:
     sourceColumn: 13
     sourceEndColumn: 3
@@ -8477,15 +8609,15 @@ coordinates:
   SYM-skillopt-fixture-build-bundle-payload:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 277
+    sourceEndLine: 284
     sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
-    sourceLine: 268
+    sourceLine: 275
   SYM-skillopt-fixture-build-family-payload:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 265
+    sourceEndLine: 272
     sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
-    sourceLine: 257
+    sourceLine: 264
   SYM-skillopt-fixture-build-index:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8504,6 +8636,12 @@ coordinates:
     sourceEndLine: 21
     sourceFile: scripts/skillopt-eval/fixtures/task-definition-types.ts
     sourceLine: 10
+  SYM-skillopt-fixture-entity-ids:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 122
+    sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
+    sourceLine: 115
   SYM-skillopt-fixture-family-payload-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -8519,9 +8657,9 @@ coordinates:
   SYM-skillopt-fixture-hash-workspace:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 137
+    sourceEndLine: 176
     sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
-    sourceLine: 128
+    sourceLine: 167
   SYM-skillopt-fixture-init-definitions:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -8681,9 +8819,9 @@ coordinates:
   SYM-skillopt-fixture-write-workspace:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 195
+    sourceEndLine: 236
     sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
-    sourceLine: 140
+    sourceLine: 179
   SYM-skillopt-freeze-candidate-variant:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -9335,9 +9473,9 @@ coordinates:
   SYM-skillopt-predicate-payload:
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 204
+    sourceEndLine: 208
     sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
-    sourceLine: 149
+    sourceLine: 153
   SYM-skillopt-predicate-private-expectation:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -9389,9 +9527,9 @@ coordinates:
   SYM-skillopt-predicate-write-claim:
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 125
+    sourceEndLine: 164
     sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
-    sourceLine: 115
+    sourceLine: 154
   SYM-skillopt-preflight-check:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -9758,6 +9896,12 @@ coordinates:
     sourceEndLine: 24
     sourceFile: scripts/skillopt-eval/prototype.ts
     sourceLine: 19
+  SYM-skillopt-provider-budget-exhausted:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 129
+    sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
+    sourceLine: 124
   SYM-skillopt-public-evidence-summary:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -10076,6 +10220,12 @@ coordinates:
     sourceEndLine: 190
     sourceFile: scripts/skillopt-eval/adoption-transaction.ts
     sourceLine: 163
+  SYM-skillopt-reference-targets:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 94
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
+    sourceLine: 86
   SYM-skillopt-render-report-markdown:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -10085,9 +10235,9 @@ coordinates:
   SYM-skillopt-replay-codex-episode:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 276
+    sourceEndLine: 297
     sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
-    sourceLine: 171
+    sourceLine: 192
   SYM-skillopt-report-artifacts-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -10157,9 +10307,9 @@ coordinates:
   SYM-skillopt-run-independent-final-state:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 375
+    sourceEndLine: 373
     sourceFile: scripts/skillopt-eval/runtime/final-state.ts
-    sourceLine: 323
+    sourceLine: 321
   SYM-skillopt-run-mcp-broker:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -10640,6 +10790,12 @@ coordinates:
     sourceEndLine: 105
     sourceFile: scripts/skillopt-eval/runtime/canary-probes.ts
     sourceLine: 84
+  SYM-skillopt-safe-mutation-complete:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 122
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
+    sourceLine: 97
   SYM-skillopt-scoring-bootstrap:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -10793,9 +10949,9 @@ coordinates:
   SYM-skillopt-seal-default-cell-evidence:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 251
+    sourceEndLine: 290
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    sourceLine: 232
+    sourceLine: 271
   SYM-skillopt-sealed-cell-evidence:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -11078,6 +11234,12 @@ coordinates:
     sourceEndLine: 233
     sourceFile: scripts/skillopt-eval/offline-artifacts.ts
     sourceLine: 191
+  SYM-skillopt-write-safe-mutation-evidence:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 151
+    sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
+    sourceLine: 125
   SYM-skillsListCommand:
     sourceColumn: 22
     sourceEndColumn: 1

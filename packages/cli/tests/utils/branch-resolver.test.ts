@@ -129,7 +129,7 @@ describe("branch-resolver", () => {
     });
 
     test("returns current git branch when KIBI_BRANCH not set", () => {
-      execSync("git init", { cwd: tmpDir });
+      execSync("git init -b main", { cwd: tmpDir });
       execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
       execSync("git config user.name 'Test User'", { cwd: tmpDir });
       execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
@@ -142,7 +142,7 @@ describe("branch-resolver", () => {
     });
 
     test("returns DETACHED_HEAD error in detached HEAD state", () => {
-      execSync("git init", { cwd: tmpDir });
+      execSync("git init -b main", { cwd: tmpDir });
       execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
       execSync("git config user.name 'Test User'", { cwd: tmpDir });
       execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
@@ -171,7 +171,7 @@ describe("branch-resolver", () => {
     });
 
     test("returns branch using git rev-parse when branch --show-current fails", () => {
-      execSync("git init", { cwd: tmpDir });
+      execSync("git init -b main", { cwd: tmpDir });
       execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
       execSync("git config user.name 'Test User'", { cwd: tmpDir });
       execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
@@ -341,7 +341,7 @@ describe("branch-resolver", () => {
 
   describe("isDetachedHead", () => {
     test("returns true in detached HEAD state", () => {
-      execSync("git init", { cwd: tmpDir });
+      execSync("git init -b main", { cwd: tmpDir });
       execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
       execSync("git config user.name 'Test User'", { cwd: tmpDir });
       execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
@@ -355,7 +355,7 @@ describe("branch-resolver", () => {
     });
 
     test("returns false when on a branch", () => {
-      execSync("git init", { cwd: tmpDir });
+      execSync("git init -b main", { cwd: tmpDir });
       execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
       execSync("git config user.name 'Test User'", { cwd: tmpDir });
       execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
@@ -574,7 +574,7 @@ describe("branch-resolver", () => {
 
     test("returns origin/HEAD branch when config not set", () => {
       // Initialize git repo with origin/HEAD
-      execSync("git init", { cwd: tmpDir });
+      execSync("git init -b main", { cwd: tmpDir });
       execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
       execSync("git config user.name 'Test User'", { cwd: tmpDir });
       execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
@@ -596,7 +596,7 @@ describe("branch-resolver", () => {
 
     test("returns 'main' fallback when origin/HEAD does not exist", () => {
       // Initialize git repo without origin/HEAD
-      execSync("git init", { cwd: tmpDir });
+      execSync("git init -b main", { cwd: tmpDir });
       execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
       execSync("git config user.name 'Test User'", { cwd: tmpDir });
       execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
@@ -615,8 +615,8 @@ describe("branch-resolver", () => {
     });
 
     test("handles origin/HEAD with different branch names", () => {
-      // Initialize git repo - git init creates 'master' by default
-      execSync("git init", { cwd: tmpDir });
+      // Initialize an explicit legacy-named default branch for this regression.
+      execSync("git init -b master", { cwd: tmpDir });
       execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
       execSync("git config user.name 'Test User'", { cwd: tmpDir });
       execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });

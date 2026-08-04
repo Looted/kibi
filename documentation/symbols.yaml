@@ -10648,6 +10648,8 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: executable_for
         target: TEST-skillopt-external-adoption-verdict
+      - type: executable_for
+        target: TEST-skillopt-logical-evidence-fidelity
   - id: SYM-skillopt-bridge-request
     title: BridgeRequest
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
@@ -11196,6 +11198,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-codex-optimization
+      - type: executable_for
+        target: TEST-skillopt-logical-evidence-fidelity
   - id: SYM-skillopt-codex-events-tests
     title: Codex JSONL normalization
     sourceFile: scripts/skillopt-eval/tests/codex-events.test.ts
@@ -11971,6 +11975,8 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: executable_for
         target: TEST-skillopt-predicate-first-requirements
+      - type: executable_for
+        target: TEST-skillopt-logical-evidence-fidelity
   - id: SYM-skillopt-default-evaluate-development
     title: defaultEvaluateDevelopment
     sourceFile: scripts/skillopt-eval/training-setup.ts
@@ -12307,6 +12313,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-predicate-first-requirements
+      - type: executable_for
+        target: TEST-skillopt-logical-evidence-fidelity
   - id: SYM-skillopt-evaluator-roots
     title: evaluatorRoots
     sourceFile: scripts/skillopt-eval/tests/fixtures/evaluator-authority-fixtures.ts
@@ -12988,6 +12996,8 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: executable_for
         target: TEST-skillopt-predicate-first-requirements
+      - type: executable_for
+        target: TEST-skillopt-logical-evidence-fidelity
   - id: SYM-skillopt-fixture-resilience-tests
     title: SkillOpt fixture adversarial resilience
     sourceFile: scripts/skillopt-eval/tests/fixture-resilience.test.ts
@@ -18487,3 +18497,301 @@ symbols:
         target: TEST-skillopt-paid-launch-accounting
       - type: executable_for
         target: TEST-skillopt-external-adoption-verdict
+  - id: SYM-skillopt-bridge-row
+    title: bridgeRow
+    sourceFile: scripts/skillopt-eval/runtime/bridge-cli-execution.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-logical-evidence-fidelity
+      - type: covered_by
+        target: TEST-skillopt-logical-evidence-fidelity
+  - id: SYM-skillopt-canonical-property-key
+    title: canonicalPropertyKey
+    sourceFile: scripts/skillopt-eval/runtime/final-state.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-logical-evidence-fidelity
+      - type: covered_by
+        target: TEST-skillopt-logical-evidence-fidelity
+  - id: SYM-skillopt-provider-budget-exhausted
+    title: providerBudgetExhausted
+    sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-logical-evidence-fidelity
+      - type: covered_by
+        target: TEST-skillopt-logical-evidence-fidelity
+  - id: SYM-skillopt-reference-targets
+    title: referenceTargets
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-logical-evidence-fidelity
+      - type: covered_by
+        target: TEST-skillopt-logical-evidence-fidelity
+  - id: SYM-skillopt-safe-mutation-complete
+    title: safeMutationComplete
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-logical-evidence-fidelity
+      - type: covered_by
+        target: TEST-skillopt-logical-evidence-fidelity
+  - id: SYM-skillopt-fixture-entity-ids
+    title: fixtureEntityIds
+    sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-logical-evidence-fidelity
+      - type: covered_by
+        target: TEST-skillopt-logical-evidence-fidelity
+  - id: SYM-skillopt-write-safe-mutation-evidence
+    title: writeSafeMutationEvidence
+    sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-skillopt-logical-evidence-fidelity
+      - type: covered_by
+        target: TEST-skillopt-logical-evidence-fidelity
+  - id: SYM-cli-codec-escape-atom
+    title: escapeAtom
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-009
+      - type: covered_by
+        target: TEST-cli-prolog-codec
+  - id: SYM-cli-codec-to-prolog-atom
+    title: toPrologAtom
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-009
+      - type: covered_by
+        target: TEST-cli-prolog-codec
+  - id: SYM-cli-codec-to-prolog-string
+    title: toPrologString
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-009
+      - type: covered_by
+        target: TEST-cli-prolog-codec
+  - id: SYM-cli-codec-escape-atom-content
+    title: escapeAtomContent
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-009
+      - type: covered_by
+        target: TEST-cli-prolog-codec
+  - id: SYM-cli-codec-parse-list-of-lists
+    title: parseListOfLists
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-009
+      - type: covered_by
+        target: TEST-cli-prolog-codec
+  - id: SYM-cli-codec-parse-entity-from-binding
+    title: parseEntityFromBinding
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-009
+      - type: covered_by
+        target: TEST-cli-prolog-codec
+  - id: SYM-cli-codec-parse-entity-from-list
+    title: parseEntityFromList
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-009
+      - type: covered_by
+        target: TEST-cli-prolog-codec
+  - id: SYM-cli-codec-parse-prolog-value
+    title: parsePrologValue
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-009
+      - type: covered_by
+        target: TEST-cli-prolog-codec
+  - id: SYM-cli-codec-split-top-level-general
+    title: splitTopLevelGeneral
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-009
+      - type: covered_by
+        target: TEST-cli-prolog-codec
+  - id: SYM-cli-codec-split-top-level
+    title: splitTopLevel
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-009
+      - type: covered_by
+        target: TEST-cli-prolog-codec
+  - id: SYM-cli-codec-parse-atom-list
+    title: parseAtomList
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-009
+      - type: covered_by
+        target: TEST-cli-prolog-codec
+  - id: SYM-cli-codec-parse-pair-list
+    title: parsePairList
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-009
+      - type: covered_by
+        target: TEST-cli-prolog-codec
+  - id: SYM-cli-codec-parse-triples
+    title: parseTriples
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-009
+      - type: covered_by
+        target: TEST-cli-prolog-codec
+  - id: SYM-cli-codec-parse-violation-rows
+    title: parseViolationRows
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-009
+      - type: covered_by
+        target: TEST-cli-prolog-codec
+  - id: SYM-cli-codec-parsed-violation
+    title: ParsedViolation
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: type_shape
+    relationships:
+      - type: implements
+        target: REQ-009
+      - type: covered_by
+        target: TEST-cli-prolog-codec
+  - id: SYM-cli-parse-property-list
+    title: parsePropertyList
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-009
+      - type: implements
+        target: REQ-skillopt-logical-evidence-fidelity
+      - type: covered_by
+        target: TEST-skillopt-logical-evidence-fidelity
+      - type: covered_by
+        target: TEST-cli-prolog-codec
+  - id: SYM-core-grounded-requirement-claim-fact
+    title: grounded_requirement_claim_fact
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-core-logical-ground-signature
+    title: logical_ground_signature
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-semantic-advisor-logical-grounding-slots
+    title: logicalGroundingSlots
+    sourceFile: packages/cli/src/operations/semantic-advisor/analyze-prose.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-skillopt-logical-evidence-fidelity
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-skillopt-logical-evidence-fidelity
+  - id: SYM-semantic-advisor-operation-tests
+    title: semantic advisor operation tests
+    sourceFile: packages/cli/tests/operations/semantic-advisor.test.ts
+    symbol_role: test
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-logical-requirement-coverage
+      - type: executable_for
+        target: TEST-skillopt-logical-evidence-fidelity
+  - id: SYM-prolog-codec-tests
+    title: Prolog codec tests
+    sourceFile: packages/cli/tests/prolog/codec.test.ts
+    symbol_role: test
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-logical-evidence-fidelity
+      - type: executable_for
+        target: TEST-cli-prolog-codec
+  - id: SYM-core-kb-logic-coverage-tests
+    title: Prolog logic coverage tests
+    sourceFile: packages/core/tests/kb.plt
+    symbol_role: test
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-git-hooks-tests
+    title: Git hooks tests
+    sourceFile: packages/cli/tests/hooks.test.ts
+    symbol_role: test
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-006
+  - id: SYM-cli-main
+    title: main
+    sourceFile: packages/cli/src/cli.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-import-purity-tests
+    title: CLI import and process lifecycle tests
+    sourceFile: packages/cli/tests/cli-import-purity.test.ts
+    symbol_role: test
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-operation-interface-parity
