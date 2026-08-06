@@ -87,11 +87,19 @@ export function createCliRuntime(
         if (!branch) {
           const resolved = resolveActiveBranch(root);
           if ("error" in resolved) {
-            throw new Error(
-              `Failed to resolve active branch: ${resolved.error}`,
-            );
+            const isNonGitContext =
+              resolved.code === "NOT_A_GIT_REPO" ||
+              resolved.code === "GIT_NOT_AVAILABLE";
+            if (isNonGitContext) {
+              branch = "main";
+            } else {
+              throw new Error(
+                `Failed to resolve active branch: ${resolved.error}`,
+              );
+            }
+          } else {
+            branch = resolved.branch;
           }
-          branch = resolved.branch;
         }
         const kbPath = path.join(root, ".kb", "branches", branch);
         const attached = await prolog.query(
