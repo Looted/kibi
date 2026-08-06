@@ -27,7 +27,7 @@ describe("kibi init", () => {
   });
 
   test("creates .kb directory structure", () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
     // Create initial commit so branch exists (required per ADR-012)
     execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
     execSync("git config user.name 'Test User'", { cwd: tmpDir });
@@ -42,12 +42,12 @@ describe("kibi init", () => {
     expect(existsSync(path.join(tmpDir, ".kb/config.json"))).toBe(true);
     expect(existsSync(path.join(tmpDir, ".kb/schema"))).toBe(true);
     expect(existsSync(path.join(tmpDir, ".kb/branches"))).toBe(true);
-    // After normalization, master branch becomes main
+    // The explicit test branch remains main.
     expect(existsSync(path.join(tmpDir, ".kb/branches/main"))).toBe(true);
   }, 30000);
 
   test("copies schema files to .kb/schema/", () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "inherit",
@@ -63,7 +63,7 @@ describe("kibi init", () => {
   }, 30000);
 
   test("creates valid config.json with default paths", () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "inherit",
@@ -88,7 +88,7 @@ describe("kibi init", () => {
   });
 
   test("creates documentation/symbols.yaml when it is missing", () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "inherit",
@@ -102,7 +102,7 @@ describe("kibi init", () => {
   });
 
   test("adds only .kb to .gitignore", () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
     execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
     execSync("git config user.name 'Test User'", { cwd: tmpDir });
     execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
@@ -120,7 +120,7 @@ describe("kibi init", () => {
   }, 30000);
 
   test("creates config.json with all check rules explicitly set to true", () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "inherit",
@@ -147,7 +147,7 @@ describe("kibi init", () => {
   });
 
   test("does not fail if .kb already exists", () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
     execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
     execSync("git config user.name 'Test User'", { cwd: tmpDir });
     execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
@@ -164,7 +164,7 @@ describe("kibi init", () => {
   });
 
   test("installs git hooks by default", () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
     execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
     execSync("git config user.name 'Test User'", { cwd: tmpDir });
     execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
@@ -187,7 +187,7 @@ describe("kibi init", () => {
   });
 
   test("does not install hooks when --no-hooks is used", () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
     execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
     execSync("git config user.name 'Test User'", { cwd: tmpDir });
     execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
@@ -206,7 +206,7 @@ describe("kibi init", () => {
   });
 
   test("installs pre-commit hook by default", () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
     execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
     execSync("git config user.name 'Test User'", { cwd: tmpDir });
     execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
@@ -229,7 +229,7 @@ describe("kibi init", () => {
   });
 
   test("exits with code 0 on success", () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
     execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
     execSync("git config user.name 'Test User'", { cwd: tmpDir });
     execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
@@ -255,7 +255,7 @@ describe("kibi init", () => {
   });
 
   test("prints helpful message if .kb/ already exists", () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
     execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
     execSync("git config user.name 'Test User'", { cwd: tmpDir });
     execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });

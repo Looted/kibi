@@ -1,289 +1,173 @@
-/*
- Kibi — repo-local, per-branch, queryable long-term memory for software projects
- Copyright (C) 2026 Piotr Franczyk
-
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-import * as path from "node:path";
 import Table from "cli-table3";
-import { PrologProcess } from "../prolog.js";
+import { parseListOfLists, parsePrologValue } from "../prolog/codec.js";
 import {
-  parseEntityFromBinding,
-  parseEntityFromList,
-  parseListOfLists,
-  parsePrologValue,
-  parsePropertyList,
-  splitTopLevel,
-} from "../prolog/codec.js";
+  VALID_ENTITY_TYPES,
+  executeOperation,
+  querySpec,
+} from "../public/operations/index.js";
 import relationshipSchema from "../public/schemas/relationship.js";
-import { VALID_ENTITY_TYPES } from "../query/service.js";
-import { resolveActiveBranch } from "../utils/branch-resolver.js";
-import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
+import { createCliRuntime } from "../runtime/cli-runtime.js";
+import { withAttachedBranchProlog } from "./discovery-shared.js";
 
 const REL_TYPES = relationshipSchema.properties.type.enum;
 
 type QueryRelationship = {
-  type: string;
-  from: string;
-  to: string;
+  readonly type: string;
+  readonly from: string;
+  readonly to: string;
 };
 
 type QueryEntity = Record<string, unknown>;
 
 interface QueryOptions {
-  id?: string;
-  tag?: string;
-  source?: string;
-  relationships?: string;
-  format?: "json" | "table";
-  limit?: string;
-  offset?: string;
+  readonly id?: string;
+  readonly tag?: string;
+  readonly source?: string;
+  readonly relationships?: string;
+  readonly format?: "json" | "table";
+  readonly limit?: string;
+  readonly offset?: string;
 }
 
-// implements REQ-003
 export async function queryCommand(
   type: string | undefined,
   options: QueryOptions,
 ): Promise<{ exitCode: number }> {
-  let prolog: PrologProcess | null = null;
-  let attached = false;
-  try {
-    prolog = new PrologProcess({ timeout: 120000 });
-    await prolog.start();
-
-    await prolog.query(
-      "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
+  // implements REQ-003, REQ-kibi-operation-interface-parity
+  if (!type && !options.source && !options.relationships) {
+    console.error(
+      "Error: Must specify entity type, --source, or --relationships option",
     );
+    return { exitCode: 1 };
+  }
+  if (type && !VALID_ENTITY_TYPES.some((candidate) => candidate === type)) {
+    console.error(
+      `Error: Invalid type '${type}'. Valid types: ${VALID_ENTITY_TYPES.join(", ")}`,
+    );
+    return { exitCode: 1 };
+  }
 
-    let currentBranch: string;
-    const branchResult = resolveActiveBranch();
-
-    if ("error" in branchResult) {
-      const isNonGitError =
-        branchResult.code === "NOT_A_GIT_REPO" ||
-        branchResult.code === "GIT_NOT_AVAILABLE";
-
-      if (isNonGitError) {
-        // For query command, use "main" as default branch when git is not available
-        // or the current directory is not a git repository. This allows querying
-        // after init in a non-git directory.
-        currentBranch = "main";
-      } else {
-        console.error(
-          `Error: Failed to resolve active branch:\n${branchResult.error}`,
-        );
-        await prolog.terminate();
-        return { exitCode: 1 };
-      }
-    } else {
-      currentBranch = branchResult.branch;
-    }
-
-    const kbPath = path.join(process.cwd(), `.kb/branches/${currentBranch}`);
-    const attachResult = await prolog.query(`kb_attach('${kbPath}')`);
-
-    if (!attachResult.success) {
-      await prolog.terminate();
-      console.error(
-        `Error: Failed to attach KB: ${attachResult.error || "Unknown error"}`,
-      );
-      return { exitCode: 1 };
-    }
-    attached = true;
-
-    let results: Array<QueryRelationship | QueryEntity> = [];
-
+  try {
+    const limit = Number.parseInt(options.limit || "100", 10);
+    const offset = Number.parseInt(options.offset || "0", 10);
     if (options.relationships) {
-      const fromId = String(options.relationships);
-      const safeFromId = fromId.replace(/'/g, "''");
-      const relTypesList = REL_TYPES.join(", ");
-
-      const goal = `findall([Type,From,To], (member(Type, [${relTypesList}]), kb_relationship(Type, '${safeFromId}', To), From='${safeFromId}'), Results)`;
-
-      const queryResult = await prolog.query(goal);
-
-      if (queryResult.success && queryResult.bindings.Results) {
-        const rows = parseListOfLists(queryResult.bindings.Results);
-        const parsed = rows
-          .filter((r) => r.length >= 3)
-          .flatMap((r) => {
-            const [typeValue, fromValue, toValue] = r;
-            if (
-              typeValue === undefined ||
-              fromValue === undefined ||
-              toValue === undefined
-            ) {
-              return [];
-            }
-
-            return [
-              {
-                type: parsePrologValue(typeValue),
-                from: parsePrologValue(fromValue),
-                to: parsePrologValue(toValue),
-              },
-            ];
-          });
-        results = parsed.filter(
-          (rel) =>
-            rel &&
-            typeof rel.type === "string" &&
-            typeof rel.from === "string" &&
-            typeof rel.to === "string" &&
-            rel.from === fromId &&
-            REL_TYPES.includes(rel.type),
-        );
-      }
-    } else if (type || options.source) {
-      if (type && !VALID_ENTITY_TYPES.includes(type)) {
-        console.error(
-          `Error: Invalid type '${type}'. Valid types: ${VALID_ENTITY_TYPES.join(", ")}`,
-        );
-        return { exitCode: 1 };
-      }
-
-      let goal: string;
-
-      if (options.source) {
-        const safeSource = String(options.source).replace(/'/g, "\\'");
-        if (type) {
-          goal = `findall([Id,'${type}',Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, '${type}', Props)), Results)`;
-        } else {
-          goal = `findall([Id,Type,Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, Type, Props)), Results)`;
-        }
-      } else if (options.id) {
-        const safeId = String(options.id).replace(/'/g, "''");
-        goal = `kb_entity('${safeId}', '${type}', Props), Id = '${safeId}', Type = '${type}', Result = [Id, Type, Props]`;
-      } else if (options.tag) {
-        const safeTag = String(options.tag).replace(/'/g, "''");
-        goal = `findall([Id,'${type}',Props], (kb_entity(Id, '${type}', Props), memberchk(tags=Tags, Props), member('${safeTag}', Tags)), Results)`;
-      } else {
-        goal = `findall([Id,'${type}',Props], kb_entity(Id, '${type}', Props), Results)`;
-      }
-
-      const queryResult = await prolog.query(goal);
-
-      if (queryResult.success) {
-        if (options.id) {
-          // Single entity query
-          if (queryResult.bindings.Result) {
-            const entity = parseEntityFromBinding(queryResult.bindings.Result);
-            results = [entity];
-          }
-        } else {
-          // Multiple entities query
-          if (queryResult.bindings.Results) {
-            const entitiesData = parseListOfLists(queryResult.bindings.Results);
-
-            for (const data of entitiesData) {
-              const entity = parseEntityFromList(data);
-              results.push(entity);
-            }
-          }
-        }
-      }
-    } else {
-      console.error(
-        "Error: Must specify entity type, --source, or --relationships option",
+      const relationships = await queryRelationships(options.relationships);
+      printRelationships(
+        relationships.slice(offset, offset + limit),
+        options.format,
       );
-      return { exitCode: 1 };
-    }
-
-    const limit = Number.parseInt(options.limit || "100");
-    const offset = Number.parseInt(options.offset || "0");
-    const paginated = results.slice(offset, offset + limit);
-
-    if (!paginated || paginated.length === 0) {
-      if (options.format === "json") {
-        console.log("[]");
-      } else {
-        console.log("No entities found");
-      }
       return { exitCode: 0 };
     }
 
-    // Format output
-    if (options.format === "table") {
-      outputTable(paginated, Boolean(options.relationships));
-    } else {
-      console.log(JSON.stringify(paginated, null, 2));
-    }
+    const result = await executeOperation(
+      createCliRuntime(),
+      querySpec,
+      {
+        ...(type !== undefined ? { type } : {}),
+        ...(options.id !== undefined ? { id: options.id } : {}),
+        ...(options.tag !== undefined ? { tags: [options.tag] } : {}),
+        ...(options.source !== undefined ? { sourceFile: options.source } : {}),
+        limit,
+        offset,
+      },
+      { workspaceRoot: process.cwd() },
+    );
+    printEntities(result.structuredContent?.entities ?? [], options.format);
     return { exitCode: 0 };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`Error: ${message}`);
     return { exitCode: 1 };
-  } finally {
-    await safeCleanupProlog(prolog);
   }
 }
 
-/**
- * Output results as a formatted table.
- */
-function outputTable(
-  items: Array<QueryRelationship | QueryEntity>,
-  isRelationships: boolean,
+async function queryRelationships(
+  fromId: string,
+): Promise<QueryRelationship[]> {
+  return withAttachedBranchProlog(async (prolog) => {
+    const safeFromId = fromId.replaceAll("'", "''");
+    const goal = `findall([Type,From,To], (member(Type, [${REL_TYPES.join(", ")}]), kb_relationship(Type, '${safeFromId}', To), From='${safeFromId}'), Results)`;
+    const result = await prolog.query(goal);
+    const binding = result.bindings.Results;
+    if (!result.success || !binding) return [];
+    return parseListOfLists(binding).flatMap((row) => {
+      const [typeValue, fromValue, toValue] = row;
+      if (!typeValue || !fromValue || !toValue) return [];
+      const type = parsePrologValue(typeValue);
+      const from = parsePrologValue(fromValue);
+      const to = parsePrologValue(toValue);
+      if (
+        typeof type !== "string" ||
+        typeof from !== "string" ||
+        typeof to !== "string" ||
+        from !== fromId ||
+        !REL_TYPES.includes(type)
+      ) {
+        return [];
+      }
+      return [{ type, from, to }];
+    });
+  });
+}
+
+function printRelationships(
+  items: readonly QueryRelationship[],
+  format: "json" | "table" | undefined,
 ): void {
   if (items.length === 0) {
-    console.log("No entities found.");
+    console.log(format === "json" ? "[]" : "No entities found");
+    return;
+  }
+  if (format !== "table") {
+    console.log(JSON.stringify(items, null, 2));
     return;
   }
 
-  if (isRelationships) {
-    const table = new Table({
-      head: ["Type", "From", "To"],
-      colWidths: [20, 18, 18],
-    });
-
-    for (const item of items) {
-      const rel = item as QueryRelationship;
-      table.push([
-        rel.type || "N/A",
-        rel.from.substring(0, 16) || "N/A",
-        rel.to.substring(0, 16) || "N/A",
-      ]);
-    }
-
-    console.log(table.toString());
-  } else {
-    const table = new Table({
-      head: ["ID", "Type", "Title", "Status", "Tags"],
-      colWidths: [18, 10, 40, 12, 30],
-    });
-
-    for (const entity of items) {
-      const record = entity as QueryEntity;
-      const id = typeof record.id === "string" ? record.id : "N/A";
-      const entityType = typeof record.type === "string" ? record.type : "N/A";
-      const title = typeof record.title === "string" ? record.title : "N/A";
-      const status = typeof record.status === "string" ? record.status : "N/A";
-      const tags = Array.isArray(record.tags)
-        ? record.tags
-            .filter((tag): tag is string => typeof tag === "string")
-            .join(", ")
-        : "";
-      table.push([
-        id.substring(0, 16),
-        entityType,
-        title.substring(0, 38),
-        status,
-        tags.substring(0, 28),
-      ]);
-    }
-
-    console.log(table.toString());
+  const table = new Table({
+    head: ["Type", "From", "To"],
+    colWidths: [20, 18, 18],
+  });
+  for (const item of items) {
+    table.push([
+      item.type || "N/A",
+      item.from.substring(0, 16) || "N/A",
+      item.to.substring(0, 16) || "N/A",
+    ]);
   }
+  console.log(table.toString());
+}
+
+function printEntities(
+  items: readonly QueryEntity[],
+  format: "json" | "table" | undefined,
+): void {
+  if (items.length === 0) {
+    console.log(format === "json" ? "[]" : "No entities found");
+    return;
+  }
+  if (format !== "table") {
+    console.log(JSON.stringify(items, null, 2));
+    return;
+  }
+  const table = new Table({
+    head: ["ID", "Type", "Title", "Status", "Tags"],
+    colWidths: [18, 10, 40, 12, 30],
+  });
+  for (const item of items) {
+    const id = typeof item.id === "string" ? item.id : "N/A";
+    const entityType = typeof item.type === "string" ? item.type : "N/A";
+    const title = typeof item.title === "string" ? item.title : "N/A";
+    const status = typeof item.status === "string" ? item.status : "N/A";
+    const tags = Array.isArray(item.tags)
+      ? item.tags.filter((tag) => typeof tag === "string").join(", ")
+      : "";
+    table.push([
+      id.substring(0, 16),
+      entityType,
+      title.substring(0, 38),
+      status,
+      tags.substring(0, 28),
+    ]);
+  }
+  console.log(table.toString());
 }

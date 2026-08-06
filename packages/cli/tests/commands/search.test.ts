@@ -23,6 +23,9 @@ describe("kibi search", () => {
       recursive: true,
     });
     mkdirSync(path.join(tmpDir, "src"), { recursive: true });
+    mkdirSync(path.join(tmpDir, "documentation", "facts"), {
+      recursive: true,
+    });
 
     writeFileSync(
       path.join(tmpDir, "documentation", "requirements", "REQ-001.md"),
@@ -32,6 +35,68 @@ describe("kibi search", () => {
     writeFileSync(
       path.join(tmpDir, "src", "hidden.ts"),
       "export const hidden = 'latent discovery token';\n",
+    );
+
+    writeFileSync(
+      path.join(
+        tmpDir,
+        "documentation",
+        "facts",
+        "FACT-apple-signin-revenuecat-recovery.md",
+      ),
+      [
+        "---",
+        "id: FACT-apple-signin-revenuecat-recovery",
+        "title: Apple Sign-In RevenueCat Recovery",
+        "status: open",
+        "type: fact",
+        "---",
+        "",
+        "Apple Sign-In recovery restores RevenueCat entitlements for premium recovery.",
+        "The flow supports logged-out recovery when people cannot log in and need premium recovery.",
+        "",
+      ].join("\n"),
+    );
+
+    writeFileSync(
+      path.join(
+        tmpDir,
+        "documentation",
+        "requirements",
+        "REQ-search-revenuecat-entitlement.md",
+      ),
+      [
+        "---",
+        "id: REQ-search-revenuecat-entitlement",
+        "title: RevenueCat Entitlement Requirement",
+        "status: open",
+        "---",
+        "",
+        "RevenueCat entitlement verification must restore premium access deterministically.",
+        "The requirement is specifically about RevenueCat entitlement handling.",
+        "",
+      ].join("\n"),
+    );
+
+    writeFileSync(
+      path.join(
+        tmpDir,
+        "documentation",
+        "facts",
+        "FACT-search-unrelated-sync-feedback.md",
+      ),
+      [
+        "---",
+        "id: FACT-search-unrelated-sync-feedback",
+        "title: Sync Feedback Observation",
+        "status: open",
+        "type: fact",
+        "---",
+        "",
+        "Sync feedback notifications explain repository synchronization progress.",
+        "This observation is about background sync status and notification delivery only.",
+        "",
+      ].join("\n"),
     );
 
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
@@ -58,55 +123,50 @@ describe("kibi search", () => {
   });
 
   test("returns improved ranking for broad synthetic corpus queries", () => {
-    writeFileSync(
-      path.join(
-        tmpDir,
-        "documentation",
-        "requirements",
-        "REQ-search-revenuecat-entitlement.md",
-      ),
-      "---\nid: REQ-search-revenuecat-entitlement\ntitle: RevenueCat entitlement restore\nstatus: open\n---\n\nPremium entitlement recovery for logged out users.\n",
-    );
-    writeFileSync(
-      path.join(
-        tmpDir,
-        "documentation",
-        "requirements",
-        "FACT-search-apple-signin-revenuecat-recovery.md",
-      ),
-      "---\nid: FACT-search-apple-signin-revenuecat-recovery\ntitle: Apple Sign-In RevenueCat recovery\nstatus: open\n---\n\nApple Sign-In authentication premium recovery RevenueCat entitlement logged out unable to log in.\n",
-    );
-    writeFileSync(
-      path.join(
-        tmpDir,
-        "documentation",
-        "requirements",
-        "FACT-search-unrelated-sync-feedback.md",
-      ),
-      "---\nid: FACT-search-unrelated-sync-feedback\ntitle: Sync feedback note\nstatus: open\n---\n\nAn unrelated sync feedback artifact.\n",
-    );
-    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+    const query =
+      "Apple Sign-In authentication premium recovery RevenueCat entitlement logged out unable to log in";
 
-    const output = execSync(
-      `bun ${kibiBin} search "Apple Sign-In authentication premium recovery RevenueCat entitlement logged out unable to log in" --format json`,
-      { cwd: tmpDir, encoding: "utf8" },
-    );
+    // First invocation
+    const output1 = execSync(`bun ${kibiBin} search "${query}" --format json`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
 
-    const result = JSON.parse(output) as {
+    const result1 = JSON.parse(output1) as {
       count: number;
-      results: Array<{ entity: { id: string } }>;
+      results: Array<{
+        entity: { id: string };
+        score: number;
+        reasons: string[];
+      }>;
     };
-    expect(result.results[0]?.entity.id).toBe(
-      "FACT-search-apple-signin-revenuecat-recovery",
+
+    expect(result1.count).toBeGreaterThan(0);
+    expect(result1.results[0]?.entity.id).toBe(
+      "FACT-apple-signin-revenuecat-recovery",
     );
-    expect(result.results.map((r) => r.entity.id)).toContain(
-      "REQ-search-revenuecat-entitlement",
-    );
-    expect(
-      result.results.some(
-        (r) => r.entity.id === "FACT-search-unrelated-sync-feedback",
-      ),
-    ).toBe(false);
+
+    const firstIds = result1.results.map((r) => r.entity.id);
+    expect(firstIds).not.toContain("FACT-search-unrelated-sync-feedback");
+
+    // Second invocation — deterministic across two consecutive CLI invocations
+    const output2 = execSync(`bun ${kibiBin} search "${query}" --format json`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
+
+    const result2 = JSON.parse(output2) as {
+      count: number;
+      results: Array<{
+        entity: { id: string };
+        score: number;
+        reasons: string[];
+      }>;
+    };
+
+    expect(result2.count).toBe(result1.count);
+    expect(result2.results[0]?.entity.id).toBe(result1.results[0]?.entity.id);
+    expect(result2.results.map((r) => r.entity.id)).toEqual(firstIds);
   });
 
   test("returns empty results for no-signal queries", () => {

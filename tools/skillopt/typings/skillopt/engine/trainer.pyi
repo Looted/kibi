@@ -1,0 +1,9 @@
+from typing import Protocol
+
+from tools.skillopt.kibi_skillopt.common import JsonValue
+
+class Adapter(Protocol): ...
+
+class ReflACTTrainer:
+    def __init__(self, config: dict[str, JsonValue], adapter: Adapter) -> None: ...
+    def train(self) -> dict[str, JsonValue]: ...

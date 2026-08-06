@@ -18,6 +18,7 @@
     check_strict_req_fact_pairing/1,% Returns list of malformed strict req/fact pairing violations
     check_strict_readiness/1,       % Returns list of strict readiness audit violations
     check_predicate_verifiability/1,% Returns list of unverifiable predicate-lane requirement links
+    check_logic_coverage/1,         % Returns list of incomplete declared logical claim manifests
     run_checks_json/0,              % Entry point for JSON output
     violation_id_text/2             % Extract text from entity ID term (exported for testing)
 ]).
@@ -54,6 +55,7 @@ check_all(ViolationsDict) :-
     check_strict_req_fact_pairing(StrictReqFactPairing),
     check_strict_readiness(StrictReadiness),
     check_predicate_verifiability(PredicateVerifiability),
+    check_logic_coverage(LogicCoverage),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -66,7 +68,8 @@ check_all(ViolationsDict) :-
         strict_fact_shape: StrictFactShape,
         strict_req_fact_pairing: StrictReqFactPairing,
         strict_readiness: StrictReadiness,
-        predicate_verifiability: PredicateVerifiability
+        predicate_verifiability: PredicateVerifiability,
+        logic_coverage: LogicCoverage
     }.
 
 %% check_must_priority_coverage(-Violations)
@@ -800,6 +803,133 @@ predicate_verifiability_kind_label(legacy, "a legacy fact without fact_kind").
 predicate_verifiability_kind_label(Kind, Label) :-
     format(string(Label), "fact_kind=~w", [Kind]).
 
+%% check_logic_coverage(-Violations)
+% Validates explicitly declared atomic requirement claim manifests. Legacy
+% requirements without logic_claims remain eligible for gradual backfill; once
+% a manifest exists, every key must be grounded by a linked strict-property or
+% predicate fact carrying the same claim_key.
+check_logic_coverage(Violations) :-
+    findall(Violation, logic_coverage_violation(Violation), Violations0),
+    sort(Violations0, Violations).
+
+logic_coverage_violation(violation(
+    'logic-coverage',
+    ReqId,
+    Description,
+    "Ground every declared claim with a property_value fact via requires_property or a predicate fact via requires_predicate, preserving the same claim_key",
+    Source
+)) :-
+    kb:current_req(ReqId),
+    requirement_logic_claims(ReqId, ClaimKeys),
+    member(ClaimKey, ClaimKeys),
+    \+ grounded_requirement_claim(ReqId, ClaimKey),
+    format(
+        string(Description),
+        "Requirement declares logical claim ~w but has no matching ground fact",
+        [ClaimKey]
+    ),
+    violation_source(ReqId, req, Source).
+
+logic_coverage_violation(violation(
+    'logic-coverage',
+    ReqId,
+    Description,
+    "Keep a one-to-one mapping between each atomic claim key and its linked ground fact; split compound clauses before grounding",
+    Source
+)) :-
+    kb:current_req(ReqId),
+    grounded_requirement_claim_fact(ReqId, ClaimKey, FactA),
+    grounded_requirement_claim_fact(ReqId, ClaimKey, FactB),
+    FactA @< FactB,
+    format(
+        string(Description),
+        "Requirement grounds logical claim ~w more than once through ~w and ~w",
+        [ClaimKey, FactA, FactB]
+    ),
+    violation_source(ReqId, req, Source).
+
+logic_coverage_violation(violation(
+    'logic-coverage',
+    ReqId,
+    Description,
+    "Remove punctuation or wording variants from the atomic inventory and keep one claim key for each distinct logical term",
+    Source
+)) :-
+    kb:current_req(ReqId),
+    grounded_requirement_claim_fact(ReqId, ClaimA, FactA),
+    grounded_requirement_claim_fact(ReqId, ClaimB, FactB),
+    ClaimA \= ClaimB,
+    FactA @< FactB,
+    logical_ground_signature(FactA, Signature),
+    logical_ground_signature(FactB, Signature),
+    format(
+        string(Description),
+        "Requirement declares duplicate logical ground term ~w through claim keys ~w and ~w",
+        [Signature, ClaimA, ClaimB]
+    ),
+    violation_source(ReqId, req, Source).
+
+logic_coverage_violation(violation(
+    'logic-coverage',
+    ReqId,
+    Description,
+    "Append the linked fact claim_key to the requirement logic_claims manifest, or remove the stale logical link",
+    Source
+)) :-
+    kb:current_req(ReqId),
+    requirement_logic_claims(ReqId, ClaimKeys),
+    grounded_requirement_claim(ReqId, ClaimKey),
+    \+ memberchk(ClaimKey, ClaimKeys),
+    format(
+        string(Description),
+        "Requirement links ground logical claim ~w but omits it from logic_claims",
+        [ClaimKey]
+    ),
+    violation_source(ReqId, req, Source).
+
+requirement_logic_claims(ReqId, ClaimKeys) :-
+    kb_entity(ReqId, req, Props),
+    memberchk(logic_claims=RawClaimKeys, Props),
+    kb:normalize_term_atom_list(RawClaimKeys, ClaimKeys).
+
+grounded_requirement_claim(ReqId, ClaimKey) :-
+    grounded_requirement_claim_fact(ReqId, ClaimKey, _FactId).
+
+grounded_requirement_claim_fact(ReqId, ClaimKey, FactId) :-
+    kb_relationship(requires_property, ReqId, FactId),
+    ground_fact_claim_key(FactId, property_value, ClaimKey).
+grounded_requirement_claim_fact(ReqId, ClaimKey, FactId) :-
+    kb_relationship(requires_predicate, ReqId, FactId),
+    ground_fact_claim_key(FactId, predicate, ClaimKey).
+
+logical_ground_signature(FactId, predicate(Namespace, Name, Args, Polarity)) :-
+    kb:predicate_fact(FactId, Namespace, Name, Args, Polarity).
+logical_ground_signature(
+    FactId,
+    property(Subject, Property, Operator, ValueType, Value, Unit, Scope, Polarity)
+) :-
+    kb:fact_property_tuple(
+        FactId,
+        Subject,
+        Property,
+        Operator,
+        ValueType,
+        Value,
+        Unit,
+        Scope,
+        Polarity
+    ).
+
+ground_fact_claim_key(FactId, ExpectedKind, ClaimKey) :-
+    kb_entity(FactId, fact, Props),
+    memberchk(fact_kind=RawKind, Props),
+    normalize_term_atom(RawKind, ExpectedKind),
+    memberchk(claim_key=RawClaimKey, Props),
+    normalize_term_atom(RawClaimKey, ClaimKey),
+    memberchk(claim_text=RawClaimText, Props),
+    normalize_term_atom(RawClaimText, ClaimText),
+    ClaimText \= ''.
+
 strict_readiness_has_fact_link(ReqId) :-
     kb_relationship(constrains, ReqId, FactId),
     kb_entity(FactId, fact, _),
@@ -873,6 +1003,7 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
     check_strict_req_fact_pairing(StrictReqFactPairing),
     check_strict_readiness(StrictReadiness),
     check_predicate_verifiability(PredicateVerifiability),
+    check_logic_coverage(LogicCoverage),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -885,7 +1016,8 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
         strict_fact_shape: StrictFactShape,
         strict_req_fact_pairing: StrictReqFactPairing,
         strict_readiness: StrictReadiness,
-        predicate_verifiability: PredicateVerifiability
+        predicate_verifiability: PredicateVerifiability,
+        logic_coverage: LogicCoverage
     }.
 
 %% violations_dict_to_json(+ViolationsDict, -JsonDict)

@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
+import { resolve } from "node:path";
 
-type SuiteSummary = {
+export type SuiteSummary = {
   pass: number;
   fail: number;
   files: number;
@@ -11,10 +12,42 @@ type Batch = {
   args: string[];
 };
 
+// implements REQ-root-suite-batch-diagnostics
+// covered_by TEST-root-suite-batch-diagnostics
+export const BATCH_TIMEOUT_MINUTES = 25;
+
+type BatchOutcome = {
+  timedOut: boolean;
+  status: number | null;
+  summaryCount: number;
+};
+
+// implements REQ-root-suite-batch-diagnostics
+// covered_by TEST-root-suite-batch-diagnostics
+export function getBatchFailureMessage(
+  label: string,
+  outcome: BatchOutcome,
+): string | null {
+  if (outcome.timedOut) {
+    return `${label} timed out after ${BATCH_TIMEOUT_MINUTES} minutes (status ${outcome.status ?? "null"}; ${outcome.summaryCount} summaries).`;
+  }
+  if (outcome.status !== 0) {
+    return `${label} exited with status ${outcome.status ?? "null"} (${outcome.summaryCount} summaries).`;
+  }
+  if (outcome.summaryCount !== 1) {
+    return `Expected one Bun summary for ${label}, got ${outcome.summaryCount}.`;
+  }
+  return null;
+}
+
 const BATCHES: Batch[] = [
   {
     label: "cli",
     args: ["test", "--timeout", "15000", "./packages/cli"],
+  },
+  {
+    label: "skillopt evaluator",
+    args: ["test", "--timeout", "15000", "./scripts/skillopt-eval/tests"],
   },
   {
     label: "mcp",
@@ -28,7 +61,13 @@ const BATCHES: Batch[] = [
   },
   {
     label: "opencode",
-    args: ["test", "--timeout", "15000", "./packages/opencode"],
+    args: [
+      "test",
+      "--timeout",
+      "15000",
+      "--max-concurrency=1",
+      "./packages/opencode",
+    ],
   },
   {
     label: "codex",
@@ -80,10 +119,10 @@ const BATCHES: Batch[] = [
   },
 ];
 
-function parseSuiteSummaries(output: string): SuiteSummary[] {
+export function parseSuiteSummaries(output: string): SuiteSummary[] {
   const summaries: SuiteSummary[] = [];
   const summaryPattern =
-    /\n\s*(\d+) pass\n\s*(\d+) fail[\s\S]*?Ran \d+ tests across (\d+) files?/g;
+    /\n\s*(\d+) pass(?:\n\s*\d+ skip)?\n\s*(\d+) fail[\s\S]*?Ran \d+ tests across (\d+) files?/g;
   for (const match of output.matchAll(summaryPattern)) {
     summaries.push({
       pass: Number(match[1]),
@@ -120,6 +159,8 @@ function formatSuiteSummary(
   ].join("\n");
 }
 
+// implements REQ-root-suite-batch-diagnostics
+// covered_by TEST-root-suite-batch-diagnostics
 async function runBatch(
   batch: Batch,
 ): Promise<SuiteSummary & { label: string }> {
@@ -149,7 +190,7 @@ async function runBatch(
       timedOut = true;
       child.kill("SIGTERM");
     },
-    15 * 60 * 1000,
+    BATCH_TIMEOUT_MINUTES * 60 * 1000,
   );
 
   const status = await new Promise<number | null>((resolve, reject) => {
@@ -160,17 +201,12 @@ async function runBatch(
   const summaries = parseSuiteSummaries(
     Buffer.concat([...outputChunks, ...errorChunks]).toString("utf8"),
   );
-  if (summaries.length !== 1) {
-    throw new Error(
-      `Expected one Bun summary for ${batch.label}, got ${summaries.length}.`,
-    );
-  }
-  if (timedOut) {
-    throw new Error(`${batch.label} timed out after 15 minutes.`);
-  }
-  if (status !== 0) {
-    throw new Error(`${batch.label} exited with status ${status ?? "null"}.`);
-  }
+  const failureMessage = getBatchFailureMessage(batch.label, {
+    timedOut,
+    status,
+    summaryCount: summaries.length,
+  });
+  if (failureMessage !== null) throw new Error(failureMessage);
 
   return { ...summaries[0], label: batch.label };
 }
@@ -184,9 +220,15 @@ async function runCuratedUnitSuite(): Promise<number> {
   return summaries.some((summary) => summary.fail > 0) ? 1 : 0;
 }
 
-try {
-  process.exit(await runCuratedUnitSuite());
-} catch (error) {
-  console.error(error);
-  process.exit(1);
+const isEntryPoint =
+  process.argv.length >= 2 &&
+  process.argv[1] !== undefined &&
+  resolve(process.argv[1]) === import.meta.filename;
+if (isEntryPoint) {
+  try {
+    process.exit(await runCuratedUnitSuite());
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
 }

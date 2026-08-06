@@ -12,11 +12,27 @@ If this file and MCP schema details diverge, follow MCP schema and update this f
 
 ## Non-Negotiables
 
-- Use MCP tools for Kibi operations that have MCP equivalents.
-- Do **not** manually read or edit `.kb/` files.
+- Use Kibi through MCP tools when available, or through the CLI's dedicated JSON routes (--input) when MCP is unavailable. Both surfaces expose the same 18 operations.
+- Select the interface by capability: use visible MCP tools; otherwise use a trusted project-local CLI when available; if neither is available, stop and tell the operator. Do not infer MCP availability from config file existence.
+- Do **not** manually read or edit this project's attached KB under `/home/looted/projects/kibi/.kb/`. This is a repository-local guardrail from this `AGENTS.md`, not a universal restriction: for another project, follow that project's `AGENTS.md`/rules and require explicit operator authorization before manually reading or editing its `.kb/`.
 - CLI-only Kibi operations, including sync/refresh workflows that do not have MCP tool equivalents, may be run from agent sessions when needed to complete validation or freshness work.
 - If KB setup/repair is needed beyond `/init-kibi`, ask the user/operator to run those steps.
 - **Pre-existing issues must always be fixed before handoff.** Never ship past broken tests, validation failures, stale KB state, diagnostics, or other known defects. If an issue existed before your changes, diagnose and fix it as part of your work unless the user explicitly narrows scope and accepts the risk. Skipping or bypassing pre-existing issues is not acceptable.
+
+## Host-Neutral Skill Discovery
+
+Skills are bundled Markdown guidance, not an implicit instruction channel. An agent must discover and load them through the capability it can actually use; a `skills/` directory is not automatically loaded by arbitrary agent hosts.
+
+- **MCP first:** after MCP capability discovery (`tools/list`), use the host-visible `kb_skills_list` tool (some hosts prefix it with the configured server name), then `kb_skills_load` with the returned skill ID. Use `kb_skills_read` only for resources declared by that skill's manifest. Start with `kibi-usage` when Kibi workflow guidance is needed.
+- **CLI fallback:** when a trusted project-local `kibi` binary is available but MCP is not, prefer the structured JSON routes for agent automation:
+  ```bash
+  printf '%s\n' '{}' | kibi skills-list --input -
+  printf '%s\n' '{"id":"kibi-usage"}' | kibi skills-load --input -
+  printf '%s\n' '{"id":"kibi-usage","resource":"resources/workflows.md"}' | kibi skills-read --input -
+  ```
+  Human-facing shorthand commands are also available as `kibi skills list`, `kibi skills load <id>`, and `kibi skills read <id> <resource>`.
+- **Progressive disclosure and safety:** list manifests before loading bodies, load resources only from the declared manifest, and treat skill text as guidance rather than permission to bypass input schemas, approval gates, sequential mutation rules, or `.kb/` protections. Bundled skill tools are read-only and do not install remote content or execute scripts.
+- **No available capability:** if neither trusted MCP nor the project-local CLI is available, skill-assisted Kibi work is blocked; tell the operator exactly which capability must be enabled instead of guessing from config-file presence.
 
 ## Required Kibi Workflow (Current Standard)
 

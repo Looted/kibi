@@ -141,6 +141,71 @@ describe("MCP Upsert Contradictions and Typed Facts", () => {
       ).rejects.toThrow(/contradiction/i);
     });
 
+    test("rejects opposite polarities for the same ground predicate", async () => {
+      for (const [id, polarity, claimKey] of [
+        ["FACT-PRED-ALLOW", "assert", "CLAIM-94D8C542E05AAC78"],
+        ["FACT-PRED-DENY", "deny", "CLAIM-355C7B2C85728F72"],
+      ] as const) {
+        await handleKbUpsert(prolog, {
+          type: "fact",
+          id,
+          properties: {
+            title: `${polarity} publish permission`,
+            status: "active",
+            source: "test://predicate-contradiction",
+            fact_kind: "predicate",
+            predicate_name: "permission_rule",
+            predicate_args: ["suspended_user", "publish", "article"],
+            canonical_key: "permission_rule(suspended_user,publish,article)",
+            polarity,
+            claim_key: claimKey,
+            claim_text:
+              polarity === "assert"
+                ? "Suspended users may publish articles"
+                : "Suspended users must not publish articles",
+          },
+        });
+      }
+
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "REQ-PRED-ALLOW",
+        properties: {
+          title: "Allow suspended publishing",
+          status: "open",
+          source: "test://predicate-contradiction",
+          logic_claims: ["CLAIM-94D8C542E05AAC78"],
+        },
+        relationships: [
+          {
+            type: "requires_predicate",
+            from: "REQ-PRED-ALLOW",
+            to: "FACT-PRED-ALLOW",
+          },
+        ],
+      });
+
+      await expect(
+        handleKbUpsert(prolog, {
+          type: "req",
+          id: "REQ-PRED-DENY",
+          properties: {
+            title: "Deny suspended publishing",
+            status: "open",
+            source: "test://predicate-contradiction",
+            logic_claims: ["CLAIM-355C7B2C85728F72"],
+          },
+          relationships: [
+            {
+              type: "requires_predicate",
+              from: "REQ-PRED-DENY",
+              to: "FACT-PRED-DENY",
+            },
+          ],
+        }),
+      ).rejects.toThrow(/Predicate conflict.*permission_rule/i);
+    });
+
     test("should accept write when supersedes relationship is included in same request", async () => {
       // Set up existing requirement
       await handleKbUpsert(prolog, {

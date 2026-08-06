@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "evidence-index.schema.json",
+  "title": "SkillOpt evidence index v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "artifactType",
+    "runId",
+    "episodeId",
+    "runLockHash",
+    "events",
+    "brokerTraceHash",
+    "diagnosticReceiptHash",
+    "finalStateHash",
+    "truncated"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "$ref": "contract-definitions.schema.json#/$defs/schemaVersion"
+    },
+    "artifactType": { "const": "evidence-index" },
+    "runId": {
+      "$ref": "contract-definitions.schema.json#/$defs/artifactId"
+    },
+    "episodeId": {
+      "$ref": "contract-definitions.schema.json#/$defs/artifactId"
+    },
+    "runLockHash": { "$ref": "contract-definitions.schema.json#/$defs/sha256" },
+    "events": {
+      "type": "array",
+      "maxItems": 100000,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sequence", "receivedAt", "event"],
+        "properties": {
+          "sequence": { "type": "integer", "minimum": 0 },
+          "receivedAt": {
+            "$ref": "contract-definitions.schema.json#/$defs/timestamp"
+          },
+          "event": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "contract-definitions.schema.json#/$defs/jsonValue"
+            }
+          }
+        }
+      }
+    },
+    "brokerTraceHash": {
+      "$ref": "contract-definitions.schema.json#/$defs/sha256"
+    },
+    "diagnosticReceiptHash": {
+      "$ref": "contract-definitions.schema.json#/$defs/sha256"
+    },
+    "finalStateHash": {
+      "$ref": "contract-definitions.schema.json#/$defs/sha256"
+    },
+    "truncated": { "type": "boolean" }
+  }
+}

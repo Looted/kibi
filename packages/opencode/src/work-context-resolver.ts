@@ -92,8 +92,12 @@ function directorySearchStart(candidatePath: string): string {
   return stats?.isDirectory() ? resolved : dirname(resolved);
 }
 
-function findGitMetadata(candidatePath: string): GitMetadata | null {
+function findGitMetadata(
+  candidatePath: string,
+  searchBoundary?: string,
+): GitMetadata | null {
   let current = directorySearchStart(candidatePath);
+  const boundary = searchBoundary ? resolve(searchBoundary) : null;
 
   while (true) {
     const dotGitPath = join(current, ".git");
@@ -118,6 +122,10 @@ function findGitMetadata(candidatePath: string): GitMetadata | null {
         commonGitDir: dotGitPath,
         isLinkedWorktree: false,
       };
+    }
+
+    if (boundary !== null && current === boundary) {
+      return null;
     }
 
     const parent = dirname(current);
@@ -261,9 +269,21 @@ const resolveWorkContext = function resolveWorkContext(
       : resolve(declaredWorktreeRoot, input.filePath)
     : undefined;
 
+  const fileRelativeToDeclaredRoot = absoluteFilePath
+    ? relative(declaredWorktreeRoot, absoluteFilePath)
+    : null;
+  const fileSearchBoundary =
+    fileRelativeToDeclaredRoot !== null &&
+    !fileRelativeToDeclaredRoot.startsWith(`..${sep}`) &&
+    fileRelativeToDeclaredRoot !== ".." &&
+    !isAbsolute(fileRelativeToDeclaredRoot)
+      ? declaredWorktreeRoot
+      : undefined;
+
   const git =
-    (absoluteFilePath ? findGitMetadata(absoluteFilePath) : null) ??
-    findGitMetadata(declaredWorktreeRoot);
+    (absoluteFilePath
+      ? findGitMetadata(absoluteFilePath, fileSearchBoundary)
+      : null) ?? findGitMetadata(declaredWorktreeRoot, declaredWorktreeRoot);
 
   const worktreeRoot = git?.worktreeRoot ?? declaredWorktreeRoot;
   const kibiAuthorityRoot = git

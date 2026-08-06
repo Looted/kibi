@@ -3,27 +3,27 @@
   "hooks": {
     "sessionStart": [
       {
-        "command": "node packages/cursor/dist/hook-runner.js"
+        "command": "node packages/cursor/dist/hook-runner.js --trusted-workspace"
       }
     ],
     "preToolUse": [
       {
-        "command": "node packages/cursor/dist/hook-runner.js"
+        "command": "node packages/cursor/dist/hook-runner.js --trusted-workspace"
       }
     ],
     "postToolUse": [
       {
-        "command": "node packages/cursor/dist/hook-runner.js"
+        "command": "node packages/cursor/dist/hook-runner.js --trusted-workspace"
       }
     ],
     "beforeReadFile": [
       {
-        "command": "node packages/cursor/dist/hook-runner.js"
+        "command": "node packages/cursor/dist/hook-runner.js --trusted-workspace"
       }
     ],
     "stop": [
       {
-        "command": "node packages/cursor/dist/hook-runner.js",
+        "command": "node packages/cursor/dist/hook-runner.js --trusted-workspace",
         "loop_limit": 1
       }
     ]

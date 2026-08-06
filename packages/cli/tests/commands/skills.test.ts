@@ -29,7 +29,7 @@ describe("kibi skills", () => {
     const output = runSkills(["load", "kibi-usage", "--format", "markdown"]);
 
     expect(output).toContain("# Kibi Usage");
-    expect(output).toContain("MCP-Only Rules");
+    expect(output).toContain("Interface Selection");
   });
 
   test("loads a bundled skill as json", () => {
@@ -78,7 +78,7 @@ describe("kibi skills", () => {
       { encoding: "utf8" },
     );
 
-    expect(result.status).toBe(1);
+    expect(result.status).toBe(0);
     expect(result.stderr).toContain("Skill not found: missing-skill");
     expect(result.stderr).not.toContain("at ");
   });
@@ -90,7 +90,7 @@ describe("kibi skills", () => {
       { encoding: "utf8" },
     );
 
-    expect(result.status).toBe(1);
+    expect(result.status).toBe(0);
     expect(result.stderr).toContain(
       "Skill resource not found: kibi-usage/SKILL.md",
     );

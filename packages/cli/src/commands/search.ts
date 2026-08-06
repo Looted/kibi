@@ -1,31 +1,32 @@
-import type { PrologProcess } from "../prolog.js";
-import { VALID_ENTITY_TYPES, queryEntities } from "../query/service.js";
-import { rankEntities } from "../search-ranking.js";
-import type { SearchMatch } from "../search-ranking.js";
 import {
-  printDiscoveryResult,
-  withAttachedBranchProlog,
-} from "./discovery-shared.js";
+  VALID_ENTITY_TYPES,
+  executeOperation,
+  searchSpec,
+} from "../public/operations/index.js";
+import { createCliRuntime } from "../runtime/cli-runtime.js";
+import { printDiscoveryResult } from "./discovery-shared.js";
 
 interface SearchOptions {
-  type?: string;
-  format?: "json" | "table";
-  limit?: string;
-  offset?: string;
+  readonly type?: string;
+  readonly format?: "json" | "table";
+  readonly limit?: string;
+  readonly offset?: string;
 }
 
-// implements REQ-mcp-search-discovery, REQ-003
 export async function searchCommand(
   query: string | undefined,
   options: SearchOptions,
 ): Promise<void> {
+  // implements REQ-003, REQ-kibi-operation-interface-parity
   if (!query?.trim()) {
     console.error("Error: search query is required");
     process.exitCode = 1;
     return;
   }
-
-  if (options.type && !VALID_ENTITY_TYPES.includes(options.type)) {
+  if (
+    options.type &&
+    !VALID_ENTITY_TYPES.some((candidate) => candidate === options.type)
+  ) {
     console.error(
       `Error: invalid type '${options.type}'. Valid types: ${VALID_ENTITY_TYPES.join(", ")}`,
     );
@@ -33,53 +34,21 @@ export async function searchCommand(
     return;
   }
 
-  await withAttachedBranchProlog(async (prolog) => {
-    const limit = Number.parseInt(options.limit || "20", 10);
-    const offset = Number.parseInt(options.offset || "0", 10);
-    const result = await executeSearch(
-      prolog,
+  const result = await executeOperation(
+    createCliRuntime(),
+    searchSpec,
+    {
       query,
-      options.type,
-      limit,
-      offset,
-    );
-    printDiscoveryResult(
-      options.format,
-      result,
-      buildSearchText(query, result),
-    );
-  });
-}
-
-async function executeSearch(
-  prolog: PrologProcess,
-  query: string,
-  type: string | undefined,
-  limit: number,
-  offset: number,
-): Promise<{ results: SearchMatch[]; count: number }> {
-  const entitiesResult = await queryEntities(prolog, {
-    ...(type !== undefined ? { type } : {}),
-    limit: 100000,
-    offset: 0,
-  });
-
-  const matches = await rankEntities(
-    entitiesResult.entities,
-    query,
-    process.cwd(),
+      ...(options.type !== undefined ? { type: options.type } : {}),
+      limit: Number.parseInt(options.limit || "20", 10),
+      offset: Number.parseInt(options.offset || "0", 10),
+    },
+    { workspaceRoot: process.cwd() },
   );
-  const paginated = matches.slice(offset, offset + limit);
-  return { results: paginated, count: matches.length };
-}
-
-function buildSearchText(
-  query: string,
-  result: { results: SearchMatch[]; count: number },
-): string {
-  if (result.count === 0) {
-    return `No search results for '${query}'.`;
-  }
-
-  return `Found ${result.count} search results for '${query}'. Showing ${result.results.length}: ${result.results.map((match) => match.entity.id).join(", ")}`;
+  const structured = result.structuredContent ?? { results: [], count: 0 };
+  printDiscoveryResult(
+    options.format,
+    structured,
+    result.content[0]?.text ?? `No search results for '${query}'.`,
+  );
 }

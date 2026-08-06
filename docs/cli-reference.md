@@ -1,6 +1,51 @@
 # CLI Reference
 
-This document provides complete command-by-command documentation for the kibi CLI.
+This document provides complete command-by-command documentation for the kibi CLI. The CLI is both a human-facing command surface and an agent-accessible peer of MCP.
+
+## Dedicated JSON operation routes
+
+The CLI exposes the same 18 public operations as MCP. Every route accepts one JSON object through `--input <file|->`, where a path is resolved from the current working directory and `-` reads standard input exactly once. JSON mode writes one structured JSON value followed by a newline to stdout.
+
+```bash
+# Read an input object from a file
+kibi query --input request.json
+
+# Read the same object from stdin
+printf '%s\n' '{"query":"login","limit":10}' | kibi search --input -
+```
+
+The input root must be a JSON object that matches the corresponding operation schema. In JSON mode, do not also pass business flags or positional arguments; mixed input is rejected. Optional `_diagnostic_telemetry` is transport metadata and is removed before business-schema validation.
+
+| Operation | Dedicated CLI route |
+| --- | --- |
+| `kb_skills_list` | `kibi skills-list --input <file|->` |
+| `kb_skills_load` | `kibi skills-load --input <file|->` |
+| `kb_skills_read` | `kibi skills-read --input <file|->` |
+| `kb_query` | `kibi query --input <file|->` |
+| `kb_search` | `kibi search --input <file|->` |
+| `kb_status` | `kibi status --input <file|->` |
+| `kb_find_gaps` | `kibi find-gaps --input <file|->` |
+| `kb_coverage` | `kibi coverage --input <file|->` |
+| `kb_graph` | `kibi graph --input <file|->` |
+| `kb_semantic_advisor` | `kibi semantic-advisor --input <file|->` |
+| `kb_model_requirement` | `kibi model-requirement --input <file|->` |
+| `kb_suggest_predicates` | `kibi suggest-predicates --input <file|->` |
+| `kb_autopilot_generate` | `kibi autopilot-generate --input <file|->` |
+| `kb_validate_upsert` | `kibi validate-upsert --input <file|->` |
+| `kb_upsert` | `kibi upsert --input <file|->` |
+| `kb_delete` | `kibi delete --input <file|->` |
+| `kb_check` | `kibi check --input <file|->` |
+| `kb_sparql_remote` | `kibi sparql-remote --input <file|->` |
+
+### JSON-route exit codes
+
+| Exit code | Meaning |
+| --- | --- |
+| `0` | Input validated and the operation completed successfully. |
+| `1` | The operation started but failed, including Prolog, filesystem, network, or other runtime failures. |
+| `2` | Invocation or input error, including missing/unreadable input, malformed JSON, a non-object root, conflicting flags/positionals, unknown operations, or schema validation failure. |
+
+Errors are written to stderr as `Error [CODE]: detail`. Failed routes do not write a success JSON object.
 
 ## `kibi init`
 
@@ -119,23 +164,25 @@ Reports the current KB snapshot, branch, and freshness state.
 kibi status [--format json|table]
 ```
 
-## `kibi gaps [type]`
+## `kibi find-gaps [type]` (`gaps` alias)
 
 Runs curated missing/present relationship analysis.
 
 **Syntax:**
 ```bash
-kibi gaps [type] [--missing-rel RELS] [--present-rel RELS] [--tag TAGS] [--source PATH] [--limit N] [--offset N] [--format json|table]
+kibi find-gaps [type] [--missing-rel RELS] [--present-rel RELS] [--tag TAGS] [--source PATH] [--limit N] [--offset N] [--format json|table]
 ```
 
 **Examples:**
 ```bash
 # Requirements missing scenarios or tests
-kibi gaps req --missing-rel specified_by,verified_by --format table
+kibi find-gaps req --missing-rel specified_by,verified_by --format table
 
 # Source-linked gap analysis
 kibi gaps req --source src/auth --missing-rel verified_by --format table
 ```
+
+`find-gaps` is the canonical command name and dedicated JSON route. `gaps` is a true Commander alias for the same action, so flag and `--input` behavior are identical under either spelling.
 
 ## `kibi coverage`
 
@@ -194,9 +241,9 @@ Validates knowledge base integrity and runs inference rules.
 
 ### Staged Impact Evidence
 
-When `kibi check --staged` reports `kibi_impact_evidence_missing`, first use MCP discovery (`kb_search`, then `kb_query`) to inspect existing requirements, scenarios, tests, facts, and symbols for the edited source file. If the edit changes behavior, update the KB through MCP and also stage tracked evidence that the commit can carry: related entity markdown, authored `documentation/symbols.yaml` entries, or refreshed `documentation/symbol-coordinates.yaml` output.
+When `kibi check --staged` reports `kibi_impact_evidence_missing`, first use Kibi discovery (`kb_search`, then `kb_query`) through visible MCP tools or trusted CLI JSON routes to inspect existing requirements, scenarios, tests, facts, and symbols for the edited source file. If the edit changes behavior, update the KB through either peer surface and also stage tracked evidence that the commit can carry: related entity markdown, authored `documentation/symbols.yaml` entries, or refreshed `documentation/symbol-coordinates.yaml` output.
 
-MCP writes update the branch KB state, but they do not automatically stage markdown or manifest files. The staged hook can only accept evidence present in the staged change-set, so run the required sync/authoring step and `git add` the tracked evidence before rerunning `kibi check --staged`.
+KB writes through MCP or CLI JSON routes update branch state, but they do not automatically stage markdown or manifest files. The staged hook can only accept evidence present in the staged change-set, so run the required sync/authoring step and `git add` the tracked evidence before rerunning `kibi check --staged`.
 
 **Examples:**
 ```bash
@@ -225,7 +272,7 @@ kibi check --rules predicate-verifiability
 kibi check --rules query-plan-safety
 ```
 
-Agents should prefer MCP `kb_check({sourceFiles:[...], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})` while editing. CLI `kibi check --staged` remains the git-hook and operator fallback once files are staged.
+While editing, agents can run impact diagnostics through MCP `kb_check({sourceFiles:[...], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})` or the equivalent `kibi check --input <file|->` JSON route. `kibi check --staged` remains the commit-time git-hook gate once files are staged.
 
 Structured JSON output preserves the same two-lane model used by MCP: hard correctness failures appear under `structuredContent.violations[]`, while advisory audit signals appear under `structuredContent.qualityDiagnostics[]`. Advisory-only output is still a successful check; integrations should inspect `blocking` and `severity` instead of treating every diagnostic as a failure.
 
@@ -432,7 +479,7 @@ kibi check --staged
 
 This command scans only files staged for commit and reports any new or modified symbols that do not have requirement links (either via inline comments or explicit KB relationships). It also reports stale symbol-coordinate evidence and `symbol_granularity_violation` when a changed behavioral member such as `UploadPageComponent.processingProgressLabel` is covered only by a coarse class/module relationship without an audited `granularity_reason`. If violations are found and this is run as a pre-commit hook, the commit will be blocked.
 
-The staged CLI gate does not prove that linked prose still matches the source edit. Use the MCP impact check while editing to get `symbol_semantic_review_needed` guidance and inspect linked requirements/scenarios/tests before deciding whether to update KB entities.
+The staged CLI gate does not prove that linked prose still matches the source edit. Use an impact-enabled `kb_check` through MCP or CLI JSON mode while editing to get `symbol_semantic_review_needed` guidance and inspect linked requirements/scenarios/tests before deciding whether to update KB entities.
 
 Quality diagnostics may also appear during full or staged checks. They are designed to surface auditability problems automatically without creating a new command agents must remember: broad requirement reviews, multi-requirement symbol fanout, mixed-purpose class/component reviews, duplicate symbol-coordinate reviews, status misuse, strict-fact modeling gaps, and coverage-depth labels are review signals unless explicitly marked blocking.
 

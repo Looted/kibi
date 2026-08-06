@@ -29,7 +29,7 @@ Kibi is designed to boost AI agents' memory during software development. It main
 - **Tracks context across branches** — Every git branch gets its own KB snapshot, preserving context as you switch between features
 - **Enforces traceability** — Links code symbols to requirements, preventing orphan features and technical debt
 - **Validates automatically** — Rules catch missing requirements, dangling references, and consistency issues
-- **Agent-friendly** — LLM assistants can query and update knowledge base via MCP without risking file corruption
+- **Agent-friendly** — LLM assistants can query and update the knowledge base through peer MCP tools or dedicated CLI JSON routes without risking direct file corruption
 - **Guides semantic modeling** — The MCP server can inspect prose requirements and suggest strict facts or reusable predicate facts before agents treat text as machine-checkable knowledge
 
 ### What You Get
@@ -58,8 +58,8 @@ For OpenCode users, bootstrap an existing repo with \`/init-kibi\` (\`kb_autopil
 ## Key Components
 
 - **kibi-core** — Prolog-based knowledge graph that tracks entities across branches
-- **kibi-cli** — Command-line interface for automation and hooks
-- **kibi-mcp** — Model Context Protocol server for LLM integration
+- **kibi-cli** — Command-line interface for people, agents, automation, and hooks, including 18 dedicated JSON routes
+- **kibi-mcp** — Peer Model Context Protocol surface exposing the same 18 public operations to MCP-capable agents
 - **kibi-opencode** — OpenCode plugin that injects Kibi guidance and runs background syncs
 - **kibi-codex** — Optional Codex adapter that brings Kibi MCP skills and hooks into Codex workflows
 - **kibi-cursor** — Optional Cursor plugin with rules, skills, MCP wiring, and advisory editor hooks
@@ -255,6 +255,20 @@ If your client supports a working-directory setting, point it at the project whe
 
 </details>
 
+### Generic agent skill onboarding
+
+Skills are bundled Markdown guidance and are not automatically loaded by arbitrary agent hosts. An MCP-capable agent should use `tools/list`, then call `kb_skills_list`, `kb_skills_load` (normally with `kibi-usage`), and `kb_skills_read` only for resources declared by the loaded manifest. The skill tools are read-only and do not install remote content or execute scripts.
+
+When MCP is unavailable, use a trusted project-local CLI with structured JSON routes:
+
+```bash
+printf '%s\n' '{}' | kibi skills-list --input -
+printf '%s\n' '{"id":"kibi-usage"}' | kibi skills-load --input -
+printf '%s\n' '{"id":"kibi-usage","resource":"resources/workflows.md"}' | kibi skills-read --input -
+```
+
+If neither capability is available, the agent should ask the operator to enable Kibi MCP or the trusted local CLI rather than infer availability from configuration files or access `.kb/` directly. See the [MCP Reference](docs/mcp-reference.md#generic-agent-onboarding) for the complete progressive-disclosure and safety contract.
+
 If your project uses a different package manager, keep the same MCP shape and swap the command/args for your local runner, for example `pnpm exec kibi-mcp`, `yarn exec kibi-mcp`, or `bunx --no-install kibi-mcp`.
 
 Optional OpenCode plugin usage is separate from the MCP server command:
@@ -271,7 +285,7 @@ maintenance. Keep the `mcp.kibi` entry configured against the project-local
 
 `kibi-opencode` auto-updates its cached OpenCode plugin package by default on
 startup. To keep the plugin fixed, pin an exact version in the plugin array,
-for example `"kibi-opencode@0.15.0"`; MCP/CLI/core project dependencies remain
+for example `"kibi-opencode@0.18.1"`; MCP/CLI/core project dependencies remain
 under your package manager's control.
 
 ## Quick Start
@@ -326,6 +340,7 @@ npm exec -- kibi coverage --by req --format table
 - **[Architecture](docs/architecture.md)** — System architecture and component descriptions
 - **[Inference Rules](docs/inference-rules.md)** — Validation rules and constraint logic
 - **[MCP Reference](docs/mcp-reference.md)** — MCP server documentation
+- **[SkillOpt Workflow](docs/skillopt.md)**, operator guide for the fake workflow, artifact layout, and approval gate notes
 - **[LLM Prompts](docs/prompts/llm-rules.md)** — Ready-to-copy system prompts for agents
 - **[AGENTS.md](AGENTS.md)** — Guidelines for AI agents working on kibi projects
 - **[Contributing](CONTRIBUTING.md)** — Development setup and contributor workflow
@@ -336,9 +351,10 @@ Kibi uses a two-branch release model with [Changesets](https://github.com/change
 
 ### Release Flow
 1. **Development**: Create changesets on `develop` as you work.
-2. **Versioning**: Run `bun run version-packages` on `develop` to apply bumps.
-3. **Merge**: Merge `develop` into `master`.
-4. **Publish**: `master` CI builds and publishes new versions to npm.
+2. **Versioning**: Run `bun run version-packages` on `develop` to consume changesets, apply bumps, update changelogs, and sync plugin manifests.
+3. **Review**: Review and commit the generated release changes.
+4. **Merge**: Merge `develop` into `master`.
+5. **Publish**: `master` CI builds, verifies, and publishes new versions to npm.
 
 There is no `master → develop` back-merge.
 
@@ -349,6 +365,8 @@ bun run changeset
 # Apply version bumps (run on develop)
 bun run version-packages
 ```
+
+Do not publish manually or merge `master` back into `develop`.
 
 ---
 

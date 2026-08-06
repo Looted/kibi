@@ -3,6 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
+import { createMcpRuntime } from "../../src/runtime/mcp-runtime.js";
 import { registerAllTools } from "../../src/server/tools.js";
 import { TOOLS } from "../../src/tools-config.js";
 import { __test__, handleKbUpsert } from "../../src/tools/upsert.js";
@@ -14,7 +15,7 @@ type QueryResult = {
 };
 
 const initialKibiMcpDebug: string | undefined = process.env.KIBI_MCP_DEBUG;
-const initialCwd = process.cwd();
+const initialKibiWorkspace: string | undefined = process.env.KIBI_WORKSPACE;
 let tempWorkspace: string | undefined;
 
 function createMockProlog(
@@ -39,7 +40,6 @@ function createMockProlog(
 afterEach(() => {
   mock.restore();
   __test__.setRefreshCoordinatesForSymbolIdForTests(undefined);
-  process.chdir(initialCwd);
   if (tempWorkspace) {
     rmSync(tempWorkspace, { recursive: true, force: true });
     tempWorkspace = undefined;
@@ -49,11 +49,16 @@ afterEach(() => {
   } else {
     process.env.KIBI_MCP_DEBUG = initialKibiMcpDebug;
   }
+  if (initialKibiWorkspace === undefined) {
+    Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
+  } else {
+    process.env.KIBI_WORKSPACE = initialKibiWorkspace;
+  }
 });
 
 function createTempWorkspace(): string {
   tempWorkspace = mkdtempSync(path.join(tmpdir(), "kibi-mcp-upsert-"));
-  process.chdir(tempWorkspace);
+  process.env.KIBI_WORKSPACE = tempWorkspace;
   return tempWorkspace;
 }
 
@@ -912,6 +917,36 @@ export function greet() {
     expect(invalidateCache).not.toHaveBeenCalled();
   });
 
+  test("preserves double-quoted predicate contradiction reasons", async () => {
+    const { prolog } = createMockProlog(async (goal) => {
+      if (goal === "once(kb_entity('REQ-PRED-CONTRA', _, _))") {
+        return { success: false };
+      }
+      if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,")) {
+        return {
+          success: false,
+          error:
+            "kb_contradiction([\"Predicate conflict on auth:permission_rule(user,publish,article)\"-'REQ-PRED-OLD'])",
+        };
+      }
+      throw new Error(`Unexpected goal: ${goal}`);
+    });
+
+    await expect(
+      handleKbUpsert(prolog, {
+        type: "req",
+        id: "REQ-PRED-CONTRA",
+        properties: {
+          title: "Predicate contradiction",
+          status: "open",
+          source: "test://upsert",
+        },
+      }),
+    ).rejects.toThrow(
+      /Conflicts with REQ-PRED-OLD: Predicate conflict on auth:permission_rule/,
+    );
+  });
+
   test("falls back to a generic contradiction message when conflict details cannot be parsed", async () => {
     const { prolog } = createMockProlog(async (goal) => {
       if (goal === "once(kb_entity('REQ-CONTRA-FALLBACK', _, _))") {
@@ -1268,6 +1303,18 @@ export function greet() {
       deriveDiagnosticFields: () => ({}),
       classifyDiagnosticError: () => ({}),
       ensureProlog,
+      operationRuntime: createMcpRuntime({
+        workspaceRoot: "/workspace",
+        activeBranchName: async () => "test",
+        attachedBranchKbPath: () => null,
+        ensureProlog,
+        adaptProlog: () => ({
+          query: async () => ({ success: true, bindings: {} }),
+          nextSolution: async () => null,
+          save: async () => ({ success: true, bindings: {} }),
+        }),
+        refreshAttachedBranchStamp: async () => undefined,
+      }),
       handleKbUpsert,
     } as unknown as Parameters<typeof registerAllTools>[1];
 

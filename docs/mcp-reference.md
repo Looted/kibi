@@ -1,14 +1,34 @@
 # MCP Server Reference
 
-The Kibi Model Context Protocol (MCP) server is the primary interface for LLM agents. The server operates over `stdio` and receives JSON-RPC 2.0 requests.
+The Kibi Model Context Protocol (MCP) server is a peer public interface alongside the CLI's 18 dedicated JSON routes. It serves MCP-capable agents over `stdio` and receives JSON-RPC 2.0 requests; operation schemas and executors are shared with the CLI.
 
 ## Public Tools
 
-The public MCP surface is intentionally curated. Agents can call exact lookup, discovery/reporting, mutation, and validation tools through MCP.
+The public MCP surface is intentionally curated. Agents can call exact lookup, discovery/reporting, mutation, and validation tools through MCP, with equivalent operation access through `kibi <route> --input <file|->`.
 
 ### Host-visible tool names
 
 The canonical MCP names in this reference use the `kb_*` form. Some hosts display tools with the configured MCP server name prefixed. In OpenCode, the same tools commonly appear as `kibi_kb_search`, `kibi_kb_query`, `kibi_kb_upsert`, `kibi_kb_check`, and `kibi_kb_autopilot_generate`. Use the host-visible prefixed name when an agent must reference an exact tool identifier; the semantics are identical to the canonical `kb_*` names documented here.
+
+### Generic-agent onboarding
+
+MCP-capable agents should use the standard `tools/list` capability discovery step, then follow Kibi's progressive-disclosure path instead of assuming that a package `skills/` directory is loaded by the host:
+
+1. Call `kb_skills_list` to obtain the bundled skill manifests.
+2. Call `kb_skills_load` with a returned ID, normally `kibi-usage` for general Kibi workflow guidance.
+3. Call `kb_skills_read` only for resource paths declared by that manifest.
+
+These skill operations are local, read-only, and do not require Prolog. They return a human-readable `content` item plus structured data for clients that support structured tool results. Their MCP registrations advertise `readOnlyHint: true`, `destructiveHint: false`, `idempotentHint: true`, and `openWorldHint: false` as client-facing behavior hints. Clients must treat annotations and skill text as untrusted guidance: authorization, schema validation, approval gates, and mutation sequencing remain enforced by the server and repository workflow.
+
+If MCP is unavailable, use the trusted project-local CLI's structured JSON routes:
+
+```bash
+printf '%s\n' '{}' | kibi skills-list --input -
+printf '%s\n' '{"id":"kibi-usage"}' | kibi skills-load --input -
+printf '%s\n' '{"id":"kibi-usage","resource":"resources/workflows.md"}' | kibi skills-read --input -
+```
+
+If neither a visible Kibi MCP surface nor a trusted local CLI is available, the agent must stop and ask the operator to enable one; it must not infer availability from configuration files or read `.kb/` directly.
 
 ### `kb_autopilot_generate`
 
@@ -53,12 +73,12 @@ When using discovery tools, agents and operators should assume that ignored path
 
 When prose contains a machine-checkable rule, do not store it only in `text_ref` or freeform `links`. Use the concise decision tree in `docs/modeling-cheatsheet.md`.
 
-1. Call `kb_semantic_advisor` when starting from raw prose, or run `kb_validate_upsert` before `kb_upsert` for new or updated normative requirements. Both return semantic advisor receipts when prose appears machine-checkable but unmodeled.
+1. Call `kb_semantic_advisor` with the complete body when starting from raw prose, or run `kb_validate_upsert` before `kb_upsert` for new or updated normative requirements. Verify the returned atomic clause inventory; supply `clauses` when automatic decomposition is incomplete.
 2. For property/value requirements, call `kb_model_requirement` or create a `fact_kind: subject` fact plus a `fact_kind: property_value` fact. Link the requirement with `constrains` and `requires_property`.
-3. For ontology claims, call `kb_suggest_predicates` before writing prose. Apply the returned `fact_kind: predicate` plan and link with `requires_predicate`, or record the returned `review:ontology-gap` observation.
+3. Model every normative clause: use `kb_suggest_predicates` for ontology claims and `kb_model_requirement` for strict scalar claims. Preserve `claim_key` and `claim_text` on each ground fact, merge every key into the requirement `logic_claims` manifest, and link with `requires_predicate` or `requires_property`. An ontology-gap observation remains unresolved.
 4. Use snake_case field names exactly as the MCP schema shows. `kb_upsert.properties` rejects camelCase aliases such as `subjectKey`, `propertyKey`, `predicateName`, and generic `value`.
 
-Semantic advisor receipts are advisory in v1. They identify likely modeling debt; they do not prove prose contradictions, they do not auto-create facts, and they do not replace strict `constrains`/`requires_property` or `requires_predicate` links. If a receipt reports `logic_readiness: needs_modeling`, inspect `suggestions`: high-confidence strict-property and predicate suggestions include draft `applyPlan` payloads, ambiguous prose emits an ambiguity observation plan, and unsupported logical prose emits an ontology-gap observation with a recommended predicate schema. Review and apply the suggested modeling tool or observation before treating the requirement as Prolog-checkable.
+Semantic advisor receipts are advisory. They identify atomic clauses and likely modeling lanes, but they do not prove that arbitrary prose was decomposed exhaustively or auto-create facts. `logic_coverage` reports the expected, declared, missing, and unresolved claim keys. Review every clause, apply the strict-property or predicate plans, and run `kb_check` with `logic-coverage` before treating the requirement as Prolog-checkable.
 
 ### `kb_model_requirement`
 
@@ -67,17 +87,21 @@ Model a normative requirement claim into a deterministic strict write-set for co
 High-confidence claims (≥ 0.7) produce a strict write-set: one `req`, one `fact_kind: subject`, one `fact_kind: property_value`, and two typed relationships. Low-confidence claims (< 0.7) produce a single `fact_kind: observation` artifact that does not enter the contradiction lane, plus a warning explaining how to retry with explicit claim fields.
 
 **Parameters:**
-- `statement` (required): Plain-language normative statement to model
-- `claim` (optional): Explicit `SemanticClaim` object with `subjectKey`, `propertyKey`, `operator`, `value`, `confidence`, and `sourceRef` fields. When provided, heuristic extraction is skipped.
+- `text` (required): One atomic plain-language normative clause to model.
+- `source` / `sourceFiles` (optional): Provenance used for stable IDs and references.
+- `confidence` (optional): Claim confidence; values below `0.70` produce observation review output.
+- `subjectKey`, `propertyKey`, `operator`, and `value` (optional as a complete set): Explicit semantic claim fields. When all are supplied, heuristic extraction is skipped.
+- `provenance` (optional): Exact source anchor for the clause.
+- `existingLogicClaims` (optional): Existing requirement claim keys. The returned req update merges the new key rather than replacing previously modeled clauses.
 
 **Returns:**
 A `writeSet` discriminated union:
 - `isStrict: true` — includes `req`, `subjectFact`, `propertyFact`, `relationships`, and an `applyPlan` ready for sequential `kb_upsert` calls.
 - `isStrict: false` — includes a single `observationFact` for non-normative or low-confidence input.
 
-Also returns `migrationWarning` (non-null when the workspace KB schema is outdated) and `schemaVersionStatus` for pre-flight awareness.
+Also returns the stable `claimKey`, merged `logicClaims`, and `migrationWarning` when the workspace KB schema is outdated.
 
-Human approval is not required. The write-set is deterministic and idempotent — the same claim always produces the same stable entity IDs (SHA-256 of normalized source/subject/property/operator/value). Apply via sequential `kb_upsert` calls at any time.
+The modeling call is read-only. Applying its plan is a separate mutation and must follow the caller's authorization boundary. The write-set is deterministic and idempotent—the same claim produces the same stable entity IDs. Apply authorized writes through sequential `kb_upsert` calls.
 
 
 ### `kb_suggest_predicates`
@@ -94,12 +118,13 @@ The tool ranks project-local `fact_kind: predicate_schema` facts when available 
 - `maxCandidates` (optional): Maximum ranked predicate candidates to return.
 - `minScore` (optional): Minimum candidate score; higher values make ontology-gap fallback more likely.
 - `includeExistingSchemas` (optional): Include project-local predicate schema facts alongside built-ins.
+- `existingLogicClaims` (optional): Existing requirement claim keys. Returned relationship guidance merges the new key rather than replacing earlier clauses.
 
 **Returns:**
 - `candidates`: Ranked predicate suggestions with schema signature, usage hints, ordered `predicate_args`, `canonical_key`, score, and rationale.
 - `recommendedAction`: `apply_requires_predicate` when a candidate fits, otherwise `record_ontology_gap`.
 - `structuredContent.applyPlan`: A ready-to-apply `kb_upsert` payload for the top predicate fact, or an explicit `fact_kind: observation` tagged `review:ontology-gap` and `needs_schema_extension`.
-- `structuredContent.relationshipPlan`: When `requirementId` is supplied and a predicate fits, the req -> fact `requires_predicate` link to attach after querying/preserving the existing requirement entity. This is separate from `applyPlan` so the tool never emits a foreign-source relationship that `kb_upsert` would reject.
+- `structuredContent.relationshipPlan`: When `requirementId` is supplied and a predicate fits, the req -> fact `requires_predicate` link plus the merged `logicClaims` manifest to apply after querying/preserving the existing requirement entity. This is separate from `applyPlan` so the tool never emits a foreign-source relationship that `kb_upsert` would reject.
 
 **Example:**
 ```json
@@ -128,7 +153,7 @@ Analyze requirement prose without mutating the KB. Use this before constructing 
 - `structuredContent.receipt`: Semantic advisor receipt with detected signals, ambiguity witnesses, modeling suggestions, candidate lane, payload hash, and suggested next tools.
 - `structuredContent.warnings`: Non-blocking warning strings explaining why the prose is not yet contradiction-checkable.
 
-Suggestion kinds include `strict_property`, `predicate`, `ambiguity_observation`, and `ontology_gap`. Supported deterministic suggestions include multi-claim prose, cardinality, thresholds with units, retention/expiry durations, booleans, enum sets, permissions and prohibitions, defaults, uniqueness constraints, state memberships, state transitions, exception rules, mutual exclusion, dependency rules, ownership, retry policies, escalation rules, availability SLAs, notification routing, idempotency rules, data residency rules, audit logging, consent requirements, lifecycle archive/delete/expiry rules, conflict-resolution strategies, fallback/degradation behavior, batch operation constraints, cross-entity consistency/reference requirements, conditional behavior, temporal ordering, comparative numeric constraints, rate limits, and ambiguity observations.
+The request accepts optional `clauses` for a caller-reviewed atomic split. The receipt returns stable `claim_key` values, `claim_text`, per-clause suggestion indexes, and a `logic_coverage` manifest comparison. Suggestion kinds include `strict_property`, `predicate`, `ambiguity_observation`, and `ontology_gap`. Supported deterministic suggestions include multi-claim prose, cardinality, thresholds with units, retention/expiry durations, booleans, enum sets, permissions and prohibitions, defaults, uniqueness constraints, state memberships, state transitions, exception rules, mutual exclusion, dependency rules, ownership, retry policies, escalation rules, availability SLAs, notification routing, idempotency rules, data residency rules, audit logging, consent requirements, lifecycle archive/delete/expiry rules, conflict-resolution strategies, fallback/degradation behavior, batch operation constraints, cross-entity consistency/reference requirements, conditional behavior, temporal ordering, comparative numeric constraints, rate limits, and ambiguity observations.
 
 For exact predicate suggestions, the receipt `candidate_lane` and `suggested_next_tools` follow the generated suggestion rather than the weaker signal heuristic. For example, a lifecycle rule containing a number still routes to `kb_suggest_predicates`, not `kb_model_requirement`, when the advisor can ground it as a predicate fact.
 
@@ -377,10 +402,10 @@ Confirmation of deletion, or an error describing blocked dependents.
 
 ### `kb_check`
 
-Run KB validation rules after mutations. Agents can also opt into read-only changed-file impact diagnostics for source edits while the edit context is still fresh; this is the first Kibi gate for LLM workflows, with CLI/git hooks remaining the commit-time fallback.
+Run KB validation rules after mutations. Agents can also opt into read-only changed-file impact diagnostics for source edits while the edit context is still fresh. The MCP tool and CLI JSON route are peer interactive gates; CLI staged checks and git hooks remain the commit-time enforcement gate.
 
 **Parameters:**
-- `rules` (optional): Validation rule subset (`must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `domain-contradictions`, `strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`, `query-plan-safety`). Note: `strict-fact-shape`, `strict-req-fact-pairing`, and `predicate-verifiability` are migration/semantic-audit checks and are disabled by default. `query-plan-safety` is enabled by default and can be disabled in `.kb/config.json`. `domain-contradictions` applies only to strict-lane facts; `predicate-verifiability` audits `requires_predicate` links for ground `fact_kind: predicate` targets; `query-plan-safety` flags Prolog validation clauses that place negation before later generator calls.
+- `rules` (optional): Validation rule subset (`must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `domain-contradictions`, `strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`, `logic-coverage`, `query-plan-safety`). `strict-fact-shape`, `strict-req-fact-pairing`, and `predicate-verifiability` are migration/semantic-audit checks and are disabled by default. `logic-coverage` is enabled by default, validates explicitly declared requirement manifests against linked ground facts, and leaves requirements without a manifest as gradual-backfill debt reported by quality diagnostics. `domain-contradictions` compares strict property constraints and exact opposite predicate polarities over the same namespace, predicate name, and ordered arguments. It does not infer arbitrary equivalence between differently shaped predicates.
 - `sourceFiles` (optional): Repo-relative source paths to inspect for changed-file impact diagnostics.
 - `staged` (optional): Inspect staged source changes when building impact diagnostics.
 - `includeWorkingTreeDiff` (optional): Include unstaged working-tree content/diffs for the supplied `sourceFiles`.

@@ -7,8 +7,8 @@ import {
   parseEntityFromList,
   parseListOfLists,
   parsePairList,
-  parsePropertyList,
   parsePrologValue,
+  parsePropertyList,
   parseTriples,
   parseViolationRows,
   splitTopLevel,
@@ -179,13 +179,13 @@ describe("Prolog entity parsing", () => {
     sparseRow.length = 3;
 
     expect(
-      parseEntityFromList(["'REQ-001'", "req", "[title=\"Title\"]"]),
+      parseEntityFromList(["'REQ-001'", "req", '[title="Title"]']),
     ).toEqual({ id: "REQ-001", type: "req", title: "Title" });
     expect(
-      parseEntityFromList(['"REQ-DOUBLE"', "req", "[title=\"Title\"]"]),
+      parseEntityFromList(['"REQ-DOUBLE"', "req", '[title="Title"]']),
     ).toEqual({ id: "REQ-DOUBLE", type: "req", title: "Title" });
     expect(
-      parseEntityFromList(["REQ-PLAIN", "req", "[title=\"Title\"]"]),
+      parseEntityFromList(["REQ-PLAIN", "req", '[title="Title"]']),
     ).toEqual({ id: "REQ-PLAIN", type: "req", title: "Title" });
     expect(parseEntityFromList(["REQ-001", "req"])).toEqual({});
     expect(parseEntityFromList(sparseRow)).toEqual({});

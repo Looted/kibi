@@ -20,6 +20,7 @@ export type KibiImpactDiagnosticId =
   | "broad_requirement_review"
   | "requirement_status_review"
   | "strict_fact_modeling_review"
+  | "logical_coverage_review"
   | "kibi_impact_override_missing_rationale";
 
 export interface KibiImpactDiagnostic extends QualityDiagnostic {

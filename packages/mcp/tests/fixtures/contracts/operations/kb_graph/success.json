@@ -1,0 +1,82 @@
+{
+  "input": {
+    "depth": 1,
+    "direction": "outgoing",
+    "entityTypes": ["req"],
+    "maxEdges": 25,
+    "maxNodes": 25,
+    "relationships": ["implements"],
+    "seedIds": ["REQ-CONTRACT-001"]
+  },
+  "structuredContent": {
+    "edges": [
+      {
+        "from": "SYM-CONTRACT-TOOLS",
+        "to": "REQ-CONTRACT-001",
+        "type": "implements"
+      }
+    ],
+    "meta": {
+      "depth": 1,
+      "direction": "outgoing",
+      "maxEdges": 25,
+      "maxNodes": 25,
+      "seedIds": ["REQ-CONTRACT-001"]
+    },
+    "nodes": [
+      {
+        "id": "REQ-CONTRACT-001",
+        "title": "Freeze public tool contracts",
+        "type": "req"
+      }
+    ],
+    "truncated": false
+  },
+  "tool": {
+    "description": "Run bounded graph traversal from one or more seed IDs across curated relationship types. No mutation side effects.",
+    "inputSchema": {
+      "properties": {
+        "depth": {
+          "default": 1,
+          "maximum": 5,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "direction": {
+          "default": "outgoing",
+          "enum": ["outgoing", "incoming", "both"],
+          "type": "string"
+        },
+        "entityTypes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "maxEdges": {
+          "default": 500,
+          "type": "integer"
+        },
+        "maxNodes": {
+          "default": 200,
+          "type": "integer"
+        },
+        "relationships": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "seedIds": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": ["seedIds"],
+      "type": "object"
+    },
+    "name": "kb_graph"
+  }
+}

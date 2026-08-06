@@ -68,6 +68,7 @@ describe("kb_model_requirement", () => {
       operator: "eq",
       value: 7,
       provenance: "documentation/requirements/customer-retention.md#L1",
+      existingLogicClaims: ["CLAIM-AAAAAAAAAAAAAAAA"],
     });
 
     const structured = result.structuredContent;
@@ -84,6 +85,15 @@ describe("kb_model_requirement", () => {
     expect(applyPlan[0]).toMatchObject({ type: "fact", relationships: [] });
     expect(applyPlan[1]).toMatchObject({ type: "fact", relationships: [] });
     expect(reqStep).toMatchObject({ type: "req" });
+    expect(reqStep?.properties).toMatchObject({
+      logic_claims: [
+        "CLAIM-AAAAAAAAAAAAAAAA",
+        expect.stringMatching(/^CLAIM-[A-F0-9]{16}$/),
+      ],
+    });
+    expect(structured.logicClaims).toEqual(
+      (reqStep?.properties as Record<string, unknown>)?.logic_claims,
+    );
     expect(reqStep?.relationships).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ type: "constrains" }),

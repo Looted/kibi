@@ -1,5 +1,159 @@
 # kibi-cli
 
+## 0.16.1
+
+### Patch Changes
+
+- 7bc935f: Kibi checks no longer flag a manifest symbol as coarse merely because a different sibling function changed. Staged manifest-only changes also continue to supply Kibi impact evidence. This keeps impact diagnostics focused on the code and metadata that actually changed.
+
+  - Preserve full-source manifest anchors during hunk-based granularity analysis and retain changed manifest entity IDs for staged checks.
+
+## 0.16.0
+
+### Minor Changes
+
+- b2b1792: Kibi guidance now helps agents distinguish suitable relational predicates from scalar constraints and review-only claims without replacing readable requirements. CLI, Codex, and Cursor users receive the same predicate-first decision tree and authoritative examples, reducing invented predicates and unsafe modeling.
+
+  - Add built-in, project-local, deny, strict-scalar, ambiguity, false-positive, and ontology-gap guidance to the canonical `kibi-usage` skill.
+  - Regenerate the Codex and Cursor mirrors with matching canonical hashes.
+
+### Patch Changes
+
+- 80d5173: Broad Kibi searches now return ranked results even when the serialized entity set is larger than the subprocess runtime's former default output capacity. Searches that exceed Kibi's explicit safety bound now report a clear bounded-capacity failure instead of returning truncated output or a misleading generic Prolog error. Graph, status, and other JSON reporting commands now also load their Prolog module correctly in fresh Node CLI and MCP sessions.
+
+  - Bound one-shot and interactive Node Prolog stdout and stderr capture at 8 MiB, and require a complete response terminator before parsing, while preserving query timeouts and ranking-before-pagination.
+  - Translate `ENOBUFS` into a deterministic nonempty query error shared by CLI and MCP discovery paths.
+  - Reject negative pagination and search queries above 4,096 characters through the existing typed input-validation boundary.
+  - Load reporting modules before executing module-qualified goals in interactive Prolog sessions.
+
+- Staged Kibi checks no longer emit duplicate `symbol_coordinate_review` diagnostics when both staged and working-tree symbol manifests contain entries for the same source files. The manifest lookup now deduplicates by symbol ID and source-signature before running impact validation.
+
+  - Deduplicate authored and manifest symbol extraction results by stable lookup key before building the staged impact lookup.
+  - Prefer staged entries over working-tree entries when both exist for the same symbol.
+
+- CLI read-side operations (query, search, status, gaps, coverage, graph) now resolve the active branch correctly on unborn repositories (fresh `git init` with no commits). Previously, these operations silently fell back to `main` when `git rev-parse --abbrev-ref HEAD` failed on an unborn HEAD, causing empty results while `kibi sync` correctly wrote to the actual branch.
+
+  - Replace `git rev-parse --abbrev-ref HEAD` with `resolveActiveBranch(root)` for all read-side CLI operations.
+  - Propagate branch resolution errors instead of silently falling back to `main`.
+
+- 610b5be: The improved Kibi guidance skills will ship to CLI, Codex, and Cursor users in the next package release. This keeps the canonical CLI skill bundle and the generated client-plugin mirrors aligned for downstream installs.
+
+  - Release the canonical skills bundled by `kibi-cli`.
+  - Release the generated `kibi-codex` and `kibi-cursor` skill mirrors.
+
+- Updated dependencies [28dba1f]
+  - kibi-core@0.7.1
+
+## 0.15.0
+
+### Minor Changes
+
+- 6abc7ea: Operators can now run semantic requirement analysis through the dedicated `semantic-advisor --input` CLI route with the same JSON contract and deterministic suggestions as MCP. MCP and upsert analysis now reuse the shared CLI implementation, so ambiguity witnesses and modeling advice stay aligned without starting Prolog.
+
+  - Move semantic-advisor analysis, types, coverage evaluation, and execution into size-bounded `kibi-cli` modules.
+  - Replace the MCP semantic-advisor implementation with a thin shared-executor adapter and update upsert imports.
+
+- 6c132ee: Operators can use `find-gaps`, `coverage`, and `graph` through either CLI flags or JSON input with the same results exposed by MCP. The existing `gaps` command remains available as an alias, while reporting defaults and traversal bounds stay unchanged.
+
+  - Move find-gaps, coverage, and graph execution into shared `kibi-cli` operation specs.
+  - Replace MCP reporting business logic with thin shared-executor adapters.
+  - Route legacy reporting commands and JSON input through the shared operation protocol.
+
+- a0fee4a: Kibi CLI now exposes all 18 MCP operations as peer public routes with exact JSON input/output, enabling agents to use either interface. Agents and automation can choose the transport their environment supports without losing operation coverage or contract fidelity.
+
+  - Added a transport-neutral operation catalog.
+  - Added dedicated CLI commands for upsert, delete, semantic-advisor, model-requirement, suggest-predicates, autopilot-generate, sparql-remote, and validate-upsert.
+  - Added a cross-surface parity harness.
+
+- c229a35: CLI and MCP operations now run through explicit, transport-neutral contexts while each transport keeps ownership of its own lifecycle. This makes one-shot CLI execution and persistent MCP sessions predictable without changing MCP tool behavior.
+
+  - Add public operation runtime, capability-port, and lifecycle types to `kibi-cli`.
+  - Add separate CLI and MCP runtime adapters with write-only MCP stamp refresh.
+  - Route MCP registrations through runtime-backed operation specs while preserving timeout, diagnostics, and in-flight request handling.
+
+- 212fe1c: CLI users can now validate and apply one MCP-shaped upsert payload through `validate-upsert --input` and `upsert --input`, including stdin input. Both transports now enforce the same relationship, contradiction, strict-fact, audit, symbol-granularity, durability, and rollback behavior.
+
+  - Move validated upsert execution behind shared Prolog, filesystem, save, and symbol-refresh ports.
+  - Keep MCP handlers as thin compatibility adapters and verify CLI/MCP graph-state parity.
+  - Ensure a failed relationship prevents save and leaves no partial entity or edge state.
+
+- 6c132ee: Operators now get the same query, search, and status results whether they use familiar CLI flags, JSON input, or MCP. Existing table output, discovery flags, ranking, pagination, relationship display, and status freshness behavior remain available while the execution paths can no longer drift independently.
+
+  - Move query, search, and status business logic into shared `kibi-cli` operation executors.
+  - Replace MCP discovery implementations with thin shared-executor adapters.
+  - Route human CLI commands and JSON protocol input through runtime-backed shared operations.
+
+### Patch Changes
+
+- 212fe1c: CLI and MCP checks now run the same validation executor, so both interfaces report the same violations for equivalent inputs. The CLI retains its staged workflow, fix suggestions, path overrides, dry-run behavior, and human-readable output while JSON input gains explicit parity coverage for impact diagnostics.
+
+  - Route non-staged CLI validation and MCP `kb_check` through the shared check executor.
+  - Preserve CLI advisory-quality and exit-code semantics in its adapter.
+  - Add executable CLI/MCP check parity and JSON impact-option coverage.
+
+- 8c3a2e9: CLI and MCP operation changes now have an executable semantic parity safety net. Contributors get immediate failures when an operation is missing, duplicated, or returns transport-specific business data.
+
+  - Add isolated seeded workspace fixtures for all 18 catalog operations.
+  - Compare CLI JSON and in-memory MCP results after narrowly scoped volatile-field normalization.
+  - Enforce exact catalog-to-parity-case registry completeness.
+
+- cafa25f: Agents can now select Kibi by available capability instead of stopping at MCP-specific guidance. The bundled skills prefer approved MCP tools, fall back safely to a project-local non-installing CLI runner, and provide executable JSON recipes plus an exact 18-operation access catalog.
+
+  - Document every shared MCP operation's dedicated CLI route, input mode, effects, Prolog requirement, mutability, and telemetry handling.
+  - Regenerate Cursor and Codex skill mirrors from the canonical capability-based source.
+
+- 0a8a5d3: CLI and MCP users now receive real requirement-modeling and predicate-suggestion plans through the same shared operation executors. Prolog-backed status and reports work reliably again, nested skill commands accept JSON input, and compatibility errors no longer block parity verification.
+
+  - Move modeling execution into `kibi-cli` and keep MCP handlers as thin adapters.
+  - Split modeling internals into reviewable modules and use the operation workspace context for migration checks.
+  - Restore compatible Prolog query, validation, deletion, and error behavior.
+  - Align the MCP dependency range with the released CLI version and remove silent OpenCode catches.
+
+- 212fe1c: Remote SPARQL SELECT queries now produce the same decoded rows through the CLI JSON route and MCP tool. Network access remains opt-in and HTTP(S)-only, while caller-provided timeouts retain their existing whole-second behavior.
+
+  - Share endpoint, query, timeout, request, and result-decoding logic through the CLI operation executor.
+  - Route CLI and MCP adapters through an explicit network port and verify parity against a local HTTP fixture.
+
+- 6c132ee: Skill discovery now returns the same bundled metadata, content hashes, and declared resources through CLI JSON routes and MCP tools. This makes scripted CLI usage consistent with agent-facing skill loading while preserving the existing human-oriented `kibi skills` commands.
+
+  - Share bundled skill list, load, and resource-read executors between CLI and MCP.
+  - Exercise all three skill operations through the executable CLI/MCP parity harness.
+
+- efa3c7e: Autopilot bootstrap synthesis now returns the same deterministic candidates, payoff guidance, and exact review-only apply plans through CLI JSON and MCP. Cold-start analysis no longer launches Prolog unnecessarily, making scripted bootstrap previews faster while preserving confidence and candidate safety bounds.
+
+  - Share port-backed autopilot discovery, candidate construction, and result generation in `kibi-cli`.
+  - Route `autopilot-generate --input` and `kb_autopilot_generate` through the same executor and parity harness.
+
+## 0.14.2
+
+### Patch Changes
+
+- The bundled Kibi usage skill now explains the supported release workflow and correctly distinguishes MCP-first agent operations from CLI-only maintenance workflows. This keeps release guidance aligned with the repository’s develop-to-master process and prevents agents from treating direct `.kb` access as acceptable.
+
+  - Bump the bundled `kibi-usage` skill metadata to 1.0.1.
+  - Document changeset versioning, plugin manifest synchronization, and master-branch publishing.
+
+## 0.14.1
+
+### Patch Changes
+
+- 6830005: Formatting-only source diffs no longer trigger Kibi impact review warnings. Agents and developers can now run formatter fixes without receiving semantic-review prompts for unchanged behavior, while actual copy or behavior edits still surface impact diagnostics.
+
+  - Filter formatter-only changed-file impact hunks before extracting semantic-review symbols.
+  - Preserve review diagnostics for meaningful text changes inside string and template literals.
+  - Add regression coverage for whitespace-only and trailing-comma formatter diffs.
+
+- c7126dd: CLI sync extraction tests no longer leak mocked extractors into later impact-analysis tests. This makes the unit coverage workflow deterministic in CI and prevents unrelated impact manifest checks from failing after sync extraction error-path tests run first.
+
+  - Add an explicit extraction dependency seam for `processExtractions` while preserving the existing default CLI behavior.
+  - Route sync extraction tests through injected dependencies instead of Bun module-level mocks.
+  - Verify the polluted test ordering that previously failed in CI now passes.
+
+- da9da64: `kibi check --staged` no longer treats ordinary README markdown without YAML frontmatter as a Kibi entity just because it lives under a typed documentation directory. Documentation-only README edits can now pass staged validation without requiring test-entity frontmatter.
+
+  - Skip Markdown entity extraction for staged `.md` files that do not contain YAML frontmatter.
+  - Add a staged-check regression for README files under `documentation/tests/`.
+
 ## 0.14.0
 
 ### Minor Changes

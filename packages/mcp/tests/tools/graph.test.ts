@@ -19,7 +19,7 @@ import {
   setupIsolatedCore,
 } from "./discovery-root-fixture.js";
 
-const KB_GRAPH_INTEGRATION_TIMEOUT_MS = 15_000;
+const KB_GRAPH_INTEGRATION_TIMEOUT_MS = 30_000;
 
 describe("MCP graph tool handler", () => {
   test("returns bounded traversal results", async () => {

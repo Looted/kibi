@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
-import { strict as assert } from "node:assert";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -12,8 +11,8 @@ import {
   invalidateKibiOpencodePackage,
 } from "../src/auto-update.js";
 import { getE2eCoverageSignal } from "../src/e2e-coverage-signals.js";
-import { buildDirtyRelevantFingerprint } from "../src/enforcement-scope.js";
 import { computeEnforcementPolicy } from "../src/enforcement-policy.js";
+import { buildDirtyRelevantFingerprint } from "../src/enforcement-scope.js";
 import {
   getFileLinkedEntityIds,
   parseSymbolsYaml,
@@ -22,7 +21,6 @@ import { createFileOperationState } from "../src/file-operation-state.js";
 import {
   detectInitKibiCommandCapability,
   findSdkPackageJsonForPluginRoot,
-  getInitKibiCommandCapability,
   registerInitKibiCommand,
 } from "../src/init-kibi-capability.js";
 import {
@@ -68,7 +66,11 @@ const globals = globalThis as typeof globalThis & {
     config: unknown;
     onRunComplete?: (meta: SyncRunMetadata) => void;
   }) => {
-    scheduleSync: (reason: string, filePath?: string, checkRules?: string[]) => void;
+    scheduleSync: (
+      reason: string,
+      filePath?: string,
+      checkRules?: string[],
+    ) => void;
     onFileEdited: () => void;
     onToolExecuteAfter: () => void;
     flush: () => Promise<void>;
@@ -139,6 +141,7 @@ function restoreProcessState(): void {
 }
 
 afterEach(() => {
+  mock.restore();
   restoreProcessState();
 });
 
@@ -167,7 +170,10 @@ function makeWorkspace(prefix: string): string {
   return tmpDir;
 }
 
-function writePluginConfig(tmpDir: string, config: Record<string, unknown>): void {
+function writePluginConfig(
+  tmpDir: string,
+  config: Record<string, unknown>,
+): void {
   fs.writeFileSync(
     path.join(tmpDir, ".opencode", "kibi.json"),
     `${JSON.stringify(config)}\n`,
@@ -210,7 +216,7 @@ function makeClient(): CapturedClient {
 }
 
 function installSchedulerStub(scheduled: ScheduledSync[]): void {
-  globals.__kibi_test_scheduler_factory = (options) => ({
+  globals.__kibi_test_scheduler_factory = () => ({
     scheduleSync: (reason, filePath, checkRules) => {
       scheduled.push({
         reason,
@@ -321,10 +327,13 @@ describe("coverage completion for auto-update", () => {
     const fetchMock = Object.assign(
       mock<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(
         async () =>
-          new Response(JSON.stringify({ latest: "2.0.0", beta: "2.1.0-beta.1" }), {
-            status: 200,
-            headers: { "content-type": "application/json" },
-          }),
+          new Response(
+            JSON.stringify({ latest: "2.0.0", beta: "2.1.0-beta.1" }),
+            {
+              status: 200,
+              headers: { "content-type": "application/json" },
+            },
+          ),
       ),
       { preconnect: () => {} },
     ) satisfies typeof fetch;
@@ -351,7 +360,9 @@ describe("coverage completion for auto-update", () => {
     const noEntryDir = makeTempDir("kibi-auto-update-no-entry-");
     const pluginDir = makeProjectWithPlugins(["kibi-opencode@latest"]);
     const plainPluginDir = makeProjectWithPlugins(["kibi-opencode"]);
-    const failedNotify = mock<(message: string) => Promise<void>>(async () => {});
+    const failedNotify = mock<(message: string) => Promise<void>>(
+      async () => {},
+    );
     try {
       const noEntry = createAutoUpdateRunner({
         getCurrentVersion: () => "1.0.0",
@@ -361,9 +372,9 @@ describe("coverage completion for auto-update", () => {
         notify: async () => {},
         log: () => {},
       });
-      expect((await noEntry({ directory: noEntryDir, enabled: true })).status).toBe(
-        "plugin-not-found",
-      );
+      expect(
+        (await noEntry({ directory: noEntryDir, enabled: true })).status,
+      ).toBe("plugin-not-found");
 
       const unknownCurrent = createAutoUpdateRunner({
         getCurrentVersion: () => null,
@@ -374,7 +385,8 @@ describe("coverage completion for auto-update", () => {
         log: () => {},
       });
       expect(
-        (await unknownCurrent({ directory: plainPluginDir, enabled: true })).status,
+        (await unknownCurrent({ directory: plainPluginDir, enabled: true }))
+          .status,
       ).toBe("current-version-unknown");
 
       const unknownLatest = createAutoUpdateRunner({
@@ -385,7 +397,9 @@ describe("coverage completion for auto-update", () => {
         notify: async () => {},
         log: () => {},
       });
-      expect(await unknownLatest({ directory: pluginDir, enabled: true })).toEqual({
+      expect(
+        await unknownLatest({ directory: pluginDir, enabled: true }),
+      ).toEqual({
         status: "latest-version-unknown",
         currentVersion: "1.0.0",
       });
@@ -443,9 +457,9 @@ describe("coverage completion for auto-update", () => {
           notify: async () => {},
           log: () => {},
         });
-        expect((await runner({ directory: projectDir, enabled: true })).status).toBe(
-          "updated",
-        );
+        expect(
+          (await runner({ directory: projectDir, enabled: true })).status,
+        ).toBe("updated");
       }
 
       const invalidCurrent = createAutoUpdateRunner({
@@ -469,9 +483,9 @@ describe("coverage completion for auto-update", () => {
         notify: async () => {},
         log: () => {},
       });
-      expect((await hugeCurrent({ directory: projectDir, enabled: true })).status).toBe(
-        "up-to-date",
-      );
+      expect(
+        (await hugeCurrent({ directory: projectDir, enabled: true })).status,
+      ).toBe("up-to-date");
     } finally {
       fs.rmSync(projectDir, { recursive: true, force: true });
     }
@@ -506,7 +520,8 @@ describe("coverage completion for auto-update", () => {
       );
       fs.mkdirSync(path.dirname(configPackageJson), { recursive: true });
       fs.writeFileSync(configPackageJson, JSON.stringify({ version: "1.0.0" }));
-      const execCalls: Array<{ command: string; args: string[]; cwd: string }> = [];
+      const execCalls: Array<{ command: string; args: string[]; cwd: string }> =
+        [];
       mock.module("node:child_process", () => ({
         execFile: (
           command: string,
@@ -676,7 +691,9 @@ describe("coverage completion for small pure modules", () => {
         "plain body names src/other.ts only\n",
       );
 
-      expect(getE2eCoverageSignal(tmpDir, path.join(tmpDir, "src/feature.ts"))).toEqual({
+      expect(
+        getE2eCoverageSignal(tmpDir, path.join(tmpDir, "src/feature.ts")),
+      ).toEqual({
         level: "none",
         evidence: [],
         reminderText: null,
@@ -696,7 +713,10 @@ describe("coverage completion for small pure modules", () => {
 
       expect(result).toEqual({ ids: ["EVT-created"], source: "doc-path" });
       expect(
-        getFileLinkedEntityIds(tmpDir, path.join(tmpDir, "documentation", "notes", "REQ-nope.md")),
+        getFileLinkedEntityIds(
+          tmpDir,
+          path.join(tmpDir, "documentation", "notes", "REQ-nope.md"),
+        ),
       ).toEqual({ ids: [], source: "none" });
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -825,10 +845,15 @@ describe("coverage completion for small pure modules", () => {
   });
 
   test("Given remaining line-only branches When exercised Then small modules reach branch coverage", () => {
-    const opState = createFileOperationState({ worktree: "/repo", now: () => 10 });
+    const opState = createFileOperationState({
+      worktree: "/repo",
+      now: () => 10,
+    });
     opState.recordLifecycle("src/a.ts", "created", 1);
     opState.recordLifecycle("src/a.ts", "created", 2);
-    expect(opState.peekPending("/outside/a.ts")?.normalizedPath).toBeUndefined();
+    expect(
+      opState.peekPending("/outside/a.ts")?.normalizedPath,
+    ).toBeUndefined();
     expect(opState.peekPending()?.lifecycle).toBe("created");
 
     expect(
@@ -896,7 +921,9 @@ describe("coverage completion for policy, prompt, and reconcile", () => {
     expect(
       computeEnforcementPolicy({
         effectiveMode: "advisory",
-        lifecycleEvents: [{ normalizedPath: "ignored.bin", lifecycle: "created" }],
+        lifecycleEvents: [
+          { normalizedPath: "ignored.bin", lifecycle: "created" },
+        ],
         pathKinds: ["unknown"],
         posture: "root_active",
       }),
@@ -926,7 +953,9 @@ describe("coverage completion for policy, prompt, and reconcile", () => {
     ).toContain("Before implementing or explaining code");
     expect(
       buildPrompt({
-        recentEdits: [{ path: "documentation/requirements/REQ-1.md", kind: "requirement" }],
+        recentEdits: [
+          { path: "documentation/requirements/REQ-1.md", kind: "requirement" },
+        ],
         posture: "root_active",
       }),
     ).toContain("Requirement changes detected");
@@ -1065,7 +1094,10 @@ describe("coverage completion for work context", () => {
       const gitDir = path.resolve(linkedDir, relativeGitDir);
       fs.mkdirSync(gitDir, { recursive: true });
       fs.writeFileSync(path.join(gitDir, "HEAD"), "ref: refs/tags/v1\n");
-      fs.writeFileSync(path.join(linkedDir, ".git"), `gitdir: ${relativeGitDir}\n`);
+      fs.writeFileSync(
+        path.join(linkedDir, ".git"),
+        `gitdir: ${relativeGitDir}\n`,
+      );
 
       const context = resolveWorkContext({
         inputDirectory: authorityDir,
@@ -1123,7 +1155,11 @@ describe("coverage completion for plugin lifecycle", () => {
       });
       await flushPromises();
 
-      expect(captured.toasts.some((toast) => toast.message.includes("kibi-opencode started"))).toBe(true);
+      expect(
+        captured.toasts.some((toast) =>
+          toast.message.includes("kibi-opencode started"),
+        ),
+      ).toBe(true);
       expect(autoUpdateInputs).toEqual([{ directory: tmpDir, enabled: true }]);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -1146,7 +1182,10 @@ describe("coverage completion for plugin lifecycle", () => {
       });
 
       await hooks.event?.({
-        event: { type: "tool.execute.after", properties: { tool: "kb_search" } },
+        event: {
+          type: "tool.execute.after",
+          properties: { tool: "kb_search" },
+        },
       });
       await hooks.event?.({
         event: {
@@ -1164,7 +1203,9 @@ describe("coverage completion for plugin lifecycle", () => {
         output,
       );
 
-      expect(logMessages(captured.logs)).toContain("kb-freshness.tool-evidence");
+      expect(logMessages(captured.logs)).toContain(
+        "kb-freshness.tool-evidence",
+      );
       expect(output.system.join("\n")).toContain("Kibi freshness required");
       expect(output.system.join("\n")).toContain("Missing: kbCheck");
     } finally {
@@ -1204,7 +1245,12 @@ describe("coverage completion for plugin lifecycle", () => {
       dispose: () => {},
     });
     try {
-      const reqPath = path.join(tmpDir, "documentation", "requirements", "REQ-must.md");
+      const reqPath = path.join(
+        tmpDir,
+        "documentation",
+        "requirements",
+        "REQ-must.md",
+      );
       fs.writeFileSync(reqPath, "---\npriority: must\n---\nRequirement\n");
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
@@ -1224,7 +1270,11 @@ describe("coverage completion for plugin lifecycle", () => {
         output,
       );
 
-      expect(scheduled.some((entry) => entry.checkRules?.includes("must-priority-coverage"))).toBe(true);
+      expect(
+        scheduled.some((entry) =>
+          entry.checkRules?.includes("must-priority-coverage"),
+        ),
+      ).toBe(true);
       expect(output.system.join("\n")).toContain("Maintenance degraded");
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -1240,7 +1290,10 @@ describe("coverage completion for plugin lifecycle", () => {
       guidance: { smartEnforcement: { mode: "hard" } },
     });
     try {
-      fs.writeFileSync(path.join(tmpDir, "src", "new-feature.ts"), "export const value = 1;\n");
+      fs.writeFileSync(
+        path.join(tmpDir, "src", "new-feature.ts"),
+        "export const value = 1;\n",
+      );
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: tmpDir,
@@ -1248,7 +1301,10 @@ describe("coverage completion for plugin lifecycle", () => {
       });
 
       await hooks.event?.({
-        event: { type: "file.created", properties: { file: "src/new-feature.ts" } },
+        event: {
+          type: "file.created",
+          properties: { file: "src/new-feature.ts" },
+        },
       });
       const output = { system: [] as string[] };
       await hooks["experimental.chat.system.transform"]?.(
@@ -1258,7 +1314,9 @@ describe("coverage completion for plugin lifecycle", () => {
       await flushPromises();
 
       expect(output.system.join("\n")).toContain("Kibi hard gate blocked");
-      expect(logMessages(captured.logs)).toContain("smart-enforcement.hard-gate-consumed");
+      expect(logMessages(captured.logs)).toContain(
+        "smart-enforcement.hard-gate-consumed",
+      );
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -1279,7 +1337,9 @@ describe("coverage completion for plugin lifecycle", () => {
       await hooks["chat.params"]?.({}, {});
 
       expect(hooks["experimental.chat.system.transform"]).toBeUndefined();
-      expect(logMessages(captured.logs)).not.toContain("prompt injection via system.transform");
+      expect(logMessages(captured.logs)).not.toContain(
+        "prompt injection via system.transform",
+      );
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -1288,7 +1348,10 @@ describe("coverage completion for plugin lifecycle", () => {
   test("Given existing sentinel and empty transform input When transforming Then duplicate guidance is skipped", async () => {
     const tmpDir = makeWorkspace("kibi-plugin-sentinel-");
     try {
-      const hooks = await kibiOpencodePlugin({ directory: tmpDir, worktree: tmpDir });
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+      });
       const output = { system: ["already <!-- kibi-opencode -->"] };
 
       await hooks["experimental.chat.system.transform"]?.(null, output);
@@ -1323,7 +1386,10 @@ describe("coverage completion for plugin lifecycle", () => {
   test("Given null transform input without sentinel When transforming Then focus detection falls back safely", async () => {
     const tmpDir = makeWorkspace("kibi-plugin-null-transform-");
     try {
-      const hooks = await kibiOpencodePlugin({ directory: tmpDir, worktree: tmpDir });
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+      });
       const output = { system: [] as string[] };
 
       await hooks["experimental.chat.system.transform"]?.(null, output);
@@ -1364,15 +1430,18 @@ describe("coverage completion for plugin lifecycle", () => {
       );
       const otherFile = path.join(otherDir, "src", "scoped.ts");
       fs.writeFileSync(otherFile, "export const scoped = true;\n");
-      const hooks = await kibiOpencodePlugin({ directory: rootDir, worktree: rootDir });
+      const hooks = await kibiOpencodePlugin({
+        directory: rootDir,
+        worktree: rootDir,
+      });
 
       await hooks.event?.({
         event: { type: "file.edited", properties: { file: otherFile } },
       });
 
-      expect(scheduled.some((entry) => entry.filePath === "src/scoped.ts")).toBe(
-        true,
-      );
+      expect(
+        scheduled.some((entry) => entry.filePath === "src/scoped.ts"),
+      ).toBe(true);
     } finally {
       fs.rmSync(rootDir, { recursive: true, force: true });
       fs.rmSync(otherDir, { recursive: true, force: true });
@@ -1393,7 +1462,10 @@ describe("coverage completion for plugin lifecycle", () => {
     try {
       const otherFile = path.join(otherDir, "src", "scoped.ts");
       fs.writeFileSync(otherFile, "export const scoped = true;\n");
-      const hooks = await kibiOpencodePlugin({ directory: rootDir, worktree: rootDir });
+      const hooks = await kibiOpencodePlugin({
+        directory: rootDir,
+        worktree: rootDir,
+      });
 
       await hooks.event?.({
         event: { type: "file.edited", properties: { file: otherFile } },
@@ -1455,7 +1527,10 @@ describe("coverage completion for plugin lifecycle", () => {
     try {
       const factPath = path.join(tmpDir, "documentation", "facts", "FACT-1.md");
       fs.writeFileSync(factPath, "---\ntitle: Fact\n---\nFact body\n");
-      const hooks = await kibiOpencodePlugin({ directory: tmpDir, worktree: tmpDir });
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+      });
 
       await hooks.event?.({
         event: {
@@ -1464,7 +1539,11 @@ describe("coverage completion for plugin lifecycle", () => {
         },
       });
 
-      expect(scheduled.some((entry) => entry.checkRules?.includes("strict-fact-shape"))).toBe(true);
+      expect(
+        scheduled.some((entry) =>
+          entry.checkRules?.includes("strict-fact-shape"),
+        ),
+      ).toBe(true);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -1486,10 +1565,23 @@ describe("coverage completion for plugin lifecycle", () => {
       );
       fs.writeFileSync(
         path.join(tmpDir, "documentation", "tests", "TEST-e2e.md"),
-        ["---", "title: E2E", "tags:", "  - e2e", "---", "covers src/e2e.ts"].join("\n"),
+        [
+          "---",
+          "title: E2E",
+          "tags:",
+          "  - e2e",
+          "---",
+          "covers src/e2e.ts",
+        ].join("\n"),
       );
-      fs.writeFileSync(path.join(tmpDir, "src", "e2e.ts"), "export const e2e = true;\n");
-      const hooks = await kibiOpencodePlugin({ directory: tmpDir, worktree: tmpDir });
+      fs.writeFileSync(
+        path.join(tmpDir, "src", "e2e.ts"),
+        "export const e2e = true;\n",
+      );
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+      });
       await hooks.event?.({
         event: { type: "file.created", properties: { file: "src/e2e.ts" } },
       });

@@ -2,11 +2,11 @@ import { describe, expect, it } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { ExtractionResult } from "../../../src/extractors/markdown.js";
 import {
   createImpactManifestLookup,
   readImpactManifestResults,
 } from "../../../src/public/impact/manifest.js";
-import type { ExtractionResult } from "../../../src/extractors/markdown.js";
 
 function withTempWorkspace(run: (workspaceRoot: string) => void): void {
   const workspaceRoot = mkdtempSync(join(tmpdir(), "kibi-impact-manifest-"));
@@ -81,9 +81,7 @@ describe("impact manifest", () => {
       );
       writeFileSync(
         manifestPath,
-        ["symbols:", "  - id: SYM-ABS", "    title: absolute", ""].join(
-          "\n",
-        ),
+        ["symbols:", "  - id: SYM-ABS", "    title: absolute", ""].join("\n"),
       );
 
       expect(readImpactManifestResults(workspaceRoot)[0]?.entity.id).toBe(
@@ -120,9 +118,7 @@ describe("impact manifest", () => {
           updated_at: "2026-07-01T00:00:00.000Z",
           source: "documentation/fallback.yaml",
         },
-        relationships: [
-          { type: "covered_by", from: "SYM-B", to: "TEST-B" },
-        ],
+        relationships: [{ type: "covered_by", from: "SYM-B", to: "TEST-B" }],
       },
     ];
 
@@ -134,7 +130,10 @@ describe("impact manifest", () => {
         ],
         [
           "documentation/fallback.yaml:fallback",
-          { id: "SYM-B", relationships: [{ type: "covered_by", to: "TEST-B" }] },
+          {
+            id: "SYM-B",
+            relationships: [{ type: "covered_by", to: "TEST-B" }],
+          },
         ],
       ]),
     );

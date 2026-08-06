@@ -156,6 +156,20 @@ describe("MCP runtime docs: canonical modeling wording", () => {
       expect(prompt.text).not.toMatch(/optional human review/i);
       expect(prompt.text).not.toMatch(/must not block writes/i);
     });
+
+    test("must select MCP, trusted CLI JSON, or blocked operation by capability", () => {
+      const prompt = findPrompt("init-kibi");
+      expect(prompt.text).toContain("MCP tools are visible");
+      expect(prompt.text).toContain("trusted local Kibi CLI");
+      expect(prompt.text).toContain("--input");
+      expect(prompt.text).toContain("neither interface is available");
+      expect(prompt.text).toContain(
+        "Do not read or edit `.kb/` files directly",
+      );
+      expect(prompt.text).toContain("Query before mutate");
+      expect(prompt.text).toContain("sequentially");
+      expect(prompt.text).toContain("`kb_check` before completion");
+    });
   });
 
   describe("removed brief-kibi prompt", () => {

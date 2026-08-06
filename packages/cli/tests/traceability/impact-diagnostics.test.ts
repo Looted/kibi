@@ -199,6 +199,25 @@ describe("impact diagnostics", () => {
     ]);
   });
 
+  it("does not treat a changed sibling as narrower when the manifest anchor exists in staged source", () => {
+    const sourceFile = "src/app/pages/upload/upload-page.component.ts";
+    const sourceContent = [
+      'export function stableAnchor() { return "stable"; }',
+      'export function changedAction() { return "changed"; }',
+      "",
+    ].join("\n");
+
+    expect(
+      createSymbolGranularityDiagnostics({
+        manifestResults: [makeManifestResult("stableAnchor")],
+        symbolsByFile: new Map([
+          [sourceFile, [makeSymbol({ name: "changedAction" })]],
+        ]),
+        sourceContentByFile: new Map([[sourceFile, sourceContent]]),
+      }),
+    ).toEqual([]);
+  });
+
   it("mentions ignored non-behavioral symbols when narrower type-shape candidates exist", () => {
     const behavioral = makeSymbol({
       name: "UploadPageComponent.processingProgressLabel",
@@ -213,7 +232,9 @@ describe("impact diagnostics", () => {
 
     const diagnostics = createSymbolGranularityDiagnostics({
       manifestResults: [makeManifestResult("UploadPageComponent")],
-      symbolsByFile: new Map([[behavioral.location.file, [behavioral, typeShape]]]),
+      symbolsByFile: new Map([
+        [behavioral.location.file, [behavioral, typeShape]],
+      ]),
     });
 
     expect(diagnostics[0]?.suggestion).toContain(
@@ -224,7 +245,10 @@ describe("impact diagnostics", () => {
   it("reads source files from workspace root when no staged content map is supplied", () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-impact-test-"));
     const sourceFile = path.join(tmpDir, "fixture.ts");
-    fs.writeFileSync(sourceFile, "export class FixtureComponent {\n  value = \"ok\";\n}");
+    fs.writeFileSync(
+      sourceFile,
+      'export class FixtureComponent {\n  value = "ok";\n}',
+    );
 
     try {
       const diagnostics = createSymbolGranularityDiagnostics({
@@ -278,7 +302,9 @@ describe("impact diagnostics", () => {
 
     expect(
       createSemanticReviewDiagnostics({
-        symbolsByFile: new Map([[classSymbol.location.file, [classSymbol, typeSymbol]]]),
+        symbolsByFile: new Map([
+          [classSymbol.location.file, [classSymbol, typeSymbol]],
+        ]),
       }),
     ).toEqual([]);
   });

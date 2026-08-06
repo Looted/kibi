@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "episode-result.schema.json",
+  "title": "SkillOpt episode result v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "artifactType",
+    "episodeId",
+    "runId",
+    "runLockHash",
+    "status",
+    "startedAt",
+    "finishedAt",
+    "exitCode",
+    "score",
+    "hardPass",
+    "criticalFailures",
+    "evidenceIndexHash",
+    "reconciliation",
+    "usage",
+    "priceEquivalentEstimate"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "$ref": "contract-definitions.schema.json#/$defs/schemaVersion"
+    },
+    "artifactType": { "const": "episode-result" },
+    "episodeId": {
+      "$ref": "contract-definitions.schema.json#/$defs/artifactId"
+    },
+    "runId": {
+      "$ref": "contract-definitions.schema.json#/$defs/artifactId"
+    },
+    "runLockHash": { "$ref": "contract-definitions.schema.json#/$defs/sha256" },
+    "status": {
+      "enum": [
+        "completed",
+        "behavioral-failure",
+        "infrastructure-failure",
+        "interrupted",
+        "budget-exhausted",
+        "evidence-conflict"
+      ]
+    },
+    "startedAt": {
+      "$ref": "contract-definitions.schema.json#/$defs/timestamp"
+    },
+    "finishedAt": {
+      "$ref": "contract-definitions.schema.json#/$defs/timestamp"
+    },
+    "exitCode": { "type": ["integer", "null"] },
+    "score": { "type": "number", "minimum": 0, "maximum": 100 },
+    "hardPass": { "type": "boolean" },
+    "criticalFailures": {
+      "type": "array",
+      "items": {
+        "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString"
+      },
+      "uniqueItems": true
+    },
+    "evidenceIndexHash": {
+      "$ref": "contract-definitions.schema.json#/$defs/sha256"
+    },
+    "reconciliation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["brokerTrace", "diagnosticReceipt", "finalStateQuery"],
+      "properties": {
+        "brokerTrace": { "type": "boolean" },
+        "diagnosticReceipt": { "type": "boolean" },
+        "finalStateQuery": { "type": "boolean" }
+      }
+    },
+    "usage": { "$ref": "contract-definitions.schema.json#/$defs/usage" },
+    "priceEquivalentEstimate": {
+      "$ref": "contract-definitions.schema.json#/$defs/priceEquivalentEstimate"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "status": { "const": "completed" } },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "exitCode": { "const": 0 },
+          "reconciliation": {
+            "type": "object",
+            "properties": {
+              "brokerTrace": { "const": true },
+              "diagnosticReceipt": { "const": true },
+              "finalStateQuery": { "const": true }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "hardPass": { "const": true } },
+        "required": ["hardPass"]
+      },
+      "then": {
+        "properties": {
+          "score": { "type": "number", "minimum": 85 },
+          "criticalFailures": { "type": "array", "maxItems": 0 }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "status": { "not": { "const": "completed" } } },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "hardPass": { "const": false },
+          "score": { "type": "number", "exclusiveMaximum": 85 }
+        }
+      }
+    }
+  ]
+}

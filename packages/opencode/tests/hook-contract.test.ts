@@ -19,6 +19,14 @@ describe("hook contract", () => {
       await hooks["experimental.chat.system.transform"]?.({}, output);
       const injected = output.system.join("\n");
 
+      expect(injected).toContain("MCP tools are visible");
+      expect(injected).toContain("trusted local Kibi CLI");
+      expect(injected).toContain("--input");
+      expect(injected).toContain("neither interface is available");
+      expect(injected).toContain("Do not read or edit `.kb/` files directly");
+      expect(injected).toContain("Query before mutate");
+      expect(injected).toContain("sequentially");
+      expect(injected).toContain("`kb_check` before completion");
       expect(injected).not.toContain("/brief-kibi");
       expect(injected).not.toContain("kb_briefing_generate");
       expect(injected).not.toContain("briefingState");

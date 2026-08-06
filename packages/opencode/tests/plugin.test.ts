@@ -302,7 +302,8 @@ describe("kibiOpencodePlugin core hooks", () => {
       expect(uninitializedRendered).toContain(
         "does not appear to have Kibi initialized",
       );
-      expect(uninitializedRendered).toContain("kb_autopilot_generate");
+      expect(uninitializedRendered).toContain("--input <file|->");
+      expect(uninitializedRendered).toContain("Kibi capability selection");
     } finally {
       fs.rmSync(activeDir, { recursive: true, force: true });
       fs.rmSync(uninitializedDir, { recursive: true, force: true });

@@ -1,0 +1,70 @@
+{
+  "error": {
+    "class": "JSONRPCError",
+    "code": -32602,
+    "message": "text must be a non-empty string"
+  },
+  "input": {
+    "includeExistingSchemas": true,
+    "maxCandidates": 1,
+    "minScore": 0.35,
+    "requirementId": "REQ-CONTRACT-AUTO-SAVE",
+    "source": "contracts/seed/requirements/REQ-CONTRACT-AUTO-SAVE.md",
+    "subjectHint": "editor",
+    "text": "The editor must save changes automatically when the user navigates away."
+  },
+  "tool": {
+    "description": "Suggest ontology predicate schemas for prose requirements before agents write facts. Read-only guidance returns ranked candidates, a safe predicate-fact applyPlan, a separate requires_predicate relationshipPlan when a requirement ID is supplied, or an explicit ontology-gap observation when no predicate fits.",
+    "inputSchema": {
+      "properties": {
+        "existingLogicClaims": {
+          "description": "Existing requirement logic_claims values. Returned relationship guidance includes a merged manifest so repeated clause modeling does not discard earlier claims.",
+          "items": {
+            "pattern": "^CLAIM-[A-F0-9]{16}$",
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "includeExistingSchemas": {
+          "default": true,
+          "description": "Whether to include existing KB fact_kind=predicate_schema facts alongside Kibi's built-in predicate catalog. Default: true.",
+          "type": "boolean"
+        },
+        "maxCandidates": {
+          "default": 5,
+          "description": "Maximum ranked predicate candidates to return. Default: 5.",
+          "maximum": 20,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "minScore": {
+          "default": 0.35,
+          "description": "Minimum candidate score. Higher values make ontology-gap fallback more likely. Default: 0.35.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "requirementId": {
+          "description": "Optional existing requirement ID. When provided, the response includes a relationshipPlan describing the req -> fact requires_predicate link to attach after preserving existing requirement metadata.",
+          "type": "string"
+        },
+        "source": {
+          "description": "Optional provenance or text reference for generated predicate facts or ontology-gap observations.",
+          "type": "string"
+        },
+        "subjectHint": {
+          "description": "Optional canonical subject key to use as the first predicate argument. Example: 'editor.annotation'.",
+          "type": "string"
+        },
+        "text": {
+          "description": "Required prose requirement or claim to classify into ontology predicates. Example: 'When users navigate away, draft edits must auto-save.'.",
+          "type": "string"
+        }
+      },
+      "required": ["text"],
+      "type": "object"
+    },
+    "name": "kb_suggest_predicates"
+  }
+}

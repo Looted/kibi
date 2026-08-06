@@ -12,6 +12,8 @@ tags:
   - kibi
   - plugin
 links:
+  - type: specified_by
+    target: SCEN-opencode-kibi-plugin-v1-coverage
   - REQ-opencode-guidance-injection
   - REQ-opencode-background-sync
   - REQ-opencode-sync-feedback

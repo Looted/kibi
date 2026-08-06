@@ -1,6 +1,6 @@
 {
   "name": "kibi-cli",
-  "version": "0.14.0",
+  "version": "0.16.1",
   "type": "module",
   "description": "Kibi CLI for knowledge base management",
   "engines": {
@@ -14,6 +14,7 @@
   "files": ["dist", "bin", "schema", "src/schemas", "src/public"],
   "scripts": {
     "build": "tsc -p tsconfig.json && mkdir -p dist/public/skills && cp -r src/public/skills/. dist/public/skills/",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepack": "npm run build"
   },
   "exports": {
@@ -28,6 +29,22 @@
     "./prolog/codec": {
       "types": "./dist/prolog/codec.d.ts",
       "default": "./dist/prolog/codec.js"
+    },
+    "./operations/runtime-types": {
+      "types": "./dist/public/operations/runtime-types.d.ts",
+      "default": "./dist/public/operations/runtime-types.js"
+    },
+    "./operations/semantic-advisor/analyze-prose": {
+      "types": "./dist/operations/semantic-advisor/analyze-prose.d.ts",
+      "default": "./dist/operations/semantic-advisor/analyze-prose.js"
+    },
+    "./operations/semantic-advisor/prose-coverage-evaluator": {
+      "types": "./dist/operations/semantic-advisor/prose-coverage-evaluator.d.ts",
+      "default": "./dist/operations/semantic-advisor/prose-coverage-evaluator.js"
+    },
+    "./operations/semantic-advisor/types": {
+      "types": "./dist/operations/semantic-advisor/types.d.ts",
+      "default": "./dist/operations/semantic-advisor/types.js"
     },
     "./extractors/symbols-coordinator": {
       "types": "./dist/public/extractors/symbols-coordinator.d.ts",
@@ -89,6 +106,43 @@
       "types": "./dist/public/skills.d.ts",
       "default": "./dist/public/skills.js"
     },
+    "./operations": "./dist/public/operations/index.js",
+    "./operations/mutation/relationships": {
+      "types": "./dist/operations/mutation/relationships.d.ts",
+      "default": "./dist/operations/mutation/relationships.js"
+    },
+    "./operations/mutation/symbol-refresh": {
+      "types": "./dist/operations/mutation/symbol-refresh.d.ts",
+      "default": "./dist/operations/mutation/symbol-refresh.js"
+    },
+    "./operations/mutation/types": {
+      "types": "./dist/operations/mutation/types.d.ts",
+      "default": "./dist/operations/mutation/types.js"
+    },
+    "./operations/mutation/delete": {
+      "types": "./dist/operations/mutation/delete.d.ts",
+      "default": "./dist/operations/mutation/delete.js"
+    },
+    "./operations/mutation/upsert": {
+      "types": "./dist/operations/mutation/upsert.d.ts",
+      "default": "./dist/operations/mutation/upsert.js"
+    },
+    "./operations/mutation/validate-upsert": {
+      "types": "./dist/operations/mutation/validate-upsert.d.ts",
+      "default": "./dist/operations/mutation/validate-upsert.js"
+    },
+    "./operations/mutation/validation": {
+      "types": "./dist/operations/mutation/validation.d.ts",
+      "default": "./dist/operations/mutation/validation.js"
+    },
+    "./operations/modeling/model-requirement": {
+      "types": "./dist/operations/modeling/model-requirement.d.ts",
+      "default": "./dist/operations/modeling/model-requirement.js"
+    },
+    "./operations/modeling/suggest-predicates": {
+      "types": "./dist/operations/modeling/suggest-predicates.d.ts",
+      "default": "./dist/operations/modeling/suggest-predicates.js"
+    },
     "./ignore-policy": {
       "types": "./dist/public/ignore-policy.d.ts",
       "import": "./dist/public/ignore-policy.js",
@@ -103,7 +157,7 @@
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "kibi-core": "^0.7.0",
+    "kibi-core": "^0.7.1",
     "ts-morph": "^23.0.0",
     "ignore": "^5.3.0"
   },

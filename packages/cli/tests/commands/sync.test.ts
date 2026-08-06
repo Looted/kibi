@@ -143,7 +143,7 @@ describe("kibi sync", () => {
     tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-test-sync-"));
 
     // Initialize git repo and create initial commit (required per ADR-012)
-    execSync("git init", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git init -b main", { cwd: tmpDir, stdio: "pipe" });
     execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
     execSync("git config user.name 'Test User'", { cwd: tmpDir });
     execSync("git checkout -b main", { cwd: tmpDir, stdio: "pipe" });
@@ -244,15 +244,17 @@ User logs in with OAuth2 provider.
 
   test("throws SyncError when staging KB attach fails", async () => {
     await withWorkingDirectory(tmpDir, async () => {
-      const prolog = createScriptedProlog(async (goal): Promise<QueryResult> => {
-        const text = Array.isArray(goal) ? goal.join(",") : goal;
-        if (text.includes("kb_attach")) {
-          return { success: false, bindings: {}, error: "attach denied" };
-        }
-        return { success: true, bindings: {} };
-      });
+      const prolog = createScriptedProlog(
+        async (goal): Promise<QueryResult> => {
+          const text = Array.isArray(goal) ? goal.join(",") : goal;
+          if (text.includes("kb_attach")) {
+            return { success: false, bindings: {}, error: "attach denied" };
+          }
+          return { success: true, bindings: {} };
+        },
+      );
 
-      await expect(
+      expect(
         runHarnessedSync({}, { createProlog: () => prolog }),
       ).rejects.toThrow("Failed to attach to staging KB: attach denied");
     });
@@ -260,18 +262,20 @@ User logs in with OAuth2 provider.
 
   test("throws SyncError when staging KB save fails", async () => {
     await withWorkingDirectory(tmpDir, async () => {
-      const prolog = createScriptedProlog(async (goal): Promise<QueryResult> => {
-        const text = Array.isArray(goal) ? goal.join(",") : goal;
-        if (text === "findall(Id, kb_entity(Id, _, _), ExistingIds)") {
-          return { success: true, bindings: { ExistingIds: "[]" } };
-        }
-        if (text === "kb_save") {
-          return { success: false, bindings: {}, error: "disk full" };
-        }
-        return { success: true, bindings: {} };
-      });
+      const prolog = createScriptedProlog(
+        async (goal): Promise<QueryResult> => {
+          const text = Array.isArray(goal) ? goal.join(",") : goal;
+          if (text === "findall(Id, kb_entity(Id, _, _), ExistingIds)") {
+            return { success: true, bindings: { ExistingIds: "[]" } };
+          }
+          if (text === "kb_save") {
+            return { success: false, bindings: {}, error: "disk full" };
+          }
+          return { success: true, bindings: {} };
+        },
+      );
 
-      await expect(
+      expect(
         runHarnessedSync({}, { createProlog: () => prolog }),
       ).rejects.toThrow("Failed to save staging KB: disk full");
     });

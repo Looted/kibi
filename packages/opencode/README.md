@@ -31,7 +31,7 @@ Use an exact semver entry when you want a fixed plugin version:
 
 ```json
 {
-  "plugin": ["kibi-opencode@0.15.0"]
+  "plugin": ["kibi-opencode@0.18.1"]
 }
 ```
 
@@ -54,7 +54,7 @@ The plugin now uses a posture-aware, low-token smart-enforcement model before em
 - **Risk classification**: separates `safe_docs_only`, `safe_test_only`, `kb_doc_structural`, `req_policy_candidate`, `behavior_candidate`, `traceability_candidate`, and `manual_kb_edit`
 - **Source-linked Kibi links**: risky code edits (`behavior_candidate`, `traceability_candidate`) prepend a concise list of existing Kibi links (e.g., `- Existing Kibi links: REQ-001, REQ-002`) when 1-3 concrete source-linked KB hits are found in `documentation/symbols.yaml`. Skip on cache hit.
 - **Start-task risky cue**: authoritative risky edits also add a compact Kibi context cue so agents can start with explicit source-linked guidance before acting, while staying inside the same single prompt block and token budget.
-- **Effective mode gating**: `advisory` (default) never blocks; `strict` escalates checks and reminders for `root_active` and `hybrid_root_plus_vendored` postures when `requireRootKbForStrict` is enabled; `hard` fails closed for authoritative roots and linked git worktrees, injecting a stop-state with MCP recovery steps until the Kibi checkpoint passes. `maintenanceDegraded` overrides everything back to `advisory`.
+- **Effective mode gating**: `advisory` (default) never blocks; `strict` escalates checks and reminders for `root_active` and `hybrid_root_plus_vendored` postures when `requireRootKbForStrict` is enabled; `hard` fails closed for authoritative roots and linked git worktrees, injecting capability-based recovery steps until the Kibi checkpoint passes. `maintenanceDegraded` overrides everything back to `advisory`.
 - **Low-token prompt policy**: docs-only and test-only edits avoid unnecessary discovery prompts; vendored-only repos suppress operational bootstrap nudges; at most one contextual block is injected per prompt (≤120 words, ≤5 bullets)
 - **Completion reminder**: when `completionReminder` is enabled, risky code edits append a single prompt-visible impact-enabled `kb_check` reminder exactly once per cached context
 - **Runtime maintenance overlay**: static `maintenanceDegraded` from posture is merged with a latched runtime overlay (sync disabled/unavailable/failing) so degraded state is consistently reflected in prompts, logs, and mode decisions
@@ -155,13 +155,13 @@ The plugin injects guidance into OpenCode sessions to improve agent grounding. U
 
 ### Bootstrap Command
 
-OpenCode exposes Kibi MCP prompts as slash commands. The \`/init-kibi\` command triggers the \`kb_autopilot_generate\` workflow to assist in retroactive bootstrap using only public MCP tools.
+OpenCode exposes Kibi MCP prompts as slash commands. The \`/init-kibi\` command triggers the \`kb_autopilot_generate\` workflow to assist in retroactive bootstrap. Agents use visible MCP tools when available, a trusted project-local CLI JSON route with `--input` when MCP is unavailable, and stop for operator action when neither interface is available.
 
 OpenCode may show Kibi MCP tools with the configured server prefix. For example, canonical MCP names such as `kb_autopilot_generate`, `kb_upsert`, and `kb_check` can appear to agents as `kibi_kb_autopilot_generate`, `kibi_kb_upsert`, and `kibi_kb_check`. Use the visible `kibi_kb_*` identifier when OpenCode requires an exact tool name; it maps to the same MCP operation.
 
-### Discovery-first MCP guidance
+### Discovery-first capability guidance
 
-Agent-visible guidance is intentionally limited to the curated public MCP surface:
+Agent-visible guidance selects the curated public MCP surface when visible or the equivalent dedicated CLI JSON routes in a trusted workspace:
 
 - Discovery/reporting: `kb_search`, `kb_query`, `kb_status`, `kb_find_gaps`, `kb_coverage`, `kb_graph`
 - Mutation/validation: `kb_upsert`, `kb_delete`, `kb_check`
@@ -307,7 +307,7 @@ If you see a false "workspace needs Kibi bootstrap" warning even though your wor
 
 This is a thin bridge layer per ADR-016:
 
-- **Agent-visible guidance**: Public MCP tools (`kb_query`, `kb_upsert`, `kb_check`, etc.) and sanctioned slash commands (`/init-kibi`)
+- **Agent-visible guidance**: visible public MCP tools or trusted project-local CLI JSON routes (`--input`), with a blocked/operator state when neither is available
 - **Discovery-first workflow**: Agents are guided to use `kb_search` first, then `kb_query`, then reporting tools like `kb_status`, `kb_find_gaps`, `kb_coverage`, and `kb_graph` when needed
 - **Internal maintenance**: Background sync operations handle KB synchronization; agents do NOT run sync commands directly
 - Does NOT own KB storage, parsing, or validation

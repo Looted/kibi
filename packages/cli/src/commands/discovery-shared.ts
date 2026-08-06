@@ -2,6 +2,12 @@ import path from "node:path";
 import { getBranchOverride } from "../env.js";
 import { PrologProcess, resolveKbPlPath } from "../prolog.js";
 import { escapeAtom } from "../prolog/codec.js";
+import {
+  type OperationSpec,
+  type RuntimeOptions,
+  executeOperation,
+} from "../public/operations/index.js";
+import { createCliRuntime } from "../runtime/cli-runtime.js";
 import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
 import { renderDiscoveryTable } from "./discovery-table.js";
 import { getCurrentBranch } from "./init-helpers.js";
@@ -16,6 +22,15 @@ export interface DiscoveryCommandOptions {
 export interface DiscoveryDeps {
   createProlog: (opts: { timeout: number }) => PrologProcess;
   resolveKbPl: typeof resolveKbPlPath;
+}
+
+// implements REQ-kibi-operation-interface-parity
+export async function executeReportingSpec<TInput, TOutput>(
+  spec: OperationSpec<TInput, TOutput>,
+  input: TInput,
+  options: RuntimeOptions = {},
+) {
+  return executeOperation(createCliRuntime(options), spec, input, options);
 }
 
 // implements REQ-003
@@ -60,30 +75,6 @@ export async function withAttachedBranchProlog<T>(
 }
 
 // implements REQ-003
-export async function withPrologProcess<T>(
-  callback: (prolog: PrologProcess) => Promise<T>,
-  deps?: Partial<DiscoveryDeps>,
-): Promise<T> {
-  const createProlog =
-    deps?.createProlog ?? ((opts) => new PrologProcess(opts));
-  const prolog = createProlog({ timeout: 120000 });
-  try {
-    await prolog.start();
-    // NOTE: useOneShotMode is an internal optimization flag on PrologProcess that
-    // forces single-query mode (start → query → terminate per call) instead of the
-    // default interactive session. It is not exposed in the public PrologProcess
-    // type because callers should not set it directly — only internal discovery
-    // helpers use it for lightweight one-shot queries that don't need session state.
-    (prolog as unknown as { useOneShotMode: boolean }).useOneShotMode = true;
-    await prolog.query(
-      "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
-    );
-    return await callback(prolog);
-  } finally {
-    await safeCleanupProlog(prolog);
-  }
-}
-
 // implements REQ-003
 export async function resolveCurrentKbPath(): Promise<string> {
   let branch: string;

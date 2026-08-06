@@ -25,7 +25,7 @@ describe("kibi doctor", () => {
   });
 
   test("passes all checks in valid environment", () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
@@ -41,7 +41,7 @@ describe("kibi doctor", () => {
   });
 
   test("detects SWI-Prolog installation", () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
@@ -56,7 +56,7 @@ describe("kibi doctor", () => {
   });
 
   test("checks .kb/ directory exists", () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
 
     try {
       execSync(`bun ${kibiBin} doctor`, {
@@ -79,7 +79,7 @@ describe("kibi doctor", () => {
   });
 
   test("validates config.json is valid JSON", () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
     mkdirSync(path.join(tmpDir, ".kb"));
     writeFileSync(path.join(tmpDir, ".kb/config.json"), "{invalid json");
 
@@ -130,7 +130,7 @@ describe("kibi doctor", () => {
   });
 
   test("provides remediation suggestions for missing .kb/", () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
 
     try {
       execSync(`bun ${kibiBin} doctor`, {
@@ -151,7 +151,7 @@ describe("kibi doctor", () => {
   });
 
   test("checks git hooks if --hooks was used", () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
@@ -166,7 +166,7 @@ describe("kibi doctor", () => {
   });
 
   test("checks pre-commit hook if --hooks was used", () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
@@ -181,7 +181,7 @@ describe("kibi doctor", () => {
   });
 
   test("exits with code 0 if all checks pass", () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
@@ -210,7 +210,7 @@ describe("kibi doctor", () => {
   });
 
   test("reports checks in order", () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "approval.schema.json",
+  "title": "SkillOpt approval v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "artifactType",
+    "approvalId",
+    "proposalId",
+    "proposalHash",
+    "runId",
+    "runLockHash",
+    "reportHash",
+    "candidateBodyHash",
+    "reviewer",
+    "decision",
+    "decidedAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "$ref": "contract-definitions.schema.json#/$defs/schemaVersion"
+    },
+    "artifactType": { "const": "approval" },
+    "approvalId": {
+      "$ref": "contract-definitions.schema.json#/$defs/artifactId"
+    },
+    "proposalId": {
+      "$ref": "contract-definitions.schema.json#/$defs/artifactId"
+    },
+    "proposalHash": {
+      "$ref": "contract-definitions.schema.json#/$defs/sha256"
+    },
+    "runId": {
+      "$ref": "contract-definitions.schema.json#/$defs/artifactId"
+    },
+    "runLockHash": { "$ref": "contract-definitions.schema.json#/$defs/sha256" },
+    "reportHash": { "$ref": "contract-definitions.schema.json#/$defs/sha256" },
+    "candidateBodyHash": {
+      "$ref": "contract-definitions.schema.json#/$defs/sha256"
+    },
+    "reviewer": {
+      "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString"
+    },
+    "decision": { "const": "approved" },
+    "decidedAt": { "$ref": "contract-definitions.schema.json#/$defs/timestamp" }
+  }
+}

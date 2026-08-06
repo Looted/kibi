@@ -3,6 +3,8 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
+import { evaluateProseCoverageCorpus } from "kibi-cli/operations/semantic-advisor/prose-coverage-evaluator";
+import { PrologProcess } from "kibi-cli/prolog";
 import { jsonSchemaToZod } from "../../src/server/json-schema-to-zod.js";
 import { formatImpactText } from "../../src/tools/check-format.js";
 import { collectQueryPlanSafetyViolations } from "../../src/tools/query-plan-safety.js";
@@ -15,16 +17,17 @@ import {
 import { handleSparql } from "../../src/tools/sparql.js";
 import { handleKbSuggestPredicates } from "../../src/tools/suggest-predicates.js";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
-import { evaluateProseCoverageCorpus } from "../../src/semantic-advisor/prose-coverage-evaluator.js";
 
-type QueryResult = {
+type LightweightQueryResult = {
   readonly success: boolean;
   readonly error?: string;
   readonly bindings?: Record<string, string>;
 };
 
+type PrologQueryResult = Awaited<ReturnType<PrologProcess["query"]>>;
+
 type QueryableProlog = {
-  readonly query: (goal: string) => Promise<QueryResult>;
+  readonly query: (goal: string) => Promise<LightweightQueryResult>;
   readonly invalidateCache?: () => void;
 };
 
@@ -68,16 +71,18 @@ describe("coverage gap branches", () => {
   });
 
   test("collectQueryPlanSafetyViolations maps unsafe negation clauses", () => {
-    const filePath = tempFile([
-      "safe_rule(Id) :-",
-      "  kb_entity(Id, req, _),",
-      "  \\+ kb_relationship(specified_by, Id, _).",
-      "",
-      "unsafe_rule(Id) :-",
-      "  \\+ kb_relationship(specified_by, Id, _),",
-      "  kb_entity(Id, req, _).",
-      "",
-    ].join("\n"));
+    const filePath = tempFile(
+      [
+        "safe_rule(Id) :-",
+        "  kb_entity(Id, req, _),",
+        "  \\+ kb_relationship(specified_by, Id, _).",
+        "",
+        "unsafe_rule(Id) :-",
+        "  \\+ kb_relationship(specified_by, Id, _),",
+        "  kb_entity(Id, req, _).",
+        "",
+      ].join("\n"),
+    );
 
     const violations = collectQueryPlanSafetyViolations(filePath);
 
@@ -139,8 +144,10 @@ describe("coverage gap branches", () => {
       query: mock(async (goal: string) => {
         queries.push(goal);
         if (goal.includes("UNKNOWN")) return { success: false };
-        if (goal.includes("REQ-1")) return { success: true, bindings: { Type: "'req'" } };
-        if (goal.includes("FACT-1")) return { success: true, bindings: { Type: "fact" } };
+        if (goal.includes("REQ-1"))
+          return { success: true, bindings: { Type: "'req'" } };
+        if (goal.includes("FACT-1"))
+          return { success: true, bindings: { Type: "fact" } };
         if (goal.includes("validate_relationship")) return { success: false };
         return { success: false };
       }),
@@ -167,7 +174,8 @@ describe("coverage gap branches", () => {
       query: mock(async (goal: string) => {
         queries.push(goal);
         if (goal.includes("THROW")) throw new Error("lookup failed");
-        if (goal.includes("TEST-1")) return { success: true, bindings: { Type: "test" } };
+        if (goal.includes("TEST-1"))
+          return { success: true, bindings: { Type: "test" } };
         return { success: true };
       }),
     };
@@ -186,10 +194,16 @@ describe("coverage gap branches", () => {
   });
 
   test("handleSparql rejects invalid positive-timeout inputs before Prolog", async () => {
+    const prolog = new PrologProcess();
+    prolog.query = mock(
+      async (): Promise<PrologQueryResult> => ({
+        success: true,
+        bindings: {},
+      }),
+    );
+
     await expect(
-      handleSparql({ query: mock(async () => ({ success: true })) } as unknown as Parameters<
-        typeof handleSparql
-      >[0], {
+      handleSparql(prolog, {
         endpoint: "https://query.wikidata.org/sparql",
         query: "SELECT * WHERE { ?s ?p ?o }",
         timeoutMs: 0,
@@ -199,11 +213,31 @@ describe("coverage gap branches", () => {
 
   test("prose coverage evaluator reports missing, kind, predicate, property, and operator failures", () => {
     const result = evaluateProseCoverageCorpus([
-      { id: "missing", text: "Plain descriptive prose.", expected: { kind: "predicate" } },
-      { id: "kind", text: "Only admins can delete records.", expected: { kind: "strict_property" } },
-      { id: "predicate", text: "Only admins can delete records.", expected: { kind: "predicate", predicate_name: "state_transition" } },
-      { id: "property", text: "Sessions must be at most 3 active sessions.", expected: { kind: "strict_property", property_key: "wrong" } },
-      { id: "operator", text: "Sessions must be at most 3 active sessions.", expected: { kind: "strict_property", operator: "gte" } },
+      {
+        id: "missing",
+        text: "Plain descriptive prose.",
+        expected: { kind: "predicate" },
+      },
+      {
+        id: "kind",
+        text: "Only admins can delete records.",
+        expected: { kind: "strict_property" },
+      },
+      {
+        id: "predicate",
+        text: "Only admins can delete records.",
+        expected: { kind: "predicate", predicate_name: "state_transition" },
+      },
+      {
+        id: "property",
+        text: "Sessions must be at most 3 active sessions.",
+        expected: { kind: "strict_property", property_key: "wrong" },
+      },
+      {
+        id: "operator",
+        text: "Sessions must be at most 3 active sessions.",
+        expected: { kind: "strict_property", operator: "gte" },
+      },
     ]);
 
     expect(result.summary.failed).toBe(5);
@@ -241,10 +275,16 @@ describe("coverage gap branches", () => {
   });
 
   test("upsert validates value-field hints and nested list parsing", async () => {
+    const validationProlog = new PrologProcess();
+    validationProlog.query = mock(
+      async (): Promise<PrologQueryResult> => ({
+        success: true,
+        bindings: {},
+      }),
+    );
+
     await expect(
-      handleKbUpsert({ query: mock(async () => ({ success: true })) } as unknown as Parameters<
-        typeof handleKbUpsert
-      >[0], {
+      handleKbUpsert(validationProlog, {
         type: "fact",
         id: "FACT-VALUE-HINT",
         properties: {
@@ -257,32 +297,37 @@ describe("coverage gap branches", () => {
     ).rejects.toThrow("value_bool: true");
 
     const goals: string[] = [];
-    const result = await handleKbUpsert(
-      {
-        invalidateCache: () => {},
-        query: mock(async (goal: string) => {
-          goals.push(goal);
-          if (goal.includes("findall(To, kb_relationship(relates_to")) {
-            return {
-              success: true,
-              bindings: { Targets: "['A,B', [nested,value], plain]", Sources: "[]" },
-            };
-          }
-          if (goal.includes("findall")) {
-            return { success: true, bindings: { Targets: "[]", Sources: "[]" } };
-          }
-          return { success: true };
-        }),
-      } as unknown as Parameters<typeof handleKbUpsert>[0],
-      {
-        type: "req",
-        id: "REQ-NESTED-LIST",
-        properties: {
-          title: "Nested list",
-          status: "open",
-        },
+    const upsertProlog = new PrologProcess();
+    upsertProlog.query = mock(
+      async (goal: string | string[]): Promise<PrologQueryResult> => {
+        const queryGoal = Array.isArray(goal) ? goal.join("\n") : goal;
+        goals.push(queryGoal);
+        if (queryGoal.includes("findall(To, kb_relationship(relates_to")) {
+          return {
+            success: true,
+            bindings: {
+              Targets: "['A,B', [nested,value], plain]",
+              Sources: "[]",
+            },
+          };
+        }
+        if (queryGoal.includes("findall")) {
+          return {
+            success: true,
+            bindings: { Targets: "[]", Sources: "[]" },
+          };
+        }
+        return { success: true, bindings: {} };
       },
     );
+    const result = await handleKbUpsert(upsertProlog, {
+      type: "req",
+      id: "REQ-NESTED-LIST",
+      properties: {
+        title: "Nested list",
+        status: "open",
+      },
+    });
 
     expect(result.structuredContent?.relationships_created).toBeGreaterThan(0);
     expect(goals.some((goal) => goal.includes("findall"))).toBe(true);

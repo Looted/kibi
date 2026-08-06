@@ -68,9 +68,25 @@ const FACT_STRING_FIELDS = new Set([
   "valid_from",
   "valid_to",
   "canonical_key",
+  "claim_key",
+  "claim_text",
+  "predicate_name",
+  "predicate_namespace",
 ]);
-const FACT_NUMBER_FIELDS = new Set(["value_int", "value_number"]);
+const FACT_NUMBER_FIELDS = new Set([
+  "value_int",
+  "value_number",
+  "predicate_arity",
+]);
 const FACT_BOOLEAN_FIELDS = new Set(["value_bool", "closed_world"]);
+const FACT_STRING_ARRAY_FIELDS = new Set([
+  "argument_names",
+  "argument_types",
+  "argument_descriptions",
+  "aliases",
+  "examples",
+  "predicate_args",
+]);
 
 function isTraceEnabled(): boolean {
   return isCliTraceOrDebugEnabled();
@@ -127,6 +143,15 @@ function serializeTypedFactFields(entity: ExtractedEntity): string[] {
     }
   }
 
+  for (const field of FACT_STRING_ARRAY_FIELDS) {
+    const value = getEntityField(entity, field);
+    if (Array.isArray(value)) {
+      fields.push(
+        `${field}=[${value.map((item) => toPrologString(String(item))).join(",")}]`,
+      );
+    }
+  }
+
   return fields;
 }
 
@@ -148,9 +173,27 @@ function buildEntityAssertionGoal(entity: ExtractedEntity): string {
   if (entity.severity) props.push(`severity=${toPrologAtom(entity.severity)}`);
   if (entity.text_ref)
     props.push(`text_ref=${toPrologString(entity.text_ref)}`);
+  if (entity.type === "req" && entity.logic_claims) {
+    props.push(
+      `logic_claims=[${entity.logic_claims.map(toPrologAtom).join(",")}]`,
+    );
+  }
 
   if (entity.type === "fact") {
     props.push(...serializeTypedFactFields(entity));
+  }
+
+  if (entity.type === "test") {
+    if (entity.verification_scope !== undefined) {
+      props.push(
+        `verification_scope=${toPrologAtom(entity.verification_scope)}`,
+      );
+    }
+    if (entity.verification_perspective !== undefined) {
+      props.push(
+        `verification_perspective=${toPrologAtom(entity.verification_perspective)}`,
+      );
+    }
   }
 
   return `kb_assert_entity_no_audit(${entity.type}, [${props.join(", ")}])`;

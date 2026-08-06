@@ -367,6 +367,10 @@ describe("refreshManifestCoordinates", () => {
     mockEnrichSymbolCoordinates.mockImplementation(
       async (entries: ManifestSymbolEntry[]) => entries,
     );
+    mockWriteCoordinateArtifact.mockImplementation(() => "artifact-content\n");
+    mockResolveSymbolsManifestPaths.mockImplementation(() => ({
+      coordinatesPath: "/workspace/documentation/symbol-coordinates.yaml",
+    }));
   });
 
   afterEach(() => {
@@ -376,6 +380,8 @@ describe("refreshManifestCoordinates", () => {
     mockParseYAML.mockReset();
     mockDumpYAML.mockReset();
     mockEnrichSymbolCoordinates.mockReset();
+    mockWriteCoordinateArtifact.mockReset();
+    mockResolveSymbolsManifestPaths.mockReset();
   });
 
   test("warns and returns early for non-object YAML", async () => {
@@ -568,9 +574,8 @@ describe("refreshManifestCoordinates", () => {
     const commentBlock = `# symbols.yaml
 # AUTHORED fields (edit freely):
 #   id, title, sourceFile, links, status, tags, owner, priority
-# GENERATED fields (never edit manually — overwritten by kibi sync and kb.symbols.refresh):
-#   sourceLine, sourceColumn, sourceEndLine, sourceEndColumn
-# Run \`kibi sync\` or call the \`kb.symbols.refresh\` MCP tool to refresh coordinates.
+# Generated coordinates are stored separately in symbol-coordinates.yaml.
+# Run \`kibi sync --refresh-symbol-coordinates\` to refresh them.
 `;
     const dumpedYaml = "yaml-content\n";
     const fullContent = `${commentBlock}${dumpedYaml}`;
@@ -606,6 +611,41 @@ describe("refreshManifestCoordinates", () => {
     expect(manifestCall).toBeDefined();
     const written = manifestCall?.[1] as string;
     expect(written).toContain("new-yaml");
+  });
+
+  test("always strips generated coordinates from the authored manifest", async () => {
+    const legacyEntry = makeEntry({ id: "SYM-LEGACY" });
+    const coordinateFreeEntry = makeEntry({
+      id: "SYM-NEW",
+      sourceLine: undefined,
+      sourceColumn: undefined,
+      sourceEndLine: undefined,
+      sourceEndColumn: undefined,
+    });
+    mockParseYAML.mockImplementation(() => ({
+      symbols: [legacyEntry, coordinateFreeEntry],
+    }));
+    mockEnrichSymbolCoordinates.mockImplementation(async () => [
+      makeEntry({ id: "SYM-LEGACY", sourceLine: 20 }),
+      makeEntry({ id: "SYM-NEW", sourceLine: 30 }),
+    ]);
+
+    await refreshManifestCoordinates(
+      manifestPath,
+      workspaceRoot,
+      Object.assign(manifestDeps(), { refreshSymbolCoordinates: true }),
+    );
+
+    const dumped = mockDumpYAML.mock.calls[0]?.[0] as {
+      symbols: Record<string, unknown>[];
+    };
+    for (const entry of dumped.symbols) {
+      expect(entry).not.toHaveProperty("sourceLine");
+      expect(entry).not.toHaveProperty("sourceColumn");
+      expect(entry).not.toHaveProperty("sourceEndLine");
+      expect(entry).not.toHaveProperty("sourceEndColumn");
+      expect(entry).not.toHaveProperty("coordinatesGeneratedAt");
+    }
   });
 
   test("warns when coordinate artifact writing fails", async () => {
@@ -824,7 +864,7 @@ describe("refreshManifestCoordinates", () => {
     expect(written).toContain("# symbols.yaml");
     expect(written).toContain("AUTHORED fields (edit freely)");
     expect(written).toContain(
-      "GENERATED fields (never edit manually — overwritten by kibi sync and kb.symbols.refresh)",
+      "Generated coordinates are stored separately in symbol-coordinates.yaml",
     );
     expect(written).toContain("yaml-output");
   });

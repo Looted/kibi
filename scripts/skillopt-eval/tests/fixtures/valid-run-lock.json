@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "1.0.0",
+  "artifactType": "run-lock",
+  "runId": "00000000-0000-4000-8000-000000000001",
+  "repositoryHashAlgorithm": "sha1",
+  "repositoryCommit": "1111111111111111111111111111111111111111",
+  "dirtyState": { "isDirty": false, "diffHash": null },
+  "codexCliVersion": "codex-cli 1.2.3",
+  "codexExecutable": {
+    "path": "/usr/bin/codex",
+    "version": "codex-cli 1.2.3",
+    "sha256": "0101010101010101010101010101010101010101010101010101010101010101"
+  },
+  "cliArgs": ["exec", "--json", "--model", "gpt-5.4-mini"],
+  "artifactRoot": ".artifacts/skillopt/00000000-0000-4000-8000-000000000001",
+  "targetModel": "gpt-5.4-mini",
+  "optimizerModel": "gpt-5.6-sol",
+  "skillopt": {
+    "package": "skillopt",
+    "version": "0.2.0",
+    "commit": "b860a5cf88ce75e2bd02ca981ac21fb28cffba83",
+    "repository": "https://github.com/microsoft/SkillOpt",
+    "license": "MIT",
+    "retrievedAt": "2026-07-21",
+    "python": ">=3.10",
+    "packageHash": "2222222222222222222222222222222222222222222222222222222222222222",
+    "sourceHash": "3333333333333333333333333333333333333333333333333333333333333333",
+    "uvLockHash": "4444444444444444444444444444444444444444444444444444444444444444"
+  },
+  "sourceLockHash": "453b8caa603d8211db41c715a77b68626d3248a74d8c7ee17e59561157f178f8",
+  "catalogHash": "5555555555555555555555555555555555555555555555555555555555555555",
+  "fixtureHash": "6666666666666666666666666666666666666666666666666666666666666666",
+  "fixtureGeneratorHash": "6161616161616161616161616161616161616161616161616161616161616161",
+  "pricing": {
+    "name": "price-equivalent-estimates",
+    "effectiveFrom": "2026-08-03",
+    "currency": "USD",
+    "source": "Pinned public list-price snapshot for estimates; not invoices",
+    "models": {
+      "gpt-5.4-mini": {
+        "inputPerMillionTokens": 0.4,
+        "cachedInputPerMillionTokens": 0.1,
+        "outputPerMillionTokens": 1.6
+      },
+      "gpt-5.6-sol": {
+        "inputPerMillionTokens": 5,
+        "cachedInputPerMillionTokens": 0.5,
+        "outputPerMillionTokens": 30
+      }
+    }
+  },
+  "pricingHash": "6fc51350249bd59ac3bcd57949978364870db1aab8d1ccafa1b7794d32900aa3",
+  "baselineSkillHashes": {
+    "kibi-usage": {
+      "bodyHash": "7777777777777777777777777777777777777777777777777777777777777777",
+      "frontmatterHash": "7171717171717171717171717171717171717171717171717171717171717171",
+      "resourcesHash": "7272727272727272727272727272727272727272727272727272727272727272"
+    },
+    "kibi-freshness": {
+      "bodyHash": "8888888888888888888888888888888888888888888888888888888888888888",
+      "frontmatterHash": "8181818181818181818181818181818181818181818181818181818181818181",
+      "resourcesHash": "8282828282828282828282828282828282828282828282828282828282828282"
+    },
+    "kibi-traceability": {
+      "bodyHash": "9999999999999999999999999999999999999999999999999999999999999999",
+      "frontmatterHash": "9191919191919191919191919191919191919191919191919191919191919191",
+      "resourcesHash": "9292929292929292929292929292929292929292929292929292929292929292"
+    },
+    "init-kibi": {
+      "bodyHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "frontmatterHash": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+      "resourcesHash": "a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2"
+    }
+  },
+  "seed": 5417,
+  "authMode": "existing-login",
+  "hosts": ["codex"],
+  "gates": {
+    "heldOutTasksPerVariant": 16,
+    "familySlices": 4,
+    "bundleTasks": 8,
+    "candidate": {
+      "meanMinimum": 85,
+      "hardPassesMinimum": 13,
+      "hardPassesTotal": 16,
+      "meanDeltaMinimum": { "baseline": 8, "oneShot": 5 },
+      "hardPassDeltaMinimum": { "baseline": 2, "oneShot": 1 }
+    },
+    "bootstrap": {
+      "resamples": 10000,
+      "seed": 5417,
+      "confidenceLevel": 0.95,
+      "sidedness": "one-sided",
+      "lowerBoundExclusiveMinimum": 0,
+      "clusterUnit": "task"
+    },
+    "familyGuard": { "maxMeanRegression": 3, "maxHardPassRegression": 1 },
+    "bundle": {
+      "meanMinimum": 85,
+      "hardPassesMinimum": 7,
+      "hardPassesTotal": 8,
+      "meanDeltaMinimum": { "baseline": 3, "oneShot": 3 },
+      "allowHardPassLoss": false,
+      "maxCriticalFailures": 0
+    }
+  }
+}

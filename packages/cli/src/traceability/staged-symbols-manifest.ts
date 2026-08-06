@@ -51,6 +51,7 @@ export interface StagedSymbolsManifestAssessment {
 export interface StagedAuthoredSymbolsManifestEvidence {
   path: string;
   entries: Array<{ sourcePath: string; entityIds: string[] }>;
+  changedEntityIds: string[];
 }
 
 function toRepoRelativePath(absoluteOrRelativePath: string): string {
@@ -186,9 +187,21 @@ function normalizeRelationships(
 function normalizeManifestSymbolsForSourceFile(
   records: ManifestSymbolRecord[],
   sourceFile: string,
+  expectedTitles: ReadonlySet<string>,
 ): NormalizedManifestSymbol[] {
   return records
     .filter((record) => {
+      const title = typeof record.title === "string" ? record.title : null;
+      const isDocumentedModuleSymbol =
+        typeof record.granularity_reason === "string" &&
+        record.granularity_reason.length > 0;
+      if (
+        title !== null &&
+        isDocumentedModuleSymbol &&
+        !expectedTitles.has(title)
+      ) {
+        return false;
+      }
       const recordSource =
         typeof record.sourceFile === "string"
           ? record.sourceFile
@@ -393,9 +406,13 @@ export function assessStagedSymbolsManifest(options: {
 
   for (const sourceFile of sourceFiles) {
     const expectedSymbols = normalizeExpectedSymbolsForStagedFile(sourceFile);
+    const expectedTitles = new Set(
+      expectedSymbols.map((symbol) => symbol.title),
+    );
     const baselineSymbols = normalizeManifestSymbolsForSourceFile(
       baselineMergedRecords,
       sourceFile.path,
+      expectedTitles,
     );
 
     if (signaturesEqual(expectedSymbols, baselineSymbols)) {
@@ -411,6 +428,7 @@ export function assessStagedSymbolsManifest(options: {
     const stagedSymbols = normalizeManifestSymbolsForSourceFile(
       stagedMergedRecords,
       sourceFile.path,
+      expectedTitles,
     );
 
     if (signaturesEqual(expectedSymbols, stagedSymbols)) {
@@ -438,24 +456,6 @@ export function assessStagedSymbolsManifest(options: {
   return { state: "stale", sourcePaths, path: paths.coordinatesPath };
 }
 
-function getEntityIdsForSourceFile(
-  records: ManifestSymbolRecord[],
-  sourceFile: string,
-): string[] {
-  return records
-    .filter((record) => {
-      const recordSource =
-        typeof record.sourceFile === "string"
-          ? record.sourceFile
-          : typeof record.source === "string"
-            ? record.source
-            : null;
-      return recordSource === sourceFile && typeof record.id === "string";
-    })
-    .map((record) => record.id as string)
-    .sort();
-}
-
 export function collectStagedAuthoredSymbolsManifestEvidence(options: {
   sourceFiles: StagedFile[];
   stagedFiles: StagedFile[];
@@ -467,7 +467,7 @@ export function collectStagedAuthoredSymbolsManifestEvidence(options: {
   );
 
   if (!stagedManifestFile) {
-    return { path: paths.symbolsPath, entries: [] };
+    return { path: paths.symbolsPath, entries: [], changedEntityIds: [] };
   }
 
   const headManifestRecords =
@@ -481,30 +481,49 @@ export function collectStagedAuthoredSymbolsManifestEvidence(options: {
   );
 
   if (stagedManifestRecords === null) {
-    return { path: paths.symbolsPath, entries: [] };
+    return { path: paths.symbolsPath, entries: [], changedEntityIds: [] };
   }
 
+  const sourcePaths = uniqueSorted(
+    [...headManifestRecords, ...stagedManifestRecords].flatMap((record) => {
+      const sourceFile =
+        typeof record.sourceFile === "string"
+          ? record.sourceFile
+          : typeof record.source === "string"
+            ? record.source
+            : null;
+      return sourceFile === null ? [] : [sourceFile];
+    }),
+  );
+  const changedEntityIdsBySourcePath = new Map(
+    sourcePaths.map((sourcePath) => {
+      const headSymbols = normalizeAuthoredManifestSymbolsForSourceFile(
+        headManifestRecords,
+        sourcePath,
+      );
+      const stagedSymbols = normalizeAuthoredManifestSymbolsForSourceFile(
+        stagedManifestRecords,
+        sourcePath,
+      );
+      return [
+        sourcePath,
+        getChangedAuthoredEntityIds(headSymbols, stagedSymbols),
+      ] as const;
+    }),
+  );
   const entries: Array<{ sourcePath: string; entityIds: string[] }> = [];
 
   for (const sourceFile of sourceFiles) {
-    const headSymbols = normalizeAuthoredManifestSymbolsForSourceFile(
-      headManifestRecords,
-      sourceFile.path,
-    );
-    const stagedSymbols = normalizeAuthoredManifestSymbolsForSourceFile(
-      stagedManifestRecords,
-      sourceFile.path,
-    );
-
-    if (signaturesEqual(headSymbols, stagedSymbols)) {
-      continue;
-    }
-
-    entries.push({
-      sourcePath: sourceFile.path,
-      entityIds: getChangedAuthoredEntityIds(headSymbols, stagedSymbols),
-    });
+    const entityIds = changedEntityIdsBySourcePath.get(sourceFile.path) ?? [];
+    if (entityIds.length === 0) continue;
+    entries.push({ sourcePath: sourceFile.path, entityIds });
   }
 
-  return { path: paths.symbolsPath, entries };
+  return {
+    path: paths.symbolsPath,
+    entries,
+    changedEntityIds: uniqueSorted(
+      Array.from(changedEntityIdsBySourcePath.values()).flat(),
+    ),
+  };
 }

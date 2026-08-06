@@ -1,0 +1,65 @@
+{
+  "input": {
+    "limit": 1,
+    "offset": 0,
+    "query": "freeze contracts",
+    "type": "req"
+  },
+  "structuredContent": {
+    "count": 1,
+    "results": [
+      {
+        "entity": {
+          "id": "REQ-CONTRACT-001",
+          "status": "open",
+          "title": "Freeze public tool contracts",
+          "type": "req"
+        },
+        "reasons": ["title match"],
+        "score": 0.99
+      }
+    ]
+  },
+  "tool": {
+    "description": "Search KB entities for discovery using metadata and markdown body text. Use for exploratory lookup before exact follow-up with kb_query. No mutation side effects.",
+    "inputSchema": {
+      "properties": {
+        "limit": {
+          "default": 20,
+          "description": "Optional max rows to return after ranking. Default: 20.",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "description": "Optional zero-based pagination offset. Default: 0.",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "query": {
+          "description": "Free-text query for metadata and markdown body discovery. Example: 'OAuth login flow'.",
+          "maxLength": 4096,
+          "minLength": 1,
+          "type": "string"
+        },
+        "type": {
+          "description": "Optional entity type filter to narrow discovery. Example: 'req'.",
+          "enum": [
+            "req",
+            "scenario",
+            "test",
+            "adr",
+            "flag",
+            "event",
+            "symbol",
+            "fact"
+          ],
+          "type": "string"
+        }
+      },
+      "required": ["query"],
+      "type": "object"
+    },
+    "name": "kb_search"
+  }
+}

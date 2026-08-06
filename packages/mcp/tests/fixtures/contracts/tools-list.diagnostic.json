@@ -1,0 +1,1465 @@
+{
+  "tools": [
+    {
+      "description": "Read entities from the KB with filters. Use for discovery and lookup before edits. Do not use for writes. No mutation side effects. Tags filter by metadata tags only, not entity IDs.",
+      "inputSchema": {
+        "properties": {
+          "_diagnostic_telemetry": {
+            "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
+            "properties": {
+              "attempt_number": {
+                "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
+                "type": "integer"
+              },
+              "confidence_score": {
+                "description": "A score from 0.0 to 1.0 representing your confidence that the exact parameters, IDs, or tags you provided will yield a successful result.",
+                "type": "number"
+              },
+              "is_autonomous": {
+                "description": "Set to TRUE if you are calling this tool on your own initiative to retrieve context. Set to FALSE if the user explicitly commanded you to use the knowledge base.",
+                "type": "boolean"
+              },
+              "missing_context": {
+                "description": "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
+                "type": "string"
+              },
+              "reasoning": {
+                "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "id": {
+            "description": "Optional exact entity ID. Example: 'REQ-001'. If omitted, returns matching entities by other filters.",
+            "type": "string"
+          },
+          "limit": {
+            "default": 100,
+            "description": "Optional max rows to return after filtering. Default: 100 when omitted. Example: 25.",
+            "type": "number"
+          },
+          "offset": {
+            "default": 0,
+            "description": "Optional zero-based pagination offset. Default: 0. Example: 50 to skip first 50 rows.",
+            "type": "number"
+          },
+          "sourceFile": {
+            "description": "Optional source-file substring filter. Example: 'src/auth/login.ts'. Uses KB source linkage, not file-system scanning.",
+            "type": "string"
+          },
+          "tags": {
+            "description": "Optional tag filter. Matches entities that contain any provided tag. Example: ['security','billing'].",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "type": {
+            "description": "Optional entity type filter. Allowed: req, scenario, test, adr, flag, event, symbol, fact. Example: 'req'.",
+            "enum": [
+              "req",
+              "scenario",
+              "test",
+              "adr",
+              "flag",
+              "event",
+              "symbol",
+              "fact"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "kb_query"
+    },
+    {
+      "description": "Search KB entities for discovery using metadata and markdown body text. Use for exploratory lookup before exact follow-up with kb_query. No mutation side effects.",
+      "inputSchema": {
+        "properties": {
+          "_diagnostic_telemetry": {
+            "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
+            "properties": {
+              "attempt_number": {
+                "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
+                "type": "integer"
+              },
+              "confidence_score": {
+                "description": "A score from 0.0 to 1.0 representing your confidence that the exact parameters, IDs, or tags you provided will yield a successful result.",
+                "type": "number"
+              },
+              "is_autonomous": {
+                "description": "Set to TRUE if you are calling this tool on your own initiative to retrieve context. Set to FALSE if the user explicitly commanded you to use the knowledge base.",
+                "type": "boolean"
+              },
+              "missing_context": {
+                "description": "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
+                "type": "string"
+              },
+              "reasoning": {
+                "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "limit": {
+            "default": 20,
+            "description": "Optional max rows to return after ranking. Default: 20.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "description": "Optional zero-based pagination offset. Default: 0.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "query": {
+            "description": "Free-text query for metadata and markdown body discovery. Example: 'OAuth login flow'.",
+            "maxLength": 4096,
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": {
+            "description": "Optional entity type filter to narrow discovery. Example: 'req'.",
+            "enum": [
+              "req",
+              "scenario",
+              "test",
+              "adr",
+              "flag",
+              "event",
+              "symbol",
+              "fact"
+            ],
+            "type": "string"
+          }
+        },
+        "required": ["query"],
+        "type": "object"
+      },
+      "name": "kb_search"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Inspect Kibi branch status"
+      },
+      "description": "Report current branch, snapshot, and freshness metadata for the attached KB. Read-only status inspection with no mutation side effects.",
+      "inputSchema": {
+        "properties": {
+          "_diagnostic_telemetry": {
+            "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
+            "properties": {
+              "attempt_number": {
+                "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
+                "type": "integer"
+              },
+              "confidence_score": {
+                "description": "A score from 0.0 to 1.0 representing your confidence that the exact parameters, IDs, or tags you provided will yield a successful result.",
+                "type": "number"
+              },
+              "is_autonomous": {
+                "description": "Set to TRUE if you are calling this tool on your own initiative to retrieve context. Set to FALSE if the user explicitly commanded you to use the knowledge base.",
+                "type": "boolean"
+              },
+              "missing_context": {
+                "description": "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
+                "type": "string"
+              },
+              "reasoning": {
+                "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "name": "kb_status"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "List bundled Kibi skills"
+      },
+      "description": "List bundled Kibi agent skills available for progressive disclosure. Read-only; does not mutate the KB or require Prolog.",
+      "inputSchema": {
+        "properties": {
+          "_diagnostic_telemetry": {
+            "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
+            "properties": {
+              "attempt_number": {
+                "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
+                "type": "integer"
+              },
+              "confidence_score": {
+                "description": "A score from 0.0 to 1.0 representing your confidence that the exact parameters, IDs, or tags you provided will yield a successful result.",
+                "type": "number"
+              },
+              "is_autonomous": {
+                "description": "Set to TRUE if you are calling this tool on your own initiative to retrieve context. Set to FALSE if the user explicitly commanded you to use the knowledge base.",
+                "type": "boolean"
+              },
+              "missing_context": {
+                "description": "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
+                "type": "string"
+              },
+              "reasoning": {
+                "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "name": "kb_skills_list"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Load a bundled Kibi skill"
+      },
+      "description": "Load a bundled Kibi agent skill by ID, returning its manifest metadata, Markdown body, declared resources, content hash, and source type. Read-only; does not execute scripts or require Prolog.",
+      "inputSchema": {
+        "properties": {
+          "_diagnostic_telemetry": {
+            "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
+            "properties": {
+              "attempt_number": {
+                "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
+                "type": "integer"
+              },
+              "confidence_score": {
+                "description": "A score from 0.0 to 1.0 representing your confidence that the exact parameters, IDs, or tags you provided will yield a successful result.",
+                "type": "number"
+              },
+              "is_autonomous": {
+                "description": "Set to TRUE if you are calling this tool on your own initiative to retrieve context. Set to FALSE if the user explicitly commanded you to use the knowledge base.",
+                "type": "boolean"
+              },
+              "missing_context": {
+                "description": "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
+                "type": "string"
+              },
+              "reasoning": {
+                "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "id": {
+            "description": "Bundled skill ID to load. Example: 'kibi-usage'.",
+            "type": "string"
+          }
+        },
+        "required": ["id"],
+        "type": "object"
+      },
+      "name": "kb_skills_load"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Read a bundled Kibi skill resource"
+      },
+      "description": "Read a declared resource from a bundled Kibi agent skill. Resource paths are restricted to the skill manifest; arbitrary file paths are not exposed. Read-only; does not require Prolog.",
+      "inputSchema": {
+        "properties": {
+          "_diagnostic_telemetry": {
+            "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
+            "properties": {
+              "attempt_number": {
+                "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
+                "type": "integer"
+              },
+              "confidence_score": {
+                "description": "A score from 0.0 to 1.0 representing your confidence that the exact parameters, IDs, or tags you provided will yield a successful result.",
+                "type": "number"
+              },
+              "is_autonomous": {
+                "description": "Set to TRUE if you are calling this tool on your own initiative to retrieve context. Set to FALSE if the user explicitly commanded you to use the knowledge base.",
+                "type": "boolean"
+              },
+              "missing_context": {
+                "description": "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
+                "type": "string"
+              },
+              "reasoning": {
+                "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "id": {
+            "description": "Bundled skill ID. Example: 'kibi-usage'.",
+            "type": "string"
+          },
+          "resource": {
+            "description": "Manifest-declared resource path to read. Example: 'resources/workflows.md'.",
+            "type": "string"
+          }
+        },
+        "required": ["id", "resource"],
+        "type": "object"
+      },
+      "name": "kb_skills_read"
+    },
+    {
+      "description": "Run bulk missing/present relationship analysis over KB entities. Use for questions like which requirements lack scenarios or tests. No mutation side effects.",
+      "inputSchema": {
+        "properties": {
+          "_diagnostic_telemetry": {
+            "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
+            "properties": {
+              "attempt_number": {
+                "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
+                "type": "integer"
+              },
+              "confidence_score": {
+                "description": "A score from 0.0 to 1.0 representing your confidence that the exact parameters, IDs, or tags you provided will yield a successful result.",
+                "type": "number"
+              },
+              "is_autonomous": {
+                "description": "Set to TRUE if you are calling this tool on your own initiative to retrieve context. Set to FALSE if the user explicitly commanded you to use the knowledge base.",
+                "type": "boolean"
+              },
+              "missing_context": {
+                "description": "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
+                "type": "string"
+              },
+              "reasoning": {
+                "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "limit": {
+            "default": 100,
+            "type": "integer"
+          },
+          "missingRelationships": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "offset": {
+            "default": 0,
+            "type": "integer"
+          },
+          "presentRelationships": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "sourceFile": {
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "type": {
+            "enum": [
+              "req",
+              "scenario",
+              "test",
+              "adr",
+              "flag",
+              "event",
+              "symbol",
+              "fact"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "kb_find_gaps"
+    },
+    {
+      "description": "Generate curated coverage reports for requirements, symbols, or grouped types. Read-only reporting with no mutation side effects.",
+      "inputSchema": {
+        "properties": {
+          "_diagnostic_telemetry": {
+            "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
+            "properties": {
+              "attempt_number": {
+                "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
+                "type": "integer"
+              },
+              "confidence_score": {
+                "description": "A score from 0.0 to 1.0 representing your confidence that the exact parameters, IDs, or tags you provided will yield a successful result.",
+                "type": "number"
+              },
+              "is_autonomous": {
+                "description": "Set to TRUE if you are calling this tool on your own initiative to retrieve context. Set to FALSE if the user explicitly commanded you to use the knowledge base.",
+                "type": "boolean"
+              },
+              "missing_context": {
+                "description": "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
+                "type": "string"
+              },
+              "reasoning": {
+                "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "by": {
+            "default": "req",
+            "enum": ["req", "symbol", "type"],
+            "type": "string"
+          },
+          "includePassing": {
+            "default": false,
+            "type": "boolean"
+          },
+          "includeTransitive": {
+            "default": true,
+            "type": "boolean"
+          },
+          "limit": {
+            "default": 100,
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "type": "integer"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "name": "kb_coverage"
+    },
+    {
+      "description": "Run bounded graph traversal from one or more seed IDs across curated relationship types. No mutation side effects.",
+      "inputSchema": {
+        "properties": {
+          "_diagnostic_telemetry": {
+            "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
+            "properties": {
+              "attempt_number": {
+                "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
+                "type": "integer"
+              },
+              "confidence_score": {
+                "description": "A score from 0.0 to 1.0 representing your confidence that the exact parameters, IDs, or tags you provided will yield a successful result.",
+                "type": "number"
+              },
+              "is_autonomous": {
+                "description": "Set to TRUE if you are calling this tool on your own initiative to retrieve context. Set to FALSE if the user explicitly commanded you to use the knowledge base.",
+                "type": "boolean"
+              },
+              "missing_context": {
+                "description": "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
+                "type": "string"
+              },
+              "reasoning": {
+                "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "depth": {
+            "default": 1,
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "direction": {
+            "default": "outgoing",
+            "enum": ["outgoing", "incoming", "both"],
+            "type": "string"
+          },
+          "entityTypes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "maxEdges": {
+            "default": 500,
+            "type": "integer"
+          },
+          "maxNodes": {
+            "default": 200,
+            "type": "integer"
+          },
+          "relationships": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "seedIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": ["seedIds"],
+        "type": "object"
+      },
+      "name": "kb_graph"
+    },
+    {
+      "description": "Opt-in remote SPARQL query tool for external HTTP(S) RDF endpoints. This does not query Kibi's local RDF store directly, stores no credentials, and depends on network availability.",
+      "inputSchema": {
+        "properties": {
+          "_diagnostic_telemetry": {
+            "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
+            "properties": {
+              "attempt_number": {
+                "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
+                "type": "integer"
+              },
+              "confidence_score": {
+                "description": "A score from 0.0 to 1.0 representing your confidence that the exact parameters, IDs, or tags you provided will yield a successful result.",
+                "type": "number"
+              },
+              "is_autonomous": {
+                "description": "Set to TRUE if you are calling this tool on your own initiative to retrieve context. Set to FALSE if the user explicitly commanded you to use the knowledge base.",
+                "type": "boolean"
+              },
+              "missing_context": {
+                "description": "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
+                "type": "string"
+              },
+              "reasoning": {
+                "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "endpoint": {
+            "description": "Remote SPARQL endpoint URL. Must start with http:// or https://.",
+            "type": "string"
+          },
+          "query": {
+            "description": "SPARQL SELECT query to send to the remote endpoint.",
+            "type": "string"
+          },
+          "timeoutMs": {
+            "description": "Optional positive timeout in milliseconds for the remote query.",
+            "type": "number"
+          }
+        },
+        "required": ["endpoint", "query"],
+        "type": "object"
+      },
+      "name": "kb_sparql_remote"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Advise on Kibi requirement modeling"
+      },
+      "description": "Analyze requirement prose without mutating the KB and return semantic advisor receipts with modeling suggestions. Use before constructing kb_upsert payloads when prose may contain machine-checkable logic. Suggestions can include strict-property facts, predicate facts, ambiguity observations, or ontology-gap observations; all suggestions are advisory and reviewable.",
+      "inputSchema": {
+        "properties": {
+          "_diagnostic_telemetry": {
+            "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
+            "properties": {
+              "attempt_number": {
+                "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
+                "type": "integer"
+              },
+              "confidence_score": {
+                "description": "A score from 0.0 to 1.0 representing your confidence that the exact parameters, IDs, or tags you provided will yield a successful result.",
+                "type": "number"
+              },
+              "is_autonomous": {
+                "description": "Set to TRUE if you are calling this tool on your own initiative to retrieve context. Set to FALSE if the user explicitly commanded you to use the knowledge base.",
+                "type": "boolean"
+              },
+              "missing_context": {
+                "description": "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
+                "type": "string"
+              },
+              "reasoning": {
+                "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "clauses": {
+            "description": "Optional complete list of atomic requirement clauses supplied by the caller. Use this for compound prose so every normative clause receives a stable claim key and independent grounding review.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "description": "Optional requirement ID used for deterministic draft relationship guidance.",
+            "type": "string"
+          },
+          "source": {
+            "description": "Optional provenance for draft suggestions.",
+            "type": "string"
+          },
+          "status": {
+            "description": "Optional requirement status for draft suggestions.",
+            "type": "string"
+          },
+          "text": {
+            "description": "Requirement prose to inspect for machine-checkable modeling suggestions.",
+            "type": "string"
+          },
+          "title": {
+            "description": "Optional requirement title for draft apply plans.",
+            "type": "string"
+          },
+          "type": {
+            "default": "req",
+            "description": "Entity type context for analysis. Currently requirement prose is supported.",
+            "enum": ["req"],
+            "type": "string"
+          }
+        },
+        "required": ["text"],
+        "type": "object"
+      },
+      "name": "kb_semantic_advisor"
+    },
+    {
+      "description": "Create or update one entity and optional relationships. Use for KB mutations after validating intent; prefer kb_validate_upsert first because it returns semantic advisor receipts for prose-heavy requirements. Use kb_model_requirement before hand-writing strict property facts from prose, and kb_suggest_predicates before hand-writing ontology predicate facts. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`, or `requires_predicate`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. For requirements, the write will be rejected if it contradicts existing current requirements that constrain the same subject with incompatible properties. To replace a conflicting requirement, include a `supersedes` relationship from the new requirement to the old one in the same request. Successful writes may return non-blocking semantic advisor warnings; inspect and repair those warnings before treating prose as contradiction-checkable. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",
+      "inputSchema": {
+        "properties": {
+          "_diagnostic_telemetry": {
+            "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
+            "properties": {
+              "attempt_number": {
+                "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
+                "type": "integer"
+              },
+              "confidence_score": {
+                "description": "A score from 0.0 to 1.0 representing your confidence that the exact parameters, IDs, or tags you provided will yield a successful result.",
+                "type": "number"
+              },
+              "is_autonomous": {
+                "description": "Set to TRUE if you are calling this tool on your own initiative to retrieve context. Set to FALSE if the user explicitly commanded you to use the knowledge base.",
+                "type": "boolean"
+              },
+              "missing_context": {
+                "description": "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
+                "type": "string"
+              },
+              "reasoning": {
+                "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "id": {
+            "description": "Unique entity ID (string). Example: 'REQ-123'. Existing ID updates the entity; new ID creates it.",
+            "type": "string"
+          },
+          "properties": {
+            "allOf": [
+              {
+                "if": {
+                  "anyOf": [
+                    {
+                      "required": ["claim_key"]
+                    },
+                    {
+                      "required": ["claim_text"]
+                    }
+                  ]
+                },
+                "then": {
+                  "required": ["claim_key", "claim_text"]
+                }
+              }
+            ],
+            "description": "Entity fields to persist. Must include title and status. If created_at, updated_at, or source are omitted, server fills defaults.",
+            "properties": {
+              "aliases": {
+                "description": "Optional vocabulary aliases for predicate discovery.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "argument_descriptions": {
+                "description": "Optional ordered argument explanations.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "argument_names": {
+                "description": "Ordered argument role names for predicate_schema facts.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "argument_types": {
+                "description": "Ordered argument types for predicate_schema facts.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "canonical_key": {
+                "description": "Optional canonical identity key for predicate or strict fact claims.",
+                "type": "string"
+              },
+              "claim_key": {
+                "description": "Stable semantic-advisor key for the atomic prose clause grounded by this fact.",
+                "pattern": "^CLAIM-[A-F0-9]{16}$",
+                "type": "string"
+              },
+              "claim_text": {
+                "description": "Exact atomic requirement clause represented by this fact, retained for human audit.",
+                "type": "string"
+              },
+              "closed_world": {
+                "description": "Optional closed-world marker for strict fact interpretation.",
+                "type": "boolean"
+              },
+              "examples": {
+                "description": "Optional ground-term examples for a predicate schema.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "fact_kind": {
+                "description": "Optional fact lane kind for fact entities. Strict lane uses 'subject' and 'property_value'; context lane uses 'observation' or 'meta'; ontology lane uses 'predicate_schema' or 'predicate'. Use kb_model_requirement or kb_suggest_predicates when starting from prose.",
+                "enum": [
+                  "subject",
+                  "property_value",
+                  "observation",
+                  "meta",
+                  "predicate_schema",
+                  "predicate"
+                ],
+                "type": "string"
+              },
+              "granularity_reason": {
+                "description": "Optional justification for a coarse file/module-level symbol traceability relationship when narrower function/class/type symbols exist.",
+                "enum": [
+                  "config-artifact",
+                  "module-level-behavior",
+                  "extractor-miss",
+                  "legacy-link"
+                ],
+                "type": "string"
+              },
+              "links": {
+                "description": "Optional references. Example: ['REQ-010','https://example.com/spec'].",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "logic_claims": {
+                "description": "Requirement-only manifest of every atomic normative claim key returned by kb_semantic_advisor. A requirement is logic-complete only when every key is grounded by a linked property_value or predicate fact with the same claim_key.",
+                "items": {
+                  "pattern": "^CLAIM-[A-F0-9]{16}$",
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array",
+                "uniqueItems": true
+              },
+              "operator": {
+                "description": "Optional comparison operator for property_value facts. Example: 'eq'.",
+                "enum": ["eq", "neq", "lt", "lte", "gt", "gte"],
+                "type": "string"
+              },
+              "owner": {
+                "description": "Optional owner name/team. Example: 'platform-team'.",
+                "type": "string"
+              },
+              "polarity": {
+                "description": "Optional polarity for property_value or predicate facts.",
+                "enum": ["require", "forbid", "assert", "deny"],
+                "type": "string"
+              },
+              "predicate_args": {
+                "description": "Optional ordered predicate arguments for ontology predicate facts. Prefer kb_suggest_predicates before hand-writing predicate_args.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "predicate_arity": {
+                "description": "Required arity for predicate_schema facts.",
+                "minimum": 1,
+                "type": "integer"
+              },
+              "predicate_name": {
+                "description": "Optional predicate name for ontology predicate facts. Prefer kb_suggest_predicates before hand-writing predicate_name.",
+                "type": "string"
+              },
+              "predicate_namespace": {
+                "description": "Optional namespace for a project-local predicate schema.",
+                "type": "string"
+              },
+              "priority": {
+                "description": "Optional priority label. Example: 'high'.",
+                "type": "string"
+              },
+              "property_key": {
+                "description": "Snake_case only. Optional canonical property key for property_value facts. Example: 'session.timeout_minutes'. Do not use propertyKey in kb_upsert.properties.",
+                "type": "string"
+              },
+              "scope": {
+                "description": "Optional scope qualifier for fact entities.",
+                "type": "string"
+              },
+              "severity": {
+                "description": "Optional severity label. Example: 'critical'.",
+                "type": "string"
+              },
+              "source": {
+                "description": "Optional provenance string. Example: 'docs/requirements/REQ-123.md'. Defaults to 'mcp://kibi/upsert'.",
+                "type": "string"
+              },
+              "sourceFile": {
+                "description": "Optional code source file for symbol entities. Example: 'src/auth/login.ts'.",
+                "type": "string"
+              },
+              "status": {
+                "description": "Required lifecycle state. Allowed values depend on entity type; backward-compatible legacy statuses are also accepted. Examples: 'open', 'passing', 'accepted', 'active'.",
+                "type": "string"
+              },
+              "subject_key": {
+                "description": "Snake_case only. Optional canonical subject key for strict fact entities. Example: 'user.session'. Do not use subjectKey in kb_upsert.properties.",
+                "type": "string"
+              },
+              "symbol_role": {
+                "description": "Optional role classification for symbol entities. Example: 'behavioral'.",
+                "enum": [
+                  "behavioral",
+                  "structural",
+                  "type-shape",
+                  "config",
+                  "module",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              "tags": {
+                "description": "Optional categorization tags. Example: ['security','api'].",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "text_ref": {
+                "description": "Optional text anchor/reference. Example: 'requirements.md#L40'.",
+                "type": "string"
+              },
+              "title": {
+                "description": "Required short title. Example: 'Protect account settings endpoint'.",
+                "type": "string"
+              },
+              "unit": {
+                "description": "Optional unit for numeric property_value facts.",
+                "type": "string"
+              },
+              "value_bool": {
+                "description": "Optional boolean value for property_value facts.",
+                "type": "boolean"
+              },
+              "value_int": {
+                "description": "Optional integer value for property_value facts.",
+                "type": "integer"
+              },
+              "value_number": {
+                "description": "Optional number value for property_value facts.",
+                "type": "number"
+              },
+              "value_string": {
+                "description": "Optional string value for property_value facts.",
+                "type": "string"
+              },
+              "value_type": {
+                "description": "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, or value_bool; do not use generic value.",
+                "enum": ["string", "int", "number", "bool"],
+                "type": "string"
+              },
+              "verification_perspective": {
+                "description": "Optional typed verification perspective for test entities. Example: 'consumer'.",
+                "enum": ["internal", "consumer"],
+                "type": "string"
+              },
+              "verification_scope": {
+                "description": "Optional typed verification scope for test entities. Example: 'end_to_end'.",
+                "enum": ["unit", "integration", "end_to_end"],
+                "type": "string"
+              }
+            },
+            "required": ["title", "status"],
+            "type": "object"
+          },
+          "relationships": {
+            "description": "Optional relationship rows to create in the same call. For requirement encoding, prefer `constrains` + `requires_property` for strict property facts or `requires_predicate` for ontology predicate facts. Side effect: asserts edges in KB.",
+            "items": {
+              "properties": {
+                "from": {
+                  "description": "Source entity ID (must exist). Example: 'SYM-login-handler'.",
+                  "type": "string"
+                },
+                "to": {
+                  "description": "Target entity ID (must exist). Example: 'REQ-001'.",
+                  "type": "string"
+                },
+                "type": {
+                  "description": "Relationship type enum. Use only supported values. Direction semantics follow KB model (e.g., implements symbol->req, verified_by req/scenario->test, executable_for symbol->test).",
+                  "enum": [
+                    "depends_on",
+                    "specified_by",
+                    "verified_by",
+                    "validates",
+                    "implements",
+                    "covered_by",
+                    "executable_for",
+                    "constrained_by",
+                    "constrains",
+                    "requires_property",
+                    "requires_predicate",
+                    "guards",
+                    "publishes",
+                    "consumes",
+                    "supersedes",
+                    "relates_to"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": ["type", "from", "to"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "type": {
+            "description": "Entity type to create/update. Allowed: req, scenario, test, adr, flag, event, symbol, fact. Example: 'req'.",
+            "enum": [
+              "req",
+              "scenario",
+              "test",
+              "adr",
+              "flag",
+              "event",
+              "symbol",
+              "fact"
+            ],
+            "type": "string"
+          }
+        },
+        "required": ["type", "id", "properties"],
+        "type": "object"
+      },
+      "name": "kb_upsert"
+    },
+    {
+      "description": "Validate a kb_upsert payload without mutating the KB. Use this read-only preflight before kb_upsert, especially for requirements, because it returns schema/modeling errors plus semantic advisor receipts that identify prose likely needing kb_model_requirement, kb_suggest_predicates, ambiguity review, or an ontology-gap observation.",
+      "inputSchema": {
+        "properties": {
+          "_diagnostic_telemetry": {
+            "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
+            "properties": {
+              "attempt_number": {
+                "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
+                "type": "integer"
+              },
+              "confidence_score": {
+                "description": "A score from 0.0 to 1.0 representing your confidence that the exact parameters, IDs, or tags you provided will yield a successful result.",
+                "type": "number"
+              },
+              "is_autonomous": {
+                "description": "Set to TRUE if you are calling this tool on your own initiative to retrieve context. Set to FALSE if the user explicitly commanded you to use the knowledge base.",
+                "type": "boolean"
+              },
+              "missing_context": {
+                "description": "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
+                "type": "string"
+              },
+              "reasoning": {
+                "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "id": {
+            "type": "string"
+          },
+          "properties": {
+            "description": "Entity properties to validate using the same snake_case field names accepted by kb_upsert.",
+            "type": "object"
+          },
+          "relationships": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "type": {
+            "enum": [
+              "req",
+              "scenario",
+              "test",
+              "adr",
+              "flag",
+              "event",
+              "symbol",
+              "fact"
+            ],
+            "type": "string"
+          }
+        },
+        "required": ["type", "id", "properties"],
+        "type": "object"
+      },
+      "name": "kb_validate_upsert"
+    },
+    {
+      "description": "Delete entities by ID. Use only for intentional removals after dependency checks. Do not use as a bulk cleanup shortcut. Side effects: mutates and saves KB; skips entities with dependents.",
+      "inputSchema": {
+        "properties": {
+          "_diagnostic_telemetry": {
+            "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
+            "properties": {
+              "attempt_number": {
+                "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
+                "type": "integer"
+              },
+              "confidence_score": {
+                "description": "A score from 0.0 to 1.0 representing your confidence that the exact parameters, IDs, or tags you provided will yield a successful result.",
+                "type": "number"
+              },
+              "is_autonomous": {
+                "description": "Set to TRUE if you are calling this tool on your own initiative to retrieve context. Set to FALSE if the user explicitly commanded you to use the knowledge base.",
+                "type": "boolean"
+              },
+              "missing_context": {
+                "description": "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
+                "type": "string"
+              },
+              "reasoning": {
+                "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "ids": {
+            "description": "Required list of entity IDs to delete. Example: ['REQ-001','TEST-002']. At least one ID is required.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": ["ids"],
+        "type": "object"
+      },
+      "name": "kb_delete"
+    },
+    {
+      "description": "Run KB validation rules and return violations. Use before or after mutations, and after meaningful source edits with impact options to surface symbol granularity and semantic-review diagnostics. Do not use for point lookups. No write side effects. Prefer explicit rules for faster iteration; omit rules for final full validation plus full-KB qualityDiagnostics review.",
+      "inputSchema": {
+        "properties": {
+          "_diagnostic_telemetry": {
+            "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
+            "properties": {
+              "attempt_number": {
+                "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
+                "type": "integer"
+              },
+              "confidence_score": {
+                "description": "A score from 0.0 to 1.0 representing your confidence that the exact parameters, IDs, or tags you provided will yield a successful result.",
+                "type": "number"
+              },
+              "is_autonomous": {
+                "description": "Set to TRUE if you are calling this tool on your own initiative to retrieve context. Set to FALSE if the user explicitly commanded you to use the knowledge base.",
+                "type": "boolean"
+              },
+              "missing_context": {
+                "description": "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
+                "type": "string"
+              },
+              "reasoning": {
+                "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "includeImpactDiagnostics": {
+            "description": "When true, include changed-file impact diagnostics such as symbol_granularity_violation and symbol_semantic_review_needed in structured output.",
+            "type": "boolean"
+          },
+          "includeWorkingTreeDiff": {
+            "description": "When true, inspect current unstaged working-tree diffs for impact diagnostics. Pair with sourceFiles to scope the analysis.",
+            "type": "boolean"
+          },
+          "maxDiagnostics": {
+            "description": "Optional maximum number of impact diagnostics to return. Graph validation violations are not capped by this value.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "rules": {
+            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, logic-coverage, query-plan-safety. If omitted, server runs all rules plus the full-KB qualityDiagnostics audit scan; if supplied, server preserves scoped validation and skips the full-KB advisory scan.",
+            "items": {
+              "enum": [
+                "must-priority-coverage",
+                "symbol-coverage",
+                "symbol-traceability",
+                "no-dangling-refs",
+                "no-cycles",
+                "required-fields",
+                "deprecated-adr-no-successor",
+                "domain-contradictions",
+                "strict-fact-shape",
+                "strict-req-fact-pairing",
+                "predicate-verifiability",
+                "logic-coverage",
+                "query-plan-safety"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "sourceFiles": {
+            "description": "Optional repo-relative source files to inspect for early impact diagnostics. Use with includeImpactDiagnostics after meaningful source edits.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "staged": {
+            "description": "When true, inspect staged source changes for impact diagnostics using the shared CLI impact analyzer without shelling out to kibi check.",
+            "type": "boolean"
+          },
+          "workspaceRoot": {
+            "description": "Optional workspace root for impact diagnostics and .kb/config.json lookup. Defaults to the MCP server workspace.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "kb_check"
+    },
+    {
+      "description": "Convert a prose requirement plus optional extracted claim fields into a deterministic strict-lane write set. Read-only modeling returns a sequential applyPlan for later kb_upsert calls. High-confidence claims emit req+fact strict output; lower-confidence claims emit an observation review artifact. Includes migration warnings when legacy schemaVersion metadata is detected.",
+      "inputSchema": {
+        "properties": {
+          "_diagnostic_telemetry": {
+            "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
+            "properties": {
+              "attempt_number": {
+                "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
+                "type": "integer"
+              },
+              "confidence_score": {
+                "description": "A score from 0.0 to 1.0 representing your confidence that the exact parameters, IDs, or tags you provided will yield a successful result.",
+                "type": "number"
+              },
+              "is_autonomous": {
+                "description": "Set to TRUE if you are calling this tool on your own initiative to retrieve context. Set to FALSE if the user explicitly commanded you to use the knowledge base.",
+                "type": "boolean"
+              },
+              "missing_context": {
+                "description": "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
+                "type": "string"
+              },
+              "reasoning": {
+                "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "confidence": {
+            "default": 0.8,
+            "description": "Confidence score for the extracted claim. >= 0.70 yields strict-lane output; lower confidence yields observation-only review output.",
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "existingLogicClaims": {
+            "description": "Existing requirement logic_claims values. The returned requirement update merges the new atomic claim key into this manifest instead of replacing prior claims.",
+            "items": {
+              "pattern": "^CLAIM-[A-F0-9]{16}$",
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "operator": {
+            "description": "Optional extracted semantic claim operator. Example: 'eq'.",
+            "enum": ["eq", "gte", "lte", "neq", "bool", "polarity"],
+            "type": "string"
+          },
+          "propertyKey": {
+            "description": "Optional extracted semantic claim propertyKey. Example: 'Retention Years'.",
+            "type": "string"
+          },
+          "provenance": {
+            "description": "Optional extracted text reference. Falls back to source when omitted. Example: 'documentation/requirements/customer-retention.md#L1'.",
+            "type": "string"
+          },
+          "source": {
+            "description": "Optional primary source path or provenance root used for stable IDs and text refs. Example: 'documentation/requirements/customer-retention.md'.",
+            "type": "string"
+          },
+          "sourceFiles": {
+            "description": "Optional related source files. The first value is used as the source fallback when source is omitted.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "subjectKey": {
+            "description": "Optional extracted semantic claim subjectKey. Example: 'Customer.Data'.",
+            "type": "string"
+          },
+          "text": {
+            "description": "Required prose requirement text to model. Example: 'Customer data must be retained for 7 years.'",
+            "type": "string"
+          },
+          "value": {
+            "description": "Optional extracted semantic claim value. Accepts string, number, or boolean."
+          }
+        },
+        "required": ["text"],
+        "type": "object"
+      },
+      "name": "kb_model_requirement"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Suggest Kibi ontology predicates"
+      },
+      "description": "Suggest ontology predicate schemas for prose requirements before agents write facts. Read-only guidance returns ranked candidates, a safe predicate-fact applyPlan, a separate requires_predicate relationshipPlan when a requirement ID is supplied, or an explicit ontology-gap observation when no predicate fits.",
+      "inputSchema": {
+        "properties": {
+          "_diagnostic_telemetry": {
+            "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
+            "properties": {
+              "attempt_number": {
+                "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
+                "type": "integer"
+              },
+              "confidence_score": {
+                "description": "A score from 0.0 to 1.0 representing your confidence that the exact parameters, IDs, or tags you provided will yield a successful result.",
+                "type": "number"
+              },
+              "is_autonomous": {
+                "description": "Set to TRUE if you are calling this tool on your own initiative to retrieve context. Set to FALSE if the user explicitly commanded you to use the knowledge base.",
+                "type": "boolean"
+              },
+              "missing_context": {
+                "description": "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
+                "type": "string"
+              },
+              "reasoning": {
+                "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "existingLogicClaims": {
+            "description": "Existing requirement logic_claims values. Returned relationship guidance includes a merged manifest so repeated clause modeling does not discard earlier claims.",
+            "items": {
+              "pattern": "^CLAIM-[A-F0-9]{16}$",
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "includeExistingSchemas": {
+            "default": true,
+            "description": "Whether to include existing KB fact_kind=predicate_schema facts alongside Kibi's built-in predicate catalog. Default: true.",
+            "type": "boolean"
+          },
+          "maxCandidates": {
+            "default": 5,
+            "description": "Maximum ranked predicate candidates to return. Default: 5.",
+            "maximum": 20,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "minScore": {
+            "default": 0.35,
+            "description": "Minimum candidate score. Higher values make ontology-gap fallback more likely. Default: 0.35.",
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "requirementId": {
+            "description": "Optional existing requirement ID. When provided, the response includes a relationshipPlan describing the req -> fact requires_predicate link to attach after preserving existing requirement metadata.",
+            "type": "string"
+          },
+          "source": {
+            "description": "Optional provenance or text reference for generated predicate facts or ontology-gap observations.",
+            "type": "string"
+          },
+          "subjectHint": {
+            "description": "Optional canonical subject key to use as the first predicate argument. Example: 'editor.annotation'.",
+            "type": "string"
+          },
+          "text": {
+            "description": "Required prose requirement or claim to classify into ontology predicates. Example: 'When users navigate away, draft edits must auto-save.'.",
+            "type": "string"
+          }
+        },
+        "required": ["text"],
+        "type": "object"
+      },
+      "name": "kb_suggest_predicates"
+    },
+    {
+      "description": "Generate agent-centric bootstrap output for KB population. Read-only analysis that returns activation state, bootstrap guidance, candidate entities with evidence, payoff summary, and exact applyPlan payloads for later kb_upsert calls. No mutation side effects.",
+      "inputSchema": {
+        "properties": {
+          "_diagnostic_telemetry": {
+            "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
+            "properties": {
+              "attempt_number": {
+                "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
+                "type": "integer"
+              },
+              "confidence_score": {
+                "description": "A score from 0.0 to 1.0 representing your confidence that the exact parameters, IDs, or tags you provided will yield a successful result.",
+                "type": "number"
+              },
+              "is_autonomous": {
+                "description": "Set to TRUE if you are calling this tool on your own initiative to retrieve context. Set to FALSE if the user explicitly commanded you to use the knowledge base.",
+                "type": "boolean"
+              },
+              "missing_context": {
+                "description": "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
+                "type": "string"
+              },
+              "reasoning": {
+                "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "bootstrapContext": {
+            "description": "Optional declared bootstrap context supplied by the agent to ground the read-only synthesis output.",
+            "properties": {
+              "priorityRoots": {
+                "description": "Optional repo roots the bootstrap flow should prioritize when authoring entities.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "projectSummary": {
+                "description": "Optional short summary of the project or bootstrap goal.",
+                "type": "string"
+              },
+              "sourceOfTruthNotes": {
+                "description": "Optional notes about how to interpret the declared sources of truth.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "sourceOfTruthPaths": {
+                "description": "Optional repo-relative paths that should be treated as declared sources of truth.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "verificationAnchors": {
+                "description": "Optional verification commands, documents, or checkpoints to reference in the output.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          },
+          "entityTypes": {
+            "description": "Optional filter to limit candidate generation to specific entity types.",
+            "items": {
+              "enum": ["req", "scenario", "test", "adr", "fact", "symbol"],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "includeGenericMarkdown": {
+            "default": true,
+            "description": "Whether to include generic markdown file content as candidate facts. Default: true.",
+            "type": "boolean"
+          },
+          "maxCandidates": {
+            "default": 50,
+            "description": "Maximum number of candidates to return. Clamped to [1, 200]. Default: 50.",
+            "maximum": 200,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "minConfidence": {
+            "default": 0.8,
+            "description": "Minimum confidence threshold for candidates. Clamped to [0.60, 0.95]. Default: 0.80.",
+            "maximum": 0.95,
+            "minimum": 0.6,
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "name": "kb_autopilot_generate"
+    }
+  ]
+}

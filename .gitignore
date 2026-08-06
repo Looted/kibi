@@ -36,11 +36,13 @@ desktop.ini
 # --- Build tools ---
 .turbo/
 .cache/
+.venv/
 
 # --- Test artifacts ---
 coverage/
 *.lcov
 documentation/tests/e2e/packed/.compiled/
+.kibi/
 
 # --- Bun ---
 .bun/
@@ -52,6 +54,8 @@ documentation/tests/e2e/packed/.compiled/
 .kb/branches/*/sync-cache.json
 #! bun.lock
 .sisyphus
+.artifacts/
+artifacts/skillopt/
 .kb/briefs/
 .env
 .omo

@@ -1,6 +1,6 @@
 # GitHub Copilot Instructions
 
-This repository uses **Kibi** - a repo-local, per-branch, queryable long-term memory for software projects. Kibi stores requirements, BDD scenarios, tests, architecture decisions (ADRs), feature flags, events, code symbols, and facts with typed relationships between them. The CLI is for humans/operators, while agents should use the MCP server.
+This repository uses **Kibi** - a repo-local, per-branch, queryable long-term memory for software projects. Kibi stores requirements, BDD scenarios, tests, architecture decisions (ADRs), feature flags, events, code symbols, and facts with typed relationships between them. Agents use visible Kibi MCP tools when available, or the trusted project-local CLI's dedicated JSON routes (`--input`) when MCP is unavailable; both surfaces expose the same 18 operations.
 
 Please follow the comprehensive guidelines and rules defined in [AGENTS.md](../AGENTS.md).
 
@@ -105,7 +105,7 @@ bun run format     # Biome format --write
 
 When working on this codebase:
 
-1. **Query Kibi first** - Use MCP tools (`kb_query`) before grepping the project
+1. **Query Kibi first** - Use `kb_search`, then `kb_query`, through the selected Kibi interface before grepping the project
 2. **Document intent** - Route explanations to KB entities via `kb_upsert`, not inline comments
 3. **Link during work** - Create relationships: `implements` (symbol→req ownership), `covered_by` (symbol→test coverage), `executable_for` (test symbol→test identity), `specified_by` (req→scenario)
 4. **Validate** - Run `kb_check` after KB mutations to catch violations
@@ -117,6 +117,7 @@ When working on this codebase:
 - Prompt guidance is posture-aware and intentionally low-noise: safe docs/test edits may not trigger any Kibi-specific prompt block.
 - `vendored_only` repos should not be treated as operational Kibi roots just because they contain nested `kibi/` source trees.
 - OpenCode guidance is advisory; hook/check failures remain the real hard gate.
-- Keep agent-facing guidance MCP-only; do not direct agents toward CLI maintenance workflows.
+- Select Kibi by capability: if MCP tools are visible, use MCP; if MCP availability is unknown and the trusted project-local CLI is available, use its dedicated JSON routes with `--input`; if neither interface is available, stop and tell the operator. Do not infer MCP availability from config file existence.
+- Do not read or edit `.kb/` files directly. Query before mutate. Run `kb_upsert` sequentially. Run `kb_check` before completion.
 
 For detailed guidelines on entity types, relationships, and best practices, see [AGENTS.md](../AGENTS.md).

@@ -1,0 +1,37 @@
+{
+  "input": {
+    "ids": ["REQ-CONTRACT-001"]
+  },
+  "sideEffects": {
+    "auditLog": {
+      "action": "delete",
+      "entityId": "REQ-CONTRACT-001",
+      "shape": "delete-summary"
+    },
+    "entities": {
+      "deleted": ["REQ-CONTRACT-001"]
+    }
+  },
+  "structuredContent": {
+    "deleted": 1,
+    "errors": [],
+    "skipped": 0
+  },
+  "tool": {
+    "description": "Delete entities by ID. Use only for intentional removals after dependency checks. Do not use as a bulk cleanup shortcut. Side effects: mutates and saves KB; skips entities with dependents.",
+    "inputSchema": {
+      "properties": {
+        "ids": {
+          "description": "Required list of entity IDs to delete. Example: ['REQ-001','TEST-002']. At least one ID is required.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": ["ids"],
+      "type": "object"
+    },
+    "name": "kb_delete"
+  }
+}

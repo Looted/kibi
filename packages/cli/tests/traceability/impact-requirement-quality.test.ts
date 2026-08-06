@@ -10,11 +10,18 @@ type RequirementFixture = {
   readonly title?: string;
   readonly status?: string;
   readonly tags?: readonly string[];
+  readonly logicClaims?: readonly string[];
   readonly relationshipTypes?: readonly string[];
-  readonly relationships?: readonly { readonly type: string; readonly to: string }[];
+  readonly relationships?: readonly {
+    readonly type: string;
+    readonly to: string;
+  }[];
 };
 
 function makeRequirementResult(fixture: RequirementFixture): ExtractionResult {
+  const logicClaims = Object.hasOwn(fixture, "logicClaims")
+    ? fixture.logicClaims
+    : ["CLAIM-AAAAAAAAAAAAAAAA"];
   return {
     entity: {
       id: fixture.id,
@@ -25,6 +32,7 @@ function makeRequirementResult(fixture: RequirementFixture): ExtractionResult {
       updated_at: "2026-06-30T00:00:00.000Z",
       source: `documentation/requirements/${fixture.id}.md`,
       ...(fixture.tags !== undefined ? { tags: [...fixture.tags] } : {}),
+      ...(logicClaims !== undefined ? { logic_claims: [...logicClaims] } : {}),
     },
     relationships:
       fixture.relationships?.map((relationship) => ({
@@ -194,7 +202,10 @@ describe("requirement quality impact diagnostics", () => {
           makeTestResult("passing"),
           {
             ...makeTestResult("passing"),
-            entity: { ...makeTestResult("passing").entity, id: "TEST-NOT-SCENARIO" },
+            entity: {
+              ...makeTestResult("passing").entity,
+              id: "TEST-NOT-SCENARIO",
+            },
           },
           {
             ...makeRequirementResult({ id: "SCEN-NOT-TEST" }),
@@ -239,38 +250,55 @@ describe("requirement quality impact diagnostics", () => {
     ).toEqual([]);
   });
 
-  it("emits strict fact modeling review for normative current requirements without strict links", () => {
+  it("emits logical coverage review for normative current requirements without a claim manifest", () => {
     const diagnostics = createRequirementQualityDiagnostics({
       manifestResults: [
         makeRequirementResult({
           id: "REQ-NORMATIVE",
           title: "Users must retain data for at least 7 years",
+          logicClaims: [],
         }),
       ],
     });
 
     expect(diagnostics).toEqual([
       expect.objectContaining({
-        id: "strict_fact_modeling_review",
+        id: "logical_coverage_review",
         severity: "review",
         blocking: false,
         category: "fact",
         entityId: "REQ-NORMATIVE",
         suggestion: expect.stringContaining("kb_model_requirement"),
-        evidence: expect.objectContaining({
-          matchedIndicators: ["must", "at least"],
-        }),
+        evidence: expect.objectContaining({ strictRelationshipTypes: [] }),
       }),
     ]);
   });
 
-  it("suppresses strict fact modeling review when strict fact relationships exist", () => {
+  it("does not mistake strict fact relationships for a complete clause manifest", () => {
+    const diagnostics = createRequirementQualityDiagnostics({
+      manifestResults: [
+        makeRequirementResult({
+          id: "REQ-STRICT-LINKED",
+          title: "Users must retain data for at least 7 years",
+          logicClaims: [],
+          relationshipTypes: ["constrains", "requires_property"],
+        }),
+      ],
+    });
+
+    expect(diagnostics).toEqual([
+      expect.objectContaining({ id: "logical_coverage_review" }),
+    ]);
+  });
+
+  it("suppresses logical coverage review when the requirement declares a claim manifest", () => {
     expect(
       createRequirementQualityDiagnostics({
         manifestResults: [
           makeRequirementResult({
-            id: "REQ-STRICT-LINKED",
+            id: "REQ-LOGIC-MANIFEST",
             title: "Users must retain data for at least 7 years",
+            logicClaims: ["CLAIM-AAAAAAAAAAAAAAAA"],
             relationshipTypes: ["constrains", "requires_property"],
           }),
         ],
@@ -278,13 +306,14 @@ describe("requirement quality impact diagnostics", () => {
     ).toEqual([]);
   });
 
-  it("suppresses strict fact modeling review when a hard violation already names the requirement", () => {
+  it("suppresses logical coverage review when a hard violation already names the requirement", () => {
     expect(
       createRequirementQualityDiagnostics({
         manifestResults: [
           makeRequirementResult({
             id: "REQ-HARD-STRICT-VIOLATION",
             title: "Users must retain data for at least 7 years",
+            logicClaims: [],
           }),
         ],
         hardViolationEntityIds: new Set(["REQ-HARD-STRICT-VIOLATION"]),
@@ -292,17 +321,23 @@ describe("requirement quality impact diagnostics", () => {
     ).toEqual([]);
   });
 
-  it("does not emit strict fact modeling review for non-normative requirements", () => {
-    expect(
-      createRequirementQualityDiagnostics({
-        manifestResults: [
-          makeRequirementResult({
-            id: "REQ-NARRATIVE",
-            title: "User profile editing experience",
-          }),
-        ],
+  it("emits logical coverage review for every current requirement even when its title is neutral", () => {
+    const diagnostics = createRequirementQualityDiagnostics({
+      manifestResults: [
+        makeRequirementResult({
+          id: "REQ-NEUTRAL-TITLE",
+          title: "User profile editing experience",
+          logicClaims: [],
+        }),
+      ],
+    });
+
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        id: "logical_coverage_review",
+        entityId: "REQ-NEUTRAL-TITLE",
       }),
-    ).toEqual([]);
+    ]);
   });
 
   it("does not emit quality reviews for closed normative requirements", () => {

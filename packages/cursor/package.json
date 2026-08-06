@@ -1,6 +1,6 @@
 {
   "name": "kibi-cursor",
-  "version": "0.3.1",
+  "version": "0.5.0",
   "description": "Kibi Cursor plugin - thin adapter for Cursor MCP integration and editor hooks",
   "type": "module",
   "main": "dist/index.js",
@@ -34,7 +34,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && bun run scripts/copy-plugin-assets.ts",
+    "build": "tsc -p tsconfig.json && bun run scripts/copy-plugin-assets.ts && bun run ../../scripts/sync-agent-skills.ts --write --target cursor",
     "dev": "tsc -p tsconfig.json --watch",
     "clean": "rm -rf dist",
     "prepack": "npm run build"

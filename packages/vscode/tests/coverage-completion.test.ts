@@ -67,9 +67,8 @@ const registerCommandCalls: Array<{
 
 const createTreeViewCalls: Array<{ id: string; options: unknown }> = [];
 
-let capturedDocOpenListener:
-  | ((doc: unknown) => Promise<void> | void)
-  | null = null;
+let capturedDocOpenListener: ((doc: unknown) => Promise<void> | void) | null =
+  null;
 let capturedWorkspaceFolderListener: ((event: unknown) => void) | null = null;
 let capturedWatcher: DefaultFileSystemWatcher | null = null;
 
@@ -184,7 +183,7 @@ function setupKbRoot(root: string): void {
   });
   fs.writeFileSync(
     path.join(root, ".kb", "branches", "develop", "kb.rdf"),
-    "<?xml version=\"1.0\"?><rdf:RDF></rdf:RDF>",
+    '<?xml version="1.0"?><rdf:RDF></rdf:RDF>',
   );
   fs.mkdirSync(path.join(root, "documentation"), { recursive: true });
   fs.writeFileSync(
@@ -278,7 +277,7 @@ describe("activation/workspace coverage", () => {
 
   test("resolveWorkspaceRoot returns undefined when no folder and no env var", () => {
     workspaceNamespace.workspaceFolders = undefined;
-    delete process.env.KIBI_WORKSPACE_ROOT;
+    process.env.KIBI_WORKSPACE_ROOT = undefined;
 
     const output = makeOutput();
     expect(workspaceMod.resolveWorkspaceRoot(output as never)).toBeUndefined();

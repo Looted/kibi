@@ -19,7 +19,7 @@ function setupWorkspace(tmpDir: string, fileCount: number): void {
   mkdirSync(tmpDir, { recursive: true });
 
   // Init git
-  execSync("git init", { cwd: tmpDir, stdio: "pipe" });
+  execSync("git init -b main", { cwd: tmpDir, stdio: "pipe" });
   execSync('git config user.email "bench@test.com"', {
     cwd: tmpDir,
     stdio: "pipe",

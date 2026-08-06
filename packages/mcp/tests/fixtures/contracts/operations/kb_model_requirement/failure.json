@@ -1,0 +1,79 @@
+{
+  "error": {
+    "class": "JSONRPCError",
+    "code": -32602,
+    "message": "Requirement modeling failed: text must be a non-empty string"
+  },
+  "input": {
+    "confidence": 0.8,
+    "operator": "eq",
+    "propertyKey": "Retention Years",
+    "provenance": "contracts/seed/requirements/REQ-CONTRACT-RETENTION.md#L1",
+    "source": "contracts/seed/requirements/REQ-CONTRACT-RETENTION.md",
+    "sourceFiles": ["contracts/seed/requirements/REQ-CONTRACT-RETENTION.md"],
+    "subjectKey": "Customer data",
+    "text": "Customer data must be retained for 7 years.",
+    "value": 7
+  },
+  "tool": {
+    "description": "Convert a prose requirement plus optional extracted claim fields into a deterministic strict-lane write set. Read-only modeling returns a sequential applyPlan for later kb_upsert calls. High-confidence claims emit req+fact strict output; lower-confidence claims emit an observation review artifact. Includes migration warnings when legacy schemaVersion metadata is detected.",
+    "inputSchema": {
+      "properties": {
+        "confidence": {
+          "default": 0.8,
+          "description": "Confidence score for the extracted claim. >= 0.70 yields strict-lane output; lower confidence yields observation-only review output.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "existingLogicClaims": {
+          "description": "Existing requirement logic_claims values. The returned requirement update merges the new atomic claim key into this manifest instead of replacing prior claims.",
+          "items": {
+            "pattern": "^CLAIM-[A-F0-9]{16}$",
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "operator": {
+          "description": "Optional extracted semantic claim operator. Example: 'eq'.",
+          "enum": ["eq", "gte", "lte", "neq", "bool", "polarity"],
+          "type": "string"
+        },
+        "propertyKey": {
+          "description": "Optional extracted semantic claim propertyKey. Example: 'Retention Years'.",
+          "type": "string"
+        },
+        "provenance": {
+          "description": "Optional extracted text reference. Falls back to source when omitted. Example: 'documentation/requirements/customer-retention.md#L1'.",
+          "type": "string"
+        },
+        "source": {
+          "description": "Optional primary source path or provenance root used for stable IDs and text refs. Example: 'documentation/requirements/customer-retention.md'.",
+          "type": "string"
+        },
+        "sourceFiles": {
+          "description": "Optional related source files. The first value is used as the source fallback when source is omitted.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "subjectKey": {
+          "description": "Optional extracted semantic claim subjectKey. Example: 'Customer.Data'.",
+          "type": "string"
+        },
+        "text": {
+          "description": "Required prose requirement text to model. Example: 'Customer data must be retained for 7 years.'",
+          "type": "string"
+        },
+        "value": {
+          "description": "Optional extracted semantic claim value. Accepts string, number, or boolean."
+        }
+      },
+      "required": ["text"],
+      "type": "object"
+    },
+    "name": "kb_model_requirement"
+  }
+}

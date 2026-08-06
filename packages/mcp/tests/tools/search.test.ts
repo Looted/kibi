@@ -5,6 +5,17 @@ import path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
 import { handleKbSearch } from "../../src/tools/search.js";
 
+const ABOVE_FORMER_TRANSPORT_CAPACITY_COUNT = 12_000;
+const TRANSPORT_PADDING = "x".repeat(128);
+
+function serializedBroadSearchEntities(count: number): string {
+  return `[${Array.from(
+    { length: count },
+    (_, index) =>
+      `[REQ-skillopt-${index + 1},req,[title="skillopt ${TRANSPORT_PADDING}",status=open]]`,
+  ).join(",")}]`;
+}
+
 describe("MCP search tool handler", () => {
   let workspaceRoot: string;
   const originalWorkspace = process.env.KIBI_WORKSPACE;
@@ -160,6 +171,63 @@ describe("MCP search tool handler", () => {
         (r) => r.entity.id === "FACT-search-unrelated-sync-feedback",
       ),
     ).toBe(false);
+  });
+
+  test("broad search returns ranked results above former threshold through MCP", async () => {
+    // Given
+    const query = mock(async () => ({
+      success: true,
+      bindings: {
+        Results: serializedBroadSearchEntities(
+          ABOVE_FORMER_TRANSPORT_CAPACITY_COUNT,
+        ),
+      },
+    }));
+    const prolog = { query } as unknown as PrologProcess;
+
+    // When
+    const result = await handleKbSearch(prolog, {
+      query: "skillopt",
+      limit: 20,
+      offset: 0,
+    });
+
+    // Then
+    expect(result.structuredContent?.count).toBe(
+      ABOVE_FORMER_TRANSPORT_CAPACITY_COUNT,
+    );
+    expect(result.structuredContent?.results).toHaveLength(20);
+    expect(result.structuredContent?.results[0]?.entity.id).toBe(
+      "REQ-skillopt-1",
+    );
+  });
+
+  test("broad search reports bounded overflow and Prolog failure through MCP", async () => {
+    // Given
+    const query = mock(async () => ({
+      success: false,
+      bindings: {},
+      error:
+        "Query exceeded bounded Prolog output capacity (ENOBUFS); narrow the operation or reduce stored entity size",
+    }));
+    const prolog = { query } as unknown as PrologProcess;
+
+    // When
+    let errorMessage = "";
+    try {
+      await handleKbSearch(prolog, {
+        query: "skillopt",
+        limit: 20,
+        offset: 0,
+      });
+    } catch (error) {
+      errorMessage = error instanceof Error ? error.message : String(error);
+    }
+
+    // Then
+    expect(errorMessage).toContain(
+      "Search execution failed: Query exceeded bounded Prolog output capacity (ENOBUFS)",
+    );
   });
 
   test("returns no results for no-signal queries", async () => {

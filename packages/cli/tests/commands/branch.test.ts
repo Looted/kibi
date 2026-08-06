@@ -21,7 +21,7 @@ describe("kibi branch ensure", () => {
     tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-test-branch-"));
     process.chdir(tmpDir);
 
-    execSync("git init", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git init -b main", { cwd: tmpDir, stdio: "pipe" });
     execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
     execSync("git config user.name 'Test User'", { cwd: tmpDir });
     execSync("git checkout -b main", { cwd: tmpDir, stdio: "pipe" });

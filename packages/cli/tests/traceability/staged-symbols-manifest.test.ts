@@ -39,7 +39,7 @@ describe("assessStagedSymbolsManifest", () => {
 
   beforeEach(() => {
     tmpDir = mkdtempSync(path.join(tmpdir(), "kibi-staged-symbols-manifest-"));
-    execSync("git init", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git init -b main", { cwd: tmpDir, stdio: "pipe" });
     execSync('git config user.email "test@example.com"', {
       cwd: tmpDir,
       stdio: "pipe",
@@ -136,6 +136,65 @@ describe("assessStagedSymbolsManifest", () => {
     }
   });
 
+  it("ignores explicitly justified non-extracted symbols in freshness comparisons", () => {
+    writeFile(
+      tmpDir,
+      "src/app.ts",
+      `export function app() {\n  return "ok";\n}\n\nfunction privateHelper() {\n  return "private";\n}\n`,
+    );
+    writeFile(
+      tmpDir,
+      "documentation/symbols.yaml",
+      "symbols:\n  - id: SYM-app\n    title: app\n    sourceFile: src/app.ts\n  - id: SYM-private-helper\n    title: privateHelper\n    sourceFile: src/app.ts\n    granularity_reason: module-level-behavior\n",
+    );
+    writeFile(
+      tmpDir,
+      "documentation/symbol-coordinates.yaml",
+      "coordinates:\n  SYM-app:\n    sourceFile: src/app.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 3\n    sourceEndColumn: 1\n",
+    );
+    commitAll(tmpDir, "initial");
+
+    writeFile(
+      tmpDir,
+      "src/app.ts",
+      `\nexport function app() {\n  return "ok";\n}\n\nfunction privateHelper() {\n  return "private";\n}\n`,
+    );
+    writeFile(
+      tmpDir,
+      "documentation/symbol-coordinates.yaml",
+      "coordinates:\n  SYM-app:\n    sourceFile: src/app.ts\n    sourceLine: 2\n    sourceColumn: 16\n    sourceEndLine: 4\n    sourceEndColumn: 1\n",
+    );
+
+    const previousCwd = process.cwd();
+    process.chdir(tmpDir);
+    try {
+      const sourceFile = createSourceStagedFile(tmpDir);
+      const coordinatesFile: StagedFile = {
+        path: "documentation/symbol-coordinates.yaml",
+        status: "M",
+        hunkRanges: [],
+        content: readFileSync(
+          path.join(tmpDir, "documentation", "symbol-coordinates.yaml"),
+          "utf8",
+        ),
+      };
+
+      expect(
+        assessStagedSymbolsManifest({
+          symbolsManifestPath: "documentation/symbols.yaml",
+          sourceFiles: [sourceFile],
+          stagedFiles: [sourceFile, coordinatesFile],
+        }),
+      ).toEqual({
+        state: "fresh",
+        sourcePaths: ["src/app.ts"],
+        path: "documentation/symbol-coordinates.yaml",
+      });
+    } finally {
+      process.chdir(previousCwd);
+    }
+  });
+
   it("reports only authored symbol IDs whose staged manifest metadata changed", () => {
     writeFile(
       tmpDir,
@@ -212,6 +271,75 @@ describe("assessStagedSymbolsManifest", () => {
       ).toEqual({
         path: "documentation/symbols.yaml",
         entries: [{ sourcePath: "src/app.ts", entityIds: ["SYM-App-run"] }],
+        changedEntityIds: ["SYM-App-run"],
+      });
+    } finally {
+      process.chdir(previousCwd);
+    }
+  });
+
+  it("ignores comment-only staged manifest changes when selecting changed symbols", () => {
+    writeFile(
+      tmpDir,
+      "src/duplicate.ts",
+      `export function duplicate() {
+  return "ok";
+}
+`,
+    );
+    writeFile(
+      tmpDir,
+      "documentation/symbols.yaml",
+      `symbols:
+  - id: SYM-DUP-001
+    title: duplicate
+    sourceFile: src/duplicate.ts
+    status: active
+  - id: SYM-DUP-002
+    title: duplicate
+    sourceFile: src/duplicate.ts
+    status: active
+`,
+    );
+    commitAll(tmpDir, "initial");
+    writeFile(
+      tmpDir,
+      "documentation/symbols.yaml",
+      `symbols:
+  - id: SYM-DUP-001
+    title: duplicate
+    sourceFile: src/duplicate.ts
+    status: active
+  - id: SYM-DUP-002
+    title: duplicate
+    sourceFile: src/duplicate.ts
+    status: active
+    # staged overlap marker
+`,
+    );
+
+    const previousCwd = process.cwd();
+    process.chdir(tmpDir);
+    try {
+      const result = collectStagedAuthoredSymbolsManifestEvidence({
+        sourceFiles: [],
+        stagedFiles: [
+          {
+            path: "documentation/symbols.yaml",
+            status: "M",
+            hunkRanges: [],
+            content: readFileSync(
+              path.join(tmpDir, "documentation", "symbols.yaml"),
+              "utf8",
+            ),
+          },
+        ],
+      });
+
+      expect(result).toEqual({
+        path: "documentation/symbols.yaml",
+        entries: [],
+        changedEntityIds: [],
       });
     } finally {
       process.chdir(previousCwd);

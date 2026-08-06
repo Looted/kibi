@@ -1,8 +1,13 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import process from "node:process";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type {
+  OperationContext,
+  PrologPort,
+} from "kibi-cli/operations/runtime-types";
 
 import type { DiagnosticErrorFields } from "../../src/diagnostics.js";
+import { createMcpRuntime } from "../../src/runtime/mcp-runtime.js";
 import {
   type ToolConfig,
   type ToolsRuntime,
@@ -45,6 +50,13 @@ type RegisteredTool = {
     description: string;
     inputSchema: {
       safeParse: (value: unknown) => { success: boolean };
+    };
+    annotations?: {
+      title?: string;
+      readOnlyHint?: boolean;
+      destructiveHint?: boolean;
+      idempotentHint?: boolean;
+      openWorldHint?: boolean;
     };
   };
   handler: ToolHandlerLike;
@@ -170,16 +182,22 @@ function createDeferred<T>() {
 }
 
 function createToolConfigs(): ToolConfig[] {
-  return TOOL_NAMES.map((name) => ({
-    name,
-    description: `${name} description`,
-    inputSchema: {
-      type: "object",
-      properties: {
-        marker: { type: "string" },
+  return TOOL_NAMES.map((name) => {
+    const configuredTool = TOOLS.find((tool) => tool.name === name);
+    return {
+      name,
+      description: `${name} description`,
+      inputSchema: {
+        type: "object",
+        properties: {
+          marker: { type: "string" },
+        },
       },
-    },
-  }));
+      ...(configuredTool?.annotations
+        ? { annotations: configuredTool.annotations }
+        : {}),
+    };
+  });
 }
 
 function createSessionModuleMock(
@@ -191,7 +209,7 @@ function createSessionModuleMock(
     ensureProlog: async () => {
       throw new Error("ensureProlog should not be called in this test");
     },
-    ensureBranchKbExists: (): void => {},
+    ensureBranchKbExists: (): boolean => false,
     inFlightRequests: trackedRequests,
     initiateGracefulShutdown: async (): Promise<void> => {},
     isShuttingDown: false,
@@ -334,6 +352,19 @@ function createRuntime() {
     async (): Promise<{ getPid: () => number } | null> => prologHandle,
   );
   const resetProlog = mock(async (_reason: string): Promise<void> => {});
+  const refreshAttachedBranchStamp = mock(async (): Promise<void> => {});
+  const operationRuntime = createMcpRuntime<MockProlog>({
+    workspaceRoot: "/workspace",
+    activeBranchName,
+    attachedBranchKbPath: () => "/workspace/.kb/branches/feature/test",
+    ensureProlog,
+    adaptProlog: (): PrologPort => ({
+      query: async () => ({ success: true, bindings: {} }),
+      nextSolution: async () => null,
+      save: async () => ({ success: true, bindings: {} }),
+    }),
+    refreshAttachedBranchStamp,
+  });
 
   const handleKbCheck: ToolsRuntime<MockProlog>["handleKbCheck"] = mock(
     async (_prolog: MockProlog, args: CheckArgs): Promise<unknown> => ({
@@ -366,9 +397,9 @@ function createRuntime() {
     }),
   );
   const handleSparql: ToolsRuntime<MockProlog>["handleSparql"] = mock(
-    async (_prolog: MockProlog, args: SparqlArgs): Promise<unknown> => ({
+    async (_args: SparqlArgs, context: OperationContext): Promise<unknown> => ({
       tool: "kb_sparql_remote",
-      args,
+      args: context,
     }),
   );
   const handleKbQuery: ToolsRuntime<MockProlog>["handleKbQuery"] = mock(
@@ -453,11 +484,11 @@ function createRuntime() {
   const handleKbAutopilotGenerate: ToolsRuntime<MockProlog>["handleKbAutopilotGenerate"] =
     mock(
       async (
-        _prolog: MockProlog,
-        args: AutopilotGenerateArgs,
+        _args: AutopilotGenerateArgs,
+        context: OperationContext,
       ): Promise<unknown> => ({
         tool: "kb_autopilot_generate",
-        args,
+        args: context,
       }),
     );
   const runtime = {
@@ -473,6 +504,7 @@ function createRuntime() {
     isShuttingDown,
     resetProlog,
     prologProcess,
+    operationRuntime,
     handleKbCheck,
     handleKbCoverage,
     handleKbDelete,
@@ -509,6 +541,7 @@ function createRuntime() {
       isShuttingDown,
       resetProlog,
       prologProcess,
+      refreshAttachedBranchStamp,
       handleKbCheck,
       handleKbCoverage,
       handleKbDelete,
@@ -662,7 +695,7 @@ describe.serial("server tools coverage", () => {
     const entries = Array.from(trackedRequests.entries());
     expect(entries).toHaveLength(1);
     expect(entries[0]?.[0]).toStartWith("plain_tool-");
-    expect(entries[0]?.[1]).toBe(deferred.promise);
+    expect(entries[0]?.[1]).toBeInstanceOf(Promise);
 
     deferred.resolve({ ok: true });
 
@@ -675,6 +708,46 @@ describe.serial("server tools coverage", () => {
     expect(spies.deriveDiagnosticFields).not.toHaveBeenCalled();
     expect(spies.prologProcess).not.toHaveBeenCalled();
     expect(spies.activeBranchName).not.toHaveBeenCalled();
+  });
+
+  test("registerAllTools refreshes the MCP branch stamp after kb-write execution", async () => {
+    // Given
+    const { runtime, spies } = createRuntime();
+    const { server, registered } = createCapturingServer();
+    registerAllTools(server, runtime);
+    const tool = getRegisteredTool(registered, "kb_upsert");
+
+    // When
+    await invokeTool(tool, { marker: "write" });
+
+    // Then
+    expect(spies.handleKbUpsert).toHaveBeenCalledTimes(1);
+    expect(spies.ensureProlog).toHaveBeenCalledTimes(1);
+    expect(spies.refreshAttachedBranchStamp).toHaveBeenCalledTimes(1);
+  });
+
+  test("registerAllTools publishes read-only annotations for noninteractive tools", () => {
+    const { runtime } = createRuntime();
+    const { server, registered } = createCapturingServer();
+
+    registerAllTools(server, runtime);
+
+    for (const name of [
+      "kb_status",
+      "kb_skills_list",
+      "kb_skills_load",
+      "kb_skills_read",
+      "kb_semantic_advisor",
+      "kb_suggest_predicates",
+    ]) {
+      expect(getRegisteredTool(registered, name).config.annotations).toEqual({
+        title: expect.any(String),
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      });
+    }
   });
 
   test("addTool extracts telemetry and appends usage logs on success in diagnostic mode", async () => {
@@ -943,11 +1016,14 @@ describe.serial("server tools coverage", () => {
     expect(results).toEqual(
       TOOL_NAMES.map((name) => ({
         tool: name,
-        args: argsByTool.get(name),
+        args:
+          name === "kb_sparql_remote" || name === "kb_autopilot_generate"
+            ? expect.objectContaining({ workspaceRoot: "/workspace" })
+            : argsByTool.get(name),
       })),
     );
 
-    expect(spies.ensureProlog).toHaveBeenCalledTimes(TOOL_NAMES.length - 4);
+    expect(spies.ensureProlog).toHaveBeenCalledTimes(TOOL_NAMES.length - 6);
     expect(spies.handleKbQuery).toHaveBeenCalledWith(
       mockProlog,
       argsByTool.get("kb_query"),
@@ -984,6 +1060,10 @@ describe.serial("server tools coverage", () => {
       mockProlog,
       argsByTool.get("kb_graph"),
     );
+    expect(spies.handleSparql).toHaveBeenCalledWith(
+      argsByTool.get("kb_sparql_remote"),
+      expect.objectContaining({ workspaceRoot: "/workspace" }),
+    );
     expect(spies.handleKbUpsert).toHaveBeenCalledWith(
       mockProlog,
       argsByTool.get("kb_upsert"),
@@ -1009,8 +1089,8 @@ describe.serial("server tools coverage", () => {
       argsByTool.get("kb_suggest_predicates"),
     );
     expect(spies.handleKbAutopilotGenerate).toHaveBeenCalledWith(
-      mockProlog,
       argsByTool.get("kb_autopilot_generate"),
+      expect.objectContaining({ workspaceRoot: "/workspace" }),
     );
   });
 

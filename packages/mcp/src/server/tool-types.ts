@@ -1,4 +1,6 @@
+import type { OperationContext } from "kibi-cli/operations/runtime-types";
 import type { PrologProcess } from "kibi-cli/prolog";
+import type { McpOperationRuntime } from "../runtime/mcp-runtime.js";
 
 import type {
   appendUsageLogLine,
@@ -54,12 +56,16 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
   inFlightRequests: () => Awaitable<Map<string, Promise<unknown>>>;
   isShuttingDown: () => Awaitable<boolean>;
   prologProcess: () => Awaitable<{ getPid: () => number } | null>;
+  operationRuntime: McpOperationRuntime<TProlog>;
   handleKbCheck: (prolog: TProlog, args: CheckArgs) => Promise<unknown>;
   handleKbCoverage: (prolog: TProlog, args: CoverageArgs) => Promise<unknown>;
   handleKbDelete: (prolog: TProlog, args: DeleteArgs) => Promise<unknown>;
   handleKbFindGaps: (prolog: TProlog, args: FindGapsArgs) => Promise<unknown>;
   handleKbGraph: (prolog: TProlog, args: GraphArgs) => Promise<unknown>;
-  handleSparql: (prolog: TProlog, args: SparqlArgs) => Promise<unknown>;
+  handleSparql: (
+    args: SparqlArgs,
+    context: OperationContext,
+  ) => Promise<unknown>;
   handleKbQuery: (prolog: TProlog, args: QueryArgs) => Promise<unknown>;
   handleKbSearch: (prolog: TProlog, args: SearchArgs) => Promise<unknown>;
   handleKbStatus: (prolog: TProlog, args: StatusArgs) => Promise<unknown>;
@@ -81,7 +87,7 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
     args: SuggestPredicatesArgs,
   ) => Promise<unknown>;
   handleKbAutopilotGenerate: (
-    prolog: TProlog,
     args: AutopilotGenerateArgs,
+    context: OperationContext,
   ) => Promise<unknown>;
 }

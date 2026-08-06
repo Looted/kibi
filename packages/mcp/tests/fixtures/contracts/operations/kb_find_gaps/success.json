@@ -1,0 +1,75 @@
+{
+  "input": {
+    "limit": 25,
+    "missingRelationships": ["verified_by"],
+    "offset": 0,
+    "type": "req"
+  },
+  "structuredContent": {
+    "count": 1,
+    "meta": {
+      "limit": 25,
+      "offset": 0,
+      "type": "req"
+    },
+    "rows": [
+      {
+        "id": "REQ-CONTRACT-001",
+        "missingRelationships": ["verified_by"],
+        "presentRelationships": ["specified_by"],
+        "status": "open"
+      }
+    ]
+  },
+  "tool": {
+    "description": "Run bulk missing/present relationship analysis over KB entities. Use for questions like which requirements lack scenarios or tests. No mutation side effects.",
+    "inputSchema": {
+      "properties": {
+        "limit": {
+          "default": 100,
+          "type": "integer"
+        },
+        "missingRelationships": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "offset": {
+          "default": 0,
+          "type": "integer"
+        },
+        "presentRelationships": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "sourceFile": {
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "type": {
+          "enum": [
+            "req",
+            "scenario",
+            "test",
+            "adr",
+            "flag",
+            "event",
+            "symbol",
+            "fact"
+          ],
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "name": "kb_find_gaps"
+  }
+}

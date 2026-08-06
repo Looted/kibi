@@ -140,7 +140,9 @@ function hasRootKibiIntent(cwd: string): boolean {
     ) {
       return true;
     }
-  } catch {}
+  } catch (error) {
+    if (!(error instanceof Error)) throw error;
+  }
 
   for (const guidanceFile of [
     "AGENTS.md",
@@ -151,7 +153,9 @@ function hasRootKibiIntent(cwd: string): boolean {
       if (content.includes("kb_query") || content.includes("kb_search")) {
         return true;
       }
-    } catch {}
+    } catch (error) {
+      if (!(error instanceof Error)) throw error;
+    }
   }
 
   return false;

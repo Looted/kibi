@@ -22,12 +22,9 @@ import { TOOLS } from "../tools-config.js";
 interface ToolConfig {
   name: string;
   description: string;
-  inputSchema: Record<string, unknown>;
+  inputSchema: Readonly<Record<string, unknown>>;
 }
-// INTENTIONAL: TOOLS is imported as a Zod-inferred schema type; ToolConfig is the runtime
-// interface with looser Record<string, unknown> inputSchema. The cast is safe because the
-// tool definitions are statically authored and validated at startup.
-const ACTIVE_TOOLS = TOOLS as unknown as ToolConfig[];
+const ACTIVE_TOOLS: readonly ToolConfig[] = TOOLS;
 
 export interface DocResource {
   uri: string;
@@ -115,7 +112,10 @@ export const PROMPTS = [
       "## Rules",
       "- Never apply bootstrap writes without user-facing preview and explicit approval.",
       "- `kb_autopilot_generate` is strictly read-only; synthesis is the backend, not the actor.",
-      "- Guidance must stay MCP-only; do not suggest `kibi` CLI commands.",
+      "- Prefer MCP tools; CLI routes are available when MCP is unavailable.",
+      "- If Kibi MCP tools are visible, use MCP. If MCP availability is unknown and a trusted local Kibi CLI is available, use its dedicated JSON routes with `--input <file|->`.",
+      "- If neither interface is available, Kibi operation is blocked; tell the operator to enable MCP or the trusted project-local CLI. Do not infer MCP availability from config file existence.",
+      "- Do not read or edit `.kb/` files directly. Query before mutate. Run `kb_upsert` sequentially. Run `kb_check` before completion.",
     ].join("\n"),
   },
   {

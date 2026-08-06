@@ -1,5 +1,35 @@
 # kibi-vscode
 
+## 0.4.9
+
+### Patch Changes
+
+- Updated dependencies [80d5173]
+- Updated dependencies
+- Updated dependencies
+- Updated dependencies [b2b1792]
+- Updated dependencies [610b5be]
+  - kibi-cli@0.16.0
+
+## 0.4.8
+
+### Patch Changes
+
+- Updated dependencies [6abc7ea]
+- Updated dependencies [212fe1c]
+- Updated dependencies [8c3a2e9]
+- Updated dependencies [6c132ee]
+- Updated dependencies [cafa25f]
+- Updated dependencies [0a8a5d3]
+- Updated dependencies [212fe1c]
+- Updated dependencies [a0fee4a]
+- Updated dependencies [c229a35]
+- Updated dependencies [6c132ee]
+- Updated dependencies [212fe1c]
+- Updated dependencies [6c132ee]
+- Updated dependencies [efa3c7e]
+  - kibi-cli@0.15.0
+
 ## 0.4.7
 
 ### Patch Changes

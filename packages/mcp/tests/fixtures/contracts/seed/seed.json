@@ -1,0 +1,654 @@
+{
+  "entities": [
+    {
+      "id": "REQ-CONTRACT-001",
+      "type": "req",
+      "title": "Freeze public tool contracts",
+      "status": "open",
+      "source": "contracts/seed/requirements/REQ-CONTRACT-001.md",
+      "tags": ["contracts", "mcp"]
+    }
+  ],
+  "status": {
+    "branch": "contracts-seed",
+    "snapshotId": "seed-snapshot",
+    "syncedAt": null,
+    "dirty": false,
+    "syncState": "synced",
+    "kbPath": "<seed>/workspace/.kb",
+    "lastSyncSource": "contracts/seed"
+  },
+  "operations": {
+    "kb_query": {
+      "input": { "type": "req", "limit": 1, "offset": 0 },
+      "success": {
+        "structuredContent": {
+          "entities": [
+            {
+              "id": "REQ-CONTRACT-001",
+              "type": "req",
+              "title": "Freeze public tool contracts",
+              "status": "open",
+              "source": "contracts/seed/requirements/REQ-CONTRACT-001.md",
+              "tags": ["contracts", "mcp"]
+            }
+          ],
+          "count": 1
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "Invalid request: type must be one of the supported entity types."
+        }
+      }
+    },
+    "kb_search": {
+      "input": {
+        "query": "freeze contracts",
+        "type": "req",
+        "limit": 1,
+        "offset": 0
+      },
+      "success": {
+        "structuredContent": {
+          "results": [
+            {
+              "entity": {
+                "id": "REQ-CONTRACT-001",
+                "type": "req",
+                "title": "Freeze public tool contracts",
+                "status": "open"
+              },
+              "score": 0.99,
+              "reasons": ["title match"]
+            }
+          ],
+          "count": 1
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "Search execution failed: query must be a non-empty string"
+        }
+      }
+    },
+    "kb_status": {
+      "input": {},
+      "success": {
+        "structuredContent": {
+          "branch": "contracts-seed",
+          "snapshotId": "seed-snapshot",
+          "syncedAt": null,
+          "dirty": false,
+          "syncState": "synced",
+          "kbPath": "<seed>/workspace/.kb",
+          "lastSyncSource": "contracts/seed"
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32603,
+          "message": "Status execution failed: status backend unavailable"
+        }
+      }
+    },
+    "kb_skills_load": {
+      "input": { "id": "kibi-contract-fixture" },
+      "success": {
+        "structuredContent": {
+          "skill": {
+            "id": "kibi-contract-fixture",
+            "name": "kibi-contract-fixture",
+            "title": "Seeded contract skill",
+            "description": "Local fixture skill loaded from the contract seed.",
+            "sourceType": "fixture",
+            "contentHash": "seed-hash",
+            "resources": ["instructions.md"],
+            "body": "# Seeded contract skill\n"
+          }
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "Skill id is required"
+        }
+      }
+    },
+    "kb_semantic_advisor": {
+      "input": {
+        "text": "The editor must save changes automatically when the user navigates away.",
+        "type": "req",
+        "id": "REQ-CONTRACT-AUTO-SAVE",
+        "title": "Auto-save on navigation",
+        "source": "contracts/seed/requirements/REQ-CONTRACT-AUTO-SAVE.md",
+        "status": "open"
+      },
+      "success": {
+        "structuredContent": {
+          "receipt": {
+            "summary": "One reviewable suggestion produced.",
+            "suggestions": [
+              { "kind": "strict-property", "label": "commit_action" }
+            ]
+          },
+          "warnings": []
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "Semantic advisor failed: text must be a non-empty string"
+        }
+      }
+    },
+    "kb_find_gaps": {
+      "input": {
+        "type": "req",
+        "missingRelationships": ["verified_by"],
+        "limit": 25,
+        "offset": 0
+      },
+      "success": {
+        "structuredContent": {
+          "rows": [
+            {
+              "id": "REQ-CONTRACT-001",
+              "missingRelationships": ["verified_by"],
+              "presentRelationships": ["specified_by"],
+              "status": "open"
+            }
+          ],
+          "count": 1,
+          "meta": { "type": "req", "limit": 25, "offset": 0 }
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "Invalid type 'bogus'. Valid types: req, scenario, test, adr, flag, event, symbol, fact. Use a single type value, or omit this parameter to query all entities."
+        }
+      }
+    },
+    "kb_coverage": {
+      "input": {
+        "by": "req",
+        "includePassing": false,
+        "includeTransitive": true,
+        "limit": 25,
+        "offset": 0
+      },
+      "success": {
+        "structuredContent": {
+          "summary": { "total": 1, "fullyCovered": 1 },
+          "rows": [{ "id": "REQ-CONTRACT-001", "covered": 1, "missing": 0 }],
+          "meta": {
+            "by": "req",
+            "includePassing": false,
+            "includeTransitive": true,
+            "limit": 25,
+            "offset": 0
+          }
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "Coverage execution failed: limit must be a positive number"
+        }
+      }
+    },
+    "kb_graph": {
+      "input": {
+        "seedIds": ["REQ-CONTRACT-001"],
+        "relationships": ["implements"],
+        "direction": "outgoing",
+        "depth": 1,
+        "entityTypes": ["req"],
+        "maxNodes": 25,
+        "maxEdges": 25
+      },
+      "success": {
+        "structuredContent": {
+          "nodes": [
+            {
+              "id": "REQ-CONTRACT-001",
+              "type": "req",
+              "title": "Freeze public tool contracts"
+            }
+          ],
+          "edges": [
+            {
+              "from": "SYM-CONTRACT-TOOLS",
+              "to": "REQ-CONTRACT-001",
+              "type": "implements"
+            }
+          ],
+          "truncated": false,
+          "meta": {
+            "seedIds": ["REQ-CONTRACT-001"],
+            "direction": "outgoing",
+            "depth": 1,
+            "maxNodes": 25,
+            "maxEdges": 25
+          }
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "Graph execution failed: seedIds must not be empty"
+        }
+      }
+    },
+    "kb_check": {
+      "input": { "rules": [], "workspaceRoot": "contracts/seed/workspace" },
+      "success": {
+        "structuredContent": {
+          "summary": "No violations in seeded contract workspace.",
+          "violations": [],
+          "diagnostics": [],
+          "qualityDiagnostics": [],
+          "impactResult": null
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "Check execution failed: workspaceRoot must point to a seed workspace"
+        }
+      }
+    },
+    "kb_validate_upsert": {
+      "input": {
+        "type": "req",
+        "id": "REQ-CONTRACT-002",
+        "properties": {
+          "title": "Add parity test coverage",
+          "status": "open",
+          "source": "contracts/seed/requirements/REQ-CONTRACT-002.md"
+        }
+      },
+      "success": {
+        "structuredContent": {
+          "valid": true,
+          "errors": [],
+          "warnings": [],
+          "semanticAdvisor": {
+            "summary": "Requirement can be modeled as a strict fact set.",
+            "suggestions": [{ "kind": "strict-lane" }]
+          },
+          "normalizedPreview": {
+            "type": "req",
+            "id": "REQ-CONTRACT-002",
+            "properties": {
+              "title": "Add parity test coverage",
+              "status": "open",
+              "source": "contracts/seed/requirements/REQ-CONTRACT-002.md"
+            }
+          }
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "kb_validate_upsert: payload is invalid. payload missing required properties"
+        }
+      }
+    },
+    "kb_upsert": {
+      "input": {
+        "type": "req",
+        "id": "REQ-CONTRACT-002",
+        "properties": {
+          "title": "Add parity test coverage",
+          "status": "open",
+          "source": "contracts/seed/requirements/REQ-CONTRACT-002.md"
+        },
+        "relationships": [
+          {
+            "type": "specified_by",
+            "from": "REQ-CONTRACT-002",
+            "to": "REQ-CONTRACT-001"
+          }
+        ]
+      },
+      "success": {
+        "structuredContent": {
+          "created": 1,
+          "updated": 0,
+          "relationships_created": 1,
+          "warnings": [],
+          "semanticAdvisor": {
+            "summary": "Strict upsert preview ready.",
+            "suggestions": [{ "kind": "strict-property" }]
+          },
+          "contradictionCheck": {
+            "outcome": "no-conflict",
+            "checked_req_id": "REQ-CONTRACT-002",
+            "strict_readiness": "ready"
+          }
+        },
+        "sideEffects": {
+          "entities": { "created": ["REQ-CONTRACT-002"], "updated": [] },
+          "relationships": {
+            "created": [
+              {
+                "type": "specified_by",
+                "from": "REQ-CONTRACT-002",
+                "to": "REQ-CONTRACT-001"
+              }
+            ]
+          },
+          "auditLog": {
+            "action": "upsert",
+            "entityId": "REQ-CONTRACT-002",
+            "entityType": "req",
+            "shape": "created+relationship"
+          }
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "Entity validation failed: /root: id is required"
+        }
+      }
+    },
+    "kb_delete": {
+      "input": { "ids": ["REQ-CONTRACT-001"] },
+      "success": {
+        "structuredContent": { "deleted": 1, "skipped": 0, "errors": [] },
+        "sideEffects": {
+          "entities": { "deleted": ["REQ-CONTRACT-001"] },
+          "auditLog": {
+            "action": "delete",
+            "entityId": "REQ-CONTRACT-001",
+            "shape": "delete-summary"
+          }
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "At least one ID required for delete"
+        }
+      }
+    },
+    "kb_model_requirement": {
+      "input": {
+        "text": "Customer data must be retained for 7 years.",
+        "source": "contracts/seed/requirements/REQ-CONTRACT-RETENTION.md",
+        "sourceFiles": [
+          "contracts/seed/requirements/REQ-CONTRACT-RETENTION.md"
+        ],
+        "confidence": 0.8,
+        "subjectKey": "Customer data",
+        "propertyKey": "Retention Years",
+        "operator": "eq",
+        "value": 7,
+        "provenance": "contracts/seed/requirements/REQ-CONTRACT-RETENTION.md#L1"
+      },
+      "success": {
+        "structuredContent": {
+          "statement": "Customer data must be retained for 7 years.",
+          "source": "contracts/seed/requirements/REQ-CONTRACT-RETENTION.md",
+          "sourceFiles": [
+            "contracts/seed/requirements/REQ-CONTRACT-RETENTION.md"
+          ],
+          "claim": {
+            "source": "contracts/seed/requirements/REQ-CONTRACT-RETENTION.md",
+            "subjectKey": "Customer data",
+            "propertyKey": "Retention Years",
+            "operator": "eq",
+            "value": 7,
+            "confidence": 0.8,
+            "provenance": "contracts/seed/requirements/REQ-CONTRACT-RETENTION.md#L1"
+          },
+          "writeSet": {
+            "isStrict": true,
+            "confidence": 0.8,
+            "req": {
+              "type": "req",
+              "id": "REQ-CONTRACT-RETENTION",
+              "properties": {
+                "title": "Customer data retention",
+                "status": "open",
+                "source": "contracts/seed/requirements/REQ-CONTRACT-RETENTION.md"
+              }
+            },
+            "relationships": [
+              {
+                "type": "constrains",
+                "from": "REQ-CONTRACT-RETENTION",
+                "to": "FACT-CONTRACT-RETENTION-SUBJECT"
+              }
+            ]
+          },
+          "applyPlan": [
+            {
+              "step": 1,
+              "action": "upsert",
+              "id": "FACT-CONTRACT-RETENTION-SUBJECT"
+            },
+            {
+              "step": 2,
+              "action": "upsert",
+              "id": "FACT-CONTRACT-RETENTION-PROPERTY"
+            },
+            { "step": 3, "action": "upsert", "id": "REQ-CONTRACT-RETENTION" }
+          ],
+          "isStrict": true,
+          "confidence": 0.8,
+          "extractionMode": "heuristic",
+          "extractionWarnings": [],
+          "warnings": [],
+          "migrationWarning": null
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "Requirement modeling failed: text must be a non-empty string"
+        }
+      }
+    },
+    "kb_suggest_predicates": {
+      "input": {
+        "text": "The editor must save changes automatically when the user navigates away.",
+        "requirementId": "REQ-CONTRACT-AUTO-SAVE",
+        "source": "contracts/seed/requirements/REQ-CONTRACT-AUTO-SAVE.md",
+        "subjectHint": "editor",
+        "maxCandidates": 1,
+        "minScore": 0.35,
+        "includeExistingSchemas": true
+      },
+      "success": {
+        "structuredContent": {
+          "text": "The editor must save changes automatically when the user navigates away.",
+          "source": "contracts/seed/requirements/REQ-CONTRACT-AUTO-SAVE.md",
+          "requirementId": "REQ-CONTRACT-AUTO-SAVE",
+          "subject": "editor",
+          "candidates": [
+            {
+              "id": "predicate-commit-action-001",
+              "predicate_name": "commit_action",
+              "predicate_args": ["editor", "navigate_away"],
+              "canonical_key": "commit_action(editor, navigate_away)",
+              "polarity": "assert",
+              "score": 0.91,
+              "rationale": "Auto-save is a commit action triggered by navigation away.",
+              "schema": {
+                "id": "schema-commit-action",
+                "predicate_name": "commit_action",
+                "title": "commit_action",
+                "description": "Use when a trigger saves, commits, persists, or auto-saves a subject in a scope.",
+                "argument_names": ["subject", "trigger"],
+                "argument_types": ["subject", "event"],
+                "tags": ["workflow"],
+                "usage_hints": {
+                  "use_when": [
+                    "Use when a trigger saves, commits, persists, or auto-saves a subject in a scope."
+                  ],
+                  "do_not_use_when": [
+                    "Do not use for cancel, discard, revert, or abandon behavior."
+                  ]
+                }
+              }
+            }
+          ],
+          "recommendedAction": "apply_requires_predicate",
+          "applyPlan": [
+            {
+              "step": 1,
+              "action": "write_predicate",
+              "id": "predicate-commit-action-001"
+            }
+          ],
+          "relationshipPlan": {
+            "type": "requires_predicate",
+            "from": "REQ-CONTRACT-AUTO-SAVE",
+            "to": "predicate-commit-action-001"
+          },
+          "warnings": []
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "text must be a non-empty string"
+        }
+      }
+    },
+    "kb_autopilot_generate": {
+      "input": {
+        "includeGenericMarkdown": false,
+        "minConfidence": 0.8,
+        "maxCandidates": 1,
+        "entityTypes": ["req", "symbol"],
+        "bootstrapContext": {
+          "projectSummary": "Frozen MCP contract seed",
+          "sourceOfTruthPaths": ["contracts/seed"],
+          "sourceOfTruthNotes": [
+            "Deterministic fixture seed used for contract regeneration."
+          ],
+          "priorityRoots": ["contracts/seed"],
+          "verificationAnchors": ["tools/list"]
+        }
+      },
+      "success": {
+        "structuredContent": {
+          "activationState": "active",
+          "activationMode": "seeded",
+          "bootstrapMode": "full_actions",
+          "activationReason": "Seed workspace contains stable docs and symbols.",
+          "applyBlocked": false,
+          "migrationWarning": null,
+          "confidence": {
+            "score": 0.9,
+            "level": "high",
+            "reasons": ["seeded workspace"],
+            "policy": "full_actions"
+          },
+          "tldr": "Seeded contract workspace is ready for parity extraction.",
+          "promptBlock": "Use the seeded contracts to inspect the pre-pivot MCP surface.",
+          "recommendedActions": [
+            {
+              "order": 1,
+              "kind": "query",
+              "description": "Inspect frozen tool contracts"
+            },
+            {
+              "order": 2,
+              "kind": "check",
+              "description": "Validate the seed workspace"
+            },
+            {
+              "order": 3,
+              "kind": "handoff",
+              "description": "Extract parity deltas"
+            }
+          ],
+          "declaredContext": {
+            "projectSummary": "Frozen MCP contract seed",
+            "sourceOfTruthPaths": ["contracts/seed"],
+            "sourceOfTruthNotes": [
+              "Deterministic fixture seed used for contract regeneration."
+            ],
+            "priorityRoots": ["contracts/seed"],
+            "verificationAnchors": ["tools/list"]
+          },
+          "discoverySummary": {
+            "sourceCount": 1,
+            "entityCounts": { "req": 1, "symbol": 1, "fact": 1 },
+            "activationReasons": ["seed workspace present"],
+            "sourceCoverage": { "documentation": 1 }
+          },
+          "candidates": [
+            {
+              "candidateId": "REQ-CONTRACT-002",
+              "entityType": "req",
+              "confidence": 0.91,
+              "sourcePath": "contracts/seed/requirements/REQ-CONTRACT-002.md",
+              "sourceKind": "markdown",
+              "applyPlan": [
+                { "step": 1, "action": "upsert", "id": "REQ-CONTRACT-002" }
+              ]
+            }
+          ],
+          "applyPlan": [
+            { "step": 1, "action": "upsert", "id": "REQ-CONTRACT-002" }
+          ],
+          "suppressedCandidates": [],
+          "payoffSummary": {
+            "current": { "req": 1 },
+            "projectedIfAllApplied": { "req": 2 },
+            "delta": { "req": 1 }
+          }
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "bootstrapContext must reference a deterministic seed"
+        }
+      }
+    },
+    "kb_sparql_remote": {
+      "input": {
+        "endpoint": "http://127.0.0.1:40123/sparql",
+        "query": "SELECT ?subject ?label WHERE { VALUES (?subject ?label) { (\"REQ-CONTRACT-001\" \"Seed row\") } }",
+        "timeoutMs": 1000
+      },
+      "success": {
+        "structuredContent": {
+          "rows": [{ "subject": "REQ-CONTRACT-001", "label": "Seed row" }]
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "SPARQL endpoint must target a public remote host"
+        }
+      }
+    }
+  }
+}

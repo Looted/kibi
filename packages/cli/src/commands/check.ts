@@ -16,7 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { getBranchOverride, isCliTraceOrDebugEnabled } from "../env.js";
 import {
@@ -27,20 +27,20 @@ import {
   type ExtractionResult,
   extractFromMarkdownString,
 } from "../extractors/markdown.js";
-import { PrologProcess, resolveKbPlPath } from "../prolog.js";
+import { PrologProcess } from "../prolog.js";
 import {
   escapeAtom,
   parseTriples,
   parseViolationRows,
 } from "../prolog/codec.js";
 import {
-  collectFullKbQualityDiagnostics,
   createSemanticReviewDiagnostics,
   createSymbolGranularityDiagnostics,
   createSymbolQualityDiagnostics,
   hasBlockingImpactDiagnostics,
 } from "../public/impact-diagnostics.js";
 import type { QualityDiagnostic } from "../public/impact-diagnostics.js";
+import { executeCheck } from "../public/operations/check-executor.js";
 import {
   KIBI_NO_IMPACT_DECLARATION,
   KIBI_SYMBOLS_MANIFEST_PATH,
@@ -81,29 +81,10 @@ import {
 } from "../traceability/validate.js";
 import { loadConfig } from "../utils/config.js";
 import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
-import { analyzePrologQueryPlanSafety } from "../utils/prolog-query-plan-safety.js";
-import {
-  type ChecksConfig,
-  RULES,
-  type Violation,
-  getEffectiveRules,
-} from "../utils/rule-registry.js";
+import type { Violation } from "../utils/rule-registry.js";
 
 export type { Violation };
-import { runAggregatedChecks } from "./aggregated-checks.js";
 import { getCurrentBranch } from "./init-helpers.js";
-
-function collectQueryPlanSafetyViolations(): Violation[] {
-  const checksPlPath = path.join(path.dirname(resolveKbPlPath()), "checks.pl");
-  const source = readFileSync(checksPlPath, "utf8");
-  return analyzePrologQueryPlanSafety(source).map((violation) => ({
-    rule: "query-plan-safety",
-    entityId: violation.predicate,
-    description: violation.description,
-    suggestion: violation.suggestion,
-    source: `${checksPlPath}:${violation.line}`,
-  }));
-}
 
 export interface CheckOptions {
   fix?: boolean;
@@ -134,6 +115,35 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
   const authoredSymbolResults: ExtractionResult[] = [];
   const stagedAuthoredSymbolResults: ExtractionResult[] = [];
 
+  const makeLookupKey = (entry: ExtractionResult): string => {
+    if (typeof entry.entity.id === "string" && entry.entity.id.length > 0) {
+      return `id:${entry.entity.id}`;
+    }
+    return `fallback:${entry.sourceFile ?? entry.entity.source ?? ""}\u0000${entry.entity.title}`;
+  };
+
+  const authoredSymbolIndexByKey = new Map<string, number>();
+  const manifestResultIndexByKey = new Map<string, number>();
+  const stagedAuthoredSymbolIndexByKey = new Map<string, number>();
+
+  const upsertResult = (
+    results: ExtractionResult[],
+    indexByKey: Map<string, number>,
+    result: ExtractionResult,
+    preferNew = false,
+  ): void => {
+    const key = makeLookupKey(result);
+    const existingIndex = indexByKey.get(key);
+    if (existingIndex === undefined) {
+      indexByKey.set(key, results.length);
+      results.push(result);
+      return;
+    }
+    if (preferNew) {
+      results[existingIndex] = result;
+    }
+  };
+
   // Pre-populate lookup from working-tree manifests so that code-only changes
   // (where symbols.yaml is not staged) still resolve to the correct symbol IDs
   // and relationships already defined on disk.
@@ -145,7 +155,7 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
       try {
         const entries = extractFromManifest(absSymbolsPath);
         for (const entry of entries) {
-          authoredSymbolResults.push(entry);
+          upsertResult(authoredSymbolResults, authoredSymbolIndexByKey, entry);
           const sourceFile =
             entry.sourceFile || entry.entity.source || absSymbolsPath;
           const key = `${sourceFile}:${entry.entity.title}`;
@@ -197,13 +207,6 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
         manifestFile.path,
       );
       for (const entry of entries) {
-        manifestResults.push({
-          entity: entry.entity,
-          relationships: entry.relationships,
-          ...(entry.sourceFile !== undefined
-            ? { sourceFile: entry.sourceFile }
-            : {}),
-        });
         const authoredSymbolResult = {
           entity: entry.entity,
           relationships: entry.relationships,
@@ -211,8 +214,31 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
             ? { sourceFile: entry.sourceFile }
             : {}),
         };
-        authoredSymbolResults.push(authoredSymbolResult);
-        stagedAuthoredSymbolResults.push(authoredSymbolResult);
+        const manifestResult = {
+          entity: entry.entity,
+          relationships: entry.relationships,
+          ...(entry.sourceFile !== undefined
+            ? { sourceFile: entry.sourceFile }
+            : {}),
+        };
+
+        upsertResult(
+          manifestResults,
+          manifestResultIndexByKey,
+          manifestResult,
+          true,
+        );
+        upsertResult(
+          authoredSymbolResults,
+          authoredSymbolIndexByKey,
+          authoredSymbolResult,
+          true,
+        );
+        upsertResult(
+          stagedAuthoredSymbolResults,
+          stagedAuthoredSymbolIndexByKey,
+          authoredSymbolResult,
+        );
 
         const sourceFile =
           entry.sourceFile || entry.entity.source || manifestFile.path;
@@ -482,16 +508,12 @@ function buildStagedKibiImpactEvidence(options: {
     };
   }
 
-  if (stagedAuthoredSymbolsEvidence.entries.length > 0) {
+  if (stagedAuthoredSymbolsEvidence.changedEntityIds.length > 0) {
     resolvedKbArtifacts.push({
       kind: "symbols_manifest",
       path: stagedAuthoredSymbolsEvidence.path,
       entityTypes: ["symbol"],
-      entityIds: uniqueSorted(
-        stagedAuthoredSymbolsEvidence.entries.flatMap(
-          (entry) => entry.entityIds,
-        ),
-      ),
+      entityIds: stagedAuthoredSymbolsEvidence.changedEntityIds,
       sourcePaths: uniqueSorted(
         stagedAuthoredSymbolsEvidence.entries.map((entry) => entry.sourcePath),
       ),
@@ -658,11 +680,10 @@ export async function checkCommand(
                 .flatMap((artifact) => artifact.entityIds)
             : [],
         );
-        const stagedAuthoredSymbolSet = new Set(stagedAuthoredSymbolResults);
         const stagedSourcePaths = new Set(sourceFiles.map((file) => file.path));
         const activeGranularityResults = authoredSymbolResults.filter(
           (result) =>
-            stagedAuthoredSymbolSet.has(result) ||
+            activeStagedSymbolEntityIds.has(result.entity.id) ||
             (result.sourceFile !== undefined &&
               stagedSourcePaths.has(result.sourceFile)),
         );
@@ -801,101 +822,32 @@ export async function checkCommand(
     }
     attached = true;
 
-    const violations: Violation[] = [];
-
-    const config = loadConfig(process.cwd());
-    const checksConfig: ChecksConfig = config.checks ?? {
-      rules: Object.fromEntries(RULES.map((r) => [r.name, true])),
-      symbolTraceability: { requireAdr: false },
-    };
-
-    const effectiveRules = getEffectiveRules(checksConfig.rules, options.rules);
-
-    // Helper to conditionally run a check by name
-    async function runCheck(
-      name: string,
-      fn: (p: PrologProcess, ...args: unknown[]) => Promise<Violation[]>,
-      ...args: unknown[]
-    ) {
-      if (!effectiveRules.has(name)) return;
-      if (!prolog) {
-        throw new Error("Prolog process not initialized");
-      }
-      const res = await fn(prolog, ...args);
-      if (res?.length) violations.push(...res);
-    }
-
     if (!prolog) {
       throw new Error("Prolog process not initialized");
     }
     const activeProlog = prolog;
-
-    // Use aggregated checks (single Prolog call) when possible for better performance
-    // This is significantly faster in Bun/Docker environments where one-shot mode
-    // spawns a new Prolog process for each query
-    const supportedRules = [
-      "must-priority-coverage",
-      "symbol-coverage",
-      "symbol-traceability",
-      "no-dangling-refs",
-      "no-cycles",
-      "required-fields",
-      "deprecated-adr-no-successor",
-      "domain-contradictions",
-      "strict-fact-shape",
-      "strict-req-fact-pairing",
-      "strict-readiness",
-      "query-plan-safety",
-    ];
-
-    const canUseAggregated = Array.from(effectiveRules).every((r) =>
-      supportedRules.includes(r),
+    const rules = options.rules
+      ?.split(",")
+      .map((rule) => rule.trim())
+      .filter((rule) => rule.length > 0);
+    const result = await executeCheck(
+      rules === undefined ? {} : { rules },
+      {
+        workspaceRoot: process.cwd(),
+        signal: new AbortController().signal,
+        clock: () => new Date(),
+        prolog: {
+          query: (goal) => activeProlog.query(goal),
+          nextSolution: async () => null,
+          invalidateCache: () => activeProlog.invalidateCache(),
+          save: () => activeProlog.query("kb_save"),
+        },
+      },
+      { collectFullQualityDiagnosticsForExplicitRules: true },
     );
-
-    if (canUseAggregated) {
-      // Fast path: single Prolog call returning all violations
-      // Pass the requireAdr option for symbol-traceability
-      const aggregatedViolations = await runAggregatedChecks(
-        activeProlog,
-        effectiveRules,
-        checksConfig.symbolTraceability?.requireAdr ?? false,
-      );
-      violations.push(...aggregatedViolations);
-    } else {
-      // Legacy path: individual checks for backward compatibility
-      await runCheck("must-priority-coverage", checkMustPriorityCoverage);
-      await runCheck("symbol-coverage", checkSymbolCoverage);
-      await runCheck("symbol-traceability", (p) =>
-        checkSymbolTraceability(
-          p,
-          checksConfig.symbolTraceability?.requireAdr ?? false,
-        ),
-      );
-      await runCheck("no-dangling-refs", checkNoDanglingRefs);
-      await runCheck("no-cycles", checkNoCycles);
-      const allEntityIds = await getAllEntityIds(activeProlog);
-      if (effectiveRules.has("required-fields")) {
-        const requiredViolations = await checkRequiredFields(
-          activeProlog,
-          allEntityIds,
-        );
-        violations.push(...requiredViolations);
-      }
-      await runCheck("deprecated-adr-no-successor", checkDeprecatedAdrs);
-      await runCheck("domain-contradictions", checkDomainContradictions);
-      await runCheck("strict-fact-shape", checkStrictFactShape);
-      await runCheck("strict-req-fact-pairing", checkStrictReqFactPairing);
-      await runCheck("strict-readiness", checkStrictReadiness);
-    }
-    if (effectiveRules.has("query-plan-safety")) {
-      violations.push(...collectQueryPlanSafetyViolations());
-    }
-    const qualityDiagnostics = await collectFullKbQualityDiagnostics({
-      prolog: activeProlog,
-      hardViolationEntityIds: new Set(
-        violations.map((violation) => violation.entityId),
-      ),
-    });
+    const violations = result.structuredContent?.violations ?? [];
+    const qualityDiagnostics =
+      result.structuredContent?.qualityDiagnostics ?? [];
     if (options.format === "json") {
       printStructuredCheckResult({ violations, qualityDiagnostics });
       return { exitCode: violations.length === 0 ? 0 : 1 };

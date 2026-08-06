@@ -166,20 +166,20 @@ describe("discovery-shared", () => {
     expect(state.cleanups).toEqual([state.createdPrologs[0]]);
   });
 
-  test("withPrologProcess enables one-shot mode, invokes callback, and cleans up on errors", async () => {
-    state.queryResponses = [{ success: true }];
+  test("withAttachedBranchProlog cleans up prolog when callback throws", async () => {
+    state.queryResponses = [{ success: true }, { success: true }];
 
     await expect(
-      discovery.withPrologProcess(async (prolog) => {
-        expect((prolog as unknown as MockPrologInstance).useOneShotMode).toBe(
-          true,
-        );
+      discovery.withAttachedBranchProlog(async () => {
         throw new Error("callback failed");
       }, mockDeps),
     ).rejects.toThrow("callback failed");
 
+    expect(state.createdPrologs).toHaveLength(1);
     expect(state.createdPrologs[0]?.options).toEqual({ timeout: 120000 });
+    expect(state.createdPrologs[0]?.start).toHaveBeenCalledTimes(1);
     expect(state.queries[0]).toContain("set_prolog_flag(answer_write_options");
+    expect(state.queries[1]).toContain("kb_attach('");
     expect(state.cleanups).toEqual([state.createdPrologs[0]]);
   });
 

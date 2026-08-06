@@ -202,13 +202,7 @@ describe("symbol quality impact diagnostics", () => {
       id: "SYM-USER-SERVICE-INFERRED",
       title: "UserService",
       sourceFile: "src/user-service.ts",
-      relationshipTargets: [
-        "REQ-A",
-        "REQ-B",
-        "REQ-C",
-        "REQ-D",
-        "REQ-E",
-      ],
+      relationshipTargets: ["REQ-A", "REQ-B", "REQ-C", "REQ-D", "REQ-E"],
     });
 
     const diagnostics = createSymbolQualityDiagnostics({

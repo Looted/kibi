@@ -1,6 +1,6 @@
 {
   "name": "kibi-codex",
-  "version": "0.17.1",
+  "version": "0.19.0",
   "description": "Kibi Codex plugin - thin adapter for Codex MCP integration",
   "type": "module",
   "main": "dist/index.js",
@@ -32,7 +32,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && bun run scripts/copy-plugin-assets.ts",
+    "build": "tsc -p tsconfig.json && bun run scripts/copy-plugin-assets.ts && bun run ../../scripts/sync-agent-skills.ts --write --target codex",
     "dev": "tsc -p tsconfig.json --watch",
     "clean": "rm -rf dist",
     "prepack": "npm run build"

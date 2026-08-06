@@ -1,4 +1,10 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
+import { type OperationName, getSpec } from "kibi-cli/operations";
+import type {
+  OperationContext,
+  RuntimeOperationSpec,
+} from "kibi-cli/operations/runtime-types";
 
 import type { AutopilotGenerateArgs } from "../tools/autopilot-generate.js";
 import type { CheckArgs } from "../tools/check.js";
@@ -28,11 +34,16 @@ type ToolRegistrar<TProlog> = (
   inputSchema: object,
   handler: ToolHandler,
   runtime: ToolsRuntime<TProlog>,
+  spec?: RuntimeOperationSpec<Record<string, unknown>, unknown>,
+  annotations?: ToolAnnotations,
 ) => void;
 
 type ToolRegistration = {
-  readonly name: string;
-  readonly handler: ToolHandler;
+  readonly name: OperationName;
+  readonly execute: (
+    context: OperationContext,
+    args: Record<string, unknown>,
+  ) => Promise<unknown>;
 };
 
 // implements REQ-002, REQ-013
@@ -44,17 +55,33 @@ export function registerConfiguredTools<TProlog>(
   const toolDef = (name: string) => {
     const t = runtime.tools.find((tool) => tool.name === name);
     if (!t) throw new Error(`Unknown tool: ${name}`);
-    return t;
+    return t as typeof t & { annotations?: ToolAnnotations };
   };
-  const register = ({ name, handler }: ToolRegistration): void => {
+  const prologFor = (context: OperationContext): TProlog => {
+    const prolog = runtime.operationRuntime.sessionProlog(context);
+    if (!prolog) {
+      throw new Error("Operation requires a session Prolog process");
+    }
+    return prolog;
+  };
+  const register = ({ name, execute }: ToolRegistration): void => {
     const definition = toolDef(name);
+    const publicSpec = getSpec(name);
+    const spec: RuntimeOperationSpec<Record<string, unknown>, unknown> = {
+      name,
+      effects: publicSpec.effects,
+      requiresProlog: publicSpec.requiresProlog,
+      execute: (args, context) => execute(context, args),
+    };
     registerTool(
       server,
       name,
       definition.description,
       definition.inputSchema,
-      handler,
+      async () => undefined,
       runtime,
+      spec,
+      definition.annotations,
     );
   };
 
@@ -64,131 +91,104 @@ export function registerConfiguredTools<TProlog>(
   // (via jsonSchemaToZod) before the handler is invoked, so the casts are safe at runtime.
   register({
     name: "kb_query",
-    handler: async (args) => {
-      const prolog = await runtime.ensureProlog();
-      return runtime.handleKbQuery(prolog, args as QueryArgs);
-    },
+    execute: async (context, args) =>
+      runtime.handleKbQuery(prologFor(context), args as QueryArgs),
   });
   register({
     name: "kb_search",
-    handler: async (args) => {
-      const prolog = await runtime.ensureProlog();
-      return runtime.handleKbSearch(prolog, args as unknown as SearchArgs);
-    },
+    execute: async (context, args) =>
+      runtime.handleKbSearch(prologFor(context), args as unknown as SearchArgs),
   });
   register({
     name: "kb_status",
-    handler: async (args) => {
-      const prolog = await runtime.ensureProlog();
-      return runtime.handleKbStatus(prolog, args as StatusArgs);
-    },
+    execute: async (context, args) =>
+      runtime.handleKbStatus(prologFor(context), args as StatusArgs),
   });
   register({
     name: "kb_skills_list",
-    handler: async (args) => runtime.handleKbSkillsList(args as SkillsListArgs),
+    execute: async (_context, args) =>
+      runtime.handleKbSkillsList(args as SkillsListArgs),
   });
   register({
     name: "kb_skills_load",
-    handler: async (args) =>
+    execute: async (_context, args) =>
       runtime.handleKbSkillsLoad(args as unknown as SkillsLoadArgs),
   });
   register({
     name: "kb_skills_read",
-    handler: async (args) =>
+    execute: async (_context, args) =>
       runtime.handleKbSkillsRead(args as unknown as SkillsReadArgs),
   });
   register({
     name: "kb_find_gaps",
-    handler: async (args) => {
-      const prolog = await runtime.ensureProlog();
-      return runtime.handleKbFindGaps(prolog, args as FindGapsArgs);
-    },
+    execute: async (context, args) =>
+      runtime.handleKbFindGaps(prologFor(context), args as FindGapsArgs),
   });
   register({
     name: "kb_coverage",
-    handler: async (args) => {
-      const prolog = await runtime.ensureProlog();
-      return runtime.handleKbCoverage(prolog, args as CoverageArgs);
-    },
+    execute: async (context, args) =>
+      runtime.handleKbCoverage(prologFor(context), args as CoverageArgs),
   });
   register({
     name: "kb_graph",
-    handler: async (args) => {
-      const prolog = await runtime.ensureProlog();
-      return runtime.handleKbGraph(prolog, args as unknown as GraphArgs);
-    },
+    execute: async (context, args) =>
+      runtime.handleKbGraph(prologFor(context), args as unknown as GraphArgs),
   });
   register({
     name: "kb_sparql_remote",
-    handler: async (args) => {
-      const prolog = await runtime.ensureProlog();
-      return runtime.handleSparql(prolog, args as unknown as SparqlArgs);
-    },
+    execute: async (context, args) =>
+      runtime.handleSparql(args as SparqlArgs, context),
   });
   register({
     name: "kb_semantic_advisor",
-    handler: async (args) =>
+    execute: async (_context, args) =>
       runtime.handleKbSemanticAdvisor(args as unknown as SemanticAdvisorArgs),
   });
   register({
     name: "kb_upsert",
-    handler: async (args) => {
-      const prolog = await runtime.ensureProlog();
-      return runtime.handleKbUpsert(prolog, args as unknown as UpsertArgs);
-    },
+    execute: async (context, args) =>
+      runtime.handleKbUpsert(prologFor(context), args as unknown as UpsertArgs),
   });
   register({
     name: "kb_validate_upsert",
-    handler: async (args) => {
-      const prolog = await runtime.ensureProlog();
-      return runtime.handleKbValidateUpsert(
-        prolog,
+    execute: async (context, args) =>
+      runtime.handleKbValidateUpsert(
+        prologFor(context),
         args as unknown as UpsertArgs,
-      );
-    },
+      ),
   });
   register({
     name: "kb_delete",
-    handler: async (args) => {
-      const prolog = await runtime.ensureProlog();
-      return runtime.handleKbDelete(prolog, args as unknown as DeleteArgs);
-    },
+    execute: async (context, args) =>
+      runtime.handleKbDelete(prologFor(context), args as unknown as DeleteArgs),
   });
   register({
     name: "kb_check",
-    handler: async (args) => {
-      const prolog = await runtime.ensureProlog();
-      return runtime.handleKbCheck(prolog, args as CheckArgs);
-    },
+    execute: async (context, args) =>
+      runtime.handleKbCheck(prologFor(context), args as CheckArgs),
   });
   register({
     name: "kb_model_requirement",
-    handler: async (args) => {
-      const prolog = await runtime.ensureProlog();
-      return runtime.handleKbModelRequirement(
-        prolog,
+    execute: async (context, args) =>
+      runtime.handleKbModelRequirement(
+        prologFor(context),
         args as unknown as ModelRequirementArgs,
-      );
-    },
+      ),
   });
   register({
     name: "kb_suggest_predicates",
-    handler: async (args) => {
-      const prolog = await runtime.ensureProlog();
-      return runtime.handleKbSuggestPredicates(
-        prolog,
+    execute: async (context, args) =>
+      runtime.handleKbSuggestPredicates(
+        prologFor(context),
         args as unknown as SuggestPredicatesArgs,
-      );
-    },
+      ),
   });
   register({
     name: "kb_autopilot_generate",
-    handler: async (args) => {
-      const prolog = await runtime.ensureProlog();
-      return runtime.handleKbAutopilotGenerate(
-        prolog,
+    execute: async (context, args) =>
+      runtime.handleKbAutopilotGenerate(
         args as unknown as AutopilotGenerateArgs,
-      );
-    },
+        context,
+      ),
   });
 }

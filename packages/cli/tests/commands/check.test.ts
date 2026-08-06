@@ -390,7 +390,7 @@ describe("kibi check", () => {
     tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-test-check-"));
 
     // Initialize KB structure
-    execSync("git init", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git init -b main", { cwd: tmpDir, stdio: "pipe" });
     execSync("git branch -M main", { cwd: tmpDir, stdio: "pipe" });
     execSync(`KB_PATH=.kb/branches/main bun ${kibiBin} init`, {
       cwd: tmpDir,
@@ -3041,6 +3041,66 @@ export function wtFunction() {
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
       const output = stdoutToString(result.stdout || result.stderr);
       expect(result.status).toBe(0);
+    },
+    TEST_TIMEOUT_MS,
+  );
+  test(
+    "--staged --format json dedupes duplicate_symbol_coordinate_review diagnostics for overlapping staged/working-tree manifests",
+    async () => {
+      const docDir = path.join(tmpDir, "documentation");
+      const srcDir = path.join(tmpDir, "src");
+
+      mkdirSync(docDir, { recursive: true });
+      mkdirSync(srcDir, { recursive: true });
+
+      execSync('git config user.email "test@example.com"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      writeFileSync(
+        path.join(srcDir, "duplicate-symbol.ts"),
+        'export function duplicateSymbol() {\n  return "a";\n}\n',
+      );
+      writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        "symbols:\n  - id: SYMBOL-DUP-001\n    title: duplicateSymbol\n    sourceFile: src/duplicate-symbol.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 3\n    sourceEndColumn: 1\n    status: active\n  - id: SYMBOL-DUP-002\n    title: duplicateSymbol\n    sourceFile: src/duplicate-symbol.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 3\n    sourceEndColumn: 1\n    status: active\n",
+      );
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync('git commit -m "baseline" --no-verify', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        "symbols:\n  - id: SYMBOL-DUP-001\n    title: duplicateSymbol\n    sourceFile: src/duplicate-symbol.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 3\n    sourceEndColumn: 1\n    status: active\n  - id: SYMBOL-DUP-002\n    title: duplicateSymbol\n    sourceFile: src/duplicate-symbol.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 3\n    sourceEndColumn: 1\n    status: active\n    # staged-overlap marker\n",
+      );
+      execSync("git add documentation/symbols.yaml", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      const { status, stdout } = runKibi(
+        kibiBin,
+        ["check", "--staged", "--format", "json"],
+        tmpDir,
+      );
+
+      const duplicateSymbolDiagnostics = stdout
+        .split("\n")
+        .filter((line) =>
+          line.includes("[REVIEW duplicate_symbol_coordinate_review]"),
+        );
+
+      expect(status).toBe(0);
+      expect(duplicateSymbolDiagnostics).toHaveLength(0);
     },
     TEST_TIMEOUT_MS,
   );

@@ -2,9 +2,104 @@ import { describe, expect, test } from "bun:test";
 import {
   SEMANTIC_ADVISOR_VERSION,
   analyzeSemanticAdvisorInput,
-} from "../../src/semantic-advisor/analyze-prose.js";
+  semanticClaimKey,
+} from "kibi-cli/operations/semantic-advisor/analyze-prose";
 
 describe("semantic advisor prose analysis", () => {
+  test("tracks every caller-supplied atomic clause with a stable logic claim key", () => {
+    const clauses = [
+      "Checkout requires payment authorization before order submission.",
+      "Customer data must be retained for 7 years.",
+    ];
+    const result = analyzeSemanticAdvisorInput({
+      payload: {
+        type: "req",
+        id: "REQ-COMPOUND",
+        properties: {
+          title: "Checkout and retention",
+          status: "open",
+          source: "docs/requirements/compound.md",
+          text_ref: clauses.join(" "),
+        },
+      },
+      clauses,
+    });
+
+    expect(result.receipt.clauses).toHaveLength(2);
+    expect(result.receipt.clauses.map((clause) => clause.claim_key)).toEqual(
+      clauses.map(semanticClaimKey),
+    );
+    expect(result.receipt.suggestions.map((entry) => entry.kind)).toEqual([
+      "predicate",
+      "strict_property",
+    ]);
+    expect(result.receipt.logic_coverage).toMatchObject({
+      status: "unverified",
+      expected_claim_keys: clauses.map(semanticClaimKey),
+      missing_claim_keys: clauses.map(semanticClaimKey),
+    });
+    for (const suggestion of result.receipt.suggestions) {
+      expect(suggestion.applyPlan).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: "fact",
+            properties: expect.objectContaining({
+              claim_key: suggestion.claim_key,
+              claim_text: suggestion.claim_text,
+            }),
+          }),
+        ]),
+      );
+    }
+    const predicateSuggestion = result.receipt.suggestions[0];
+    expect(
+      predicateSuggestion?.kind === "predicate"
+        ? predicateSuggestion.relationshipPlan
+        : null,
+    ).toMatchObject({ logicClaims: clauses.map(semanticClaimKey) });
+    expect(result.receipt.suggestions[1]?.applyPlan).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: "req",
+          properties: expect.objectContaining({
+            logic_claims: clauses.map(semanticClaimKey),
+          }),
+        }),
+      ]),
+    );
+  });
+
+  test("keeps an unmatched normative clause unresolved without inventing a catch-all predicate", () => {
+    const text =
+      "Backups must follow the organization's moonshot protocol during recovery.";
+    const result = analyzeSemanticAdvisorInput({
+      payload: {
+        type: "req",
+        id: "REQ-MOONSHOT-RECOVERY",
+        properties: {
+          title: "Moonshot recovery protocol",
+          status: "open",
+          source: "docs/requirements/recovery.md",
+          text_ref: text,
+        },
+      },
+      clauses: [text],
+    });
+
+    const clause = result.receipt.clauses[0];
+    expect(clause).toBeDefined();
+    expect(result.receipt.suggestions[0]).toMatchObject({
+      kind: "ontology_gap",
+      claim_key: clause?.claim_key,
+      claim_text: clause?.text,
+      recommendedPredicateSchema: null,
+    });
+    expect(result.receipt.logic_coverage).toMatchObject({
+      status: "unverified",
+      unresolved_claim_keys: [clause?.claim_key],
+    });
+  });
+
   test("flags cardinality prose with ambiguity witness and strict-property route", () => {
     const result = analyzeSemanticAdvisorInput({
       payload: {
@@ -1109,6 +1204,7 @@ describe("semantic advisor prose analysis", () => {
   });
 
   test("marks already-modeled requirements as checkable", () => {
+    const claimKey = semanticClaimKey("Session timeout must equal 30 minutes.");
     const result = analyzeSemanticAdvisorInput({
       payload: {
         type: "req",
@@ -1118,6 +1214,7 @@ describe("semantic advisor prose analysis", () => {
           status: "open",
           source: "docs/requirements/sessions.md",
           text_ref: "Session timeout must equal 30 minutes.",
+          logic_claims: [claimKey],
         },
         relationships: [
           { type: "constrains", from: "REQ-MODELED", to: "FACT-SUBJECT" },
@@ -1157,6 +1254,7 @@ describe("semantic advisor prose analysis", () => {
   });
 
   test("returns modeled state for already constrained requirements with no further suggestions", () => {
+    const claimKey = semanticClaimKey("Session timeout must equal 30 minutes.");
     const result = analyzeSemanticAdvisorInput({
       payload: {
         type: "req",
@@ -1166,6 +1264,7 @@ describe("semantic advisor prose analysis", () => {
           status: "open",
           source: "docs/requirements/sessions.md",
           text_ref: "Session timeout must equal 30 minutes.",
+          logic_claims: [claimKey],
         },
         relationships: [
           { type: "constrains", from: "REQ-PREMODELED", to: "FACT-SUBJECT" },

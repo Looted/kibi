@@ -696,7 +696,7 @@ describe("MCP Server", () => {
       path.join(os.tmpdir(), "kibi-mcp-branch-init-"),
     );
 
-    execSync("git init", { cwd: tempRoot, stdio: "ignore" });
+    execSync("git init -b main", { cwd: tempRoot, stdio: "ignore" });
     execSync('git config user.email "test@example.com"', {
       cwd: tempRoot,
       stdio: "ignore",
@@ -785,7 +785,7 @@ describe("MCP Server", () => {
   test("should handle mixed kb_query/kb_check/kb_upsert/kb_delete burst without timeouts", async () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-burst-"));
 
-    execSync("git init", { cwd: tempRoot, stdio: "ignore" });
+    execSync("git init -b main", { cwd: tempRoot, stdio: "ignore" });
     execSync('git config user.email "test@example.com"', {
       cwd: tempRoot,
       stdio: "ignore",

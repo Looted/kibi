@@ -56,7 +56,7 @@ describe("init-helpers", () => {
   });
 
   test("getCurrentBranch returns current branch", async () => {
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
     execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
     execSync("git config user.name 'Test User'", { cwd: tmpDir });
     execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });

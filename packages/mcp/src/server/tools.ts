@@ -17,6 +17,11 @@
  */
 import process from "node:process";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
+import {
+  type RuntimeOperationSpec,
+  executeOperation,
+} from "kibi-cli/operations/runtime-types";
 import type { z } from "zod";
 import { isMcpDebugEnabled } from "../env.js";
 import {
@@ -26,7 +31,6 @@ import {
 import { jsonSchemaToZod } from "./json-schema-to-zod.js";
 import { registerConfiguredTools } from "./tool-registration.js";
 import type {
-  DefaultRuntimeProlog,
   ToolHandler,
   ToolHandlerArgs,
   ToolsRuntime,
@@ -107,6 +111,8 @@ export function addTool<TProlog>(
   // generic TProlog parameter exists so tests can inject a mock type. The cast is safe
   // because the runtime object satisfies the full ToolsRuntime contract at runtime.
   runtime: ToolsRuntime<TProlog> = DEFAULT_TOOLS_RUNTIME as unknown as ToolsRuntime<TProlog>,
+  spec?: RuntimeOperationSpec<Record<string, unknown>, unknown>,
+  annotations?: ToolAnnotations,
 ): void {
   const wrappedHandler: ToolHandler = async (args) => {
     const startedAt = new Date();
@@ -145,7 +151,22 @@ export function addTool<TProlog>(
 
       // Track the handler promise in inFlightRequests Map
       const trackedRequests = await runtime.inFlightRequests();
-      const handlerPromise = handler(businessArgs);
+      const controller = new AbortController();
+      const operationSpec: RuntimeOperationSpec<
+        Record<string, unknown>,
+        unknown
+      > = spec ?? {
+        name,
+        effects: ["local-read"],
+        requiresProlog: false,
+        execute: async (input, _context) => handler(input),
+      };
+      const handlerPromise = executeOperation(
+        runtime.operationRuntime,
+        operationSpec,
+        businessArgs,
+        { signal: controller.signal },
+      );
       trackedRequests.set(requestId, handlerPromise);
       let resetAttempted = false;
       let resetSucceeded = false;
@@ -153,15 +174,21 @@ export function addTool<TProlog>(
 
       try {
         // Execute handler
-        const result = await withToolTimeout(name, handlerPromise, async () => {
-          resetAttempted = true;
-          try {
-            await runtime.resetProlog(`tool timeout: ${name}`);
-            resetSucceeded = true;
-          } catch (error) {
-            resetError = error instanceof Error ? error.message : String(error);
-          }
-        });
+        const result = await withToolTimeout(
+          name,
+          handlerPromise,
+          async (error) => {
+            resetAttempted = true;
+            controller.abort(error);
+            try {
+              await runtime.resetProlog(`tool timeout: ${name}`);
+              resetSucceeded = true;
+            } catch (error) {
+              resetError =
+                error instanceof Error ? error.message : String(error);
+            }
+          },
+        );
 
         // Log usage in diagnostic mode
         if (diagnosticModeEnabled) {
@@ -212,13 +239,21 @@ export function addTool<TProlog>(
     server as McpServer & {
       registerTool: (
         n: string,
-        c: { description: string; inputSchema: z.ZodTypeAny },
+        c: {
+          description: string;
+          inputSchema: z.ZodTypeAny;
+          annotations?: ToolAnnotations;
+        },
         h: ToolHandler,
       ) => void;
     }
   ).registerTool(
     name,
-    { description, inputSchema: jsonSchemaToZod(inputSchema) },
+    {
+      description,
+      inputSchema: jsonSchemaToZod(inputSchema),
+      ...(annotations ? { annotations } : {}),
+    },
     wrappedHandler,
   );
 }

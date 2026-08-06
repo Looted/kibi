@@ -2,10 +2,7 @@
   "mcpServers": {
     "kibi": {
       "command": "sh",
-      "args": [
-        "-lc",
-        "repo_root=$(git rev-parse --show-toplevel) && exec bun run \"$repo_root/packages/mcp/bin/kibi-mcp\" --diagnostic-mode"
-      ]
+      "args": ["packages/cursor/scripts/worktree-resolver.sh"]
     }
   }
 }

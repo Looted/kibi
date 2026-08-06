@@ -1,0 +1,65 @@
+{
+  "input": {
+    "id": "REQ-CONTRACT-AUTO-SAVE",
+    "source": "contracts/seed/requirements/REQ-CONTRACT-AUTO-SAVE.md",
+    "status": "open",
+    "text": "The editor must save changes automatically when the user navigates away.",
+    "title": "Auto-save on navigation",
+    "type": "req"
+  },
+  "structuredContent": {
+    "receipt": {
+      "suggestions": [
+        {
+          "kind": "strict-property",
+          "label": "commit_action"
+        }
+      ],
+      "summary": "One reviewable suggestion produced."
+    },
+    "warnings": []
+  },
+  "tool": {
+    "description": "Analyze requirement prose without mutating the KB and return semantic advisor receipts with modeling suggestions. Use before constructing kb_upsert payloads when prose may contain machine-checkable logic. Suggestions can include strict-property facts, predicate facts, ambiguity observations, or ontology-gap observations; all suggestions are advisory and reviewable.",
+    "inputSchema": {
+      "properties": {
+        "clauses": {
+          "description": "Optional complete list of atomic requirement clauses supplied by the caller. Use this for compound prose so every normative clause receives a stable claim key and independent grounding review.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "id": {
+          "description": "Optional requirement ID used for deterministic draft relationship guidance.",
+          "type": "string"
+        },
+        "source": {
+          "description": "Optional provenance for draft suggestions.",
+          "type": "string"
+        },
+        "status": {
+          "description": "Optional requirement status for draft suggestions.",
+          "type": "string"
+        },
+        "text": {
+          "description": "Requirement prose to inspect for machine-checkable modeling suggestions.",
+          "type": "string"
+        },
+        "title": {
+          "description": "Optional requirement title for draft apply plans.",
+          "type": "string"
+        },
+        "type": {
+          "default": "req",
+          "description": "Entity type context for analysis. Currently requirement prose is supported.",
+          "enum": ["req"],
+          "type": "string"
+        }
+      },
+      "required": ["text"],
+      "type": "object"
+    },
+    "name": "kb_semantic_advisor"
+  }
+}

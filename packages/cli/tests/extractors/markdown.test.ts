@@ -175,6 +175,91 @@ describe("Markdown Extractor", () => {
     });
   });
 
+  test("preserves logical claim manifests and predicate ontology fields", () => {
+    const requirement = extractFromMarkdownString(
+      `---
+id: REQ-LOGICAL
+title: Logical requirement
+type: req
+logic_claims: [CLAIM-87B598CE58A963BC, CLAIM-BBBBBBBBBBBBBBBB]
+---`,
+      "/tmp/requirements/REQ-LOGICAL.md",
+    );
+    const predicate = extractFromMarkdownString(
+      `---
+id: FACT-LOGICAL
+title: Ground logical claim
+type: fact
+fact_kind: predicate
+predicate_namespace: product
+predicate_name: dependency_rule
+predicate_args: [checkout, payment, submission]
+canonical_key: dependency_rule(checkout,payment,submission)
+polarity: assert
+claim_key: CLAIM-87B598CE58A963BC
+claim_text: Checkout requires payment before submission.
+---`,
+      "/tmp/facts/FACT-LOGICAL.md",
+    );
+    const schema = extractFromMarkdownString(
+      `---
+id: FACT-SCHEMA-LOGICAL
+title: Logical schema
+type: fact
+fact_kind: predicate_schema
+predicate_namespace: product
+predicate_name: dependency_rule
+predicate_arity: 3
+argument_names: [subject, prerequisite, dependent]
+argument_types: [entity, entity, entity]
+argument_descriptions: [Workflow, Required step, Dependent step]
+aliases: [requires_before]
+examples: [dependency_rule(checkout,payment,submission)]
+---`,
+      "/tmp/facts/FACT-SCHEMA-LOGICAL.md",
+    );
+
+    expect(requirement.entity.logic_claims).toEqual([
+      "CLAIM-87B598CE58A963BC",
+      "CLAIM-BBBBBBBBBBBBBBBB",
+    ]);
+    expect(predicate.entity).toMatchObject({
+      fact_kind: "predicate",
+      predicate_namespace: "product",
+      predicate_name: "dependency_rule",
+      predicate_args: ["checkout", "payment", "submission"],
+      claim_key: "CLAIM-87B598CE58A963BC",
+      claim_text: "Checkout requires payment before submission.",
+    });
+    expect(schema.entity).toMatchObject({
+      fact_kind: "predicate_schema",
+      predicate_arity: 3,
+      argument_names: ["subject", "prerequisite", "dependent"],
+      argument_types: ["entity", "entity", "entity"],
+      aliases: ["requires_before"],
+    });
+  });
+
+  test("rejects claim provenance whose key does not match its atomic clause", () => {
+    expect(() =>
+      extractFromMarkdownString(
+        `---
+id: FACT-LOGICAL-MISMATCH
+title: Mismatched logical claim
+type: fact
+fact_kind: predicate
+predicate_name: dependency_rule
+predicate_args: [checkout, payment, submission]
+canonical_key: dependency_rule(checkout,payment,submission)
+polarity: assert
+claim_key: CLAIM-AAAAAAAAAAAAAAAA
+claim_text: Checkout requires payment before submission.
+---`,
+        "/tmp/facts/FACT-LOGICAL-MISMATCH.md",
+      ),
+    ).toThrow("claim_key must equal the stable key derived from claim_text");
+  });
+
   test("wraps file read failures as FrontmatterError", () => {
     expect(() => extractFromMarkdown("/tmp/kibi-no-such-file.md")).toThrow(
       FrontmatterError,

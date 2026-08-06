@@ -19,6 +19,7 @@ import { extractKbMcpToolCall } from "./kb-mcp-tools.js";
 import {
   BOOTSTRAP_REMINDER,
   DIRECT_KB_EDIT_WARNING,
+  interfaceAdvisory,
   stopFollowupMessage,
 } from "./messages.js";
 import {
@@ -38,6 +39,7 @@ export type CursorHookResult = {
 
 export type HookEnvironment = {
   pluginData?: string;
+  workspaceTrusted?: boolean;
 };
 
 const editableTools = new Set([
@@ -96,13 +98,29 @@ export async function runHook(
   const stateDir = resolveStateDir(pluginData, input.conversationId);
   const cwd = resolveWorkspaceRoot(input);
   const kibiReady = hasKibiConfig(cwd);
+  const workspaceTrusted = environment.workspaceTrusted === true;
+  const initialState = loadHookState(stateDir);
 
   switch (input.event) {
     case "sessionStart":
       if (!kibiReady) {
-        return { additional_context: BOOTSTRAP_REMINDER };
+        const advisory = interfaceAdvisory(
+          initialState.mcpState,
+          workspaceTrusted,
+        );
+        return {
+          additional_context: advisory
+            ? `${BOOTSTRAP_REMINDER}\n${advisory}`
+            : BOOTSTRAP_REMINDER,
+        };
       }
-      return emptyResult();
+      {
+        const advisory = interfaceAdvisory(
+          initialState.mcpState,
+          workspaceTrusted,
+        );
+        return advisory ? { additional_context: advisory } : emptyResult();
+      }
 
     case "preToolUse": {
       const explicitPaths = extractExplicitPathFields(input.toolInput);
@@ -131,7 +149,12 @@ export async function runHook(
         return { permission: "allow" };
       }
 
-      const guidance = readGuidance(primaryPath, cwd, kibiReady);
+      const guidance = readGuidance(primaryPath, {
+        cwd,
+        hasKibi: kibiReady,
+        mcpState: state.mcpState,
+        workspaceTrusted,
+      });
       if (!guidance) {
         return { permission: "allow" };
       }
@@ -174,7 +197,12 @@ export async function runHook(
           return emptyResult();
         }
 
-        const guidance = readGuidance(primaryPath, cwd, kibiReady);
+        const guidance = readGuidance(primaryPath, {
+          cwd,
+          hasKibi: kibiReady,
+          mcpState: state.mcpState,
+          workspaceTrusted,
+        });
         if (!guidance) {
           return emptyResult();
         }
@@ -188,7 +216,12 @@ export async function runHook(
           return emptyResult();
         }
 
-        const guidance = writeGuidance(primaryPath, cwd, kibiReady);
+        const guidance = writeGuidance(primaryPath, {
+          cwd,
+          hasKibi: kibiReady,
+          mcpState: state.mcpState,
+          workspaceTrusted,
+        });
         if (!guidance) {
           return emptyResult();
         }
@@ -225,7 +258,9 @@ export async function runHook(
 }
 
 async function main(): Promise<void> {
-  const result = await runHook(parseStdinJson(await readStdin()));
+  const result = await runHook(parseStdinJson(await readStdin()), {
+    workspaceTrusted: process.argv.includes("--trusted-workspace"),
+  });
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
 

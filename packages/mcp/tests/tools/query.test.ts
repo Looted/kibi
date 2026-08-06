@@ -8,6 +8,7 @@ import {
   parsePropertyList,
   splitTopLevel,
 } from "kibi-cli/prolog/codec";
+import { createMcpRuntime } from "../../src/runtime/mcp-runtime.js";
 import { registerAllTools } from "../../src/server/tools.js";
 import { TOOLS } from "../../src/tools-config.js";
 import { VALID_ENTITY_TYPES, handleKbQuery } from "../../src/tools/query.js";
@@ -373,6 +374,18 @@ describe("MCP kb.query Parsing Functions", () => {
         deriveDiagnosticFields: () => ({}),
         classifyDiagnosticError: () => ({}),
         ensureProlog,
+        operationRuntime: createMcpRuntime({
+          workspaceRoot: "/workspace",
+          activeBranchName: async () => "test",
+          attachedBranchKbPath: () => null,
+          ensureProlog,
+          adaptProlog: () => ({
+            query: async () => ({ success: true, bindings: {} }),
+            nextSolution: async () => null,
+            save: async () => ({ success: true, bindings: {} }),
+          }),
+          refreshAttachedBranchStamp: async () => undefined,
+        }),
         handleKbQuery,
       } as unknown as Parameters<typeof registerAllTools>[1];
 

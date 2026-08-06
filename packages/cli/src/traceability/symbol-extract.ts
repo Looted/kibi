@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { Project, ScriptKind, type SourceFile } from "ts-morph";
+import { Project, Scope, ScriptKind, type SourceFile } from "ts-morph";
 import { readManifestWithCoordinateOverlay } from "../extractors/manifest.js";
 import {
   type SymbolKind,
@@ -371,6 +371,7 @@ export function extractSymbolsFromStagedFile(
       ? cls.getMethods()
       : []) {
       try {
+        if (isPrivateClassMember(method)) continue;
         const name = formatMethodSymbolName(cls.getName(), method.getName());
         const start = method.getNameNode()?.getStart() ?? method.getStart();
         const end = method.getEnd();
@@ -400,6 +401,7 @@ export function extractSymbolsFromStagedFile(
       ? cls.getProperties()
       : []) {
       try {
+        if (isPrivateClassMember(property)) continue;
         const name = formatMethodSymbolName(cls.getName(), property.getName());
         const start = property.getNameNode()?.getStart() ?? property.getStart();
         const end = property.getEnd();
@@ -434,6 +436,7 @@ export function extractSymbolsFromStagedFile(
         : []),
     ]) {
       try {
+        if (isPrivateClassMember(accessor)) continue;
         const name = formatMethodSymbolName(cls.getName(), accessor.getName());
         const start = accessor.getNameNode()?.getStart() ?? accessor.getStart();
         const end = accessor.getEnd();
@@ -570,6 +573,20 @@ export function extractSymbolsFromStagedFile(
   }
 
   return results;
+}
+
+function isPrivateClassMember(member: {
+  getName?: () => string;
+  getScope?: () => Scope;
+}): boolean {
+  const name = typeof member.getName === "function" ? member.getName() : "";
+  if (name.startsWith("#")) {
+    return true;
+  }
+  if (typeof member.getScope === "function") {
+    return member.getScope() === Scope.Private;
+  }
+  return false;
 }
 
 function formatMethodSymbolName(

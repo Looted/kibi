@@ -20,7 +20,7 @@ interface JsonViolation {
  * @param requireAdr - Whether to require ADR constraints for symbol-traceability
  */
 export async function runAggregatedChecks(
-  prolog: PrologProcess,
+  prolog: Pick<PrologProcess, "query">,
   rulesAllowlist: Set<string> | null,
   requireAdr = false,
 ): Promise<Violation[]> {
@@ -37,50 +37,45 @@ export async function runAggregatedChecks(
     ;   call(checks:check_all_json(JsonString))
     ))`;
 
-  try {
-    const result = await prolog.query(query);
+  const result = await prolog.query(query);
 
-    if (!result.success) {
-      throw new Error(
-        `Aggregated checks query failed: ${result.error || "Unknown error"}`,
-      );
-    }
-
-    let violationsDict: Record<string, JsonViolation[]>;
-    try {
-      const jsonString = result.bindings.JsonString;
-      if (!jsonString) {
-        throw new Error("No JSON string in binding");
-      }
-      let parsed = JSON.parse(jsonString);
-      if (typeof parsed === "string") {
-        parsed = JSON.parse(parsed);
-      }
-      violationsDict = parsed as Record<string, JsonViolation[]>;
-    } catch (parseError) {
-      throw new Error(
-        `Failed to parse violations JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
-      );
-    }
-
-    for (const ruleViolations of Object.values(violationsDict)) {
-      for (const v of ruleViolations) {
-        const isAllowed = !rulesAllowlist || rulesAllowlist.has(v.rule);
-        if (isAllowed) {
-          violations.push({
-            rule: v.rule,
-            entityId: v.entityId,
-            description: v.description,
-            ...(v.suggestion ? { suggestion: v.suggestion } : {}),
-            ...(v.source ? { source: v.source } : {}),
-          });
-        }
-      }
-    }
-
-    return violations;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Error running aggregated checks: ${message}`);
+  if (!result.success) {
+    throw new Error(
+      `Aggregated checks query failed: ${result.error || "Unknown error"}`,
+    );
   }
+
+  let violationsDict: Record<string, JsonViolation[]>;
+  try {
+    const jsonString = result.bindings.JsonString;
+    if (!jsonString) {
+      throw new Error("No JSON string in binding");
+    }
+    let parsed = JSON.parse(jsonString);
+    if (typeof parsed === "string") {
+      parsed = JSON.parse(parsed);
+    }
+    violationsDict = parsed as Record<string, JsonViolation[]>;
+  } catch (parseError) {
+    throw new Error(
+      `Failed to parse violations JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+    );
+  }
+
+  for (const ruleViolations of Object.values(violationsDict)) {
+    for (const v of ruleViolations) {
+      const isAllowed = !rulesAllowlist || rulesAllowlist.has(v.rule);
+      if (isAllowed) {
+        violations.push({
+          rule: v.rule,
+          entityId: v.entityId,
+          description: v.description,
+          ...(v.suggestion ? { suggestion: v.suggestion } : {}),
+          ...(v.source ? { source: v.source } : {}),
+        });
+      }
+    }
+  }
+
+  return violations;
 }

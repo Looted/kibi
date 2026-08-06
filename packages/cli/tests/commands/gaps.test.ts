@@ -63,4 +63,19 @@ priority: must
     const rowIds = result.rows.map((row) => row.id).sort();
     expect(rowIds).toEqual(["REQ-001"]);
   });
+
+  test("gaps and find-gaps produce identical output", () => {
+    const args = "req --missing-rel specified_by --format json";
+
+    const gapsOutput = execSync(`bun ${kibiBin} gaps ${args}`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
+    const findGapsOutput = execSync(`bun ${kibiBin} find-gaps ${args}`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
+
+    expect(findGapsOutput).toBe(gapsOutput);
+  });
 });

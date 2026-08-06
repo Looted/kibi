@@ -23,6 +23,7 @@ import {
   Project,
   ScriptKind,
   type SourceFile,
+  SyntaxKind,
   type VariableDeclaration,
 } from "ts-morph";
 import type {
@@ -288,6 +289,7 @@ function collectSourceSymbols(sourceFile: SourceFile): SourceSymbolAnalysis[] {
     );
 
     for (const method of decl.getMethods()) {
+      if (isPrivateClassMember(method)) continue;
       symbols.push(
         toSourceSymbolAnalysis(
           sourceFile,
@@ -304,6 +306,7 @@ function collectSourceSymbols(sourceFile: SourceFile): SourceSymbolAnalysis[] {
     }
 
     for (const property of decl.getProperties()) {
+      if (isPrivateClassMember(property)) continue;
       symbols.push(
         toSourceSymbolAnalysis(
           sourceFile,
@@ -323,6 +326,7 @@ function collectSourceSymbols(sourceFile: SourceFile): SourceSymbolAnalysis[] {
       ...decl.getGetAccessors(),
       ...decl.getSetAccessors(),
     ]) {
+      if (isPrivateClassMember(accessor)) continue;
       symbols.push(
         toSourceSymbolAnalysis(
           sourceFile,
@@ -399,6 +403,16 @@ function collectSourceSymbols(sourceFile: SourceFile): SourceSymbolAnalysis[] {
   }
 
   return symbols;
+}
+
+function isPrivateClassMember(member: {
+  hasModifier(kind: SyntaxKind): boolean;
+  getName(): string;
+}): boolean {
+  return (
+    member.hasModifier(SyntaxKind.PrivateKeyword) ||
+    member.getName().startsWith("#")
+  );
 }
 
 function toSourceSymbolAnalysis(

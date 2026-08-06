@@ -15,8 +15,10 @@ import {
   saveHookState,
   updateHookState,
 } from "../src/hook-state";
+import type { HookState } from "../src/hook-state";
 
-const EMPTY_HOOK_STATE = {
+const EMPTY_HOOK_STATE: HookState = {
+  mcpState: "unknown",
   dirtyPaths: [],
   guidedReadPaths: [],
   guidedWritePaths: [],
@@ -65,6 +67,7 @@ describe("Cursor hook state", () => {
     stateDirs.push(stateDir);
 
     saveHookState(stateDir, {
+      mcpState: "observed",
       dirtyPaths: [" src\\a.ts ", "", "src/a.ts", "docs/a.md"],
       guidedReadPaths: Array.from(
         { length: 120 },
@@ -91,6 +94,7 @@ describe("Cursor hook state", () => {
     expect(state.kbCheckRun).toBe(true);
     expect(state.impactCheckRun).toBe(true);
     expect(state.impactCheckedPaths).toEqual(["src/a.ts"]);
+    expect(state.mcpState).toBe("observed");
   });
 
   test("Given conversation id without plugin data When resolving state dir Then temp-safe id is used", () => {
@@ -284,6 +288,7 @@ describe("Cursor hook state", () => {
 
     expect(loadHookState(stateDir)).toEqual({
       ...EMPTY_HOOK_STATE,
+      mcpState: "observed",
       kbMutationTools: ["kb_upsert", "kb_delete"],
       kbCheckRun: true,
       impactCheckRun: true,

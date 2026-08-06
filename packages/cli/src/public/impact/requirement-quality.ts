@@ -29,17 +29,6 @@ const BROAD_REQUIREMENT_THRESHOLDS = {
   dependentRequirements: 5,
 } as const;
 
-const NORMATIVE_INDICATOR_PATTERNS: readonly [string, RegExp][] = [
-  ["must", /\bmust\b/i],
-  ["only", /\bonly\b/i],
-  ["never", /\bnever\b/i],
-  ["limit", /\blimits?\b/i],
-  ["minimum", /\bminimum\b/i],
-  ["maximum", /\bmaximum\b/i],
-  ["at least", /\bat\s+least\b/i],
-  ["at most", /\bat\s+most\b/i],
-];
-
 type RequirementFanout = {
   readonly implementingSymbolIds: readonly string[];
   readonly scenarioIds: readonly string[];
@@ -232,26 +221,18 @@ function strictRelationshipTypes(result: ExtractionResult): readonly string[] {
   );
 }
 
-function matchedNormativeIndicators(text: string): readonly string[] {
-  return NORMATIVE_INDICATOR_PATTERNS.filter((entry) =>
-    entry[1].test(text),
-  ).map((entry) => entry[0]);
-}
-
-function createStrictFactModelingDiagnostics(
+function createLogicalCoverageDiagnostics(
   options: RequirementQualityDiagnosticsOptions,
 ): readonly KibiImpactDiagnostic[] {
   return options.manifestResults.flatMap((result) => {
     if (!isCurrentRequirement(result)) return [];
     if (options.hardViolationEntityIds?.has(result.entity.id)) return [];
     const relationshipTypes = strictRelationshipTypes(result);
-    if (relationshipTypes.length > 0) return [];
-    const indicators = matchedNormativeIndicators(result.entity.title);
-    if (indicators.length === 0) return [];
+    if ((result.entity.logic_claims?.length ?? 0) > 0) return [];
 
     return [
       {
-        id: "strict_fact_modeling_review",
+        id: "logical_coverage_review",
         severity: "review",
         blocking: false,
         category: "fact",
@@ -259,11 +240,10 @@ function createStrictFactModelingDiagnostics(
         source: result.entity.source,
         files: [result.entity.source],
         docs: ["docs/modeling-cheatsheet.md", "docs/error-reference.md"],
-        message: `Requirement ${result.entity.id} contains normative prose but has no strict fact or predicate relationship.`,
+        message: `Current requirement ${result.entity.id} has no atomic logic_claims manifest, so prose and existing fact links cannot prove complete logical coverage.`,
         suggestion:
-          "Use kb_model_requirement for strict property facts, or kb_suggest_predicates when the claim fits a predicate schema.",
+          "Call kb_semantic_advisor with the complete requirement prose and atomic clauses, ground each returned claim key through kb_model_requirement or kb_suggest_predicates, and persist all keys in logic_claims.",
         evidence: {
-          matchedIndicators: indicators,
           strictRelationshipTypes: relationshipTypes,
         },
       },
@@ -277,6 +257,6 @@ export function createRequirementQualityDiagnostics(
   return [
     ...createBroadRequirementDiagnostics(options.manifestResults),
     ...createRequirementStatusDiagnostics(options.manifestResults),
-    ...createStrictFactModelingDiagnostics(options),
+    ...createLogicalCoverageDiagnostics(options),
   ];
 }

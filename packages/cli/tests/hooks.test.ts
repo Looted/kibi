@@ -10,7 +10,7 @@ describe("Git hooks", () => {
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-test-"));
-    execSync("git init", { cwd: tmpDir });
+    execSync("git init -b main", { cwd: tmpDir });
     const kibiBin = path.resolve(__dirname, "../bin/kibi");
     // run init (hooks are installed by default)
     execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "inherit" });

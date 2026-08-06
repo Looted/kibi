@@ -117,6 +117,7 @@ documentation_markdown_untracked(WorkspaceRoot) :-
 documentation_markdown_file(Path, Path) :-
     exists_file(Path),
     file_name_extension(_, md, Path),
+    entity_documentation_file(Path),
     \+ ignored_documentation_file(Path),
     !.
 documentation_markdown_file(Path, FilePath) :-
@@ -140,6 +141,7 @@ known_source_path(RelativePath) :-
 
 directory_tree_newer(Path, SnapshotTime) :-
     exists_file(Path),
+    entity_documentation_file(Path),
     \+ ignored_documentation_file(Path),
     time_file(Path, EntryTime),
     EntryTime > SnapshotTime,
@@ -217,6 +219,13 @@ source_value_atom(Val, Atom) :-
 
 ignored_documentation_file(Path) :-
     file_base_name(Path, 'README.md').
+
+entity_documentation_file(Path) :-
+    read_file_to_string(Path, Content, []),
+    sub_string(Content, 0, 3, _, "---"),
+    sub_string(Content, _, _, _, "id:"),
+    sub_string(Content, _, _, _, "title:"),
+    sub_string(Content, _, _, _, "status:").
 
 dict_json_string(Dict, JsonString) :-
     with_output_to(string(JsonString), json_write_dict(current_output, Dict, [])).

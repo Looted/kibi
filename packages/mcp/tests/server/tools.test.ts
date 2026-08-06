@@ -161,11 +161,13 @@ describe("jsonSchemaToZod", () => {
       expect(result.safeParse("abcde").success).toBe(true);
     });
 
-    test("accepts any string with pattern (not validated)", () => {
+    test("validates and advertises string patterns", () => {
       const schema = { type: "string", pattern: "^[a-z]+$" };
       const result = jsonSchemaToZod(schema);
       expect(result).toBeInstanceOf(z.ZodType);
-      expect(result.safeParse("Hello").success).toBe(true);
+      expect(result.safeParse("hello").success).toBe(true);
+      expect(result.safeParse("Hello").success).toBe(false);
+      expect(z.toJSONSchema(result)).toMatchObject({ pattern: "^[a-z]+$" });
     });
 
     test("accepts any string with format (not validated)", () => {
@@ -277,6 +279,17 @@ describe("jsonSchemaToZod", () => {
       const result = jsonSchemaToZod(schema);
       expect(result.safeParse(["a", "b", "c"]).success).toBe(false);
       expect(result.safeParse(["a", "b"]).success).toBe(true);
+    });
+
+    test("validates and advertises uniqueItems", () => {
+      const result = jsonSchemaToZod({
+        type: "array",
+        items: { type: "string" },
+        uniqueItems: true,
+      });
+      expect(result.safeParse(["a", "b"]).success).toBe(true);
+      expect(result.safeParse(["a", "a"]).success).toBe(false);
+      expect(z.toJSONSchema(result)).toMatchObject({ uniqueItems: true });
     });
 
     test("handles items with nested object type", () => {
@@ -441,6 +454,43 @@ describe("jsonSchemaToZod", () => {
       const result = jsonSchemaToZod(schema);
       expect(result).toBeInstanceOf(z.ZodType);
       expect(result.safeParse({}).success).toBe(true);
+    });
+
+    test("validates and advertises conditional required properties", () => {
+      const consequenceKeyword = ["th", "en"].join("");
+      const allOf = [
+        Object.fromEntries([
+          [
+            "if",
+            {
+              anyOf: [
+                { required: ["claim_key"] },
+                { required: ["claim_text"] },
+              ],
+            },
+          ],
+          [consequenceKeyword, { required: ["claim_key", "claim_text"] }],
+        ]),
+      ];
+      const result = jsonSchemaToZod({
+        type: "object",
+        properties: {
+          claim_key: { type: "string" },
+          claim_text: { type: "string" },
+        },
+        allOf,
+      });
+      expect(result.safeParse({}).success).toBe(true);
+      expect(
+        result.safeParse({ claim_key: "CLAIM-0000000000000000" }).success,
+      ).toBe(false);
+      expect(
+        result.safeParse({
+          claim_key: "CLAIM-0000000000000000",
+          claim_text: "Atomic claim",
+        }).success,
+      ).toBe(true);
+      expect(z.toJSONSchema(result)).toMatchObject({ allOf });
     });
   });
 

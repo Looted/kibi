@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.0.0",
+  "kind": "kibi-skillopt-sandbox-toolchain-lock",
+  "platform": "linux",
+  "tools": {
+    "/usr/bin/bwrap": "70b3b488470c31d452f91f3a28c3e0bdb3f98a4bc558b52f850f5835f73ee448",
+    "/usr/bin/systemctl": "6293ee44ad361863a454210f63569d887191c9c98603e53ae54b31dd53732f5f",
+    "/usr/sbin/ip": "ab5f6b85b40b7e0ad5b569f34b85f155f7ec83d047efa2f039e9300c2474e4e7",
+    "/usr/sbin/nft": "8405aca4c24e021665747b1adf742c747c8f02cc426bf336718012c919f7e740"
+  },
+  "requiredPrimitives": [
+    "user-namespace",
+    "mount-namespace",
+    "pid-namespace",
+    "network-namespace",
+    "pidfd",
+    "memfd-sealing",
+    "veth",
+    "nft-default-drop"
+  ]
+}

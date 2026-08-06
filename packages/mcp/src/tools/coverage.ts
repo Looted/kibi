@@ -1,5 +1,7 @@
+import { executeCoverage } from "kibi-cli/operations";
 import type { PrologProcess } from "kibi-cli/prolog";
-import { runJsonModuleQuery, toPrologList } from "./core-module.js";
+
+type ReportingProlog = Pick<PrologProcess, "query">;
 
 export interface CoverageArgs {
   by?: "req" | "symbol" | "type";
@@ -11,50 +13,33 @@ export interface CoverageArgs {
 }
 
 export interface CoverageResult {
-  content: Array<{ type: string; text: string }>;
+  readonly content: readonly {
+    readonly type: string;
+    readonly text?: string;
+  }[];
   structuredContent?: {
-    summary: Record<string, number>;
-    rows: Array<Record<string, unknown>>;
-    meta?: Record<string, unknown>;
+    readonly summary: Readonly<Record<string, number>>;
+    readonly rows: readonly Readonly<Record<string, unknown>>[];
+    readonly meta?: Readonly<Record<string, unknown>>;
   };
 }
 
 // implements REQ-002, REQ-013
 export async function handleKbCoverage(
-  prolog: PrologProcess,
+  prolog: ReportingProlog,
   args: CoverageArgs,
 ): Promise<CoverageResult> {
-  const by = args.by ?? "req";
-  const limit = args.limit ?? 100;
-  const offset = args.offset ?? 0;
-  const includePassing = args.includePassing ?? false;
-  const includeTransitive = args.includeTransitive ?? true;
-
-  try {
-    const payload = await runJsonModuleQuery<
-      CoverageResult["structuredContent"]
-    >(
-      prolog,
-      "discovery.pl",
-      `discovery:coverage_report_json('${by}', ${toPrologList(args.tags)}, ${includePassing}, ${includeTransitive}, ${limit}, ${offset}, JsonString)`,
-      "Coverage execution",
-    );
-
-    const summary = payload?.summary ?? {};
-    const fullyCovered = Number(summary.fullyCovered ?? 0);
-    const total = Number(summary.total ?? 0);
-
-    return {
-      content: [
-        {
-          type: "text",
-          text: `Coverage summary: ${fullyCovered} fully covered out of ${total}.`,
-        },
-      ],
-      ...(payload !== undefined ? { structuredContent: payload } : {}),
-    };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Coverage execution failed: ${message}`);
-  }
+  return executeCoverage(
+    { ...args },
+    {
+      workspaceRoot: process.cwd(),
+      signal: new AbortController().signal,
+      clock: () => new Date(),
+      prolog: {
+        query: (goal) => prolog.query(goal),
+        nextSolution: async () => null,
+        save: () => prolog.query("kb_save"),
+      },
+    },
+  );
 }
