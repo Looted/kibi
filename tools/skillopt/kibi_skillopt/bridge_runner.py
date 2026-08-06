@@ -244,6 +244,8 @@ def run_bridge(
                     stream.close()
         _ = signal.signal(signal.SIGINT, previous_sigint)
         _ = signal.signal(signal.SIGTERM, previous_sigterm)
+    if process is None:
+        raise BridgeProcessError("startup")
     if process.returncode != 0:
         _reap_process_group(process, kill_grace_seconds)
         detail = stderr.decode("utf-8", errors="replace").strip().replace("\n", " ")

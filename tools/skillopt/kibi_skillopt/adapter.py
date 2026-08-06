@@ -123,7 +123,7 @@ class EnvAdapter(OptimizerAdapterMixin, SkillOptEnvAdapter):
         by_family: dict[str, list[TrainTrajectory]] = {}
         for trajectory in trajectories:
             by_family.setdefault(trajectory.family, []).append(trajectory)
-        families: list[dict[str, JsonValue]] = []
+        families: list[JsonValue] = []
         for family, entries in sorted(by_family.items()):
             failure_counts: dict[str, int] = {}
             for entry in entries:
@@ -160,11 +160,17 @@ class EnvAdapter(OptimizerAdapterMixin, SkillOptEnvAdapter):
         soft_scores: list[float] = []
         hard_passes = 0
         for row in rows:
-            soft = float(row["soft"])
-            family = str(row["task_type"])
+            soft_value = row.get("soft")
+            if not isinstance(soft_value, (int, float)) or isinstance(soft_value, bool):
+                raise BridgeError("development_requires_numeric_soft")
+            hard_value = row.get("hard")
+            if not isinstance(hard_value, (int, float)) or isinstance(hard_value, bool):
+                raise BridgeError("development_requires_numeric_hard")
+            soft = float(soft_value)
+            family = str(row.get("task_type", "unknown"))
             soft_scores.append(soft)
             by_family.setdefault(family, []).append(soft)
-            hard_passes += int(row["hard"])
+            hard_passes += int(hard_value)
         family_means = [sum(scores) / len(scores) for scores in by_family.values()]
         self._development_by_body_hash[contract_hash(skill_content)] = {
             "mean": sum(soft_scores) / len(soft_scores),

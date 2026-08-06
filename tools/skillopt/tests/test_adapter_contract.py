@@ -197,15 +197,18 @@ class AdapterContractTests(unittest.TestCase):
             )
             self.assertEqual(rows[0]["evidence_refs"], ["episode/predicate-train-1/receipt.json"])
             self.assertEqual(rows[0]["trajectory_hash"], contract_hash(rows[0]["trajectory"]))
+            trajectory = rows[0]["trajectory"]
+            if not isinstance(trajectory, dict):
+                self.fail("rollout trajectory must be an object")
             self.assertEqual(
-                rows[0]["trajectory"]["failureCategories"],
+                trajectory["failureCategories"],
                 ["predicate_missing", "wrong_relationship"],
             )
             self.assertEqual(
-                rows[0]["trajectory"]["toolSequence"],
+                trajectory["toolSequence"],
                 ['{"tool":"kb_search","outcome":"success"}'],
             )
-            self.assertEqual(rows[0]["trajectory"]["finalStateSummary"], '{"entities":[]}')
+            self.assertEqual(trajectory["finalStateSummary"], '{"entities":[]}')
 
     def test_failed_rollout_uses_kibi_specific_structured_reflection(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -254,10 +257,19 @@ class AdapterContractTests(unittest.TestCase):
 
             # Then
             self.assertIsNot(EnvAdapter.reflect, SkillOptEnvAdapter.reflect)
-            self.assertEqual(
-                patches[0]["patch"]["skill_candidates"][0]["new_skill"],
-                "Use exact Kibi decision rules.",
-            )
+            patch_payload = patches[0]
+            if not isinstance(patch_payload, dict):
+                self.fail("reflection patch must be an object")
+            patch_entry = patch_payload["patch"]
+            if not isinstance(patch_entry, dict):
+                self.fail("reflection patch body must be an object")
+            candidates = patch_entry["skill_candidates"]
+            if not isinstance(candidates, list):
+                self.fail("reflection skill candidates must be a list")
+            candidate = candidates[0]
+            if not isinstance(candidate, dict):
+                self.fail("reflection skill candidate must be an object")
+            self.assertEqual(candidate["new_skill"], "Use exact Kibi decision rules.")
             self.assertEqual(optimize.call_args.kwargs["step"], 1)
             self.assertEqual(
                 optimize.call_args.kwargs["trajectories"][0]["failureCategories"],
