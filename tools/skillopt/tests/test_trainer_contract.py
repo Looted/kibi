@@ -72,7 +72,7 @@ class TrainerContractTests(unittest.TestCase):
                     self, config: dict[str, JsonValue], trainer_adapter: EnvAdapter
                 ) -> None:
                     self._config: dict[str, JsonValue] = config
-                    self._adapter = trainer_adapter
+                    self._adapter: EnvAdapter = trainer_adapter
 
                 def train(self) -> dict[str, JsonValue]:
                     out_root = Path(str(self._config["out_root"]))
@@ -109,7 +109,10 @@ class TrainerContractTests(unittest.TestCase):
             # Then
             self.assertIsNone(optimize.call_args)
             self.assertEqual(result["codex_candidate_body_hash"], contract_hash(optimized.body))
-            self.assertEqual(result["candidate_development"]["mean"], 0.5)
+            candidate_development = result["candidate_development"]
+            if not isinstance(candidate_development, dict):
+                self.fail("candidate development must be an object")
+            self.assertEqual(candidate_development["mean"], 0.5)
             self.assertTrue((root / "training" / "codex-optimized-skill.md").is_file())
             frozen = parse_json_value((root / "training" / "frozen-candidate.json").read_text())
             self.assertIsInstance(frozen, dict)
@@ -155,7 +158,7 @@ class TrainerContractTests(unittest.TestCase):
                     self, config: dict[str, JsonValue], trainer_adapter: EnvAdapter
                 ) -> None:
                     self._config: dict[str, JsonValue] = config
-                    self._adapter = trainer_adapter
+                    self._adapter: EnvAdapter = trainer_adapter
 
                 def train(self) -> dict[str, JsonValue]:
                     nonlocal calls
