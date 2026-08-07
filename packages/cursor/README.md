@@ -31,7 +31,7 @@ Add this plugin only after the base packages work in your project.
 
 ### Cursor Marketplace (recommended)
 
-Submit or install from the Kibi repository marketplace at `.cursor-plugin/marketplace.json`, which points at `./plugins/kibi-cursor`.
+Submit or install from the Kibi repository marketplace at `.cursor-plugin/marketplace.json`, which points at `./plugins/kibi-cursor` (Cursor Plugin) and `./plugins/kibi-agent-plugin` (portable Agent Plugin). Cursor detects the format from the plugin manifest, so both install from the same marketplace.
 
 For local testing before marketplace publication, copy a real directory tree into Cursor's user-plugins folder. Symlinks are rejected when the target lives outside `plugins/local` (common on WSL):
 
@@ -82,6 +82,21 @@ Manual MCP fallback (no plugin install required):
   }
 }
 ```
+
+## Portable Agent Plugin (Agent Plugins standard)
+
+`kibi-cursor` also ships a portable [Agent Plugins](https://agent-plugins.org) build at `agent-plugin/`. The Agent Plugins open standard (v1.0.0) packages Agent Skills and MCP servers for any compatible client — Cursor, Copilot, OpenCode, and others — so the same Kibi capabilities load without client-specific adaptation.
+
+```
+agent-plugin/
+├── plugin.json   # agent-plugins.org/schemas/1.0.0/plugin.schema.json
+├── skills/       # canonical Kibi Agent Skills (kibi-usage, init-kibi, ...)
+└── mcp.json      # agent-plugins.org/schemas/1.0.0/mcp.schema.json (stdio kibi-mcp)
+```
+
+- Cursor loads the portable build directly; Cursor-only components (rules, commands, hooks) remain in the `.cursor-plugin` Cursor Plugin build.
+- Both formats are listed in the same marketplace; pick the format your client needs.
+- The portable build still requires the project-local `kibi-cli`, `kibi-mcp`, and `kibi-core` packages plus SWI-Prolog 9+ (see Prerequisites above).
 
 ## Features
 

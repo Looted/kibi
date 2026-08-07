@@ -341,9 +341,9 @@ coordinates:
   SYM-DOC-RESOURCES:
     sourceColumn: 13
     sourceEndColumn: 51
-    sourceEndLine: 295
+    sourceEndLine: 296
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 295
+    sourceLine: 296
   SYM-DefaultRuntimeProlog:
     sourceColumn: 12
     sourceEndColumn: 49
@@ -1097,7 +1097,7 @@ coordinates:
   SYM-PROMPTS:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 197
+    sourceEndLine: 198
     sourceFile: packages/mcp/src/server/docs.ts
     sourceLine: 68
   SYM-PROSE_COVERAGE_CORPUS:
@@ -2471,7 +2471,7 @@ coordinates:
   SYM-buildInitKibiAlias:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 43
+    sourceEndLine: 44
     sourceFile: packages/opencode/src/init-kibi-alias.ts
     sourceLine: 14
   SYM-buildNormativeRequirementCandidates:
@@ -2483,9 +2483,9 @@ coordinates:
   SYM-buildPrompt:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 670
+    sourceEndLine: 671
     sourceFile: packages/opencode/src/prompt.ts
-    sourceLine: 662
+    sourceLine: 663
   SYM-buildProviderEvidenceCandidates:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3557,9 +3557,9 @@ coordinates:
   SYM-computeEnforcementPolicy:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 464
+    sourceEndLine: 465
     sourceFile: packages/opencode/src/enforcement-policy.ts
-    sourceLine: 373
+    sourceLine: 374
   SYM-computeHashManifest:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -3718,7 +3718,7 @@ coordinates:
     sourceLine: 66
   SYM-cursor-BOOTSTRAP_REMINDER:
     sourceColumn: 13
-    sourceEndColumn: 378
+    sourceEndColumn: 368
     sourceEndLine: 10
     sourceFile: packages/cursor/src/messages.ts
     sourceLine: 9
@@ -3730,7 +3730,7 @@ coordinates:
     sourceLine: 32
   SYM-cursor-DIRECT_KB_EDIT_WARNING:
     sourceColumn: 13
-    sourceEndColumn: 238
+    sourceEndColumn: 229
     sourceEndLine: 13
     sourceFile: packages/cursor/src/messages.ts
     sourceLine: 12
@@ -3794,6 +3794,30 @@ coordinates:
     sourceEndLine: 41
     sourceFile: packages/cursor/src/hook-state.ts
     sourceLine: 31
+  SYM-cursor-agentPluginRoot:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 66
+    sourceFile: packages/cursor/scripts/build-agent-plugin.ts
+    sourceLine: 64
+  SYM-cursor-buildAgentPluginMcpJson:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 148
+    sourceFile: packages/cursor/scripts/build-agent-plugin.ts
+    sourceLine: 132
+  SYM-cursor-buildAgentPluginUnlocked:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 199
+    sourceFile: packages/cursor/scripts/build-agent-plugin.ts
+    sourceLine: 176
+  SYM-cursor-buildPluginManifest:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 174
+    sourceFile: packages/cursor/scripts/build-agent-plugin.ts
+    sourceLine: 159
   SYM-cursor-clearDirtyPaths:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4595,9 +4619,9 @@ coordinates:
   SYM-injectPrompt:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 688
+    sourceEndLine: 689
     sourceFile: packages/opencode/src/prompt.ts
-    sourceLine: 675
+    sourceLine: 676
   SYM-installGitHooks:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6179,9 +6203,9 @@ coordinates:
   SYM-postureGuidance:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 247
+    sourceEndLine: 248
     sourceFile: packages/opencode/src/prompt.ts
-    sourceLine: 227
+    sourceLine: 228
   SYM-predicate-build-suggestion:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6983,9 +7007,9 @@ coordinates:
   SYM-setupDocsAndPrompts:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 325
+    sourceEndLine: 326
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 297
+    sourceLine: 298
   SYM-sha256Text:
     sourceColumn: 16
     sourceEndColumn: 1

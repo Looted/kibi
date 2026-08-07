@@ -2,26 +2,26 @@
 
 This table is the machine-readable interface map for Kibi's shared operation catalog. Every CLI route shown is dedicated; there is no generic operation runner. `--input JSON or flags` means the route supports exact MCP-shaped JSON from a file or stdin as well as its established human flags. `--input JSON` means the dedicated parity route is JSON-only.
 
-| MCP tool name | CLI route | Input mode | Mutability | Requires Prolog | Effects | Capability preference |
+| MCP tool name | CLI route | Input mode | Mutability | Requires Prolog | Effects | Interface |
 |---|---|---|---|---|---|---|
-| `kb_skills_list` | `skills-list` | `--input JSON` | read | no | `local-read` | MCP-first; CLI-fallback |
-| `kb_skills_load` | `skills-load` | `--input JSON` | read | no | `local-read` | MCP-first; CLI-fallback |
-| `kb_skills_read` | `skills-read` | `--input JSON` | read | no | `local-read` | MCP-first; CLI-fallback |
-| `kb_query` | `query` | `--input JSON or flags` | read | yes | `kb-read` | MCP-first; CLI-fallback |
-| `kb_search` | `search` | `--input JSON or flags` | read | yes | `kb-read` | MCP-first; CLI-fallback |
-| `kb_status` | `status` | `--input JSON or flags` | read | yes | `kb-read, workspace-read` | MCP-first; CLI-fallback |
-| `kb_find_gaps` | `find-gaps` | `--input JSON or flags` | read | yes | `kb-read` | MCP-first; CLI-fallback |
-| `kb_coverage` | `coverage` | `--input JSON or flags` | read | yes | `kb-read` | MCP-first; CLI-fallback |
-| `kb_graph` | `graph` | `--input JSON or flags` | read | yes | `kb-read` | MCP-first; CLI-fallback |
-| `kb_semantic_advisor` | `semantic-advisor` | `--input JSON` | read | no | `local-read` | MCP-first; CLI-fallback |
-| `kb_model_requirement` | `model-requirement` | `--input JSON` | read | yes | `kb-read` | MCP-first; CLI-fallback |
-| `kb_suggest_predicates` | `suggest-predicates` | `--input JSON` | read | yes | `kb-read` | MCP-first; CLI-fallback |
-| `kb_autopilot_generate` | `autopilot-generate` | `--input JSON` | read | no | `workspace-read` | MCP-first; CLI-fallback |
-| `kb_validate_upsert` | `validate-upsert` | `--input JSON` | read | yes | `kb-read` | MCP-first; CLI-fallback |
-| `kb_upsert` | `upsert` | `--input JSON` | write | yes | `kb-write, workspace-write` | MCP-first; CLI-fallback |
-| `kb_delete` | `delete` | `--input JSON` | write | yes | `kb-write, workspace-write` | MCP-first; CLI-fallback |
-| `kb_check` | `check` | `--input JSON or flags` | read | yes | `kb-read, workspace-read` | MCP-first; CLI-fallback |
-| `kb_sparql_remote` | `sparql-remote` | `--input JSON` | read | no | `network-read` | MCP-first; CLI-fallback |
+| `kb_skills_list` | `skills-list` | `--input JSON` | read | no | `local-read` | peer; capability-selected |
+| `kb_skills_load` | `skills-load` | `--input JSON` | read | no | `local-read` | peer; capability-selected |
+| `kb_skills_read` | `skills-read` | `--input JSON` | read | no | `local-read` | peer; capability-selected |
+| `kb_query` | `query` | `--input JSON or flags` | read | yes | `kb-read` | peer; capability-selected |
+| `kb_search` | `search` | `--input JSON or flags` | read | yes | `kb-read` | peer; capability-selected |
+| `kb_status` | `status` | `--input JSON or flags` | read | yes | `kb-read, workspace-read` | peer; capability-selected |
+| `kb_find_gaps` | `find-gaps` | `--input JSON or flags` | read | yes | `kb-read` | peer; capability-selected |
+| `kb_coverage` | `coverage` | `--input JSON or flags` | read | yes | `kb-read` | peer; capability-selected |
+| `kb_graph` | `graph` | `--input JSON or flags` | read | yes | `kb-read` | peer; capability-selected |
+| `kb_semantic_advisor` | `semantic-advisor` | `--input JSON` | read | no | `local-read` | peer; capability-selected |
+| `kb_model_requirement` | `model-requirement` | `--input JSON` | read | yes | `kb-read` | peer; capability-selected |
+| `kb_suggest_predicates` | `suggest-predicates` | `--input JSON` | read | yes | `kb-read` | peer; capability-selected |
+| `kb_autopilot_generate` | `autopilot-generate` | `--input JSON` | read | no | `workspace-read` | peer; capability-selected |
+| `kb_validate_upsert` | `validate-upsert` | `--input JSON` | read | yes | `kb-read` | peer; capability-selected |
+| `kb_upsert` | `upsert` | `--input JSON` | write | yes | `kb-write, workspace-write` | peer; capability-selected |
+| `kb_delete` | `delete` | `--input JSON` | write | yes | `kb-write, workspace-write` | peer; capability-selected |
+| `kb_check` | `check` | `--input JSON or flags` | read | yes | `kb-read, workspace-read` | peer; capability-selected |
+| `kb_sparql_remote` | `sparql-remote` | `--input JSON` | read | no | `network-read` | peer; capability-selected |
 
 ## JSON execution recipes
 

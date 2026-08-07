@@ -104,7 +104,7 @@ describe("kibi-codex skills", () => {
     }
   });
 
-  test("generated skills expose the MCP-first capability state machine", () => {
+  test("generated skills expose peer-surface capability guidance", () => {
     for (const skillName of requiredSkills) {
       const raw = fs.readFileSync(
         path.join(skillsRoot, skillName, "SKILL.md"),

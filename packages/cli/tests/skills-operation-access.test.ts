@@ -81,7 +81,7 @@ describe("operation-access skill resource", () => {
       );
       expect(row?.requiresProlog).toBe(spec.requiresProlog ? "yes" : "no");
       expect(row?.effects.split(", ")).toEqual([...spec.effects]);
-      expect(row?.preference).toBe("MCP-first; CLI-fallback");
+      expect(row?.preference).toBe("peer; capability-selected");
     }
   });
 

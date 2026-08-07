@@ -11,6 +11,11 @@
       "name": "kibi-cursor",
       "source": "plugins/kibi-cursor",
       "description": "Kibi MCP integration, rules, skills, and advisory Cursor hooks"
+    },
+    {
+      "name": "kibi-agent-plugin",
+      "source": "plugins/kibi-agent-plugin",
+      "description": "Portable Agent Plugins build of Kibi: Agent Skills and MCP server for any Agent Plugins-compatible client"
     }
   ]
 }

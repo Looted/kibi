@@ -101,7 +101,7 @@ function buildBootstrapRequiredBody(
     ? "- When the Kibi OpenCode plugin is active and native injection is supported, use `/init-kibi` as the canonical short alias; `/kibi:init-kibi:mcp` remains the namespaced MCP fallback."
     : "- This host does not support native `/init-kibi` injection. Kibi must fail closed and does not register a fake native alias; use `/kibi:init-kibi:mcp` instead.";
 
-  return `Kibi capability selection:\n1. If Kibi MCP tools are visible, use MCP.\n2. If MCP availability is unknown and a trusted local Kibi CLI is available, use its dedicated JSON routes with \`--input <file|->\`.\n3. If neither interface is available, Kibi operation is blocked; tell the operator.\nDo not infer MCP availability from config file existence. Do not read or edit \`.kb/\` files directly. Query before mutate. Run \`kb_upsert\` sequentially. Run \`kb_check\` before completion.\n\nThis repository does not appear to have Kibi initialized. Agents should:\n${commandBullet}\n- The workflow uses \`kb_autopilot_generate\` for read-only synthesis; always preview and get approval before writes.\n- Ask the operator to handle setup or repair if bootstrap is insufficient.\n- Load \`kibi-usage\` with \`kb_skills_load\` for comprehensive guidance.`;
+  return `Kibi capability selection (MCP tools and the trusted project-local CLI are peer surfaces over the same 18 operations):\n1. If Kibi MCP tools are visible and approved, use MCP.\n2. Otherwise, in a trusted workspace, use the project-local CLI's dedicated JSON routes with \`--input <file|->\`.\n3. If neither interface is available, Kibi operation is blocked; tell the operator.\nDo not infer MCP availability from config file existence. Do not read or edit \`.kb/\` files directly. Query before mutate. Run \`kb_upsert\` sequentially. Run \`kb_check\` before completion.\n\nThis repository does not appear to have Kibi initialized. Agents should:\n${commandBullet}\n- The workflow uses \`kb_autopilot_generate\` for read-only synthesis; always preview and get approval before writes.\n- Ask the operator to handle setup or repair if bootstrap is insufficient.\n- Load \`kibi-usage\` with \`kb_skills_load\` for comprehensive guidance.`;
 }
 
 // ── PromptContext ──────────────────────────────────────────────────────
@@ -164,8 +164,9 @@ function buildHardGateBlock(
     "Affected files:",
     ...pathLines,
     "Capability-based recovery steps:",
-    "- If Kibi MCP tools are visible, use MCP.",
-    "- If MCP availability is unknown and a trusted local Kibi CLI is available, use its dedicated JSON routes with `--input <file|->`.",
+    "- MCP tools and the trusted project-local CLI are peer surfaces over the same 18 operations; choose by what is visible and approved here.",
+    "- If Kibi MCP tools are visible and approved, use MCP.",
+    "- Otherwise, in a trusted workspace, use the project-local CLI's dedicated JSON routes with `--input <file|->`.",
     "- If neither interface is available, Kibi operation is blocked; tell the operator to enable MCP or the trusted project-local CLI.",
     "- Do not infer MCP availability from config file existence. Do not read or edit `.kb/` files directly.",
     "- Query before mutate. Run `kb_upsert` sequentially. Run `kb_check` before completion.",
@@ -215,7 +216,7 @@ Production code: use \`implements\` (symbol→req) for requirement ownership. Te
 
   manual_kb_edit: `⚠️  **WARNING: Direct .kb/ edits bypass validation**
 
-The Kibi knowledge base is managed through visible MCP tools or trusted project-local CLI JSON routes when MCP is unavailable. Do not read or edit \`.kb/\` files directly.
+The Kibi knowledge base is managed through visible MCP tools or the trusted project-local CLI — peer surfaces over the same 18 operations. Do not read or edit \`.kb/\` files directly.
 - Query before mutate and run kb_upsert sequentially
 - Use kb_upsert to create/update entities
 - Use kb_delete to remove entities
@@ -632,9 +633,9 @@ Before changing behavior: use kb_search for discovery, then kb_query by sourceFi
 
 Keep changed symbols traceable: production code uses \`implements\` (symbol→req) for ownership; test code uses \`executable_for\`; \`covered_by\` is coverage evidence only. Inline \`// implements REQ-xxx\` comments remain backward-compatible.
 
-Kibi capability selection:
-1. If Kibi MCP tools are visible, use MCP.
-2. If MCP availability is unknown and a trusted local Kibi CLI is available, use its dedicated JSON routes with \`--input <file|->\`.
+Kibi capability selection (MCP tools and the trusted project-local CLI are peer surfaces over the same 18 operations):
+1. If Kibi MCP tools are visible and approved, use MCP.
+2. Otherwise, in a trusted workspace, use the project-local CLI's dedicated JSON routes with \`--input <file|->\`.
 3. If neither interface is available, Kibi operation is blocked; tell the operator to enable MCP or the trusted project-local CLI.
 Do not infer MCP availability from config file existence. Do not read or edit \`.kb/\` files directly. Query before mutate. Run \`kb_upsert\` sequentially. Run \`kb_check\` before completion.
 

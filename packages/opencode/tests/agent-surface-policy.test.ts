@@ -7,7 +7,7 @@ describe("agent surface policy", () => {
     expect(prompt).toContain("/init-kibi");
     expect(prompt).toContain("kb_autopilot_generate");
     expect(prompt).toContain("MCP tools are visible");
-    expect(prompt).toContain("trusted local Kibi CLI");
+    expect(prompt).toContain("trusted project-local CLI");
     expect(prompt).toContain("--input");
     expect(prompt).toContain("neither interface is available");
     expect(prompt).toContain("Do not read or edit `.kb/` files directly");

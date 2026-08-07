@@ -20,7 +20,7 @@ describe("hook contract", () => {
       const injected = output.system.join("\n");
 
       expect(injected).toContain("MCP tools are visible");
-      expect(injected).toContain("trusted local Kibi CLI");
+      expect(injected).toContain("trusted project-local CLI");
       expect(injected).toContain("--input");
       expect(injected).toContain("neither interface is available");
       expect(injected).toContain("Do not read or edit `.kb/` files directly");
