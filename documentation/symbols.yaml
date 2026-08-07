@@ -588,6 +588,7 @@ symbols:
     title: autopilot MCP adapter test
     sourceFile: packages/mcp/tests/tools/autopilot-adapter.test.ts
     symbol_role: behavioral
+    granularity_reason: test-suite
     relationships:
       - type: executable_for
         target: TEST-mcp-init-kibi-autopilot-v1
@@ -604,6 +605,7 @@ symbols:
     title: autopilot CLI MCP parity test
     sourceFile: packages/cli/tests/parity/autopilot.test.ts
     symbol_role: behavioral
+    granularity_reason: test-suite
     relationships:
       - type: executable_for
         target: TEST-kibi-operation-interface-parity
@@ -668,6 +670,7 @@ symbols:
     title: shared autopilot executor test
     sourceFile: packages/cli/tests/operations/autopilot.test.ts
     symbol_role: behavioral
+    granularity_reason: test-suite
     relationships:
       - type: executable_for
         target: TEST-mcp-init-kibi-autopilot-v1
@@ -2188,6 +2191,7 @@ symbols:
   - id: SYM-cli-status-pre-first-sync-test
     title: cli status pre-sync test
     sourceFile: packages/cli/tests/commands/status.test.ts
+    granularity_reason: test-suite
     relationships:
       - type: executable_for
         target: TEST-cli-status-pre-first-sync
@@ -2259,6 +2263,7 @@ symbols:
     title: authoritative release scope input
     sourceFile: packages/cli/tests/traceability/release-scope.ts
     symbol_role: structural
+    granularity_reason: config-artifact
     relationships:
       - type: executable_for
         target: TEST-skillopt-external-adoption-verdict
@@ -4313,31 +4318,43 @@ symbols:
         target: TEST-kibi-operation-interface-parity
   - id: SYM-formatInvalidRelationshipError
     title: formatInvalidRelationshipError
-    sourceFile: packages/mcp/src/tools/relationship-validation.ts
+    sourceFile: packages/cli/src/operations/mutation/relationships.ts
     granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-mcp-relationship-preflight
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-mcp-relationship-preflight
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
   - id: SYM-formatInvalidRelationshipTuple
     title: formatInvalidRelationshipTuple
-    sourceFile: packages/mcp/src/tools/relationship-validation.ts
+    sourceFile: packages/cli/src/operations/mutation/relationships.ts
     granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-mcp-relationship-preflight
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-mcp-relationship-preflight
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
   - id: SYM-formatRelationshipSourceMismatch
     title: formatRelationshipSourceMismatch
-    sourceFile: packages/mcp/src/tools/relationship-validation.ts
+    sourceFile: packages/cli/src/operations/mutation/relationships.ts
     granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-mcp-relationship-preflight
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-mcp-relationship-preflight
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
   - id: SYM-frozenHashes
     title: frozenHashes
     sourceFile: scripts/skillopt-eval/held-out-cell-binding.ts
@@ -5033,6 +5050,24 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
+  - id: SYM-COARSE_GRANULARITY_REASONS
+    title: COARSE_GRANULARITY_REASONS
+    sourceFile: packages/cli/src/commands/sync/manifest.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+  - id: SYM-isCoarseGranularityAnchor
+    title: isCoarseGranularityAnchor
+    sourceFile: packages/cli/src/commands/sync/manifest.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
   - id: SYM-isEligibleForCoordinateRefresh
     title: isEligibleForCoordinateRefresh
     sourceFile: packages/cli/src/commands/sync/manifest.ts
@@ -5559,7 +5594,8 @@ symbols:
         target: TEST-cli-staged-impact-enforcement
   - id: SYM-kibiOpencodePlugin
     title: kibiOpencodePlugin
-    sourceFile: packages/opencode/src/index.ts
+    sourceFile: packages/opencode/src/plugin.ts
+    granularity_reason: extractor-miss
     links:
       - REQ-opencode-kibi-plugin-v1
     relationships:
@@ -5935,6 +5971,7 @@ symbols:
   - id: SYM-mcp-cli-help-test
     title: mcp cli help test
     sourceFile: packages/mcp/tests/cli-help.test.ts
+    granularity_reason: test-suite
     relationships:
       - type: executable_for
         target: TEST-mcp-cli-help
@@ -7806,36 +7843,6 @@ symbols:
         target: TEST-kibi-operation-interface-parity
   - id: SYM-parity-existing-relationships
     title: existingRelationships
-    sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    symbol_role: behavioral
-    granularity_reason: extractor-miss
-    relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-kibi-operation-interface-parity
-  - id: SYM-parity-format-invalid-relationship-error
-    title: formatInvalidRelationshipError
-    sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    symbol_role: behavioral
-    granularity_reason: extractor-miss
-    relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-kibi-operation-interface-parity
-  - id: SYM-parity-format-invalid-relationship-tuple
-    title: formatInvalidRelationshipTuple
-    sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    symbol_role: behavioral
-    granularity_reason: extractor-miss
-    relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-kibi-operation-interface-parity
-  - id: SYM-parity-format-relationship-source-mismatch
-    title: formatRelationshipSourceMismatch
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
     symbol_role: behavioral
     granularity_reason: extractor-miss
@@ -9732,16 +9739,6 @@ symbols:
     title: stringValue
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
     symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
-      - type: covered_by
-        target: TEST-mcp-semantic-advisor-preflight
-  - id: SYM-SemanticAdvisorArgs
-    title: SemanticAdvisorArgs
-    sourceFile: packages/mcp/src/tools/semantic-advisor.ts
-    symbol_role: type-shape
-    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-mcp-semantic-advisor-preflight
@@ -13302,6 +13299,7 @@ symbols:
     title: isolation workspace cleanup retry tests
     sourceFile: scripts/skillopt-eval/tests/isolation-workspace.test.ts
     symbol_role: behavioral
+    granularity_reason: test-suite
     relationships:
       - type: executable_for
         target: TEST-skillopt-codex-optimization
@@ -14816,13 +14814,6 @@ symbols:
     sourceFile: scripts/skillopt-eval/tests/process-control.test.ts
     symbol_role: behavioral
     granularity_reason: extractor-miss
-    relationships:
-      - type: executable_for
-        target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-process-control-tests
-    title: bounded process group tests
-    sourceFile: scripts/skillopt-eval/tests/process-control.test.ts
-    symbol_role: behavioral
     relationships:
       - type: executable_for
         target: TEST-skillopt-codex-optimization
@@ -16986,6 +16977,7 @@ symbols:
     title: workspace auth cleanup tests
     sourceFile: scripts/skillopt-eval/tests/workspace-auth-cleanup.test.ts
     symbol_role: behavioral
+    granularity_reason: test-suite
     relationships:
       - type: executable_for
         target: TEST-skillopt-codex-optimization
@@ -17126,15 +17118,6 @@ symbols:
         target: REQ-reusable-skill-subsystem
       - type: covered_by
         target: TEST-skill-cli-load-validate
-  - id: SYM-SkillsLoadPayload
-    title: SkillsLoadPayload
-    sourceFile: packages/mcp/src/tools/skills.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
   - id: SYM-SkillsLoadResult
     title: SkillsLoadResult
     sourceFile: packages/mcp/src/tools/skills.ts
