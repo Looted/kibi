@@ -160,7 +160,7 @@ describe("MCP runtime docs: canonical modeling wording", () => {
     test("must select MCP, trusted CLI JSON, or blocked operation by capability", () => {
       const prompt = findPrompt("init-kibi");
       expect(prompt.text).toContain("MCP tools are visible");
-      expect(prompt.text).toContain("trusted local Kibi CLI");
+      expect(prompt.text).toContain("trusted project-local CLI");
       expect(prompt.text).toContain("--input");
       expect(prompt.text).toContain("neither interface is available");
       expect(prompt.text).toContain(

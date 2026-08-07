@@ -19,6 +19,7 @@
     "skills",
     "rules",
     "commands",
+    "agent-plugin",
     "dist",
     "CHANGELOG.md"
   ],
@@ -34,7 +35,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && bun run scripts/copy-plugin-assets.ts && bun run ../../scripts/sync-agent-skills.ts --write --target cursor",
+    "build": "tsc -p tsconfig.json && bun run scripts/copy-plugin-assets.ts && bun run scripts/build-agent-plugin.ts && bun run ../../scripts/sync-agent-skills.ts --write --target cursor",
     "dev": "tsc -p tsconfig.json --watch",
     "clean": "rm -rf dist",
     "prepack": "npm run build"

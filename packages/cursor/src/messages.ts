@@ -7,10 +7,10 @@ import {
 } from "./path-policy.js";
 
 export const BOOTSTRAP_REMINDER =
-  "Kibi config was not found at the Cursor workspace root. Use visible Kibi MCP tools, or a trusted project-local CLI JSON route with --input when MCP is unavailable, to bootstrap project memory; if neither interface is available, tell the operator. Do not read or edit `.kb/` files directly. Query before mutate, run kb_upsert sequentially, and run kb_check before completion.";
+  "Kibi config was not found at the Cursor workspace root. Use visible Kibi MCP tools or a trusted project-local CLI JSON route with --input (peer surfaces) to bootstrap project memory; if neither interface is available, tell the operator. Do not read or edit `.kb/` files directly. Query before mutate, run kb_upsert sequentially, and run kb_check before completion.";
 
 export const DIRECT_KB_EDIT_WARNING =
-  "Do not read or edit `.kb/` files directly. Use visible Kibi MCP tools, or trusted project-local CLI JSON routes with --input when MCP is unavailable. Query before mutate, run kb_upsert sequentially, and run kb_check before completion.";
+  "Do not read or edit `.kb/` files directly. Use visible Kibi MCP tools or trusted project-local CLI JSON routes with --input (peer surfaces). Query before mutate, run kb_upsert sequentially, and run kb_check before completion.";
 
 export function interfaceAdvisory(
   mcpState: McpState,

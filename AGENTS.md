@@ -12,7 +12,7 @@ If this file and MCP schema details diverge, follow MCP schema and update this f
 
 ## Non-Negotiables
 
-- Use Kibi through MCP tools when available, or through the CLI's dedicated JSON routes (--input) when MCP is unavailable. Both surfaces expose the same 18 operations.
+- Use Kibi through either peer surface: visible MCP tools or the CLI's dedicated JSON routes (--input). Both surfaces expose the same 18 operations; select by what is visible and approved in the environment rather than by a fixed preference.
 - Select the interface by capability: use visible MCP tools; otherwise use a trusted project-local CLI when available; if neither is available, stop and tell the operator. Do not infer MCP availability from config file existence.
 - Do **not** manually read or edit this project's attached KB under `/home/looted/projects/kibi/.kb/`. This is a repository-local guardrail from this `AGENTS.md`, not a universal restriction: for another project, follow that project's `AGENTS.md`/rules and require explicit operator authorization before manually reading or editing its `.kb/`.
 - CLI-only Kibi operations, including sync/refresh workflows that do not have MCP tool equivalents, may be run from agent sessions when needed to complete validation or freshness work.
@@ -23,8 +23,8 @@ If this file and MCP schema details diverge, follow MCP schema and update this f
 
 Skills are bundled Markdown guidance, not an implicit instruction channel. An agent must discover and load them through the capability it can actually use; a `skills/` directory is not automatically loaded by arbitrary agent hosts.
 
-- **MCP first:** after MCP capability discovery (`tools/list`), use the host-visible `kb_skills_list` tool (some hosts prefix it with the configured server name), then `kb_skills_load` with the returned skill ID. Use `kb_skills_read` only for resources declared by that skill's manifest. Start with `kibi-usage` when Kibi workflow guidance is needed.
-- **CLI fallback:** when a trusted project-local `kibi` binary is available but MCP is not, prefer the structured JSON routes for agent automation:
+- **Capability-selected:** after MCP capability discovery (`tools/list`), if MCP is visible use the host-visible `kb_skills_list` tool (some hosts prefix it with the configured server name), then `kb_skills_load` with the returned skill ID. Use `kb_skills_read` only for resources declared by that skill's manifest. Start with `kibi-usage` when Kibi workflow guidance is needed.
+- **CLI peer:** when a trusted project-local `kibi` binary is available, prefer the structured JSON routes for agent automation (equivalent to the MCP skill tools):
   ```bash
   printf '%s\n' '{}' | kibi skills-list --input -
   printf '%s\n' '{"id":"kibi-usage"}' | kibi skills-load --input -

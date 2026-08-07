@@ -34,10 +34,19 @@ describe("kibi-cursor local marketplace fixture", () => {
     expect(fixture.name).toBe("kibi-local");
     expect(fixture.metadata?.description).toContain("kibi-cursor");
 
-    const plugin = fixture.plugins?.[0];
-    expect(plugin?.name).toBe("kibi-cursor");
+    const plugin = fixture.plugins?.find(
+      (entry) => entry.name === "kibi-cursor",
+    );
+    expect(plugin).toBeTruthy();
     expect(plugin?.source).toBe("plugins/kibi-cursor");
     expect(plugin?.description).toContain("Kibi");
+
+    const agentPlugin = fixture.plugins?.find(
+      (entry) => entry.name === "kibi-agent-plugin",
+    );
+    expect(agentPlugin).toBeTruthy();
+    expect(agentPlugin?.source).toBe("plugins/kibi-agent-plugin");
+    expect(agentPlugin?.description).toContain("Kibi");
   });
 
   test("repo marketplace exposes kibi-cursor from the plugins directory", () => {
@@ -67,6 +76,13 @@ describe("kibi-cursor local marketplace fixture", () => {
     expect(plugin?.source).toBe("kibi-cursor");
     expect(plugin?.description).toContain("Kibi");
 
+    const agentPlugin = marketplace.plugins?.find(
+      (entry) => entry.name === "kibi-agent-plugin",
+    );
+    expect(agentPlugin).toBeTruthy();
+    expect(agentPlugin?.source).toBe("kibi-agent-plugin");
+    expect(agentPlugin?.description).toContain("Kibi");
+
     const pluginRoot = path.join(repoRoot, "plugins", "kibi-cursor");
     expect(
       fs.existsSync(path.join(pluginRoot, ".cursor-plugin", "plugin.json")),
@@ -78,6 +94,11 @@ describe("kibi-cursor local marketplace fixture", () => {
     expect(fs.existsSync(path.join(pluginRoot, "skills"))).toBe(true);
     expect(fs.existsSync(path.join(pluginRoot, "rules"))).toBe(true);
     expect(fs.existsSync(path.join(pluginRoot, "commands"))).toBe(true);
+
+    const agentPluginRoot = path.join(repoRoot, "plugins", "kibi-agent-plugin");
+    expect(fs.existsSync(path.join(agentPluginRoot, "plugin.json"))).toBe(true);
+    expect(fs.existsSync(path.join(agentPluginRoot, "mcp.json"))).toBe(true);
+    expect(fs.existsSync(path.join(agentPluginRoot, "skills"))).toBe(true);
   });
 
   test("is not published via package.json files", () => {

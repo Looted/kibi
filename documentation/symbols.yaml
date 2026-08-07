@@ -2872,6 +2872,11 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
+  - id: SYM-cursor-agentPluginRoot
+    title: agentPluginRoot
+    sourceFile: packages/cursor/scripts/build-agent-plugin.ts
+    symbol_role: behavioral
+    text_ref: packages/cursor/scripts/build-agent-plugin.ts#agentPluginRoot
   - id: SYM-cursor-BOOTSTRAP_REMINDER
     title: BOOTSTRAP_REMINDER
     sourceFile: packages/cursor/src/messages.ts
@@ -2886,6 +2891,28 @@ symbols:
         target: REQ-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
+  - id: SYM-cursor-buildAgentPluginMcpJson
+    title: buildAgentPluginMcpJson
+    sourceFile: packages/cursor/scripts/build-agent-plugin.ts
+    symbol_role: behavioral
+    text_ref: packages/cursor/scripts/build-agent-plugin.ts#buildAgentPluginMcpJson
+  - id: SYM-cursor-buildAgentPluginUnlocked
+    title: buildAgentPluginUnlocked
+    sourceFile: packages/cursor/scripts/build-agent-plugin.ts
+    symbol_role: behavioral
+    text_ref: packages/cursor/scripts/build-agent-plugin.ts#buildAgentPluginUnlocked
+    links:
+      - REQ-cursor-agent-plugin-standard-v1
+    relationships:
+      - type: implements
+        target: REQ-cursor-agent-plugin-standard-v1
+      - type: covered_by
+        target: TEST-cursor-agent-plugin-v1
+  - id: SYM-cursor-buildPluginManifest
+    title: buildPluginManifest
+    sourceFile: packages/cursor/scripts/build-agent-plugin.ts
+    symbol_role: behavioral
+    text_ref: packages/cursor/scripts/build-agent-plugin.ts#buildPluginManifest
   - id: SYM-cursor-clearDirtyPaths
     title: clearDirtyPaths
     sourceFile: packages/cursor/src/hook-state.ts

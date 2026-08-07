@@ -38,6 +38,7 @@ describe("kibi-cursor package contract", () => {
       "skills",
       "rules",
       "commands",
+      "agent-plugin",
       "dist",
       "CHANGELOG.md",
     ]);
