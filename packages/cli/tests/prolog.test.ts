@@ -113,6 +113,18 @@ describe("PrologProcess", () => {
     expect(afterInvalidation).not.toBe(first);
   });
 
+  test("does not cache compound goals to preserve read-after-write consistency", async () => {
+    prolog = new PrologProcess();
+    await prolog.start();
+
+    const first = await prolog.query("(X = 7)");
+    const second = await prolog.query("(X = 7)");
+    expect(first.success).toBe(true);
+    expect(second.success).toBe(true);
+    expect(second.bindings.X).toBe("7");
+    expect(second).not.toBe(first);
+  });
+
   test("executes batch goals and returns bindings", async () => {
     prolog = new PrologProcess();
     await prolog.start();
