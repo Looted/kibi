@@ -13,6 +13,11 @@ tags:
   - plugin
   - agent-plugins
   - portable
+links:
+  - type: specified_by
+    target: SCEN-cursor-agent-plugin-v1
+  - type: verified_by
+    target: TEST-cursor-agent-plugin-v1
 ---
 
 The `kibi-cursor` package ships a portable Agent Plugin artifact alongside the Cursor Plugin, so any client that supports the open Agent Plugins standard (agent-plugins.org) can load Kibi's Agent Skills and MCP server without client-specific adaptation.

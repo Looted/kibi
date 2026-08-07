@@ -242,6 +242,12 @@ coordinates:
     sourceEndLine: 22
     sourceFile: scripts/skillopt-eval/held-out-cell-binding.ts
     sourceLine: 15
+  SYM-COARSE_GRANULARITY_REASONS:
+    sourceColumn: 13
+    sourceEndColumn: 2
+    sourceEndLine: 100
+    sourceFile: packages/cli/src/commands/sync/manifest.ts
+    sourceLine: 95
   SYM-CURRENT_CHANGED_PATHS:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -4364,6 +4370,24 @@ coordinates:
     sourceEndLine: 194
     sourceFile: packages/opencode/src/init-kibi-capability.ts
     sourceLine: 178
+  SYM-formatInvalidRelationshipError:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 85
+    sourceFile: packages/cli/src/operations/mutation/relationships.ts
+    sourceLine: 71
+  SYM-formatInvalidRelationshipTuple:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 69
+    sourceFile: packages/cli/src/operations/mutation/relationships.ts
+    sourceLine: 65
+  SYM-formatRelationshipSourceMismatch:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 105
+    sourceFile: packages/cli/src/operations/mutation/relationships.ts
+    sourceLine: 98
   SYM-formatUpsertError:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4571,9 +4595,9 @@ coordinates:
   SYM-hasAllGeneratedCoordinates:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 234
+    sourceEndLine: 259
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 224
+    sourceLine: 249
   SYM-hasOverrideRationale:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4664,12 +4688,18 @@ coordinates:
     sourceEndLine: 107
     sourceFile: packages/cli/src/public/symbol-granularity.ts
     sourceLine: 103
+  SYM-isCoarseGranularityAnchor:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 105
+    sourceFile: packages/cli/src/commands/sync/manifest.ts
+    sourceLine: 102
   SYM-isEligibleForCoordinateRefresh:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 251
+    sourceEndLine: 276
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 236
+    sourceLine: 261
   SYM-isErrno:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6044,24 +6074,6 @@ coordinates:
     sourceEndLine: 201
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
     sourceLine: 183
-  SYM-parity-format-invalid-relationship-error:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 85
-    sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 71
-  SYM-parity-format-invalid-relationship-tuple:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 69
-    sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 65
-  SYM-parity-format-relationship-source-mismatch:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 105
-    sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 98
   SYM-parity-record-entity-audit:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -6461,9 +6473,9 @@ coordinates:
   SYM-refreshManifestCoordinates:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 222
+    sourceEndLine: 247
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 86
+    sourceLine: 107
   SYM-registerAllTools:
     sourceColumn: 16
     sourceEndColumn: 1
