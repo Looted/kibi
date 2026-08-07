@@ -195,11 +195,12 @@ describe("CLI operation runtime", () => {
     }
   });
 
-  test("propagates branch resolution errors instead of falling back to main", async () => {
-    // When resolveActiveBranch cannot determine the branch (e.g. not a git repo),
-    // the runtime must propagate the error rather than silently attaching to
-    // .kb/branches/main. A silent main fallback causes read-side operations to
-    // return empty results when the real branch KB exists at a different path.
+  test("falls back to main on non-git workspaces instead of failing", async () => {
+    // A non-git workspace is a supported context: kibi init and kibi migrate
+    // both resolve to "main" for NOT_A_GIT_REPO / GIT_NOT_AVAILABLE, creating
+    // .kb/branches/main. Read-side operations must attach to that same path
+    // so the packed install smoke test (`kibi init` then `kibi query req`)
+    // succeeds without a git repository.
     const events: string[] = [];
     const failingExecSync = (() => {
       throw new Error("fatal: not a git repository");
@@ -208,6 +209,36 @@ describe("CLI operation runtime", () => {
     try {
       const runtime = createCliRuntime({
         workspaceRoot: "/not-a-git-repo",
+        prolog: createManagedProlog(events),
+      });
+
+      const context = await runtime.open(readSpec);
+      await runtime.close(context, { status: "success", result: undefined });
+
+      expect(events).toContain(
+        "query:kb_attach('/not-a-git-repo/.kb/branches/main')",
+      );
+    } finally {
+      _setBranchResolverDepsForTests({
+        execSync: fakeBranchExecSync("feature/runtime"),
+      });
+    }
+  });
+
+  test("propagates branch resolution errors for real git failures", async () => {
+    // When a genuine git context cannot determine the branch (detached HEAD,
+    // invalid branch name, etc.), the runtime must propagate the error rather
+    // than silently attaching to .kb/branches/main. A silent main fallback
+    // causes read-side operations to return empty results when the real branch
+    // KB exists at a different path.
+    const events: string[] = [];
+    const detachedExecSync = (() => {
+      return "";
+    }) as unknown as typeof import("node:child_process").execSync;
+    _setBranchResolverDepsForTests({ execSync: detachedExecSync });
+    try {
+      const runtime = createCliRuntime({
+        workspaceRoot: "/detached",
         prolog: createManagedProlog(events),
       });
 
@@ -222,7 +253,7 @@ describe("CLI operation runtime", () => {
       // Prolog must still be terminated on the error path.
       expect(events).toContain("terminate");
       expect(events).not.toContain(
-        "query:kb_attach('/not-a-git-repo/.kb/branches/main')",
+        "query:kb_attach('/detached/.kb/branches/main')",
       );
     } finally {
       _setBranchResolverDepsForTests({
