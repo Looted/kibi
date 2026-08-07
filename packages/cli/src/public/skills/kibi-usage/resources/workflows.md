@@ -56,6 +56,20 @@ Examples: built-in permission and deny claims use the suggested `permission_rule
 
 On resume after interruption, repeat `kb_query` for exact endpoints and apply only missing validated writes. Keep `kb_upsert` concurrency at one.
 
+## UI / Visual Requirement Modeling
+
+Optional per-project workflow for recording what the screen should look like. Non-UI projects skip this lane entirely.
+
+1. Create a prose `req` holding the full visual description; it is the searchable anchor agents discover before touching a UI file.
+2. Run `kb_semantic_advisor` on the description; audit or supply `clauses`.
+3. For relational layout clauses ("X must remain visually aligned with Y"), call `kb_suggest_predicates`, apply the returned `fact_kind: predicate` plan with `predicate_name: visual_layout_rule` and `requires_predicate`.
+4. For scalar placement, alignment, and ordering clauses, call `kb_model_requirement` and apply strict `fact_kind: subject` / `fact_kind: property_value` facts linked with `constrains` / `requires_property`. Model header order as indexed property keys (`nav_order_1`, `nav_order_2`, ...) against one subject region.
+5. Preserve `claim_key` / `claim_text` on every ground fact and merge every key into the requirement `logic_claims` manifest.
+6. Model UI components as `symbol` entities with `sourceFile` and `symbol_role: behavioral`, linked `implements` to the requirement.
+7. `kb_validate_upsert`, create endpoints first, then sequential `kb_upsert`. Run `kb_check` with `logic-coverage`, `predicate-verifiability`, and `domain-contradictions`, then a final unfiltered `kb_check`.
+
+Incompatible values on the same subject/property from two current requirements are rejected on write; change an intentional value via a replacement requirement linked with `supersedes`. Full payloads are in `resources/ui-requirements.md`.
+
 ## Fixing a Traceability Gap
 ```
 1. kb_query --sourceFile <code-file> to find linked entities

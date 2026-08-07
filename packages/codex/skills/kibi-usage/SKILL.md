@@ -15,6 +15,7 @@ resources:
   - resources/fact-lanes.md
   - resources/workflows.md
   - resources/operation-access.md
+  - resources/ui-requirements.md
 ---
 # Kibi Usage
 
@@ -125,6 +126,12 @@ Model one semantic claim per strict `property_value` fact. Reusing the same `sub
 Use `kb_model_requirement` for automated strict-fact modeling when available. It generates subject and property_value facts, links them with `constrains` and `requires_property`, and handles low-confidence downgrades to observation facts automatically.
 
 Granular fact examples for coherence checks include `REQ-ROLE-SET-2` versus `REQ-ROLE-SET-3` on `user.roles.allowed_set` (`user,admin` versus `user,admin,superadmin`) and `REQ-ADMIN-CAN-MANAGE-BILLING` versus `REQ-ONLY-SUPERADMIN-MANAGES-BILLING` on `billing.manage.allowed_actor`. See `resources/fact-lanes.md`; `domain-contradictions` uses these canonical keys.
+
+## UI / Visual Requirement Modeling
+
+Optional, per-project lane for recording what the screen should look like so UI edits cannot silently drift from the spec. Non-UI projects skip it; no check rule requires it.
+
+Use three layers: a prose `req` as the searchable anchor, strict `property_value` facts for checkable positions/alignment/order (linked `constrains` / `requires_property`, so incompatible values on the same subject/property are rejected on write unless `supersedes`), and relational predicates linked with `requires_predicate` (built-in `visual_layout_rule(subject, relation, target)` for "X must remain visually aligned with Y"). Model UI components as `symbol` entities with `sourceFile` and `symbol_role: behavioral`, linked `implements` to the requirement, so component edits surface the visual spec in impact diagnostics. Full payloads and workflow: `resources/ui-requirements.md`.
 
 ## Complete Logical Coverage
 

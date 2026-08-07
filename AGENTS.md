@@ -158,3 +158,4 @@ Before declaring tests passing:
 - `docs/inference-rules.md`
 - `docs/prompts/llm-rules.md`
 - `docs/cli-reference.md`
+- `docs/ui-requirements.md`
