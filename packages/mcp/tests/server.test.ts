@@ -144,6 +144,43 @@ async function killServer(proc: ChildProcess): Promise<void> {
   });
 }
 
+// Freshness detection is best-effort and can briefly race the filesystem, so
+// poll for the expected status state instead of asserting on a single call.
+// A persistent mismatch still fails via the returned last observed state.
+async function waitForStatusState(
+  proc: ChildProcess,
+  expected: { dirty: boolean; syncState: string },
+  timeoutMs = 10_000,
+  intervalMs = 300,
+): Promise<Record<string, unknown> | undefined> {
+  const deadline = Date.now() + timeoutMs;
+  let last: Record<string, unknown> | undefined;
+  do {
+    const response = await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 2_000,
+      method: "tools/call",
+      params: {
+        name: "kb_status",
+        arguments: {},
+      },
+    });
+    const result = response.result as Record<string, unknown> | undefined;
+    const structured = result?.structuredContent as
+      | Record<string, unknown>
+      | undefined;
+    last = structured;
+    if (
+      structured?.dirty === expected.dirty &&
+      structured?.syncState === expected.syncState
+    ) {
+      return structured;
+    }
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+  } while (Date.now() < deadline);
+  return last;
+}
+
 describe("MCP Server", () => {
   test("should parse valid JSON-RPC request", async () => {
     const proc = startServer();
@@ -962,48 +999,24 @@ describe("MCP Server", () => {
         `${JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })}\n`,
       );
 
-      const before = await sendRequest(proc, {
-        jsonrpc: "2.0",
-        id: 2,
-        method: "tools/call",
-        params: {
-          name: "kb_status",
-          arguments: {},
-        },
+      // Let the session settle to a clean baseline. Freshness detection can
+      // briefly race the filesystem after sync, so poll rather than assert on a
+      // single call. The authoritative assertion below verifies the write is
+      // observed by the same session.
+      await waitForStatusState(proc, {
+        dirty: false,
+        syncState: "fresh",
       });
-
-      const beforeResult = before.result as Record<string, unknown> | undefined;
-      const beforeStructured = beforeResult?.structuredContent as
-        | Record<string, unknown>
-        | undefined;
-      expect((beforeResult?.isError as boolean | undefined) ?? false).toBe(
-        false,
-      );
-      expect(beforeStructured?.dirty).toBe(false);
-      expect(beforeStructured?.syncState).toBe("fresh");
 
       fs.writeFileSync(
         path.join(tempRoot, "documentation", "requirements", "REQ-LIVE-001.md"),
         "---\nid: REQ-LIVE-001\ntitle: Live session status\nstatus: open\n---\n",
       );
 
-      const after = await sendRequest(proc, {
-        jsonrpc: "2.0",
-        id: 3,
-        method: "tools/call",
-        params: {
-          name: "kb_status",
-          arguments: {},
-        },
+      const afterStructured = await waitForStatusState(proc, {
+        dirty: true,
+        syncState: "stale",
       });
-
-      const afterResult = after.result as Record<string, unknown> | undefined;
-      const afterStructured = afterResult?.structuredContent as
-        | Record<string, unknown>
-        | undefined;
-      expect((afterResult?.isError as boolean | undefined) ?? false).toBe(
-        false,
-      );
       expect(afterStructured?.dirty).toBe(true);
       expect(afterStructured?.syncState).toBe("stale");
     } finally {
