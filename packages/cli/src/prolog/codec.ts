@@ -180,7 +180,18 @@ export function parsePropertyList(propsStr: string): Record<string, unknown> {
       continue;
     }
 
-    const parsed = parsePrologValue(value);
+    let parsed = parsePrologValue(value);
+    if (
+      (key === "rule_ir" || key === "semantic_inventory") &&
+      typeof parsed === "string"
+    ) {
+      try {
+        parsed = JSON.parse(parsed) as unknown;
+      } catch {
+        // Keep malformed structured fields as strings so the schema validator
+        // can report the precise payload problem instead of losing evidence.
+      }
+    }
     if (!Object.hasOwn(props, key)) {
       props[key] = parsed;
       continue;

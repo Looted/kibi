@@ -322,7 +322,16 @@ export function defaultCodexCellDependencies(
         launch: {
           ...context.broker.downstream,
           args: [...context.broker.downstream.args],
-          env: stringEnvironment(context.env),
+          env: {
+            ...stringEnvironment(context.env),
+            // Keep independent verifier calls out of the model's diagnostic
+            // usage receipt.  The two lanes share a fixture workspace, but
+            // their evidence must remain independently attributable.
+            KIBI_MCP_DIAGNOSTIC_USAGE_LOG_PATH: join(
+              context.workspace.privateEvidence,
+              "final-state-usage.log",
+            ),
+          },
         },
         receiptPath: context.receiptPath,
         requests: context.requests,

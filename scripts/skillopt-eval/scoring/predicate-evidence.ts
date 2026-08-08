@@ -14,6 +14,8 @@ export type PredicateCaseFailure =
   | "predicate-name"
   | "predicate-args"
   | "predicate-polarity"
+  | "rule-semantic-key"
+  | "rule-hash"
   | "predicate-edges"
   | "logical-fact-lanes"
   | "logic-claim-manifest"
@@ -55,6 +57,8 @@ function predicateFailures(
           snapshot.facts.some((fact) => fact.factKind === "subject") &&
           snapshot.facts.some((fact) => fact.factKind === "property_value")
         );
+      case "rule":
+        return snapshot.facts.some((fact) => fact.factKind === "rule");
       case "observation":
       case "ontology_gap_observation":
         return snapshot.facts.some((fact) => fact.factKind === "observation");
@@ -77,7 +81,9 @@ function predicateFailures(
   }
   const groundClaims = new Set(
     snapshot.facts.flatMap((fact) =>
-      (fact.factKind === "predicate" || fact.factKind === "property_value") &&
+      (fact.factKind === "predicate" ||
+        fact.factKind === "property_value" ||
+        fact.factKind === "rule") &&
       fact.claimKey !== undefined &&
       fact.claimText !== undefined
         ? [fact.claimKey]
@@ -111,6 +117,34 @@ function predicateFailures(
       if (fact.polarity !== expectation.expectedPolarity) {
         failures.push("predicate-polarity");
       }
+    }
+  }
+  if (
+    expectation.expectedRuleSemanticKey !== undefined &&
+    expectation.expectedRuleSemanticKey !== null
+  ) {
+    if (
+      !snapshot.facts.some(
+        (fact) =>
+          fact.factKind === "rule" &&
+          fact.semanticKey === expectation.expectedRuleSemanticKey,
+      )
+    ) {
+      failures.push("rule-semantic-key");
+    }
+  }
+  if (
+    expectation.expectedRuleHash !== undefined &&
+    expectation.expectedRuleHash !== null
+  ) {
+    if (
+      !snapshot.facts.some(
+        (fact) =>
+          fact.factKind === "rule" &&
+          fact.ruleHash === expectation.expectedRuleHash,
+      )
+    ) {
+      failures.push("rule-hash");
     }
   }
   for (const edge of expectation.expectedEdges) {

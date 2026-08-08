@@ -43,6 +43,9 @@ export async function executeSemanticAdvisor(
       },
     },
     ...(args.clauses !== undefined ? { clauses: args.clauses } : {}),
+    ...(args.interpretations !== undefined
+      ? { interpretations: args.interpretations }
+      : {}),
   });
   return {
     content: [
@@ -69,6 +72,15 @@ async function executeSemanticAdvisorInput(
         (value): value is string => typeof value === "string",
       )
     : undefined;
+  const interpretations = Array.isArray(input.interpretations)
+    ? input.interpretations.filter(
+        (
+          value,
+        ): value is NonNullable<
+          SemanticAdvisorArgs["interpretations"]
+        >[number] => typeof value === "object" && value !== null,
+      )
+    : undefined;
   return executeSemanticAdvisor(
     {
       text: requiredText(input.text),
@@ -78,6 +90,7 @@ async function executeSemanticAdvisorInput(
       ...(source ? { source } : {}),
       ...(status ? { status } : {}),
       ...(clauses !== undefined ? { clauses } : {}),
+      ...(interpretations !== undefined ? { interpretations } : {}),
     },
     context,
   );
@@ -103,12 +116,38 @@ export const semanticAdvisorSpec = {
         description:
           "Optional complete list of atomic requirement clauses supplied by the caller. Use this for compound prose so every normative clause receives a stable claim key and independent grounding review.",
       },
+      interpretations: {
+        type: "array",
+        maxItems: 3,
+        description:
+          "Optional host-LLM typed kibi.logic.v1 interpretations. Kibi validates and canonicalizes them; raw Prolog is not accepted.",
+        items: {
+          type: "object",
+          required: ["claim_key", "claim_text", "ir"],
+          properties: {
+            claim_key: { type: "string" },
+            claim_text: { type: "string" },
+            confidence: { type: "number", minimum: 0, maximum: 1 },
+            span: { type: "object" },
+            ir: { type: "object" },
+          },
+        },
+      },
       type: {
         type: "string",
-        enum: ["req"],
+        enum: [
+          "req",
+          "scenario",
+          "test",
+          "adr",
+          "flag",
+          "event",
+          "symbol",
+          "fact",
+        ],
         default: "req",
         description:
-          "Entity type context for analysis. Currently requirement prose is supported.",
+          "Entity type context for analysis. Requirement, domain-fact, and supporting prose all receive a proposition ledger; only requirements receive deterministic modeling suggestions.",
       },
       id: {
         type: "string",

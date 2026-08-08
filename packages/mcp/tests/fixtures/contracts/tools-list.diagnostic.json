@@ -632,6 +632,34 @@
             "description": "Optional requirement ID used for deterministic draft relationship guidance.",
             "type": "string"
           },
+          "interpretations": {
+            "description": "Optional host-LLM typed kibi.logic.v1 interpretations. Kibi validates and canonicalizes them; raw Prolog is not accepted.",
+            "items": {
+              "properties": {
+                "claim_key": {
+                  "type": "string"
+                },
+                "claim_text": {
+                  "type": "string"
+                },
+                "confidence": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "ir": {
+                  "type": "object"
+                },
+                "span": {
+                  "type": "object"
+                }
+              },
+              "required": ["claim_key", "claim_text", "ir"],
+              "type": "object"
+            },
+            "maxItems": 3,
+            "type": "array"
+          },
           "source": {
             "description": "Optional provenance for draft suggestions.",
             "type": "string"
@@ -650,8 +678,17 @@
           },
           "type": {
             "default": "req",
-            "description": "Entity type context for analysis. Currently requirement prose is supported.",
-            "enum": ["req"],
+            "description": "Entity type context for analysis. Requirement, domain-fact, and supporting prose all receive a proposition ledger; only requirements receive deterministic modeling suggestions.",
+            "enum": [
+              "req",
+              "scenario",
+              "test",
+              "adr",
+              "flag",
+              "event",
+              "symbol",
+              "fact"
+            ],
             "type": "string"
           }
         },
@@ -751,6 +788,14 @@
                 "pattern": "^CLAIM-[A-F0-9]{16}$",
                 "type": "string"
               },
+              "claim_span_end": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "claim_span_start": {
+                "minimum": 0,
+                "type": "integer"
+              },
               "claim_text": {
                 "description": "Exact atomic requirement clause represented by this fact, retained for human audit.",
                 "type": "string"
@@ -774,7 +819,9 @@
                   "observation",
                   "meta",
                   "predicate_schema",
-                  "predicate"
+                  "predicate",
+                  "rule_schema",
+                  "rule"
                 ],
                 "type": "string"
               },
@@ -847,8 +894,35 @@
                 "description": "Snake_case only. Optional canonical property key for property_value facts. Example: 'session.timeout_minutes'. Do not use propertyKey in kb_upsert.properties.",
                 "type": "string"
               },
+              "rule_hash": {
+                "description": "Deterministic hash of canonical rule_ir.",
+                "type": "string"
+              },
+              "rule_ir": {
+                "description": "Schema-validated kibi.logic.v1 rule IR. It is persisted as data and never executed as caller-supplied Prolog.",
+                "type": "object"
+              },
+              "rule_name": {
+                "description": "Stable rule schema name.",
+                "type": "string"
+              },
+              "rule_schema_id": {
+                "description": "Rule schema fact ID used to validate this rule.",
+                "type": "string"
+              },
               "scope": {
                 "description": "Optional scope qualifier for fact entities.",
+                "type": "string"
+              },
+              "semantic_inventory": {
+                "description": "Requirement proposition ledger returned by kb_semantic_advisor; preserve entries while modeling each assertive span.",
+                "items": {
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "semantic_key": {
+                "description": "Canonical semantic identity of the normalized logical model.",
                 "type": "string"
               },
               "severity": {
@@ -963,6 +1037,7 @@
                     "constrains",
                     "requires_property",
                     "requires_predicate",
+                    "requires_rule",
                     "guards",
                     "publishes",
                     "consumes",
@@ -1146,7 +1221,7 @@
             "type": "integer"
           },
           "rules": {
-            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, logic-coverage, query-plan-safety. If omitted, server runs all rules plus the full-KB qualityDiagnostics audit scan; if supplied, server preserves scoped validation and skips the full-KB advisory scan.",
+            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, logic-coverage, rule-safety, rule-verifiability, semantic-completeness, query-plan-safety. If omitted, server runs all rules plus the full-KB qualityDiagnostics audit scan; if supplied, server preserves scoped validation and skips the full-KB advisory scan.",
             "items": {
               "enum": [
                 "must-priority-coverage",
@@ -1161,6 +1236,9 @@
                 "strict-req-fact-pairing",
                 "predicate-verifiability",
                 "logic-coverage",
+                "rule-safety",
+                "rule-verifiability",
+                "semantic-completeness",
                 "query-plan-safety"
               ],
               "type": "string"
@@ -1217,6 +1295,14 @@
             },
             "type": "object"
           },
+          "claimKey": {
+            "description": "Optional advisor-issued claim key for the exact proposition represented by logic.",
+            "type": "string"
+          },
+          "claimText": {
+            "description": "Optional exact proposition text represented by logic; defaults to text.",
+            "type": "string"
+          },
           "confidence": {
             "default": 0.8,
             "description": "Confidence score for the extracted claim. >= 0.70 yields strict-lane output; lower confidence yields observation-only review output.",
@@ -1233,6 +1319,10 @@
             "type": "array",
             "uniqueItems": true
           },
+          "logic": {
+            "description": "Optional typed kibi.logic.v1 IR. Kibi validates and canonicalizes it into a rule fact; raw Prolog is rejected.",
+            "type": "object"
+          },
           "operator": {
             "description": "Optional extracted semantic claim operator. Example: 'eq'.",
             "enum": ["eq", "gte", "lte", "neq", "bool", "polarity"],
@@ -1244,6 +1334,10 @@
           },
           "provenance": {
             "description": "Optional extracted text reference. Falls back to source when omitted. Example: 'documentation/requirements/customer-retention.md#L1'.",
+            "type": "string"
+          },
+          "requirementId": {
+            "description": "Optional existing requirement ID to receive the requires_rule relationship.",
             "type": "string"
           },
           "source": {

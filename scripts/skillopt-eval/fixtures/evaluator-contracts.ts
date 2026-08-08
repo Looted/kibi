@@ -75,6 +75,7 @@ const PredicateExpectationSchema = z
       "strict_property",
       "observation",
       "ontology_gap_observation",
+      "rule",
     ]),
     expectedPredicateName: z.string().min(1).nullable(),
     expectedPredicateArgs: z.array(z.string().min(1)).nullable(),
@@ -88,10 +89,28 @@ const PredicateExpectationSchema = z
         .strict(),
     ),
     expectedGroundFactKinds: z.array(
-      z.enum(["subject", "property_value", "predicate", "observation"]),
+      z.enum([
+        "subject",
+        "property_value",
+        "predicate",
+        "rule_schema",
+        "rule",
+        "observation",
+      ]),
     ),
     expectedLogicClaimCount: z.number().int().nonnegative(),
     privateRationale: z.string().min(1),
+    expectedRuleSemanticKey: z
+      .string()
+      .regex(/^SEM-[A-F0-9]{24}$/)
+      .nullable()
+      .optional(),
+    expectedRuleHash: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .nullable()
+      .optional(),
+    coverageFamilies: z.array(z.string().min(1)).default([]),
   })
   .strict();
 

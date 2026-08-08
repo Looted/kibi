@@ -2,11 +2,11 @@
   "auditVersion": 1,
   "branch": "develop",
   "configPath": ".kb/config.json",
-  "fromVersion": 2,
-  "migratedAt": "2026-07-21T18:29:15.639Z",
+  "fromVersion": 3,
+  "migratedAt": "2026-08-08T15:18:21.130Z",
   "semanticAdvisorBackfill": "pending",
   "status": "applied",
-  "symbolGranularityLegacyLinks": 0,
-  "toVersion": 3,
-  "warning": "KB config schemaVersion 2 is older than the latest version 3 and should be migrated."
+  "symbolGranularityLegacyLinks": 5,
+  "toVersion": 4,
+  "warning": "KB config schemaVersion 3 is older than the latest version 4 and should be migrated."
 }

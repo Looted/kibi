@@ -75,6 +75,26 @@ export const modelRequirementSpec = {
         description:
           "Existing requirement logic_claims values. The returned requirement update merges the new atomic claim key into this manifest instead of replacing prior claims.",
       },
+      requirementId: {
+        type: "string",
+        description:
+          "Optional existing requirement ID to receive the requires_rule relationship.",
+      },
+      claimKey: {
+        type: "string",
+        description:
+          "Optional advisor-issued claim key for the exact proposition represented by logic.",
+      },
+      claimText: {
+        type: "string",
+        description:
+          "Optional exact proposition text represented by logic; defaults to text.",
+      },
+      logic: {
+        type: "object",
+        description:
+          "Optional typed kibi.logic.v1 IR. Kibi validates and canonicalizes it into a rule fact; raw Prolog is rejected.",
+      },
     },
   },
   requiresProlog: true,

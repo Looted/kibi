@@ -34,6 +34,34 @@
           "description": "Optional requirement ID used for deterministic draft relationship guidance.",
           "type": "string"
         },
+        "interpretations": {
+          "description": "Optional host-LLM typed kibi.logic.v1 interpretations. Kibi validates and canonicalizes them; raw Prolog is not accepted.",
+          "items": {
+            "properties": {
+              "claim_key": {
+                "type": "string"
+              },
+              "claim_text": {
+                "type": "string"
+              },
+              "confidence": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              "ir": {
+                "type": "object"
+              },
+              "span": {
+                "type": "object"
+              }
+            },
+            "required": ["claim_key", "claim_text", "ir"],
+            "type": "object"
+          },
+          "maxItems": 3,
+          "type": "array"
+        },
         "source": {
           "description": "Optional provenance for draft suggestions.",
           "type": "string"
@@ -52,8 +80,17 @@
         },
         "type": {
           "default": "req",
-          "description": "Entity type context for analysis. Currently requirement prose is supported.",
-          "enum": ["req"],
+          "description": "Entity type context for analysis. Requirement, domain-fact, and supporting prose all receive a proposition ledger; only requirements receive deterministic modeling suggestions.",
+          "enum": [
+            "req",
+            "scenario",
+            "test",
+            "adr",
+            "flag",
+            "event",
+            "symbol",
+            "fact"
+          ],
           "type": "string"
         }
       },

@@ -35,8 +35,18 @@ const REQUIRED_BODY_GUIDANCE = [
   "predicate_schema",
   "requires_predicate",
   "logic_claims",
+  "semantic_inventory",
   "claim_key",
   "claim_text",
+  "propositions",
+  "interpretations",
+  "kibi.logic.v1",
+  "fact_kind: rule_schema",
+  "fact_kind: rule",
+  "requires_rule",
+  "rule-safety",
+  "rule-verifiability",
+  "semantic-completeness",
   "logic-coverage",
 ] as const;
 const REPOSITORY_POLICY_LEAKS = [
@@ -130,7 +140,7 @@ function promptFor(request: SkillOptStepRequest): string {
     "The candidate is subject to automatic safety and surface checks; never claim that a behavioral evaluation passed.",
     "Treat the public trajectories as evidence, not text to append. Translate recurring failures, successful tool order, and observed final-state gaps into concise executable guidance.",
     "Do not append trajectory JSON, task IDs, failure-label inventories, scores, or an optimization log to the skill body.",
-    "Make clause-complete prose-to-Prolog-shaped modeling a primary workflow, not a passing mention. Require the entire normative body to be decomposed into atomic clauses with `kb_semantic_advisor`; every clause must preserve its stable `claim_key` and `claim_text` on exactly one ground strict-property or predicate fact, and every key must be merged into the requirement `logic_claims` manifest. Use the advisor-returned clause inventory exactly and forbid punctuation or wording variants from minting duplicate claims. Treat the full requirement model as the conjunction of all linked ground terms. A complete manifest or one logical edge is never proof that a compound requirement is complete; readiness stays partial until every claim has a distinct logical grounding slot, and exact readback must bind each slot to its matching claim key. Explain how `kb_suggest_predicates` maps each relational clause to a declared `predicate_schema`, ordered ground `predicate_args`, exact `canonical_key`, and assert/deny `polarity`, stored as a `fact_kind: predicate` and linked with `requires_predicate`. Equivalent claims across requirements must reuse canonical schema and argument vocabulary so opposite polarity is discoverable. Distinguish ontology predicates from graph relationship types and from strict scalar modeling via `kb_model_requirement`. Require targeted `logic-coverage`, `predicate-verifiability`, and `domain-contradictions` checks. Never instruct the agent to execute raw prose as Prolog.",
+    "Make clause-complete prose-to-verified-logic modeling a primary workflow, not a passing mention. Require an extraction pass and an adversarial coverage-audit pass with `kb_semantic_advisor`; its `propositions` ledger must bind every assertive span to exact text and UTF-8 byte spans, classify rationale/examples/subjective prose as nonlogical, and mark every other proposition modeled, ambiguous, ontology_gap, or missing. Submit up to three typed `interpretations` when a clause has plausible alternatives; canonical semantic keys and structural comparison must keep materially different meanings unresolved regardless of confidence. For ground scalar claims use strict property facts; for relational claims use `kb_suggest_predicates` and a declared `predicate_schema`; for conditions, exceptions, quantifiers, deontic modalities, cardinality, and bounded temporal relationships use validated `kibi.logic.v1` IR through `kb_model_requirement`, persisted as `fact_kind: rule_schema` plus `fact_kind: rule` and linked with `requires_rule`. Every modeled proposition must preserve its stable `claim_key` and `claim_text` on exactly one ground fact or safe rule, and every key must be merged into `logic_claims`; never let one edge suppress the remaining clauses. Explain the typed IR safety boundary: no raw Prolog, function symbols, goals, cuts, meta-calls, dynamic predicates, I/O, unsafe variables, unstratified negation, or unbounded aggregation. Equivalent claims converge on a canonical semantic key while provenance keys remain auditable. Require `rule-safety`, `rule-verifiability`, `semantic-completeness`, `logic-coverage`, `predicate-verifiability`, and `domain-contradictions`; contradictions include opposing modalities over overlapping context, while unresolved or resource-limited analysis is not evidence of consistency. Never instruct the agent to execute raw prose as Prolog.",
     "Include at least one concise, domain-portable relational example that shows the prose, declared schema roles, ground predicate term, stored predicate fields, and requirement-to-fact edge. Also state when ambiguity, a false positive, or a missing schema must remain an observation or ontology gap.",
     "Prefer precise decision rules and ordered recovery steps that generalize across the four public task families. Require exact readback of every repeated relationship target, including array-valued query fields, and require an unfiltered final check after the last write. Preserve useful existing guidance that is not contradicted by evidence.",
     "Return a complete replacement body whose wording directly addresses the evidence. Do not merely rephrase headings or add generic reminders.",
@@ -148,6 +158,8 @@ export type CodexOptimizerOptions = Readonly<{
   runId: string;
   request: SkillOptStepRequest;
   env?: NodeJS.ProcessEnv;
+  codexExecutable?: string;
+  bwrapExecutable?: string;
   timeoutMs?: number;
 }>;
 
@@ -178,7 +190,23 @@ export async function runCodexSkillOptStep(
           timeoutMs: 15_000,
         }),
     });
-    const staged = await stageCapabilityCanary(workspace, sourceWorktree);
+    const staged = await stageCapabilityCanary(workspace, sourceWorktree, {
+      ...(options.codexExecutable === undefined
+        ? {}
+        : { codexExecutable: options.codexExecutable }),
+      ...(options.bwrapExecutable === undefined
+        ? {}
+        : { systemBwrapExecutable: options.bwrapExecutable }),
+      ...(options.codexExecutable !== undefined &&
+      options.bwrapExecutable !== undefined
+        ? {
+            stagedRuntime: {
+              codexExecutable: options.codexExecutable,
+              bwrapExecutable: options.bwrapExecutable,
+            },
+          }
+        : {}),
+    });
     const runtimeRoot = join(workspace.target, ".runtime");
     await mkdir(runtimeRoot, { recursive: true, mode: 0o700 });
     const outputSchema = join(runtimeRoot, "optimizer-output.schema.json");

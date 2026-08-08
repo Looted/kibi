@@ -141,6 +141,27 @@ export const RULES: readonly RuleDefinition[] = [
     category: "integrity",
   },
   {
+    name: "rule-safety",
+    description:
+      "Stored Logic IR rules use only the typed, bounded, stratified vocabulary",
+    defaultEnabled: true,
+    category: "integrity",
+  },
+  {
+    name: "rule-verifiability",
+    description:
+      "Requirement rule links resolve to safe rules and registered rule schemas",
+    defaultEnabled: true,
+    category: "integrity",
+  },
+  {
+    name: "semantic-completeness",
+    description:
+      "Every inventoried assertive proposition is modeled or explicitly classified",
+    defaultEnabled: false,
+    category: "integrity",
+  },
+  {
     name: "query-plan-safety",
     description:
       "Detect Prolog validation clauses that place negation before generator calls",

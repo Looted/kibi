@@ -25,7 +25,9 @@ type FactKind =
   | "observation"
   | "meta"
   | "predicate_schema"
-  | "predicate";
+  | "predicate"
+  | "rule_schema"
+  | "rule";
 type Operator = "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
 type ValueType = "string" | "int" | "number" | "bool";
 type Polarity = "require" | "forbid" | "assert" | "deny";
@@ -78,6 +80,30 @@ const factConditionals = JSON.parse(`[
     "if": {
       "properties": {
         "type": { "const": "fact" },
+        "fact_kind": { "const": "rule_schema" }
+      },
+      "required": ["type", "fact_kind"]
+    },
+    "then": {
+      "required": ["rule_name", "argument_names", "argument_types"]
+    }
+  },
+  {
+    "if": {
+      "properties": {
+        "type": { "const": "fact" },
+        "fact_kind": { "const": "rule" }
+      },
+      "required": ["type", "fact_kind"]
+    },
+    "then": {
+      "required": ["rule_ir", "rule_hash", "rule_schema_id", "rule_name", "semantic_key"]
+    }
+  },
+  {
+    "if": {
+      "properties": {
+        "type": { "const": "fact" },
         "fact_kind": { "const": "property_value" }
       },
       "required": ["type", "fact_kind"]
@@ -90,10 +116,209 @@ const factConditionals = JSON.parse(`[
   }
 ]`) as Array<Record<string, unknown>>;
 
+// The persisted rule payload is still data, but its shape is constrained at
+// the JSON boundary as well as by validateLogicIr.  Keeping this vocabulary
+// closed prevents a raw_goal/raw Prolog field from entering an upsert payload.
+const logicTermSchema = {
+  oneOf: [
+    {
+      type: "object",
+      required: ["kind", "name", "type"],
+      properties: {
+        kind: { const: "var" },
+        name: { type: "string", pattern: "^[A-Z][A-Za-z0-9_]*$" },
+        type: { type: "string", pattern: "^[a-z][a-z0-9_:.\\/-]*$" },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: "object",
+      required: ["kind", "value"],
+      properties: {
+        kind: { const: "const" },
+        value: { type: "string", minLength: 1 },
+        type: { type: "string", pattern: "^[a-z][a-z0-9_:.\\/-]*$" },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: "object",
+      required: ["kind", "value"],
+      properties: {
+        kind: { const: "number" },
+        value: { type: "number" },
+        unit: { type: "string", pattern: "^[a-z][a-z0-9_:.\\/-]*$" },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: "object",
+      required: ["kind", "value", "unit"],
+      properties: {
+        kind: { const: "duration" },
+        value: { type: "number", minimum: 0 },
+        unit: { type: "string", enum: ["ms", "s", "m", "h", "d", "w"] },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: "object",
+      required: ["kind", "value"],
+      properties: {
+        kind: { const: "timestamp" },
+        value: { type: "string" },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: "object",
+      required: ["kind", "start", "end"],
+      properties: {
+        kind: { const: "interval" },
+        start: { type: "string" },
+        end: { type: "string" },
+      },
+      additionalProperties: false,
+    },
+  ],
+};
+
+const logicAtomSchema = {
+  type: "object",
+  required: ["kind", "name", "args"],
+  properties: {
+    kind: { const: "atom" },
+    namespace: { type: "string", pattern: "^[a-z][a-z0-9_:.\\/-]*$" },
+    name: { type: "string", pattern: "^[a-z][a-z0-9_:.\\/-]*$" },
+    args: {
+      type: "array",
+      maxItems: 8,
+      items: { $ref: "#/$defs/logicTerm" },
+    },
+    polarity: { enum: ["positive", "negative"] },
+    closedWorld: { type: "boolean" },
+  },
+  additionalProperties: false,
+};
+
+const logicExpressionSchema = {
+  oneOf: [
+    { $ref: "#/$defs/logicAtom" },
+    {
+      type: "object",
+      required: ["kind", "items"],
+      properties: {
+        kind: { enum: ["all", "any"] },
+        items: {
+          type: "array",
+          minItems: 1,
+          maxItems: 32,
+          items: { $ref: "#/$defs/logicExpression" },
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: "object",
+      required: ["kind", "item"],
+      properties: {
+        kind: { const: "not" },
+        item: { $ref: "#/$defs/logicAtom" },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: "object",
+      required: ["kind", "operator", "left", "right"],
+      properties: {
+        kind: { const: "compare" },
+        operator: { enum: ["eq", "neq", "lt", "lte", "gt", "gte"] },
+        left: { $ref: "#/$defs/logicTerm" },
+        right: { $ref: "#/$defs/logicTerm" },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: "object",
+      required: ["kind", "atom", "operator", "value"],
+      properties: {
+        kind: { const: "count" },
+        atom: { $ref: "#/$defs/logicAtom" },
+        operator: { enum: ["eq", "neq", "lt", "lte", "gt", "gte"] },
+        value: { type: "integer", minimum: 0 },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: "object",
+      required: ["kind", "relation", "left", "right"],
+      properties: {
+        kind: { const: "temporal" },
+        relation: {
+          enum: ["before", "after", "during", "overlaps", "starts", "finishes"],
+        },
+        left: { $ref: "#/$defs/logicTerm" },
+        right: { $ref: "#/$defs/logicTerm" },
+      },
+      additionalProperties: false,
+    },
+  ],
+};
+
+const logicRuleSchema = {
+  type: "object",
+  required: ["version", "kind", "modality"],
+  properties: {
+    version: { const: "kibi.logic.v1" },
+    kind: { enum: ["atom", "rule", "constraint"] },
+    modality: { enum: ["assert", "deny", "oblige", "permit", "forbid"] },
+    head: { $ref: "#/$defs/logicAtom" },
+    body: { $ref: "#/$defs/logicExpression" },
+    variables: {
+      type: "array",
+      maxItems: 32,
+      items: {
+        type: "object",
+        required: ["name", "type"],
+        properties: {
+          name: { type: "string", pattern: "^[A-Z][A-Za-z0-9_]*$" },
+          type: { type: "string", pattern: "^[a-z][a-z0-9_:.\\/-]*$" },
+          quantifier: { enum: ["forall", "exists"] },
+        },
+        additionalProperties: false,
+      },
+    },
+    exceptions: {
+      type: "array",
+      maxItems: 16,
+      items: { $ref: "#/$defs/logicExpression" },
+    },
+    scope: {
+      type: "object",
+      properties: {
+        authority: { type: "string" },
+        name: { type: "string" },
+        tags: { type: "array", items: { type: "string" } },
+      },
+      additionalProperties: false,
+    },
+    validFrom: { type: "string" },
+    validTo: { type: "string" },
+    ruleSchemaId: { type: "string", minLength: 1 },
+  },
+  additionalProperties: false,
+};
+
 const entitySchema: Record<string, unknown> = {
   $id: "entity.schema.json",
   title: "Entity",
   type: "object",
+  $defs: {
+    logicTerm: logicTermSchema,
+    logicAtom: logicAtomSchema,
+    logicExpression: logicExpressionSchema,
+    logicRule: logicRuleSchema,
+  },
   properties: {
     id: { type: "string" },
     title: { type: "string" },
@@ -135,6 +360,53 @@ const entitySchema: Record<string, unknown> = {
       minItems: 1,
       uniqueItems: true,
       items: { type: "string", pattern: "^CLAIM-[A-F0-9]{16}$" },
+    },
+    semantic_inventory: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["claim_key", "claim_text", "role", "status", "span"],
+        properties: {
+          claim_key: { type: "string", pattern: "^CLAIM-[A-F0-9]{16}$" },
+          claim_text: { type: "string", minLength: 1 },
+          role: {
+            type: "string",
+            enum: [
+              "normative",
+              "definition",
+              "descriptive",
+              "condition",
+              "exception",
+              "rationale",
+              "example",
+              "subjective",
+            ],
+          },
+          status: {
+            type: "string",
+            enum: [
+              "modeled",
+              "ambiguous",
+              "ontology_gap",
+              "nonlogical",
+              "missing",
+            ],
+          },
+          span: {
+            type: "object",
+            required: ["start", "end"],
+            properties: {
+              start: { type: "integer", minimum: 0 },
+              end: { type: "integer", minimum: 0 },
+            },
+            additionalProperties: false,
+          },
+          semantic_key: { type: "string" },
+          payload_hash: { type: "string" },
+          reason: { type: "string" },
+        },
+        additionalProperties: false,
+      },
     },
     sourceFile: { type: "string" },
     granularity_reason: {
@@ -181,6 +453,8 @@ const entitySchema: Record<string, unknown> = {
         "meta",
         "predicate_schema",
         "predicate",
+        "rule_schema",
+        "rule",
       ] satisfies FactKind[],
     },
     subject_key: { type: "string" },
@@ -212,6 +486,13 @@ const entitySchema: Record<string, unknown> = {
     aliases: { type: "array", items: { type: "string" } },
     examples: { type: "array", items: { type: "string" } },
     predicate_args: { type: "array", items: { type: "string" } },
+    rule_ir: { $ref: "#/$defs/logicRule" },
+    rule_hash: { type: "string", pattern: "^[a-f0-9]{64}$" },
+    rule_schema_id: { type: "string", minLength: 1 },
+    rule_name: { type: "string", minLength: 1 },
+    semantic_key: { type: "string", pattern: "^SEM-[A-F0-9]{24}$" },
+    claim_span_start: { type: "integer", minimum: 0 },
+    claim_span_end: { type: "integer", minimum: 0 },
   },
   required: [
     "id",
@@ -268,6 +549,13 @@ const entitySchema: Record<string, unknown> = {
             { required: ["aliases"] },
             { required: ["examples"] },
             { required: ["predicate_args"] },
+            { required: ["rule_ir"] },
+            { required: ["rule_hash"] },
+            { required: ["rule_schema_id"] },
+            { required: ["rule_name"] },
+            { required: ["semantic_key"] },
+            { required: ["claim_span_start"] },
+            { required: ["claim_span_end"] },
           ],
         },
       },
@@ -283,6 +571,14 @@ const entitySchema: Record<string, unknown> = {
             { required: ["verification_perspective"] },
           ],
         },
+      },
+    },
+    {
+      if: {
+        properties: { type: { const: "req" } },
+      },
+      else: {
+        not: { required: ["semantic_inventory"] },
       },
     },
     ...factConditionals,

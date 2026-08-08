@@ -1,3 +1,4 @@
+import { isAbsolute } from "node:path";
 import { z } from "zod";
 import { CANONICAL_SKILLS, type CanonicalSkill } from "./catalog";
 import { JsonValueSchema, contractHash } from "./contracts/common";
@@ -272,6 +273,14 @@ export function requireRuntime(runtime: unknown): ResolvedCodexCellRuntime {
     parsed.data.bwrapExecutable === undefined
   ) {
     throw new CodexRuntimeError("codex_cell_runtime_unstaged");
+  }
+  if (
+    !isAbsolute(parsed.data.codexExecutable) ||
+    !isAbsolute(parsed.data.bwrapExecutable) ||
+    parsed.data.codexExecutable === "codex" ||
+    parsed.data.bwrapExecutable === "/usr/bin/bwrap"
+  ) {
+    throw new CodexRuntimeError("codex_cell_runtime_invalid");
   }
   return parsed.data as ResolvedCodexCellRuntime;
 }

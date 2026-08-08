@@ -1,3 +1,4 @@
+import type { LogicRuleIR } from "../../logic/ir.js";
 import type {
   SemanticClaim,
   StrictWriteSet,
@@ -16,6 +17,10 @@ export type ModelRequirementArgs = Readonly<Record<string, unknown>> & {
   readonly provenance?: string;
   /** Existing requirement claim manifest. Returned req updates merge this list. */
   readonly existingLogicClaims?: readonly string[];
+  readonly logic?: LogicRuleIR;
+  readonly claimKey?: string;
+  readonly claimText?: string;
+  readonly requirementId?: string;
 };
 
 // implements REQ-002
@@ -47,6 +52,13 @@ export interface ModelRequirementResult {
       nextAction: string;
     }>;
     migrationWarning: string | null;
+    logic?: {
+      readonly semanticKey: string;
+      readonly claimKey: string;
+      readonly claimText: string;
+      readonly renderedProlog: string;
+      readonly normalized: LogicRuleIR;
+    };
   };
   applyPlan: Array<Record<string, unknown>>;
   writeSet: StrictWriteSet;

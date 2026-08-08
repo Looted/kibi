@@ -12,7 +12,7 @@ Use this one-page guide when deciding how to model knowledge through peer MCP to
    - `fact_kind: subject` with `subject_key`, linked from the requirement by `constrains`.
    - `fact_kind: property_value` with `subject_key`, `property_key`, `operator`, `value_type`, and exactly one `value_*`, linked by `requires_property`.
    - Prefer `kb_model_requirement` when starting from prose.
-6. **For each relational domain clause?** Call `kb_suggest_predicates`, then write `fact_kind: predicate` with `predicate_name`, `predicate_args`, and `canonical_key`, linked by `requires_predicate`.
+6. **For each relational domain clause?** Call `kb_suggest_predicates`, then write `fact_kind: predicate` with `predicate_name`, `predicate_args`, and `canonical_key`, linked by `requires_predicate`. For conditions, exceptions, modalities, quantifiers, cardinality, or bounded temporal clauses, submit typed `kibi.logic.v1` to `kb_model_requirement`, persist `rule_schema` + `rule`, and link with `requires_rule`.
 7. **BDD behavior?** Use `scenario`, linked with `specified_by`.
 8. **Executable evidence?** Use `test`, linked with `verified_by` or `validates`.
    - When the requirement has a `scenario`, this link must target the scenario: use `verified_by(Scenario, Test)` or `validates(Test, Scenario)`. Directly linking `verified_by(Req, Test)` and `validates(Test, Req)` does not satisfy scenario-aware symbol-coverage.
@@ -100,7 +100,7 @@ This lane is optional; a non-UI project simply never models UI subjects. See
 
 ## Common field-name mistakes
 
-The claim keys above are illustrative. Always use the stable key returned for the exact clause text. Store every returned normative key in the requirement-only `logic_claims` array, merge rather than replace existing keys, and preserve `claim_key` plus `claim_text` together on every ground `property_value` or `predicate` fact. An observation does not ground a claim.
+The claim keys above are illustrative. Always use the stable key returned for the exact clause text. Store every returned normative key in the requirement-only `logic_claims` array, merge rather than replace existing keys, and preserve `claim_key` plus `claim_text` together on every ground `property_value`, `predicate`, or `rule` fact. Preserve the full `semantic_inventory` proposition ledger; an observation does not ground a claim.
 
 `kb_model_requirement` accepts semantic claim inputs such as `subjectKey`, `propertyKey`, and `existingLogicClaims`. `kb_suggest_predicates` also accepts `existingLogicClaims`. `kb_upsert.properties` does not accept camelCase modeling inputs. For `kb_upsert`, use snake_case only: `logic_claims`, `claim_key`, `claim_text`, `subject_key`, `property_key`, `predicate_name`, `predicate_args`, `canonical_key`, `closed_world`, `value_type`, and one typed `value_*` field.
 

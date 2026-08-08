@@ -137,4 +137,18 @@ describe.serial("diagnostic mode lifecycle", () => {
       false,
     );
   });
+
+  test("uses an explicitly isolated diagnostic receipt path", () => {
+    const isolatedPath = path.join(workspaceRoot, "evidence", "verifier.log");
+    process.env.KIBI_MCP_DIAGNOSTIC_USAGE_LOG_PATH = isolatedPath;
+
+    initializeDiagnosticMode(true);
+    appendUsageLogLine({ tool: "kb_query", status: "success" });
+
+    expect(existsSync(isolatedPath)).toBe(true);
+    expect(readFileSync(isolatedPath, "utf8")).toContain('"tool":"kb_query"');
+    expect(existsSync(path.join(workspaceRoot, ".kb", "usage.log"))).toBe(
+      false,
+    );
+  });
 });

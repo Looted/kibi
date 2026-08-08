@@ -151,6 +151,9 @@ function buildPredicateExpectation(task: FixtureTaskSpec) {
     expectedGroundFactKinds: [...expectation.expectedGroundFactKinds],
     expectedLogicClaimCount: expectation.expectedLogicClaimCount,
     privateRationale: expectation.privateRationale,
+    coverageFamilies: [
+      ...semanticCase.publicClaim.publicSchema.coverageFamilies,
+    ],
   };
 }
 

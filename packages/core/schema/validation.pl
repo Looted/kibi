@@ -42,6 +42,7 @@ validate_property_type(Type, Prop, Value) :-
 % check_kind(Kind, Value) succeeds if Value matches Kind
 check_kind(atom, V) :- atom(V).
 check_kind(string, V) :- string(V).
+check_kind(atom_or_string, V) :- atom(V) ; string(V).
 check_kind(datetime, V) :- string(V). % accept ISO strings for now
 check_kind(list, V) :- is_list(V).
 check_kind(uri, V) :- string(V).
@@ -106,6 +107,13 @@ is_fact_only_field(argument_descriptions).
 is_fact_only_field(aliases).
 is_fact_only_field(examples).
 is_fact_only_field(predicate_args).
+is_fact_only_field(rule_ir).
+is_fact_only_field(rule_hash).
+is_fact_only_field(rule_schema_id).
+is_fact_only_field(rule_name).
+is_fact_only_field(semantic_key).
+is_fact_only_field(claim_span_start).
+is_fact_only_field(claim_span_end).
 
 % is_test_only_field(+Key) - true if Key is a test-specific field
 is_test_only_field(verification_scope).
@@ -115,7 +123,7 @@ is_test_only_field(verification_perspective).
 validate_fact_shape(subject, Props) :-
     memberchk(subject_key=_Val, Props),
     valid_optional_fact_enums(Props),
-    valid_strict_polarity_in_props(Props).
+    valid_strict_polarity_in_props(Props), !.
 validate_fact_shape(property_value, Props) :-
     memberchk(subject_key=_Subject, Props),
     memberchk(property_key=_Property, Props),
@@ -126,14 +134,14 @@ validate_fact_shape(property_value, Props) :-
     exactly_one_value_field(Props),
     value_type_matches_field(VT, Props),
     valid_optional_fact_enums(Props),
-    valid_strict_polarity_in_props(Props).
+    valid_strict_polarity_in_props(Props), !.
 validate_fact_shape(observation, Props) :-
     valid_optional_fact_enums(Props),
-    valid_polarity_in_props(Props).
+    valid_polarity_in_props(Props), !.
 validate_fact_shape(meta, Props) :-
     % Meta facts are allowed but don't require full strict property tuple yet
     valid_optional_fact_enums(Props),
-    valid_polarity_in_props(Props).
+    valid_polarity_in_props(Props), !.
 validate_fact_shape(predicate_schema, Props) :-
     memberchk(predicate_name=_Name, Props),
     memberchk(predicate_arity=Arity, Props),
@@ -143,32 +151,39 @@ validate_fact_shape(predicate_schema, Props) :-
     same_length(ArgumentNames, ArgumentTypes),
     length(ArgumentNames, Arity),
     valid_optional_fact_enums(Props),
-    valid_polarity_in_props(Props).
+    valid_polarity_in_props(Props), !.
 validate_fact_shape(predicate, Props) :-
     memberchk(predicate_name=_Name, Props),
     memberchk(predicate_args=Args, Props),
     Args \= [],
     memberchk(canonical_key=_CanonicalKey, Props),
     valid_optional_fact_enums(Props),
-    valid_predicate_polarity_in_props(Props).
+    valid_predicate_polarity_in_props(Props), !.
+validate_fact_shape(rule_schema, Props) :-
+    memberchk(rule_name=_Name, Props),
+    memberchk(argument_names=ArgumentNames, Props),
+    memberchk(argument_types=ArgumentTypes, Props),
+    same_length(ArgumentNames, ArgumentTypes),
+    valid_optional_fact_enums(Props),
+    valid_polarity_in_props(Props), !.
+validate_fact_shape(rule, Props) :-
+    memberchk(rule_ir=RuleIr, Props),
+    nonempty_claim_value(RuleIr),
+    memberchk(rule_hash=_Hash, Props),
+    memberchk(rule_schema_id=_SchemaId, Props),
+    memberchk(semantic_key=_SemanticKey, Props),
+    valid_optional_fact_enums(Props),
+    valid_polarity_in_props(Props), !.
 validate_fact_shape(Kind, _Props) :-
     % Unknown fact_kind values fail validation
-    \+ memberchk(Kind, [subject, property_value, observation, meta, predicate_schema, predicate]),
+    \+ memberchk(Kind, [subject, property_value, observation, meta, predicate_schema, predicate, rule_schema, rule]),
     fail.
 
 % valid_operator(+Op)
-valid_operator(eq).
-valid_operator(neq).
-valid_operator(lt).
-valid_operator(lte).
-valid_operator(gt).
-valid_operator(gte).
+valid_operator(Op) :- memberchk(Op, [eq, neq, lt, lte, gt, gte]), !.
 
 % valid_value_type(+VT)
-valid_value_type(string).
-valid_value_type(int).
-valid_value_type(number).
-valid_value_type(bool).
+valid_value_type(ValueType) :- memberchk(ValueType, [string, int, number, bool]), !.
 
 % valid_polarity_in_props(+Props)
 % Validates polarity if present; succeeds if no polarity in props
@@ -190,8 +205,8 @@ valid_claim_provenance(Props) :-
     ;   \+ memberchk(claim_text=_, Props)
     ).
 
-nonempty_claim_value(Value) :- string(Value), Value \= "".
-nonempty_claim_value(Value) :- atom(Value), Value \= ''.
+nonempty_claim_value(Value) :- string(Value), Value \= "", !.
+nonempty_claim_value(Value) :- atom(Value), Value \= '', !.
 
 % valid_optional_fact_enums(+Props)
 % Validates enum-typed fact fields whenever they are present
@@ -206,25 +221,17 @@ valid_optional_test_enums(Props) :-
     ( memberchk(verification_perspective=Perspective, Props) -> valid_verification_perspective(Perspective) ; true ).
 
 % valid_polarity(+P)
-valid_polarity(require).
-valid_polarity(forbid).
-valid_polarity(assert).
-valid_polarity(deny).
+valid_polarity(Polarity) :- memberchk(Polarity, [require, forbid, assert, deny]), !.
 
-valid_strict_polarity(require).
-valid_strict_polarity(forbid).
+valid_strict_polarity(Polarity) :- memberchk(Polarity, [require, forbid]), !.
 
-valid_predicate_polarity(assert).
-valid_predicate_polarity(deny).
+valid_predicate_polarity(Polarity) :- memberchk(Polarity, [assert, deny]), !.
 
 % valid_verification_scope(+Scope)
-valid_verification_scope(unit).
-valid_verification_scope(integration).
-valid_verification_scope(end_to_end).
+valid_verification_scope(Scope) :- memberchk(Scope, [unit, integration, end_to_end]), !.
 
 % valid_verification_perspective(+Perspective)
-valid_verification_perspective(internal).
-valid_verification_perspective(consumer).
+valid_verification_perspective(Perspective) :- memberchk(Perspective, [internal, consumer]), !.
 
 % exactly_one_value_field(+Props)
 exactly_one_value_field(Props) :-

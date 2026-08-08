@@ -120,6 +120,14 @@
               "pattern": "^CLAIM-[A-F0-9]{16}$",
               "type": "string"
             },
+            "claim_span_end": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "claim_span_start": {
+              "minimum": 0,
+              "type": "integer"
+            },
             "claim_text": {
               "description": "Exact atomic requirement clause represented by this fact, retained for human audit.",
               "type": "string"
@@ -143,7 +151,9 @@
                 "observation",
                 "meta",
                 "predicate_schema",
-                "predicate"
+                "predicate",
+                "rule_schema",
+                "rule"
               ],
               "type": "string"
             },
@@ -216,8 +226,35 @@
               "description": "Snake_case only. Optional canonical property key for property_value facts. Example: 'session.timeout_minutes'. Do not use propertyKey in kb_upsert.properties.",
               "type": "string"
             },
+            "rule_hash": {
+              "description": "Deterministic hash of canonical rule_ir.",
+              "type": "string"
+            },
+            "rule_ir": {
+              "description": "Schema-validated kibi.logic.v1 rule IR. It is persisted as data and never executed as caller-supplied Prolog.",
+              "type": "object"
+            },
+            "rule_name": {
+              "description": "Stable rule schema name.",
+              "type": "string"
+            },
+            "rule_schema_id": {
+              "description": "Rule schema fact ID used to validate this rule.",
+              "type": "string"
+            },
             "scope": {
               "description": "Optional scope qualifier for fact entities.",
+              "type": "string"
+            },
+            "semantic_inventory": {
+              "description": "Requirement proposition ledger returned by kb_semantic_advisor; preserve entries while modeling each assertive span.",
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "semantic_key": {
+              "description": "Canonical semantic identity of the normalized logical model.",
               "type": "string"
             },
             "severity": {
@@ -332,6 +369,7 @@
                   "constrains",
                   "requires_property",
                   "requires_predicate",
+                  "requires_rule",
                   "guards",
                   "publishes",
                   "consumes",

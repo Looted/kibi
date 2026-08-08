@@ -125,6 +125,8 @@ export const ENTITY_PROPERTIES_SCHEMA = {
         "meta",
         "predicate_schema",
         "predicate",
+        "rule_schema",
+        "rule",
       ],
       description:
         "Optional fact lane kind for fact entities. Strict lane uses 'subject' and 'property_value'; context lane uses 'observation' or 'meta'; ontology lane uses 'predicate_schema' or 'predicate'. Use kb_model_requirement or kb_suggest_predicates when starting from prose.",
@@ -246,6 +248,33 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       items: { type: "string" },
       description: "Optional ground-term examples for a predicate schema.",
     },
+    semantic_inventory: {
+      type: "array",
+      description:
+        "Requirement proposition ledger returned by kb_semantic_advisor; preserve entries while modeling each assertive span.",
+      items: { type: "object" },
+    },
+    rule_ir: {
+      type: "object",
+      description:
+        "Schema-validated kibi.logic.v1 rule IR. It is persisted as data and never executed as caller-supplied Prolog.",
+    },
+    rule_hash: {
+      type: "string",
+      description: "Deterministic hash of canonical rule_ir.",
+    },
+    rule_schema_id: {
+      type: "string",
+      description: "Rule schema fact ID used to validate this rule.",
+    },
+    rule_name: { type: "string", description: "Stable rule schema name." },
+    semantic_key: {
+      type: "string",
+      description:
+        "Canonical semantic identity of the normalized logical model.",
+    },
+    claim_span_start: { type: "integer", minimum: 0 },
+    claim_span_end: { type: "integer", minimum: 0 },
   },
   allOf: [CLAIM_PROVENANCE_CONDITIONAL],
   required: ["title", "status"],
@@ -273,6 +302,7 @@ export const RELATIONSHIPS_SCHEMA = {
           "constrains",
           "requires_property",
           "requires_predicate",
+          "requires_rule",
           "guards",
           "publishes",
           "consumes",

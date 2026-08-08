@@ -142,6 +142,7 @@ function privateCaseView(entry: PredicateCase): JsonValue {
     split: entry.split,
     semanticClass: entry.semanticClass,
     privateExpectation: entry.privateExpectation,
+    coverageFamilies: entry.publicClaim.publicSchema.coverageFamilies,
   });
 }
 
@@ -216,9 +217,16 @@ function writeArtifactsAndComputeRoots(stageRoot: string): PredicateRoots {
     ),
   };
   const catalog = {
-    schemaVersion: "predicate-catalog-1.0.0",
+    schemaVersion: "predicate-catalog-1.1.0",
     totalCases: PREDICATE_CASES.length,
     allocation: { train: 2, development: 1, heldOut: 4 },
+    coverageFamilies: Array.from(
+      new Set(
+        PREDICATE_CASES.flatMap(
+          (entry) => entry.publicClaim.publicSchema.coverageFamilies,
+        ),
+      ),
+    ).sort(),
     trainCaseIds,
     developmentCaseId,
     heldOutCaseIds,

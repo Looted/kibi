@@ -42,6 +42,8 @@ const FinalStateFactSchema = z
       "property_value",
       "predicate",
       "predicate_schema",
+      "rule_schema",
+      "rule",
       "observation",
       "meta",
     ]),
@@ -49,6 +51,15 @@ const FinalStateFactSchema = z
     predicateName: z.string().min(1).optional(),
     predicateArgs: z.array(z.string().min(1)).optional(),
     polarity: z.enum(["assert", "deny"]).optional(),
+    ruleHash: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .optional(),
+    semanticKey: z
+      .string()
+      .regex(/^SEM-[A-F0-9]{24}$/)
+      .optional(),
+    ruleSchemaId: z.string().min(1).optional(),
     claimKey: z
       .string()
       .regex(/^CLAIM-[A-F0-9]{16}$/)
