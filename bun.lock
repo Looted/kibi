@@ -20,7 +20,7 @@
     },
     "packages/cli": {
       "name": "kibi-cli",
-      "version": "0.14.2",
+      "version": "0.16.1",
       "bin": {
         "kibi": "bin/kibi",
       },
@@ -32,7 +32,7 @@
         "gray-matter": "^4.0.3",
         "ignore": "^5.3.0",
         "js-yaml": "^4.1.0",
-        "kibi-core": "^0.6.2",
+        "kibi-core": "^0.7.1",
         "ts-morph": "^23.0.0",
       },
       "devDependencies": {
@@ -42,7 +42,7 @@
     },
     "packages/codex": {
       "name": "kibi-codex",
-      "version": "0.17.1",
+      "version": "0.19.0",
       "devDependencies": {
         "@types/node": "latest",
         "typescript": "^5.7.0",
@@ -58,11 +58,11 @@
     },
     "packages/core": {
       "name": "kibi-core",
-      "version": "0.7.0",
+      "version": "0.7.1",
     },
     "packages/cursor": {
       "name": "kibi-cursor",
-      "version": "0.3.1",
+      "version": "0.5.0",
       "devDependencies": {
         "@types/node": "latest",
         "typescript": "^5.7.0",
@@ -78,7 +78,7 @@
     },
     "packages/mcp": {
       "name": "kibi-mcp",
-      "version": "0.19.0",
+      "version": "0.19.2",
       "bin": {
         "kibi-mcp": "bin/kibi-mcp",
       },
@@ -90,8 +90,8 @@
         "fast-glob": "^3.2.12",
         "gray-matter": "^4.0.3",
         "js-yaml": "^4.1.0",
-        "kibi-cli": "^0.12.7",
-        "kibi-core": "^0.6.3",
+        "kibi-cli": "^0.16.0",
+        "kibi-core": "^0.7.1",
         "mcpcat": "^0.1.12",
         "ts-morph": "^23.0.0",
         "zod": "^4.3.6",
@@ -104,12 +104,12 @@
     },
     "packages/opencode": {
       "name": "kibi-opencode",
-      "version": "0.18.1",
+      "version": "0.19.1",
       "dependencies": {
         "@opencode-ai/plugin": "^1.4.7",
         "@opentui/core": "^0.1.99",
         "@opentui/solid": "^0.1.99",
-        "kibi-cli": "^0.7.0",
+        "kibi-cli": "^0.16.0",
       },
       "devDependencies": {
         "@types/node": "latest",
@@ -118,10 +118,10 @@
     },
     "packages/vscode": {
       "name": "kibi-vscode",
-      "version": "0.4.7",
+      "version": "0.4.9",
       "dependencies": {
         "js-yaml": "^4.1.0",
-        "kibi-cli": "^0.7.0",
+        "kibi-cli": "^0.16.0",
       },
       "devDependencies": {
         "@types/bun": "latest",
