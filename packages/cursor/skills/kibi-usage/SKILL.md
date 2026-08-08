@@ -107,6 +107,8 @@ Readable prose is retained for people, while every assertive proposition is inve
 
 Use `kb_semantic_advisor` with up to three typed `interpretations` for ambiguous clauses. Kibi canonicalizes alternatives and keeps materially different meanings unresolved. Create `fact_kind: rule_schema` and `fact_kind: rule` endpoints from `kb_model_requirement`'s validated plan, then link `req -> rule` with `requires_rule`. Run `rule-safety`, `rule-verifiability`, `semantic-completeness`, `logic-coverage`, and `domain-contradictions`; unresolved, incomplete, or timed-out reasoning is not evidence of consistency.
 
+The portable skill body must carry the core contract even when its detailed resources are unavailable: `kb_semantic_advisor` returns a `propositions[]` ledger and `semantic_inventory`; submit typed `interpretations` when wording has more than one plausible logical reading; validate modeled conditions through `kibi.logic.v1`; and preserve unresolved propositions as explicit gaps. Do not read or edit files inside `.kb` directly.
+
 ## Strict Fact Lane
 
 Normative requirements that must participate in contradiction blocking use the strict fact lane. Create a `fact_kind: subject` fact and link it from the requirement via `constrains`. Create a `fact_kind: property_value` fact and link it via `requires_property`.
