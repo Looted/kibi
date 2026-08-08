@@ -9,6 +9,8 @@ Kibi stores human prose as readable requirement text, but verifiable meaning bel
 3. For each assertive proposition, submit up to three typed `interpretations` when alternatives are plausible. Kibi compares canonical semantic keys; materially different valid interpretations remain unresolved regardless of confidence.
 4. Apply only a validated plan, then read back the requirement, rule schema, rule fact, and all relationship targets. Run `rule-safety`, `rule-verifiability`, `semantic-completeness`, `logic-coverage`, and `domain-contradictions` before the final unfiltered check.
 
+When a project-local schema names several ordered arguments, those arguments are facets of one relation, not separate propositions. Preserve the advisor claim key for the complete relation and do not manufacture clauses for each argument. Supporting `predicate_schema` facts carry the declared signature only; the ground predicate fact carries the claim provenance. Apply the exact `kb_suggest_predicates`/`kb_model_requirement` plan, reducing a rejected schema payload through `kb_validate_upsert` rather than silently downgrading a fitting declared relation to an observation.
+
 ## Logic IR shape
 
 The supported v1 forms are:
