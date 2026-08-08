@@ -982,7 +982,13 @@ describe("MCP Server", () => {
       stdio: "ignore",
     });
 
-    const proc = startServer({ cwd: tempRoot });
+    const proc = startServer({
+      cwd: tempRoot,
+      env: { ...(process.env as Record<string, string>), KIBI_MCP_DEBUG: "1" },
+    });
+    proc.stderr?.on("data", (chunk) =>
+      process.stderr.write(`[srv] ${String(chunk)}`),
+    );
 
     try {
       await sendRequest(proc, {
@@ -1045,7 +1051,9 @@ describe("MCP Server", () => {
             "REQ-LIVE-001.md",
           );
           const content = fs.readFileSync(newFile, "utf8");
-          console.error(`TMPDIAG REQ-LIVE-001.md content: ${JSON.stringify(content)}`);
+          console.error(
+            `TMPDIAG REQ-LIVE-001.md content: ${JSON.stringify(content)}`,
+          );
         } catch (err) {
           console.error(`TMPDIAG REQ-LIVE-001.md read error: ${String(err)}`);
         }
