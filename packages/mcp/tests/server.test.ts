@@ -1045,11 +1045,18 @@ describe("MCP Server", () => {
             "REQ-LIVE-001.md",
           );
           const content = fs.readFileSync(newFile, "utf8");
-          console.error(
-            `TMPDIAG REQ-LIVE-001.md content: ${JSON.stringify(content)}`,
-          );
+          console.error(`TMPDIAG REQ-LIVE-001.md content: ${JSON.stringify(content)}`);
         } catch (err) {
           console.error(`TMPDIAG REQ-LIVE-001.md read error: ${String(err)}`);
+        }
+        try {
+          const cliStatus = es(
+            `bun ${kibiBin} status 2>&1 | grep -iE 'dirty|sync state' || true`,
+            { cwd: tempRoot, encoding: "utf8" },
+          );
+          console.error(`TMPDIAG CLI status:\n${cliStatus}`);
+        } catch (err) {
+          console.error(`TMPDIAG CLI status error: ${String(err)}`);
         }
       }
       expect(afterStructured?.dirty).toBe(true);
