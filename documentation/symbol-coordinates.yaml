@@ -5132,10 +5132,64 @@ coordinates:
     sourceEndLine: 37
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
     sourceLine: 23
+  SYM-mcp-startup-resolution-McpPackageInfo:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 28
+    sourceFile: packages/mcp/src/startup-resolution.ts
+    sourceLine: 24
+  SYM-mcp-startup-resolution-McpResolutionComparison:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 34
+    sourceFile: packages/mcp/src/startup-resolution.ts
+    sourceLine: 30
+  SYM-mcp-startup-resolution-McpResolutionResult:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 41
+    sourceFile: packages/mcp/src/startup-resolution.ts
+    sourceLine: 36
+  SYM-mcp-startup-resolution-compareMcpResolution:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 151
+    sourceFile: packages/mcp/src/startup-resolution.ts
+    sourceLine: 117
+  SYM-mcp-startup-resolution-formatResolutionJson:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 155
+    sourceFile: packages/mcp/src/startup-resolution.ts
+    sourceLine: 153
+  SYM-mcp-startup-resolution-readRunningPackageInfo:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 97
+    sourceFile: packages/mcp/src/startup-resolution.ts
+    sourceLine: 95
+  SYM-mcp-startup-resolution-resolveProjectLocalMcp:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 115
+    sourceFile: packages/mcp/src/startup-resolution.ts
+    sourceLine: 99
+  SYM-mcp-status-StatusArgs:
+    sourceColumn: 12
+    sourceEndColumn: 37
+    sourceEndLine: 10
+    sourceFile: packages/mcp/src/tools/status.ts
+    sourceLine: 10
+  SYM-mcp-status-StatusResult:
+    sourceColumn: 12
+    sourceEndColumn: 58
+    sourceEndLine: 11
+    sourceFile: packages/mcp/src/tools/status.ts
+    sourceLine: 11
   SYM-mcp-status-adapter:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 20
+    sourceEndLine: 24
     sourceFile: packages/mcp/src/tools/status.ts
     sourceLine: 14
   SYM-mcp-stopIntegrationProlog:

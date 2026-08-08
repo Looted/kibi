@@ -18805,3 +18805,42 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-operation-interface-parity
+  - id: SYM-mcp-startup-resolution-readRunningPackageInfo
+    title: readRunningPackageInfo
+    sourceFile: packages/mcp/src/startup-resolution.ts
+    symbol_role: behavioral
+  - id: SYM-mcp-startup-resolution-resolveProjectLocalMcp
+    title: resolveProjectLocalMcp
+    sourceFile: packages/mcp/src/startup-resolution.ts
+    symbol_role: behavioral
+  - id: SYM-mcp-startup-resolution-compareMcpResolution
+    title: compareMcpResolution
+    sourceFile: packages/mcp/src/startup-resolution.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cursor-agent-plugin-standard-v1
+  - id: SYM-mcp-startup-resolution-formatResolutionJson
+    title: formatResolutionJson
+    sourceFile: packages/mcp/src/startup-resolution.ts
+    symbol_role: behavioral
+  - id: SYM-mcp-startup-resolution-McpPackageInfo
+    title: McpPackageInfo
+    sourceFile: packages/mcp/src/startup-resolution.ts
+    symbol_role: type-shape
+  - id: SYM-mcp-startup-resolution-McpResolutionComparison
+    title: McpResolutionComparison
+    sourceFile: packages/mcp/src/startup-resolution.ts
+    symbol_role: type-shape
+  - id: SYM-mcp-startup-resolution-McpResolutionResult
+    title: McpResolutionResult
+    sourceFile: packages/mcp/src/startup-resolution.ts
+    symbol_role: type-shape
+  - id: SYM-mcp-status-StatusArgs
+    title: StatusArgs
+    sourceFile: packages/mcp/src/tools/status.ts
+    symbol_role: type-shape
+  - id: SYM-mcp-status-StatusResult
+    title: StatusResult
+    sourceFile: packages/mcp/src/tools/status.ts
+    symbol_role: type-shape

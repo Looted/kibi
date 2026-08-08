@@ -91,7 +91,10 @@ describe("MCP discovery adapters", () => {
 
     // When
     const adapterResult = await handleKbStatus(
-      { query: adapterQuery } as unknown as PrologProcess,
+      {
+        invalidateCache: mock(() => {}),
+        query: adapterQuery,
+      } as unknown as PrologProcess,
       {},
     );
     const sharedResult = await statusSpec.execute(

@@ -249,7 +249,7 @@ describe("MCP startup resolution diagnostics", () => {
     });
   });
 
-  test("reports stale resolution for package root mismatches", () => {
+  test("reports not stale for same-version package root mismatches", () => {
     const comparison = compareMcpResolution(
       {
         packageRoot: "/tmp/running/node_modules/kibi-mcp",
@@ -264,9 +264,8 @@ describe("MCP startup resolution diagnostics", () => {
     );
 
     expect(comparison).toEqual({
-      stale: true,
-      reason:
-        "package root mismatch: running /tmp/running/node_modules/kibi-mcp, project-local /tmp/project/node_modules/kibi-mcp",
+      stale: false,
+      reason: "running kibi-mcp matches the project-local version",
       forbiddenVersionObserved: false,
     });
   });
@@ -281,7 +280,7 @@ describe("MCP startup resolution diagnostics", () => {
 
     expect(comparison).toEqual({
       stale: false,
-      reason: "running kibi-mcp matches project-local kibi-mcp",
+      reason: "running kibi-mcp matches the project-local version",
       forbiddenVersionObserved: false,
     });
   });

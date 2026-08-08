@@ -8,6 +8,7 @@ import { handleKbStatus } from "../../src/tools/status.js";
 
 function createFailingProlog(error: string): PrologProcess {
   return {
+    invalidateCache: mock(() => {}),
     query: mock(async () => ({
       success: false,
       bindings: {},
