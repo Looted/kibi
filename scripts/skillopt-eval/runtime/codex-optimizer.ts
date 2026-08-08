@@ -207,12 +207,19 @@ export async function runCodexSkillOptStep(
           }
         : {}),
     });
-    const runtimeRoot = join(workspace.target, ".runtime");
-    await mkdir(runtimeRoot, { recursive: true, mode: 0o700 });
-    const outputSchema = join(runtimeRoot, "optimizer-output.schema.json");
+    // `.runtime` is intentionally read-only inside the Codex sandbox: it
+    // contains the staged executable, broker, and the canary schema. Keep the
+    // optimizer's response contract at the workspace root, whose write access
+    // is explicitly granted by the isolated permission profile. Otherwise the
+    // optimizer can fail before producing a result when Codex tries to open its
+    // response schema/message files through bwrap.
+    const outputSchema = join(
+      workspace.target,
+      ".optimizer-output.schema.json",
+    );
     const outputLastMessage = join(
-      runtimeRoot,
-      "optimizer-output-last-message.json",
+      workspace.target,
+      ".optimizer-output-last-message.json",
     );
     await writeFile(
       outputSchema,
