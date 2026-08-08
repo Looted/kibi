@@ -1017,6 +1017,41 @@ describe("MCP Server", () => {
         dirty: true,
         syncState: "stale",
       });
+      if (afterStructured?.dirty !== true) {
+        const { execSync: es } = await import("node:child_process");
+        console.error(
+          `TMPDIAG after=${JSON.stringify(afterStructured ?? null)}`,
+        );
+        try {
+          const swipl = es("swipl --version", { encoding: "utf8" });
+          console.error(`TMPDIAG swipl: ${swipl.trim()}`);
+        } catch {}
+        try {
+          const bunv = es("bun --version", { encoding: "utf8" });
+          console.error(`TMPDIAG bun: ${bunv.trim()}`);
+        } catch {}
+        try {
+          const ls = es(
+            `find "${tempRoot}" -path "*/.git" -prune -o -type f -printf '%T@ %p\n' | sort -n | tail -15`,
+            { encoding: "utf8" },
+          );
+          console.error(`TMPDIAG mtimes:\n${ls}`);
+        } catch {}
+        try {
+          const newFile = path.join(
+            tempRoot,
+            "documentation",
+            "requirements",
+            "REQ-LIVE-001.md",
+          );
+          const content = fs.readFileSync(newFile, "utf8");
+          console.error(
+            `TMPDIAG REQ-LIVE-001.md content: ${JSON.stringify(content)}`,
+          );
+        } catch (err) {
+          console.error(`TMPDIAG REQ-LIVE-001.md read error: ${String(err)}`);
+        }
+      }
       expect(afterStructured?.dirty).toBe(true);
       expect(afterStructured?.syncState).toBe("stale");
     } finally {
