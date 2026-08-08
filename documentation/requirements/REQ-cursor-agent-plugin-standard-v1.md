@@ -30,5 +30,6 @@ The portable artifact should:
 4. Stay committed and regenerable so a fresh marketplace clone resolves it without a build step, with Cursor-only components (rules, commands, hooks) remaining in the `.cursor-plugin` Cursor Plugin build.
 5. Be listed in the repo marketplace alongside the Cursor Plugin (`plugins/kibi-agent-plugin`).
 6. Emit `plugin.json` and `mcp.json` in the repository's canonical (biome-clean) JSON formatting so the regenerated committed artifact passes `bun run check`.
+7. The portable MCP launcher must prefer the running build when the project-local resolution matches its version: a same-version copy must not be re-entered, so local dogfooding and unreleased fixes are honored instead of a stale store copy.
 
 This requirement is scoped to portable plugin packaging and cross-client distribution.
