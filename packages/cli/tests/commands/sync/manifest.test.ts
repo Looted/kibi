@@ -54,6 +54,7 @@ const mockResolveSymbolsManifestPaths = mock((_workspaceRoot: string) => ({
 
 import {
   hasAllGeneratedCoordinates,
+  isCoarseGranularityAnchor,
   isEligibleForCoordinateRefresh,
   refreshManifestCoordinates,
 } from "../../../src/commands/sync/manifest.js";
@@ -352,6 +353,52 @@ describe("isEligibleForCoordinateRefresh", () => {
   });
 });
 
+describe("isCoarseGranularityAnchor", () => {
+  test("returns true for test-suite anchors", () => {
+    expect(
+      isCoarseGranularityAnchor(
+        makeEntry({ granularity_reason: "test-suite" }),
+      ),
+    ).toBe(true);
+  });
+
+  test("returns true for module-level-behavior anchors", () => {
+    expect(
+      isCoarseGranularityAnchor(
+        makeEntry({ granularity_reason: "module-level-behavior" }),
+      ),
+    ).toBe(true);
+  });
+
+  test("returns true for config-artifact anchors", () => {
+    expect(
+      isCoarseGranularityAnchor(
+        makeEntry({ granularity_reason: "config-artifact" }),
+      ),
+    ).toBe(true);
+  });
+
+  test("returns true for extractor-miss anchors", () => {
+    expect(
+      isCoarseGranularityAnchor(
+        makeEntry({ granularity_reason: "extractor-miss" }),
+      ),
+    ).toBe(true);
+  });
+
+  test("returns false for legacy-link", () => {
+    expect(
+      isCoarseGranularityAnchor(
+        makeEntry({ granularity_reason: "legacy-link" }),
+      ),
+    ).toBe(false);
+  });
+
+  test("returns false when granularity_reason is absent", () => {
+    expect(isCoarseGranularityAnchor(makeEntry({}))).toBe(false);
+  });
+});
+
 describe("refreshManifestCoordinates", () => {
   const manifestPath = "/workspace/documentation/symbols.yaml";
   const workspaceRoot = "/workspace";
@@ -496,6 +543,58 @@ describe("refreshManifestCoordinates", () => {
 
     expect(messages[0]).toContain("refreshed=0");
     expect(messages[0]).toContain("unchanged=0");
+    expect(messages[0]).toContain("failed=1");
+
+    restore();
+  });
+
+  test("counts coarse-granularity anchors without coordinates as unchanged", async () => {
+    const entry = makeEntry({
+      sourceLine: undefined,
+      sourceColumn: undefined,
+      sourceEndLine: undefined,
+      sourceEndColumn: undefined,
+      granularity_reason: "module-level-behavior",
+    });
+    mockParseYAML.mockImplementation(() => ({ symbols: [entry] }));
+    mockEnrichSymbolCoordinates.mockImplementation(async (e) => e);
+    mockExistsSync.mockImplementation(() => true);
+
+    const { messages, restore } = captureLog();
+
+    await refreshManifestCoordinates(
+      manifestPath,
+      workspaceRoot,
+      manifestDeps(),
+    );
+
+    expect(messages[0]).toContain("refreshed=0");
+    expect(messages[0]).toContain("unchanged=1");
+    expect(messages[0]).toContain("failed=0");
+
+    restore();
+  });
+
+  test("still counts legacy-link symbols without coordinates as failed", async () => {
+    const entry = makeEntry({
+      sourceLine: undefined,
+      sourceColumn: undefined,
+      sourceEndLine: undefined,
+      sourceEndColumn: undefined,
+      granularity_reason: "legacy-link",
+    });
+    mockParseYAML.mockImplementation(() => ({ symbols: [entry] }));
+    mockEnrichSymbolCoordinates.mockImplementation(async (e) => e);
+    mockExistsSync.mockImplementation(() => true);
+
+    const { messages, restore } = captureLog();
+
+    await refreshManifestCoordinates(
+      manifestPath,
+      workspaceRoot,
+      manifestDeps(),
+    );
+
     expect(messages[0]).toContain("failed=1");
 
     restore();

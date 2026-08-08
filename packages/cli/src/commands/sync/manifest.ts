@@ -83,6 +83,27 @@ const GENERATED_MANIFEST_FIELDS = new Set<string>([
   "coordinatesGeneratedAt",
 ]);
 
+/**
+ * Coarse symbol anchors for which per-symbol coordinates are not expected.
+ *
+ * Test-suite, module-level-behavior, and config-artifact symbols represent a
+ * whole file or configuration unit, and `extractor-miss` explicitly documents
+ * that the extractor cannot locate a declaration. These entries legitimately
+ * carry no generated coordinates, so coordinate refresh counts them as
+ * unchanged instead of flagging them as failures.
+ */
+export const COARSE_GRANULARITY_REASONS = new Set<string>([
+  "config-artifact",
+  "extractor-miss",
+  "module-level-behavior",
+  "test-suite",
+]);
+
+export function isCoarseGranularityAnchor(entry: ManifestSymbolEntry): boolean {
+  const reason = entry.granularity_reason;
+  return typeof reason === "string" && COARSE_GRANULARITY_REASONS.has(reason);
+}
+
 export async function refreshManifestCoordinates(
   // implements REQ-003
   manifestPath: string,
@@ -188,15 +209,19 @@ export async function refreshManifestCoordinates(
       continue;
     }
 
-    const eligible = isEligibleForCoordinateRefresh(
-      typeof current.sourceFile === "string"
-        ? current.sourceFile
-        : typeof previous.sourceFile === "string"
-          ? previous.sourceFile
-          : undefined,
-      workspaceRoot,
-      resolved,
-    );
+    const coarseAnchor = isCoarseGranularityAnchor(current);
+
+    const eligible =
+      !coarseAnchor &&
+      isEligibleForCoordinateRefresh(
+        typeof current.sourceFile === "string"
+          ? current.sourceFile
+          : typeof previous.sourceFile === "string"
+            ? previous.sourceFile
+            : undefined,
+        workspaceRoot,
+        resolved,
+      );
 
     if (eligible && !hasAllGeneratedCoordinates(current)) {
       failed++;

@@ -5,7 +5,7 @@ coordinates:
   SYM-001:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 721
+    sourceEndLine: 727
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 83
   SYM-003:
@@ -242,6 +242,12 @@ coordinates:
     sourceEndLine: 22
     sourceFile: scripts/skillopt-eval/held-out-cell-binding.ts
     sourceLine: 15
+  SYM-COARSE_GRANULARITY_REASONS:
+    sourceColumn: 13
+    sourceEndColumn: 2
+    sourceEndLine: 100
+    sourceFile: packages/cli/src/commands/sync/manifest.ts
+    sourceLine: 95
   SYM-CURRENT_CHANGED_PATHS:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -341,9 +347,9 @@ coordinates:
   SYM-DOC-RESOURCES:
     sourceColumn: 13
     sourceEndColumn: 51
-    sourceEndLine: 295
+    sourceEndLine: 296
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 295
+    sourceLine: 296
   SYM-DefaultRuntimeProlog:
     sourceColumn: 12
     sourceEndColumn: 49
@@ -1097,7 +1103,7 @@ coordinates:
   SYM-PROMPTS:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 197
+    sourceEndLine: 198
     sourceFile: packages/mcp/src/server/docs.ts
     sourceLine: 68
   SYM-PROSE_COVERAGE_CORPUS:
@@ -2471,7 +2477,7 @@ coordinates:
   SYM-buildInitKibiAlias:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 43
+    sourceEndLine: 44
     sourceFile: packages/opencode/src/init-kibi-alias.ts
     sourceLine: 14
   SYM-buildNormativeRequirementCandidates:
@@ -2483,9 +2489,9 @@ coordinates:
   SYM-buildPrompt:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 670
+    sourceEndLine: 671
     sourceFile: packages/opencode/src/prompt.ts
-    sourceLine: 662
+    sourceLine: 663
   SYM-buildProviderEvidenceCandidates:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2663,25 +2669,25 @@ coordinates:
   SYM-cli-PrologProcess-getPid:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 679
+    sourceEndLine: 685
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 677
+    sourceLine: 683
   SYM-cli-PrologProcess-invalidateCache:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 363
+    sourceEndLine: 369
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 361
+    sourceLine: 367
   SYM-cli-PrologProcess-isRunning:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 675
+    sourceEndLine: 681
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 671
+    sourceLine: 677
   SYM-cli-PrologProcess-query:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 359
+    sourceEndLine: 365
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 185
   SYM-cli-PrologProcess-start:
@@ -2693,9 +2699,9 @@ coordinates:
   SYM-cli-PrologProcess-terminate:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 720
+    sourceEndLine: 726
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 681
+    sourceLine: 687
   SYM-cli-PrologQueryPlanSafetyViolation:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -3557,9 +3563,9 @@ coordinates:
   SYM-computeEnforcementPolicy:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 464
+    sourceEndLine: 465
     sourceFile: packages/opencode/src/enforcement-policy.ts
-    sourceLine: 373
+    sourceLine: 374
   SYM-computeHashManifest:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -3718,7 +3724,7 @@ coordinates:
     sourceLine: 66
   SYM-cursor-BOOTSTRAP_REMINDER:
     sourceColumn: 13
-    sourceEndColumn: 378
+    sourceEndColumn: 368
     sourceEndLine: 10
     sourceFile: packages/cursor/src/messages.ts
     sourceLine: 9
@@ -3730,7 +3736,7 @@ coordinates:
     sourceLine: 32
   SYM-cursor-DIRECT_KB_EDIT_WARNING:
     sourceColumn: 13
-    sourceEndColumn: 238
+    sourceEndColumn: 229
     sourceEndLine: 13
     sourceFile: packages/cursor/src/messages.ts
     sourceLine: 12
@@ -3794,6 +3800,30 @@ coordinates:
     sourceEndLine: 41
     sourceFile: packages/cursor/src/hook-state.ts
     sourceLine: 31
+  SYM-cursor-agentPluginRoot:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 66
+    sourceFile: packages/cursor/scripts/build-agent-plugin.ts
+    sourceLine: 64
+  SYM-cursor-buildAgentPluginMcpJson:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 203
+    sourceFile: packages/cursor/scripts/build-agent-plugin.ts
+    sourceLine: 187
+  SYM-cursor-buildAgentPluginUnlocked:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 254
+    sourceFile: packages/cursor/scripts/build-agent-plugin.ts
+    sourceLine: 231
+  SYM-cursor-buildPluginManifest:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 229
+    sourceFile: packages/cursor/scripts/build-agent-plugin.ts
+    sourceLine: 214
   SYM-cursor-clearDirtyPaths:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4340,6 +4370,24 @@ coordinates:
     sourceEndLine: 194
     sourceFile: packages/opencode/src/init-kibi-capability.ts
     sourceLine: 178
+  SYM-formatInvalidRelationshipError:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 85
+    sourceFile: packages/cli/src/operations/mutation/relationships.ts
+    sourceLine: 71
+  SYM-formatInvalidRelationshipTuple:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 69
+    sourceFile: packages/cli/src/operations/mutation/relationships.ts
+    sourceLine: 65
+  SYM-formatRelationshipSourceMismatch:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 105
+    sourceFile: packages/cli/src/operations/mutation/relationships.ts
+    sourceLine: 98
   SYM-formatUpsertError:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4547,9 +4595,9 @@ coordinates:
   SYM-hasAllGeneratedCoordinates:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 234
+    sourceEndLine: 259
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 224
+    sourceLine: 249
   SYM-hasOverrideRationale:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4595,9 +4643,9 @@ coordinates:
   SYM-injectPrompt:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 688
+    sourceEndLine: 689
     sourceFile: packages/opencode/src/prompt.ts
-    sourceLine: 675
+    sourceLine: 676
   SYM-installGitHooks:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4640,12 +4688,18 @@ coordinates:
     sourceEndLine: 107
     sourceFile: packages/cli/src/public/symbol-granularity.ts
     sourceLine: 103
+  SYM-isCoarseGranularityAnchor:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 105
+    sourceFile: packages/cli/src/commands/sync/manifest.ts
+    sourceLine: 102
   SYM-isEligibleForCoordinateRefresh:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 251
+    sourceEndLine: 276
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 236
+    sourceLine: 261
   SYM-isErrno:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5078,10 +5132,64 @@ coordinates:
     sourceEndLine: 37
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
     sourceLine: 23
+  SYM-mcp-startup-resolution-McpPackageInfo:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 28
+    sourceFile: packages/mcp/src/startup-resolution.ts
+    sourceLine: 24
+  SYM-mcp-startup-resolution-McpResolutionComparison:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 34
+    sourceFile: packages/mcp/src/startup-resolution.ts
+    sourceLine: 30
+  SYM-mcp-startup-resolution-McpResolutionResult:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 41
+    sourceFile: packages/mcp/src/startup-resolution.ts
+    sourceLine: 36
+  SYM-mcp-startup-resolution-compareMcpResolution:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 151
+    sourceFile: packages/mcp/src/startup-resolution.ts
+    sourceLine: 117
+  SYM-mcp-startup-resolution-formatResolutionJson:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 155
+    sourceFile: packages/mcp/src/startup-resolution.ts
+    sourceLine: 153
+  SYM-mcp-startup-resolution-readRunningPackageInfo:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 97
+    sourceFile: packages/mcp/src/startup-resolution.ts
+    sourceLine: 95
+  SYM-mcp-startup-resolution-resolveProjectLocalMcp:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 115
+    sourceFile: packages/mcp/src/startup-resolution.ts
+    sourceLine: 99
+  SYM-mcp-status-StatusArgs:
+    sourceColumn: 12
+    sourceEndColumn: 37
+    sourceEndLine: 10
+    sourceFile: packages/mcp/src/tools/status.ts
+    sourceLine: 10
+  SYM-mcp-status-StatusResult:
+    sourceColumn: 12
+    sourceEndColumn: 58
+    sourceEndLine: 11
+    sourceFile: packages/mcp/src/tools/status.ts
+    sourceLine: 11
   SYM-mcp-status-adapter:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 20
+    sourceEndLine: 24
     sourceFile: packages/mcp/src/tools/status.ts
     sourceLine: 14
   SYM-mcp-stopIntegrationProlog:
@@ -6020,24 +6128,6 @@ coordinates:
     sourceEndLine: 201
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
     sourceLine: 183
-  SYM-parity-format-invalid-relationship-error:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 85
-    sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 71
-  SYM-parity-format-invalid-relationship-tuple:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 69
-    sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 65
-  SYM-parity-format-relationship-source-mismatch:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 105
-    sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 98
   SYM-parity-record-entity-audit:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -6179,9 +6269,9 @@ coordinates:
   SYM-postureGuidance:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 247
+    sourceEndLine: 248
     sourceFile: packages/opencode/src/prompt.ts
-    sourceLine: 227
+    sourceLine: 228
   SYM-predicate-build-suggestion:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6437,9 +6527,9 @@ coordinates:
   SYM-refreshManifestCoordinates:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 222
+    sourceEndLine: 247
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 86
+    sourceLine: 107
   SYM-registerAllTools:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6983,9 +7073,9 @@ coordinates:
   SYM-setupDocsAndPrompts:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 325
+    sourceEndLine: 326
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 297
+    sourceLine: 298
   SYM-sha256Text:
     sourceColumn: 16
     sourceEndColumn: 1

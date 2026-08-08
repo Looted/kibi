@@ -196,10 +196,16 @@ export class PrologProcess {
 
     if (this.useOneShotMode) {
       const oneShotResult = await this.queryOneShot(goal);
-      if (!cacheable && oneShotResult.success) {
+      // Compound goals are read-after-write sensitive, so keep them out of the
+      // cache to mirror the interactive path and let later reads observe
+      // same-session writes (e.g. kb_status freshness after a file lands).
+      const isBatchGoal =
+        isSingleGoal && /^\s*\(/.test(this.normalizeGoal(goal));
+      const shouldCache = cacheable && !isBatchGoal;
+      if (!shouldCache && oneShotResult.success) {
         this.invalidateCache();
       }
-      if (cacheable && oneShotResult.success) {
+      if (shouldCache && oneShotResult.success) {
         this.cache.set(goalKey, oneShotResult);
       }
       return oneShotResult;

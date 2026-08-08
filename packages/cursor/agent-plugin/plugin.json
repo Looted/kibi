@@ -1,0 +1,11 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "kibi",
+  "version": "0.5.0",
+  "description": "Repo-local, per-branch, queryable knowledge base. Portable Agent Plugin packaging Kibi's Agent Skills and MCP server.",
+  "author": { "name": "Kibi" },
+  "homepage": "https://github.com/Looted/kibi/blob/develop/docs/install.md",
+  "repository": "https://github.com/Looted/kibi.git",
+  "license": "AGPL-3.0-or-later",
+  "keywords": ["kibi", "mcp", "knowledge-base", "traceability", "swi-prolog"]
+}

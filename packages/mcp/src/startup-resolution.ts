@@ -118,6 +118,7 @@ export function compareMcpResolution(
   running: McpPackageInfo,
   projectLocal: McpPackageInfo | null,
 ): McpResolutionComparison {
+  // implements REQ-cursor-agent-plugin-standard-v1
   const diagnosticText = JSON.stringify({ running, projectLocal });
   const forbiddenVersionObserved = diagnosticText.includes(FORBIDDEN_VERSION);
 
@@ -137,19 +138,14 @@ export function compareMcpResolution(
     };
   }
 
-  if (
-    path.resolve(running.packageRoot) !== path.resolve(projectLocal.packageRoot)
-  ) {
-    return {
-      stale: true,
-      reason: `package root mismatch: running ${running.packageRoot}, project-local ${projectLocal.packageRoot}`,
-      forbiddenVersionObserved,
-    };
-  }
-
+  // Same version: the running build is the version the project pins. Re-entering
+  // a same-version copy (e.g. a bun-store published install) abandons the local
+  // dev build for an identical-version store copy, which defeats local
+  // dogfooding and can silently drop unreleased local fixes. Only re-enter on a
+  // genuine version mismatch.
   return {
     stale: false,
-    reason: "running kibi-mcp matches project-local kibi-mcp",
+    reason: "running kibi-mcp matches the project-local version",
     forbiddenVersionObserved,
   };
 }

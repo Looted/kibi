@@ -2,9 +2,10 @@
   "init-kibi/SKILL.md": "4e936774cd31cf366e9e17452e9030fdaeabab345bce5ee163656e0fe5dc73d7",
   "kibi-freshness/SKILL.md": "68345a514233503f8f78d53e7d602d8a5fc566e1ec118388c7393716c9f7490d",
   "kibi-traceability/SKILL.md": "a621553397c1f8813f05fd9552fc30a5e8ed118442e019add35804de7d43a0b1",
-  "kibi-usage/SKILL.md": "f4a713d8c95d9c9a254e2f23b27013293f0caacb4009409409e56c7deeccc8a5",
+  "kibi-usage/SKILL.md": "df2e95ac247f968e67226acc88f0bd97a5bba14bdb0a2c8357497e0156147794",
   "kibi-usage/resources/fact-lanes.md": "8b2f835775e57427db980c5412d6e58840a53e71e8e508ae39f14ebfa693e4b8",
-  "kibi-usage/resources/operation-access.md": "d8653b544305d4c00734c737b1156110208a9a82fbec6b04726d25b973f2b840",
+  "kibi-usage/resources/operation-access.md": "a5ec895aa9b2f30140b2b72baf444843d32dd99e92d6e10be4279d84f5ea799b",
   "kibi-usage/resources/relationship-directions.md": "aecbde048bb84e210318e4aca98e07f8370168c640c3a9d65696d2195c8598ec",
-  "kibi-usage/resources/workflows.md": "36e50fe83fc7ac6bc68fcf51d2c2175e09c68815b6bbebed8cfa1d5611617913"
+  "kibi-usage/resources/ui-requirements.md": "b7c31ab1affa3ab25ae5242d8fd8c4d546532d1cafc65d84088375317c1682cc",
+  "kibi-usage/resources/workflows.md": "b5f641e0d3ff9255b4ab9b4b7332bee921cb5addf27a87eb24a6a9bfa627e625"
 }

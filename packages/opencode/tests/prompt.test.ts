@@ -45,7 +45,7 @@ describe("prompt", () => {
     assert.ok(prompt.includes("kb_check"));
     assert.ok(prompt.includes("/init-kibi"));
     assert.ok(prompt.includes("MCP tools are visible"));
-    assert.ok(prompt.includes("trusted local Kibi CLI"));
+    assert.ok(prompt.includes("trusted project-local CLI"));
     assert.ok(prompt.includes("--input"));
     assert.ok(prompt.includes("neither interface is available"));
     assert.ok(prompt.includes("Do not read or edit `.kb/` files directly"));

@@ -32,6 +32,7 @@ Because this repo uses local build artifacts, rerun the full build whenever you:
 - change a version in `package.json` for any Kibi package
 - change local package wiring between `packages/core`, `packages/cli`, `packages/mcp`, and `packages/cursor`
 - change code in `packages/mcp/src/` or `packages/cursor/src/`
+- change canonical skills in `packages/cli/src/public/skills/` (they are mirrored into `packages/cursor/skills/` and the portable Agent Plugin artifact)
 - need refreshed build output before testing the repo's Cursor dogfood flow
 
 Use:
@@ -56,7 +57,8 @@ That watch mode updates `packages/cursor/dist/`, but version bumps and cross-pac
 3. Cursor loads `.cursor/mcp.json` from the workspace and starts `packages/mcp/bin/kibi-mcp` from the current worktree when built, otherwise from the primary checkout.
 4. Cursor loads `.cursor/hooks.json` from the workspace and runs the local hook runner on agent events.
 5. `./scripts/sync-cursor-dogfood.sh` copies plugin rules into `.cursor/rules/` so rule dogfood does not require a marketplace install.
-6. Reloading Cursor picks up the refreshed local artifacts.
+6. `scripts/build-agent-plugin.ts` regenerates the committed portable Agent Plugin artifact at `packages/cursor/agent-plugin/` (root `plugin.json` + `skills/` + Agent-Plugins-compliant `mcp.json`). The repo marketplace serves it at `plugins/kibi-agent-plugin` (symlink → `packages/cursor/agent-plugin`).
+7. Reloading Cursor picks up the refreshed local artifacts.
 
 ## Linked Worktrees
 

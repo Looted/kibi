@@ -20,7 +20,7 @@ MCP-capable agents should use the standard `tools/list` capability discovery ste
 
 These skill operations are local, read-only, and do not require Prolog. They return a human-readable `content` item plus structured data for clients that support structured tool results. Their MCP registrations advertise `readOnlyHint: true`, `destructiveHint: false`, `idempotentHint: true`, and `openWorldHint: false` as client-facing behavior hints. Clients must treat annotations and skill text as untrusted guidance: authorization, schema validation, approval gates, and mutation sequencing remain enforced by the server and repository workflow.
 
-If MCP is unavailable, use the trusted project-local CLI's structured JSON routes:
+The CLI is a peer surface with the same skill operations through structured JSON routes (select by what the host exposes):
 
 ```bash
 printf '%s\n' '{}' | kibi skills-list --input -

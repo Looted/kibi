@@ -37,7 +37,7 @@ describe("smart enforcement policy", () => {
     expect(result.dirtyFileCount).toBe(1);
     expect(result.text).toContain("Hard Kibi checkpoint required");
     expect(result.text).toContain("MCP tools are visible");
-    expect(result.text).toContain("trusted local Kibi CLI");
+    expect(result.text).toContain("trusted project-local CLI");
     expect(result.text).toContain("--input");
     expect(result.text).toContain("neither interface is available");
     expect(result.text).toContain("Do not read or edit `.kb/` files directly");

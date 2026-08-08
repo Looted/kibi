@@ -93,7 +93,7 @@ export const KIBI_IMPACT_DIAGNOSTICS: Record<
     id: "kibi_impact_evidence_missing",
     title: "Behavior edit requires staged Kibi impact evidence",
     resolution: [
-      "Query Kibi via MCP first: use kb_search for discovery, then kb_query for exact follow-up.",
+      "Query Kibi via visible MCP tools or the trusted project-local CLI (peer surfaces): use kb_search for discovery, then kb_query for exact follow-up.",
       "MCP writes update KB state but do not stage tracked evidence; also stage related KB entity markdown, authored documentation/symbols.yaml metadata, or refreshed documentation/symbol-coordinates.yaml.",
       "Re-run or let the hook run kibi check --staged.",
     ],

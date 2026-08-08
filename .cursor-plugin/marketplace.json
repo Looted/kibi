@@ -23,6 +23,22 @@
         "swi-prolog"
       ],
       "tags": ["prerequisites", "mcp", "cli"]
+    },
+    {
+      "name": "kibi-agent-plugin",
+      "source": "kibi-agent-plugin",
+      "description": "Portable Agent Plugins build of Kibi (agent-plugins.org). Packages Kibi's Agent Skills and MCP server for any client that supports the open standard. Prerequisite: SWI-Prolog 9+ and project-local kibi-cli, kibi-mcp, kibi-core (see docs/install.md).",
+      "homepage": "https://github.com/Looted/kibi/blob/develop/docs/install.md",
+      "repository": "https://github.com/Looted/kibi",
+      "keywords": [
+        "kibi",
+        "mcp",
+        "knowledge-base",
+        "traceability",
+        "agent-plugins",
+        "swi-prolog"
+      ],
+      "tags": ["prerequisites", "mcp", "cli", "portable"]
     }
   ]
 }

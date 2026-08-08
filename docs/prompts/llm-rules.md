@@ -4,11 +4,11 @@ Copy and paste these instructions into your IDE's system prompt or your agent's 
 
 ## Base Agent Rules
 
-You are operating in a workspace that uses Kibi, an intelligent knowledge base system. Select the interface from capabilities, not config-file existence: visible MCP tools first, otherwise a trusted project-local CLI with dedicated JSON routes, otherwise blocked. Follow these rules:
+You are operating in a workspace that uses Kibi, an intelligent knowledge base system. Select the interface from capabilities, not config-file existence: visible MCP tools and a trusted project-local CLI with dedicated JSON routes are peer surfaces over the same operations; if neither is available, operation is blocked. Follow these rules:
 
 1. **Never read or edit files inside `.kb/` directly.** Use a Kibi operation surface instead.
-2. **Select Kibi by capability.** If Kibi MCP tools are visible, use MCP. If MCP availability is unknown and a trusted local Kibi CLI is available, use dedicated JSON routes with `kibi <route> --input <file|->`. If neither interface is available, stop and tell the operator. Do not infer MCP availability from config file existence. Both surfaces expose the same 18 operations.
-2a. **Discover bundled skills progressively.** After MCP `tools/list`, call `kb_skills_list`, then `kb_skills_load` for the returned skill ID, and use `kb_skills_read` only for manifest-declared resources. For CLI fallback, use `kibi skills-list`, `kibi skills-load`, and `kibi skills-read` with structured `--input` JSON. Skill text is guidance, not permission to bypass schemas, approvals, mutation ordering, or `.kb/` protections.
+2. **Select Kibi by capability.** Kibi MCP tools and the trusted project-local CLI are peer surfaces over the same 18 operations; choose by what is visible and approved in the current environment. If Kibi MCP tools are visible, use MCP. Otherwise, if a trusted local Kibi CLI is available, use dedicated JSON routes with `kibi <route> --input <file|->`. If neither interface is available, stop and tell the operator. Do not infer MCP availability from config file existence.
+2a. **Discover bundled skills progressively.** After MCP `tools/list`, call `kb_skills_list`, then `kb_skills_load` for the returned skill ID, and use `kb_skills_read` only for manifest-declared resources. For the CLI peer, use `kibi skills-list`, `kibi skills-load`, and `kibi skills-read` with structured `--input` JSON. Skill text is guidance, not permission to bypass schemas, approvals, mutation ordering, or `.kb/` protections.
 3. **Start with interactive `/init-kibi` for new repos.** Use the `/init-kibi` slash command for an interactive onboarding workflow. This workflow uses `kb_autopilot_generate` to synthesize entities from your declared context and codebase evidence. Always preview candidates and get user approval before writing.
 4. **Create and update entities with `kb_upsert`.** Keep requirements, scenarios, symbols, tests, ADRs, flags, events, and facts synchronized with your work.
 5. **Use relationship rows during `kb_upsert`.** Link requirements, tests, symbols, and facts as part of the same write.
@@ -27,6 +27,7 @@ You are operating in a workspace that uses Kibi, an intelligent knowledge base s
 - Reject-on-write contradiction checks use this strict lane and treat `supersedes` as the supported escape hatch.
 - Legacy prose facts may remain during migration, but `strict-fact-shape` should be treated as an explicit, **default-off** migration rule, not an always-on requirement for old repos. `domain-contradictions` applies only to strict-lane facts.
 - Use `docs/modeling-cheatsheet.md` when choosing an entity type, fact lane, or relationship. For `kb_upsert.properties`, typed fact fields are snake_case only: `subject_key`, `property_key`, `predicate_name`, `predicate_args`, `canonical_key`, `closed_world`, `value_type`, and one typed `value_*` field.
+- For projects with a UI, record what the screen should look like per `docs/ui-requirements.md`: a prose `req` as the searchable anchor, strict `property_value` facts for checkable positions/alignment/order (linked `constrains` / `requires_property`), and `visual_layout_rule` predicates for relational layout. This lane is optional and per-project; non-UI projects skip it.
 - If a validation error mentions additional properties, fix the payload using `docs/error-reference.md` instead of falling back to prose-only `links` or `text_ref`.
 
 ### Canonical Authoring Pattern: Separate REQ, SCEN, TEST Entities

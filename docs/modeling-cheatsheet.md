@@ -18,6 +18,7 @@ Use this one-page guide when deciding how to model knowledge through peer MCP to
    - When the requirement has a `scenario`, this link must target the scenario: use `verified_by(Scenario, Test)` or `validates(Test, Scenario)`. Directly linking `verified_by(Req, Test)` and `validates(Test, Req)` does not satisfy scenario-aware symbol-coverage.
    - For small behavior fixes discovered from source, create or update a `req` for the observable behavior. Link strict or observation facts from that requirement, then link the requirement or scenario to the executable test. Do not create direct `fact -> test` / `test -> fact` verification shortcuts.
 9. **Code ownership or coverage?** Use `symbol`, linked with `implements`, `covered_by`, or `executable_for`.
+10. **Storing visual/UI layout expectations** (button placement, centered content, header items, alignment)? Use the UI modeling lane in `docs/ui-requirements.md`: prose `req` for the full screen description, strict `property_value` facts for checkable positions/alignment/order, and `visual_layout_rule` (or a project-local `predicate_schema`) for relational layout. Optional and per-project; non-UI projects skip it.
 
 ## Strict property example
 
@@ -62,6 +63,24 @@ Use this one-page guide when deciding how to model knowledge through peer MCP to
   }
 }
 ```
+
+## UI / visual requirement lane
+
+For projects with a UI that must record what the screen should look like, store the full
+visual description as prose in a `req` and decompose checkable invariants into strict or
+predicate facts:
+
+- Strict placement/alignment/order invariants: `fact_kind: subject` (`subject_key`) linked
+  via `constrains`, plus `fact_kind: property_value` (`property_key`, `operator`, typed
+  `value_*`) linked via `requires_property`. Incompatible values on the same subject/property
+  from two current requirements are rejected on write unless `supersedes`.
+- Relational layout ("X must remain visually aligned with Y"): the built-in
+  `visual_layout_rule(subject, relation, target)` predicate linked via `requires_predicate`.
+- UI components: `symbol` with `sourceFile` and `symbol_role: behavioral`, linked `implements`
+  to the requirement so component edits surface the visual spec in impact diagnostics.
+
+This lane is optional; a non-UI project simply never models UI subjects. See
+`docs/ui-requirements.md` for payload-shaped examples and the full workflow.
 
 ## Observation example
 

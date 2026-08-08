@@ -33,8 +33,9 @@ export function buildInitKibiAlias(): string {
     "",
     "## Rules",
     "- Never apply changes without a user-facing preview and approval.",
-    "- Prefer MCP tools; CLI routes are available when MCP is unavailable.",
-    "- If MCP availability is unknown and a trusted local Kibi CLI is available, use its dedicated JSON routes with `--input <file|->`. If neither interface is available, stop and tell the operator.",
+    "- MCP tools and the trusted project-local CLI are peer surfaces; choose by what is visible and approved here.",
+    "- If Kibi MCP tools are visible and approved, use MCP.",
+    "- Otherwise, in a trusted workspace, use the project-local CLI's dedicated JSON routes with `--input <file|->`. If neither interface is available, stop and tell the operator.",
     "- Do not infer MCP availability from config file existence. Do not read or edit `.kb/` files directly.",
     "- Query before mutate. Run `kb_upsert` sequentially. Run `kb_check` before completion.",
   ];

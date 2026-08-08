@@ -22,7 +22,10 @@ describe("MCP status tool handler", () => {
       },
     }));
 
-    const prolog = { query } as unknown as PrologProcess;
+    const prolog = {
+      invalidateCache: mock(() => {}),
+      query,
+    } as unknown as PrologProcess;
     const result = await handleKbStatus(prolog, {});
 
     expect(result.structuredContent?.branch).toBe("feature/discovery-bundle");
@@ -45,7 +48,10 @@ describe("MCP status tool handler", () => {
       },
     }));
 
-    const prolog = { query } as unknown as PrologProcess;
+    const prolog = {
+      invalidateCache: mock(() => {}),
+      query,
+    } as unknown as PrologProcess;
     const result = await handleKbStatus(prolog, {});
 
     expect(result.content[0]?.text).toContain("dirty=true");
@@ -69,7 +75,10 @@ describe("MCP status tool handler", () => {
         },
       };
     });
-    const prolog = { query } as unknown as PrologProcess;
+    const prolog = {
+      invalidateCache: mock(() => {}),
+      query,
+    } as unknown as PrologProcess;
     const ensureProlog = mock(async () => {
       calls.push("ensureProlog");
       return prolog;
