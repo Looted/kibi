@@ -98,6 +98,9 @@ const OptimizerResultSchema = z
   })
   .strict();
 
+const CODEX_RUNTIME_ENV = "KIBI_SKILLOPT_CODEX_EXECUTABLE";
+const BWRAP_RUNTIME_ENV = "KIBI_SKILLOPT_BWRAP_EXECUTABLE";
+
 function argument(name: string): string {
   const index = process.argv.indexOf(name);
   const value = index >= 0 ? process.argv[index + 1] : undefined;
@@ -128,6 +131,12 @@ const result = process.argv.includes("--fake")
         previousDevelopment: request.previousDevelopment,
       },
       env: process.env,
+      ...(process.env[CODEX_RUNTIME_ENV] === undefined
+        ? {}
+        : { codexExecutable: process.env[CODEX_RUNTIME_ENV] }),
+      ...(process.env[BWRAP_RUNTIME_ENV] === undefined
+        ? {}
+        : { bwrapExecutable: process.env[BWRAP_RUNTIME_ENV] }),
     });
 const payload = OptimizerResultSchema.parse({
   schemaVersion: "1.0.0",

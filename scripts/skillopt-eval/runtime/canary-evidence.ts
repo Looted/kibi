@@ -3,6 +3,18 @@ import { readFile } from "node:fs/promises";
 import { z } from "zod";
 import { parseTraceReceipts, verifyTraceChain } from "./jsonrpc";
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function isSuccessfulToolResponse(payload: unknown): boolean {
+  if (!isRecord(payload)) return false;
+  if (Object.hasOwn(payload, "error")) return false;
+  const result = payload.result;
+  if (!isRecord(result)) return false;
+  return result.isError !== true;
+}
+
 const CommandEventSchema = z.object({
   type: z.literal("item.completed"),
   item: z.object({
@@ -68,8 +80,8 @@ export async function verifyCapabilityEvidence(
         receipt.method === "tools/call" &&
         receipt.toolName === toolName,
     );
-    const completed = requests.filter((request) =>
-      trace.some(
+    const responses = requests.flatMap((request) =>
+      trace.filter(
         (receipt) =>
           receipt.correlationId === request.correlationId &&
           receipt.direction === "server_to_target" &&
@@ -78,7 +90,14 @@ export async function verifyCapabilityEvidence(
           receipt.toolName === toolName,
       ),
     );
-    if (requests.length !== 1 || completed.length !== 1) {
+    const successfulResponses = responses.filter((response) =>
+      isSuccessfulToolResponse(response.payload),
+    );
+    if (
+      requests.length !== 1 ||
+      responses.length !== 1 ||
+      successfulResponses.length !== 1
+    ) {
       throw new CanaryEvidenceError("missing_mcp_tool_call");
     }
   }
@@ -97,13 +116,10 @@ export async function verifyCapabilityEvidence(
   for (const toolName of mcpEvidence.toolNames) {
     const matchingDiagnostics = diagnostics.filter(
       (value) =>
-        value !== null &&
-        typeof value === "object" &&
-        !Array.isArray(value) &&
-        (value as Record<string, unknown>).tool === toolName &&
-        (value as Record<string, unknown>).status === "success" &&
-        (value as Record<string, unknown>).telemetry !== null &&
-        typeof (value as Record<string, unknown>).telemetry === "object",
+        isRecord(value) &&
+        value.tool === toolName &&
+        value.status === "success" &&
+        isRecord(value.telemetry),
     );
     if (matchingDiagnostics.length !== 1) {
       throw new CanaryEvidenceError("invalid_diagnostic_receipt");

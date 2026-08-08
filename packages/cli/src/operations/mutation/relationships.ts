@@ -15,6 +15,7 @@ const RELATIONSHIP_TYPES = [
   "constrains",
   "requires_property",
   "requires_predicate",
+  "requires_rule",
   "guards",
   "publishes",
   "consumes",
@@ -160,6 +161,17 @@ export async function validateStrictLanePairing(
 ): Promise<void> {
   for (const relationship of relationships) {
     const target = stringField(relationship, "to");
+    if (relationship.type === "requires_rule") {
+      const result = await prolog.query(
+        `once((kb_entity('${escapeAtom(target)}', fact, _RuleProps), memberchk(fact_kind=_RuleKind, _RuleProps), normalize_term_atom(_RuleKind, rule)))`,
+      );
+      if (!result.success) {
+        throw new Error(
+          `Relationship 'requires_rule' requires target '${target}' to be a fact_kind=rule fact.`,
+        );
+      }
+      continue;
+    }
     const wrongKind =
       relationship.type === "constrains"
         ? "property_value"

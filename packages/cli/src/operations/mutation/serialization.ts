@@ -30,6 +30,9 @@ function serializeValue(key: string, value: unknown): string {
     return `'${value.replaceAll("'", "''")}'`;
   }
   if (Array.isArray(value)) return JSON.stringify(value);
+  if (key === "rule_ir" || key === "semantic_inventory") {
+    return toPrologString(JSON.stringify(value));
+  }
   if (typeof value === "string") {
     return ATOM_FIELDS.includes(key as (typeof ATOM_FIELDS)[number])
       ? toPrologAtom(value)

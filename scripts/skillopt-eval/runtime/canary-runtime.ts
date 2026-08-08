@@ -48,6 +48,11 @@ export type StagedCanaryRuntime = Readonly<{
   mcpServer: StagedBrokerLaunch;
 }>;
 
+export type ReusableCodexRuntime = Readonly<{
+  codexExecutable: string;
+  bwrapExecutable: string;
+}>;
+
 export async function stageCapabilityCanary(
   workspace: IsolationWorkspace,
   sourceWorktree: string,
@@ -55,6 +60,7 @@ export async function stageCapabilityCanary(
     codexExecutable?: string;
     systemBwrapExecutable?: string | null;
     nodeCommand?: string;
+    stagedRuntime?: ReusableCodexRuntime;
   }> = {},
 ): Promise<StagedCanaryRuntime> {
   const skillsRoot = resolve(workspace.target, ".agents/skills");
@@ -73,14 +79,16 @@ export async function stageCapabilityCanary(
     "utf8",
   );
   const runtimeRoot = resolve(workspace.target, ".runtime");
-  const stagedCodex = await stageCodexRuntime(runtimeRoot, {
-    ...(dependencies.codexExecutable === undefined
-      ? {}
-      : { codexExecutable: dependencies.codexExecutable }),
-    ...(Object.hasOwn(dependencies, "systemBwrapExecutable")
-      ? { systemBwrapExecutable: dependencies.systemBwrapExecutable }
-      : {}),
-  });
+  const stagedCodex =
+    dependencies.stagedRuntime ??
+    (await stageCodexRuntime(runtimeRoot, {
+      ...(dependencies.codexExecutable === undefined
+        ? {}
+        : { codexExecutable: dependencies.codexExecutable }),
+      ...(Object.hasOwn(dependencies, "systemBwrapExecutable")
+        ? { systemBwrapExecutable: dependencies.systemBwrapExecutable }
+        : {}),
+    }));
 
   const schemaPath = resolve(workspace.target, ".runtime/output.schema.json");
   await writeFile(

@@ -169,10 +169,9 @@ export async function runModelCanary(
       context.role === "target"
         ? `Use shell_command exactly once to execute ${probe.command}. Do not infer or claim success without that tool event. If it exits zero, return probeExecuted=true; otherwise fail.`
         : [
-            "Call the kibi MCP tool kb_semantic_advisor exactly once first with requirement text `A session timeout must be 30 minutes.` and complete diagnostic telemetry (is_autonomous=true, a brief reasoning string, confidence_score=1, attempt_number=1, missing_context empty). Wait for its successful result.",
-            "Then call the kibi MCP tool kb_status exactly once with complete diagnostic telemetry (is_autonomous=true, a brief reasoning string, confidence_score=1, attempt_number=1, missing_context empty). Wait for its successful result and confirm it reports branch `skillopt-eval`.",
+            "Call the read-only kibi MCP tool kb_semantic_advisor exactly once with requirement text `A session timeout must be 30 minutes.` and complete diagnostic telemetry (is_autonomous=true, a brief reasoning string, confidence_score=1, attempt_number=1, missing_context empty). Wait for its successful result.",
             `Then use shell_command exactly once to execute ${probe.command}.`,
-            "Do not call any other shell or MCP tool. Do not infer or claim success without all three completed tool calls. If all three succeed, return probeExecuted=true; otherwise fail.",
+            "Do not call any other shell or MCP tool. Do not infer or claim success without both completed tool calls. If both succeed, return probeExecuted=true; otherwise fail.",
           ].join(" ");
     const result = await context.run(
       buildCodexExecArgv({
@@ -247,7 +246,7 @@ export async function runModelCanary(
         {
           brokerTrace,
           diagnosticReceipt,
-          toolNames: ["kb_semantic_advisor", "kb_status"],
+          toolNames: ["kb_semantic_advisor"],
         },
       );
     }

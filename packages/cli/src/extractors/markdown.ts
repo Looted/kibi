@@ -41,12 +41,19 @@ const FACT_STRING_FIELDS = [
   "claim_text",
   "predicate_name",
   "predicate_namespace",
+  "rule_ir",
+  "rule_hash",
+  "rule_schema_id",
+  "rule_name",
+  "semantic_key",
 ] as const;
 
 const FACT_NUMBER_FIELDS = [
   "value_int",
   "value_number",
   "predicate_arity",
+  "claim_span_start",
+  "claim_span_end",
 ] as const;
 const FACT_BOOLEAN_FIELDS = ["value_bool", "closed_world"] as const;
 const FACT_STRING_ARRAY_FIELDS = [
@@ -102,7 +109,9 @@ export interface ExtractedEntity {
     | "observation"
     | "meta"
     | "predicate_schema"
-    | "predicate";
+    | "predicate"
+    | "rule_schema"
+    | "rule";
   subject_key?: string;
   property_key?: string;
   operator?: "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
@@ -129,6 +138,14 @@ export interface ExtractedEntity {
   aliases?: string[];
   examples?: string[];
   predicate_args?: string[];
+  rule_ir?: Record<string, unknown>;
+  rule_hash?: string;
+  rule_schema_id?: string;
+  rule_name?: string;
+  semantic_key?: string;
+  claim_span_start?: number;
+  claim_span_end?: number;
+  semantic_inventory?: readonly Record<string, unknown>[];
 }
 
 export interface ExtractedRelationship {
@@ -180,6 +197,7 @@ type RelationshipType =
   | "constrains"
   | "requires_property"
   | "requires_predicate"
+  | "requires_rule"
   | "guards"
   | "publishes"
   | "consumes"
@@ -198,6 +216,7 @@ const VALID_RELATIONSHIP_TYPES = new Set<RelationshipType>([
   "constrains",
   "requires_property",
   "requires_predicate",
+  "requires_rule",
   "guards",
   "publishes",
   "consumes",
@@ -239,6 +258,7 @@ const VALID_RELATIONSHIP_DIRECTIONS: ReadonlyArray<{
   { type: "constrains", from: "req", to: "fact" },
   { type: "requires_property", from: "req", to: "fact" },
   { type: "requires_predicate", from: "req", to: "fact" },
+  { type: "requires_rule", from: "req", to: "fact" },
   { type: "guards", from: "flag", to: "symbol" },
   { type: "guards", from: "flag", to: "event" },
   { type: "guards", from: "flag", to: "req" },
@@ -698,6 +718,12 @@ function extractFromMarkdownContent(
           ].filter((value): value is string => typeof value === "string");
         }
       }
+    }
+
+    if (type === "req" && Array.isArray(data.semantic_inventory)) {
+      entity.semantic_inventory = data.semantic_inventory.filter(
+        (value): value is Record<string, unknown> => isObjectRecord(value),
+      );
     }
 
     if (!validateExtractedEntity(entity)) {

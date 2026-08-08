@@ -143,6 +143,7 @@ symbols:
     title: check_logic_coverage
     sourceFile: packages/core/src/checks.pl
     symbol_role: behavioral
+    granularity_reason: extractor-miss
     relationships:
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
@@ -161,6 +162,7 @@ symbols:
     title: validate_entity_shape
     sourceFile: packages/core/schema/validation.pl
     symbol_role: behavioral
+    granularity_reason: extractor-miss
     relationships:
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
@@ -5639,9 +5641,13 @@ symbols:
   - id: SYM-LATEST-KB-SCHEMA-VERSION
     title: LATEST_KB_SCHEMA_VERSION
     sourceFile: packages/cli/src/utils/schema-version.ts
+    symbol_role: config
+    granularity_reason: extractor-miss
     relationships:
       - type: implements
         target: REQ-011
+      - type: implements
+        target: REQ-cli-schema-migration
       - type: covered_by
         target: TEST-cli-config-schema
   - id: SYM-LinkedEntityResult
@@ -14956,6 +14962,7 @@ symbols:
     title: run_bridge
     sourceFile: tools/skillopt/kibi_skillopt/bridge_runner.py
     symbol_role: behavioral
+    granularity_reason: extractor-miss
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -18516,6 +18523,7 @@ symbols:
         target: REQ-skillopt-logical-evidence-fidelity
       - type: covered_by
         target: TEST-skillopt-logical-evidence-fidelity
+    granularity_reason: legacy-link
   - id: SYM-skillopt-canonical-property-key
     title: canonicalPropertyKey
     sourceFile: scripts/skillopt-eval/runtime/final-state.ts
@@ -18525,6 +18533,7 @@ symbols:
         target: REQ-skillopt-logical-evidence-fidelity
       - type: covered_by
         target: TEST-skillopt-logical-evidence-fidelity
+    granularity_reason: legacy-link
   - id: SYM-skillopt-provider-budget-exhausted
     title: providerBudgetExhausted
     sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
@@ -18534,6 +18543,7 @@ symbols:
         target: REQ-skillopt-logical-evidence-fidelity
       - type: covered_by
         target: TEST-skillopt-logical-evidence-fidelity
+    granularity_reason: legacy-link
   - id: SYM-skillopt-reference-targets
     title: referenceTargets
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
@@ -18543,6 +18553,7 @@ symbols:
         target: REQ-skillopt-logical-evidence-fidelity
       - type: covered_by
         target: TEST-skillopt-logical-evidence-fidelity
+    granularity_reason: legacy-link
   - id: SYM-skillopt-safe-mutation-complete
     title: safeMutationComplete
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
@@ -18552,6 +18563,7 @@ symbols:
         target: REQ-skillopt-logical-evidence-fidelity
       - type: covered_by
         target: TEST-skillopt-logical-evidence-fidelity
+    granularity_reason: legacy-link
   - id: SYM-skillopt-fixture-entity-ids
     title: fixtureEntityIds
     sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
@@ -18724,6 +18736,7 @@ symbols:
     title: grounded_requirement_claim_fact
     sourceFile: packages/core/src/checks.pl
     symbol_role: behavioral
+    granularity_reason: extractor-miss
     relationships:
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
@@ -18733,6 +18746,7 @@ symbols:
     title: logical_ground_signature
     sourceFile: packages/core/src/checks.pl
     symbol_role: behavioral
+    granularity_reason: extractor-miss
     relationships:
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
@@ -18809,10 +18823,20 @@ symbols:
     title: readRunningPackageInfo
     sourceFile: packages/mcp/src/startup-resolution.ts
     symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cursor-agent-plugin-standard-v1
+      - type: covered_by
+        target: TEST-cursor-agent-plugin-v1
   - id: SYM-mcp-startup-resolution-resolveProjectLocalMcp
     title: resolveProjectLocalMcp
     sourceFile: packages/mcp/src/startup-resolution.ts
     symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cursor-agent-plugin-standard-v1
+      - type: covered_by
+        target: TEST-cursor-agent-plugin-v1
   - id: SYM-mcp-startup-resolution-compareMcpResolution
     title: compareMcpResolution
     sourceFile: packages/mcp/src/startup-resolution.ts
@@ -18820,27 +18844,432 @@ symbols:
     relationships:
       - type: implements
         target: REQ-cursor-agent-plugin-standard-v1
+      - type: covered_by
+        target: TEST-cursor-agent-plugin-v1
   - id: SYM-mcp-startup-resolution-formatResolutionJson
     title: formatResolutionJson
     sourceFile: packages/mcp/src/startup-resolution.ts
     symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cursor-agent-plugin-standard-v1
+      - type: covered_by
+        target: TEST-cursor-agent-plugin-v1
   - id: SYM-mcp-startup-resolution-McpPackageInfo
     title: McpPackageInfo
     sourceFile: packages/mcp/src/startup-resolution.ts
     symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cursor-agent-plugin-standard-v1
+      - type: covered_by
+        target: TEST-cursor-agent-plugin-v1
   - id: SYM-mcp-startup-resolution-McpResolutionComparison
     title: McpResolutionComparison
     sourceFile: packages/mcp/src/startup-resolution.ts
     symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cursor-agent-plugin-standard-v1
+      - type: covered_by
+        target: TEST-cursor-agent-plugin-v1
   - id: SYM-mcp-startup-resolution-McpResolutionResult
     title: McpResolutionResult
     sourceFile: packages/mcp/src/startup-resolution.ts
     symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cursor-agent-plugin-standard-v1
+      - type: covered_by
+        target: TEST-cursor-agent-plugin-v1
   - id: SYM-mcp-status-StatusArgs
     title: StatusArgs
     sourceFile: packages/mcp/src/tools/status.ts
     symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
   - id: SYM-mcp-status-StatusResult
     title: StatusResult
     sourceFile: packages/mcp/src/tools/status.ts
     symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-logic-ir-LOGIC_IR_VERSION
+    title: LOGIC_IR_VERSION
+    sourceFile: packages/cli/src/logic/ir.ts
+    symbol_role: config
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-ir-LOGIC_RULE_MAX_DEPTH
+    title: LOGIC_RULE_MAX_DEPTH
+    sourceFile: packages/cli/src/logic/ir.ts
+    symbol_role: config
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-ir-LOGIC_RULE_MAX_ATOMS
+    title: LOGIC_RULE_MAX_ATOMS
+    sourceFile: packages/cli/src/logic/ir.ts
+    symbol_role: config
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-ir-LOGIC_RULE_MAX_VARIABLES
+    title: LOGIC_RULE_MAX_VARIABLES
+    sourceFile: packages/cli/src/logic/ir.ts
+    symbol_role: config
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-ir-LogicModality
+    title: LogicModality
+    sourceFile: packages/cli/src/logic/ir.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-ir-LogicRuleKind
+    title: LogicRuleKind
+    sourceFile: packages/cli/src/logic/ir.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-ir-LogicVariableQuantifier
+    title: LogicVariableQuantifier
+    sourceFile: packages/cli/src/logic/ir.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-ir-LogicTerm
+    title: LogicTerm
+    sourceFile: packages/cli/src/logic/ir.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-ir-LogicAtom
+    title: LogicAtom
+    sourceFile: packages/cli/src/logic/ir.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-ir-LogicExpression
+    title: LogicExpression
+    sourceFile: packages/cli/src/logic/ir.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-ir-LogicVariable
+    title: LogicVariable
+    sourceFile: packages/cli/src/logic/ir.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-ir-LogicScope
+    title: LogicScope
+    sourceFile: packages/cli/src/logic/ir.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-ir-LogicRuleIR
+    title: LogicRuleIR
+    sourceFile: packages/cli/src/logic/ir.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-ir-LogicValidationResult
+    title: LogicValidationResult
+    sourceFile: packages/cli/src/logic/ir.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-ir-canonicalLogicJson
+    title: canonicalLogicJson
+    sourceFile: packages/cli/src/logic/ir.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-ir-logicRuleHash
+    title: logicRuleHash
+    sourceFile: packages/cli/src/logic/ir.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-ir-logicSemanticKey
+    title: logicSemanticKey
+    sourceFile: packages/cli/src/logic/ir.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-ir-renderLogicProlog
+    title: renderLogicProlog
+    sourceFile: packages/cli/src/logic/ir.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-ir-validateLogicIr
+    title: validateLogicIr
+    sourceFile: packages/cli/src/logic/ir.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-ir-utf8Span
+    title: utf8Span
+    sourceFile: packages/cli/src/logic/ir.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-modeling-LogicApplyPlanInput
+    title: LogicApplyPlanInput
+    sourceFile: packages/cli/src/operations/modeling/logic-modeling.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-modeling-LogicApplyPlanResult
+    title: LogicApplyPlanResult
+    sourceFile: packages/cli/src/operations/modeling/logic-modeling.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-modeling-logicRuleFactId
+    title: logicRuleFactId
+    sourceFile: packages/cli/src/operations/modeling/logic-modeling.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-logic-modeling-buildLogicApplyPlan
+    title: buildLogicApplyPlan
+    sourceFile: packages/cli/src/operations/modeling/logic-modeling.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-semantic-advisor-SemanticPropositionRole
+    title: SemanticPropositionRole
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-semantic-advisor-SemanticPropositionStatus
+    title: SemanticPropositionStatus
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-semantic-advisor-SemanticPropositionSpan
+    title: SemanticPropositionSpan
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-semantic-advisor-SemanticProposition
+    title: SemanticProposition
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-semantic-advisor-SemanticInterpretationInput
+    title: SemanticInterpretationInput
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-semantic-advisor-SemanticInterpretationResult
+    title: SemanticInterpretationResult
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-semantic-advisor-SemanticShadowCueKind
+    title: SemanticShadowCueKind
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-semantic-advisor-SemanticShadowCue
+    title: SemanticShadowCue
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-semantic-advisor-relationship
+    title: relationship
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-skillopt-predicate-cases-LogicCoverageFamily
+    title: LogicCoverageFamily
+    sourceFile: scripts/skillopt-eval/fixtures/predicate-cases.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-ReusableCodexRuntime
+    title: ReusableCodexRuntime
+    sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-cli-mutation-serialization-buildPropertyList
+    title: buildPropertyList
+    sourceFile: packages/cli/src/operations/mutation/serialization.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-mutation-serialization-buildRelationshipMetadata
+    title: buildRelationshipMetadata
+    sourceFile: packages/cli/src/operations/mutation/serialization.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-mutation-serialization-parsePrologList
+    title: parsePrologList
+    sourceFile: packages/cli/src/operations/mutation/serialization.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-mutation-strict-fact-factKindShapeHints
+    title: factKindShapeHints
+    sourceFile: packages/cli/src/operations/mutation/strict-fact.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-mutation-strict-fact-validateFactModelingShape
+    title: validateFactModelingShape
+    sourceFile: packages/cli/src/operations/mutation/strict-fact.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-cli-mutation-strict-fact-valueFieldHint
+    title: valueFieldHint
+    sourceFile: packages/cli/src/operations/mutation/strict-fact.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage

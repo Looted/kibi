@@ -72,11 +72,17 @@ const FACT_STRING_FIELDS = new Set([
   "claim_text",
   "predicate_name",
   "predicate_namespace",
+  "rule_hash",
+  "rule_schema_id",
+  "rule_name",
+  "semantic_key",
 ]);
 const FACT_NUMBER_FIELDS = new Set([
   "value_int",
   "value_number",
   "predicate_arity",
+  "claim_span_start",
+  "claim_span_end",
 ]);
 const FACT_BOOLEAN_FIELDS = new Set(["value_bool", "closed_world"]);
 const FACT_STRING_ARRAY_FIELDS = new Set([
@@ -117,6 +123,11 @@ function serializeTypedFactFields(entity: ExtractedEntity): string[] {
     if (value !== undefined && value !== null) {
       fields.push(`${field}=${toPrologString(String(value))}`);
     }
+  }
+
+  const ruleIr = getEntityField(entity, "rule_ir");
+  if (ruleIr !== undefined && ruleIr !== null) {
+    fields.push(`rule_ir=${toPrologString(JSON.stringify(ruleIr))}`);
   }
 
   for (const field of FACT_ATOM_FIELDS) {
@@ -176,6 +187,11 @@ function buildEntityAssertionGoal(entity: ExtractedEntity): string {
   if (entity.type === "req" && entity.logic_claims) {
     props.push(
       `logic_claims=[${entity.logic_claims.map(toPrologAtom).join(",")}]`,
+    );
+  }
+  if (entity.type === "req" && entity.semantic_inventory) {
+    props.push(
+      `semantic_inventory=${toPrologString(JSON.stringify(entity.semantic_inventory))}`,
     );
   }
 

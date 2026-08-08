@@ -107,6 +107,10 @@
       "default": "./dist/public/skills.js"
     },
     "./operations": "./dist/public/operations/index.js",
+    "./logic/ir": {
+      "types": "./dist/logic/ir.d.ts",
+      "default": "./dist/logic/ir.js"
+    },
     "./operations/mutation/relationships": {
       "types": "./dist/operations/mutation/relationships.d.ts",
       "default": "./dist/operations/mutation/relationships.js"

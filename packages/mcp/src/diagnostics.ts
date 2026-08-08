@@ -38,7 +38,14 @@ export function initializeDiagnosticMode(
   }
 
   const workspaceRoot = resolveWorkspaceRoot();
-  diagnosticUsageLogPath = path.join(workspaceRoot, ".kb", "usage.log");
+  // Evaluators may run an independent read-only verification client in the
+  // same fixture workspace after the model.  Allow that client to use a
+  // separate receipt so model-originated usage can be reconciled without
+  // accidentally treating verifier calls as model evidence.  Normal Kibi
+  // operation remains rooted at `.kb/usage.log`.
+  diagnosticUsageLogPath =
+    process.env.KIBI_MCP_DIAGNOSTIC_USAGE_LOG_PATH ??
+    path.join(workspaceRoot, ".kb", "usage.log");
   process.env.KIBI_MCP_DIAGNOSTIC_MODE = "1";
 }
 

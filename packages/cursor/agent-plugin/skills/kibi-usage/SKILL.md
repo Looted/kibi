@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Guides agents to use Kibi MCP, facts, relationships, and validation correctly
-version: 1.2.0
+version: 1.3.0
 kibiCompatibility: ">=0.11.0"
 tags:
   - kibi
@@ -16,6 +16,7 @@ resources:
   - resources/workflows.md
   - resources/operation-access.md
   - resources/ui-requirements.md
+  - resources/logic-ir.md
 ---
 # Kibi Usage
 
@@ -100,6 +101,12 @@ relationships:
     to: REQ-ADMIN-BILLING-POLICY
 ```
 
+## Typed Logic IR Lane
+
+Readable prose is retained for people, while every assertive proposition is inventoried and either grounded in a strict fact, a predicate fact, or a safe typed rule. Use the required extraction pass followed by an adversarial coverage audit; do not let a high-confidence single suggestion stand in for the rest of a compound requirement. Load `resources/logic-ir.md` for the IR grammar, proposition ledger, safety boundary, and proof semantics.
+
+Use `kb_semantic_advisor` with up to three typed `interpretations` for ambiguous clauses. Kibi canonicalizes alternatives and keeps materially different meanings unresolved. Create `fact_kind: rule_schema` and `fact_kind: rule` endpoints from `kb_model_requirement`'s validated plan, then link `req -> rule` with `requires_rule`. Run `rule-safety`, `rule-verifiability`, `semantic-completeness`, `logic-coverage`, and `domain-contradictions`; unresolved, incomplete, or timed-out reasoning is not evidence of consistency.
+
 ## Strict Fact Lane
 
 Normative requirements that must participate in contradiction blocking use the strict fact lane. Create a `fact_kind: subject` fact and link it from the requirement via `constrains`. Create a `fact_kind: property_value` fact and link it via `requires_property`.
@@ -140,12 +147,12 @@ Readable prose is not evidence that a requirement is machine-checkable. Before t
 1. Call `kb_semantic_advisor` with the complete requirement prose. When the automatic split is incomplete or a sentence contains multiple obligations, pass an explicit `clauses` array containing every atomic normative clause.
 2. Use the stable `claim_key` returned for each clause. Every ground `property_value` or `predicate` fact must preserve that key in `claim_key` and preserve the clause in `claim_text`. Use the advisor-returned inventory exactly; do not add punctuation or wording variants of an existing clause.
 3. Put the complete set of keys in the requirement's `logic_claims` manifest. Merge returned keys with existing values; never overwrite earlier claims while modeling a later clause.
-4. Ground each key through exactly one suitable logical lane: `requires_property` to one strict `property_value` fact, or `requires_predicate` to one ground `predicate` fact. A subject fact supports a strict claim but does not ground a key by itself. Observation, meta, ambiguity, and ontology-gap facts explicitly remain unresolved and do not count as logical coverage.
-5. Run `kb_check` with `logic-coverage`, `predicate-verifiability`, and `domain-contradictions`. `logic-coverage` enforces a one-claim/one-ground-fact mapping and rejects distinct claim keys that encode the same logical term; human or agent review still confirms that the atomic clauses exhaust the prose and that each ground term preserves its meaning.
+4. Ground each key through exactly one suitable logical lane: `requires_property` to one strict `property_value` fact, `requires_predicate` to one ground `predicate` fact, or `requires_rule` to one safe `rule` fact. A subject fact supports a strict claim but does not ground a key by itself. Observation, meta, ambiguity, and ontology-gap facts explicitly remain unresolved and do not count as logical coverage.
+5. Run `kb_check` with `logic-coverage`, `rule-safety`, `rule-verifiability`, `semantic-completeness`, `predicate-verifiability`, and `domain-contradictions`. `logic-coverage` enforces a one-claim/one-ground-fact mapping and rejects distinct claim keys that encode the same logical term; human or agent review still confirms that the atomic clauses exhaust the prose and that each ground term preserves its meaning.
 
 Kibi emits a non-blocking logical-coverage debt diagnostic for every current requirement without a manifest, independent of title wording. The `logic-coverage` rule is enabled by default for requirements that do declare manifests, so an unfiltered final check catches missing or orphaned ground claims while legacy requirements remain explicit backfill work.
 
-A complete `logic_claims` manifest alone is not a complete model. Semantic-advisor readiness remains partial until the payload has at least one distinct `requires_property` or `requires_predicate` grounding slot per normative claim. This count prevents one token edge from suppressing the remaining plans; only `logic-coverage` readback proves that each slot reaches the fact with the matching claim key.
+A complete `logic_claims` manifest alone is not a complete model. Semantic-advisor readiness remains partial until the payload has at least one distinct `requires_property`, `requires_predicate`, or `requires_rule` grounding slot per assertive claim. This count prevents one token edge from suppressing the remaining plans; only `logic-coverage` readback proves that each slot reaches the fact with the matching claim key.
 
 Never invent, reuse across different clauses, or manually alter a claim key. Kibi derives it from `claim_text` and rejects mismatched mutation and Markdown inputs.
 
@@ -176,7 +183,7 @@ Preserve the readable requirement prose. Facts add a machine-queryable model; th
 4. Create or confirm the requirement and `fact_kind: predicate` endpoints, preserve `claim_key` and `claim_text`, merge the returned `logicClaims` into the requirement, then link requirement -> predicate fact with `requires_predicate`. Treat the requirement's logical representation as the conjunction of every linked ground term. Encode a prohibition with `polarity: deny` on the fitting positive schema, not a made-up negative predicate. An `assert` and `deny` requirement over the same namespace, name, and ordered arguments are a blocking `domain-contradictions` conflict, so requirements must reuse the same canonical schema and argument vocabulary for equivalent domain claims.
 5. Use an existing built-in or project-local `fact_kind: predicate_schema`. Create a new schema only when the task explicitly authorizes ontology extension and supplies a stable name, arity, `argument_names`, and `argument_types`; otherwise record `fact_kind: observation` with `review:ontology-gap`.
 6. For each scalar, threshold, duration, boolean, enum-set, or cardinality clause, use `kb_model_requirement` with the current `existingLogicClaims` and the strict subject/property lane instead. For ambiguity or a lexical false positive, preserve the prose as a review observation and report the requirement as logically incomplete.
-7. Validate every payload, create endpoints first, apply `kb_upsert` calls sequentially, read back all affected IDs, and run targeted `logic-coverage`, `predicate-verifiability`, and `domain-contradictions` checks before the final unfiltered `kb_check`. Exact query output can return an array when one relationship type has multiple targets; verify every target rather than reading only one edge.
+7. Validate every payload, create endpoints first, apply `kb_upsert` calls sequentially, read back all affected IDs, and run targeted `rule-safety`, `rule-verifiability`, `semantic-completeness`, `logic-coverage`, `predicate-verifiability`, and `domain-contradictions` checks before the final unfiltered `kb_check`. Exact query output can return an array when one relationship type has multiple targets; verify every target rather than reading only one edge.
 
 Example: “Checkout requires payment authorization before order submission” fits `dependency_rule(subject, prerequisite, dependent)`. The ground model is `dependency_rule(checkout,payment_authorization,order_submission)`, stored as:
 
@@ -224,7 +231,7 @@ Never fire `kb_upsert` calls in parallel. Execute them sequentially to avoid loc
 
 ## Checks
 
-Run `kb_check` with specific rules during iteration for fast feedback. For normative requirement modeling, include `rules: ["logic-coverage", "predicate-verifiability", "domain-contradictions"]`; add `required-fields` and `no-dangling-refs` after writes. Run a full `kb_check` without rule filters before declaring Kibi work complete.
+Run `kb_check` with specific rules during iteration for fast feedback. For normative requirement modeling, include `rules: ["rule-safety", "rule-verifiability", "semantic-completeness", "logic-coverage", "predicate-verifiability", "domain-contradictions"]`; add `required-fields` and `no-dangling-refs` after writes. Run a full `kb_check` without rule filters before declaring Kibi work complete.
 
 The `domain-contradictions` rule detects conflicts between strict-lane facts linked to requirements. When a contradiction is found, the supported escape hatch is `supersedes`: create a new requirement that supersedes the old one, then link the new requirement to updated facts.
 

@@ -24,6 +24,10 @@ export function schemaForCandidate(schema: PredicateSchemaCandidate): Omit<
     description: schema.description,
     argument_names: schema.argument_names,
     argument_types: schema.argument_types,
+    ...(schema.aliases ? { aliases: schema.aliases } : {}),
+    ...(schema.paraphrase_templates
+      ? { paraphrase_templates: schema.paraphrase_templates }
+      : {}),
     examples: schema.examples,
     tags: schema.tags,
     usage_hints:
@@ -93,6 +97,8 @@ export function predicateSchemaFromEntity(
         ...stringArray(entity.aliases),
         ...stringArray(entity.tags),
       ],
+      aliases: stringArray(entity.aliases),
+      paraphrase_templates: stringArray(entity.paraphrase_templates),
       examples: stringArray(entity.examples),
       tags: stringArray(entity.tags),
       ...(usageHints ? { usage_hints: usageHints } : {}),

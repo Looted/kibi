@@ -135,6 +135,14 @@ function factTarget(entity: Record<string, unknown>): string | null {
       return typeof entity.predicate_name === "string"
         ? entity.predicate_name
         : null;
+    case "rule":
+      return typeof entity.semantic_key === "string"
+        ? entity.semantic_key
+        : typeof entity.rule_name === "string"
+          ? entity.rule_name
+          : null;
+    case "rule_schema":
+      return typeof entity.rule_name === "string" ? entity.rule_name : null;
     default:
       return null;
   }
@@ -163,6 +171,8 @@ function normalizeMcpPredicateSnapshot(
       factKind !== "property_value" &&
       factKind !== "predicate" &&
       factKind !== "predicate_schema" &&
+      factKind !== "rule_schema" &&
+      factKind !== "rule" &&
       factKind !== "observation" &&
       factKind !== "meta"
     ) {
@@ -186,6 +196,15 @@ function normalizeMcpPredicateSnapshot(
         ...(predicateArgs === undefined ? {} : { predicateArgs }),
         ...(entity.polarity === "assert" || entity.polarity === "deny"
           ? { polarity: entity.polarity }
+          : {}),
+        ...(typeof entity.rule_hash === "string"
+          ? { ruleHash: entity.rule_hash }
+          : {}),
+        ...(typeof entity.semantic_key === "string"
+          ? { semanticKey: entity.semantic_key }
+          : {}),
+        ...(typeof entity.rule_schema_id === "string"
+          ? { ruleSchemaId: entity.rule_schema_id }
           : {}),
         ...(typeof entity.claim_key === "string"
           ? { claimKey: entity.claim_key }
@@ -212,6 +231,7 @@ function normalizeMcpPredicateSnapshot(
       "requires_predicate",
       "constrains",
       "requires_property",
+      "requires_rule",
     ] as const) {
       for (const targetId of relationshipTargets(entity[relationship])) {
         const target = factById.get(targetId);

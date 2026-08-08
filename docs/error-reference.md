@@ -50,6 +50,10 @@ Call `kb_suggest_predicates` before hand-writing ontology predicates.
 
 If `kb_check` reports `logic-coverage`, compare the requirement `logic_claims` manifest with its linked `property_value` and `predicate` facts. Ground every missing key, add any omitted linked key to the manifest, and keep ambiguity or ontology gaps explicitly unresolved rather than satisfying the check with an observation.
 
+## Unsafe or unverifiable rule fact
+
+`fact_kind: rule` requires a `kibi.logic.v1` `rule_ir`, a deterministic full `rule_hash`, a `semantic_key`, a `rule_schema_id`, and `rule_name`. Submit the typed object through `kb_model_requirement`; do not provide Prolog source. `rule-safety` rejects function symbols, raw goals, cuts, meta-calls, dynamic predicates, I/O, unsafe/unbound variables, existential rule heads, unstratified negation, incompatible units, and unbounded aggregation. `rule-verifiability` requires `requires_rule` to target a real `rule_schema` and a safe rule fact. Analysis that is timed out or resource-limited is `unresolved`, not proof of consistency.
+
 If validation reports `Logical Claim Provenance Mismatch`, the fact's `claim_key` was copied, invented, or derived from different text. Re-run `kb_semantic_advisor` for the exact atomic clause and preserve its returned `claim_key` and canonicalized `claim_text` together.
 
 ## Relationship source mismatch
@@ -65,6 +69,7 @@ Same-call relationship rows must start from the entity being upserted. To link `
 - `constrains` targets `fact_kind: subject`.
 - `requires_property` targets `fact_kind: property_value`.
 - `requires_predicate` targets `fact_kind: predicate`.
+- `requires_rule` targets `fact_kind: rule` whose `rule_schema_id` points to `fact_kind: rule_schema`.
 
 Legacy prose facts may remain readable during migration, but they do not provide the same strict contradiction semantics.
 

@@ -5,7 +5,10 @@ import type {
   SemanticAdvisorLane,
   SemanticAdvisorReadiness,
   SemanticAdvisorReceipt,
+  SemanticInterpretationResult,
   SemanticModelingSuggestion,
+  SemanticProposition,
+  SemanticShadowCue,
   SemanticSignal,
 } from "./types.js";
 
@@ -43,6 +46,8 @@ function summary(
     return "Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts.";
   if (lane === "predicate")
     return "Requirement prose appears to contain relational or behavioral logic that should be modeled with ontology predicates.";
+  if (lane === "rule")
+    return "Requirement prose has a typed interpretation candidate; validate and persist it as a safe kibi.logic.v1 rule.";
   return "Requirement prose appears normative but needs review before it can participate in logic checks.";
 }
 
@@ -53,14 +58,19 @@ export function buildAdvisorResult(
   modeled: boolean,
   suggestions: readonly SemanticModelingSuggestion[],
   clauses: readonly SemanticClause[],
+  propositions: readonly SemanticProposition[],
+  interpretations: readonly SemanticInterpretationResult[],
+  shadowAnalysis: readonly SemanticShadowCue[],
 ): SemanticAdvisorAnalysisResult {
   const suggestionLane = suggestions.some(
     ({ kind }) => kind === "strict_property",
   )
     ? "strict_property"
-    : suggestions.some(({ kind }) => kind === "predicate")
-      ? "predicate"
-      : null;
+    : suggestions.some(({ kind }) => kind === "rule")
+      ? "rule"
+      : suggestions.some(({ kind }) => kind === "predicate")
+        ? "predicate"
+        : null;
   const candidateLane = modeled
     ? "none"
     : (suggestionLane ?? chooseLane(signals));
@@ -75,12 +85,16 @@ export function buildAdvisorResult(
       ? ["kb_model_requirement"]
       : candidateLane === "predicate"
         ? ["kb_suggest_predicates"]
-        : candidateLane === "observation_review"
-          ? ["kb_model_requirement", "kb_suggest_predicates"]
-          : [];
-  const expectedClaimKeys = clauses
-    .filter((clause) => clause.normative)
-    .map((clause) => clause.claim_key);
+        : candidateLane === "rule"
+          ? ["kb_model_requirement"]
+          : candidateLane === "observation_review"
+            ? ["kb_model_requirement", "kb_suggest_predicates"]
+            : [];
+  const expectedClaimKeys = propositions
+    .filter(
+      ({ role }) => !["rationale", "example", "subjective"].includes(role),
+    )
+    .map(({ claim_key }) => claim_key);
   const rawDeclaredClaimKeys = propertiesOf(payload).logic_claims;
   const declaredClaimKeys = Array.isArray(rawDeclaredClaimKeys)
     ? rawDeclaredClaimKeys.filter(
@@ -90,13 +104,11 @@ export function buildAdvisorResult(
   const missingClaimKeys = expectedClaimKeys.filter(
     (claimKey) => !declaredClaimKeys.includes(claimKey),
   );
-  const unresolvedClaimKeys = suggestions
-    .filter(
-      (suggestion) =>
-        suggestion.kind === "ambiguity_observation" ||
-        suggestion.kind === "ontology_gap",
+  const unresolvedClaimKeys = propositions
+    .filter(({ status }) =>
+      ["ambiguous", "ontology_gap", "missing"].includes(status),
     )
-    .map((suggestion) => suggestion.claim_key);
+    .map(({ claim_key }) => claim_key);
   const coverageStatus =
     expectedClaimKeys.length === 0
       ? "not_applicable"
@@ -106,7 +118,7 @@ export function buildAdvisorResult(
           ? "unverified"
           : "partial";
   const receipt: SemanticAdvisorReceipt = {
-    version: "semantic-advisor-v1",
+    version: "semantic-advisor-v2",
     payload_hash: payloadHash(payload),
     logic_readiness: readiness,
     candidate_lane: candidateLane,
@@ -128,6 +140,9 @@ export function buildAdvisorResult(
             message:
               "Numeric cardinality prose can mean an exact count, an upper/lower bound, named membership, or an example; model it explicitly before relying on contradiction checks.",
           })),
+    propositions,
+    interpretations,
+    shadow_analysis: shadowAnalysis,
     suggestions,
     clauses: clauses.map((clause) => ({
       ...clause,

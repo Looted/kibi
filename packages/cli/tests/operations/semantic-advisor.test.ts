@@ -133,4 +133,82 @@ describe("semantic advisor operation", () => {
     expect(complete.receipt.logic_coverage.status).toBe("complete");
     expect(complete.receipt.suggestions).toEqual([]);
   });
+
+  test("records canonical IR, byte spans, and shadow cues for a typed rule", () => {
+    const text =
+      "If a customer is active, the service must retain the account.";
+    const claimKey = semanticClaimKey(text);
+    const result = analyzeSemanticAdvisorInput({
+      payload: {
+        type: "req",
+        id: "REQ-RULE",
+        properties: { title: "Retention", text_ref: text },
+      },
+      clauses: [text],
+      interpretations: [
+        {
+          claim_key: claimKey,
+          claim_text: text,
+          ir: {
+            version: "kibi.logic.v1",
+            kind: "rule",
+            modality: "oblige",
+            variables: [{ name: "X", type: "entity" }],
+            head: {
+              kind: "atom",
+              name: "retain",
+              args: [{ kind: "var", name: "X", type: "entity" }],
+            },
+            body: {
+              kind: "atom",
+              name: "active_customer",
+              args: [{ kind: "var", name: "X", type: "entity" }],
+            },
+          },
+        },
+      ],
+    });
+    expect(result.receipt.propositions[0]).toMatchObject({
+      claim_key: claimKey,
+      status: "modeled",
+      payload_hash: expect.any(String),
+    });
+    expect(result.receipt.propositions[0]?.span.end).toBeGreaterThan(0);
+    expect(result.receipt.interpretations[0]?.normalized_ir?.kind).toBe("rule");
+    expect(
+      result.receipt.shadow_analysis.find(({ kind }) => kind === "conditional")
+        ?.represented,
+    ).toBe(true);
+  });
+
+  test("keeps materially different interpretations unresolved", () => {
+    const text = "The service may export the report.";
+    const claimKey = semanticClaimKey(text);
+    const base = {
+      version: "kibi.logic.v1" as const,
+      kind: "atom" as const,
+      modality: "permit" as const,
+      head: { kind: "atom" as const, name: "export_report", args: [] },
+    };
+    const result = analyzeSemanticAdvisorInput({
+      payload: {
+        type: "req",
+        id: "REQ-AMBIGUOUS",
+        properties: { title: text, text_ref: text },
+      },
+      clauses: [text],
+      interpretations: [
+        { claim_key: claimKey, claim_text: text, ir: base },
+        {
+          claim_key: claimKey,
+          claim_text: text,
+          ir: { ...base, modality: "forbid" },
+        },
+      ],
+    });
+    expect(result.receipt.propositions[0]?.status).toBe("ambiguous");
+    expect(result.receipt.logic_coverage.unresolved_claim_keys).toContain(
+      claimKey,
+    );
+  });
 });

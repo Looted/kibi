@@ -17,3 +17,4 @@ export * from "./types.js";
 export * from "../../operations/autopilot/generate.js";
 export * from "../../operations/autopilot/presentation.js";
 export type * from "../../operations/autopilot/types.js";
+export * from "../../logic/ir.js";

@@ -342,11 +342,21 @@ export const defaultEvaluateDevelopment: RealOptimizationDependencies["evaluateD
 export const oneShotVariant: RealOptimizationDependencies["oneShot"] = async (
   input,
 ) => {
+  const runtime =
+    input.cellRuntime === undefined
+      ? undefined
+      : requireRuntime(input.cellRuntime);
   const step = await runCodexSkillOptStep({
     sourceWorktree: input.sourceWorktree,
     artifactRoot: join(input.artifactRoot, "one-shot"),
     runId: `${input.runId}-one-shot`,
     env: input.env,
+    ...(runtime === undefined
+      ? {}
+      : {
+          codexExecutable: runtime.codexExecutable,
+          bwrapExecutable: runtime.bwrapExecutable,
+        }),
     request: {
       skill: input.skill,
       step: 1,

@@ -75,16 +75,16 @@ When prose contains a machine-checkable rule, do not store it only in `text_ref`
 
 1. Call `kb_semantic_advisor` with the complete body when starting from raw prose, or run `kb_validate_upsert` before `kb_upsert` for new or updated normative requirements. Verify the returned atomic clause inventory; supply `clauses` when automatic decomposition is incomplete.
 2. For property/value requirements, call `kb_model_requirement` or create a `fact_kind: subject` fact plus a `fact_kind: property_value` fact. Link the requirement with `constrains` and `requires_property`.
-3. Model every normative clause: use `kb_suggest_predicates` for ontology claims and `kb_model_requirement` for strict scalar claims. Preserve `claim_key` and `claim_text` on each ground fact, merge every key into the requirement `logic_claims` manifest, and link with `requires_predicate` or `requires_property`. An ontology-gap observation remains unresolved.
+3. Model every normative clause: use `kb_suggest_predicates` for approved ground ontology claims, strict facts for scalar claims, and `kb_model_requirement` with a validated `kibi.logic.v1` object for conditions, exceptions, modalities, quantifiers, cardinality, or bounded temporal rules. Preserve `claim_key` and `claim_text` on each ground fact/rule, merge every key into `logic_claims`, persist the complete `semantic_inventory`, and link with `requires_predicate`, `requires_property`, or `requires_rule`. An ambiguity or ontology-gap observation remains explicitly unresolved.
 4. Use snake_case field names exactly as the MCP schema shows. `kb_upsert.properties` rejects camelCase aliases such as `subjectKey`, `propertyKey`, `predicateName`, and generic `value`.
 
 Semantic advisor receipts are advisory. They identify atomic clauses and likely modeling lanes, but they do not prove that arbitrary prose was decomposed exhaustively or auto-create facts. `logic_coverage` reports the expected, declared, missing, and unresolved claim keys. Review every clause, apply the strict-property or predicate plans, and run `kb_check` with `logic-coverage` before treating the requirement as Prolog-checkable.
 
 ### `kb_model_requirement`
 
-Model a normative requirement claim into a deterministic strict write-set for contradiction-ready KB persistence. Accepts an LLM-supplied semantic claim (or falls back to heuristic extraction from a plain statement) and returns a ready-to-apply plan of `req` + `fact` entities with typed `constrains`/`requires_property` relationships.
+Model a normative requirement claim into a deterministic strict write-set or a validated `kibi.logic.v1` rule plan for contradiction-ready KB persistence. Accepts an LLM-supplied semantic claim (or a typed `logic` object) and returns a ready-to-apply sequence of `req`, `fact_kind: subject`, `fact_kind: property_value`, `rule_schema`, and `rule` entities with typed relationships. Raw Prolog is rejected.
 
-High-confidence claims (≥ 0.7) produce a strict write-set: one `req`, one `fact_kind: subject`, one `fact_kind: property_value`, and two typed relationships. Low-confidence claims (< 0.7) produce a single `fact_kind: observation` artifact that does not enter the contradiction lane, plus a warning explaining how to retry with explicit claim fields.
+High-confidence scalar claims (≥ 0.7) produce a strict write-set: one `req`, one `fact_kind: subject`, one `fact_kind: property_value`, and two typed relationships. A valid `logic` input produces a `rule_schema`, a `rule` with canonical JSON/full hash/semantic key, and `requires_rule`. Low-confidence claims (< 0.7) produce a single `fact_kind: observation` artifact that does not enter the contradiction lane, plus a warning explaining how to retry with explicit claim fields.
 
 **Parameters:**
 - `text` (required): One atomic plain-language normative clause to model.
@@ -93,6 +93,7 @@ High-confidence claims (≥ 0.7) produce a strict write-set: one `req`, one `fac
 - `subjectKey`, `propertyKey`, `operator`, and `value` (optional as a complete set): Explicit semantic claim fields. When all are supplied, heuristic extraction is skipped.
 - `provenance` (optional): Exact source anchor for the clause.
 - `existingLogicClaims` (optional): Existing requirement claim keys. The returned req update merges the new key rather than replacing previously modeled clauses.
+- `logic` (optional): Typed `kibi.logic.v1` IR. Kibi validates range restriction, modalities, units, temporal bounds, closed-world negation, and resource-safe structure before returning a rule plan.
 
 **Returns:**
 A `writeSet` discriminated union:
@@ -148,12 +149,14 @@ Analyze requirement prose without mutating the KB. Use this before constructing 
 - `title` (optional): Requirement title for draft apply plans.
 - `source` (optional): Provenance for draft suggestions.
 - `status` (optional): Requirement status for draft suggestions.
+- `clauses` (optional): Caller-reviewed atomic proposition split. Use it when a sentence contains multiple obligations, conditions, exceptions, definitions, or qualifiers.
+- `interpretations` (optional, maximum 3): Typed `kibi.logic.v1` alternatives with `claim_key`, `claim_text`, and `ir`. Kibi canonicalizes and structurally compares them; materially different valid alternatives remain unresolved and confidence never selects one.
 
 **Returns:**
-- `structuredContent.receipt`: Semantic advisor receipt with detected signals, ambiguity witnesses, modeling suggestions, candidate lane, payload hash, and suggested next tools.
+- `structuredContent.receipt`: Semantic advisor receipt with detected signals, a proposition ledger (`propositions[]`), typed interpretation results, deterministic shadow cues, modeling suggestions, candidate lane, payload hash, and suggested next tools.
 - `structuredContent.warnings`: Non-blocking warning strings explaining why the prose is not yet contradiction-checkable.
 
-The request accepts optional `clauses` for a caller-reviewed atomic split. The receipt returns stable `claim_key` values, `claim_text`, per-clause suggestion indexes, and a `logic_coverage` manifest comparison. Suggestion kinds include `strict_property`, `predicate`, `ambiguity_observation`, and `ontology_gap`. Supported deterministic suggestions include multi-claim prose, cardinality, thresholds with units, retention/expiry durations, booleans, enum sets, permissions and prohibitions, defaults, uniqueness constraints, state memberships, state transitions, exception rules, mutual exclusion, dependency rules, ownership, retry policies, escalation rules, availability SLAs, notification routing, idempotency rules, data residency rules, audit logging, consent requirements, lifecycle archive/delete/expiry rules, conflict-resolution strategies, fallback/degradation behavior, batch operation constraints, cross-entity consistency/reference requirements, conditional behavior, temporal ordering, comparative numeric constraints, rate limits, and ambiguity observations.
+The receipt returns stable provenance `claim_key` values, `claim_text`, exact UTF-8 byte spans, per-clause suggestion indexes, and a `logic_coverage` manifest comparison. Proposition statuses are `modeled`, `ambiguous`, `ontology_gap`, `nonlogical`, or `missing`; an assertive span is never silently dropped. Suggestion kinds include `strict_property`, `predicate`, `rule`, `ambiguity_observation`, and `ontology_gap`. Supported deterministic suggestions include multi-claim prose, cardinality, thresholds with units, retention/expiry durations, booleans, enum sets, permissions and prohibitions, defaults, uniqueness constraints, state memberships, state transitions, exception rules, mutual exclusion, dependency rules, ownership, retry policies, escalation, availability SLAs, notification routing, idempotency, data residency, audit logging, consent, lifecycle, conflict-resolution, fallback/degradation, batch constraints, cross-entity consistency, conditional behavior, temporal ordering, comparative numeric constraints, rate limits, and ambiguity observations.
 
 For exact predicate suggestions, the receipt `candidate_lane` and `suggested_next_tools` follow the generated suggestion rather than the weaker signal heuristic. For example, a lifecycle rule containing a number still routes to `kb_suggest_predicates`, not `kb_model_requirement`, when the advisor can ground it as a predicate fact.
 
