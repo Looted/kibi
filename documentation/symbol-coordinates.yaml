@@ -8069,7 +8069,7 @@ coordinates:
   SYM-skillopt-codex-optimizer-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 287
+    sourceEndLine: 294
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
     sourceLine: 167
   SYM-skillopt-codex-runtime-lease:
