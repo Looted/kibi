@@ -79,6 +79,11 @@ export async function stageCapabilityCanary(
     "utf8",
   );
   const runtimeRoot = resolve(workspace.target, ".runtime");
+  // A reusable run-level runtime supplies the executables from outside each
+  // cell, but the cell still owns its runtime metadata and schema directory.
+  // Create that directory before writing the canary schema in both staging
+  // modes.
+  await mkdir(runtimeRoot, { recursive: true, mode: 0o700 });
   const stagedCodex =
     dependencies.stagedRuntime ??
     (await stageCodexRuntime(runtimeRoot, {
