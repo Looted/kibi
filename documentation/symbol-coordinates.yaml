@@ -10973,9 +10973,9 @@ coordinates:
   SYM-skillopt-runtime-probe-required-mcp:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 163
+    sourceEndLine: 168
     sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
-    sourceLine: 136
+    sourceLine: 141
   SYM-skillopt-runtime-probe-sandbox:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -11009,9 +11009,9 @@ coordinates:
   SYM-skillopt-runtime-process-summary:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 168
+    sourceEndLine: 173
     sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
-    sourceLine: 165
+    sourceLine: 170
   SYM-skillopt-runtime-required-mcp-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -11063,7 +11063,7 @@ coordinates:
   SYM-skillopt-runtime-stage-canary:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 118
+    sourceEndLine: 123
     sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
     sourceLine: 56
   SYM-skillopt-runtime-stage-kibi-mcp:

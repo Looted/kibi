@@ -102,6 +102,40 @@ describe("required Kibi MCP stdio startup", () => {
     }
   });
 
+  test("creates the per-cell schema directory when executables are reused", async () => {
+    // Given a run-level staged runtime whose executable paths are outside the
+    // disposable cell
+    const artifactRoot = await workspace();
+    const isolation = await createIsolationWorkspace({
+      artifactRoot,
+      runId: "reused-runtime",
+      role: "optimizer",
+    });
+
+    try {
+      // When the capability staging reuses those absolute paths
+      const staged = await stageCapabilityCanary(isolation, process.cwd(), {
+        stagedRuntime: {
+          codexExecutable: "/bin/true",
+          bwrapExecutable: "/usr/bin/bwrap",
+        },
+      });
+
+      // Then cell-local metadata still has a materialized schema
+      expect(staged.schemaPath).toBe(
+        resolve(isolation.target, ".runtime/output.schema.json"),
+      );
+      expect(JSON.parse(await readFile(staged.schemaPath, "utf8"))).toEqual({
+        type: "object",
+        additionalProperties: false,
+        required: ["probeExecuted"],
+        properties: { probeExecuted: { type: "boolean", const: true } },
+      });
+    } finally {
+      await isolation.cleanup();
+    }
+  });
+
   test("returns a typed startup failure for an unavailable command", async () => {
     // Given
     const cwd = await workspace();
