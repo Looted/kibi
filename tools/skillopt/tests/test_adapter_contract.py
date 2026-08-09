@@ -83,7 +83,7 @@ class AdapterContractTests(unittest.TestCase):
             self.assertEqual(config["num_epochs"], 4)
             self.assertEqual(config["batch_size"], 8)
             self.assertEqual(config["accumulation"], 1)
-            self.assertEqual(config["gate_metric"], "soft")
+            self.assertEqual(config["gate_metric"], "hard")
             self.assertFalse(config["use_meta_skill"])
             self.assertEqual(config["skill_update_mode"], "full_rewrite_minibatch")
             self.assertEqual(config["seed"], 5417)

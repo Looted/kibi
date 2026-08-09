@@ -8051,9 +8051,9 @@ coordinates:
   SYM-skillopt-codex-optimizer-options:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 170
+    sourceEndLine: 171
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
-    sourceLine: 161
+    sourceLine: 162
   SYM-skillopt-codex-optimizer-parse-body:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8069,9 +8069,9 @@ coordinates:
   SYM-skillopt-codex-optimizer-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 325
+    sourceEndLine: 326
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
-    sourceLine: 173
+    sourceLine: 174
   SYM-skillopt-codex-runtime-lease:
     sourceColumn: 12
     sourceEndColumn: 5
@@ -8549,9 +8549,9 @@ coordinates:
   SYM-skillopt-deterministic-variant-label:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 199
+    sourceEndLine: 240
     sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
-    sourceLine: 189
+    sourceLine: 230
   SYM-skillopt-development-admission-gate:
     sourceColumn: 13
     sourceEndColumn: 10
@@ -9383,9 +9383,9 @@ coordinates:
   SYM-skillopt-normalize-codex-jsonl:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 186
+    sourceEndLine: 227
     sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
-    sourceLine: 136
+    sourceLine: 177
   SYM-skillopt-normalized-codex-event-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -10397,9 +10397,9 @@ coordinates:
   SYM-skillopt-python-run-training:
     sourceColumn: 4
     sourceEndColumn: 16
-    sourceEndLine: 119
+    sourceEndLine: 123
     sourceFile: tools/skillopt/kibi_skillopt/trainer.py
-    sourceLine: 119
+    sourceLine: 123
   SYM-skillopt-python-source-lock:
     sourceColumn: 6
     sourceEndColumn: 16
@@ -10457,7 +10457,7 @@ coordinates:
   SYM-skillopt-real-optimization-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 388
+    sourceEndLine: 393
     sourceFile: scripts/skillopt-eval/real-workflow.ts
     sourceLine: 143
   SYM-skillopt-real-workflow-types-canonical-hash:

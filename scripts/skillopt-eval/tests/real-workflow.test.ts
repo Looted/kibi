@@ -275,7 +275,9 @@ describe("real SkillOpt workflow", () => {
               "# Frozen candidate\n\nnpx --no-install kibi\nbunx --no-install kibi\nDo not read or edit files inside `.kb` directly\n",
             trainerCheckpointHash: "c".repeat(64),
             trajectoryHashes: ["d".repeat(64)],
-            development: { mean: 0.9, hardPasses: 4, worstFamilyMean: 0.85 },
+            // Deliberately disagree with the independent evaluator: this is
+            // selection-loop metadata and must not authorize held-out cells.
+            development: { mean: 0.1, hardPasses: 0, worstFamilyMean: 0.1 },
           };
         },
         oneShot: async (input) =>
@@ -293,9 +295,11 @@ describe("real SkillOpt workflow", () => {
         evaluateDevelopment: async (input) => {
           steps.push("development");
           developmentCandidates.push(input.candidate.body);
-          return input.candidate.variant === "baseline"
-            ? { mean: 0.5, hardPasses: 2, worstFamilyMean: 0.4 }
-            : { mean: 0.6, hardPasses: 2, worstFamilyMean: 0.5 };
+          if (input.candidate.variant === "baseline")
+            return { mean: 0.5, hardPasses: 2, worstFamilyMean: 0.4 };
+          if (input.candidate.variant === "one-shot")
+            return { mean: 0.6, hardPasses: 2, worstFamilyMean: 0.5 };
+          return { mean: 0.9, hardPasses: 4, worstFamilyMean: 0.85 };
         },
         evaluateHeldOut: async (input) => {
           steps.push("held-out");
@@ -324,7 +328,7 @@ describe("real SkillOpt workflow", () => {
       expect(result.status).toBe("evaluated");
       expect(trainerInputs).toHaveLength(1);
       expect(JSON.stringify(trainerInputs)).not.toContain("held-out");
-      expect(developmentCandidates).toHaveLength(2);
+      expect(developmentCandidates).toHaveLength(3);
       expect(heldOutVariants).toHaveLength(1);
       expect(heldOutVariants[0]).toHaveLength(3);
       expect(result.heldOutEligibility).toBe("eligible");
@@ -333,6 +337,7 @@ describe("real SkillOpt workflow", () => {
         "development",
         "development",
         "train",
+        "development",
         "held-out",
       ]);
       const review = JSON.parse(
