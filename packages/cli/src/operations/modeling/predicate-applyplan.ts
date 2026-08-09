@@ -135,7 +135,13 @@ export function buildGapApplyPlan(
         claim_key: claimKey,
         claim_text: text,
       },
-      relationships: [],
+      relationships: [
+        {
+          type: "relates_to",
+          from: factId,
+          to: "review:ontology-gap",
+        },
+      ],
     },
   ];
 }
