@@ -6551,9 +6551,9 @@ coordinates:
   SYM-predicate-infer-args:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 217
+    sourceEndLine: 229
     sourceFile: packages/cli/src/operations/modeling/predicate-inference.ts
-    sourceLine: 71
+    sourceLine: 72
   SYM-predicate-infer-conflict-resolution:
     sourceColumn: 16
     sourceEndColumn: 1

@@ -64,6 +64,7 @@ import {
   inferSubject,
   inferTrigger,
   inferUnit,
+  normalizePredicateToken,
   slug,
 } from "./predicate-utils.js";
 
@@ -210,9 +211,20 @@ export function inferArgs(
     case "rate_limit":
       return inferRateLimitArgs(text);
     default:
-      return schema.argument_names.map((name) =>
-        name === "subject" ? subject : "unknown",
-      );
+      return schema.argument_names.map((name) => {
+        if (name === "subject") return subject;
+        const normalized = normalizePredicateToken(name);
+        const words = normalized.split("_").filter((word) => word.length > 2);
+        // Project-local schemas often use the exact domain vocabulary in
+        // their ordered argument names. Reuse that declared value when the
+        // complete name (or all meaningful words) occurs in the claim; keep
+        // genuinely unbound arguments explicit instead of guessing.
+        const phrase = words.join(" ");
+        return phrase.length > 0 &&
+          (lower.includes(phrase) || words.every((word) => lower.includes(word)))
+          ? normalized
+          : "unknown";
+      });
   }
 }
 
