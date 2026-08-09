@@ -1010,6 +1010,17 @@ describe("kb_suggest_predicates", () => {
         },
       }),
     });
+
+    const denied = await handleKbSuggestPredicates(prolog, {
+      text: "The custom policy mode must not be bypassed.",
+      subjectHint: "policy.engine",
+      maxCandidates: 1,
+    });
+    expect(
+      (
+        denied.structuredContent.candidates as Array<Record<string, unknown>>
+      )[0],
+    ).toMatchObject({ polarity: "deny" });
     expect(capturedGoal).toContain("fact_kind=predicate_schema");
   });
 

@@ -17,4 +17,4 @@ links:
     target: TEST-mcp-suggest-predicates
 ---
 
-The MCP server must suggest matching ontology predicate schemas for requirement prose, return safe predicate fact apply plans when a schema fits, and report ontology-gap observations when no candidate is suitable.
+The MCP server must suggest matching ontology predicate schemas for requirement prose, return safe predicate fact apply plans when a schema fits, and report ontology-gap observations when no candidate is suitable. Suggestions must preserve deontic polarity (`deny` for prohibition cues such as “must not” or “never”) and bind declared project-local argument names when the claim supplies them; they must not silently turn a prohibition into an assertion or invent unbound values.

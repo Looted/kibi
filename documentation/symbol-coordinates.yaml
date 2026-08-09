@@ -5507,21 +5507,21 @@ coordinates:
   SYM-modeling-predicate-applyplan-buildGapApplyPlan:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 135
+    sourceEndLine: 141
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
-    sourceLine: 107
+    sourceLine: 113
   SYM-modeling-predicate-applyplan-buildPredicateApplyPlan:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 72
+    sourceEndLine: 78
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
-    sourceLine: 37
+    sourceLine: 43
   SYM-modeling-predicate-applyplan-buildRelationshipPlan:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 104
+    sourceEndLine: 110
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
-    sourceLine: 75
+    sourceLine: 81
   SYM-modeling-predicate-inference-1-inferAuditEventRuleArgs:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6509,7 +6509,7 @@ coordinates:
   SYM-predicate-build-suggestion:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 34
+    sourceEndLine: 40
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
     sourceLine: 12
   SYM-predicate-catalog-part-1:
@@ -6551,7 +6551,7 @@ coordinates:
   SYM-predicate-infer-args:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 229
+    sourceEndLine: 230
     sourceFile: packages/cli/src/operations/modeling/predicate-inference.ts
     sourceLine: 72
   SYM-predicate-infer-conflict-resolution:
