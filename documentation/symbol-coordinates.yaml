@@ -5507,7 +5507,7 @@ coordinates:
   SYM-modeling-predicate-applyplan-buildGapApplyPlan:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 141
+    sourceEndLine: 147
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
     sourceLine: 113
   SYM-modeling-predicate-applyplan-buildPredicateApplyPlan:
@@ -7193,9 +7193,9 @@ coordinates:
   SYM-semantic-advisor-observationPlan:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 30
+    sourceEndLine: 44
     sourceFile: packages/cli/src/operations/semantic-advisor/observation-plan.ts
-    sourceLine: 10
+    sourceLine: 11
   SYM-semantic-advisor-payloadHash:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8069,7 +8069,7 @@ coordinates:
   SYM-skillopt-codex-optimizer-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 300
+    sourceEndLine: 325
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
     sourceLine: 173
   SYM-skillopt-codex-runtime-lease:
