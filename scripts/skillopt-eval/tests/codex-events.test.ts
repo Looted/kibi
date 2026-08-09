@@ -109,6 +109,27 @@ describe("Codex JSONL normalization", () => {
     expect(normalized.violations).not.toContain("direct_kb_access");
   });
 
+  test("Given Codex's shell-escaped glob quoting When normalized Then the KB exclusion remains allowed", () => {
+    // Given
+    const transcript = JSON.stringify({
+      type: "item.completed",
+      item: {
+        type: "command_execution",
+        command:
+          "/bin/bash -c \"rg --files -g '\"'!**/.kb/**'\"' -g '\"'!**/.runtime/**'\"'\"",
+      },
+    });
+
+    // When
+    const normalized = normalizeCodexJsonl(transcript, {
+      hiddenMarkers: [],
+      forbiddenRoots: [],
+    });
+
+    // Then
+    expect(normalized.violations).not.toContain("direct_kb_access");
+  });
+
   test("Given a KB path outside an exclusion glob When normalized Then direct access is reported", () => {
     // Given
     const transcript = JSON.stringify({

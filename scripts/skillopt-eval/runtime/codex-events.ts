@@ -97,22 +97,30 @@ const GLOB_OPTION_PATTERN =
  */
 // implements REQ-skillopt-codex-optimization
 function commandReferencesKb(command: string): boolean {
+  // Codex's shell serializer represents an embedded quote as `'"'`.  Remove
+  // only that quoting marker before parsing glob operands; the path itself is
+  // preserved for the access check below.
+  const normalizedCommand = command.replace(/'"'/g, "");
   const excludedRanges: Array<readonly [number, number]> = [];
-  for (const match of command.matchAll(GLOB_OPTION_PATTERN)) {
-    const glob = match[1] ?? match[2] ?? match[3] ?? "";
+  for (const match of normalizedCommand.matchAll(GLOB_OPTION_PATTERN)) {
+    const glob = (match[1] ?? match[2] ?? match[3] ?? "").replace(
+      /^['"]+|['"]+$/g,
+      "",
+    );
     if (glob.startsWith("!") && KB_PATH_PATTERN.test(glob)) {
       const start = match.index ?? 0;
       excludedRanges.push([start, start + match[0].length]);
     }
   }
-  if (excludedRanges.length === 0) return KB_PATH_PATTERN.test(command);
+  if (excludedRanges.length === 0)
+    return KB_PATH_PATTERN.test(normalizedCommand);
   let offset = 0;
   let remainder = "";
   for (const [start, end] of excludedRanges) {
-    remainder += command.slice(offset, start);
+    remainder += normalizedCommand.slice(offset, start);
     offset = end;
   }
-  remainder += command.slice(offset);
+  remainder += normalizedCommand.slice(offset);
   return KB_PATH_PATTERN.test(remainder);
 }
 
