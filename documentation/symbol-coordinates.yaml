@@ -5507,21 +5507,21 @@ coordinates:
   SYM-modeling-predicate-applyplan-buildGapApplyPlan:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 131
+    sourceEndLine: 135
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
-    sourceLine: 103
+    sourceLine: 107
   SYM-modeling-predicate-applyplan-buildPredicateApplyPlan:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 68
+    sourceEndLine: 72
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
-    sourceLine: 33
+    sourceLine: 37
   SYM-modeling-predicate-applyplan-buildRelationshipPlan:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 100
+    sourceEndLine: 104
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
-    sourceLine: 71
+    sourceLine: 75
   SYM-modeling-predicate-inference-1-inferAuditEventRuleArgs:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6509,7 +6509,7 @@ coordinates:
   SYM-predicate-build-suggestion:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 30
+    sourceEndLine: 34
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
     sourceLine: 12
   SYM-predicate-catalog-part-1:
@@ -8039,39 +8039,39 @@ coordinates:
   SYM-skillopt-codex-optimizer-error:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 65
+    sourceEndLine: 70
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
-    sourceLine: 62
+    sourceLine: 67
   SYM-skillopt-codex-optimizer-error-name:
     sourceColumn: 11
     sourceEndColumn: 40
-    sourceEndLine: 64
+    sourceEndLine: 69
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
-    sourceLine: 64
+    sourceLine: 69
   SYM-skillopt-codex-optimizer-options:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 164
+    sourceEndLine: 170
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
-    sourceLine: 155
+    sourceLine: 161
   SYM-skillopt-codex-optimizer-parse-body:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 94
+    sourceEndLine: 99
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
-    sourceLine: 77
+    sourceLine: 82
   SYM-skillopt-codex-optimizer-persist-body:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 129
+    sourceEndLine: 134
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
-    sourceLine: 97
+    sourceLine: 102
   SYM-skillopt-codex-optimizer-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 294
+    sourceEndLine: 300
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
-    sourceLine: 167
+    sourceLine: 173
   SYM-skillopt-codex-runtime-lease:
     sourceColumn: 12
     sourceEndColumn: 5

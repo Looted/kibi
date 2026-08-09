@@ -76,6 +76,12 @@ If another current requirement links an `assert` fact with the same predicate na
 
 The full logical representation of a requirement is the conjunction of all of its linked ground property and predicate terms. Conditions, exceptions, permissions, and ordering constraints remain explicit arguments of their declared schemas. Contradiction detection therefore depends on equivalent prose reusing the same predicate name, argument roles, ordered canonical values, and opposing polarity rather than inventing synonymous terms.
 
+### Lane gates before a predicate lookup
+
+Treat the advisor's proposition status as a hard routing decision. `nonlogical`/`subjective` prose is not a logical claim: keep it as one observation when needed and do not add its key to `logic_claims`. `ambiguous` prose stays an ambiguity observation. `ontology_gap` prose stays unresolved unless an approved schema or validated Logic IR is available. Never split a subjective or commentary sentence into synthetic clauses just because it contains conditional words or domain vocabulary.
+
+If authorized input supplies `projectLocalSchemas`, use those signatures as the authority. Create the minimal `predicate_schema` endpoint before lookup, then rerun `kb_suggest_predicates` on the complete relation if the first lookup had no candidate. Apply exactly one ground predicate and one claim key for that relation. For `must not`, `never`, `cannot`, or `forbidden` wording, preserve the positive schema and set `polarity: deny`; do not turn the result into an asserted predicate or invent a negative name. An empty lookup before the declared schema exists is a retry condition, not proof of an ontology gap.
+
 ## Typed rule lane
 
 Use a validated `kibi.logic.v1` object for a proposition whose meaning includes a condition, exception, obligation, prohibition, permission, quantifier, cardinality bound, or bounded temporal relation. `kb_model_requirement` returns the `rule_schema` and `rule` facts plus a `requires_rule` edge. The rule stores canonical JSON and a deterministic hash; any rendered Prolog is an audit view and is never executed. Reject raw goals, function symbols, cuts, meta-calls, dynamic predicates, I/O, unsafe variables, unstratified negation, and unbounded aggregation. Keep the exact proposition in `claim_text`, its advisor key in `claim_key`, and its byte span in the semantic ledger. Run `rule-safety` and `rule-verifiability` before treating the rule as modeled.
