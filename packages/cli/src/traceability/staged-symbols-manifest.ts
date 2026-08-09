@@ -10,6 +10,7 @@ import {
   readCoordinateArtifact,
 } from "../extractors/symbol-coordinates.js";
 import { analyzeSourceText } from "../extractors/symbols-coordinator.js";
+import { isCoarseGranularityReason } from "../public/symbol-granularity.js";
 import { resolveSymbolsManifestPaths } from "../utils/manifest-paths.js";
 import type { StagedFile } from "./git-staged.js";
 
@@ -40,6 +41,17 @@ interface NormalizedAuthoredManifestSymbol {
 interface RelativeManifestPaths {
   symbolsPath: string;
   coordinatesPath: string;
+}
+
+/**
+ * True when a manifest record documents coarse file/module-level coverage using
+ * a canonical granularity reason that legitimately carries no generated
+ * per-symbol coordinates. Such records do not participate in coordinate
+ * freshness comparison. `legacy-link` records remain coordinate-bearing, and
+ * unknown or malformed reasons cannot bypass freshness checks.
+ */
+function isDocumentedCoarseRecord(record: ManifestSymbolRecord): boolean {
+  return isCoarseGranularityReason(record.granularity_reason);
 }
 
 export interface StagedSymbolsManifestAssessment {
@@ -187,19 +199,10 @@ function normalizeRelationships(
 function normalizeManifestSymbolsForSourceFile(
   records: ManifestSymbolRecord[],
   sourceFile: string,
-  expectedTitles: ReadonlySet<string>,
 ): NormalizedManifestSymbol[] {
   return records
     .filter((record) => {
-      const title = typeof record.title === "string" ? record.title : null;
-      const isDocumentedModuleSymbol =
-        typeof record.granularity_reason === "string" &&
-        record.granularity_reason.length > 0;
-      if (
-        title !== null &&
-        isDocumentedModuleSymbol &&
-        !expectedTitles.has(title)
-      ) {
+      if (isDocumentedCoarseRecord(record)) {
         return false;
       }
       const recordSource =
@@ -405,14 +408,28 @@ export function assessStagedSymbolsManifest(options: {
   const freshPaths = new Set<string>();
 
   for (const sourceFile of sourceFiles) {
-    const expectedSymbols = normalizeExpectedSymbolsForStagedFile(sourceFile);
-    const expectedTitles = new Set(
-      expectedSymbols.map((symbol) => symbol.title),
+    const manifestRecordsForFile = (stagedManifestRecords ?? []).filter(
+      (record) => {
+        const recordSource =
+          typeof record.sourceFile === "string"
+            ? record.sourceFile
+            : typeof record.source === "string"
+              ? record.source
+              : null;
+        return recordSource === sourceFile.path;
+      },
     );
+    const coarseCovered =
+      manifestRecordsForFile.length > 0 &&
+      manifestRecordsForFile.every(isDocumentedCoarseRecord);
+    if (coarseCovered) {
+      continue;
+    }
+
+    const expectedSymbols = normalizeExpectedSymbolsForStagedFile(sourceFile);
     const baselineSymbols = normalizeManifestSymbolsForSourceFile(
       baselineMergedRecords,
       sourceFile.path,
-      expectedTitles,
     );
 
     if (signaturesEqual(expectedSymbols, baselineSymbols)) {
@@ -428,7 +445,6 @@ export function assessStagedSymbolsManifest(options: {
     const stagedSymbols = normalizeManifestSymbolsForSourceFile(
       stagedMergedRecords,
       sourceFile.path,
-      expectedTitles,
     );
 
     if (signaturesEqual(expectedSymbols, stagedSymbols)) {

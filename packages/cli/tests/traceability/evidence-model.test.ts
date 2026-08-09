@@ -3,7 +3,6 @@ import { describe, expect, it } from "bun:test";
 import {
   KIBI_NO_IMPACT_DECLARATION,
   KIBI_STAGED_IMPACT_EVIDENCE_DOC,
-  KIBI_SYMBOLS_MANIFEST_PATH,
   KIBI_SYMBOL_COORDINATES_PATH,
   type KibiImpactEvidence,
   getKbEvidencePaths,
@@ -23,7 +22,7 @@ function makeEvidence(
       },
     ],
     symbolsManifest: {
-      path: KIBI_SYMBOLS_MANIFEST_PATH,
+      path: KIBI_SYMBOL_COORDINATES_PATH,
       state: "not_required",
       sourcePaths: [],
     },
@@ -36,7 +35,7 @@ describe("evidence-model", () => {
   it("treats staged KB docs and a fresh symbols manifest as explicit Kibi impact evidence", () => {
     const evidence = makeEvidence({
       symbolsManifest: {
-        path: KIBI_SYMBOLS_MANIFEST_PATH,
+        path: KIBI_SYMBOL_COORDINATES_PATH,
         state: "fresh",
         sourcePaths: ["packages/cli/src/traceability/check.ts"],
       },
@@ -56,7 +55,7 @@ describe("evidence-model", () => {
 
     expect(getKbEvidencePaths(evidence)).toEqual([
       "documentation/requirements/REQ-cli-check.md",
-      KIBI_SYMBOLS_MANIFEST_PATH,
+      KIBI_SYMBOL_COORDINATES_PATH,
     ]);
     expect(getMissingBehaviorSourcePaths(evidence)).toEqual([]);
     expect(collectStagedKibiDiagnostics(evidence)).toEqual([]);
@@ -84,7 +83,7 @@ describe("evidence-model", () => {
   it("emits symbols_manifest_stale when documentation/symbol-coordinates.yaml is stale for staged source files", () => {
     const evidence = makeEvidence({
       symbolsManifest: {
-        path: KIBI_SYMBOLS_MANIFEST_PATH,
+        path: KIBI_SYMBOL_COORDINATES_PATH,
         state: "stale",
         sourcePaths: ["packages/cli/src/traceability/check.ts"],
       },
@@ -110,7 +109,7 @@ describe("evidence-model", () => {
   it("emits symbols_manifest_stale when documentation/symbol-coordinates.yaml is missing for staged source files", () => {
     const evidence = makeEvidence({
       symbolsManifest: {
-        path: KIBI_SYMBOLS_MANIFEST_PATH,
+        path: KIBI_SYMBOL_COORDINATES_PATH,
         state: "missing",
         sourcePaths: ["packages/cli/src/traceability/check.ts"],
       },
@@ -130,6 +129,59 @@ describe("evidence-model", () => {
         "documentation/symbol-coordinates.yaml is stale or missing for staged source files: packages/cli/src/traceability/check.ts",
       suggestion:
         "Run kibi sync --refresh-symbol-coordinates && git add documentation/symbol-coordinates.yaml documentation/symbols.yaml, then re-run kibi check --staged.",
+    });
+  });
+
+  it("uses the configured symbols manifest path in stale diagnostics", () => {
+    const evidence = makeEvidence({
+      symbolsManifest: {
+        path: "docs/symbol-coordinates.yaml",
+        state: "stale",
+        sourcePaths: ["packages/cli/src/traceability/check.ts"],
+      },
+    });
+
+    expect(
+      collectStagedKibiDiagnostics(evidence, "docs/symbols.yaml"),
+    ).toContainEqual({
+      id: "symbols_manifest_stale",
+      severity: "error",
+      blocking: true,
+      category: "symbol",
+      files: [
+        "docs/symbol-coordinates.yaml",
+        "packages/cli/src/traceability/check.ts",
+      ],
+      docs: [KIBI_STAGED_IMPACT_EVIDENCE_DOC],
+      message:
+        "docs/symbol-coordinates.yaml is stale or missing for staged source files: packages/cli/src/traceability/check.ts",
+      suggestion:
+        "Run kibi sync --refresh-symbol-coordinates && git add docs/symbol-coordinates.yaml docs/symbols.yaml, then re-run kibi check --staged.",
+    });
+  });
+
+  it("uses the configured symbols manifest path in missing-evidence suggestions", () => {
+    const evidence = makeEvidence({
+      symbolsManifest: {
+        path: "docs/symbol-coordinates.yaml",
+        state: "not_required",
+        sourcePaths: [],
+      },
+    });
+
+    expect(
+      collectStagedKibiDiagnostics(evidence, "docs/symbols.yaml"),
+    ).toContainEqual({
+      id: "kibi_impact_evidence_missing",
+      severity: "error",
+      blocking: true,
+      category: "fact",
+      files: ["packages/cli/src/traceability/check.ts"],
+      docs: [KIBI_STAGED_IMPACT_EVIDENCE_DOC],
+      message:
+        "Behavior-changing staged files are missing staged Kibi impact evidence (see docs/cli-reference.md#staged-impact-evidence): packages/cli/src/traceability/check.ts",
+      suggestion:
+        "Query Kibi via MCP before deciding. MCP writes update KB state but do not stage tracked evidence; also stage requirement/scenario/test/fact/symbol markdown, authored docs/symbols.yaml metadata, or refreshed docs/symbol-coordinates.yaml. Re-run kibi check --staged after staging tracked evidence.",
     });
   });
 

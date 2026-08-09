@@ -44,7 +44,6 @@ import { executeCheck } from "../public/operations/check-executor.js";
 import {
   KIBI_NO_IMPACT_DECLARATION,
   KIBI_SYMBOLS_MANIFEST_PATH,
-  KIBI_SYMBOL_COORDINATES_PATH,
   type KibiEntityType,
   type KibiImpactEvidence,
 } from "../traceability/evidence-model.js";
@@ -671,8 +670,10 @@ export async function checkCommand(
           symbolsByFile,
           symbolsManifestPath,
         });
-        const stagedKibiDiagnostics =
-          collectStagedKibiDiagnostics(stagedKibiEvidence);
+        const stagedKibiDiagnostics = collectStagedKibiDiagnostics(
+          stagedKibiEvidence,
+          symbolsManifestPath,
+        );
         const activeStagedSymbolEntityIds = new Set(
           stagedKibiEvidence.mode.kind === "kb_changes"
             ? stagedKibiEvidence.mode.kbArtifacts

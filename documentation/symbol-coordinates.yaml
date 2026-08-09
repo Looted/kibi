@@ -244,10 +244,10 @@ coordinates:
     sourceLine: 15
   SYM-COARSE_GRANULARITY_REASONS:
     sourceColumn: 13
-    sourceEndColumn: 2
-    sourceEndLine: 100
-    sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 95
+    sourceEndColumn: 10
+    sourceEndLine: 41
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 36
   SYM-CURRENT_CHANGED_PATHS:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -263,9 +263,9 @@ coordinates:
   SYM-CheckOptions:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 97
+    sourceEndLine: 96
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 89
+    sourceLine: 88
   SYM-CheckRunner:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -284,6 +284,12 @@ coordinates:
     sourceEndLine: 15
     sourceFile: scripts/skillopt-eval/cli.ts
     sourceLine: 15
+  SYM-CoarseGranularityReason:
+    sourceColumn: 12
+    sourceEndColumn: 46
+    sourceEndLine: 44
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 43
   SYM-CodexCellRuntime:
     sourceColumn: 12
     sourceEndColumn: 80
@@ -557,9 +563,9 @@ coordinates:
   SYM-GranularSymbolCandidate:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 48
+    sourceEndLine: 64
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 44
+    sourceLine: 60
   SYM-GranularityReason:
     sourceColumn: 12
     sourceEndColumn: 77
@@ -881,9 +887,9 @@ coordinates:
   SYM-KibiImpactDiagnostic:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 38
+    sourceEndLine: 44
     sourceFile: packages/cli/src/traceability/staged-diagnostics.ts
-    sourceLine: 26
+    sourceLine: 32
   SYM-KibiImpactDiagnosticContract:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -893,9 +899,9 @@ coordinates:
   SYM-KibiImpactDiagnosticId:
     sourceColumn: 12
     sourceEndColumn: 45
-    sourceEndLine: 24
+    sourceEndLine: 30
     sourceFile: packages/cli/src/traceability/staged-diagnostics.ts
-    sourceLine: 12
+    sourceLine: 18
   SYM-KibiImpactDiagnosticId-contract:
     sourceColumn: 12
     sourceEndColumn: 46
@@ -1445,9 +1451,9 @@ coordinates:
   SYM-SYMBOLS-MANIFEST-COMMENT-BLOCK:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 62
+    sourceEndLine: 66
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 57
+    sourceLine: 61
   SYM-SYMBOL_ROLES:
     sourceColumn: 13
     sourceEndColumn: 10
@@ -1763,15 +1769,15 @@ coordinates:
   SYM-StagedAuthoredSymbolsManifestEvidence:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 55
+    sourceEndLine: 67
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
-    sourceLine: 51
+    sourceLine: 63
   SYM-StagedSymbolsManifestAssessment:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 49
+    sourceEndLine: 61
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
-    sourceLine: 45
+    sourceLine: 57
   SYM-StartupNotifierClient:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -1841,9 +1847,9 @@ coordinates:
   SYM-SymbolGranularitySourceSymbolKind:
     sourceColumn: 12
     sourceEndColumn: 42
-    sourceEndLine: 42
+    sourceEndLine: 58
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 42
+    sourceLine: 58
   SYM-SymbolIndex:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1853,9 +1859,9 @@ coordinates:
   SYM-SymbolKind:
     sourceColumn: 12
     sourceEndColumn: 14
-    sourceEndLine: 40
+    sourceEndLine: 56
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 30
+    sourceLine: 46
   SYM-SymbolRole:
     sourceColumn: 12
     sourceEndColumn: 55
@@ -2183,9 +2189,9 @@ coordinates:
   SYM-assessStagedSymbolsManifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 457
+    sourceEndLine: 473
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
-    sourceLine: 370
+    sourceLine: 373
   SYM-atomicPublish:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2549,9 +2555,9 @@ coordinates:
   SYM-checkCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 897
+    sourceEndLine: 898
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 540
+    sourceLine: 539
   SYM-checkWorkspaceHealth:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3785,15 +3791,15 @@ coordinates:
   SYM-collectStagedAuthoredSymbolsManifestEvidence:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 529
+    sourceEndLine: 545
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
-    sourceLine: 459
+    sourceLine: 475
   SYM-collectStagedKibiDiagnostics:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 143
+    sourceEndLine: 164
     sourceFile: packages/cli/src/traceability/staged-diagnostics.ts
-    sourceLine: 105
+    sourceLine: 115
   SYM-computeEnforcementPolicy:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4643,9 +4649,9 @@ coordinates:
   SYM-getBehavioralSymbolNames:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 117
+    sourceEndLine: 142
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 109
+    sourceLine: 134
   SYM-getCachedPluginVersion:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4721,9 +4727,9 @@ coordinates:
   SYM-getNonBehavioralSymbolNames:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 129
+    sourceEndLine: 154
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 119
+    sourceLine: 144
   SYM-getSchemaVersionStatus:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4739,9 +4745,9 @@ coordinates:
   SYM-getSymbolRole:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 101
+    sourceEndLine: 126
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 97
+    sourceLine: 122
   SYM-getWorkspaceFolderUri:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4829,9 +4835,9 @@ coordinates:
   SYM-hasAllGeneratedCoordinates:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 259
+    sourceEndLine: 258
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 249
+    sourceLine: 248
   SYM-hasOverrideRationale:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4853,15 +4859,15 @@ coordinates:
   SYM-inferSymbolRole:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 73
+    sourceEndLine: 92
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 57
+    sourceLine: 76
   SYM-inferSymbolRoleFromKind:
     sourceColumn: 13
     sourceEndColumn: 54
-    sourceEndLine: 75
+    sourceEndLine: 94
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 75
+    sourceLine: 94
   SYM-info:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4901,9 +4907,9 @@ coordinates:
   SYM-isAllowedGranularityReason:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 95
+    sourceEndLine: 114
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 91
+    sourceLine: 110
   SYM-isAuditedNoImpactOverrideAllowed:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4919,21 +4925,27 @@ coordinates:
   SYM-isBehavioralSymbol:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 107
+    sourceEndLine: 132
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 103
+    sourceLine: 128
   SYM-isCoarseGranularityAnchor:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 105
+    sourceEndLine: 104
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 102
+    sourceLine: 101
+  SYM-isCoarseGranularityReason:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 120
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 116
   SYM-isEligibleForCoordinateRefresh:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 276
+    sourceEndLine: 275
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 261
+    sourceLine: 260
   SYM-isErrno:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4967,15 +4979,15 @@ coordinates:
   SYM-isSymbolRole:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 81
+    sourceEndLine: 100
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 77
+    sourceLine: 96
   SYM-isTraceabilityRelationshipType:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 89
+    sourceEndLine: 108
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 83
+    sourceLine: 102
   SYM-isWithinRoot:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6761,9 +6773,9 @@ coordinates:
   SYM-refreshManifestCoordinates:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 247
+    sourceEndLine: 246
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 107
+    sourceLine: 106
   SYM-registerAllTools:
     sourceColumn: 16
     sourceEndColumn: 1

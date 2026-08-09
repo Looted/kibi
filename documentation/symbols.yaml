@@ -5054,14 +5054,33 @@ symbols:
         target: TEST-cli-staged-impact-enforcement
   - id: SYM-COARSE_GRANULARITY_REASONS
     title: COARSE_GRANULARITY_REASONS
-    sourceFile: packages/cli/src/commands/sync/manifest.ts
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
     symbol_role: config
-    granularity_reason: config-artifact
     relationships:
       - type: implements
-        target: REQ-core-extractors
+        target: REQ-symbol-behavioral-anchors
       - type: covered_by
-        target: TEST-007
+        target: TEST-cli-symbol-behavioral-anchors
+  - id: SYM-CoarseGranularityReason
+    title: CoarseGranularityReason
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+  - id: SYM-isCoarseGranularityReason
+    title: isCoarseGranularityReason
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
   - id: SYM-isCoarseGranularityAnchor
     title: isCoarseGranularityAnchor
     sourceFile: packages/cli/src/commands/sync/manifest.ts
