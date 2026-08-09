@@ -27,6 +27,10 @@ import {
   type ManifestSymbolEntry,
   enrichSymbolCoordinates,
 } from "../../extractors/symbols-coordinator.js";
+import {
+  COARSE_GRANULARITY_REASONS,
+  isCoarseGranularityReason,
+} from "../../public/symbol-granularity.js";
 import { resolveSymbolsManifestPaths } from "../../utils/manifest-paths.js";
 
 interface ManifestDeps {
@@ -92,16 +96,11 @@ const GENERATED_MANIFEST_FIELDS = new Set<string>([
  * carry no generated coordinates, so coordinate refresh counts them as
  * unchanged instead of flagging them as failures.
  */
-export const COARSE_GRANULARITY_REASONS = new Set<string>([
-  "config-artifact",
-  "extractor-miss",
-  "module-level-behavior",
-  "test-suite",
-]);
+export { COARSE_GRANULARITY_REASONS };
 
 export function isCoarseGranularityAnchor(entry: ManifestSymbolEntry): boolean {
   const reason = entry.granularity_reason;
-  return typeof reason === "string" && COARSE_GRANULARITY_REASONS.has(reason);
+  return isCoarseGranularityReason(reason);
 }
 
 export async function refreshManifestCoordinates(
