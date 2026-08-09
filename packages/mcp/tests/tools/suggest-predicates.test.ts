@@ -278,6 +278,7 @@ describe("kb_suggest_predicates", () => {
 
     expect(candidates[0]).toMatchObject({
       predicate_name: "permission_rule",
+      polarity: "deny",
     });
     expect(usageHints?.use_when).toEqual([
       "Use for allow/deny permission statements with an actor, action, and resource.",

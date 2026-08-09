@@ -17,12 +17,16 @@ export function buildSuggestion(
 ): PredicateSuggestion {
   const predicateArgs = inferArgs(schema, text, subject);
   const canonicalKey = `${schema.predicate_name}(${predicateArgs.join(",")})`;
+  // Permission-style inference carries the deontic decision as its final
+  // argument. Preserve that polarity in the typed suggestion instead of
+  // silently turning a prohibition into an assertion.
+  const polarity = predicateArgs.at(-1) === "deny" ? "deny" : "assert";
   return {
     id: hashId("SUGGEST", [schema.id, canonicalKey, text]),
     predicate_name: schema.predicate_name,
     predicate_args: predicateArgs,
     canonical_key: canonicalKey,
-    polarity: "assert",
+    polarity,
     score,
     rationale: `Matched ${schema.predicate_name} because the prose overlaps with ${schema.tags.join(", ")} cues.`,
     schema: schemaForCandidate(schema),
