@@ -221,7 +221,8 @@ export function inferArgs(
         // genuinely unbound arguments explicit instead of guessing.
         const phrase = words.join(" ");
         return phrase.length > 0 &&
-          (lower.includes(phrase) || words.every((word) => lower.includes(word)))
+          (lower.includes(phrase) ||
+            words.every((word) => lower.includes(word)))
           ? normalized
           : "unknown";
       });

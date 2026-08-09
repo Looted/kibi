@@ -20,7 +20,13 @@ export function buildSuggestion(
   // Permission-style inference carries the deontic decision as its final
   // argument. Preserve that polarity in the typed suggestion instead of
   // silently turning a prohibition into an assertion.
-  const polarity = predicateArgs.at(-1) === "deny" ? "deny" : "assert";
+  const polarity =
+    predicateArgs.at(-1) === "deny" ||
+    /\b(?:must\s+not|shall\s+not|never|cannot|can't|forbidden|prohibited)\b/i.test(
+      text,
+    )
+      ? "deny"
+      : "assert";
   return {
     id: hashId("SUGGEST", [schema.id, canonicalKey, text]),
     predicate_name: schema.predicate_name,
