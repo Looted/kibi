@@ -996,7 +996,7 @@ describe("kb_suggest_predicates", () => {
 
     expect(candidates[0]).toMatchObject({
       predicate_name: "custom_policy",
-      predicate_args: ["policy.engine", "unknown"],
+      predicate_args: ["policy.engine", "mode"],
       schema: expect.objectContaining({
         id: "FACT-SCHEMA-CUSTOM",
         title: "Custom policy",
