@@ -278,20 +278,25 @@ export async function runRealOptimization(
         provenance: "skillopt",
         sourceRequestHash: trained.trainerCheckpointHash,
       });
-      const development =
-        trained.development ??
-        (await evaluateDevelopment({
-          skill,
-          candidate,
-          descriptors: training.developmentDescriptors,
-          sourceWorktree: training.sourceWorktree,
-          artifactRoot: training.artifactRoot,
-          runId: options.runId,
-          env,
-          ...(options.cellRuntime === undefined
-            ? {}
-            : { runtime: options.cellRuntime }),
-        }));
+      // The trainer's development value is a selection-loop score. It is
+      // useful for the optimizer, but it is not independently authenticated
+      // evidence for the paid workflow: the trainer may use a different
+      // rollout lane, cache, or stochastic target invocation. Re-run the
+      // frozen candidate through the authoritative cell evaluator before
+      // applying the admission gate. This keeps selection feedback separate
+      // from the evidence that can authorize held-out evaluation.
+      const development = await evaluateDevelopment({
+        skill,
+        candidate,
+        descriptors: training.developmentDescriptors,
+        sourceWorktree: training.sourceWorktree,
+        artifactRoot: training.artifactRoot,
+        runId: options.runId,
+        env,
+        ...(options.cellRuntime === undefined
+          ? {}
+          : { runtime: options.cellRuntime }),
+      });
       const developmentEligible = passesDevelopmentGate({
         candidate: development,
         baseline: baselineDevelopment,

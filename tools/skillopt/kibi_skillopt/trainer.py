@@ -46,7 +46,11 @@ def build_training_config(out_root: Path, *, max_steps: int = 4) -> dict[str, Js
         "min_edit_budget": 2,
         "lr_scheduler": "constant",
         "use_gate": True,
-        "gate_metric": "soft",
+        # Admission is based on hard passes and a worst-family floor. Keep
+        # the trainer's selection gate aligned with that contract so a soft
+        # partial-credit improvement cannot displace a candidate that is
+        # more likely to satisfy the paid development gate.
+        "gate_metric": "hard",
         "use_slow_update": False,
         "use_meta_skill": False,
         "minibatch_size": 4,
