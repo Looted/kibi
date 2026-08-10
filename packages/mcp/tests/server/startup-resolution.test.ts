@@ -172,6 +172,15 @@ describe("MCP startup resolution diagnostics", () => {
     }
   });
 
+  test("does not resolve an ambient package without a workspace manifest", () => {
+    const cwd = mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-no-manifest-"));
+    try {
+      expect(resolveProjectLocalMcp(cwd)).toBeNull();
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+
   test("returns null when project-local package resolution throws a non-module error", () => {
     const cwd = mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-bad-local-"));
     try {

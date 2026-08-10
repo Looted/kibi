@@ -1,5 +1,43 @@
 # kibi-opencode
 
+## 0.19.2
+
+### Patch Changes
+
+- 5e4e126: Agents no longer treat Kibi's CLI as an MCP fallback. MCP tools and the trusted project-local CLI are presented as peer surfaces over the same 18 operations, and agent guidance now selects whichever interface is visible and approved in the current environment. The CLI's `--input` JSON routes remain first-class for agent automation, with no preference order implied.
+
+  - Reframe `kibi-usage` Interface Selection and the operation-access preference column to peer surfaces.
+  - Update OpenCode prompt injection, enforcement, and init-kibi guidance.
+  - Update the MCP init-kibi prompt and the staged-impact evidence resolution text.
+  - Re-sync the Cursor and Codex skill bundles.
+
+- 2a85fc8: Kibi can now track whether every atomic clause in a normative requirement has a queryable logical representation. Readable prose remains intact, while stable claim keys, linked strict-property or predicate facts, and a requirement manifest expose incomplete modeling before it silently weakens contradiction detection. Exact opposite polarities over the same ground predicate now produce a contradiction.
+
+  - Remove repository-specific release and optimizer-corpus text from `kibi-usage`.
+  - Add portable clause-complete prose-to-ground-predicate/property guidance and examples.
+  - Preserve logical claim and predicate-schema fields through Markdown sync.
+  - Add semantic-advisor clause inventories, merged claim manifests, and the `logic-coverage` check.
+  - Enable manifest validation by default and report every current unmanifested requirement as explicit backfill debt.
+  - Detect exact `assert`/`deny` conflicts over the same ground predicate.
+  - Normalize trailing clause punctuation so formatting variants share one claim identity.
+  - Enforce a one-claim/one-ground-fact mapping and reject duplicate logical terms masquerading as separate coverage.
+  - Preserve every target when exact query results contain repeated relationship types.
+  - Keep semantic-advisor readiness partial until every normative claim has a distinct logical grounding slot.
+  - Drain machine-readable CLI output before the explicit process exit so large results are complete without leaving runtime handles alive.
+  - Preserve and enforce claim-key patterns, uniqueness, and paired provenance through MCP schema registration.
+  - Synchronize the corrected skill into the Codex and Cursor bundles.
+
+- Updated dependencies [5e4e126]
+- Updated dependencies [6d66110]
+- Updated dependencies [750ff49]
+- Updated dependencies [2a85fc8]
+- Updated dependencies [a28d325]
+- Updated dependencies [38f72bf]
+- Updated dependencies [2d93976]
+- Updated dependencies [2f9073c]
+- Updated dependencies [a52b592]
+  - kibi-cli@0.17.0
+
 ## 0.19.1
 
 ### Patch Changes
