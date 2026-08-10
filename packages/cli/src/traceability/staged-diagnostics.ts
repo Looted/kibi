@@ -1,13 +1,19 @@
+import * as path from "node:path";
 import type { QualityDiagnostic } from "../public/impact/types.js";
 import {
   KIBI_STAGED_IMPACT_EVIDENCE_DOC,
   KIBI_SYMBOLS_MANIFEST_PATH,
-  KIBI_SYMBOL_COORDINATES_PATH,
   type KibiImpactEvidence,
   getBehaviorSourcePaths,
   getMissingBehaviorSourcePaths,
   hasOverrideRationale,
 } from "./evidence-model.js";
+
+function deriveCoordinatesPath(symbolsManifestPath: string): string {
+  return path
+    .join(path.dirname(symbolsManifestPath), "symbol-coordinates.yaml")
+    .replace(/\\/g, "/");
+}
 
 export type KibiImpactDiagnosticId =
   | "kibi_impact_evidence_missing"
@@ -43,6 +49,8 @@ function formatFileList(paths: string[]): string {
 
 function createMissingEvidenceDiagnostic(
   paths: string[],
+  symbolsManifestPath: string,
+  coordinatesPath: string,
 ): KibiImpactDiagnostic {
   return {
     id: "kibi_impact_evidence_missing",
@@ -52,22 +60,24 @@ function createMissingEvidenceDiagnostic(
     files: [...paths],
     docs: [KIBI_STAGED_IMPACT_EVIDENCE_DOC],
     message: `Behavior-changing staged files are missing staged Kibi impact evidence (see ${KIBI_STAGED_IMPACT_EVIDENCE_DOC}): ${formatFileList(paths)}`,
-    suggestion: `Query Kibi via MCP before deciding. MCP writes update KB state but do not stage tracked evidence; also stage requirement/scenario/test/fact/symbol markdown, authored ${KIBI_SYMBOLS_MANIFEST_PATH} metadata, or refreshed ${KIBI_SYMBOL_COORDINATES_PATH}. Re-run kibi check --staged after staging tracked evidence.`,
+    suggestion: `Query Kibi via MCP before deciding. MCP writes update KB state but do not stage tracked evidence; also stage requirement/scenario/test/fact/symbol markdown, authored ${symbolsManifestPath} metadata, or refreshed ${coordinatesPath}. Re-run kibi check --staged after staging tracked evidence.`,
   };
 }
 
 function createSymbolsManifestStaleDiagnostic(
   paths: string[],
+  symbolsManifestPath: string,
+  coordinatesPath: string,
 ): KibiImpactDiagnostic {
   return {
     id: "symbols_manifest_stale",
     severity: "error",
     blocking: true,
     category: "symbol",
-    files: [KIBI_SYMBOL_COORDINATES_PATH, ...paths],
+    files: [coordinatesPath, ...paths],
     docs: [KIBI_STAGED_IMPACT_EVIDENCE_DOC],
-    message: `${KIBI_SYMBOL_COORDINATES_PATH} is stale or missing for staged source files: ${formatFileList(paths)}`,
-    suggestion: `Run kibi sync --refresh-symbol-coordinates && git add ${KIBI_SYMBOL_COORDINATES_PATH} ${KIBI_SYMBOLS_MANIFEST_PATH}, then re-run kibi check --staged.`,
+    message: `${coordinatesPath} is stale or missing for staged source files: ${formatFileList(paths)}`,
+    suggestion: `Run kibi sync --refresh-symbol-coordinates && git add ${coordinatesPath} ${symbolsManifestPath}, then re-run kibi check --staged.`,
   };
 }
 
@@ -104,8 +114,11 @@ function createMissingOverrideRationaleDiagnostic(
  */
 export function collectStagedKibiDiagnostics(
   evidence: KibiImpactEvidence,
+  symbolsManifestPath: string = KIBI_SYMBOLS_MANIFEST_PATH,
 ): KibiImpactDiagnostic[] {
   const diagnostics: KibiImpactDiagnostic[] = [];
+  const coordinatesPath =
+    evidence.symbolsManifest.path || deriveCoordinatesPath(symbolsManifestPath);
 
   if (
     evidence.mode.kind === "no_impact_override" &&
@@ -122,13 +135,21 @@ export function collectStagedKibiDiagnostics(
     diagnostics.push(
       createSymbolsManifestStaleDiagnostic(
         [...evidence.symbolsManifest.sourcePaths].sort(),
+        symbolsManifestPath,
+        coordinatesPath,
       ),
     );
   }
 
   const missingBehaviorPaths = getMissingBehaviorSourcePaths(evidence);
   if (missingBehaviorPaths.length > 0) {
-    diagnostics.push(createMissingEvidenceDiagnostic(missingBehaviorPaths));
+    diagnostics.push(
+      createMissingEvidenceDiagnostic(
+        missingBehaviorPaths,
+        symbolsManifestPath,
+        coordinatesPath,
+      ),
+    );
   }
 
   if (

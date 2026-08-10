@@ -27,6 +27,22 @@ export const ALLOWED_GRANULARITY_REASONS = [
 
 export type GranularityReason = (typeof ALLOWED_GRANULARITY_REASONS)[number];
 
+/**
+ * Granularity reasons that document coarse file/module-level coverage for which
+ * generated per-symbol coordinates are not expected. These anchors legitimately
+ * carry no coordinate artifact entries. `legacy-link` is intentionally excluded:
+ * it is a canonical reason but still coordinates a real extractable symbol.
+ */
+export const COARSE_GRANULARITY_REASONS = [
+  "config-artifact",
+  "module-level-behavior",
+  "extractor-miss",
+  "test-suite",
+] as const;
+
+export type CoarseGranularityReason =
+  (typeof COARSE_GRANULARITY_REASONS)[number];
+
 export type SymbolKind =
   | "function"
   | "class"
@@ -52,6 +68,9 @@ const traceabilityRelationshipTypeSet: ReadonlySet<string> = new Set(
 );
 const allowedGranularityReasonSet: ReadonlySet<string> = new Set(
   ALLOWED_GRANULARITY_REASONS,
+);
+const coarseGranularityReasonSet: ReadonlySet<string> = new Set(
+  COARSE_GRANULARITY_REASONS,
 );
 
 export function inferSymbolRole(kind: SymbolKind): SymbolRole {
@@ -92,6 +111,12 @@ export function isAllowedGranularityReason(
   value: unknown,
 ): value is GranularityReason {
   return typeof value === "string" && allowedGranularityReasonSet.has(value);
+}
+
+export function isCoarseGranularityReason(
+  value: unknown,
+): value is CoarseGranularityReason {
+  return typeof value === "string" && coarseGranularityReasonSet.has(value);
 }
 
 export function getSymbolRole(candidate: GranularSymbolCandidate): SymbolRole {

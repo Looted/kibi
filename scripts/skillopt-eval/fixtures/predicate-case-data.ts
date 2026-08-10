@@ -1,5 +1,6 @@
 import type { TaskSplit } from "../catalog";
 import type {
+  LogicCoverageFamily,
   PredicateCase,
   PredicateSemanticClass,
   PrivateExpectation,
@@ -15,7 +16,7 @@ import type {
  * claimText and projectLocalSchemas vary per case.
  */
 
-const PUBLIC_SCHEMA_VERSION = "predicate-corpus-1.2.0";
+const PUBLIC_SCHEMA_VERSION = "predicate-corpus-1.4.0";
 
 const FACT_KINDS = [
   "subject",
@@ -24,11 +25,14 @@ const FACT_KINDS = [
   "predicate_schema",
   "observation",
   "meta",
+  "rule_schema",
+  "rule",
 ] as const;
 
 function makeClaim(
   claimText: string,
   projectLocalSchemas: readonly PublicPredicateSchema[] = [],
+  coverageFamilies: readonly LogicCoverageFamily[] = [],
 ): PublicClaim {
   return {
     claimText,
@@ -41,6 +45,7 @@ function makeClaim(
         argumentNames: [...schema.argumentNames],
         argumentTypes: [...schema.argumentTypes],
       })),
+      coverageFamilies: [...coverageFamilies],
     },
   };
 }
@@ -49,9 +54,13 @@ function makeClaim(
 
 const BUILTIN_RELATIONAL_CLAIM = makeClaim(
   "Checkout requires payment authorization before order submission, and customer data must be retained for 7 years.",
+  [],
+  ["compound_prose", "implicit_condition", "deontic_modality", "temporal_rule"],
 );
 const STRICT_SCALAR_CLAIM = makeClaim(
   "Customer data must be retained for 7 years.",
+  [],
+  ["quantifier_cardinality", "temporal_rule", "paraphrase_equivalence"],
 );
 const PROJECT_LOCAL_SCHEMA_CLAIM = makeClaim(
   "A deployment candidate is releasable only when its lineage binds the artifact digest, test evidence, and source revision.",
@@ -63,6 +72,7 @@ const PROJECT_LOCAL_SCHEMA_CLAIM = makeClaim(
       argumentTypes: ["hash", "evidence_set", "revision"],
     },
   ],
+  ["passive_phrasing", "implicit_condition", "descriptive_fact"],
 );
 const DENY_POLARITY_CLAIM = makeClaim(
   "A held-out evaluation matrix must never be retried with a candidate whose bytes differ from the frozen SkillOpt candidate hash bound to the terminal matrix id.",
@@ -74,15 +84,22 @@ const DENY_POLARITY_CLAIM = makeClaim(
       argumentTypes: ["identifier", "hash"],
     },
   ],
+  ["semantic_contrast", "negation_scope", "deontic_modality"],
 );
 const AMBIGUOUS_CLAIM = makeClaim(
   "Release readiness improves when the knowledge base looks complete enough and the team is comfortable with the current state of the graph.",
+  [],
+  ["ambiguity", "paraphrase_equivalence"],
 );
 const ONTOLOGY_GAP_CLAIM = makeClaim(
   "Every signed verdict over the held-out matrix must be reproducible from the sealed snapshot, the authorized roots, and the operator-owned ledger without trusting caller-supplied path claims.",
+  [],
+  ["ontology_gap", "exception_handling", "temporal_rule"],
 );
 const KEYWORD_FALSE_POSITIVE_CLAIM = makeClaim(
   "The fact body mentions the word 'predicate' several times while describing a free-form narrative about how reviewers feel about the release notes.",
+  [],
+  ["descriptive_fact", "passive_phrasing"],
 );
 
 // --- Private expectations. Held by the evaluator/verifier lane only. ---
@@ -106,6 +123,7 @@ const BUILTIN_RELATIONAL_EXPECTATION: PrivateExpectation = {
   expectedLogicClaimCount: 2,
   privateRationale:
     "Both atomic clauses must be grounded: dependency_rule for the prerequisite and strict subject/property facts for retention, with two distinct claim keys in the requirement manifest.",
+  coverageFamilies: BUILTIN_RELATIONAL_CLAIM.publicSchema.coverageFamilies,
 };
 
 const STRICT_SCALAR_EXPECTATION: PrivateExpectation = {
@@ -125,6 +143,7 @@ const STRICT_SCALAR_EXPECTATION: PrivateExpectation = {
   expectedLogicClaimCount: 1,
   privateRationale:
     "Scalar threshold claim is a counterexample to predicate modeling and must use strict subject/property_value facts instead.",
+  coverageFamilies: STRICT_SCALAR_CLAIM.publicSchema.coverageFamilies,
 };
 
 const PROJECT_LOCAL_SCHEMA_EXPECTATION: PrivateExpectation = {
@@ -144,6 +163,7 @@ const PROJECT_LOCAL_SCHEMA_EXPECTATION: PrivateExpectation = {
   expectedLogicClaimCount: 1,
   privateRationale:
     "Project-local relational claim fits the declared delivery_lineage schema and links via requires_predicate.",
+  coverageFamilies: PROJECT_LOCAL_SCHEMA_CLAIM.publicSchema.coverageFamilies,
 };
 
 const DENY_POLARITY_EXPECTATION: PrivateExpectation = {
@@ -162,6 +182,7 @@ const DENY_POLARITY_EXPECTATION: PrivateExpectation = {
   expectedLogicClaimCount: 1,
   privateRationale:
     "Normative prohibition maps onto a project-local predicate with deny polarity rather than an observation.",
+  coverageFamilies: DENY_POLARITY_CLAIM.publicSchema.coverageFamilies,
 };
 
 const AMBIGUOUS_EXPECTATION: PrivateExpectation = {
@@ -177,6 +198,7 @@ const AMBIGUOUS_EXPECTATION: PrivateExpectation = {
   expectedLogicClaimCount: 0,
   privateRationale:
     "Vague, non-machine-checkable claim must remain a review observation rather than an invented predicate.",
+  coverageFamilies: AMBIGUOUS_CLAIM.publicSchema.coverageFamilies,
 };
 
 const ONTOLOGY_GAP_EXPECTATION: PrivateExpectation = {
@@ -192,6 +214,7 @@ const ONTOLOGY_GAP_EXPECTATION: PrivateExpectation = {
   expectedLogicClaimCount: 0,
   privateRationale:
     "A suitable predicate does not yet exist in the supported schema, so the correct outcome is an ontology-gap observation, not an invented predicate.",
+  coverageFamilies: ONTOLOGY_GAP_CLAIM.publicSchema.coverageFamilies,
 };
 
 const KEYWORD_FALSE_POSITIVE_EXPECTATION: PrivateExpectation = {
@@ -207,6 +230,7 @@ const KEYWORD_FALSE_POSITIVE_EXPECTATION: PrivateExpectation = {
   expectedLogicClaimCount: 0,
   privateRationale:
     "The keyword 'predicate' appears in prose, but the claim is narrative and non-relational; correct outcome is an observation, not a predicate.",
+  coverageFamilies: KEYWORD_FALSE_POSITIVE_CLAIM.publicSchema.coverageFamilies,
 };
 
 function caseFor(

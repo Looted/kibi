@@ -94,6 +94,7 @@ This section provides guidance on selecting the appropriate entity type for your
 | links[]      | No       | array[string]  | URLs or entity IDs (for relationships)           |
 | text_ref     | No       | string         | Markdown/doc pointer                             |
 | logic_claims | No       | array[string]  | Requirement-only manifest of stable atomic claim keys |
+| semantic_inventory | No | array[object] | Proposition ledger with exact claim text, UTF-8 byte span, role, status, and optional semantic key |
 
 **Canonical Example: REQ + SCEN + TEST (Golden Path)**
 
@@ -488,12 +489,21 @@ Facts support two authoring lanes:
 - **Ontology lane** for project-local predicate modeling
   - `predicate_schema`: defines an allowed predicate signature; requires `predicate_name`, `predicate_arity`, `argument_names`, and `argument_types`
   - `predicate`: stores a ground predicate claim; requires `predicate_name`, non-empty `predicate_args`, and `canonical_key`; may use `polarity: assert` or `deny`; logical coverage also uses the paired `claim_key` and `claim_text` provenance fields
+- **Logic lane** for conditional and modal requirements
+  - `rule_schema`: declares the stable `kibi.logic.v1` signature used by rule facts
+  - `rule`: stores schema-validated canonical Logic IR JSON, a full `rule_hash`, semantic key, provenance span, and `rule_schema_id`
 
 Legacy prose facts without `fact_kind` remain readable during migration, but new requirements should prefer the strict lane when the fact expresses a rule that should block contradictions.
 
-`fact` entities represent atomic domain concepts and invariants (for example domain nouns, cardinalities, property values, and ontology predicates). Requirements can link to strict facts using `constrains` and `requires_property`, or to ontology predicate facts using `requires_predicate`, so domain claims become structural and queryable. When either `claim_key` or `claim_text` is supplied, both are required.
+`fact` entities represent atomic domain concepts and invariants (for example domain nouns, cardinalities, property values, ontology predicates, and safe rules). Requirements can link to strict facts using `constrains` and `requires_property`, ontology predicate facts using `requires_predicate`, or safe Logic IR rules using `requires_rule`, so domain claims become structural and queryable. When either `claim_key` or `claim_text` is supplied, both are required.
 
-**Migration note:** `predicate_schema`, `predicate`, and `requires_predicate` are additive. Existing KB documents do not require a data migration, and legacy prose facts remain readable. Projects can adopt the ontology lane incrementally by adding predicate schema facts, then linking new or updated requirements to ground predicate facts via `requires_predicate`.
+**Migration note:** schema v4 adds `semantic_inventory`, `rule_schema`, `rule`, and `requires_rule` additively. Existing KB documents are not rewritten; migration marks logical backfill pending while legacy prose facts remain readable. Projects can adopt the logic lane incrementally by preserving advisor proposition ledgers, adding rule schemas, then linking new or updated requirements to safe rule facts via `requires_rule`.
+
+### Logic IR facts
+
+`rule_ir` is a JSON object with `version: kibi.logic.v1`; it is validated and canonicalized before persistence. It supports typed atoms, variables, conjunction/disjunction, comparisons, bounded counts, temporal intervals, exceptions, and the modalities `assert`, `deny`, `oblige`, `permit`, and `forbid`. `rule_hash` is the full SHA-256 of canonical IR; `semantic_key` is a shorter stable identity for paraphrase convergence. Kibi renders Prolog for inspection, but never evaluates stored source text. `rule-safety` and `rule-verifiability` are blocking checks for new rule records.
+
+Requirements also retain a `semantic_inventory` proposition ledger. Each entry binds a claim key and exact claim text to a UTF-8 byte span and one of `modeled`, `ambiguous`, `ontology_gap`, `nonlogical`, or `missing`. An assertive proposition that is not modeled must be explicitly unresolved; prose alone is not logical coverage.
 
 | Property     | Required | Type           | Description                                      |
 |--------------|----------|----------------|--------------------------------------------------|
@@ -553,6 +563,7 @@ Kibi supports relationship types listed below. Each relationship has metadata:
 | constrains          | req                  | fact                 | Requirement constrains a specific domain fact     |
 | requires_property   | req                  | fact                 | Requirement requires a property fact/value        |
 | requires_predicate  | req                  | fact                 | Requirement requires a ground ontology predicate fact |
+| requires_rule       | req                  | fact                 | Requirement requires a schema-validated kibi.logic.v1 rule fact |
 | guards              | flag                 | symbol/event/req     | Flag guards symbol, event, or requirement         |
 | publishes           | symbol               | event                | Symbol publishes event                            |
 | consumes            | symbol               | event                | Symbol consumes event                             |

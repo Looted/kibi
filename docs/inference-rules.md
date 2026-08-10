@@ -20,6 +20,10 @@ Kibi includes deterministic derived predicates for internal analysis and automat
 - `contradicting_reqs(ReqA, ReqB, Reason)`
 - `predicate_schema(FactId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes)`
 - `predicate_fact(FactId, Namespace, Name, Args, Polarity)`
+- `logic_rule_from_props(Props, Rule)`
+- `logic_rule_safety(Props, Errors)`
+- `logic_derive(Goal, Proof)` (bounded, data-driven closure)
+- `logic_rule_conflict(RuleA, RuleB, Status)`
 
 ## Symbol coverage semantics
 
@@ -53,7 +57,9 @@ The ontology lane is an alpha extension for project-local domain predicates:
 - Requirements link to ground predicate facts with `requires_predicate`.
 - `predicate_schema/6` and `predicate_fact/5` are read-only helpers for querying stored ontology data.
 
-Current predicate helpers do not execute stored rules or arbitrary Prolog. Predicate contradiction and rule inference remain separate future work; strict property contradictions continue to use `subject` + `property_value` facts.
+Stored `rule` facts use the versioned `kibi.logic.v1` JSON IR. The interpreter decodes only allowlisted terms and evaluates finite closure under resource bounds; it never calls `consult/1`, `assertz/1`, or source-string evaluation. Negation-as-failure requires an explicit closed-world atom and stratified dependencies. Opposing modalities are checked extensionally over known facts and conservatively symbolically: `contradiction`, `disjoint`, or `unresolved` are distinct outcomes, and incomplete analysis is never treated as consistency. Proof consumers should preserve the rule IDs, claim spans, normalized formula, substitutions, and contributing fact chain.
+
+The proposition ledger is the completeness boundary: `semantic-completeness` rejects silently missing assertive spans, while `ambiguous`, `ontology_gap`, and `nonlogical` entries remain visible without pretending to prove a rule.
 
 These predicates remain useful for product features, automation, and future internal services. Public MCP agents should use the curated public surface instead:
 

@@ -120,6 +120,19 @@ def sanitized_bridge_environment(environment: Mapping[str, str]) -> dict[str, st
         value = environment.get(key)
         if value:
             sanitized[key] = value
+    # These are the only runtime paths allowed through the Python bridge. They
+    # are staged once by the paid-run owner and are forwarded as dedicated
+    # flags; no PATH lookup or host fallback is permitted for real cells.
+    for key in (
+        BRIDGE_SOURCE_WORKTREE_ENV,
+        BRIDGE_ARTIFACT_ROOT_ENV,
+        BRIDGE_FIXTURE_RUN_ROOT_ENV,
+        BRIDGE_CODEX_EXECUTABLE_ENV,
+        BRIDGE_BWRAP_EXECUTABLE_ENV,
+    ):
+        value = environment.get(key)
+        if value:
+            sanitized[key] = value
     return sanitized
 
 

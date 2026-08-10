@@ -85,6 +85,45 @@ function stringsWithKeys(
   );
 }
 
+const KB_PATH_PATTERN = /(?:^|[\s\\/])\.kb(?:[\\/]|$)/;
+const GLOB_OPTION_PATTERN =
+  /(?:^|\s)(?:-g|--glob)(?:=|\s+)(?:"([^"]*)"|'([^']*)'|([^\s]+))/g;
+
+/**
+ * A command is allowed to exclude the private KB tree while enumerating a
+ * workspace.  Treat only actual `.kb` path operands as access; otherwise a
+ * normal negated glob exclusion for the private tree terminates a cell before
+ * the model can use the public Kibi surface.
+ */
+// implements REQ-skillopt-codex-optimization
+function commandReferencesKb(command: string): boolean {
+  // Codex's shell serializer represents an embedded quote as `'"'`.  Remove
+  // only that quoting marker before parsing glob operands; the path itself is
+  // preserved for the access check below.
+  const normalizedCommand = command.replace(/'"'/g, "");
+  const excludedRanges: Array<readonly [number, number]> = [];
+  for (const match of normalizedCommand.matchAll(GLOB_OPTION_PATTERN)) {
+    const glob = (match[1] ?? match[2] ?? match[3] ?? "").replace(
+      /^['"]+|['"]+$/g,
+      "",
+    );
+    if (glob.startsWith("!") && KB_PATH_PATTERN.test(glob)) {
+      const start = match.index ?? 0;
+      excludedRanges.push([start, start + match[0].length]);
+    }
+  }
+  if (excludedRanges.length === 0)
+    return KB_PATH_PATTERN.test(normalizedCommand);
+  let offset = 0;
+  let remainder = "";
+  for (const [start, end] of excludedRanges) {
+    remainder += normalizedCommand.slice(offset, start);
+    offset = end;
+  }
+  remainder += normalizedCommand.slice(offset);
+  return KB_PATH_PATTERN.test(remainder);
+}
+
 function eventViolations(
   event: Readonly<Record<string, unknown>>,
   options: CodexNormalizationOptions,
@@ -102,7 +141,9 @@ function eventViolations(
     strings.some(
       ({ key, value }) =>
         /^(?:command|path|file_path)$/i.test(key) &&
-        /(?:^|[\s\\/])\.kb(?:[\\/]|$)/.test(value),
+        (key.toLowerCase() === "command"
+          ? commandReferencesKb(value)
+          : KB_PATH_PATTERN.test(value)),
     )
   ) {
     violations.push("direct_kb_access");

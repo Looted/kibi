@@ -19,6 +19,7 @@ relationship_type(supersedes).
 relationship_type(constrains).
 relationship_type(requires_property).
 relationship_type(requires_predicate).
+relationship_type(requires_rule).
 
 % valid_relationship(RelType, FromType, ToType).
 valid_relationship(depends_on, req, req).
@@ -40,6 +41,7 @@ valid_relationship(consumes, symbol, event).
 valid_relationship(constrains, req, fact).
 valid_relationship(requires_property, req, fact).
 valid_relationship(requires_predicate, req, fact).
+valid_relationship(requires_rule, req, fact).
 
 %% supersedes(+NewAdrId, +OldAdrId)
 %% NewAdrId is the decision that replaces OldAdrId.

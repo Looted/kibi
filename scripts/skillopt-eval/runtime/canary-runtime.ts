@@ -48,6 +48,11 @@ export type StagedCanaryRuntime = Readonly<{
   mcpServer: StagedBrokerLaunch;
 }>;
 
+export type ReusableCodexRuntime = Readonly<{
+  codexExecutable: string;
+  bwrapExecutable: string;
+}>;
+
 export async function stageCapabilityCanary(
   workspace: IsolationWorkspace,
   sourceWorktree: string,
@@ -55,6 +60,7 @@ export async function stageCapabilityCanary(
     codexExecutable?: string;
     systemBwrapExecutable?: string | null;
     nodeCommand?: string;
+    stagedRuntime?: ReusableCodexRuntime;
   }> = {},
 ): Promise<StagedCanaryRuntime> {
   const skillsRoot = resolve(workspace.target, ".agents/skills");
@@ -73,14 +79,21 @@ export async function stageCapabilityCanary(
     "utf8",
   );
   const runtimeRoot = resolve(workspace.target, ".runtime");
-  const stagedCodex = await stageCodexRuntime(runtimeRoot, {
-    ...(dependencies.codexExecutable === undefined
-      ? {}
-      : { codexExecutable: dependencies.codexExecutable }),
-    ...(Object.hasOwn(dependencies, "systemBwrapExecutable")
-      ? { systemBwrapExecutable: dependencies.systemBwrapExecutable }
-      : {}),
-  });
+  // A reusable run-level runtime supplies the executables from outside each
+  // cell, but the cell still owns its runtime metadata and schema directory.
+  // Create that directory before writing the canary schema in both staging
+  // modes.
+  await mkdir(runtimeRoot, { recursive: true, mode: 0o700 });
+  const stagedCodex =
+    dependencies.stagedRuntime ??
+    (await stageCodexRuntime(runtimeRoot, {
+      ...(dependencies.codexExecutable === undefined
+        ? {}
+        : { codexExecutable: dependencies.codexExecutable }),
+      ...(Object.hasOwn(dependencies, "systemBwrapExecutable")
+        ? { systemBwrapExecutable: dependencies.systemBwrapExecutable }
+        : {}),
+    }));
 
   const schemaPath = resolve(workspace.target, ".runtime/output.schema.json");
   await writeFile(

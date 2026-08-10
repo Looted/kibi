@@ -1,9 +1,13 @@
 :- begin_tests(schema).
 
 :- use_module(library(plunit)).
-:- use_module('packages/core/schema/entities.pl').
-:- use_module('packages/core/schema/relationships.pl').
-:- use_module('packages/core/schema/validation.pl').
+:- prolog_load_context(directory, TestDirectory),
+   directory_file_path(TestDirectory, '../schema/entities.pl', EntitiesPath),
+   directory_file_path(TestDirectory, '../schema/relationships.pl', RelationshipsPath),
+   directory_file_path(TestDirectory, '../schema/validation.pl', ValidationPath),
+   use_module(EntitiesPath),
+   use_module(RelationshipsPath),
+   use_module(ValidationPath).
 
 test(entity_types_count) :-
     findall(T, entity_type(T), Ts),
@@ -13,15 +17,16 @@ test(entity_types_count) :-
 test(relationship_types_count) :-
     findall(R, relationship_type(R), Rs),
     sort(Rs, Sorted),
-    % relationship_type/1 includes 16 items; ensure length and membership
-    length(Sorted, 16),
-    member(depends_on, Sorted),
-    member(executable_for, Sorted),
-    member(specified_by, Sorted),
-    member(verified_by, Sorted),
-    member(constrains, Sorted),
-    member(requires_property, Sorted),
-    member(requires_predicate, Sorted).
+    % relationship_type/1 includes 17 items; ensure length and membership
+    length(Sorted, 17),
+    memberchk(depends_on, Sorted),
+    memberchk(executable_for, Sorted),
+    memberchk(specified_by, Sorted),
+    memberchk(verified_by, Sorted),
+    memberchk(constrains, Sorted),
+    memberchk(requires_property, Sorted),
+    memberchk(requires_predicate, Sorted),
+    memberchk(requires_rule, Sorted).
 
 test(valid_relationship_ok) :-
     validate_relationship(depends_on, req, req).
@@ -127,6 +132,22 @@ test(predicate_fact_valid) :-
 
 test(predicate_fact_missing_canonical_key_invalid) :-
     Props = [id='FACT-CAN-USER-DELETE-POST-BAD', title="User can delete post missing key", status=active, created_at="2026-05-30", updated_at="2026-05-30", source="docs/requirements/posts.md", fact_kind=predicate, predicate_name="can", predicate_args=["user", "delete", "post"], polarity=assert],
+    \+ validate_entity(fact, Props).
+
+test(rule_schema_fact_valid) :-
+    Props = [id='FACT-RULE-SCHEMA-LOGIC-V1', title="Logic rule schema", status=active, created_at="2026-05-30", updated_at="2026-05-30", source="docs/logic.md", fact_kind=rule_schema, rule_name="kibi.logic.v1", argument_names=["rule_ir"], argument_types=["logic_ir"]],
+    validate_entity(fact, Props).
+
+test(rule_schema_fact_mismatched_arguments_invalid) :-
+    Props = [id='FACT-RULE-SCHEMA-BAD', title="Bad logic rule schema", status=active, created_at="2026-05-30", updated_at="2026-05-30", source="docs/logic.md", fact_kind=rule_schema, rule_name="kibi.logic.v1", argument_names=["rule_ir"], argument_types=[]],
+    \+ validate_entity(fact, Props).
+
+test(rule_fact_shape_requires_logic_fields) :-
+    Props = [id='FACT-RULE-BAD', title="Bad logic rule", status=active, created_at="2026-05-30", updated_at="2026-05-30", source="docs/logic.md", fact_kind=rule, rule_ir="{}", rule_hash="bad", rule_schema_id='FACT-RULE-SCHEMA-LOGIC-V1', rule_name="kibi.logic.v1", semantic_key="SEM-BAD"],
+    validate_entity(fact, Props).
+
+test(rule_fact_missing_ir_invalid) :-
+    Props = [id='FACT-RULE-MISSING', title="Missing logic rule", status=active, created_at="2026-05-30", updated_at="2026-05-30", source="docs/logic.md", fact_kind=rule, rule_hash="bad", rule_schema_id='FACT-RULE-SCHEMA-LOGIC-V1', rule_name="kibi.logic.v1", semantic_key="SEM-BAD"],
     \+ validate_entity(fact, Props).
 
 test(property_value_fact_missing_value_field_invalid) :-

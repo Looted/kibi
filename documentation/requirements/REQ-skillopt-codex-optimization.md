@@ -3,7 +3,7 @@ id: REQ-skillopt-codex-optimization
 title: SkillOpt optimization must use Codex-only behavioral evidence
 status: open
 created_at: 2026-07-21T00:00:00Z
-updated_at: 2026-08-04T00:00:00Z
+updated_at: 2026-08-09T00:00:00Z
 source: documentation/facts/FACT-skillopt-methodology.md
 priority: must
 tags: [skillopt, codex, evaluation, security, umbrella]
@@ -28,7 +28,7 @@ Optimizer output must remain portable across consuming repositories. It may not 
 
 An operator may explicitly seed a new paid run from a preserved candidate body. The seed must pass ordinary candidate safety validation, bind to the current immutable frontmatter and resource hashes, be recorded by hash and byte length in the new run, and become the trainer's initial skill without replacing the canonical baseline or one-shot comparators.
 
-Baseline and one-shot must both be scored on development before training, and the stronger result must seed the trainer. A frozen candidate may enter held-out only when its four-case public development result has mean at least 0.85, at least three hard passes, and worst-family mean at least 0.75, and it also strictly improves mean without regressing hard passes or worst-family mean against the stronger comparator. A development miss must emit a blocked `development_gate_ineligible` review with held-out `not-run`. The complete 36-cell predicate supplement remains required for integrity, but only SkillOpt predicate cells determine the supplemental behavioral predicate pass; comparator misses remain paired calibration evidence.
+Baseline and one-shot must both be scored on development before training, and the stronger result must seed the trainer. A frozen candidate's trainer selection score is feedback only; before admission, the candidate must be independently re-evaluated through the authoritative development cell lane. A frozen candidate may enter held-out only when that four-case public development result has mean at least 0.85, at least three hard passes, and worst-family mean at least 0.75, and it also strictly improves mean without regressing hard passes or worst-family mean against the stronger comparator. A development miss must emit a blocked `development_gate_ineligible` review with held-out `not-run`. The complete 36-cell predicate supplement remains required for integrity, but only SkillOpt predicate cells determine the supplemental behavioral predicate pass; comparator misses remain paired calibration evidence.
 
 Versioned evaluation artifacts must enforce the same completion, identity, timestamp, uniqueness, size, source-pin, and approval-integrity rules in JSON Schema, TypeScript, and Python.
 

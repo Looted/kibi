@@ -1,6 +1,9 @@
+import type { LogicRuleIR } from "../../logic/ir.js";
+
 export type SemanticAdvisorLane =
   | "strict_property"
   | "predicate"
+  | "rule"
   | "observation_review"
   | "none";
 
@@ -13,6 +16,80 @@ export type SemanticLogicCoverageStatus =
   | "partial"
   | "unverified"
   | "not_applicable";
+
+export type SemanticPropositionRole =
+  | "normative"
+  | "definition"
+  | "descriptive"
+  | "condition"
+  | "exception"
+  | "rationale"
+  | "example"
+  | "subjective";
+
+export type SemanticPropositionStatus =
+  | "modeled"
+  | "ambiguous"
+  | "ontology_gap"
+  | "nonlogical"
+  | "missing";
+
+export interface SemanticPropositionSpan {
+  readonly start: number;
+  readonly end: number;
+}
+
+export interface SemanticProposition {
+  readonly claim_key: string;
+  readonly claim_text: string;
+  readonly role: SemanticPropositionRole;
+  readonly status: SemanticPropositionStatus;
+  readonly span: SemanticPropositionSpan;
+  readonly payload_hash?: string;
+  readonly semantic_key?: string;
+  readonly reason?: string;
+}
+
+export interface SemanticInterpretationInput {
+  readonly claim_key: string;
+  readonly claim_text: string;
+  readonly ir: LogicRuleIR;
+  readonly confidence?: number;
+  readonly span?: SemanticPropositionSpan;
+}
+
+export interface SemanticInterpretationResult {
+  readonly claim_key: string;
+  readonly semantic_key?: string;
+  /** Canonical, schema-validated IR for inspection; never executable source. */
+  readonly normalized_ir?: LogicRuleIR;
+  readonly valid: boolean;
+  readonly confidence: number;
+  readonly errors: readonly string[];
+  readonly warnings: readonly string[];
+  readonly rendered_prolog?: string;
+}
+
+export type SemanticShadowCueKind =
+  | "modal"
+  | "polarity"
+  | "passive_voice"
+  | "nominalization"
+  | "conditional"
+  | "causal"
+  | "prerequisite"
+  | "exception"
+  | "temporal"
+  | "quantifier"
+  | "numeric"
+  | "negation_scope"
+  | "directionality";
+
+export interface SemanticShadowCue {
+  readonly kind: SemanticShadowCueKind;
+  readonly evidence: string;
+  readonly represented: boolean;
+}
 export type SemanticSignalKind =
   | "normative_modal"
   | "numeric_cardinality"
@@ -81,6 +158,21 @@ export type SemanticModelingSuggestion =
       readonly relationshipPlan: Readonly<Record<string, unknown>> | null;
     }
   | {
+      readonly kind: "rule";
+      readonly claim_key: string;
+      readonly claim_text: string;
+      readonly confidence: number;
+      readonly evidence: string;
+      readonly rationale: string;
+      readonly suggested_next_tool: "kb_model_requirement";
+      readonly rule: LogicRuleIR;
+      readonly semantic_key: string;
+      readonly rendered_prolog: string;
+      readonly rejected_alternatives: readonly string[];
+      readonly applyPlan: readonly Readonly<Record<string, unknown>>[];
+      readonly relationshipPlan: Readonly<Record<string, unknown>> | null;
+    }
+  | {
       readonly kind: "ambiguity_observation";
       readonly claim_key: string;
       readonly claim_text: string;
@@ -116,6 +208,9 @@ export interface SemanticAdvisorReceipt {
   readonly candidate_lane: SemanticAdvisorLane;
   readonly signals: readonly SemanticSignal[];
   readonly ambiguity_witnesses: readonly SemanticAmbiguityWitness[];
+  readonly propositions: readonly SemanticProposition[];
+  readonly interpretations: readonly SemanticInterpretationResult[];
+  readonly shadow_analysis: readonly SemanticShadowCue[];
   readonly suggestions: readonly SemanticModelingSuggestion[];
   readonly clauses: readonly {
     readonly claim_key: string;
@@ -139,6 +234,7 @@ export interface SemanticAdvisorReceipt {
 export interface SemanticAdvisorInput {
   readonly payload: Readonly<Record<string, unknown>>;
   readonly clauses?: readonly string[];
+  readonly interpretations?: readonly SemanticInterpretationInput[];
 }
 
 export interface SemanticAdvisorAnalysisResult {
@@ -154,6 +250,7 @@ export interface SemanticAdvisorArgs {
   readonly title?: string;
   readonly source?: string;
   readonly status?: string;
+  readonly interpretations?: readonly SemanticInterpretationInput[];
 }
 
 export interface SemanticAdvisorOperationResult {

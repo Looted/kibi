@@ -11,4 +11,4 @@ links:
     target: SCEN-mcp-suggest-predicates
 ---
 
-Verifies predicate candidate ranking, safe apply-plan generation, existing schema loading, relationship guidance, argument validation, and ontology-gap fallback behavior for `kb_suggest_predicates`.
+Verifies predicate candidate ranking, safe apply-plan generation, existing schema loading, relationship guidance, argument validation, declared-schema argument binding, prohibition polarity preservation, and ontology-gap fallback behavior for `kb_suggest_predicates`.

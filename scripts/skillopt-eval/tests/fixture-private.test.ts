@@ -203,7 +203,10 @@ describe("private SkillOpt fixture corpus", () => {
     // Then
     expect(publicText).not.toContain("semanticClass");
     expect(publicText).not.toMatch(
-      /builtin_relational|strict_scalar_counterexample|project_local_schema|deny_polarity|ontology_gap|keyword_false_positive/,
+      /builtin_relational|strict_scalar_counterexample|project_local_schema|deny_polarity|keyword_false_positive/,
+    );
+    expect(publicText).toMatch(
+      /paraphrase_equivalence|semantic_contrast|temporal_rule/,
     );
   });
 });

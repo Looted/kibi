@@ -4,7 +4,7 @@ title: Codex-only SkillOpt candidates are gated before adoption
 type: scenario
 status: active
 created_at: 2026-07-21T00:00:00Z
-updated_at: 2026-08-04T00:00:00Z
+updated_at: 2026-08-09T00:00:00Z
 source: documentation/facts/FACT-skillopt-methodology.md
 priority: must
 tags: [skillopt, codex, evaluation, security]
@@ -19,7 +19,7 @@ Given the balanced public corpus, when optimization runs with `--max-steps 4`, t
 
 Given an optimizer turn that emits structured progress before its final structured response, when the harness captures the proposed body, then it reads Codex's dedicated last-message artifact, rejects an incomplete or safety-invalid replacement before launching any target evaluation cell, and persists an accepted body plus hash receipt outside the ephemeral runtime before cleanup.
 
-Given baseline and one-shot development results, when training begins, then the stronger comparator seeds the trainer. If the frozen candidate's four-case public development result has mean below 0.85, fewer than three hard passes, worst-family mean below 0.75, no strict mean improvement, or a hard-pass or worst-family regression against the stronger comparator, held-out evaluation is not launched and the review reports `development_gate_ineligible`; otherwise the blinded matrix runs. Comparator misses in the complete 36-cell predicate supplement do not veto candidate predicate success, while any SkillOpt predicate miss does.
+Given baseline and one-shot development results, when training begins, then the stronger comparator seeds the trainer. The trainer's selection score is not authoritative: the frozen candidate is independently evaluated through the development cell lane before admission. If that four-case public development result has mean below 0.85, fewer than three hard passes, worst-family mean below 0.75, no strict mean improvement, or a hard-pass or worst-family regression against the stronger comparator, held-out evaluation is not launched and the review reports `development_gate_ineligible`; otherwise the blinded matrix runs. Comparator misses in the complete 36-cell predicate supplement do not veto candidate predicate success, while any SkillOpt predicate miss does.
 
 Given a preserved paid candidate, when the operator supplies it as the next run's seed, then the trainer starts from those exact body bytes, records seed provenance without mutating canonical skills, and continues to compare the resulting candidate against fresh baseline and one-shot evidence.
 

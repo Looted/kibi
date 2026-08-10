@@ -25,6 +25,22 @@ export type PredicateSemanticClass =
   | "ontology_gap"
   | "keyword_false_positive";
 
+/** Logic phenomena exercised by the public corpus, independent of wording. */
+export type LogicCoverageFamily =
+  | "paraphrase_equivalence"
+  | "semantic_contrast"
+  | "compound_prose"
+  | "passive_phrasing"
+  | "implicit_condition"
+  | "negation_scope"
+  | "deontic_modality"
+  | "quantifier_cardinality"
+  | "exception_handling"
+  | "temporal_rule"
+  | "descriptive_fact"
+  | "ambiguity"
+  | "ontology_gap";
+
 export type ExpectedLane =
   | "predicate"
   | "strict_property"
@@ -53,6 +69,8 @@ export type PublicClaim = Readonly<{
     schemaVersion: string;
     availableFactKinds: readonly string[];
     projectLocalSchemas: readonly PublicPredicateSchema[];
+    /** Feature families used for semantic (not exact-wording) scoring. */
+    coverageFamilies: readonly LogicCoverageFamily[];
   }>;
 }>;
 
@@ -74,6 +92,7 @@ export type PrivateExpectation = Readonly<{
   expectedLogicClaimCount: number;
   /** Short rationale kept private for the evaluator/verifier lane only. */
   privateRationale: string;
+  readonly coverageFamilies?: readonly LogicCoverageFamily[];
 }>;
 
 export type PredicateCase = Readonly<{

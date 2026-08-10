@@ -8,7 +8,7 @@ Logical coverage is clause-based, not entity-based. Give `kb_semantic_advisor` t
 
 - preserve the returned stable key as `claim_key` and the exact clause as `claim_text` on its ground fact;
 - add the key to the requirement `logic_claims` manifest without removing existing keys;
-- link it through exactly one `requires_property` for `property_value` or one `requires_predicate` for `predicate`;
+- link it through exactly one `requires_property` for `property_value`, one `requires_predicate` for `predicate`, or one `requires_rule` for a safe `rule` fact;
 - leave ambiguity and ontology gaps visibly unresolved—observations do not satisfy `logic-coverage`.
 
 Use the advisor-returned atomic inventory as the identity boundary. Trailing punctuation and copied conjunction commas are formatting, not new claims. `logic-coverage` rejects one claim grounded by multiple facts and distinct claim keys that resolve to the same ground logical term.
@@ -75,6 +75,16 @@ relationship: { type: requires_predicate, from: REQ-SUSPENDED-PUBLISH-DENIED, to
 If another current requirement links an `assert` fact with the same predicate namespace, name, and ordered arguments, `domain-contradictions` reports the pair. More complex semantic conflicts require a shared canonical schema and arguments; do not assume Kibi can prove arbitrary equivalence between differently shaped predicates.
 
 The full logical representation of a requirement is the conjunction of all of its linked ground property and predicate terms. Conditions, exceptions, permissions, and ordering constraints remain explicit arguments of their declared schemas. Contradiction detection therefore depends on equivalent prose reusing the same predicate name, argument roles, ordered canonical values, and opposing polarity rather than inventing synonymous terms.
+
+### Lane gates before a predicate lookup
+
+Treat the advisor's proposition status as a hard routing decision. `nonlogical`/`subjective` prose is not a logical claim: keep it as one observation when needed and do not add its key to `logic_claims`. `ambiguous` prose stays an ambiguity observation. `ontology_gap` prose stays unresolved unless an approved schema or validated Logic IR is available. Never split a subjective or commentary sentence into synthetic clauses just because it contains conditional words or domain vocabulary.
+
+If authorized input supplies `projectLocalSchemas`, use those signatures as the authority. Create the minimal `predicate_schema` endpoint before lookup, then rerun `kb_suggest_predicates` on the complete relation if the first lookup had no candidate. Apply exactly one ground predicate and one claim key for that relation. For `must not`, `never`, `cannot`, or `forbidden` wording, preserve the positive schema and set `polarity: deny`; do not turn the result into an asserted predicate or invent a negative name. An empty lookup before the declared schema exists is a retry condition, not proof of an ontology gap.
+
+## Typed rule lane
+
+Use a validated `kibi.logic.v1` object for a proposition whose meaning includes a condition, exception, obligation, prohibition, permission, quantifier, cardinality bound, or bounded temporal relation. `kb_model_requirement` returns the `rule_schema` and `rule` facts plus a `requires_rule` edge. The rule stores canonical JSON and a deterministic hash; any rendered Prolog is an audit view and is never executed. Reject raw goals, function symbols, cuts, meta-calls, dynamic predicates, I/O, unsafe variables, unstratified negation, and unbounded aggregation. Keep the exact proposition in `claim_text`, its advisor key in `claim_key`, and its byte span in the semantic ledger. Run `rule-safety` and `rule-verifiability` before treating the rule as modeled.
 
 ### Strict scalar
 

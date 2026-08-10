@@ -4,6 +4,7 @@ import { buildStrictWriteSet } from "../../public/check-types.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { getSchemaVersionStatus } from "../../public/schema-version.js";
 import { semanticClaimKey } from "../semantic-advisor/clauses.js";
+import { buildLogicApplyPlan } from "./logic-modeling.js";
 import {
   strictWriteSetToApplyPlan,
   writeSetPrimaryEntityId,
@@ -64,6 +65,63 @@ export async function handleKbModelRequirement(
       normalizeSourceFiles(args.sourceFiles)[0] ??
       "mcp://kibi/model-requirement",
   });
+  if (args.logic !== undefined) {
+    const logicPlan = buildLogicApplyPlan({
+      text: args.text,
+      logic: args.logic,
+      source: extracted.source,
+      ...(typeof args.requirementId === "string"
+        ? { requirementId: args.requirementId }
+        : {}),
+      ...(args.existingLogicClaims !== undefined
+        ? { existingLogicClaims: args.existingLogicClaims }
+        : {}),
+      ...(args.claimKey !== undefined ? { claimKey: args.claimKey } : {}),
+      ...(args.claimText !== undefined ? { claimText: args.claimText } : {}),
+    });
+    const fallbackWriteSet = buildStrictWriteSet({
+      claim: extracted.claim,
+      statement: extracted.statement,
+    });
+    const migrationWarning = await getWorkspaceMigrationWarning(workspaceRoot);
+    const structuredContent = {
+      statement: extracted.statement,
+      claimKey: logicPlan.claimKey,
+      logicClaims: Array.from(
+        new Set([...(args.existingLogicClaims ?? []), logicPlan.claimKey]),
+      ),
+      source: extracted.source,
+      sourceFiles: extracted.sourceFiles,
+      claim: extracted.claim,
+      writeSet: fallbackWriteSet,
+      applyPlan: logicPlan.applyPlan,
+      isStrict: false,
+      confidence: args.confidence ?? 1,
+      extractionMode: extracted.extractionMode,
+      extractionWarnings: extracted.extractionWarnings,
+      warnings: [],
+      migrationWarning,
+      logic: {
+        semanticKey: logicPlan.semanticKey,
+        claimKey: logicPlan.claimKey,
+        claimText: logicPlan.claimText,
+        renderedProlog: logicPlan.renderedProlog,
+        normalized: logicPlan.normalized,
+      },
+    };
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Modeled typed kibi.logic.v1 rule ${logicPlan.semanticKey}; apply the returned schema, rule, and requirement steps sequentially.`,
+        },
+      ],
+      structuredContent,
+      applyPlan: logicPlan.applyPlan,
+      writeSet: fallbackWriteSet,
+      migrationWarning,
+    };
+  }
   const writeSet = buildStrictWriteSet({
     claim: extracted.claim,
     statement: extracted.statement,

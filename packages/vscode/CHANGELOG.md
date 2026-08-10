@@ -1,5 +1,20 @@
 # kibi-vscode
 
+## 0.4.10
+
+### Patch Changes
+
+- Updated dependencies [5e4e126]
+- Updated dependencies [6d66110]
+- Updated dependencies [750ff49]
+- Updated dependencies [2a85fc8]
+- Updated dependencies [a28d325]
+- Updated dependencies [38f72bf]
+- Updated dependencies [2d93976]
+- Updated dependencies [2f9073c]
+- Updated dependencies [a52b592]
+  - kibi-cli@0.17.0
+
 ## 0.4.9
 
 ### Patch Changes

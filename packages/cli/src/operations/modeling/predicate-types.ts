@@ -16,6 +16,9 @@ export interface PredicateSchemaCandidate {
   argument_names: string[];
   argument_types: string[];
   keywords: string[];
+  /** Human-language aliases and controlled paraphrase templates used for deterministic retrieval. */
+  aliases?: string[];
+  paraphrase_templates?: string[];
   examples: string[];
   tags: string[];
   usage_hints?: PredicateUsageHints;

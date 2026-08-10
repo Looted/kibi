@@ -19,6 +19,9 @@
     check_strict_readiness/1,       % Returns list of strict readiness audit violations
     check_predicate_verifiability/1,% Returns list of unverifiable predicate-lane requirement links
     check_logic_coverage/1,         % Returns list of incomplete declared logical claim manifests
+    check_rule_safety/1,
+    check_rule_verifiability/1,
+    check_semantic_completeness/1,
     run_checks_json/0,              % Entry point for JSON output
     violation_id_text/2             % Extract text from entity ID term (exported for testing)
 ]).
@@ -28,6 +31,7 @@
 :- use_module('kb.pl').
 :- use_module('../schema/entities.pl', [entity_type/1, required_property/2]).
 :- use_module('../schema/relationships.pl', [relationship_type/1]).
+:- use_module('logic_ir.pl', [logic_rule_safety/2, logic_rule_from_props/2, logic_rule_conflict/3, logic_rules_stratified/1]).
 
 % Required fields for all entities
 required_fields([id, title, status, created_at, updated_at, source]).
@@ -35,7 +39,7 @@ required_fields([id, title, status, created_at, updated_at, source]).
 % Relationship types to check for dangling references
 all_relationship_types([
     depends_on, verified_by, validates, specified_by,
-    constrains, requires_property, requires_predicate, supersedes, relates_to
+    constrains, requires_property, requires_predicate, requires_rule, supersedes, relates_to
 ]).
 
 %% check_all(-ViolationsDict)
@@ -56,6 +60,9 @@ check_all(ViolationsDict) :-
     check_strict_readiness(StrictReadiness),
     check_predicate_verifiability(PredicateVerifiability),
     check_logic_coverage(LogicCoverage),
+    check_rule_safety(RuleSafety),
+    check_rule_verifiability(RuleVerifiability),
+    check_semantic_completeness(SemanticCompleteness),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -69,7 +76,10 @@ check_all(ViolationsDict) :-
         strict_req_fact_pairing: StrictReqFactPairing,
         strict_readiness: StrictReadiness,
         predicate_verifiability: PredicateVerifiability,
-        logic_coverage: LogicCoverage
+        logic_coverage: LogicCoverage,
+        rule_safety: RuleSafety,
+        rule_verifiability: RuleVerifiability,
+        semantic_completeness: SemanticCompleteness
     }.
 
 %% check_must_priority_coverage(-Violations)
@@ -408,9 +418,25 @@ strict_fact_shape_violation(violation(
             Description = First,
             Suggestion = "Ensure predicate facts have predicate_name, non-empty predicate_args, canonical_key, and assert/deny polarity when present"
         )
+    ;   Kind = rule_schema
+    ->  findall(Msg, rule_schema_shape_error(Props, Msg), Errors),
+        (   Errors = []
+        ->  fail
+        ;   Errors = [First|_],
+            Description = First,
+            Suggestion = "Ensure rule_schema facts declare rule_name plus same-length argument_names and argument_types"
+        )
+    ;   Kind = rule
+    ->  findall(Msg, rule_shape_error(Props, Msg), Errors),
+        (   Errors = []
+        ->  fail
+        ;   Errors = [First|_],
+            Description = First,
+            Suggestion = "Ensure rule facts contain a safe kibi.logic.v1 rule_ir, full rule_hash, rule_schema_id, rule_name, and semantic_key"
+        )
     ;   % Unknown fact_kind - report as malformed
         format(string(Description), "Unknown fact_kind: ~w", [Kind]),
-        Suggestion = "Use one of: subject, property_value, observation, meta, predicate_schema, predicate"
+        Suggestion = "Use one of: subject, property_value, observation, meta, predicate_schema, predicate, rule_schema, rule"
     ),
     
     (   memberchk(source=Source0, Props)
@@ -503,6 +529,42 @@ predicate_shape_error(Props, "Predicate fact polarity must be assert or deny") :
     normalize_term_atom(RawPolarity, Polarity),
     \+ memberchk(Polarity, [assert, deny]).
 
+rule_schema_shape_error(Props, "Rule schema fact missing required field: rule_name") :-
+    \+ memberchk(rule_name=_, Props).
+rule_schema_shape_error(Props, "Rule schema fact missing required field: argument_names") :-
+    memberchk(rule_name=_, Props),
+    \+ memberchk(argument_names=_, Props).
+rule_schema_shape_error(Props, "Rule schema fact missing required field: argument_types") :-
+    memberchk(argument_names=_, Props),
+    \+ memberchk(argument_types=_, Props).
+rule_schema_shape_error(Props, "Rule schema fact argument_names and argument_types must have equal lengths") :-
+    memberchk(argument_names=RawNames, Props),
+    memberchk(argument_types=RawTypes, Props),
+    checks_normalize_atom_list(RawNames, Names),
+    checks_normalize_atom_list(RawTypes, Types),
+    length(Names, NameCount),
+    length(Types, TypeCount),
+    NameCount =\= TypeCount.
+
+rule_shape_error(Props, "Rule fact missing required field: rule_ir") :-
+    \+ memberchk(rule_ir=_, Props).
+rule_shape_error(Props, "Rule fact missing required field: rule_hash") :-
+    memberchk(rule_ir=_, Props),
+    \+ memberchk(rule_hash=_, Props).
+rule_shape_error(Props, "Rule fact missing required field: rule_schema_id") :-
+    memberchk(rule_hash=_, Props),
+    \+ memberchk(rule_schema_id=_, Props).
+rule_shape_error(Props, "Rule fact missing required field: rule_name") :-
+    memberchk(rule_schema_id=_, Props),
+    \+ memberchk(rule_name=_, Props).
+rule_shape_error(Props, "Rule fact missing required field: semantic_key") :-
+    memberchk(rule_name=_, Props),
+    \+ memberchk(semantic_key=_, Props).
+rule_shape_error(Props, "Rule fact rule_ir failed kibi.logic.v1 safety validation") :-
+    memberchk(rule_ir=_, Props),
+    logic_rule_safety(Props, Errors),
+    Errors \= [].
+
 checks_normalize_integer(Raw, Integer) :-
     (   Raw = ^^(Value, _Type)
     ->  checks_normalize_integer(Value, Integer)
@@ -537,8 +599,41 @@ check_domain_contradictions(Violations) :-
             format(string(EntityId), "~w/~w", [ReqA, ReqB]),
             format(string(Description), "~w [strict-readiness: contradiction-ready]", [Reason])
         ),
-        Violations
-    ).
+        StrictViolations
+    ),
+    findall(
+        violation(
+            'domain-contradictions',
+            EntityId,
+            Description,
+            "Align the opposing rule heads, separate their scopes, or add an explicit supersedes relationship",
+            ""
+        ),
+        (   opposing_rule_requirements(ReqA, ReqB, RuleA, RuleB),
+            logic_rule_conflict(RuleA, RuleB, Conflict),
+            Conflict \= disjoint,
+            format(string(EntityId), "~w/~w", [ReqA, ReqB]),
+            format(string(Description), "Rule conflict (~w) between ~w and ~w", [Conflict, ReqA, ReqB])
+        ),
+        RuleViolations
+    ),
+    append(StrictViolations, RuleViolations, Violations).
+
+opposing_rule_requirements(ReqA, ReqB, RuleA, RuleB) :-
+    kb:current_req(ReqA),
+    kb:current_req(ReqB),
+    ReqA @< ReqB,
+    kb_relationship(requires_rule, ReqA, FactA),
+    kb_relationship(requires_rule, ReqB, FactB),
+    FactA @< FactB,
+    kb_entity(FactA, fact, PropsA),
+    kb_entity(FactB, fact, PropsB),
+    memberchk(fact_kind=KindA, PropsA),
+    memberchk(fact_kind=KindB, PropsB),
+    normalize_term_atom(KindA, rule),
+    normalize_term_atom(KindB, rule),
+    logic_rule_from_props(PropsA, RuleA),
+    logic_rule_from_props(PropsB, RuleB).
 
 %% check_strict_req_fact_pairing(-Violations)
 % Finds current requirements attempting strict-lane modeling with incomplete
@@ -816,7 +911,7 @@ logic_coverage_violation(violation(
     'logic-coverage',
     ReqId,
     Description,
-    "Ground every declared claim with a property_value fact via requires_property or a predicate fact via requires_predicate, preserving the same claim_key",
+    "Ground every declared claim with a property_value, predicate, or rule fact via its typed relationship, preserving the same claim_key",
     Source
 )) :-
     kb:current_req(ReqId),
@@ -901,6 +996,9 @@ grounded_requirement_claim_fact(ReqId, ClaimKey, FactId) :-
 grounded_requirement_claim_fact(ReqId, ClaimKey, FactId) :-
     kb_relationship(requires_predicate, ReqId, FactId),
     ground_fact_claim_key(FactId, predicate, ClaimKey).
+grounded_requirement_claim_fact(ReqId, ClaimKey, FactId) :-
+    kb_relationship(requires_rule, ReqId, FactId),
+    ground_fact_claim_key(FactId, rule, ClaimKey).
 
 logical_ground_signature(FactId, predicate(Namespace, Name, Args, Polarity)) :-
     kb:predicate_fact(FactId, Namespace, Name, Args, Polarity).
@@ -919,6 +1017,14 @@ logical_ground_signature(
         Scope,
         Polarity
     ).
+logical_ground_signature(FactId, rule(SemanticKey)) :-
+    kb_entity(FactId, fact, Props),
+    memberchk(fact_kind=RawKind, Props),
+    normalize_term_atom(RawKind, rule),
+    (   memberchk(semantic_key=RawKey, Props)
+    ->  normalize_term_atom(RawKey, SemanticKey)
+    ;   memberchk(rule_hash=RawKey, Props), normalize_term_atom(RawKey, SemanticKey)
+    ).
 
 ground_fact_claim_key(FactId, ExpectedKind, ClaimKey) :-
     kb_entity(FactId, fact, Props),
@@ -929,6 +1035,175 @@ ground_fact_claim_key(FactId, ExpectedKind, ClaimKey) :-
     memberchk(claim_text=RawClaimText, Props),
     normalize_term_atom(RawClaimText, ClaimText),
     ClaimText \= ''.
+
+%% check_rule_safety(-Violations)
+% Every stored rule must decode through the closed Logic IR vocabulary and
+% pass the independent Prolog-side safety checks.
+check_rule_safety(Violations) :-
+    findall(Violation, rule_safety_violation(Violation), Raw),
+    sort(Raw, Violations).
+
+rule_safety_violation(violation(
+    'rule-safety',
+    FactId,
+    Description,
+    "Use kibi.logic.v1 typed IR; remove raw Prolog, unsafe variables, or unstratified negation",
+    Source
+)) :-
+    kb_entity(FactId, fact, Props),
+    memberchk(fact_kind=RawKind, Props),
+    normalize_term_atom(RawKind, rule),
+    logic_rule_safety(Props, Errors),
+    Errors \= [],
+    format(string(Description), "Rule fact ~w failed safety validation: ~w", [FactId, Errors]),
+    violation_source(FactId, fact, Source).
+
+% Local rule checks cannot detect a negation cycle spanning multiple facts.
+% Run the finite dependency-graph check over the complete stored rule set and
+% report each participating negated rule as infrastructure-grade unsafe IR.
+rule_safety_violation(violation(
+    'rule-safety',
+    FactId,
+    "Stored rules contain an unstratified negation dependency cycle",
+    "Separate the negated dependency into strata or replace it with an explicit closed-world fact",
+    Source
+)) :-
+    findall(Rule, stored_rule_term(Rule), Rules),
+    Rules \= [],
+    \+ logic_rules_stratified(Rules),
+    stored_rule_fact(FactId, _Props, Rule),
+    rule_contains_negation(Rule),
+    violation_source(FactId, fact, Source).
+
+stored_rule_term(Rule) :-
+    kb_entity(_FactId, fact, Props),
+    memberchk(fact_kind=RawKind, Props),
+    normalize_term_atom(RawKind, rule),
+    logic_rule_from_props(Props, Rule).
+
+stored_rule_fact(FactId, Props, Rule) :-
+    kb_entity(FactId, fact, Props),
+    memberchk(fact_kind=RawKind, Props),
+    normalize_term_atom(RawKind, rule),
+    logic_rule_from_props(Props, Rule).
+
+rule_contains_negation(rule(_, _, _Head, Body, Exceptions, _Scope, _From, _To, _Schema, _Variables)) :-
+    ( expression_contains_negation(Body)
+    ; member(Exception, Exceptions), expression_contains_negation(Exception)
+    ),
+    !.
+
+expression_contains_negation(not(_)).
+expression_contains_negation(all(Items)) :- member(Item, Items), expression_contains_negation(Item).
+expression_contains_negation(any(Items)) :- member(Item, Items), expression_contains_negation(Item).
+expression_contains_negation(count(Atom, _Operator, _Value)) :- expression_contains_negation(Atom).
+
+%% check_rule_verifiability(-Violations)
+% A requires_rule edge is meaningful only when it reaches a rule fact whose
+% schema endpoint exists and whose rule IR is safe.
+check_rule_verifiability(Violations) :-
+    findall(Violation, rule_verifiability_violation(Violation), Raw),
+    sort(Raw, Violations).
+
+rule_verifiability_violation(violation(
+    'rule-verifiability',
+    ReqId,
+    Description,
+    "Link requires_rule to fact_kind=rule with a valid rule_schema_id and safe kibi.logic.v1 IR",
+    Source
+)) :-
+    kb:current_req(ReqId),
+    kb_relationship(requires_rule, ReqId, FactId),
+    kb_entity(FactId, fact, Props),
+    rule_verifiability_description(Props, FactId, Description),
+    violation_source(ReqId, req, Source).
+
+rule_verifiability_description(Props, FactId, Description) :-
+    (   memberchk(fact_kind=RawKind, Props)
+    ->  normalize_term_atom(RawKind, Kind)
+    ;   Kind = legacy
+    ),
+    Kind \= rule,
+    format(string(Description), "Requirement uses requires_rule ~w but target is fact_kind=~w", [FactId, Kind]).
+rule_verifiability_description(Props, FactId, Description) :-
+    memberchk(fact_kind=RawKind, Props),
+    normalize_term_atom(RawKind, rule),
+    \+ memberchk(rule_schema_id=_, Props),
+    format(string(Description), "Rule fact ~w has no rule_schema_id", [FactId]).
+rule_verifiability_description(Props, FactId, Description) :-
+    memberchk(fact_kind=RawKind, Props),
+    normalize_term_atom(RawKind, rule),
+    memberchk(rule_schema_id=SchemaId, Props),
+    \+ kb_entity(SchemaId, fact, _),
+    format(string(Description), "Rule fact ~w references missing rule schema ~w", [FactId, SchemaId]).
+rule_verifiability_description(Props, FactId, Description) :-
+    memberchk(fact_kind=RawKind, Props),
+    normalize_term_atom(RawKind, rule),
+    memberchk(rule_schema_id=SchemaId, Props),
+    kb_entity(SchemaId, fact, SchemaProps),
+    \+ valid_rule_schema_props(SchemaProps),
+    format(string(Description), "Rule fact ~w references ~w, which is not a rule_schema fact", [FactId, SchemaId]).
+rule_verifiability_description(Props, FactId, Description) :-
+    memberchk(fact_kind=RawKind, Props),
+    normalize_term_atom(RawKind, rule),
+    logic_rule_safety(Props, Errors),
+    Errors \= [],
+    format(string(Description), "Rule fact ~w is not safe: ~w", [FactId, Errors]).
+
+valid_rule_schema_props(Props) :-
+    memberchk(fact_kind=RawKind, Props),
+    normalize_term_atom(RawKind, rule_schema),
+    memberchk(rule_name=Name, Props),
+    nonempty_normalized(Name),
+    memberchk(argument_names=RawNames, Props),
+    memberchk(argument_types=RawTypes, Props),
+    checks_normalize_atom_list(RawNames, Names),
+    checks_normalize_atom_list(RawTypes, Types),
+    same_length(Names, Types).
+
+nonempty_normalized(Value) :-
+    normalize_term_atom(Value, Atom),
+    Atom \= ''.
+
+%% check_semantic_completeness(-Violations)
+% The proposition ledger is additive and optional during migration. When it is
+% present, every assertive proposition must either be modeled or explicitly
+% recorded as an unresolved review state; silently missing entries are errors.
+check_semantic_completeness(Violations) :-
+    findall(Violation, semantic_completeness_violation(Violation), Raw),
+    sort(Raw, Violations).
+
+semantic_completeness_violation(violation(
+    'semantic-completeness',
+    ReqId,
+    Description,
+    "Run kb_semantic_advisor again, preserve every proposition span, and model or explicitly classify each assertive proposition",
+    Source
+)) :-
+    kb:current_req(ReqId),
+    kb_entity(ReqId, req, Props),
+    memberchk(semantic_inventory=RawInventory, Props),
+    inventory_entries(RawInventory, Entries),
+    member(Entry, Entries),
+    inventory_entry_status(Entry, Status),
+    memberchk(Status, [missing]),
+    format(string(Description), "Requirement proposition ledger contains an unclassified assertive span (~w)", [Entry]),
+    violation_source(ReqId, req, Source).
+
+inventory_entries(Raw, Entries) :-
+    (   is_list(Raw) -> Entries = Raw
+    ;   Raw = ^^(Value, _) -> inventory_entries(Value, Entries)
+    ;   (atom(Raw) ; string(Raw)),
+        catch(atom_json_term(Raw, JsonEntries, [value_string_as(string)]), _, fail),
+        is_list(JsonEntries)
+    ->  Entries = JsonEntries
+    ;   Entries = []
+    ).
+
+inventory_entry_status(Entry, Status) :-
+    is_dict(Entry), get_dict(status, Entry, Raw), normalize_term_atom(Raw, Status).
+inventory_entry_status(Entry, Status) :-
+    is_list(Entry), memberchk(status=Raw, Entry), normalize_term_atom(Raw, Status).
 
 strict_readiness_has_fact_link(ReqId) :-
     kb_relationship(constrains, ReqId, FactId),
@@ -1004,6 +1279,9 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
     check_strict_readiness(StrictReadiness),
     check_predicate_verifiability(PredicateVerifiability),
     check_logic_coverage(LogicCoverage),
+    check_rule_safety(RuleSafety),
+    check_rule_verifiability(RuleVerifiability),
+    check_semantic_completeness(SemanticCompleteness),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -1017,7 +1295,10 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
         strict_req_fact_pairing: StrictReqFactPairing,
         strict_readiness: StrictReadiness,
         predicate_verifiability: PredicateVerifiability,
-        logic_coverage: LogicCoverage
+        logic_coverage: LogicCoverage,
+        rule_safety: RuleSafety,
+        rule_verifiability: RuleVerifiability,
+        semantic_completeness: SemanticCompleteness
     }.
 
 %% violations_dict_to_json(+ViolationsDict, -JsonDict)

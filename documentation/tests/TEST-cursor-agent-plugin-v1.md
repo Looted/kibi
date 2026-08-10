@@ -25,3 +25,4 @@ Verification for the portable Agent Plugin artifact (`packages/cursor/tests/agen
 - Ensure `agent-plugin/skills/` contains every canonical skill ID with its `SKILL.md`.
 - Ensure regenerating the artifact via `buildAgentPluginUnlocked` produces a tree identical to the committed artifact (no drift).
 - Ensure the artifact `version` tracks the `kibi-cursor` package.json version.
+- Ensure startup resolution leaves an explicitly launched MCP build in control when the current workspace has no package manifest, rather than re-entering an ambient cached package.

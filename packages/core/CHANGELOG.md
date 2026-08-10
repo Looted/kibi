@@ -1,5 +1,42 @@
 # kibi-core
 
+## 0.8.1
+
+### Patch Changes
+
+- Kibi's Prolog rule-safety checks now load without emitting a singleton-variable warning. This keeps validation output clean while preserving the same rule-cycle diagnostics.
+
+  - Rename the intentionally unused rule-property binding in the unstratified-negation check.
+
+## 0.8.0
+
+### Minor Changes
+
+- a52b592: Kibi can now turn a requirement’s assertive prose into reviewable, typed logical models while keeping the original wording for people. Conditional rules, obligations, permissions, prohibitions, exceptions, bounded quantities, and temporal qualifiers are validated before they enter the knowledge base, and contradictions can report structured witnesses instead of relying on executable text. Existing requirements remain compatible and can be migrated or backfilled deliberately.
+
+  - Add versioned `kibi.logic.v1` IR, safe bounded Prolog interpretation, rule schemas, rule facts, provenance, and contradiction checks.
+  - Extend the semantic advisor with proposition inventories, typed alternatives, source spans, shadow audits, and logic apply plans.
+  - Preserve rule fields and `requires_rule` through CLI, MCP, Markdown, Prolog, and schema validation surfaces.
+  - Add rule safety, rule verifiability, and semantic completeness checks plus schema-v4 migration metadata.
+
+### Patch Changes
+
+- 2a85fc8: Kibi can now track whether every atomic clause in a normative requirement has a queryable logical representation. Readable prose remains intact, while stable claim keys, linked strict-property or predicate facts, and a requirement manifest expose incomplete modeling before it silently weakens contradiction detection. Exact opposite polarities over the same ground predicate now produce a contradiction.
+
+  - Remove repository-specific release and optimizer-corpus text from `kibi-usage`.
+  - Add portable clause-complete prose-to-ground-predicate/property guidance and examples.
+  - Preserve logical claim and predicate-schema fields through Markdown sync.
+  - Add semantic-advisor clause inventories, merged claim manifests, and the `logic-coverage` check.
+  - Enable manifest validation by default and report every current unmanifested requirement as explicit backfill debt.
+  - Detect exact `assert`/`deny` conflicts over the same ground predicate.
+  - Normalize trailing clause punctuation so formatting variants share one claim identity.
+  - Enforce a one-claim/one-ground-fact mapping and reject duplicate logical terms masquerading as separate coverage.
+  - Preserve every target when exact query results contain repeated relationship types.
+  - Keep semantic-advisor readiness partial until every normative claim has a distinct logical grounding slot.
+  - Drain machine-readable CLI output before the explicit process exit so large results are complete without leaving runtime handles alive.
+  - Preserve and enforce claim-key patterns, uniqueness, and paired provenance through MCP schema registration.
+  - Synchronize the corrected skill into the Codex and Cursor bundles.
+
 ## 0.7.1
 
 ### Patch Changes

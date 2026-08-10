@@ -95,7 +95,7 @@ export function normalizeSubjectKey(value: string): string {
   return normalizeKey(value).split("_").map(singularize).join(".");
 }
 
-function relationship(
+export function relationship(
   from: string,
   to: string,
   type: string,

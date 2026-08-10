@@ -17,7 +17,7 @@ describe("kibi-usage skill content", () => {
     expect(bundle.manifest.description).toBe(
       "Guides agents to use Kibi MCP, facts, relationships, and validation correctly",
     );
-    expect(bundle.manifest.version).toBe("1.2.0");
+    expect(bundle.manifest.version).toBe("1.3.0");
     expect(bundle.manifest.kibiCompatibility).toBe(">=0.11.0");
     expect(bundle.manifest.tags).toContain("kibi");
     expect(bundle.manifest.tags).toContain("mcp");
@@ -35,6 +35,7 @@ describe("kibi-usage skill content", () => {
     expect(bundle.manifest.resources).toContain(
       "resources/operation-access.md",
     );
+    expect(bundle.manifest.resources).toContain("resources/logic-ir.md");
   });
 
   test("body contains MCP workflow terms", () => {

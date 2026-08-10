@@ -8,13 +8,13 @@ The canonical workflow for any KB operation follows this pattern:
 2. **Confirm**: `kb_query` for exact IDs and state
 3. **Inspect**: `kb_status` when freshness matters
 4. **Decompose**: `kb_semantic_advisor` on the complete normative prose; verify or supply every atomic clause
-5. **Choose per-clause lanes**: `kb_suggest_predicates` for relational clauses; `kb_model_requirement` for strict scalar clauses; observation review for ambiguity, false positives, and ontology gaps
+5. **Choose per-clause lanes**: strict facts for scalar claims; `kb_suggest_predicates` for approved ground ontology relations; `kb_model_requirement` with `kibi.logic.v1` for conditions, exceptions, modalities, quantifiers, cardinality, and bounded temporal rules; observation review for ambiguity, nonlogical prose, and ontology gaps
 6. **Preflight**: `kb_validate_upsert` for every intended entity or relationship payload
 7. **Create endpoints**: validated `kb_upsert` for new entities, sequentially
-8. **Link**: validated `kb_upsert` with `requires_predicate`, `constrains`, or `requires_property`, sequentially
-9. **Validate coverage and consistency**: targeted `logic-coverage`, `predicate-verifiability`, and `domain-contradictions`, then final full `kb_check`
+8. **Link**: validated `kb_upsert` with `requires_rule`, `requires_predicate`, `constrains`, or `requires_property`, sequentially
+9. **Validate coverage and consistency**: targeted `rule-safety`, `rule-verifiability`, `semantic-completeness`, `logic-coverage`, `predicate-verifiability`, and `domain-contradictions`, then final full `kb_check`
 
-Every current requirement without `logic_claims` remains visible as non-blocking backfill debt. Once a manifest exists, the default unfiltered check enforces its correspondence to linked ground facts.
+Every current requirement without `logic_claims` remains visible as non-blocking backfill debt. Once a manifest and `semantic_inventory` exist, the unfiltered check enforces correspondence to linked ground facts/rules and rejects silently missing assertive propositions.
 
 ## Creating a New Feature
 ```
@@ -47,8 +47,9 @@ Keep the original requirement body readable throughout this workflow.
 3. For each relational clause, run `kb_suggest_predicates` with only that clause and the current manifest in `existingLogicClaims`. Read the candidate as a ground `predicate_name(arg1,...,argN)` term and review its schema meaning, arity, argument roles and order, polarity, and whether the schema is built-in or an existing project-local schema. Graph relationship names are not ontology predicate names.
 4. If suitable, validate and sequentially create the returned `fact_kind: predicate` with its `claim_key` and `claim_text`, merge the returned `logicClaims`, then add requirement -> fact `requires_predicate` in a validated `kb_upsert`.
 5. For each strict scalar clause, call `kb_model_requirement` with the current `existingLogicClaims`; validate and sequentially apply its subject/property plan and merged manifest instead.
-6. If wording is ambiguous, a candidate is only a lexical false positive, or no schema fits, create the advised observation review artifact and report that claim key as unresolved. Use `review:ontology-gap` only for a true catalog gap. Define a new `predicate_schema` only when the task explicitly authorizes ontology extension and provides a stable signature.
-7. Read back the requirement and all facts. Confirm every manifest key occurs on exactly one intended ground fact, no punctuation variant minted a second claim, and no two claim keys encode the same logical term. Exact query output may represent repeated relationship types as arrays, so inspect every target. Then run `kb_check` with `logic-coverage`, `predicate-verifiability`, and `domain-contradictions`. Finish with an unfiltered `kb_check`.
+6. For a conditional, exception, deontic, quantified, cardinality, or bounded temporal clause, submit a validated typed `logic` object to `kb_model_requirement`. Apply its `rule_schema` and `rule` facts sequentially and link the requirement with `requires_rule`; rendered Prolog is for inspection only.
+7. If wording is ambiguous, a candidate is only a lexical false positive, or no schema/IR interpretation fits, create the advised observation review artifact and apply its returned `relates_to` review anchor when present; report that claim key as unresolved. Use `review:ambiguity` for unresolved interpretation, `review:keyword-false-positive` for a vocabulary match that is not a domain assertion, and `review:ontology-gap` only for a true catalog gap. Define a new `predicate_schema` only when the task explicitly authorizes ontology extension and provides a stable signature.
+8. Read back the requirement, proposition ledger, and all facts. Confirm every manifest key occurs on exactly one intended ground fact/rule, no punctuation variant minted a second claim, and no two claim keys encode the same logical term. Exact query output may represent repeated relationship types as arrays, so inspect every target. Then run `kb_check` with `rule-safety`, `rule-verifiability`, `semantic-completeness`, `logic-coverage`, `predicate-verifiability`, and `domain-contradictions`. Finish with an unfiltered `kb_check`.
 
 Do not treat the manifest itself as proof of grounding. The advisor keeps readiness partial while there are fewer logical edge slots than normative claims; final readback and `logic-coverage` bind those slots to exact claim keys and ground terms.
 

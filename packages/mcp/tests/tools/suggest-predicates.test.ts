@@ -109,7 +109,12 @@ describe("kb_suggest_predicates", () => {
         fact_kind: "observation",
         tags: expect.arrayContaining(["review:ontology-gap"]),
       },
-      relationships: [],
+      relationships: [
+        {
+          type: "relates_to",
+          to: "review:ontology-gap",
+        },
+      ],
     });
   });
 
@@ -226,7 +231,12 @@ describe("kb_suggest_predicates", () => {
     expect(applyPlan).toHaveLength(1);
     expect(applyPlan[0]).toMatchObject({
       type: "fact",
-      relationships: [],
+      relationships: [
+        {
+          type: "relates_to",
+          to: "review:ontology-gap",
+        },
+      ],
       properties: {
         fact_kind: "observation",
         tags: expect.arrayContaining([
@@ -278,6 +288,7 @@ describe("kb_suggest_predicates", () => {
 
     expect(candidates[0]).toMatchObject({
       predicate_name: "permission_rule",
+      polarity: "deny",
     });
     expect(usageHints?.use_when).toEqual([
       "Use for allow/deny permission statements with an actor, action, and resource.",
@@ -995,7 +1006,7 @@ describe("kb_suggest_predicates", () => {
 
     expect(candidates[0]).toMatchObject({
       predicate_name: "custom_policy",
-      predicate_args: ["policy.engine", "unknown"],
+      predicate_args: ["policy.engine", "mode"],
       schema: expect.objectContaining({
         id: "FACT-SCHEMA-CUSTOM",
         title: "Custom policy",
@@ -1009,6 +1020,17 @@ describe("kb_suggest_predicates", () => {
         },
       }),
     });
+
+    const denied = await handleKbSuggestPredicates(prolog, {
+      text: "The custom policy mode must not be bypassed.",
+      subjectHint: "policy.engine",
+      maxCandidates: 1,
+    });
+    expect(
+      (
+        denied.structuredContent.candidates as Array<Record<string, unknown>>
+      )[0],
+    ).toMatchObject({ polarity: "deny" });
     expect(capturedGoal).toContain("fact_kind=predicate_schema");
   });
 

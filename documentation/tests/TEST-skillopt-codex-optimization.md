@@ -4,7 +4,7 @@ title: Codex SkillOpt contract rejects stale hosts and gates
 type: test
 status: passing
 created_at: 2026-07-21T00:00:00Z
-updated_at: 2026-08-04T00:00:00Z
+updated_at: 2026-08-09T00:00:00Z
 source: scripts/skillopt-eval/tests/methodology-contract.test.ts
 priority: must
 tags: [skillopt, codex, evaluation, integration, security]
@@ -23,7 +23,7 @@ The bridge CLI suite verifies that non-fake requests construct a Codex cell from
 
 The current contract tests also cover CLI parsing and dispatch, schema compatibility for unknown fields, official trainer request and result lineage, fresh development and blinded held-out evaluation, and the guard that no adoption happens before eligibility.
 
-Learning-loop regressions prove that behavioral misses retain partial score, the bridge forwards structured public failure/tool/final-state evidence, the trainer uses the balanced 8/4 corpus, and `--max-steps` configures the same number of full ReflACT proposal rounds. Runtime configuration asserts `gpt-5.4-mini`/low for targets and `gpt-5.6-sol`/xhigh for the optimizer. Development workflow tests compare baseline and one-shot, seed with the stronger variant, require mean at least 0.85, at least three of four hard passes, worst-family mean at least 0.75, and a strict mean improvement without hard-pass or family regression, and prove every failed public gate launches zero held-out cells. Predicate-gate tests require matrix completeness and every candidate replicate while proving weak comparator cells do not veto candidate success.
+Learning-loop regressions prove that behavioral misses retain partial score, the bridge forwards structured public failure/tool/final-state evidence, the trainer uses the balanced 8/4 corpus, and `--max-steps` configures the same number of full ReflACT proposal rounds. Runtime configuration asserts `gpt-5.4-mini`/low for targets and `gpt-5.6-sol`/xhigh for the optimizer. The trainer's selection gate follows hard-pass evidence, while the real workflow independently re-evaluates the frozen candidate before admission. Development workflow tests compare baseline and one-shot, seed with the stronger variant, require mean at least 0.85, at least three of four hard passes, worst-family mean at least 0.75, and a strict mean improvement without hard-pass or family regression, and prove every failed public gate launches zero held-out cells. Predicate-gate tests require matrix completeness and every candidate replicate while proving weak comparator cells do not veto candidate success.
 
 Optimizer-output regressions require a dedicated `--output-last-message` path, parse only its strict final JSON object, accept a substantive replacement with the canonical Kibi safety and operation guidance, and reject progress notes, malformed JSON, unsafe direct-`.kb` instructions, or incomplete bodies before evaluation. They also prove the accepted body and its hash receipt survive outside the cleaned ephemeral optimizer workspace.
 

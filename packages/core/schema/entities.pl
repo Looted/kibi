@@ -30,6 +30,7 @@ entity_property(_, links, list).
 entity_property(_, text_ref, uri).
 entity_property(_, sourceFile, uri).
 entity_property(req, logic_claims, list).
+entity_property(req, semantic_inventory, list).
 
 % Typed fact fields - only valid for fact entities
 entity_property(fact, fact_kind, atom).
@@ -59,6 +60,16 @@ entity_property(fact, argument_descriptions, list).
 entity_property(fact, aliases, list).
 entity_property(fact, examples, list).
 entity_property(fact, predicate_args, list).
+entity_property(fact, rule_ir, string).
+entity_property(fact, rule_hash, string).
+% Rule schema references are JSON strings at the public boundary, but the
+% Prolog peer represents entity identifiers as atoms.  Accept both forms so
+% decoded rule facts validate without losing the typed reference.
+entity_property(fact, rule_schema_id, atom_or_string).
+entity_property(fact, rule_name, string).
+entity_property(fact, semantic_key, string).
+entity_property(fact, claim_span_start, integer).
+entity_property(fact, claim_span_end, integer).
 
 % Typed symbol metadata fields - only valid for symbol entities
 entity_property(symbol, symbol_role, atom).
@@ -84,6 +95,7 @@ optional_property(Type, severity) :- entity_type(Type).
 optional_property(Type, links) :- entity_type(Type).
 optional_property(Type, text_ref) :- entity_type(Type).
 optional_property(req, logic_claims).
+optional_property(req, semantic_inventory).
 optional_property(test, verification_scope).
 optional_property(test, verification_perspective).
 

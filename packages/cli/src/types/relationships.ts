@@ -29,6 +29,7 @@ export interface BaseRelationship {
     | "constrains"
     | "requires_property"
     | "requires_predicate"
+    | "requires_rule"
     | "guards"
     | "publishes"
     | "consumes"

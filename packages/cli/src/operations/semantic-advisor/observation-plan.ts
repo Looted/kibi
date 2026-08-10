@@ -1,5 +1,6 @@
 import {
   type Payload,
+  relationship,
   shortHash,
   sourceOf,
   statementOf,
@@ -12,10 +13,20 @@ export function observationPlan(
   title: string,
   tags: readonly string[],
 ): readonly Readonly<Record<string, unknown>>[] {
+  const factId = `FACT-OBS-${shortHash(`${stringValue(payload.id)}.${title}.${statementOf(payload)}`)}`;
+  const target = tags.includes("review:ambiguity")
+    ? "review:ambiguous-claim"
+    : tags.includes("review:keyword-false-positive")
+      ? "review:keyword-false-positive"
+      : tags.includes("review:ontology-gap")
+        ? "review:ontology-gap"
+        : tags.includes("review:nonlogical")
+          ? "review:nonlogical"
+          : undefined;
   return [
     {
       type: "fact",
-      id: `FACT-OBS-${shortHash(`${stringValue(payload.id)}.${title}.${statementOf(payload)}`)}`,
+      id: factId,
       properties: {
         title,
         status: "active",
@@ -24,7 +35,10 @@ export function observationPlan(
         text_ref: statementOf(payload),
         tags,
       },
-      relationships: [],
+      relationships:
+        target === undefined
+          ? []
+          : [relationship(factId, target, "relates_to")],
     },
   ];
 }

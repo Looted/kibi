@@ -93,6 +93,16 @@ describe("semantic advisor prose analysis", () => {
       claim_key: clause?.claim_key,
       claim_text: clause?.text,
       recommendedPredicateSchema: null,
+      applyPlan: [
+        expect.objectContaining({
+          relationships: [
+            expect.objectContaining({
+              type: "relates_to",
+              to: "review:ontology-gap",
+            }),
+          ],
+        }),
+      ],
     });
     expect(result.receipt.logic_coverage).toMatchObject({
       status: "unverified",
@@ -580,6 +590,16 @@ describe("semantic advisor prose analysis", () => {
       kind: "ambiguity_observation",
       evidence: "two active sessions",
       ambiguity: expect.arrayContaining(["exactly", "at_most", "at_least"]),
+      applyPlan: [
+        expect.objectContaining({
+          relationships: [
+            expect.objectContaining({
+              type: "relates_to",
+              to: "review:ambiguous-claim",
+            }),
+          ],
+        }),
+      ],
     });
   });
 

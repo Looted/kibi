@@ -195,6 +195,324 @@ describe("assessStagedSymbolsManifest", () => {
     }
   });
 
+  it("treats a source file documented only with coarse records as not_required", () => {
+    writeFile(
+      tmpDir,
+      "src/app.ts",
+      `export function app() {\n  return "ok";\n}\n\nexport function helper() {\n  return "helper";\n}\n`,
+    );
+    writeFile(
+      tmpDir,
+      "documentation/symbols.yaml",
+      `symbols:
+  - id: SYM-app-module
+    title: app
+    sourceFile: src/app.ts
+    granularity_reason: module-level-behavior
+    status: active
+`,
+    );
+    commitAll(tmpDir, "initial");
+
+    writeFile(
+      tmpDir,
+      "src/app.ts",
+      `export function app() {\n  const subject = "world";\n  return "hi " + subject;\n}\n\nexport function helper() {\n  return "helper";\n}\n`,
+    );
+    execSync("git add src/app.ts", { cwd: tmpDir, stdio: "pipe" });
+
+    const previousCwd = process.cwd();
+    process.chdir(tmpDir);
+    try {
+      expect(
+        assessStagedSymbolsManifest({
+          symbolsManifestPath: "documentation/symbols.yaml",
+          sourceFiles: [createSourceStagedFile(tmpDir)],
+          stagedFiles: [createSourceStagedFile(tmpDir)],
+        }),
+      ).toEqual({
+        state: "not_required",
+        sourcePaths: [],
+        path: "documentation/symbol-coordinates.yaml",
+      });
+    } finally {
+      process.chdir(previousCwd);
+    }
+  });
+
+  it("excludes coarse records whose title matches an extracted symbol from coordinate comparison", () => {
+    writeFile(
+      tmpDir,
+      "src/app.ts",
+      `export function app() {\n  return "ok";\n}\n`,
+    );
+    writeFile(
+      tmpDir,
+      "documentation/symbols.yaml",
+      `symbols:
+  - id: SYM-app
+    title: app
+    sourceFile: src/app.ts
+    sourceLine: 1
+    sourceColumn: 16
+    sourceEndLine: 3
+    sourceEndColumn: 1
+  - id: SYM-app-module
+    title: app
+    sourceFile: src/app.ts
+    granularity_reason: module-level-behavior
+`,
+    );
+    writeFile(
+      tmpDir,
+      "documentation/symbol-coordinates.yaml",
+      `coordinates:
+  SYM-app:
+    sourceFile: src/app.ts
+    sourceLine: 1
+    sourceColumn: 16
+    sourceEndLine: 3
+    sourceEndColumn: 1
+`,
+    );
+    commitAll(tmpDir, "initial");
+
+    writeFile(
+      tmpDir,
+      "src/app.ts",
+      `\nexport function app() {\n  return "ok";\n}\n`,
+    );
+    writeFile(
+      tmpDir,
+      "documentation/symbol-coordinates.yaml",
+      `coordinates:
+  SYM-app:
+    sourceFile: src/app.ts
+    sourceLine: 2
+    sourceColumn: 16
+    sourceEndLine: 4
+    sourceEndColumn: 1
+`,
+    );
+
+    const previousCwd = process.cwd();
+    process.chdir(tmpDir);
+    try {
+      const sourceFile = createSourceStagedFile(tmpDir);
+      const coordinatesFile: StagedFile = {
+        path: "documentation/symbol-coordinates.yaml",
+        status: "M",
+        hunkRanges: [],
+        content: readFileSync(
+          path.join(tmpDir, "documentation", "symbol-coordinates.yaml"),
+          "utf8",
+        ),
+      };
+
+      expect(
+        assessStagedSymbolsManifest({
+          symbolsManifestPath: "documentation/symbols.yaml",
+          sourceFiles: [sourceFile],
+          stagedFiles: [sourceFile, coordinatesFile],
+        }),
+      ).toEqual({
+        state: "fresh",
+        sourcePaths: ["src/app.ts"],
+        path: "documentation/symbol-coordinates.yaml",
+      });
+    } finally {
+      process.chdir(previousCwd);
+    }
+  });
+
+  it("treats legacy-link records as coordinate-bearing in freshness comparisons", () => {
+    writeFile(
+      tmpDir,
+      "src/app.ts",
+      `export function app() {\n  return "ok";\n}\n`,
+    );
+    writeFile(
+      tmpDir,
+      "documentation/symbols.yaml",
+      `symbols:
+  - id: SYM-app
+    title: app
+    sourceFile: src/app.ts
+    sourceLine: 1
+    sourceColumn: 16
+    sourceEndLine: 3
+    sourceEndColumn: 1
+    granularity_reason: legacy-link
+`,
+    );
+    writeFile(
+      tmpDir,
+      "documentation/symbol-coordinates.yaml",
+      `coordinates:
+  SYM-app:
+    sourceFile: src/app.ts
+    sourceLine: 1
+    sourceColumn: 16
+    sourceEndLine: 3
+    sourceEndColumn: 1
+`,
+    );
+    commitAll(tmpDir, "initial");
+
+    writeFile(
+      tmpDir,
+      "src/app.ts",
+      `\nexport function app() {\n  return "ok";\n}\n`,
+    );
+
+    const previousCwd = process.cwd();
+    process.chdir(tmpDir);
+    try {
+      const sourceFile = createSourceStagedFile(tmpDir);
+      const coordinatesFile: StagedFile = {
+        path: "documentation/symbol-coordinates.yaml",
+        status: "M",
+        hunkRanges: [],
+        content: `coordinates:
+  SYM-app:
+    sourceFile: src/app.ts
+    sourceLine: 2
+    sourceColumn: 16
+    sourceEndLine: 4
+    sourceEndColumn: 1
+`,
+      };
+
+      expect(
+        assessStagedSymbolsManifest({
+          symbolsManifestPath: "documentation/symbols.yaml",
+          sourceFiles: [sourceFile],
+          stagedFiles: [sourceFile, coordinatesFile],
+        }),
+      ).toEqual({
+        state: "fresh",
+        sourcePaths: ["src/app.ts"],
+        path: "documentation/symbol-coordinates.yaml",
+      });
+    } finally {
+      process.chdir(previousCwd);
+    }
+  });
+
+  it("still fails when an incomplete mixed manifest leaves extracted symbols uncovered", () => {
+    writeFile(
+      tmpDir,
+      "src/app.ts",
+      `export function app() {\n  return "ok";\n}\n\nexport function helper() {\n  return "helper";\n}\n`,
+    );
+    writeFile(
+      tmpDir,
+      "documentation/symbols.yaml",
+      `symbols:
+  - id: SYM-app
+    title: app
+    sourceFile: src/app.ts
+    sourceLine: 1
+    sourceColumn: 16
+    sourceEndLine: 3
+    sourceEndColumn: 1
+`,
+    );
+    writeFile(
+      tmpDir,
+      "documentation/symbol-coordinates.yaml",
+      `coordinates:
+  SYM-app:
+    sourceFile: src/app.ts
+    sourceLine: 1
+    sourceColumn: 16
+    sourceEndLine: 3
+    sourceEndColumn: 1
+`,
+    );
+    commitAll(tmpDir, "initial");
+
+    writeFile(
+      tmpDir,
+      "src/app.ts",
+      `\nexport function app() {\n  return "ok";\n}\n\nexport function helper() {\n  return "helper";\n}\n`,
+    );
+
+    const previousCwd = process.cwd();
+    process.chdir(tmpDir);
+    try {
+      const sourceFile = createSourceStagedFile(tmpDir);
+      const stagedCoordinates = {
+        path: "documentation/symbol-coordinates.yaml",
+        status: "M",
+        hunkRanges: [],
+        content: `coordinates:
+  SYM-app:
+    sourceFile: src/app.ts
+    sourceLine: 2
+    sourceColumn: 16
+    sourceEndLine: 4
+    sourceEndColumn: 1
+`,
+      } as StagedFile;
+
+      expect(
+        assessStagedSymbolsManifest({
+          symbolsManifestPath: "documentation/symbols.yaml",
+          sourceFiles: [sourceFile],
+          stagedFiles: [sourceFile, stagedCoordinates],
+        }),
+      ).toEqual({
+        state: "stale",
+        sourcePaths: ["src/app.ts"],
+        path: "documentation/symbol-coordinates.yaml",
+      });
+    } finally {
+      process.chdir(previousCwd);
+    }
+  });
+
+  it("does not treat an unknown granularity reason as coarse coverage", () => {
+    writeFile(
+      tmpDir,
+      "src/app.ts",
+      `export function app() {\n  return "ok";\n}\n`,
+    );
+    writeFile(
+      tmpDir,
+      "documentation/symbols.yaml",
+      `symbols:
+  - id: SYM-app-module
+    title: app
+    sourceFile: src/app.ts
+    granularity_reason: made-up-reason
+    status: active
+`,
+    );
+    commitAll(tmpDir, "initial");
+
+    writeFile(
+      tmpDir,
+      "src/app.ts",
+      `\nexport function app() {\n  return "ok";\n}\n`,
+    );
+    execSync("git add src/app.ts", { cwd: tmpDir, stdio: "pipe" });
+
+    const previousCwd = process.cwd();
+    process.chdir(tmpDir);
+    try {
+      const result = assessStagedSymbolsManifest({
+        symbolsManifestPath: "documentation/symbols.yaml",
+        sourceFiles: [createSourceStagedFile(tmpDir)],
+        stagedFiles: [createSourceStagedFile(tmpDir)],
+      });
+      expect(result.state).toBe("missing");
+      expect(result.sourcePaths).toEqual(["src/app.ts"]);
+    } finally {
+      process.chdir(previousCwd);
+    }
+  });
+
   it("reports only authored symbol IDs whose staged manifest metadata changed", () => {
     writeFile(
       tmpDir,
