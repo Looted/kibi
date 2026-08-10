@@ -1,5 +1,54 @@
 # kibi-cursor
 
+## 0.5.1
+
+### Patch Changes
+
+- 5e4e126: Agents no longer treat Kibi's CLI as an MCP fallback. MCP tools and the trusted project-local CLI are presented as peer surfaces over the same 18 operations, and agent guidance now selects whichever interface is visible and approved in the current environment. The CLI's `--input` JSON routes remain first-class for agent automation, with no preference order implied.
+
+  - Reframe `kibi-usage` Interface Selection and the operation-access preference column to peer surfaces.
+  - Update OpenCode prompt injection, enforcement, and init-kibi guidance.
+  - Update the MCP init-kibi prompt and the staged-impact evidence resolution text.
+  - Re-sync the Cursor and Codex skill bundles.
+
+- Codex and Cursor users now receive the same verified prose-to-logic guidance as the Kibi CLI. The bundled `kibi-usage` skill explains proposition coverage, typed Logic IR safety, predicate recovery, and contradiction-aware validation without relying on repository-specific release conventions.
+
+  - Synchronize the Logic IR, fact-lane, workflow, and portable skill guidance into both agent bundles.
+  - Keep the bundled skill manifests and canonical hashes aligned with the CLI public skill.
+
+- 5e4e126: Kibi now ships as a portable Agent Plugin alongside the existing Cursor Plugin. The open Agent Plugins standard (agent-plugins.org) packages Kibi's Agent Skills and MCP server so any compatible client — Cursor, Copilot, OpenCode, and others — loads Kibi's capabilities without client-specific adaptation. The Cursor Plugin keeps Cursor-only components (rules, commands, hooks), and both formats are listed in the same marketplace.
+
+  - Add a committed portable Agent Plugin artifact at `agent-plugin/` with a conformant `plugin.json` manifest (plugin.schema.json 1.0.0).
+  - Generate the artifact's `mcp.json` with the required `$schema` and `stdio` server type.
+  - List the Agent Plugin (`plugins/kibi-agent-plugin`) in the repo marketplace alongside `kibi-cursor`.
+  - Add `scripts/build-agent-plugin.ts` to regenerate the artifact and keep its skills in sync with the canonical bundle.
+
+- 2a85fc8: Kibi can now track whether every atomic clause in a normative requirement has a queryable logical representation. Readable prose remains intact, while stable claim keys, linked strict-property or predicate facts, and a requirement manifest expose incomplete modeling before it silently weakens contradiction detection. Exact opposite polarities over the same ground predicate now produce a contradiction.
+
+  - Remove repository-specific release and optimizer-corpus text from `kibi-usage`.
+  - Add portable clause-complete prose-to-ground-predicate/property guidance and examples.
+  - Preserve logical claim and predicate-schema fields through Markdown sync.
+  - Add semantic-advisor clause inventories, merged claim manifests, and the `logic-coverage` check.
+  - Enable manifest validation by default and report every current unmanifested requirement as explicit backfill debt.
+  - Detect exact `assert`/`deny` conflicts over the same ground predicate.
+  - Normalize trailing clause punctuation so formatting variants share one claim identity.
+  - Enforce a one-claim/one-ground-fact mapping and reject duplicate logical terms masquerading as separate coverage.
+  - Preserve every target when exact query results contain repeated relationship types.
+  - Keep semantic-advisor readiness partial until every normative claim has a distinct logical grounding slot.
+  - Drain machine-readable CLI output before the explicit process exit so large results are complete without leaving runtime handles alive.
+  - Preserve and enforce claim-key patterns, uniqueness, and paired provenance through MCP schema registration.
+  - Synchronize the corrected skill into the Codex and Cursor bundles.
+
+- 2f9073c: Kibi now ships optional guidance for recording UI and visual expectations, so agents working on a screen can discover "where things live" and cannot silently drift the layout. A prose requirement anchors the full visual description, checkable positions, alignment, and header ordering decompose into strict facts that reject conflicting writes, and relational alignment uses the built-in `visual_layout_rule` predicate. The lane is per-project: non-UI projects simply never model UI subjects, and no validation rule requires them.
+
+  Also, `kb_status` within a long-lived MCP session now observes same-session file and KB changes instead of returning a stale cached result. Compound Prolog goals (such as the status query) are no longer cached in one-shot mode, so a status check after a source or documentation edit reports the current freshness state.
+
+  - Add `docs/ui-requirements.md` with the three-layer UI modeling guide, payload-shaped examples, and the check workflow.
+  - Point the modeling cheatsheet decision tree, agent LLM rules, and the AGENTS quick references at the new UI lane.
+  - Add a self-contained `kibi-usage` skill resource (`resources/ui-requirements.md`), declare it in the skill manifest, and add a UI modeling workflow section.
+  - Synchronize the updated `kibi-usage` skill into the Codex and Cursor bundles.
+  - Keep compound Prolog goals out of the one-shot query cache so `kb_status` reports fresh state after same-session writes.
+
 ## 0.5.0
 
 ### Minor Changes

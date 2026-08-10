@@ -1,5 +1,85 @@
 # kibi-cli
 
+## 0.17.0
+
+### Minor Changes
+
+- a52b592: Kibi can now turn a requirement’s assertive prose into reviewable, typed logical models while keeping the original wording for people. Conditional rules, obligations, permissions, prohibitions, exceptions, bounded quantities, and temporal qualifiers are validated before they enter the knowledge base, and contradictions can report structured witnesses instead of relying on executable text. Existing requirements remain compatible and can be migrated or backfilled deliberately.
+
+  - Add versioned `kibi.logic.v1` IR, safe bounded Prolog interpretation, rule schemas, rule facts, provenance, and contradiction checks.
+  - Extend the semantic advisor with proposition inventories, typed alternatives, source spans, shadow audits, and logic apply plans.
+  - Preserve rule fields and `requires_rule` through CLI, MCP, Markdown, Prolog, and schema validation surfaces.
+  - Add rule safety, rule verifiability, and semantic completeness checks plus schema-v4 migration metadata.
+
+### Patch Changes
+
+- 5e4e126: Agents no longer treat Kibi's CLI as an MCP fallback. MCP tools and the trusted project-local CLI are presented as peer surfaces over the same 18 operations, and agent guidance now selects whichever interface is visible and approved in the current environment. The CLI's `--input` JSON routes remain first-class for agent automation, with no preference order implied.
+
+  - Reframe `kibi-usage` Interface Selection and the operation-access preference column to peer surfaces.
+  - Update OpenCode prompt injection, enforcement, and init-kibi guidance.
+  - Update the MCP init-kibi prompt and the staged-impact evidence resolution text.
+  - Re-sync the Cursor and Codex skill bundles.
+
+- 6d66110: Read-only Kibi commands (`kibi query`, `kibi search`, `kibi status`, `kibi gaps`, `kibi coverage`, `kibi graph`) now work in non-git workspaces again, attaching to the `main` branch just like `kibi init` and `kibi migrate` already do. A recent branch-resolution fix for unborn git repos had removed that non-git fallback, which broke the packed-install smoke test and blocked npm publishing.
+
+  - Restore the `main` fallback in the CLI operation runtime only for `NOT_A_GIT_REPO` and `GIT_NOT_AVAILABLE` contexts.
+  - Keep propagating genuine git branch-resolution errors (detached HEAD, invalid branch, unknown) so read operations never silently attach to the wrong branch.
+  - Add a runtime regression test pinning non-git fallback to `main` and a second test confirming real git failures still propagate.
+
+- 750ff49: `kibi check --staged` now reports the paths Kibi is actually configured to use. Previously the stale-coordinates and missing-evidence diagnostics always printed the default `documentation/symbols.yaml` and `documentation/symbol-coordinates.yaml`, so repos that configure `paths.symbols` (for example `docs/symbols.yaml`) were told to stage files that do not exist. The staged-symbols freshness check also stopped treating coarse-documented symbols as a perpetual failure: source files whose manifest entries are all documented with a canonical granularity reason (for example `module-level-behavior`) no longer require per-symbol coordinate refresh and no longer emit `symbols_manifest_stale` after a coordinate refresh.
+
+  - Thread the config-resolved symbols manifest path from `check --staged` into `collectStagedKibiDiagnostics` and render `files`/`message`/`suggestion` with the effective `symbols-coordinates.yaml` path carried on the impact evidence.
+  - Define "coarse" with the canonical no-coordinates granularity set (`COARSE_GRANULARITY_REASONS`: `config-artifact`, `module-level-behavior`, `extractor-miss`, `test-suite`), so unknown or malformed reasons cannot bypass freshness checks. `legacy-link` records stay coordinate-bearing because they track real extractable symbols.
+  - Exclude coarse records from per-symbol coordinate comparison; a file with only coarse records is `not_required`, mixed manifests still require complete fresh fine-grained coverage, and record-less files remain `stale`/`missing`.
+  - Add unit and CLI-level regression tests covering configured `docs/` diagnostics paths and coarse/mixed/invalid-granularity freshness.
+
+- 2a85fc8: Kibi can now track whether every atomic clause in a normative requirement has a queryable logical representation. Readable prose remains intact, while stable claim keys, linked strict-property or predicate facts, and a requirement manifest expose incomplete modeling before it silently weakens contradiction detection. Exact opposite polarities over the same ground predicate now produce a contradiction.
+
+  - Remove repository-specific release and optimizer-corpus text from `kibi-usage`.
+  - Add portable clause-complete prose-to-ground-predicate/property guidance and examples.
+  - Preserve logical claim and predicate-schema fields through Markdown sync.
+  - Add semantic-advisor clause inventories, merged claim manifests, and the `logic-coverage` check.
+  - Enable manifest validation by default and report every current unmanifested requirement as explicit backfill debt.
+  - Detect exact `assert`/`deny` conflicts over the same ground predicate.
+  - Normalize trailing clause punctuation so formatting variants share one claim identity.
+  - Enforce a one-claim/one-ground-fact mapping and reject duplicate logical terms masquerading as separate coverage.
+  - Preserve every target when exact query results contain repeated relationship types.
+  - Keep semantic-advisor readiness partial until every normative claim has a distinct logical grounding slot.
+  - Drain machine-readable CLI output before the explicit process exit so large results are complete without leaving runtime handles alive.
+  - Preserve and enforce claim-key patterns, uniqueness, and paired provenance through MCP schema registration.
+  - Synchronize the corrected skill into the Codex and Cursor bundles.
+
+- a28d325: SkillOpt verification now reads canonical skill bundles from an explicitly authorized repository snapshot, and the public skill loader is split into focused modules with scoped readers. That stops locked source or isolated target checkouts from silently falling back to a different skill tree during review and adoption planning.
+
+  fix(cli): add scoped canonical skill bundle loaders
+
+- 38f72bf: Refreshing symbol coordinates now leaves the authored symbol manifest stable and keeps generated locations exclusively in `symbol-coordinates.yaml`. Repeated refreshes no longer alternate thousands of generated fields in and out of `symbols.yaml`, making traceability updates reviewable and idempotent.
+
+  - Strip generated coordinate fields from every authored symbol entry after extraction.
+  - Clarify the manifest header and cover coordinate-free and legacy entries in the refresh tests.
+
+- 2d93976: `kibi sync --refresh-symbol-coordinates` no longer reports coarse symbol anchors as coordinate-refresh failures. Symbols that intentionally represent a whole test file, module-level behavior, config artifact, or an acknowledged extractor miss legitimately carry no per-symbol coordinates, so they are now counted as unchanged instead of failed. This makes the refresh summary trustworthy: `failed` now means a fine-grained code symbol that should have coordinates but could not be located.
+
+  - Treat `test-suite`, `module-level-behavior`, `config-artifact`, and `extractor-miss` granularity reasons as coordinate-ineligible.
+  - Repoint `formatInvalidRelationshipError`/`Tuple` and `formatRelationshipSourceMismatch` to their defining module and merge their interface-parity traceability.
+  - Drop duplicate and dead symbol manifest entries (`SkillsLoadPayload`, re-export duplicate `SemanticAdvisorArgs`, `SYM-parity-format-*`, duplicate `process-control` anchor).
+  - Fix `kibiOpencodePlugin` to point at its defining file with an acknowledged `extractor-miss`.
+  - Add `test-suite`/`config-artifact` granularity to remaining prose-titled test and scope anchors.
+
+- 2f9073c: Kibi now ships optional guidance for recording UI and visual expectations, so agents working on a screen can discover "where things live" and cannot silently drift the layout. A prose requirement anchors the full visual description, checkable positions, alignment, and header ordering decompose into strict facts that reject conflicting writes, and relational alignment uses the built-in `visual_layout_rule` predicate. The lane is per-project: non-UI projects simply never model UI subjects, and no validation rule requires them.
+
+  Also, `kb_status` within a long-lived MCP session now observes same-session file and KB changes instead of returning a stale cached result. Compound Prolog goals (such as the status query) are no longer cached in one-shot mode, so a status check after a source or documentation edit reports the current freshness state.
+
+  - Add `docs/ui-requirements.md` with the three-layer UI modeling guide, payload-shaped examples, and the check workflow.
+  - Point the modeling cheatsheet decision tree, agent LLM rules, and the AGENTS quick references at the new UI lane.
+  - Add a self-contained `kibi-usage` skill resource (`resources/ui-requirements.md`), declare it in the skill manifest, and add a UI modeling workflow section.
+  - Synchronize the updated `kibi-usage` skill into the Codex and Cursor bundles.
+  - Keep compound Prolog goals out of the one-shot query cache so `kb_status` reports fresh state after same-session writes.
+
+- Updated dependencies [2a85fc8]
+- Updated dependencies [a52b592]
+  - kibi-core@0.8.0
+
 ## 0.16.1
 
 ### Patch Changes

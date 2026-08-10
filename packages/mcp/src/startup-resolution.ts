@@ -75,6 +75,22 @@ function nearestPackageJson(startPath: string): string {
   }
 }
 
+function nearestPackageJsonFromDirectory(startPath: string): string | null {
+  let current = path.resolve(startPath);
+  while (true) {
+    const candidate = path.join(current, "package.json");
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+
+    const parent = path.dirname(current);
+    if (parent === current) {
+      return null;
+    }
+    current = parent;
+  }
+}
+
 function packageInfoFromEntrypoint(entrypoint: string): McpPackageInfo {
   const normalizedEntrypoint = path.resolve(entrypoint);
   const packageJsonPath = nearestPackageJson(normalizedEntrypoint);
@@ -98,9 +114,11 @@ export function readRunningPackageInfo(entrypointUrl: string): McpPackageInfo {
 
 export function resolveProjectLocalMcp(cwd: string): McpPackageInfo | null {
   try {
-    const projectRequire = createRequire(
-      path.join(path.resolve(cwd), "package.json"),
-    );
+    const projectPackageJson = nearestPackageJsonFromDirectory(cwd);
+    if (!projectPackageJson) {
+      return null;
+    }
+    const projectRequire = createRequire(projectPackageJson);
     const resolved = projectRequire.resolve(PACKAGE_NAME);
     const entrypoint =
       realpathSync.native?.(resolved) ?? realpathSync(resolved);

@@ -1071,7 +1071,7 @@ rule_safety_violation(violation(
     findall(Rule, stored_rule_term(Rule), Rules),
     Rules \= [],
     \+ logic_rules_stratified(Rules),
-    stored_rule_fact(FactId, Props, Rule),
+    stored_rule_fact(FactId, _Props, Rule),
     rule_contains_negation(Rule),
     violation_source(FactId, fact, Source).
 

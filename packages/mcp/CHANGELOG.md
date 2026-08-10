@@ -1,5 +1,79 @@
 # kibi-mcp
 
+## 0.20.1
+
+### Patch Changes
+
+- Kibi MCP now stays on the server version that was explicitly launched when it is used from a workspace without its own package manifest. This prevents an ambient cached installation from replacing the local server and silently dropping fresh status and logic behavior.
+
+  - Require a discovered workspace `package.json` before resolving a project-local MCP package.
+  - Add regression coverage for non-package workspaces and preserve genuine stale-package detection for package-managed workspaces.
+
+## 0.20.0
+
+### Minor Changes
+
+- a52b592: Kibi can now turn a requirement’s assertive prose into reviewable, typed logical models while keeping the original wording for people. Conditional rules, obligations, permissions, prohibitions, exceptions, bounded quantities, and temporal qualifiers are validated before they enter the knowledge base, and contradictions can report structured witnesses instead of relying on executable text. Existing requirements remain compatible and can be migrated or backfilled deliberately.
+
+  - Add versioned `kibi.logic.v1` IR, safe bounded Prolog interpretation, rule schemas, rule facts, provenance, and contradiction checks.
+  - Extend the semantic advisor with proposition inventories, typed alternatives, source spans, shadow audits, and logic apply plans.
+  - Preserve rule fields and `requires_rule` through CLI, MCP, Markdown, Prolog, and schema validation surfaces.
+  - Add rule safety, rule verifiability, and semantic completeness checks plus schema-v4 migration metadata.
+
+### Patch Changes
+
+- 87b5830: Non-interactive MCP clients can now inspect Kibi branch status without an unnecessary approval prompt. The status operation is explicitly advertised as read-only, non-destructive, idempotent, and closed-world, matching its existing behavior.
+
+  - Add MCP tool annotations for `kb_status`.
+  - Extend registration and frozen tool-contract coverage.
+
+- 5e4e126: Agents no longer treat Kibi's CLI as an MCP fallback. MCP tools and the trusted project-local CLI are presented as peer surfaces over the same 18 operations, and agent guidance now selects whichever interface is visible and approved in the current environment. The CLI's `--input` JSON routes remain first-class for agent automation, with no preference order implied.
+
+  - Reframe `kibi-usage` Interface Selection and the operation-access preference column to peer surfaces.
+  - Update OpenCode prompt injection, enforcement, and init-kibi guidance.
+  - Update the MCP init-kibi prompt and the staged-impact evidence resolution text.
+  - Re-sync the Cursor and Codex skill bundles.
+
+- 69a278a: The MCP server now reliably reports fresh status after a write in the same session. A same-version project-local kibi-mcp copy no longer causes the launcher to abandon the running local build for a published store copy, so local dogfooding and unreleased fixes are honored. `kb_status` also invalidates the Prolog query cache before evaluating, so it always reflects the current workspace state rather than a stale earlier-in-session result.
+
+  - Only re-enter the project-local kibi-mcp on a genuine version mismatch; matching versions keep the running build.
+  - Invalidate the PrologProcess query cache before `kb_status` so freshness is read-after-write consistent.
+  - Stabilize the same-session status test with polling and update resolution/mock tests.
+
+- 2a85fc8: Kibi can now track whether every atomic clause in a normative requirement has a queryable logical representation. Readable prose remains intact, while stable claim keys, linked strict-property or predicate facts, and a requirement manifest expose incomplete modeling before it silently weakens contradiction detection. Exact opposite polarities over the same ground predicate now produce a contradiction.
+
+  - Remove repository-specific release and optimizer-corpus text from `kibi-usage`.
+  - Add portable clause-complete prose-to-ground-predicate/property guidance and examples.
+  - Preserve logical claim and predicate-schema fields through Markdown sync.
+  - Add semantic-advisor clause inventories, merged claim manifests, and the `logic-coverage` check.
+  - Enable manifest validation by default and report every current unmanifested requirement as explicit backfill debt.
+  - Detect exact `assert`/`deny` conflicts over the same ground predicate.
+  - Normalize trailing clause punctuation so formatting variants share one claim identity.
+  - Enforce a one-claim/one-ground-fact mapping and reject duplicate logical terms masquerading as separate coverage.
+  - Preserve every target when exact query results contain repeated relationship types.
+  - Keep semantic-advisor readiness partial until every normative claim has a distinct logical grounding slot.
+  - Drain machine-readable CLI output before the explicit process exit so large results are complete without leaving runtime handles alive.
+  - Preserve and enforce claim-key patterns, uniqueness, and paired provenance through MCP schema registration.
+  - Synchronize the corrected skill into the Codex and Cursor bundles.
+
+- 3ede96b: The semantic advisor and predicate suggester are now explicitly identified as read-only MCP tools, so non-interactive clients can safely run modeling checks without prompting for approval. Newly created empty branch stores are also persisted immediately, preventing a successful first read from leaving later reads in an unstable state.
+
+  - Mark `kb_semantic_advisor` read-only and idempotent in the MCP tool annotations.
+  - Mark `kb_suggest_predicates` read-only and idempotent in the MCP tool annotations.
+  - Save a newly attached empty branch KB before serving subsequent requests.
+
+- Updated dependencies [5e4e126]
+- Updated dependencies [6d66110]
+- Updated dependencies [750ff49]
+- Updated dependencies [2a85fc8]
+- Updated dependencies [a28d325]
+- Updated dependencies [38f72bf]
+- Updated dependencies [2d93976]
+- Updated dependencies [2f9073c]
+- Updated dependencies [a52b592]
+  - kibi-cli@0.17.0
+  - kibi-core@0.8.0
+
 ## 0.19.2
 
 ### Patch Changes
