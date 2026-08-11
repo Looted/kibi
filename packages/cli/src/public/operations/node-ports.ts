@@ -1,5 +1,7 @@
 import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
 import * as fs from "node:fs/promises";
+import path from "node:path";
 import { promisify } from "node:util";
 import fg from "fast-glob";
 
@@ -21,6 +23,7 @@ type NodeGitPort = GitPort & {
 };
 
 const execFileAsync = promisify(execFile);
+const SNAPSHOT_EXCLUDED_PREFIXES = [".changeset/", ".kb/", "docs/"] as const;
 const ALWAYS_IGNORED_GLOBS = [
   "**/.git/**",
   "**/.kb/**",
@@ -34,6 +37,111 @@ const ALWAYS_IGNORED_GLOBS = [
   "**/coverage/**",
   "**/target/**",
 ] as const;
+
+function includedSnapshotPath(relativePath: string): boolean {
+  return !SNAPSHOT_EXCLUDED_PREFIXES.some(
+    (prefix) =>
+      relativePath === prefix.slice(0, -1) || relativePath.startsWith(prefix),
+  );
+}
+
+function withoutVerificationReceiptFrontmatter(content: string): string {
+  const lines = content.match(/[^\n]*\n|[^\n]+$/g) ?? [];
+  if (lines[0]?.trim() !== "---") return content;
+  let inFrontmatter = true;
+  let skippingReceipts = false;
+  const retained: string[] = [];
+  for (const [index, line] of lines.entries()) {
+    const trimmed = line.trim();
+    if (index > 0 && inFrontmatter && trimmed === "---") {
+      inFrontmatter = false;
+      skippingReceipts = false;
+      retained.push(line);
+      continue;
+    }
+    if (inFrontmatter && /^verification_receipts\s*:/.test(line)) {
+      skippingReceipts = true;
+      continue;
+    }
+    if (
+      inFrontmatter &&
+      skippingReceipts &&
+      /^[A-Za-z_][A-Za-z0-9_-]*\s*:/.test(line)
+    ) {
+      skippingReceipts = false;
+    }
+    if (!skippingReceipts) retained.push(line);
+  }
+  return retained.join("");
+}
+
+function snapshotFileContent(relativePath: string, content: Buffer): Buffer {
+  if (
+    relativePath.startsWith("documentation/") &&
+    relativePath.endsWith(".md")
+  ) {
+    return Buffer.from(
+      withoutVerificationReceiptFrontmatter(content.toString("utf8")),
+    );
+  }
+  return content;
+}
+
+async function workspaceSnapshot(workspaceRoot: string) {
+  const { stdout: listed } = await execFileAsync(
+    "git",
+    [
+      "-C",
+      workspaceRoot,
+      "ls-files",
+      "--cached",
+      "--others",
+      "--exclude-standard",
+      "-z",
+    ],
+    { encoding: "buffer", maxBuffer: 64 * 1024 * 1024 },
+  );
+  const paths = listed
+    .toString("utf8")
+    .split("\0")
+    .filter(Boolean)
+    .filter(includedSnapshotPath)
+    .sort();
+  const digest = createHash("sha256");
+  digest.update("kibi.workspace-snapshot.v1\0");
+  for (const relativePath of paths) {
+    digest.update(relativePath);
+    digest.update("\0");
+    try {
+      const content = await fs.readFile(path.join(workspaceRoot, relativePath));
+      digest.update(snapshotFileContent(relativePath, content));
+    } catch (error) {
+      const code =
+        typeof error === "object" && error !== null && "code" in error
+          ? String(error.code)
+          : "unreadable";
+      digest.update(`<${code}>`);
+    }
+    digest.update("\0");
+  }
+  const { stdout: status } = await execFileAsync(
+    "git",
+    [
+      "-C",
+      workspaceRoot,
+      "status",
+      "--porcelain=v1",
+      "--untracked-files=normal",
+    ],
+    { maxBuffer: 16 * 1024 * 1024 },
+  );
+  return {
+    version: "kibi.workspace-snapshot.v1" as const,
+    hash: digest.digest("hex"),
+    dirty: status.trim().length > 0,
+    fileCount: paths.length,
+  };
+}
 
 export const nodeFilesystem: NodeFilesystemPort = {
   readFile: (filePath) => fs.readFile(filePath, "utf8"),
@@ -67,6 +175,7 @@ export const nodeGit: NodeGitPort = {
     ]);
     return stdout.trim();
   },
+  workspaceSnapshot,
   ignoredPaths: async (workspaceRoot, paths) => {
     const policy = createRepoIgnorePolicy(workspaceRoot);
     return paths.filter((candidate) => policy.isIgnored(candidate));

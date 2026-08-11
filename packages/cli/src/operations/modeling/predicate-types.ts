@@ -33,6 +33,12 @@ export type SuggestPredicatesArgs = Readonly<Record<string, unknown>> & {
   readonly maxCandidates?: number;
   readonly minScore?: number;
   readonly includeExistingSchemas?: boolean;
+  /** Exact reviewed schema candidate ID to select instead of lexical ranking. */
+  readonly schemaId?: string;
+  /** Exact values keyed by the selected predicate schema's argument_names. */
+  readonly argumentBindings?: Readonly<Record<string, string>>;
+  /** Reviewed polarity override for negation-scope false positives. */
+  readonly polarityHint?: PredicatePolarity;
   /** Existing requirement claim manifest. Relationship guidance merges this list. */
   readonly existingLogicClaims?: readonly string[];
 };
@@ -44,6 +50,8 @@ export interface PredicateSuggestion {
   predicate_args: string[];
   canonical_key: string;
   polarity: PredicatePolarity;
+  binding_status: "complete" | "incomplete";
+  unbound_arguments: string[];
   score: number;
   rationale: string;
   schema: Omit<PredicateSchemaCandidate, "keywords"> & {
@@ -62,7 +70,11 @@ export interface SuggestPredicatesResult {
     requirementId: string | null;
     subject: string;
     candidates: PredicateSuggestion[];
-    recommendedAction: "apply_requires_predicate" | "record_ontology_gap";
+    recommendedAction:
+      | "apply_requires_predicate"
+      | "provide_argument_bindings"
+      | "resolve_schema_reference"
+      | "record_ontology_gap";
     applyPlan: Array<Record<string, unknown>>;
     relationshipPlan: Record<string, unknown> | null;
     warnings: string[];

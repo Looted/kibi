@@ -2,13 +2,21 @@
   "name": "kibi-vscode",
   "displayName": "Kibi Knowledge Base",
   "description": "VS Code extension for Kibi knowledge base with TreeView and MCP integration",
-  "version": "0.4.10",
+  "version": "0.4.11",
   "publisher": "kibi",
   "engines": {
     "vscode": "^1.74.0"
   },
-  "categories": ["Other"],
-  "keywords": ["knowledge base", "requirements", "adr", "scenarios", "mcp"],
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "knowledge base",
+    "requirements",
+    "adr",
+    "scenarios",
+    "mcp"
+  ],
   "activationEvents": [
     "onStartupFinished",
     "onView:kibi-knowledge-base",
@@ -106,7 +114,9 @@
       "servers": {
         "kibi": {
           "command": "bun",
-          "args": ["${config:kibi.mcp.serverPath}"],
+          "args": [
+            "${config:kibi.mcp.serverPath}"
+          ],
           "env": {}
         }
       }
@@ -131,7 +141,7 @@
   },
   "dependencies": {
     "js-yaml": "^4.1.0",
-    "kibi-cli": "^0.17.0"
+    "kibi-cli": "^0.18.0"
   },
   "repository": {
     "type": "git",

@@ -43,6 +43,7 @@
     predicate_schema/6,
     predicate_fact/5,
     contradicting_reqs/3,
+    req_conflict_witness/3,
     check_req_contradiction/1,
     normalize_term_atom/2,
     normalize_term_atom_list/2,
@@ -358,7 +359,7 @@ kb_retract_entity(Id, Type, AuditProps) :-
 
 entity_delete_audit_props(Id, Props, AuditProps) :-
     findall(Key=Value,
-        (   member(Key, [title, source, text_ref]),
+        (   member(Key, [title, source, text_ref, semantic_text]),
             memberchk(Key=RawValue, Props),
             audit_property_value(RawValue, Value)
         ),
@@ -398,7 +399,7 @@ kb_entity(Id, Type, Props) :-
         atom_concat(BaseURI, type, TypeURI),
         PropURI \= TypeURI,
         uri_to_key(PropURI, Key),
-        literal_to_value(ValueLiteral, Value)
+        literal_to_value(Key, ValueLiteral, Value)
 ), Props).
 
 % Fallback: read from legacy entity/4 facts loaded from .pl files
@@ -625,7 +626,7 @@ store_property(EntityURI, Key, Value, Graph) :-
 % Key-aware: typed fact fields get specific XSD datatypes.
 value_to_literal(Key, Value, Literal) :-
     % Typed fact fields with specific XSD datatypes
-    (   Key == value_int, integer(Value)
+    (   integer_property_key(Key), integer(Value)
     ->  Literal = Value^^'http://www.w3.org/2001/XMLSchema#integer'
     ;   Key == value_number, number(Value)
     ->  Literal = Value^^'http://www.w3.org/2001/XMLSchema#decimal'
@@ -643,9 +644,29 @@ value_to_literal(Key, Value, Literal) :-
         Literal = Str^^'http://www.w3.org/2001/XMLSchema#string'
     ).
 
-%% literal_to_value(+Literal, -Value)
-% Extract value from RDF literal, parse list syntax back to Prolog lists.
-literal_to_value(Literal, Value) :-
+integer_property_key(Key) :-
+    memberchk(Key, [
+        value_int,
+        predicate_arity,
+        claim_span_start,
+        claim_span_end,
+        sourceLine,
+        sourceColumn,
+        sourceEndLine,
+        sourceEndColumn
+    ]).
+
+%% literal_to_value(+Key, +Literal, -Value)
+% Extract a property value from an RDF literal. JSON-backed fields must remain
+% intact: JSON arrays are also valid Prolog list syntax, but parsing them as
+% Prolog terms corrupts their object entries before the JSON decoder sees them.
+literal_to_value(semantic_inventory, Literal, Value) :-
+    !,
+    structured_literal_value(Literal, Value).
+literal_to_value(verification_receipts, Literal, Value) :-
+    !,
+    structured_literal_value(Literal, Value).
+literal_to_value(_Key, Literal, Value) :-
     (   % Handle ^^/2 functor (RDF typed literal shorthand)
         Literal = ^^(StrVal, 'http://www.w3.org/2001/XMLSchema#string')
     ->  (   % Preserve RDF typed literal functor for string values so callers
@@ -677,6 +698,12 @@ literal_to_value(Literal, Value) :-
     ->  true
     ;   Value = Literal
     ).
+
+structured_literal_value(^^(Value, _), Value) :- !.
+structured_literal_value(literal(type(_, Value)), Value) :- !.
+structured_literal_value(literal(lang(_, Value)), Value) :- !.
+structured_literal_value(literal(Value), Value) :- !.
+structured_literal_value(Value, Value).
 
 %% literal_to_atom(+Literal, -Atom)
 % Convert RDF literal to atom (for type field).
@@ -979,19 +1006,21 @@ current_req(Id) :-
 % semantic conflicts (same subject/property but incompatible values or polarities).
 % Checks in order of specificity: polarity conflicts, then value conflicts.
 contradicting_reqs(ReqA, ReqB, Reason) :-
-    current_req(ReqA),
-    current_req(ReqB),
-    ReqA @< ReqB,
-    req_conflict(ReqA, ReqB, Reason).
+    req_conflict_witness(ReqA, ReqB, Witness),
+    Reason = Witness.reason.
 
 %% ------------------------------------------------------------------
 %% Semantic Contradiction Helpers (Task 4)
 %% ------------------------------------------------------------------
 
-%% req_conflict(+ReqA, +ReqB, -Reason)
-% Detects conflicts between requirements via shared subject facts and
-% incompatible property_value facts linked through requires_property.
-req_conflict(ReqA, ReqB, Reason) :-
+%% req_conflict_witness(+ReqA, +ReqB, -Witness)
+% Return exact, source-bound evidence for one proven strict or predicate
+% contradiction.  This remains deliberately syntactic: differently shaped
+% terms are never treated as equivalent merely because their prose is similar.
+req_conflict_witness(ReqA, ReqB, Witness) :-
+    current_req(ReqA),
+    current_req(ReqB),
+    ReqA @< ReqB,
     kb_relationship(constrains, ReqA, SubjectFactA),
     kb_relationship(constrains, ReqB, SubjectFactB),
     fact_subject_key(SubjectFactA, SubjectKey),
@@ -1005,8 +1034,23 @@ req_conflict(ReqA, ReqB, Reason) :-
                           OpB, ValTypeB, ValB, UnitB, ScopeB, PolarityB, Reason)
     ;   property_conflict(SubjectKey, PropertyKey, OpA, ValTypeA, ValA, UnitA, PolarityA,
                           OpB, ValTypeB, ValB, UnitB, PolarityB, Reason)
-    ).
-req_conflict(ReqA, ReqB, Reason) :-
+    ),
+    property_conflict_side(ReqA, FactA, SubjectKey, PropertyKey, OpA, ValTypeA, ValA, UnitA, ScopeA, PolarityA, ValidFromA, ValidToA, Left),
+    property_conflict_side(ReqB, FactB, SubjectKey, PropertyKey, OpB, ValTypeB, ValB, UnitB, ScopeB, PolarityB, ValidFromB, ValidToB, Right),
+    Witness = _{
+        kind: strict_property,
+        status: contradiction,
+        requirements: [ReqA, ReqB],
+        reason: Reason,
+        subjectKey: SubjectKey,
+        propertyKey: PropertyKey,
+        left: Left,
+        right: Right
+    }.
+req_conflict_witness(ReqA, ReqB, Witness) :-
+    current_req(ReqA),
+    current_req(ReqB),
+    ReqA @< ReqB,
     effective_req_predicate(ReqA, FactA, Namespace, Name, Args, PolarityA),
     effective_req_predicate(ReqB, FactB, Namespace, Name, Args, PolarityB),
     FactA \= FactB,
@@ -1016,6 +1060,86 @@ req_conflict(ReqA, ReqB, Reason) :-
         string(Reason),
         "Predicate conflict on ~w:~w(~w): ~w asserts ~w while ~w asserts ~w",
         [Namespace, Name, ArgsText, ReqA, PolarityA, ReqB, PolarityB]
+    ),
+    predicate_conflict_side(ReqA, FactA, Namespace, Name, Args, PolarityA, Left),
+    predicate_conflict_side(ReqB, FactB, Namespace, Name, Args, PolarityB, Right),
+    length(Args, Arity),
+    findall(SchemaId, predicate_schema(SchemaId, Namespace, Name, Arity, _ArgumentNames, _ArgumentTypes), SchemaIds0),
+    sort(SchemaIds0, SchemaIds),
+    Witness = _{
+        kind: predicate,
+        status: contradiction,
+        requirements: [ReqA, ReqB],
+        reason: Reason,
+        predicateNamespace: Namespace,
+        predicateName: Name,
+        predicateArgs: Args,
+        schemaIds: SchemaIds,
+        left: Left,
+        right: Right
+    }.
+
+property_conflict_side(ReqId, FactId, SubjectKey, PropertyKey, Operator, ValueType, Value, Unit, Scope, Polarity, ValidFrom, ValidTo, Side) :-
+    entity_evidence_source(ReqId, req, RequirementSource),
+    fact_evidence_fields(FactId, FactSource, ClaimKey, ClaimText, _CanonicalKey),
+    Side = _{
+        requirementId: ReqId,
+        requirementSource: RequirementSource,
+        factId: FactId,
+        factSource: FactSource,
+        claimKey: ClaimKey,
+        claimText: ClaimText,
+        term: _{
+            subjectKey: SubjectKey,
+            propertyKey: PropertyKey,
+            operator: Operator,
+            valueType: ValueType,
+            value: Value,
+            unit: Unit,
+            scope: Scope,
+            polarity: Polarity,
+            validFrom: ValidFrom,
+            validTo: ValidTo
+        }
+    }.
+
+predicate_conflict_side(ReqId, FactId, Namespace, Name, Args, Polarity, Side) :-
+    entity_evidence_source(ReqId, req, RequirementSource),
+    fact_evidence_fields(FactId, FactSource, ClaimKey, ClaimText, CanonicalKey),
+    Side = _{
+        requirementId: ReqId,
+        requirementSource: RequirementSource,
+        factId: FactId,
+        factSource: FactSource,
+        claimKey: ClaimKey,
+        claimText: ClaimText,
+        term: _{
+            namespace: Namespace,
+            name: Name,
+            args: Args,
+            polarity: Polarity,
+            canonicalKey: CanonicalKey
+        }
+    }.
+
+entity_evidence_source(EntityId, Type, Source) :-
+    kb_entity(EntityId, Type, Props),
+    (memberchk(source=RawSource, Props) -> evidence_term_atom(RawSource, Source) ; Source = '').
+
+fact_evidence_fields(FactId, Source, ClaimKey, ClaimText, CanonicalKey) :-
+    kb_entity(FactId, fact, Props),
+    (memberchk(source=RawSource, Props) -> evidence_term_atom(RawSource, Source) ; Source = ''),
+    (memberchk(claim_key=RawClaimKey, Props) -> evidence_term_atom(RawClaimKey, ClaimKey) ; ClaimKey = ''),
+    (memberchk(claim_text=RawClaimText, Props) -> evidence_term_atom(RawClaimText, ClaimText) ; ClaimText = ''),
+    (memberchk(canonical_key=RawCanonicalKey, Props) -> evidence_term_atom(RawCanonicalKey, CanonicalKey) ; CanonicalKey = '').
+
+evidence_term_atom(Raw, Atom) :-
+    unwrap_rdf_value(Raw, Value),
+    (   atom(Value)
+    ->  Atom = Value
+    ;   string(Value)
+    ->  atom_string(Atom, Value)
+    ;   term_string(Value, String), atom_string(Atom, String)
     ).
 
 %% effective_req_predicate(+ReqId, -FactId, -Namespace, -Name, -Args, -Polarity)

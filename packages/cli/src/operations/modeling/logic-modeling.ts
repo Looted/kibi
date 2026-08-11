@@ -5,7 +5,11 @@ import {
   utf8Span,
   validateLogicIr,
 } from "../../logic/ir.js";
-import { semanticClaimKey } from "../semantic-advisor/clauses.js";
+import {
+  normalizeSemanticClause,
+  semanticClaimKey,
+} from "../semantic-advisor/clauses.js";
+import { semanticSourceHash } from "../semantic-advisor/shared.js";
 
 export interface LogicApplyPlanInput {
   readonly text: string;
@@ -54,13 +58,19 @@ export function buildLogicApplyPlan(
       `Logic IR validation failed: ${validation.errors.join("; ")}`,
     );
   }
-  const claimText = input.claimText?.trim() || input.text.trim();
+  const sourceText = input.claimText?.trim() || input.text.trim();
+  const claimText = normalizeSemanticClause(sourceText);
   const claimKey = input.claimKey || semanticClaimKey(claimText);
   const semanticKey = logicSemanticKey(validation.normalized);
   const schemaId =
     validation.normalized.ruleSchemaId ?? "FACT-RULE-SCHEMA-LOGIC-V1";
   const ruleId = logicRuleFactId(semanticKey);
-  const span = utf8Span(input.text, 0, input.text.length);
+  const claimStart = input.text.indexOf(claimText);
+  const span = utf8Span(
+    input.text,
+    claimStart >= 0 ? claimStart : 0,
+    claimStart >= 0 ? claimStart + claimText.length : claimText.length,
+  );
   const logicClaims = Array.from(
     new Set([...(input.existingLogicClaims ?? []), claimKey]),
   );
@@ -122,13 +132,21 @@ export function buildLogicApplyPlan(
           title: claimText.split(/[.!?]/, 1)[0] || "Typed logical requirement",
           status: "open",
           source: input.source,
-          text_ref: claimText,
+          semantic_text: input.text.trim(),
           logic_claims: logicClaims,
+          semantic_clauses: [claimText],
+          semantic_inventory_version: "kibi.semantic-inventory.v1",
+          semantic_source_field: "semantic_text",
+          semantic_source_hash: semanticSourceHash(input.text.trim()),
           semantic_inventory: [
             {
               claim_key: claimKey,
               claim_text: claimText,
-              role: "normative",
+              role: /\b(?:must|shall|should|required|requires?)\b/i.test(
+                claimText,
+              )
+                ? "normative"
+                : "descriptive",
               status: "modeled",
               span,
               semantic_key: semanticKey,

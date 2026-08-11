@@ -7,6 +7,10 @@
           "_diagnostic_telemetry": {
             "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
             "properties": {
+              "actor_id": {
+                "description": "Optional opaque actor identifier used to prevent evidence from a different actor being correlated with this call. Do not put personal data in this field.",
+                "type": "string"
+              },
               "attempt_number": {
                 "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
                 "type": "integer"
@@ -25,6 +29,10 @@
               },
               "reasoning": {
                 "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              },
+              "session_id": {
+                "description": "Optional opaque workflow-session identifier used to correlate advisor, preflight, mutation, coverage, and verification evidence. Do not put personal data in this field.",
                 "type": "string"
               }
             },
@@ -81,6 +89,10 @@
           "_diagnostic_telemetry": {
             "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
             "properties": {
+              "actor_id": {
+                "description": "Optional opaque actor identifier used to prevent evidence from a different actor being correlated with this call. Do not put personal data in this field.",
+                "type": "string"
+              },
               "attempt_number": {
                 "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
                 "type": "integer"
@@ -99,6 +111,10 @@
               },
               "reasoning": {
                 "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              },
+              "session_id": {
+                "description": "Optional opaque workflow-session identifier used to correlate advisor, preflight, mutation, coverage, and verification evidence. Do not put personal data in this field.",
                 "type": "string"
               }
             },
@@ -150,12 +166,16 @@
         "readOnlyHint": true,
         "title": "Inspect Kibi branch status"
       },
-      "description": "Report current branch, snapshot, and freshness metadata for the attached KB. Read-only status inspection with no mutation side effects.",
+      "description": "Report current branch, KB snapshot and freshness metadata, plus the deterministic workspace snapshot used to validate execution receipts. Read-only status inspection with no mutation side effects.",
       "inputSchema": {
         "properties": {
           "_diagnostic_telemetry": {
             "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
             "properties": {
+              "actor_id": {
+                "description": "Optional opaque actor identifier used to prevent evidence from a different actor being correlated with this call. Do not put personal data in this field.",
+                "type": "string"
+              },
               "attempt_number": {
                 "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
                 "type": "integer"
@@ -174,6 +194,10 @@
               },
               "reasoning": {
                 "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              },
+              "session_id": {
+                "description": "Optional opaque workflow-session identifier used to correlate advisor, preflight, mutation, coverage, and verification evidence. Do not put personal data in this field.",
                 "type": "string"
               }
             },
@@ -198,6 +222,10 @@
           "_diagnostic_telemetry": {
             "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
             "properties": {
+              "actor_id": {
+                "description": "Optional opaque actor identifier used to prevent evidence from a different actor being correlated with this call. Do not put personal data in this field.",
+                "type": "string"
+              },
               "attempt_number": {
                 "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
                 "type": "integer"
@@ -216,6 +244,10 @@
               },
               "reasoning": {
                 "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              },
+              "session_id": {
+                "description": "Optional opaque workflow-session identifier used to correlate advisor, preflight, mutation, coverage, and verification evidence. Do not put personal data in this field.",
                 "type": "string"
               }
             },
@@ -240,6 +272,10 @@
           "_diagnostic_telemetry": {
             "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
             "properties": {
+              "actor_id": {
+                "description": "Optional opaque actor identifier used to prevent evidence from a different actor being correlated with this call. Do not put personal data in this field.",
+                "type": "string"
+              },
               "attempt_number": {
                 "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
                 "type": "integer"
@@ -258,6 +294,10 @@
               },
               "reasoning": {
                 "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              },
+              "session_id": {
+                "description": "Optional opaque workflow-session identifier used to correlate advisor, preflight, mutation, coverage, and verification evidence. Do not put personal data in this field.",
                 "type": "string"
               }
             },
@@ -287,6 +327,10 @@
           "_diagnostic_telemetry": {
             "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
             "properties": {
+              "actor_id": {
+                "description": "Optional opaque actor identifier used to prevent evidence from a different actor being correlated with this call. Do not put personal data in this field.",
+                "type": "string"
+              },
               "attempt_number": {
                 "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
                 "type": "integer"
@@ -305,6 +349,10 @@
               },
               "reasoning": {
                 "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              },
+              "session_id": {
+                "description": "Optional opaque workflow-session identifier used to correlate advisor, preflight, mutation, coverage, and verification evidence. Do not put personal data in this field.",
                 "type": "string"
               }
             },
@@ -331,6 +379,10 @@
           "_diagnostic_telemetry": {
             "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
             "properties": {
+              "actor_id": {
+                "description": "Optional opaque actor identifier used to prevent evidence from a different actor being correlated with this call. Do not put personal data in this field.",
+                "type": "string"
+              },
               "attempt_number": {
                 "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
                 "type": "integer"
@@ -349,6 +401,10 @@
               },
               "reasoning": {
                 "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              },
+              "session_id": {
+                "description": "Optional opaque workflow-session identifier used to correlate advisor, preflight, mutation, coverage, and verification evidence. Do not put personal data in this field.",
                 "type": "string"
               }
             },
@@ -402,12 +458,16 @@
       "name": "kb_find_gaps"
     },
     {
-      "description": "Generate curated coverage reports for requirements, symbols, or grouped types. Read-only reporting with no mutation side effects.",
+      "description": "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Requirement reports include a deterministic, dependency-ordered, read-only repair plan; optional legacy migration previews reconstruct authored proposition inventories and rank exact schema candidates without producing executable writes. Paginated plans identify incomplete scope. Requirement rows keep coverageStatus separate from proofStatus and require fresh snapshot-bound E2E receipts before proof. No mutation side effects.",
       "inputSchema": {
         "properties": {
           "_diagnostic_telemetry": {
             "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
             "properties": {
+              "actor_id": {
+                "description": "Optional opaque actor identifier used to prevent evidence from a different actor being correlated with this call. Do not put personal data in this field.",
+                "type": "string"
+              },
               "attempt_number": {
                 "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
                 "type": "integer"
@@ -427,6 +487,10 @@
               "reasoning": {
                 "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
                 "type": "string"
+              },
+              "session_id": {
+                "description": "Optional opaque workflow-session identifier used to correlate advisor, preflight, mutation, coverage, and verification evidence. Do not put personal data in this field.",
+                "type": "string"
               }
             },
             "type": "object"
@@ -435,6 +499,11 @@
             "default": "req",
             "enum": ["req", "symbol", "type"],
             "type": "string"
+          },
+          "includeMigrationPreview": {
+            "default": false,
+            "description": "Opt in to a deterministic, read-only kibi.legacy-migration-plan.v1 preview for ready semantic-inventory repair batches.",
+            "type": "boolean"
           },
           "includePassing": {
             "default": false,
@@ -447,6 +516,33 @@
           "limit": {
             "default": 100,
             "type": "integer"
+          },
+          "migrationLimit": {
+            "default": 1,
+            "description": "Maximum requirement migration batches to preview. Defaults to one review batch.",
+            "maximum": 10,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "migrationOffset": {
+            "default": 0,
+            "description": "Zero-based offset into ready semantic-inventory batches.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "migrationPredicateLimit": {
+            "default": 5,
+            "description": "Maximum exact predicate-schema candidates retained per assertive proposition.",
+            "maximum": 20,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "migrationPredicateMinScore": {
+            "default": 0.35,
+            "description": "Minimum deterministic predicate-schema rank score retained in migration previews.",
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
           },
           "offset": {
             "default": 0,
@@ -470,6 +566,10 @@
           "_diagnostic_telemetry": {
             "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
             "properties": {
+              "actor_id": {
+                "description": "Optional opaque actor identifier used to prevent evidence from a different actor being correlated with this call. Do not put personal data in this field.",
+                "type": "string"
+              },
               "attempt_number": {
                 "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
                 "type": "integer"
@@ -488,6 +588,10 @@
               },
               "reasoning": {
                 "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              },
+              "session_id": {
+                "description": "Optional opaque workflow-session identifier used to correlate advisor, preflight, mutation, coverage, and verification evidence. Do not put personal data in this field.",
                 "type": "string"
               }
             },
@@ -543,6 +647,10 @@
           "_diagnostic_telemetry": {
             "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
             "properties": {
+              "actor_id": {
+                "description": "Optional opaque actor identifier used to prevent evidence from a different actor being correlated with this call. Do not put personal data in this field.",
+                "type": "string"
+              },
               "attempt_number": {
                 "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
                 "type": "integer"
@@ -561,6 +669,10 @@
               },
               "reasoning": {
                 "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              },
+              "session_id": {
+                "description": "Optional opaque workflow-session identifier used to correlate advisor, preflight, mutation, coverage, and verification evidence. Do not put personal data in this field.",
                 "type": "string"
               }
             },
@@ -598,6 +710,10 @@
           "_diagnostic_telemetry": {
             "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
             "properties": {
+              "actor_id": {
+                "description": "Optional opaque actor identifier used to prevent evidence from a different actor being correlated with this call. Do not put personal data in this field.",
+                "type": "string"
+              },
               "attempt_number": {
                 "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
                 "type": "integer"
@@ -616,6 +732,10 @@
               },
               "reasoning": {
                 "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              },
+              "session_id": {
+                "description": "Optional opaque workflow-session identifier used to correlate advisor, preflight, mutation, coverage, and verification evidence. Do not put personal data in this field.",
                 "type": "string"
               }
             },
@@ -704,6 +824,10 @@
           "_diagnostic_telemetry": {
             "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
             "properties": {
+              "actor_id": {
+                "description": "Optional opaque actor identifier used to prevent evidence from a different actor being correlated with this call. Do not put personal data in this field.",
+                "type": "string"
+              },
               "attempt_number": {
                 "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
                 "type": "integer"
@@ -722,6 +846,10 @@
               },
               "reasoning": {
                 "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              },
+              "session_id": {
+                "description": "Optional opaque workflow-session identifier used to correlate advisor, preflight, mutation, coverage, and verification evidence. Do not put personal data in this field.",
                 "type": "string"
               }
             },
@@ -746,6 +874,14 @@
                 },
                 "then": {
                   "required": ["claim_key", "claim_text"]
+                }
+              },
+              {
+                "if": {
+                  "required": ["verification_receipts"]
+                },
+                "then": {
+                  "required": ["verification_scope"]
                 }
               }
             ],
@@ -914,6 +1050,15 @@
                 "description": "Optional scope qualifier for fact entities.",
                 "type": "string"
               },
+              "semantic_clauses": {
+                "description": "Optional complete atomic decomposition used by kb_semantic_advisor and proposition-complete ingestion. Preserve it when automatic sentence splitting needs a reviewed override.",
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
               "semantic_inventory": {
                 "description": "Requirement proposition ledger returned by kb_semantic_advisor; preserve entries while modeling each assertive span.",
                 "items": {
@@ -921,8 +1066,27 @@
                 },
                 "type": "array"
               },
+              "semantic_inventory_version": {
+                "const": "kibi.semantic-inventory.v1",
+                "description": "Requirement-only proposition ledger contract version returned by kb_semantic_advisor.",
+                "type": "string"
+              },
               "semantic_key": {
                 "description": "Canonical semantic identity of the normalized logical model.",
+                "type": "string"
+              },
+              "semantic_source_field": {
+                "description": "Requirement field whose exact UTF-8 bytes anchor semantic_inventory spans.",
+                "enum": ["semantic_text", "text_ref", "title"],
+                "type": "string"
+              },
+              "semantic_source_hash": {
+                "description": "SHA-256 of the exact semantic source text returned in the advisor inventory contract.",
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              "semantic_text": {
+                "description": "Requirement-only authored prose used for semantic inventory hashes and UTF-8 spans. Keep text_ref available for independent document or code evidence.",
                 "type": "string"
               },
               "severity": {
@@ -1002,6 +1166,85 @@
                 "enum": ["internal", "consumer"],
                 "type": "string"
               },
+              "verification_receipts": {
+                "description": "Append-only test execution evidence. Proof accepts only the newest valid passed receipt bound to the current code snapshot and within the seven-day freshness window.",
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "artifact_digest": {
+                      "pattern": "^[a-f0-9]{64}$",
+                      "type": "string"
+                    },
+                    "code_snapshot": {
+                      "pattern": "^[a-f0-9]{64}$",
+                      "type": "string"
+                    },
+                    "command": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "environment_hash": {
+                      "pattern": "^[a-f0-9]{64}$",
+                      "type": "string"
+                    },
+                    "finished_at": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "outcome": {
+                      "enum": [
+                        "passed",
+                        "failed",
+                        "errored",
+                        "cancelled",
+                        "skipped"
+                      ],
+                      "type": "string"
+                    },
+                    "receipt_id": {
+                      "pattern": "^VR-[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "runner": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "scope": {
+                      "enum": ["unit", "integration", "end_to_end"],
+                      "type": "string"
+                    },
+                    "started_at": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "test_id": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "version": {
+                      "const": "kibi.verification-receipt.v1",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "version",
+                    "receipt_id",
+                    "test_id",
+                    "runner",
+                    "command",
+                    "scope",
+                    "outcome",
+                    "code_snapshot",
+                    "environment_hash",
+                    "started_at",
+                    "finished_at",
+                    "artifact_digest"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 50,
+                "type": "array"
+              },
               "verification_scope": {
                 "description": "Optional typed verification scope for test entities. Example: 'end_to_end'.",
                 "enum": ["unit", "integration", "end_to_end"],
@@ -1079,6 +1322,10 @@
           "_diagnostic_telemetry": {
             "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
             "properties": {
+              "actor_id": {
+                "description": "Optional opaque actor identifier used to prevent evidence from a different actor being correlated with this call. Do not put personal data in this field.",
+                "type": "string"
+              },
               "attempt_number": {
                 "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
                 "type": "integer"
@@ -1097,6 +1344,10 @@
               },
               "reasoning": {
                 "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              },
+              "session_id": {
+                "description": "Optional opaque workflow-session identifier used to correlate advisor, preflight, mutation, coverage, and verification evidence. Do not put personal data in this field.",
                 "type": "string"
               }
             },
@@ -1141,6 +1392,10 @@
           "_diagnostic_telemetry": {
             "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
             "properties": {
+              "actor_id": {
+                "description": "Optional opaque actor identifier used to prevent evidence from a different actor being correlated with this call. Do not put personal data in this field.",
+                "type": "string"
+              },
               "attempt_number": {
                 "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
                 "type": "integer"
@@ -1159,6 +1414,10 @@
               },
               "reasoning": {
                 "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              },
+              "session_id": {
+                "description": "Optional opaque workflow-session identifier used to correlate advisor, preflight, mutation, coverage, and verification evidence. Do not put personal data in this field.",
                 "type": "string"
               }
             },
@@ -1178,12 +1437,16 @@
       "name": "kb_delete"
     },
     {
-      "description": "Run KB validation rules and return violations. Use before or after mutations, and after meaningful source edits with impact options to surface symbol granularity and semantic-review diagnostics. Do not use for point lookups. No write side effects. Prefer explicit rules for faster iteration; omit rules for final full validation plus full-KB qualityDiagnostics review.",
+      "description": "Run KB validation rules and return violations. Use before or after mutations, and after meaningful source edits with impact options to surface symbol granularity and semantic-review diagnostics. Do not use for point lookups. No write side effects. Prefer explicit rules for faster iteration; omit rules for final full validation plus full-KB qualityDiagnostics review, including telemetry acceptance when .kb/usage.log exists.",
       "inputSchema": {
         "properties": {
           "_diagnostic_telemetry": {
             "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
             "properties": {
+              "actor_id": {
+                "description": "Optional opaque actor identifier used to prevent evidence from a different actor being correlated with this call. Do not put personal data in this field.",
+                "type": "string"
+              },
               "attempt_number": {
                 "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
                 "type": "integer"
@@ -1203,6 +1466,10 @@
               "reasoning": {
                 "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
                 "type": "string"
+              },
+              "session_id": {
+                "description": "Optional opaque workflow-session identifier used to correlate advisor, preflight, mutation, coverage, and verification evidence. Do not put personal data in this field.",
+                "type": "string"
               }
             },
             "type": "object"
@@ -1221,7 +1488,7 @@
             "type": "integer"
           },
           "rules": {
-            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, logic-coverage, rule-safety, rule-verifiability, semantic-completeness, query-plan-safety. If omitted, server runs all rules plus the full-KB qualityDiagnostics audit scan; if supplied, server preserves scoped validation and skips the full-KB advisory scan.",
+            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, logic-coverage, rule-safety, rule-verifiability, semantic-completeness, query-plan-safety. If omitted, server runs all rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; if supplied, server preserves scoped validation and skips the full-KB advisory scan.",
             "items": {
               "enum": [
                 "must-priority-coverage",
@@ -1272,6 +1539,10 @@
           "_diagnostic_telemetry": {
             "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
             "properties": {
+              "actor_id": {
+                "description": "Optional opaque actor identifier used to prevent evidence from a different actor being correlated with this call. Do not put personal data in this field.",
+                "type": "string"
+              },
               "attempt_number": {
                 "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
                 "type": "integer"
@@ -1290,6 +1561,10 @@
               },
               "reasoning": {
                 "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              },
+              "session_id": {
+                "description": "Optional opaque workflow-session identifier used to correlate advisor, preflight, mutation, coverage, and verification evidence. Do not put personal data in this field.",
                 "type": "string"
               }
             },
@@ -1376,12 +1651,16 @@
         "readOnlyHint": true,
         "title": "Suggest Kibi ontology predicates"
       },
-      "description": "Suggest ontology predicate schemas for prose requirements before agents write facts. Read-only guidance returns ranked candidates, a safe predicate-fact applyPlan, a separate requires_predicate relationshipPlan when a requirement ID is supplied, or an explicit ontology-gap observation when no predicate fits.",
+      "description": "Suggest ontology predicate schemas for prose requirements before agents write facts. Read-only guidance returns ranked candidates, an applicable predicate-fact plan only when every ordered argument is bound, a separate requires_predicate relationship plan when a requirement ID is supplied, or an explicit ontology-gap observation when no predicate fits.",
       "inputSchema": {
         "properties": {
           "_diagnostic_telemetry": {
             "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
             "properties": {
+              "actor_id": {
+                "description": "Optional opaque actor identifier used to prevent evidence from a different actor being correlated with this call. Do not put personal data in this field.",
+                "type": "string"
+              },
               "attempt_number": {
                 "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
                 "type": "integer"
@@ -1401,8 +1680,20 @@
               "reasoning": {
                 "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
                 "type": "string"
+              },
+              "session_id": {
+                "description": "Optional opaque workflow-session identifier used to correlate advisor, preflight, mutation, coverage, and verification evidence. Do not put personal data in this field.",
+                "type": "string"
               }
             },
+            "type": "object"
+          },
+          "argumentBindings": {
+            "additionalProperties": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "description": "Optional exact predicate argument values keyed by a candidate schema's argument_names. Required before applying a candidate whose binding_status is incomplete; Kibi never substitutes guessed values for unbound arguments.",
             "type": "object"
           },
           "existingLogicClaims": {
@@ -1433,8 +1724,18 @@
             "minimum": 0,
             "type": "number"
           },
+          "polarityHint": {
+            "description": "Optional reviewed polarity override for claims whose surface negation does not express predicate denial. Use only after reviewing the selected schema and full claim scope.",
+            "enum": ["assert", "deny"],
+            "type": "string"
+          },
           "requirementId": {
             "description": "Optional existing requirement ID. When provided, the response includes a relationshipPlan describing the req -> fact requires_predicate link to attach after preserving existing requirement metadata.",
+            "type": "string"
+          },
+          "schemaId": {
+            "description": "Optional exact reviewed predicate schema ID. When supplied, Kibi selects that schema instead of lexical rank order and fails closed if it is unavailable.",
+            "minLength": 1,
             "type": "string"
           },
           "source": {
@@ -1462,6 +1763,10 @@
           "_diagnostic_telemetry": {
             "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
             "properties": {
+              "actor_id": {
+                "description": "Optional opaque actor identifier used to prevent evidence from a different actor being correlated with this call. Do not put personal data in this field.",
+                "type": "string"
+              },
               "attempt_number": {
                 "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
                 "type": "integer"
@@ -1480,6 +1785,10 @@
               },
               "reasoning": {
                 "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              },
+              "session_id": {
+                "description": "Optional opaque workflow-session identifier used to correlate advisor, preflight, mutation, coverage, and verification evidence. Do not put personal data in this field.",
                 "type": "string"
               }
             },

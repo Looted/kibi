@@ -18,6 +18,11 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { toPrologString } from "../../dist/prolog/codec.js";
 import { type SyncResult, syncCommand } from "../../src/commands/sync.js";
+import {
+  normalizeSemanticClause,
+  semanticClaimKey,
+} from "../../src/operations/semantic-advisor/clauses.js";
+import { semanticSourceHash } from "../../src/operations/semantic-advisor/shared.js";
 import { PrologProcess, type QueryResult } from "../../src/prolog.js";
 
 interface Deferred<T> {
@@ -134,6 +139,25 @@ function listBranchStagingDirs(root: string, branch: string): string[] {
   );
 }
 
+function semanticInventoryFrontmatter(
+  source: string,
+  role: "descriptive" | "normative",
+): string {
+  const claimText = normalizeSemanticClause(source);
+  const claimKey = semanticClaimKey(claimText);
+  return `logic_claims:
+  - ${claimKey}
+semantic_inventory_version: kibi.semantic-inventory.v1
+semantic_source_field: semantic_text
+semantic_source_hash: ${semanticSourceHash(source)}
+semantic_inventory:
+  - claim_key: ${claimKey}
+    claim_text: ${claimText}
+    role: ${role}
+    status: ontology_gap
+    span: {start: 0, end: ${Buffer.byteLength(claimText, "utf8")}}`;
+}
+
 describe("kibi sync", () => {
   const TEST_TIMEOUT_MS = 20000;
   let tmpDir: string;
@@ -172,6 +196,17 @@ type: req
 status: open
 tags: [security, auth]
 owner: alice
+logic_claims:
+  - CLAIM-34E07FE8B4A4FB15
+semantic_inventory_version: kibi.semantic-inventory.v1
+semantic_source_field: semantic_text
+semantic_source_hash: 14b9b611303fc7dfbc0fee094e99ff54ffdfd61ae01ecc36bb173dd9c172d9f4
+semantic_inventory:
+  - claim_key: CLAIM-34E07FE8B4A4FB15
+    claim_text: System must support OAuth2 authentication
+    role: normative
+    status: ontology_gap
+    span: {start: 0, end: 41}
 ---
 
 # User Authentication
@@ -651,6 +686,8 @@ User logs in with OAuth2 provider.
         encoding: "utf8",
       });
 
+      const updatedRequirement =
+        "System must support OAuth2 authentication with session renewal.";
       writeFileSync(
         path.join(tmpDir, "documentation/requirements", "req1.md"),
         `---
@@ -662,11 +699,12 @@ owner: alice
 links:
   - type: relates_to
     target: scenario1
+${semanticInventoryFrontmatter(updatedRequirement, "normative")}
 ---
 
 # User Authentication
 
-System must support OAuth2 authentication with session renewal.
+${updatedRequirement}
 `,
       );
 
@@ -1273,6 +1311,22 @@ export class ServerManager {
 
         // All three symbols must resolve — no failures
         expect(output).toMatch(/failed=0/);
+
+        const queryOutput = execSync(
+          `bun ${kibiBin} query symbol --id SYM-start-server --format json`,
+          { cwd: tmpDir, encoding: "utf8" },
+        );
+        const queryResult = JSON.parse(queryOutput) as Array<
+          Record<string, unknown>
+        >;
+        expect(queryResult[0]).toMatchObject({
+          id: "SYM-start-server",
+          sourceFile: "src/server.ts",
+          sourceLine: 2,
+          sourceColumn: 16,
+          sourceEndLine: 4,
+          sourceEndColumn: 1,
+        });
       },
       TEST_TIMEOUT_MS,
     );

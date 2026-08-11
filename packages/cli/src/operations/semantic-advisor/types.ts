@@ -204,6 +204,11 @@ export type SemanticModelingSuggestion =
 export interface SemanticAdvisorReceipt {
   readonly version: string;
   readonly payload_hash: string;
+  readonly inventory_contract: {
+    readonly version: "kibi.semantic-inventory.v1";
+    readonly source_field: "semantic_text" | "text_ref" | "title";
+    readonly source_hash: string;
+  };
   readonly logic_readiness: SemanticAdvisorReadiness;
   readonly candidate_lane: SemanticAdvisorLane;
   readonly signals: readonly SemanticSignal[];

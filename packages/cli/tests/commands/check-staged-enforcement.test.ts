@@ -9,6 +9,11 @@ import {
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import {
+  normalizeSemanticClause,
+  semanticClaimKey,
+} from "../../src/operations/semantic-advisor/clauses.js";
+import { semanticSourceHash } from "../../src/operations/semantic-advisor/shared.js";
 
 type FileMap = Record<string, string>;
 
@@ -131,12 +136,29 @@ function writeSameCoordinateBehaviorEdit(root: string): void {
   });
 }
 
+function semanticInventoryFrontmatter(source: string): string {
+  const claimText = normalizeSemanticClause(source);
+  const claimKey = semanticClaimKey(claimText);
+  return `logic_claims:
+  - ${claimKey}
+semantic_inventory_version: kibi.semantic-inventory.v1
+semantic_source_field: semantic_text
+semantic_source_hash: ${semanticSourceHash(source)}
+semantic_inventory:
+  - claim_key: ${claimKey}
+    claim_text: ${claimText}
+    role: descriptive
+    status: ontology_gap
+    span: {start: 0, end: ${Buffer.byteLength(claimText, "utf8")}}`;
+}
+
 function stageRequirementEvidence(root: string, note: string): void {
   writeFiles(root, {
     "documentation/requirements/REQ-BEHAVIOR-001.md": `---
 id: REQ-BEHAVIOR-001
 title: Greeting behavior
 status: open
+${semanticInventoryFrontmatter(note)}
 ---
 
 # Greeting behavior

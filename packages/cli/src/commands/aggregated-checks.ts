@@ -9,6 +9,7 @@ interface JsonViolation {
   description: string;
   suggestion: string;
   source: string;
+  evidence?: Record<string, unknown>;
 }
 
 /**
@@ -72,6 +73,7 @@ export async function runAggregatedChecks(
           description: v.description,
           ...(v.suggestion ? { suggestion: v.suggestion } : {}),
           ...(v.source ? { source: v.source } : {}),
+          ...(v.evidence ? { evidence: v.evidence } : {}),
         });
       }
     }

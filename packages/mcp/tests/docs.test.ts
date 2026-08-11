@@ -135,6 +135,21 @@ describe("MCP runtime docs: canonical modeling wording", () => {
       const prompt = findPrompt("kibi_workflow");
       expect(prompt.text).not.toMatch(/type:\s*bug|type:\s*workaround/i);
     });
+
+    test("must treat repair plans as complete-scope reviewed guidance", () => {
+      const prompt = findPrompt("kibi_workflow");
+      expect(prompt.text).toContain("repairPlan.scope.complete");
+      expect(prompt.text).toMatch(/non-auto-applicable guidance/i);
+      expect(prompt.text).toMatch(/state is `ready`/i);
+      expect(prompt.text).toMatch(/Re-run `kb_coverage` after each batch/i);
+    });
+
+    test("must keep telemetry acceptance fail-closed when usage evidence exists", () => {
+      const prompt = findPrompt("kibi_workflow");
+      expect(prompt.text).toContain("kibi.telemetry-acceptance.v1");
+      expect(prompt.text).toContain("--require-acceptance");
+      expect(prompt.text).toContain("insufficient");
+    });
   });
 
   describe("init-kibi prompt", () => {

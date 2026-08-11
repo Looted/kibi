@@ -2,17 +2,20 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import Table from "cli-table3";
 import type { CommandResult } from "../cli.js";
+import {
+  type TelemetryAcceptanceReport,
+  type TelemetryUsageEvent,
+  analyzeTelemetryAcceptance,
+  parseTelemetryUsageLog,
+} from "../public/telemetry-acceptance.js";
 
-interface UsageMetricsOptions {
+export interface UsageMetricsOptions {
   format?: "json" | "table";
   limit?: string;
+  requireAcceptance?: boolean;
 }
 
-interface UsageLogRow {
-  timestamp?: string;
-  tool?: string;
-  status?: string;
-  success?: boolean;
+export interface UsageLogRow extends TelemetryUsageEvent {
   branch?: string;
   active_branch?: string;
   sourceFile?: string;
@@ -20,14 +23,10 @@ interface UsageLogRow {
     sourceFile?: string;
     [key: string]: unknown;
   };
-  business_args?: {
+  business_args?: Readonly<{
     sourceFile?: string;
     [key: string]: unknown;
-  };
-  telemetry?: unknown;
-  telemetry_status?: string;
-  zero_results?: boolean;
-  result_count?: number;
+  }>;
   result_summary?: string;
   violation_count?: number;
   error?: string;
@@ -36,7 +35,7 @@ interface UsageLogRow {
   error_stage?: string;
 }
 
-interface UsageMetricsReport {
+export interface UsageMetricsReport {
   rowCount: number;
   dateRange: {
     first: string | null;
@@ -76,6 +75,7 @@ interface UsageMetricsReport {
     stages: Record<string, number>;
     byTool: Record<string, number>;
   };
+  acceptance: TelemetryAcceptanceReport;
 }
 
 // implements REQ-003
@@ -96,50 +96,33 @@ export async function usageMetricsCommand(
 
   const rows = parseUsageLog(readFileSync(usageLogPath, "utf8"));
   const report = buildUsageMetricsReport(rows, limit);
+  const gateResult =
+    options.requireAcceptance === true && report.acceptance.status !== "passed"
+      ? { exitCode: 1 as const }
+      : undefined;
 
   if (options.format === "json") {
     console.log(JSON.stringify(report, null, 2));
-    return;
+    return gateResult;
   }
 
   console.log(renderUsageMetricsReport(report));
-  return;
-}
-
-function parseUsageLog(contents: string): UsageLogRow[] {
-  const rows: UsageLogRow[] = [];
-
-  for (const [index, line] of contents.split(/\r?\n/).entries()) {
-    const trimmed = line.trim();
-    if (!trimmed) {
-      continue;
-    }
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(trimmed);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      throw new Error(
-        `Failed to parse .kb/usage.log line ${index + 1}: ${message}`,
-      );
-    }
-
-    if (!parsed || typeof parsed !== "object") {
-      throw new Error(
-        `Failed to parse .kb/usage.log line ${index + 1}: expected object`,
-      );
-    }
-
-    rows.push(parsed as UsageLogRow);
+  if (gateResult) {
+    console.error(
+      `Telemetry acceptance gate: ${report.acceptance.status}. Review the acceptance metrics and quality diagnostics before completion.`,
+    );
   }
-
-  return rows;
+  return gateResult;
 }
 
-function buildUsageMetricsReport(
+export function parseUsageLog(contents: string): UsageLogRow[] {
+  return parseTelemetryUsageLog(contents) as UsageLogRow[];
+}
+
+export function buildUsageMetricsReport(
   rows: UsageLogRow[],
   limit: number,
+  now: Date = new Date(),
 ): UsageMetricsReport {
   const timestamps = rows
     .map((row) => row.timestamp)
@@ -262,6 +245,7 @@ function buildUsageMetricsReport(
       stages: mapToSortedObject(errorStages),
       byTool: mapToSortedObject(errorsByTool),
     },
+    acceptance: analyzeTelemetryAcceptance(rows, now),
   };
 }
 
@@ -441,6 +425,7 @@ function mapToSortedObject(
 function renderUsageMetricsReport(report: UsageMetricsReport): string {
   const sections = [
     renderSummaryTable(report),
+    renderAcceptanceTable(report.acceptance),
     renderCountsTable("Tool Counts", "Tool", report.toolCounts),
     renderCountsTable("Branch Counts", "Branch", report.branchCounts),
     renderCountsTable("Outcome Counts", "Outcome", report.outcomeCounts),
@@ -458,6 +443,27 @@ function renderUsageMetricsReport(report: UsageMetricsReport): string {
   ].filter(Boolean);
 
   return sections.join("\n\n");
+}
+
+function renderAcceptanceTable(report: TelemetryAcceptanceReport): string {
+  const table = new Table({
+    head: ["Metric", "Status", "Observed", "Rate"],
+    colWidths: [36, 24, 18, 14],
+    wordWrap: true,
+  });
+  for (const metric of report.metrics) {
+    table.push([
+      metric.id,
+      metric.status,
+      `${metric.numerator}/${metric.denominator}`,
+      metric.rate === undefined ? "-" : formatRate(metric.rate),
+    ]);
+  }
+  return [
+    `Telemetry Acceptance (${report.version})`,
+    `Status: ${report.status}; evidence fresh: ${report.scope.fresh ? "yes" : "no"}`,
+    table.toString(),
+  ].join("\n");
 }
 
 function renderSummaryTable(report: UsageMetricsReport): string {

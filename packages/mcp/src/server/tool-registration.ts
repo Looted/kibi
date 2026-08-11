@@ -102,7 +102,7 @@ export function registerConfiguredTools<TProlog>(
   register({
     name: "kb_status",
     execute: async (context, args) =>
-      runtime.handleKbStatus(prologFor(context), args as StatusArgs),
+      runtime.handleKbStatus(prologFor(context), args as StatusArgs, context),
   });
   register({
     name: "kb_skills_list",
@@ -127,7 +127,11 @@ export function registerConfiguredTools<TProlog>(
   register({
     name: "kb_coverage",
     execute: async (context, args) =>
-      runtime.handleKbCoverage(prologFor(context), args as CoverageArgs),
+      runtime.handleKbCoverage(
+        prologFor(context),
+        args as CoverageArgs,
+        context,
+      ),
   });
   register({
     name: "kb_graph",

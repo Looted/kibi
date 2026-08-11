@@ -121,6 +121,21 @@ test("kb_upsert schema advertises typed test verification fields", () => {
   expect(entityProperties.verification_perspective).toBeDefined();
 });
 
+test("kb_upsert schema advertises requirement semantic source separation", () => {
+  const upsert = TOOLS.find((tool) => tool.name === "kb_upsert");
+  expect(upsert).toBeDefined();
+  const inputSchema = objectRecord(upsert?.inputSchema);
+  const rootProperties = objectRecord(inputSchema.properties);
+  const propertiesSchema = objectRecord(rootProperties.properties);
+  const entityProperties = objectRecord(propertiesSchema.properties);
+
+  expect(entityProperties.semantic_text).toMatchObject({ type: "string" });
+  expect(entityProperties.semantic_source_field).toMatchObject({
+    type: "string",
+    enum: ["semantic_text", "text_ref", "title"],
+  });
+});
+
 test("kb_semantic_advisor schema accepts prose without mutation fields", () => {
   const advisor = TOOLS.find((tool) => tool.name === "kb_semantic_advisor");
   expect(advisor).toBeDefined();
@@ -132,6 +147,41 @@ test("kb_semantic_advisor schema accepts prose without mutation fields", () => {
   expect(rootProperties.type).toBeDefined();
   expect(rootProperties.id).toBeDefined();
   expect(rootProperties.source).toBeDefined();
+});
+
+test("kb_coverage schema advertises bounded legacy migration preview controls", () => {
+  const coverage = TOOLS.find((tool) => tool.name === "kb_coverage");
+  expect(coverage).toBeDefined();
+  const inputSchema = objectRecord(coverage?.inputSchema);
+  const properties = objectRecord(inputSchema.properties);
+
+  expect(properties.includeMigrationPreview).toMatchObject({
+    type: "boolean",
+    default: false,
+  });
+  expect(properties.migrationLimit).toMatchObject({
+    type: "integer",
+    minimum: 1,
+    maximum: 10,
+    default: 1,
+  });
+  expect(properties.migrationOffset).toMatchObject({
+    type: "integer",
+    minimum: 0,
+    default: 0,
+  });
+  expect(properties.migrationPredicateLimit).toMatchObject({
+    type: "integer",
+    minimum: 1,
+    maximum: 20,
+    default: 5,
+  });
+  expect(properties.migrationPredicateMinScore).toMatchObject({
+    type: "number",
+    minimum: 0,
+    maximum: 1,
+    default: 0.35,
+  });
 });
 
 test("withDiagnosticTelemetrySchema adds telemetry to tool schema immutably", () => {
@@ -1035,6 +1085,7 @@ describe.serial("server tools coverage", () => {
     expect(spies.handleKbStatus).toHaveBeenCalledWith(
       mockProlog,
       argsByTool.get("kb_status"),
+      expect.objectContaining({ workspaceRoot: "/workspace" }),
     );
     expect(spies.handleKbSemanticAdvisor).toHaveBeenCalledWith(
       argsByTool.get("kb_semantic_advisor"),
@@ -1055,6 +1106,7 @@ describe.serial("server tools coverage", () => {
     expect(spies.handleKbCoverage).toHaveBeenCalledWith(
       mockProlog,
       argsByTool.get("kb_coverage"),
+      expect.objectContaining({ workspaceRoot: "/workspace" }),
     );
     expect(spies.handleKbGraph).toHaveBeenCalledWith(
       mockProlog,

@@ -34,6 +34,8 @@ import {
   flattenRelationships,
   validateRelationships,
 } from "../extractors/relationships.js";
+import { analyzeSemanticAdvisorInput } from "../operations/semantic-advisor/analyze-prose.js";
+import { validateSemanticInventoryBoundary } from "../operations/semantic-advisor/ingestion-boundary.js";
 import { PrologProcess } from "../prolog.js";
 import {
   copyCleanSnapshot,
@@ -174,6 +176,13 @@ export async function syncCommand(
 
     const nextHashes: Record<string, string> = {};
     const nextSeenAt: Record<string, string> = {};
+    const nextSemanticHashes: Record<string, string> = {
+      ...syncCache.semanticHashes,
+    };
+    const nextSemanticContracts: Record<string, boolean> = {
+      ...syncCache.semanticContracts,
+    };
+    const initialSemanticBaseline = Object.keys(syncCache.hashes).length === 0;
 
     const shardResults = extractFromRelationshipShards(relationshipsDir);
     const allRelationships = flattenRelationships(shardResults);
@@ -211,6 +220,29 @@ export async function syncCommand(
       }
     }
 
+    // Coordinate refresh must precede extraction so the manifest overlay that
+    // is persisted into RDF observes the newly generated coordinates. Force
+    // each refreshed manifest through extraction even when its authored YAML
+    // hash is unchanged; the generated coordinate artifact is an input too.
+    if (!validateOnly && options.refreshSymbolCoordinates) {
+      for (const file of manifestFiles) {
+        try {
+          await refreshManifestCoordinates(file, process.cwd(), {
+            refreshSymbolCoordinates: options.refreshSymbolCoordinates,
+          });
+          if (!changedManifestFiles.includes(file)) {
+            changedManifestFiles.push(file);
+          }
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : String(error);
+          console.warn(
+            `Warning: Failed to refresh symbol coordinates in ${file}: ${message}`,
+          );
+        }
+      }
+    }
+
     const performedFullReindex =
       changedMarkdownFiles.length === markdownFiles.length &&
       changedManifestFiles.length === manifestFiles.length;
@@ -220,6 +252,41 @@ export async function syncCommand(
       changedManifestFiles,
       validateOnly,
     );
+
+    for (const result of results) {
+      if (result.entity.type !== "req") continue;
+      const key = toCacheKey(result.entity.source);
+      const payload = {
+        type: result.entity.type,
+        id: result.entity.id,
+        properties: result.entity,
+        relationships: result.relationships,
+      };
+      const semantic = analyzeSemanticAdvisorInput({ payload });
+      const boundary = validateSemanticInventoryBoundary(
+        payload,
+        result.relationships,
+        semantic.receipt,
+      );
+      const previousSemanticHash = syncCache.semanticHashes[key];
+      const advertisedContract =
+        result.entity.semantic_inventory_version !== undefined ||
+        result.entity.semantic_source_hash !== undefined ||
+        result.entity.semantic_inventory !== undefined;
+      const enforceBoundary =
+        (!initialSemanticBaseline && syncCache.hashes[key] === undefined) ||
+        syncCache.semanticContracts[key] === true ||
+        (previousSemanticHash !== undefined &&
+          previousSemanticHash !== boundary.sourceHash) ||
+        advertisedContract;
+      if (enforceBoundary && boundary.errors.length > 0) {
+        throw new SyncError(
+          `${key}: proposition-complete ingestion failed: ${boundary.errors.join("; ")}. Run kb_semantic_advisor with the complete requirement prose and preserve its inventory contract.`,
+        );
+      }
+      nextSemanticHashes[key] = boundary.sourceHash;
+      nextSemanticContracts[key] = advertisedContract;
+    }
 
     // Collect INVALID_AUTHORING diagnostics
     for (const err of errors) {
@@ -242,24 +309,6 @@ export async function syncCommand(
         diagnostics.push(
           createInvalidAuthoringDiagnostic(err.file, embeddedTypes),
         );
-      }
-    }
-
-    if (!validateOnly) {
-      if (options.refreshSymbolCoordinates) {
-        for (const file of manifestFiles) {
-          try {
-            await refreshManifestCoordinates(file, process.cwd(), {
-              refreshSymbolCoordinates: options.refreshSymbolCoordinates,
-            });
-          } catch (error) {
-            const message =
-              error instanceof Error ? error.message : String(error);
-            console.warn(
-              `Warning: Failed to refresh symbol coordinates in ${file}: ${message}`,
-            );
-          }
-        }
       }
     }
 
@@ -287,6 +336,8 @@ export async function syncCommand(
     if (results.length === 0 && allRelationships.length === 0 && !rebuild) {
       const evictedHashes: Record<string, string> = {};
       const evictedSeenAt: Record<string, string> = {};
+      const evictedSemanticHashes: Record<string, string> = {};
+      const evictedSemanticContracts: Record<string, boolean> = {};
 
       for (const [key, hash] of Object.entries(nextHashes)) {
         if (failedCacheKeys.has(key)) {
@@ -294,12 +345,18 @@ export async function syncCommand(
         }
         evictedHashes[key] = hash;
         evictedSeenAt[key] = nextSeenAt[key] ?? nowIso;
+        if (nextSemanticHashes[key] !== undefined) {
+          evictedSemanticHashes[key] = nextSemanticHashes[key];
+          evictedSemanticContracts[key] = nextSemanticContracts[key] === true;
+        }
       }
 
       writeSyncCache(cachePath, {
         version: SYNC_CACHE_VERSION,
         hashes: evictedHashes,
         seenAt: evictedSeenAt,
+        semanticHashes: evictedSemanticHashes,
+        semanticContracts: evictedSemanticContracts,
       });
 
       console.log("✓ Imported 0 entities, 0 relationships (no changes)");
@@ -453,6 +510,8 @@ export async function syncCommand(
 
       const evictedHashes: Record<string, string> = {};
       const evictedSeenAt: Record<string, string> = {};
+      const evictedSemanticHashes: Record<string, string> = {};
+      const evictedSemanticContracts: Record<string, boolean> = {};
 
       for (const [key, hash] of Object.entries(nextHashes)) {
         if (failedCacheKeys.has(key)) {
@@ -460,6 +519,10 @@ export async function syncCommand(
         }
         evictedHashes[key] = hash;
         evictedSeenAt[key] = nextSeenAt[key] ?? nowIso;
+        if (nextSemanticHashes[key] !== undefined) {
+          evictedSemanticHashes[key] = nextSemanticHashes[key];
+          evictedSemanticContracts[key] = nextSemanticContracts[key] === true;
+        }
       }
 
       const liveCachePath = path.join(livePath, "sync-cache.json");
@@ -467,6 +530,8 @@ export async function syncCommand(
         version: SYNC_CACHE_VERSION,
         hashes: evictedHashes,
         seenAt: evictedSeenAt,
+        semanticHashes: evictedSemanticHashes,
+        semanticContracts: evictedSemanticContracts,
       });
 
       published = true;

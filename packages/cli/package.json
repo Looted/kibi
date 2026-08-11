@@ -1,6 +1,6 @@
 {
   "name": "kibi-cli",
-  "version": "0.17.0",
+  "version": "0.18.0",
   "type": "module",
   "description": "Kibi CLI for knowledge base management",
   "engines": {
@@ -11,7 +11,13 @@
   "bin": {
     "kibi": "bin/kibi"
   },
-  "files": ["dist", "bin", "schema", "src/schemas", "src/public"],
+  "files": [
+    "dist",
+    "bin",
+    "schema",
+    "src/schemas",
+    "src/public"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json && mkdir -p dist/public/skills && cp -r src/public/skills/. dist/public/skills/",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -33,6 +39,14 @@
     "./operations/runtime-types": {
       "types": "./dist/public/operations/runtime-types.d.ts",
       "default": "./dist/public/operations/runtime-types.js"
+    },
+    "./operations/node-ports": {
+      "types": "./dist/public/operations/node-ports.d.ts",
+      "default": "./dist/public/operations/node-ports.js"
+    },
+    "./verification-receipt": {
+      "types": "./dist/public/verification-receipt.d.ts",
+      "default": "./dist/public/verification-receipt.js"
     },
     "./operations/semantic-advisor/analyze-prose": {
       "types": "./dist/operations/semantic-advisor/analyze-prose.d.ts",
@@ -89,6 +103,26 @@
     "./public/impact-diagnostics": {
       "types": "./dist/public/impact-diagnostics.d.ts",
       "default": "./dist/public/impact-diagnostics.js"
+    },
+    "./telemetry-acceptance": {
+      "types": "./dist/public/telemetry-acceptance.d.ts",
+      "default": "./dist/public/telemetry-acceptance.js"
+    },
+    "./telemetry-remediation": {
+      "types": "./dist/public/telemetry-remediation.d.ts",
+      "default": "./dist/public/telemetry-remediation.js"
+    },
+    "./diagnostic-usage": {
+      "types": "./dist/public/diagnostic-usage.d.ts",
+      "default": "./dist/public/diagnostic-usage.js"
+    },
+    "./distribution-parity": {
+      "types": "./dist/public/distribution-parity.d.ts",
+      "default": "./dist/public/distribution-parity.js"
+    },
+    "./legacy-migration-plan": {
+      "types": "./dist/public/operations/legacy-migration-plan.d.ts",
+      "default": "./dist/public/operations/legacy-migration-plan.js"
     },
     "./public/symbol-granularity": {
       "types": "./dist/public/symbol-granularity.d.ts",
@@ -161,7 +195,7 @@
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "kibi-core": "^0.8.0",
+    "kibi-core": "^0.9.0",
     "ts-morph": "^23.0.0",
     "ignore": "^5.3.0"
   },

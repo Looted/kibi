@@ -109,7 +109,7 @@ export const suggestPredicatesSpec = {
   name: "kb_suggest_predicates",
   cliName: "suggest-predicates",
   description:
-    "Suggest ontology predicate schemas for prose requirements before agents write facts. Read-only guidance returns ranked candidates, a safe predicate-fact applyPlan, a separate requires_predicate relationshipPlan when a requirement ID is supplied, or an explicit ontology-gap observation when no predicate fits.",
+    "Suggest ontology predicate schemas for prose requirements before agents write facts. Read-only guidance returns ranked candidates, an applicable predicate-fact plan only when every ordered argument is bound, a separate requires_predicate relationship plan when a requirement ID is supplied, or an explicit ontology-gap observation when no predicate fits.",
   businessInputSchema: {
     type: "object",
     required: ["text"],
@@ -155,6 +155,24 @@ export const suggestPredicatesSpec = {
         default: true,
         description:
           "Whether to include existing KB fact_kind=predicate_schema facts alongside Kibi's built-in predicate catalog. Default: true.",
+      },
+      schemaId: {
+        type: "string",
+        minLength: 1,
+        description:
+          "Optional exact reviewed predicate schema ID. When supplied, Kibi selects that schema instead of lexical rank order and fails closed if it is unavailable.",
+      },
+      argumentBindings: {
+        type: "object",
+        additionalProperties: { type: "string", minLength: 1 },
+        description:
+          "Optional exact predicate argument values keyed by a candidate schema's argument_names. Required before applying a candidate whose binding_status is incomplete; Kibi never substitutes guessed values for unbound arguments.",
+      },
+      polarityHint: {
+        type: "string",
+        enum: ["assert", "deny"],
+        description:
+          "Optional reviewed polarity override for claims whose surface negation does not express predicate denial. Use only after reviewing the selected schema and full claim scope.",
       },
       existingLogicClaims: {
         type: "array",

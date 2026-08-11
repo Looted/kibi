@@ -150,6 +150,44 @@ describe("persistEntities", () => {
     expect(result.kbModified).toBe(true);
   });
 
+  test("persists generated symbol coordinates as proof evidence", async () => {
+    const entity = makeEntity({
+      id: "SYM-PROOF",
+      type: "symbol",
+      title: "proofSymbol",
+      source: "documentation/symbols.yaml",
+      sourceLine: 12,
+      sourceColumn: 3,
+      sourceEndLine: 18,
+      sourceEndColumn: 1,
+      symbol_role: "behavioral",
+      granularity_reason: "legacy-link",
+    });
+    const prolog = makeProlog({
+      "findall(Id, kb_entity(Id, _, _), ExistingIds)": {
+        success: true,
+        bindings: { ExistingIds: "[]" },
+      },
+    });
+
+    await persistEntities(
+      asPrologProcess(prolog),
+      [{ entity, relationships: [], sourceFile: "src/proof.ts" }],
+      new Set(),
+    );
+
+    const assertCall = prolog.callLog.find((goal) =>
+      goal.includes("kb_assert_entity(symbol"),
+    );
+    expect(assertCall).toContain('sourceFile="src/proof.ts"');
+    expect(assertCall).toContain("sourceLine=12");
+    expect(assertCall).toContain("sourceColumn=3");
+    expect(assertCall).toContain("sourceEndLine=18");
+    expect(assertCall).toContain("sourceEndColumn=1");
+    expect(assertCall).toContain("symbol_role=behavioral");
+    expect(assertCall).toContain("granularity_reason='legacy-link'");
+  });
+
   test("persists multiple entities", async () => {
     const entities = [
       makeEntity({ id: "REQ-001", type: "req" }),
@@ -392,7 +430,13 @@ describe("persistEntities", () => {
 
   test("serializes requirement manifests and predicate claim provenance", async () => {
     const requirement = makeEntity({
+      semantic_text: "Checkout requires payment before submission",
       logic_claims: ["CLAIM-AAAAAAAAAAAAAAAA"],
+      semantic_clauses: ["Checkout requires payment before submission"],
+      semantic_inventory_version: "kibi.semantic-inventory.v1",
+      semantic_source_field: "semantic_text",
+      semantic_source_hash:
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     });
     const predicate = makeEntity({
       id: "FACT-LOGICAL",
@@ -431,6 +475,19 @@ describe("persistEntities", () => {
     );
     expect(requirementCall).toContain(
       "logic_claims=['CLAIM-AAAAAAAAAAAAAAAA']",
+    );
+    expect(requirementCall).toContain(
+      'semantic_text="Checkout requires payment before submission"',
+    );
+    expect(requirementCall).toContain(
+      'semantic_clauses=["Checkout requires payment before submission"]',
+    );
+    expect(requirementCall).toContain(
+      'semantic_inventory_version="kibi.semantic-inventory.v1"',
+    );
+    expect(requirementCall).toContain('semantic_source_field="semantic_text"');
+    expect(requirementCall).toContain(
+      'semantic_source_hash="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"',
     );
     expect(predicateCall).toContain('predicate_name="dependency_rule"');
     expect(predicateCall).toContain(
@@ -491,6 +548,96 @@ describe("persistEntities", () => {
     );
     expect(assertCall).toContain("verification_scope=integration");
     expect(assertCall).toContain("verification_perspective=consumer");
+  });
+
+  test("serializes test verification receipts as preserved JSON", async () => {
+    const entity = makeEntity({
+      id: "TEST-RECEIPT",
+      type: "test",
+      status: "passing",
+      verification_scope: "end_to_end",
+      verification_receipts: [
+        {
+          version: "kibi.verification-receipt.v1",
+          receipt_id: "VR-PERSISTENCE-0001",
+          test_id: "TEST-RECEIPT",
+          runner: "bun",
+          command: "bun test ./tests/e2e/receipt.test.ts",
+          scope: "end_to_end",
+          outcome: "passed",
+          code_snapshot: "a".repeat(64),
+          environment_hash: "b".repeat(64),
+          started_at: "2026-08-10T11:55:00.000Z",
+          finished_at: "2026-08-10T12:00:00.000Z",
+          artifact_digest: "c".repeat(64),
+        },
+      ],
+    });
+    const prolog = makeProlog({
+      "findall(Id, kb_entity(Id, _, _), ExistingIds)": {
+        success: true,
+        bindings: { ExistingIds: "[]" },
+      },
+    });
+
+    await persistEntities(
+      asPrologProcess(prolog),
+      [{ entity, relationships: [] }],
+      new Set(),
+    );
+
+    const assertCall = prolog.callLog.find((g) =>
+      g.includes("kb_assert_entity"),
+    );
+    expect(assertCall).toContain(
+      'verification_receipts="[{\\"version\\":\\"kibi.verification-receipt.v1\\"',
+    );
+    expect(assertCall).toContain('\\"receipt_id\\":\\"VR-PERSISTENCE-0001\\"');
+  });
+
+  test("rejects removal of persisted receipt history during sync", async () => {
+    const receipt = {
+      version: "kibi.verification-receipt.v1",
+      receipt_id: "VR-PERSISTENCE-0001",
+      test_id: "TEST-RECEIPT",
+      runner: "bun",
+      command: "bun test ./tests/e2e/receipt.test.ts",
+      scope: "end_to_end",
+      outcome: "passed",
+      code_snapshot: "a".repeat(64),
+      environment_hash: "b".repeat(64),
+      started_at: "2026-08-10T11:55:00.000Z",
+      finished_at: "2026-08-10T12:00:00.000Z",
+      artifact_digest: "c".repeat(64),
+    } as const;
+    const previousJson = JSON.stringify([receipt]);
+    const entity = makeEntity({
+      id: "TEST-RECEIPT",
+      type: "test",
+      status: "passing",
+      verification_scope: "end_to_end",
+    });
+    const prolog = makeProlog({
+      "findall(Id, kb_entity(Id, _, _), ExistingIds)": {
+        success: true,
+        bindings: { ExistingIds: "['TEST-RECEIPT']" },
+      },
+      "findall(['TEST-RECEIPT','test',Props], kb_entity('TEST-RECEIPT', 'test', Props), Results)":
+        {
+          success: true,
+          bindings: {
+            Results: `[['TEST-RECEIPT',test,[verification_receipts=${JSON.stringify(previousJson)}]]]`,
+          },
+        },
+    });
+
+    await expect(
+      persistEntities(
+        asPrologProcess(prolog),
+        [{ entity, relationships: [] }],
+        new Set(),
+      ),
+    ).rejects.toThrow("verification_receipts is append-only");
   });
 
   test("adds absolute source and missing fact value context to entity failures", async () => {

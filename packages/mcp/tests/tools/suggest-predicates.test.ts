@@ -998,6 +998,7 @@ describe("kb_suggest_predicates", () => {
     const result = await handleKbSuggestPredicates(prolog, {
       text: "The custom policy mode must be enforced.",
       subjectHint: "policy.engine",
+      argumentBindings: { mode: "enforced" },
       maxCandidates: 1,
     });
     const candidates = result.structuredContent.candidates as Array<
@@ -1006,7 +1007,7 @@ describe("kb_suggest_predicates", () => {
 
     expect(candidates[0]).toMatchObject({
       predicate_name: "custom_policy",
-      predicate_args: ["policy.engine", "mode"],
+      predicate_args: ["policy.engine", "enforced"],
       schema: expect.objectContaining({
         id: "FACT-SCHEMA-CUSTOM",
         title: "Custom policy",
@@ -1024,6 +1025,7 @@ describe("kb_suggest_predicates", () => {
     const denied = await handleKbSuggestPredicates(prolog, {
       text: "The custom policy mode must not be bypassed.",
       subjectHint: "policy.engine",
+      argumentBindings: { mode: "bypassed" },
       maxCandidates: 1,
     });
     expect(
@@ -1031,7 +1033,86 @@ describe("kb_suggest_predicates", () => {
         denied.structuredContent.candidates as Array<Record<string, unknown>>
       )[0],
     ).toMatchObject({ polarity: "deny" });
-    expect(capturedGoal).toContain("fact_kind=predicate_schema");
+    expect(capturedGoal).toContain("kb:predicate_schema");
+  });
+
+  test("withholds apply plans until project-local schema arguments are exactly bound", async () => {
+    const { handleKbSuggestPredicates } = await loadModule();
+    const prolog = {
+      query: async () => ({
+        success: true,
+        bindings: {
+          Results:
+            '[[FACT-SCHEMA-RECEIPT,fact,[fact_kind=predicate_schema,predicate_name=verification_receipt_rule,title="Verification receipt rule",description="Append-only verification receipt policy.",argument_names=[subject,condition,outcome],argument_types=[entity,condition,outcome],aliases=[verification,receipt],examples=[verification_receipt_rule(test,run,passed)],tags=[verification,receipts]]]]',
+        },
+      }),
+    };
+    const input = {
+      text: "Proof-bearing end-to-end tests must carry append-only verification receipt execution history.",
+      subjectHint: "e2e.test",
+      maxCandidates: 1,
+    };
+
+    const unresolved = await handleKbSuggestPredicates(prolog, input);
+    expect(unresolved.structuredContent).toMatchObject({
+      recommendedAction: "provide_argument_bindings",
+      applyPlan: [],
+      relationshipPlan: null,
+      candidates: [
+        expect.objectContaining({
+          predicate_name: "verification_receipt_rule",
+          predicate_args: ["e2e.test", "unknown", "unknown"],
+          binding_status: "incomplete",
+          unbound_arguments: ["condition", "outcome"],
+        }),
+      ],
+    });
+
+    const resolved = await handleKbSuggestPredicates(prolog, {
+      ...input,
+      schemaId: "FACT-SCHEMA-RECEIPT",
+      argumentBindings: {
+        condition: "fresh_workspace_execution",
+        outcome: "append_only_pass_receipt",
+      },
+      polarityHint: "deny",
+    });
+    expect(resolved.structuredContent).toMatchObject({
+      recommendedAction: "apply_requires_predicate",
+      candidates: [
+        expect.objectContaining({
+          predicate_args: [
+            "e2e.test",
+            "fresh_workspace_execution",
+            "append_only_pass_receipt",
+          ],
+          binding_status: "complete",
+          unbound_arguments: [],
+          polarity: "deny",
+        }),
+      ],
+      applyPlan: [
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            fact_kind: "predicate",
+            canonical_key:
+              "verification_receipt_rule(e2e.test,fresh_workspace_execution,append_only_pass_receipt)",
+          }),
+        }),
+      ],
+    });
+
+    const missingSchema = await handleKbSuggestPredicates(prolog, {
+      ...input,
+      schemaId: "FACT-SCHEMA-NOT-PRESENT",
+    });
+    expect(missingSchema.structuredContent).toMatchObject({
+      candidates: [],
+      recommendedAction: "resolve_schema_reference",
+      applyPlan: [],
+      relationshipPlan: null,
+      warnings: [expect.stringContaining("FACT-SCHEMA-NOT-PRESENT")],
+    });
   });
 
   test("reports warnings when existing predicate schemas cannot be loaded", async () => {

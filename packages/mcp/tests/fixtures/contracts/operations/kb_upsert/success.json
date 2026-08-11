@@ -79,6 +79,14 @@
               "then": {
                 "required": ["claim_key", "claim_text"]
               }
+            },
+            {
+              "if": {
+                "required": ["verification_receipts"]
+              },
+              "then": {
+                "required": ["verification_scope"]
+              }
             }
           ],
           "description": "Entity fields to persist. Must include title and status. If created_at, updated_at, or source are omitted, server fills defaults.",
@@ -246,6 +254,15 @@
               "description": "Optional scope qualifier for fact entities.",
               "type": "string"
             },
+            "semantic_clauses": {
+              "description": "Optional complete atomic decomposition used by kb_semantic_advisor and proposition-complete ingestion. Preserve it when automatic sentence splitting needs a reviewed override.",
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
             "semantic_inventory": {
               "description": "Requirement proposition ledger returned by kb_semantic_advisor; preserve entries while modeling each assertive span.",
               "items": {
@@ -253,8 +270,27 @@
               },
               "type": "array"
             },
+            "semantic_inventory_version": {
+              "const": "kibi.semantic-inventory.v1",
+              "description": "Requirement-only proposition ledger contract version returned by kb_semantic_advisor.",
+              "type": "string"
+            },
             "semantic_key": {
               "description": "Canonical semantic identity of the normalized logical model.",
+              "type": "string"
+            },
+            "semantic_source_field": {
+              "description": "Requirement field whose exact UTF-8 bytes anchor semantic_inventory spans.",
+              "enum": ["semantic_text", "text_ref", "title"],
+              "type": "string"
+            },
+            "semantic_source_hash": {
+              "description": "SHA-256 of the exact semantic source text returned in the advisor inventory contract.",
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            "semantic_text": {
+              "description": "Requirement-only authored prose used for semantic inventory hashes and UTF-8 spans. Keep text_ref available for independent document or code evidence.",
               "type": "string"
             },
             "severity": {
@@ -333,6 +369,85 @@
               "description": "Optional typed verification perspective for test entities. Example: 'consumer'.",
               "enum": ["internal", "consumer"],
               "type": "string"
+            },
+            "verification_receipts": {
+              "description": "Append-only test execution evidence. Proof accepts only the newest valid passed receipt bound to the current code snapshot and within the seven-day freshness window.",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "artifact_digest": {
+                    "pattern": "^[a-f0-9]{64}$",
+                    "type": "string"
+                  },
+                  "code_snapshot": {
+                    "pattern": "^[a-f0-9]{64}$",
+                    "type": "string"
+                  },
+                  "command": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "environment_hash": {
+                    "pattern": "^[a-f0-9]{64}$",
+                    "type": "string"
+                  },
+                  "finished_at": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "outcome": {
+                    "enum": [
+                      "passed",
+                      "failed",
+                      "errored",
+                      "cancelled",
+                      "skipped"
+                    ],
+                    "type": "string"
+                  },
+                  "receipt_id": {
+                    "pattern": "^VR-[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                    "type": "string"
+                  },
+                  "runner": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "scope": {
+                    "enum": ["unit", "integration", "end_to_end"],
+                    "type": "string"
+                  },
+                  "started_at": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "test_id": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "version": {
+                    "const": "kibi.verification-receipt.v1",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "version",
+                  "receipt_id",
+                  "test_id",
+                  "runner",
+                  "command",
+                  "scope",
+                  "outcome",
+                  "code_snapshot",
+                  "environment_hash",
+                  "started_at",
+                  "finished_at",
+                  "artifact_digest"
+                ],
+                "type": "object"
+              },
+              "maxItems": 50,
+              "type": "array"
             },
             "verification_scope": {
               "description": "Optional typed verification scope for test entities. Example: 'end_to_end'.",

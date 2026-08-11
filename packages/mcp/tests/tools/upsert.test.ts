@@ -1326,6 +1326,20 @@ export function greet() {
         title: "Fresh before save",
         status: "open",
         source: "test://upsert",
+        logic_claims: ["CLAIM-BDA55064A7A5E116"],
+        semantic_inventory_version: "kibi.semantic-inventory.v1",
+        semantic_source_field: "title",
+        semantic_source_hash:
+          "2d1bbdd99a96e3757c1f944430f5f6eb6ee2d86822b8592c10f1fa0995bf490b",
+        semantic_inventory: [
+          {
+            claim_key: "CLAIM-BDA55064A7A5E116",
+            claim_text: "Fresh before save",
+            role: "normative",
+            status: "ontology_gap",
+            span: { start: 0, end: 17 },
+          },
+        ],
       },
     });
 

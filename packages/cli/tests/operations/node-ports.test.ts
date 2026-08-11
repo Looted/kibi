@@ -1,0 +1,85 @@
+import { afterEach, describe, expect, test } from "bun:test";
+import { execFileSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+import { nodeGit } from "../../src/public/operations/node-ports.js";
+
+describe("node workspace snapshot", () => {
+  const tempDirs: string[] = [];
+
+  afterEach(() => {
+    for (const tempDir of tempDirs.splice(0)) {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("hashes current versionable code while excluding proof-document churn", async () => {
+    const workspaceRoot = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-workspace-snapshot-"),
+    );
+    tempDirs.push(workspaceRoot);
+    execFileSync("git", ["init", "-b", "main"], {
+      cwd: workspaceRoot,
+      stdio: "ignore",
+    });
+    mkdirSync(path.join(workspaceRoot, "src"), { recursive: true });
+    mkdirSync(path.join(workspaceRoot, "documentation"), { recursive: true });
+    writeFileSync(path.join(workspaceRoot, "src", "feature.ts"), "v1\n");
+    writeFileSync(
+      path.join(workspaceRoot, "documentation", "receipt.md"),
+      `---
+id: TEST-RECEIPT
+title: Receipt test
+verification_receipts:
+  - receipt_id: VR-ONE
+---
+Body
+`,
+    );
+    execFileSync("git", ["add", "src/feature.ts", "documentation/receipt.md"], {
+      cwd: workspaceRoot,
+    });
+
+    const initial = await nodeGit.workspaceSnapshot?.(workspaceRoot);
+    writeFileSync(
+      path.join(workspaceRoot, "documentation", "receipt.md"),
+      `---
+id: TEST-RECEIPT
+title: Receipt test
+verification_receipts:
+  - receipt_id: VR-TWO
+---
+Body
+`,
+    );
+    const documentationOnly = await nodeGit.workspaceSnapshot?.(workspaceRoot);
+    writeFileSync(path.join(workspaceRoot, "src", "feature.ts"), "v2\n");
+    const codeChanged = await nodeGit.workspaceSnapshot?.(workspaceRoot);
+
+    expect(initial).toMatchObject({
+      version: "kibi.workspace-snapshot.v1",
+      dirty: true,
+      fileCount: 2,
+    });
+    expect(initial?.hash).toMatch(/^[a-f0-9]{64}$/);
+    expect(documentationOnly?.hash).toBe(initial?.hash);
+    expect(codeChanged?.hash).not.toBe(initial?.hash);
+
+    writeFileSync(
+      path.join(workspaceRoot, "documentation", "receipt.md"),
+      `---
+id: TEST-RECEIPT
+title: Changed test contract
+verification_receipts:
+  - receipt_id: VR-TWO
+---
+Body
+`,
+    );
+    const testContractChanged =
+      await nodeGit.workspaceSnapshot?.(workspaceRoot);
+    expect(testContractChanged?.hash).not.toBe(codeChanged?.hash);
+  });
+});

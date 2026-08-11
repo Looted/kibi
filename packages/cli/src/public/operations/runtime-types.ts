@@ -31,7 +31,15 @@ export interface FilesystemPort {
 export interface GitPort {
   revParse(...args: readonly string[]): Promise<string>;
   showToplevel(): Promise<string>;
+  workspaceSnapshot?(workspaceRoot: string): Promise<WorkspaceSnapshot>;
 }
+
+export type WorkspaceSnapshot = Readonly<{
+  version: "kibi.workspace-snapshot.v1";
+  hash: string;
+  dirty: boolean;
+  fileCount: number;
+}>;
 
 export interface NetworkPort {
   fetch(input: string | URL, init?: RequestInit): Promise<Response>;
