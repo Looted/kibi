@@ -45,6 +45,7 @@ check_kind(string, V) :- string(V).
 check_kind(atom_or_string, V) :- atom(V) ; string(V).
 check_kind(datetime, V) :- string(V). % accept ISO strings for now
 check_kind(list, V) :- is_list(V).
+check_kind(list_or_json, V) :- is_list(V) ; string(V) ; atom(V).
 check_kind(uri, V) :- string(V).
 check_kind(integer, V) :- integer(V).
 check_kind(number, V) :- number(V).
@@ -118,6 +119,7 @@ is_fact_only_field(claim_span_end).
 % is_test_only_field(+Key) - true if Key is a test-specific field
 is_test_only_field(verification_scope).
 is_test_only_field(verification_perspective).
+is_test_only_field(verification_receipts).
 
 % validate_fact_shape(+Kind, +Props)
 validate_fact_shape(subject, Props) :-

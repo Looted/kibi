@@ -8,6 +8,7 @@
  * (at your option) any later version.
  */
 
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -29,7 +30,7 @@ export const DIAGNOSTIC_MODE_ENABLED =
 let diagnosticUsageLogPath: string | null = null;
 
 export function initializeDiagnosticMode(
-  enabled: boolean = DIAGNOSTIC_MODE_ENABLED,
+  enabled: boolean = DIAGNOSTIC_MODE_ENABLED
 ): void {
   diagnosticUsageLogPath = null;
   if (!enabled) {
@@ -87,6 +88,16 @@ export const DIAGNOSTIC_TELEMETRY_SCHEMA = {
       description:
         "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
     },
+    session_id: {
+      type: "string",
+      description:
+        "Optional opaque workflow-session identifier used to correlate advisor, preflight, mutation, coverage, and verification evidence. Do not put personal data in this field.",
+    },
+    actor_id: {
+      type: "string",
+      description:
+        "Optional opaque actor identifier used to prevent evidence from a different actor being correlated with this call. Do not put personal data in this field.",
+    },
   },
 } as const;
 
@@ -124,7 +135,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function structuredContentFrom(
-  result: unknown,
+  result: unknown
 ): Record<string, unknown> | undefined {
   if (!isRecord(result)) return undefined;
   const structuredContent = result.structuredContent;
@@ -146,7 +157,7 @@ function suggestionKindsFrom(value: unknown): string[] {
 
 function appendSemanticAdvisorFields(
   fields: Record<string, unknown>,
-  receipt: unknown,
+  receipt: unknown
 ): void {
   if (!isRecord(receipt)) return;
   const readiness = receipt.logic_readiness;
@@ -162,11 +173,90 @@ function appendSemanticAdvisorFields(
   fields.semantic_suggestion_kinds = suggestionKinds;
   fields.semantic_suggestion_count = suggestionKinds.length;
   fields.semantic_next_tools = stringArray(receipt.suggested_next_tools);
+  const inventoryContract = receipt.inventory_contract;
+  if (
+    isRecord(inventoryContract) &&
+    typeof inventoryContract.source_hash === "string"
+  ) {
+    fields.semantic_source_hash = inventoryContract.source_hash;
+  }
+}
+
+function canonicalDiagnosticValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalDiagnosticValue);
+  if (!isRecord(value)) return value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([key]) => key !== "_diagnostic_telemetry")
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, child]) => [key, canonicalDiagnosticValue(child)])
+  );
+}
+
+function mutationFingerprint(args: Record<string, unknown>): string {
+  return createHash("sha256")
+    .update(JSON.stringify(canonicalDiagnosticValue(args)))
+    .digest("hex");
+}
+
+function appendMutationFields(
+  fields: Record<string, unknown>,
+  args: Record<string, unknown>
+): void {
+  fields.mutation_fingerprint = mutationFingerprint(args);
+  const type = typeof args.type === "string" ? args.type : "unknown";
+  const id = typeof args.id === "string" ? args.id : "unknown";
+  fields.mutation_target = `${type}:${id}`;
+}
+
+const RECEIPT_GAP_CODES = new Set([
+  "missing_verification_receipt",
+  "stale_verification_receipt",
+  "failed_verification_receipt",
+  "invalid_verification_receipt",
+  "verification_snapshot_unavailable",
+]);
+
+function appendCoverageFields(
+  fields: Record<string, unknown>,
+  args: Record<string, unknown>,
+  structuredContent: Record<string, unknown>
+): void {
+  const rows = Array.isArray(structuredContent.rows)
+    ? structuredContent.rows.filter(isRecord)
+    : [];
+  const summary = isRecord(structuredContent.summary)
+    ? structuredContent.summary
+    : {};
+  const gapCodes = rows.flatMap((row) => stringArray(row.proofGaps));
+  const uniqueGapCodes = [...new Set(gapCodes)].sort();
+  const repairPlan = isRecord(structuredContent.repairPlan)
+    ? structuredContent.repairPlan
+    : undefined;
+  const scope = isRecord(repairPlan?.scope) ? repairPlan.scope : undefined;
+  fields.coverage_by = typeof args.by === "string" ? args.by : "req";
+  fields.coverage_requirement_count = Number(summary.total ?? rows.length);
+  fields.coverage_proven_count = Number(summary.proofProven ?? 0);
+  fields.coverage_proof_missing_count = Number(summary.proofMissing ?? 0);
+  fields.coverage_proof_gap_count = gapCodes.length;
+  fields.coverage_gap_codes = uniqueGapCodes;
+  fields.coverage_receipt_gap_count = gapCodes.filter((gap) =>
+    RECEIPT_GAP_CODES.has(gap)
+  ).length;
+  if (typeof scope?.complete === "boolean") {
+    fields.coverage_scope_complete = scope.complete;
+  }
+  const metadata = isRecord(structuredContent.meta)
+    ? structuredContent.meta
+    : undefined;
+  if (typeof metadata?.verificationSnapshot === "string") {
+    fields.coverage_verification_snapshot = metadata.verificationSnapshot;
+  }
 }
 
 function appendPredicateSuggestionFields(
   fields: Record<string, unknown>,
-  structuredContent: Record<string, unknown>,
+  structuredContent: Record<string, unknown>
 ): void {
   const candidates = Array.isArray(structuredContent.candidates)
     ? structuredContent.candidates
@@ -185,13 +275,13 @@ function appendPredicateSuggestionFields(
     fields.predicate_recommended_action = structuredContent.recommendedAction;
   }
   fields.predicate_relationship_plan = isRecord(
-    structuredContent.relationshipPlan,
+    structuredContent.relationshipPlan
   );
 }
 
 function appendContradictionCheckFields(
   fields: Record<string, unknown>,
-  contradictionCheck: unknown,
+  contradictionCheck: unknown
 ): void {
   if (!isRecord(contradictionCheck)) return;
   const outcome = contradictionCheck.outcome;
@@ -220,7 +310,7 @@ export function deriveDiagnosticFields(
   toolName: string,
   args: Record<string, unknown>,
   telemetry: Record<string, unknown> | null,
-  result: unknown,
+  result: unknown
 ): Record<string, unknown> {
   const fields: Record<string, unknown> = {
     telemetry_status: telemetry ? "provided" : "missing",
@@ -230,6 +320,12 @@ export function deriveDiagnosticFields(
     fields.telemetry_is_autonomous = telemetry.is_autonomous ?? null;
     fields.telemetry_confidence_score = telemetry.confidence_score ?? null;
     fields.telemetry_attempt_number = telemetry.attempt_number ?? null;
+    if (typeof telemetry.session_id === "string") {
+      fields.session_id = telemetry.session_id;
+    }
+    if (typeof telemetry.actor_id === "string") {
+      fields.actor_id = telemetry.actor_id;
+    }
   }
 
   const structuredContent = structuredContentFrom(result);
@@ -248,6 +344,13 @@ export function deriveDiagnosticFields(
     fields.requested_rules = Array.isArray(args.rules) ? args.rules : [];
     fields.result_summary =
       violationCount === 0 ? "0 violations" : `${violationCount} violations`;
+  }
+
+  if (toolName === "kb_coverage" && structuredContent) {
+    appendCoverageFields(fields, args, structuredContent);
+    fields.result_summary = `${String(
+      fields.coverage_proven_count
+    )} proven; ${String(fields.coverage_proof_gap_count)} proof gaps`;
   }
 
   if (toolName === "kb_semantic_advisor" && structuredContent) {
@@ -270,22 +373,35 @@ export function deriveDiagnosticFields(
   }
 
   if (toolName === "kb_upsert" && structuredContent) {
+    appendMutationFields(fields, args);
     const created = Number(structuredContent.created ?? 0);
     const updated = Number(structuredContent.updated ?? 0);
     fields.upsert_created = created;
     fields.upsert_updated = updated;
     fields.upsert_relationships_created = Number(
-      structuredContent.relationships_created ?? 0,
+      structuredContent.relationships_created ?? 0
     );
     appendContradictionCheckFields(
       fields,
-      structuredContent.contradictionCheck,
+      structuredContent.contradictionCheck
     );
     appendSemanticAdvisorFields(fields, structuredContent.semanticAdvisor);
     const readiness = fields.semantic_logic_readiness;
     if (typeof readiness === "string") {
-      fields.result_summary = `upsert ${created > 0 ? "created" : "updated"}; semantic ${readiness}`;
+      fields.result_summary = `upsert ${
+        created > 0 ? "created" : "updated"
+      }; semantic ${readiness}`;
     }
+  }
+
+  if (toolName === "kb_validate_upsert" && structuredContent) {
+    appendMutationFields(fields, args);
+    fields.validation_valid = structuredContent.valid === true;
+    appendSemanticAdvisorFields(fields, structuredContent.semanticAdvisor);
+    fields.result_summary =
+      structuredContent.valid === true
+        ? "upsert payload valid"
+        : "upsert payload invalid";
   }
 
   if (!fields.result_summary) {

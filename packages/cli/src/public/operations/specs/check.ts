@@ -5,7 +5,7 @@ export const checkSpec = {
   name: "kb_check",
   cliName: "check",
   description:
-    "Run KB validation rules and return violations. Use before or after mutations, and after meaningful source edits with impact options to surface symbol granularity and semantic-review diagnostics. Do not use for point lookups. No write side effects. Prefer explicit rules for faster iteration; omit rules for final full validation plus full-KB qualityDiagnostics review.",
+    "Run KB validation rules and return violations. Use before or after mutations, and after meaningful source edits with impact options to surface symbol granularity and semantic-review diagnostics. Do not use for point lookups. No write side effects. Prefer explicit rules for faster iteration; omit rules for final full validation plus full-KB qualityDiagnostics review, including telemetry acceptance when .kb/usage.log exists.",
   businessInputSchema: {
     type: "object",
     properties: {
@@ -33,7 +33,7 @@ export const checkSpec = {
           ],
         },
         description:
-          "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, logic-coverage, rule-safety, rule-verifiability, semantic-completeness, query-plan-safety. If omitted, server runs all rules plus the full-KB qualityDiagnostics audit scan; if supplied, server preserves scoped validation and skips the full-KB advisory scan.",
+          "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, logic-coverage, rule-safety, rule-verifiability, semantic-completeness, query-plan-safety. If omitted, server runs all rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; if supplied, server preserves scoped validation and skips the full-KB advisory scan.",
       },
       sourceFiles: {
         type: "array",

@@ -75,10 +75,10 @@ When prose contains a machine-checkable rule, do not store it only in `text_ref`
 
 1. Call `kb_semantic_advisor` with the complete body when starting from raw prose, or run `kb_validate_upsert` before `kb_upsert` for new or updated normative requirements. Verify the returned atomic clause inventory; supply `clauses` when automatic decomposition is incomplete.
 2. For property/value requirements, call `kb_model_requirement` or create a `fact_kind: subject` fact plus a `fact_kind: property_value` fact. Link the requirement with `constrains` and `requires_property`.
-3. Model every normative clause: use `kb_suggest_predicates` for approved ground ontology claims, strict facts for scalar claims, and `kb_model_requirement` with a validated `kibi.logic.v1` object for conditions, exceptions, modalities, quantifiers, cardinality, or bounded temporal rules. Preserve `claim_key` and `claim_text` on each ground fact/rule, merge every key into `logic_claims`, persist the complete `semantic_inventory`, and link with `requires_predicate`, `requires_property`, or `requires_rule`. An ambiguity or ontology-gap observation remains explicitly unresolved.
+3. Model every assertive proposition: use `kb_suggest_predicates` for approved ground ontology claims, strict facts for scalar claims, and `kb_model_requirement` with a validated `kibi.logic.v1` object for conditions, exceptions, modalities, quantifiers, cardinality, or bounded temporal rules. Preserve `claim_key` and `claim_text` on each ground fact/rule, replace stale manifests with the exact current assertive key set, persist the complete `semantic_inventory` plus its `inventory_contract`, and link with `requires_predicate`, `requires_property`, or `requires_rule`. Ambiguity, ontology gaps, and missing interpretations remain explicitly unresolved.
 4. Use snake_case field names exactly as the MCP schema shows. `kb_upsert.properties` rejects camelCase aliases such as `subjectKey`, `propertyKey`, `predicateName`, and generic `value`.
 
-Semantic advisor receipts are advisory. They identify atomic clauses and likely modeling lanes, but they do not prove that arbitrary prose was decomposed exhaustively or auto-create facts. `logic_coverage` reports the expected, declared, missing, and unresolved claim keys. Review every clause, apply the strict-property or predicate plans, and run `kb_check` with `logic-coverage` before treating the requirement as Prolog-checkable.
+Semantic advisor modeling suggestions remain advisory and do not auto-create facts. The proposition ledger is a mutation contract for current requirements: `kb_validate_upsert` and `kb_upsert` reject source/hash/span drift, duplicate identities, omitted assertions, invalid `nonlogical` classifications, and modeled entries whose linked fact claim keys do not match. Review every proposition and still run `kb_check`; successful ingestion proves accounting integrity, not domain truth or contradiction safety.
 
 ### `kb_model_requirement`
 
@@ -107,7 +107,7 @@ The modeling call is read-only. Applying its plan is a separate mutation and mus
 
 ### `kb_suggest_predicates`
 
-Suggest ontology predicate candidates for a prose requirement before an agent writes freeform ontology notes. Agents should spell out the requirement claim, call this tool, then either apply a returned `fact_kind: predicate` plan linked with `requires_predicate` or record the returned `review:ontology-gap` observation when no predicate fits. Gap observations include a `relates_to` review anchor so unresolved ontology work remains queryable without entering the contradiction lane.
+Suggest ontology predicate candidates for a prose requirement before an agent writes freeform ontology notes. Agents should spell out the requirement claim, call this tool, then either apply a returned `fact_kind: predicate` plan linked with `requires_predicate`, supply exact `argumentBindings` when a fitting schema still has unbound arguments, or record the returned `review:ontology-gap` observation when no predicate fits. Gap observations include a `relates_to` review anchor so unresolved ontology work remains queryable without entering the contradiction lane.
 
 The tool ranks project-local `fact_kind: predicate_schema` facts when available and falls back to Kibi's built-in predicate catalog covering state, transitions, guards, exceptions, mutual exclusion, dependencies, ownership, retry policies, escalation rules, availability SLAs, notification routing, idempotency, data residency, audit logging, consent, lifecycle actions, conflict resolution, fallback behavior, batch operations, consistency rules, build constraints, environment safety rules, schema invariants, coding standards, migration boundaries, absence/removal requirements, offline behavior, release gates, platform consistency, preservation rules, abstraction boundaries, security configuration, ordered strategies, refresh policies, scoped authorization, documentation standards, warmup policies, visual layout rules, enforcement-location rules, reconciliation rules, throttling policies, persistence/save/discard behavior, accessibility, retention, resource constraints, feature gates, events, permissions, defaults, uniqueness, state memberships, temporal ordering, conditional behavior, rate limits, and acceptance outcomes. Built-in candidates include usage hints (`use_when` / `do_not_use_when`) so agents can choose precise predicates instead of matching keywords blindly.
 
@@ -119,12 +119,15 @@ The tool ranks project-local `fact_kind: predicate_schema` facts when available 
 - `maxCandidates` (optional): Maximum ranked predicate candidates to return.
 - `minScore` (optional): Minimum candidate score; higher values make ontology-gap fallback more likely.
 - `includeExistingSchemas` (optional): Include project-local predicate schema facts alongside built-ins.
+- `schemaId` (optional): Select an exact reviewed built-in or project-local schema ID instead of accepting lexical rank order. An unavailable ID returns `resolve_schema_reference` with no write or ontology-gap plan.
+- `argumentBindings` (optional): Exact values keyed by the candidate schema's ordered `argument_names`. Use this to resolve an incomplete candidate; unbound values are never emitted as an applicable predicate fact.
+- `polarityHint` (optional): Reviewed `assert` or `deny` override for negation-scope false positives. Use only after reviewing the complete claim and selected schema.
 - `existingLogicClaims` (optional): Existing requirement claim keys. Returned relationship guidance merges the new key rather than replacing earlier clauses.
 
 **Returns:**
-- `candidates`: Ranked predicate suggestions with schema signature, usage hints, ordered `predicate_args`, `canonical_key`, score, and rationale.
-- `recommendedAction`: `apply_requires_predicate` when a candidate fits, otherwise `record_ontology_gap`.
-- `structuredContent.applyPlan`: A ready-to-apply `kb_upsert` payload for the top predicate fact, or an explicit `fact_kind: observation` tagged `review:ontology-gap` and `needs_schema_extension`, with a `relates_to` review anchor.
+- `candidates`: Ranked predicate suggestions with schema signature, usage hints, ordered `predicate_args`, `binding_status`, `unbound_arguments`, `canonical_key`, score, and rationale.
+- `recommendedAction`: `apply_requires_predicate` when the top or explicitly selected candidate fits and every argument is bound, `provide_argument_bindings` when its schema fits but exact values are missing, `resolve_schema_reference` when an explicitly selected schema is unavailable, otherwise `record_ontology_gap`.
+- `structuredContent.applyPlan`: A ready-to-apply `kb_upsert` payload for a completely bound top predicate fact, an empty list for an incomplete binding, or an explicit `fact_kind: observation` tagged `review:ontology-gap` and `needs_schema_extension`, with a `relates_to` review anchor.
 - `structuredContent.relationshipPlan`: When `requirementId` is supplied and a predicate fits, the req -> fact `requires_predicate` link plus the merged `logicClaims` manifest to apply after querying/preserving the existing requirement entity. This is separate from `applyPlan` so the tool never emits a foreign-source relationship that `kb_upsert` would reject.
 
 **Example:**
@@ -153,7 +156,7 @@ Analyze requirement prose without mutating the KB. Use this before constructing 
 - `interpretations` (optional, maximum 3): Typed `kibi.logic.v1` alternatives with `claim_key`, `claim_text`, and `ir`. Kibi canonicalizes and structurally compares them; materially different valid alternatives remain unresolved and confidence never selects one.
 
 **Returns:**
-- `structuredContent.receipt`: Semantic advisor receipt with detected signals, a proposition ledger (`propositions[]`), typed interpretation results, deterministic shadow cues, modeling suggestions, candidate lane, payload hash, and suggested next tools.
+- `structuredContent.receipt`: Semantic advisor receipt with detected signals, a proposition ledger (`propositions[]`), a versioned `inventory_contract` containing the semantic source field and SHA-256 hash, typed interpretation results, deterministic shadow cues, modeling suggestions, candidate lane, payload hash, and suggested next tools.
 - `structuredContent.warnings`: Non-blocking warning strings explaining why the prose is not yet contradiction-checkable.
 
 The receipt returns stable provenance `claim_key` values, `claim_text`, exact UTF-8 byte spans, per-clause suggestion indexes, and a `logic_coverage` manifest comparison. Proposition statuses are `modeled`, `ambiguous`, `ontology_gap`, `nonlogical`, or `missing`; an assertive span is never silently dropped. Observation apply plans carry a typed `relates_to` review anchor when the category is known, while remaining outside contradiction checks. Suggestion kinds include `strict_property`, `predicate`, `rule`, `ambiguity_observation`, and `ontology_gap`. Supported deterministic suggestions include multi-claim prose, cardinality, thresholds with units, retention/expiry durations, booleans, enum sets, permissions and prohibitions, defaults, uniqueness constraints, state memberships, state transitions, exception rules, mutual exclusion, dependency rules, ownership, retry policies, escalation, availability SLAs, notification routing, idempotency, data residency, audit logging, consent, lifecycle, conflict-resolution, fallback/degradation, batch constraints, cross-entity consistency, conditional behavior, temporal ordering, comparative numeric constraints, rate limits, and ambiguity observations.
@@ -208,10 +211,10 @@ Ranked results with match reasons and optional snippets.
 
 ### `kb_status`
 
-Return branch, snapshot, and freshness metadata for the attached KB.
+Return branch, snapshot, and freshness metadata for the attached KB, plus the deterministic workspace snapshot used to validate execution receipts.
 
 **Returns:**
-Branch name, snapshot ID, sync state, dirty flag, and KB path metadata.
+Branch name, KB snapshot ID, sync state, dirty flag, KB path metadata, and `verificationSnapshot` evidence (`available`, `dirty`, file count, and `kibi.workspace-snapshot.v1` version). An unavailable workspace snapshot is reported as `unknown` and cannot prove an E2E stage.
 
 **Example:**
 ```json
@@ -296,19 +299,30 @@ Matching rows, relationship counts, and status metadata.
 
 ### `kb_coverage`
 
-Generate curated coverage reports.
+Generate curated structural coverage and conservative end-to-end requirement proof reports.
 
 **Parameters:**
 - `by` (optional): `req`, `symbol`, or `type`
 - `tags` (optional): Tag filter
-- `includePassing` (optional): Include fully covered rows in report contexts that support it
+- `includePassing` (optional): Include requirements with a proven or not-applicable proof outcome in addition to rows that still require repair
 - `includeTransitive` (optional): Include transitive symbol coverage
+- `includeMigrationPreview` (optional): Add a deterministic read-only legacy proposition migration preview
+- `migrationLimit` / `migrationOffset` (optional): Page ready semantic-inventory requirement batches; the default limit is one and the maximum is ten
+- `migrationPredicateLimit` / `migrationPredicateMinScore` (optional): Bound exact predicate-schema candidates retained per proposition
 - `limit` / `offset` (optional): Pagination controls
 
 **Returns:**
-Coverage summary rows and status metadata.
+Coverage summary rows, status metadata, and—when `by: "req"`—a deterministic `kibi.repair-plan.v1` read-only migration plan.
 
-For requirement coverage, summaries distinguish evaluated must-priority requirements from rows marked `notApplicable`.
+For requirement coverage, summaries distinguish evaluated must-priority requirements from rows marked `notApplicable`. Requirement rows retain compatibility-oriented `coverageStatus` and add a separate `kibi.requirement-proof.v2` result with `proofStatus` (`proven`, `unresolved`, `missing`, or `not_applicable` for a non-current requirement), inspectable `proofStages`, stable `proofGaps`, and ranked `proofRepairs`. A row is proven only when semantic inventory and grounding, contradiction analysis, scenario-backed fresh passing E2E receipt evidence, executable test symbols, production ownership/coverage, and exact source coordinates all pass.
+
+`repairPlan` turns those row-local gaps into dependency-ordered batches across the returned requirement scope. Each batch identifies one requirement and phase, groups same-phase repairs, declares `state: ready|blocked`, lists prior `dependsOn` batches, and carries `workflowSteps`, targeted `validationRules`, and a conservative write policy. Plans are always `readOnly: true`; batches are always `autoApplicable: false`, so callers must query current endpoints, review semantic choices, validate payloads, and execute upserts sequentially. `scope.complete: false` and `status: partial` mean pagination omitted actionable requirements; rerun with `offset: 0` and a larger `limit` before treating the result as a project migration plan. `planId` remains stable for the same snapshot, filters, proof evidence, and gaps while volatile receipt age/check-time fields are ignored.
+
+With `includeMigrationPreview: true`, `legacyMigrationPlan` adds the versioned `kibi.legacy-migration-plan.v1` review surface. It selects only ready semantic-inventory repair batches, defaults to one requirement, binds normalized authored Markdown to an exact SHA-256 hash and UTF-8 spans, and gives every proposition one recommended lane or explicit unresolved disposition. Ranked candidates preserve exact schema identity, signature, origin, polarity, binding status, and unbound arguments, but never produce an applicable write. Authored prose is previewed in requirement-only `semantic_text`, while an independent `text_ref` remains unchanged; a differing pre-existing `semantic_text` blocks the batch as semantic source drift.
+
+The passing-E2E stage evaluates append-only `kibi.verification-receipt.v1` history. A receipt must bind the test and its typed scope, runner command, deterministic current code snapshot, environment hash, timestamps, outcome, and artifact digest. The newest receipt for the live snapshot must be passing and no older than seven days. Missing, wrong-snapshot, stale, failed, malformed, mismatched, future-dated, or snapshot-unavailable evidence cannot prove the requirement; durable test status remains structural metadata.
+
+Symbol rows distinguish production symbols from executable test symbols. Executable-only symbols are not applicable to production coverage; mixed-role symbols are uncovered and carry an explicit role error.
 
 **Example:**
 ```json
@@ -382,14 +396,16 @@ Create or update a single entity and optional relationships in one call.
 
 `symbol_role` values are `behavioral`, `structural`, `type-shape`, `config`, `module`, and `unknown`. Use `behavioral` for manual anchors when behavior is hidden inside factory/expression composition and the extractor cannot create a narrower symbol.
 
+For current requirement writes with assertive prose, mutation fails closed unless the payload preserves the complete advisor ledger and source contract. Every assertive claim key must appear exactly once in `logic_claims`; every `modeled` entry must have exactly one logical relationship whose target fact carries that same key. Explicit unresolved statuses are accepted as honest inventory states but do not make the requirement proof-complete.
+
 **Returns:**
-Confirmation of entity creation/update and relationship creation counts. Successful responses may also include `structuredContent.semanticAdvisor` and `structuredContent.warnings`. The advisor receipt can contain draft strict-property, predicate, ambiguity-observation, or ontology-gap suggestions with apply plans. These suggestions are non-blocking in v1, but agents should review and repair them before considering prose-heavy requirements contradiction-checkable.
+Confirmation of entity creation/update and relationship creation counts. Successful responses may also include `structuredContent.semanticAdvisor` and `structuredContent.warnings`. Modeling suggestions remain reviewable, while proposition accounting and source/grounding integrity are blocking for applicable requirement writes.
 
 ### `kb_validate_upsert`
 
-Validate a `kb_upsert` payload without mutating the KB. This read-only preflight returns `valid`, `errors`, `warnings`, `semanticAdvisor`, and `normalizedPreview` so agents can fix schema issues and semantic modeling gaps before calling `kb_upsert`.
+Validate a `kb_upsert` payload without mutating the KB. This read-only preflight returns `valid`, `errors`, `warnings`, `semanticAdvisor`, and `normalizedPreview`, including the same proposition-completeness and exact grounding-identity checks used by `kb_upsert`.
 
-`semanticAdvisor` includes a version, payload hash, logic readiness, candidate lane, detected signals, ambiguity witnesses, modeling suggestions, and suggested next tools. Use the receipt as proof that the payload was inspected, not as proof that the prose is logically enforced.
+`semanticAdvisor` includes a version, payload hash, source-bound inventory contract, proposition ledger, logic readiness, candidate lane, detected signals, ambiguity witnesses, modeling suggestions, and suggested next tools. A valid preflight proves source accounting at the ingestion boundary; contradiction checks and verification evidence are still separate proof stages.
 
 When invoked through MCP, `kb_validate_upsert` also attaches to Prolog and validates live relationship endpoint types before mutation. Invalid tuples such as `verified_by fact -> test` are rejected in preflight with the same relationship guidance `kb_upsert` would return.
 
@@ -417,9 +433,11 @@ Run KB validation rules after mutations. Agents can also opt into read-only chan
 - `workspaceRoot` (optional): Workspace root for impact diagnostics and `.kb/config.json` lookup. Defaults to the MCP server workspace.
 
 **Returns:**
-Validation report with any hard violations found and suggested fixes. `structuredContent.violations[]` is the blocking correctness lane: graph, schema, contradiction, query-plan, and staged enforcement failures live there and continue to drive `count` and failure status. `structuredContent.qualityDiagnostics[]` is the additive audit-quality lane for non-blocking modeling, coverage-depth, symbol fanout, duplicate-coordinate, broad-requirement, status, and strict-fact review signals.
+Validation report with any hard violations found and suggested fixes. `structuredContent.violations[]` is the blocking correctness lane: graph, schema, contradiction, query-plan, and staged enforcement failures live there and continue to drive `count` and failure status. `structuredContent.qualityDiagnostics[]` is the additive audit-quality lane for non-blocking modeling, coverage-depth, symbol fanout, duplicate-coordinate, broad-requirement, status, strict-fact, and telemetry-acceptance review signals.
 
 Rule filtering affects the audit-quality lane. When `rules` is omitted, MCP runs the normal full validation profile and also performs the full-KB audit-quality scan that populates `qualityDiagnostics[]`. When `rules` is supplied, MCP preserves the requested scoped validation and skips that full-KB advisory scan so iteration stays fast and predictable. Source impact diagnostics are independent: pass `includeImpactDiagnostics: true` with `sourceFiles` or `staged: true` when you need changed-file review during a filtered check.
+
+When diagnostic mode has produced `.kb/usage.log`, the unfiltered scan evaluates `kibi.telemetry-acceptance.v1` over its latest 200 events. It ranks advisor/preflight bypasses, source lookup misses, stalled proof-gap recovery, receipt gaps, and repeated mutation failures as `category: telemetry` recommendations. Diagnostic callers may supply opaque `session_id` and `actor_id` metadata; when both evidence records expose an identifier, advisor/preflight correlation requires equality and never borrows evidence across an explicit boundary. Stale or incomplete evidence stays `insufficient_evidence`; absence of observable fields is never interpreted as a pass. A missing log is skipped because MCP diagnostic logging is opt-in. Use the CLI-only `kibi usage-metrics --format json --require-acceptance` route when a hard completion gate is required, and `kibi usage-remediation --format json` for exact read-only repair evidence.
 
 Quality diagnostics use explicit `severity` and `blocking` fields. `severity: "review"` and `severity: "info"` are advisory and do not fail checks by default; `severity: "warning"` is still non-blocking unless `blocking: true`; `severity: "error"` or `blocking: true` is a hard failure signal. Existing hard violations remain in `violations[]` rather than being downgraded into the advisory lane.
 

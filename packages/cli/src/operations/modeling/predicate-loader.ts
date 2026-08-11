@@ -49,7 +49,7 @@ export async function loadExistingPredicateSchemas(
 
   try {
     const queryResult = await prolog.query(
-      "findall([Id,'fact',Props], (kb_entity(Id, 'fact', Props), member(fact_kind=predicate_schema, Props)), Results)",
+      "findall([Id,'fact',Props], (kb:predicate_schema(Id, _Namespace, _Name, _Arity, _ArgumentNames, _ArgumentTypes), kb_entity(Id, 'fact', Props)), Results)",
     );
     if (!queryResult.success) {
       throw new Error(queryResult.error || "Query failed with unknown error");

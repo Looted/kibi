@@ -50,6 +50,31 @@ export function registerReportingCommands(program: Command): void {
     .option("--no-include-transitive", "Disable transitive symbol coverage")
     .option("--limit <n>", "Limit results", "100")
     .option("--offset <n>", "Skip results", "0")
+    .option(
+      "--include-migration-preview",
+      "Include one read-only legacy semantic migration preview batch",
+      false,
+    )
+    .option(
+      "--migration-limit <n>",
+      "Maximum migration preview batches (1-10)",
+      "1",
+    )
+    .option(
+      "--migration-offset <n>",
+      "Skip ready semantic-inventory migration batches",
+      "0",
+    )
+    .option(
+      "--migration-predicate-limit <n>",
+      "Maximum ranked predicate schemas per proposition",
+      "5",
+    )
+    .option(
+      "--migration-predicate-min-score <score>",
+      "Minimum predicate schema rank score",
+      "0.35",
+    )
     .option("--format <format>", "Output format: json|table", "table")
     .action(async (options, command: Command) => {
       if (options.input !== undefined) {

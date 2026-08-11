@@ -1,10 +1,17 @@
+import { VERIFICATION_RECEIPT_MAX_AGE_SECONDS } from "../../verification-receipt.js";
+import {
+  type LegacyMigrationPlan,
+  buildLegacyMigrationPlanFromContext,
+} from "../legacy-migration-plan.js";
 import {
   runOperationJsonQuery,
   toPrologAtom,
   toPrologList,
 } from "../prolog-json.js";
+import { type RepairPlan, buildRepairPlan } from "../repair-plan.js";
 import type { OperationContext } from "../runtime-types.js";
 import type { OperationResult, OperationSpec } from "../types.js";
+import { readWorkspaceSnapshot } from "../workspace-snapshot.js";
 
 const ENTITY_TYPES = [
   "req",
@@ -41,11 +48,18 @@ export type CoverageInput = {
   readonly includeTransitive?: boolean;
   readonly limit?: number;
   readonly offset?: number;
+  readonly includeMigrationPreview?: boolean;
+  readonly migrationLimit?: number;
+  readonly migrationOffset?: number;
+  readonly migrationPredicateLimit?: number;
+  readonly migrationPredicateMinScore?: number;
 };
 
 export type CoveragePayload = {
   readonly summary: Readonly<Record<string, number>>;
   readonly rows: readonly Readonly<Record<string, unknown>>[];
+  readonly repairPlan?: RepairPlan;
+  readonly legacyMigrationPlan?: LegacyMigrationPlan;
   readonly meta?: Readonly<Record<string, unknown>>;
 };
 
@@ -142,22 +156,57 @@ export async function executeCoverage(
   context: OperationContext,
 ): Promise<OperationResult<CoveragePayload>> {
   try {
+    const snapshotEvidence = await readWorkspaceSnapshot(context);
+    const codeSnapshot = snapshotEvidence.available
+      ? snapshotEvidence.snapshot.hash
+      : "unknown";
+    const checkedAt = context.clock().toISOString();
     const payload = await runOperationJsonQuery<CoveragePayload>(
       requireProlog(context),
       "discovery.pl",
-      `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, JsonString)`,
+      `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${VERIFICATION_RECEIPT_MAX_AGE_SECONDS}, JsonString)`,
       "Coverage execution",
     );
-    const fullyCovered = Number(payload.summary?.fullyCovered ?? 0);
-    const total = Number(payload.summary?.total ?? 0);
+    const repairPlan = buildRepairPlan(payload, input, codeSnapshot);
+    const legacyMigrationPlan =
+      input.includeMigrationPreview === true && repairPlan !== undefined
+        ? await buildLegacyMigrationPlanFromContext(
+            repairPlan,
+            input,
+            codeSnapshot,
+            context,
+          )
+        : undefined;
+    const enrichedPayload = {
+      ...payload,
+      ...(repairPlan !== undefined ? { repairPlan } : {}),
+      ...(legacyMigrationPlan !== undefined ? { legacyMigrationPlan } : {}),
+      meta: {
+        ...(payload.meta ?? {}),
+        verificationReceiptMaxAgeSeconds: VERIFICATION_RECEIPT_MAX_AGE_SECONDS,
+        verificationSnapshot: codeSnapshot,
+        verificationSnapshotAvailable: snapshotEvidence.available,
+        ...(snapshotEvidence.available
+          ? {
+              verificationSnapshotDirty: snapshotEvidence.snapshot.dirty,
+              verificationSnapshotFileCount:
+                snapshotEvidence.snapshot.fileCount,
+              verificationSnapshotVersion: snapshotEvidence.snapshot.version,
+            }
+          : { verificationSnapshotError: snapshotEvidence.error }),
+      },
+    };
+    const fullyCovered = Number(enrichedPayload.summary?.fullyCovered ?? 0);
+    const proofProven = Number(enrichedPayload.summary?.proofProven ?? 0);
+    const total = Number(enrichedPayload.summary?.total ?? 0);
     return {
       content: [
         {
           type: "text",
-          text: `Coverage summary: ${fullyCovered} fully covered out of ${total}.`,
+          text: `Coverage summary: ${fullyCovered} structurally covered and ${proofProven} proven out of ${total}.`,
         },
       ],
-      structuredContent: payload,
+      structuredContent: enrichedPayload,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -169,7 +218,7 @@ export const coverageSpec = {
   name: "kb_coverage",
   cliName: "coverage",
   description:
-    "Generate curated coverage reports for requirements, symbols, or grouped types. Read-only reporting with no mutation side effects.",
+    "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Requirement reports include a deterministic, dependency-ordered, read-only repair plan; optional legacy migration previews reconstruct authored proposition inventories and rank exact schema candidates without producing executable writes. Paginated plans identify incomplete scope. Requirement rows keep coverageStatus separate from proofStatus and require fresh snapshot-bound E2E receipts before proof. No mutation side effects.",
   businessInputSchema: {
     type: "object",
     properties: {
@@ -179,6 +228,42 @@ export const coverageSpec = {
       includeTransitive: { type: "boolean", default: true },
       limit: { type: "integer", default: 100 },
       offset: { type: "integer", default: 0 },
+      includeMigrationPreview: {
+        type: "boolean",
+        default: false,
+        description:
+          "Opt in to a deterministic, read-only kibi.legacy-migration-plan.v1 preview for ready semantic-inventory repair batches.",
+      },
+      migrationLimit: {
+        type: "integer",
+        minimum: 1,
+        maximum: 10,
+        default: 1,
+        description:
+          "Maximum requirement migration batches to preview. Defaults to one review batch.",
+      },
+      migrationOffset: {
+        type: "integer",
+        minimum: 0,
+        default: 0,
+        description: "Zero-based offset into ready semantic-inventory batches.",
+      },
+      migrationPredicateLimit: {
+        type: "integer",
+        minimum: 1,
+        maximum: 20,
+        default: 5,
+        description:
+          "Maximum exact predicate-schema candidates retained per assertive proposition.",
+      },
+      migrationPredicateMinScore: {
+        type: "number",
+        minimum: 0,
+        maximum: 1,
+        default: 0.35,
+        description:
+          "Minimum deterministic predicate-schema rank score retained in migration previews.",
+      },
     },
   },
   requiresProlog: true,

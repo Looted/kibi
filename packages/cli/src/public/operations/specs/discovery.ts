@@ -118,7 +118,7 @@ export const statusSpec = {
   name: "kb_status",
   cliName: "status",
   description:
-    "Report current branch, snapshot, and freshness metadata for the attached KB. Read-only status inspection with no mutation side effects.",
+    "Report current branch, KB snapshot and freshness metadata, plus the deterministic workspace snapshot used to validate execution receipts. Read-only status inspection with no mutation side effects.",
   businessInputSchema: { type: "object", properties: {} },
   requiresProlog: true,
   effects: ["kb-read", "workspace-read"],

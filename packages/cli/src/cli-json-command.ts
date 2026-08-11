@@ -2,6 +2,8 @@ import type { Command } from "commander";
 import { InputError } from "./cli-errors.js";
 import { loadInput } from "./cli-input.js";
 import { executeOperation as executeProtocolOperation } from "./cli-protocol.js";
+import { prepareOperationInput } from "./cli-validate.js";
+import { appendCliDiagnosticUsage } from "./public/diagnostic-usage.js";
 import {
   type OperationName,
   getSpec,
@@ -42,18 +44,49 @@ function findInputConflicts(invocation: JsonInvocation): string[] {
   return [...positionalConflicts, ...optionConflicts];
 }
 
+function diagnosticModeEnabled(command: Command): boolean {
+  return (
+    process.env.KIBI_CLI_DIAGNOSTIC_MODE === "1" ||
+    process.argv.includes("--diagnostic-mode") ||
+    command.optsWithGlobals().diagnosticMode === true
+  );
+}
+
+function structuredResult(stdout: string | undefined): unknown {
+  if (stdout === undefined) return undefined;
+  try {
+    return JSON.parse(stdout);
+  } catch {
+    return undefined;
+  }
+}
+
 // implements REQ-kibi-operation-interface-parity
 export async function runJsonInvocation(
-  invocation: JsonInvocation,
+  invocation: JsonInvocation
 ): Promise<void> {
+  const startedAt = new Date();
+  const diagnostic = diagnosticModeEnabled(invocation.command);
+  const workspaceRoot = process.cwd();
+  const spec = getSpec(invocation.operationName);
   const conflicts = findInputConflicts(invocation);
   if (conflicts.length > 0) {
-    writeInputError(
-      new InputError(
-        "CONFLICTING_INPUT",
-        `--input cannot be combined with: ${conflicts.join(", ")}`,
-      ),
+    const error = new InputError(
+      "CONFLICTING_INPUT",
+      `--input cannot be combined with: ${conflicts.join(", ")}`
     );
+    if (diagnostic) {
+      appendCliDiagnosticUsage({
+        workspaceRoot,
+        tool: invocation.operationName,
+        businessArgs: {},
+        telemetry: null,
+        startedAt,
+        status: "error",
+        error: error.detail,
+      });
+    }
+    writeInputError(error);
     return;
   }
 
@@ -65,28 +98,70 @@ export async function runJsonInvocation(
     });
   } catch (error) {
     if (error instanceof InputError) {
+      if (diagnostic) {
+        appendCliDiagnosticUsage({
+          workspaceRoot,
+          tool: invocation.operationName,
+          businessArgs: {},
+          telemetry: null,
+          startedAt,
+          status: "error",
+          error: error.detail,
+        });
+      }
       writeInputError(error);
       return;
     }
     throw error;
   }
 
-  const workspaceRoot = process.cwd();
-  const spec = getSpec(invocation.operationName);
+  const prepared = prepareOperationInput(input, spec.businessInputSchema);
+  const businessArgs = prepared.valid ? prepared.businessInput : {};
+  const telemetry = prepared.valid ? prepared.telemetry ?? null : null;
   const runtime = createCliRuntime({ workspaceRoot });
-  const context = await runtime.open(spec, { workspaceRoot });
-  const result = await executeProtocolOperation(
-    invocation.operationName,
-    input,
-    context,
-  );
-  if (result.exitCode === 0 && spec.effects.includes("kb-write")) {
-    await runtime.afterSuccess(spec, context);
+  let result: Awaited<ReturnType<typeof executeProtocolOperation>>;
+  try {
+    const context = await runtime.open(spec, { workspaceRoot });
+    result = await executeProtocolOperation(
+      invocation.operationName,
+      input,
+      context
+    );
+    if (result.exitCode === 0 && spec.effects.includes("kb-write")) {
+      await runtime.afterSuccess(spec, context);
+    }
+    await runtime.close(context, {
+      status: "success",
+      result,
+    });
+  } catch (error) {
+    if (diagnostic) {
+      appendCliDiagnosticUsage({
+        workspaceRoot,
+        tool: invocation.operationName,
+        businessArgs,
+        telemetry,
+        startedAt,
+        status: "error",
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+    throw error;
   }
-  await runtime.close(context, {
-    status: "success",
-    result,
-  });
+  if (diagnostic) {
+    appendCliDiagnosticUsage({
+      workspaceRoot,
+      tool: invocation.operationName,
+      businessArgs,
+      telemetry,
+      startedAt,
+      status: result.exitCode === 0 ? "success" : "error",
+      result: structuredResult(result.stdout),
+      ...(result.exitCode === 0 || result.stderr === undefined
+        ? {}
+        : { error: result.stderr.trim() }),
+    });
+  }
   if (result.stdout !== undefined) {
     process.stdout.write(result.stdout);
   }
@@ -121,8 +196,8 @@ export function registerJsonOnlyCommands(program: Command): void {
           writeInputError(
             new InputError(
               "MISSING_INPUT",
-              "The --input option is required for this command.",
-            ),
+              "The --input option is required for this command."
+            )
           );
           return;
         }

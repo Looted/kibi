@@ -59,6 +59,56 @@ test(assert_and_query_entity, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     memberchk(title=TitleVal, Props),
     assertion(TitleVal = ^^("Test Requirement", _)).
 
+test(semantic_inventory_json_round_trips_without_prolog_list_coercion, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    InventoryJson = "[{\"claim_key\":\"CLAIM-ABCDEF0123456789\",\"claim_text\":\"A stable claim\",\"role\":\"normative\",\"status\":\"modeled\",\"span\":{\"start\":0,\"end\":14}}]",
+    kb_assert_entity(req, [
+        id='test-req-inventory',
+        title="Inventory round trip",
+        status=active,
+        created_at="2026-08-10T00:00:00Z",
+        updated_at="2026-08-10T00:00:00Z",
+        source="test://kb.plt",
+        semantic_inventory=InventoryJson
+    ]),
+    kb_entity('test-req-inventory', req, Props),
+    memberchk(semantic_inventory=StoredJson, Props),
+    assertion((atom(StoredJson) ; string(StoredJson))),
+    (atom(StoredJson) -> JsonAtom = StoredJson ; atom_string(JsonAtom, StoredJson)),
+    atom_json_dict(JsonAtom, Entries, [value_string_as(string)]),
+    Entries = [Entry],
+    get_dict(claim_key, Entry, ClaimKey),
+    get_dict(span, Entry, Span),
+    get_dict(end, Span, End),
+    assertion(ClaimKey == "CLAIM-ABCDEF0123456789"),
+    assertion(End == 14).
+
+test(requirement_semantic_text_is_typed_and_req_only, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(req, [
+        id='test-req-semantic-text',
+        title="Independent semantic prose",
+        status=active,
+        created_at="2026-08-11T00:00:00Z",
+        updated_at="2026-08-11T00:00:00Z",
+        source="test://kb.plt",
+        text_ref="src/policy.ts:42",
+        semantic_text="The policy must retain authored prose.",
+        semantic_source_field="semantic_text"
+    ]),
+    kb_entity('test-req-semantic-text', req, Props),
+    memberchk(text_ref=TextRef, Props),
+    memberchk(semantic_text=SemanticText, Props),
+    assertion(TextRef = ^^("src/policy.ts:42", _)),
+    assertion(SemanticText = ^^("The policy must retain authored prose.", _)),
+    \+ kb_assert_entity(scenario, [
+        id='test-scen-semantic-text',
+        title="Invalid semantic source owner",
+        status=active,
+        created_at="2026-08-11T00:00:00Z",
+        updated_at="2026-08-11T00:00:00Z",
+        source="test://kb.plt",
+        semantic_text="Requirement-only prose."
+    ]).
+
 test(retract_entity, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_assert_entity(req, [
         id='test-req-2',
@@ -274,14 +324,16 @@ test(delete_audit_preserves_typed_metadata, [setup(setup_kb), cleanup(cleanup_kb
         created_at="2026-02-17T00:00:00Z",
         updated_at="2026-02-17T00:00:00Z",
         source="test://kb.plt",
-        text_ref="documentation/requirements/REQ-AUDIT.md#L10"
+        text_ref="documentation/requirements/REQ-AUDIT.md#L10",
+        semantic_text="Deletion must retain semantic audit metadata."
     ]),
     kb_retract_entity('audit-delete-test'),
     changeset(_, delete, 'audit-delete-test', req-Props),
     memberchk(id='audit-delete-test', Props),
     memberchk(title="Audit Delete Test", Props),
     memberchk(source="test://kb.plt", Props),
-    memberchk(text_ref="documentation/requirements/REQ-AUDIT.md#L10", Props).
+    memberchk(text_ref="documentation/requirements/REQ-AUDIT.md#L10", Props),
+    memberchk(semantic_text="Deletion must retain semantic audit metadata.", Props).
 
 :- end_tests(kb_audit).
 
@@ -400,7 +452,17 @@ test(opposite_ground_predicate_polarities_contradict, [setup(setup_kb), cleanup(
     kb_assert_relationship(requires_predicate, 'REQ-PUBLISH-ASSERT', 'FACT-PUBLISH-ASSERT', []),
     kb_assert_relationship(requires_predicate, 'REQ-PUBLISH-DENY', 'FACT-PUBLISH-DENY', []),
     contradicting_reqs('REQ-PUBLISH-ASSERT', 'REQ-PUBLISH-DENY', Reason),
-    sub_string(Reason, _, _, _, "Predicate conflict").
+    sub_string(Reason, _, _, _, "Predicate conflict"),
+    req_conflict_witness('REQ-PUBLISH-ASSERT', 'REQ-PUBLISH-DENY', Witness),
+    assertion(Witness.kind == predicate),
+    assertion(Witness.status == contradiction),
+    assertion(Witness.left.factId == 'FACT-PUBLISH-ASSERT'),
+    assertion(Witness.left.claimKey == 'CLAIM-1111111111111111'),
+    assertion(Witness.left.term.polarity == assert),
+    assertion(Witness.right.factId == 'FACT-PUBLISH-DENY'),
+    assertion(Witness.right.claimKey == 'CLAIM-2222222222222222'),
+    assertion(Witness.right.term.polarity == deny),
+    assertion(Witness.predicateArgs == [suspended_user, publish, article]).
 
 test(logic_coverage_requires_every_declared_claim_to_be_grounded, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-LOGIC-COVERAGE', "Compound requirement", open, [
@@ -1332,6 +1394,209 @@ test(typed_verification_scope_beats_legacy_e2e_heuristics, [setup(setup_kb), cle
     coverage_row(Report.rows, 'REQ-TYPED-BEATS-LEGACY', Row),
     assertion(Row.coverageDepth == unit_only),
     assertion(Row.verificationScopes == [unit]).
+
+test(requirement_proof_rejects_structural_coverage_without_semantics_or_scenario_e2e, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-PROOF-STRUCTURAL-ONLY', "Structural coverage only", active, [priority=must]),
+    assert_fixture_entity(scenario, 'SCEN-PROOF-STRUCTURAL-ONLY', "Structural scenario", active, []),
+    assert_fixture_entity(test, 'TEST-PROOF-DIRECT-E2E', "Direct passing E2E", passing, [verification_scope=end_to_end]),
+    kb_assert_relationship(specified_by, 'REQ-PROOF-STRUCTURAL-ONLY', 'SCEN-PROOF-STRUCTURAL-ONLY', []),
+    kb_assert_relationship(verified_by, 'REQ-PROOF-STRUCTURAL-ONLY', 'TEST-PROOF-DIRECT-E2E', []),
+    coverage_report_json(req, [], true, true, 100, 0, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-PROOF-STRUCTURAL-ONLY', Row),
+    assertion(Row.coverageStatus == fully_covered),
+    assertion(Row.proofVersion == 'kibi.requirement-proof.v2'),
+    assertion(Row.proofStatus == missing),
+    assertion(memberchk(missing_semantic_inventory, Row.proofGaps)),
+    assertion(memberchk(missing_logic_claims, Row.proofGaps)),
+    assertion(memberchk(missing_scenario_test, Row.proofGaps)),
+    assertion(memberchk(missing_production_symbol, Row.proofGaps)),
+    assertion(Row.proofStages.passingE2e.status == missing),
+    assertion(Report.summary.proofMissing == 1),
+    coverage_report_json(req, [], false, true, 100, 0, GapsJsonString),
+    json_string_dict(GapsJsonString, GapsReport),
+    coverage_row(GapsReport.rows, 'REQ-PROOF-STRUCTURAL-ONLY', _).
+
+test(requirement_proof_marks_noncurrent_requirements_not_applicable, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-PROOF-OLD', "Superseded proof requirement", superseded, [priority=must]),
+    coverage_report_json(req, [], true, true, 100, 0, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-PROOF-OLD', Row),
+    assertion(Row.proofStatus == not_applicable),
+    assertion(Row.proofGaps == []),
+    assertion(Report.summary.proofNotApplicable == 1).
+
+test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ClaimKey = 'CLAIM-ABCDEF0123456789',
+    ClaimKeyString = "CLAIM-ABCDEF0123456789",
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    verification_receipt_json(
+        'TEST-PROOF-COMPLETE-E2E',
+        Snapshot,
+        passed,
+        '2026-08-10T11:55:00Z',
+        '2026-08-10T12:00:00Z',
+        ReceiptJson
+    ),
+    Inventory = [_{
+        claim_key: ClaimKey,
+        claim_text: "Coverage reports expose conservative proof outcomes",
+        role: normative,
+        status: modeled,
+        span: _{start: 0, end: 51}
+    }],
+    assert_fixture_entity(req, 'REQ-PROOF-COMPLETE', "Conservative requirement proof", active, [
+        priority=must,
+        logic_claims=[ClaimKey],
+        semantic_inventory=Inventory
+    ]),
+    assert_fixture_entity(fact, 'FACT-PROOF-SUBJECT', "Coverage report subject", active, [
+        fact_kind=subject,
+        subject_key="kibi.coverage.report"
+    ]),
+    assert_fixture_entity(fact, 'FACT-PROOF-PROPERTY', "Proof outcome property", active, [
+        fact_kind=property_value,
+        subject_key="kibi.coverage.report",
+        property_key="proof_outcome",
+        operator=eq,
+        value_type=string,
+        value_string="conservative",
+        claim_key=ClaimKeyString,
+        claim_text="Coverage reports expose conservative proof outcomes"
+    ]),
+    assert_fixture_entity(scenario, 'SCEN-PROOF-COMPLETE', "Inspect a requirement proof", active, []),
+    assert_fixture_entity(test, 'TEST-PROOF-COMPLETE-E2E', "Requirement proof E2E", passing, [
+        verification_scope=end_to_end,
+        verification_receipts=ReceiptJson
+    ]),
+    assert_fixture_entity(symbol, 'SYM-PROOF-PRODUCTION', "requirement_proof", active, [
+        sourceFile="packages/core/src/requirement_proof.pl",
+        sourceLine=10,
+        sourceColumn=0,
+        sourceEndLine=30,
+        sourceEndColumn=1
+    ]),
+    assert_fixture_entity(symbol, 'SYM-PROOF-E2E', "requirement proof E2E test", active, [
+        sourceFile="packages/core/tests/kb.plt",
+        sourceLine=1300,
+        sourceColumn=0,
+        sourceEndLine=1340,
+        sourceEndColumn=1
+    ]),
+    kb_assert_relationship(constrains, 'REQ-PROOF-COMPLETE', 'FACT-PROOF-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-PROOF-COMPLETE', 'FACT-PROOF-PROPERTY', []),
+    kb_assert_relationship(specified_by, 'REQ-PROOF-COMPLETE', 'SCEN-PROOF-COMPLETE', []),
+    kb_assert_relationship(verified_by, 'SCEN-PROOF-COMPLETE', 'TEST-PROOF-COMPLETE-E2E', []),
+    kb_assert_relationship(implements, 'SYM-PROOF-PRODUCTION', 'REQ-PROOF-COMPLETE', []),
+    kb_assert_relationship(covered_by, 'SYM-PROOF-PRODUCTION', 'TEST-PROOF-COMPLETE-E2E', []),
+    kb_assert_relationship(executable_for, 'SYM-PROOF-E2E', 'TEST-PROOF-COMPLETE-E2E', []),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-PROOF-COMPLETE', Row),
+    assertion(Row.testCount == 1),
+    assertion(Row.proofStatus == proven),
+    assertion(Row.proofGaps == []),
+    assertion(Row.proofStages.semanticInventory.status == passed),
+    assertion(Row.proofStages.logicGrounding.status == passed),
+    assertion(Row.proofStages.contradictions.outcome == no_conflict_found),
+    assertion(Row.proofStages.passingE2e.tests == ['TEST-PROOF-COMPLETE-E2E']),
+    Row.proofStages.passingE2e.receiptEvidence = [ReceiptEvidence],
+    assertion(ReceiptEvidence.state == passed),
+    assertion(ReceiptEvidence.codeSnapshot == Snapshot),
+    assertion(ReceiptEvidence.command == 'bun test packages/core/tests/kb.plt'),
+    assertion(Row.proofStages.executableSymbols.symbols == ['SYM-PROOF-E2E']),
+    assertion(Row.proofStages.productionSymbols.symbols == ['SYM-PROOF-PRODUCTION']),
+    assertion(Row.proofStages.sourceCoordinates.status == passed),
+    assertion(Report.summary.proofProven == 1),
+    assert_fixture_entity(fact, 'FACT-PROOF-PROPERTY', "Proof outcome property", active, [
+        fact_kind=property_value,
+        subject_key="kibi.coverage.report",
+        property_key="proof_outcome",
+        operator=eq,
+        value_type=string,
+        value_string="conservative",
+        claim_key=ClaimKeyString,
+        claim_text="A different proposition with a reused key"
+    ]),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, MismatchJsonString),
+    json_string_dict(MismatchJsonString, MismatchReport),
+    coverage_row(MismatchReport.rows, 'REQ-PROOF-COMPLETE', MismatchRow),
+    assertion(MismatchRow.proofStatus == unresolved),
+    assertion(MismatchRow.proofStages.logicGrounding.claimTextMismatchClaims == [ClaimKey]),
+    assertion(memberchk(ambiguous_logic_grounding, MismatchRow.proofGaps)).
+
+test(requirement_proof_receipts_are_snapshot_bound_fresh_and_outcome_sensitive, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    OtherSnapshot = 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
+    assert_fixture_entity(req, 'REQ-PROOF-RECEIPTS', "Receipt-sensitive proof", active, [priority=must]),
+    assert_fixture_entity(scenario, 'SCEN-PROOF-RECEIPTS', "Inspect receipt evidence", active, []),
+    assert_fixture_entity(test, 'TEST-PROOF-RECEIPTS', "Receipt-sensitive E2E", passing, [verification_scope=end_to_end]),
+    kb_assert_relationship(specified_by, 'REQ-PROOF-RECEIPTS', 'SCEN-PROOF-RECEIPTS', []),
+    kb_assert_relationship(verified_by, 'SCEN-PROOF-RECEIPTS', 'TEST-PROOF-RECEIPTS', []),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, MissingJson),
+    json_string_dict(MissingJson, MissingReport),
+    coverage_row(MissingReport.rows, 'REQ-PROOF-RECEIPTS', MissingRow),
+    assertion(MissingRow.proofStages.passingE2e.missingReceiptTests == ['TEST-PROOF-RECEIPTS']),
+    assertion(memberchk(missing_verification_receipt, MissingRow.proofGaps)),
+
+    verification_receipt_json('TEST-PROOF-RECEIPTS', OtherSnapshot, passed, '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', StaleJson),
+    assert_fixture_entity(test, 'TEST-PROOF-RECEIPTS', "Receipt-sensitive E2E", passing, [verification_scope=end_to_end, verification_receipts=StaleJson]),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, StaleReportJson),
+    json_string_dict(StaleReportJson, StaleReport),
+    coverage_row(StaleReport.rows, 'REQ-PROOF-RECEIPTS', StaleRow),
+    assertion(StaleRow.proofStages.passingE2e.staleReceiptTests == ['TEST-PROOF-RECEIPTS']),
+    assertion(memberchk(stale_verification_receipt, StaleRow.proofGaps)),
+
+    verification_receipt_json('TEST-PROOF-RECEIPTS', Snapshot, failed, '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', FailedJson),
+    assert_fixture_entity(test, 'TEST-PROOF-RECEIPTS', "Receipt-sensitive E2E", passing, [verification_scope=end_to_end, verification_receipts=FailedJson]),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, FailedReportJson),
+    json_string_dict(FailedReportJson, FailedReport),
+    coverage_row(FailedReport.rows, 'REQ-PROOF-RECEIPTS', FailedRow),
+    assertion(FailedRow.proofStages.passingE2e.failedReceiptTests == ['TEST-PROOF-RECEIPTS']),
+    assertion(memberchk(failed_verification_receipt, FailedRow.proofGaps)),
+
+    verification_receipt_json('TEST-PROOF-RECEIPTS', Snapshot, passed, '2026-08-10T12:15:00Z', '2026-08-10T12:20:01Z', FutureJson),
+    assert_fixture_entity(test, 'TEST-PROOF-RECEIPTS', "Receipt-sensitive E2E", passing, [verification_scope=end_to_end, verification_receipts=FutureJson]),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, FutureReportJson),
+    json_string_dict(FutureReportJson, FutureReport),
+    coverage_row(FutureReport.rows, 'REQ-PROOF-RECEIPTS', FutureRow),
+    assertion(FutureRow.proofStages.passingE2e.invalidReceiptTests == ['TEST-PROOF-RECEIPTS']),
+    assertion(memberchk(invalid_verification_receipt, FutureRow.proofGaps)),
+
+    verification_receipt_json('TEST-PROOF-RECEIPTS', Snapshot, passed, '2026-08-10', '2026-08-10', DateOnlyJson),
+    assert_fixture_entity(test, 'TEST-PROOF-RECEIPTS', "Receipt-sensitive E2E", passing, [verification_scope=end_to_end, verification_receipts=DateOnlyJson]),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, DateOnlyReportJson),
+    json_string_dict(DateOnlyReportJson, DateOnlyReport),
+    coverage_row(DateOnlyReport.rows, 'REQ-PROOF-RECEIPTS', DateOnlyRow),
+    assertion(DateOnlyRow.proofStages.passingE2e.invalidReceiptTests == ['TEST-PROOF-RECEIPTS']),
+
+    verification_receipt_json_with_id('bad-id', 'TEST-PROOF-RECEIPTS', Snapshot, passed, '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', BadIdJson),
+    assert_fixture_entity(test, 'TEST-PROOF-RECEIPTS', "Receipt-sensitive E2E", passing, [verification_scope=end_to_end, verification_receipts=BadIdJson]),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, BadIdReportJson),
+    json_string_dict(BadIdReportJson, BadIdReport),
+    coverage_row(BadIdReport.rows, 'REQ-PROOF-RECEIPTS', BadIdRow),
+    assertion(BadIdRow.proofStages.passingE2e.invalidReceiptTests == ['TEST-PROOF-RECEIPTS']),
+
+    verification_receipt_json('TEST-PROOF-RECEIPTS', Snapshot, passed, '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', PassedJson),
+    assert_fixture_entity(test, 'TEST-PROOF-RECEIPTS', "Receipt-sensitive E2E", failing, [verification_scope=end_to_end, verification_receipts=PassedJson]),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, PassedReportJson),
+    json_string_dict(PassedReportJson, PassedReport),
+    coverage_row(PassedReport.rows, 'REQ-PROOF-RECEIPTS', PassedRow),
+    assertion(PassedRow.proofStages.passingE2e.tests == ['TEST-PROOF-RECEIPTS']),
+    assertion(PassedRow.proofStages.passingE2e.status == passed).
+
+test(symbol_coverage_does_not_count_executable_test_symbols_as_production_coverage, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(test, 'TEST-SYMBOL-ROLE', "Executable symbol test", passing, [verification_scope=end_to_end]),
+    assert_fixture_entity(symbol, 'SYM-EXECUTABLE-ONLY', "Executable test symbol", active, []),
+    kb_assert_relationship(executable_for, 'SYM-EXECUTABLE-ONLY', 'TEST-SYMBOL-ROLE', []),
+    coverage_report_json(symbol, [], true, true, 100, 0, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'SYM-EXECUTABLE-ONLY', Row),
+    assertion(Row.traceabilityRole == executable_test),
+    assertion(Row.coverageStatus == not_applicable),
+    assertion(Row.executableTestCount == 1),
+    assertion(Report.summary.notApplicable == 1),
+    assertion(Report.summary.fullyCovered == 0).
 
 :- end_tests(kb_coverage_depth).
 
@@ -2368,7 +2633,60 @@ test(check_domain_contradictions_wraps_conflict_reason, [setup(setup_kb), cleanu
     assert_contradicting_requirement_pair('REQ-CONFLICT-A', 10, 'REQ-CONFLICT-B', 20),
     check_domain_contradictions(Violations),
     member(violation('domain-contradictions', "REQ-CONFLICT-A/REQ-CONFLICT-B", Description, _, ""), Violations),
-    assertion(sub_string(Description, _, _, _, "rate_limit")).
+    assertion(sub_string(Description, _, _, _, "rate_limit")),
+    check_domain_contradiction_witnesses([Witness]),
+    assertion(Witness.kind == strict_property),
+    assertion(Witness.status == contradiction),
+    assertion(Witness.subjectKey == 'api.quota'),
+    assertion(Witness.propertyKey == rate_limit),
+    assertion(Witness.left.factId == 'FACT-CONFLICT-A'),
+    assertion(Witness.left.factSource == 'test://kb.plt'),
+    assertion(Witness.left.claimKey == 'CLAIM-AAAAAAAAAAAAAAAA'),
+    assertion(Witness.left.term.value == 10),
+    assertion(Witness.right.factId == 'FACT-CONFLICT-B'),
+    assertion(Witness.right.claimKey == 'CLAIM-BBBBBBBBBBBBBBBB'),
+    assertion(Witness.right.term.value == 20),
+    checks:check_all_json(Json),
+    atom_json_dict(Json, Dict, [value_string_as(atom)]),
+    Dict.domain_contradictions = [JsonViolation],
+    JsonViolation.evidence.witnesses = [JsonWitness],
+    assertion(JsonWitness.left.factId == 'FACT-CONFLICT-A'),
+    assertion(JsonWitness.right.factId == 'FACT-CONFLICT-B').
+
+test(rule_contradiction_witness_is_source_bound_and_blocks_proof, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_rule_requirement_pair(customer, customer),
+    check_domain_contradiction_witnesses([Witness]),
+    assertion(Witness.kind == rule),
+    assertion(Witness.status == contradiction),
+    assertion(Witness.left.requirementId == 'REQ-RULE-ALLOW'),
+    assertion(Witness.left.factId == 'FACT-RULE-ALLOW'),
+    assertion(Witness.left.claimKey == 'CLAIM-CCCCCCCCCCCCCCCC'),
+    assertion(Witness.left.claimSpan.start == 0),
+    assertion(Witness.left.claimSpan.end == 37),
+    assertion(Witness.right.requirementId == 'REQ-RULE-DENY'),
+    assertion(Witness.right.factId == 'FACT-RULE-DENY'),
+    assertion(Witness.comparison.modalityA == oblige),
+    assertion(Witness.comparison.modalityB == forbid),
+    Context = _{contradictionWitnesses:[Witness], contradictions:[]},
+    requirement_proof:contradiction_stage('REQ-RULE-ALLOW', passed, Context, Stage),
+    assertion(Stage.status == blocked),
+    assertion(Stage.outcome == conflict_found),
+    assertion(Stage.conflicts == [Witness]).
+
+test(rule_overlap_witness_remains_unresolved_in_requirement_proof, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_rule_requirement_pair(customer, premium_customer),
+    check_domain_contradiction_witnesses([Witness]),
+    assertion(Witness.kind == rule),
+    assertion(Witness.status == unresolved),
+    assertion(Witness.comparison.bodyA \== Witness.comparison.bodyB),
+    check_domain_contradictions(Violations),
+    member(violation('domain-contradictions', "REQ-RULE-ALLOW/REQ-RULE-DENY", Description, _, ""), Violations),
+    assertion(sub_string(Description, _, _, _, "unresolved")),
+    Context = _{contradictionWitnesses:[Witness], contradictions:Violations},
+    requirement_proof:contradiction_stage('REQ-RULE-ALLOW', passed, Context, Stage),
+    assertion(Stage.status == unresolved),
+    assertion(Stage.outcome == analysis_incomplete),
+    assertion(Stage.conflicts == [Witness]).
 
 test(check_strict_req_fact_pairing_reports_missing_property_counterpart, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
     assert_fixture_entity(fact, 'FACT-SUBJECT-ONLY', "Subject only", active, [fact_kind=subject, subject_key="checkout"]),
@@ -2647,6 +2965,27 @@ assert_fixture_entity(Type, Id, Title, Status, ExtraProps) :-
     ], ExtraProps, Props),
     kb_assert_entity(Type, Props).
 
+verification_receipt_json(TestId, Snapshot, Outcome, StartedAt, FinishedAt, Json) :-
+    verification_receipt_json_with_id('VR-TEST-00000001', TestId, Snapshot, Outcome, StartedAt, FinishedAt, Json).
+
+verification_receipt_json_with_id(ReceiptId, TestId, Snapshot, Outcome, StartedAt, FinishedAt, Json) :-
+    Receipt = _{
+        version: 'kibi.verification-receipt.v1',
+        receipt_id: ReceiptId,
+        test_id: TestId,
+        runner: 'plunit',
+        command: 'bun test packages/core/tests/kb.plt',
+        scope: end_to_end,
+        outcome: Outcome,
+        code_snapshot: Snapshot,
+        environment_hash: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        started_at: StartedAt,
+        finished_at: FinishedAt,
+        artifact_digest: 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc'
+    },
+    atom_json_dict(JsonAtom, [Receipt], []),
+    atom_string(JsonAtom, Json).
+
 assert_raw_entity(Type, Id, Props) :-
     kb:kb_graph(Graph),
     atom_string(Type, TypeString),
@@ -2670,14 +3009,58 @@ assert_raw_relationship(RelType, FromId, ToId) :-
 
 assert_contradicting_requirement_pair(ReqA, ValueA, ReqB, ValueB) :-
     assert_fixture_entity(fact, 'FACT-CONFLICT-SUBJECT', "Conflict subject", active, [fact_kind=subject, subject_key="api.quota"]),
-    assert_fixture_entity(fact, 'FACT-CONFLICT-A', "Conflict A", active, [fact_kind=property_value, subject_key="api.quota", property_key="rate_limit", operator=eq, value_type=int, value_int=ValueA]),
-    assert_fixture_entity(fact, 'FACT-CONFLICT-B', "Conflict B", active, [fact_kind=property_value, subject_key="api.quota", property_key="rate_limit", operator=eq, value_type=int, value_int=ValueB]),
+    assert_fixture_entity(fact, 'FACT-CONFLICT-A', "Conflict A", active, [fact_kind=property_value, subject_key="api.quota", property_key="rate_limit", operator=eq, value_type=int, value_int=ValueA, claim_key="CLAIM-AAAAAAAAAAAAAAAA", claim_text="API quota must equal the first value"]),
+    assert_fixture_entity(fact, 'FACT-CONFLICT-B', "Conflict B", active, [fact_kind=property_value, subject_key="api.quota", property_key="rate_limit", operator=eq, value_type=int, value_int=ValueB, claim_key="CLAIM-BBBBBBBBBBBBBBBB", claim_text="API quota must equal the second value"]),
     assert_fixture_entity(req, ReqA, "Conflicting req A", open, []),
     assert_fixture_entity(req, ReqB, "Conflicting req B", open, []),
     kb_assert_relationship(constrains, ReqA, 'FACT-CONFLICT-SUBJECT', []),
     kb_assert_relationship(constrains, ReqB, 'FACT-CONFLICT-SUBJECT', []),
     kb_assert_relationship(requires_property, ReqA, 'FACT-CONFLICT-A', []),
     kb_assert_relationship(requires_property, ReqB, 'FACT-CONFLICT-B', []).
+
+assert_rule_requirement_pair(BodyNameA, BodyNameB) :-
+    rule_fixture_json(oblige, BodyNameA, RuleJsonA),
+    rule_fixture_json(forbid, BodyNameB, RuleJsonB),
+    assert_fixture_entity(fact, 'FACT-RULE-ALLOW', "Allow governed action", active, [
+        fact_kind=rule,
+        rule_ir=RuleJsonA,
+        rule_hash="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        rule_schema_id="FACT-RULE-SCHEMA-TEST",
+        rule_name="governed_action_rule",
+        semantic_key="governed_action_rule:allow",
+        claim_key="CLAIM-CCCCCCCCCCCCCCCC",
+        claim_text="Customers must perform governed action",
+        claim_span_start=0,
+        claim_span_end=37
+    ]),
+    assert_fixture_entity(fact, 'FACT-RULE-DENY', "Deny governed action", active, [
+        fact_kind=rule,
+        rule_ir=RuleJsonB,
+        rule_hash="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        rule_schema_id="FACT-RULE-SCHEMA-TEST",
+        rule_name="governed_action_rule",
+        semantic_key="governed_action_rule:deny",
+        claim_key="CLAIM-DDDDDDDDDDDDDDDD",
+        claim_text="Customers must not perform governed action",
+        claim_span_start=0,
+        claim_span_end=41
+    ]),
+    assert_fixture_entity(req, 'REQ-RULE-ALLOW', "Allow governed action", open, []),
+    assert_fixture_entity(req, 'REQ-RULE-DENY', "Deny governed action", open, []),
+    kb_assert_relationship(requires_rule, 'REQ-RULE-ALLOW', 'FACT-RULE-ALLOW', []),
+    kb_assert_relationship(requires_rule, 'REQ-RULE-DENY', 'FACT-RULE-DENY', []).
+
+rule_fixture_json(Modality, BodyName, Json) :-
+    Dict = _{
+        version:'kibi.logic.v1',
+        kind:rule,
+        modality:Modality,
+        head:_{kind:atom, name:governed_action, args:[]},
+        body:_{kind:atom, name:BodyName, args:[]},
+        variables:[]
+    },
+    atom_json_dict(JsonAtom, Dict, []),
+    atom_string(JsonAtom, Json).
 
 json_string_dict(JsonString, Dict) :-
     atom_string(JsonAtom, JsonString),

@@ -446,6 +446,36 @@ describe("temp-kb", () => {
   });
 
   describe("projectStagedEntities", () => {
+    it("preserves source coordinates for staged proof-bearing symbols", async () => {
+      const prolog = new StubPrologProcess();
+      await projectStagedEntities(prolog, [
+        {
+          entity: {
+            id: "SYM-PROOF-STAGED",
+            type: "symbol",
+            title: "proofStaged",
+            status: "active",
+            created_at: FIXED_TIMESTAMP,
+            updated_at: FIXED_TIMESTAMP,
+            source: "documentation/symbols.yaml",
+            sourceLine: 4,
+            sourceColumn: 2,
+            sourceEndLine: 9,
+            sourceEndColumn: 1,
+          },
+          sourceFile: "src/proof-staged.ts",
+          relationships: [],
+        },
+      ]);
+
+      const assertGoal = String(prolog.queries[1]);
+      expect(assertGoal).toContain('sourceFile="src/proof-staged.ts"');
+      expect(assertGoal).toContain("sourceLine=4");
+      expect(assertGoal).toContain("sourceColumn=2");
+      expect(assertGoal).toContain("sourceEndLine=9");
+      expect(assertGoal).toContain("sourceEndColumn=1");
+    });
+
     it("serializes fact-specific properties into the assertion goal", async () => {
       const prolog = new StubPrologProcess();
       const result: ExtractionResult = {
@@ -556,7 +586,13 @@ describe("temp-kb", () => {
             created_at: FIXED_TIMESTAMP,
             updated_at: FIXED_TIMESTAMP,
             source: "documentation/requirements/REQ-LOGIC.md",
+            semantic_text: "Atomic claim text",
             logic_claims: ["CLAIM-0000000000000000"],
+            semantic_clauses: ["Atomic claim text"],
+            semantic_inventory_version: "kibi.semantic-inventory.v1",
+            semantic_source_field: "semantic_text",
+            semantic_source_hash:
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           },
           relationships: [],
         },
@@ -578,6 +614,19 @@ describe("temp-kb", () => {
 
       expect(prolog.queries[1]).toContain(
         "logic_claims=['CLAIM-0000000000000000']",
+      );
+      expect(prolog.queries[1]).toContain('semantic_text="Atomic claim text"');
+      expect(prolog.queries[1]).toContain(
+        'semantic_clauses=["Atomic claim text"]',
+      );
+      expect(prolog.queries[1]).toContain(
+        'semantic_inventory_version="kibi.semantic-inventory.v1"',
+      );
+      expect(prolog.queries[1]).toContain(
+        'semantic_source_field="semantic_text"',
+      );
+      expect(prolog.queries[1]).toContain(
+        'semantic_source_hash="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"',
       );
       expect(prolog.queries[3]).toContain("verification_scope=end_to_end");
       expect(prolog.queries[3]).toContain("verification_perspective=consumer");

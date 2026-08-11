@@ -75,6 +75,7 @@ export interface TestVerificationFields {
 
 export type Requirement = BaseEntity & {
   type: "req";
+  semantic_text?: string;
   logic_claims?: string[];
 };
 export type Scenario = BaseEntity & { type: "scenario" };

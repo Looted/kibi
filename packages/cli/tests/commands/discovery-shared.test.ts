@@ -432,7 +432,8 @@ describe("discovery-shared", () => {
     );
     const genericCoverage = stripAnsi(logSpy.mock.calls.at(-1)?.[0] as string);
     expect(genericCoverage).toContain("Details");
-    expect(genericCoverage).toContain("req=4 test=5 count=6");
+    expect(genericCoverage).toContain("req=4 covered=5");
+    expect(genericCoverage).toContain("executable=- count=6");
     expect(genericCoverage).toContain("partial");
   });
 });

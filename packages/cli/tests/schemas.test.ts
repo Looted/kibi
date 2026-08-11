@@ -88,6 +88,66 @@ describe("Entity Schema", () => {
     ).toBe(true);
   });
 
+  test("accepts requirement semantic_text and rejects it on other entities", () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    const validate = ajv.compile(entitySchema as AnySchema);
+    const entity = {
+      id: "REQ-SEMANTIC-SOURCE",
+      title: "Separate semantic prose from evidence",
+      status: "open",
+      created_at: "2026-08-11T00:00:00Z",
+      updated_at: "2026-08-11T00:00:00Z",
+      source: "documentation/requirements/REQ-SEMANTIC-SOURCE.md",
+      semantic_text: "Authored requirement prose.",
+      semantic_source_field: "semantic_text",
+    };
+
+    expect(validate({ ...entity, type: "req" })).toBe(true);
+    expect(
+      validate({ ...entity, id: "SCEN-SEMANTIC-SOURCE", type: "scenario" }),
+    ).toBe(false);
+  });
+
+  test("accepts verification receipts only on scoped test entities", () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    const validate = ajv.compile(entitySchema as AnySchema);
+    const base = {
+      id: "TEST-RECEIPT-SCHEMA",
+      title: "Receipt schema test",
+      status: "failing",
+      created_at: "2026-08-10T00:00:00Z",
+      updated_at: "2026-08-10T00:00:00Z",
+      source: "documentation/tests/TEST-RECEIPT-SCHEMA.md",
+      verification_scope: "end_to_end",
+      verification_receipts: [
+        {
+          version: "kibi.verification-receipt.v1",
+          receipt_id: "VR-SCHEMA-00000001",
+          test_id: "TEST-RECEIPT-SCHEMA",
+          runner: "bun:test",
+          command: "bun test receipt.test.ts",
+          scope: "end_to_end",
+          outcome: "passed",
+          code_snapshot:
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          environment_hash:
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          started_at: "2026-08-10T12:00:00Z",
+          finished_at: "2026-08-10T12:01:00Z",
+          artifact_digest:
+            "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        },
+      ],
+    };
+
+    expect(validate({ ...base, type: "test" })).toBe(true);
+    expect(validate({ ...base, type: "req" })).toBe(false);
+    const { verification_scope: _scope, ...withoutScope } = base;
+    expect(validate({ ...withoutScope, type: "test" })).toBe(false);
+  });
+
   test("rejects entity missing title", async () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);

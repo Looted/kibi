@@ -163,6 +163,18 @@ describe("MCP check aggregated path", () => {
                   suggestion:
                     "Supersede one requirement or align both to the same required property",
                   source: "",
+                  evidence: {
+                    witnesses: [
+                      {
+                        kind: "strict_property",
+                        status: "contradiction",
+                        requirements: [
+                          "REQ-DOMAIN-CLOSED-001",
+                          "REQ-DOMAIN-OPEN-001",
+                        ],
+                      },
+                    ],
+                  },
                 },
               ],
             }),
@@ -186,6 +198,15 @@ describe("MCP check aggregated path", () => {
     expect(result.structuredContent?.violations[0]?.rule).toBe(
       "domain-contradictions",
     );
+    expect(result.structuredContent?.violations[0]?.evidence).toEqual({
+      witnesses: [
+        {
+          kind: "strict_property",
+          status: "contradiction",
+          requirements: ["REQ-DOMAIN-CLOSED-001", "REQ-DOMAIN-OPEN-001"],
+        },
+      ],
+    });
     expect(result.content[0]?.text).toContain("domain-contradictions");
     expect(result.content[0]?.text).toContain("REQ-DOMAIN-CLOSED-001");
     expect(result.content[0]?.text).toContain("timeout_minutes");

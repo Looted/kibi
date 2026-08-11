@@ -95,6 +95,8 @@ const defaultCache = (): SyncCache => ({
   version: SYNC_CACHE_VERSION,
   hashes: {},
   seenAt: {},
+  semanticHashes: {},
+  semanticContracts: {},
 });
 
 // --- Tests ---
@@ -121,10 +123,14 @@ describe("SyncCache type", () => {
       version: 1,
       hashes: { "foo.ts": "abc123" },
       seenAt: { "foo.ts": "2026-01-01T00:00:00Z" },
+      semanticHashes: { "foo.ts": "semantic123" },
+      semanticContracts: { "foo.ts": true },
     };
     expect(cache.version).toBe(1);
     expect(cache.hashes["foo.ts"]).toBe("abc123");
     expect(cache.seenAt["foo.ts"]).toBe("2026-01-01T00:00:00Z");
+    expect(cache.semanticHashes["foo.ts"]).toBe("semantic123");
+    expect(cache.semanticContracts["foo.ts"]).toBe(true);
   });
 });
 
@@ -227,6 +233,8 @@ describe("readSyncCache", () => {
       version: 1,
       hashes: { "foo.ts": "abc123" },
       seenAt: { "foo.ts": "2026-01-01T00:00:00Z" },
+      semanticHashes: { "foo.ts": "semantic123" },
+      semanticContracts: { "foo.ts": true },
     };
     mockExistsSync.mockReturnValue(true);
     mockReadFileSync.mockReturnValue(JSON.stringify(cached));
@@ -309,7 +317,13 @@ describe("readSyncCache", () => {
     mockReadFileSync.mockReturnValue(JSON.stringify({ version: 1 }));
 
     const result = readSyncCache("/cache/path.json", cacheDeps());
-    expect(result).toEqual({ version: 1, hashes: {}, seenAt: {} });
+    expect(result).toEqual({
+      version: 1,
+      hashes: {},
+      seenAt: {},
+      semanticHashes: {},
+      semanticContracts: {},
+    });
   });
 
   test("reads file with utf8 encoding", () => {
@@ -355,6 +369,8 @@ describe("writeSyncCache", () => {
       version: 1,
       hashes: { "foo.ts": "abc" },
       seenAt: { "foo.ts": "2026-01-01" },
+      semanticHashes: { "foo.ts": "semantic" },
+      semanticContracts: { "foo.ts": true },
     };
 
     writeSyncCache("/dir/cache.json", cache, cacheDeps());
@@ -374,11 +390,15 @@ describe("writeSyncCache", () => {
       version: 1,
       hashes: { "a.ts": "h1" },
       seenAt: {},
+      semanticHashes: {},
+      semanticContracts: {},
     };
     const cache2: SyncCache = {
       version: 1,
       hashes: { "b.ts": "h2" },
       seenAt: {},
+      semanticHashes: {},
+      semanticContracts: {},
     };
 
     writeSyncCache("/cache.json", cache1, cacheDeps());

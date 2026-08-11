@@ -18,6 +18,7 @@
 
 // Typed fact field enums per proposal
 import { SYMBOL_ROLES, type SymbolRole } from "../symbol-granularity.js";
+import { VERIFICATION_RECEIPT_SCHEMA } from "../verification-receipt.js";
 
 type FactKind =
   | "subject"
@@ -355,11 +356,33 @@ const entitySchema: Record<string, unknown> = {
     severity: { type: "string" },
     links: { type: "array", items: { type: "string" } },
     text_ref: { type: "string" },
+    semantic_text: {
+      type: "string",
+      description:
+        "Requirement-only authored prose whose exact UTF-8 bytes anchor the semantic inventory without replacing text_ref evidence.",
+    },
     logic_claims: {
       type: "array",
       minItems: 1,
       uniqueItems: true,
       items: { type: "string", pattern: "^CLAIM-[A-F0-9]{16}$" },
+    },
+    semantic_clauses: {
+      type: "array",
+      minItems: 1,
+      items: { type: "string", minLength: 1 },
+    },
+    semantic_inventory_version: {
+      type: "string",
+      const: "kibi.semantic-inventory.v1",
+    },
+    semantic_source_field: {
+      type: "string",
+      enum: ["semantic_text", "text_ref", "title"],
+    },
+    semantic_source_hash: {
+      type: "string",
+      pattern: "^[a-f0-9]{64}$",
     },
     semantic_inventory: {
       type: "array",
@@ -429,6 +452,11 @@ const entitySchema: Record<string, unknown> = {
     verification_perspective: {
       type: "string",
       enum: ["internal", "consumer"] satisfies VerificationPerspective[],
+    },
+    verification_receipts: {
+      type: "array",
+      maxItems: 50,
+      items: VERIFICATION_RECEIPT_SCHEMA,
     },
     type: {
       type: "string",
@@ -569,16 +597,31 @@ const entitySchema: Record<string, unknown> = {
           anyOf: [
             { required: ["verification_scope"] },
             { required: ["verification_perspective"] },
+            { required: ["verification_receipts"] },
           ],
         },
       },
+    },
+    {
+      if: { required: ["verification_receipts"] },
+      // biome-ignore lint/suspicious/noThenProperty: JSON Schema conditional keyword.
+      then: { required: ["verification_scope"] },
     },
     {
       if: {
         properties: { type: { const: "req" } },
       },
       else: {
-        not: { required: ["semantic_inventory"] },
+        not: {
+          anyOf: [
+            { required: ["semantic_inventory"] },
+            { required: ["semantic_clauses"] },
+            { required: ["semantic_text"] },
+            { required: ["semantic_inventory_version"] },
+            { required: ["semantic_source_field"] },
+            { required: ["semantic_source_hash"] },
+          ],
+        },
       },
     },
     ...factConditionals,

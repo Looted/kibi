@@ -1,5 +1,12 @@
 import type { SemanticClause } from "./clauses.js";
-import { type Payload, payloadHash, propertiesOf } from "./shared.js";
+import {
+  type Payload,
+  SEMANTIC_INVENTORY_VERSION,
+  payloadHash,
+  propertiesOf,
+  semanticSourceHash,
+  semanticSourceOf,
+} from "./shared.js";
 import type {
   SemanticAdvisorAnalysisResult,
   SemanticAdvisorLane,
@@ -62,6 +69,7 @@ export function buildAdvisorResult(
   interpretations: readonly SemanticInterpretationResult[],
   shadowAnalysis: readonly SemanticShadowCue[],
 ): SemanticAdvisorAnalysisResult {
+  const semanticSource = semanticSourceOf(payload);
   const suggestionLane = suggestions.some(
     ({ kind }) => kind === "strict_property",
   )
@@ -120,6 +128,11 @@ export function buildAdvisorResult(
   const receipt: SemanticAdvisorReceipt = {
     version: "semantic-advisor-v2",
     payload_hash: payloadHash(payload),
+    inventory_contract: {
+      version: SEMANTIC_INVENTORY_VERSION,
+      source_field: semanticSource.field,
+      source_hash: semanticSourceHash(semanticSource.text),
+    },
     logic_readiness: readiness,
     candidate_lane: candidateLane,
     signals,

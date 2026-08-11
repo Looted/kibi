@@ -9,6 +9,8 @@ import type {
 
 export type Payload = Readonly<Record<string, unknown>>;
 export type MatchGroups = Readonly<Record<string, string | undefined>>;
+export const SEMANTIC_INVENTORY_VERSION = "kibi.semantic-inventory.v1";
+export type SemanticSourceField = "semantic_text" | "text_ref" | "title";
 
 // implements REQ-mcp-semantic-advisor-preflight
 export function isRecord(value: unknown): value is Record<string, unknown> {
@@ -40,6 +42,46 @@ export function payloadHash(payload: Payload): string {
   return createHash("sha256").update(canonicalize(stable)).digest("hex");
 }
 
+// implements REQ-kibi-legacy-migration-preview-v2
+export function semanticSourceOf(payload: Payload): {
+  readonly field: SemanticSourceField;
+  readonly text: string;
+} {
+  const properties = propertiesOf(payload);
+  const declaredField = stringValue(properties.semantic_source_field);
+  if (
+    declaredField === "semantic_text" ||
+    declaredField === "text_ref" ||
+    declaredField === "title"
+  ) {
+    return {
+      field: declaredField,
+      text: stringValue(properties[declaredField]),
+    };
+  }
+  const semanticText = stringValue(properties.semantic_text);
+  if (semanticText) return { field: "semantic_text", text: semanticText };
+  const textRef = stringValue(properties.text_ref);
+  return textRef
+    ? { field: "text_ref", text: textRef }
+    : { field: "title", text: stringValue(properties.title) };
+}
+
+export function semanticSourceHash(text: string): string {
+  return createHash("sha256").update(text).digest("hex");
+}
+
+export function semanticClausesOf(
+  payload: Payload,
+): readonly string[] | undefined {
+  const value = propertiesOf(payload).semantic_clauses;
+  if (!Array.isArray(value)) return undefined;
+  return value.filter(
+    (clause): clause is string =>
+      typeof clause === "string" && clause.trim().length > 0,
+  );
+}
+
 // implements REQ-mcp-semantic-advisor-preflight
 export function shortHash(value: string): string {
   return createHash("sha256").update(value).digest("hex").slice(0, 12);
@@ -52,8 +94,7 @@ export function propertiesOf(payload: Payload): Record<string, unknown> {
 
 // implements REQ-mcp-semantic-advisor-preflight
 export function statementOf(payload: Payload): string {
-  const properties = propertiesOf(payload);
-  return stringValue(properties.text_ref) || stringValue(properties.title);
+  return semanticSourceOf(payload).text;
 }
 
 // implements REQ-mcp-semantic-advisor-preflight
@@ -112,6 +153,7 @@ export function strictSuggestion(
   confidence = 0.9,
 ): SemanticModelingSuggestion {
   const claimText = statementOf(payload);
+  const semanticSource = semanticSourceOf(payload);
   const reqId =
     stringValue(payload.id) || `REQ-SEMANTIC-${shortHash(claim.subject_key)}`;
   const subjectId = `FACT-SUBJECT-${shortHash(claim.subject_key)}`;
@@ -185,7 +227,11 @@ export function strictSuggestion(
             "Semantic advisor requirement suggestion",
           status: "open",
           source,
-          text_ref: statementOf(payload),
+          ...(semanticSource.field === "semantic_text"
+            ? { semantic_text: statementOf(payload) }
+            : semanticSource.field === "text_ref"
+              ? { text_ref: statementOf(payload) }
+              : {}),
           tags: ["semantic-advisor-suggestion"],
         },
         relationships: [

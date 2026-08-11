@@ -188,8 +188,91 @@
       },
       "success": {
         "structuredContent": {
-          "summary": { "total": 1, "fullyCovered": 1 },
-          "rows": [{ "id": "REQ-CONTRACT-001", "covered": 1, "missing": 0 }],
+          "summary": {
+            "total": 1,
+            "fullyCovered": 1,
+            "proofProven": 0,
+            "proofUnresolved": 0,
+            "proofMissing": 1
+          },
+          "rows": [
+            {
+              "id": "REQ-CONTRACT-001",
+              "coverageStatus": "fully_covered",
+              "proofStatus": "missing",
+              "proofGaps": ["missing_semantic_inventory"],
+              "proofRepairs": [
+                {
+                  "gap": "missing_semantic_inventory",
+                  "priority": 10,
+                  "stage": "semantic_inventory",
+                  "action": "Run kb_semantic_advisor and persist its complete proposition ledger."
+                }
+              ]
+            }
+          ],
+          "repairPlan": {
+            "version": "kibi.repair-plan.v1",
+            "planId": "repair-plan-aaaaaaaaaaaaaaaaaaaaaaaa",
+            "readOnly": true,
+            "status": "ready",
+            "codeSnapshot": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "scope": {
+              "by": "req",
+              "tags": [],
+              "offset": 0,
+              "limit": 25,
+              "complete": true,
+              "actionableRequirements": 1,
+              "returnedActionableRequirements": 1,
+              "excludedByPagination": 0
+            },
+            "applicationPolicy": {
+              "queryBeforeMutation": true,
+              "createEndpointsBeforeRelationships": true,
+              "validateBeforeEachWrite": true,
+              "sequentialUpsertsOnly": true,
+              "recheckCoverageAfterEachBatch": true
+            },
+            "summary": {
+              "requirementCount": 1,
+              "repairCount": 1,
+              "batchCount": 1,
+              "readyBatchCount": 1,
+              "blockedBatchCount": 0
+            },
+            "batches": [
+              {
+                "id": "repair-010-REQ-CONTRACT-001-semantic_inventory",
+                "order": 10,
+                "phase": "semantic_inventory",
+                "requirementId": "REQ-CONTRACT-001",
+                "state": "ready",
+                "dependsOn": [],
+                "objective": "Produce and persist a complete source-bound proposition inventory.",
+                "workflowSteps": [
+                  "kb_semantic_advisor",
+                  "kb_validate_upsert",
+                  "kb_upsert",
+                  "kb_check"
+                ],
+                "validationRules": ["semantic-completeness", "logic-coverage"],
+                "writePolicy": "analysis_then_sequential_upsert",
+                "autoApplicable": false,
+                "repairs": [
+                  {
+                    "requirementId": "REQ-CONTRACT-001",
+                    "gap": "missing_semantic_inventory",
+                    "proofPriority": 10,
+                    "proofStage": "semantic_inventory",
+                    "action": "Run kb_semantic_advisor and persist its complete proposition ledger.",
+                    "evidence": { "status": "missing" }
+                  }
+                ]
+              }
+            ],
+            "diagnostics": []
+          },
           "meta": {
             "by": "req",
             "includePassing": false,

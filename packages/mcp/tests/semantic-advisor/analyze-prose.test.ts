@@ -1235,6 +1235,7 @@ describe("semantic advisor prose analysis", () => {
           source: "docs/requirements/sessions.md",
           text_ref: "Session timeout must equal 30 minutes.",
           logic_claims: [claimKey],
+          semantic_inventory: [{ claim_key: claimKey, status: "modeled" }],
         },
         relationships: [
           { type: "constrains", from: "REQ-MODELED", to: "FACT-SUBJECT" },
@@ -1285,6 +1286,7 @@ describe("semantic advisor prose analysis", () => {
           source: "docs/requirements/sessions.md",
           text_ref: "Session timeout must equal 30 minutes.",
           logic_claims: [claimKey],
+          semantic_inventory: [{ claim_key: claimKey, status: "modeled" }],
         },
         relationships: [
           { type: "constrains", from: "REQ-PREMODELED", to: "FACT-SUBJECT" },

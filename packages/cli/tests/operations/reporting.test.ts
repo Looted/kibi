@@ -29,6 +29,16 @@ function contextWithPayload(payload: Readonly<Record<string, unknown>>): {
       signal: new AbortController().signal,
       clock: () => new Date(0),
       prolog,
+      git: {
+        revParse: async () => "main",
+        showToplevel: async () => process.cwd(),
+        workspaceSnapshot: async () => ({
+          version: "kibi.workspace-snapshot.v1",
+          hash: "a".repeat(64),
+          dirty: true,
+          fileCount: 42,
+        }),
+      },
     },
     query,
   };
@@ -55,17 +65,105 @@ describe("shared reporting operation executors", () => {
 
   test("coverageSpec.execute preserves passing and transitive defaults", async () => {
     const { context, query } = contextWithPayload({
-      summary: { total: 2, fullyCovered: 1 },
+      summary: { total: 2, fullyCovered: 1, proofProven: 0 },
       rows: [],
     });
 
     const result = await coverageSpec.execute({}, context);
 
     expect(result.content[0]?.text).toBe(
-      "Coverage summary: 1 fully covered out of 2.",
+      "Coverage summary: 1 structurally covered and 0 proven out of 2.",
     );
     expect(String(query.mock.calls[0]?.[0])).toContain(
-      "coverage_report_json('req', [], false, true, 100, 0, JsonString)",
+      `coverage_report_json('req', [], false, true, 100, 0, '${"a".repeat(64)}', '1970-01-01T00:00:00.000Z', 604800, JsonString)`,
+    );
+    expect(result.structuredContent?.meta).toMatchObject({
+      verificationReceiptMaxAgeSeconds: 604800,
+      verificationSnapshot: "a".repeat(64),
+      verificationSnapshotAvailable: true,
+      verificationSnapshotDirty: true,
+      verificationSnapshotFileCount: 42,
+      verificationSnapshotVersion: "kibi.workspace-snapshot.v1",
+    });
+  });
+
+  test("coverageSpec.execute refuses to turn an unavailable snapshot into proof", async () => {
+    const { context, query } = contextWithPayload({
+      summary: { total: 1, fullyCovered: 1, proofProven: 0 },
+      rows: [],
+    });
+    const withoutSnapshot = { ...context, git: undefined };
+
+    const result = await coverageSpec.execute({}, withoutSnapshot);
+
+    expect(String(query.mock.calls[0]?.[0])).toContain(
+      "100, 0, 'unknown', '1970-01-01T00:00:00.000Z', 604800, JsonString)",
+    );
+    expect(result.structuredContent?.meta).toMatchObject({
+      verificationSnapshot: "unknown",
+      verificationSnapshotAvailable: false,
+      verificationSnapshotError:
+        "The active operation runtime does not expose workspace snapshots.",
+    });
+  });
+
+  test("coverageSpec.execute attaches a deterministic read-only repair plan", async () => {
+    const { context } = contextWithPayload({
+      summary: {
+        total: 1,
+        fullyCovered: 0,
+        proofProven: 0,
+        proofMissing: 1,
+        proofUnresolved: 0,
+      },
+      rows: [
+        {
+          id: "REQ-PLAN-001",
+          proofStatus: "missing",
+          proofGaps: ["missing_logic_claims", "missing_semantic_inventory"],
+          proofRepairs: [
+            {
+              gap: "missing_semantic_inventory",
+              priority: 10,
+              stage: "semantic_inventory",
+              action: "Analyze prose.",
+            },
+            {
+              gap: "missing_logic_claims",
+              priority: 30,
+              stage: "logic_grounding",
+              action: "Persist claims.",
+            },
+          ],
+          proofStages: {
+            semanticInventory: { status: "missing" },
+            logicGrounding: { status: "blocked" },
+          },
+        },
+      ],
+    });
+
+    const first = await coverageSpec.execute({}, context);
+    const second = await coverageSpec.execute({}, context);
+
+    expect(first.structuredContent?.repairPlan).toMatchObject({
+      version: "kibi.repair-plan.v1",
+      readOnly: true,
+      status: "ready",
+      codeSnapshot: "a".repeat(64),
+      scope: { complete: true },
+      summary: { requirementCount: 1, repairCount: 2, batchCount: 2 },
+    });
+    expect(first.structuredContent?.repairPlan?.batches[0]?.phase).toBe(
+      "semantic_inventory",
+    );
+    expect(first.structuredContent?.repairPlan?.batches[1]).toMatchObject({
+      phase: "manifest_links",
+      state: "blocked",
+      dependsOn: [first.structuredContent?.repairPlan?.batches[0]?.id],
+    });
+    expect(second.structuredContent?.repairPlan?.planId).toBe(
+      first.structuredContent?.repairPlan?.planId,
     );
   });
 

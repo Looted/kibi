@@ -57,6 +57,22 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
 
   const obj = schema as Record<string, unknown>;
 
+  if (Object.hasOwn(obj, "const")) {
+    const description =
+      typeof obj.description === "string" ? obj.description : undefined;
+    const value = obj.const;
+    if (
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean" ||
+      value === null
+    ) {
+      const literal = z.literal(value);
+      return description ? literal.describe(description) : literal;
+    }
+    return description ? z.any().describe(description) : z.any();
+  }
+
   if (Array.isArray(obj.enum) && obj.enum.length > 0) {
     const description =
       typeof obj.description === "string" ? obj.description : undefined;

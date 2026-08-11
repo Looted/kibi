@@ -19,10 +19,14 @@ import { PRODUCT_TAIL_PREDICATE_RULES } from "./predicate-rules-product-tail.js"
 import { PRODUCT_PREDICATE_RULES } from "./predicate-rules-product.js";
 import {
   type Payload,
+  type SemanticSourceField,
   isRecord,
   payloadHash,
   propertiesOf,
   relationship,
+  semanticClausesOf,
+  semanticSourceHash,
+  semanticSourceOf,
   sourceOf,
   statementOf,
   stringValue,
@@ -98,7 +102,12 @@ const SIGNAL_PATTERNS = [
 
 function proseOf(payload: Payload): string {
   const properties = propertiesOf(payload);
-  return [properties.title, properties.text_ref, properties.description]
+  return [
+    properties.title,
+    properties.semantic_text,
+    properties.text_ref,
+    properties.description,
+  ]
     .map(stringValue)
     .filter(Boolean)
     .join("\n");
@@ -123,8 +132,11 @@ function logicalGroundingSlots(payload: Payload): number {
   ).length;
 }
 
-function isModeled(payload: Payload, expectedClaimCount: number): boolean {
-  if (expectedClaimCount === 0) return false;
+function isModeled(
+  payload: Payload,
+  expectedClaimKeys: readonly string[],
+): boolean {
+  if (expectedClaimKeys.length === 0) return false;
   const relationships = Array.isArray(payload.relationships)
     ? payload.relationships
     : [];
@@ -134,8 +146,19 @@ function isModeled(payload: Payload, expectedClaimCount: number): boolean {
       .map((relationship) => stringValue(relationship.type))
       .filter(Boolean),
   );
+  const rawInventory = propertiesOf(payload).semantic_inventory;
+  const inventory = Array.isArray(rawInventory)
+    ? rawInventory.filter(isRecord)
+    : [];
+  const modeledClaimKeys = inventory
+    .filter(({ status }) => status === "modeled")
+    .map(({ claim_key }) => stringValue(claim_key));
   return (
-    logicalGroundingSlots(payload) >= expectedClaimCount &&
+    logicalGroundingSlots(payload) === expectedClaimKeys.length &&
+    modeledClaimKeys.length === expectedClaimKeys.length &&
+    expectedClaimKeys.every((claimKey) =>
+      modeledClaimKeys.includes(claimKey),
+    ) &&
     ((types.has("constrains") && types.has("requires_property")) ||
       types.has("requires_predicate") ||
       types.has("requires_rule"))
@@ -321,17 +344,13 @@ function modelingSuggestions(
   const suggestions: SemanticModelingSuggestion[] = [];
   const seen = new Set<string>();
   const expectedClaimKeys = clauses
-    .filter((clause) => clause.normative)
+    .filter(
+      (clause) =>
+        !["rationale", "example", "subjective"].includes(
+          propositionRole(clause.text, clause.normative),
+        ),
+    )
     .map((clause) => clause.claim_key);
-  const rawDeclaredClaimKeys = propertiesOf(payload).logic_claims;
-  const declaredClaimKeys = Array.isArray(rawDeclaredClaimKeys)
-    ? rawDeclaredClaimKeys.filter(
-        (value: unknown): value is string => typeof value === "string",
-      )
-    : [];
-  const mergedClaimKeys = Array.from(
-    new Set([...declaredClaimKeys, ...expectedClaimKeys]),
-  );
   for (const clause of clauses) {
     const candidate = clause.text;
     const rawSuggestion =
@@ -343,11 +362,13 @@ function modelingSuggestions(
       ? withClauseProvenance(
           rawSuggestion,
           clause,
-          mergedClaimKeys,
+          clauses,
+          expectedClaimKeys,
           statementOf(payload),
+          semanticSourceOf(payload).field,
         )
       : clause.normative
-        ? unmatchedClauseSuggestion(payload, clause, mergedClaimKeys)
+        ? unmatchedClauseSuggestion(payload, clause, clauses, expectedClaimKeys)
         : null;
     if (!suggestion) continue;
     const key = `${suggestion.claim_key}:${suggestion.kind}:${suggestion.evidence}:${suggestion.suggested_next_tool}`;
@@ -366,8 +387,10 @@ function modelingSuggestions(
     const withProvenance = withClauseProvenance(
       suggestion,
       clause,
-      mergedClaimKeys,
+      clauses,
+      expectedClaimKeys,
       statementOf(payload),
+      semanticSourceOf(payload).field,
     );
     const key =
       withProvenance.kind === "rule"
@@ -384,8 +407,10 @@ function modelingSuggestions(
 function withClauseProvenance(
   suggestion: SemanticModelingSuggestion,
   clause: SemanticClause,
+  clauses: readonly SemanticClause[],
   expectedClaimKeys: readonly string[],
   statement: string,
+  sourceField: SemanticSourceField,
 ): SemanticModelingSuggestion {
   const clauseOffset = statement.indexOf(clause.text);
   const clauseSpan = utf8Span(
@@ -393,6 +418,45 @@ function withClauseProvenance(
     clauseOffset >= 0 ? clauseOffset : 0,
     clauseOffset >= 0 ? clauseOffset + clause.text.length : clause.text.length,
   );
+  const status =
+    suggestion.kind === "ambiguity_observation"
+      ? "ambiguous"
+      : suggestion.kind === "ontology_gap"
+        ? "ontology_gap"
+        : "modeled";
+  let inventoryCursor = 0;
+  const semanticInventory = clauses.map((entry) => {
+    const located = propositionSpan(statement, entry, inventoryCursor);
+    inventoryCursor = located.next;
+    const role = propositionRole(entry.text, entry.normative);
+    const context = ["rationale", "example", "subjective"].includes(role);
+    const entryStatus =
+      entry.index === clause.index
+        ? status
+        : context
+          ? "nonlogical"
+          : "missing";
+    return {
+      claim_key: entry.claim_key,
+      claim_text: entry.text,
+      role,
+      status: entryStatus,
+      span: located.span,
+      reason:
+        entry.index === clause.index
+          ? status === "modeled"
+            ? "Draft apply plan contains a typed grounding for this proposition."
+            : suggestion.rationale
+          : context
+            ? "Prose is retained for human context and is not a verifiable domain proposition."
+            : "No typed grounding is included for this proposition in the current draft plan.",
+    };
+  });
+  const inventoryContract = {
+    version: "kibi.semantic-inventory.v1",
+    source_field: sourceField,
+    source_hash: semanticSourceHash(statement),
+  };
   const applyPlan = suggestion.applyPlan.map((step) => {
     if (!isRecord(step)) return step;
     const properties = isRecord(step.properties) ? step.properties : null;
@@ -403,15 +467,6 @@ function withClauseProvenance(
             (value): value is string => typeof value === "string",
           )
         : [];
-      const inventory = Array.isArray(properties.semantic_inventory)
-        ? properties.semantic_inventory.filter(isRecord)
-        : [];
-      const status =
-        suggestion.kind === "ambiguity_observation"
-          ? "ambiguous"
-          : suggestion.kind === "ontology_gap"
-            ? "ontology_gap"
-            : "modeled";
       return {
         ...step,
         properties: {
@@ -419,22 +474,11 @@ function withClauseProvenance(
           logic_claims: Array.from(
             new Set([...existing, ...expectedClaimKeys]),
           ),
-          semantic_inventory: [
-            ...inventory.filter(
-              (entry) => entry.claim_key !== clause.claim_key,
-            ),
-            {
-              claim_key: clause.claim_key,
-              claim_text: clause.text,
-              role: clause.normative ? "normative" : "descriptive",
-              status,
-              span: clauseSpan,
-              reason:
-                status === "modeled"
-                  ? "Draft apply plan contains a typed grounding for this proposition."
-                  : suggestion.rationale,
-            },
-          ],
+          semantic_clauses: clauses.map(({ text }) => text),
+          semantic_inventory_version: inventoryContract.version,
+          semantic_source_field: inventoryContract.source_field,
+          semantic_source_hash: inventoryContract.source_hash,
+          semantic_inventory: semanticInventory,
         },
       };
     }
@@ -462,16 +506,9 @@ function withClauseProvenance(
             claimKey: clause.claim_key,
             claimText: clause.text,
             logicClaims: expectedClaimKeys,
-            semanticInventory: [
-              {
-                claim_key: clause.claim_key,
-                claim_text: clause.text,
-                role: clause.normative ? "normative" : "descriptive",
-                status: "modeled",
-                span: clauseSpan,
-                reason: "The returned typed fact grounds this proposition.",
-              },
-            ],
+            semanticClauses: clauses.map(({ text }) => text),
+            semanticInventory,
+            inventoryContract,
             instructions:
               "Create the predicate fact, merge the returned logicClaims into the requirement logic_claims manifest, then add requires_predicate without overwriting other requirement metadata.",
           },
@@ -484,16 +521,9 @@ function withClauseProvenance(
             claimKey: clause.claim_key,
             claimText: clause.text,
             logicClaims: expectedClaimKeys,
-            semanticInventory: [
-              {
-                claim_key: clause.claim_key,
-                claim_text: clause.text,
-                role: clause.normative ? "normative" : "descriptive",
-                status: "modeled",
-                span: clauseSpan,
-                reason: "The returned typed rule grounds this proposition.",
-              },
-            ],
+            semanticClauses: clauses.map(({ text }) => text),
+            semanticInventory,
+            inventoryContract,
             instructions:
               "Create the rule_schema and rule facts, merge the returned logicClaims into the requirement logic_claims manifest, then add requires_rule without overwriting other requirement metadata.",
           },
@@ -505,6 +535,7 @@ function withClauseProvenance(
 function unmatchedClauseSuggestion(
   payload: Payload,
   clause: SemanticClause,
+  clauses: readonly SemanticClause[],
   expectedClaimKeys: readonly string[],
 ): SemanticModelingSuggestion {
   return withClauseProvenance(
@@ -525,8 +556,10 @@ function unmatchedClauseSuggestion(
       ]),
     },
     clause,
+    clauses,
     expectedClaimKeys,
     statementOf(payload),
+    semanticSourceOf(payload).field,
   );
 }
 
@@ -881,7 +914,10 @@ export function analyzeSemanticAdvisorInput(
   const statement = statementOf(payload) || proseOf(payload);
   const signals = requirement ? detectSignals(proseOf(payload)) : [];
   const clauses = statement
-    ? extractSemanticClauses(statement, input.clauses)
+    ? extractSemanticClauses(
+        statement,
+        input.clauses ?? semanticClausesOf(payload),
+      )
     : [];
   const rawDeclaredClaims = propertiesOf(payload).logic_claims;
   const declaredClaims = Array.isArray(rawDeclaredClaims)
@@ -890,11 +926,16 @@ export function analyzeSemanticAdvisorInput(
       )
     : [];
   const expectedClaims = clauses
-    .filter((clause) => clause.normative)
+    .filter(
+      (clause) =>
+        !["rationale", "example", "subjective"].includes(
+          propositionRole(clause.text, clause.normative),
+        ),
+    )
     .map((clause) => clause.claim_key);
   const modeled =
     requirement &&
-    isModeled(payload, expectedClaims.length) &&
+    isModeled(payload, expectedClaims) &&
     expectedClaims.length > 0 &&
     expectedClaims.every((claimKey) => declaredClaims.includes(claimKey));
   const suggestions = modelingSuggestions(

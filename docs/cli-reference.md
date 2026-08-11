@@ -14,7 +14,7 @@ kibi query --input request.json
 printf '%s\n' '{"query":"login","limit":10}' | kibi search --input -
 ```
 
-The input root must be a JSON object that matches the corresponding operation schema. In JSON mode, do not also pass business flags or positional arguments; mixed input is rejected. Optional `_diagnostic_telemetry` is transport metadata and is removed before business-schema validation.
+The input root must be a JSON object that matches the corresponding operation schema. In JSON mode, do not also pass business flags or positional arguments; mixed input is rejected. Optional `_diagnostic_telemetry` is transport metadata and is removed before business-schema validation. Add the global `--diagnostic-mode` flag to append the operation outcome to `.kb/usage.log`; supplied opaque `session_id` and `actor_id` fields are preserved for workflow correlation.
 
 | Operation | Dedicated CLI route |
 | --- | --- |
@@ -164,6 +164,8 @@ Reports the current KB snapshot, branch, and freshness state.
 kibi status [--format json|table]
 ```
 
+JSON output also exposes `verificationSnapshot`, availability, dirty state, file count, and `kibi.workspace-snapshot.v1` version. This deterministic snapshot is the identity coverage uses to accept or reject verification receipts; an unavailable snapshot fails proof closed.
+
 ## `kibi find-gaps [type]` (`gaps` alias)
 
 Runs curated missing/present relationship analysis.
@@ -190,14 +192,21 @@ Generates curated coverage reports.
 
 **Syntax:**
 ```bash
-kibi coverage [--by req|symbol|type] [--tag TAGS] [--include-passing] [--no-include-transitive] [--limit N] [--offset N] [--format json|table]
+kibi coverage [--by req|symbol|type] [--tag TAGS] [--include-passing] [--no-include-transitive] [--limit N] [--offset N] [--include-migration-preview] [--migration-limit N] [--migration-offset N] [--migration-predicate-limit N] [--migration-predicate-min-score 0..1] [--format json|table]
 ```
 
 **Notes:**
 - Requirement coverage summaries distinguish evaluated must-priority requirements from `not_applicable` rows.
-- `--include-passing` adds fully covered rows back into the result set.
+- `--include-passing` adds rows with a proven or not-applicable proof outcome back into requirement results; compatibility-oriented structural coverage remains visible on every returned row.
 - Requirement coverage rows include coverage-depth labels when evidence can be classified: `direct_passing_e2e`, `scenario_passing_e2e`, `unit_only`, `open_or_nonpassing_tests_only`, `scenario_only_no_test`, or `no_test_evidence`.
 - Coverage-depth labels are informational. They do not change existing covered/uncovered pass-fail semantics, and typed test fields (`verification_scope`, then `verification_perspective`) take precedence over legacy `e2e` tags or `/e2e/` path heuristics.
+- Requirement rows also expose the additive `kibi.requirement-proof.v2` contract. `proofStatus` is `proven`, `unresolved`, `missing`, or `not_applicable` for a non-current requirement, and is intentionally independent from compatibility-oriented `coverageStatus`.
+- `proofStages` records semantic inventory, logical grounding, contradiction, scenario, scenario-test, passing E2E, executable-symbol, production-symbol, and exact source-coordinate evidence. `proofGaps` uses stable machine-readable codes and `proofRepairs` ranks concrete recovery actions.
+- Requirement reports also include `repairPlan` (`kibi.repair-plan.v1`). It groups gaps into one small batch per requirement and dependency phase, marks only the earliest unresolved batch `ready`, and links later batches through `dependsOn`. Every batch is read-only guidance with `autoApplicable: false`, a reviewed `workflowSteps` sequence, targeted `validationRules`, and a sequential-write policy.
+- `repairPlan.scope.complete` is false and `status` is `partial` whenever `limit`/`offset` exclude actionable requirements. Increase the limit and reset the offset before using a plan as a project-wide migration inventory. The plan ID is stable for the same snapshot, filters, evidence, and gaps; receipt ages and check timestamps do not churn it.
+- `--include-migration-preview` adds `kibi.legacy-migration-plan.v1` for ready semantic-inventory batches. It defaults to one requirement, reconstructs normalized authored Markdown with exact SHA-256 source identity and UTF-8 proposition spans, ranks project-local schemas before built-ins, and emits review-only property patches. The patch stores authored prose in requirement-only `semantic_text` and never replaces an independent `text_ref`; only an existing `semantic_text` that differs from the current normalized Markdown blocks the batch as source drift. All candidates remain `writeEligible: false` and all batches `autoApplicable: false`.
+- The passing-E2E stage requires an append-only `kibi.verification-receipt.v1` history on a scenario-backed test. Only a fresh passed receipt bound to the live `verificationSnapshot` qualifies; authored `status: passing` remains structural metadata.
+- Symbol rows classify `traceabilityRole` as `production`, `executable_test`, or `mixed`. Executable-only test symbols are `not_applicable` to production coverage instead of being counted as fully covered.
 
 ## `kibi graph`
 
@@ -229,6 +238,7 @@ Validates knowledge base integrity and runs inference rules.
 - Supports strict migration checks like `strict-fact-shape` and `strict-req-fact-pairing`, a default-off semantic audit (`predicate-verifiability`) for `requires_predicate` links that still target prose/observation facts, and default-on `query-plan-safety` for Prolog clauses that place negation before later generator calls. Rule defaults can be overridden in `.kb/config.json`.
 - With `--staged`, runs commit-time changed-file impact enforcement for behavior-changing source edits, including missing Kibi impact evidence, stale symbol coordinates, and changed behavioral symbols that are only linked through coarse class/module ownership
 - Reports blocking `violations[]` with actionable suggestions and additive `qualityDiagnostics[]` audit signals for modeling quality, coverage depth, broad requirements, duplicate coordinates, symbol fanout, and strict-fact review
+- When `.kb/usage.log` exists, an unfiltered check also turns failed or insufficient `kibi.telemetry-acceptance.v1` metrics into ranked, non-blocking `category: telemetry` quality diagnostics; a missing log is skipped because diagnostic logging is opt-in
 - Keeps advisory quality diagnostics non-blocking by default: `review`, `info`, and non-blocking `warning` diagnostics do not change the exit code; hard violations, `severity: "error"`, or `blocking: true` still fail the check
 
 **Flags:**
@@ -307,7 +317,7 @@ Reports adoption and quality metrics from `.kb/usage.log`.
 
 **Syntax:**
 ```bash
-kibi usage-metrics [--format json|table] [--limit N]
+kibi usage-metrics [--format json|table] [--limit N] [--require-acceptance]
 ```
 
 **Behavior:**
@@ -316,10 +326,13 @@ kibi usage-metrics [--format json|table] [--limit N]
 - Reports telemetry completeness and zero-result rates
 - Shows `kb_check` violation trend entries and grouped `kb_upsert` error categories
 - Limits the zero-result source-file leaderboard with `--limit`
+- Adds a versioned `kibi.telemetry-acceptance.v1` report over the latest 200 events. It measures telemetry completeness, advisor-before-requirement-write use, exact validation-before-upsert use, source-linked zero-result rate, proof-gap recovery, receipt freshness, and repeated mutation failures.
+- Separates `failed` from `insufficient_evidence`: an empty, stale (older than seven days), future-dated, partial-coverage, or pre-field-upgrade log cannot pass merely because no failure was observable
 
 **Flags:**
 - `--format json|table` - Output format (default: table)
 - `--limit N` - Maximum number of top zero-result source files to include (default: 10)
+- `--require-acceptance` - Exit non-zero unless the acceptance status is exactly `passed`; the report is still printed for repair automation
 
 **Examples:**
 ```bash
@@ -331,11 +344,30 @@ kibi usage-metrics --format json
 
 # Show only the top 5 zero-result source files
 kibi usage-metrics --limit 5
+
+# Enforce the telemetry report as a completion gate
+kibi usage-metrics --format json --require-acceptance
 ```
 
 **Notes:**
 - Returns an error if `.kb/usage.log` does not exist in the current repository
 - `--limit` must be a positive integer
+- Default thresholds are conservative and inspectable in `acceptance.policy`: at least 95% telemetry completeness, 100% advisor/preflight sequencing when applicable, no more than 20% zero-result source lookups, no receipt-specific gaps, and fewer than three consecutive failures for any mutation target
+
+## `kibi usage-remediation`
+
+Builds a read-only `kibi.telemetry-remediation.v1` report from `.kb/usage.log`.
+
+```bash
+kibi usage-remediation [--format json|table] [--limit N]
+```
+
+- Enumerates the exact log line, request, timestamp, tool, target, reason, and repair action for events behind failed or insufficient acceptance metrics
+- Preserves session and actor identifiers when available; advisor and preflight evidence cannot match a write when both records expose different correlation identifiers
+- Keeps missing complete coverage evidence as an explicit report-level item
+- Sorts deterministically by repair rank, log line, and stable item identity
+- Does not write to the knowledge base or usage log; `--limit` only bounds rendered table rows and never truncates JSON evidence
+- The report uses exact canonical payload fingerprints for validation correlation when available and a deterministic legacy fingerprint otherwise. Requirement-advisor correlation requires the same requirement and, when both events expose it, the same semantic source hash.
 
 
 ## `kibi migrate`

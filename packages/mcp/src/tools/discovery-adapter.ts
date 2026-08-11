@@ -8,6 +8,7 @@ import { resolveWorkspaceRoot } from "../workspace.js";
 
 export function createDiscoveryContext(
   prolog: PrologProcess,
+  baseContext?: OperationContext,
 ): OperationContext {
   // implements REQ-kibi-operation-interface-parity
   let lastResult: PrologQueryResult | null = null;
@@ -24,9 +25,10 @@ export function createDiscoveryContext(
     save: () => prolog.query("kb_save"),
   };
   return {
-    workspaceRoot: resolveWorkspaceRoot(),
-    signal: new AbortController().signal,
-    clock: () => new Date(),
+    ...(baseContext ?? {}),
+    workspaceRoot: baseContext?.workspaceRoot ?? resolveWorkspaceRoot(),
+    signal: baseContext?.signal ?? new AbortController().signal,
+    clock: baseContext?.clock ?? (() => new Date()),
     prolog: port,
   };
 }

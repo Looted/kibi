@@ -43,7 +43,7 @@ export function buildEntityDeleteAuditGoal(
   entity: Readonly<Record<string, unknown>>,
 ): string {
   const auditEntity = Object.fromEntries(
-    ["id", "title", "source", "text_ref"].flatMap((key) =>
+    ["id", "title", "source", "text_ref", "semantic_text"].flatMap((key) =>
       typeof entity[key] === "string" ? [[key, entity[key]]] : [],
     ),
   );

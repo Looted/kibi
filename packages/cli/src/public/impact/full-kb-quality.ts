@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import type {
   ExtractedEntity,
   ExtractionResult,
@@ -8,6 +10,11 @@ import {
   parseListOfLists,
   parseTriples,
 } from "../../prolog/codec.js";
+import {
+  analyzeTelemetryAcceptance,
+  createTelemetryAcceptanceDiagnostics,
+  parseTelemetryUsageLog,
+} from "../telemetry-acceptance.js";
 import { createCoverageDepthQualityDiagnostics } from "./coverage-depth-quality.js";
 import { createRequirementQualityDiagnostics } from "./requirement-quality.js";
 import { createSymbolQualityDiagnostics } from "./symbol-quality.js";
@@ -36,6 +43,8 @@ type FullKbQualityDiagnosticsOptions = {
   readonly prolog: Pick<PrologProcess, "query">;
   readonly hardViolationEntityIds?: ReadonlySet<string>;
   readonly maxDiagnostics?: number;
+  readonly workspaceRoot?: string;
+  readonly now?: Date;
 };
 
 function stringField(entity: Record<string, unknown>, key: string): string {
@@ -88,6 +97,8 @@ function toExtractedEntity(entity: Record<string, unknown>): ExtractedEntity {
   if (severity !== undefined) extracted.severity = severity;
   const textRef = optionalStringField(entity, "text_ref");
   if (textRef !== undefined) extracted.text_ref = textRef;
+  const semanticText = optionalStringField(entity, "semantic_text");
+  if (semanticText !== undefined) extracted.semantic_text = semanticText;
   const logicClaims = optionalStringArrayField(entity, "logic_claims");
   if (logicClaims !== undefined) extracted.logic_claims = logicClaims;
   const granularityReason = optionalStringField(entity, "granularity_reason");
@@ -206,13 +217,75 @@ function capDiagnostics(
     : diagnostics;
 }
 
+function telemetryReadDiagnostic(message: string): QualityDiagnostic {
+  return {
+    id: "telemetry_evidence_unreadable",
+    severity: "review",
+    blocking: false,
+    category: "telemetry",
+    source: ".kb/usage.log",
+    message,
+    suggestion:
+      "Repair or regenerate .kb/usage.log through Kibi diagnostic mode, then rerun kibi usage-metrics --require-acceptance and an unfiltered kb_check.",
+  };
+}
+
+async function collectTelemetryDiagnostics(
+  workspaceRoot: string | undefined,
+  now: Date,
+): Promise<readonly QualityDiagnostic[]> {
+  if (workspaceRoot === undefined) return [];
+  const usageLogPath = path.join(workspaceRoot, ".kb", "usage.log");
+  let contents: string;
+  try {
+    contents = await readFile(usageLogPath, "utf8");
+  } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "ENOENT"
+    ) {
+      return [];
+    }
+    const message = error instanceof Error ? error.message : String(error);
+    return [
+      telemetryReadDiagnostic(
+        `Telemetry acceptance evidence is unreadable: ${message}`,
+      ),
+    ];
+  }
+
+  try {
+    const report = analyzeTelemetryAcceptance(
+      parseTelemetryUsageLog(contents),
+      now,
+    );
+    return createTelemetryAcceptanceDiagnostics(report);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return [
+      telemetryReadDiagnostic(
+        `Telemetry acceptance evidence is malformed: ${message}`,
+      ),
+    ];
+  }
+}
+
 export async function collectFullKbQualityDiagnostics(
   options: FullKbQualityDiagnosticsOptions,
 ): Promise<readonly QualityDiagnostic[]> {
-  const manifestResults = await loadKbExtractionResults(options.prolog);
+  const [manifestResults, telemetryDiagnostics] = await Promise.all([
+    loadKbExtractionResults(options.prolog),
+    collectTelemetryDiagnostics(
+      options.workspaceRoot,
+      options.now ?? new Date(),
+    ),
+  ]);
   const coverageDepthDiagnostics =
     createCoverageDepthQualityDiagnostics(manifestResults);
   const diagnostics = [
+    ...telemetryDiagnostics,
     ...createRequirementQualityDiagnostics({
       manifestResults,
       ...(options.hardViolationEntityIds !== undefined

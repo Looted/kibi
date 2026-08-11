@@ -138,12 +138,14 @@ export function renderCoverageTable(
           "Priority",
           "Coverage",
           "Depth",
+          "Proof",
           "Scen",
           "Tests",
           "Symbols",
-          "Gaps",
+          "Structural gaps",
+          "Proof gaps",
         ],
-        colWidths: [20, 12, 12, 18, 32, 8, 8, 10, 28],
+        colWidths: [20, 12, 12, 18, 36, 12, 8, 8, 10, 24, 36],
         wordWrap: true,
       })
     : new Table({
@@ -161,23 +163,138 @@ export function renderCoverageTable(
         stringifyCell(item.priority),
         stringifyCell(item.coverageStatus),
         stringifyCell(item.coverageDepth),
+        stringifyCell(item.proofStatus),
         stringifyCell(item.scenarioCount),
         stringifyCell(item.testCount),
         stringifyCell(item.transitiveSymbolCount),
         joinCells(item.gaps),
+        joinCells(item.proofGaps),
       ]);
     } else {
       table.push([
         stringifyCell(item.id),
-        stringifyCell(item.type),
+        stringifyCell(item.traceabilityRole ?? item.type),
         stringifyCell(item.coverageStatus),
-        `req=${stringifyCell(item.directRequirementCount)} test=${stringifyCell(item.testCount)} count=${stringifyCell(item.count)}`,
+        `req=${stringifyCell(item.directRequirementCount)} covered=${stringifyCell(item.testCount)} executable=${stringifyCell(item.executableTestCount)} count=${stringifyCell(item.count)}`,
         joinCells(item.gaps),
       ]);
     }
   }
 
-  return [summaryTable.toString(), table.toString()].join("\n\n");
+  const sections = [summaryTable.toString(), table.toString()];
+  const repairPlan = fieldsFrom(payload.repairPlan);
+  if (typeof repairPlan.version === "string") {
+    sections.push(renderRepairPlanTable(repairPlan));
+  }
+  const legacyMigrationPlan = fieldsFrom(payload.legacyMigrationPlan);
+  if (typeof legacyMigrationPlan.version === "string") {
+    sections.push(renderLegacyMigrationPlanTable(legacyMigrationPlan));
+  }
+  return sections.join("\n\n");
+}
+
+function renderLegacyMigrationPlanTable(
+  plan: Readonly<Record<string, unknown>>,
+): string {
+  const scope = fieldsFrom(plan.scope);
+  const summary = fieldsFrom(plan.summary);
+  const batches = Array.isArray(plan.batches) ? plan.batches : [];
+  const summaryTable = new Table({
+    head: ["Legacy migration preview", "Value"],
+    colWidths: [28, 72],
+    wordWrap: true,
+  });
+  summaryTable.push(
+    ["Plan ID", stringifyCell(plan.planId)],
+    ["Status", stringifyCell(plan.status)],
+    ["Repair scope complete", stringifyCell(scope.repairPlanComplete)],
+    ["Candidate requirements", stringifyCell(scope.candidateRequirements)],
+    ["Selected requirements", stringifyCell(scope.selectedRequirements)],
+    ["Next offset", stringifyCell(scope.nextOffset)],
+    ["Propositions", stringifyCell(summary.propositionCount)],
+    ["Unresolved", stringifyCell(summary.unresolvedPropositionCount)],
+  );
+
+  const batchTable = new Table({
+    head: [
+      "Requirement",
+      "State",
+      "Source binding",
+      "Claims",
+      "Predicate candidates",
+      "Diagnostics",
+    ],
+    colWidths: [24, 18, 18, 10, 20, 46],
+    wordWrap: true,
+  });
+  for (const rawBatch of batches) {
+    const batch = fieldsFrom(rawBatch);
+    const sourceBinding = fieldsFrom(batch.sourceBinding);
+    const propositions = Array.isArray(batch.propositions)
+      ? batch.propositions
+      : [];
+    const candidateCount = propositions.reduce((count, proposition) => {
+      const candidates = fieldsFrom(proposition).predicateCandidates;
+      return count + (Array.isArray(candidates) ? candidates.length : 0);
+    }, 0);
+    batchTable.push([
+      stringifyCell(batch.requirementId),
+      stringifyCell(batch.state),
+      stringifyCell(sourceBinding.status),
+      propositions.length,
+      candidateCount,
+      joinCells(batch.diagnostics),
+    ]);
+  }
+  return [summaryTable.toString(), batchTable.toString()].join("\n\n");
+}
+
+function renderRepairPlanTable(
+  repairPlan: Readonly<Record<string, unknown>>,
+): string {
+  const scope = fieldsFrom(repairPlan.scope);
+  const summary = fieldsFrom(repairPlan.summary);
+  const batches = Array.isArray(repairPlan.batches) ? repairPlan.batches : [];
+  const displayedBatches = batches.slice(0, 25);
+  const summaryTable = new Table({
+    head: ["Repair plan", "Value"],
+    colWidths: [24, 72],
+    wordWrap: true,
+  });
+  summaryTable.push(
+    ["Plan ID", stringifyCell(repairPlan.planId)],
+    ["Status", stringifyCell(repairPlan.status)],
+    ["Complete scope", stringifyCell(scope.complete)],
+    ["Requirements", stringifyCell(summary.requirementCount)],
+    ["Repairs", stringifyCell(summary.repairCount)],
+    ["Batches", stringifyCell(summary.batchCount)],
+  );
+
+  const batchTable = new Table({
+    head: ["Order", "Requirement", "Phase", "State", "Depends on", "Gaps"],
+    colWidths: [8, 24, 24, 10, 28, 32],
+    wordWrap: true,
+  });
+  for (const rawBatch of displayedBatches) {
+    const batch = fieldsFrom(rawBatch);
+    const repairs = Array.isArray(batch.repairs) ? batch.repairs : [];
+    batchTable.push([
+      stringifyCell(batch.order),
+      stringifyCell(batch.requirementId),
+      stringifyCell(batch.phase),
+      stringifyCell(batch.state),
+      joinCells(batch.dependsOn),
+      repairs
+        .map((repair) => stringifyCell(fieldsFrom(repair).gap))
+        .join(", ") || "-",
+    ]);
+  }
+
+  const suffix =
+    displayedBatches.length < batches.length
+      ? `\nShowing ${displayedBatches.length} of ${batches.length} repair batches; use --format json for the complete plan.`
+      : "";
+  return [summaryTable.toString(), batchTable.toString()].join("\n\n") + suffix;
 }
 
 function renderGraphTable(payload: Readonly<Record<string, unknown>>): string {

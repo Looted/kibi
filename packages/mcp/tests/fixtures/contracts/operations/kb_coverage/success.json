@@ -14,26 +14,107 @@
       "limit": 25,
       "offset": 0
     },
+    "repairPlan": {
+      "applicationPolicy": {
+        "createEndpointsBeforeRelationships": true,
+        "queryBeforeMutation": true,
+        "recheckCoverageAfterEachBatch": true,
+        "sequentialUpsertsOnly": true,
+        "validateBeforeEachWrite": true
+      },
+      "batches": [
+        {
+          "autoApplicable": false,
+          "dependsOn": [],
+          "id": "repair-010-REQ-CONTRACT-001-semantic_inventory",
+          "objective": "Produce and persist a complete source-bound proposition inventory.",
+          "order": 10,
+          "phase": "semantic_inventory",
+          "repairs": [
+            {
+              "action": "Run kb_semantic_advisor and persist its complete proposition ledger.",
+              "evidence": {
+                "status": "missing"
+              },
+              "gap": "missing_semantic_inventory",
+              "proofPriority": 10,
+              "proofStage": "semantic_inventory",
+              "requirementId": "REQ-CONTRACT-001"
+            }
+          ],
+          "requirementId": "REQ-CONTRACT-001",
+          "state": "ready",
+          "validationRules": ["semantic-completeness", "logic-coverage"],
+          "workflowSteps": [
+            "kb_semantic_advisor",
+            "kb_validate_upsert",
+            "kb_upsert",
+            "kb_check"
+          ],
+          "writePolicy": "analysis_then_sequential_upsert"
+        }
+      ],
+      "codeSnapshot": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "diagnostics": [],
+      "planId": "repair-plan-aaaaaaaaaaaaaaaaaaaaaaaa",
+      "readOnly": true,
+      "scope": {
+        "actionableRequirements": 1,
+        "by": "req",
+        "complete": true,
+        "excludedByPagination": 0,
+        "limit": 25,
+        "offset": 0,
+        "returnedActionableRequirements": 1,
+        "tags": []
+      },
+      "status": "ready",
+      "summary": {
+        "batchCount": 1,
+        "blockedBatchCount": 0,
+        "readyBatchCount": 1,
+        "repairCount": 1,
+        "requirementCount": 1
+      },
+      "version": "kibi.repair-plan.v1"
+    },
     "rows": [
       {
-        "covered": 1,
+        "coverageStatus": "fully_covered",
         "id": "REQ-CONTRACT-001",
-        "missing": 0
+        "proofGaps": ["missing_semantic_inventory"],
+        "proofRepairs": [
+          {
+            "action": "Run kb_semantic_advisor and persist its complete proposition ledger.",
+            "gap": "missing_semantic_inventory",
+            "priority": 10,
+            "stage": "semantic_inventory"
+          }
+        ],
+        "proofStatus": "missing"
       }
     ],
     "summary": {
       "fullyCovered": 1,
+      "proofMissing": 1,
+      "proofProven": 0,
+      "proofUnresolved": 0,
       "total": 1
     }
   },
   "tool": {
-    "description": "Generate curated coverage reports for requirements, symbols, or grouped types. Read-only reporting with no mutation side effects.",
+    "description": "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Requirement reports include a deterministic, dependency-ordered, read-only repair plan; optional legacy migration previews reconstruct authored proposition inventories and rank exact schema candidates without producing executable writes. Paginated plans identify incomplete scope. Requirement rows keep coverageStatus separate from proofStatus and require fresh snapshot-bound E2E receipts before proof. No mutation side effects.",
     "inputSchema": {
       "properties": {
         "by": {
           "default": "req",
           "enum": ["req", "symbol", "type"],
           "type": "string"
+        },
+        "includeMigrationPreview": {
+          "default": false,
+          "description": "Opt in to a deterministic, read-only kibi.legacy-migration-plan.v1 preview for ready semantic-inventory repair batches.",
+          "type": "boolean"
         },
         "includePassing": {
           "default": false,
@@ -46,6 +127,33 @@
         "limit": {
           "default": 100,
           "type": "integer"
+        },
+        "migrationLimit": {
+          "default": 1,
+          "description": "Maximum requirement migration batches to preview. Defaults to one review batch.",
+          "maximum": 10,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "migrationOffset": {
+          "default": 0,
+          "description": "Zero-based offset into ready semantic-inventory batches.",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "migrationPredicateLimit": {
+          "default": 5,
+          "description": "Maximum exact predicate-schema candidates retained per assertive proposition.",
+          "maximum": 20,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "migrationPredicateMinScore": {
+          "default": 0.35,
+          "description": "Minimum deterministic predicate-schema rank score retained in migration previews.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
         },
         "offset": {
           "default": 0,

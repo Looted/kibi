@@ -50,6 +50,8 @@ Call `kb_suggest_predicates` before hand-writing ontology predicates.
 
 If `kb_check` reports `logic-coverage`, compare the requirement `logic_claims` manifest with its linked `property_value` and `predicate` facts. Ground every missing key, add any omitted linked key to the manifest, and keep ambiguity or ontology gaps explicitly unresolved rather than satisfying the check with an observation.
 
+If `kb_coverage.repairPlan.status` is `partial`, do not execute it as a complete migration. Its `scope.excludedByPagination` count identifies omitted actionable requirements; rerun requirement coverage with `offset: 0` and a large enough `limit`. Apply only `ready` batches, never infer that `blocked` means safe to skip, and rerun coverage after each validated sequential batch because new downstream gaps can become visible as prerequisites are repaired.
+
 ## Unsafe or unverifiable rule fact
 
 `fact_kind: rule` requires a `kibi.logic.v1` `rule_ir`, a deterministic full `rule_hash`, a `semantic_key`, a `rule_schema_id`, and `rule_name`. Submit the typed object through `kb_model_requirement`; do not provide Prolog source. `rule-safety` rejects function symbols, raw goals, cuts, meta-calls, dynamic predicates, I/O, unsafe/unbound variables, existential rule heads, unstratified negation, incompatible units, and unbounded aggregation. `rule-verifiability` requires `requires_rule` to target a real `rule_schema` and a safe rule fact. Analysis that is timed out or resource-limited is `unresolved`, not proof of consistency.
@@ -85,8 +87,26 @@ When confidence is below `0.70`, Kibi emits a non-blocking `fact_kind: observati
 
 If no candidate meets `minScore`, Kibi emits a `review:ontology-gap` observation. Keep it as review evidence, or add a project-local `fact_kind: predicate_schema` when the language is recurring domain ontology.
 
+If a candidate exists but returns `binding_status: incomplete`, this is not an ontology gap and its `applyPlan` is intentionally empty. Review the declared argument roles and call the tool again with exact `argumentBindings` for every name in `unbound_arguments`; do not persist the literal marker `unknown`.
+
+If lexical ranking prefers a reviewed false positive, retry with the exact candidate `schema.id` as `schemaId`. Use `polarityHint` only when the prose's surface negation is not denial of the selected predicate. An unavailable `schemaId` returns `resolve_schema_reference` and no write plan; refresh or correct the schema reference rather than recording a false ontology gap.
+
+## Inspecting domain contradiction evidence
+
+`domain-contradictions` violations may include `evidence.witnesses`. Strict-property and ground-predicate witnesses identify both requirements, both source-bound fact claims, and the exact normalized terms. Rule witnesses also include source spans, rule hashes/IR, and a symbolic comparison. A rule witness with `status: unresolved` means overlap could not be proven or excluded; it keeps requirement proof at `analysis_incomplete` and must not be reported as consistency.
+
 ## Advisory quality diagnostics are present but checks pass
 
 Kibi has a two-lane check contract. Hard correctness failures appear in `violations[]` and fail checks. Auditability findings appear in `qualityDiagnostics[]`; `review`, `info`, and non-blocking `warning` diagnostics are intentionally advisory so they can guide agents without breaking otherwise valid KB operations.
 
 Fix the underlying modeling issue when the diagnostic points to real drift, but do not move advisory findings into `links` or prose-only workarounds to silence them. Use the suggested MCP workflow instead: `kb_search` → `kb_query`, update narrower requirements/scenarios/tests/symbols/facts through `kb_upsert`, and rerun `kb_check`.
+
+Telemetry diagnostics are also advisory in `kb_check`, but `kibi usage-metrics --require-acceptance` converts their versioned report into an explicit process gate. Common IDs and repairs are:
+
+- `repeated_mutation_failures`: stop retrying, query endpoints, validate a reduced exact payload, repair runtime health, and retry once.
+- `mutation_validation_bypassed`: run `kb_validate_upsert` for the exact payload within one hour before sequential `kb_upsert`.
+- `semantic_advisor_bypassed`: rerun `kb_semantic_advisor` for the same requirement and current source hash before writing it.
+- `e2e_receipt_freshness_low`: execute scenario-backed E2E tests against the live snapshot and append fresh receipts.
+- `proof_gap_recovery_stalled`: apply reviewed ready repair batches and demonstrate a lower complete-scope gap count.
+- `source_lookup_zero_result_rate_high`: inspect and refresh the cited source links before repeating focused lookups.
+- `telemetry_completeness_low`, `telemetry_evidence_stale`, or `telemetry_acceptance_incomplete`: capture current complete diagnostic events; do not waive missing evidence as success.

@@ -14,6 +14,7 @@
     check_required_fields/1,        % Returns list of missing required field violations
     check_deprecated_adrs/1,        % Returns list of deprecated ADR violations
     check_domain_contradictions/1,  % Returns list of contradiction violations
+    check_domain_contradiction_witnesses/1,
     check_strict_fact_shape/1,      % Returns list of malformed strict fact violations
     check_strict_req_fact_pairing/1,% Returns list of malformed strict req/fact pairing violations
     check_strict_readiness/1,       % Returns list of strict readiness audit violations
@@ -31,7 +32,7 @@
 :- use_module('kb.pl').
 :- use_module('../schema/entities.pl', [entity_type/1, required_property/2]).
 :- use_module('../schema/relationships.pl', [relationship_type/1]).
-:- use_module('logic_ir.pl', [logic_rule_safety/2, logic_rule_from_props/2, logic_rule_conflict/3, logic_rules_stratified/1]).
+:- use_module('logic_ir.pl', [logic_rule_safety/2, logic_rule_from_props/2, logic_rule_conflict/3, logic_rule_conflict_witness/3, logic_rules_stratified/1]).
 
 % Required fields for all entities
 required_fields([id, title, status, created_at, updated_at, source]).
@@ -587,39 +588,39 @@ checks_normalize_atom_list(Raw, Atoms) :-
 %% check_domain_contradictions(-Violations)
 % Finds all pairs of requirements with contradicting required properties.
 check_domain_contradictions(Violations) :-
-    findall(
-        violation(
-            'domain-contradictions',
-            EntityId,
-            Description,
-            "Supersede one requirement or align both to the same required property",
-            ""
-        ),
-        (   contradicting_reqs(ReqA, ReqB, Reason),
-            format(string(EntityId), "~w/~w", [ReqA, ReqB]),
-            format(string(Description), "~w [strict-readiness: contradiction-ready]", [Reason])
-        ),
-        StrictViolations
-    ),
-    findall(
-        violation(
-            'domain-contradictions',
-            EntityId,
-            Description,
-            "Align the opposing rule heads, separate their scopes, or add an explicit supersedes relationship",
-            ""
-        ),
-        (   opposing_rule_requirements(ReqA, ReqB, RuleA, RuleB),
-            logic_rule_conflict(RuleA, RuleB, Conflict),
-            Conflict \= disjoint,
-            format(string(EntityId), "~w/~w", [ReqA, ReqB]),
-            format(string(Description), "Rule conflict (~w) between ~w and ~w", [Conflict, ReqA, ReqB])
-        ),
-        RuleViolations
-    ),
-    append(StrictViolations, RuleViolations, Violations).
+    check_domain_contradiction_witnesses(Witnesses),
+    maplist(contradiction_witness_violation, Witnesses, Violations).
+
+%% check_domain_contradiction_witnesses(-Witnesses)
+% Exact, JSON-safe evidence for every strict-property, ground-predicate, and
+% safe-rule contradiction result.  Rule overlap that cannot be proven or
+% disproven remains status=unresolved rather than becoming consistency.
+check_domain_contradiction_witnesses(Witnesses) :-
+    findall(Witness, req_conflict_witness(_ReqA, _ReqB, Witness), GroundWitnesses),
+    findall(Witness, rule_contradiction_witness(Witness), RuleWitnesses),
+    append(GroundWitnesses, RuleWitnesses, Witnesses0),
+    sort(Witnesses0, Witnesses).
+
+contradiction_witness_violation(Witness, violation(
+    'domain-contradictions',
+    EntityId,
+    Description,
+    Suggestion,
+    ""
+)) :-
+    Witness.requirements = [ReqA, ReqB],
+    format(string(EntityId), "~w/~w", [ReqA, ReqB]),
+    (   Witness.kind == rule
+    ->  Description = Witness.reason,
+        Suggestion = "Align the opposing rule heads, separate their scopes, or add an explicit supersedes relationship"
+    ;   format(string(Description), "~w [strict-readiness: contradiction-ready]", [Witness.reason]),
+        Suggestion = "Supersede one requirement or align both to the same canonical logical term"
+    ).
 
 opposing_rule_requirements(ReqA, ReqB, RuleA, RuleB) :-
+    opposing_rule_requirement_facts(ReqA, ReqB, _FactA, _FactB, RuleA, RuleB).
+
+opposing_rule_requirement_facts(ReqA, ReqB, FactA, FactB, RuleA, RuleB) :-
     kb:current_req(ReqA),
     kb:current_req(ReqB),
     ReqA @< ReqB,
@@ -634,6 +635,94 @@ opposing_rule_requirements(ReqA, ReqB, RuleA, RuleB) :-
     normalize_term_atom(KindB, rule),
     logic_rule_from_props(PropsA, RuleA),
     logic_rule_from_props(PropsB, RuleB).
+
+rule_contradiction_witness(Witness) :-
+    opposing_rule_requirement_facts(ReqA, ReqB, FactA, FactB, RuleA, RuleB),
+    logic_rule_conflict_witness(RuleA, RuleB, InternalWitness),
+    InternalWitness.status \= disjoint,
+    rule_conflict_side(ReqA, FactA, Left),
+    rule_conflict_side(ReqB, FactB, Right),
+    rule_comparison_evidence(InternalWitness, Comparison),
+    format(string(Reason), "Rule conflict (~w) between ~w and ~w", [InternalWitness.status, ReqA, ReqB]),
+    Witness = _{
+        kind: rule,
+        status: InternalWitness.status,
+        requirements: [ReqA, ReqB],
+        reason: Reason,
+        left: Left,
+        right: Right,
+        comparison: Comparison
+    }.
+
+rule_conflict_side(ReqId, FactId, Side) :-
+    evidence_entity_source(ReqId, req, RequirementSource),
+    kb_entity(FactId, fact, Props),
+    evidence_property_text(Props, source, FactSource),
+    evidence_property_text(Props, claim_key, ClaimKey),
+    evidence_property_text(Props, claim_text, ClaimText),
+    evidence_property_text(Props, rule_hash, RuleHash),
+    evidence_property_text(Props, semantic_key, SemanticKey),
+    evidence_property_text(Props, rule_ir, RuleIr),
+    evidence_property_integer(Props, claim_span_start, ClaimSpanStart),
+    evidence_property_integer(Props, claim_span_end, ClaimSpanEnd),
+    Side = _{
+        requirementId: ReqId,
+        requirementSource: RequirementSource,
+        factId: FactId,
+        factSource: FactSource,
+        claimKey: ClaimKey,
+        claimText: ClaimText,
+        claimSpan: _{start: ClaimSpanStart, end: ClaimSpanEnd},
+        ruleHash: RuleHash,
+        semanticKey: SemanticKey,
+        ruleIr: RuleIr
+    }.
+
+rule_comparison_evidence(Internal, Evidence) :-
+    term_string(Internal.head_a, HeadA, [quoted(true), max_depth(0)]),
+    term_string(Internal.head_b, HeadB, [quoted(true), max_depth(0)]),
+    term_string(Internal.body_a, BodyA, [quoted(true), max_depth(0)]),
+    term_string(Internal.body_b, BodyB, [quoted(true), max_depth(0)]),
+    term_string(Internal.scope_a, ScopeA, [quoted(true), max_depth(0)]),
+    term_string(Internal.scope_b, ScopeB, [quoted(true), max_depth(0)]),
+    Evidence = _{
+        modalityA: Internal.modality_a,
+        modalityB: Internal.modality_b,
+        headA: HeadA,
+        headB: HeadB,
+        bodyA: BodyA,
+        bodyB: BodyB,
+        scopeA: ScopeA,
+        scopeB: ScopeB,
+        validFromA: Internal.valid_from_a,
+        validToA: Internal.valid_to_a,
+        validFromB: Internal.valid_from_b,
+        validToB: Internal.valid_to_b,
+        ruleSchemaA: Internal.rule_schema_a,
+        ruleSchemaB: Internal.rule_schema_b
+    }.
+
+evidence_entity_source(EntityId, Type, Source) :-
+    kb_entity(EntityId, Type, Props),
+    evidence_property_text(Props, source, Source).
+
+evidence_property_text(Props, Key, Text) :-
+    (memberchk(Key=Raw, Props) -> evidence_term_text(Raw, Text) ; Text = '').
+
+evidence_property_integer(Props, Key, Integer) :-
+    (memberchk(Key=Raw, Props), catch(checks_normalize_integer(Raw, Integer), _, fail) -> true ; Integer = -1).
+
+evidence_term_text(Raw, Text) :-
+    (   Raw = ^^(Value, _Type)
+    ->  evidence_term_text(Value, Text)
+    ;   Raw = literal(type(_, Value))
+    ->  evidence_term_text(Value, Text)
+    ;   atom(Raw)
+    ->  Text = Raw
+    ;   string(Raw)
+    ->  atom_string(Text, Raw)
+    ;   term_string(Raw, String), atom_string(Text, String)
+    ).
 
 %% check_strict_req_fact_pairing(-Violations)
 % Finds current requirements attempting strict-lane modeling with incomplete
@@ -1194,7 +1283,7 @@ inventory_entries(Raw, Entries) :-
     (   is_list(Raw) -> Entries = Raw
     ;   Raw = ^^(Value, _) -> inventory_entries(Value, Entries)
     ;   (atom(Raw) ; string(Raw)),
-        catch(atom_json_term(Raw, JsonEntries, [value_string_as(string)]), _, fail),
+        catch(atom_json_dict(Raw, JsonEntries, [value_string_as(string)]), _, fail),
         is_list(JsonEntries)
     ->  Entries = JsonEntries
     ;   Entries = []
@@ -1319,7 +1408,28 @@ pairs_to_json_pairs([Key-Violations|Rest], [Key-JsonViolations|JsonRest]) :-
 % Converts a violation(Rule, EntityId, Description, Suggestion, Source) term
 % to a JSON-compatible dict.
 violation_to_json(Violation, JsonDict) :-
-    violation_term_to_dict(Violation, JsonDict).
+    violation_term_to_dict(Violation, BaseDict),
+    (   contradiction_violation_witnesses(Violation, Witnesses),
+        Witnesses \= []
+    ->  put_dict(evidence, BaseDict, _{witnesses: Witnesses}, JsonDict)
+    ;   JsonDict = BaseDict
+    ).
+
+contradiction_violation_witnesses(
+    violation('domain-contradictions', EntityId, Description, _Suggestion, _Source),
+    Witnesses
+) :-
+    violation_id_text(EntityId, EntityIdText),
+    violation_text(Description, DescriptionText),
+    check_domain_contradiction_witnesses(AllWitnesses),
+    include(witness_matches_violation(EntityIdText, DescriptionText), AllWitnesses, Witnesses).
+
+witness_matches_violation(EntityIdText, DescriptionText, Witness) :-
+    Witness.requirements = [ReqA, ReqB],
+    format(string(ExpectedEntityId), "~w/~w", [ReqA, ReqB]),
+    ExpectedEntityId == EntityIdText,
+    violation_text(Witness.reason, ReasonText),
+    sub_string(DescriptionText, 0, _, _, ReasonText).
 
 violation_term_to_dict(violation(Rule, EntityId, Description, Suggestion, Source), JsonDict) :-
     violation_text(Rule, RuleText),

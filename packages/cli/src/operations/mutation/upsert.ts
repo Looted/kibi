@@ -1,8 +1,14 @@
 import { escapeAtom } from "../../prolog/codec.js";
+import { loadEntities } from "../../public/operations/discovery-entities.js";
 // implements REQ-kibi-operation-interface-parity
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import type { OperationResult } from "../../public/operations/types.js";
+import { appendOnlyVerificationReceiptHistoryErrors } from "../../public/verification-receipt.js";
 import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
+import {
+  assertLogicalGroundingClaimKeys,
+  assertSemanticInventoryBoundary,
+} from "../semantic-advisor/ingestion-boundary.js";
 import { recordEntityAudit, recordRelationshipAudits } from "./audit.js";
 import { buildUpsertTransaction, formatUpsertError } from "./contradictions.js";
 import {
@@ -25,7 +31,35 @@ function requireProlog(context: OperationContext) {
   return context.prolog;
 }
 
-async function effectiveRelationships(
+function receiptRecords(value: unknown) {
+  if (!Array.isArray(value)) return undefined;
+  return value.filter(
+    (receipt): receipt is Readonly<Record<string, unknown>> =>
+      receipt !== null &&
+      typeof receipt === "object" &&
+      !Array.isArray(receipt),
+  );
+}
+
+export async function validateAppendOnlyVerificationReceipts(
+  entity: Readonly<Record<string, unknown>>,
+  context: OperationContext,
+): Promise<void> {
+  if (entity.type !== "test") return;
+  const existing = await loadEntities(requireProlog(context), {
+    id: String(entity.id),
+    type: "test",
+  });
+  const previous = receiptRecords(existing[0]?.verification_receipts);
+  if (!previous || previous.length === 0) return;
+  const next = receiptRecords(entity.verification_receipts);
+  const errors = appendOnlyVerificationReceiptHistoryErrors(previous, next);
+  if (errors.length > 0) {
+    throw new Error(`Entity validation failed: ${errors.join("; ")}`);
+  }
+}
+
+export async function effectiveRelationships(
   input: UpsertInput,
   entity: Readonly<Record<string, unknown>>,
   relationships: readonly RelationshipInput[],
@@ -55,6 +89,7 @@ export async function executeUpsert(
   const prolog = requireProlog(context);
   try {
     const validated = validateUpsertInput(input, context.clock());
+    await validateAppendOnlyVerificationReceipts(validated.entity, context);
     validateRelationshipSources(input.id, validated.relationships);
     await validateSymbolGranularity(
       validated.entity,
@@ -71,6 +106,19 @@ export async function executeUpsert(
     await validateLiveRelationshipTargets(
       prolog,
       validated.entity,
+      relationships,
+    );
+    const semantic = analyzeSemanticAdvisorInput({
+      payload: { ...input, relationships },
+    });
+    assertSemanticInventoryBoundary(
+      { ...input, relationships },
+      relationships,
+      semantic.receipt,
+    );
+    await assertLogicalGroundingClaimKeys(
+      prolog,
+      { ...input, relationships },
       relationships,
     );
     const exists = await prolog.query(
@@ -99,7 +147,6 @@ export async function executeUpsert(
         if (!(error instanceof Error)) throw error;
       }
     }
-    const semantic = analyzeSemanticAdvisorInput({ payload: { ...input } });
     const coverage = await scenarioCoverageWarnings(
       prolog,
       validated.relationships,

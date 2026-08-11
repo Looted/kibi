@@ -8,6 +8,7 @@ import {
 import { runOperationJsonQuery } from "./prolog-json.js";
 import type { OperationContext, PrologPort } from "./runtime-types.js";
 import type { OperationResult } from "./types.js";
+import { readWorkspaceSnapshot } from "./workspace-snapshot.js";
 
 export type QueryInput = {
   readonly type?: string;
@@ -45,6 +46,12 @@ export type StatusPayload = {
   readonly syncState: string;
   readonly kbPath?: string;
   readonly lastSyncSource?: string;
+  readonly verificationSnapshot?: string;
+  readonly verificationSnapshotAvailable?: boolean;
+  readonly verificationSnapshotDirty?: boolean;
+  readonly verificationSnapshotFileCount?: number;
+  readonly verificationSnapshotVersion?: string;
+  readonly verificationSnapshotError?: string;
 };
 
 function requireProlog(context: OperationContext): PrologPort {
@@ -160,14 +167,29 @@ export async function executeStatus(
     if (!isStatusPayload(payload)) {
       throw new Error("Status execution query returned an invalid payload");
     }
+    const snapshotEvidence = await readWorkspaceSnapshot(context);
+    const enrichedPayload: StatusPayload = {
+      ...payload,
+      verificationSnapshot: snapshotEvidence.available
+        ? snapshotEvidence.snapshot.hash
+        : "unknown",
+      verificationSnapshotAvailable: snapshotEvidence.available,
+      ...(snapshotEvidence.available
+        ? {
+            verificationSnapshotDirty: snapshotEvidence.snapshot.dirty,
+            verificationSnapshotFileCount: snapshotEvidence.snapshot.fileCount,
+            verificationSnapshotVersion: snapshotEvidence.snapshot.version,
+          }
+        : { verificationSnapshotError: snapshotEvidence.error }),
+    };
     return {
       content: [
         {
           type: "text",
-          text: `Branch ${payload.branch} is ${payload.syncState} (snapshot ${payload.snapshotId}, dirty=${payload.dirty})`,
+          text: `Branch ${payload.branch} is ${payload.syncState} (snapshot ${payload.snapshotId}, dirty=${payload.dirty}, verificationSnapshot=${enrichedPayload.verificationSnapshot})`,
         },
       ],
-      structuredContent: payload,
+      structuredContent: enrichedPayload,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

@@ -24,6 +24,8 @@ import type {
 } from "../../extractors/markdown.js";
 import type { PrologProcess } from "../../prolog.js";
 import { toPrologAtom, toPrologString } from "../../prolog/codec.js";
+import { loadEntities } from "../../public/operations/discovery-entities.js";
+import { appendOnlyVerificationReceiptHistoryErrors } from "../../public/verification-receipt.js";
 
 // Field categorization for typed fact serialization
 // NOTE: base entity fields (status, owner, priority, severity) are NOT listed here —
@@ -179,6 +181,7 @@ export async function persistEntities(
 ): Promise<{ entityCount: number; kbModified: boolean }> {
   let entityCount = 0;
   let kbModified = false;
+  const existingEntityIds = new Set<string>();
 
   // Query existing entity IDs to include unchanged entities
   const existingIdsResult = await prolog.query(
@@ -190,7 +193,10 @@ export async function persistEntities(
     if (cleaned) {
       for (const atom of cleaned.split(",")) {
         const id = atom.trim().replace(/^'|'$/g, "");
-        if (id) entityIds.add(id);
+        if (id) {
+          entityIds.add(id);
+          existingEntityIds.add(id);
+        }
       }
     }
   }
@@ -200,6 +206,30 @@ export async function persistEntities(
 
   for (const { entity, sourceFile } of results) {
     try {
+      if (entity.type === "test" && existingEntityIds.has(entity.id)) {
+        const existing = await loadEntities(prolog, {
+          id: entity.id,
+          type: "test",
+        });
+        const previous = Array.isArray(existing[0]?.verification_receipts)
+          ? existing[0].verification_receipts.filter(
+              (receipt): receipt is Readonly<Record<string, unknown>> =>
+                receipt !== null &&
+                typeof receipt === "object" &&
+                !Array.isArray(receipt),
+            )
+          : [];
+        const next = Array.isArray(entity.verification_receipts)
+          ? entity.verification_receipts
+          : undefined;
+        const receiptErrors = appendOnlyVerificationReceiptHistoryErrors(
+          previous,
+          next,
+        );
+        if (receiptErrors.length > 0) {
+          throw new Error(receiptErrors.join("; "));
+        }
+      }
       const props = [
         `id=${toPrologAtom(entity.id)}`,
         `title=${toPrologString(entity.title)}`,
@@ -220,9 +250,32 @@ export async function persistEntities(
         props.push(`severity=${toPrologAtom(entity.severity)}`);
       if (entity.text_ref)
         props.push(`text_ref=${toPrologString(entity.text_ref)}`);
+      if (entity.type === "req" && entity.semantic_text) {
+        props.push(`semantic_text=${toPrologString(entity.semantic_text)}`);
+      }
       if (entity.type === "req" && entity.logic_claims) {
         props.push(
           `logic_claims=[${entity.logic_claims.map(toPrologAtom).join(",")}]`,
+        );
+      }
+      if (entity.type === "req" && entity.semantic_clauses) {
+        props.push(
+          `semantic_clauses=[${entity.semantic_clauses.map(toPrologString).join(",")}]`,
+        );
+      }
+      if (entity.type === "req" && entity.semantic_inventory_version) {
+        props.push(
+          `semantic_inventory_version=${toPrologString(entity.semantic_inventory_version)}`,
+        );
+      }
+      if (entity.type === "req" && entity.semantic_source_field) {
+        props.push(
+          `semantic_source_field=${toPrologString(entity.semantic_source_field)}`,
+        );
+      }
+      if (entity.type === "req" && entity.semantic_source_hash) {
+        props.push(
+          `semantic_source_hash=${toPrologString(entity.semantic_source_hash)}`,
         );
       }
       if (entity.type === "req" && entity.semantic_inventory) {
@@ -231,6 +284,24 @@ export async function persistEntities(
         );
       }
       if (sourceFile) props.push(`sourceFile=${toPrologString(sourceFile)}`);
+
+      if (entity.type === "symbol") {
+        if (entity.symbol_role)
+          props.push(`symbol_role=${toPrologAtom(entity.symbol_role)}`);
+        if (entity.granularity_reason)
+          props.push(
+            `granularity_reason=${toPrologAtom(entity.granularity_reason)}`,
+          );
+        for (const key of [
+          "sourceLine",
+          "sourceColumn",
+          "sourceEndLine",
+          "sourceEndColumn",
+        ] as const) {
+          const value = entity[key];
+          if (typeof value === "number") props.push(`${key}=${value}`);
+        }
+      }
 
       // Add typed fact fields for fact entities
       if (entity.type === "fact") {
@@ -247,6 +318,11 @@ export async function persistEntities(
         if (entity.verification_perspective !== undefined) {
           props.push(
             `verification_perspective=${toPrologAtom(entity.verification_perspective)}`,
+          );
+        }
+        if (entity.verification_receipts !== undefined) {
+          props.push(
+            `verification_receipts=${toPrologString(JSON.stringify(entity.verification_receipts))}`,
           );
         }
       }

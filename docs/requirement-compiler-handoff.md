@@ -1,0 +1,13 @@
+# Requirement compiler handoff
+
+## Completed vertical slices
+
+The conservative requirement-proof foundation is implemented through proposition-complete ingestion, source-bound contradiction witnesses, proof-v2 stages, snapshot-bound verification receipts, dependency-ordered repair plans, telemetry acceptance, distribution parity, exact telemetry remediation, and a read-only legacy migration preview. The latest bounded slice separates authored requirement prose into requirement-only `semantic_text` while preserving `text_ref` as independent code or document evidence. Extraction, schemas, semantic advice, Prolog persistence, migration planning, CLI, and MCP share that contract; semantic source drift fails closed, and fresh packed E2E evidence proves deterministic parity without source or KB mutation.
+
+## Remaining work, in priority order
+
+1. **Evidence-block classification before reviewed application.** The distinct semantic-source field is now available, and a current-checkout read-only BizzWords rerun confirms `REQ-021` is review-ready with `src/app/services/notification.service.ts:41` unchanged and no KB-byte or status drift. Its `Evidence:` label plus three backticked paths currently become four assertive `missing` propositions. Classify Markdown evidence blocks as nonlogical provenance, add false-positive fixtures, then review one batch at a time, validate exact predicate bindings, apply sequentially, rerun contradictions, and measure proof-gap recovery. Align's first preview is review-ready but the project was already dirty/stale; restore freshness before any application.
+2. **Ontology and attestation hardening.** Promote repeated ontology gaps only with corpus witnesses and false-positive tests. Add optional signed or remote receipt attestations while retaining the conservative seven-day default and fail-closed unverifiable evidence.
+3. **Telemetry trend persistence and adoption.** Persist daily acceptance snapshots without fabricating absent evidence, then validate correlated diagnostic production in Align. Rerun BizzWords only after upgrading its older pinned CLI/MCP packages; until then distribution parity should continue to report remediation support as explicitly unavailable.
+
+Do not weaken unsupported, unresolved, stale, or insufficient states to get a green report. Resume by querying the relevant requirement and source-linked symbols, loading `kibi-usage` plus `kibi-traceability`, and using the same advisor → exact validation → sequential write → targeted check → full check → fresh receipt workflow used by the completed slices.

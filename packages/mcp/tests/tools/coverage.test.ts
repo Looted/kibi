@@ -1,4 +1,7 @@
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
 import { PrologProcess as RealPrologProcess } from "kibi-cli/prolog";
 import { handleKbCoverage } from "../../src/tools/coverage.js";
@@ -23,6 +26,9 @@ describe("MCP coverage tool handler", () => {
             missingScenario: 1,
             missingTest: 0,
             missingScenarioAndTest: 0,
+            proofProven: 0,
+            proofUnresolved: 0,
+            proofMissing: 2,
           },
           rows: [
             {
@@ -40,6 +46,9 @@ describe("MCP coverage tool handler", () => {
               testStatuses: ["passing"],
               verificationScopes: ["end_to_end"],
               gaps: ["missing_scenario"],
+              proofVersion: "kibi.requirement-proof.v2",
+              proofStatus: "missing",
+              proofGaps: ["missing_semantic_inventory"],
             },
           ],
           meta: {
@@ -71,7 +80,24 @@ describe("MCP coverage tool handler", () => {
     expect(result.structuredContent?.rows[0]?.gaps).toContain(
       "missing_scenario",
     );
-    expect(result.content[0]?.text).toContain("fully covered");
+    expect(result.structuredContent?.rows[0]?.proofStatus).toBe("missing");
+    expect(result.structuredContent?.repairPlan).toMatchObject({
+      version: "kibi.repair-plan.v1",
+      readOnly: true,
+      status: "partial",
+      scope: {
+        complete: false,
+        actionableRequirements: 2,
+        returnedActionableRequirements: 1,
+      },
+    });
+    expect(result.structuredContent?.repairPlan?.batches[0]).toMatchObject({
+      phase: "semantic_inventory",
+      requirementId: "REQ-002",
+      state: "ready",
+      autoApplicable: false,
+    });
+    expect(result.content[0]?.text).toContain("structurally covered");
   });
 
   test("forwards includePassing and includeTransitive options to Prolog", async () => {
@@ -98,7 +124,7 @@ describe("MCP coverage tool handler", () => {
     expect(query).toHaveBeenCalledTimes(1);
     const firstCall = query.mock.calls[0] as unknown[];
     expect(String(firstCall[0])).toContain(
-      ", false, false, 100, 0, JsonString)",
+      ", false, false, 100, 0, 'unknown', ",
     );
   });
 });
@@ -190,6 +216,9 @@ describe("kb_coverage isolated-core regression (issue #118)", () => {
     ) as Record<string, unknown> | undefined;
 
     expect(row1?.coverageStatus).toBe("fully_covered");
+    expect(row1?.proofStatus).toBe("missing");
+    expect(row1?.proofGaps).toContain("missing_semantic_inventory");
+    expect(row1?.proofGaps).toContain("missing_scenario_test");
     expect(row1?.coverageDepth).toBe("direct_passing_e2e");
     expect(row1?.coverage_depth).toBe("direct_passing_e2e");
     expect(row1?.directTests).toEqual(["TEST-118-COV-1"]);
@@ -205,5 +234,67 @@ describe("kb_coverage isolated-core regression (issue #118)", () => {
     });
     expect(result2.structuredContent).not.toBeNull();
     expect(result2.structuredContent).toBeDefined();
+  }, 30000);
+
+  test("exposes the shared read-only legacy migration plan through MCP coverage", async () => {
+    const workspaceRoot = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-mcp-migration-preview-"),
+    );
+    try {
+      const source = "documentation/requirements/REQ-MCP-MIGRATION.md";
+      mkdirSync(path.join(workspaceRoot, "documentation/requirements"), {
+        recursive: true,
+      });
+      writeFileSync(
+        path.join(workspaceRoot, source),
+        "---\nid: REQ-MCP-MIGRATION\ntitle: MCP migration preview\nstatus: open\n---\n\nWhen an operator requests a legacy migration preview, Kibi must return one read-only source-bound review batch.\n",
+        "utf8",
+      );
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "REQ-MCP-MIGRATION",
+        properties: {
+          title: "MCP migration preview",
+          status: "open",
+          source,
+        },
+      });
+
+      const result = await handleKbCoverage(
+        prolog,
+        {
+          by: "req",
+          includeMigrationPreview: true,
+          migrationLimit: 10,
+          migrationPredicateMinScore: 0,
+        },
+        {
+          workspaceRoot,
+          signal: new AbortController().signal,
+          clock: () => new Date("2026-08-11T12:00:00Z"),
+        },
+      );
+      const plan = result.structuredContent?.legacyMigrationPlan;
+      const batch = plan?.batches.find(
+        (candidate) => candidate.requirementId === "REQ-MCP-MIGRATION",
+      );
+      expect(plan?.version).toBe("kibi.legacy-migration-plan.v1");
+      expect(plan?.readOnly).toBe(true);
+      expect(plan?.scope.limit).toBe(10);
+      expect(batch?.autoApplicable).toBe(false);
+      expect(batch?.sourceBinding.sourceHash).toMatch(/^[a-f0-9]{64}$/);
+      expect(batch?.propositions).not.toHaveLength(0);
+      expect(
+        batch?.propositions.every(
+          (proposition) =>
+            proposition.reviewRequired &&
+            proposition.predicateCandidates.every(
+              (candidate) => candidate.writeEligible === false,
+            ),
+        ),
+      ).toBe(true);
+    } finally {
+      rmSync(workspaceRoot, { recursive: true, force: true });
+    }
   }, 30000);
 });

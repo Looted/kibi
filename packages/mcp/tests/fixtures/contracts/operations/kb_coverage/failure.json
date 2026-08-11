@@ -12,13 +12,18 @@
     "offset": 0
   },
   "tool": {
-    "description": "Generate curated coverage reports for requirements, symbols, or grouped types. Read-only reporting with no mutation side effects.",
+    "description": "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Requirement reports include a deterministic, dependency-ordered, read-only repair plan; optional legacy migration previews reconstruct authored proposition inventories and rank exact schema candidates without producing executable writes. Paginated plans identify incomplete scope. Requirement rows keep coverageStatus separate from proofStatus and require fresh snapshot-bound E2E receipts before proof. No mutation side effects.",
     "inputSchema": {
       "properties": {
         "by": {
           "default": "req",
           "enum": ["req", "symbol", "type"],
           "type": "string"
+        },
+        "includeMigrationPreview": {
+          "default": false,
+          "description": "Opt in to a deterministic, read-only kibi.legacy-migration-plan.v1 preview for ready semantic-inventory repair batches.",
+          "type": "boolean"
         },
         "includePassing": {
           "default": false,
@@ -31,6 +36,33 @@
         "limit": {
           "default": 100,
           "type": "integer"
+        },
+        "migrationLimit": {
+          "default": 1,
+          "description": "Maximum requirement migration batches to preview. Defaults to one review batch.",
+          "maximum": 10,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "migrationOffset": {
+          "default": 0,
+          "description": "Zero-based offset into ready semantic-inventory batches.",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "migrationPredicateLimit": {
+          "default": 5,
+          "description": "Maximum exact predicate-schema candidates retained per assertive proposition.",
+          "maximum": 20,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "migrationPredicateMinScore": {
+          "default": 0.35,
+          "description": "Minimum deterministic predicate-schema rank score retained in migration previews.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
         },
         "offset": {
           "default": 0,

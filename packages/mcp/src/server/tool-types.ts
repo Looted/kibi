@@ -58,7 +58,11 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
   prologProcess: () => Awaitable<{ getPid: () => number } | null>;
   operationRuntime: McpOperationRuntime<TProlog>;
   handleKbCheck: (prolog: TProlog, args: CheckArgs) => Promise<unknown>;
-  handleKbCoverage: (prolog: TProlog, args: CoverageArgs) => Promise<unknown>;
+  handleKbCoverage: (
+    prolog: TProlog,
+    args: CoverageArgs,
+    context?: OperationContext,
+  ) => Promise<unknown>;
   handleKbDelete: (prolog: TProlog, args: DeleteArgs) => Promise<unknown>;
   handleKbFindGaps: (prolog: TProlog, args: FindGapsArgs) => Promise<unknown>;
   handleKbGraph: (prolog: TProlog, args: GraphArgs) => Promise<unknown>;
@@ -68,7 +72,11 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
   ) => Promise<unknown>;
   handleKbQuery: (prolog: TProlog, args: QueryArgs) => Promise<unknown>;
   handleKbSearch: (prolog: TProlog, args: SearchArgs) => Promise<unknown>;
-  handleKbStatus: (prolog: TProlog, args: StatusArgs) => Promise<unknown>;
+  handleKbStatus: (
+    prolog: TProlog,
+    args: StatusArgs,
+    context?: OperationContext,
+  ) => Promise<unknown>;
   handleKbSemanticAdvisor: (args: SemanticAdvisorArgs) => Promise<unknown>;
   handleKbSkillsList: (args: SkillsListArgs) => Promise<unknown>;
   handleKbSkillsLoad: (args: SkillsLoadArgs) => Promise<unknown>;

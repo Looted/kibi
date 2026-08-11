@@ -335,27 +335,27 @@ coordinates:
   SYM-DEFAULT-TOOLS-RUNTIME:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 167
+    sourceEndLine: 169
     sourceFile: packages/mcp/src/server/tools-runtime.ts
-    sourceLine: 131
+    sourceLine: 133
   SYM-DIAGNOSTIC_MODE_ENABLED:
     sourceColumn: 13
     sourceEndColumn: 45
-    sourceEndLine: 27
+    sourceEndLine: 28
     sourceFile: packages/mcp/src/diagnostics.ts
-    sourceLine: 26
+    sourceLine: 27
   SYM-DIAGNOSTIC_TELEMETRY_SCHEMA:
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 91
+    sourceEndLine: 102
     sourceFile: packages/mcp/src/diagnostics.ts
-    sourceLine: 60
+    sourceLine: 61
   SYM-DOC-RESOURCES:
     sourceColumn: 13
     sourceEndColumn: 51
-    sourceEndLine: 296
+    sourceEndLine: 300
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 296
+    sourceLine: 300
   SYM-DefaultRuntimeProlog:
     sourceColumn: 12
     sourceEndColumn: 49
@@ -389,15 +389,15 @@ coordinates:
   SYM-DiagnosticErrorFields:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 107
+    sourceEndLine: 118
     sourceFile: packages/mcp/src/diagnostics.ts
-    sourceLine: 98
+    sourceLine: 109
   SYM-DiagnosticToolCall:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 120
+    sourceEndLine: 131
     sourceFile: packages/mcp/src/diagnostics.ts
-    sourceLine: 109
+    sourceLine: 120
   SYM-DiscoverySummary:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1109,7 +1109,7 @@ coordinates:
   SYM-PROMPTS:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 198
+    sourceEndLine: 200
     sourceFile: packages/mcp/src/server/docs.ts
     sourceLine: 68
   SYM-PROSE_COVERAGE_CORPUS:
@@ -1211,9 +1211,9 @@ coordinates:
   SYM-PredicateSuggestion:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 52
+    sourceEndLine: 60
     sourceFile: packages/cli/src/operations/modeling/predicate-types.ts
-    sourceLine: 41
+    sourceLine: 47
   SYM-PredicateUsageHints:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1439,9 +1439,9 @@ coordinates:
   SYM-SEMANTIC_ADVISOR_VERSION:
     sourceColumn: 13
     sourceEndColumn: 61
-    sourceEndLine: 46
+    sourceEndLine: 50
     sourceFile: packages/cli/src/operations/semantic-advisor/analyze-prose.ts
-    sourceLine: 46
+    sourceLine: 50
   SYM-SKILL_FILE_NAME:
     sourceColumn: 13
     sourceEndColumn: 41
@@ -1481,9 +1481,9 @@ coordinates:
   SYM-SemanticAdvisorInput:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 238
+    sourceEndLine: 243
     sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
-    sourceLine: 234
+    sourceLine: 239
   SYM-SemanticAdvisorLane:
     sourceColumn: 12
     sourceEndColumn: 11
@@ -1499,7 +1499,7 @@ coordinates:
   SYM-SemanticAdvisorReceipt:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 232
+    sourceEndLine: 237
     sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
     sourceLine: 204
   SYM-SemanticAdvisorToolResult:
@@ -1811,15 +1811,15 @@ coordinates:
   SYM-SuggestPredicatesArgs:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 38
+    sourceEndLine: 44
     sourceFile: packages/cli/src/operations/modeling/predicate-types.ts
     sourceLine: 28
   SYM-SuggestPredicatesResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 71
+    sourceEndLine: 83
     sourceFile: packages/cli/src/operations/modeling/predicate-types.ts
-    sourceLine: 55
+    sourceLine: 63
   SYM-SymbolCoordinates:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1889,9 +1889,9 @@ coordinates:
   SYM-SyncError:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 70
+    sourceEndLine: 72
     sourceFile: packages/cli/src/commands/sync.ts
-    sourceLine: 65
+    sourceLine: 67
   SYM-SyncOptions:
     sourceColumn: 10
     sourceEndColumn: 1
@@ -1901,9 +1901,9 @@ coordinates:
   SYM-SyncResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 75
+    sourceEndLine: 77
     sourceFile: packages/cli/src/commands/sync.ts
-    sourceLine: 73
+    sourceLine: 75
   SYM-SyncRunMetadata:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1991,9 +1991,9 @@ coordinates:
   SYM-ToolCallPayload:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 96
+    sourceEndLine: 107
     sourceFile: packages/mcp/src/diagnostics.ts
-    sourceLine: 93
+    sourceLine: 104
   SYM-ToolConfig:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -2015,7 +2015,7 @@ coordinates:
   SYM-ToolsRuntime:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 93
+    sourceEndLine: 101
     sourceFile: packages/mcp/src/server/tool-types.ts
     sourceLine: 46
   SYM-TraceabilityRegistrationResult:
@@ -2123,15 +2123,21 @@ coordinates:
   SYM-analyzeSemanticAdvisorInput:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 933
+    sourceEndLine: 974
     sourceFile: packages/cli/src/operations/semantic-advisor/analyze-prose.ts
-    sourceLine: 876
+    sourceLine: 909
   SYM-analyzeSourceText:
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 163
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
     sourceLine: 133
+  SYM-append-only-verification-receipt-history-errors:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 170
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    sourceLine: 147
   SYM-appendDiagnosticErrorUsage:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2147,9 +2153,21 @@ coordinates:
   SYM-appendUsageLogLine:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 58
+    sourceEndLine: 59
     sourceFile: packages/mcp/src/diagnostics.ts
-    sourceLine: 52
+    sourceLine: 53
+  SYM-assert-logical-grounding-claim-keys:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 277
+    sourceFile: packages/cli/src/operations/semantic-advisor/ingestion-boundary.ts
+    sourceLine: 226
+  SYM-assert-semantic-inventory-boundary:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 223
+    sourceFile: packages/cli/src/operations/semantic-advisor/ingestion-boundary.ts
+    sourceLine: 208
   SYM-assertCanonicalSourceComplete:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -2615,15 +2633,15 @@ coordinates:
   SYM-cleanupTempKb:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 402
+    sourceEndLine: 447
     sourceFile: packages/cli/src/traceability/temp-kb.ts
-    sourceLine: 375
+    sourceLine: 420
   SYM-cli-ADR:
     sourceColumn: 12
     sourceEndColumn: 47
-    sourceEndLine: 82
+    sourceEndLine: 83
     sourceFile: packages/cli/src/types/entities.ts
-    sourceLine: 82
+    sourceLine: 83
   SYM-cli-BaseEntity:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -2633,15 +2651,15 @@ coordinates:
   SYM-cli-Entity:
     sourceColumn: 12
     sourceEndColumn: 9
-    sourceEndLine: 96
+    sourceEndLine: 97
     sourceFile: packages/cli/src/types/entities.ts
-    sourceLine: 88
+    sourceLine: 89
   SYM-cli-Event:
     sourceColumn: 12
     sourceEndColumn: 51
-    sourceEndLine: 84
+    sourceEndLine: 85
     sourceFile: packages/cli/src/types/entities.ts
-    sourceLine: 84
+    sourceLine: 85
   SYM-cli-ExtractionOutput:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -2651,9 +2669,9 @@ coordinates:
   SYM-cli-Fact:
     sourceColumn: 12
     sourceEndColumn: 62
-    sourceEndLine: 86
+    sourceEndLine: 87
     sourceFile: packages/cli/src/types/entities.ts
-    sourceLine: 86
+    sourceLine: 87
   SYM-cli-FactFields:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -2663,15 +2681,15 @@ coordinates:
   SYM-cli-Flag:
     sourceColumn: 12
     sourceEndColumn: 49
-    sourceEndLine: 83
+    sourceEndLine: 84
     sourceFile: packages/cli/src/types/entities.ts
-    sourceLine: 83
+    sourceLine: 84
   SYM-cli-PersistenceResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 139
+    sourceEndLine: 141
     sourceFile: packages/cli/src/commands/sync/persistence.ts
-    sourceLine: 135
+    sourceLine: 137
   SYM-cli-PrologProcess-getPid:
     sourceColumn: 2
     sourceEndColumn: 3
@@ -2717,27 +2735,27 @@ coordinates:
   SYM-cli-Requirement:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 79
+    sourceEndLine: 80
     sourceFile: packages/cli/src/types/entities.ts
     sourceLine: 76
   SYM-cli-Scenario:
     sourceColumn: 12
     sourceEndColumn: 57
-    sourceEndLine: 80
-    sourceFile: packages/cli/src/types/entities.ts
-    sourceLine: 80
-  SYM-cli-Symbol:
-    sourceColumn: 12
-    sourceEndColumn: 53
-    sourceEndLine: 85
-    sourceFile: packages/cli/src/types/entities.ts
-    sourceLine: 85
-  SYM-cli-TestEntity:
-    sourceColumn: 12
-    sourceEndColumn: 80
     sourceEndLine: 81
     sourceFile: packages/cli/src/types/entities.ts
     sourceLine: 81
+  SYM-cli-Symbol:
+    sourceColumn: 12
+    sourceEndColumn: 53
+    sourceEndLine: 86
+    sourceFile: packages/cli/src/types/entities.ts
+    sourceLine: 86
+  SYM-cli-TestEntity:
+    sourceColumn: 12
+    sourceEndColumn: 80
+    sourceEndLine: 82
+    sourceFile: packages/cli/src/types/entities.ts
+    sourceLine: 82
   SYM-cli-TestVerificationFields:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -2753,7 +2771,7 @@ coordinates:
   SYM-cli-build-program:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 61
+    sourceEndLine: 65
     sourceFile: packages/cli/src/cli.ts
     sourceLine: 49
   SYM-cli-codec-escape-atom:
@@ -2771,9 +2789,9 @@ coordinates:
   SYM-cli-codec-parse-atom-list:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 397
+    sourceEndLine: 403
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 382
+    sourceLine: 388
   SYM-cli-codec-parse-entity-from-binding:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2795,45 +2813,45 @@ coordinates:
   SYM-cli-codec-parse-pair-list:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 418
+    sourceEndLine: 424
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 399
+    sourceLine: 405
   SYM-cli-codec-parse-prolog-value:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 302
+    sourceEndLine: 308
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 208
+    sourceLine: 210
   SYM-cli-codec-parse-triples:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 440
+    sourceEndLine: 446
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 420
+    sourceLine: 426
   SYM-cli-codec-parse-violation-rows:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 567
+    sourceEndLine: 573
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 506
+    sourceLine: 512
   SYM-cli-codec-parsed-violation:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 504
+    sourceEndLine: 510
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 498
+    sourceLine: 504
   SYM-cli-codec-split-top-level:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 361
+    sourceEndLine: 367
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 358
+    sourceLine: 364
   SYM-cli-codec-split-top-level-general:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 356
+    sourceEndLine: 362
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 304
+    sourceLine: 310
   SYM-cli-codec-to-prolog-atom:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2879,7 +2897,7 @@ coordinates:
   SYM-cli-discovery-renderCoverageTable:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 181
+    sourceEndLine: 194
     sourceFile: packages/cli/src/commands/discovery-table.ts
     sourceLine: 116
   SYM-cli-discovery-renderDiscoveryTable:
@@ -2993,9 +3011,9 @@ coordinates:
   SYM-cli-impact-collectFullKbQualityDiagnostics:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 230
+    sourceEndLine: 303
     sourceFile: packages/cli/src/public/impact/full-kb-quality.ts
-    sourceLine: 209
+    sourceLine: 275
   SYM-cli-impact-collectLinkedEntities:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3119,9 +3137,9 @@ coordinates:
   SYM-cli-json-invocation-type:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 21
+    sourceEndLine: 23
     sourceFile: packages/cli/src/cli-json-command.ts
-    sourceLine: 13
+    sourceLine: 15
   SYM-cli-load-input:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3257,51 +3275,51 @@ coordinates:
   SYM-cli-logic-modeling-LogicApplyPlanInput:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 18
+    sourceEndLine: 22
     sourceFile: packages/cli/src/operations/modeling/logic-modeling.ts
-    sourceLine: 10
+    sourceLine: 14
   SYM-cli-logic-modeling-LogicApplyPlanResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 28
+    sourceEndLine: 32
     sourceFile: packages/cli/src/operations/modeling/logic-modeling.ts
-    sourceLine: 20
+    sourceLine: 24
   SYM-cli-logic-modeling-buildLogicApplyPlan:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 148
+    sourceEndLine: 166
     sourceFile: packages/cli/src/operations/modeling/logic-modeling.ts
-    sourceLine: 42
+    sourceLine: 46
   SYM-cli-logic-modeling-logicRuleFactId:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 40
+    sourceEndLine: 44
     sourceFile: packages/cli/src/operations/modeling/logic-modeling.ts
-    sourceLine: 38
+    sourceLine: 42
   SYM-cli-main:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 80
+    sourceEndLine: 84
     sourceFile: packages/cli/src/cli.ts
-    sourceLine: 64
+    sourceLine: 68
   SYM-cli-mutation-serialization-buildPropertyList:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 55
+    sourceEndLine: 60
     sourceFile: packages/cli/src/operations/mutation/serialization.ts
-    sourceLine: 47
+    sourceLine: 52
   SYM-cli-mutation-serialization-buildRelationshipMetadata:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 65
+    sourceEndLine: 70
     sourceFile: packages/cli/src/operations/mutation/serialization.ts
-    sourceLine: 58
+    sourceLine: 63
   SYM-cli-mutation-serialization-parsePrologList:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 86
+    sourceEndLine: 91
     sourceFile: packages/cli/src/operations/mutation/serialization.ts
-    sourceLine: 68
+    sourceLine: 73
   SYM-cli-mutation-strict-fact-factKindShapeHints:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3365,21 +3383,21 @@ coordinates:
   SYM-cli-parse-property-list:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 206
+    sourceEndLine: 208
     sourceFile: packages/cli/src/prolog/codec.ts
     sourceLine: 158
   SYM-cli-persistEntities:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 273
+    sourceEndLine: 349
     sourceFile: packages/cli/src/commands/sync/persistence.ts
-    sourceLine: 174
+    sourceLine: 176
   SYM-cli-persistRelationships:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 481
+    sourceEndLine: 557
     sourceFile: packages/cli/src/commands/sync/persistence.ts
-    sourceLine: 302
+    sourceLine: 378
   SYM-cli-prepare-operation-input:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3419,19 +3437,19 @@ coordinates:
   SYM-cli-register-json-only-commands:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 136
+    sourceEndLine: 211
     sourceFile: packages/cli/src/cli-json-command.ts
-    sourceLine: 110
+    sourceLine: 185
   SYM-cli-register-maintenance-commands:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 45
+    sourceEndLine: 64
     sourceFile: packages/cli/src/cli-register-maintenance.ts
-    sourceLine: 9
+    sourceLine: 10
   SYM-cli-register-reporting-commands:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 130
+    sourceEndLine: 155
     sourceFile: packages/cli/src/cli-register-reporting.ts
     sourceLine: 11
   SYM-cli-register-skills-commands:
@@ -3443,27 +3461,27 @@ coordinates:
   SYM-cli-rule-registry-ChecksConfig:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 47
+    sourceEndLine: 49
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 44
+    sourceLine: 46
   SYM-cli-rule-registry-DEFAULT_CHECKS_CONFIG:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 186
+    sourceEndLine: 188
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 181
+    sourceLine: 183
   SYM-cli-rule-registry-RULES:
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 171
+    sourceEndLine: 173
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 53
+    sourceLine: 55
   SYM-cli-rule-registry-RULE_NAMES:
     sourceColumn: 13
     sourceEndColumn: 59
-    sourceEndLine: 176
+    sourceEndLine: 178
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 176
+    sourceLine: 178
   SYM-cli-rule-registry-RuleDefinition:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -3479,39 +3497,39 @@ coordinates:
   SYM-cli-rule-registry-Violation:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 42
+    sourceEndLine: 44
     sourceFile: packages/cli/src/utils/rule-registry.ts
     sourceLine: 36
   SYM-cli-rule-registry-getEffectiveRules:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 220
+    sourceEndLine: 222
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 195
+    sourceLine: 197
   SYM-cli-rule-registry-mergeChecksConfig:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 249
+    sourceEndLine: 251
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 236
+    sourceLine: 238
   SYM-cli-rule-registry-validateRuleName:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 231
+    sourceEndLine: 233
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 226
+    sourceLine: 228
   SYM-cli-run-aggregated-checks:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 81
+    sourceEndLine: 83
     sourceFile: packages/cli/src/commands/aggregated-checks.ts
-    sourceLine: 22
+    sourceLine: 23
   SYM-cli-run-json-invocation:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 97
+    sourceEndLine: 172
     sourceFile: packages/cli/src/cli-json-command.ts
-    sourceLine: 46
+    sourceLine: 65
   SYM-cli-search-command:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3569,9 +3587,9 @@ coordinates:
   SYM-cli-semantic-advisor-relationship:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 104
+    sourceEndLine: 145
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
-    sourceLine: 98
+    sourceLine: 139
   SYM-cli-status-command:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3581,9 +3599,9 @@ coordinates:
   SYM-cli-test-large-entity-goal:
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 38
+    sourceEndLine: 48
     sourceFile: packages/cli/tests/operations/discovery.test.ts
-    sourceLine: 36
+    sourceLine: 46
   SYM-cli-test-makeQualitySymbolResult:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3815,9 +3833,9 @@ coordinates:
   SYM-consultOverlay:
     sourceColumn: 15
     sourceEndColumn: 1
-    sourceEndLine: 270
+    sourceEndLine: 315
     sourceFile: packages/cli/src/traceability/temp-kb.ts
-    sourceLine: 254
+    sourceLine: 299
   SYM-copySchemaFiles:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3827,9 +3845,9 @@ coordinates:
   SYM-core-check-logic-coverage:
     sourceColumn: 4
     sourceEndColumn: 24
-    sourceEndLine: 21
+    sourceEndLine: 22
     sourceFile: packages/core/src/checks.pl
-    sourceLine: 21
+    sourceLine: 22
   SYM-core-contradicting-reqs:
     sourceColumn: 4
     sourceEndColumn: 22
@@ -3839,33 +3857,123 @@ coordinates:
   SYM-core-discovery-classifyCoverageDepth:
     sourceColumn: 4
     sourceEndColumn: 27
-    sourceEndLine: 258
+    sourceEndLine: 319
     sourceFile: packages/core/src/discovery.pl
-    sourceLine: 258
+    sourceLine: 319
+  SYM-core-discovery-coverageSummary:
+    sourceColumn: 4
+    sourceEndColumn: 20
+    sourceEndLine: 110
+    sourceFile: packages/core/src/discovery.pl
+    sourceLine: 110
   SYM-core-discovery-requirementCoverageDepth:
     sourceColumn: 4
     sourceEndColumn: 30
-    sourceEndLine: 134
+    sourceEndLine: 153
     sourceFile: packages/core/src/discovery.pl
-    sourceLine: 134
+    sourceLine: 153
+  SYM-core-discovery-requirementCoverageRow:
+    sourceColumn: 8
+    sourceEndColumn: 32
+    sourceEndLine: 107
+    sourceFile: packages/core/src/discovery.pl
+    sourceLine: 107
+  SYM-core-discovery-symbolCoverageRow:
+    sourceColumn: 8
+    sourceEndColumn: 27
+    sourceEndLine: 114
+    sourceFile: packages/core/src/discovery.pl
+    sourceLine: 114
+  SYM-core-domain-contradiction-witnesses:
+    sourceColumn: 4
+    sourceEndColumn: 40
+    sourceEndLine: 17
+    sourceFile: packages/core/src/checks.pl
+    sourceLine: 17
+  SYM-core-entity-property-schema:
+    sourceColumn: 41
+    sourceEndColumn: 56
+    sourceEndLine: 3
+    sourceFile: packages/core/schema/entities.pl
+    sourceLine: 3
   SYM-core-grounded-requirement-claim-fact:
     sourceColumn: 4
     sourceEndColumn: 35
-    sourceEndLine: 936
+    sourceEndLine: 1025
     sourceFile: packages/core/src/checks.pl
-    sourceLine: 936
+    sourceLine: 1025
+  SYM-core-kb-literal-to-value:
+    sourceColumn: 8
+    sourceEndColumn: 24
+    sourceEndLine: 402
+    sourceFile: packages/core/src/kb.pl
+    sourceLine: 402
+  SYM-core-kb-value-to-literal:
+    sourceColumn: 4
+    sourceEndColumn: 20
+    sourceEndLine: 621
+    sourceFile: packages/core/src/kb.pl
+    sourceLine: 621
   SYM-core-logical-ground-signature:
     sourceColumn: 4
     sourceEndColumn: 28
-    sourceEndLine: 958
+    sourceEndLine: 1047
     sourceFile: packages/core/src/checks.pl
-    sourceLine: 958
+    sourceLine: 1047
+  SYM-core-proof-contradiction-stage:
+    sourceColumn: 4
+    sourceEndColumn: 23
+    sourceEndLine: 61
+    sourceFile: packages/core/src/requirement_proof.pl
+    sourceLine: 61
+  SYM-core-req-conflict-witness:
+    sourceColumn: 4
+    sourceEndColumn: 24
+    sourceEndLine: 46
+    sourceFile: packages/core/src/kb.pl
+    sourceLine: 46
+  SYM-core-requirement-proof:
+    sourceColumn: 10
+    sourceEndColumn: 27
+    sourceEndLine: 1
+    sourceFile: packages/core/src/requirement_proof.pl
+    sourceLine: 1
+  SYM-core-requirement-proof-context:
+    sourceColumn: 4
+    sourceEndColumn: 29
+    sourceEndLine: 5
+    sourceFile: packages/core/src/requirement_proof.pl
+    sourceLine: 5
+  SYM-core-rule-contradiction-witness:
+    sourceColumn: 21
+    sourceEndColumn: 47
+    sourceEndLine: 600
+    sourceFile: packages/core/src/checks.pl
+    sourceLine: 600
   SYM-core-validate-entity-shape:
     sourceColumn: 4
     sourceEndColumn: 25
     sourceEndLine: 22
     sourceFile: packages/core/schema/validation.pl
     sourceLine: 22
+  SYM-core-validation-check-kind:
+    sourceColumn: 4
+    sourceEndColumn: 14
+    sourceEndLine: 40
+    sourceFile: packages/core/schema/validation.pl
+    sourceLine: 40
+  SYM-core-verification-receipt-evidence:
+    sourceColumn: 12
+    sourceEndColumn: 33
+    sourceEndLine: 457
+    sourceFile: packages/core/src/requirement_proof.pl
+    sourceLine: 457
+  SYM-core-verification-receipt-state:
+    sourceColumn: 8
+    sourceEndColumn: 30
+    sourceEndLine: 500
+    sourceFile: packages/core/src/requirement_proof.pl
+    sourceLine: 500
   SYM-createAtomically:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3923,9 +4031,9 @@ coordinates:
   SYM-createOverlayFacts:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 373
+    sourceEndLine: 418
     sourceFile: packages/cli/src/traceability/temp-kb.ts
-    sourceLine: 355
+    sourceLine: 400
   SYM-createRepoIgnorePolicy:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3947,9 +4055,9 @@ coordinates:
   SYM-createTempKb:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 352
+    sourceEndLine: 397
     sourceFile: packages/cli/src/traceability/temp-kb.ts
-    sourceLine: 307
+    sourceLine: 352
   SYM-createTsMorphSourceAnalysisProvider:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4319,9 +4427,9 @@ coordinates:
   SYM-deriveDiagnosticFields:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 296
+    sourceEndLine: 412
     sourceFile: packages/mcp/src/diagnostics.ts
-    sourceLine: 219
+    sourceLine: 309
   SYM-deriveDiagnosticHints:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4391,57 +4499,87 @@ coordinates:
   SYM-discovery-execute-query:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 103
+    sourceEndLine: 110
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 69
+    sourceLine: 76
   SYM-discovery-execute-search:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 146
+    sourceEndLine: 153
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 105
+    sourceLine: 112
   SYM-discovery-execute-status:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 176
+    sourceEndLine: 198
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 148
+    sourceLine: 155
   SYM-discovery-query-input:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 19
+    sourceEndLine: 20
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 12
+    sourceLine: 13
   SYM-discovery-query-payload:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 24
+    sourceEndLine: 25
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 21
+    sourceLine: 22
   SYM-discovery-search-input:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 31
+    sourceEndLine: 32
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 26
+    sourceLine: 27
   SYM-discovery-search-payload:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 36
+    sourceEndLine: 37
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 33
+    sourceLine: 34
   SYM-discovery-status-input:
     sourceColumn: 12
     sourceEndColumn: 58
-    sourceEndLine: 38
+    sourceEndLine: 39
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 38
+    sourceLine: 39
   SYM-discovery-status-payload:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 48
+    sourceEndLine: 55
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 40
+    sourceLine: 41
+  SYM-distribution-parity-build-report:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 548
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 346
+  SYM-distribution-parity-normalize:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 301
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 275
+  SYM-distribution-parity-resolve-provenance:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 254
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 216
+  SYM-distribution-parity-run-matrix:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 580
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 551
+  SYM-effective-requirement-relationships:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 83
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    sourceLine: 62
   SYM-enrichSymbolCoordinates:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -4511,21 +4649,21 @@ coordinates:
   SYM-execute-model-requirement:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 207
+    sourceEndLine: 237
     sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
-    sourceLine: 202
+    sourceLine: 232
   SYM-execute-suggest-predicates:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 116
+    sourceEndLine: 151
     sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
-    sourceLine: 111
+    sourceLine: 146
   SYM-executeOperation:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 106
+    sourceEndLine: 114
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 87
+    sourceLine: 95
   SYM-executeSemanticAdvisor:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -4535,15 +4673,15 @@ coordinates:
   SYM-executeUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 144
+    sourceEndLine: 191
     sourceFile: packages/cli/src/operations/mutation/upsert.ts
-    sourceLine: 51
+    sourceLine: 85
   SYM-executeValidateUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 68
+    sourceEndLine: 109
     sourceFile: packages/cli/src/operations/mutation/validate-upsert.ts
-    sourceLine: 13
+    sourceLine: 22
   SYM-externalVerdict:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4757,9 +4895,9 @@ coordinates:
   SYM-getWorkspaceMigrationWarning:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 54
+    sourceEndLine: 58
     sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
-    sourceLine: 36
+    sourceLine: 40
   SYM-handleKbAutopilotGenerate:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -4877,9 +5015,9 @@ coordinates:
   SYM-initializeDiagnosticMode:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 50
+    sourceEndLine: 51
     sourceFile: packages/mcp/src/diagnostics.ts
-    sourceLine: 31
+    sourceLine: 32
   SYM-injectPrompt:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4997,7 +5135,7 @@ coordinates:
   SYM-jsonSchemaToZod:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 223
+    sourceEndLine: 239
     sourceFile: packages/mcp/src/server/json-schema-to-zod.ts
     sourceLine: 53
   SYM-kibi-usage-fact-lanes-guidance:
@@ -5018,6 +5156,24 @@ coordinates:
     sourceEndLine: 1
     sourceFile: packages/cli/src/public/skills/kibi-usage/resources/workflows.md
     sourceLine: 1
+  SYM-legacy-migration-plan-build:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 656
+    sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
+    sourceLine: 515
+  SYM-legacy-migration-plan-build-from-context:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 688
+    sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
+    sourceLine: 659
+  SYM-legacy-migration-plan-version:
+    sourceColumn: 13
+    sourceEndColumn: 42
+    sourceEndLine: 22
+    sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
+    sourceLine: 21
   SYM-listBundledSkills:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5069,81 +5225,81 @@ coordinates:
   SYM-markdown-ExtractedEntity:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 149
+    sourceEndLine: 160
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 82
+    sourceLine: 87
   SYM-markdown-ExtractedRelationship:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 155
+    sourceEndLine: 166
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 151
+    sourceLine: 162
   SYM-markdown-ExtractionResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 161
+    sourceEndLine: 172
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 157
+    sourceLine: 168
   SYM-markdown-FrontmatterError:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 385
+    sourceEndLine: 396
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 351
+    sourceLine: 362
   SYM-markdown-FrontmatterError-classification:
     sourceColumn: 9
     sourceEndColumn: 32
-    sourceEndLine: 352
+    sourceEndLine: 363
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 352
+    sourceLine: 363
   SYM-markdown-FrontmatterError-hint:
     sourceColumn: 9
     sourceEndColumn: 22
-    sourceEndLine: 353
+    sourceEndLine: 364
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 353
+    sourceLine: 364
   SYM-markdown-FrontmatterError-originalError:
     sourceColumn: 9
     sourceEndColumn: 32
-    sourceEndLine: 354
+    sourceEndLine: 365
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 354
+    sourceLine: 365
   SYM-markdown-FrontmatterError-toString:
     sourceColumn: 11
     sourceEndColumn: 3
-    sourceEndLine: 384
+    sourceEndLine: 395
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 375
+    sourceLine: 386
   SYM-markdown-detectEmbeddedEntities:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 501
+    sourceEndLine: 523
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 447
+    sourceLine: 469
   SYM-markdown-extractFromMarkdown:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 841
+    sourceEndLine: 933
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 828
+    sourceLine: 920
   SYM-markdown-extractFromMarkdownString:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 825
+    sourceEndLine: 917
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 820
+    sourceLine: 912
   SYM-markdown-inferTypeFromPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 852
+    sourceEndLine: 944
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 843
+    sourceLine: 935
   SYM-markdown-normalizeDateLike:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 869
+    sourceEndLine: 961
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 861
+    sourceLine: 953
   SYM-mcp-BranchKbStamp:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -5231,7 +5387,7 @@ coordinates:
   SYM-mcp-discovery-context:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 32
+    sourceEndLine: 34
     sourceFile: packages/mcp/src/tools/discovery-adapter.ts
     sourceLine: 9
   SYM-mcp-formatImpactText:
@@ -5258,6 +5414,12 @@ coordinates:
     sourceEndLine: 88
     sourceFile: packages/mcp/src/tools/check-config.ts
     sourceLine: 70
+  SYM-mcp-handle-repair-plan-coverage:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 39
+    sourceFile: packages/mcp/src/tools/coverage.ts
+    sourceLine: 30
   SYM-mcp-hasImpactOptions:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5279,7 +5441,7 @@ coordinates:
   SYM-mcp-runAggregatedChecks:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 71
+    sourceEndLine: 72
     sourceFile: packages/mcp/src/tools/check-prolog.ts
     sourceLine: 24
   SYM-mcp-sameBranchKbStamp:
@@ -5423,21 +5585,21 @@ coordinates:
   SYM-mcp-status-StatusArgs:
     sourceColumn: 12
     sourceEndColumn: 37
-    sourceEndLine: 10
-    sourceFile: packages/mcp/src/tools/status.ts
-    sourceLine: 10
-  SYM-mcp-status-StatusResult:
-    sourceColumn: 12
-    sourceEndColumn: 58
     sourceEndLine: 11
     sourceFile: packages/mcp/src/tools/status.ts
     sourceLine: 11
+  SYM-mcp-status-StatusResult:
+    sourceColumn: 12
+    sourceEndColumn: 58
+    sourceEndLine: 12
+    sourceFile: packages/mcp/src/tools/status.ts
+    sourceLine: 12
   SYM-mcp-status-adapter:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 24
+    sourceEndLine: 26
     sourceFile: packages/mcp/src/tools/status.ts
-    sourceLine: 14
+    sourceLine: 15
   SYM-mcp-stopIntegrationProlog:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -5507,9 +5669,9 @@ coordinates:
   SYM-model-requirement-core-handler:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 200
+    sourceEndLine: 230
     sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
-    sourceLine: 56
+    sourceLine: 60
   SYM-modelRequirementClaims:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5519,21 +5681,21 @@ coordinates:
   SYM-modeling-predicate-applyplan-buildGapApplyPlan:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 147
+    sourceEndLine: 162
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
-    sourceLine: 113
+    sourceLine: 128
   SYM-modeling-predicate-applyplan-buildPredicateApplyPlan:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 78
+    sourceEndLine: 93
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
-    sourceLine: 43
+    sourceLine: 57
   SYM-modeling-predicate-applyplan-buildRelationshipPlan:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 110
+    sourceEndLine: 125
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
-    sourceLine: 81
+    sourceLine: 96
   SYM-modeling-predicate-inference-1-inferAuditEventRuleArgs:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6005,21 +6167,33 @@ coordinates:
   SYM-mutation-entity-properties-schema:
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 281
+    sourceEndLine: 327
     sourceFile: packages/cli/src/public/operations/specs/mutation-schemas.ts
-    sourceLine: 22
+    sourceLine: 24
   SYM-mutation-entity-types-schema:
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 10
+    sourceEndLine: 12
     sourceFile: packages/cli/src/public/operations/specs/mutation-schemas.ts
-    sourceLine: 1
+    sourceLine: 3
   SYM-mutation-relationships-schema:
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 326
+    sourceEndLine: 372
     sourceFile: packages/cli/src/public/operations/specs/mutation-schemas.ts
-    sourceLine: 283
+    sourceLine: 329
+  SYM-node-workspace-snapshot:
+    sourceColumn: 15
+    sourceEndColumn: 1
+    sourceEndLine: 144
+    sourceFile: packages/cli/src/public/operations/node-ports.ts
+    sourceLine: 90
+  SYM-normalize-semantic-clause:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 25
+    sourceFile: packages/cli/src/operations/semantic-advisor/clauses.ts
+    sourceLine: 14
   SYM-normalizeMarkdownPath:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6107,9 +6281,9 @@ coordinates:
   SYM-operation-coverage-spec:
     sourceColumn: 13
     sourceEndColumn: 66
-    sourceEndLine: 187
+    sourceEndLine: 272
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
-    sourceLine: 168
+    sourceLine: 217
   SYM-operation-delete-spec:
     sourceColumn: 13
     sourceEndColumn: 62
@@ -6125,21 +6299,27 @@ coordinates:
   SYM-operation-execute-check:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 185
+    sourceEndLine: 189
     sourceFile: packages/cli/src/public/operations/check-executor.ts
     sourceLine: 73
+  SYM-operation-executeCoverage:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 215
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    sourceLine: 154
   SYM-operation-find-gaps-spec:
     sourceColumn: 13
     sourceEndColumn: 66
-    sourceEndLine: 138
+    sourceEndLine: 152
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
-    sourceLine: 115
+    sourceLine: 129
   SYM-operation-graph-spec:
     sourceColumn: 13
     sourceEndColumn: 60
-    sourceEndLine: 249
+    sourceEndLine: 334
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
-    sourceLine: 224
+    sourceLine: 309
   SYM-operation-model-requirement-spec:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -6155,21 +6335,21 @@ coordinates:
   SYM-operation-node-filesystem:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 56
+    sourceEndLine: 164
     sourceFile: packages/cli/src/public/operations/node-ports.ts
-    sourceLine: 38
+    sourceLine: 146
   SYM-operation-node-git:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 74
+    sourceEndLine: 183
     sourceFile: packages/cli/src/public/operations/node-ports.ts
-    sourceLine: 58
+    sourceLine: 166
   SYM-operation-node-network:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 78
+    sourceEndLine: 187
     sourceFile: packages/cli/src/public/operations/node-ports.ts
-    sourceLine: 76
+    sourceLine: 185
   SYM-operation-query-spec:
     sourceColumn: 13
     sourceEndColumn: 60
@@ -6245,7 +6425,7 @@ coordinates:
   SYM-operation-suggest-predicates-spec:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 174
+    sourceEndLine: 192
     sourceFile: packages/cli/src/public/operations/specs/modeling.ts
     sourceLine: 108
   SYM-operation-upsert-spec:
@@ -6305,15 +6485,15 @@ coordinates:
   SYM-packed-parity-mcp-request:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 167
+    sourceEndLine: 172
     sourceFile: documentation/tests/e2e/packed/mcp-cli-operation-parity-support.ts
     sourceLine: 137
   SYM-packed-parity-mcp-server:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 175
+    sourceEndLine: 183
     sourceFile: documentation/tests/e2e/packed/mcp-cli-operation-parity-support.ts
-    sourceLine: 169
+    sourceLine: 174
   SYM-packed-parity-operation-case:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -6521,7 +6701,7 @@ coordinates:
   SYM-predicate-build-suggestion:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 40
+    sourceEndLine: 54
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
     sourceLine: 12
   SYM-predicate-catalog-part-1:
@@ -6563,9 +6743,9 @@ coordinates:
   SYM-predicate-infer-args:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 230
+    sourceEndLine: 220
     sourceFile: packages/cli/src/operations/modeling/predicate-inference.ts
-    sourceLine: 72
+    sourceLine: 71
   SYM-predicate-infer-conflict-resolution:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6683,9 +6863,9 @@ coordinates:
   SYM-projectStagedEntities:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 305
+    sourceEndLine: 350
     sourceFile: packages/cli/src/traceability/temp-kb.ts
-    sourceLine: 275
+    sourceLine: 320
   SYM-publicSkillDescriptors:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6704,6 +6884,18 @@ coordinates:
     sourceEndLine: 91
     sourceFile: packages/cli/src/search-ranking.ts
     sourceLine: 57
+  SYM-read-sync-semantic-cache:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 113
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    sourceLine: 67
+  SYM-read-workspace-snapshot:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 28
+    sourceFile: packages/cli/src/public/operations/workspace-snapshot.ts
+    sourceLine: 7
   SYM-readBundledSkillResource:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6785,7 +6977,7 @@ coordinates:
   SYM-registerConfiguredTools:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 194
+    sourceEndLine: 198
     sourceFile: packages/mcp/src/server/tool-registration.ts
     sourceLine: 50
   SYM-registerIndexCoverageTests:
@@ -6812,12 +7004,474 @@ coordinates:
     sourceEndLine: 33
     sourceFile: scripts/skillopt-eval/artifact-path-write.ts
     sourceLine: 29
+  SYM-repair-plan-build:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 562
+    sourceFile: packages/cli/src/public/operations/repair-plan.ts
+    sourceLine: 466
   SYM-repoRootFromScript:
     sourceColumn: 9
     sourceEndColumn: 1
     sourceEndLine: 107
     sourceFile: scripts/sync-agent-skills.ts
     sourceLine: 104
+  SYM-reqcompiler-coverage-command:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 52
+    sourceFile: packages/cli/src/commands/coverage.ts
+    sourceLine: 23
+  SYM-reqcompiler-coverage-input:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 56
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    sourceLine: 44
+  SYM-reqcompiler-coverage-payload:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 64
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    sourceLine: 58
+  SYM-reqcompiler-diagnostic-mutation-fingerprint:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 51
+    sourceFile: packages/cli/src/public/diagnostic-usage.ts
+    sourceLine: 45
+  SYM-reqcompiler-diagnostic-usage-input:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 17
+    sourceFile: packages/cli/src/public/diagnostic-usage.ts
+    sourceLine: 5
+  SYM-reqcompiler-find-gaps-execute:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 127
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    sourceLine: 98
+  SYM-reqcompiler-find-gaps-input:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 36
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    sourceLine: 28
+  SYM-reqcompiler-find-gaps-payload:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 42
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    sourceLine: 38
+  SYM-reqcompiler-graph-execute:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 307
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    sourceLine: 274
+  SYM-reqcompiler-graph-input:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 74
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    sourceLine: 66
+  SYM-reqcompiler-graph-payload:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 81
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    sourceLine: 76
+  SYM-reqcompiler-ingestion-boundary-result:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 33
+    sourceFile: packages/cli/src/operations/semantic-advisor/ingestion-boundary.ts
+    sourceLine: 29
+  SYM-reqcompiler-legacy-migration-batch:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 97
+    sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
+    sourceLine: 68
+  SYM-reqcompiler-legacy-migration-input:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 29
+    sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
+    sourceLine: 24
+  SYM-reqcompiler-legacy-migration-plan:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 136
+    sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
+    sourceLine: 99
+  SYM-reqcompiler-legacy-migration-predicate-candidate:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 43
+    sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
+    sourceLine: 31
+  SYM-reqcompiler-legacy-migration-proposition:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 66
+    sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
+    sourceLine: 45
+  SYM-reqcompiler-mcp-coverage-args:
+    sourceColumn: 12
+    sourceEndColumn: 41
+    sourceEndLine: 13
+    sourceFile: packages/mcp/src/tools/coverage.ts
+    sourceLine: 13
+  SYM-reqcompiler-mcp-coverage-result:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 27
+    sourceFile: packages/mcp/src/tools/coverage.ts
+    sourceLine: 15
+  SYM-reqcompiler-parity-action:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 59
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 56
+  SYM-reqcompiler-parity-capabilities:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 24
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 17
+  SYM-reqcompiler-parity-capability:
+    sourceColumn: 12
+    sourceEndColumn: 53
+    sourceEndLine: 27
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 26
+  SYM-reqcompiler-parity-capability-result:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 66
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 61
+  SYM-reqcompiler-parity-capability-state:
+    sourceColumn: 12
+    sourceEndColumn: 69
+    sourceEndLine: 33
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 33
+  SYM-reqcompiler-parity-comparison:
+    sourceColumn: 12
+    sourceEndColumn: 19
+    sourceEndLine: 86
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 81
+  SYM-reqcompiler-parity-issue:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 120
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 114
+  SYM-reqcompiler-parity-issue-code:
+    sourceColumn: 12
+    sourceEndColumn: 40
+    sourceEndLine: 112
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 103
+  SYM-reqcompiler-parity-observation:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 79
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 75
+  SYM-reqcompiler-parity-options:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 143
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 140
+  SYM-reqcompiler-parity-report:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 138
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 122
+  SYM-reqcompiler-parity-row:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 101
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 88
+  SYM-reqcompiler-parity-runtime:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 54
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 45
+  SYM-reqcompiler-parity-runtime-adapter:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 73
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 68
+  SYM-reqcompiler-parity-runtime-kind:
+    sourceColumn: 12
+    sourceEndColumn: 23
+    sourceEndLine: 31
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 28
+  SYM-reqcompiler-parity-runtime-provenance:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 43
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 35
+  SYM-reqcompiler-parity-surface:
+    sourceColumn: 12
+    sourceEndColumn: 48
+    sourceEndLine: 32
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 32
+  SYM-reqcompiler-parity-version:
+    sourceColumn: 13
+    sourceEndColumn: 40
+    sourceEndLine: 15
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    sourceLine: 14
+  SYM-reqcompiler-receipt-append-only-validation:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 60
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    sourceLine: 44
+  SYM-reqcompiler-remediation-event-reference:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 21
+    sourceFile: packages/cli/src/public/telemetry-remediation.ts
+    sourceLine: 14
+  SYM-reqcompiler-remediation-item:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 32
+    sourceFile: packages/cli/src/public/telemetry-remediation.ts
+    sourceLine: 23
+  SYM-reqcompiler-remediation-options:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 14
+    sourceFile: packages/cli/src/commands/usage-remediation.ts
+    sourceLine: 11
+  SYM-reqcompiler-remediation-render:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 45
+    sourceFile: packages/cli/src/commands/usage-remediation.ts
+    sourceLine: 16
+  SYM-reqcompiler-remediation-report:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 44
+    sourceFile: packages/cli/src/public/telemetry-remediation.ts
+    sourceLine: 34
+  SYM-reqcompiler-remediation-version:
+    sourceColumn: 13
+    sourceEndColumn: 42
+    sourceEndLine: 12
+    sourceFile: packages/cli/src/public/telemetry-remediation.ts
+    sourceLine: 11
+  SYM-reqcompiler-repair-plan-batch:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 281
+    sourceFile: packages/cli/src/public/operations/repair-plan.ts
+    sourceLine: 268
+  SYM-reqcompiler-repair-plan-input:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 322
+    sourceFile: packages/cli/src/public/operations/repair-plan.ts
+    sourceLine: 317
+  SYM-reqcompiler-repair-plan-repair:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 266
+    sourceFile: packages/cli/src/public/operations/repair-plan.ts
+    sourceLine: 259
+  SYM-reqcompiler-repair-plan-shape:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 315
+    sourceFile: packages/cli/src/public/operations/repair-plan.ts
+    sourceLine: 283
+  SYM-reqcompiler-repair-plan-version:
+    sourceColumn: 13
+    sourceEndColumn: 65
+    sourceEndLine: 3
+    sourceFile: packages/cli/src/public/operations/repair-plan.ts
+    sourceLine: 3
+  SYM-reqcompiler-runtime-workspace-snapshot:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 42
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    sourceLine: 37
+  SYM-reqcompiler-semantic-source-field:
+    sourceColumn: 12
+    sourceEndColumn: 73
+    sourceEndLine: 13
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    sourceLine: 13
+  SYM-reqcompiler-sync-cache-copy:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 149
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    sourceLine: 135
+  SYM-reqcompiler-sync-cache-hash-file:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 65
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    sourceLine: 57
+  SYM-reqcompiler-sync-cache-key:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 55
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    sourceLine: 53
+  SYM-reqcompiler-sync-cache-ttl:
+    sourceColumn: 13
+    sourceEndColumn: 57
+    sourceEndLine: 51
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    sourceLine: 51
+  SYM-reqcompiler-sync-cache-version:
+    sourceColumn: 13
+    sourceEndColumn: 35
+    sourceEndLine: 50
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    sourceLine: 50
+  SYM-reqcompiler-telemetry-acceptance-metric:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 77
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    sourceLine: 65
+  SYM-reqcompiler-telemetry-acceptance-policy:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 63
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    sourceLine: 51
+  SYM-reqcompiler-telemetry-acceptance-report:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 95
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    sourceLine: 79
+  SYM-reqcompiler-telemetry-acceptance-status:
+    sourceColumn: 12
+    sourceEndColumn: 28
+    sourceEndLine: 15
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    sourceLine: 12
+  SYM-reqcompiler-telemetry-acceptance-version:
+    sourceColumn: 13
+    sourceEndColumn: 41
+    sourceEndLine: 4
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    sourceLine: 3
+  SYM-reqcompiler-telemetry-default-policy:
+    sourceColumn: 13
+    sourceEndColumn: 46
+    sourceEndLine: 109
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    sourceLine: 97
+  SYM-reqcompiler-telemetry-metric-id:
+    sourceColumn: 12
+    sourceEndColumn: 33
+    sourceEndLine: 24
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    sourceLine: 17
+  SYM-reqcompiler-telemetry-metric-status:
+    sourceColumn: 12
+    sourceEndColumn: 21
+    sourceEndLine: 10
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    sourceLine: 6
+  SYM-reqcompiler-telemetry-usage-event:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 49
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    sourceLine: 26
+  SYM-reqcompiler-usage-build-report:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 250
+    sourceFile: packages/cli/src/commands/usage-metrics.ts
+    sourceLine: 122
+  SYM-reqcompiler-usage-log-row:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 36
+    sourceFile: packages/cli/src/commands/usage-metrics.ts
+    sourceLine: 18
+  SYM-reqcompiler-usage-options:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 16
+    sourceFile: packages/cli/src/commands/usage-metrics.ts
+    sourceLine: 12
+  SYM-reqcompiler-usage-parse-log:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 120
+    sourceFile: packages/cli/src/commands/usage-metrics.ts
+    sourceLine: 118
+  SYM-reqcompiler-usage-report:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 79
+    sourceFile: packages/cli/src/commands/usage-metrics.ts
+    sourceLine: 38
+  SYM-reqcompiler-verification-receipt:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 63
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    sourceLine: 50
+  SYM-reqcompiler-verification-receipt-max-age:
+    sourceColumn: 13
+    sourceEndColumn: 68
+    sourceEndLine: 4
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    sourceLine: 4
+  SYM-reqcompiler-verification-receipt-outcomes:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 12
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    sourceLine: 6
+  SYM-reqcompiler-verification-receipt-schema:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 48
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    sourceLine: 14
+  SYM-reqcompiler-verification-receipt-version:
+    sourceColumn: 13
+    sourceEndColumn: 41
+    sourceEndLine: 2
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    sourceLine: 1
+  SYM-reqcompiler-workspace-snapshot-evidence:
+    sourceColumn: 12
+    sourceEndColumn: 50
+    sourceEndLine: 5
+    sourceFile: packages/cli/src/public/operations/workspace-snapshot.ts
+    sourceLine: 3
   SYM-request:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6836,6 +7490,12 @@ coordinates:
     sourceEndLine: 10
     sourceFile: packages/cli/src/operations/modeling/requirement-utils.ts
     sourceLine: 2
+  SYM-requirement-semantic-text:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 451
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    sourceLine: 443
   SYM-resetAutopilotGenerateDepsForTests:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6869,9 +7529,9 @@ coordinates:
   SYM-resetSessionModulePromise:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 72
+    sourceEndLine: 73
     sourceFile: packages/mcp/src/server/tools-runtime.ts
-    sourceLine: 70
+    sourceLine: 71
   SYM-resetWorkspaceFeaturesForTests:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6971,9 +7631,9 @@ coordinates:
   SYM-runtime-Clock:
     sourceColumn: 12
     sourceEndColumn: 31
-    sourceEndLine: 40
+    sourceEndLine: 48
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 40
+    sourceLine: 48
   SYM-runtime-FilesystemPort:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -6989,7 +7649,7 @@ coordinates:
   SYM-runtime-GitPort:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 34
+    sourceEndLine: 35
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     sourceLine: 31
   SYM-runtime-McpOperationRuntime:
@@ -7007,27 +7667,27 @@ coordinates:
   SYM-runtime-NetworkPort:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 38
+    sourceEndLine: 46
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 36
+    sourceLine: 44
   SYM-runtime-OperationContext:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 60
+    sourceEndLine: 68
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 52
+    sourceLine: 60
   SYM-runtime-OperationOutcome:
     sourceColumn: 12
     sourceEndColumn: 58
-    sourceEndLine: 71
+    sourceEndLine: 79
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 69
+    sourceLine: 77
   SYM-runtime-OperationRuntime:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 84
+    sourceEndLine: 92
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 74
+    sourceLine: 82
   SYM-runtime-PrologPort:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -7043,15 +7703,15 @@ coordinates:
   SYM-runtime-RuntimeOperationSpec:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 67
+    sourceEndLine: 75
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 62
+    sourceLine: 70
   SYM-runtime-RuntimeOptions:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 50
+    sourceEndLine: 58
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 42
+    sourceLine: 50
   SYM-scripts-finalizeLcov:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7121,33 +7781,33 @@ coordinates:
   SYM-semantic-advisor-SemanticAdvisorAnalysisResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 243
+    sourceEndLine: 248
     sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
-    sourceLine: 240
+    sourceLine: 245
   SYM-semantic-advisor-SemanticAdvisorArgs:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 254
+    sourceEndLine: 259
     sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
-    sourceLine: 245
+    sourceLine: 250
   SYM-semantic-advisor-SemanticAdvisorOperationResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 262
+    sourceEndLine: 267
     sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
-    sourceLine: 256
+    sourceLine: 261
   SYM-semantic-advisor-buildAdvisorResult:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 172
+    sourceEndLine: 185
     sourceFile: packages/cli/src/operations/semantic-advisor/analysis-receipt.ts
-    sourceLine: 55
+    sourceLine: 62
   SYM-semantic-advisor-canonicalize:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 33
+    sourceEndLine: 35
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
-    sourceLine: 24
+    sourceLine: 26
   SYM-semantic-advisor-commaList:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7175,33 +7835,33 @@ coordinates:
   SYM-semantic-advisor-isRecord:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 16
+    sourceEndLine: 18
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
-    sourceLine: 14
+    sourceLine: 16
   SYM-semantic-advisor-logical-grounding-slots:
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 124
+    sourceEndLine: 133
     sourceFile: packages/cli/src/operations/semantic-advisor/analyze-prose.ts
-    sourceLine: 113
+    sourceLine: 122
   SYM-semantic-advisor-normalizeKey:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 74
+    sourceEndLine: 115
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
-    sourceLine: 67
+    sourceLine: 108
   SYM-semantic-advisor-normalizePredicateToken:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 85
+    sourceEndLine: 126
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
-    sourceLine: 77
+    sourceLine: 118
   SYM-semantic-advisor-normalizeSubjectKey:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 96
+    sourceEndLine: 137
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
-    sourceLine: 94
+    sourceLine: 135
   SYM-semantic-advisor-observationPlan:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7211,57 +7871,81 @@ coordinates:
   SYM-semantic-advisor-payloadHash:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 41
+    sourceEndLine: 43
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
-    sourceLine: 36
+    sourceLine: 38
   SYM-semantic-advisor-predicateSuggestion:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 255
+    sourceEndLine: 301
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
-    sourceLine: 201
+    sourceLine: 247
   SYM-semantic-advisor-propertiesOf:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 51
+    sourceEndLine: 93
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
-    sourceLine: 49
+    sourceLine: 91
   SYM-semantic-advisor-shortHash:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 46
+    sourceEndLine: 88
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
-    sourceLine: 44
+    sourceLine: 86
   SYM-semantic-advisor-singularize:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 91
+    sourceEndLine: 132
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
-    sourceLine: 88
+    sourceLine: 129
   SYM-semantic-advisor-sourceOf:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 64
+    sourceEndLine: 105
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
-    sourceLine: 60
+    sourceLine: 101
   SYM-semantic-advisor-statementOf:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 57
+    sourceEndLine: 98
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
-    sourceLine: 54
+    sourceLine: 96
   SYM-semantic-advisor-strictSuggestion:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 198
+    sourceEndLine: 244
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
-    sourceLine: 107
+    sourceLine: 148
   SYM-semantic-advisor-stringValue:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 21
+    sourceEndLine: 23
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
-    sourceLine: 19
+    sourceLine: 21
+  SYM-semantic-clauses-of:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 83
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    sourceLine: 74
+  SYM-semantic-inventory-version:
+    sourceColumn: 13
+    sourceEndColumn: 70
+    sourceEndLine: 12
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    sourceLine: 12
+  SYM-semantic-source-hash:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 72
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    sourceLine: 70
+  SYM-semantic-source-of:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 68
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    sourceLine: 46
   SYM-semanticClaimKey:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7307,9 +7991,9 @@ coordinates:
   SYM-setToolsServerDepsForTests:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 67
+    sourceEndLine: 68
     sourceFile: packages/mcp/src/server/tools-runtime.ts
-    sourceLine: 58
+    sourceLine: 59
   SYM-setWorkspaceFsDepsForTests:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7319,9 +8003,9 @@ coordinates:
   SYM-setupDocsAndPrompts:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 326
+    sourceEndLine: 330
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 298
+    sourceLine: 302
   SYM-sha256Text:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -11621,7 +12305,7 @@ coordinates:
   SYM-suggest-predicates-core-handler:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 109
+    sourceEndLine: 144
     sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
     sourceLine: 30
   SYM-surface:
@@ -11642,12 +12326,18 @@ coordinates:
     sourceEndLine: 375
     sourceFile: scripts/sync-agent-skills.ts
     sourceLine: 358
+  SYM-sync-semantic-cache:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 48
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    sourceLine: 42
   SYM-syncCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 540
+    sourceEndLine: 605
     sourceFile: packages/cli/src/commands/sync.ts
-    sourceLine: 94
+    sourceLine: 96
   SYM-syncPluginManifestVersions:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -11666,12 +12356,114 @@ coordinates:
     sourceEndLine: 70
     sourceFile: scripts/skillopt-eval/real-workflow-setup.ts
     sourceLine: 37
+  SYM-telemetry-acceptance-analyze:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 716
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    sourceLine: 651
+  SYM-telemetry-acceptance-diagnostics:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 858
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    sourceLine: 779
+  SYM-telemetry-acceptance-parse-log:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 149
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    sourceLine: 125
+  SYM-telemetry-diagnostic-append-cli:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 206
+    sourceFile: packages/cli/src/public/diagnostic-usage.ts
+    sourceLine: 174
+  SYM-telemetry-diagnostic-derive:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 172
+    sourceFile: packages/cli/src/public/diagnostic-usage.ts
+    sourceLine: 116
+  SYM-telemetry-remediation-build:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 462
+    sourceFile: packages/cli/src/public/telemetry-remediation.ts
+    sourceLine: 197
+  SYM-telemetry-remediation-command:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 75
+    sourceFile: packages/cli/src/commands/usage-remediation.ts
+    sourceLine: 47
   SYM-test:
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 52
     sourceFile: packages/mcp/src/tools/upsert.ts
     sourceLine: 29
+  SYM-test-conservative-requirement-proof-chain:
+    sourceColumn: 5
+    sourceEndColumn: 79
+    sourceEndLine: 1429
+    sourceFile: packages/core/tests/kb.plt
+    sourceLine: 1429
+  SYM-test-packed-dependency-ordered-repair-plan:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 98
+    sourceFile: documentation/tests/e2e/packed/dependency-ordered-repair-plan.test.ts
+    sourceLine: 75
+  SYM-test-packed-distribution-parity:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 452
+    sourceFile: documentation/tests/e2e/packed/distribution-parity-matrix.test.ts
+    sourceLine: 415
+  SYM-test-packed-fresh-verification-receipts:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 88
+    sourceFile: documentation/tests/e2e/packed/fresh-verification-receipts.test.ts
+    sourceLine: 82
+  SYM-test-packed-legacy-migration-preview:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 131
+    sourceFile: documentation/tests/e2e/packed/dependency-ordered-repair-plan.test.ts
+    sourceLine: 100
+  SYM-test-packed-ontology-convergence-witnesses:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 48
+    sourceFile: documentation/tests/e2e/packed/ontology-convergence-witnesses.test.ts
+    sourceLine: 38
+  SYM-test-packed-proposition-ingestion:
+    sourceColumn: 15
+    sourceEndColumn: 1
+    sourceEndLine: 111
+    sourceFile: documentation/tests/e2e/packed/proposition-complete-ingestion.test.ts
+    sourceLine: 18
+  SYM-test-packed-semantic-source-separation:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 113
+    sourceFile: documentation/tests/e2e/packed/semantic-source-separation.test.ts
+    sourceLine: 64
+  SYM-test-packed-telemetry-acceptance:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 35
+    sourceFile: documentation/tests/e2e/packed/telemetry-acceptance-gate.test.ts
+    sourceLine: 29
+  SYM-test-packed-telemetry-remediation:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 59
+    sourceFile: documentation/tests/e2e/packed/telemetry-remediation-evidence.test.ts
+    sourceLine: 49
   SYM-test-root-batch-timeout-minutes:
     sourceColumn: 13
     sourceEndColumn: 39
@@ -11690,6 +12482,18 @@ coordinates:
     sourceEndLine: 212
     sourceFile: test/root.test.ts
     sourceLine: 164
+  SYM-test-rule-contradiction-witness-proof:
+    sourceColumn: 5
+    sourceEndColumn: 64
+    sourceEndLine: 2656
+    sourceFile: packages/core/tests/kb.plt
+    sourceLine: 2656
+  SYM-test-rule-overlap-witness-proof:
+    sourceColumn: 5
+    sourceEndColumn: 65
+    sourceEndLine: 2676
+    sourceFile: packages/core/tests/kb.plt
+    sourceLine: 2676
   SYM-test-sparql-fixture-request:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -11702,6 +12506,12 @@ coordinates:
     sourceEndLine: 4
     sourceFile: packages/cli/tests/fixtures/sparql-http-server.ts
     sourceLine: 2
+  SYM-test-verification-receipt-proof-states:
+    sourceColumn: 5
+    sourceEndColumn: 78
+    sourceEndLine: 1528
+    sourceFile: packages/core/tests/kb.plt
+    sourceLine: 1528
   SYM-updateGitIgnore:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -11711,9 +12521,15 @@ coordinates:
   SYM-usage-metrics-command:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 107
+    sourceEndLine: 116
     sourceFile: packages/cli/src/commands/usage-metrics.ts
     sourceLine: 82
+  SYM-validate-semantic-inventory-boundary:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 206
+    sourceFile: packages/cli/src/operations/semantic-advisor/ingestion-boundary.ts
+    sourceLine: 71
   SYM-validateAndMerge:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -11753,9 +12569,15 @@ coordinates:
   SYM-validateUpsertInput:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 141
+    sourceEndLine: 156
     sourceFile: packages/cli/src/operations/mutation/validation.ts
-    sourceLine: 96
+    sourceLine: 97
+  SYM-verification-receipt-history-errors:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 132
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    sourceLine: 78
   SYM-warn:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -11780,6 +12602,12 @@ coordinates:
     sourceEndLine: 64
     sourceFile: scripts/skillopt-eval/held-out-execution-lease.ts
     sourceLine: 54
+  SYM-write-sync-semantic-cache:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 133
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    sourceLine: 115
   SYM-writeAtomicTextFile:
     sourceColumn: 16
     sourceEndColumn: 1
