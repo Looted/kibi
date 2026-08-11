@@ -16,7 +16,7 @@ export function stable(value: unknown): unknown {
   return Object.fromEntries(
     Object.entries(value)
       .sort(([left], [right]) => left.localeCompare(right))
-      .map(([key, entry]) => [key, stable(entry)]),
+      .map(([key, entry]) => [key, stable(entry)])
   );
 }
 
@@ -35,7 +35,7 @@ export function canonicalSchema(value: unknown): unknown {
       .filter(([key, entry]) => {
         if (
           ["$schema", "additionalProperties", "default", "execution"].includes(
-            key,
+            key
           )
         ) {
           return false;
@@ -57,7 +57,7 @@ export function canonicalSchema(value: unknown): unknown {
         }
         return key !== "anyOf" && key !== "const";
       })
-      .map(([key, entry]) => [key, canonicalSchema(entry)]),
+      .map(([key, entry]) => [key, canonicalSchema(entry)])
   );
   if (constants.length === variants.length && constants.length > 0) {
     normalized.type = "string";
@@ -86,7 +86,7 @@ export function startSparqlServer(): Promise<{
             },
           ],
         },
-      }),
+      })
     );
   });
   return new Promise((resolveStart) => {
@@ -106,7 +106,7 @@ export function startSparqlServer(): Promise<{
 export function runStdinRoute(
   sandbox: TestSandbox,
   route: string,
-  input: JsonRecord,
+  input: JsonRecord
 ) {
   return new Promise<{
     readonly stdout: string;
@@ -128,7 +128,7 @@ export function runStdinRoute(
     });
     child.on("error", rejectRun);
     child.on("close", (code) =>
-      resolveRun({ stdout, stderr, exitCode: code ?? 0 }),
+      resolveRun({ stdout, stderr, exitCode: code ?? 0 })
     );
     child.stdin.end(JSON.stringify(input));
   });
@@ -138,13 +138,13 @@ export function sendMcpRequest(
   process: ChildProcess,
   id: number,
   method: string,
-  params?: JsonRecord,
+  params?: JsonRecord
 ): Promise<JsonRpcResponse> {
   return new Promise((resolveRequest, rejectRequest) => {
     let buffered = "";
     const timeout = setTimeout(
       () => rejectRequest(new Error(`Timed out waiting for ${method}`)),
-      30_000,
+      30_000
     );
     const onData = (chunk: Buffer) => {
       buffered += chunk.toString();
@@ -161,13 +161,21 @@ export function sendMcpRequest(
     };
     process.stdout?.on("data", onData);
     process.stdin?.write(
-      `${JSON.stringify({ jsonrpc: "2.0", id, method, ...(params ? { params } : {}) })}\n`,
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        id,
+        method,
+        ...(params ? { params } : {}),
+      })}\n`
     );
   });
 }
 
-export function startMcpServer(sandbox: TestSandbox): ChildProcess {
-  return spawn("node", [sandbox.kibiMcpBin], {
+export function startMcpServer(
+  sandbox: TestSandbox,
+  args: readonly string[] = []
+): ChildProcess {
+  return spawn("node", [sandbox.kibiMcpBin, ...args], {
     cwd: sandbox.repoDir,
     env: sandbox.env,
     stdio: ["pipe", "pipe", "pipe"],

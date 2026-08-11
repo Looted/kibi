@@ -182,7 +182,9 @@ export function parsePropertyList(propsStr: string): Record<string, unknown> {
 
     let parsed = parsePrologValue(value);
     if (
-      (key === "rule_ir" || key === "semantic_inventory") &&
+      (key === "rule_ir" ||
+        key === "semantic_inventory" ||
+        key === "verification_receipts") &&
       typeof parsed === "string"
     ) {
       try {
@@ -278,7 +280,11 @@ export function parsePrologValue(valueInput: string): unknown {
 
   // Handle quoted string
   if (value.startsWith('"') && value.endsWith('"')) {
-    return value.substring(1, value.length - 1);
+    try {
+      return JSON.parse(value) as unknown;
+    } catch {
+      return value.substring(1, value.length - 1);
+    }
   }
 
   // Handle quoted atom

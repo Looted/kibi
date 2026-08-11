@@ -7,6 +7,7 @@ import {
   extractFromMarkdownString,
   inferTypeFromPath,
   normalizeDateLike,
+  requirementSemanticText,
 } from "../../src/extractors/markdown";
 
 // Defensive: clear any module mocks leaked by other test files that ran first
@@ -15,6 +16,34 @@ beforeAll(() => {
   mock.restore();
 });
 describe("Markdown Extractor", () => {
+  test("normalizes authored requirement bodies for source-bound planning", () => {
+    expect(
+      requirementSemanticText(
+        "# Requirement\r\n\r\n- Users must sign in.\r\n> Evidence remains readable.",
+      ),
+    ).toBe("Users must sign in.\nEvidence remains readable.");
+  });
+
+  test("keeps code text_ref evidence separate from authored semantic_text", () => {
+    const result = extractFromMarkdownString(
+      `---
+id: REQ-SEMANTIC-SOURCE
+title: Semantic source separation
+type: req
+status: open
+text_ref: src/policy.ts:42
+---
+
+The policy must preserve code evidence.`,
+      "/tmp/requirements/REQ-SEMANTIC-SOURCE.md",
+    );
+
+    expect(result.entity.text_ref).toBe("src/policy.ts:42");
+    expect(result.entity.semantic_text).toBe(
+      "The policy must preserve code evidence.",
+    );
+  });
+
   describe("Type Inference", () => {
     test("infers type from path for all supported directories", () => {
       const cases = [
@@ -999,6 +1028,86 @@ verification_perspective: consumer
         const result = extractFromMarkdown(tempFile);
         expect(result.entity.verification_scope).toBe("integration");
         expect(result.entity.verification_perspective).toBe("consumer");
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("extracts and cross-validates append-only verification receipts", () => {
+      const tempFile = "/tmp/tests/TEST-RECEIPT.md";
+      mkdirSync("/tmp/tests", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: TEST-RECEIPT
+title: Receipt-backed Test
+type: test
+verification_scope: end_to_end
+verification_receipts:
+  - version: kibi.verification-receipt.v1
+    receipt_id: VR-EXTRACTOR-0001
+    test_id: TEST-RECEIPT
+    runner: bun
+    command: bun test ./tests/e2e/receipt.test.ts
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ${"a".repeat(64)}
+    environment_hash: ${"b".repeat(64)}
+    started_at: 2026-08-10T11:55:00.000Z
+    finished_at: 2026-08-10T12:00:00.000Z
+    artifact_digest: ${"c".repeat(64)}
+---
+# Receipt-backed Test
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.verification_receipts).toHaveLength(1);
+        expect(result.entity.verification_receipts?.[0]).toMatchObject({
+          version: "kibi.verification-receipt.v1",
+          receipt_id: "VR-EXTRACTOR-0001",
+          test_id: "TEST-RECEIPT",
+          scope: "end_to_end",
+          outcome: "passed",
+        });
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("rejects receipt history bound to another test", () => {
+      const tempFile = "/tmp/tests/TEST-RECEIPT-MISMATCH.md";
+      mkdirSync("/tmp/tests", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: TEST-RECEIPT-MISMATCH
+title: Mismatched Receipt
+type: test
+verification_scope: end_to_end
+verification_receipts:
+  - version: kibi.verification-receipt.v1
+    receipt_id: VR-EXTRACTOR-0002
+    test_id: TEST-SOMEONE-ELSE
+    runner: bun
+    command: bun test ./tests/e2e/receipt.test.ts
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ${"a".repeat(64)}
+    environment_hash: ${"b".repeat(64)}
+    started_at: 2026-08-10T11:55:00.000Z
+    finished_at: 2026-08-10T12:00:00.000Z
+    artifact_digest: ${"c".repeat(64)}
+---
+# Mismatched Receipt
+`,
+      );
+
+      try {
+        expect(() => extractFromMarkdown(tempFile)).toThrow(
+          /test_id must equal 'TEST-RECEIPT-MISMATCH'/,
+        );
       } finally {
         unlinkSync(tempFile);
       }

@@ -43,6 +43,8 @@ export type SyncCache = {
   version: number;
   hashes: Record<string, string>;
   seenAt: Record<string, string>;
+  semanticHashes: Record<string, string>;
+  semanticContracts: Record<string, boolean>;
 };
 
 export const SYNC_CACHE_VERSION = 1;
@@ -73,6 +75,8 @@ export function readSyncCache(
       version: SYNC_CACHE_VERSION,
       hashes: {},
       seenAt: {},
+      semanticHashes: {},
+      semanticContracts: {},
     };
   }
 
@@ -85,6 +89,8 @@ export function readSyncCache(
         version: SYNC_CACHE_VERSION,
         hashes: {},
         seenAt: {},
+        semanticHashes: {},
+        semanticContracts: {},
       };
     }
 
@@ -92,12 +98,16 @@ export function readSyncCache(
       version: SYNC_CACHE_VERSION,
       hashes: parsed.hashes ?? {},
       seenAt: parsed.seenAt ?? {},
+      semanticHashes: parsed.semanticHashes ?? {},
+      semanticContracts: parsed.semanticContracts ?? {},
     };
   } catch {
     return {
       version: SYNC_CACHE_VERSION,
       hashes: {},
       seenAt: {},
+      semanticHashes: {},
+      semanticContracts: {},
     };
   }
 }

@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import { analyzeSemanticAdvisorInput } from "../../src/operations/semantic-advisor/analyze-prose.js";
+import { validateSemanticInventoryBoundary } from "../../src/operations/semantic-advisor/ingestion-boundary.js";
 import type { OperationContext } from "../../src/public/operations/runtime-types.js";
 import {
   modelRequirementSpec,
@@ -31,6 +33,28 @@ describe("shared modeling operation executors", () => {
       extractionMode: "heuristic",
     });
     expect(result.structuredContent?.applyPlan).toHaveLength(3);
+    const requirement = result.structuredContent?.applyPlan.find(
+      (step) => step.type === "req",
+    );
+    expect(requirement).toBeDefined();
+    if (requirement) {
+      const payload = {
+        type: requirement.type,
+        id: String(requirement.id),
+        properties: requirement.properties as Record<string, unknown>,
+        relationships: requirement.relationships as Array<
+          Record<string, unknown>
+        >,
+      };
+      const semantic = analyzeSemanticAdvisorInput({ payload });
+      expect(
+        validateSemanticInventoryBoundary(
+          payload,
+          payload.relationships,
+          semantic.receipt,
+        ).errors,
+      ).toEqual([]);
+    }
   });
 
   test("suggestPredicatesSpec returns ranked predicate candidates", async () => {

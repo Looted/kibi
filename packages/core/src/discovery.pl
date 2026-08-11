@@ -4,12 +4,14 @@
 :- module(discovery, [
     find_gaps_json/8,
     coverage_report_json/7,
+    coverage_report_json/10,
     graph_expand_json/8
 ]).
 
 :- use_module(library(http/json)).
 :- use_module(library(aggregate)).
 :- use_module('kb.pl').
+:- use_module('requirement_proof.pl', [requirement_proof_context/1, requirement_proof_context/4, requirement_proof/4]).
 :- use_module('status.pl', [status_meta_dict/1]).
 :- use_module('../schema/relationships.pl', [relationship_type/1]).
 
@@ -27,7 +29,10 @@ find_gaps_json(TypeFilter, MissingRelationships, PresentRelationships, Tags, Sou
     dict_json_string(Response, JsonString).
 
 coverage_report_json(By, Tags, IncludePassing, IncludeTransitive, Limit, Offset, JsonString) :-
-    coverage_rows(By, Tags, IncludePassing, IncludeTransitive, Rows0, Summary),
+    coverage_report_json(By, Tags, IncludePassing, IncludeTransitive, Limit, Offset, unknown, '1970-01-01T00:00:00Z', 604800, JsonString).
+
+coverage_report_json(By, Tags, IncludePassing, IncludeTransitive, Limit, Offset, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
+    coverage_rows(By, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows0, Summary),
     sort_dict_rows(Rows0, SortedRows),
     paginate_rows(SortedRows, Offset, Limit, Rows),
     status_meta_dict(Meta),
@@ -95,14 +100,15 @@ relationship_count(Id, Relationship, Count) :-
         (kb_relationship(Relationship, Id, _); kb_relationship(Relationship, _, Id)),
         Count).
 
-coverage_rows(req, Tags, IncludePassing, IncludeTransitive, Rows, Summary) :-
+coverage_rows(req, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary) :-
     !,
+    requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, ProofContext),
     findall(Row,
-        requirement_coverage_row(Tags, IncludeTransitive, Row),
+        requirement_coverage_row(Tags, IncludeTransitive, ProofContext, Row),
         AllRows),
     filter_req_coverage_rows(IncludePassing, AllRows, Rows),
     coverage_summary(AllRows, Summary).
-coverage_rows(symbol, Tags, IncludePassing, _IncludeTransitive, Rows, Summary) :-
+coverage_rows(symbol, Tags, IncludePassing, _IncludeTransitive, _VerificationSnapshot, _CheckedAt, _MaxAgeSeconds, Rows, Summary) :-
     !,
     findall(Row,
         symbol_coverage_row(Tags, Row),
@@ -110,10 +116,23 @@ coverage_rows(symbol, Tags, IncludePassing, _IncludeTransitive, Rows, Summary) :
     filter_symbol_coverage_rows(IncludePassing, AllRows, Rows),
     length(AllRows, Total),
     include(symbol_row_fully_covered, AllRows, CoveredRows),
+    include(symbol_row_uncovered, AllRows, UncoveredRows),
+    include(symbol_row_not_applicable, AllRows, NotApplicableRows),
+    include(symbol_row_mixed_role, AllRows, MixedRoleRows),
     length(CoveredRows, Covered),
-    Uncovered is Total - Covered,
-    Summary = _{total: Total, fullyCovered: Covered, uncovered: Uncovered}.
-coverage_rows(type, _Tags, _IncludePassing, _IncludeTransitive, Rows, Summary) :-
+    length(UncoveredRows, Uncovered),
+    length(NotApplicableRows, NotApplicable),
+    length(MixedRoleRows, MixedRole),
+    Applicable is Total - NotApplicable,
+    Summary = _{
+        total: Total,
+        applicable: Applicable,
+        fullyCovered: Covered,
+        uncovered: Uncovered,
+        notApplicable: NotApplicable,
+        mixedRole: MixedRole
+    }.
+coverage_rows(type, _Tags, _IncludePassing, _IncludeTransitive, _VerificationSnapshot, _CheckedAt, _MaxAgeSeconds, Rows, Summary) :-
     findall(Type-Count,
         type_entity_count(Type, Count),
         Pairs),
@@ -121,7 +140,7 @@ coverage_rows(type, _Tags, _IncludePassing, _IncludeTransitive, Rows, Summary) :
     length(Rows, Total),
     Summary = _{total: Total}.
 
-requirement_coverage_row(Tags, IncludeTransitive, Row) :-
+requirement_coverage_row(Tags, IncludeTransitive, ProofContext, Row) :-
     kb_entity(Id, req, Props),
     matches_tags(Tags, Props),
     entity_title_status_source(Props, Title, Status, _Source),
@@ -132,7 +151,7 @@ requirement_coverage_row(Tags, IncludeTransitive, Row) :-
     count_transitive_symbols(Id, IncludeTransitive, TransitiveSymbolCount),
     requirement_coverage_state(Id, Props, Gaps, Evaluated, CoverageStatus),
     requirement_coverage_depth(Id, ScenarioCount, CoverageDepth, CoverageEvidence),
-    Row = _{
+    BaseRow = _{
         id: Id,
         type: req,
         title: Title,
@@ -151,7 +170,9 @@ requirement_coverage_row(Tags, IncludeTransitive, Row) :-
         scenarioTests: CoverageEvidence.scenarioTests,
         testStatuses: CoverageEvidence.testStatuses,
         verificationScopes: CoverageEvidence.verificationScopes
-    }.
+    },
+    requirement_proof(Id, Props, ProofContext, Proof),
+    put_dict(Proof, BaseRow, Row).
 
 symbol_coverage_row(Tags, Row) :-
     kb_entity(Id, symbol, Props),
@@ -159,19 +180,32 @@ symbol_coverage_row(Tags, Row) :-
     entity_title_status_source(Props, Title, Status, _Source),
     count_direct_requirements(Id, DirectRequirementCount),
     count_direct_tests(Id, TestCount),
-    (   symbol_no_req_coverage(Id, _)
-    ->  Gaps = [missing_requirement],
+    count_executable_tests(Id, ExecutableTestCount),
+    (   mixed_role_symbol(Id)
+    ->  TraceabilityRole = mixed,
+        Gaps = [invalid_mixed_symbol_role],
         CoverageStatus = uncovered
-    ;   Gaps = [],
-        CoverageStatus = fully_covered
+    ;   executable_test_symbol(Id)
+    ->  TraceabilityRole = executable_test,
+        Gaps = [],
+        CoverageStatus = not_applicable
+    ;   TraceabilityRole = production,
+        (   symbol_no_req_coverage(Id, _)
+        ->  Gaps = [missing_requirement],
+            CoverageStatus = uncovered
+        ;   Gaps = [],
+            CoverageStatus = fully_covered
+        )
     ),
     Row = _{
         id: Id,
         type: symbol,
         title: Title,
         status: Status,
+        traceabilityRole: TraceabilityRole,
         directRequirementCount: DirectRequirementCount,
         testCount: TestCount,
+        executableTestCount: ExecutableTestCount,
         gaps: Gaps,
         coverageStatus: CoverageStatus
     }.
@@ -185,6 +219,10 @@ coverage_summary(Rows, Summary) :-
     include(req_row_missing_scenario, Rows, MissingScenarioRows),
     include(req_row_missing_test, Rows, MissingTestRows),
     include(req_row_missing_both, Rows, MissingBothRows),
+    include(req_row_proof_proven, Rows, ProofProvenRows),
+    include(req_row_proof_unresolved, Rows, ProofUnresolvedRows),
+    include(req_row_proof_missing, Rows, ProofMissingRows),
+    include(req_row_proof_not_applicable, Rows, ProofNotApplicableRows),
     length(EvaluatedRows, Evaluated),
     length(FullyCoveredRows, FullyCovered),
     length(UncoveredRows, Uncovered),
@@ -192,6 +230,10 @@ coverage_summary(Rows, Summary) :-
     length(MissingScenarioRows, MissingScenario),
     length(MissingTestRows, MissingTest),
     length(MissingBothRows, MissingScenarioAndTest),
+    length(ProofProvenRows, ProofProven),
+    length(ProofUnresolvedRows, ProofUnresolved),
+    length(ProofMissingRows, ProofMissing),
+    length(ProofNotApplicableRows, ProofNotApplicable),
     Summary = _{
         total: Total,
         evaluated: Evaluated,
@@ -200,7 +242,11 @@ coverage_summary(Rows, Summary) :-
         notApplicable: NotApplicable,
         missingScenario: MissingScenario,
         missingTest: MissingTest,
-        missingScenarioAndTest: MissingScenarioAndTest
+        missingScenarioAndTest: MissingScenarioAndTest,
+        proofProven: ProofProven,
+        proofUnresolved: ProofUnresolved,
+        proofMissing: ProofMissing,
+        proofNotApplicable: ProofNotApplicable
     }.
 
 req_row_fully_covered(Row) :-
@@ -221,10 +267,24 @@ req_row_missing_test(Row) :-
     Row.gaps = [missing_test].
 req_row_missing_both(Row) :-
     Row.gaps = [missing_scenario_and_test].
+req_row_proof_proven(Row) :-
+    Row.proofStatus == proven.
+req_row_proof_unresolved(Row) :-
+    Row.proofStatus == unresolved.
+req_row_proof_missing(Row) :-
+    Row.proofStatus == missing.
+req_row_proof_not_applicable(Row) :-
+    Row.proofStatus == not_applicable.
 
 symbol_row_fully_covered(Row) :-
     CoverageStatus = Row.get(coverageStatus),
     CoverageStatus = fully_covered.
+symbol_row_uncovered(Row) :-
+    Row.coverageStatus == uncovered.
+symbol_row_not_applicable(Row) :-
+    Row.coverageStatus == not_applicable.
+symbol_row_mixed_role(Row) :-
+    Row.traceabilityRole == mixed.
 
 count_distinct_targets(Relationship, Id, source, Count) :-
     !,
@@ -235,7 +295,8 @@ count_distinct_targets(Relationship, Id, source, Count) :-
 requirement_test_count(Id, Count) :-
     findall(TestId, kb_relationship(verified_by, Id, TestId), Verified0),
     findall(TestId, kb_relationship(validates, TestId, Id), Validates0),
-    append(Verified0, Validates0, Combined0),
+    findall(TestId, scenario_requirement_test(Id, TestId), ScenarioTests0),
+    append([Verified0, Validates0, ScenarioTests0], Combined0),
     sort(Combined0, Combined),
     length(Combined, Count).
 
@@ -381,6 +442,11 @@ count_direct_tests(Id, Count) :-
     sort(TestIds0, TestIds),
     length(TestIds, Count).
 
+count_executable_tests(Id, Count) :-
+    findall(TestId, kb_relationship(executable_for, Id, TestId), TestIds0),
+    sort(TestIds0, TestIds),
+    length(TestIds, Count).
+
 requirement_gap_list(Id, [Reason]) :-
     coverage_gap(Id, Reason),
     !.
@@ -399,11 +465,15 @@ requirement_coverage_state(_Id, _Props, [], false, not_applicable).
 
 filter_req_coverage_rows(true, Rows, Rows).
 filter_req_coverage_rows(false, Rows, Filtered) :-
-    exclude(req_row_fully_covered, Rows, Filtered).
+    exclude(req_row_proof_passing, Rows, Filtered).
+
+req_row_proof_passing(Row) :-
+    Status = Row.proofStatus,
+    memberchk(Status, [proven, not_applicable]).
 
 filter_symbol_coverage_rows(true, Rows, Rows).
 filter_symbol_coverage_rows(false, Rows, Filtered) :-
-    exclude(symbol_row_fully_covered, Rows, Filtered).
+    include(symbol_row_uncovered, Rows, Filtered).
 
 entity_priority(Props, Priority) :-
     (   memberchk(priority=PriorityValue, Props)

@@ -183,6 +183,12 @@ describe("kibi usage-metrics", () => {
         stages: Record<string, number>;
         byTool: Record<string, number>;
       };
+      acceptance: {
+        version: string;
+        status: string;
+        scope: { fresh: boolean; evaluatedEvents: number };
+        metrics: Array<{ id: string; status: string }>;
+      };
     };
 
     expect(result.rowCount).toBe(10);
@@ -242,6 +248,10 @@ describe("kibi usage-metrics", () => {
       kb_upsert: 3,
       kb_status: 1,
     });
+    expect(result.acceptance.version).toBe("kibi.telemetry-acceptance.v1");
+    expect(result.acceptance.status).toBe("insufficient_evidence");
+    expect(result.acceptance.scope.evaluatedEvents).toBe(10);
+    expect(result.acceptance.metrics).toHaveLength(7);
   });
 
   test("renders table output and applies the zero-result file limit", () => {
@@ -252,6 +262,7 @@ describe("kibi usage-metrics", () => {
 
     expect(output).toContain("Row Count");
     expect(output).toContain("Tool Counts");
+    expect(output).toContain("Telemetry Acceptance");
     expect(output).toContain("Telemetry");
     expect(output).toContain("Zero-Result Source Files");
     expect(output).toContain("Error Categories");
@@ -259,6 +270,15 @@ describe("kibi usage-metrics", () => {
     expect(output).toContain("kb_query");
     expect(output).toContain("src/a.ts");
     expect(output).not.toContain("src/b.ts");
+  });
+
+  test("fails the explicit acceptance gate when evidence is not passing", () => {
+    expect(() =>
+      execSync(
+        `bun ${kibiCli} usage-metrics --format json --require-acceptance`,
+        { cwd: tmpDir, encoding: "utf8" },
+      ),
+    ).toThrow();
   });
 
   test("rejects --limit 0 with exit code 1", () => {

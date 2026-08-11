@@ -117,10 +117,14 @@ symbols:
         target: REQ-mcp-semantic-advisor-preflight
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-mcp-semantic-advisor-preflight
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-extractSemanticClauses
     title: extractSemanticClauses
     sourceFile: packages/cli/src/operations/semantic-advisor/clauses.ts
@@ -128,8 +132,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-semanticClaimKey
     title: semanticClaimKey
     sourceFile: packages/cli/src/operations/semantic-advisor/clauses.ts
@@ -137,8 +145,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-core-check-logic-coverage
     title: check_logic_coverage
     sourceFile: packages/core/src/checks.pl
@@ -158,6 +170,24 @@ symbols:
         target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-core-kb-literal-to-value
+    title: literal_to_value
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-conservative-requirement-proof
+      - type: covered_by
+        target: TEST-kibi-conservative-requirement-proof
+  - id: SYM-core-kb-value-to-literal
+    title: value_to_literal
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-conservative-requirement-proof
+      - type: covered_by
+        target: TEST-kibi-conservative-requirement-proof
   - id: SYM-core-validate-entity-shape
     title: validate_entity_shape
     sourceFile: packages/core/schema/validation.pl
@@ -1319,8 +1349,16 @@ symbols:
     relationships:
       - type: implements
         target: REQ-audit-quality-diagnostics-v1
+      - type: implements
+        target: REQ-kibi-conservative-requirement-proof
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
       - type: covered_by
         target: TEST-coverage-depth-labels
+      - type: covered_by
+        target: TEST-kibi-conservative-requirement-proof
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
   - id: SYM-cli-discovery-renderDiscoveryTable
     title: renderDiscoveryTable
     sourceFile: packages/cli/src/commands/discovery-table.ts
@@ -1437,12 +1475,16 @@ symbols:
     relationships:
       - type: implements
         target: REQ-audit-quality-diagnostics-v1
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
       - type: covered_by
         target: TEST-cli-requirement-quality-diagnostics
       - type: covered_by
         target: TEST-cli-symbol-quality-diagnostics
       - type: covered_by
         target: TEST-mcp-quality-diagnostics-contract
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
   - id: SYM-cli-impact-collectLinkedEntities
     title: collectLinkedEntities
     sourceFile: packages/cli/src/public/impact/summaries.ts
@@ -1852,12 +1894,20 @@ symbols:
         target: REQ-audit-quality-diagnostics-v1
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-kibi-conservative-requirement-proof
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-007
       - type: covered_by
         target: TEST-coverage-depth-labels
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-conservative-requirement-proof
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-cli-persistRelationships
     title: persistRelationships
     sourceFile: packages/cli/src/commands/sync/persistence.ts
@@ -2002,8 +2052,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
   - id: SYM-cli-register-reporting-commands
     title: registerReportingCommands
     sourceFile: packages/cli/src/cli-register-reporting.ts
@@ -2141,8 +2195,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-evidence
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-telemetry-remediation-evidence
   - id: SYM-cli-Scenario
     title: Scenario
     sourceFile: packages/cli/src/types/entities.ts
@@ -3552,8 +3610,16 @@ symbols:
     relationships:
       - type: implements
         target: REQ-002
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-evidence
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
+      - type: covered_by
+        target: TEST-kibi-telemetry-remediation-evidence
   - id: SYM-deriveDiagnosticHints
     title: deriveDiagnosticHints
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
@@ -3723,10 +3789,14 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-mcp-search-discovery
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-mcp-search-discovery
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
   - id: SYM-discovery-execute-status
     title: executeStatus
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
@@ -4059,8 +4129,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-executeValidateUpsert
     title: executeValidateUpsert
     sourceFile: packages/cli/src/operations/mutation/validate-upsert.ts
@@ -4069,8 +4143,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-ExternalAdoptionVerdict
     title: ExternalAdoptionVerdict
     sourceFile: scripts/skillopt-eval/adoption-types.ts
@@ -5178,10 +5256,14 @@ symbols:
         target: REQ-002
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-KB_RELATIONSHIP_TYPES
     title: KB_RELATIONSHIP_TYPES
     sourceFile: packages/vscode/src/shared/rdf-parser.ts
@@ -5810,10 +5892,14 @@ symbols:
         target: REQ-core-extractors
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-007
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-markdown-ExtractedRelationship
     title: ExtractedRelationship
     sourceFile: packages/cli/src/extractors/markdown.ts
@@ -5832,10 +5918,14 @@ symbols:
         target: REQ-core-extractors
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-007
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-markdown-extractFromMarkdownString
     title: extractFromMarkdownString
     sourceFile: packages/cli/src/extractors/markdown.ts
@@ -5845,10 +5935,14 @@ symbols:
         target: REQ-core-extractors
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-007
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-markdown-ExtractionResult
     title: ExtractionResult
     sourceFile: packages/cli/src/extractors/markdown.ts
@@ -6499,10 +6593,14 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-modeling-predicate-applyplan-buildGapApplyPlan
     title: buildGapApplyPlan
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
@@ -6945,8 +7043,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-mcp-suggest-predicates
+      - type: implements
+        target: REQ-kibi-ontology-convergence-witnesses
       - type: covered_by
         target: TEST-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-kibi-ontology-convergence-witnesses
   - id: SYM-modeling-predicate-loader-predicateSchemaFromEntity
     title: predicateSchemaFromEntity
     sourceFile: packages/cli/src/operations/modeling/predicate-loader.ts
@@ -7281,10 +7383,14 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-mutation-entity-types-schema
     title: ENTITY_TYPES
     sourceFile: packages/cli/src/public/operations/specs/mutation-schemas.ts
@@ -7477,8 +7583,16 @@ symbols:
     relationships:
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-conservative-requirement-proof
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-conservative-requirement-proof
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
   - id: SYM-operation-delete-spec
     title: deleteSpec
     sourceFile: packages/cli/src/public/operations/specs/mutation.ts
@@ -7504,8 +7618,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
   - id: SYM-operation-find-gaps-spec
     title: findGapsSpec
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
@@ -7880,7 +7998,6 @@ symbols:
     title: recordEntityAudit
     sourceFile: packages/cli/src/operations/mutation/audit.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     relationships:
       - type: implements
         target: REQ-kibi-operation-interface-parity
@@ -7890,7 +8007,6 @@ symbols:
     title: recordRelationshipAudits
     sourceFile: packages/cli/src/operations/mutation/audit.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     relationships:
       - type: implements
         target: REQ-kibi-operation-interface-parity
@@ -8184,8 +8300,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-mcp-suggest-predicates
+      - type: implements
+        target: REQ-kibi-ontology-convergence-witnesses
       - type: covered_by
         target: TEST-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-kibi-ontology-convergence-witnesses
   - id: SYM-predicate-catalog-part-1
     title: PREDICATE_CATALOG_1
     sourceFile: packages/cli/src/operations/modeling/predicate-catalog-1.ts
@@ -8596,10 +8716,18 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-kibi-conservative-requirement-proof
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-conservative-requirement-proof
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-PrologOptions
     title: PrologOptions
     sourceFile: packages/cli/src/prolog.ts
@@ -9490,10 +9618,14 @@ symbols:
         target: REQ-mcp-semantic-advisor-preflight
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-mcp-semantic-advisor-preflight
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-semantic-advisor-canonicalize
     title: canonicalize
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
@@ -9803,8 +9935,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-mcp-semantic-advisor-preflight
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-SemanticClause
     title: SemanticClause
     sourceFile: packages/cli/src/operations/semantic-advisor/clauses.ts
@@ -17437,10 +17573,14 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-kibi-ontology-convergence-witnesses
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-ontology-convergence-witnesses
   - id: SYM-SuggestPredicatesArgs
     title: SuggestPredicatesArgs
     sourceFile: packages/cli/src/operations/modeling/predicate-types.ts
@@ -17613,8 +17753,16 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-extractors
+      - type: implements
+        target: REQ-kibi-conservative-requirement-proof
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-conservative-requirement-proof
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-SyncError
     title: SyncError
     sourceFile: packages/cli/src/commands/sync.ts
@@ -17979,8 +18127,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-cli-usage-metrics-v1
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
       - type: covered_by
         target: TEST-cli-usage-metrics-v1
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
   - id: SYM-validateAndMerge
     title: validateAndMerge
     sourceFile: packages/opencode/src/config.ts
@@ -19137,8 +19289,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-cli-semantic-advisor-SemanticPropositionRole
     title: SemanticPropositionRole
     sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
@@ -19245,8 +19401,16 @@ symbols:
     relationships:
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-kibi-conservative-requirement-proof
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-conservative-requirement-proof
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-cli-mutation-serialization-buildRelationshipMetadata
     title: buildRelationshipMetadata
     sourceFile: packages/cli/src/operations/mutation/serialization.ts
@@ -19292,3 +19456,1258 @@ symbols:
         target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-core-requirement-proof-context
+    title: requirement_proof_context
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-conservative-requirement-proof
+      - type: covered_by
+        target: TEST-kibi-conservative-requirement-proof
+  - id: SYM-core-requirement-proof
+    title: requirement_proof
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-conservative-requirement-proof
+      - type: covered_by
+        target: TEST-kibi-conservative-requirement-proof
+  - id: SYM-core-discovery-requirementCoverageRow
+    title: requirement_coverage_row
+    sourceFile: packages/core/src/discovery.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-conservative-requirement-proof
+      - type: covered_by
+        target: TEST-kibi-conservative-requirement-proof
+  - id: SYM-core-discovery-symbolCoverageRow
+    title: symbol_coverage_row
+    sourceFile: packages/core/src/discovery.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-conservative-requirement-proof
+      - type: covered_by
+        target: TEST-kibi-conservative-requirement-proof
+  - id: SYM-core-discovery-coverageSummary
+    title: coverage_summary
+    sourceFile: packages/core/src/discovery.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-conservative-requirement-proof
+      - type: covered_by
+        target: TEST-kibi-conservative-requirement-proof
+  - id: SYM-core-entity-property-schema
+    title: entity_property
+    sourceFile: packages/core/schema/entities.pl
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-kibi-conservative-requirement-proof
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
+      - type: covered_by
+        target: TEST-kibi-conservative-requirement-proof
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview-v2
+  - id: SYM-core-validation-check-kind
+    title: check_kind
+    sourceFile: packages/core/schema/validation.pl
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-kibi-conservative-requirement-proof
+      - type: covered_by
+        target: TEST-kibi-conservative-requirement-proof
+  - id: SYM-operation-executeCoverage
+    title: executeCoverage
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-conservative-requirement-proof
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
+      - type: covered_by
+        target: TEST-kibi-conservative-requirement-proof
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview-v2
+  - id: SYM-test-conservative-requirement-proof-chain
+    title: requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain
+    sourceFile: packages/core/tests/kb.plt
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-conservative-requirement-proof
+  - id: SYM-semantic-inventory-version
+    title: SEMANTIC_INVENTORY_VERSION
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+  - id: SYM-semantic-source-of
+    title: semanticSourceOf
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview-v2
+  - id: SYM-semantic-source-hash
+    title: semanticSourceHash
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+  - id: SYM-semantic-clauses-of
+    title: semanticClausesOf
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+  - id: SYM-normalize-semantic-clause
+    title: normalizeSemanticClause
+    sourceFile: packages/cli/src/operations/semantic-advisor/clauses.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+  - id: SYM-validate-semantic-inventory-boundary
+    title: validateSemanticInventoryBoundary
+    sourceFile: packages/cli/src/operations/semantic-advisor/ingestion-boundary.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+  - id: SYM-assert-semantic-inventory-boundary
+    title: assertSemanticInventoryBoundary
+    sourceFile: packages/cli/src/operations/semantic-advisor/ingestion-boundary.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+  - id: SYM-assert-logical-grounding-claim-keys
+    title: assertLogicalGroundingClaimKeys
+    sourceFile: packages/cli/src/operations/semantic-advisor/ingestion-boundary.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+  - id: SYM-effective-requirement-relationships
+    title: effectiveRelationships
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+  - id: SYM-requirement-semantic-text
+    title: requirementSemanticText
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview-v2
+  - id: SYM-sync-semantic-cache
+    title: SyncCache
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+  - id: SYM-read-sync-semantic-cache
+    title: readSyncCache
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+  - id: SYM-write-sync-semantic-cache
+    title: writeSyncCache
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+  - id: SYM-test-packed-proposition-ingestion
+    title: packedCliEnforcesPropositionCompleteIngestion
+    sourceFile: documentation/tests/e2e/packed/proposition-complete-ingestion.test.ts
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-proposition-complete-ingestion
+  - id: SYM-verification-receipt-history-errors
+    title: verificationReceiptHistoryErrors
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-append-only-verification-receipt-history-errors
+    title: appendOnlyVerificationReceiptHistoryErrors
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-node-workspace-snapshot
+    title: workspaceSnapshot
+    sourceFile: packages/cli/src/public/operations/node-ports.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-read-workspace-snapshot
+    title: readWorkspaceSnapshot
+    sourceFile: packages/cli/src/public/operations/workspace-snapshot.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-core-verification-receipt-evidence
+    title: test_receipt_evidence
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-core-verification-receipt-state
+    title: receipt_evidence_state
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-test-verification-receipt-proof-states
+    title: requirement_proof_receipts_are_snapshot_bound_fresh_and_outcome_sensitive
+    sourceFile: packages/core/tests/kb.plt
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-test-packed-fresh-verification-receipts
+    title: receiptRow
+    sourceFile: documentation/tests/e2e/packed/fresh-verification-receipts.test.ts
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-core-req-conflict-witness
+    title: req_conflict_witness
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-ontology-convergence-witnesses
+      - type: covered_by
+        target: TEST-kibi-ontology-convergence-witnesses
+  - id: SYM-core-domain-contradiction-witnesses
+    title: check_domain_contradiction_witnesses
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-ontology-convergence-witnesses
+      - type: covered_by
+        target: TEST-kibi-ontology-convergence-witnesses
+  - id: SYM-core-rule-contradiction-witness
+    title: rule_contradiction_witness
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-ontology-convergence-witnesses
+      - type: covered_by
+        target: TEST-kibi-ontology-convergence-witnesses
+  - id: SYM-core-proof-contradiction-stage
+    title: contradiction_stage
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-ontology-convergence-witnesses
+      - type: covered_by
+        target: TEST-kibi-ontology-convergence-witnesses
+  - id: SYM-test-rule-contradiction-witness-proof
+    title: rule_contradiction_witness_is_source_bound_and_blocks_proof
+    sourceFile: packages/core/tests/kb.plt
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-ontology-convergence-witnesses
+  - id: SYM-test-rule-overlap-witness-proof
+    title: rule_overlap_witness_remains_unresolved_in_requirement_proof
+    sourceFile: packages/core/tests/kb.plt
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-ontology-convergence-witnesses
+  - id: SYM-test-packed-ontology-convergence-witnesses
+    title: assertExactPredicatePlan
+    sourceFile: documentation/tests/e2e/packed/ontology-convergence-witnesses.test.ts
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-ontology-convergence-witnesses
+  - id: SYM-repair-plan-build
+    title: buildRepairPlan
+    sourceFile: packages/cli/src/public/operations/repair-plan.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+  - id: SYM-legacy-migration-plan-build
+    title: buildLegacyMigrationPlan
+    sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview-v2
+  - id: SYM-legacy-migration-plan-build-from-context
+    title: buildLegacyMigrationPlanFromContext
+    sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview-v2
+  - id: SYM-legacy-migration-plan-version
+    title: LEGACY_MIGRATION_PLAN_VERSION
+    sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview
+  - id: SYM-mcp-handle-repair-plan-coverage
+    title: handleKbCoverage
+    sourceFile: packages/mcp/src/tools/coverage.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview-v2
+  - id: SYM-test-packed-dependency-ordered-repair-plan
+    title: assertDependencyOrderedPlan
+    sourceFile: documentation/tests/e2e/packed/dependency-ordered-repair-plan.test.ts
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-dependency-ordered-repair-plan
+  - id: SYM-test-packed-legacy-migration-preview
+    title: assertLegacyMigrationPlan
+    sourceFile: documentation/tests/e2e/packed/dependency-ordered-repair-plan.test.ts
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-legacy-migration-preview
+  - id: SYM-test-packed-semantic-source-separation
+    title: assertSemanticSourceSeparation
+    sourceFile: documentation/tests/e2e/packed/semantic-source-separation.test.ts
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-legacy-migration-preview-v2
+  - id: SYM-telemetry-acceptance-analyze
+    title: analyzeTelemetryAcceptance
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-evidence
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
+      - type: covered_by
+        target: TEST-kibi-telemetry-remediation-evidence
+  - id: SYM-telemetry-acceptance-diagnostics
+    title: createTelemetryAcceptanceDiagnostics
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
+  - id: SYM-telemetry-acceptance-parse-log
+    title: parseTelemetryUsageLog
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
+  - id: SYM-test-packed-telemetry-acceptance
+    title: assertAcceptanceStatus
+    sourceFile: documentation/tests/e2e/packed/telemetry-acceptance-gate.test.ts
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-telemetry-acceptance-gate
+  - id: SYM-distribution-parity-resolve-provenance
+    title: resolveDistributionRuntimeProvenance
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-distribution-parity-normalize
+    title: normalizeDistributionParityValue
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-distribution-parity-build-report
+    title: buildDistributionParityReport
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-distribution-parity-run-matrix
+    title: runDistributionParityMatrix
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-test-packed-distribution-parity
+    title: capabilityInput
+    sourceFile: documentation/tests/e2e/packed/distribution-parity-matrix.test.ts
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-telemetry-diagnostic-derive
+    title: deriveDiagnosticUsageFields
+    sourceFile: packages/cli/src/public/diagnostic-usage.ts
+    text_ref: packages/cli/src/public/diagnostic-usage.ts#deriveDiagnosticUsageFields
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-evidence
+      - type: covered_by
+        target: TEST-kibi-telemetry-remediation-evidence
+  - id: SYM-telemetry-diagnostic-append-cli
+    title: appendCliDiagnosticUsage
+    sourceFile: packages/cli/src/public/diagnostic-usage.ts
+    text_ref: packages/cli/src/public/diagnostic-usage.ts#appendCliDiagnosticUsage
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-evidence
+      - type: covered_by
+        target: TEST-kibi-telemetry-remediation-evidence
+  - id: SYM-telemetry-remediation-build
+    title: buildTelemetryRemediationReport
+    sourceFile: packages/cli/src/public/telemetry-remediation.ts
+    text_ref: packages/cli/src/public/telemetry-remediation.ts#buildTelemetryRemediationReport
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-evidence
+      - type: covered_by
+        target: TEST-kibi-telemetry-remediation-evidence
+  - id: SYM-telemetry-remediation-command
+    title: usageRemediationCommand
+    sourceFile: packages/cli/src/commands/usage-remediation.ts
+    text_ref: packages/cli/src/commands/usage-remediation.ts#usageRemediationCommand
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-evidence
+      - type: covered_by
+        target: TEST-kibi-telemetry-remediation-evidence
+  - id: SYM-test-packed-telemetry-remediation
+    title: diagnosticTelemetry
+    sourceFile: documentation/tests/e2e/packed/telemetry-remediation-evidence.test.ts
+    text_ref: documentation/tests/e2e/packed/telemetry-remediation-evidence.test.ts#diagnosticTelemetry
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-telemetry-remediation-evidence
+  - id: SYM-reqcompiler-usage-parse-log
+    title: parseUsageLog
+    sourceFile: packages/cli/src/commands/usage-metrics.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
+  - id: SYM-reqcompiler-usage-build-report
+    title: buildUsageMetricsReport
+    sourceFile: packages/cli/src/commands/usage-metrics.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
+  - id: SYM-reqcompiler-usage-options
+    title: UsageMetricsOptions
+    sourceFile: packages/cli/src/commands/usage-metrics.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
+  - id: SYM-reqcompiler-usage-log-row
+    title: UsageLogRow
+    sourceFile: packages/cli/src/commands/usage-metrics.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
+  - id: SYM-reqcompiler-usage-report
+    title: UsageMetricsReport
+    sourceFile: packages/cli/src/commands/usage-metrics.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
+  - id: SYM-reqcompiler-remediation-render
+    title: renderUsageRemediationReport
+    sourceFile: packages/cli/src/commands/usage-remediation.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-evidence
+      - type: covered_by
+        target: TEST-kibi-telemetry-remediation-evidence
+  - id: SYM-reqcompiler-remediation-options
+    title: UsageRemediationOptions
+    sourceFile: packages/cli/src/commands/usage-remediation.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-evidence
+      - type: covered_by
+        target: TEST-kibi-telemetry-remediation-evidence
+  - id: SYM-reqcompiler-receipt-append-only-validation
+    title: validateAppendOnlyVerificationReceipts
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-reqcompiler-ingestion-boundary-result
+    title: SemanticInventoryBoundaryResult
+    sourceFile: packages/cli/src/operations/semantic-advisor/ingestion-boundary.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+  - id: SYM-reqcompiler-semantic-source-field
+    title: SemanticSourceField
+    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview-v2
+  - id: SYM-reqcompiler-diagnostic-mutation-fingerprint
+    title: diagnosticMutationFingerprint
+    sourceFile: packages/cli/src/public/diagnostic-usage.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-evidence
+      - type: covered_by
+        target: TEST-kibi-telemetry-remediation-evidence
+  - id: SYM-reqcompiler-diagnostic-usage-input
+    title: DiagnosticUsageInput
+    sourceFile: packages/cli/src/public/diagnostic-usage.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-evidence
+      - type: covered_by
+        target: TEST-kibi-telemetry-remediation-evidence
+  - id: SYM-reqcompiler-parity-runtime-provenance
+    title: DistributionRuntimeProvenance
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-reqcompiler-parity-runtime
+    title: DistributionRuntime
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-reqcompiler-parity-action
+    title: DistributionParityAction
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-reqcompiler-parity-capability-result
+    title: DistributionCapabilityResult
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-reqcompiler-parity-runtime-adapter
+    title: DistributionRuntimeAdapter
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-reqcompiler-parity-observation
+    title: DistributionParityObservation
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-reqcompiler-parity-row
+    title: DistributionParityRow
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-reqcompiler-parity-issue
+    title: DistributionParityIssue
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-reqcompiler-parity-report
+    title: DistributionParityReport
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-reqcompiler-parity-options
+    title: DistributionParityOptions
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-reqcompiler-parity-capability
+    title: RequirementCompilerCapability
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-reqcompiler-parity-runtime-kind
+    title: DistributionRuntimeKind
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-reqcompiler-parity-surface
+    title: DistributionSurface
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-reqcompiler-parity-capability-state
+    title: CapabilityState
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-reqcompiler-parity-comparison
+    title: DistributionComparison
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-reqcompiler-parity-issue-code
+    title: DistributionParityIssueCode
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-reqcompiler-parity-version
+    title: DISTRIBUTION_PARITY_VERSION
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-reqcompiler-parity-capabilities
+    title: REQUIREMENT_COMPILER_CAPABILITIES
+    sourceFile: packages/cli/src/public/distribution-parity.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+  - id: SYM-reqcompiler-legacy-migration-input
+    title: LegacyMigrationPlanInput
+    sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview-v2
+  - id: SYM-reqcompiler-legacy-migration-predicate-candidate
+    title: LegacyMigrationPredicateCandidate
+    sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview-v2
+  - id: SYM-reqcompiler-legacy-migration-proposition
+    title: LegacyMigrationProposition
+    sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview-v2
+  - id: SYM-reqcompiler-legacy-migration-batch
+    title: LegacyMigrationBatch
+    sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview-v2
+  - id: SYM-reqcompiler-legacy-migration-plan
+    title: LegacyMigrationPlan
+    sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview-v2
+  - id: SYM-reqcompiler-repair-plan-repair
+    title: RepairPlanRepair
+    sourceFile: packages/cli/src/public/operations/repair-plan.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+  - id: SYM-reqcompiler-repair-plan-batch
+    title: RepairPlanBatch
+    sourceFile: packages/cli/src/public/operations/repair-plan.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+  - id: SYM-reqcompiler-repair-plan-shape
+    title: RepairPlan
+    sourceFile: packages/cli/src/public/operations/repair-plan.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+  - id: SYM-reqcompiler-repair-plan-input
+    title: RepairPlanInput
+    sourceFile: packages/cli/src/public/operations/repair-plan.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+  - id: SYM-reqcompiler-repair-plan-version
+    title: REPAIR_PLAN_VERSION
+    sourceFile: packages/cli/src/public/operations/repair-plan.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+  - id: SYM-reqcompiler-runtime-workspace-snapshot
+    title: WorkspaceSnapshot
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-reqcompiler-coverage-input
+    title: CoverageInput
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview-v2
+  - id: SYM-reqcompiler-coverage-payload
+    title: CoveragePayload
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview-v2
+  - id: SYM-reqcompiler-workspace-snapshot-evidence
+    title: WorkspaceSnapshotEvidence
+    sourceFile: packages/cli/src/public/operations/workspace-snapshot.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-reqcompiler-telemetry-usage-event
+    title: TelemetryUsageEvent
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
+  - id: SYM-reqcompiler-telemetry-acceptance-policy
+    title: TelemetryAcceptancePolicy
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
+  - id: SYM-reqcompiler-telemetry-acceptance-metric
+    title: TelemetryAcceptanceMetric
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
+  - id: SYM-reqcompiler-telemetry-acceptance-report
+    title: TelemetryAcceptanceReport
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
+  - id: SYM-reqcompiler-telemetry-metric-status
+    title: TelemetryMetricStatus
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
+  - id: SYM-reqcompiler-telemetry-acceptance-status
+    title: TelemetryAcceptanceStatus
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
+  - id: SYM-reqcompiler-telemetry-metric-id
+    title: TelemetryMetricId
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
+  - id: SYM-reqcompiler-telemetry-acceptance-version
+    title: TELEMETRY_ACCEPTANCE_VERSION
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
+  - id: SYM-reqcompiler-telemetry-default-policy
+    title: DEFAULT_TELEMETRY_ACCEPTANCE_POLICY
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
+  - id: SYM-reqcompiler-remediation-event-reference
+    title: TelemetryRemediationEventReference
+    sourceFile: packages/cli/src/public/telemetry-remediation.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-evidence
+      - type: covered_by
+        target: TEST-kibi-telemetry-remediation-evidence
+  - id: SYM-reqcompiler-remediation-item
+    title: TelemetryRemediationItem
+    sourceFile: packages/cli/src/public/telemetry-remediation.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-evidence
+      - type: covered_by
+        target: TEST-kibi-telemetry-remediation-evidence
+  - id: SYM-reqcompiler-remediation-report
+    title: TelemetryRemediationReport
+    sourceFile: packages/cli/src/public/telemetry-remediation.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-evidence
+      - type: covered_by
+        target: TEST-kibi-telemetry-remediation-evidence
+  - id: SYM-reqcompiler-remediation-version
+    title: TELEMETRY_REMEDIATION_VERSION
+    sourceFile: packages/cli/src/public/telemetry-remediation.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-evidence
+      - type: covered_by
+        target: TEST-kibi-telemetry-remediation-evidence
+  - id: SYM-reqcompiler-verification-receipt
+    title: VerificationReceipt
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-reqcompiler-verification-receipt-version
+    title: VERIFICATION_RECEIPT_VERSION
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-reqcompiler-verification-receipt-max-age
+    title: VERIFICATION_RECEIPT_MAX_AGE_SECONDS
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-reqcompiler-verification-receipt-outcomes
+    title: VERIFICATION_RECEIPT_OUTCOMES
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-reqcompiler-verification-receipt-schema
+    title: VERIFICATION_RECEIPT_SCHEMA
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-reqcompiler-mcp-coverage-result
+    title: CoverageResult
+    sourceFile: packages/mcp/src/tools/coverage.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview-v2
+  - id: SYM-reqcompiler-mcp-coverage-args
+    title: CoverageArgs
+    sourceFile: packages/mcp/src/tools/coverage.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview-v2
+  - id: SYM-reqcompiler-coverage-command
+    title: coverageCommand
+    sourceFile: packages/cli/src/commands/coverage.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-conservative-requirement-proof
+      - type: covered_by
+        target: TEST-kibi-conservative-requirement-proof
+  - id: SYM-reqcompiler-sync-cache-key
+    title: toCacheKey
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+  - id: SYM-reqcompiler-sync-cache-hash-file
+    title: hashFile
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+  - id: SYM-reqcompiler-sync-cache-copy
+    title: copySyncCache
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+  - id: SYM-reqcompiler-sync-cache-version
+    title: SYNC_CACHE_VERSION
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+  - id: SYM-reqcompiler-sync-cache-ttl
+    title: SYNC_CACHE_TTL_MS
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+  - id: SYM-reqcompiler-find-gaps-execute
+    title: executeFindGaps
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-reqcompiler-graph-execute
+    title: executeGraph
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-reqcompiler-find-gaps-input
+    title: FindGapsInput
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-reqcompiler-find-gaps-payload
+    title: FindGapsPayload
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-reqcompiler-graph-input
+    title: GraphInput
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-reqcompiler-graph-payload
+    title: GraphPayload
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity

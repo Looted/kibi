@@ -138,6 +138,35 @@ describe("jsonSchemaToZod", () => {
     });
   });
 
+  describe("const handling", () => {
+    test("preserves primitive JSON Schema constants in validation and advertised schema", () => {
+      const result = jsonSchemaToZod({
+        type: "string",
+        const: "kibi.semantic-inventory.v1",
+        description: "Inventory contract version",
+      });
+
+      expect(result.description).toBe("Inventory contract version");
+      expect(result.safeParse("kibi.semantic-inventory.v1").success).toBe(true);
+      expect(result.safeParse("kibi.semantic-inventory.v2").success).toBe(
+        false,
+      );
+      expect(z.toJSONSchema(result)).toMatchObject({
+        const: "kibi.semantic-inventory.v1",
+      });
+    });
+
+    test("falls back to a described unconstrained schema for non-primitive constants", () => {
+      const result = jsonSchemaToZod({
+        const: { unsupported: true },
+        description: "Opaque constant",
+      });
+
+      expect(result.description).toBe("Opaque constant");
+      expect(result.safeParse("anything").success).toBe(true);
+    });
+  });
+
   describe("string type", () => {
     test("creates zod string schema", () => {
       const schema = { type: "string" };
@@ -495,20 +524,20 @@ describe("jsonSchemaToZod", () => {
   });
 
   describe("const value", () => {
-    test("returns z.any() for const (not implemented)", () => {
+    test("enforces a string const", () => {
       const schema = { const: "fixed" };
       const result = jsonSchemaToZod(schema);
       expect(result).toBeInstanceOf(z.ZodType);
       expect(result.safeParse("fixed").success).toBe(true);
-      expect(result.safeParse("other").success).toBe(true);
+      expect(result.safeParse("other").success).toBe(false);
     });
 
-    test("returns z.any() for numeric const", () => {
+    test("enforces a numeric const", () => {
       const schema = { const: 42 };
       const result = jsonSchemaToZod(schema);
       expect(result).toBeInstanceOf(z.ZodType);
       expect(result.safeParse(42).success).toBe(true);
-      expect(result.safeParse(43).success).toBe(true);
+      expect(result.safeParse(43).success).toBe(false);
     });
   });
 

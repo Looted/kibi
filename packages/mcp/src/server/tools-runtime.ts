@@ -1,4 +1,5 @@
 import { getSpec } from "kibi-cli/operations";
+import { nodeGit } from "kibi-cli/operations/node-ports";
 import type {
   PrologPort,
   PrologQueryResult,
@@ -108,6 +109,7 @@ const operationRuntime = createMcpRuntime<PrologProcess>({
     (await getSessionModule()).attachedBranchKbPath,
   ensureProlog: async () => (await getSessionModule()).ensureProlog(),
   adaptProlog,
+  git: nodeGit,
   net: { fetch: (input, init) => globalThis.fetch(input, init) },
   refreshAttachedBranchStamp: async () => {
     const session = await getSessionModule();

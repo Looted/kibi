@@ -6,6 +6,7 @@ import {
   SYMBOL_ROLES,
   isAllowedGranularityReason,
 } from "../../public/symbol-granularity.js";
+import { verificationReceiptHistoryErrors } from "../../public/verification-receipt.js";
 import { semanticClaimKey } from "../semantic-advisor/clauses.js";
 import {
   factKindShapeHints,
@@ -112,6 +113,20 @@ export function validateUpsertInput(
     throw new Error(
       `Entity validation failed: ${formatEntityErrors(entity, validateEntity.errors ?? [])}`,
     );
+  }
+  if (entity.type === "test" && Array.isArray(entity.verification_receipts)) {
+    const receipts = entity.verification_receipts.filter(
+      (value): value is Record<string, unknown> =>
+        typeof value === "object" && value !== null && !Array.isArray(value),
+    );
+    const receiptErrors = verificationReceiptHistoryErrors(
+      input.id,
+      entity.verification_scope,
+      receipts,
+    );
+    if (receiptErrors.length > 0) {
+      throw new Error(`Entity validation failed: ${receiptErrors.join("; ")}`);
+    }
   }
   validateFactModelingShape(entity);
   if (

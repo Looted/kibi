@@ -29,6 +29,9 @@ describe("runAggregatedChecks", () => {
           description: "desc",
           suggestion: "fix",
           source: "src",
+          evidence: {
+            witnesses: [{ kind: "strict_property", status: "contradiction" }],
+          },
         },
       ],
     };
@@ -48,6 +51,9 @@ describe("runAggregatedChecks", () => {
       description: "desc",
       suggestion: "fix",
       source: "src",
+      evidence: {
+        witnesses: [{ kind: "strict_property", status: "contradiction" }],
+      },
     });
   });
 

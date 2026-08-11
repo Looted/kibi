@@ -241,11 +241,32 @@
     "severity": { "type": "string" },
     "links": { "type": "array", "items": { "type": "string" } },
     "text_ref": { "type": "string" },
+    "semantic_text": {
+      "type": "string",
+      "description": "Requirement-only authored prose whose exact UTF-8 bytes anchor the semantic inventory without replacing text_ref evidence."
+    },
     "logic_claims": {
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
       "items": { "type": "string", "pattern": "^CLAIM-[A-F0-9]{16}$" }
+    },
+    "semantic_clauses": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "semantic_inventory_version": {
+      "type": "string",
+      "const": "kibi.semantic-inventory.v1"
+    },
+    "semantic_source_field": {
+      "type": "string",
+      "enum": ["semantic_text", "text_ref", "title"]
+    },
+    "semantic_source_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
     },
     "semantic_inventory": {
       "type": "array",
@@ -322,6 +343,63 @@
     "verification_perspective": {
       "type": "string",
       "enum": ["internal", "consumer"]
+    },
+    "verification_receipts": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "required": [
+          "version",
+          "receipt_id",
+          "test_id",
+          "runner",
+          "command",
+          "scope",
+          "outcome",
+          "code_snapshot",
+          "environment_hash",
+          "started_at",
+          "finished_at",
+          "artifact_digest"
+        ],
+        "properties": {
+          "version": {
+            "type": "string",
+            "const": "kibi.verification-receipt.v1"
+          },
+          "receipt_id": {
+            "type": "string",
+            "pattern": "^VR-[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$"
+          },
+          "test_id": { "type": "string", "minLength": 1 },
+          "runner": { "type": "string", "minLength": 1 },
+          "command": { "type": "string", "minLength": 1 },
+          "scope": {
+            "type": "string",
+            "enum": ["unit", "integration", "end_to_end"]
+          },
+          "outcome": {
+            "type": "string",
+            "enum": ["passed", "failed", "errored", "cancelled", "skipped"]
+          },
+          "code_snapshot": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "environment_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "started_at": { "type": "string", "minLength": 1 },
+          "finished_at": { "type": "string", "minLength": 1 },
+          "artifact_digest": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "additionalProperties": false
+      }
     },
     "type": {
       "type": "string",
@@ -427,10 +505,15 @@
         "not": {
           "anyOf": [
             { "required": ["verification_scope"] },
-            { "required": ["verification_perspective"] }
+            { "required": ["verification_perspective"] },
+            { "required": ["verification_receipts"] }
           ]
         }
       }
+    },
+    {
+      "if": { "required": ["verification_receipts"] },
+      "then": { "required": ["verification_scope"] }
     },
     {
       "if": {
@@ -513,7 +596,18 @@
         "properties": { "type": { "const": "req" } }
       },
       "then": {},
-      "else": { "not": { "required": ["semantic_inventory"] } }
+      "else": {
+        "not": {
+          "anyOf": [
+            { "required": ["semantic_inventory"] },
+            { "required": ["semantic_clauses"] },
+            { "required": ["semantic_text"] },
+            { "required": ["semantic_inventory_version"] },
+            { "required": ["semantic_source_field"] },
+            { "required": ["semantic_source_hash"] }
+          ]
+        }
+      }
     },
     {
       "if": {

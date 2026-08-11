@@ -166,7 +166,10 @@ function serializeTypedFactFields(entity: ExtractedEntity): string[] {
   return fields;
 }
 
-function buildEntityAssertionGoal(entity: ExtractedEntity): string {
+function buildEntityAssertionGoal(
+  entity: ExtractedEntity,
+  sourceFile?: string,
+): string {
   const props = [
     `id=${toPrologAtom(entity.id)}`,
     `title=${toPrologString(entity.title)}`,
@@ -184,15 +187,57 @@ function buildEntityAssertionGoal(entity: ExtractedEntity): string {
   if (entity.severity) props.push(`severity=${toPrologAtom(entity.severity)}`);
   if (entity.text_ref)
     props.push(`text_ref=${toPrologString(entity.text_ref)}`);
+  if (entity.type === "req" && entity.semantic_text) {
+    props.push(`semantic_text=${toPrologString(entity.semantic_text)}`);
+  }
   if (entity.type === "req" && entity.logic_claims) {
     props.push(
       `logic_claims=[${entity.logic_claims.map(toPrologAtom).join(",")}]`,
+    );
+  }
+  if (entity.type === "req" && entity.semantic_clauses) {
+    props.push(
+      `semantic_clauses=[${entity.semantic_clauses.map(toPrologString).join(",")}]`,
+    );
+  }
+  if (entity.type === "req" && entity.semantic_inventory_version) {
+    props.push(
+      `semantic_inventory_version=${toPrologString(entity.semantic_inventory_version)}`,
+    );
+  }
+  if (entity.type === "req" && entity.semantic_source_field) {
+    props.push(
+      `semantic_source_field=${toPrologString(entity.semantic_source_field)}`,
+    );
+  }
+  if (entity.type === "req" && entity.semantic_source_hash) {
+    props.push(
+      `semantic_source_hash=${toPrologString(entity.semantic_source_hash)}`,
     );
   }
   if (entity.type === "req" && entity.semantic_inventory) {
     props.push(
       `semantic_inventory=${toPrologString(JSON.stringify(entity.semantic_inventory))}`,
     );
+  }
+  if (sourceFile) props.push(`sourceFile=${toPrologString(sourceFile)}`);
+
+  if (entity.type === "symbol") {
+    if (entity.symbol_role)
+      props.push(`symbol_role=${toPrologAtom(entity.symbol_role)}`);
+    if (entity.granularity_reason)
+      props.push(
+        `granularity_reason=${toPrologAtom(entity.granularity_reason)}`,
+      );
+    for (const key of [
+      "sourceLine",
+      "sourceColumn",
+      "sourceEndLine",
+      "sourceEndColumn",
+    ] as const) {
+      const value = entity[key];
+      if (typeof value === "number") props.push(`${key}=${value}`);
+    }
   }
 
   if (entity.type === "fact") {
@@ -276,12 +321,12 @@ export async function projectStagedEntities(
   prolog: PrologProcess,
   results: ExtractionResult[],
 ): Promise<void> {
-  for (const { entity } of results) {
+  for (const { entity, sourceFile } of results) {
     // Retract stale relationships before re-asserting entity
     // (kb_assert_entity_no_audit preserves relationships on upsert)
     await prolog.query(`kb_retract_entity_relationships('${entity.id}')`);
     const assertEntityResult = await prolog.query(
-      buildEntityAssertionGoal(entity),
+      buildEntityAssertionGoal(entity, sourceFile),
     );
     if (!assertEntityResult.success) {
       throw new Error(

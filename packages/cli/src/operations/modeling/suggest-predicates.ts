@@ -47,9 +47,17 @@ export async function handleKbSuggestPredicates(
     warnings,
   );
   const schemas = [...existingSchemas, ...BUILT_IN_PREDICATE_SCHEMAS];
-  const candidates = schemas
+  const selectedSchemas = args.schemaId
+    ? schemas.filter((schema) => schema.id === args.schemaId)
+    : schemas;
+  if (args.schemaId && selectedSchemas.length === 0) {
+    warnings.push(
+      `Requested predicate schema ${args.schemaId} is not available. Refresh the KB or correct schemaId before retrying; no ontology-gap or predicate write plan was generated.`,
+    );
+  }
+  const candidates = selectedSchemas
     .map((schema) => ({ schema, score: scoreSchema(schema, text) }))
-    .filter((scored) => scored.score >= minScore)
+    .filter((scored) => args.schemaId || scored.score >= minScore)
     .sort((left, right) => {
       if (right.score !== left.score) return right.score - left.score;
       return left.schema.predicate_name.localeCompare(
@@ -58,32 +66,59 @@ export async function handleKbSuggestPredicates(
     })
     .slice(0, maxCandidates)
     .map((scored) =>
-      buildSuggestion(scored.schema, text, subject, scored.score),
+      buildSuggestion(
+        scored.schema,
+        text,
+        subject,
+        scored.score,
+        args.argumentBindings,
+        args.polarityHint,
+      ),
     );
-  if (candidates.length === 0) {
+  if (candidates.length === 0 && !args.schemaId) {
     warnings.push(
       "No predicate candidate met minScore. If this is recurring domain language, create a fact_kind=predicate_schema fact; otherwise keep the generated review:ontology-gap observation. Do not invent unsupported predicate names without a predicate_schema.",
     );
   }
 
-  const recommendedAction =
-    candidates.length > 0 ? "apply_requires_predicate" : "record_ontology_gap";
   const firstCandidate = candidates[0];
-  const applyPlan = firstCandidate
-    ? buildPredicateApplyPlan(firstCandidate, args)
-    : buildGapApplyPlan(text, args);
-  const relationshipPlan = firstCandidate
-    ? buildRelationshipPlan(
-        String(applyPlan[0]?.id ?? ""),
-        args.requirementId,
-        text,
-        args.existingLogicClaims,
-      )
-    : null;
+  const bindingsComplete = firstCandidate?.binding_status === "complete";
+  if (firstCandidate && !bindingsComplete) {
+    warnings.push(
+      `Top predicate candidate ${firstCandidate.predicate_name} has unbound arguments: ${firstCandidate.unbound_arguments.join(", ")}. Supply exact argumentBindings keyed by the schema's argument_names before applying it.`,
+    );
+  }
+  const recommendedAction = !firstCandidate
+    ? args.schemaId
+      ? "resolve_schema_reference"
+      : "record_ontology_gap"
+    : bindingsComplete
+      ? "apply_requires_predicate"
+      : "provide_argument_bindings";
+  const applyPlan = !firstCandidate
+    ? args.schemaId
+      ? []
+      : buildGapApplyPlan(text, args)
+    : bindingsComplete
+      ? buildPredicateApplyPlan(firstCandidate, args)
+      : [];
+  const relationshipPlan =
+    firstCandidate && bindingsComplete
+      ? buildRelationshipPlan(
+          String(applyPlan[0]?.id ?? ""),
+          args.requirementId,
+          text,
+          args.existingLogicClaims,
+        )
+      : null;
   const textSummary =
-    candidates.length > 0
+    firstCandidate && bindingsComplete
       ? `Suggested ${candidates.length} predicate candidate(s). Top match: ${candidates[0]?.predicate_name}. Apply structured predicate facts before falling back to prose.`
-      : "No predicate candidate met the confidence threshold; record an ontology gap instead of silently writing prose.";
+      : firstCandidate
+        ? `Matched ${firstCandidate.predicate_name}, but exact values are still required for: ${firstCandidate.unbound_arguments.join(", ")}. No apply plan was generated.`
+        : args.schemaId
+          ? `Requested predicate schema ${args.schemaId} is unavailable. No apply plan was generated.`
+          : "No predicate candidate met the confidence threshold; record an ontology gap instead of silently writing prose.";
   const claimKey = semanticClaimKey(text);
   const logicClaims = Array.from(
     new Set([...(args.existingLogicClaims ?? []), claimKey]),

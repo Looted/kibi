@@ -11,7 +11,7 @@ import { checkSpec } from "../../src/public/operations/specs/check.js";
 
 function createContext(
   query: (goal: string) => Promise<PrologQueryResult>,
-  workspaceRoot = process.cwd(),
+  workspaceRoot = path.join(os.tmpdir(), "kibi-check-no-usage-log"),
 ): OperationContext {
   const prolog: PrologPort = {
     query,

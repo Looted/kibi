@@ -23,16 +23,21 @@ const STRING_FIELDS = [
   "updated_at",
   "source",
   "text_ref",
+  "semantic_text",
 ] as const;
 
 function serializeValue(key: string, value: unknown): string {
   if (key === "id" && typeof value === "string") {
     return `'${value.replaceAll("'", "''")}'`;
   }
-  if (Array.isArray(value)) return JSON.stringify(value);
-  if (key === "rule_ir" || key === "semantic_inventory") {
+  if (
+    key === "rule_ir" ||
+    key === "semantic_inventory" ||
+    key === "verification_receipts"
+  ) {
     return toPrologString(JSON.stringify(value));
   }
+  if (Array.isArray(value)) return JSON.stringify(value);
   if (typeof value === "string") {
     return ATOM_FIELDS.includes(key as (typeof ATOM_FIELDS)[number])
       ? toPrologAtom(value)

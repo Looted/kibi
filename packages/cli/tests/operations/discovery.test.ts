@@ -26,6 +26,16 @@ function createContext(
     signal: new AbortController().signal,
     clock: () => new Date("2026-07-21T00:00:00Z"),
     prolog,
+    git: {
+      revParse: async () => "main",
+      showToplevel: async () => workspaceRoot,
+      workspaceSnapshot: async () => ({
+        version: "kibi.workspace-snapshot.v1",
+        hash: "a".repeat(64),
+        dirty: false,
+        fileCount: 7,
+      }),
+    },
   };
 }
 
@@ -220,6 +230,11 @@ describe("shared discovery operation executors", () => {
       syncedAt: "2026-07-21T00:00:00Z",
       dirty: false,
       syncState: "fresh",
+      verificationSnapshot: "a".repeat(64),
+      verificationSnapshotAvailable: true,
+      verificationSnapshotDirty: false,
+      verificationSnapshotFileCount: 7,
+      verificationSnapshotVersion: "kibi.workspace-snapshot.v1",
     });
     expect(query).toHaveBeenCalledTimes(1);
     expect(query.mock.calls[0]?.[0]).toContain(

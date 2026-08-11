@@ -102,6 +102,8 @@ export async function executeCheck(
             ? impactQualityDiagnostics
             : await collectFullKbQualityDiagnostics({
                 prolog,
+                workspaceRoot,
+                now: context.clock(),
                 ...maxDiagnosticsOption,
               });
       return {
@@ -157,6 +159,8 @@ export async function executeCheck(
         : await collectFullKbQualityDiagnostics({
             prolog,
             hardViolationEntityIds: new Set(violations.map((v) => v.entityId)),
+            workspaceRoot,
+            now: context.clock(),
             ...maxDiagnosticsOption,
           });
 

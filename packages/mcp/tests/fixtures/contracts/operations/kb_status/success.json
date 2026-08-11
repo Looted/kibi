@@ -8,7 +8,7 @@
     "syncState": "synced"
   },
   "tool": {
-    "description": "Report current branch, snapshot, and freshness metadata for the attached KB. Read-only status inspection with no mutation side effects.",
+    "description": "Report current branch, KB snapshot and freshness metadata, plus the deterministic workspace snapshot used to validate execution receipts. Read-only status inspection with no mutation side effects.",
     "inputSchema": {
       "properties": {},
       "type": "object"

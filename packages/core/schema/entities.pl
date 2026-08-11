@@ -29,8 +29,13 @@ entity_property(_, severity, atom).
 entity_property(_, links, list).
 entity_property(_, text_ref, uri).
 entity_property(_, sourceFile, uri).
+entity_property(req, semantic_text, string).
 entity_property(req, logic_claims, list).
-entity_property(req, semantic_inventory, list).
+entity_property(req, semantic_clauses, list).
+entity_property(req, semantic_inventory_version, string).
+entity_property(req, semantic_source_field, string).
+entity_property(req, semantic_source_hash, string).
+entity_property(req, semantic_inventory, list_or_json).
 
 % Typed fact fields - only valid for fact entities
 entity_property(fact, fact_kind, atom).
@@ -74,10 +79,15 @@ entity_property(fact, claim_span_end, integer).
 % Typed symbol metadata fields - only valid for symbol entities
 entity_property(symbol, symbol_role, atom).
 entity_property(symbol, granularity_reason, atom).
+entity_property(symbol, sourceLine, integer).
+entity_property(symbol, sourceColumn, integer).
+entity_property(symbol, sourceEndLine, integer).
+entity_property(symbol, sourceEndColumn, integer).
 
 % Typed test verification fields - only valid for test entities
 entity_property(test, verification_scope, atom).
 entity_property(test, verification_perspective, atom).
+entity_property(test, verification_receipts, string).
 
 % Required properties for all entity types
 required_property(Type, id) :- entity_type(Type).
@@ -94,10 +104,16 @@ optional_property(Type, priority) :- entity_type(Type).
 optional_property(Type, severity) :- entity_type(Type).
 optional_property(Type, links) :- entity_type(Type).
 optional_property(Type, text_ref) :- entity_type(Type).
+optional_property(req, semantic_text).
 optional_property(req, logic_claims).
+optional_property(req, semantic_clauses).
+optional_property(req, semantic_inventory_version).
+optional_property(req, semantic_source_field).
+optional_property(req, semantic_source_hash).
 optional_property(req, semantic_inventory).
 optional_property(test, verification_scope).
 optional_property(test, verification_perspective).
+optional_property(test, verification_receipts).
 
 % Documentation helpers
 % list all entity types

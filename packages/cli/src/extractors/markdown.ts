@@ -21,6 +21,10 @@ import { readFileSync } from "node:fs";
 import Ajv from "ajv";
 import { load as yamlLoad } from "js-yaml";
 import { semanticClaimKey } from "../operations/semantic-advisor/clauses.js";
+import {
+  type VerificationReceipt,
+  verificationReceiptHistoryErrors,
+} from "../public/verification-receipt.js";
 import entitySchema from "../schemas/entity.schema.json" with { type: "json" };
 
 // Typed fact field constants for extraction
@@ -74,6 +78,7 @@ const FACT_ONLY_FIELDS = [
 const TEST_ENUM_FIELDS = [
   "verification_scope",
   "verification_perspective",
+  "verification_receipts",
 ] as const;
 
 const ajv = new Ajv({ strict: false, allErrors: true });
@@ -92,7 +97,12 @@ export interface ExtractedEntity {
   priority?: string;
   severity?: string;
   text_ref?: string;
+  semantic_text?: string;
   logic_claims?: string[];
+  semantic_clauses?: string[];
+  semantic_inventory_version?: "kibi.semantic-inventory.v1";
+  semantic_source_field?: "semantic_text" | "text_ref" | "title";
+  semantic_source_hash?: string;
   granularity_reason?: string;
   symbol_kind?: string;
   symbol_role?: string;
@@ -102,6 +112,7 @@ export interface ExtractedEntity {
   sourceEndColumn?: number;
   verification_scope?: "unit" | "integration" | "end_to_end";
   verification_perspective?: "internal" | "consumer";
+  verification_receipts?: readonly VerificationReceipt[];
   // Typed fact fields - only present when type === 'fact'
   fact_kind?:
     | "subject"
@@ -428,6 +439,17 @@ function parseFrontmatter(content: string): {
   };
 }
 
+// implements REQ-kibi-legacy-migration-preview-v2
+export function requirementSemanticText(body: string): string {
+  return body
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .filter((line) => !/^\s{0,3}#{1,6}(?:\s+|$)/.test(line))
+    .map((line) => line.replace(/^\s*(?:(?:[-*+]|\d+[.)])\s+|>\s*)/, ""))
+    .join("\n")
+    .trim();
+}
+
 function hasLikelyUnquotedColonInTitle(content: string): boolean {
   if (!content.trim().startsWith("---")) {
     return false;
@@ -506,7 +528,7 @@ function extractFromMarkdownContent(
   filePath: string,
 ): ExtractionResult {
   try {
-    const { data } = parseFrontmatter(content);
+    const { data, content: body } = parseFrontmatter(content);
 
     if (content.trim().startsWith("---")) {
       const parts = content.split("---");
@@ -606,11 +628,33 @@ function extractFromMarkdownContent(
     if (data.owner !== undefined) entity.owner = data.owner;
     if (data.priority !== undefined) entity.priority = data.priority;
     if (data.severity !== undefined) entity.severity = data.severity;
-    if (data.text_ref !== undefined) entity.text_ref = data.text_ref;
+    if (data.text_ref !== undefined) {
+      entity.text_ref = data.text_ref;
+    }
+    if (type === "req" && data.semantic_text !== undefined) {
+      entity.semantic_text = data.semantic_text;
+    } else if (type === "req") {
+      const semanticText = requirementSemanticText(body);
+      if (semanticText) entity.semantic_text = semanticText;
+    }
     if (type === "req" && Array.isArray(data.logic_claims)) {
       entity.logic_claims = data.logic_claims.filter(
         (value): value is string => typeof value === "string",
       );
+    }
+    if (type === "req" && Array.isArray(data.semantic_clauses)) {
+      entity.semantic_clauses = data.semantic_clauses.filter(
+        (value): value is string => typeof value === "string",
+      );
+    }
+    if (type === "req" && data.semantic_inventory_version !== undefined) {
+      entity.semantic_inventory_version = data.semantic_inventory_version;
+    }
+    if (type === "req" && data.semantic_source_field !== undefined) {
+      entity.semantic_source_field = data.semantic_source_field;
+    }
+    if (type === "req" && data.semantic_source_hash !== undefined) {
+      entity.semantic_source_hash = data.semantic_source_hash;
     }
 
     if (type !== "fact") {
@@ -672,6 +716,54 @@ function extractFromMarkdownContent(
           );
         }
         entity.verification_perspective = data.verification_perspective;
+      }
+
+      if (data.verification_receipts !== undefined) {
+        if (!Array.isArray(data.verification_receipts)) {
+          throw new FrontmatterError(
+            "Invalid verification_receipts; expected an array",
+            filePath,
+            {
+              classification: "Invalid Test Verification Receipts",
+              hint: "Use append-only kibi.verification-receipt.v1 objects.",
+            },
+          );
+        }
+        const normalizedReceipts = data.verification_receipts.map((value) => {
+          if (
+            typeof value !== "object" ||
+            value === null ||
+            Array.isArray(value)
+          ) {
+            return value;
+          }
+          return {
+            ...value,
+            ...(normalizeDateLike(value.started_at) !== undefined
+              ? { started_at: normalizeDateLike(value.started_at) }
+              : {}),
+            ...(normalizeDateLike(value.finished_at) !== undefined
+              ? { finished_at: normalizeDateLike(value.finished_at) }
+              : {}),
+          };
+        });
+        entity.verification_receipts = normalizedReceipts;
+        const errors = verificationReceiptHistoryErrors(
+          entity.id,
+          entity.verification_scope,
+          normalizedReceipts.filter(
+            (value): value is Record<string, unknown> =>
+              typeof value === "object" &&
+              value !== null &&
+              !Array.isArray(value),
+          ),
+        );
+        if (errors.length > 0) {
+          throw new FrontmatterError(errors.join("; "), filePath, {
+            classification: "Invalid Test Verification Receipts",
+            hint: "Bind every receipt to this test and its typed verification_scope, with unique IDs and ordered ISO-8601 timestamps.",
+          });
+        }
       }
     }
 

@@ -4,6 +4,8 @@ import {
   analyzeSemanticAdvisorInput,
   semanticClaimKey,
 } from "../../src/operations/semantic-advisor/analyze-prose.js";
+import { validateSemanticInventoryBoundary } from "../../src/operations/semantic-advisor/ingestion-boundary.js";
+import { semanticSourceOf } from "../../src/operations/semantic-advisor/shared.js";
 import { semanticAdvisorSpec } from "../../src/public/operations/specs/semantic.js";
 
 describe("semantic advisor operation", () => {
@@ -30,6 +32,10 @@ describe("semantic advisor operation", () => {
     expect(first).toEqual(second);
     expect(first.structuredContent).toMatchObject({
       receipt: {
+        inventory_contract: {
+          source_field: "semantic_text",
+          source_hash: expect.stringMatching(/^[a-f0-9]{64}$/),
+        },
         suggestions: [
           {
             kind: "strict_property",
@@ -43,7 +49,39 @@ describe("semantic advisor operation", () => {
         ],
       },
     });
+    const suggestedRequirement = first.structuredContent.receipt.suggestions
+      .flatMap(({ applyPlan }) => applyPlan)
+      .find((step) => step.type === "req");
+    expect(suggestedRequirement?.properties).toMatchObject({
+      semantic_text: input.text,
+    });
+    expect(suggestedRequirement?.properties).not.toHaveProperty("text_ref");
     expect(semanticAdvisorSpec.requiresProlog).toBe(false);
+  });
+
+  test("keeps semantic prose independent from text_ref evidence", () => {
+    expect(
+      semanticSourceOf({
+        properties: {
+          title: "Fallback title",
+          text_ref: "src/policy.ts:42",
+          semantic_text: "The policy must retain authored prose.",
+        },
+      }),
+    ).toEqual({
+      field: "semantic_text",
+      text: "The policy must retain authored prose.",
+    });
+    expect(
+      semanticSourceOf({
+        properties: {
+          title: "Fallback title",
+          text_ref: "Legacy requirement prose.",
+          semantic_text: "",
+          semantic_source_field: "semantic_text",
+        },
+      }),
+    ).toEqual({ field: "semantic_text", text: "" });
   });
 
   test("uses one stable claim identity across trailing punctuation artifacts", async () => {
@@ -109,10 +147,50 @@ describe("semantic advisor operation", () => {
     expect(partial.receipt.logic_readiness).toBe("needs_modeling");
     expect(partial.receipt.logic_coverage.status).toBe("partial");
     expect(partial.receipt.suggestions).toHaveLength(2);
+    const suggestedRequirement = partial.receipt.suggestions
+      .flatMap(({ applyPlan }) => applyPlan)
+      .find((step) => step.type === "req");
+    expect(suggestedRequirement?.properties).toMatchObject({
+      semantic_inventory_version: "kibi.semantic-inventory.v1",
+      semantic_source_field: "text_ref",
+      semantic_source_hash: expect.stringMatching(/^[a-f0-9]{64}$/),
+      semantic_inventory: [
+        expect.objectContaining({ status: "missing" }),
+        expect.objectContaining({ status: "modeled" }),
+      ],
+    });
+    const predicateSuggestion = partial.receipt.suggestions.find(
+      ({ kind }) => kind === "predicate",
+    );
+    expect(
+      predicateSuggestion?.kind === "predicate"
+        ? predicateSuggestion.relationshipPlan
+        : null,
+    ).toMatchObject({
+      inventoryContract: {
+        version: "kibi.semantic-inventory.v1",
+        source_field: "text_ref",
+        source_hash: expect.stringMatching(/^[a-f0-9]{64}$/),
+      },
+      semanticInventory: [
+        expect.objectContaining({ status: "modeled" }),
+        expect.objectContaining({ status: "missing" }),
+      ],
+    });
 
     const complete = analyzeSemanticAdvisorInput({
       payload: {
         ...payload,
+        properties: {
+          ...payload.properties,
+          semantic_inventory: clauses.map((claimText, index) => ({
+            claim_key: logicClaims[index],
+            claim_text: claimText.replace(/[.]$/, ""),
+            role: "normative",
+            status: "modeled",
+            span: { start: 0, end: 1 },
+          })),
+        },
         relationships: [
           ...payload.relationships,
           {
@@ -209,6 +287,76 @@ describe("semantic advisor operation", () => {
     expect(result.receipt.propositions[0]?.status).toBe("ambiguous");
     expect(result.receipt.logic_coverage.unresolved_claim_keys).toContain(
       claimKey,
+    );
+  });
+
+  test("validates a source-bound ledger with an explicit unresolved outcome", () => {
+    const text = "System must support OAuth2 authentication.";
+    const base = {
+      type: "req",
+      id: "REQ-LEDGER",
+      properties: { title: "OAuth", status: "open", text_ref: text },
+      relationships: [],
+    };
+    const semantic = analyzeSemanticAdvisorInput({ payload: base });
+    const contract = semantic.receipt.inventory_contract;
+    const payload = {
+      ...base,
+      properties: {
+        ...base.properties,
+        logic_claims: semantic.receipt.logic_coverage.expected_claim_keys,
+        semantic_inventory_version: contract.version,
+        semantic_source_field: contract.source_field,
+        semantic_source_hash: contract.source_hash,
+        semantic_inventory: semantic.receipt.propositions.map(
+          (proposition) => ({ ...proposition, status: "ontology_gap" }),
+        ),
+      },
+    };
+
+    expect(
+      validateSemanticInventoryBoundary(
+        payload,
+        payload.relationships,
+        analyzeSemanticAdvisorInput({ payload }).receipt,
+      ).errors,
+    ).toEqual([]);
+  });
+
+  test("rejects duplicate propositions and spans instead of deduplicating prose", () => {
+    const text = "The service must log exports. The service must log exports.";
+    const payload = {
+      type: "req",
+      id: "REQ-DUPLICATE-LEDGER",
+      properties: { title: "Export logs", status: "open", text_ref: text },
+      relationships: [],
+    };
+    const semantic = analyzeSemanticAdvisorInput({ payload });
+
+    expect(semantic.receipt.propositions).toHaveLength(2);
+    expect(semantic.receipt.propositions[0]?.claim_key).toBe(
+      semantic.receipt.propositions[1]?.claim_key,
+    );
+    const contract = semantic.receipt.inventory_contract;
+    const withInventory = {
+      ...payload,
+      properties: {
+        ...payload.properties,
+        logic_claims: [semantic.receipt.propositions[0]?.claim_key],
+        semantic_inventory_version: contract.version,
+        semantic_source_field: contract.source_field,
+        semantic_source_hash: contract.source_hash,
+        semantic_inventory: semantic.receipt.propositions,
+      },
+    };
+    expect(
+      validateSemanticInventoryBoundary(
+        withInventory,
+        [],
+        analyzeSemanticAdvisorInput({ payload: withInventory }).receipt,
+      ).errors,
+    ).toEqual(
+      expect.arrayContaining([expect.stringContaining("duplicate claim_key")]),
     );
   });
 });

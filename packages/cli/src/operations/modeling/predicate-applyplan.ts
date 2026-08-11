@@ -14,25 +14,39 @@ export function buildSuggestion(
   text: string,
   subject: string,
   score: number,
+  argumentBindings: Readonly<Record<string, string>> = {},
+  polarityHint?: "assert" | "deny",
 ): PredicateSuggestion {
-  const predicateArgs = inferArgs(schema, text, subject);
+  const inferredArgs = inferArgs(schema, text, subject);
+  const predicateArgs = schema.argument_names.map((name, index) => {
+    const exactBinding = argumentBindings[name];
+    return typeof exactBinding === "string" && exactBinding.trim().length > 0
+      ? exactBinding.trim()
+      : (inferredArgs[index] ?? "unknown");
+  });
+  const unboundArguments = schema.argument_names.filter(
+    (_name, index) => predicateArgs[index] === "unknown",
+  );
   const canonicalKey = `${schema.predicate_name}(${predicateArgs.join(",")})`;
   // Permission-style inference carries the deontic decision as its final
   // argument. Preserve that polarity in the typed suggestion instead of
   // silently turning a prohibition into an assertion.
   const polarity =
-    predicateArgs.at(-1) === "deny" ||
+    polarityHint ??
+    (predicateArgs.at(-1) === "deny" ||
     /\b(?:must\s+not|shall\s+not|never|cannot|can't|forbidden|prohibited)\b/i.test(
       text,
     )
       ? "deny"
-      : "assert";
+      : "assert");
   return {
     id: hashId("SUGGEST", [schema.id, canonicalKey, text]),
     predicate_name: schema.predicate_name,
     predicate_args: predicateArgs,
     canonical_key: canonicalKey,
     polarity,
+    binding_status: unboundArguments.length === 0 ? "complete" : "incomplete",
+    unbound_arguments: unboundArguments,
     score,
     rationale: `Matched ${schema.predicate_name} because the prose overlaps with ${schema.tags.join(", ")} cues.`,
     schema: schemaForCandidate(schema),
@@ -44,6 +58,7 @@ export function buildPredicateApplyPlan(
   suggestion: PredicateSuggestion,
   args: SuggestPredicatesArgs,
 ): Array<Record<string, unknown>> {
+  if (suggestion.binding_status !== "complete") return [];
   const claimKey = semanticClaimKey(args.text);
   const factId = hashId("FACT-PRED", [
     args.requirementId ?? "",

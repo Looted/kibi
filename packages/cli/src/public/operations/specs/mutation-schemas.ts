@@ -1,3 +1,5 @@
+import { VERIFICATION_RECEIPT_SCHEMA } from "../../verification-receipt.js";
+
 export const ENTITY_TYPES = [
   "req",
   "scenario",
@@ -67,6 +69,11 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       description:
         "Optional text anchor/reference. Example: 'requirements.md#L40'.",
     },
+    semantic_text: {
+      type: "string",
+      description:
+        "Requirement-only authored prose used for semantic inventory hashes and UTF-8 spans. Keep text_ref available for independent document or code evidence.",
+    },
     logic_claims: {
       type: "array",
       minItems: 1,
@@ -74,6 +81,31 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       items: { type: "string", pattern: "^CLAIM-[A-F0-9]{16}$" },
       description:
         "Requirement-only manifest of every atomic normative claim key returned by kb_semantic_advisor. A requirement is logic-complete only when every key is grounded by a linked property_value or predicate fact with the same claim_key.",
+    },
+    semantic_clauses: {
+      type: "array",
+      minItems: 1,
+      items: { type: "string", minLength: 1 },
+      description:
+        "Optional complete atomic decomposition used by kb_semantic_advisor and proposition-complete ingestion. Preserve it when automatic sentence splitting needs a reviewed override.",
+    },
+    semantic_inventory_version: {
+      type: "string",
+      const: "kibi.semantic-inventory.v1",
+      description:
+        "Requirement-only proposition ledger contract version returned by kb_semantic_advisor.",
+    },
+    semantic_source_field: {
+      type: "string",
+      enum: ["semantic_text", "text_ref", "title"],
+      description:
+        "Requirement field whose exact UTF-8 bytes anchor semantic_inventory spans.",
+    },
+    semantic_source_hash: {
+      type: "string",
+      pattern: "^[a-f0-9]{64}$",
+      description:
+        "SHA-256 of the exact semantic source text returned in the advisor inventory contract.",
     },
     sourceFile: {
       type: "string",
@@ -115,6 +147,13 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       enum: ["internal", "consumer"],
       description:
         "Optional typed verification perspective for test entities. Example: 'consumer'.",
+    },
+    verification_receipts: {
+      type: "array",
+      maxItems: 50,
+      items: VERIFICATION_RECEIPT_SCHEMA,
+      description:
+        "Append-only test execution evidence. Proof accepts only the newest valid passed receipt bound to the current code snapshot and within the seven-day freshness window.",
     },
     fact_kind: {
       type: "string",
@@ -276,7 +315,14 @@ export const ENTITY_PROPERTIES_SCHEMA = {
     claim_span_start: { type: "integer", minimum: 0 },
     claim_span_end: { type: "integer", minimum: 0 },
   },
-  allOf: [CLAIM_PROVENANCE_CONDITIONAL],
+  allOf: [
+    CLAIM_PROVENANCE_CONDITIONAL,
+    {
+      if: { required: ["verification_receipts"] },
+      // biome-ignore lint/suspicious/noThenProperty: JSON Schema conditional keyword.
+      then: { required: ["verification_scope"] },
+    },
+  ],
   required: ["title", "status"],
 } as const;
 

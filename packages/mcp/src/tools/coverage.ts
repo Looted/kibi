@@ -1,16 +1,16 @@
-import { executeCoverage } from "kibi-cli/operations";
+import {
+  type CoverageInput,
+  type LegacyMigrationPlan,
+  type RepairPlan,
+  executeCoverage,
+} from "kibi-cli/operations";
+import type { OperationContext } from "kibi-cli/operations/runtime-types";
 import type { PrologProcess } from "kibi-cli/prolog";
+import { createDiscoveryContext } from "./discovery-adapter.js";
 
 type ReportingProlog = Pick<PrologProcess, "query">;
 
-export interface CoverageArgs {
-  by?: "req" | "symbol" | "type";
-  tags?: string[];
-  includePassing?: boolean;
-  includeTransitive?: boolean;
-  limit?: number;
-  offset?: number;
-}
+export type CoverageArgs = CoverageInput;
 
 export interface CoverageResult {
   readonly content: readonly {
@@ -20,6 +20,8 @@ export interface CoverageResult {
   structuredContent?: {
     readonly summary: Readonly<Record<string, number>>;
     readonly rows: readonly Readonly<Record<string, unknown>>[];
+    readonly repairPlan?: RepairPlan;
+    readonly legacyMigrationPlan?: LegacyMigrationPlan;
     readonly meta?: Readonly<Record<string, unknown>>;
   };
 }
@@ -28,18 +30,10 @@ export interface CoverageResult {
 export async function handleKbCoverage(
   prolog: ReportingProlog,
   args: CoverageArgs,
+  context?: OperationContext,
 ): Promise<CoverageResult> {
   return executeCoverage(
     { ...args },
-    {
-      workspaceRoot: process.cwd(),
-      signal: new AbortController().signal,
-      clock: () => new Date(),
-      prolog: {
-        query: (goal) => prolog.query(goal),
-        nextSolution: async () => null,
-        save: () => prolog.query("kb_save"),
-      },
-    },
+    createDiscoveryContext(prolog as PrologProcess, context),
   );
 }

@@ -39,7 +39,7 @@ export async function executeSemanticAdvisor(
         title,
         status: optionalString(args.status) ?? "open",
         source,
-        text_ref: text,
+        semantic_text: text,
       },
     },
     ...(args.clauses !== undefined ? { clauses: args.clauses } : {}),

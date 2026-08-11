@@ -7,7 +7,6 @@ import {
   test,
 } from "bun:test";
 import fs from "node:fs/promises";
-import { semanticClaimKey } from "kibi-cli/operations/semantic-advisor/analyze-prose";
 import type { PrologProcess } from "kibi-cli/prolog";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
 import { handleKbValidateUpsert } from "../../src/tools/validate-upsert.js";
@@ -20,7 +19,7 @@ import {
 } from "../helpers/integration-prolog.js";
 
 describe("kb_validate_upsert", () => {
-  test("returns semantic advisor warning for prose-heavy normative requirements", async () => {
+  test("rejects prose-heavy normative requirements without an inventory", async () => {
     const result = await handleKbValidateUpsert({
       type: "req",
       id: "REQ-SESSIONS",
@@ -37,24 +36,13 @@ describe("kb_validate_upsert", () => {
         semanticAdvisor?: Record<string, unknown> | null;
       };
 
-    expect(structured.valid).toBe(true);
-    expect(structured.warnings.join("\n")).toContain("kb_model_requirement");
-    expect(structured.semanticAdvisor).toMatchObject({
-      logic_readiness: "needs_modeling",
-      candidate_lane: "strict_property",
-      suggestions: [
-        expect.objectContaining({
-          kind: "strict_property",
-          suggested_next_tool: "kb_model_requirement",
-          claim: expect.objectContaining({
-            subject_key: "user.session",
-            property_key: "active_count",
-            operator: "lte",
-            value_int: 2,
-          }),
-        }),
-      ],
-    });
+    expect(structured.valid).toBe(false);
+    expect(structured.errors.join("\n")).toContain(
+      "Proposition-complete ingestion failed",
+    );
+    expect(structured.errors.join("\n")).toContain("kb_semantic_advisor");
+    expect(structured.warnings).toEqual([]);
+    expect(structured.semanticAdvisor).toBeNull();
   });
 
   test("does not warn when valid requirement already links strict facts", async () => {
@@ -66,8 +54,19 @@ describe("kb_validate_upsert", () => {
         status: "open",
         source: "docs/requirements/sessions.md",
         text_ref: "Session timeout must equal 30 minutes.",
-        logic_claims: [
-          semanticClaimKey("Session timeout must equal 30 minutes."),
+        logic_claims: ["CLAIM-136CB26F246B9589"],
+        semantic_inventory_version: "kibi.semantic-inventory.v1",
+        semantic_source_field: "text_ref",
+        semantic_source_hash:
+          "bcbbdff501d48af1663e0114c1d07798b21a83a983270125754f9c1773c4aa6d",
+        semantic_inventory: [
+          {
+            claim_key: "CLAIM-136CB26F246B9589",
+            claim_text: "Session timeout must equal 30 minutes",
+            role: "normative",
+            status: "modeled",
+            span: { start: 0, end: 37 },
+          },
         ],
       },
       relationships: [

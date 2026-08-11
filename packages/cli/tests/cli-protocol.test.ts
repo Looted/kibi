@@ -23,6 +23,16 @@ function createContext(): CliContext {
       nextSolution: async () => null,
       save: async () => ({ success: true, bindings: {} }),
     },
+    git: {
+      revParse: async () => "develop",
+      showToplevel: async () => process.cwd(),
+      workspaceSnapshot: async () => ({
+        version: "kibi.workspace-snapshot.v1",
+        hash: "a".repeat(64),
+        dirty: true,
+        fileCount: 12,
+      }),
+    },
   };
 }
 
@@ -32,8 +42,7 @@ describe("executeOperation", () => {
 
     expect(result).toEqual({
       exitCode: 0,
-      stdout:
-        '{"branch":"develop","snapshotId":"stamp:test","syncedAt":null,"dirty":false,"syncState":"fresh"}\n',
+      stdout: `{"branch":"develop","snapshotId":"stamp:test","syncedAt":null,"dirty":false,"syncState":"fresh","verificationSnapshot":"${"a".repeat(64)}","verificationSnapshotAvailable":true,"verificationSnapshotDirty":true,"verificationSnapshotFileCount":12,"verificationSnapshotVersion":"kibi.workspace-snapshot.v1"}\n`,
     });
   });
 

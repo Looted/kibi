@@ -1381,6 +1381,8 @@ describe("MCP Upsert Contradictions and Typed Facts", () => {
           value_bool: true,
           closed_world: true,
           canonical_key: "user.permissions.admin_access.eq.true",
+          claim_key: "CLAIM-96720CB5F7E6C80C",
+          claim_text: "Admin access required",
         },
       });
 
@@ -1391,6 +1393,20 @@ describe("MCP Upsert Contradictions and Typed Facts", () => {
           title: "Admin access required",
           status: "open",
           source: "test://reserved-fields",
+          logic_claims: ["CLAIM-96720CB5F7E6C80C"],
+          semantic_inventory_version: "kibi.semantic-inventory.v1",
+          semantic_source_field: "title",
+          semantic_source_hash:
+            "812fc837108361ba43606606235d2ce67d8d4dca7df4cc21cf90fd96ea583128",
+          semantic_inventory: [
+            {
+              claim_key: "CLAIM-96720CB5F7E6C80C",
+              claim_text: "Admin access required",
+              role: "normative",
+              status: "modeled",
+              span: { start: 0, end: 21 },
+            },
+          ],
         },
         relationships: [
           {
@@ -1421,6 +1437,8 @@ describe("MCP Upsert Contradictions and Typed Facts", () => {
           value_bool: false,
           closed_world: false,
           canonical_key: "user.permissions.admin_access.eq.false",
+          claim_key: "CLAIM-C1962C62F34F1603",
+          claim_text: "Admin access forbidden",
         },
       });
 
@@ -1432,6 +1450,20 @@ describe("MCP Upsert Contradictions and Typed Facts", () => {
             title: "Admin access forbidden",
             status: "open",
             source: "test://reserved-fields",
+            logic_claims: ["CLAIM-C1962C62F34F1603"],
+            semantic_inventory_version: "kibi.semantic-inventory.v1",
+            semantic_source_field: "title",
+            semantic_source_hash:
+              "21352758d70032ad189683dde8e2401d2ace303c8e7f2829feb71d515ae9a200",
+            semantic_inventory: [
+              {
+                claim_key: "CLAIM-C1962C62F34F1603",
+                claim_text: "Admin access forbidden",
+                role: "normative",
+                status: "modeled",
+                span: { start: 0, end: 22 },
+              },
+            ],
           },
           relationships: [
             {

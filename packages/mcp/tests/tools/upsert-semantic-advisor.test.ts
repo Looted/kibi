@@ -48,7 +48,22 @@ describe("MCP upsert semantic advisor", () => {
         title: "Limit active sessions",
         status: "open",
         source: "docs/requirements/sessions.md",
-        text_ref: "Users may have at most two active sessions.",
+        text_ref: "src/session-policy.ts:42",
+        semantic_text: "Users may have at most two active sessions.",
+        logic_claims: ["CLAIM-B11B8974A6381868"],
+        semantic_inventory_version: "kibi.semantic-inventory.v1",
+        semantic_source_field: "semantic_text",
+        semantic_source_hash:
+          "706dcc5a38491a75afd7e253b0759247ded41207b25a36088742a3e2ea4fb640",
+        semantic_inventory: [
+          {
+            claim_key: "CLAIM-B11B8974A6381868",
+            claim_text: "Users may have at most two active sessions",
+            role: "descriptive",
+            status: "ontology_gap",
+            span: { start: 0, end: 42 },
+          },
+        ],
       },
     });
 

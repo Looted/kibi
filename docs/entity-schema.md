@@ -92,8 +92,13 @@ This section provides guidance on selecting the appropriate entity type for your
 | priority     | No       | string         | must, should, could                              |
 | severity     | No       | string         | Severity level                                   |
 | links[]      | No       | array[string]  | URLs or entity IDs (for relationships)           |
-| text_ref     | No       | string         | Markdown/doc pointer                             |
+| text_ref     | No       | string         | Independent code/doc evidence pointer            |
+| semantic_text | No      | string         | Requirement-only normalized authored prose that anchors semantic byte spans |
 | logic_claims | No       | array[string]  | Requirement-only manifest of stable atomic claim keys |
+| semantic_clauses | No | array[string] | Reviewed atomic decomposition override used against the exact semantic source |
+| semantic_inventory_version | No | string | `kibi.semantic-inventory.v1` for source-bound ledgers |
+| semantic_source_field | No | string | `semantic_text`, `text_ref`, or `title`, identifying the field that owns ledger byte spans; new authored requirements prefer `semantic_text` |
+| semantic_source_hash | No | string | SHA-256 of the exact semantic source text |
 | semantic_inventory | No | array[object] | Proposition ledger with exact claim text, UTF-8 byte span, role, status, and optional semantic key |
 
 **Canonical Example: REQ + SCEN + TEST (Golden Path)**
@@ -174,8 +179,9 @@ relationship:
 
 **Strict Fact Modeling (Normative Lane):**
 
-- Preserve readable requirement prose, but decompose the entire normative body into atomic clauses with `kb_semantic_advisor`.
-- Store all returned normative keys in the requirement `logic_claims` manifest. Each linked ground `property_value` or `predicate` fact must preserve the corresponding `claim_key` and `claim_text` pair.
+- Preserve readable requirement prose, but decompose the entire assertive body into atomic propositions with `kb_semantic_advisor`. Context-only rationale, examples, and subjective commentary remain in the inventory as `nonlogical` and do not enter `logic_claims`.
+- For a current requirement write, persist the receipt's `inventory_contract` as `semantic_inventory_version`, `semantic_source_field`, and `semantic_source_hash`. Ledger spans are UTF-8 byte offsets into that exact field; duplicate keys/spans, source drift, and silent omission are rejected before mutation.
+- Store exactly all returned assertive keys in the requirement `logic_claims` manifest. Each `modeled` entry must resolve through exactly one `requires_property`, `requires_predicate`, or `requires_rule` edge to a fact carrying the same `claim_key`; explicit `ambiguous`, `ontology_gap`, or `missing` entries remain ingestible but unresolved.
 - `logic-coverage` checks manifest-to-ground-fact correspondence and is enabled by default. Requirements without manifests remain a gradual-backfill case; quality diagnostics identify every current requirement with this debt, while the default rule prevents explicitly modeled manifests from drifting.
 
 - New contradiction-sensitive requirements should use the strict fact lane:
@@ -313,10 +319,11 @@ tags:
 | text_ref     | No       | string         | Markdown/doc pointer                             |
 | verification_scope | No | enum           | `unit`, `integration`, or `end_to_end`           |
 | verification_perspective | No | enum     | `internal` or `consumer`                         |
+| verification_receipts | No | array[object] | Append-only `kibi.verification-receipt.v1` execution history; requires `verification_scope` |
 
 `tags` remain metadata only. They do not alias or replace typed verification fields.
 
-Coverage-depth reporting uses typed verification fields before legacy hints. A passing test with `verification_scope: end_to_end` supplies e2e evidence even if it has no `e2e` tag; tag or path heuristics are only fallback evidence for older records. Requirement coverage rows can therefore report deterministic depth labels without changing the underlying covered/uncovered decision:
+Coverage-depth reporting uses typed verification fields before legacy hints. A test with `status: passing` and `verification_scope: end_to_end` supplies structural depth evidence even if it has no `e2e` tag; tag or path heuristics are only fallback evidence for older records. Durable status never supplies conservative proof evidence by itself. Requirement coverage rows can therefore report deterministic depth labels without changing the underlying covered/uncovered decision:
 
 - `direct_passing_e2e` — the requirement is directly linked to a passing e2e test.
 - `scenario_passing_e2e` — a linked scenario is validated by a passing e2e test.
@@ -324,6 +331,10 @@ Coverage-depth reporting uses typed verification fields before legacy hints. A p
 - `open_or_nonpassing_tests_only` — tests exist but none are passing.
 - `scenario_only_no_test` — scenarios exist without executable test evidence.
 - `no_test_evidence` — no scenario or test evidence is linked.
+
+Conservative requirement proof uses receipt history instead. Each receipt binds `receipt_id`, `test_id`, `runner`, `command`, typed `scope`, `outcome`, `code_snapshot`, `environment_hash`, `started_at`, `finished_at`, and `artifact_digest`. History is capped at 50 entries, receipt IDs are unique, finish times increase strictly, and existing entries cannot be removed, changed, or reordered through upsert or incremental sync. Proof accepts only the newest receipt for the deterministic current workspace snapshot when it passed, is not future-dated, and is at most seven days old. Missing, wrong-snapshot, stale, failed, malformed, or future-dated evidence produces explicit proof gaps.
+
+`kibi.workspace-snapshot.v1` hashes current versionable code plus requirement, scenario, fact, test-contract, and symbol-manifest inputs. It excludes `.kb/`, release changesets, general `docs/`, and only the `verification_receipts` frontmatter field inside entity Markdown, preventing a receipt from invalidating its own code hash without hiding changes to the surrounding test contract.
 
 #### Check output diagnostics
 
@@ -347,6 +358,19 @@ tags:
   - sample
 verification_scope: integration
 verification_perspective: internal
+verification_receipts:
+  - version: kibi.verification-receipt.v1
+    receipt_id: VR-TEST-001-20260217T130500Z
+    test_id: TEST-001
+    runner: bun
+    command: bun test ./tests/e2e/sample.test.ts
+    scope: integration
+    outcome: passed
+    code_snapshot: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    environment_hash: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    started_at: 2026-02-17T13:00:00Z
+    finished_at: 2026-02-17T13:05:00Z
+    artifact_digest: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ---
 ```
 
@@ -461,6 +485,11 @@ tags:
 | severity     | No       | string         | Severity level                                   |
 | links[]      | No       | array[string]  | URLs                                             |
 | text_ref     | No       | string         | Markdown/doc pointer                             |
+| sourceFile   | No       | string         | Code source path                                 |
+| sourceLine   | Generated | integer       | One-based start line persisted during sync       |
+| sourceColumn | Generated | integer       | Zero-based start column persisted during sync    |
+| sourceEndLine | Generated | integer      | One-based end line persisted during sync         |
+| sourceEndColumn | Generated | integer    | Zero-based end column persisted during sync      |
 
 **Example:**
 ```yaml
@@ -497,13 +526,15 @@ Legacy prose facts without `fact_kind` remain readable during migration, but new
 
 `fact` entities represent atomic domain concepts and invariants (for example domain nouns, cardinalities, property values, ontology predicates, and safe rules). Requirements can link to strict facts using `constrains` and `requires_property`, ontology predicate facts using `requires_predicate`, or safe Logic IR rules using `requires_rule`, so domain claims become structural and queryable. When either `claim_key` or `claim_text` is supplied, both are required.
 
-**Migration note:** schema v4 adds `semantic_inventory`, `rule_schema`, `rule`, and `requires_rule` additively. Existing KB documents are not rewritten; migration marks logical backfill pending while legacy prose facts remain readable. Projects can adopt the logic lane incrementally by preserving advisor proposition ledgers, adding rule schemas, then linking new or updated requirements to safe rule facts via `requires_rule`.
+**Migration note:** schema v4 adds `semantic_inventory`, its source-binding contract, `rule_schema`, `rule`, and `requires_rule` additively. Existing Markdown requirements receive a one-time semantic-hash baseline; the next semantic edit, or any newly added requirement after that baseline, must carry a complete ledger. Projects can adopt the logic lane incrementally by preserving advisor proposition ledgers, adding rule schemas, then linking modeled requirements to safe facts while leaving unresolved states explicit.
 
 ### Logic IR facts
 
 `rule_ir` is a JSON object with `version: kibi.logic.v1`; it is validated and canonicalized before persistence. It supports typed atoms, variables, conjunction/disjunction, comparisons, bounded counts, temporal intervals, exceptions, and the modalities `assert`, `deny`, `oblige`, `permit`, and `forbid`. `rule_hash` is the full SHA-256 of canonical IR; `semantic_key` is a shorter stable identity for paraphrase convergence. Kibi renders Prolog for inspection, but never evaluates stored source text. `rule-safety` and `rule-verifiability` are blocking checks for new rule records.
 
 Requirements also retain a `semantic_inventory` proposition ledger. Each entry binds a claim key and exact claim text to a UTF-8 byte span and one of `modeled`, `ambiguous`, `ontology_gap`, `nonlogical`, or `missing`. An assertive proposition that is not modeled must be explicitly unresolved; prose alone is not logical coverage.
+
+Generated symbol coordinates (`sourceLine`, `sourceColumn`, `sourceEndLine`, and `sourceEndColumn`) are persisted into the RDF snapshot during sync alongside `sourceFile`. This lets conservative proof reporting validate the exact source-bound symbols that carry implementation and executable-test evidence; the authored manifest remains coordinate-free and `documentation/symbol-coordinates.yaml` remains the generated source of truth.
 
 | Property     | Required | Type           | Description                                      |
 |--------------|----------|----------------|--------------------------------------------------|

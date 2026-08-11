@@ -1,5 +1,7 @@
 import { describe, expect, mock, test } from "bun:test";
 
+import { buildPropertyList } from "../../src/operations/mutation/serialization.js";
+import { analyzeSemanticAdvisorInput } from "../../src/operations/semantic-advisor/analyze-prose.js";
 import type {
   OperationContext,
   PrologPort,
@@ -47,7 +49,153 @@ const payload = {
   },
 } as const;
 
+const verificationReceipt = {
+  version: "kibi.verification-receipt.v1",
+  receipt_id: "VR-MUTATION-0001",
+  test_id: "TEST-RECEIPT",
+  runner: "bun",
+  command: "bun test ./tests/e2e/receipt.test.ts",
+  scope: "end_to_end",
+  outcome: "passed",
+  code_snapshot: "a".repeat(64),
+  environment_hash: "b".repeat(64),
+  started_at: "2026-07-21T11:55:00.000Z",
+  finished_at: "2026-07-21T12:00:00.000Z",
+  artifact_digest: "c".repeat(64),
+} as const;
+
 describe("shared mutation operation specs", () => {
+  test("serializes semantic inventory as one quoted JSON value", () => {
+    const properties = buildPropertyList({
+      id: "REQ-INVENTORY",
+      type: "req",
+      semantic_inventory: [
+        {
+          claim_key: "CLAIM-ABCDEF0123456789",
+          claim_text: "A stable claim",
+          role: "normative",
+          status: "modeled",
+          span: { start: 0, end: 14 },
+        },
+      ],
+    });
+
+    expect(properties).toContain(
+      'semantic_inventory="[{\\"claim_key\\":\\"CLAIM-ABCDEF0123456789\\"',
+    );
+    expect(properties).not.toContain(
+      'semantic_inventory=[{"claim_key":"CLAIM-ABCDEF0123456789"',
+    );
+  });
+
+  test("serializes receipt history as one quoted JSON value", () => {
+    const properties = buildPropertyList({
+      id: "TEST-RECEIPT",
+      type: "test",
+      verification_receipts: [verificationReceipt],
+    });
+
+    expect(properties).toContain(
+      'verification_receipts="[{\\"version\\":\\"kibi.verification-receipt.v1\\"',
+    );
+    expect(properties).not.toContain(
+      'verification_receipts=[{"version":"kibi.verification-receipt.v1"',
+    );
+  });
+
+  test("validate-upsert accepts source-bound receipt history", async () => {
+    const { context, query, save } = createContext(() => ({
+      success: true,
+      bindings: { Results: "[]" },
+    }));
+
+    const result = await validateUpsertSpec.execute(
+      {
+        type: "test",
+        id: "TEST-RECEIPT",
+        properties: {
+          title: "Fresh receipt",
+          status: "failing",
+          verification_scope: "end_to_end",
+          verification_receipts: [verificationReceipt],
+        },
+      },
+      context,
+    );
+
+    expect(result.structuredContent).toMatchObject({
+      valid: true,
+      normalizedPreview: {
+        id: "TEST-RECEIPT",
+        verification_receipts: [verificationReceipt],
+      },
+    });
+    expect(query).toHaveBeenCalledTimes(1);
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  test("validate-upsert rejects receipt history that does not bind its test and scope", async () => {
+    const { context, save } = createContext(() => ({
+      success: false,
+      bindings: {},
+    }));
+
+    const result = await validateUpsertSpec.execute(
+      {
+        type: "test",
+        id: "TEST-OTHER",
+        properties: {
+          title: "Mismatched receipt",
+          status: "passing",
+          verification_scope: "integration",
+          verification_receipts: [verificationReceipt, verificationReceipt],
+        },
+      },
+      context,
+    );
+
+    expect(result.structuredContent).toMatchObject({ valid: false });
+    const errorText = result.structuredContent?.errors.join(" ") ?? "";
+    expect(errorText).toContain("test_id must equal 'TEST-OTHER'");
+    expect(errorText).toContain(
+      "scope must equal the test verification_scope 'integration'",
+    );
+    expect(errorText).toContain("receipt_id duplicates 'VR-MUTATION-0001'");
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  test("validate-upsert rejects changes to persisted receipt history", async () => {
+    const previousJson = JSON.stringify([verificationReceipt]);
+    const { context, save } = createContext(() => ({
+      success: true,
+      bindings: {
+        Results: `[['TEST-RECEIPT',test,[verification_receipts=${JSON.stringify(previousJson)}]]]`,
+      },
+    }));
+
+    const result = await validateUpsertSpec.execute(
+      {
+        type: "test",
+        id: "TEST-RECEIPT",
+        properties: {
+          title: "Mutated receipt",
+          status: "passing",
+          verification_scope: "end_to_end",
+          verification_receipts: [
+            { ...verificationReceipt, outcome: "failed" },
+          ],
+        },
+      },
+      context,
+    );
+
+    expect(result.structuredContent).toMatchObject({ valid: false });
+    expect(result.structuredContent?.errors.join(" ")).toContain(
+      "verification_receipts is append-only",
+    );
+    expect(save).not.toHaveBeenCalled();
+  });
+
   test("validate-upsert returns a normalized preview without mutation", async () => {
     // Given
     const { context, query, save } = createContext(() => ({
@@ -108,6 +256,136 @@ describe("shared mutation operation specs", () => {
       ],
     });
     expect(query).not.toHaveBeenCalled();
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  test("validate-upsert rejects normative prose when its proposition ledger is omitted", async () => {
+    const { context, save } = createContext(() => ({
+      success: false,
+      bindings: {},
+    }));
+
+    const result = await validateUpsertSpec.execute(
+      {
+        type: "req",
+        id: "REQ-OMITTED-LEDGER",
+        properties: {
+          title: "OAuth support",
+          status: "open",
+          text_ref: "System must support OAuth2 authentication.",
+        },
+      },
+      context,
+    );
+
+    expect(result.structuredContent).toMatchObject({
+      valid: false,
+      errors: [
+        expect.stringContaining("Proposition-complete ingestion failed"),
+      ],
+    });
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  test("validate-upsert accepts explicit ontology gaps without claiming consistency", async () => {
+    const { context, save } = createContext(() => ({
+      success: false,
+      bindings: {},
+    }));
+    const text = "System must support OAuth2 authentication.";
+    const base = {
+      type: "req",
+      id: "REQ-EXPLICIT-GAP",
+      properties: { title: "OAuth support", status: "open", text_ref: text },
+    };
+    const semantic = analyzeSemanticAdvisorInput({
+      payload: { ...base, relationships: [] },
+    });
+    const contract = semantic.receipt.inventory_contract;
+
+    const result = await validateUpsertSpec.execute(
+      {
+        ...base,
+        properties: {
+          ...base.properties,
+          logic_claims: semantic.receipt.logic_coverage.expected_claim_keys,
+          semantic_inventory_version: contract.version,
+          semantic_source_field: contract.source_field,
+          semantic_source_hash: contract.source_hash,
+          semantic_inventory: semantic.receipt.propositions.map(
+            (proposition) => ({ ...proposition, status: "ontology_gap" }),
+          ),
+        },
+      },
+      context,
+    );
+
+    expect(result.structuredContent).toMatchObject({
+      valid: true,
+      semanticAdvisor: {
+        logic_readiness: "needs_modeling",
+        logic_coverage: {
+          unresolved_claim_keys: [expect.any(String)],
+        },
+      },
+    });
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  test("validate-upsert rejects a modeled proposition linked to another claim", async () => {
+    const { context, save } = createContext((goal): PrologQueryResult => {
+      if (goal.includes("_SemanticGroundProps")) {
+        return {
+          success: true,
+          bindings: { ClaimKey: "CLAIM-AAAAAAAAAAAAAAAA" },
+        };
+      }
+      if (goal.includes("Type, _")) {
+        return { success: true, bindings: { Type: "fact" } };
+      }
+      return { success: true, bindings: {} };
+    });
+    const text = "System must support OAuth2 authentication.";
+    const base = {
+      type: "req",
+      id: "REQ-WRONG-GROUNDING",
+      properties: { title: "OAuth support", status: "open", text_ref: text },
+      relationships: [
+        {
+          type: "requires_predicate",
+          from: "REQ-WRONG-GROUNDING",
+          to: "FACT-WRONG-CLAIM",
+        },
+      ],
+    };
+    const semantic = analyzeSemanticAdvisorInput({ payload: base });
+    const contract = semantic.receipt.inventory_contract;
+
+    const result = await validateUpsertSpec.execute(
+      {
+        ...base,
+        properties: {
+          ...base.properties,
+          logic_claims: semantic.receipt.logic_coverage.expected_claim_keys,
+          semantic_inventory_version: contract.version,
+          semantic_source_field: contract.source_field,
+          semantic_source_hash: contract.source_hash,
+          semantic_inventory: semantic.receipt.propositions.map(
+            (proposition) => ({ ...proposition, status: "modeled" }),
+          ),
+        },
+      },
+      context,
+    );
+
+    expect(result.structuredContent).toMatchObject({
+      valid: false,
+      errors: [
+        expect.stringContaining(
+          "modeled proposition claim_keys must match logical grounding target claim_keys exactly",
+        ),
+      ],
+    });
     expect(save).not.toHaveBeenCalled();
   });
 

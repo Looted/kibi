@@ -115,6 +115,7 @@ async function createCoverageDepthQualityFixture(
 describe("MCP Check Tool Handler", () => {
   let prolog: PrologProcess;
   let testKbPath: string;
+  let previousWorkspace: string | undefined;
 
   beforeAll(async () => {
     prolog = await startIntegrationProlog();
@@ -124,10 +125,17 @@ describe("MCP Check Tool Handler", () => {
     testKbPath = await createTestKbDir("kibi-mcp-check-");
     const attachResult = await attachTestKb(prolog, testKbPath);
     expect(attachResult.success).toBe(true);
+    previousWorkspace = process.env.KIBI_WORKSPACE;
+    process.env.KIBI_WORKSPACE = testKbPath;
   });
 
   afterEach(async () => {
     await detachTestKb(prolog);
+    if (previousWorkspace === undefined) {
+      Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
+    } else {
+      process.env.KIBI_WORKSPACE = previousWorkspace;
+    }
     if (testKbPath) {
       await fs.rm(testKbPath, { recursive: true, force: true });
     }
@@ -217,6 +225,20 @@ describe("MCP Check Tool Handler", () => {
         status: "open",
         priority: "must",
         source: "test://check-test",
+        logic_claims: ["CLAIM-0C248B336120EB89"],
+        semantic_inventory_version: "kibi.semantic-inventory.v1",
+        semantic_source_field: "title",
+        semantic_source_hash:
+          "c15bb19f1f346cb111d0af0f0bf2ad523ed6341e6dd7fb09ea8f7f2bdcfeb3a6",
+        semantic_inventory: [
+          {
+            claim_key: "CLAIM-0C248B336120EB89",
+            claim_text: "Must-priority requirement",
+            role: "normative",
+            status: "ontology_gap",
+            span: { start: 0, end: 25 },
+          },
+        ],
       },
     });
 
@@ -250,6 +272,20 @@ describe("MCP Check Tool Handler", () => {
         status: "open",
         priority: "must",
         source: "test://check-test",
+        logic_claims: ["CLAIM-0C248B336120EB89"],
+        semantic_inventory_version: "kibi.semantic-inventory.v1",
+        semantic_source_field: "title",
+        semantic_source_hash:
+          "c15bb19f1f346cb111d0af0f0bf2ad523ed6341e6dd7fb09ea8f7f2bdcfeb3a6",
+        semantic_inventory: [
+          {
+            claim_key: "CLAIM-0C248B336120EB89",
+            claim_text: "Must-priority requirement",
+            role: "normative",
+            status: "ontology_gap",
+            span: { start: 0, end: 25 },
+          },
+        ],
       },
       relationships: [
         {
@@ -290,6 +326,20 @@ describe("MCP Check Tool Handler", () => {
         status: "open",
         priority: "must",
         source: "test://check-test",
+        logic_claims: ["CLAIM-0C248B336120EB89"],
+        semantic_inventory_version: "kibi.semantic-inventory.v1",
+        semantic_source_field: "title",
+        semantic_source_hash:
+          "c15bb19f1f346cb111d0af0f0bf2ad523ed6341e6dd7fb09ea8f7f2bdcfeb3a6",
+        semantic_inventory: [
+          {
+            claim_key: "CLAIM-0C248B336120EB89",
+            claim_text: "Must-priority requirement",
+            role: "normative",
+            status: "ontology_gap",
+            span: { start: 0, end: 25 },
+          },
+        ],
       },
       relationships: [
         {
@@ -985,6 +1035,20 @@ describe("MCP Check Tool Handler", () => {
         status: "open",
         priority: "must",
         source: "test://all-rules",
+        logic_claims: ["CLAIM-0C248B336120EB89"],
+        semantic_inventory_version: "kibi.semantic-inventory.v1",
+        semantic_source_field: "title",
+        semantic_source_hash:
+          "c15bb19f1f346cb111d0af0f0bf2ad523ed6341e6dd7fb09ea8f7f2bdcfeb3a6",
+        semantic_inventory: [
+          {
+            claim_key: "CLAIM-0C248B336120EB89",
+            claim_text: "Must-priority requirement",
+            role: "normative",
+            status: "ontology_gap",
+            span: { start: 0, end: 25 },
+          },
+        ],
       },
     });
 

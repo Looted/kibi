@@ -36,7 +36,7 @@ Example (inspection data, not executable input):
 }
 ```
 
-Use `rule_schema` facts for stable predicate signatures and link a requirement to a `rule` fact with `requires_rule`. Keep `logic_claims` for backward-compatible ground claim manifests; `semantic_inventory` is the complete proposition ledger. A manifest is not proof until each key is linked to exactly one intended fact and the rule checks pass.
+Use `rule_schema` facts for stable predicate signatures and link a requirement to a `rule` fact with `requires_rule`. Keep `logic_claims` as the exact current assertive key set; `semantic_inventory` is the complete proposition ledger, anchored by `semantic_inventory_version`, `semantic_source_field`, and `semantic_source_hash`. Prefer requirement-only `semantic_text` as the semantic source for normalized authored prose so `text_ref` can remain independent code or document evidence; retain `text_ref` and `title` only as legacy semantic-source choices. A manifest is not proof until each modeled key is linked to exactly one same-key fact and the rule checks pass.
 
 ## Contradictions and uncertainty
 

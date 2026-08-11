@@ -3,7 +3,11 @@ import path from "node:path";
 import { buildStrictWriteSet } from "../../public/check-types.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { getSchemaVersionStatus } from "../../public/schema-version.js";
-import { semanticClaimKey } from "../semantic-advisor/clauses.js";
+import {
+  normalizeSemanticClause,
+  semanticClaimKey,
+} from "../semantic-advisor/clauses.js";
+import { semanticSourceHash } from "../semantic-advisor/shared.js";
 import { buildLogicApplyPlan } from "./logic-modeling.js";
 import {
   strictWriteSetToApplyPlan,
@@ -146,9 +150,35 @@ export async function handleKbModelRequirement(
       };
     }
     if (step.type === "req") {
+      const claimText = extracted.statement.trim();
+      const normalizedClaimText = normalizeSemanticClause(claimText);
       return {
         ...step,
-        properties: { ...properties, logic_claims: logicClaims },
+        properties: {
+          ...properties,
+          semantic_text: claimText,
+          logic_claims: logicClaims,
+          semantic_clauses: [claimText],
+          semantic_inventory_version: "kibi.semantic-inventory.v1",
+          semantic_source_field: "semantic_text",
+          semantic_source_hash: semanticSourceHash(claimText),
+          semantic_inventory: [
+            {
+              claim_key: claimKey,
+              claim_text: normalizedClaimText,
+              role: /\b(?:must|shall|should|required|requires?)\b/i.test(
+                claimText,
+              )
+                ? "normative"
+                : "descriptive",
+              status: "modeled",
+              span: {
+                start: 0,
+                end: Buffer.byteLength(normalizedClaimText, "utf8"),
+              },
+            },
+          ],
+        },
       };
     }
     return step;

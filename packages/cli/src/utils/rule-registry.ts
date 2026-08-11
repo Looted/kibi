@@ -39,6 +39,8 @@ export interface Violation {
   description: string;
   suggestion?: string;
   source?: string;
+  /** Exact source-bound proof evidence, when the check can produce it. */
+  evidence?: Readonly<Record<string, unknown>>;
 }
 
 export interface ChecksConfig {
