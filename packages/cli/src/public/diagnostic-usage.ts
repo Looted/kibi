@@ -38,12 +38,12 @@ function canonicalValue(value: unknown): unknown {
     Object.entries(value)
       .filter(([key]) => key !== "_diagnostic_telemetry")
       .sort(([left], [right]) => left.localeCompare(right))
-      .map(([key, child]) => [key, canonicalValue(child)])
+      .map(([key, child]) => [key, canonicalValue(child)]),
   );
 }
 
 export function diagnosticMutationFingerprint(
-  args: Readonly<Record<string, unknown>>
+  args: Readonly<Record<string, unknown>>,
 ): string {
   return createHash("sha256")
     .update(JSON.stringify(canonicalValue(args)))
@@ -52,7 +52,7 @@ export function diagnosticMutationFingerprint(
 
 function appendMutationFields(
   fields: Record<string, unknown>,
-  args: Readonly<Record<string, unknown>>
+  args: Readonly<Record<string, unknown>>,
 ): void {
   fields.mutation_fingerprint = diagnosticMutationFingerprint(args);
   const type = typeof args.type === "string" ? args.type : "unknown";
@@ -62,7 +62,7 @@ function appendMutationFields(
 
 function appendSemanticFields(
   fields: Record<string, unknown>,
-  receipt: unknown
+  receipt: unknown,
 ): void {
   if (!isRecord(receipt)) return;
   const inventory = isRecord(receipt.inventory_contract)
@@ -90,7 +90,7 @@ const RECEIPT_GAP_CODES = new Set([
 function appendCoverageFields(
   fields: Record<string, unknown>,
   args: Readonly<Record<string, unknown>>,
-  result: Record<string, unknown>
+  result: Record<string, unknown>,
 ): void {
   const rows = Array.isArray(result.rows) ? result.rows.filter(isRecord) : [];
   const summary = isRecord(result.summary) ? result.summary : {};
@@ -106,7 +106,7 @@ function appendCoverageFields(
   fields.coverage_proof_gap_count = gapCodes.length;
   fields.coverage_gap_codes = [...new Set(gapCodes)].sort();
   fields.coverage_receipt_gap_count = gapCodes.filter((code) =>
-    RECEIPT_GAP_CODES.has(code)
+    RECEIPT_GAP_CODES.has(code),
   ).length;
   if (typeof scope?.complete === "boolean") {
     fields.coverage_scope_complete = scope.complete;
@@ -117,7 +117,7 @@ export function deriveDiagnosticUsageFields(
   tool: string,
   args: Readonly<Record<string, unknown>>,
   telemetry: Readonly<Record<string, unknown>> | null,
-  result: unknown
+  result: unknown,
 ): Record<string, unknown> {
   const fields: Record<string, unknown> = {
     telemetry_status: telemetry ? "provided" : "missing",
@@ -152,7 +152,7 @@ export function deriveDiagnosticUsageFields(
   if (tool === "kb_coverage" && structured) {
     appendCoverageFields(fields, args, structured);
     fields.result_summary = `${String(
-      fields.coverage_proven_count
+      fields.coverage_proven_count,
     )} proven; ${String(fields.coverage_proof_gap_count)} proof gaps`;
   }
   if (tool === "kb_semantic_advisor" && structured) {
@@ -198,9 +198,9 @@ export function appendCliDiagnosticUsage(input: DiagnosticUsageInput): void {
         input.tool,
         input.businessArgs,
         input.telemetry,
-        input.result
+        input.result,
       ),
     })}\n`,
-    "utf8"
+    "utf8",
   );
 }

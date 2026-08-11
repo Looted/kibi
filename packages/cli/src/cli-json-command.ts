@@ -63,7 +63,7 @@ function structuredResult(stdout: string | undefined): unknown {
 
 // implements REQ-kibi-operation-interface-parity
 export async function runJsonInvocation(
-  invocation: JsonInvocation
+  invocation: JsonInvocation,
 ): Promise<void> {
   const startedAt = new Date();
   const diagnostic = diagnosticModeEnabled(invocation.command);
@@ -73,7 +73,7 @@ export async function runJsonInvocation(
   if (conflicts.length > 0) {
     const error = new InputError(
       "CONFLICTING_INPUT",
-      `--input cannot be combined with: ${conflicts.join(", ")}`
+      `--input cannot be combined with: ${conflicts.join(", ")}`,
     );
     if (diagnostic) {
       appendCliDiagnosticUsage({
@@ -117,7 +117,7 @@ export async function runJsonInvocation(
 
   const prepared = prepareOperationInput(input, spec.businessInputSchema);
   const businessArgs = prepared.valid ? prepared.businessInput : {};
-  const telemetry = prepared.valid ? prepared.telemetry ?? null : null;
+  const telemetry = prepared.valid ? (prepared.telemetry ?? null) : null;
   const runtime = createCliRuntime({ workspaceRoot });
   let result: Awaited<ReturnType<typeof executeProtocolOperation>>;
   try {
@@ -125,7 +125,7 @@ export async function runJsonInvocation(
     result = await executeProtocolOperation(
       invocation.operationName,
       input,
-      context
+      context,
     );
     if (result.exitCode === 0 && spec.effects.includes("kb-write")) {
       await runtime.afterSuccess(spec, context);
@@ -196,8 +196,8 @@ export function registerJsonOnlyCommands(program: Command): void {
           writeInputError(
             new InputError(
               "MISSING_INPUT",
-              "The --input option is required for this command."
-            )
+              "The --input option is required for this command.",
+            ),
           );
           return;
         }

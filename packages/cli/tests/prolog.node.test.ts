@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
@@ -52,6 +52,84 @@ test("interactive mode smoke test (Node) - start/attach/assert/query/detach", as
     try {
       await prolog.terminate();
     } catch {}
+    if (existsSync(tempKbDir))
+      rmSync(tempKbDir, { recursive: true, force: true });
+  }
+});
+
+test("interactive mode commits the complete upsert in one Prolog goal", async () => {
+  const tempKbDir = mkdtempSync(path.join(os.tmpdir(), "kibi-node-commit-"));
+  const prolog = createInteractiveProlog();
+  try {
+    await prolog.start();
+    assert.strictEqual(
+      (await prolog.query(`kb_attach('${tempKbDir}')`)).success,
+      true,
+    );
+    assert.strictEqual(
+      (
+        await prolog.query(
+          `kb_assert_entity(test, [id='TEST-NODE-COMMIT', title="Target", status=passing, created_at="2026-01-01T00:00:00Z", updated_at="2026-01-01T00:00:00Z", source="node-test"])`,
+        )
+      ).success,
+      true,
+    );
+    await prolog.query("kb_save");
+
+    const commit = await prolog.query(
+      `kb_commit_upsert(req, [id='REQ-NODE-COMMIT', title="Committed", status=open, created_at="2026-01-01T00:00:00Z", updated_at="2026-01-01T00:00:00Z", source="node-test"], [rel(verified_by, 'REQ-NODE-COMMIT', 'TEST-NODE-COMMIT', [])], false, ChangeKind)`,
+    );
+    assert.strictEqual(commit.success, true);
+    assert.strictEqual(commit.bindings.ChangeKind, "created");
+    assert(
+      readFileSync(path.join(tempKbDir, "kb.rdf"), "utf8").includes(
+        "REQ-NODE-COMMIT",
+      ),
+    );
+    assert(
+      readFileSync(path.join(tempKbDir, "audit.log"), "utf8").includes(
+        "REQ-NODE-COMMIT",
+      ),
+    );
+  } finally {
+    await prolog.terminate();
+    if (existsSync(tempKbDir))
+      rmSync(tempKbDir, { recursive: true, force: true });
+  }
+});
+
+test("concurrent Node runtimes reject a stale snapshot without persisting", async () => {
+  const tempKbDir = mkdtempSync(path.join(os.tmpdir(), "kibi-node-stale-"));
+  const first = createInteractiveProlog();
+  const second = createInteractiveProlog();
+  try {
+    await first.start();
+    await second.start();
+    assert.strictEqual(
+      (await first.query(`kb_attach('${tempKbDir}')`)).success,
+      true,
+    );
+    assert.strictEqual(
+      (await second.query(`kb_attach('${tempKbDir}')`)).success,
+      true,
+    );
+    await first.query(
+      `kb_commit_upsert(req, [id='REQ-NODE-FIRST', title="First", status=open, created_at="2026-01-01T00:00:00Z", updated_at="2026-01-01T00:00:00Z", source="node-test"], [], false, ChangeKind)`,
+    );
+
+    const stale = await second.query(
+      `kb_commit_upsert(req, [id='REQ-NODE-STALE', title="Stale", status=open, created_at="2026-01-01T00:00:00Z", updated_at="2026-01-01T00:00:00Z", source="node-test"], [], false, ChangeKind)`,
+    );
+    assert.strictEqual(stale.success, false);
+    assert.match(stale.error ?? "", /stale|refresh/i);
+    assert(
+      !readFileSync(path.join(tempKbDir, "kb.rdf"), "utf8").includes(
+        "REQ-NODE-STALE",
+      ),
+    );
+  } finally {
+    await first.terminate();
+    await second.terminate();
     if (existsSync(tempKbDir))
       rmSync(tempKbDir, { recursive: true, force: true });
   }
@@ -124,6 +202,22 @@ test("timeout message reports configured timeout (100ms) not hardcoded 30s", asy
     } catch {}
     if (existsSync(tempKbDir))
       rmSync(tempKbDir, { recursive: true, force: true });
+  }
+});
+
+test("interactive timeout reports the last diagnostic stage", async () => {
+  const prolog = createInteractiveProlog({ timeout: 100 });
+  try {
+    await prolog.start();
+    await assert.rejects(
+      () =>
+        prolog.query(
+          "format(user_error, '__KIBI_STAGE__:lock~n', []), repeat, fail",
+        ),
+      /Query timeout after .*stage=lock/,
+    );
+  } finally {
+    await prolog.terminate().catch(() => undefined);
   }
 });
 

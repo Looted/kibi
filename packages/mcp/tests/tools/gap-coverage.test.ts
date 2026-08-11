@@ -317,6 +317,12 @@ describe("coverage gap branches", () => {
             bindings: { Targets: "[]", Sources: "[]" },
           };
         }
+        if (queryGoal.startsWith("kb_commit_upsert(")) {
+          return {
+            success: true,
+            bindings: { ChangeKind: "created" },
+          };
+        }
         return { success: true, bindings: {} };
       },
     );

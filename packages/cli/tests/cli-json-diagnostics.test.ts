@@ -30,7 +30,7 @@ describe("CLI JSON diagnostic usage", () => {
             actor_id: "actor-cli",
           },
         }),
-      }
+      },
     );
 
     expect(result.status).toBe(0);

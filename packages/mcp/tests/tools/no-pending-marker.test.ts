@@ -16,6 +16,33 @@ function createMockProlog(
   handler: (goal: string) => Promise<QueryResult> | QueryResult,
 ) {
   const query = mock(async (goal: string) => {
+    if (goal.startsWith("kb_commit_upsert(")) {
+      const type = goal.slice("kb_commit_upsert(".length).split(",", 1)[0];
+      const transaction = await handler(
+        `rdf_transaction((kb_assert_entity_no_audit(${type}, [..])))`,
+      );
+      if (!transaction.success) return { bindings: {}, ...transaction };
+      const entityAudit = await handler(
+        `kb_log_entity_upsert(created, ${type}, [..])`,
+      );
+      if (!entityAudit.success) return { bindings: {}, ...entityAudit };
+      const relationshipTypes = [...goal.matchAll(/rel\(([^,]+),/g)].map(
+        ([, relationshipType]) => relationshipType,
+      );
+      for (const relationshipType of relationshipTypes) {
+        const relationshipAudit = await handler(
+          `kb_log_relationship_upsert(${relationshipType}, 'from', 'to', [])`,
+        );
+        if (!relationshipAudit.success) {
+          return { bindings: {}, ...relationshipAudit };
+        }
+      }
+      const saved = await handler("kb_save");
+      return {
+        ...saved,
+        bindings: { ChangeKind: "created" },
+      };
+    }
     const result = await handler(goal);
     return { bindings: {}, ...result };
   });
@@ -206,7 +233,7 @@ describe("removed mutation pending markers", () => {
         },
         _requestId: "session-fail-1",
       } as Parameters<typeof handleKbUpsert>[1]),
-    ).rejects.toThrow("Failed to save KB after upsert: disk full");
+    ).rejects.toThrow("Failed to upsert entity REQ-MARKER-FAIL-001: disk full");
 
     const pendingDir = path.join(workspaceRoot, ".kb", "briefs", "pending");
     await expect(fs.readdir(pendingDir)).rejects.toThrow();

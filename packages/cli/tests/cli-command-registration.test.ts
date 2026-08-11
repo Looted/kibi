@@ -28,7 +28,7 @@ describe("buildProgram", () => {
 
     const registered = JSON_COMMANDS.filter((name) => {
       const command = program.commands.find(
-        (candidate) => candidate.name() === name
+        (candidate) => candidate.name() === name,
       );
       return (
         command?.options.some((option) => option.long === "--input") ?? false
@@ -41,19 +41,19 @@ describe("buildProgram", () => {
   test("keeps gaps as the Commander alias of find-gaps", () => {
     const program = buildProgram();
     const findGaps = program.commands.find(
-      (command) => command.name() === "find-gaps"
+      (command) => command.name() === "find-gaps",
     );
 
     expect(findGaps?.aliases()).toContain("gaps");
     expect(findGaps?.options.some((option) => option.long === "--input")).toBe(
-      true
+      true,
     );
   });
 
   test("uses catalog descriptions in JSON command help", () => {
     const program = buildProgram();
     const status = program.commands.find(
-      (command) => command.name() === "status"
+      (command) => command.name() === "status",
     );
 
     expect(status?.description()).toContain("freshness metadata");
@@ -64,10 +64,12 @@ describe("buildProgram", () => {
     const program = buildProgram();
 
     expect(
-      program.options.some((option) => option.long === "--diagnostic-mode")
+      program.options.some((option) => option.long === "--diagnostic-mode"),
     ).toBe(true);
     expect(
-      program.commands.some((command) => command.name() === "usage-remediation")
+      program.commands.some(
+        (command) => command.name() === "usage-remediation",
+      ),
     ).toBe(true);
   });
 });

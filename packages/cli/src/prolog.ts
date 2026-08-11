@@ -16,7 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { type ChildProcess, spawn, spawnSync } from "node:child_process";
+import { type ChildProcess, spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
@@ -30,6 +30,24 @@ const PROLOG_OUTPUT_OVERFLOW_ERROR =
 const INTERACTIVE_QUERY_FRAME_END = "__KIBI_QUERY_FRAME_END__";
 
 const require = createRequire(import.meta.url);
+
+function packageVersion(packagePath: string): string {
+  try {
+    const packageJson = require(packagePath) as { version?: unknown };
+    return typeof packageJson.version === "string"
+      ? packageJson.version
+      : "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
+const KIBI_PACKAGE_VERSIONS = [
+  `kibi-cli@${packageVersion(path.join(importMetaDir, "..", "package.json"))}`,
+  `kibi-core@${packageVersion(path.join(importMetaDir, "..", "..", "core", "package.json"))}`,
+  `kibi-mcp@${packageVersion(path.join(importMetaDir, "..", "..", "mcp", "package.json"))}`,
+].join(",");
+
 export function resolveKbPlPath(): string {
   // implements REQ-009
   const overrideKbPath = getKbPlPathOverride();
@@ -92,6 +110,7 @@ export class PrologProcess {
   private cache: Map<string, QueryResult> = new Map();
   private interactiveQueryTail: Promise<void> = Promise.resolve();
   private terminationPromise: Promise<void> | null = null;
+  private oneShotProcesses = new Set<ChildProcess>();
   private useOneShotMode =
     typeof (globalThis as { Bun?: unknown }).Bun !== "undefined";
   private attachedKbPath: string | null = null;
@@ -110,11 +129,26 @@ export class PrologProcess {
     }
 
     const kbPath = resolveKbPlPath();
-    this.process = spawn(this.swiplPath, [
-      "-g",
-      `use_module('${kbPath}'), use_module(library(semweb/rdf_db)), set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])`,
-      "--quiet",
-    ]);
+    this.process = spawn(
+      this.swiplPath,
+      [
+        "-g",
+        `use_module('${kbPath}'), use_module(library(semweb/rdf_db)), set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])`,
+        "--quiet",
+      ],
+      {
+        detached: process.platform !== "win32",
+        env: {
+          ...process.env,
+          KIBI_RUNTIME_NAME:
+            process.versions.bun !== undefined ? "bun" : "node",
+          KIBI_RUNTIME_VERSION:
+            process.versions.bun ?? process.versions.node ?? "unknown",
+          KIBI_PACKAGE_VERSIONS:
+            process.env.KIBI_PACKAGE_VERSIONS ?? KIBI_PACKAGE_VERSIONS,
+        },
+      },
+    );
     this.clearQueryBuffers();
 
     if (!this.process.stdout || !this.process.stderr || !this.process.stdin) {
@@ -225,13 +259,14 @@ export class PrologProcess {
 
       const debug = isPrologDebugEnabled();
       const normalizedGoal = this.normalizeGoal(goal as string);
+      const goalLabel = this.goalLabel(normalizedGoal);
       const wrappedGoal = /^once\s*\(/.test(normalizedGoal)
         ? `catch(${normalizedGoal}, _E, (print_message(error, _E), fail))`
         : `catch(once((${normalizedGoal})), _E, (print_message(error, _E), fail))`;
       const start = Date.now();
 
       if (debug) {
-        console.error(`[prolog debug] start query: ${normalizedGoal}`);
+        console.error(`[prolog debug] start query: ${goalLabel}`);
       }
 
       this.process?.stdin?.write(
@@ -241,13 +276,16 @@ export class PrologProcess {
       return new Promise((resolve, reject) => {
         let settled = false;
         const timeoutId = setTimeout(() => {
-          const msg = `Query timeout after ${this.timeout / 1000}s (pid=${this.process?.pid ?? 0}, killed=${this.process?.killed ? "yes" : "no"}, exitCode=${this.process?.exitCode ?? "null"}, goal=${JSON.stringify(normalizedGoal.slice(0, 120))})`;
+          const stage = this.lastDiagnosticStage(this.errorBuffer) ?? "unknown";
+          const msg = `Query timeout after ${this.timeout / 1000}s (stage=${stage}, pid=${this.process?.pid ?? 0}, killed=${this.process?.killed ? "yes" : "no"}, exitCode=${this.process?.exitCode ?? "null"}, goal=${goalLabel})`;
           if (debug) {
-            const tailOut = this.outputBuffer.slice(-2048);
-            const tailErr = this.errorBuffer.slice(-2048);
             console.error(`[prolog debug] timeout: ${msg}`);
-            console.error(`[prolog debug] last stdout: ---\n${tailOut}\n---`);
-            console.error(`[prolog debug] last stderr: ---\n${tailErr}\n---`);
+            const runtime = this.errorBuffer
+              .split("\n")
+              .find((line) => line.includes("__KIBI_RUNTIME__"));
+            console.error(
+              `[prolog debug] runtime=${runtime ?? "unknown"} packages=${process.env.KIBI_PACKAGE_VERSIONS ?? KIBI_PACKAGE_VERSIONS}`,
+            );
           }
           settled = true;
           void this.terminate().finally(() => {
@@ -289,13 +327,17 @@ export class PrologProcess {
             settled = true;
             if (debug) {
               console.error(
-                `[prolog debug] query error: ${normalizedGoal} error=${this.errorBuffer.split("\n")[0]}`,
+                `[prolog debug] query error: ${goalLabel} error=${this.errorBuffer.split("\n")[0]}`,
               );
             }
             resolve({
               success: false,
               bindings: {},
-              error: this.translateError(this.errorBuffer),
+              error: this.addDiagnosticStage(
+                this.translateError(this.errorBuffer),
+                normalizedGoal,
+                this.errorBuffer,
+              ),
             });
             return;
           }
@@ -333,7 +375,7 @@ export class PrologProcess {
             }
             if (debug) {
               console.error(
-                `[prolog debug] query success: ${normalizedGoal} elapsed=${(Date.now() - start) / 1000}s`,
+                `[prolog debug] query success: ${goalLabel} elapsed=${(Date.now() - start) / 1000}s`,
               );
             }
             resolve(result);
@@ -374,6 +416,7 @@ export class PrologProcess {
       trimmed.startsWith("kb_attach(") ||
       trimmed.startsWith("kb_detach") ||
       trimmed.startsWith("kb_save") ||
+      trimmed.startsWith("kb_commit_upsert(") ||
       trimmed.startsWith("kb_assert_") ||
       trimmed.startsWith("kb_delete_") ||
       trimmed.startsWith("kb_retract_")
@@ -426,7 +469,7 @@ export class PrologProcess {
           error: "KB already attached",
         };
       }
-      const attachResult = this.execOneShot(trimmedGoal, null);
+      const attachResult = await this.execOneShot(trimmedGoal, null);
       if (attachResult.success) {
         this.attachedKbPath = attachPath;
       }
@@ -437,12 +480,18 @@ export class PrologProcess {
   }
 
   // implements REQ-009
-  private execOneShot(goal: string, kbPath: string | null): QueryResult;
-  private execOneShot(goal: string[], kbPath: string | null): QueryResult;
   private execOneShot(
+    goal: string,
+    kbPath: string | null,
+  ): Promise<QueryResult>;
+  private execOneShot(
+    goal: string[],
+    kbPath: string | null,
+  ): Promise<QueryResult>;
+  private async execOneShot(
     goal: string | string[],
     kbPath: string | null,
-  ): QueryResult {
+  ): Promise<QueryResult> {
     const originalGoalList = Array.isArray(goal)
       ? goal.map((item) => this.normalizeGoal(item))
       : [this.normalizeGoal(goal)];
@@ -478,47 +527,148 @@ export class PrologProcess {
       "(QuerySucceeded == true -> (forall(member(Name=Value, Vars), (write(Name), write('='), write_term(Value, [quoted(true), max_depth(0)]), writeln('.'))), writeln('__KIBI_TRUE__.')) ; writeln('__KIBI_FALSE__.'))",
     ].join(", ");
 
-    const result = spawnSync(
-      this.swiplPath,
-      ["-q", "-g", prologGoal, "-t", "halt"],
-      {
-        encoding: "utf8",
-        timeout: this.timeout,
-        maxBuffer: PROLOG_OUTPUT_MAX_BUFFER_BYTES,
+    const runtimeName = process.versions.bun !== undefined ? "bun" : "node";
+    const runtimeVersion =
+      process.versions.bun ?? process.versions.node ?? "unknown";
+    const packageVersions =
+      process.env.KIBI_PACKAGE_VERSIONS ?? KIBI_PACKAGE_VERSIONS;
+
+    let child: ChildProcess;
+    try {
+      child = spawn(this.swiplPath, ["-q", "-g", prologGoal, "-t", "halt"], {
+        detached: process.platform !== "win32",
         env: {
           ...process.env,
           KIBI_GOAL: combinedGoal,
+          KIBI_RUNTIME_NAME: runtimeName,
+          KIBI_RUNTIME_VERSION: runtimeVersion,
+          KIBI_PACKAGE_VERSIONS: packageVersions,
           ...(kbPath ? { KIBI_KB_PATH: kbPath } : {}),
         },
         stdio: ["ignore", "pipe", "pipe"],
-      },
-    );
-
-    if (
-      result.error &&
-      (result.error.message.includes("timed out") ||
-        // Bun/Node differ here; keep a conservative timeout detection.
-        result.error.message.includes("ETIMEDOUT"))
-    ) {
-      throw new Error(`Query timeout after ${this.timeout / 1000}s`);
-    }
-
-    if (result.error?.message.includes("ENOBUFS")) {
+      });
+    } catch (error) {
       return {
         success: false,
         bindings: {},
-        error: PROLOG_OUTPUT_OVERFLOW_ERROR,
+        error: error instanceof Error ? error.message : String(error),
       };
     }
 
-    const stdout = result.stdout ?? "";
-    const stderr = result.stderr ?? "";
+    this.oneShotProcesses.add(child);
+    let stdout = "";
+    let stderr = "";
+    let outputBytes = 0;
+    let errorBytes = 0;
+    let outputOverflowed = false;
+    let timedOut = false;
+    let settled = false;
+    let closed = false;
+    let termination: Promise<void> | null = null;
+
+    const appendChunk = (chunk: Buffer, target: "stdout" | "stderr"): void => {
+      if (outputOverflowed) return;
+      const bytes = target === "stdout" ? outputBytes : errorBytes;
+      const remaining = PROLOG_OUTPUT_MAX_BUFFER_BYTES - bytes;
+      if (chunk.byteLength > remaining) {
+        const clipped = chunk.subarray(0, Math.max(0, remaining)).toString();
+        if (target === "stdout") stdout += clipped;
+        else stderr += clipped;
+        outputOverflowed = true;
+        termination ??= this.terminateProcessTree(child);
+        return;
+      }
+      if (target === "stdout") {
+        stdout += chunk.toString();
+        outputBytes += chunk.byteLength;
+      } else {
+        stderr += chunk.toString();
+        errorBytes += chunk.byteLength;
+      }
+    };
+
+    child.stdout?.on("data", (chunk: Buffer) => appendChunk(chunk, "stdout"));
+    child.stderr?.on("data", (chunk: Buffer) => appendChunk(chunk, "stderr"));
+
+    const completion = new Promise<{
+      readonly code: number | null;
+      readonly signal: NodeJS.Signals | null;
+      readonly error?: Error;
+    }>((resolve) => {
+      child.once("error", (error) => {
+        closed = true;
+        resolve({ code: null, signal: null, error });
+      });
+      child.once("close", (code, signal) => {
+        closed = true;
+        resolve({ code, signal });
+      });
+    });
+
+    const timeoutId = setTimeout(() => {
+      if (settled || closed) return;
+      timedOut = true;
+      termination ??= this.terminateProcessTree(child);
+    }, this.timeout);
+
+    const result = await completion;
+    settled = true;
+    clearTimeout(timeoutId);
+    if (termination !== null) await termination;
+    this.oneShotProcesses.delete(child);
+
+    const stage = this.lastDiagnosticStage(stderr) ?? "unknown";
+    if (isPrologDebugEnabled()) {
+      const runtime = stderr
+        .split("\n")
+        .find((line) => line.includes("__KIBI_RUNTIME__"));
+      if (runtime !== undefined) {
+        console.error(`[prolog debug] ${runtime}`);
+      }
+      console.error(
+        `[prolog debug] child pid=${child.pid ?? 0} runtime=${runtimeName}@${runtimeVersion} packages=${packageVersions} stage=${stage}`,
+      );
+    }
+
+    if (timedOut) {
+      throw new Error(
+        `Query timeout after ${this.timeout / 1000}s (stage=${stage}, pid=${child.pid ?? 0}, goal=${this.goalLabel(combinedGoal ?? "true")})`,
+      );
+    }
+
+    if (outputOverflowed) {
+      return {
+        success: false,
+        bindings: {},
+        error: this.addDiagnosticStage(
+          PROLOG_OUTPUT_OVERFLOW_ERROR,
+          combinedGoal ?? "true",
+          stderr,
+        ),
+      };
+    }
+
+    if (result.error !== undefined) {
+      return {
+        success: false,
+        bindings: {},
+        error: this.addDiagnosticStage(
+          result.error.message,
+          combinedGoal ?? "true",
+          stderr,
+        ),
+      };
+    }
 
     if (stderr.includes("ERROR")) {
       return {
         success: false,
         bindings: {},
-        error: this.translateError(stderr),
+        error: this.addDiagnosticStage(
+          this.translateError(stderr),
+          combinedGoal ?? "true",
+          stderr,
+        ),
       };
     }
 
@@ -544,7 +694,11 @@ export class PrologProcess {
     return {
       success: false,
       bindings: {},
-      error: `Query failed - stdout: ${stdout.substring(0, 200)}, stderr: ${stderr.substring(0, 200)}`,
+      error: this.addDiagnosticStage(
+        `Query failed - stdout: ${stdout.substring(0, 200)}, stderr: ${stderr.substring(0, 200)}`,
+        combinedGoal ?? "true",
+        stderr,
+      ),
     };
   }
 
@@ -586,6 +740,70 @@ export class PrologProcess {
     this.errorBufferBytes += chunk.byteLength;
   }
 
+  private goalLabel(goal: string): string {
+    const match = goal
+      .trim()
+      .match(/^([a-z][A-Za-z0-9_]*(?::[a-z][A-Za-z0-9_]*)?)/);
+    return match?.[1] ?? "anonymous";
+  }
+
+  private addDiagnosticStage(
+    message: string,
+    goal: string,
+    diagnostics: string,
+  ): string {
+    if (this.goalLabel(goal) !== "kb_commit_upsert") return message;
+    const stage = this.lastDiagnosticStage(diagnostics);
+    return stage === null ? message : `${message} (stage=${stage})`;
+  }
+
+  private lastDiagnosticStage(text: string): string | null {
+    const matches = [...text.matchAll(/__KIBI_STAGE__:([^\s\r\n]+)/g)];
+    return matches.at(-1)?.[1] ?? null;
+  }
+
+  private signalProcessTree(child: ChildProcess, signal: NodeJS.Signals): void {
+    const pid = child.pid;
+    if (pid === undefined || pid <= 0) return;
+    if (process.platform !== "win32") {
+      try {
+        process.kill(-pid, signal);
+        return;
+      } catch {
+        // Fall back to the direct child when a process group is unavailable.
+      }
+    }
+    try {
+      child.kill(signal);
+    } catch {
+      // The child may have exited between the group and direct kill attempts.
+    }
+  }
+
+  private async terminateProcessTree(child: ChildProcess): Promise<void> {
+    let closed = false;
+    const exited = new Promise<void>((resolve) => {
+      const markExited = () => {
+        closed = true;
+        resolve();
+      };
+      child.once("close", markExited);
+      child.once("error", markExited);
+    });
+    if (child.exitCode === null) this.signalProcessTree(child, "SIGTERM");
+    await Promise.race([
+      exited,
+      new Promise<void>((resolve) => setTimeout(resolve, 1000)),
+    ]);
+    if (!closed) {
+      this.signalProcessTree(child, "SIGKILL");
+      await Promise.race([
+        exited,
+        new Promise<void>((resolve) => setTimeout(resolve, 1000)),
+      ]);
+    }
+  }
+
   // implements REQ-009
   private isProcessUsable(): boolean {
     return Boolean(
@@ -614,14 +832,32 @@ export class PrologProcess {
 
   // implements REQ-core-prolog-process-management
   private translateError(errorText: string): string {
+    // Diagnostic markers intentionally contain words such as `lock` and the
+    // audit path. Remove them before classifying the actual Prolog error so a
+    // contradiction at the check stage is not mistaken for an audit lock.
+    const cleanError = errorText.replace(
+      /^__KIBI_(?:STAGE|RUNTIME)__:[^\r\n]*\r?\n?/gm,
+      "",
+    );
+    if (cleanError.includes("stale_snapshot")) {
+      return "KB snapshot is stale; reattach or refresh the runtime before retrying (stale_snapshot)";
+    }
+    if (
+      (cleanError.includes("audit_log") ||
+        cleanError.includes("audit.log") ||
+        cleanError.includes("Resource temporarily unavailable")) &&
+      (cleanError.includes("lock") || cleanError.includes("permission"))
+    ) {
+      return "Audit journal is locked by another Kibi runtime; restart the stale MCP/CLI session before retrying";
+    }
     // SWI-Prolog print_message/2 formats errors as human-readable messages,
     // not raw Prolog terms. Match the actual output format.
     if (
-      errorText.includes("does not exist") &&
-      /entity [`'"].+?[`'"]/.test(errorText)
+      cleanError.includes("does not exist") &&
+      /entity [`'"].+?[`'"]/.test(cleanError)
     ) {
       // SWI-Prolog doubles single quotes in formatted messages: ''REQ-TEST''
-      const entityIdMatch = errorText.match(
+      const entityIdMatch = cleanError.match(
         /entity [`'"]+(.+?)[`'"]+ does not exist/,
       );
       const matchedEntityId = entityIdMatch?.[1];
@@ -629,16 +865,16 @@ export class PrologProcess {
         matchedEntityId !== undefined
           ? matchedEntityId.replace(/^`?'+|'+`?$/g, "")
           : "unknown";
-      if (errorText.includes("Target entity does not exist")) {
+      if (cleanError.includes("Target entity does not exist")) {
         return `Target entity does not exist: ${entityId}`;
       }
-      if (errorText.includes("Source entity does not exist")) {
+      if (cleanError.includes("Source entity does not exist")) {
         return `Source entity does not exist: ${entityId}`;
       }
       return `Entity does not exist: ${entityId}`;
     }
-    if (errorText.includes("Type error: `relationship' expected")) {
-      const relMatch = errorText.match(/\(Invalid relationship: ([^)]+)\)/);
+    if (cleanError.includes("Type error: `relationship' expected")) {
+      const relMatch = cleanError.match(/\(Invalid relationship: ([^)]+)\)/);
       const invalidRelationship = relMatch?.[1];
       if (invalidRelationship !== undefined) {
         return `Invalid relationship: ${invalidRelationship.trim()}`;
@@ -647,25 +883,25 @@ export class PrologProcess {
     }
     // Fallback: check for raw Prolog error terms (used by other tools)
     if (
-      errorText.includes("existence_error") ||
-      errorText.includes("Unknown procedure")
+      cleanError.includes("existence_error") ||
+      cleanError.includes("Unknown procedure")
     ) {
       return "Predicate or file not found";
     }
-    if (errorText.includes("permission_error")) {
+    if (cleanError.includes("permission_error")) {
       return "Access denied or KB locked";
     }
     if (
-      errorText.includes("syntax_error") ||
-      errorText.includes("Operator expected")
+      cleanError.includes("syntax_error") ||
+      cleanError.includes("Operator expected")
     ) {
       return "Invalid query syntax";
     }
-    if (errorText.includes("timeout_error")) {
+    if (cleanError.includes("timeout_error")) {
       return `Operation exceeded ${this.timeout / 1000}s timeout`;
     }
     const simpleError = (
-      errorText
+      cleanError
         .replace(/ERROR:\s*/g, "")
         .replace(/^\*\*.*\*\*$/gm, "")
         .replace(/^\s+/gm, "")
@@ -696,25 +932,19 @@ export class PrologProcess {
     }
 
     const current = this.process;
+    const oneShots = [...this.oneShotProcesses];
     this.process = null;
     this.clearQueryBuffers();
 
-    if (current) {
+    if (current || oneShots.length > 0) {
       this.terminationPromise = (async () => {
-        current.stdin?.end();
-        current.kill("SIGTERM");
-
-        await new Promise((resolve) => {
-          const timeout = setTimeout(() => {
-            current.kill("SIGKILL");
-            resolve(undefined);
-          }, 1000);
-
-          current.on("exit", () => {
-            clearTimeout(timeout);
-            resolve(undefined);
-          });
-        });
+        if (current) {
+          current.stdin?.end();
+          await this.terminateProcessTree(current);
+        }
+        await Promise.all(
+          oneShots.map((child) => this.terminateProcessTree(child)),
+        );
       })();
 
       try {

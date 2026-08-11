@@ -21,9 +21,74 @@ let tempWorkspace: string | undefined;
 function createMockProlog(
   handler: (goal: string) => Promise<QueryResult> | QueryResult,
 ) {
-  const query = mock(async (goal: string) => {
-    const result = await handler(goal);
-    return { bindings: {}, ...result };
+  const existenceResults = new Map<string, QueryResult>();
+
+  // These tests predate the single-goal commit contract and many of their
+  // small Prolog doubles deliberately model the old RDF/audit/save calls.
+  // Keep those doubles useful while exercising the new production call by
+  // presenting the combined goal as the equivalent legacy stages.  The
+  // adapter is test-only; production always submits kb_commit_upsert/5.
+  const query = mock(async (goal: string): Promise<QueryResult> => {
+    if (!goal.startsWith("kb_commit_upsert(")) {
+      const result = { bindings: {}, ...(await handler(goal)) };
+      if (goal.startsWith("once(kb_entity('")) {
+        existenceResults.set(goal, result);
+      }
+      return result;
+    }
+
+    const match = goal.match(
+      /^kb_commit_upsert\(([^,]+), (\[[\s\S]*\]), \[([\s\S]*)\], (true|false), ChangeKind\)$/,
+    );
+    if (!match) return { success: false, error: `Unexpected goal: ${goal}` };
+    const [, type, properties, relationshipBody, skip] = match;
+    const idMatch = properties.match(/(?:^|\[|,)id='([^']+)'/);
+    const id = idMatch?.[1] ?? "unknown";
+    const existenceGoal = `once(kb_entity('${id}', _, _))`;
+    let existing = existenceResults.get(existenceGoal);
+    if (existing === undefined) {
+      try {
+        existing = await query(existenceGoal);
+      } catch {
+        existing = { success: false };
+      }
+    }
+    const change = existing.success ? "updated" : "created";
+
+    const relationshipGoals = [
+      ...relationshipBody.matchAll(
+        /rel\(([^,]+), '([^']*)', '([^']*)', (\[[^\]]*\])\)/g,
+      ),
+    ].map(
+      ([, relType, from, to, metadata]) =>
+        `kb_assert_relationship_no_audit(${relType}, '${from}', '${to}', ${metadata})`,
+    );
+    const transactionParts = [
+      `kb_assert_entity_no_audit(${type}, ${properties})`,
+      ...relationshipGoals,
+      ...(type === "req" && skip === "false"
+        ? [`check_req_contradiction('${id}')`]
+        : []),
+    ];
+    const transaction = `rdf_transaction((${transactionParts.join(", ")}))`;
+    const written = await query(transaction);
+    if (!written.success) return written;
+
+    const entityAudit = await query(
+      `kb_log_entity_upsert(${change}, ${type}, ${properties})`,
+    );
+    if (!entityAudit.success) return entityAudit;
+    for (const [, relType, from, to, metadata] of relationshipBody.matchAll(
+      /rel\(([^,]+), '([^']*)', '([^']*)', (\[[^\]]*\])\)/g,
+    )) {
+      const relationshipAudit = await query(
+        `kb_log_relationship_upsert(${relType}, '${from}', '${to}', ${metadata})`,
+      );
+      if (!relationshipAudit.success) return relationshipAudit;
+    }
+    const saved = await query("kb_save");
+    if (!saved.success) return saved;
+    return { success: true, bindings: { ChangeKind: change } };
   });
   const invalidateCache = mock(() => {});
 
@@ -540,7 +605,7 @@ export function greet() {
       ],
     });
 
-    expect(query).toHaveBeenCalledTimes(10);
+    expect(query).toHaveBeenCalledTimes(11);
     expect(invalidateCache).toHaveBeenCalledTimes(1);
     expect(result.structuredContent).toMatchObject({
       created: 1,
@@ -1126,7 +1191,7 @@ export function greet() {
     );
   });
 
-  test("wraps entity audit failures", async () => {
+  test("propagates entity audit failures from the combined commit", async () => {
     const { prolog, invalidateCache } = createMockProlog(async (goal) => {
       if (goal === "once(kb_entity('REQ-AUDIT-FAIL-001', _, _))") {
         return { success: false };
@@ -1152,13 +1217,13 @@ export function greet() {
         },
       }),
     ).rejects.toThrow(
-      "Upsert execution failed: Failed to record audit entry for REQ-AUDIT-FAIL-001: entity audit broke",
+      "Upsert execution failed: Failed to upsert entity REQ-AUDIT-FAIL-001: entity audit broke",
     );
 
     expect(invalidateCache).not.toHaveBeenCalled();
   });
 
-  test("wraps relationship audit failures", async () => {
+  test("propagates relationship audit failures from the combined commit", async () => {
     const { prolog, invalidateCache } = createMockProlog(async (goal) => {
       if (goal === "once(kb_entity('REQ-REL-AUDIT-FAIL-001', _, _))") {
         return { success: false };
@@ -1195,13 +1260,13 @@ export function greet() {
         _skipContradictionCheck: true,
       }),
     ).rejects.toThrow(
-      "Upsert execution failed: Failed to record relationship audit entry REQ-REL-AUDIT-FAIL-001->SCEN-FAIL-001: relationship audit broke",
+      "Upsert execution failed: Failed to upsert entity REQ-REL-AUDIT-FAIL-001: relationship audit broke",
     );
 
     expect(invalidateCache).not.toHaveBeenCalled();
   });
 
-  test("wraps save failures after invalidating the cache", async () => {
+  test("propagates snapshot-save failures without exposing partial state", async () => {
     const { prolog, invalidateCache } = createMockProlog(async (goal) => {
       if (goal === "once(kb_entity('REQ-SAVE-FAIL-001', _, _))") {
         return { success: false };
@@ -1230,10 +1295,10 @@ export function greet() {
         },
       }),
     ).rejects.toThrow(
-      "Upsert execution failed: Failed to save KB after upsert: disk full",
+      "Upsert execution failed: Failed to upsert entity REQ-SAVE-FAIL-001: disk full",
     );
 
-    expect(invalidateCache).toHaveBeenCalledTimes(1);
+    expect(invalidateCache).not.toHaveBeenCalled();
   });
 
   test("registered upsert tool refreshes a stale attachment before saving", async () => {

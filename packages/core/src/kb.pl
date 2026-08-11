@@ -7,6 +7,7 @@
     with_kb_mutex/1,
     kb_assert_entity/2,
     kb_assert_entity_no_audit/2,
+    kb_commit_upsert/5,
     kb_log_entity_upsert/3,
     kb_retract_entity/1,
     kb_retract_entity/3,
@@ -112,7 +113,10 @@ kb_attach(Directory) :-
     atom_concat(Directory, '/audit.log', AuditLog),
     (   db_attached(AuditLog)
     ->  true  % Already attached
-    ;   db_attach(AuditLog, [])
+    ;   % Close the journal stream after each write.  The default `flush`
+        % mode retains an exclusive write lock for the lifetime of a
+        % long-running MCP process and blocks writers in other runtimes.
+        db_attach(AuditLog, [sync(close)])
     ),
     % Track attachment state
     assert(kb_attached(Directory)),
@@ -172,12 +176,18 @@ kb_save_locked(Directory) :-
     catch(
         (
             ensure_snapshot_current(DataFile),
+            kb_stage(snapshot_save),
             save_rdf_snapshot(TempFile),
+            kb_stage(audit_sync),
+            sync_audit_log,
+            % Keep the durable RDF rename after audit synchronization.  The
+            % temporary snapshot can be discarded if an audit-stage failure
+            % occurs, so a failed commit cannot publish new RDF state.
+            kb_stage(snapshot_save),
             rename_file(TempFile, DataFile),
             current_data_stamp(DataFile, UpdatedStamp),
             retractall(kb_attached_snapshot(_)),
-            assert(kb_attached_snapshot(UpdatedStamp)),
-            sync_audit_log
+            assert(kb_attached_snapshot(UpdatedStamp))
         ),
         Error,
         (
@@ -304,6 +314,109 @@ kb_assert_entity_no_audit(Type, Props) :-
             store_property(EntityURI, Key, Value, Graph)
         )
     )).
+
+%% kb_commit_upsert(+Type, +Properties, +Relationships, +SkipContradiction, -ChangeKind)
+% Commit an entity upsert, its relationships, audit entries, and RDF snapshot
+% as one bounded operation.  The branch lock is held before any RDF mutation,
+% so concurrent runtimes cannot observe or publish an intermediate upsert.
+% Relationships use rel(Type, FromId, ToId, Metadata) terms.  Metadata is
+% retained for the caller's serialization contract; the audit schema records
+% only the relationship endpoints and type, as before.
+kb_commit_upsert(Type, Props, Relationships, SkipContradiction, ChangeKind) :-
+    memberchk(id=Id, Props),
+    memberchk(SkipContradiction, [true, false]),
+    kb_attached(Directory),
+    atom_concat(Directory, '/kb.rdf', DataFile),
+    kb_stage(runtime),
+    kb_runtime_diagnostic,
+    % Emit the lock marker before waiting so a timeout identifies a branch
+    % lock held by another runtime instead of reporting only the prior stage.
+    kb_stage(lock),
+    with_kb_file_lock(Directory, (
+        audit_store_writable,
+        ensure_snapshot_current(DataFile),
+        upsert_change_kind(Id, ChangeKind),
+        rdf_transaction((
+            kb_stage(rdf_mutation),
+            kb_assert_entity_no_audit(Type, Props),
+            kb_commit_relationships_no_audit(Relationships),
+            kb_maybe_check_req_contradiction(Type, Id, SkipContradiction),
+            kb_stage(entity_audit),
+            kb_log_entity_upsert(ChangeKind, Type, Props),
+            kb_stage(relationship_audit),
+            kb_commit_relationship_audits(Relationships),
+            kb_save_locked(Directory)
+        ))
+    )).
+
+upsert_change_kind(Id, updated) :-
+    once(kb_entity(Id, _, _)),
+    !.
+upsert_change_kind(_, created).
+
+kb_commit_relationships_no_audit([]).
+kb_commit_relationships_no_audit([
+    rel(RelType, FromId, ToId, Metadata)|Rest
+]) :-
+    kb_assert_relationship_no_audit(RelType, FromId, ToId, Metadata),
+    kb_commit_relationships_no_audit(Rest).
+
+kb_maybe_check_req_contradiction(req, Id, false) :-
+    !,
+    kb_stage(contradiction_check),
+    check_req_contradiction(Id).
+kb_maybe_check_req_contradiction(_, _, _).
+
+kb_commit_relationship_audits([]).
+kb_commit_relationship_audits([
+    rel(RelType, FromId, ToId, _Metadata)|Rest
+]) :-
+    kb_log_relationship_upsert(RelType, FromId, ToId, []),
+    kb_commit_relationship_audits(Rest).
+
+% Probe the existing journal without waiting.  A process running code from
+% before the sync(close) fix may still retain the journal's write lock; fail
+% before touching RDF so callers receive a safe, retryable diagnostic.
+audit_store_writable :-
+    kb_audit_db(AuditLog),
+    (   exists_file(AuditLog)
+    ->  catch(
+        setup_call_cleanup(
+                open(AuditLog, append, Stream,
+                     [lock(write), wait(false), encoding(utf8)]),
+                true,
+                close(Stream)
+            ),
+            Error,
+            throw(error(permission_error(lock, audit_log, AuditLog),
+                        context(kb_commit_upsert/5, Error)))
+        )
+    ;   true
+    ).
+
+% Reserved stderr markers are consumed by PrologProcess diagnostics and never
+% form part of the JSON result.  They make timeout errors stage-specific even
+% when the child is blocked inside a filesystem primitive.
+kb_stage(Stage) :-
+    format(user_error, '__KIBI_STAGE__:~w~n', [Stage]),
+    flush_output(user_error).
+
+kb_runtime_diagnostic :-
+    (   current_prolog_flag(pid, Pid) -> true ; Pid = unknown ),
+    (   kb_audit_db(AuditLog) -> true ; AuditLog = unknown ),
+    kb_environment_value('KIBI_RUNTIME_NAME', RuntimeName),
+    kb_environment_value('KIBI_RUNTIME_VERSION', RuntimeVersion),
+    kb_environment_value('KIBI_PACKAGE_VERSIONS', PackageVersions),
+    format(user_error,
+           '__KIBI_RUNTIME__:pid=~w;audit=~w;runtime=~w@~w;packages=~w~n',
+           [Pid, AuditLog, RuntimeName, RuntimeVersion, PackageVersions]),
+    flush_output(user_error).
+
+kb_environment_value(Name, Value) :-
+    (   getenv(Name, Value)
+    ->  true
+    ;   Value = unknown
+    ).
 
 %% kb_retract_entity_relationships(+Id)
 % Remove all relationship triples for an entity, preserving property triples.

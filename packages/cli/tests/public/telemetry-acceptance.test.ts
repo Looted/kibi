@@ -28,7 +28,7 @@ function passingEvents() {
       ...baseEvent(40 - index),
       tool: "kb_status",
       business_args: {},
-    })
+    }),
   );
   const upsertArgs = {
     type: "req",
@@ -81,7 +81,7 @@ function passingEvents() {
       coverage_proof_gap_count: 0,
       coverage_receipt_gap_count: 0,
       business_args: { by: "req", includePassing: true, limit: 500 },
-    }
+    },
   );
   return events;
 }
@@ -123,12 +123,12 @@ describe("telemetry acceptance", () => {
 
     expect(
       report.metrics.find(
-        (metric) => metric.id === "advisor_before_requirement_write"
-      )?.status
+        (metric) => metric.id === "advisor_before_requirement_write",
+      )?.status,
     ).toBe("failed");
     expect(
       report.metrics.find((metric) => metric.id === "validation_before_upsert")
-        ?.status
+        ?.status,
     ).toBe("failed");
   });
 
@@ -141,7 +141,7 @@ describe("telemetry acceptance", () => {
         telemetry_status: index < 4 ? "missing" : "provided",
         telemetry: index < 4 ? null : { is_autonomous: true },
         business_args: {},
-      })
+      }),
     );
     for (const minutesBefore of [18, 17, 16]) {
       events.push({
@@ -181,7 +181,7 @@ describe("telemetry acceptance", () => {
         coverage_proof_gap_count: 5,
         coverage_receipt_gap_count: 2,
         business_args: { by: "req" },
-      }
+      },
     );
 
     const report = analyzeTelemetryAcceptance(events, NOW);
@@ -204,7 +204,7 @@ describe("telemetry acceptance", () => {
   test("treats stale evidence and missing proof telemetry as insufficient", () => {
     const staleNow = new Date("2026-08-20T12:00:00.000Z");
     const events = passingEvents().filter(
-      (event) => event.tool !== "kb_coverage"
+      (event) => event.tool !== "kb_coverage",
     );
     const report = analyzeTelemetryAcceptance(events, staleNow);
     const diagnostics = createTelemetryAcceptanceDiagnostics(report);
@@ -213,21 +213,21 @@ describe("telemetry acceptance", () => {
     expect(report.scope.fresh).toBe(false);
     expect(report.diagnostics).toContain("usage_log_stale");
     expect(diagnostics.map((diagnostic) => diagnostic.id)).toContain(
-      "telemetry_evidence_stale"
+      "telemetry_evidence_stale",
     );
     expect(diagnostics.map((diagnostic) => diagnostic.id)).toContain(
-      "telemetry_acceptance_incomplete"
+      "telemetry_acceptance_incomplete",
     );
   });
 
   test("parses JSONL strictly and rejects malformed evidence", () => {
     expect(
       parseTelemetryUsageLog(
-        `${JSON.stringify(baseEvent(1))}\n${JSON.stringify(baseEvent(0))}\n`
-      )
+        `${JSON.stringify(baseEvent(1))}\n${JSON.stringify(baseEvent(0))}\n`,
+      ),
     ).toHaveLength(2);
     expect(() => parseTelemetryUsageLog("not json\n")).toThrow(
-      "Failed to parse .kb/usage.log line 1"
+      "Failed to parse .kb/usage.log line 1",
     );
     expect(() => parseTelemetryUsageLog("42\n")).toThrow("expected object");
   });

@@ -170,6 +170,48 @@ symbols:
         target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
+  - id: SYM-core-kb-commit-upsert
+    title: kb_commit_upsert
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-core-persistence
+      - type: implements
+        target: REQ-core-audit-logging
+      - type: implements
+        target: REQ-core-prolog-process-management
+      - type: implements
+        target: REQ-mcp-tool-upsert
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+  - id: SYM-core-kb-attach-audit-store
+    title: kb_attach
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-core-persistence
+      - type: implements
+        target: REQ-core-audit-logging
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+  - id: SYM-core-kb-save-locked
+    title: kb_save_locked
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-core-persistence
+      - type: implements
+        target: REQ-core-audit-logging
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
   - id: SYM-core-kb-literal-to-value
     title: literal_to_value
     sourceFile: packages/core/src/kb.pl
@@ -1978,6 +2020,10 @@ symbols:
       - type: implements
         target: REQ-core-prolog-process-management
       - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-core-audit-logging
+      - type: implements
         target: REQ-mcp-search-discovery
       - type: covered_by
         target: TEST-001
@@ -1998,8 +2044,46 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
       - type: covered_by
         target: TEST-001
+  - id: SYM-cli-PrologProcess-execOneShot
+    title: PrologProcess.execOneShot
+    sourceFile: packages/cli/src/prolog.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+  - id: SYM-cli-PrologProcess-signalProcessTree
+    title: PrologProcess.signalProcessTree
+    sourceFile: packages/cli/src/prolog.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+  - id: SYM-cli-PrologProcess-terminateProcessTree
+    title: PrologProcess.terminateProcessTree
+    sourceFile: packages/cli/src/prolog.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
   - id: SYM-cli-PrologQueryPlanSafetyViolation
     title: PrologQueryPlanSafetyViolation
     sourceFile: packages/cli/src/utils/prolog-query-plan-safety.ts
@@ -4131,6 +4215,14 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-core-persistence
+      - type: implements
+        target: REQ-core-audit-logging
+      - type: implements
+        target: REQ-core-prolog-process-management
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
@@ -4384,10 +4476,20 @@ symbols:
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
   - id: SYM-buildUpsertTransaction
-    title: buildUpsertTransaction
+    title: buildUpsertCommitGoal
     sourceFile: packages/cli/src/operations/mutation/contradictions.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-core-persistence
+      - type: implements
+        target: REQ-core-audit-logging
+      - type: implements
+        target: REQ-core-prolog-process-management
+      - type: implements
+        target: REQ-mcp-tool-upsert
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
       - type: implements

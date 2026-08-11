@@ -29,7 +29,7 @@ function workspaceWithUsageLog(): string {
   }));
   writeFileSync(
     path.join(workspace, ".kb", "usage.log"),
-    `${events.map((event) => JSON.stringify(event)).join("\n")}\n`
+    `${events.map((event) => JSON.stringify(event)).join("\n")}\n`,
   );
   return workspace;
 }
@@ -40,7 +40,7 @@ describe("kibi usage-remediation", () => {
     const output = execFileSync(
       "bun",
       [cliPath, "usage-remediation", "--format", "json"],
-      { cwd: workspace, encoding: "utf8" }
+      { cwd: workspace, encoding: "utf8" },
     );
     const report = JSON.parse(output);
 
@@ -57,7 +57,7 @@ describe("kibi usage-remediation", () => {
           metric: "proof_gap_recovery",
           scope: "report",
         }),
-      ])
+      ]),
     );
   });
 
@@ -66,7 +66,7 @@ describe("kibi usage-remediation", () => {
     const output = execFileSync(
       "bun",
       [cliPath, "usage-remediation", "--limit", "1"],
-      { cwd: workspace, encoding: "utf8" }
+      { cwd: workspace, encoding: "utf8" },
     );
 
     expect(output).toContain("Telemetry remediation: action_required");

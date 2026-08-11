@@ -29,26 +29,26 @@ export function registerMaintenanceCommands(program: Command): void {
     .option("--limit <n>", "Limit top zero-result source files", "10")
     .option(
       "--require-acceptance",
-      "Exit non-zero unless the telemetry acceptance report passes"
+      "Exit non-zero unless the telemetry acceptance report passes",
     )
     .action(
       withExitCode(async (options: Parameters<typeof usageMetricsCommand>[0]) =>
-        usageMetricsCommand(options)
-      )
+        usageMetricsCommand(options),
+      ),
     );
 
   program
     .command("usage-remediation")
     .description(
-      "Enumerate exact diagnostic events and report-level evidence gaps requiring repair"
+      "Enumerate exact diagnostic events and report-level evidence gaps requiring repair",
     )
     .option("--format <format>", "Output format: json|table", "table")
     .option("--limit <n>", "Limit rendered table rows", "50")
     .action(
       withExitCode(
         async (options: Parameters<typeof usageRemediationCommand>[0]) =>
-          usageRemediationCommand(options)
-      )
+          usageRemediationCommand(options),
+      ),
     );
 
   program

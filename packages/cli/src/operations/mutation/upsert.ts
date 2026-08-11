@@ -9,15 +9,13 @@ import {
   assertLogicalGroundingClaimKeys,
   assertSemanticInventoryBoundary,
 } from "../semantic-advisor/ingestion-boundary.js";
-import { recordEntityAudit, recordRelationshipAudits } from "./audit.js";
-import { buildUpsertTransaction, formatUpsertError } from "./contradictions.js";
+import { buildUpsertCommitGoal, formatUpsertError } from "./contradictions.js";
 import {
   existingRelationships,
   validateLiveRelationshipTargets,
   validateRelationshipSources,
   validateStrictLanePairing,
 } from "./relationships.js";
-import { saveMutation } from "./save.js";
 import { validateSymbolGranularity } from "./symbol-granularity.js";
 import { refreshSymbolCoordinates } from "./symbol-refresh.js";
 import type { RelationshipInput, UpsertInput, UpsertPayload } from "./types.js";
@@ -39,6 +37,15 @@ function receiptRecords(value: unknown) {
       typeof receipt === "object" &&
       !Array.isArray(receipt),
   );
+}
+
+function parseChangeKind(
+  value: string | undefined,
+): "created" | "updated" | null {
+  const normalized = value?.trim().replace(/^['"]|['"]$/g, "");
+  return normalized === "created" || normalized === "updated"
+    ? normalized
+    : null;
 }
 
 export async function validateAppendOnlyVerificationReceipts(
@@ -121,10 +128,7 @@ export async function executeUpsert(
       { ...input, relationships },
       relationships,
     );
-    const exists = await prolog.query(
-      `once(kb_entity('${escapeAtom(input.id)}', _, _))`,
-    );
-    const transaction = buildUpsertTransaction({
+    const transaction = buildUpsertCommitGoal({
       entity: validated.entity,
       relationships,
       skipContradictionCheck: input._skipContradictionCheck === true,
@@ -133,13 +137,16 @@ export async function executeUpsert(
     if (!written.success) {
       throw new Error(formatUpsertError(input.id, written.error));
     }
-    await recordEntityAudit(
-      prolog,
-      exists.success ? "updated" : "created",
-      validated.entity,
-    );
-    await recordRelationshipAudits(prolog, relationships);
-    await saveMutation(prolog);
+    // The combined commit is the sole mutation boundary. Invalidate reads only
+    // after Prolog reports success so a failed/rolled-back commit does not
+    // disturb callers' view of the current snapshot.
+    prolog.invalidateCache?.();
+    const changeKind = parseChangeKind(written.bindings.ChangeKind);
+    if (changeKind === null) {
+      throw new Error(
+        `Upsert commit completed without a created/updated result for ${input.id}`,
+      );
+    }
     if (input.type === "symbol") {
       try {
         await refreshSymbolCoordinates(input.id, context);
@@ -153,10 +160,10 @@ export async function executeUpsert(
       input.type,
       input.id,
     );
-    const created = exists.success ? 0 : 1;
+    const created = changeKind === "created" ? 1 : 0;
     const payload: UpsertPayload = {
       created,
-      updated: exists.success ? 1 : 0,
+      updated: changeKind === "updated" ? 1 : 0,
       relationships_created: relationships.length,
       warnings: [...semantic.warnings, ...coverage],
       semanticAdvisor: semantic.receipt,

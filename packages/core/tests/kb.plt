@@ -337,6 +337,89 @@ test(delete_audit_preserves_typed_metadata, [setup(setup_kb), cleanup(cleanup_kb
 
 :- end_tests(kb_audit).
 
+:- begin_tests(kb_atomic_upsert).
+
+test(commit_upsert_persists_entity_relationship_audits_and_snapshot,
+     [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_dir(Dir),
+    kb_attach(Dir),
+    kb_assert_entity(req, [
+        id='commit-source',
+        title="Commit source",
+        status=active,
+        created_at="2026-08-11T00:00:00Z",
+        updated_at="2026-08-11T00:00:00Z",
+        source="test://atomic-upsert"
+    ]),
+    kb_assert_entity(test, [
+        id='commit-target',
+        title="Commit target",
+        status=active,
+        created_at="2026-08-11T00:00:00Z",
+        updated_at="2026-08-11T00:00:00Z",
+        source="test://atomic-upsert"
+    ]),
+    kb_save,
+    kb_commit_upsert(req, [
+        id='commit-new',
+        title="Committed requirement",
+        status=active,
+        created_at="2026-08-11T00:00:00Z",
+        updated_at="2026-08-11T00:00:00Z",
+        source="test://atomic-upsert"
+    ], [rel(verified_by, 'commit-new', 'commit-target', [])], false, Kind),
+    assertion(Kind == created),
+    kb_entity('commit-new', req, _),
+    kb_relationship(verified_by, 'commit-new', 'commit-target'),
+    changeset(_, upsert, 'commit-new', req-EntityProps),
+    memberchk(change_kind=created, EntityProps),
+    changeset(_, upsert_rel, 'commit-new->commit-target', verified_by-RelProps),
+    memberchk(from='commit-new', RelProps),
+    memberchk(to='commit-target', RelProps),
+    atom_concat(Dir, '/kb.rdf', DataFile),
+    exists_file(DataFile),
+    kb_detach,
+    kb_attach(Dir),
+    kb_entity('commit-new', req, _),
+    kb_relationship(verified_by, 'commit-new', 'commit-target'),
+    kb_detach.
+
+test(commit_upsert_classifies_historical_entity_as_updated,
+     [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_dir(Dir),
+    kb_attach(Dir),
+    kb_assert_entity(req, [
+        id='commit-existing',
+        title="Before commit",
+        status=active,
+        created_at="2026-08-11T00:00:00Z",
+        updated_at="2026-08-11T00:00:00Z",
+        source="test://atomic-upsert"
+    ]),
+    kb_save,
+    kb_detach,
+    kb_attach(Dir),
+    kb_commit_upsert(req, [
+        id='commit-existing',
+        title="After commit",
+        status=active,
+        created_at="2026-08-11T00:00:00Z",
+        updated_at="2026-08-11T01:00:00Z",
+        source="test://atomic-upsert"
+    ], [], false, Kind),
+    assertion(Kind == updated),
+    changeset(_, upsert, 'commit-existing', req-Props),
+    memberchk(change_kind=updated, Props),
+    memberchk(title="After commit", Props),
+    kb_detach,
+    kb_attach(Dir),
+    kb_entity('commit-existing', req, PropsAfter),
+    memberchk(title=TitleAfter, PropsAfter),
+    assertion(TitleAfter = ^^("After commit", _)),
+    kb_detach.
+
+:- end_tests(kb_atomic_upsert).
+
 :- begin_tests(kb_strict_facts).
 
 test(typed_literal_value_type_no_false_positive, [setup(setup_kb), cleanup(cleanup_kb)]) :-

@@ -13,7 +13,7 @@ function timestamp(minutesBefore: number): string {
 function event(
   line: number,
   tool: string,
-  extra: Record<string, unknown> = {}
+  extra: Record<string, unknown> = {},
 ) {
   return {
     timestamp: timestamp(60 - line),
@@ -35,7 +35,7 @@ function event(
 
 function failingEvents() {
   const events = Array.from({ length: 20 }, (_, index) =>
-    event(index + 1, "kb_status")
+    event(index + 1, "kb_status"),
   );
   const payload = {
     type: "req",
@@ -71,7 +71,7 @@ function failingEvents() {
       coverage_proof_gap_count: 3,
       coverage_receipt_gap_count: 2,
       business_args: { by: "req" },
-    })
+    }),
   );
   for (const line of [27, 28, 29]) {
     events.push(
@@ -79,7 +79,7 @@ function failingEvents() {
         status: "error",
         error_category: "tool_timeout",
         business_args: { type: "symbol", id: "SYM-RETRY" },
-      })
+      }),
     );
   }
   return events;
@@ -92,11 +92,12 @@ describe("telemetry remediation", () => {
     expect(report.version).toBe(TELEMETRY_REMEDIATION_VERSION);
     expect(report.status).toBe("action_required");
     expect(report.items.slice(0, 3).map((item) => item.event?.logLine)).toEqual(
-      [27, 28, 29]
+      [27, 28, 29],
     );
     const validation = report.items.find(
       (item) =>
-        item.metric === "validation_before_upsert" && item.event?.logLine === 23
+        item.metric === "validation_before_upsert" &&
+        item.event?.logLine === 23,
     );
     expect(validation).toMatchObject({
       scope: "event",
@@ -112,15 +113,15 @@ describe("telemetry remediation", () => {
       report.items.find(
         (item) =>
           item.metric === "advisor_before_requirement_write" &&
-          item.event?.logLine === 23
-      )
+          item.event?.logLine === 23,
+      ),
     ).toBeDefined();
     expect(
       report.items.find(
         (item) =>
           item.metric === "source_lookup_zero_result_rate" &&
-          item.event?.logLine === 24
-      )
+          item.event?.logLine === 24,
+      ),
     ).toBeDefined();
     expect(report.items).toEqual(
       [...report.items].sort(
@@ -128,14 +129,14 @@ describe("telemetry remediation", () => {
           left.rank - right.rank ||
           (left.event?.logLine ?? Number.MAX_SAFE_INTEGER) -
             (right.event?.logLine ?? Number.MAX_SAFE_INTEGER) ||
-          left.id.localeCompare(right.id)
-      )
+          left.id.localeCompare(right.id),
+      ),
     );
   });
 
   test("keeps missing complete coverage as explicit report-level repairs", () => {
     const events = Array.from({ length: 20 }, (_, index) =>
-      event(index + 1, "kb_status")
+      event(index + 1, "kb_status"),
     );
     const report = buildTelemetryRemediationReport(events, NOW);
 
@@ -143,8 +144,8 @@ describe("telemetry remediation", () => {
       report.items.filter(
         (item) =>
           item.scope === "report" &&
-          ["proof_gap_recovery", "e2e_receipt_freshness"].includes(item.metric)
-      )
+          ["proof_gap_recovery", "e2e_receipt_freshness"].includes(item.metric),
+      ),
     ).toHaveLength(2);
   });
 });

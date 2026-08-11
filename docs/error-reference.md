@@ -79,6 +79,14 @@ Legacy prose facts may remain readable during migration, but they do not provide
 
 Create an append-only replacement requirement and add `supersedes`, or deprecate the conflicting requirement before writing the new one.
 
+## Audit journal or snapshot lock
+
+`Audit journal is locked by another Kibi runtime; restart the stale MCP/CLI session before retrying` means an older process still owns `audit.log`'s write lock. Kibi does not terminate unrelated sessions; restart the stale MCP/CLI process, then retry the validated upsert.
+
+`KB snapshot is stale; reattach or refresh the runtime before retrying` means another current runtime published the branch after this process attached. Reattach the branch (or restart the runtime) and rerun the read/preflight/mutation sequence.
+
+Timeout diagnostics include `stage=<name>` and the child PID. The stage is one of the bounded commit markers (`runtime`, `lock`, `rdf_mutation`, `contradiction_check`, `entity_audit`, `relationship_audit`, `snapshot_save`, or `audit_sync`); use it to distinguish a stale lock from a filesystem or Prolog failure without relying on entity payload logging.
+
 ## Low-confidence `kb_model_requirement` downgrade
 
 When confidence is below `0.70`, Kibi emits a non-blocking `fact_kind: observation`. If the prose is normative, retry with explicit `subjectKey`, `propertyKey`, `operator`, and `value` so the tool can produce strict facts.
