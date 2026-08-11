@@ -2,11 +2,11 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import Table from "cli-table3";
 import type { CommandResult } from "../cli.js";
+import { parseTelemetryUsageLog } from "../public/telemetry-acceptance.js";
 import {
   type TelemetryRemediationReport,
   buildTelemetryRemediationReport,
 } from "../public/telemetry-remediation.js";
-import { parseTelemetryUsageLog } from "../public/telemetry-acceptance.js";
 
 export interface UsageRemediationOptions {
   readonly format?: "json" | "table";
@@ -15,7 +15,7 @@ export interface UsageRemediationOptions {
 
 export function renderUsageRemediationReport(
   report: TelemetryRemediationReport,
-  limit: number
+  limit: number,
 ): string {
   const table = new Table({
     head: ["Rank", "Metric", "Line", "Target", "Reason", "Repair"],
@@ -45,7 +45,7 @@ export function renderUsageRemediationReport(
 }
 
 export async function usageRemediationCommand(
-  options: UsageRemediationOptions
+  options: UsageRemediationOptions,
 ): Promise<CommandResult | undefined> {
   const limit = Number.parseInt(options.limit ?? "50", 10);
   if (!Number.isFinite(limit) || limit < 1) {
@@ -69,7 +69,7 @@ export async function usageRemediationCommand(
   console.log(
     options.format === "json"
       ? JSON.stringify(report, null, 2)
-      : renderUsageRemediationReport(report, limit)
+      : renderUsageRemediationReport(report, limit),
   );
   return undefined;
 }

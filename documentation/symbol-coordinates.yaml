@@ -5,9 +5,9 @@ coordinates:
   SYM-001:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 727
+    sourceEndLine: 957
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 83
+    sourceLine: 101
   SYM-003:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -1289,9 +1289,9 @@ coordinates:
   SYM-PrologOptions:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 75
+    sourceEndLine: 93
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 72
+    sourceLine: 90
   SYM-PromptContext:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1343,9 +1343,9 @@ coordinates:
   SYM-QueryResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 81
+    sourceEndLine: 99
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 77
+    sourceLine: 95
   SYM-RELEASE_SCOPE:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -2549,7 +2549,7 @@ coordinates:
   SYM-buildUpsertTransaction:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 30
+    sourceEndLine: 23
     sourceFile: packages/cli/src/operations/mutation/contradictions.ts
     sourceLine: 16
   SYM-built-in-predicate-schemas:
@@ -2690,42 +2690,60 @@ coordinates:
     sourceEndLine: 141
     sourceFile: packages/cli/src/commands/sync/persistence.ts
     sourceLine: 137
+  SYM-cli-PrologProcess-execOneShot:
+    sourceColumn: 16
+    sourceEndColumn: 3
+    sourceEndLine: 703
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 491
   SYM-cli-PrologProcess-getPid:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 685
+    sourceEndLine: 921
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 683
+    sourceLine: 919
   SYM-cli-PrologProcess-invalidateCache:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 369
+    sourceEndLine: 411
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 367
+    sourceLine: 409
   SYM-cli-PrologProcess-isRunning:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 681
+    sourceEndLine: 917
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 677
+    sourceLine: 913
   SYM-cli-PrologProcess-query:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 365
+    sourceEndLine: 407
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 185
+    sourceLine: 219
+  SYM-cli-PrologProcess-signalProcessTree:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 781
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 765
   SYM-cli-PrologProcess-start:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 142
+    sourceEndLine: 176
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 105
+    sourceLine: 124
   SYM-cli-PrologProcess-terminate:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 726
+    sourceEndLine: 956
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 687
+    sourceLine: 923
+  SYM-cli-PrologProcess-terminateProcessTree:
+    sourceColumn: 16
+    sourceEndColumn: 3
+    sourceEndLine: 805
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 783
   SYM-cli-PrologQueryPlanSafetyViolation:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -3851,9 +3869,9 @@ coordinates:
   SYM-core-contradicting-reqs:
     sourceColumn: 4
     sourceEndColumn: 22
-    sourceEndLine: 45
+    sourceEndLine: 46
     sourceFile: packages/core/src/kb.pl
-    sourceLine: 45
+    sourceLine: 46
   SYM-core-discovery-classifyCoverageDepth:
     sourceColumn: 4
     sourceEndColumn: 27
@@ -3902,18 +3920,36 @@ coordinates:
     sourceEndLine: 1025
     sourceFile: packages/core/src/checks.pl
     sourceLine: 1025
+  SYM-core-kb-attach-audit-store:
+    sourceColumn: 4
+    sourceEndColumn: 13
+    sourceEndLine: 4
+    sourceFile: packages/core/src/kb.pl
+    sourceLine: 4
+  SYM-core-kb-commit-upsert:
+    sourceColumn: 4
+    sourceEndColumn: 20
+    sourceEndLine: 10
+    sourceFile: packages/core/src/kb.pl
+    sourceLine: 10
   SYM-core-kb-literal-to-value:
     sourceColumn: 8
     sourceEndColumn: 24
-    sourceEndLine: 402
+    sourceEndLine: 515
     sourceFile: packages/core/src/kb.pl
-    sourceLine: 402
+    sourceLine: 515
+  SYM-core-kb-save-locked:
+    sourceColumn: 51
+    sourceEndColumn: 65
+    sourceEndLine: 161
+    sourceFile: packages/core/src/kb.pl
+    sourceLine: 161
   SYM-core-kb-value-to-literal:
     sourceColumn: 4
     sourceEndColumn: 20
-    sourceEndLine: 621
+    sourceEndLine: 734
     sourceFile: packages/core/src/kb.pl
-    sourceLine: 621
+    sourceLine: 734
   SYM-core-logical-ground-signature:
     sourceColumn: 4
     sourceEndColumn: 28
@@ -3929,9 +3965,9 @@ coordinates:
   SYM-core-req-conflict-witness:
     sourceColumn: 4
     sourceEndColumn: 24
-    sourceEndLine: 46
+    sourceEndLine: 47
     sourceFile: packages/core/src/kb.pl
-    sourceLine: 46
+    sourceLine: 47
   SYM-core-requirement-proof:
     sourceColumn: 10
     sourceEndColumn: 27
@@ -4577,9 +4613,9 @@ coordinates:
   SYM-effective-requirement-relationships:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 83
+    sourceEndLine: 90
     sourceFile: packages/cli/src/operations/mutation/upsert.ts
-    sourceLine: 62
+    sourceLine: 69
   SYM-enrichSymbolCoordinates:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -4673,9 +4709,9 @@ coordinates:
   SYM-executeUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 191
+    sourceEndLine: 198
     sourceFile: packages/cli/src/operations/mutation/upsert.ts
-    sourceLine: 85
+    sourceLine: 92
   SYM-executeValidateUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -4769,9 +4805,9 @@ coordinates:
   SYM-formatUpsertError:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 59
+    sourceEndLine: 71
     sourceFile: packages/cli/src/operations/mutation/contradictions.ts
-    sourceLine: 33
+    sourceLine: 26
   SYM-frozenHashes:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7241,9 +7277,9 @@ coordinates:
   SYM-reqcompiler-receipt-append-only-validation:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 60
+    sourceEndLine: 67
     sourceFile: packages/cli/src/operations/mutation/upsert.ts
-    sourceLine: 44
+    sourceLine: 51
   SYM-reqcompiler-remediation-event-reference:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -7559,9 +7595,9 @@ coordinates:
   SYM-resolveKbPlPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 71
+    sourceEndLine: 89
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 33
+    sourceLine: 51
   SYM-resolveManifestPath:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -12365,7 +12401,7 @@ coordinates:
   SYM-telemetry-acceptance-diagnostics:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 858
+    sourceEndLine: 859
     sourceFile: packages/cli/src/public/telemetry-acceptance.ts
     sourceLine: 779
   SYM-telemetry-acceptance-parse-log:
@@ -12407,9 +12443,9 @@ coordinates:
   SYM-test-conservative-requirement-proof-chain:
     sourceColumn: 5
     sourceEndColumn: 79
-    sourceEndLine: 1429
+    sourceEndLine: 1512
     sourceFile: packages/core/tests/kb.plt
-    sourceLine: 1429
+    sourceLine: 1512
   SYM-test-packed-dependency-ordered-repair-plan:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -12485,15 +12521,15 @@ coordinates:
   SYM-test-rule-contradiction-witness-proof:
     sourceColumn: 5
     sourceEndColumn: 64
-    sourceEndLine: 2656
+    sourceEndLine: 2739
     sourceFile: packages/core/tests/kb.plt
-    sourceLine: 2656
+    sourceLine: 2739
   SYM-test-rule-overlap-witness-proof:
     sourceColumn: 5
     sourceEndColumn: 65
-    sourceEndLine: 2676
+    sourceEndLine: 2759
     sourceFile: packages/core/tests/kb.plt
-    sourceLine: 2676
+    sourceLine: 2759
   SYM-test-sparql-fixture-request:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -12509,9 +12545,9 @@ coordinates:
   SYM-test-verification-receipt-proof-states:
     sourceColumn: 5
     sourceEndColumn: 78
-    sourceEndLine: 1528
+    sourceEndLine: 1611
     sourceFile: packages/core/tests/kb.plt
-    sourceLine: 1528
+    sourceLine: 1611
   SYM-updateGitIgnore:
     sourceColumn: 16
     sourceEndColumn: 1

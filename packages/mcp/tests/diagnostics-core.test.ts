@@ -9,8 +9,8 @@ describe("classifyDiagnosticError", () => {
   test("classifies stale snapshot save failures", () => {
     const result = classifyDiagnosticError(
       new Error(
-        "Upsert execution failed: Failed to save KB after upsert: No permission to save kb stale_snapshot"
-      )
+        "Upsert execution failed: Failed to save KB after upsert: No permission to save kb stale_snapshot",
+      ),
     );
 
     expect(result).toEqual({
@@ -28,16 +28,16 @@ describe("classifyDiagnosticError", () => {
     expect(
       classifyDiagnosticError(
         new Error(
-          "Status execution failed: Status execution module load failed: Unknown option (h for help)"
-        )
-      )
+          "Status execution failed: Status execution module load failed: Unknown option (h for help)",
+        ),
+      ),
     ).toMatchObject({
       error_category: "prolog_unknown_option",
       error_stage: "prolog_runtime",
     });
 
     expect(
-      classifyDiagnosticError(new Error("Prolog process not started"))
+      classifyDiagnosticError(new Error("Prolog process not started")),
     ).toMatchObject({
       error_category: "prolog_process_not_started",
       error_stage: "prolog_lifecycle",
@@ -46,7 +46,7 @@ describe("classifyDiagnosticError", () => {
 
   test("classifies tool timeout and Prolog worker reset events", () => {
     expect(
-      classifyDiagnosticError(new Error("Tool kb_upsert timed out after 25ms"))
+      classifyDiagnosticError(new Error("Tool kb_upsert timed out after 25ms")),
     ).toMatchObject({
       error_category: "tool_timeout",
       error_stage: "tool_timeout",
@@ -54,8 +54,8 @@ describe("classifyDiagnosticError", () => {
 
     expect(
       classifyDiagnosticError(
-        new Error("prolog worker reset: tool timeout: kb_upsert")
-      )
+        new Error("prolog worker reset: tool timeout: kb_upsert"),
+      ),
     ).toMatchObject({
       error_category: "prolog_worker_reset",
       error_stage: "prolog_lifecycle",
@@ -66,9 +66,9 @@ describe("classifyDiagnosticError", () => {
     expect(
       classifyDiagnosticError(
         new Error(
-          "Symbol SYM-VIDEO-TOOL-STATE links src/app/utils/video-tool-state.ts coarsely while granular symbols are available: deriveVideoToolState"
-        )
-      )
+          "Symbol SYM-VIDEO-TOOL-STATE links src/app/utils/video-tool-state.ts coarsely while granular symbols are available: deriveVideoToolState",
+        ),
+      ),
     ).toMatchObject({
       error_category: "coarse_symbol_linkage",
       error_stage: "validation",
@@ -77,9 +77,9 @@ describe("classifyDiagnosticError", () => {
     expect(
       classifyDiagnosticError(
         new Error(
-          "Entity validation failed: root: must have required property 'title'"
-        )
-      )
+          "Entity validation failed: root: must have required property 'title'",
+        ),
+      ),
     ).toMatchObject({
       error_category: "entity_validation_failed",
       error_stage: "validation",
@@ -89,8 +89,8 @@ describe("classifyDiagnosticError", () => {
   test("classifies validation failures: relationship validation and source mismatch", () => {
     expect(
       classifyDiagnosticError(
-        new Error("Relationship validation failed: invalid field 'unknown'")
-      )
+        new Error("Relationship validation failed: invalid field 'unknown'"),
+      ),
     ).toMatchObject({
       error_category: "relationship_validation_failed",
       error_stage: "validation",
@@ -99,9 +99,9 @@ describe("classifyDiagnosticError", () => {
     expect(
       classifyDiagnosticError(
         new Error(
-          "Relationship source must match the upserted entity TEST-1; received from=REQ-1"
-        )
-      )
+          "Relationship source must match the upserted entity TEST-1; received from=REQ-1",
+        ),
+      ),
     ).toMatchObject({
       error_category: "relationship_source_mismatch",
       error_stage: "validation",
@@ -111,15 +111,15 @@ describe("classifyDiagnosticError", () => {
   test("classifies Prolog failures: module load and query", () => {
     expect(
       classifyDiagnosticError(
-        new Error("Status execution module load failed: plunit")
-      )
+        new Error("Status execution module load failed: plunit"),
+      ),
     ).toMatchObject({
       error_category: "prolog_module_load_failed",
       error_stage: "prolog_runtime",
     });
 
     expect(
-      classifyDiagnosticError(new Error("Prolog query failed: timeout"))
+      classifyDiagnosticError(new Error("Prolog query failed: timeout")),
     ).toMatchObject({
       error_category: "prolog_query_failed",
       error_stage: "prolog_runtime",
@@ -129,8 +129,8 @@ describe("classifyDiagnosticError", () => {
   test("classifies Prolog requirement contradictions as semantic validation", () => {
     const result = classifyDiagnosticError(
       new Error(
-        "Upsert execution failed: Contradiction detected for requirement REQ-NEW:\n  - Conflicts with REQ-OLD: Value conflict on auth.session_timeout: eq 15 vs eq 30"
-      )
+        "Upsert execution failed: Contradiction detected for requirement REQ-NEW:\n  - Conflicts with REQ-OLD: Value conflict on auth.session_timeout: eq 15 vs eq 30",
+      ),
     );
 
     expect(result).toMatchObject({
@@ -146,7 +146,7 @@ describe("classifyDiagnosticError", () => {
 
   test("classifies unhandled handler errors for unknown messages", () => {
     const result = classifyDiagnosticError(
-      new Error("Unexpected internal failure")
+      new Error("Unexpected internal failure"),
     );
     expect(result).toMatchObject({
       error_category: "handler_error",
@@ -176,7 +176,7 @@ describe("deriveDiagnosticFields", () => {
         session_id: "session-mcp",
         actor_id: "actor-mcp",
       },
-      {}
+      {},
     );
 
     expect(result).toMatchObject({
@@ -240,7 +240,7 @@ describe("deriveDiagnosticFields", () => {
       "kb_check",
       { rules: ["rule1", "rule2"] },
       null,
-      { structuredContent: { count: 3 } }
+      { structuredContent: { count: 3 } },
     );
     expect(result.violation_count).toBe(3);
     expect(result.requested_rules).toEqual(["rule1", "rule2"]);
@@ -278,7 +278,7 @@ describe("deriveDiagnosticFields", () => {
     expect(result.semantic_next_tools).toEqual(["kb_suggest_predicates"]);
     expect(result.semantic_source_hash).toBe("a".repeat(64));
     expect(result.result_summary).toBe(
-      "semantic advisor needs_modeling via predicate"
+      "semantic advisor needs_modeling via predicate",
     );
   });
 
@@ -298,7 +298,7 @@ describe("deriveDiagnosticFields", () => {
             inventory_contract: { source_hash: "b".repeat(64) },
           },
         },
-      }
+      },
     );
     const upsert = deriveDiagnosticFields(
       "kb_upsert",
@@ -308,7 +308,7 @@ describe("deriveDiagnosticFields", () => {
         id: "REQ-1",
       },
       null,
-      { structuredContent: { created: 1, updated: 0 } }
+      { structuredContent: { created: 1, updated: 0 } },
     );
 
     expect(validate.validation_valid).toBe(true);
@@ -339,7 +339,7 @@ describe("deriveDiagnosticFields", () => {
           repairPlan: { scope: { complete: true } },
           meta: { verificationSnapshot: "c".repeat(64) },
         },
-      }
+      },
     );
 
     expect(result).toMatchObject({
@@ -377,11 +377,11 @@ describe("deriveDiagnosticFields", () => {
     expect(result.predicate_top_name).toBe("commit_action");
     expect(result.predicate_top_score).toBe(0.98);
     expect(result.predicate_recommended_action).toBe(
-      "apply_requires_predicate"
+      "apply_requires_predicate",
     );
     expect(result.predicate_relationship_plan).toBe(true);
     expect(result.result_summary).toBe(
-      "2 predicate candidates; top=commit_action"
+      "2 predicate candidates; top=commit_action",
     );
   });
 

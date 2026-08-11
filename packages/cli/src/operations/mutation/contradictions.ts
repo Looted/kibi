@@ -13,30 +13,42 @@ type TransactionInput = {
 };
 
 // implements REQ-kibi-operation-interface-parity
-export function buildUpsertTransaction(input: TransactionInput): string {
-  const id = String(input.entity.id);
+export function buildUpsertCommitGoal(input: TransactionInput): string {
   const type = String(input.entity.type);
-  const goals = [
-    `kb_assert_entity_no_audit(${type}, ${buildPropertyList(input.entity)})`,
-    ...input.relationships.map(
-      (relationship) =>
-        `kb_assert_relationship_no_audit(${String(relationship.type)}, '${escapeAtom(String(relationship.from))}', '${escapeAtom(String(relationship.to))}', ${buildRelationshipMetadata(relationship)})`,
-    ),
-  ];
-  if (type === "req" && !input.skipContradictionCheck) {
-    goals.push(`check_req_contradiction('${escapeAtom(id)}')`);
-  }
-  return `rdf_transaction((${goals.join(", ")}))`;
+  const relationships = input.relationships.map(
+    (relationship) =>
+      `rel(${String(relationship.type)}, '${escapeAtom(String(relationship.from))}', '${escapeAtom(String(relationship.to))}', ${buildRelationshipMetadata(relationship)})`,
+  );
+  return `kb_commit_upsert(${type}, ${buildPropertyList(input.entity)}, [${relationships.join(", ")}], ${input.skipContradictionCheck ? "true" : "false"}, ChangeKind)`;
 }
 
 // implements REQ-kibi-operation-interface-parity
 export function formatUpsertError(entityId: string, raw?: string): string {
   if (!raw) return `Failed to upsert entity ${entityId}: Unknown error`;
-  const invalidRelationship = formatInvalidRelationshipError(raw);
-  if (invalidRelationship !== null) {
-    return `Failed to upsert entity ${entityId}: ${invalidRelationship}`;
+  const stage = raw.match(/\(stage=([^)]+)\)/)?.[1];
+  const stageSuffix = stage === undefined ? "" : ` (stage=${stage})`;
+  const diagnosticFree = raw.replace(
+    /^__KIBI_(?:STAGE|RUNTIME)__:[^\r\n]*\r?\n?/gm,
+    "",
+  );
+  if (diagnosticFree.includes("stale_snapshot")) {
+    return `Failed to upsert entity ${entityId}: KB snapshot is stale; reattach or refresh the runtime before retrying (stale_snapshot)${stageSuffix}`;
   }
-  const contradiction = raw.match(/kb_contradiction\(\s*\[([^\]]+)\]\s*\)/);
+  if (
+    diagnosticFree.includes("Audit journal is locked") ||
+    diagnosticFree.includes("audit_log") ||
+    diagnosticFree.includes("audit.log") ||
+    diagnosticFree.includes("Resource temporarily unavailable")
+  ) {
+    return `Failed to upsert entity ${entityId}: Audit journal is locked by another Kibi runtime; restart the stale MCP/CLI session before retrying${stageSuffix}`;
+  }
+  const invalidRelationship = formatInvalidRelationshipError(diagnosticFree);
+  if (invalidRelationship !== null) {
+    return `Failed to upsert entity ${entityId}: ${invalidRelationship}${stageSuffix}`;
+  }
+  const contradiction = diagnosticFree.match(
+    /kb_contradiction\(\s*\[([^\]]+)\]\s*\)/,
+  );
   if (contradiction) {
     const details = contradiction[1] ?? "";
     const conflicts = [
@@ -48,12 +60,12 @@ export function formatUpsertError(entityId: string, raw?: string): string {
         `  - Conflicts with ${String(match[3])}: ${String(match[1] ?? match[2])}`,
     );
     if (conflicts.length > 0) {
-      return `Contradiction detected for requirement ${entityId}:\n${[...new Set(conflicts)].join("\n")}\n\nTo resolve:\n  1. Add a supersedes relationship from the new requirement to the conflicting one, OR\n  2. Deprecate the conflicting requirement before creating the new one.`;
+      return `Contradiction detected for requirement ${entityId}:\n${[...new Set(conflicts)].join("\n")}\n\nTo resolve:\n  1. Add a supersedes relationship from the new requirement to the conflicting one, OR\n  2. Deprecate the conflicting requirement before creating the new one.${stageSuffix}`;
     }
-    return `Contradiction detected for entity ${entityId}: This requirement conflicts with existing requirements. Add a supersedes relationship to the conflicting requirement, or deprecate the old requirement before creating the new one.`;
+    return `Contradiction detected for entity ${entityId}: This requirement conflicts with existing requirements. Add a supersedes relationship to the conflicting requirement, or deprecate the old requirement before creating the new one.${stageSuffix}`;
   }
-  if (raw.includes("rdf_transaction")) {
-    return `Failed to upsert entity ${entityId}: Transaction failed`;
+  if (diagnosticFree.includes("rdf_transaction")) {
+    return `Failed to upsert entity ${entityId}: Transaction failed${stageSuffix}`;
   }
-  return `Failed to upsert entity ${entityId}: ${raw}`;
+  return `Failed to upsert entity ${entityId}: ${diagnosticFree || raw}`;
 }

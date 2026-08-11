@@ -1,5 +1,6 @@
 import { describe, expect, mock, test } from "bun:test";
 
+import { buildUpsertCommitGoal } from "../../src/operations/mutation/contradictions.js";
 import { buildPropertyList } from "../../src/operations/mutation/serialization.js";
 import { analyzeSemanticAdvisorInput } from "../../src/operations/semantic-advisor/analyze-prose.js";
 import type {
@@ -65,6 +66,31 @@ const verificationReceipt = {
 } as const;
 
 describe("shared mutation operation specs", () => {
+  test("builds one combined commit goal without a second auto-save", () => {
+    const goal = buildUpsertCommitGoal({
+      entity: {
+        type: "req",
+        id: "REQ-COMMIT-GOAL",
+        title: "Commit goal",
+        status: "open",
+      },
+      relationships: [
+        {
+          type: "verified_by",
+          from: "REQ-COMMIT-GOAL",
+          to: "TEST-COMMIT-GOAL",
+          metadata: { source: "test" },
+        },
+      ],
+      skipContradictionCheck: false,
+    });
+
+    expect(goal).toContain("kb_commit_upsert(req");
+    expect(goal).toContain("rel(verified_by, 'REQ-COMMIT-GOAL'");
+    expect(goal).toContain("false, ChangeKind)");
+    expect(goal).not.toContain("rdf_transaction");
+  });
+
   test("serializes semantic inventory as one quoted JSON value", () => {
     const properties = buildPropertyList({
       id: "REQ-INVENTORY",
@@ -393,10 +419,10 @@ describe("shared mutation operation specs", () => {
     // Given
     const { context, query, save } = createContext(
       (goal): PrologQueryResult => {
-        if (goal.startsWith("once(kb_entity(")) {
-          return { success: false, bindings: {} };
+        if (goal.startsWith("kb_commit_upsert(")) {
+          return { success: true, bindings: { ChangeKind: "created" } };
         }
-        return { success: true, bindings: {} };
+        return { success: false, bindings: {} };
       },
     );
 
@@ -409,18 +435,16 @@ describe("shared mutation operation specs", () => {
       updated: 0,
       relationships_created: 0,
     });
-    expect(
-      query.mock.calls.filter(([goal]) =>
-        String(goal).startsWith("rdf_transaction"),
-      ),
-    ).toHaveLength(1);
-    expect(save).toHaveBeenCalledTimes(1);
+    expect(query).toHaveBeenCalledWith(
+      expect.stringMatching(/^kb_commit_upsert\(/),
+    );
+    expect(save).not.toHaveBeenCalled();
   });
 
   test("upsert does not save when its atomic write fails", async () => {
     // Given
     const { context, save } = createContext((goal) => {
-      if (goal.startsWith("rdf_transaction")) {
+      if (goal.startsWith("kb_commit_upsert(")) {
         return {
           success: false,
           bindings: {},

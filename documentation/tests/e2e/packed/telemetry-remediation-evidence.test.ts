@@ -82,7 +82,7 @@ if (RUN_NODE_TEST_SUITE) {
         assert.strictEqual(
           initialized.exitCode,
           0,
-          `${initialized.stdout}${initialized.stderr}`
+          `${initialized.stdout}${initialized.stderr}`,
         );
       });
 
@@ -101,9 +101,9 @@ if (RUN_NODE_TEST_SUITE) {
             JSON.stringify({
               _diagnostic_telemetry: diagnosticTelemetry(
                 "session-packed",
-                "actor-packed"
+                "actor-packed",
               ),
-            })
+            }),
           );
           const cli = await kibi(sandbox, [
             "--diagnostic-mode",
@@ -124,14 +124,14 @@ if (RUN_NODE_TEST_SUITE) {
               `${JSON.stringify({
                 jsonrpc: "2.0",
                 method: "notifications/initialized",
-              })}\n`
+              })}\n`,
             );
             const response = await sendMcpRequest(mcp, 2, "tools/call", {
               name: "kb_skills_list",
               arguments: {
                 _diagnostic_telemetry: diagnosticTelemetry(
                   "session-packed",
-                  "actor-packed"
+                  "actor-packed",
                 ),
               },
             });
@@ -163,7 +163,7 @@ if (RUN_NODE_TEST_SUITE) {
                 session_id: "session-packed",
                 actor_id: "actor-packed",
                 business_args: {},
-              }
+              },
             );
           }
 
@@ -180,7 +180,7 @@ if (RUN_NODE_TEST_SUITE) {
               session_id: "session-packed",
               actor_id: "actor-packed",
               business_args: {},
-            })
+            }),
           );
           const requirementPayload = {
             type: "req",
@@ -239,11 +239,11 @@ if (RUN_NODE_TEST_SUITE) {
               coverage_proof_gap_count: 3,
               coverage_receipt_gap_count: 2,
               business_args: { by: "req" },
-            }))
+            })),
           );
           appendFileSync(
             usagePath,
-            `${synthetic.map((event) => JSON.stringify(event)).join("\n")}\n`
+            `${synthetic.map((event) => JSON.stringify(event)).join("\n")}\n`,
           );
           const evidenceBefore = readFileSync(usagePath, "utf8");
           const first = await kibi(sandbox, [
@@ -259,12 +259,12 @@ if (RUN_NODE_TEST_SUITE) {
           assert.strictEqual(
             first.exitCode,
             0,
-            `${first.stdout}${first.stderr}`
+            `${first.stdout}${first.stderr}`,
           );
           assert.strictEqual(
             second.exitCode,
             0,
-            `${second.stdout}${second.stderr}`
+            `${second.stdout}${second.stderr}`,
           );
           assert.strictEqual(readFileSync(usagePath, "utf8"), evidenceBefore);
 
@@ -272,7 +272,7 @@ if (RUN_NODE_TEST_SUITE) {
           const secondReport = JSON.parse(second.stdout) as RemediationReport;
           assert.strictEqual(
             firstReport.version,
-            "kibi.telemetry-remediation.v1"
+            "kibi.telemetry-remediation.v1",
           );
           assert.strictEqual(firstReport.status, "action_required");
           assert.deepStrictEqual(firstReport.items, secondReport.items);
@@ -282,7 +282,7 @@ if (RUN_NODE_TEST_SUITE) {
           ]) {
             const item = firstReport.items.find(
               (candidate) =>
-                candidate.metric === metric && candidate.event?.logLine === 23
+                candidate.metric === metric && candidate.event?.logLine === 23,
             );
             assert.ok(item, `missing exact ${metric} remediation`);
             assert.deepStrictEqual(item.event, {
@@ -294,8 +294,8 @@ if (RUN_NODE_TEST_SUITE) {
               actorId: "actor-packed",
             });
           }
-        }
+        },
       );
-    }
+    },
   );
 }

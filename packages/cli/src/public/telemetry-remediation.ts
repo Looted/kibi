@@ -86,7 +86,7 @@ function telemetryProvided(event: TelemetryUsageEvent): boolean {
 
 function correlationValue(
   event: TelemetryUsageEvent,
-  key: "session_id" | "actor_id"
+  key: "session_id" | "actor_id",
 ): string | undefined {
   if (typeof event[key] === "string" && event[key].length > 0) {
     return event[key];
@@ -111,7 +111,7 @@ function compatible(left: TelemetryUsageEvent, right: TelemetryUsageEvent) {
 function withinAge(
   earlier: number | null,
   later: number | null,
-  seconds: number
+  seconds: number,
 ): boolean {
   return (
     earlier !== null &&
@@ -152,7 +152,7 @@ function eventItem(
   entry: IndexedEvent,
   itemTarget: string,
   reason: string,
-  action: string
+  action: string,
 ): TelemetryRemediationItem {
   return {
     id: `${metric}:line-${entry.index + 1}:${itemTarget}`,
@@ -170,7 +170,7 @@ function reportItem(
   metric: TelemetryMetricId | "evidence_freshness",
   itemTarget: string,
   reason: string,
-  action: string
+  action: string,
 ): TelemetryRemediationItem {
   return {
     id: `${metric}:report:${itemTarget}`,
@@ -186,10 +186,10 @@ function reportItem(
 
 function isActionable(
   acceptance: TelemetryAcceptanceReport,
-  metric: TelemetryMetricId
+  metric: TelemetryMetricId,
 ): boolean {
   const status = acceptance.metrics.find(
-    (candidate) => candidate.id === metric
+    (candidate) => candidate.id === metric,
   )?.status;
   return status === "failed" || status === "insufficient_evidence";
 }
@@ -197,7 +197,7 @@ function isActionable(
 export function buildTelemetryRemediationReport(
   events: readonly TelemetryUsageEvent[],
   now: Date = new Date(),
-  policy: TelemetryAcceptancePolicy = DEFAULT_TELEMETRY_ACCEPTANCE_POLICY
+  policy: TelemetryAcceptancePolicy = DEFAULT_TELEMETRY_ACCEPTANCE_POLICY,
 ): TelemetryRemediationReport {
   const acceptance = analyzeTelemetryAcceptance(events, now, policy);
   const all: IndexedEvent[] = events.map((event, index) => ({
@@ -219,14 +219,14 @@ export function buildTelemetryRemediationReport(
         "evidence_freshness",
         ".kb/usage.log",
         "The acceptance window has no current timestamped evidence.",
-        "Run the current workflow in diagnostic mode, then regenerate this report."
-      )
+        "Run the current workflow in diagnostic mode, then regenerate this report.",
+      ),
     );
   }
 
   if (isActionable(acceptance, "telemetry_completeness")) {
     for (const entry of recent.filter(
-      ({ event }) => !telemetryProvided(event)
+      ({ event }) => !telemetryProvided(event),
     )) {
       items.push(
         eventItem(
@@ -234,8 +234,8 @@ export function buildTelemetryRemediationReport(
           entry,
           entry.event.tool ?? "unknown tool",
           "Diagnostic telemetry is missing for this event.",
-          "Repeat this operation in diagnostic mode with complete _diagnostic_telemetry."
-        )
+          "Repeat this operation in diagnostic mode with complete _diagnostic_telemetry.",
+        ),
       );
     }
     if (recent.length < policy.minimumEvents) {
@@ -244,8 +244,8 @@ export function buildTelemetryRemediationReport(
           "telemetry_completeness",
           "acceptance window",
           `Only ${recent.length}/${policy.minimumEvents} required events are available.`,
-          "Capture enough current diagnostic events to satisfy the minimum evidence window."
-        )
+          "Capture enough current diagnostic events to satisfy the minimum evidence window.",
+        ),
       );
     }
   }
@@ -268,7 +268,7 @@ export function buildTelemetryRemediationReport(
       const match = (preflights.get(fingerprint(entry.event)) ?? []).findLast(
         (candidate) =>
           compatible(candidate.event, entry.event) &&
-          withinAge(candidate.time, entry.time, policy.preflightMaxAgeSeconds)
+          withinAge(candidate.time, entry.time, policy.preflightMaxAgeSeconds),
       );
       if (match === undefined) {
         items.push(
@@ -277,8 +277,8 @@ export function buildTelemetryRemediationReport(
             entry,
             target(entry.event),
             "No recent successful preflight matches this exact payload and correlation context.",
-            "Run kb_validate_upsert for this exact payload in the same session/actor context before retrying once."
-          )
+            "Run kb_validate_upsert for this exact payload in the same session/actor context before retrying once.",
+          ),
         );
       }
     }
@@ -292,8 +292,8 @@ export function buildTelemetryRemediationReport(
         typeof eventArgs.id === "string"
           ? eventArgs.id
           : typeof eventArgs.requirementId === "string"
-          ? eventArgs.requirementId
-          : undefined;
+            ? eventArgs.requirementId
+            : undefined;
       if (
         entry.event.tool === "kb_semantic_advisor" &&
         succeeded(entry.event) &&
@@ -319,7 +319,7 @@ export function buildTelemetryRemediationReport(
             entry.event.semantic_source_hash === undefined ||
             candidate.event.semantic_source_hash ===
               entry.event.semantic_source_hash) &&
-          withinAge(candidate.time, entry.time, policy.advisorMaxAgeSeconds)
+          withinAge(candidate.time, entry.time, policy.advisorMaxAgeSeconds),
       );
       if (match === undefined) {
         items.push(
@@ -328,8 +328,8 @@ export function buildTelemetryRemediationReport(
             entry,
             requirementId,
             "No recent semantic-advisor event matches this requirement, source hash, and correlation context.",
-            "Run kb_semantic_advisor on the complete prose in the same session/actor context before the next upsert."
-          )
+            "Run kb_semantic_advisor on the complete prose in the same session/actor context before the next upsert.",
+          ),
         );
       }
     }
@@ -350,8 +350,8 @@ export function buildTelemetryRemediationReport(
             entry,
             sourceFile,
             "This source-linked lookup returned zero results.",
-            "Inspect the source, refresh its symbol links if stale, then repeat search followed by exact query."
-          )
+            "Inspect the source, refresh its symbol links if stale, then repeat search followed by exact query.",
+          ),
         );
       }
     }
@@ -363,7 +363,7 @@ export function buildTelemetryRemediationReport(
       succeeded(event) &&
       (event.coverage_by ?? "req") === "req" &&
       event.coverage_scope_complete === true &&
-      typeof event.coverage_proof_gap_count === "number"
+      typeof event.coverage_proof_gap_count === "number",
   );
   const latestCoverage = completeCoverage.at(-1);
   if (isActionable(acceptance, "proof_gap_recovery")) {
@@ -374,14 +374,14 @@ export function buildTelemetryRemediationReport(
             latestCoverage,
             "coverage:req",
             `The latest complete report has ${latestCoverage.event.coverage_proof_gap_count} proof gaps without demonstrated recovery.`,
-            "Apply one reviewed repair batch and rerun complete requirement coverage."
+            "Apply one reviewed repair batch and rerun complete requirement coverage.",
           )
         : reportItem(
             "proof_gap_recovery",
             "coverage:req",
             "No complete requirement coverage event contains proof-gap evidence.",
-            "Run kb_coverage by req with complete scope and diagnostic telemetry."
-          )
+            "Run kb_coverage by req with complete scope and diagnostic telemetry.",
+          ),
     );
   }
   if (isActionable(acceptance, "e2e_receipt_freshness")) {
@@ -393,14 +393,14 @@ export function buildTelemetryRemediationReport(
             latestCoverage,
             "coverage:req",
             `The latest complete report has ${latestCoverage.event.coverage_receipt_gap_count} receipt gaps.`,
-            "Run the cited E2E tests, append fresh passing receipts, sync, and rerun coverage."
+            "Run the cited E2E tests, append fresh passing receipts, sync, and rerun coverage.",
           )
         : reportItem(
             "e2e_receipt_freshness",
             "coverage:req",
             "No complete requirement coverage event contains receipt-freshness evidence.",
-            "Run complete requirement coverage after attaching fresh E2E verification receipts."
-          )
+            "Run complete requirement coverage after attaching fresh E2E verification receipts.",
+          ),
     );
   }
 
@@ -434,8 +434,8 @@ export function buildTelemetryRemediationReport(
             entry,
             target(entry.event),
             "This event belongs to a mutation-failure streak at or above the retry threshold.",
-            "Stop retrying; inspect endpoints and the exact preflight result, then make one repaired attempt."
-          )
+            "Stop retrying; inspect endpoints and the exact preflight result, then make one repaired attempt.",
+          ),
         );
       }
     }
@@ -446,7 +446,7 @@ export function buildTelemetryRemediationReport(
       left.rank - right.rank ||
       (left.event?.logLine ?? Number.MAX_SAFE_INTEGER) -
         (right.event?.logLine ?? Number.MAX_SAFE_INTEGER) ||
-      left.id.localeCompare(right.id)
+      left.id.localeCompare(right.id),
   );
   return {
     version: TELEMETRY_REMEDIATION_VERSION,

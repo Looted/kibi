@@ -1,6 +1,6 @@
 /// <reference types="bun-types" />
 import { afterEach, describe, expect, test } from "bun:test";
-import { execSync } from "node:child_process";
+import { execSync, spawn } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -64,6 +64,16 @@ describe("PrologProcess", () => {
     prolog = new PrologProcess({ timeout: 100 });
     await prolog.start();
     await expect(prolog.query("repeat, fail")).rejects.toThrow("timeout");
+  }, 5000);
+
+  test("reports the last commit stage when a one-shot query times out", async () => {
+    prolog = new PrologProcess({ timeout: 100 });
+    await prolog.start();
+    await expect(
+      prolog.query(
+        "format(user_error, '__KIBI_STAGE__:audit_sync~n', []), repeat, fail",
+      ),
+    ).rejects.toThrow(/Query timeout after .*stage=audit_sync/);
   }, 5000);
 
   test("gracefully terminates process", async () => {
@@ -243,6 +253,101 @@ describe("PrologProcess", () => {
       }
     }
   });
+
+  test("one-shot commit persists RDF, relationships, audits, and snapshot", async () => {
+    const tempKbDir = mkdtempSync(path.join(os.tmpdir(), "kibi-commit-kb-"));
+    prolog = new PrologProcess({ timeout: 5000 });
+    await prolog.start();
+
+    try {
+      const quote = String.fromCharCode(39);
+      const attachResult = await prolog.query(
+        `kb_attach(${quote}${tempKbDir}${quote})`,
+      );
+      expect(attachResult.success).toBe(true);
+      const source = await prolog.query(
+        'kb_assert_entity(req, [id=\'REQ-COMMIT-SOURCE\', title="Source", status=open, created_at="2026-01-01T00:00:00Z", updated_at="2026-01-01T00:00:00Z", source="test"])',
+      );
+      const target = await prolog.query(
+        'kb_assert_entity(test, [id=\'TEST-COMMIT-TARGET\', title="Target", status=passing, created_at="2026-01-01T00:00:00Z", updated_at="2026-01-01T00:00:00Z", source="test"])',
+      );
+      expect(source.success).toBe(true);
+      expect(target.success).toBe(true);
+
+      const commit = await prolog.query(
+        'kb_commit_upsert(req, [id=\'REQ-COMMIT-NEW\', title="Committed", status=open, created_at="2026-01-01T00:00:00Z", updated_at="2026-01-01T00:00:00Z", source="test"], [rel(verified_by, \'REQ-COMMIT-NEW\', \'TEST-COMMIT-TARGET\', [])], false, ChangeKind)',
+      );
+      expect(commit).toMatchObject({
+        success: true,
+        bindings: { ChangeKind: "created" },
+      });
+
+      const rdfPath = path.join(tempKbDir, "kb.rdf");
+      const auditPath = path.join(tempKbDir, "audit.log");
+      expect(readFileSync(rdfPath, "utf8")).toContain("REQ-COMMIT-NEW");
+      expect(readFileSync(rdfPath, "utf8")).toContain("TEST-COMMIT-TARGET");
+      const audit = readFileSync(auditPath, "utf8");
+      expect(audit).toContain("'REQ-COMMIT-NEW'");
+      expect(audit).toContain("upsert_rel");
+    } finally {
+      await prolog.query("kb_detach");
+      if (existsSync(tempKbDir)) {
+        rmSync(tempKbDir, { recursive: true, force: true });
+      }
+    }
+  });
+
+  test("fails before RDF mutation when a stale writer holds audit.log", async () => {
+    const tempKbDir = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-audit-lock-kb-"),
+    );
+    prolog = new PrologProcess({ timeout: 1000 });
+    await prolog.start();
+    let staleWriter: ReturnType<typeof spawn> | null = null;
+
+    try {
+      const quote = String.fromCharCode(39);
+      expect(
+        (await prolog.query(`kb_attach(${quote}${tempKbDir}${quote})`)).success,
+      ).toBe(true);
+      await prolog.query(
+        'kb_assert_entity(req, [id=\'REQ-AUDIT-LOCK-TARGET\', title="Target", status=open, created_at="2026-01-01T00:00:00Z", updated_at="2026-01-01T00:00:00Z", source="test"])',
+      );
+
+      staleWriter = spawn(
+        "swipl",
+        [
+          "-q",
+          "-g",
+          `open(${quote}${path.join(tempKbDir, "audit.log")}${quote}, append, Stream, [lock(write)]), repeat, fail`,
+          "-t",
+          "halt",
+        ],
+        { stdio: "ignore" },
+      );
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const started = Date.now();
+      const result = await prolog.query(
+        'kb_commit_upsert(req, [id=\'REQ-AUDIT-LOCK-NEW\', title="Blocked", status=open, created_at="2026-01-01T00:00:00Z", updated_at="2026-01-01T00:00:00Z", source="test"], [], false, ChangeKind)',
+      );
+      expect(Date.now() - started).toBeLessThan(900);
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Audit journal is locked");
+      expect(
+        readFileSync(path.join(tempKbDir, "kb.rdf"), "utf8"),
+      ).not.toContain("REQ-AUDIT-LOCK-NEW");
+    } finally {
+      staleWriter?.kill("SIGKILL");
+      await new Promise(
+        (resolve) => staleWriter?.once("close", resolve) ?? resolve(undefined),
+      );
+      await prolog.query("kb_detach");
+      if (existsSync(tempKbDir)) {
+        rmSync(tempKbDir, { recursive: true, force: true });
+      }
+    }
+  }, 10000);
 });
 
 describe("CLI", () => {

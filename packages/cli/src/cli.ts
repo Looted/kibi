@@ -30,7 +30,7 @@ import { registerSkillsCommands } from "./cli-register-skills.js";
 export type { CommandResult } from "./cli-command.js";
 
 const packageJson: unknown = JSON.parse(
-  readFileSync(new URL("../package.json", import.meta.url), "utf8")
+  readFileSync(new URL("../package.json", import.meta.url), "utf8"),
 );
 
 function packageVersion(value: unknown): string {
@@ -53,7 +53,7 @@ export function buildProgram(): Command {
     .version(packageVersion(packageJson))
     .option(
       "--diagnostic-mode",
-      "Append diagnostic usage evidence for public JSON operations"
+      "Append diagnostic usage evidence for public JSON operations",
     );
 
   registerFoundationCommands(program);
@@ -77,8 +77,8 @@ export async function main(): Promise<never> {
   }
   await Promise.all(
     [process.stdout, process.stderr].map((stream) =>
-      stream.writableNeedDrain ? once(stream, "drain") : Promise.resolve()
-    )
+      stream.writableNeedDrain ? once(stream, "drain") : Promise.resolve(),
+    ),
   );
   process.exit(exitCode);
 }

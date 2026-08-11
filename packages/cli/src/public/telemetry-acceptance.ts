@@ -123,7 +123,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export function parseTelemetryUsageLog(
-  contents: string
+  contents: string,
 ): TelemetryUsageEvent[] {
   const events: TelemetryUsageEvent[] = [];
   for (const [index, line] of contents.split(/\r?\n/).entries()) {
@@ -135,12 +135,12 @@ export function parseTelemetryUsageLog(
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(
-        `Failed to parse .kb/usage.log line ${index + 1}: ${message}`
+        `Failed to parse .kb/usage.log line ${index + 1}: ${message}`,
       );
     }
     if (!isRecord(parsed)) {
       throw new Error(
-        `Failed to parse .kb/usage.log line ${index + 1}: expected object`
+        `Failed to parse .kb/usage.log line ${index + 1}: expected object`,
       );
     }
     events.push(parsed as TelemetryUsageEvent);
@@ -149,7 +149,7 @@ export function parseTelemetryUsageLog(
 }
 
 function eventArgs(
-  event: TelemetryUsageEvent
+  event: TelemetryUsageEvent,
 ): Readonly<Record<string, unknown>> {
   return event.business_args ?? event.args ?? {};
 }
@@ -181,7 +181,7 @@ function canonicalValue(value: unknown): unknown {
     Object.entries(value)
       .filter(([key]) => key !== "_diagnostic_telemetry")
       .sort(([left], [right]) => left.localeCompare(right))
-      .map(([key, child]) => [key, canonicalValue(child)])
+      .map(([key, child]) => [key, canonicalValue(child)]),
   );
 }
 
@@ -207,7 +207,7 @@ function rate(numerator: number, denominator: number): number | undefined {
 function thresholdStatus(
   actual: number | undefined,
   operator: ">=" | "<=" | "<",
-  expected: number
+  expected: number,
 ): TelemetryMetricStatus {
   if (actual === undefined) return "not_applicable";
   if (operator === ">=") return actual >= expected ? "passed" : "failed";
@@ -218,7 +218,7 @@ function thresholdStatus(
 function withinAge(
   earlier: number | null,
   later: number | null,
-  maxAgeSeconds: number
+  maxAgeSeconds: number,
 ): boolean {
   if (earlier === null || later === null || earlier > later) return false;
   return later - earlier <= maxAgeSeconds * 1_000;
@@ -226,7 +226,7 @@ function withinAge(
 
 function telemetryCorrelationValue(
   event: TelemetryUsageEvent,
-  key: "session_id" | "actor_id"
+  key: "session_id" | "actor_id",
 ): string | undefined {
   if (typeof event[key] === "string" && event[key].length > 0) {
     return event[key];
@@ -238,7 +238,7 @@ function telemetryCorrelationValue(
 
 function correlationCompatible(
   evidence: TelemetryUsageEvent,
-  action: TelemetryUsageEvent
+  action: TelemetryUsageEvent,
 ): boolean {
   for (const key of ["session_id", "actor_id"] as const) {
     const evidenceValue = telemetryCorrelationValue(evidence, key);
@@ -256,10 +256,10 @@ function correlationCompatible(
 
 function telemetryCompletenessMetric(
   recent: readonly TimedEvent[],
-  policy: TelemetryAcceptancePolicy
+  policy: TelemetryAcceptancePolicy,
 ): MutableMetric {
   const complete = recent.filter(({ event }) =>
-    telemetryProvided(event)
+    telemetryProvided(event),
   ).length;
   const actual = rate(complete, recent.length);
   const enoughEvidence = recent.length >= policy.minimumEvents;
@@ -284,7 +284,7 @@ function telemetryCompletenessMetric(
 function validationBeforeUpsertMetric(
   all: readonly TimedEvent[],
   recentStart: number,
-  policy: TelemetryAcceptancePolicy
+  policy: TelemetryAcceptancePolicy,
 ): MutableMetric {
   const validPreflights = new Map<string, TimedEvent[]>();
   let attempts = 0;
@@ -311,7 +311,7 @@ function validationBeforeUpsertMetric(
     const match = (validPreflights.get(fingerprint) ?? []).findLast(
       (candidate) =>
         correlationCompatible(candidate.event, current.event) &&
-        withinAge(candidate.time, current.time, policy.preflightMaxAgeSeconds)
+        withinAge(candidate.time, current.time, policy.preflightMaxAgeSeconds),
     );
     if (match !== undefined) {
       validated += 1;
@@ -345,7 +345,7 @@ function validationBeforeUpsertMetric(
 function advisorBeforeRequirementWriteMetric(
   all: readonly TimedEvent[],
   recentStart: number,
-  policy: TelemetryAcceptancePolicy
+  policy: TelemetryAcceptancePolicy,
 ): MutableMetric {
   const advisors = new Map<
     string,
@@ -364,8 +364,8 @@ function advisorBeforeRequirementWriteMetric(
       typeof args.id === "string"
         ? args.id
         : typeof args.requirementId === "string"
-        ? args.requirementId
-        : undefined;
+          ? args.requirementId
+          : undefined;
     if (
       current.event.tool === "kb_semantic_advisor" &&
       eventSucceeded(current.event) &&
@@ -399,8 +399,8 @@ function advisorBeforeRequirementWriteMetric(
         withinAge(
           candidate.entry.time,
           current.time,
-          policy.advisorMaxAgeSeconds
-        )
+          policy.advisorMaxAgeSeconds,
+        ),
     );
     if (advisor !== undefined) {
       advised += 1;
@@ -415,7 +415,7 @@ function advisorBeforeRequirementWriteMetric(
     status: thresholdStatus(
       actual,
       ">=",
-      policy.advisorBeforeRequirementWriteMinimum
+      policy.advisorBeforeRequirementWriteMinimum,
     ),
     numerator: advised,
     denominator: attempts,
@@ -437,7 +437,7 @@ function advisorBeforeRequirementWriteMetric(
 
 function sourceLookupMetric(
   recent: readonly TimedEvent[],
-  policy: TelemetryAcceptancePolicy
+  policy: TelemetryAcceptancePolicy,
 ): MutableMetric {
   const lookups = recent.filter(({ event }) => {
     if (
@@ -449,7 +449,7 @@ function sourceLookupMetric(
     return typeof eventArgs(event).sourceFile === "string";
   });
   const zeroResults = lookups.filter(
-    ({ event }) => event.zero_results === true || event.result_count === 0
+    ({ event }) => event.zero_results === true || event.result_count === 0,
   );
   const actual = rate(zeroResults.length, lookups.length);
   const sourceCounts = new Map<string, number>();
@@ -475,7 +475,7 @@ function sourceLookupMetric(
       zeroResultSourceFiles: [...sourceCounts.entries()]
         .sort(
           ([leftFile, leftCount], [rightFile, rightCount]) =>
-            rightCount - leftCount || leftFile.localeCompare(rightFile)
+            rightCount - leftCount || leftFile.localeCompare(rightFile),
         )
         .slice(0, 20)
         .map(([sourceFile, count]) => ({ sourceFile, count })),
@@ -484,7 +484,7 @@ function sourceLookupMetric(
 }
 
 function completeRequirementCoverageEvents(
-  recent: readonly TimedEvent[]
+  recent: readonly TimedEvent[],
 ): readonly TimedEvent[] {
   return recent.filter(
     ({ event }) =>
@@ -492,7 +492,7 @@ function completeRequirementCoverageEvents(
       eventSucceeded(event) &&
       (event.coverage_by ?? "req") === "req" &&
       event.coverage_scope_complete === true &&
-      typeof event.coverage_proof_gap_count === "number"
+      typeof event.coverage_proof_gap_count === "number",
   );
 }
 
@@ -575,7 +575,7 @@ function receiptFreshnessMetric(recent: readonly TimedEvent[]): MutableMetric {
 
 function repeatedMutationFailuresMetric(
   recent: readonly TimedEvent[],
-  policy: TelemetryAcceptancePolicy
+  policy: TelemetryAcceptancePolicy,
 ): MutableMetric {
   const streaks = new Map<string, number>();
   const maxima = new Map<string, number>();
@@ -604,7 +604,7 @@ function repeatedMutationFailuresMetric(
     .filter(([, count]) => count >= policy.repeatedMutationFailureThreshold)
     .sort(
       ([leftTarget, leftCount], [rightTarget, rightCount]) =>
-        rightCount - leftCount || leftTarget.localeCompare(rightTarget)
+        rightCount - leftCount || leftTarget.localeCompare(rightTarget),
     );
   return {
     id: "repeated_mutation_failures",
@@ -612,8 +612,8 @@ function repeatedMutationFailuresMetric(
       attempts === 0
         ? "not_applicable"
         : repeated.length === 0
-        ? "passed"
-        : "failed",
+          ? "passed"
+          : "failed",
     numerator: repeated.length,
     denominator: attempts,
     threshold: {
@@ -624,8 +624,8 @@ function repeatedMutationFailuresMetric(
       attempts === 0
         ? "No upsert attempts occurred in the evaluated window."
         : repeated.length === 0
-        ? `No target reached ${policy.repeatedMutationFailureThreshold} consecutive mutation failures.`
-        : `${repeated.length} target(s) reached at least ${policy.repeatedMutationFailureThreshold} consecutive mutation failures.`,
+          ? `No target reached ${policy.repeatedMutationFailureThreshold} consecutive mutation failures.`
+          : `${repeated.length} target(s) reached at least ${policy.repeatedMutationFailureThreshold} consecutive mutation failures.`,
     evidence: {
       targets: repeated.slice(0, 20).map(([target, count]) => ({
         target,
@@ -638,7 +638,7 @@ function repeatedMutationFailuresMetric(
 
 function reportStatus(
   metrics: readonly TelemetryAcceptanceMetric[],
-  fresh: boolean
+  fresh: boolean,
 ): TelemetryAcceptanceStatus {
   if (!fresh) return "insufficient_evidence";
   if (metrics.some((metric) => metric.status === "failed")) return "failed";
@@ -651,7 +651,7 @@ function reportStatus(
 export function analyzeTelemetryAcceptance(
   events: readonly TelemetryUsageEvent[],
   now: Date = new Date(),
-  policy: TelemetryAcceptancePolicy = DEFAULT_TELEMETRY_ACCEPTANCE_POLICY
+  policy: TelemetryAcceptancePolicy = DEFAULT_TELEMETRY_ACCEPTANCE_POLICY,
 ): TelemetryAcceptanceReport {
   const all = events.map((event, index) => ({
     event,
@@ -690,7 +690,7 @@ export function analyzeTelemetryAcceptance(
     diagnostics.push(
       ageSeconds !== null && ageSeconds < -policy.maxFutureSkewSeconds
         ? "usage_log_future_dated"
-        : "usage_log_stale"
+        : "usage_log_stale",
     );
   }
 
@@ -777,7 +777,7 @@ const METRIC_DIAGNOSTICS: Readonly<
 };
 
 export function createTelemetryAcceptanceDiagnostics(
-  report: TelemetryAcceptanceReport
+  report: TelemetryAcceptanceReport,
 ): readonly QualityDiagnostic[] {
   const diagnostics: Array<QualityDiagnostic & { readonly rank: number }> = [];
   if (!report.scope.fresh) {
@@ -804,7 +804,7 @@ export function createTelemetryAcceptanceDiagnostics(
   }
 
   const insufficient = report.metrics.filter(
-    (metric) => metric.status === "insufficient_evidence"
+    (metric) => metric.status === "insufficient_evidence",
   );
   if (insufficient.length > 0) {
     diagnostics.push({
@@ -852,7 +852,8 @@ export function createTelemetryAcceptanceDiagnostics(
 
   return diagnostics
     .sort(
-      (left, right) => left.rank - right.rank || left.id.localeCompare(right.id)
+      (left, right) =>
+        left.rank - right.rank || left.id.localeCompare(right.id),
     )
     .map(({ rank: _rank, ...diagnostic }) => diagnostic);
 }

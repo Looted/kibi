@@ -1,5 +1,15 @@
 # kibi-core
 
+## 0.9.1
+
+### Patch Changes
+
+- Upserts now finish as one bounded commit, so an entity, its relationships, audit history, and branch snapshot succeed or fail together. Historical audit journals no longer remain locked after a write, and stale runtimes receive a clear restart instruction instead of hanging indefinitely. Timed-out Prolog work is terminated and reaped, including the process group, so later Kibi operations can continue safely.
+
+  - Add `kb_commit_upsert/5` with branch-lock, snapshot, audit-lock, stage-marker, and single-save handling.
+  - Attach persistent audit stores with `sync(close)` and use non-blocking stale-lock probes.
+  - Route CLI upserts through the combined commit goal and manage Bun one-shot children asynchronously with TERM/KILL escalation.
+
 ## 0.9.0
 
 ### Minor Changes
