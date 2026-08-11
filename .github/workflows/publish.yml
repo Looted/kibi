@@ -163,6 +163,8 @@ jobs:
         with:
           name: package-tarballs
           path: packages
+      - name: Build CLI workspace for packed typecheck
+        run: bun run build:cli
       - name: Tarball content verification
         run: |
           bun test --cwd documentation/tests/e2e/packed --timeout=300000 cli-verify-tarball-core.test.ts packed-path-hygiene.test.ts
