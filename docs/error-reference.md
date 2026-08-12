@@ -81,7 +81,7 @@ Create an append-only replacement requirement and add `supersedes`, or deprecate
 
 ## Audit journal or snapshot lock
 
-`Audit journal is locked by another Kibi runtime; restart the stale MCP/CLI session before retrying` means an older process still owns `audit.log`'s write lock. Kibi does not terminate unrelated sessions; restart the stale MCP/CLI process, then retry the validated upsert.
+`Audit journal is locked by another Kibi runtime; restart the stale MCP/CLI session before retrying` means an older engine still owns the branch's journal lock. Kibi does not terminate unrelated sessions; use `kibi engine status`/`kibi engine stop` for the current workspace, or restart the stale MCP/CLI process, then retry the validated upsert.
 
 `KB snapshot is stale; reattach or refresh the runtime before retrying` means another current runtime published the branch after this process attached. Reattach the branch (or restart the runtime) and rerun the read/preflight/mutation sequence.
 

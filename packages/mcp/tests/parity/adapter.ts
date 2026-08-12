@@ -2,6 +2,7 @@ import path from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { EngineClient } from "kibi-cli/engine";
 import {
   type OperationName,
   executeOperation,
@@ -27,43 +28,29 @@ type McpOperationResult = {
   readonly error?: unknown;
 };
 
-type PrologConstructor = new (options: {
-  readonly timeout: number;
-}) => PrologProcess;
-
-async function loadProlog(): Promise<PrologConstructor> {
-  const module = await import("kibi-cli/prolog");
-  return module.PrologProcess;
-}
-
 // implements REQ-kibi-operation-interface-parity
 export async function runMcpOperation(
   workspaceRoot: string,
   opName: string,
   input: unknown,
 ): Promise<McpOperationResult> {
-  const Prolog = await loadProlog();
-  const prolog = new Prolog({ timeout: 120_000 });
+  // The parity adapter intentionally exercises the same Node-hosted engine as
+  // production MCP sessions.  Keeping a second direct SWI attachment here
+  // would race the CLI client for rdf_persistency's branch lock and would no
+  // longer represent a supported transport.
+  const prolog = new EngineClient({
+    workspaceRoot,
+    branch: "contracts-seed",
+    timeout: 120_000,
+  });
   let prologStarted = false;
-  let lastResult: Awaited<ReturnType<PrologProcess["query"]>> | null = null;
+  let lastResult: Awaited<ReturnType<EngineClient["query"]>> | null = null;
   const ensureProlog = async (): Promise<PrologProcess> => {
     if (!prologStarted) {
       await prolog.start();
-      const kbPath = path.join(
-        workspaceRoot,
-        ".kb",
-        "branches",
-        "contracts-seed",
-      );
-      const attached = await prolog.query(
-        `kb_attach('${kbPath.replaceAll("'", "''")}')`,
-      );
-      if (!attached.success) {
-        throw new Error(attached.error ?? "Failed to attach parity KB");
-      }
       prologStarted = true;
     }
-    return prolog;
+    return prolog as unknown as PrologProcess;
   };
   const operationRuntime = createMcpRuntime<PrologProcess>({
     workspaceRoot,
@@ -84,6 +71,9 @@ export async function runMcpOperation(
         return result;
       },
       save: () => prolog.query("kb_save"),
+      queryEntities: (input) => prolog.queryEntities(input),
+      searchEntities: (input) => prolog.searchEntities(input),
+      storageStatus: () => prolog.storageStatus(),
     }),
     net: { fetch: (input, init) => globalThis.fetch(input, init) },
     refreshAttachedBranchStamp: async () => undefined,

@@ -18,6 +18,7 @@
 
 import { existsSync } from "node:fs";
 import * as path from "node:path";
+import { EngineClient } from "../engine.js";
 import { getBranchOverride, isCliTraceOrDebugEnabled } from "../env.js";
 import {
   extractFromManifest,
@@ -540,7 +541,9 @@ export async function checkCommand(
   options: CheckOptions,
 ): Promise<{ exitCode: number }> {
   let prolog: PrologProcess | null = null;
+  let engine: EngineClient | null = null;
   let attached = false;
+  let resolvedBranch = "develop";
   try {
     let resolvedKbPath = "";
     if (options.kbPath) {
@@ -556,6 +559,7 @@ export async function checkCommand(
         }
       }
       if (!branch) branch = envBranch || "develop";
+      resolvedBranch = branch;
       // fallback to main if develop isn't present? keep path consistent
       resolvedKbPath = path.join(
         process.cwd(),
@@ -810,23 +814,35 @@ export async function checkCommand(
       }
     }
 
-    prolog = new PrologProcess({ timeout: 120000 });
-    await prolog.start();
+    // The active branch is hosted by the journaled engine. Keep the explicit
+    // --kb-path escape hatch on the one-shot path for alternate/staged stores,
+    // but never compete with the branch daemon for its RDF lock.
+    if (options.kbPath === undefined) {
+      engine = new EngineClient({
+        workspaceRoot: process.cwd(),
+        branch: resolvedBranch,
+        timeout: 120_000,
+      });
+      await engine.start();
+    } else {
+      prolog = new PrologProcess({ timeout: 120000 });
+      await prolog.start();
 
-    const kbPathEscaped = escapeAtom(resolvedKbPath);
-    const attachResult = await prolog.query(`kb_attach('${kbPathEscaped}')`);
+      const kbPathEscaped = escapeAtom(resolvedKbPath);
+      const attachResult = await prolog.query(`kb_attach('${kbPathEscaped}')`);
 
-    if (!attachResult.success) {
-      await prolog.terminate();
-      console.error(`Error: Failed to attach KB: ${attachResult.error}`);
-      return { exitCode: 1 };
+      if (!attachResult.success) {
+        await prolog.terminate();
+        console.error(`Error: Failed to attach KB: ${attachResult.error}`);
+        return { exitCode: 1 };
+      }
+      attached = true;
     }
-    attached = true;
 
-    if (!prolog) {
-      throw new Error("Prolog process not initialized");
+    const activeProlog = engine ?? prolog;
+    if (!activeProlog) {
+      throw new Error("Prolog runtime not initialized");
     }
-    const activeProlog = prolog;
     const rules = options.rules
       ?.split(",")
       .map((rule) => rule.trim())
@@ -893,6 +909,7 @@ export async function checkCommand(
     console.error(`Error: ${message}`);
     return { exitCode: 1 };
   } finally {
+    await engine?.terminate();
     await safeCleanupProlog(prolog);
   }
 }

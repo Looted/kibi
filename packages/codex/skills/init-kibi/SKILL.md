@@ -17,7 +17,7 @@ Set up or refresh Kibi knowledge for the current branch through approved Kibi in
 ## Interface Selection
 
 1. If approved Kibi MCP tools are visible, use the MCP route.
-2. Otherwise, in a trusted workspace, use the canonical project-local CLI fallback: `npx --no-install kibi ...` or `bunx --no-install kibi ...`.
+2. Otherwise, in a trusted workspace, use the canonical project-local CLI fallback: `npx --no-install kibi ...`.
 3. If neither approved MCP tools nor the project-local CLI are available, stop and tell the operator to enable or install Kibi for this workspace.
 4. Never use a global fallback, an installing runner, or any route outside the approved Kibi interface.
 

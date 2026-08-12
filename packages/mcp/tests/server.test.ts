@@ -1146,26 +1146,29 @@ describe("MCP Server", () => {
     execSync('git commit -m "init"', { cwd: tempRoot, stdio: "ignore" });
     execSync("git checkout -b develop", { cwd: tempRoot, stdio: "ignore" });
 
-    // Write a seed kb.rdf with a stale entity
-    const developKbDir = path.join(tempRoot, ".kb/branches/develop");
-    fs.mkdirSync(path.join(developKbDir, "journal"), { recursive: true });
-    fs.writeFileSync(path.join(developKbDir, "kb.rdf.lock"), "");
-    fs.writeFileSync(
-      path.join(developKbDir, "kb.rdf"),
-      `<?xml version="1.0" encoding="UTF-8"?>
-<rdf:RDF
-  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-  xmlns:kb="urn-kibi:"
-  xmlns:xsd="http://www.w3.org/2001/XMLSchema#">
-  <rdf:Description rdf:about="kb:entity/REQ-stale-before-rebuild">
-    <kb:type rdf:datatype="http://www.w3.org/2001/XMLSchema#string">req</kb:type>
-    <kb:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">REQ-stale-before-rebuild</kb:id>
-    <kb:title rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Stale requirement</kb:title>
-    <kb:status rdf:datatype="http://www.w3.org/2001/XMLSchema#string">open</kb:status>
-  </rdf:Description>
-</rdf:RDF>
-`,
+    const kibiBin = path.resolve(import.meta.dir, "../../cli/bin/kibi");
+    execSync(`node ${kibiBin} init --no-hooks`, {
+      cwd: tempRoot,
+      stdio: "ignore",
+    });
+    const requirementsDir = path.join(
+      tempRoot,
+      "documentation",
+      "requirements",
     );
+    fs.mkdirSync(requirementsDir, { recursive: true });
+    const staleRequirement = path.join(
+      requirementsDir,
+      "REQ-stale-before-rebuild.md",
+    );
+    fs.writeFileSync(
+      staleRequirement,
+      "---\nid: REQ-stale-before-rebuild\ntitle: Stale requirement\nstatus: open\n---\n",
+    );
+    execSync(`node ${kibiBin} sync --rebuild`, {
+      cwd: tempRoot,
+      stdio: "ignore",
+    });
 
     const proc = startServer({ cwd: tempRoot });
     const pidBefore = proc.pid;
@@ -1210,31 +1213,18 @@ describe("MCP Server", () => {
       }>;
       expect(beforeContent[0]?.text).toContain("REQ-stale-before-rebuild");
 
-      // Externally replace the branch KB (simulates kibi sync rebuild)
+      // Publish a replacement generation through the CLI. The rebuild stops
+      // the old writer and atomically switches CURRENT; the MCP process stays
+      // alive and reconnects to the new engine on its next request.
+      fs.rmSync(staleRequirement);
       fs.writeFileSync(
-        path.join(developKbDir, "kb.rdf"),
-        `<?xml version="1.0" encoding="UTF-8"?>
-<rdf:RDF
-  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-  xmlns:kb="urn-kibi:"
-  xmlns:xsd="http://www.w3.org/2001/XMLSchema#">
-  <rdf:Description rdf:about="kb:entity/REQ-fresh-after-rebuild">
-    <kb:type rdf:datatype="http://www.w3.org/2001/XMLSchema#string">req</kb:type>
-    <kb:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">REQ-fresh-after-rebuild</kb:id>
-    <kb:title rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Fresh requirement</kb:title>
-    <kb:status rdf:datatype="http://www.w3.org/2001/XMLSchema#string">open</kb:status>
-  </rdf:Description>
-</rdf:RDF>
-`,
+        path.join(requirementsDir, "REQ-fresh-after-rebuild.md"),
+        "---\nid: REQ-fresh-after-rebuild\ntitle: Fresh requirement\nstatus: open\n---\n",
       );
-
-      // Verify file was replaced correctly
-      const fileAfterReplace = fs.readFileSync(
-        path.join(developKbDir, "kb.rdf"),
-        "utf8",
-      );
-      expect(fileAfterReplace).toContain("REQ-fresh-after-rebuild");
-      expect(fileAfterReplace).not.toContain("REQ-stale-before-rebuild");
+      execSync(`node ${kibiBin} sync --rebuild`, {
+        cwd: tempRoot,
+        stdio: "ignore",
+      });
 
       // Query SAME process again — must see fresh data
       const after = await sendRequest(

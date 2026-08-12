@@ -81,33 +81,33 @@ export function extractFromRelationshipShards(
     }
 
     const shardPath = path.join(relationshipsDir, file);
-    const stats = fs.statSync(shardPath);
-
-    if (!stats.isFile()) {
-      continue;
-    }
-
-    try {
-      const records = readShard(shardPath);
-      const relationships = records
-        .map(convertRecordToRelationship)
-        .filter((r): r is ExtractedRelationship => r !== null);
-
-      results.push({
-        shardPath,
-        relationships,
-      });
-    } catch (error) {
-      // Re-throw with shard path context
-      throw new Error(
-        `Failed to extract relationships from ${shardPath}: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      );
-    }
+    if (!fs.statSync(shardPath).isFile()) continue;
+    results.push(extractRelationshipShard(shardPath));
   }
 
   return results;
+}
+
+/** Parse one changed shard. Callers can hash first and skip unchanged files. */
+export function extractRelationshipShard(
+  shardPath: string,
+): ShardExtractionResult {
+  try {
+    const records = readShard(shardPath);
+    const relationships = records
+      .map(convertRecordToRelationship)
+      .filter(
+        (relationship): relationship is ExtractedRelationship =>
+          relationship !== null,
+      );
+    return { shardPath, relationships };
+  } catch (error) {
+    throw new Error(
+      `Failed to extract relationships from ${shardPath}: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+  }
 }
 
 /**

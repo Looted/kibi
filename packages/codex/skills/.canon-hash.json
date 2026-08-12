@@ -1,11 +1,11 @@
 {
-  "init-kibi/SKILL.md": "4e936774cd31cf366e9e17452e9030fdaeabab345bce5ee163656e0fe5dc73d7",
-  "kibi-freshness/SKILL.md": "68345a514233503f8f78d53e7d602d8a5fc566e1ec118388c7393716c9f7490d",
-  "kibi-traceability/SKILL.md": "3aee5cb0d3d8e41d29cb6804ac9303083e8477fc9cb90f76248a7dc8e907a4b3",
-  "kibi-usage/SKILL.md": "e31077634b0d53700eb4ff15c82e04239340b08cd327e6d99c831f89c3e10904",
+  "init-kibi/SKILL.md": "a2f608c3cddc53414f194b1d3b0dc9393133bfd1fa8f940f811e4a3ddf3a33b9",
+  "kibi-freshness/SKILL.md": "34c89df1db38cb7616a64fadec4e55af5b605fa292ebffb5a1640e9516b66259",
+  "kibi-traceability/SKILL.md": "5d7b9dc93b888bba6e056038804098e15442a508bbc909dc7f79a54860371dd5",
+  "kibi-usage/SKILL.md": "a0d6891b0cb20afe5bcf1a17d70a082836cb6e33014f7e40835f572fd4f58ca9",
   "kibi-usage/resources/fact-lanes.md": "41b28023a57593009867ea0ebc8e9f3f05c3bd837144772d12844423f922e763",
   "kibi-usage/resources/logic-ir.md": "151675d0ffa813cb9e271084102a3af42de369b8f9a0c64866af0cdc4d924063",
-  "kibi-usage/resources/operation-access.md": "a5ec895aa9b2f30140b2b72baf444843d32dd99e92d6e10be4279d84f5ea799b",
+  "kibi-usage/resources/operation-access.md": "3d66114c4f6cee186c40e61994f28a77a15382f5bfb56e499508cc9dbaf3b316",
   "kibi-usage/resources/relationship-directions.md": "aecbde048bb84e210318e4aca98e07f8370168c640c3a9d65696d2195c8598ec",
   "kibi-usage/resources/ui-requirements.md": "b7c31ab1affa3ab25ae5242d8fd8c4d546532d1cafc65d84088375317c1682cc",
   "kibi-usage/resources/workflows.md": "06cf3da42b0cc96a3f38c0c37b28ee435fa93f45a93dc665fc5d756094ee1eab"

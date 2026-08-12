@@ -27,7 +27,7 @@ Consult this skill before any Kibi knowledge base operation, on first interactio
 Kibi exposes two peer surfaces over the same 18 operations: visible MCP tools and the trusted project-local CLI. Both accept the same business input and effects (see `resources/operation-access.md`). Choose by what is visible and approved in the current environment — MCP and the CLI are equal choices, not a preference order:
 
 1. If Kibi MCP tools are visible and approved in the current environment, use MCP.
-2. Otherwise, in a trusted workspace, use the project-local CLI through a non-installing runner: `npx --no-install kibi ...` or `bunx --no-install kibi ...`. The CLI is a peer interface, not a fallback.
+2. Otherwise, in a trusted workspace, use the project-local CLI through a non-installing runner: `npx --no-install kibi ...`. The CLI is a peer interface, not a fallback.
 3. If the project-local CLI is unavailable or too old for the needed route, stop and tell the operator to enable or install Kibi.
 4. Never use a global fallback or an installing runner. Never probe or install packages as a side effect of interface selection.
 
@@ -40,7 +40,7 @@ echo '{"type":"req","id":"REQ-001","properties":{"title":"Test","status":"open"}
 ```
 
 ```bash
-echo '{"query":"authentication","limit":10}' | bunx --no-install kibi search --input -
+echo '{"query":"authentication","limit":10}' | npx --no-install kibi search --input -
 ```
 
 ## MCP Tool Names

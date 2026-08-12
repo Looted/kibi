@@ -90,6 +90,12 @@ export function resolveKbPlPath(): string {
 export interface PrologOptions {
   swiplPath?: string;
   timeout?: number;
+  /**
+   * Force one-shot SWI execution. Production callers are Node-only and keep
+   * one interactive process alive; the fallback is retained for isolated
+   * repository tests that still run under Bun.
+   */
+  oneShot?: boolean;
 }
 
 export interface QueryResult {
@@ -111,14 +117,17 @@ export class PrologProcess {
   private interactiveQueryTail: Promise<void> = Promise.resolve();
   private terminationPromise: Promise<void> | null = null;
   private oneShotProcesses = new Set<ChildProcess>();
-  private useOneShotMode =
-    typeof (globalThis as { Bun?: unknown }).Bun !== "undefined";
+  private useOneShotMode: boolean;
   private attachedKbPath: string | null = null;
   private onProcessExit: (() => void) | null = null;
 
   constructor(options: PrologOptions = {}) {
     this.swiplPath = options.swiplPath || "swipl";
     this.timeout = options.timeout || 30000;
+    this.useOneShotMode =
+      options.oneShot ??
+      (process.env.NODE_ENV === "test" &&
+        typeof (globalThis as { Bun?: unknown }).Bun !== "undefined");
   }
 
   async start(): Promise<void> {
@@ -246,11 +255,22 @@ export class PrologProcess {
     }
 
     if (!isSingleGoal) {
-      const batchGoal = `(${goal.map((item) => this.normalizeGoal(item)).join(", ")})`;
+      // A batch is one logical write.  Wrapping it here keeps RDF mutations
+      // atomic in the long-lived process; persistence is appended by the
+      // interactive wrapper once the transaction succeeds.
+      const batchGoal = `rdf_transaction((${goal.map((item) => this.normalizeGoal(item)).join(", ")}))`;
       return this.query(batchGoal);
     }
 
     if (!this.isProcessUsable()) {
+      // Keep the low-level PrologPort useful for isolated callers that only
+      // need a single read (and for legacy unit fixtures).  Normal CLI/MCP
+      // runtimes provide an EngineClient, while explicitly attached callers
+      // call start() and stay interactive; this fallback never participates
+      // in the engine-backed workflow.
+      if (this.process === null) {
+        return this.execOneShot(goal as string, this.attachedKbPath);
+      }
       throw new Error("Prolog process not started");
     }
 
@@ -260,9 +280,16 @@ export class PrologProcess {
       const debug = isPrologDebugEnabled();
       const normalizedGoal = this.normalizeGoal(goal as string);
       const goalLabel = this.goalLabel(normalizedGoal);
-      const wrappedGoal = /^once\s*\(/.test(normalizedGoal)
-        ? `catch(${normalizedGoal}, _E, (print_message(error, _E), fail))`
-        : `catch(once((${normalizedGoal})), _E, (print_message(error, _E), fail))`;
+      const shouldPersist =
+        this.isMutatingGoal(normalizedGoal) &&
+        !normalizedGoal.includes("kb_save") &&
+        !normalizedGoal.includes("kb_commit_upsert");
+      const goalWithPersistence = shouldPersist
+        ? `(${normalizedGoal}, kb_save)`
+        : normalizedGoal;
+      const wrappedGoal = /^once\s*\(/.test(goalWithPersistence)
+        ? `catch(${goalWithPersistence}, _E, (print_message(error, _E), fail))`
+        : `catch(once((${goalWithPersistence})), _E, (print_message(error, _E), fail))`;
       const start = Date.now();
 
       if (debug) {
@@ -406,16 +433,31 @@ export class PrologProcess {
     }
   }
 
+  /** Execute a group of goals as one transaction and one durable save. */
+  async queryBatch(goals: readonly string[]): Promise<QueryResult> {
+    return this.query([...goals]);
+  }
+
   invalidateCache(): void {
     this.cache.clear();
   }
 
   private isCacheableGoal(goal: string): boolean {
     const trimmed = goal.trim();
+    if (
+      trimmed.startsWith("rdf_transaction(") ||
+      this.isMutatingGoal(trimmed)
+    ) {
+      return false;
+    }
     return !(
       trimmed.startsWith("kb_attach(") ||
       trimmed.startsWith("kb_detach") ||
       trimmed.startsWith("kb_save") ||
+      trimmed.startsWith("kb_storage_status") ||
+      trimmed.startsWith("kb_storage_compact") ||
+      trimmed.startsWith("kb_storage_export") ||
+      trimmed.startsWith("status:") ||
       trimmed.startsWith("kb_commit_upsert(") ||
       trimmed.startsWith("kb_assert_") ||
       trimmed.startsWith("kb_delete_") ||
@@ -425,10 +467,8 @@ export class PrologProcess {
 
   // implements REQ-009
   private isMutatingGoal(goal: string): boolean {
-    return (
-      goal.includes("kb_assert_") ||
-      goal.includes("kb_delete_") ||
-      goal.includes("kb_retract_")
+    return /(?:kb_(?:assert|delete|retract|commit|save|log)_|\bkb_save\b|\brdf_(?:assert|retract))/u.test(
+      goal,
     );
   }
 

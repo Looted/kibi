@@ -54,11 +54,12 @@ export function buildEntityGoal(input: EntityQueryInput): string {
     return `findall(['${safeId}',Type,Props], kb_entity('${safeId}', Type, Props), Results)`;
   }
   if (tags && tags.length > 0) {
+    const tagTerms = tags.map((tag) => `'${escapeAtomContent(tag)}'`).join(",");
     if (type) {
       const safeType = escapeAtomContent(type);
-      return `findall([Id,'${safeType}',Props], kb_entity(Id, '${safeType}', Props), Results)`;
+      return `findall([Id,'${safeType}',Props], (member(Tag, [${tagTerms}]), kb_entities_by_tag(Tag, TagIds), member(Id, TagIds), kb_entity(Id, '${safeType}', Props)), Results)`;
     }
-    return "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)";
+    return `findall([Id,Type,Props], (member(Tag, [${tagTerms}]), kb_entities_by_tag(Tag, TagIds), member(Id, TagIds), kb_entity(Id, Type, Props)), Results)`;
   }
   if (type) {
     const safeType = escapeAtomContent(type);

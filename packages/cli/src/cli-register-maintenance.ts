@@ -2,12 +2,50 @@ import type { Command } from "commander";
 import { withExitCode } from "./cli-command.js";
 import { branchEnsureCommand } from "./commands/branch.js";
 import { doctorCommand } from "./commands/doctor.js";
+import {
+  engineStatusCommand,
+  engineStopCommand,
+  storageCompactCommand,
+  storageExportCommand,
+  storageStatusCommand,
+} from "./commands/engine.js";
 import { gcCommand } from "./commands/gc.js";
 import { usageMetricsCommand } from "./commands/usage-metrics.js";
 import { usageRemediationCommand } from "./commands/usage-remediation.js";
 
 // implements REQ-kibi-operation-interface-parity
 export function registerMaintenanceCommands(program: Command): void {
+  const engine = program
+    .command("engine")
+    .description("Manage the per-workspace Kibi engine");
+  engine
+    .command("status")
+    .description("Show engine and journaled storage status")
+    .action(async () => engineStatusCommand());
+  engine
+    .command("stop")
+    .description("Stop the current workspace engine")
+    .action(async () => engineStopCommand());
+
+  const storage = program
+    .command("storage")
+    .description("Inspect and maintain journaled Kibi storage");
+  storage
+    .command("status")
+    .description("Show journaled storage status")
+    .action(async () => storageStatusCommand());
+  storage
+    .command("compact")
+    .description("Compact RDF journals into binary snapshots")
+    .action(async () => storageCompactCommand());
+  storage
+    .command("export")
+    .description("Export legacy RDF/XML and audit files")
+    .requiredOption("--output <directory>", "Export destination directory")
+    .action(async (options: { output: string }) =>
+      storageExportCommand(options),
+    );
+
   program
     .command("gc")
     .description("Garbage collect stale branch KBs")

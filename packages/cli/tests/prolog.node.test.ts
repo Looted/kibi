@@ -450,6 +450,43 @@ test("interactive mode supports rdf_transaction mutation queries", async () => {
     const exists = await prolog.query("kb_entity('REQ-RDF-TX-001', _, _)");
     assert.strictEqual(exists.success, true, "entity should be queryable");
 
+    const primed = await prolog.query(
+      "findall(Props, kb_entity('REQ-RDF-TX-001', req, Props), Results)",
+    );
+    assert.match(primed.bindings.Results ?? "", /Transaction Entity/);
+    const updated = await prolog.query(
+      `rdf_transaction((kb_assert_entity(req, [id='REQ-RDF-TX-001', title="Updated transaction entity", status=open, created_at="2026-03-20T00:00:00Z", updated_at="2026-03-20T00:00:01Z", source="rdf-transaction-test"]), kb_save))`,
+    );
+    assert.strictEqual(
+      updated.success,
+      true,
+      "transaction update should succeed",
+    );
+    const refreshed = await prolog.query(
+      "findall(Props, kb_entity('REQ-RDF-TX-001', req, Props), Results)",
+    );
+    assert.match(
+      refreshed.bindings.Results ?? "",
+      /Updated transaction entity/,
+    );
+    assert.doesNotMatch(
+      refreshed.bindings.Results ?? "",
+      /title=Transaction Entity/,
+    );
+
+    const deleted = await prolog.query(
+      "rdf_transaction((kb_retract_entity('REQ-RDF-TX-001'), kb_save))",
+    );
+    assert.strictEqual(
+      deleted.success,
+      true,
+      "transaction delete should succeed",
+    );
+    const missing = await prolog.query(
+      "findall(Props, kb_entity('REQ-RDF-TX-001', req, Props), Results)",
+    );
+    assert.strictEqual(missing.bindings.Results, "[]");
+
     const save = await prolog.query("kb_save");
     assert.strictEqual(save.success, true, "save should succeed");
 

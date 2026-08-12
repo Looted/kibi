@@ -17,7 +17,7 @@ Help agents decide whether Kibi knowledge is current enough to support safe chan
 ## Interface Selection
 
 1. If Kibi MCP tools are visible and approved for the workspace, use the MCP surface only.
-2. Otherwise, in a trusted workspace, use the canonical project-local CLI fallback through `npx --no-install kibi ...` or `bunx --no-install kibi ...`.
+2. Otherwise, in a trusted workspace, use the canonical project-local CLI fallback through `npx --no-install kibi ...`.
 3. If the project-local CLI is unavailable or too old, stop and tell the operator to enable or install Kibi.
 4. Never use a global fallback or an installing runner.
 

@@ -4,6 +4,700 @@
 # Generated coordinates are stored separately in symbol-coordinates.yaml.
 # Run `kibi sync --refresh-symbol-coordinates` to refresh them.
 symbols:
+  - id: SYM-cli-discovery-command-options
+    title: DiscoveryCommandOptions
+    sourceFile: packages/cli/src/commands/discovery-shared.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-discovery-deps
+    title: DiscoveryDeps
+    sourceFile: packages/cli/src/commands/discovery-shared.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-discovery-execute-reporting-spec
+    title: executeReportingSpec
+    sourceFile: packages/cli/src/commands/discovery-shared.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-discovery-print-result
+    title: printDiscoveryResult
+    sourceFile: packages/cli/src/commands/discovery-shared.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-discovery-resolve-core-module
+    title: resolveCoreModulePath
+    sourceFile: packages/cli/src/commands/discovery-shared.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-discovery-resolve-kb-path
+    title: resolveCurrentKbPath
+    sourceFile: packages/cli/src/commands/discovery-shared.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-discovery-run-json-module-query
+    title: runJsonModuleQuery
+    sourceFile: packages/cli/src/commands/discovery-shared.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-discovery-attached-branch
+    title: withAttachedBranchProlog
+    sourceFile: packages/cli/src/commands/discovery-shared.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-relationship-extracted-shape
+    title: ExtractedRelationship
+    sourceFile: packages/cli/src/extractors/relationships.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+  - id: SYM-cli-relationship-shard-result
+    title: ShardExtractionResult
+    sourceFile: packages/cli/src/extractors/relationships.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+  - id: SYM-cli-relationship-flatten
+    title: flattenRelationships
+    sourceFile: packages/cli/src/extractors/relationships.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+  - id: SYM-cli-relationship-directory
+    title: getRelationshipsDir
+    sourceFile: packages/cli/src/extractors/relationships.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+  - id: SYM-cli-relationship-validation
+    title: validateRelationships
+    sourceFile: packages/cli/src/extractors/relationships.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+  - id: SYM-cli-discovery-entity-query-input
+    title: EntityQueryInput
+    sourceFile: packages/cli/src/public/operations/discovery-entities.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-discovery-valid-entity-types
+    title: VALID_ENTITY_TYPES
+    sourceFile: packages/cli/src/public/operations/discovery-entities.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-discovery-build-entity-goal
+    title: buildEntityGoal
+    sourceFile: packages/cli/src/public/operations/discovery-entities.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-discovery-dedupe-entities
+    title: dedupeEntities
+    sourceFile: packages/cli/src/public/operations/discovery-entities.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-discovery-load-entities
+    title: loadEntities
+    sourceFile: packages/cli/src/public/operations/discovery-entities.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-discovery-paginate-results
+    title: paginateResults
+    sourceFile: packages/cli/src/public/operations/discovery-entities.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-discovery-validate-entity-type
+    title: validateEntityType
+    sourceFile: packages/cli/src/public/operations/discovery-entities.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-prolog-json-atom
+    title: toPrologAtom
+    sourceFile: packages/cli/src/public/operations/prolog-json.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-prolog-json-list
+    title: toPrologList
+    sourceFile: packages/cli/src/public/operations/prolog-json.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-mcp-parity-run-operation
+    title: runMcpOperation
+    sourceFile: packages/mcp/tests/parity/adapter.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-engine-status-command
+    title: engineStatusCommand
+    sourceFile: packages/cli/src/commands/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-stop-command
+    title: engineStopCommand
+    sourceFile: packages/cli/src/commands/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-storage-status-command
+    title: storageStatusCommand
+    sourceFile: packages/cli/src/commands/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+  - id: SYM-cli-storage-export-command
+    title: storageExportCommand
+    sourceFile: packages/cli/src/commands/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+  - id: SYM-cli-sync-retract-source-delta
+    title: retractEntitiesForSources
+    sourceFile: packages/cli/src/commands/sync/persistence.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+  - id: SYM-cli-sync-retract-entity-relationships
+    title: retractEntityRelationshipsById
+    sourceFile: packages/cli/src/commands/sync/persistence.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+  - id: SYM-cli-engine-pid-path
+    title: enginePidPath
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-start-lock-path
+    title: engineStartLockPath
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-client-options
+    title: EngineClientOptions
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-protocol-version
+    title: ENGINE_PROTOCOL_VERSION
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-idle-timeout
+    title: ENGINE_IDLE_TIMEOUT_MS
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-package-versions
+    title: ENGINE_PACKAGE_VERSIONS
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-client-start
+    title: EngineClient.start
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-client-query
+    title: EngineClient.query
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-client-query-batch
+    title: EngineClient.queryBatch
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-client-query-entities
+    title: EngineClient.queryEntities
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-client-search-entities
+    title: EngineClient.searchEntities
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-client-cancel
+    title: EngineClient.cancel
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-client-next-solution
+    title: EngineClient.nextSolution
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-client-save
+    title: EngineClient.save
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+  - id: SYM-cli-engine-client-storage-status
+    title: EngineClient.storageStatus
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+  - id: SYM-cli-engine-client-checkpoint
+    title: EngineClient.checkpoint
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+  - id: SYM-cli-engine-client-query-status
+    title: EngineClient.queryStatusJson
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-client-compact
+    title: EngineClient.compact
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+  - id: SYM-cli-engine-client-export-storage
+    title: EngineClient.exportStorage
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+  - id: SYM-cli-engine-client-invalidate-cache
+    title: EngineClient.invalidateCache
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-client-is-running
+    title: EngineClient.isRunning
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-client-get-pid
+    title: EngineClient.getPid
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-client-stop
+    title: EngineClient.stop
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-client-terminate
+    title: EngineClient.terminate
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-extract-relationship-shards
+    title: extractFromRelationshipShards
+    sourceFile: packages/cli/src/extractors/relationships.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+  - id: SYM-cli-prolog-query-batch
+    title: PrologProcess.queryBatch
+    sourceFile: packages/cli/src/prolog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-prolog-entity-query-input
+    title: PrologEntityQueryInput
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-prolog-entity-query-result
+    title: PrologEntityQueryResult
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-prolog-search-query-input
+    title: PrologSearchQueryInput
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-prolog-search-query-result
+    title: PrologSearchQueryResult
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-socket-path
+    title: engineSocketPath
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-durable-fsync
+    title: fsyncJournaledBranchStore
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+  - id: SYM-cli-sync-normalized-hash
+    title: hashNormalized
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+  - id: SYM-cli-sync-noop-checkpoint
+    title: checkpointNoopSync
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+  - id: SYM-cli-sync-extract-relationship-shard
+    title: extractRelationshipShard
+    sourceFile: packages/cli/src/extractors/relationships.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+  - id: SYM-cli-sync-retract-entity-delta
+    title: retractEntitiesById
+    sourceFile: packages/cli/src/commands/sync/persistence.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+  - id: SYM-cli-sync-retract-relationship-delta
+    title: retractRelationships
+    sourceFile: packages/cli/src/commands/sync/persistence.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+  - id: SYM-core-journaled-search-index
+    title: kb_search_entities
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+  - id: SYM-core-journaled-relationship-retract
+    title: kb_retract_relationship
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+  - id: SYM-core-journaled-index-refresh
+    title: kb_refresh_entity_index
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+  - id: SYM-core-journaled-sync-checkpoint
+    title: kb_sync_checkpoint
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+  - id: SYM-test-journaled-engine-benchmark
+    title: writeFixture
+    sourceFile: documentation/tests/benchmarks/journaled-engine.bench.mjs
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-core-journaled-engine-delta-sync
+  - id: SYM-cli-engine-client
+    title: EngineClient
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+  - id: SYM-cli-engine-daemon
+    title: runEngineDaemon
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-migration
+    title: ensureJournaledBranchStoreAsync
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+  - id: SYM-cli-engine-commands
+    title: storageCompactCommand
+    sourceFile: packages/cli/src/commands/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+  - id: SYM-core-journaled-indexes
+    title: kb_rebuild_indexes
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+  - id: SYM-core-journaled-tag-index
+    title: kb_entities_by_tag
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
   - id: SYM-001
     title: PrologProcess
     sourceFile: packages/cli/src/prolog.ts
@@ -16,8 +710,12 @@ symbols:
         target: REQ-001
       - type: implements
         target: REQ-core-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
   - id: SYM-003
     title: handleKbQuery
     sourceFile: packages/mcp/src/tools/query.ts
@@ -178,6 +876,8 @@ symbols:
       - type: implements
         target: REQ-core-atomic-upsert-persistence
       - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: implements
         target: REQ-core-persistence
       - type: implements
         target: REQ-core-audit-logging
@@ -196,6 +896,8 @@ symbols:
       - type: implements
         target: REQ-core-persistence
       - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: implements
         target: REQ-core-audit-logging
       - type: covered_by
         target: TEST-core-atomic-upsert-persistence
@@ -206,6 +908,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
       - type: implements
         target: REQ-core-persistence
       - type: implements
@@ -441,8 +1145,21 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-extractors
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+  - id: SYM-atomicPublishGeneration
+    title: atomicPublishGeneration
+    sourceFile: packages/cli/src/commands/sync/staging.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
   - id: SYM-AuditedNoImpactOverrideInput
     title: AuditedNoImpactOverrideInput
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
@@ -3025,7 +3742,13 @@ symbols:
     title: agentPluginRoot
     sourceFile: packages/cursor/scripts/build-agent-plugin.ts
     symbol_role: behavioral
+    granularity_reason: extractor-miss
     text_ref: packages/cursor/scripts/build-agent-plugin.ts#agentPluginRoot
+    relationships:
+      - type: implements
+        target: REQ-cursor-agent-plugin-standard-v1
+      - type: covered_by
+        target: TEST-cursor-agent-plugin-v1
   - id: SYM-cursor-BOOTSTRAP_REMINDER
     title: BOOTSTRAP_REMINDER
     sourceFile: packages/cursor/src/messages.ts
@@ -3044,7 +3767,13 @@ symbols:
     title: buildAgentPluginMcpJson
     sourceFile: packages/cursor/scripts/build-agent-plugin.ts
     symbol_role: behavioral
+    granularity_reason: extractor-miss
     text_ref: packages/cursor/scripts/build-agent-plugin.ts#buildAgentPluginMcpJson
+    relationships:
+      - type: implements
+        target: REQ-cursor-agent-plugin-standard-v1
+      - type: covered_by
+        target: TEST-cursor-agent-plugin-v1
   - id: SYM-cursor-buildAgentPluginUnlocked
     title: buildAgentPluginUnlocked
     sourceFile: packages/cursor/scripts/build-agent-plugin.ts
@@ -3061,7 +3790,13 @@ symbols:
     title: buildPluginManifest
     sourceFile: packages/cursor/scripts/build-agent-plugin.ts
     symbol_role: behavioral
+    granularity_reason: extractor-miss
     text_ref: packages/cursor/scripts/build-agent-plugin.ts#buildPluginManifest
+    relationships:
+      - type: implements
+        target: REQ-cursor-agent-plugin-standard-v1
+      - type: covered_by
+        target: TEST-cursor-agent-plugin-v1
   - id: SYM-cursor-clearDirtyPaths
     title: clearDirtyPaths
     sourceFile: packages/cursor/src/hook-state.ts
@@ -4783,16 +5518,6 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-  - id: SYM-handleKbQueryRelationships
-    title: handleKbQueryRelationships
-    sourceFile: packages/mcp/src/tools/query-relationships.ts
-    links:
-      - REQ-mcp-search-discovery
-    relationships:
-      - type: implements
-        target: REQ-mcp-search-discovery
-      - type: covered_by
-        target: TEST-vscode-traceability
   - id: SYM-handleKbSemanticAdvisor
     title: handleKbSemanticAdvisor
     sourceFile: packages/mcp/src/tools/semantic-advisor.ts
@@ -5385,6 +6110,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-cli-status-pre-first-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
       - type: implements
         target: REQ-mcp-search-discovery
       - type: covered_by
@@ -6258,8 +6985,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
   - id: SYM-mcp-formatImpactText
     title: formatImpactText
     sourceFile: packages/mcp/src/tools/check-format.ts
@@ -8132,10 +8863,14 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-mcp-search-discovery
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-mcp-search-discovery
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
   - id: SYM-parity-save-atomic-mutation
     title: saveAtomicMutation
     sourceFile: packages/cli/src/operations/mutation/save.ts
@@ -10061,27 +10796,9 @@ symbols:
         target: REQ-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
-  - id: SYM-SemanticAdvisorResult
-    title: SemanticAdvisorResult
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
-      - type: covered_by
-        target: TEST-mcp-semantic-advisor-preflight
   - id: SYM-SemanticAdvisorToolResult
     title: SemanticAdvisorResult
     sourceFile: packages/mcp/src/tools/semantic-advisor.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
-      - type: covered_by
-        target: TEST-mcp-semantic-advisor-preflight
-  - id: SYM-SemanticAmbiguityObservationSuggestion
-    title: SemanticAmbiguityObservationSuggestion
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
     symbol_role: type-shape
     relationships:
       - type: implements
@@ -10114,27 +10831,9 @@ symbols:
         target: REQ-mcp-semantic-advisor-preflight
       - type: covered_by
         target: TEST-mcp-semantic-advisor-preflight
-  - id: SYM-SemanticOntologyGapSuggestion
-    title: SemanticOntologyGapSuggestion
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
-      - type: covered_by
-        target: TEST-mcp-semantic-advisor-preflight
   - id: SYM-SemanticPredicateClaim
     title: SemanticPredicateClaim
     sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
-      - type: covered_by
-        target: TEST-mcp-semantic-advisor-preflight
-  - id: SYM-SemanticPredicateSuggestion
-    title: SemanticPredicateSuggestion
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
     symbol_role: type-shape
     relationships:
       - type: implements
@@ -10162,15 +10861,6 @@ symbols:
   - id: SYM-SemanticStrictPropertyClaim
     title: SemanticStrictPropertyClaim
     sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
-      - type: covered_by
-        target: TEST-mcp-semantic-advisor-preflight
-  - id: SYM-SemanticStrictPropertySuggestion
-    title: SemanticStrictPropertySuggestion
-    sourceFile: packages/mcp/src/semantic-advisor/types.ts
     symbol_role: type-shape
     relationships:
       - type: implements
@@ -10511,16 +11201,6 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-adoption-integration-removed
-    title: adoption integration module removed
-    sourceFile: scripts/skillopt-eval/adoption-integration.ts
-    symbol_role: behavioral
-    granularity_reason: module-level-behavior
-    relationships:
-      - type: implements
-        target: REQ-skillopt-external-adoption-verdict
-      - type: covered_by
-        target: TEST-skillopt-external-adoption-verdict
   - id: SYM-skillopt-adoption-integrity-error
     title: AdoptionIntegrityError
     sourceFile: scripts/skillopt-eval/adoption-types.ts
@@ -16580,8 +17260,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
   - id: SYM-skillopt-runtime-staged-canary
     title: StagedCanaryRuntime
     sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
@@ -17856,6 +18540,8 @@ symbols:
       - type: implements
         target: REQ-core-extractors
       - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: implements
         target: REQ-kibi-conservative-requirement-proof
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
@@ -17865,6 +18551,8 @@ symbols:
         target: TEST-kibi-conservative-requirement-proof
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
   - id: SYM-SyncError
     title: SyncError
     sourceFile: packages/cli/src/commands/sync.ts

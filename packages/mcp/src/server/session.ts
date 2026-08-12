@@ -19,6 +19,7 @@
 import fs from "node:fs";
 import { createRequire } from "node:module";
 import process from "node:process";
+import { EngineClient } from "kibi-cli/engine";
 import { PrologProcess } from "kibi-cli/prolog";
 import {
   copyCleanSnapshot,
@@ -291,6 +292,8 @@ function usesBranchKbPath(kbPath: string): boolean {
 async function ensurePrologUnsafe(): Promise<PrologProcess> {
   const generationAtStart = prologResetGeneration;
   const workspaceRoot = sessionDeps.resolveWorkspaceRoot();
+  const useEngine =
+    sessionDeps.PrologProcess === defaultSessionDeps.PrologProcess;
 
   const assertGeneration = async (): Promise<void> => {
     if (generationAtStart !== prologResetGeneration) {
@@ -338,6 +341,20 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
   }
 
   // Check if we need to switch branches
+  if (isInitialized && useEngine && prologProcess?.isRunning()) {
+    const kbPath = sessionDeps.resolveKbPath(workspaceRoot, targetBranch);
+    if (targetBranch === activeBranchName) {
+      attachedBranchKbPath = kbPath;
+      attachedBranchStamp = await readBranchKbStamp(kbPath);
+      return prologProcess;
+    }
+    await prologProcess.terminate();
+    prologProcess = null;
+    isInitialized = false;
+    attachedBranchKbPath = null;
+    attachedBranchStamp = null;
+  }
+
   if (isInitialized && prologProcess?.isRunning()) {
     const kbPath = sessionDeps.resolveKbPath(workspaceRoot, targetBranch);
 
@@ -433,7 +450,13 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
   // First initialization
   debugLog("[KIBI-MCP] Initializing Prolog process...");
 
-  prologProcess = new sessionDeps.PrologProcess({ timeout: 120000 });
+  prologProcess = useEngine
+    ? (new EngineClient({
+        workspaceRoot,
+        branch: targetBranch,
+        timeout: 120000,
+      }) as unknown as PrologProcess)
+    : new sessionDeps.PrologProcess({ timeout: 120000 });
   await prologProcess.start();
   await assertGeneration();
 
@@ -488,21 +511,23 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
   activeBranchName = targetBranch;
   const createdEmptyBranch = ensureBranchKbExists(workspaceRoot, targetBranch);
   const kbPath = sessionDeps.resolveKbPath(workspaceRoot, targetBranch);
-  const attachResult = await prologProcess.query(`kb_attach('${kbPath}')`);
-  await assertGeneration();
-
-  if (!attachResult.success) {
-    throw new Error(
-      `Failed to attach KB: ${attachResult.error || "Unknown error"}`,
-    );
-  }
-  if (createdEmptyBranch) {
-    const initialSaveResult = await prologProcess.query("kb_save");
+  if (!useEngine) {
+    const attachResult = await prologProcess.query(`kb_attach('${kbPath}')`);
     await assertGeneration();
-    if (!initialSaveResult.success) {
+
+    if (!attachResult.success) {
       throw new Error(
-        `Failed to initialize empty branch KB: ${initialSaveResult.error || "Unknown error"}`,
+        `Failed to attach KB: ${attachResult.error || "Unknown error"}`,
       );
+    }
+    if (createdEmptyBranch) {
+      const initialSaveResult = await prologProcess.query("kb_save");
+      await assertGeneration();
+      if (!initialSaveResult.success) {
+        throw new Error(
+          `Failed to initialize empty branch KB: ${initialSaveResult.error || "Unknown error"}`,
+        );
+      }
     }
   }
 

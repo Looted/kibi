@@ -80,6 +80,36 @@ export async function executeQuery(
   // implements REQ-kibi-operation-interface-parity
   const { type, id, tags, sourceFile, limit = 100, offset = 0 } = input;
   try {
+    const prolog = requireProlog(context);
+    const indexedPage = prolog.queryEntities
+      ? await prolog.queryEntities({
+          ...(type !== undefined ? { type } : {}),
+          ...(id !== undefined ? { id } : {}),
+          ...(tags !== undefined ? { tags } : {}),
+          ...(sourceFile !== undefined ? { sourceFile } : {}),
+          limit,
+          offset,
+        })
+      : null;
+    if (indexedPage !== null) {
+      const paginated = indexedPage.entities;
+      const text =
+        indexedPage.count === 0
+          ? `No entities found${type ? ` of type '${type}'` : ""}.`
+          : `Found ${indexedPage.count} entities${type ? ` of type '${type}'` : ""}. Showing ${paginated.length} (offset ${offset}, limit ${limit}): ${paginated
+              .map((entity) => {
+                const entityId = String(entity.id ?? "").replace(
+                  /^file:\/\/.*\//,
+                  "",
+                );
+                return `${entityId} (${String(entity.title ?? "")}, status=${String(entity.status ?? "")})`;
+              })
+              .join(", ")}`;
+      return {
+        content: [{ type: "text", text }],
+        structuredContent: { entities: paginated, count: indexedPage.count },
+      };
+    }
     const entities = await loadEntities(requireProlog(context), {
       ...(type !== undefined ? { type } : {}),
       ...(id !== undefined ? { id } : {}),
@@ -123,9 +153,20 @@ export async function executeSearch(
   }
   validateEntityType(type);
   try {
-    const entities = await loadEntities(requireProlog(context), {
-      ...(type !== undefined ? { type } : {}),
-    });
+    const prolog = requireProlog(context);
+    const indexedCandidates = prolog.searchEntities
+      ? await prolog.searchEntities({
+          query: trimmedQuery,
+          ...(type !== undefined ? { type } : {}),
+          limit: 100_000,
+          offset: 0,
+        })
+      : null;
+    const entities = indexedCandidates
+      ? [...indexedCandidates.entities]
+      : await loadEntities(prolog, {
+          ...(type !== undefined ? { type } : {}),
+        });
     const matches = await rankEntities(
       entities,
       trimmedQuery,

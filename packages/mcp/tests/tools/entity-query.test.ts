@@ -58,13 +58,13 @@ describe("entity-query helpers", () => {
 
     test("builds tags and type goal", () => {
       expect(buildEntityGoal({ tags: ["alpha"], type: "fact" })).toBe(
-        "findall([Id,'fact',Props], kb_entity(Id, 'fact', Props), Results)",
+        "findall([Id,'fact',Props], (member(Tag, ['alpha']), kb_entities_by_tag(Tag, TagIds), member(Id, TagIds), kb_entity(Id, 'fact', Props)), Results)",
       );
     });
 
     test("builds tags-only goal", () => {
       expect(buildEntityGoal({ tags: ["alpha", "beta"] })).toBe(
-        "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)",
+        "findall([Id,Type,Props], (member(Tag, ['alpha','beta']), kb_entities_by_tag(Tag, TagIds), member(Id, TagIds), kb_entity(Id, Type, Props)), Results)",
       );
     });
 

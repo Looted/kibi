@@ -22,11 +22,23 @@ export async function runOperationJsonQuery<T>(
   const modulePath = escapeAtom(
     resolveCoreModulePath(fileName).replaceAll("\\", "/"),
   );
+  // Loading a module and invoking its predicate in one interactive goal makes
+  // SWI reject `use_module/1` under the engine's guarded `once/1` wrapper, so
+  // use two serialized requests for production and retain the combined goal
+  // only for the repository's Bun-based one-shot tests.
+  const longLivedEngine =
+    typeof (prolog as { storageStatus?: unknown }).storageStatus === "function";
   const oneShotMode =
+    !longLivedEngine &&
+    process.env.NODE_ENV === "test" &&
     typeof (globalThis as { Bun?: unknown }).Bun !== "undefined";
-  const result = oneShotMode
-    ? await prolog.query(`(use_module('${modulePath}'), ${goal})`)
-    : await runInteractiveModuleQuery(prolog, modulePath, goal, errorLabel);
+  const typedStatusQuery = prolog.queryStatusJson;
+  const result =
+    fileName === "status.pl" && typeof typedStatusQuery === "function"
+      ? await typedStatusQuery.call(prolog)
+      : oneShotMode
+        ? await prolog.query(`(use_module('${modulePath}'), ${goal})`)
+        : await runInteractiveModuleQuery(prolog, modulePath, goal, errorLabel);
   if (!result.success) {
     throw new Error(
       `${errorLabel} query failed: ${result.error ?? "Unknown error"}`,

@@ -75,6 +75,11 @@ async function copyRuntimeResources(
       resolve(stagedRoot, "node_modules/kibi-cli/package.json"),
     ),
     cp(
+      resolve(sourceWorktree, "packages/cli/dist"),
+      resolve(stagedRoot, "node_modules/kibi-cli/dist"),
+      { recursive: true },
+    ),
+    cp(
       resolve(sourceWorktree, "packages/core/package.json"),
       resolve(stagedRoot, "node_modules/kibi-core/package.json"),
     ),

@@ -185,6 +185,22 @@ test(reverse_lookup_with_bound_to_id, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     findall(From, kb_relationship(verified_by, From, 'TEST-REV'), Sources),
     assertion(Sources == ['REQ-REV']).
 
+test(retracts_one_relationship_without_clearing_siblings, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    forall(member(Id, ['REQ-EDGE-A', 'REQ-EDGE-B', 'REQ-EDGE-C']),
+           kb_assert_entity(req, [
+               id=Id,
+               title="Relationship delta fixture",
+               status=active,
+               created_at="2026-08-12T00:00:00Z",
+               updated_at="2026-08-12T00:00:00Z",
+               source="test://relationship-delta"
+           ])),
+    kb_assert_relationship(relates_to, 'REQ-EDGE-A', 'REQ-EDGE-B', []),
+    kb_assert_relationship(relates_to, 'REQ-EDGE-A', 'REQ-EDGE-C', []),
+    kb_retract_relationship(relates_to, 'REQ-EDGE-A', 'REQ-EDGE-B'),
+    \+ kb_relationship(relates_to, 'REQ-EDGE-A', 'REQ-EDGE-B'),
+    kb_relationship(relates_to, 'REQ-EDGE-A', 'REQ-EDGE-C').
+
 :- end_tests(kb_relationships).
 
 :- begin_tests(kb_persistence).
@@ -254,6 +270,28 @@ test(prefers_source_file_over_legacy_source, [setup(setup_kb), cleanup(cleanup_k
     memberchk('sym-both-source-fields', Ids),
     kb_entities_by_source('documentation/brief.md', LegacyIds),
     \+ memberchk('sym-both-source-fields', LegacyIds).
+
+test(indexed_search_materializes_only_matching_page, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(req, [
+        id='REQ-SEARCH-UNIQUE',
+        title="Quasar authentication boundary",
+        status=active,
+        created_at="2026-08-12T00:00:00Z",
+        updated_at="2026-08-12T00:00:00Z",
+        source="documentation/generated-requirements.yaml",
+        tags=[security]
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-SEARCH-OTHER',
+        title="Unrelated cache policy",
+        status=active,
+        created_at="2026-08-12T00:00:00Z",
+        updated_at="2026-08-12T00:00:00Z",
+        source="documentation/generated-requirements.yaml"
+    ]),
+    kb_search_entities(req, "quasar auth", 10, 0, Rows, Count),
+    assertion(Count == 1),
+    Rows = [['REQ-SEARCH-UNIQUE', req, _]].
 
 test(accepts_symbol_metadata_fields, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_assert_entity(symbol, [

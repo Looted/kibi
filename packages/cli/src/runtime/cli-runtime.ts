@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { PrologProcess } from "../prolog.js";
+import { EngineClient } from "../engine.js";
 import {
   nodeFilesystem,
   nodeGit,
@@ -10,7 +10,6 @@ import type {
   OperationContext,
   OperationRuntime,
   PrologPort,
-  PrologQueryResult,
   RuntimeOptions,
 } from "../public/operations/runtime-types.js";
 import { resolveActiveBranch } from "../utils/branch-resolver.js";
@@ -20,23 +19,15 @@ type ManagedPrologPort = PrologPort & {
   readonly terminate?: () => Promise<void>;
 };
 
-function createDefaultProlog(): ManagedPrologPort {
-  const process = new PrologProcess({ timeout: 120_000 });
-  let lastResult: PrologQueryResult | null = null;
-  return {
-    start: () => process.start(),
-    query: async (goal) => {
-      lastResult = await process.query(goal);
-      return lastResult;
-    },
-    nextSolution: async () => {
-      const result = lastResult;
-      lastResult = null;
-      return result;
-    },
-    save: () => process.query("kb_save"),
-    terminate: () => process.terminate(),
-  };
+function createDefaultProlog(root: string, branch: string): ManagedPrologPort {
+  const engine = new EngineClient({
+    workspaceRoot: root,
+    branch,
+    timeout: 120_000,
+  });
+  // Keep the concrete client so sync and operation runtimes can use its
+  // batched queue, storage controls, and cancellation-aware socket lifecycle.
+  return engine as unknown as ManagedPrologPort;
 }
 
 function workspaceRoot(options: RuntimeOptions): string {
@@ -80,33 +71,40 @@ export function createCliRuntime(
         return contextBase;
       }
 
-      const prolog: ManagedPrologPort = merged.prolog ?? createDefaultProlog();
+      let branch = process.env.KIBI_BRANCH?.trim();
+      if (!branch) {
+        const resolved = resolveActiveBranch(root);
+        if ("error" in resolved) {
+          const isNonGitContext =
+            resolved.code === "NOT_A_GIT_REPO" ||
+            resolved.code === "GIT_NOT_AVAILABLE";
+          if (isNonGitContext) {
+            branch = "main";
+          } else {
+            await (
+              merged.prolog as ManagedPrologPort | undefined
+            )?.terminate?.();
+            throw new Error(
+              `Failed to resolve active branch: ${resolved.error}`,
+            );
+          }
+        } else {
+          branch = resolved.branch;
+        }
+      }
+      const usesEngine = merged.prolog === undefined;
+      const prolog: ManagedPrologPort =
+        merged.prolog ?? createDefaultProlog(root, branch);
       try {
         await prolog.start?.();
-        let branch = process.env.KIBI_BRANCH?.trim();
-        if (!branch) {
-          const resolved = resolveActiveBranch(root);
-          if ("error" in resolved) {
-            const isNonGitContext =
-              resolved.code === "NOT_A_GIT_REPO" ||
-              resolved.code === "GIT_NOT_AVAILABLE";
-            if (isNonGitContext) {
-              branch = "main";
-            } else {
-              throw new Error(
-                `Failed to resolve active branch: ${resolved.error}`,
-              );
-            }
-          } else {
-            branch = resolved.branch;
-          }
-        }
         const kbPath = path.join(root, ".kb", "branches", branch);
-        const attached = await prolog.query(
-          `kb_attach('${quoteProlog(kbPath)}')`,
-        );
-        if (!attached.success) {
-          throw new Error(attached.error ?? "Failed to attach branch KB");
+        if (!usesEngine) {
+          const attached = await prolog.query(
+            `kb_attach('${quoteProlog(kbPath)}')`,
+          );
+          if (!attached.success) {
+            throw new Error(attached.error ?? "Failed to attach branch KB");
+          }
         }
         const context: OperationContext = { ...contextBase, prolog };
         ownedPrologs.set(context, prolog);

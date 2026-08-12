@@ -16,7 +16,13 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { existsSync, mkdirSync, renameSync, rmSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { copyFileSync } from "node:fs";
 import * as path from "node:path";
 import fg from "fast-glob";
@@ -33,6 +39,7 @@ interface StagingDeps {
   moduleDir: string;
   renameSync: typeof renameSync;
   rmSync: typeof rmSync;
+  writeFileSync: typeof writeFileSync;
 }
 
 function resolveDeps(overrides?: Partial<StagingDeps>): StagingDeps {
@@ -58,6 +65,7 @@ function resolveDeps(overrides?: Partial<StagingDeps>): StagingDeps {
     moduleDir: import.meta.dirname,
     renameSync,
     rmSync,
+    writeFileSync,
     ...overrides,
   };
 }
@@ -155,6 +163,38 @@ export async function prepareStagingEnvironment(
     // Start fresh with schema only
     await copySchemaToStaging(stagingPath, resolved);
   }
+
+  // Every new staging generation uses the journaled store format.  This also
+  // makes `--rebuild` publish a native RDF database instead of recreating the
+  // legacy full-snapshot path.
+  const markerPath = path.join(stagingPath, "storage.json");
+  const canWriteMetadata =
+    deps === undefined || deps.writeFileSync !== undefined;
+  if (
+    canWriteMetadata &&
+    resolved.existsSync(stagingPath) &&
+    !resolved.existsSync(markerPath)
+  ) {
+    resolved.mkdirSync(path.join(stagingPath, "rdf"), { recursive: true });
+    resolved.writeFileSync(
+      markerPath,
+      '{"format":"kibi.rdf-journal.v1","schemaVersion":1}\n',
+      { mode: 0o600 },
+    );
+    const generation = rebuild
+      ? `generation-${process.pid}-${Date.now()}`
+      : "generation-1";
+    resolved.writeFileSync(
+      path.join(stagingPath, "CURRENT"),
+      `${generation}:0\n`,
+      { mode: 0o600 },
+    );
+    resolved.writeFileSync(
+      path.join(stagingPath, "kb.rdf"),
+      "KIBI_STORAGE_FORMAT=kibi.rdf-journal.v1\n",
+      { mode: 0o600 },
+    );
+  }
 }
 
 async function copySchemaToStaging(
@@ -217,6 +257,80 @@ export function atomicPublish(
   } else {
     resolved.renameSync(stagingPath, livePath);
   }
+}
+
+/**
+ * Publish a rebuilt journal generation without replacing the branch directory.
+ * The legacy backup, sync metadata, and sentinel stay in place; only the
+ * journal database and CURRENT pointer move.  A short-lived rollback pair is
+ * retained until both moves succeed so an interrupted publication can be
+ * repaired on the next engine start.
+ */
+export function atomicPublishGeneration(
+  stagingPath: string,
+  livePath: string,
+  deps?: Partial<StagingDeps>,
+): void {
+  const resolved = resolveDeps(deps);
+  const liveParent = path.dirname(livePath);
+  if (!resolved.existsSync(liveParent)) {
+    resolved.mkdirSync(liveParent, { recursive: true });
+  }
+  if (!resolved.existsSync(livePath)) {
+    resolved.renameSync(stagingPath, livePath);
+    return;
+  }
+
+  const generationStamp = `${Date.now()}.${process.pid}`;
+  const liveRdf = path.join(livePath, "rdf");
+  const stagedRdf = path.join(stagingPath, "rdf");
+  const oldRdf = `${liveRdf}.old.${generationStamp}`;
+  const liveCurrent = path.join(livePath, "CURRENT");
+  const stagedCurrent = path.join(stagingPath, "CURRENT");
+  const oldCurrent = `${liveCurrent}.old.${generationStamp}`;
+
+  if (!resolved.existsSync(stagedRdf) || !resolved.existsSync(stagedCurrent)) {
+    throw new Error("Rebuilt journal generation is missing rdf or CURRENT");
+  }
+
+  let oldRdfMoved = false;
+  let oldCurrentMoved = false;
+  try {
+    if (resolved.existsSync(liveRdf)) {
+      resolved.renameSync(liveRdf, oldRdf);
+      oldRdfMoved = true;
+    }
+    resolved.renameSync(stagedRdf, liveRdf);
+
+    if (resolved.existsSync(liveCurrent)) {
+      resolved.renameSync(liveCurrent, oldCurrent);
+      oldCurrentMoved = true;
+    }
+    resolved.renameSync(stagedCurrent, liveCurrent);
+  } catch (error) {
+    // Restore the old pointer/database whenever publication fails.  If the
+    // process itself crashes, ensureJournaledBranchStoreAsync performs the
+    // same recovery from the `.old.<stamp>` siblings.
+    try {
+      if (resolved.existsSync(liveCurrent))
+        resolved.rmSync(liveCurrent, { force: true });
+      if (oldCurrentMoved && resolved.existsSync(oldCurrent))
+        resolved.renameSync(oldCurrent, liveCurrent);
+      if (resolved.existsSync(liveRdf))
+        resolved.rmSync(liveRdf, { recursive: true, force: true });
+      if (oldRdfMoved && resolved.existsSync(oldRdf))
+        resolved.renameSync(oldRdf, liveRdf);
+    } catch {
+      // Preserve the original publication error; startup recovery will report
+      // the remaining sibling paths if the rollback itself was interrupted.
+    }
+    throw error;
+  }
+
+  if (resolved.existsSync(oldRdf))
+    resolved.rmSync(oldRdf, { recursive: true, force: true });
+  if (resolved.existsSync(oldCurrent))
+    resolved.rmSync(oldCurrent, { force: true });
 }
 
 export function cleanupStaging(

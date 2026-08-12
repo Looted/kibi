@@ -30,8 +30,7 @@
   },
   "files": ["dist", "bin"],
   "engines": {
-    "node": ">=18",
-    "bun": ">=1.0"
+    "node": ">=18"
   },
   "exports": {
     ".": "./dist/server.js"

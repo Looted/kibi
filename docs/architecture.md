@@ -11,7 +11,8 @@ graph TD
     E -->|Entities/Relationships| KB[Prolog KB (per branch)]
     CLI[CLI: flags + JSON routes] --> OPS[18 shared operation specs]
     MCP[MCP Server] --> OPS
-    OPS -->|Query / mutate| KB[Prolog KB (per branch)]
+    OPS -->|Framed local RPC| ENG[Node kibi-engine\n(single writer per workspace/branch)]
+    ENG -->|One interactive process| KB[SWI-Prolog KB (per branch)]
     CC[kibi-codex (optional plugin)] -->|calls| MCP
     CU[kibi-cursor (optional plugin)] -->|calls| MCP
     MCP -->|Tooling| VSCode[VS Code Extension]
@@ -28,7 +29,7 @@ graph TD
 ### Prolog Core
 
 - Located at `packages/core/src/kb.pl`
-- Implements RDF persistence using SWI-Prolog's `rdf_persistency`
+- Implements journaled RDF persistence using SWI-Prolog's `rdf_persistency`
 - Stores entities and relationships as RDF triples
 - Enforces validation rules
 - All operations mutex-protected for concurrency safety
@@ -37,7 +38,8 @@ graph TD
 - Located at `packages/cli/`
 - Peer public operation surface alongside MCP, plus maintenance and human-oriented commands
 - Exposes all 18 public operations through `--input <file|->` JSON routes and preserves ergonomic flag commands where available
-- Node.js/Bun wrapper that owns the short-lived CLI runtime and spawns SWI-Prolog when an operation requires it
+- Node.js 18+ is the supported CLI/MCP runtime and hosts the long-lived `kibi-engine` daemon
+- Automatically connects to (or starts) one engine per real workspace path and branch over a protected local socket/named pipe
 - Maintenance commands include init, sync, migrate, gc, branch, doctor, and usage-metrics
 - Runs extractors for Markdown/YAML
 - Handles schema validation and audit logging
@@ -47,7 +49,17 @@ graph TD
 - Peer public operation surface alongside the CLI
 - Provides stdio JSON-RPC transport (newline-delimited, no embedded newlines)
 - Registers the same 18 shared operation specs as host-visible `kb_*` tools
-- Keeps a branch-aware Prolog process alive and adapts its session runtime to shared executors
+- Uses the same Node engine as CLI, so MCP and CLI requests serialize through one SWI-Prolog writer
+
+### Journaled engine
+
+- `packages/cli/src/engine.ts` owns the length-prefixed JSON RPC client and daemon lifecycle.
+- A daemon keeps one interactive SWI process attached for up to ten minutes after the last client disconnects. Requests carry IDs, protocol version, workspace identity, and structured errors over a local socket/named pipe.
+- New branches use `.kb/branches/<branch>/storage.json`, `rdf/` binary snapshots and journals, and an atomic `CURRENT` value of `<generation-id>:<commit-sequence>`. `kb.rdf` is a writable legacy-format sentinel that fences older clients.
+- Legacy `kb.rdf`/`audit.log` branches migrate once under `kb.lock` into a staging generation. Canonical triple digests, counts, audit resources, schema fields, and relationship endpoints are checked before publication; originals remain in immutable `legacy/` backups.
+- Domain triples and audit resources share the same RDF transaction. `audit.log` is only produced by `kibi storage export` and is not authoritative.
+- Ordinary sync compiles changed/deleted source files and relationship shards into the active journal. `kibi sync --rebuild` is the only path that publishes a replacement generation.
+- Each attached engine rebuilds disposable ID/type/tag/source/token/coordinate indexes from RDF. Exact and paginated discovery uses the index to materialize only the requested page; a triple/entity-count mismatch rebuilds the index and never repairs RDF.
 
 ### Codex Adapter Plugin
 - Located at `packages/codex/`
@@ -84,13 +96,15 @@ sequenceDiagram
     participant Dev as Developer
     participant CLI as CLI
     participant Ext as Extractors
-    participant KB as Prolog KB
+    participant ENG as kibi-engine
+    participant KB as SWI-Prolog
     participant RDF as RDF Persistence
     Dev->>CLI: kibi sync
-    CLI->>Ext: Run extractors
-    Ext->>KB: Generate entities/relationships
-    KB->>RDF: Persist triples
-    KB->>KB: Validate, append audit log
+    CLI->>Ext: Run extractors once per changed source
+    Ext->>ENG: Delta entities/relationships
+    ENG->>KB: One serialized RDF transaction
+    KB->>RDF: Append journal / compact while idle
+    ENG->>KB: Validate and append audit resources atomically
 ```
 
 ### Read Path (KB → Query)
@@ -100,11 +114,13 @@ sequenceDiagram
     participant User as User or Agent
     participant Surface as CLI or MCP
     participant Ops as Shared Operation
-    participant KB as Prolog KB
+    participant ENG as kibi-engine
+    participant KB as SWI-Prolog
     participant RDF as RDF Persistence
     User->>Surface: CLI JSON/flags or MCP tool call
     Surface->>Ops: Validate shared operation input
-    Ops->>KB: Send query
+    Ops->>ENG: Framed local RPC
+    ENG->>KB: Indexed RDF query
     KB->>RDF: Query RDF store
     KB->>Ops: Return bindings
     Ops->>Surface: Structured operation result
@@ -122,12 +138,12 @@ sequenceDiagram
 ## RDF Persistence Details
 
 - Uses SWI-Prolog `library(semweb/rdf_persistency)`
-- Directory layout: base snapshot (binary `.trp`) + journal (`.jrn` Prolog terms)
+- Directory layout: `storage.json`, `CURRENT`, `rdf/` binary `.trp` snapshots plus incremental `.jrn` journals, and a legacy sentinel `kb.rdf`
 - File locking: lock file with timestamp, PID, hostname prevents concurrent access
 - Multi-step updates guarded with `with_mutex/2` for atomicity
-- Journals are not auto-merged; explicit maintenance required
-- Also uses `library(persistency)` for record-like predicates
-- Provides ACID properties (isolation, durability) for KB operations
+- Journals compact automatically while idle once they exceed 16 MiB; `kibi storage compact` forces compaction
+- `library(persistency)` remains only for legacy migration/import; journaled audit resources live in the RDF graph
+- Writes are acknowledged only after the transaction and journal are durable
 
 ## MCP Stdio Transport
 

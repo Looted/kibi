@@ -17,7 +17,7 @@ Validate and strengthen requirement, scenario, test, behavioral-symbol, and sour
 ## Interface Selection
 
 1. If Kibi MCP tools are visible and approved, use the MCP surface as the primary authority.
-2. Otherwise, in a trusted workspace, use the canonical project-local CLI fallback through `npx --no-install kibi ...` or `bunx --no-install kibi ...`.
+2. Otherwise, in a trusted workspace, use the canonical project-local CLI fallback through `npx --no-install kibi ...`.
 3. If neither approved MCP tools nor the project-local CLI are available, or if the CLI is unavailable or too old, stop and tell the operator to enable or install Kibi.
 4. Never use a global fallback or an installing runner.
 

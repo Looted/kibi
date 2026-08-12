@@ -5,8 +5,7 @@
   "description": "Core Prolog modules and RDF graph logic for Kibi",
   "type": "module",
   "engines": {
-    "node": ">=18",
-    "bun": ">=1.0"
+    "node": ">=18"
   },
   "main": "./src/kb.pl",
   "files": ["src/**/*.pl", "schema/**/*.pl"],
