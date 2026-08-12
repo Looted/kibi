@@ -1,4 +1,4 @@
-import { stat } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 
 export interface BranchKbStamp {
@@ -42,7 +42,18 @@ export async function readBranchKbStamp(
     errors.push(formatStatError(branchPath, error));
   }
 
-  const rdfPath = path.join(branchPath, "kb.rdf");
+  const markerPath = path.join(branchPath, "storage.json");
+  let journaled = false;
+  try {
+    journaled = (await readFile(markerPath, "utf8")).includes(
+      "kibi.rdf-journal.v1",
+    );
+  } catch {
+    journaled = false;
+  }
+  // Journaled stores expose CURRENT as their cheap, atomic freshness marker;
+  // legacy stores retain kb.rdf for compatibility.
+  const rdfPath = path.join(branchPath, journaled ? "CURRENT" : "kb.rdf");
   try {
     const rdfStat = await stat(rdfPath);
     stamp.rdfDev = rdfStat.dev;

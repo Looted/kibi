@@ -4,8 +4,7 @@
   "type": "module",
   "description": "Kibi CLI for knowledge base management",
   "engines": {
-    "node": ">=18",
-    "bun": ">=1.0"
+    "node": ">=18"
   },
   "main": "./dist/cli.js",
   "bin": {
@@ -29,6 +28,10 @@
     "./prolog/codec": {
       "types": "./dist/prolog/codec.d.ts",
       "default": "./dist/prolog/codec.js"
+    },
+    "./engine": {
+      "types": "./dist/engine.d.ts",
+      "default": "./dist/engine.js"
     },
     "./operations/runtime-types": {
       "types": "./dist/public/operations/runtime-types.d.ts",

@@ -726,6 +726,42 @@ ${updatedRequirement}
   );
 
   test(
+    "compiles one changed symbol from a multi-symbol manifest",
+    () => {
+      const manifestPath = path.join(tmpDir, "documentation/symbols.yaml");
+      const manifest = (middleTitle: string) => `symbols:
+  - id: SYM-DELTA-ONE
+    title: First delta symbol
+    sourceFile: src/one.ts
+  - id: SYM-DELTA-TWO
+    title: ${middleTitle}
+    sourceFile: src/two.ts
+  - id: SYM-DELTA-THREE
+    title: Third delta symbol
+    sourceFile: src/three.ts
+`;
+      writeFileSync(manifestPath, manifest("Second delta symbol"));
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      writeFileSync(manifestPath, manifest("Second delta symbol updated"));
+      const output = execSync(`bun ${kibiBin} sync`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
+      expect(output).toMatch(/Imported 1 entities, 0 relationships/);
+
+      const queried = JSON.parse(
+        execSync(
+          `bun ${kibiBin} query symbol --id SYM-DELTA-TWO --format json`,
+          { cwd: tmpDir, encoding: "utf8" },
+        ),
+      ) as Array<{ title?: string }>;
+      expect(queried[0]?.title).toBe("Second delta symbol updated");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
     "handles missing paths gracefully",
     async () => {
       // Add non-existent path to config
@@ -813,6 +849,31 @@ ${updatedRequirement}
       });
 
       expect(output).toMatch(/\d+ entities, \d+ relationships/);
+
+      const before = JSON.parse(
+        execSync(`bun ${kibiBin} query req --id req1 --format json`, {
+          cwd: tmpDir,
+          encoding: "utf8",
+        }),
+      ) as Array<{ relates_to?: string }>;
+      expect(before[0]?.relates_to).toBe("kb:entity/scenario1");
+
+      writeFileSync(
+        path.join(relationshipsDir, "a1.yaml"),
+        "relationships: []\n",
+      );
+      const deletion = execSync(`bun ${kibiBin} sync`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
+      expect(deletion).toMatch(/Imported 0 entities, 0 relationships/);
+      const after = JSON.parse(
+        execSync(`bun ${kibiBin} query req --id req1 --format json`, {
+          cwd: tmpDir,
+          encoding: "utf8",
+        }),
+      ) as Array<{ relates_to?: string }>;
+      expect(after[0]?.relates_to).toBeUndefined();
     },
     TEST_TIMEOUT_MS,
   );

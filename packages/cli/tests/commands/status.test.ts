@@ -126,6 +126,39 @@ status: open
 ---
 `,
       );
+      writeFileSync(
+        path.join(
+          freshDir,
+          "documentation",
+          "requirements",
+          "REQ-LEGACY-SOURCE.md",
+        ),
+        `---
+id: REQ-LEGACY-SOURCE
+title: Legacy source identifier
+status: open
+source: REQ-009
+---
+`,
+      );
+      mkdirSync(path.join(freshDir, "packages", "example"), {
+        recursive: true,
+      });
+      writeFileSync(
+        path.join(
+          freshDir,
+          "documentation",
+          "requirements",
+          "REQ-DIRECTORY-SOURCE.md",
+        ),
+        `---
+id: REQ-DIRECTORY-SOURCE
+title: Directory source
+status: open
+source: packages/example/
+---
+`,
+      );
 
       execSync(`bun ${kibiBin} sync`, { cwd: freshDir, stdio: "pipe" });
 
@@ -144,6 +177,53 @@ status: open
       rmSync(freshDir, { recursive: true, force: true });
     }
   }, 15000);
+
+  test("publishes freshness for a content-identical no-op sync", async () => {
+    const noOpDir = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-test-status-noop-"),
+    );
+
+    try {
+      execSync("git init -b main", { cwd: noOpDir, stdio: "pipe" });
+      execSync(`bun ${kibiBin} init`, { cwd: noOpDir, stdio: "pipe" });
+      const requirementsDir = path.join(
+        noOpDir,
+        "documentation",
+        "requirements",
+      );
+      mkdirSync(requirementsDir, { recursive: true });
+      const requirementPath = path.join(requirementsDir, "REQ-NOOP-001.md");
+      const requirement = `---
+id: REQ-NOOP-001
+title: No-op sync freshness
+status: open
+---
+`;
+      writeFileSync(requirementPath, requirement);
+      execSync(`bun ${kibiBin} sync`, { cwd: noOpDir, stdio: "pipe" });
+
+      await Bun.sleep(20);
+      writeFileSync(requirementPath, requirement);
+      const syncOutput = execSync(`bun ${kibiBin} sync`, {
+        cwd: noOpDir,
+        encoding: "utf8",
+      });
+      expect(syncOutput).toContain("no changes");
+
+      const statusOutput = execSync(`bun ${kibiBin} status --format json`, {
+        cwd: noOpDir,
+        encoding: "utf8",
+      });
+      const result = JSON.parse(statusOutput) as {
+        dirty: boolean;
+        syncState: string;
+      };
+      expect(result.dirty).toBe(false);
+      expect(result.syncState).toBe("fresh");
+    } finally {
+      rmSync(noOpDir, { recursive: true, force: true });
+    }
+  }, 30000);
 
   test("keeps status fresh after syncing with documentation README files", () => {
     const readmeDir = mkdtempSync(

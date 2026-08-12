@@ -1,4 +1,5 @@
 import path from "node:path";
+import { EngineClient } from "../engine.js";
 import { getBranchOverride } from "../env.js";
 import { PrologProcess, resolveKbPlPath } from "../prolog.js";
 import { escapeAtom } from "../prolog/codec.js";
@@ -38,39 +39,58 @@ export async function withAttachedBranchProlog<T>(
   callback: (prolog: PrologProcess) => Promise<T>,
   deps?: Partial<DiscoveryDeps>,
 ): Promise<T> {
+  const usesEngine = deps?.createProlog === undefined;
   const createProlog =
     deps?.createProlog ?? ((opts) => new PrologProcess(opts));
   let prolog: PrologProcess | null = null;
+  let engine: EngineClient | null = null;
   let attached = false;
+  let branchName: string;
 
   try {
-    prolog = createProlog({ timeout: 120000 });
-    await prolog.start();
+    try {
+      branchName =
+        getBranchOverride() || (await getCurrentBranch(process.cwd()));
+    } catch {
+      branchName = getBranchOverride() || "main";
+    }
+
+    if (usesEngine) {
+      engine = new EngineClient({
+        workspaceRoot: process.cwd(),
+        branch: branchName,
+        timeout: 120_000,
+      });
+      await engine.start();
+      prolog = engine as unknown as PrologProcess;
+    } else {
+      prolog = createProlog({ timeout: 120000 });
+      await prolog.start();
+    }
     await prolog.query(
       "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
     );
 
-    let branch: string;
-    try {
-      branch = getBranchOverride() || (await getCurrentBranch(process.cwd()));
-    } catch {
-      branch = getBranchOverride() || "main";
-    }
-
-    const kbPath = path.join(process.cwd(), ".kb/branches", branch);
-    const attachResult = await prolog.query(
-      `kb_attach('${escapeAtom(kbPath)}')`,
-    );
-    if (!attachResult.success) {
-      throw new Error(
-        `Failed to attach KB: ${attachResult.error || "Unknown error"}`,
+    if (!usesEngine) {
+      const kbPath = path.join(process.cwd(), ".kb/branches", branchName);
+      const attachResult = await prolog.query(
+        `kb_attach('${escapeAtom(kbPath)}')`,
       );
+      if (!attachResult.success) {
+        throw new Error(
+          `Failed to attach KB: ${attachResult.error || "Unknown error"}`,
+        );
+      }
+      attached = true;
     }
-    attached = true;
 
     return await callback(prolog);
   } finally {
-    await safeCleanupProlog(prolog);
+    if (usesEngine) {
+      await engine?.terminate();
+    } else {
+      await safeCleanupProlog(prolog);
+    }
   }
 }
 

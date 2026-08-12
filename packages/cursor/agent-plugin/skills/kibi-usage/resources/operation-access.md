@@ -36,7 +36,7 @@ echo '{"type":"req","id":"REQ-001","properties":{"title":"Test","status":"open"}
 ```
 
 ```bash
-echo '{"rules":["required-fields","no-dangling-refs"]}' | bunx --no-install kibi check --input -
+echo '{"rules":["required-fields","no-dangling-refs"]}' | npx --no-install kibi check --input -
 ```
 
 ## Telemetry handling

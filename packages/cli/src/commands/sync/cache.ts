@@ -42,6 +42,14 @@ function resolveDeps(overrides?: Partial<SyncCacheDeps>): SyncCacheDeps {
 export type SyncCache = {
   version: number;
   hashes: Record<string, string>;
+  /** Content hashes for relationship shards; optional for v1 caches. */
+  relationshipHashes?: Record<string, string>;
+  /** Normalized entity payload hashes, keyed by canonical entity ID. */
+  entityHashes?: Record<string, string>;
+  /** Entity IDs last compiled from each normalized source path. */
+  sourceEntityIds?: Record<string, string[]>;
+  /** Normalized relationship keys last compiled from each shard. */
+  shardRelationships?: Record<string, string[]>;
   seenAt: Record<string, string>;
   semanticHashes: Record<string, string>;
   semanticContracts: Record<string, boolean>;
@@ -62,6 +70,24 @@ export function hashFile(
   const resolved = resolveDeps(deps);
   const content = resolved.readFileSync(filePath);
   return resolved.createHash("sha256").update(content).digest("hex");
+}
+
+/** Deterministically hash a JSON-compatible compiler payload. */
+export function hashNormalized(value: unknown): string {
+  const normalize = (input: unknown): unknown => {
+    if (Array.isArray(input)) return input.map(normalize);
+    if (input !== null && typeof input === "object") {
+      return Object.fromEntries(
+        Object.entries(input as Record<string, unknown>)
+          .sort(([left], [right]) => left.localeCompare(right))
+          .map(([key, child]) => [key, normalize(child)]),
+      );
+    }
+    return input;
+  };
+  return createHash("sha256")
+    .update(JSON.stringify(normalize(value)))
+    .digest("hex");
 }
 
 export function readSyncCache(
@@ -94,13 +120,26 @@ export function readSyncCache(
       };
     }
 
-    return {
+    const cache: SyncCache = {
       version: SYNC_CACHE_VERSION,
       hashes: parsed.hashes ?? {},
       seenAt: parsed.seenAt ?? {},
       semanticHashes: parsed.semanticHashes ?? {},
       semanticContracts: parsed.semanticContracts ?? {},
     };
+    if (parsed.relationshipHashes !== undefined) {
+      cache.relationshipHashes = parsed.relationshipHashes;
+    }
+    if (parsed.entityHashes !== undefined) {
+      cache.entityHashes = parsed.entityHashes;
+    }
+    if (parsed.sourceEntityIds !== undefined) {
+      cache.sourceEntityIds = parsed.sourceEntityIds;
+    }
+    if (parsed.shardRelationships !== undefined) {
+      cache.shardRelationships = parsed.shardRelationships;
+    }
+    return cache;
   } catch {
     return {
       version: SYNC_CACHE_VERSION,

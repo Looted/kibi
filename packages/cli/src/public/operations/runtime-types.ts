@@ -8,12 +8,51 @@ export type PrologQueryResult = {
   readonly error?: string;
 };
 
+export type PrologEntityQueryInput = Readonly<{
+  type?: string;
+  id?: string;
+  tags?: readonly string[];
+  sourceFile?: string;
+  limit: number;
+  offset: number;
+}>;
+
+export type PrologEntityQueryResult = Readonly<{
+  entities: readonly Record<string, unknown>[];
+  count: number;
+}>;
+
+export type PrologSearchQueryInput = Readonly<{
+  query: string;
+  type?: string;
+  /** Candidate bound before deterministic TypeScript ranking. */
+  limit: number;
+  offset: number;
+}>;
+
+export type PrologSearchQueryResult = Readonly<{
+  entities: readonly Record<string, unknown>[];
+  count: number;
+}>;
+
 // implements REQ-kibi-operation-interface-parity
 export interface PrologPort {
   query(goal: string): Promise<PrologQueryResult>;
+  /** Optional index-backed page query supplied by the journaled engine. */
+  queryEntities?(
+    input: PrologEntityQueryInput,
+  ): Promise<PrologEntityQueryResult>;
+  /** Optional normalized-token candidate lookup supplied by the engine. */
+  searchEntities?(
+    input: PrologSearchQueryInput,
+  ): Promise<PrologSearchQueryResult>;
   nextSolution(): Promise<PrologQueryResult | null>;
   invalidateCache?(): void;
   save(): Promise<PrologQueryResult>;
+  /** Present on the journaled engine; used to distinguish a persistent port from one-shot SWI. */
+  storageStatus?(): Promise<PrologQueryResult>;
+  /** Typed public freshness query; avoids exposing module loading over RPC. */
+  queryStatusJson?(): Promise<PrologQueryResult>;
 }
 
 export type FilesystemStat = {

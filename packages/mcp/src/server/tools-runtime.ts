@@ -97,6 +97,54 @@ function adaptProlog(prolog: PrologProcess): PrologPort {
       return result;
     },
     save: () => prolog.query("kb_save"),
+    ...(typeof (prolog as { queryEntities?: unknown }).queryEntities ===
+    "function"
+      ? {
+          queryEntities: (
+            input: Parameters<NonNullable<PrologPort["queryEntities"]>>[0],
+          ) =>
+            (
+              prolog as PrologProcess & {
+                queryEntities: NonNullable<PrologPort["queryEntities"]>;
+              }
+            ).queryEntities(input),
+        }
+      : {}),
+    ...(typeof (prolog as { searchEntities?: unknown }).searchEntities ===
+    "function"
+      ? {
+          searchEntities: (
+            input: Parameters<NonNullable<PrologPort["searchEntities"]>>[0],
+          ) =>
+            (
+              prolog as PrologProcess & {
+                searchEntities: NonNullable<PrologPort["searchEntities"]>;
+              }
+            ).searchEntities(input),
+        }
+      : {}),
+    ...(typeof (prolog as { storageStatus?: unknown }).storageStatus ===
+    "function"
+      ? {
+          storageStatus: () =>
+            (
+              prolog as PrologProcess & {
+                storageStatus: () => Promise<PrologQueryResult>;
+              }
+            ).storageStatus(),
+        }
+      : {}),
+    ...(typeof (prolog as { queryStatusJson?: unknown }).queryStatusJson ===
+    "function"
+      ? {
+          queryStatusJson: () =>
+            (
+              prolog as PrologProcess & {
+                queryStatusJson: () => Promise<PrologQueryResult>;
+              }
+            ).queryStatusJson(),
+        }
+      : {}),
   };
   prologPorts.set(prolog, port);
   return port;

@@ -95,6 +95,28 @@ Extracts entities and relationships from project documents and updates the knowl
 - Symbol manifests must be in YAML format
 - Changes are committed to the branch KB's audit log
 
+Normal sync is a delta compile into the running Node engine: unchanged source
+files are skipped, changed/deleted source entities are retracted and reasserted
+in the journal, and relationship shards are refreshed only when their content
+hash changes. `--rebuild` is the explicit generation-replacement path.
+
+## `kibi engine status|stop`
+
+The engine is automatically started for CLI and MCP operations. `engine status`
+prints the workspace/branch daemon PID and journal status; `engine stop` asks it
+to flush and exit. A daemon is shared by all clients for the same canonical
+workspace path and branch and exits after ten minutes without clients.
+
+## `kibi storage status|compact|export`
+
+- `storage status` reports journaled mode, generation, commit sequence, and journal bytes.
+- `storage compact` explicitly compacts the RDF journal; idle engines also compact journals over 16 MiB.
+- `storage export --output <directory>` writes derived legacy `kb.rdf` and `audit.log` files outside the active branch store. These exports are not authoritative and are never read by the engine.
+
+Node.js 18 or newer is required for both the CLI/MCP clients and the engine.
+Bun remains a repository build/test tool, but is not a supported runtime for
+the published Kibi packages.
+
 ## `kibi query [type]`
 
 Queries entities from the knowledge base.

@@ -4,6 +4,12 @@
     kb_attach/1,
     kb_detach/0,
     kb_save/0,
+    kb_sync_checkpoint/0,
+    kb_storage_status/1,
+    kb_storage_compact/0,
+    kb_storage_compact_if_needed/0,
+    kb_storage_export/1,
+    kb_migrate_legacy/2,
     with_kb_mutex/1,
     kb_assert_entity/2,
     kb_assert_entity_no_audit/2,
@@ -12,6 +18,13 @@
     kb_retract_entity/1,
     kb_retract_entity/3,
     kb_retract_entity_relationships/1,
+    kb_retract_relationship/3,
+    kb_retract_all_relationships/0,
+    kb_entities_by_tag/2,
+    kb_indexed_sources/1,
+    kb_query_entities/8,
+    kb_search_entities/6,
+    kb_rebuild_indexes/0,
     kb_entity/3,
     kb_entities_by_source/2,
     kb_assert_relationship/4,
@@ -53,9 +66,13 @@
 ]).
 
 :- use_module(library(semweb/rdf11)).
+:- use_module(library(semweb/rdf_persistency)).
 :- use_module(library(persistency)).
 :- use_module(library(thread)).
 :- use_module(library(filesex)).
+:- use_module(library(readutil)).
+:- use_module(library(aggregate), [aggregate_all/3]).
+:- use_module(library(lists), [sum_list/2]).
 :- use_module(library(ordsets)).
 :- use_module('../schema/entities.pl', [entity_type/1, entity_property/3, required_property/2]).
 :- use_module('../schema/relationships.pl', [relationship_type/1, valid_relationship/3]).
@@ -80,10 +97,31 @@ kb_uri('urn-kibi:').
 :- dynamic kb_audit_db/1.
 :- dynamic kb_graph/1.
 :- dynamic kb_attached_snapshot/1.
+:- dynamic kb_storage_mode/1.           % legacy | journaled
+:- dynamic kb_persistency_directory/1.
+:- dynamic kb_commit_sequence/1.
+:- dynamic kb_generation/1.
+:- dynamic kb_legacy_sentinel_stamp/1.
+:- dynamic kb_audit_sequence/1.
+:- dynamic kb_dirty/0.
+% Rebuildable read indexes. RDF remains authoritative; a dirty marker causes
+% the next unbound discovery query to rebuild these daemon-lifetime indexes.
+:- dynamic kb_index_ready/0.
+:- dynamic kb_index_dirty/0.
+:- dynamic kb_index_entity/2.
+:- dynamic kb_index_type/2.
+:- dynamic kb_index_tag/2.
+:- dynamic kb_index_source/2.
+:- dynamic kb_index_token/2.
+:- dynamic kb_index_symbol_coordinate/5.
+:- dynamic kb_index_entity_count/1.
+:- dynamic kb_index_triple_count/1.
 :- dynamic entity/4.  % Support legacy .pl file format (Type, Id, Title, Props)
 
 %% kb_attach(+Directory)
-% Attach to a KB directory with RDF persistence and file locking.
+% Attach to a KB directory.  New stores use SWI's journaled RDF persistence;
+% unmarked directories retain the legacy RDF/XML path for migration and
+% backwards-compatible temporary KBs.
 % Creates directory if it doesn't exist.
 kb_attach(Directory) :-
     (   kb_attached(_)
@@ -95,6 +133,67 @@ kb_attach(Directory) :-
     ->  true
     ;   make_directory_path(Directory)
     ),
+    (   journaled_store(Directory)
+    ->  kb_attach_journaled(Directory)
+    ;   kb_attach_legacy(Directory)
+    ).
+
+journaled_store(Directory) :-
+    atom_concat(Directory, '/storage.json', Marker),
+    exists_file(Marker),
+    catch(
+        read_file_to_string(Marker, Contents, []),
+        _,
+        fail
+    ),
+    sub_string(Contents, _, _, _, "kibi.rdf-journal.v1").
+
+% implements REQ-core-journaled-engine-persistence
+kb_attach_journaled(Directory) :-
+    atom_concat(Directory, '/rdf', PersistencyDirectory),
+    (   exists_directory(PersistencyDirectory)
+    ->  true
+    ;   make_directory_path(PersistencyDirectory)
+    ),
+    % rdf_persistency owns the database lock for the lifetime of the engine.
+    rdf_attach_db(PersistencyDirectory,
+                  [access(read_write), silent(true), concurrency(4)]),
+    % Create RDF graph name from directory.  Do not unload a graph here:
+    % rdf_attach_db has already restored it from its snapshot/journal.  A
+    % staged migration can have been atomically moved after the graph was
+    % first persisted, so accept the single restored graph URI as well.
+    journal_graph_uri(Directory, GraphURI),
+    read_journal_metadata(Directory, Generation, Sequence),
+    assert(kb_attached(Directory)),
+    assert(kb_graph(GraphURI)),
+    assert(kb_storage_mode(journaled)),
+    assert(kb_persistency_directory(PersistencyDirectory)),
+    assert(kb_generation(Generation)),
+    assert(kb_commit_sequence(Sequence)),
+    assert(kb_attached_snapshot(journal_snapshot(Generation, Sequence))),
+    retractall(kb_dirty),
+    initialize_journal_audit_sequence(GraphURI),
+    atom_concat(Directory, '/kb.rdf', SentinelFile),
+    current_data_stamp(SentinelFile, SentinelStamp),
+    assert(kb_legacy_sentinel_stamp(SentinelStamp)),
+
+    load_kb_pl_files(Directory),
+    kb_rebuild_indexes.
+
+journal_graph_uri(Directory, GraphURI) :-
+    atom_concat('file://', Directory, Expected),
+    (   rdf_graph(Expected)
+    ->  GraphURI = Expected
+    ;   findall(G,
+                (rdf_graph(G), rdf(_, _, _, G)),
+                Graphs),
+        (   Graphs = [GraphURI|_]
+        ->  true
+        ;   GraphURI = Expected
+        )
+    ).
+
+kb_attach_legacy(Directory) :-
     % Create RDF graph name from directory
     atom_concat('file://', Directory, GraphURI),
     % If a graph with this URI is already present, unload it to avoid duplicates.
@@ -122,10 +221,12 @@ kb_attach(Directory) :-
     assert(kb_attached(Directory)),
     assert(kb_audit_db(AuditLog)),
     assert(kb_graph(GraphURI)),
+    assert(kb_storage_mode(legacy)),
     assert(kb_attached_snapshot(SnapshotStamp)),
 
     % Load legacy .pl entity files if present
-    load_kb_pl_files(Directory).
+    load_kb_pl_files(Directory),
+    kb_rebuild_indexes.
 
 
 %% kb_detach
@@ -135,6 +236,11 @@ kb_attach(Directory) :-
 kb_detach :-
     (   kb_attached(_Directory)
     ->  (
+            (   kb_storage_mode(journaled)
+            ->  catch(rdf_flush_journals([min_size(16384)]), _, true),
+                catch(rdf_detach_db, _, true)
+            ;   true
+            ),
             % Unload RDF graph from memory to prevent duplication on reattach
             (   kb_graph(GraphURI)
             ->  rdf_unload_graph(GraphURI)
@@ -148,7 +254,24 @@ kb_detach :-
             retractall(kb_attached(_)),
             retractall(kb_audit_db(_)),
             retractall(kb_graph(_)),
-            retractall(kb_attached_snapshot(_))
+            retractall(kb_attached_snapshot(_)),
+            retractall(kb_storage_mode(_)),
+            retractall(kb_persistency_directory(_)),
+            retractall(kb_commit_sequence(_)),
+            retractall(kb_generation(_)),
+            retractall(kb_legacy_sentinel_stamp(_)),
+            retractall(kb_audit_sequence(_)),
+            retractall(kb_dirty),
+            retractall(kb_index_ready),
+            retractall(kb_index_dirty),
+            retractall(kb_index_entity(_, _)),
+            retractall(kb_index_type(_, _)),
+            retractall(kb_index_tag(_, _)),
+            retractall(kb_index_source(_, _)),
+            retractall(kb_index_token(_, _)),
+            retractall(kb_index_symbol_coordinate(_, _, _, _, _)),
+            retractall(kb_index_entity_count(_)),
+            retractall(kb_index_triple_count(_))
         )
     ;   true
     ).
@@ -157,7 +280,9 @@ kb_detach :-
 % Save RDF graph and sync audit log to disk
 % implements REQ-009
 kb_save :-
-    (   kb_attached(Directory)
+    (   kb_storage_mode(journaled)
+    ->  kb_save_journaled
+    ;   kb_attached(Directory)
     ->  with_kb_mutex(with_kb_file_lock(Directory, kb_save_locked(Directory)))
     ;   true
     ).
@@ -171,6 +296,12 @@ with_kb_file_lock(Directory, Goal) :-
     ).
 
 kb_save_locked(Directory) :-
+    (   kb_storage_mode(journaled)
+    ->  kb_save_journaled_locked(Directory)
+    ;   kb_save_legacy_locked(Directory)
+    ).
+
+kb_save_legacy_locked(Directory) :-
     atom_concat(Directory, '/kb.rdf', DataFile),
     temp_rdf_file(Directory, TempFile),
     catch(
@@ -193,6 +324,486 @@ kb_save_locked(Directory) :-
         (
             cleanup_temp_file(TempFile),
             throw(Error)
+        )
+    ).
+
+% Journaled stores never rewrite kb.rdf on the hot path.  SWI's monitor
+% appends RDF edits to a per-source journal; flushing with min_size(16384)
+% makes a compact binary snapshot only after a journal reaches 16 MiB.
+kb_save_journaled :-
+    (   kb_attached(Directory)
+    ->  with_kb_mutex(kb_save_journaled_locked(Directory))
+    ;   true
+    ).
+
+%% kb_sync_checkpoint
+% Publish compiler freshness even when a successful sync has no RDF delta.
+% The commit sequence remains the durable ordering boundary used by status;
+% shutdown still uses kb_save/0 and therefore does not mint phantom commits.
+kb_sync_checkpoint :-
+    kb_mark_dirty,
+    kb_save_journaled.
+
+% implements REQ-core-journaled-engine-persistence
+kb_save_journaled_locked(Directory) :-
+    ensure_journal_sentinel_current(Directory),
+    (   kb_dirty
+    ->  kb_stage(journal_flush),
+        rdf_flush_journals([min_size(16384)]),
+        next_journal_commit(Generation, Sequence),
+        write_journal_head(Directory, Generation, Sequence),
+        retractall(kb_attached_snapshot(_)),
+        assert(kb_attached_snapshot(journal_snapshot(Generation, Sequence))),
+        retractall(kb_dirty)
+    ;   true
+    ).
+
+kb_mark_dirty :-
+    (kb_dirty -> true ; assertz(kb_dirty)).
+
+kb_mark_index_dirty :-
+    (kb_index_dirty -> true ; assertz(kb_index_dirty)).
+
+drop_entity_index_rows(Id) :-
+    retractall(kb_index_entity(Id, _)),
+    retractall(kb_index_type(_, Id)),
+    retractall(kb_index_tag(_, Id)),
+    retractall(kb_index_source(_, Id)),
+    retractall(kb_index_token(_, Id)),
+    retractall(kb_index_symbol_coordinate(Id, _, _, _, _)).
+
+kb_refresh_entity_index(Id) :-
+    (   kb_index_ready,
+        \+ kb_index_dirty,
+        kb_index_entity_count(Count)
+    ->  (kb_index_entity(Id, _) -> WasIndexed = true ; WasIndexed = false),
+        drop_entity_index_rows(Id),
+        (   once(kb_entity_raw(Id, Type, Props))
+        ->  index_entity_row(Id, Type, Props),
+            (WasIndexed == true -> NextCount = Count ; NextCount is Count + 1)
+        ;   (WasIndexed == true -> NextCount is max(0, Count - 1) ; NextCount = Count)
+        ),
+        retractall(kb_index_entity_count(_)),
+        assertz(kb_index_entity_count(NextCount))
+    ;   kb_mark_index_dirty
+    ).
+
+kb_remove_entity_index(Id) :-
+    (   kb_index_ready,
+        \+ kb_index_dirty,
+        kb_index_entity_count(Count)
+    ->  (kb_index_entity(Id, _) -> WasIndexed = true ; WasIndexed = false),
+        drop_entity_index_rows(Id),
+        (WasIndexed == true -> NextCount is max(0, Count - 1) ; NextCount = Count),
+        retractall(kb_index_entity_count(_)),
+        assertz(kb_index_entity_count(NextCount))
+    ;   kb_mark_index_dirty
+    ).
+
+ensure_journal_sentinel_current(Directory) :-
+    atom_concat(Directory, '/kb.rdf', SentinelFile),
+    current_data_stamp(SentinelFile, CurrentStamp),
+    (   kb_legacy_sentinel_stamp(ExpectedStamp)
+    ->  (   CurrentStamp == ExpectedStamp
+        ->  true
+        ;   throw(error(permission_error(save, kb, stale_snapshot), kb_save/0))
+        )
+    ;   true
+    ).
+
+next_journal_commit(Generation, Sequence) :-
+    (   kb_generation(CurrentGeneration)
+    ->  Generation = CurrentGeneration
+    ;   Generation = 'generation-1'
+    ),
+    (   kb_commit_sequence(CurrentSequence)
+    ->  Sequence is CurrentSequence + 1
+    ;   Sequence = 1
+    ),
+    retractall(kb_generation(_)),
+    assert(kb_generation(Generation)),
+    retractall(kb_commit_sequence(_)),
+    assert(kb_commit_sequence(Sequence)).
+
+read_journal_metadata(Directory, Generation, Sequence) :-
+    atom_concat(Directory, '/CURRENT', HeadFile),
+    (   exists_file(HeadFile),
+        catch(read_file_to_string(HeadFile, Contents, []), _, fail),
+        split_string(Contents, ':\n\r', ' \t', Parts),
+        Parts = [GenerationString, SequenceString|_],
+        atom_string(Generation, GenerationString),
+        catch(number_string(Sequence, SequenceString), _, fail)
+    ->  true
+    ;   Generation = 'generation-1',
+        Sequence = 0
+    ).
+
+write_journal_head(Directory, Generation, Sequence) :-
+    atom_concat(Directory, '/CURRENT.tmp', TempFile),
+    atom_concat(Directory, '/CURRENT', HeadFile),
+    setup_call_cleanup(
+        open(TempFile, write, Stream, [encoding(utf8)]),
+        format(Stream, '~w:~w~n', [Generation, Sequence]),
+        close(Stream)
+    ),
+    rename_file(TempFile, HeadFile).
+
+%% kb_storage_status(-Status)
+% Return a compact operational view without scanning the RDF graph.
+kb_storage_status(Status) :-
+    kb_storage_mode(Mode),
+    kb_attached(Directory),
+    (kb_generation(Generation) -> true ; Generation = unknown),
+    (kb_commit_sequence(Sequence) -> true ; Sequence = 0),
+    journal_bytes(Directory, JournalBytes),
+    Status = _{
+        mode: Mode,
+        directory: Directory,
+        generation: Generation,
+        sequence: Sequence,
+        journalBytes: JournalBytes
+    }.
+
+journal_bytes(Directory, Bytes) :-
+    (   kb_persistency_directory(_PersistencyDirectory)
+    ->  (   findall(Size,
+                    ( rdf_journal_file(_Graph, JournalFile),
+                      size_file(JournalFile, Size) ),
+                Sizes),
+            sum_list(Sizes, Bytes)
+        )
+    ;   atom_concat(Directory, '/audit.log', AuditLog),
+        (exists_file(AuditLog) -> size_file(AuditLog, Bytes) ; Bytes = 0)
+    ).
+
+directory_size(Directory, Bytes) :-
+    (   exists_directory(Directory)
+    ->  directory_files(Directory, Files),
+        directory_size_files(Directory, Files, 0, Bytes)
+    ;   Bytes = 0
+    ).
+
+directory_size_files(_, [], Total, Total).
+directory_size_files(Directory, [File|Rest], Acc, Total) :-
+    (   memberchk(File, ['.', '..'])
+    ->  Next = Acc
+    ;   atom_concat(Directory, '/', Prefix),
+        atom_concat(Prefix, File, FullPath),
+        (   exists_directory(FullPath)
+        ->  directory_size(FullPath, ChildSize), Next is Acc + ChildSize
+        ;   exists_file(FullPath), size_file(FullPath, Size)
+        ->  Next is Acc + Size
+        ;   Next = Acc
+        )
+    ),
+    directory_size_files(Directory, Rest, Next, Total).
+
+%% kb_storage_compact
+kb_storage_compact :-
+    kb_storage_mode(journaled),
+    kb_attached(Directory),
+    with_kb_mutex(kb_storage_compact_locked(Directory)).
+
+%% kb_storage_compact_if_needed
+% Compact only when the live journal has crossed the 16 MiB idle-compaction
+% threshold.  The engine invokes this predicate after the client queue drains;
+% ordinary writes only append durable journal records and never rewrite a
+% snapshot on the hot path.
+kb_storage_compact_if_needed :-
+    kb_storage_mode(journaled),
+    kb_attached(Directory),
+    with_kb_mutex((
+        journal_bytes(Directory, JournalBytes),
+        (   JournalBytes >= 16777216
+        ->  kb_storage_compact_locked(Directory)
+        ;   true
+        )
+    )).
+
+kb_storage_compact_locked(Directory) :-
+    % A caller may explicitly compact immediately after a low-level mutation
+    % that has not gone through kb_save/0. Publish that dirty transaction
+    % first so CURRENT never points at an older commit sequence.
+    kb_save_journaled_locked(Directory),
+    rdf_flush_journals([min_size(0)]),
+    (   kb_generation(Generation) -> true ; Generation = 'generation-1' ),
+    (   kb_commit_sequence(Sequence) -> true ; Sequence = 0 ),
+    write_journal_head(Directory, Generation, Sequence).
+
+%% kb_storage_export(+TargetDirectory)
+% Export a journaled branch to the legacy RDF/XML shape without changing the
+% active store.  The human-readable audit export is intentionally derived.
+kb_storage_export(TargetDirectory) :-
+    kb_graph(GraphURI),
+    (   exists_directory(TargetDirectory)
+    ->  true
+    ;   make_directory_path(TargetDirectory)
+    ),
+    atom_concat(TargetDirectory, '/kb.rdf', TargetFile),
+    rdf_save(TargetFile,
+             [graph(GraphURI), base_uri('urn-kibi:'), namespaces([kb, xsd])]),
+    atom_concat(TargetDirectory, '/audit.log', AuditFile),
+    setup_call_cleanup(
+        open(AuditFile, write, Stream, [encoding(utf8)]),
+        export_audit_events(Stream, GraphURI),
+        close(Stream)
+    ).
+
+%% kb_migrate_legacy(+SourceDirectory, +TargetDirectory)
+% Copy a legacy RDF/audit graph into a fresh journaled directory.  The caller
+% publishes the staged directory atomically; this predicate deliberately
+% leaves the source untouched on failure.
+% implements REQ-core-journaled-engine-persistence
+kb_migrate_legacy(SourceDirectory, TargetDirectory) :-
+    kb_attached(SourceDirectory),
+    kb_storage_mode(legacy),
+    % Hold the legacy branch lock for the complete import and audit copy so a
+    % pre-cutover writer cannot change the source between validation and
+    % publication.
+    with_kb_file_lock_nowait(
+        SourceDirectory,
+        kb_migrate_legacy_locked(SourceDirectory, TargetDirectory)
+    ).
+
+% Migration is a cutover operation, not a background writer.  Never leave a
+% CLI/engine request blocked indefinitely behind an old MCP process that still
+% owns the legacy lock; surface the lock owner to the caller so it can stop the
+% old client and retry.  Ordinary legacy saves retain their blocking lock
+% semantics for compatibility.
+with_kb_file_lock_nowait(Directory, Goal) :-
+    atom_concat(Directory, '/kb.lock', LockFile),
+    setup_call_cleanup(
+        open(LockFile, append, LockStream, [lock(write), wait(false)]),
+        call(Goal),
+        close(LockStream)
+    ).
+
+kb_migrate_legacy_locked(_SourceDirectory, TargetDirectory) :-
+    kb_graph(SourceGraph),
+    findall(
+        t(S, P, O),
+        (   rdf(S, P, O, SourceGraph),
+            \+ audit_resource(S)
+        ),
+        Triples
+    ),
+    findall(c(TS, Op, Entity, Data),
+            changeset(TS, Op, Entity, Data),
+            Audits),
+    canonical_triple_digest(Triples, SourceDigest),
+    length(Triples, TripleCount),
+    length(Audits, AuditCount),
+    kb_detach,
+    (   exists_directory(TargetDirectory)
+    ->  true
+    ;   make_directory_path(TargetDirectory)
+    ),
+    write_journal_marker(TargetDirectory),
+    kb_attach(TargetDirectory),
+    kb_graph(TargetGraph),
+    forall(member(t(S, P, O), Triples), rdf_assert(S, P, O, TargetGraph)),
+    assert_migration_audits(Audits, 1),
+    kb_mark_dirty,
+    kb_mark_index_dirty,
+    validate_migrated_graph(
+        TargetGraph,
+        SourceDigest,
+        TripleCount,
+        AuditCount
+    ),
+    kb_save_journaled,
+    kb_detach.
+
+canonical_triple_digest(Triples, Digest) :-
+    sort(Triples, Canonical),
+    term_hash(Canonical, Digest).
+
+validate_migrated_graph(Graph, ExpectedDigest, ExpectedTriples, ExpectedAudits) :-
+    findall(
+        t(S, P, O),
+        (   rdf(S, P, O, Graph),
+            \+ audit_resource(S)
+        ),
+        Triples
+    ),
+    length(Triples, ActualTriples),
+    (   ActualTriples =:= ExpectedTriples
+    ->  true
+    ;   throw(error(migration_validation(triple_count, ExpectedTriples, ActualTriples),
+                    kb_migrate_legacy/2))
+    ),
+    canonical_triple_digest(Triples, ActualDigest),
+    (   ActualDigest == ExpectedDigest
+    ->  true
+    ;   throw(error(migration_validation(triple_digest, ExpectedDigest, ActualDigest),
+                    kb_migrate_legacy/2))
+    ),
+    findall(Audit,
+            rdf(Audit, 'urn:kibi:audit/operation', _, Graph),
+            AuditResources),
+    length(AuditResources, ActualAudits),
+    (   ActualAudits =:= ExpectedAudits
+    ->  true
+    ;   throw(error(migration_validation(audit_count, ExpectedAudits, ActualAudits),
+                    kb_migrate_legacy/2))
+    ),
+    % Re-run the schema and relationship invariants before publication. This
+    % catches missing required fields and dangling edges while the staged
+    % generation is still disposable.
+    findall(
+        problem(Id, Type),
+        (   kb_entity(Id, Type, Props),
+            normalize_migration_props(Type, Props, ValidationProps),
+            \+ catch(validate_entity(Type, ValidationProps), _, fail)
+        ),
+        EntityProblems
+    ),
+    (   EntityProblems == []
+    ->  true
+    ;   throw(error(migration_validation(entity_schema, EntityProblems),
+                    kb_migrate_legacy/2))
+    ),
+    findall(
+        problem(RelType, FromId, ToId),
+        (   relationship_type(RelType),
+            kb_relationship(RelType, FromId, ToId),
+            (   \+ once(kb_entity(FromId, _, _))
+            ;   \+ once(kb_entity(ToId, _, _))
+            ;   once(kb_entity(FromId, FromType, _)),
+                once(kb_entity(ToId, ToType, _)),
+                \+ catch(validate_relationship(RelType, FromType, ToType), _, fail)
+            )
+        ),
+        RelationshipProblems
+    ),
+    (   RelationshipProblems == []
+    ->  true
+    ;   throw(error(migration_validation(relationships, RelationshipProblems),
+                    kb_migrate_legacy/2))
+    ).
+
+assert_migration_audits([], _).
+assert_migration_audits([c(TS, Op, Entity, Data)|Rest], Index) :-
+    kb_assert_audit_event_with_timestamp(TS, Op, Entity, Data, Index),
+    NextIndex is Index + 1,
+    assert_migration_audits(Rest, NextIndex).
+
+normalize_migration_props(_, [], []).
+normalize_migration_props(Type, [Key=Value|Rest], NormalizedProps) :-
+    normalize_migration_props(Type, Rest, RestProps),
+    (   entity_property(Type, Key, _)
+    ->  normalize_migration_value(Type, Key, Value, Normalized),
+        NormalizedProps = [Key=Normalized|RestProps]
+    ;   % Preserve unknown legacy RDF fields in the copied graph, but do not
+        % reject an otherwise valid entity merely because an older schema
+        % version stored an extension that the current validator no longer
+        % models. Required/currently typed fields are still validated below.
+        NormalizedProps = RestProps
+    ).
+
+% Legacy RDF reads intentionally preserve typed literal wrappers for the
+% public query API.  Validation, however, needs the schema-level value (atom,
+% string, number, boolean, or list) that an upsert would have received.  Use
+% the entity schema as the decoder instead of maintaining another list of
+% fields that can drift as the schema evolves.
+normalize_migration_value(Type, Key, Raw, Normalized) :-
+    migration_unwrap_literal(Raw, Value),
+    (   entity_property(Type, Key, Kind)
+    ->  normalize_migration_kind(Kind, Value, Normalized)
+    ;   Normalized = Value
+    ).
+
+migration_unwrap_literal(^^(Value, _Type), Value) :- !.
+migration_unwrap_literal(literal(type(_, Value)), Value) :- !.
+migration_unwrap_literal(literal(lang(_, Value)), Value) :- !.
+migration_unwrap_literal(literal(Value), Value) :- !.
+migration_unwrap_literal(Value, Value).
+
+normalize_migration_kind(atom, Value, Normalized) :-
+    !,
+    normalize_term_atom(Value, Normalized).
+normalize_migration_kind(atom_or_string, Value, Normalized) :-
+    !,
+    (atom(Value) ; string(Value)),
+    Normalized = Value.
+normalize_migration_kind(string, Value, Normalized) :-
+    !,
+    migration_string(Value, Normalized).
+normalize_migration_kind(uri, Value, Normalized) :-
+    !,
+    migration_string(Value, Normalized).
+normalize_migration_kind(datetime, Value, Normalized) :-
+    !,
+    migration_string(Value, Normalized).
+normalize_migration_kind(list, Value, Normalized) :-
+    !,
+    (   is_list(Value)
+    ->  maplist(normalize_migration_list_value, Value, Normalized)
+    ;   Normalized = Value
+    ).
+normalize_migration_kind(list_or_json, Value, Value) :- !.
+normalize_migration_kind(integer, Value, Normalized) :-
+    !,
+    (integer(Value) -> Normalized = Value ; atom_number(Value, Normalized)).
+normalize_migration_kind(number, Value, Normalized) :-
+    !,
+    (number(Value) -> Normalized = Value ; atom_number(Value, Normalized)).
+normalize_migration_kind(boolean, Value, Value) :- !.
+normalize_migration_kind(_, Value, Value).
+
+migration_string(Value, Value) :- string(Value), !.
+migration_string(Value, String) :- atom(Value), !, atom_string(Value, String).
+migration_string(Value, String) :- number(Value), !, number_string(Value, String).
+migration_string(Value, String) :- term_string(Value, String).
+
+normalize_migration_list_value(Value, Normalized) :-
+    (atom(Value) -> Normalized = Value ; string(Value) -> Normalized = Value ; Normalized = Value).
+
+migration_atom_key(id).
+migration_atom_key(status).
+migration_atom_key(owner).
+migration_atom_key(priority).
+migration_atom_key(severity).
+migration_atom_key(symbol_role).
+migration_atom_key(granularity_reason).
+migration_atom_key(fact_kind).
+migration_atom_key(operator).
+migration_atom_key(value_type).
+migration_atom_key(polarity).
+
+audit_resource(Resource) :-
+    atom(Resource),
+    sub_atom(Resource, 0, _, _, 'urn:kibi:audit/').
+
+write_journal_marker(Directory) :-
+    atom_concat(Directory, '/storage.json', Marker),
+    setup_call_cleanup(
+        open(Marker, write, Stream, [encoding(utf8)]),
+        format(Stream,
+               '{"format":"kibi.rdf-journal.v1","schemaVersion":1}~n',
+               []),
+        close(Stream)
+    ),
+    get_time(Now),
+    Millis is floor(Now * 1000),
+    (current_prolog_flag(pid, Pid) -> true ; Pid = 0),
+    format(atom(Generation), 'generation-~w-~w', [Pid, Millis]),
+    atom_concat(Directory, '/CURRENT', HeadFile),
+    setup_call_cleanup(
+        open(HeadFile, write, HeadStream, [encoding(utf8)]),
+        format(HeadStream, '~w:0~n', [Generation]),
+        close(HeadStream)
+    ).
+
+export_audit_events(Stream, GraphURI) :-
+    forall(
+        rdf(Audit, 'urn:kibi:audit/operation', Operation, GraphURI),
+        (
+            rdf(Audit, 'urn:kibi:audit/timestamp', Timestamp, GraphURI),
+            rdf(Audit, 'urn:kibi:audit/entity', Entity, GraphURI),
+            rdf(Audit, 'urn:kibi:audit/data', Data, GraphURI),
+            format(Stream, 'changeset(~q, ~q, ~q, ~q).~n',
+                   [Timestamp, Operation, Entity, Data])
         )
     ).
 
@@ -245,6 +856,22 @@ ensure_snapshot_current(DataFile) :-
 with_kb_mutex(Goal) :-
     with_mutex(kb_lock, Goal).
 
+% Run a journaled RDF mutation atomically and only mark the branch dirty after
+% the transaction commits.  A failed validation/contradiction check therefore
+% cannot make a later shutdown publish a phantom commit sequence.  Preserve a
+% pre-existing dirty bit for callers that intentionally batch several writes
+% before an explicit kb_save/0.
+kb_run_journaled_mutation(Goal) :-
+    (   kb_dirty -> WasDirty = true ; WasDirty = false ),
+    catch(
+        rdf_transaction(Goal),
+        Error,
+        (   (WasDirty == false -> retractall(kb_dirty) ; true),
+            throw(Error)
+        )
+    ),
+    kb_mark_dirty.
+
 %% load_kb_pl_files(+Directory)
 % Load legacy .pl entity files from the KB directory.
 % These files use entity/4 format: entity(Type, Id, Title, Props).
@@ -275,8 +902,15 @@ kb_assert_entity(Type, Props) :-
     ->  ChangeKind = updated
     ;   ChangeKind = created
     ),
-    kb_assert_entity_no_audit(Type, Props),
-    kb_log_entity_upsert(ChangeKind, Type, Props).
+    (   kb_storage_mode(journaled)
+    ->  kb_run_journaled_mutation((
+            kb_assert_entity_no_audit(Type, Props),
+            kb_log_entity_upsert(ChangeKind, Type, Props)
+        ))
+    ;   kb_mark_dirty,
+        kb_assert_entity_no_audit(Type, Props),
+        kb_log_entity_upsert(ChangeKind, Type, Props)
+    ).
 
 %% kb_assert_entity_no_audit(+Type, +Properties)
 % Assert an entity RDF payload without recording audit side effects.
@@ -313,7 +947,8 @@ kb_assert_entity_no_audit(Type, Props) :-
             member(Key=Value, Props),
             store_property(EntityURI, Key, Value, Graph)
         )
-    )).
+    )),
+    kb_refresh_entity_index(Id).
 
 %% kb_commit_upsert(+Type, +Properties, +Relationships, +SkipContradiction, -ChangeKind)
 % Commit an entity upsert, its relationships, audit entries, and RDF snapshot
@@ -322,6 +957,33 @@ kb_assert_entity_no_audit(Type, Props) :-
 % Relationships use rel(Type, FromId, ToId, Metadata) terms.  Metadata is
 % retained for the caller's serialization contract; the audit schema records
 % only the relationship endpoints and type, as before.
+kb_commit_upsert(Type, Props, Relationships, SkipContradiction, ChangeKind) :-
+    kb_storage_mode(journaled),
+    !,
+    memberchk(id=Id, Props),
+    memberchk(SkipContradiction, [true, false]),
+    upsert_change_kind(Id, ChangeKind),
+    with_kb_mutex((
+        (   kb_dirty -> WasDirty = true ; WasDirty = false ),
+        catch(
+            rdf_transaction((
+                kb_stage(rdf_mutation),
+                kb_assert_entity_no_audit(Type, Props),
+                kb_commit_relationships_no_audit(Relationships),
+                kb_maybe_check_req_contradiction(Type, Id, SkipContradiction),
+                kb_stage(entity_audit),
+                kb_log_entity_upsert(ChangeKind, Type, Props),
+                kb_stage(relationship_audit),
+                kb_commit_relationship_audits(Relationships)
+            )),
+            Error,
+            (   (WasDirty == false -> retractall(kb_dirty) ; true),
+                throw(Error)
+            )
+        ),
+        kb_mark_dirty,
+        kb_save_journaled
+    )).
 kb_commit_upsert(Type, Props, Relationships, SkipContradiction, ChangeKind) :-
     memberchk(id=Id, Props),
     memberchk(SkipContradiction, [true, false]),
@@ -423,19 +1085,91 @@ kb_environment_value(Name, Value) :-
 % Used by projectStagedEntities to clear stale relationships before re-asserting.
 kb_retract_entity_relationships(Id) :-
     kb_graph(Graph),
-    with_kb_mutex((
-        entity_id_to_uri(Id, EntityURI),
-        forall(
-            (   rdf(EntityURI, RelURI, TargetURI, Graph),
-                atom(TargetURI),
-                entity_uri_to_id(TargetURI, _)
-            ),
-            rdf_retractall(EntityURI, RelURI, TargetURI, Graph)
+    (   kb_storage_mode(journaled)
+    ->  kb_run_journaled_mutation(with_kb_mutex((
+            entity_id_to_uri(Id, EntityURI),
+            forall(
+                (   rdf(EntityURI, RelURI, TargetURI, Graph),
+                    atom(TargetURI),
+                    entity_uri_to_id(TargetURI, _)
+                ),
+                rdf_retractall(EntityURI, RelURI, TargetURI, Graph)
+            )
+        )))
+    ;   kb_mark_dirty,
+        with_kb_mutex((
+            entity_id_to_uri(Id, EntityURI),
+            forall(
+                (   rdf(EntityURI, RelURI, TargetURI, Graph),
+                    atom(TargetURI),
+                    entity_uri_to_id(TargetURI, _)
+                ),
+                rdf_retractall(EntityURI, RelURI, TargetURI, Graph)
+            )
+        ))
+    ).
+
+%% kb_retract_relationship(+Type, +From, +To)
+% Retract one compiled edge and its audit record atomically. This is used by
+% relationship-shard deltas so a small shard edit never requires clearing and
+% rebuilding every edge in the graph.
+kb_retract_relationship(RelType, FromId, ToId) :-
+    kb_graph(Graph),
+    entity_id_to_uri(FromId, FromURI),
+    entity_id_to_uri(ToId, ToURI),
+    kb_uri(BaseURI),
+    atom_concat(BaseURI, RelType, RelURI),
+    (   kb_storage_mode(journaled)
+    ->  kb_run_journaled_mutation(with_kb_mutex((
+            rdf_retractall(FromURI, RelURI, ToURI, Graph),
+            format(atom(RelId), '~w->~w', [FromId, ToId]),
+            kb_assert_audit_event(delete_rel, RelId,
+                                  RelType-[from=FromId, to=ToId])
+        )))
+    ;   kb_mark_dirty,
+        with_kb_mutex(rdf_retractall(FromURI, RelURI, ToURI, Graph))
+    ).
+
+%% kb_retract_all_relationships/0
+% Remove only entity-to-entity edges. This is used when a relationship shard
+% changes: RDF property literals and audit resources remain untouched, while
+% the current shard contents can be asserted again in one transaction.
+% implements REQ-core-journaled-engine-persistence
+kb_retract_all_relationships :-
+    kb_graph(Graph),
+    (   kb_storage_mode(journaled)
+    ->  kb_run_journaled_mutation(with_kb_mutex(
+            forall(
+                (   rdf(SubjectURI, RelURI, ObjectURI, Graph),
+                    atom(SubjectURI),
+                    atom(ObjectURI),
+                    entity_uri_to_id(SubjectURI, _),
+                    entity_uri_to_id(ObjectURI, _)
+                ),
+                rdf_retractall(SubjectURI, RelURI, ObjectURI, Graph)
+            )
+        ))
+    ;   kb_mark_dirty,
+        with_kb_mutex(
+            forall(
+                (   rdf(SubjectURI, RelURI, ObjectURI, Graph),
+                    atom(SubjectURI),
+                    atom(ObjectURI),
+                    entity_uri_to_id(SubjectURI, _),
+                    entity_uri_to_id(ObjectURI, _)
+                ),
+                rdf_retractall(SubjectURI, RelURI, ObjectURI, Graph)
+            )
         )
-    )).
+    ).
 
 %% kb_log_entity_upsert(+ChangeKind, +Type, +Properties)
 % Append the audit entry for a successfully committed entity upsert.
+kb_log_entity_upsert(ChangeKind, Type, Props) :-
+    kb_storage_mode(journaled),
+    !,
+    memberchk(id=Id, Props),
+    kb_assert_audit_event(upsert, Id, Type-[change_kind=ChangeKind|Props]).
 kb_log_entity_upsert(ChangeKind, Type, Props) :-
     memberchk(id=Id, Props),
     memberchk(ChangeKind, [created, updated]),
@@ -458,6 +1192,26 @@ kb_retract_entity(Id) :-
 %% kb_retract_entity(+Id, +Type, +AuditProps)
 % Remove an entity from the KB and log the provided delete payload.
 kb_retract_entity(Id, Type, AuditProps) :-
+    kb_storage_mode(journaled),
+    !,
+    kb_graph(Graph),
+    kb_run_journaled_mutation(with_kb_mutex((
+        entity_id_to_uri(Id, EntityURI),
+        % A source delta may replace an entity that is still referenced by
+        % another source. Remove both directions so the transaction cannot
+        % leave a dangling relationship behind. The compiler re-adds valid
+        % edges from the current source shards in the same sync.
+        forall(
+            (   rdf(SubjectURI, RelURI, EntityURI, Graph),
+                entity_uri_to_id(SubjectURI, _)
+            ),
+            rdf_retractall(SubjectURI, RelURI, EntityURI, Graph)
+        ),
+        rdf_retractall(EntityURI, _, _, Graph),
+        kb_assert_audit_event(delete, Id, Type-AuditProps),
+        kb_remove_entity_index(Id)
+    ))).
+kb_retract_entity(Id, Type, AuditProps) :-
     kb_graph(Graph),
     with_kb_mutex((
         % Create entity URI
@@ -467,7 +1221,8 @@ kb_retract_entity(Id, Type, AuditProps) :-
         % Log to audit
         get_time(Timestamp),
         format_time(atom(TS), '%FT%T%:z', Timestamp),
-        assert_changeset(TS, delete, Id, Type-AuditProps)
+        assert_changeset(TS, delete, Id, Type-AuditProps),
+        kb_remove_entity_index(Id)
     )).
 
 entity_delete_audit_props(Id, Props, AuditProps) :-
@@ -495,6 +1250,20 @@ audit_property_value(RawValue, Value) :-
 % Query entities from the KB.
 % Properties is unified with a list of Key=Value pairs.
 kb_entity(Id, Type, Props) :-
+    (   nonvar(Id)
+    ->  kb_entity_raw(Id, Type, Props)
+    ;   kb_ensure_indexes,
+        (   nonvar(Type)
+        ->  kb_index_type(Type, IndexedId),
+            kb_entity_raw(IndexedId, Type, Props),
+            Id = IndexedId
+        ;   kb_entity_raw(Id, Type, Props)
+        )
+    ).
+
+% Raw RDF/entity facts are kept separate from the index wrapper.  Rebuilding
+% an index must never recurse through the indexed query path.
+kb_entity_raw(Id, Type, Props) :-
     kb_graph(Graph),
     % Find entity by pattern - use unquoted namespace term kb:type
     (   var(Id)
@@ -516,9 +1285,110 @@ kb_entity(Id, Type, Props) :-
 ), Props).
 
 % Fallback: read from legacy entity/4 facts loaded from .pl files
-kb_entity(Id, Type, Props) :-
+kb_entity_raw(Id, Type, Props) :-
     entity(Type, Id, _Title, PropList),
     convert_legacy_props(PropList, Props).
+
+kb_ensure_indexes :-
+    (   kb_index_ready,
+        \+ kb_index_dirty,
+        kb_index_entity_count(Expected),
+        current_entity_index_count(Expected)
+    ->  true
+    ;   kb_rebuild_indexes
+    ).
+
+% Rebuild all acceleration structures from RDF/entity facts.  This is
+% intentionally disposable: no query result is written back to RDF when an
+% index is stale or externally invalidated.
+kb_rebuild_indexes :-
+    kb_attached(_),
+    with_kb_mutex((
+        retractall(kb_index_entity(_, _)),
+        retractall(kb_index_type(_, _)),
+        retractall(kb_index_tag(_, _)),
+        retractall(kb_index_source(_, _)),
+        retractall(kb_index_token(_, _)),
+        retractall(kb_index_symbol_coordinate(_, _, _, _, _)),
+        findall(Id-Type-Props, kb_entity_raw(Id, Type, Props), Rows),
+        forall(member(Id-Type-Props, Rows), index_entity_row(Id, Type, Props)),
+        length(Rows, EntityCount),
+        retractall(kb_index_entity_count(_)),
+        assertz(kb_index_entity_count(EntityCount)),
+        rdf_statistics(triples(TripleCount)),
+        retractall(kb_index_triple_count(_)),
+        assertz(kb_index_triple_count(TripleCount)),
+        retractall(kb_index_dirty),
+        retractall(kb_index_ready),
+        assertz(kb_index_ready)
+    )).
+
+current_entity_index_count(Count) :-
+    aggregate_all(count,
+                  rdf(_, kb:type, _, _),
+                  RdfCount),
+    aggregate_all(count,
+                  entity(_, _, _, _),
+                  LegacyCount),
+    Count is RdfCount + LegacyCount.
+
+index_entity_row(Id, Type, Props) :-
+    assertz(kb_index_entity(Id, Type)),
+    assertz(kb_index_type(Type, Id)),
+    (   entity_source_atom(Props, Source)
+    ->  assertz(kb_index_source(Source, Id)),
+        index_text_tokens(Source, SourceTokens),
+        forall(member(Token, SourceTokens), assertz(kb_index_token(Token, Id)))
+    ;   true
+    ),
+    (   memberchk(title=TitleValue, Props)
+    ->  normalize_term_atom(TitleValue, Title),
+        index_text_tokens(Title, TitleTokens),
+        forall(member(Token, TitleTokens), assertz(kb_index_token(Token, Id)))
+    ;   true
+    ),
+    index_text_tokens(Id, IdTokens),
+    forall(member(Token, IdTokens), assertz(kb_index_token(Token, Id))),
+    index_text_tokens(Type, TypeTokens),
+    forall(member(Token, TypeTokens), assertz(kb_index_token(Token, Id))),
+    forall(
+        ( member(SearchKey, [owner, priority, severity, text_ref, semantic_text]),
+          memberchk(SearchKey=SearchValue, Props) ),
+        ( index_text_tokens(SearchValue, SearchTokens),
+          forall(member(Token, SearchTokens), assertz(kb_index_token(Token, Id))) )
+    ),
+    (   memberchk(tags=RawTags, Props), is_list(RawTags)
+    ->  forall(member(RawTag, RawTags),
+               ( normalize_term_atom(RawTag, Tag),
+                 assertz(kb_index_tag(Tag, Id)),
+                 index_text_tokens(Tag, TagTokens),
+                 forall(member(Token, TagTokens), assertz(kb_index_token(Token, Id)))
+               ))
+    ;   true
+    ),
+    (   Type == symbol,
+        memberchk(sourceLine=Line, Props),
+        memberchk(sourceColumn=Column, Props),
+        memberchk(sourceEndLine=EndLine, Props),
+        memberchk(sourceEndColumn=EndColumn, Props)
+    ->  assertz(kb_index_symbol_coordinate(Id, Line, Column, EndLine, EndColumn))
+    ;   true
+    ).
+
+index_text_tokens(Value, Tokens) :-
+    normalize_term_atom(Value, Atom),
+    downcase_atom(Atom, Lower),
+    atomic_list_concat(Parts, ' ', Lower),
+    findall(Token,
+            ( member(Part, Parts),
+              atom_string(Part, PartString),
+              split_string(PartString, "-_./:#", "-_./:#", Strings),
+              member(String, Strings),
+              String \= '',
+              atom_string(Token, String)
+            ),
+            RawTokens),
+    sort(RawTokens, Tokens).
 
 % Convert legacy property list format to Key=Value pairs
 convert_legacy_props([], []).
@@ -536,12 +1406,129 @@ convert_legacy_prop(Prop, Prop, true).
 %% kb_entities_by_source(+SourcePath, -Ids)
 % Returns all entity IDs whose source property matches SourcePath (substring match).
 kb_entities_by_source(SourcePath, Ids) :-
+    kb_ensure_indexes,
+    source_value_atom(SourcePath, SourceQuery),
     findall(Id,
-        (kb_entity(Id, _Type, Props),
-         entity_source_atom(Props, SourceAtom),
-         sub_atom(SourceAtom, _, _, _, SourcePath)),
-        RawIds),
+            ( kb_index_source(SourceAtom, Id),
+              sub_atom(SourceAtom, _, _, _, SourceQuery) ),
+            RawIds),
     sort(RawIds, Ids).
+
+%% kb_entities_by_tag(+Tag, -Ids)
+% Index-backed tag lookup used by exact/paginated discovery queries.
+kb_entities_by_tag(Tag, Ids) :-
+    kb_ensure_indexes,
+    normalize_term_atom(Tag, NormalizedTag),
+    findall(Id, kb_index_tag(NormalizedTag, Id), RawIds),
+    sort(RawIds, Ids).
+
+%% kb_indexed_sources(-Sources)
+% Return unique normalized source paths for freshness checks without
+% materializing every entity property list.
+kb_indexed_sources(Sources) :-
+    kb_ensure_indexes,
+    (   setof(Source, Id^kb_index_source(Source, Id), Sources)
+    ->  true
+    ;   Sources = []
+    ).
+
+%% kb_query_entities(+Type, +Id, +Tags, +Source, +Limit, +Offset, -Rows, -Count)
+% Index-backed exact/paginated discovery.  Only the requested page is
+% materialized into full property lists; RDF remains authoritative for the
+% final rows and the index only supplies candidate IDs.
+kb_query_entities(TypeFilter, IdFilter, Tags, SourceFilter, Limit, Offset, Rows, Count) :-
+    integer(Limit),
+    integer(Offset),
+    Limit >= 0,
+    Offset >= 0,
+    is_list(Tags),
+    kb_ensure_indexes,
+    findall(Id,
+            indexed_entity_match(TypeFilter, IdFilter, Tags, SourceFilter, Id),
+            RawIds),
+    sort(RawIds, Ids),
+    length(Ids, Count),
+    drop_index_ids(Offset, Ids, Remaining),
+    take_index_ids(Limit, Remaining, PageIds),
+    findall([Id, Type, Props],
+            ( member(Id, PageIds),
+              kb_entity(Id, Type, Props) ),
+            Rows).
+
+indexed_entity_match(TypeFilter, IdFilter, Tags, SourceFilter, Id) :-
+    (   IdFilter == none
+    ->  kb_index_entity(Id, _)
+    ;   Id = IdFilter,
+        kb_index_entity(Id, _)
+    ),
+    (   TypeFilter == none
+    ->  true
+    ;   kb_index_type(TypeFilter, Id)
+    ),
+    (   Tags == []
+    ->  true
+    ;   member(Tag, Tags),
+        kb_index_tag(Tag, Id)
+    ),
+    (   SourceFilter == none
+    ->  true
+    ;   source_value_atom(SourceFilter, SourceQuery),
+        kb_index_source(Source, Id),
+        sub_atom(Source, _, _, _, SourceQuery)
+    ).
+
+drop_index_ids(0, Ids, Ids) :- !.
+drop_index_ids(_, [], []) :- !.
+drop_index_ids(Offset, [_|Rest], Remaining) :-
+    Next is Offset - 1,
+    drop_index_ids(Next, Rest, Remaining).
+
+take_index_ids(0, _, []) :- !.
+take_index_ids(_, [], []) :- !.
+take_index_ids(Limit, [Id|Rest], [Id|Page]) :-
+    Next is Limit - 1,
+    take_index_ids(Next, Rest, Page).
+
+%% kb_search_entities(+Type, +Query, +Limit, +Offset, -Rows, -Count)
+% Return an index-filtered page for the higher-level deterministic ranking
+% contract. Every normalized query token must match at least one indexed token
+% for the entity. The TypeScript ranker remains responsible for scores,
+% reasons, snippets, and final ordering.
+kb_search_entities(TypeFilter, Query, Limit, Offset, Rows, Count) :-
+    integer(Limit),
+    integer(Offset),
+    Limit >= 0,
+    Offset >= 0,
+    kb_ensure_indexes,
+    index_text_tokens(Query, QueryTokens),
+    QueryTokens \= [],
+    findall(Id,
+            ( kb_index_entity(Id, _),
+              (TypeFilter == none -> true ; kb_index_type(TypeFilter, Id)),
+              ( indexed_markdown_source(Id)
+              ; forall(member(QueryToken, QueryTokens),
+                       indexed_token_match(QueryToken, Id)) ) ),
+            RawIds),
+    sort(RawIds, Ids),
+    length(Ids, Count),
+    drop_index_ids(Offset, Ids, Remaining),
+    take_index_ids(Limit, Remaining, PageIds),
+    findall([Id, Type, Props],
+            ( member(Id, PageIds), kb_entity(Id, Type, Props) ),
+            Rows).
+
+indexed_token_match(QueryToken, Id) :-
+    kb_index_token(IndexedToken, Id),
+    sub_atom(IndexedToken, _, _, _, QueryToken),
+    !.
+
+% Markdown bodies remain outside RDF and are ranked by the Node discovery
+% layer. Keep those usually-small document entities in the candidate set so
+% indexed search does not change the public body-search contract. Large symbol
+% manifests still take the fast token-index path.
+indexed_markdown_source(Id) :-
+    kb_index_source(Source, Id),
+    sub_atom(Source, _, _, _, '.md').
 
 entity_source_atom(Props, SourceAtom) :-
     (   memberchk(sourceFile=RawSourceFile, Props)
@@ -563,8 +1550,15 @@ source_value_atom(Value, Atom) :-
 %% kb_assert_relationship(+Type, +From, +To, +Metadata)
 % Assert a relationship between two entities with validation.
 kb_assert_relationship(RelType, FromId, ToId, Metadata) :-
-    kb_assert_relationship_no_audit(RelType, FromId, ToId, Metadata),
-    kb_log_relationship_upsert(RelType, FromId, ToId, Metadata).
+    (   kb_storage_mode(journaled)
+    ->  kb_run_journaled_mutation((
+            kb_assert_relationship_no_audit(RelType, FromId, ToId, Metadata),
+            kb_log_relationship_upsert(RelType, FromId, ToId, Metadata)
+        ))
+    ;   kb_mark_dirty,
+        kb_assert_relationship_no_audit(RelType, FromId, ToId, Metadata),
+        kb_log_relationship_upsert(RelType, FromId, ToId, Metadata)
+    ).
 
 %% kb_assert_relationship_no_audit(+Type, +From, +To, +Metadata)
 % Assert a relationship RDF payload without recording audit side effects.
@@ -631,11 +1625,76 @@ mixed_symbol_role(covered_by, SymbolId) :-
 %% kb_log_relationship_upsert(+Type, +From, +To, +Metadata)
 % Append the audit entry for a successfully committed relationship upsert.
 kb_log_relationship_upsert(RelType, FromId, ToId, _Metadata) :-
+    kb_storage_mode(journaled),
+    !,
+    format(atom(RelId), '~w->~w', [FromId, ToId]),
+    kb_assert_audit_event(upsert_rel, RelId,
+                          RelType-[from=FromId, to=ToId]).
+kb_log_relationship_upsert(RelType, FromId, ToId, _Metadata) :-
     with_kb_mutex((
         get_time(Timestamp),
         format_time(atom(TS), '%FT%T%:z', Timestamp),
         format(atom(RelId), '~w->~w', [FromId, ToId]),
         assert_changeset(TS, upsert_rel, RelId, RelType-[from=FromId, to=ToId])
+    )).
+
+% Journaled audit records live in the same RDF graph and transaction as the
+% domain mutation.  This keeps audit durability atomic without a second
+% persistency lock or a second authoritative database.
+kb_assert_audit_event(Operation, EntityId, Data) :-
+    kb_graph(Graph),
+    get_time(Timestamp),
+    format_time(atom(TS), '%FT%T%:z', Timestamp),
+    term_to_atom(Data, DataAtom),
+    term_to_atom(EntityId, EntityAtom),
+    term_to_atom(Operation, OperationAtom),
+    next_audit_sequence(Sequence),
+    format(atom(AuditURI), 'urn:kibi:audit/~16f-~w-~w-~w',
+           [Timestamp, EntityId, Operation, Sequence]),
+    with_kb_mutex((
+        rdf_assert(AuditURI, 'urn:kibi:audit/operation',
+                   OperationAtom^^'http://www.w3.org/2001/XMLSchema#string', Graph),
+        rdf_assert(AuditURI, 'urn:kibi:audit/timestamp',
+                   TS^^'http://www.w3.org/2001/XMLSchema#string', Graph),
+        rdf_assert(AuditURI, 'urn:kibi:audit/entity',
+                   EntityAtom^^'http://www.w3.org/2001/XMLSchema#string', Graph),
+        rdf_assert(AuditURI, 'urn:kibi:audit/data',
+                   DataAtom^^'http://www.w3.org/2001/XMLSchema#string', Graph)
+    )).
+
+initialize_journal_audit_sequence(GraphURI) :-
+    aggregate_all(count,
+                  rdf(_, 'urn:kibi:audit/operation', _, GraphURI),
+                  Count),
+    retractall(kb_audit_sequence(_)),
+    assert(kb_audit_sequence(Count)).
+
+next_audit_sequence(Sequence) :-
+    (   retract(kb_audit_sequence(Previous))
+    ->  Sequence is Previous + 1
+    ;   Sequence = 1
+    ),
+    assertz(kb_audit_sequence(Sequence)).
+
+kb_assert_audit_event_with_timestamp(TS, Operation, EntityId, Data) :-
+    kb_assert_audit_event_with_timestamp(TS, Operation, EntityId, Data, 0).
+
+kb_assert_audit_event_with_timestamp(TS, Operation, EntityId, Data, Index) :-
+    kb_graph(Graph),
+    term_to_atom(Data, DataAtom),
+    term_to_atom(EntityId, EntityAtom),
+    term_to_atom(Operation, OperationAtom),
+    format(atom(AuditURI), 'urn:kibi:audit/~w-~w-~w-~w',
+           [TS, EntityId, Operation, Index]),
+    with_kb_mutex((
+        rdf_assert(AuditURI, 'urn:kibi:audit/operation',
+                   OperationAtom^^'http://www.w3.org/2001/XMLSchema#string', Graph),
+        rdf_assert(AuditURI, 'urn:kibi:audit/timestamp',
+                   TS^^'http://www.w3.org/2001/XMLSchema#string', Graph),
+        rdf_assert(AuditURI, 'urn:kibi:audit/entity',
+                   EntityAtom^^'http://www.w3.org/2001/XMLSchema#string', Graph),
+        rdf_assert(AuditURI, 'urn:kibi:audit/data',
+                   DataAtom^^'http://www.w3.org/2001/XMLSchema#string', Graph)
     )).
 
 %% validate_strict_lane_pairing(+RelType, +FromId, +ToId)
@@ -714,6 +1773,7 @@ entity_id_to_uri(Id, URI) :-
 %% entity_uri_to_id(+URI, -Id)
 % Extract entity ID from canonical or legacy entity URIs.
 entity_uri_to_id(URI, Id) :-
+    atom(URI),
     (   kb_uri(BaseURI),
         atom_concat(BaseURI, 'entity/', Prefix),
         atom_concat(Prefix, Id, URI)

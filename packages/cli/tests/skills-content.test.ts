@@ -99,7 +99,7 @@ describe("kibi-usage skill content", () => {
     expect(interfaceSection).toBeDefined();
     expect(interfaceSection).toMatch(/1\.[\s\S]*MCP/);
     expect(interfaceSection).toMatch(/2\.[\s\S]*npx --no-install/);
-    expect(interfaceSection).toMatch(/bunx --no-install/);
+    expect(interfaceSection).not.toMatch(/bunx --no-install/);
     expect(interfaceSection).toMatch(/3\.[\s\S]*operator/);
     expect(interfaceSection).toMatch(/too old/);
     expect(interfaceSection).toMatch(/4\.[\s\S]*global/);

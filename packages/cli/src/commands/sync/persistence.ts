@@ -140,6 +140,169 @@ export interface PersistenceResult {
   kbModified: boolean;
 }
 
+function parsePrologList(value: unknown): string[] {
+  if (typeof value !== "string") return [];
+  const text = value.trim();
+  if (text.length < 2 || !text.startsWith("[") || !text.endsWith("]")) {
+    return [];
+  }
+  const body = text.slice(1, -1).trim();
+  if (body.length === 0) return [];
+  const values: string[] = [];
+  // IDs are atoms in the Kibi schema. Keep the parser deliberately narrow so
+  // a malformed response cannot turn into a destructive path or goal.
+  for (const part of body.split(",")) {
+    const valuePart = part.trim();
+    if (!valuePart) continue;
+    if (valuePart.startsWith("'") && valuePart.endsWith("'")) {
+      values.push(valuePart.slice(1, -1).replaceAll("''", "'"));
+    } else if (/^[A-Za-z0-9_.:/@+-]+$/.test(valuePart)) {
+      values.push(valuePart);
+    }
+  }
+  return values;
+}
+
+async function entityIdsForSource(
+  prolog: PrologProcess,
+  sourceFile: string,
+): Promise<string[]> {
+  const candidates = new Set([
+    sourceFile,
+    path.relative(process.cwd(), sourceFile),
+    path.basename(sourceFile),
+  ]);
+  const ids = new Set<string>();
+  for (const candidate of candidates) {
+    const result = await prolog.query(
+      `kb_entities_by_source(${toPrologString(candidate)}, Ids)`,
+    );
+    if (result.success) {
+      for (const id of parsePrologList(result.bindings?.Ids)) ids.add(id);
+    }
+  }
+  return [...ids];
+}
+
+/** Remove entities owned by changed/deleted source files before re-upserting. */
+export async function retractEntitiesForSources(
+  prolog: PrologProcess,
+  sourceFiles: readonly string[],
+): Promise<number> {
+  const ids = new Set<string>();
+  for (const sourceFile of sourceFiles) {
+    for (const id of await entityIdsForSource(prolog, sourceFile)) ids.add(id);
+  }
+  if (ids.size === 0) return 0;
+
+  const goals = [...ids].map((id) => `kb_retract_entity(${toPrologAtom(id)})`);
+  const batchRunner = (
+    prolog as unknown as {
+      queryBatch?: (goals: readonly string[]) => Promise<{
+        readonly success: boolean;
+        readonly error?: string;
+      }>;
+    }
+  ).queryBatch?.bind(prolog);
+  if (batchRunner) {
+    const result = await batchRunner(goals);
+    if (!result.success) {
+      throw new Error(
+        result.error ?? "Failed to retract changed source entities",
+      );
+    }
+  } else {
+    for (const goal of goals) {
+      const result = await prolog.query(goal);
+      if (!result.success) {
+        throw new Error(
+          result.error ?? "Failed to retract changed source entity",
+        );
+      }
+    }
+  }
+  return ids.size;
+}
+
+/** Remove an exact entity delta without scanning every indexed source. */
+export async function retractEntitiesById(
+  prolog: PrologProcess,
+  entityIds: readonly string[],
+): Promise<number> {
+  const ids = [...new Set(entityIds)];
+  if (ids.length === 0) return 0;
+  const goals = ids.map((id) => `kb_retract_entity(${toPrologAtom(id)})`);
+  const batchRunner = (
+    prolog as unknown as {
+      queryBatch?: (goals: readonly string[]) => Promise<{
+        readonly success: boolean;
+        readonly error?: string;
+      }>;
+    }
+  ).queryBatch?.bind(prolog);
+  const result = batchRunner
+    ? await batchRunner(goals)
+    : await prolog.query(`rdf_transaction((${goals.join(", ")}))`);
+  if (!result.success) {
+    throw new Error(result.error ?? "Failed to retract entity delta");
+  }
+  return ids.length;
+}
+
+/** Clear outgoing inline relationships for entities whose payload changed. */
+export async function retractEntityRelationshipsById(
+  prolog: PrologProcess,
+  entityIds: readonly string[],
+): Promise<void> {
+  const ids = [...new Set(entityIds)];
+  if (ids.length === 0) return;
+  const goals = ids.map(
+    (id) => `kb_retract_entity_relationships(${toPrologAtom(id)})`,
+  );
+  const batchRunner = (
+    prolog as unknown as {
+      queryBatch?: (goals: readonly string[]) => Promise<{
+        readonly success: boolean;
+        readonly error?: string;
+      }>;
+    }
+  ).queryBatch?.bind(prolog);
+  const result = batchRunner
+    ? await batchRunner(goals)
+    : await prolog.query(`rdf_transaction((${goals.join(", ")}))`);
+  if (!result.success) {
+    throw new Error(result.error ?? "Failed to retract relationship delta");
+  }
+}
+
+export async function retractRelationships(
+  prolog: PrologProcess,
+  relationships: readonly ExtractedRelationship[],
+): Promise<number> {
+  if (relationships.length === 0) return 0;
+  const goals = relationships.map(
+    (relationship) =>
+      `kb_retract_relationship(${toPrologAtom(relationship.type)}, ${toPrologAtom(relationship.from)}, ${toPrologAtom(relationship.to)})`,
+  );
+  const batchRunner = (
+    prolog as unknown as {
+      queryBatch?: (goals: readonly string[]) => Promise<{
+        readonly success: boolean;
+        readonly error?: string;
+      }>;
+    }
+  ).queryBatch?.bind(prolog);
+  const result = batchRunner
+    ? await batchRunner(goals)
+    : await prolog.query(`rdf_transaction((${goals.join(", ")}))`);
+  if (!result.success) {
+    throw new Error(
+      result.error ?? "Failed to retract relationship shard delta",
+    );
+  }
+  return relationships.length;
+}
+
 function isQueryFailedError(error: string): boolean {
   const lowered = error.toLowerCase();
   // Only match session-corruption errors that might benefit from a Prolog process restart.
@@ -178,24 +341,34 @@ export async function persistEntities(
   prolog: PrologProcess,
   results: ExtractionResult[],
   entityIds: Set<string>,
+  options: { loadExistingEntityIds?: boolean } = {},
 ): Promise<{ entityCount: number; kbModified: boolean }> {
   let entityCount = 0;
   let kbModified = false;
   const existingEntityIds = new Set<string>();
+  const pendingEntityGoals: Array<{
+    readonly entity: ExtractedEntity;
+    readonly sourceFile: string;
+    readonly goal: string;
+  }> = [];
 
-  // Query existing entity IDs to include unchanged entities
-  const existingIdsResult = await prolog.query(
-    "findall(Id, kb_entity(Id, _, _), ExistingIds)",
-  );
-  if (existingIdsResult.success && existingIdsResult.bindings?.ExistingIds) {
-    const raw = existingIdsResult.bindings.ExistingIds as string;
-    const cleaned = raw.trim().replace(/^\[/, "").replace(/\]$/, "");
-    if (cleaned) {
-      for (const atom of cleaned.split(",")) {
-        const id = atom.trim().replace(/^'|'$/g, "");
-        if (id) {
-          entityIds.add(id);
-          existingEntityIds.add(id);
+  if (options.loadExistingEntityIds !== false) {
+    // Generation rebuilds need the complete endpoint inventory for local
+    // relationship validation. Journal deltas rely on Prolog's authoritative
+    // endpoint checks and must not materialize 10,000 IDs for one upsert.
+    const existingIdsResult = await prolog.query(
+      "findall(Id, kb_entity(Id, _, _), ExistingIds)",
+    );
+    if (existingIdsResult.success && existingIdsResult.bindings?.ExistingIds) {
+      const raw = existingIdsResult.bindings.ExistingIds as string;
+      const cleaned = raw.trim().replace(/^\[/, "").replace(/\]$/, "");
+      if (cleaned) {
+        for (const atom of cleaned.split(",")) {
+          const id = atom.trim().replace(/^'|'$/g, "");
+          if (id) {
+            entityIds.add(id);
+            existingEntityIds.add(id);
+          }
         }
       }
     }
@@ -329,19 +502,73 @@ export async function persistEntities(
 
       const propsList = `[${props.join(", ")}]`;
       const goal = `kb_assert_entity(${entity.type}, ${propsList})`;
-      const result = await prolog.query(goal);
-      if (!result.success) {
-        throw new Error(
-          result.error || `kb_assert_entity failed for ${entity.id}`,
-        );
-      }
-      entityCount++;
-      kbModified = true;
+      pendingEntityGoals.push({
+        entity,
+        sourceFile: sourceFile ?? entity.source,
+        goal,
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(
         `Failed to upsert entity ${entity.id}: ${message}${semanticEntityContext(entity, sourceFile ?? entity.source)}`,
       );
+    }
+  }
+
+  // Persist a changed source as a bounded set of RDF edits.  This retains the
+  // per-entity fallback diagnostics while avoiding one Prolog round-trip and
+  // journal flush for every symbol/document in the common case.
+  const batchRunner = (
+    prolog as unknown as {
+      queryBatch?: (goals: readonly string[]) => Promise<{
+        readonly success: boolean;
+        readonly error?: string;
+      }>;
+    }
+  ).queryBatch?.bind(prolog);
+  const batchSize = 250;
+  for (
+    let offset = 0;
+    offset < pendingEntityGoals.length;
+    offset += batchSize
+  ) {
+    const chunk = pendingEntityGoals.slice(offset, offset + batchSize);
+    const result = batchRunner
+      ? await batchRunner(chunk.map(({ goal }) => goal))
+      : { success: false, error: "batch unsupported" };
+    if (result.success) {
+      entityCount += chunk.length;
+      kbModified = true;
+      continue;
+    }
+    // A malformed entity should retain the precise existing error.  The batch
+    // transaction has rolled back, so retrying sequentially is safe.
+    for (const item of chunk) {
+      try {
+        const single = await prolog.query(item.goal);
+        if (!single.success) {
+          const detail =
+            single.error ||
+            (batchRunner ? result.error : undefined) ||
+            `kb_assert_entity failed for ${item.entity.id}`;
+          throw new Error(
+            `Failed to upsert entity ${item.entity.id}: ${detail}${semanticEntityContext(item.entity, item.sourceFile)}`,
+          );
+        }
+        entityCount++;
+        kbModified = true;
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.startsWith("Failed to upsert entity ")
+        ) {
+          throw error;
+        }
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(
+          `Failed to upsert entity ${item.entity.id}: ${message}${semanticEntityContext(item.entity, item.sourceFile)}`,
+        );
+      }
     }
   }
 
@@ -398,6 +625,12 @@ export async function persistRelationships(
     toId: string;
     error: string;
   }> = [];
+  const pendingRelationships: Array<{
+    readonly rel: ExtractedRelationship;
+    readonly fromId: string;
+    readonly toId: string;
+    readonly goal: string;
+  }> = [];
 
   for (const { relationships } of results) {
     for (const rel of relationships) {
@@ -406,18 +639,7 @@ export async function persistRelationships(
         const toId = idLookup.get(rel.to) || rel.to;
 
         const goal = `kb_assert_relationship(${toPrologAtom(rel.type)}, ${toPrologAtom(fromId)}, ${toPrologAtom(toId)}, [])`;
-        const result = await prolog.query(goal);
-        if (result.success) {
-          relCount++;
-          kbModified = true;
-        } else {
-          failedRelationships.push({
-            rel,
-            fromId,
-            toId,
-            error: result.error || "Unknown error",
-          });
-        }
+        pendingRelationships.push({ rel, fromId, toId, goal });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         const fromId = idLookup.get(rel.from) || rel.from;
@@ -431,18 +653,12 @@ export async function persistRelationships(
   for (const rel of shardRelationships) {
     try {
       const goal = `kb_assert_relationship(${toPrologAtom(rel.type)}, ${toPrologAtom(rel.from)}, ${toPrologAtom(rel.to)}, [])`;
-      const result = await prolog.query(goal);
-      if (result.success) {
-        relCount++;
-        kbModified = true;
-      } else {
-        failedRelationships.push({
-          rel,
-          fromId: rel.from,
-          toId: rel.to,
-          error: result.error || "Unknown error",
-        });
-      }
+      pendingRelationships.push({
+        rel,
+        fromId: rel.from,
+        toId: rel.to,
+        goal,
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       failedRelationships.push({
@@ -451,6 +667,60 @@ export async function persistRelationships(
         toId: rel.to,
         error: message,
       });
+    }
+  }
+
+  const relationshipBatchRunner = (
+    prolog as unknown as {
+      queryBatch?: (goals: readonly string[]) => Promise<{
+        readonly success: boolean;
+        readonly error?: string;
+      }>;
+    }
+  ).queryBatch?.bind(prolog);
+  const relationshipBatchSize = 250;
+  for (
+    let offset = 0;
+    offset < pendingRelationships.length;
+    offset += relationshipBatchSize
+  ) {
+    const chunk = pendingRelationships.slice(
+      offset,
+      offset + relationshipBatchSize,
+    );
+    const batch = relationshipBatchRunner
+      ? await relationshipBatchRunner(chunk.map(({ goal }) => goal))
+      : { success: false, error: "batch unsupported" };
+    if (batch.success) {
+      relCount += chunk.length;
+      kbModified = true;
+      continue;
+    }
+    for (const item of chunk) {
+      try {
+        const single = await prolog.query(item.goal);
+        if (single.success) {
+          relCount++;
+          kbModified = true;
+        } else {
+          failedRelationships.push({
+            rel: item.rel,
+            fromId: item.fromId,
+            toId: item.toId,
+            error:
+              single.error ||
+              (relationshipBatchRunner ? batch.error : undefined) ||
+              "Unknown error",
+          });
+        }
+      } catch (error) {
+        failedRelationships.push({
+          rel: item.rel,
+          fromId: item.fromId,
+          toId: item.toId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
   }
 

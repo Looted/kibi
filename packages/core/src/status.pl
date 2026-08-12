@@ -44,8 +44,23 @@ status_meta_dict(StatusDict) :-
 attached_kb_info(Branch, KbPath, DataFile) :-
     kb:kb_attached(KbPath),
     branch_workspace_from_kb_path(KbPath, Branch, _WorkspaceRoot),
+    kb:kb_storage_mode(journaled),
+    !,
+    directory_file_path(KbPath, 'CURRENT', DataFile).
+attached_kb_info(Branch, KbPath, DataFile) :-
+    kb:kb_attached(KbPath),
+    branch_workspace_from_kb_path(KbPath, Branch, _WorkspaceRoot),
     directory_file_path(KbPath, 'kb.rdf', DataFile).
 
+snapshot_id(SnapshotId) :-
+    kb:kb_attached_snapshot(journal_snapshot(_Generation, Sequence)),
+    Sequence =:= 0,
+    !,
+    SnapshotId = missing.
+snapshot_id(SnapshotId) :-
+    kb:kb_attached_snapshot(journal_snapshot(Generation, Sequence)),
+    !,
+    format(atom(SnapshotId), '~w:~w', [Generation, Sequence]).
 snapshot_id(SnapshotId) :-
     kb:kb_attached_snapshot(stamp(MTime, Size)),
     !,
@@ -56,6 +71,14 @@ snapshot_id(SnapshotId) :-
     SnapshotId = missing.
 snapshot_id(unknown).
 
+journal_before_first_commit :-
+    kb:kb_storage_mode(journaled),
+    kb:kb_attached_snapshot(journal_snapshot(_, 0)),
+    !.
+
+synced_at(_, null) :-
+    journal_before_first_commit,
+    !.
 synced_at(DataFile, SyncedAt) :-
     exists_file(DataFile),
     !,
@@ -64,6 +87,13 @@ synced_at(DataFile, SyncedAt) :-
 % Before the first successful sync there is no kb.rdf, so the public JSON contract must expose syncedAt: null.
 synced_at(_, null).
 
+journal_before_first_commit_state(true, unknown) :-
+    journal_before_first_commit,
+    !.
+
+freshness_state(_, Dirty, State) :-
+    journal_before_first_commit_state(Dirty, State),
+    !.
 freshness_state(DataFile, true, stale) :-
     exists_file(DataFile),
     time_file(DataFile, SnapshotTime),
@@ -83,61 +113,25 @@ workspace_state_changed(SnapshotTime) :-
 
 workspace_source_changed(SnapshotTime) :-
     attached_workspace_root(WorkspaceRoot),
-    kb_entity(_, _, Props),
-    memberchk(source=SourceValue, Props),
-    source_value_atom(SourceValue, SourceAtom),
+    kb:kb_indexed_sources(Sources),
+    member(SourceAtom, Sources),
     repo_relative_source(SourceAtom, RelativeSource),
     directory_file_path(WorkspaceRoot, RelativeSource, SourcePath),
     (   exists_file(SourcePath)
     ->  time_file(SourcePath, FileTime),
         FileTime > SnapshotTime
+    ;   exists_directory(SourcePath)
+    ->  fail
     ;   true
     ),
     !.
 
-documentation_tree_changed(_SnapshotTime) :-
-    attached_workspace_root(WorkspaceRoot),
-    documentation_markdown_untracked(WorkspaceRoot),
-    !.
 documentation_tree_changed(SnapshotTime) :-
     attached_workspace_root(WorkspaceRoot),
     directory_file_path(WorkspaceRoot, 'documentation', DocumentationRoot),
     exists_directory(DocumentationRoot),
     directory_tree_newer(DocumentationRoot, SnapshotTime),
     !.
-
-documentation_markdown_untracked(WorkspaceRoot) :-
-    directory_file_path(WorkspaceRoot, 'documentation', DocumentationRoot),
-    exists_directory(DocumentationRoot),
-    documentation_markdown_file(DocumentationRoot, FilePath),
-    path_relative_to_workspace(WorkspaceRoot, FilePath, RelativePath),
-    \+ known_source_path(RelativePath),
-    !.
-
-documentation_markdown_file(Path, Path) :-
-    exists_file(Path),
-    file_name_extension(_, md, Path),
-    entity_documentation_file(Path),
-    \+ ignored_documentation_file(Path),
-    !.
-documentation_markdown_file(Path, FilePath) :-
-    exists_directory(Path),
-    directory_files(Path, Entries),
-    member(Entry, Entries),
-    Entry \= '.',
-    Entry \= '..',
-    directory_file_path(Path, Entry, ChildPath),
-    documentation_markdown_file(ChildPath, FilePath).
-
-path_relative_to_workspace(WorkspaceRoot, FilePath, RelativePath) :-
-    atom_concat(WorkspaceRoot, '/', Prefix),
-    atom_concat(Prefix, RelativePath, FilePath).
-
-known_source_path(RelativePath) :-
-    kb_entity(_, _, Props),
-    memberchk(source=SourceValue, Props),
-    source_value_atom(SourceValue, SourceAtom),
-    repo_relative_source(SourceAtom, RelativePath).
 
 directory_tree_newer(Path, SnapshotTime) :-
     exists_file(Path),
@@ -180,11 +174,19 @@ branch_path_segments(KbPath, BranchesDir, Segments) :-
 repo_relative_source(SourceAtom, RelativeSource) :-
     strip_fragment(SourceAtom, NoFragment),
     \+ sub_atom(NoFragment, _, _, _, '://'),
+    source_path_candidate(NoFragment),
     (   attached_workspace_root(WorkspaceRoot),
         workspace_relative_path(WorkspaceRoot, NoFragment, RelativePath)
     ->  RelativeSource = RelativePath
     ;   RelativeSource = NoFragment
     ).
+
+source_path_candidate(Source) :-
+    sub_atom(Source, _, _, _, '/'),
+    !.
+source_path_candidate(Source) :-
+    file_name_extension(_, Extension, Source),
+    Extension \= ''.
 
 workspace_relative_path(WorkspaceRoot, SourcePath, RelativePath) :-
     atom_concat(WorkspaceRoot, '/', Prefix),

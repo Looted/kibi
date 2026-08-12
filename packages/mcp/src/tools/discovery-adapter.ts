@@ -23,6 +23,17 @@ export function createDiscoveryContext(
       return result;
     },
     save: () => prolog.query("kb_save"),
+    ...(typeof (prolog as { queryStatusJson?: unknown }).queryStatusJson ===
+    "function"
+      ? {
+          queryStatusJson: () =>
+            (
+              prolog as PrologProcess & {
+                queryStatusJson: () => Promise<PrologQueryResult>;
+              }
+            ).queryStatusJson(),
+        }
+      : {}),
   };
   return {
     ...(baseContext ?? {}),
