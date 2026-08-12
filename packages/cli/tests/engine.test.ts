@@ -305,6 +305,38 @@ describe("journaled engine", () => {
     }
   });
 
+  test("flushes journals and exits when the hosting process is terminated", async () => {
+    const root = tempRoot();
+    const first = new EngineClient({ workspaceRoot: root, branch: "main" });
+    const second = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 30_000,
+    });
+    try {
+      await first.start();
+      const write = await first.query(
+        'kb_assert_entity(req, [id=\'REQ-SIGNAL\', title="Signal durability", status=open, created_at="2026-08-12T00:00:00Z", updated_at="2026-08-12T00:00:00Z", source="engine-signal-test"])',
+      );
+      expect(write.success).toBe(true);
+      const pid = first.getPid();
+      const socket = engineSocketPath(root, "main");
+
+      process.kill(pid, "SIGTERM");
+      await first.terminate();
+      await waitFor(() => !existsSync(socket), 5_000);
+
+      await second.start();
+      expect(second.getPid()).not.toBe(pid);
+      const replayed = await second.query("kb_entity('REQ-SIGNAL', req, _)");
+      expect(replayed.success).toBe(true);
+    } finally {
+      await first.terminate().catch(() => undefined);
+      await second.stop(false).catch(() => undefined);
+      await second.terminate().catch(() => undefined);
+    }
+  });
+
   test("reports an actionable error when Node is unavailable", async () => {
     const root = tempRoot();
     const previous = process.env.KIBI_NODE_PATH;

@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { type ChildProcess, execSync, spawn } from "node:child_process";
+import {
+  type ChildProcess,
+  execSync,
+  spawn,
+  spawnSync,
+} from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -547,76 +552,101 @@ describe("MCP Server", () => {
         expect(result.payoffSummary).toEqual(structured.payoffSummary);
       } finally {
         await killServer(proc);
+        spawnSync(process.execPath, [kibiBin, "engine", "stop"], {
+          cwd: tempRoot,
+          encoding: "utf8",
+        });
         fs.rmSync(tempRoot, { recursive: true, force: true });
       }
     },
     HEAVY_TOOL_TIMEOUT_MS,
   );
 
+  // executable_for TEST-test-journaled-engine-harness
   test(
     "should handle tools/call for kb_model_requirement",
     async () => {
-      const proc = startServer();
-
-      await sendRequest(proc, {
-        jsonrpc: "2.0",
-        id: 1,
-        method: "initialize",
-        params: {
-          protocolVersion: "2024-11-05",
-          capabilities: {},
-          clientInfo: { name: "test", version: "1.0" },
-        },
+      const tempRoot = fs.mkdtempSync(
+        path.join(os.tmpdir(), "kibi-mcp-model-"),
+      );
+      const kibiBin = path.resolve(import.meta.dir, "../../cli/bin/kibi");
+      execSync("git init -b main", { cwd: tempRoot, stdio: "ignore" });
+      execSync(`bun ${kibiBin} init --no-hooks`, {
+        cwd: tempRoot,
+        stdio: "ignore",
+      });
+      const proc = startServer({
+        cwd: tempRoot,
+        env: { KIBI_WORKSPACE: tempRoot },
       });
 
-      const response = await sendRequest(
-        proc,
-        {
+      try {
+        await sendRequest(proc, {
           jsonrpc: "2.0",
-          id: 2,
-          method: "tools/call",
+          id: 1,
+          method: "initialize",
           params: {
-            name: "kb_model_requirement",
-            arguments: {
-              text: "Customer data must be retained for 7 years.",
-              source: "documentation/requirements/customer-retention.md",
-              confidence: 0.92,
-              subjectKey: "Customer.Data",
-              propertyKey: "Retention Years",
-              operator: "eq",
-              value: 7,
-              provenance: "documentation/requirements/customer-retention.md#L1",
+            protocolVersion: "2024-11-05",
+            capabilities: {},
+            clientInfo: { name: "test", version: "1.0" },
+          },
+        });
+
+        const response = await sendRequest(
+          proc,
+          {
+            jsonrpc: "2.0",
+            id: 2,
+            method: "tools/call",
+            params: {
+              name: "kb_model_requirement",
+              arguments: {
+                text: "Customer data must be retained for 7 years.",
+                source: "documentation/requirements/customer-retention.md",
+                confidence: 0.92,
+                subjectKey: "Customer.Data",
+                propertyKey: "Retention Years",
+                operator: "eq",
+                value: 7,
+                provenance:
+                  "documentation/requirements/customer-retention.md#L1",
+              },
             },
           },
-        },
-        HEAVY_TOOL_TIMEOUT_MS,
-      );
+          HEAVY_TOOL_TIMEOUT_MS,
+        );
 
-      const result = response.result as Record<string, unknown>;
-      expect(result).toBeDefined();
-      expect(result.isError).toBeFalsy();
+        const result = response.result as Record<string, unknown>;
+        expect(result).toBeDefined();
+        expect(result.isError).toBeFalsy();
 
-      const content = result.content as Array<{ type: string; text: string }>;
-      expect(content).toBeDefined();
-      expect(content.length).toBeGreaterThan(0);
-      expect(content[0]?.type).toBe("text");
+        const content = result.content as Array<{ type: string; text: string }>;
+        expect(content).toBeDefined();
+        expect(content.length).toBeGreaterThan(0);
+        expect(content[0]?.type).toBe("text");
 
-      const structured = result.structuredContent as Record<string, unknown>;
-      expect(structured).toBeDefined();
-      expect(structured.isStrict).toBe(true);
-      expect(Array.isArray(structured.applyPlan)).toBe(true);
-      expect((structured.applyPlan as unknown[]).length).toBe(3);
-      expect(typeof structured.writeSet).toBe("object");
-      expect(typeof structured.claim).toBe("object");
-      expect(
-        [null, expect.any(String)].some((matcher) =>
-          matcher === null
-            ? structured.migrationWarning === null
-            : typeof structured.migrationWarning === "string",
-        ),
-      ).toBe(true);
-
-      await killServer(proc);
+        const structured = result.structuredContent as Record<string, unknown>;
+        expect(structured).toBeDefined();
+        expect(structured.isStrict).toBe(true);
+        expect(Array.isArray(structured.applyPlan)).toBe(true);
+        expect((structured.applyPlan as unknown[]).length).toBe(3);
+        expect(typeof structured.writeSet).toBe("object");
+        expect(typeof structured.claim).toBe("object");
+        expect(
+          [null, expect.any(String)].some((matcher) =>
+            matcher === null
+              ? structured.migrationWarning === null
+              : typeof structured.migrationWarning === "string",
+          ),
+        ).toBe(true);
+      } finally {
+        await killServer(proc);
+        spawnSync(process.execPath, [kibiBin, "engine", "stop"], {
+          cwd: tempRoot,
+          encoding: "utf8",
+        });
+        fs.rmSync(tempRoot, { recursive: true, force: true });
+      }
     },
     HEAVY_TOOL_TIMEOUT_MS,
   );

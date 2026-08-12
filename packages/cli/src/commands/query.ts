@@ -1,10 +1,8 @@
 import Table from "cli-table3";
 import { parseListOfLists, parsePrologValue } from "../prolog/codec.js";
-import {
-  VALID_ENTITY_TYPES,
-  executeOperation,
-  querySpec,
-} from "../public/operations/index.js";
+import { VALID_ENTITY_TYPES } from "../public/operations/discovery-entities.js";
+import { executeOperation } from "../public/operations/runtime-types.js";
+import { querySpec } from "../public/operations/specs/discovery.js";
 import relationshipSchema from "../public/schemas/relationship.js";
 import { createCliRuntime } from "../runtime/cli-runtime.js";
 import { withAttachedBranchProlog } from "./discovery-shared.js";

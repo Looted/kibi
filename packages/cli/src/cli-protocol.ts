@@ -1,10 +1,11 @@
 import { InputError, OperationError } from "./cli-errors.js";
+import { loadOperationSpec } from "./cli-operation-loader.js";
+import { isOperationName } from "./cli-operation-metadata.js";
 import {
   type DiagnosticTelemetry,
   prepareOperationInput,
 } from "./cli-validate.js";
-import { listSpecs } from "./public/operations/index.js";
-import type { OperationContext } from "./public/operations/index.js";
+import type { OperationContext } from "./public/operations/runtime-types.js";
 
 // implements REQ-kibi-operation-interface-parity
 export type CliContext = OperationContext & {
@@ -31,8 +32,7 @@ export async function executeOperation(
   input: unknown,
   context: CliContext,
 ): Promise<CliProtocolResult> {
-  const spec = listSpecs().find(({ name }) => name === catalogName);
-  if (spec === undefined) {
+  if (!isOperationName(catalogName)) {
     return errorResult(
       new InputError(
         "UNKNOWN_OPERATION",
@@ -40,6 +40,7 @@ export async function executeOperation(
       ),
     );
   }
+  const spec = await loadOperationSpec(catalogName);
 
   const prepared = prepareOperationInput(input, spec.businessInputSchema);
   if (!prepared.valid) {

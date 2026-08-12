@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import {
+  BATCH_CONCURRENCY,
   BATCH_TIMEOUT_MINUTES,
   type SuiteSummary,
   getBatchFailureMessage,
@@ -8,6 +9,10 @@ import {
 
 // executable_for TEST-root-suite-batch-diagnostics
 describe("getBatchFailureMessage", () => {
+  it("bounds package-process parallelism", () => {
+    expect(BATCH_CONCURRENCY).toBe(2);
+  });
+
   it("reports a killed batch timeout before a missing summary", () => {
     expect(
       getBatchFailureMessage("cli", {

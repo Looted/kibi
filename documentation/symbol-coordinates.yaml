@@ -2897,9 +2897,9 @@ coordinates:
   SYM-cli-context-type:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 12
+    sourceEndLine: 13
     sourceFile: packages/cli/src/cli-protocol.ts
-    sourceLine: 10
+    sourceLine: 11
   SYM-cli-delete-input-type:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -3149,7 +3149,7 @@ coordinates:
   SYM-cli-engine-daemon:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1473
+    sourceEndLine: 1484
     sourceFile: packages/cli/src/engine.ts
     sourceLine: 1093
   SYM-cli-engine-durable-fsync:
@@ -3218,6 +3218,12 @@ coordinates:
     sourceEndLine: 89
     sourceFile: packages/cli/src/extractors/relationships.ts
     sourceLine: 68
+  SYM-cli-get-operation-metadata:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 135
+    sourceFile: packages/cli/src/cli-operation-metadata.ts
+    sourceLine: 127
   SYM-cli-impact-AGGREGATE_KINDS:
     sourceColumn: 13
     sourceEndColumn: 2
@@ -3446,12 +3452,18 @@ coordinates:
     sourceEndLine: 13
     sourceFile: packages/cli/src/cli-errors.ts
     sourceLine: 2
+  SYM-cli-is-operation-name:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 139
+    sourceFile: packages/cli/src/cli-operation-metadata.ts
+    sourceLine: 137
   SYM-cli-json-invocation-type:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 23
+    sourceEndLine: 20
     sourceFile: packages/cli/src/cli-json-command.ts
-    sourceLine: 15
+    sourceLine: 12
   SYM-cli-load-input:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3464,6 +3476,12 @@ coordinates:
     sourceEndLine: 9
     sourceFile: packages/cli/src/cli-input.ts
     sourceLine: 6
+  SYM-cli-load-operation-spec:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 65
+    sourceFile: packages/cli/src/cli-operation-loader.ts
+    sourceLine: 11
   SYM-cli-logic-ir-LOGIC_IR_VERSION:
     sourceColumn: 13
     sourceEndColumn: 56
@@ -3656,6 +3674,18 @@ coordinates:
     sourceEndLine: 27
     sourceFile: packages/cli/src/cli-errors.ts
     sourceLine: 16
+  SYM-cli-operation-metadata:
+    sourceColumn: 13
+    sourceEndColumn: 52
+    sourceEndLine: 121
+    sourceFile: packages/cli/src/cli-operation-metadata.ts
+    sourceLine: 12
+  SYM-cli-operation-metadata-type:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 7
+    sourceFile: packages/cli/src/cli-operation-metadata.ts
+    sourceLine: 3
   SYM-cli-parity-case-type:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -3770,48 +3800,54 @@ coordinates:
     sourceEndLine: 36
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     sourceLine: 33
+  SYM-cli-protocol-execute-operation:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 70
+    sourceFile: packages/cli/src/cli-protocol.ts
+    sourceLine: 30
   SYM-cli-protocol-result-type:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 19
+    sourceEndLine: 20
     sourceFile: packages/cli/src/cli-protocol.ts
-    sourceLine: 15
+    sourceLine: 16
   SYM-cli-query-command:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 82
+    sourceEndLine: 80
     sourceFile: packages/cli/src/commands/query.ts
-    sourceLine: 32
+    sourceLine: 30
   SYM-cli-register-foundation-commands:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 126
+    sourceEndLine: 135
     sourceFile: packages/cli/src/cli-register-foundation.ts
-    sourceLine: 13
+    sourceLine: 16
   SYM-cli-register-json-only-commands:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 211
-    sourceFile: packages/cli/src/cli-json-command.ts
-    sourceLine: 185
+    sourceEndLine: 40
+    sourceFile: packages/cli/src/cli-register-json.ts
+    sourceLine: 17
   SYM-cli-register-maintenance-commands:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 102
+    sourceEndLine: 113
     sourceFile: packages/cli/src/cli-register-maintenance.ts
-    sourceLine: 17
+    sourceLine: 7
   SYM-cli-register-reporting-commands:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 155
+    sourceEndLine: 157
     sourceFile: packages/cli/src/cli-register-reporting.ts
-    sourceLine: 11
+    sourceLine: 13
   SYM-cli-register-skills-commands:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 96
+    sourceEndLine: 112
     sourceFile: packages/cli/src/cli-register-skills.ts
-    sourceLine: 12
+    sourceLine: 17
   SYM-cli-relationship-directory:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3911,15 +3947,15 @@ coordinates:
   SYM-cli-run-json-invocation:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 172
+    sourceEndLine: 169
     sourceFile: packages/cli/src/cli-json-command.ts
-    sourceLine: 65
+    sourceLine: 62
   SYM-cli-search-command:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 54
+    sourceEndLine: 52
     sourceFile: packages/cli/src/commands/search.ts
-    sourceLine: 16
+    sourceLine: 14
   SYM-cli-semantic-advisor-SemanticInterpretationInput:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -3977,9 +4013,9 @@ coordinates:
   SYM-cli-status-command:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 22
+    sourceEndLine: 23
     sourceFile: packages/cli/src/commands/status.ts
-    sourceLine: 9
+    sourceLine: 10
   SYM-cli-storage-export-command:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -6938,12 +6974,18 @@ coordinates:
     sourceEndLine: 36
     sourceFile: packages/cli/src/public/operations/specs/mutation.ts
     sourceLine: 14
+  SYM-packed-cleanup-shared-install:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 219
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    sourceLine: 211
   SYM-packed-create-sandbox:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 450
+    sourceEndLine: 496
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 321
+    sourceLine: 362
   SYM-packed-install-manifest:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6953,9 +6995,9 @@ coordinates:
   SYM-packed-pack-all:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 315
+    sourceEndLine: 356
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 244
+    sourceLine: 285
   SYM-packed-parity-bundle-paths:
     sourceColumn: 13
     sourceEndColumn: 10
@@ -7022,12 +7064,30 @@ coordinates:
     sourceEndLine: 135
     sourceFile: documentation/tests/e2e/packed/mcp-cli-operation-parity-support.ts
     sourceLine: 106
+  SYM-packed-prepare-shared-install:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 209
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    sourceLine: 205
+  SYM-packed-stop-runtime-engines:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 549
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    sourceLine: 510
   SYM-packed-tarballs-type:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 190
+    sourceEndLine: 229
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 183
+    sourceLine: 222
+  SYM-packed-test-sandbox:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 279
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    sourceLine: 251
   SYM-parity-build-entity-delete-audit-goal:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -12920,6 +12980,18 @@ coordinates:
     sourceEndLine: 119
     sourceFile: documentation/tests/benchmarks/journaled-engine.bench.mjs
     sourceLine: 57
+  SYM-test-owned-engine-cleanup:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 65
+    sourceFile: scripts/run-owned-engine-tests.mjs
+    sourceLine: 29
+  SYM-test-owned-engine-runner:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 105
+    sourceFile: scripts/run-owned-engine-tests.mjs
+    sourceLine: 68
   SYM-test-packed-dependency-ordered-repair-plan:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -12974,24 +13046,42 @@ coordinates:
     sourceEndLine: 59
     sourceFile: documentation/tests/e2e/packed/telemetry-remediation-evidence.test.ts
     sourceLine: 49
+  SYM-test-root-batch-concurrency:
+    sourceColumn: 13
+    sourceEndColumn: 34
+    sourceEndLine: 26
+    sourceFile: test/root.test.ts
+    sourceLine: 26
   SYM-test-root-batch-timeout-minutes:
     sourceColumn: 13
     sourceEndColumn: 39
-    sourceEndLine: 17
+    sourceEndLine: 25
     sourceFile: test/root.test.ts
-    sourceLine: 17
+    sourceLine: 25
+  SYM-test-root-engine-shutdown-timeout:
+    sourceColumn: 13
+    sourceEndColumn: 52
+    sourceEndLine: 27
+    sourceFile: test/root.test.ts
+    sourceLine: 27
   SYM-test-root-getBatchFailureMessage:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 41
+    sourceEndLine: 51
     sourceFile: test/root.test.ts
-    sourceLine: 27
+    sourceLine: 37
   SYM-test-root-runBatch:
     sourceColumn: 15
     sourceEndColumn: 1
-    sourceEndLine: 212
+    sourceEndLine: 292
     sourceFile: test/root.test.ts
-    sourceLine: 164
+    sourceLine: 228
+  SYM-test-root-stop-engines:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 198
+    sourceFile: test/root.test.ts
+    sourceLine: 158
   SYM-test-rule-contradiction-witness-proof:
     sourceColumn: 5
     sourceEndColumn: 64

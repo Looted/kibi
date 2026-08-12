@@ -1,6 +1,6 @@
 {
   "name": "kibi-cli",
-  "version": "0.18.1",
+  "version": "0.19.0",
   "type": "module",
   "description": "Kibi CLI for knowledge base management",
   "engines": {
@@ -13,6 +13,7 @@
   "files": ["dist", "bin", "schema", "src/schemas", "src/public"],
   "scripts": {
     "build": "tsc -p tsconfig.json && mkdir -p dist/public/skills && cp -r src/public/skills/. dist/public/skills/",
+    "test": "node ../../scripts/run-owned-engine-tests.mjs -- bun test --timeout 15000 .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepack": "npm run build"
   },
@@ -192,7 +193,7 @@
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "kibi-core": "^0.9.1",
+    "kibi-core": "^0.10.0",
     "ts-morph": "^23.0.0",
     "ignore": "^5.3.0"
   },

@@ -1,6 +1,13 @@
 /// <reference types="bun-types" />
-import { afterEach, describe, expect, test } from "bun:test";
-import { execSync, spawn } from "node:child_process";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  test,
+} from "bun:test";
+import { execFileSync, spawn } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -11,6 +18,16 @@ const importMetaDir = path.dirname(fileURLToPath(import.meta.url));
 
 describe("PrologProcess", () => {
   let prolog: PrologProcess | null = null;
+  let sharedProlog: PrologProcess;
+
+  beforeAll(async () => {
+    sharedProlog = new PrologProcess({ oneShot: false });
+    await sharedProlog.start();
+  });
+
+  afterAll(async () => {
+    await sharedProlog.terminate();
+  });
 
   afterEach(async () => {
     if (prolog) {
@@ -20,31 +37,23 @@ describe("PrologProcess", () => {
   });
 
   test("spawns swipl successfully", async () => {
-    prolog = new PrologProcess();
-    await prolog.start();
-    expect(prolog.isRunning()).toBe(true);
+    expect(sharedProlog.isRunning()).toBe(true);
   });
 
   test("loads kb module from packages/core/src/kb.pl", async () => {
-    prolog = new PrologProcess();
-    await prolog.start();
-    const result = await prolog.query("current_module(kb)");
+    const result = await sharedProlog.query("current_module(kb)");
     expect(result.success).toBe(true);
   });
 
   test("handles simple arithmetic query", async () => {
-    prolog = new PrologProcess();
-    await prolog.start();
-    const result = await prolog.query("X = 42");
+    const result = await sharedProlog.query("X = 42");
     expect(result.success).toBe(true);
     expect(result.bindings).toHaveProperty("X");
     expect(result.bindings.X).toBe("42");
   });
 
   test("translates existence_error to friendly message", async () => {
-    prolog = new PrologProcess();
-    await prolog.start();
-    const result = await prolog.query("nonexistent_predicate(foo)");
+    const result = await sharedProlog.query("nonexistent_predicate(foo)");
     expect(result.success).toBe(false);
     expect(result.error).toContain("not found");
     expect(result.error).not.toContain("ERROR:");
@@ -52,22 +61,20 @@ describe("PrologProcess", () => {
   });
 
   test("translates syntax_error to friendly message", async () => {
-    prolog = new PrologProcess();
-    await prolog.start();
-    const result = await prolog.query("this is invalid syntax !");
+    const result = await sharedProlog.query("this is invalid syntax !");
     expect(result.success).toBe(false);
     expect(result.error).toContain("syntax");
     expect(result.error).not.toContain("ERROR:");
   });
 
   test("handles timeout for infinite loop", async () => {
-    prolog = new PrologProcess({ timeout: 100 });
+    prolog = new PrologProcess({ timeout: 500, oneShot: true });
     await prolog.start();
     await expect(prolog.query("repeat, fail")).rejects.toThrow("timeout");
   }, 5000);
 
   test("reports the last commit stage when a one-shot query times out", async () => {
-    prolog = new PrologProcess({ timeout: 100 });
+    prolog = new PrologProcess({ timeout: 500, oneShot: true });
     await prolog.start();
     await expect(
       prolog.query(
@@ -77,13 +84,13 @@ describe("PrologProcess", () => {
   }, 5000);
 
   test("gracefully terminates process", async () => {
-    prolog = new PrologProcess();
-    await prolog.start();
-    const pid = prolog.getPid();
+    const terminatingProlog = new PrologProcess({ oneShot: false });
+    await terminatingProlog.start();
+    const pid = terminatingProlog.getPid();
     expect(pid).toBeGreaterThan(0);
 
-    await prolog.terminate();
-    expect(prolog.isRunning()).toBe(false);
+    await terminatingProlog.terminate();
+    expect(terminatingProlog.isRunning()).toBe(false);
 
     try {
       process.kill(pid, 0);
@@ -94,41 +101,32 @@ describe("PrologProcess", () => {
   });
 
   test("handles multiple queries in sequence", async () => {
-    prolog = new PrologProcess();
-    await prolog.start();
-
-    const result1 = await prolog.query("X = 1");
+    const result1 = await sharedProlog.query("X = 1");
     expect(result1.success).toBe(true);
 
-    const result2 = await prolog.query("Y = 2");
+    const result2 = await sharedProlog.query("Y = 2");
     expect(result2.success).toBe(true);
 
-    const result3 = await prolog.query("Z = 3");
+    const result3 = await sharedProlog.query("Z = 3");
     expect(result3.success).toBe(true);
   });
 
   test("caches successful query results and supports invalidation", async () => {
-    prolog = new PrologProcess();
-    await prolog.start();
-
-    const first = await prolog.query("X = 99");
-    const cached = await prolog.query("X = 99");
+    const first = await sharedProlog.query("X = 99");
+    const cached = await sharedProlog.query("X = 99");
     expect(cached).toBe(first);
 
-    prolog.invalidateCache();
+    sharedProlog.invalidateCache();
 
-    const afterInvalidation = await prolog.query("X = 99");
+    const afterInvalidation = await sharedProlog.query("X = 99");
     expect(afterInvalidation.success).toBe(true);
     expect(afterInvalidation.bindings.X).toBe("99");
     expect(afterInvalidation).not.toBe(first);
   });
 
   test("does not cache compound goals to preserve read-after-write consistency", async () => {
-    prolog = new PrologProcess();
-    await prolog.start();
-
-    const first = await prolog.query("(X = 7)");
-    const second = await prolog.query("(X = 7)");
+    const first = await sharedProlog.query("(X = 7)");
+    const second = await sharedProlog.query("(X = 7)");
     expect(first.success).toBe(true);
     expect(second.success).toBe(true);
     expect(second.bindings.X).toBe("7");
@@ -136,10 +134,7 @@ describe("PrologProcess", () => {
   });
 
   test("executes batch goals and returns bindings", async () => {
-    prolog = new PrologProcess();
-    await prolog.start();
-
-    const result = await prolog.query(["X = 10", "Y is X + 5"]);
+    const result = await sharedProlog.query(["X = 10", "Y is X + 5"]);
     expect(result.success).toBe(true);
     expect(result.bindings.X).toBe("10");
     expect(result.bindings.Y).toBe("15");
@@ -147,26 +142,29 @@ describe("PrologProcess", () => {
 
   test("runs batched KB writes in one transaction", async () => {
     const tempKbDir = mkdtempSync(path.join(os.tmpdir(), "kibi-batch-kb-"));
-    prolog = new PrologProcess();
-    await prolog.start();
-
     try {
-      const attachResult = await prolog.query(`kb_attach('${tempKbDir}')`);
+      const attachResult = await sharedProlog.query(
+        `kb_attach('${tempKbDir}')`,
+      );
       expect(attachResult.success).toBe(true);
 
-      const batchResult = await prolog.query([
+      const batchResult = await sharedProlog.query([
         'kb_assert_entity(req, [id=\'REQ-BATCH-001\', title="Batch Entity 1", status=active, created_at="2026-02-19T00:00:00Z", updated_at="2026-02-19T00:00:00Z", source="https://example.com/req-batch-1"])',
         'kb_assert_entity(req, [id=\'REQ-BATCH-002\', title="Batch Entity 2", status=active, created_at="2026-02-19T00:00:00Z", updated_at="2026-02-19T00:00:00Z", source="https://example.com/req-batch-2"])',
         "kb_save",
       ]);
       expect(batchResult.success).toBe(true);
 
-      const entity1 = await prolog.query("kb_entity('REQ-BATCH-001', _, _)");
-      const entity2 = await prolog.query("kb_entity('REQ-BATCH-002', _, _)");
+      const entity1 = await sharedProlog.query(
+        "kb_entity('REQ-BATCH-001', _, _)",
+      );
+      const entity2 = await sharedProlog.query(
+        "kb_entity('REQ-BATCH-002', _, _)",
+      );
       expect(entity1.success).toBe(true);
       expect(entity2.success).toBe(true);
     } finally {
-      await prolog.query("kb_detach");
+      await sharedProlog.query("kb_detach");
       if (existsSync(tempKbDir)) {
         rmSync(tempKbDir, { recursive: true, force: true });
       }
@@ -175,26 +173,25 @@ describe("PrologProcess", () => {
 
   test("rolls back batched KB writes when one goal fails", async () => {
     const tempKbDir = mkdtempSync(path.join(os.tmpdir(), "kibi-batch-kb-"));
-    prolog = new PrologProcess();
-    await prolog.start();
-
     try {
-      const attachResult = await prolog.query(`kb_attach('${tempKbDir}')`);
+      const attachResult = await sharedProlog.query(
+        `kb_attach('${tempKbDir}')`,
+      );
       expect(attachResult.success).toBe(true);
 
-      const failedBatch = await prolog.query([
+      const failedBatch = await sharedProlog.query([
         'kb_assert_entity(req, [id=\'REQ-BATCH-ROLLBACK\', title="Should Roll Back", status=active, created_at="2026-02-19T00:00:00Z", updated_at="2026-02-19T00:00:00Z", source="https://example.com/req-batch-rollback"])',
         'kb_assert_entity(invalid_type, [id=\'REQ-BATCH-INVALID\', title="Invalid Type", status=active, created_at="2026-02-19T00:00:00Z", updated_at="2026-02-19T00:00:00Z", source="https://example.com/req-batch-invalid"])',
         "kb_save",
       ]);
       expect(failedBatch.success).toBe(false);
 
-      const rolledBackEntity = await prolog.query(
+      const rolledBackEntity = await sharedProlog.query(
         "kb_entity('REQ-BATCH-ROLLBACK', _, _)",
       );
       expect(rolledBackEntity.success).toBe(false);
     } finally {
-      await prolog.query("kb_detach");
+      await sharedProlog.query("kb_detach");
       if (existsSync(tempKbDir)) {
         rmSync(tempKbDir, { recursive: true, force: true });
       }
@@ -203,7 +200,7 @@ describe("PrologProcess", () => {
 
   test("one-shot attached read queries do not create kb.rdf", async () => {
     const tempKbDir = mkdtempSync(path.join(os.tmpdir(), "kibi-readonly-kb-"));
-    prolog = new PrologProcess();
+    prolog = new PrologProcess({ oneShot: true });
     await prolog.start();
 
     try {
@@ -225,7 +222,7 @@ describe("PrologProcess", () => {
 
   test("one-shot attached writes persist atomically", async () => {
     const tempKbDir = mkdtempSync(path.join(os.tmpdir(), "kibi-write-kb-"));
-    prolog = new PrologProcess();
+    prolog = new PrologProcess({ oneShot: true });
     await prolog.start();
 
     try {
@@ -256,7 +253,7 @@ describe("PrologProcess", () => {
 
   test("one-shot commit persists RDF, relationships, audits, and snapshot", async () => {
     const tempKbDir = mkdtempSync(path.join(os.tmpdir(), "kibi-commit-kb-"));
-    prolog = new PrologProcess({ timeout: 5000 });
+    prolog = new PrologProcess({ timeout: 5000, oneShot: true });
     await prolog.start();
 
     try {
@@ -301,7 +298,7 @@ describe("PrologProcess", () => {
     const tempKbDir = mkdtempSync(
       path.join(os.tmpdir(), "kibi-audit-lock-kb-"),
     );
-    prolog = new PrologProcess({ timeout: 1000 });
+    prolog = new PrologProcess({ timeout: 1000, oneShot: true });
     await prolog.start();
     let staleWriter: ReturnType<typeof spawn> | null = null;
 
@@ -352,10 +349,14 @@ describe("PrologProcess", () => {
 
 describe("CLI", () => {
   test("shows version matching package.json", () => {
-    const output = execSync("bun run packages/cli/bin/kibi --version", {
-      encoding: "utf-8",
-      cwd: path.join(importMetaDir, "../../.."),
-    });
+    const output = execFileSync(
+      process.execPath,
+      ["packages/cli/bin/kibi", "--version"],
+      {
+        encoding: "utf-8",
+        cwd: path.join(importMetaDir, "../../.."),
+      },
+    );
     expect(output.trim()).toMatch(/^\d+\.\d+\.\d+$/);
     // Read expected version from package.json
     const pkgJson = JSON.parse(
@@ -368,10 +369,14 @@ describe("CLI", () => {
   });
 
   test("shows help with all required commands", () => {
-    const output = execSync("bun run packages/cli/bin/kibi --help", {
-      encoding: "utf-8",
-      cwd: path.join(importMetaDir, "../../.."),
-    });
+    const output = execFileSync(
+      process.execPath,
+      ["packages/cli/bin/kibi", "--help"],
+      {
+        encoding: "utf-8",
+        cwd: path.join(importMetaDir, "../../.."),
+      },
+    );
     expect(output).toContain("init");
     expect(output).toContain("sync");
     expect(output).toContain("query");

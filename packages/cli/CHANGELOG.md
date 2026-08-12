@@ -1,5 +1,39 @@
 # kibi-cli
 
+## 0.19.0
+
+### Minor Changes
+
+- 3ac9a89: Kibi now keeps a shared engine warm for each workspace and branch, so repeated
+  CLI and MCP operations no longer pay SWI-Prolog startup or rewrite a complete
+  RDF snapshot for every change. Existing branches migrate once to journaled RDF
+  storage, while normal sync updates only changed sources and relationships.
+  Writes keep their audit record transactionally, and the new storage commands
+  make compaction and legacy exports explicit.
+
+  - Add SWI `rdf_persistency` journal attach/save/compact/export and guarded legacy
+    migration with generation metadata and old-client fencing.
+  - Add the Node 18+ engine daemon, framed local RPC client, lifecycle commands,
+    Node-only CLI/MCP runtime boundary, and delta sync batching.
+  - Add journaled-engine requirements, scenarios, tests, and ADR-024.
+
+### Patch Changes
+
+- Kibi's CLI now starts substantially faster, and its integration tests reuse the
+  journaled engine without leaving background processes behind. Packed end-to-end
+  tests share one immutable installation and run with bounded concurrency, making
+  the release suite faster while preserving workspace and branch isolation.
+
+  - Lazily load CLI operation implementations while parity-testing lightweight
+    registration metadata against the authoritative operation catalog.
+  - Gracefully flush and stop engine daemons on process signals, and add
+    deterministic per-fixture engine cleanup to unit and packed E2E harnesses.
+  - Reuse long-lived Prolog fixtures where lifecycle isolation is not under test,
+    parallelize root batches conservatively, and install packed artifacts once.
+
+- Updated dependencies [3ac9a89]
+  - kibi-core@0.10.0
+
 ## 0.18.1
 
 ### Patch Changes

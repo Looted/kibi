@@ -1,4 +1,4 @@
-import { findGapsSpec } from "../public/operations/index.js";
+import { findGapsSpec } from "../public/operations/specs/reporting.js";
 import {
   executeReportingSpec,
   printDiscoveryResult,

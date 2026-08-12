@@ -5,6 +5,7 @@ import {
   mkdtempSync,
   readFileSync,
   readdirSync,
+  rmSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -29,6 +30,14 @@ let cachedTarballsPromise: Promise<Tarballs> | null = null;
 let sharedPrefixPath: string | null = null;
 let sharedInstallKey: string | null = null;
 let sharedInstallPromise: Promise<void> | null = null;
+const ownedSharedPaths = new Set<string>();
+
+// Some artifact-only tests intentionally clear KIBI_E2E_PREFIX and create a
+// worker-local fallback installation. Ensure those paths are reclaimed when
+// the isolated Node test worker exits, even though only the parent runner owns
+// suite-level cleanup.
+// implements REQ-test-journaled-engine-harness
+process.once("exit", cleanupSharedPackedInstallation);
 
 function resolveNpmBinary(): string {
   const npmExecPath = process.env.npm_execpath;
@@ -68,6 +77,7 @@ function resolveGitBinary(): string {
 function getSharedPrefixPath(): string {
   if (!sharedPrefixPath) {
     sharedPrefixPath = mkdtempSync(join(tmpdir(), "kibi-e2e-prefix-"));
+    ownedSharedPaths.add(sharedPrefixPath);
     writeFileSync(
       join(sharedPrefixPath, "package.json"),
       JSON.stringify({ name: "kibi-packed-e2e", private: true }, null, 2),
@@ -76,6 +86,14 @@ function getSharedPrefixPath(): string {
   }
 
   return sharedPrefixPath;
+}
+
+function hasInstalledKibi(prefix: string | undefined): prefix is string {
+  return (
+    prefix !== undefined &&
+    (existsSync(join(prefix, "bin", "kibi")) ||
+      existsSync(join(prefix, "node_modules", ".bin", "kibi")))
+  );
 }
 
 function findPrePackedTarball(
@@ -134,8 +152,7 @@ const packagesForPack = [
 
 async function bootstrapSharedInstall(): Promise<void> {
   const bakedPrefix = process.env.KIBI_E2E_PREFIX;
-  const useBakedPrefix =
-    bakedPrefix && existsSync(join(bakedPrefix, "bin", "kibi"));
+  const useBakedPrefix = hasInstalledKibi(bakedPrefix);
 
   if (useBakedPrefix) {
     return;
@@ -148,6 +165,8 @@ async function bootstrapSharedInstall(): Promise<void> {
   const gitDir = dirname(resolveGitBinary());
   const homeDir = mkdtempSync(join(tmpdir(), "kibi-e2e-home-"));
   const cacheDir = mkdtempSync(join(tmpdir(), "kibi-e2e-cache-"));
+  ownedSharedPaths.add(homeDir);
+  ownedSharedPaths.add(cacheDir);
   const installKey = [tarballs.core, tarballs.cli, tarballs.mcp].join("|");
   const env: NodeJS.ProcessEnv = {
     ...process.env,
@@ -177,6 +196,26 @@ async function bootstrapSharedInstall(): Promise<void> {
   })();
 
   await sharedInstallPromise;
+}
+
+// The packed-suite runner calls this once and passes the prepared prefix to
+// every isolated test-file process. Individual test invocation remains
+// supported by the module-level bootstrap at the end of this file.
+// implements REQ-test-journaled-engine-harness
+export async function prepareSharedPackedInstallation(): Promise<string> {
+  await bootstrapSharedInstall();
+  const bakedPrefix = process.env.KIBI_E2E_PREFIX;
+  return hasInstalledKibi(bakedPrefix) ? bakedPrefix : getSharedPrefixPath();
+}
+
+export function cleanupSharedPackedInstallation(): void {
+  for (const ownedPath of ownedSharedPaths) {
+    rmSync(ownedPath, { recursive: true, force: true });
+  }
+  ownedSharedPaths.clear();
+  sharedPrefixPath = null;
+  sharedInstallKey = null;
+  sharedInstallPromise = null;
 }
 
 /** Tarball paths for each package */
@@ -220,6 +259,8 @@ export interface TestSandbox {
   npmCache: string;
   /** HOME directory for test */
   homeDir: string;
+  /** Private socket/PID directory for every engine owned by this sandbox. */
+  runtimeDir: string;
   /** Path to kibi binary */
   kibiBin: string;
   /** Path to kibi-mcp binary */
@@ -323,8 +364,7 @@ export function createSandbox(): TestSandbox {
 
   // Check if we're using a baked installation (CI image)
   const bakedPrefix = process.env.KIBI_E2E_PREFIX;
-  const useBakedPrefix =
-    bakedPrefix && existsSync(join(bakedPrefix, "bin", "kibi"));
+  const useBakedPrefix = hasInstalledKibi(bakedPrefix);
   const gitBinary = resolveGitBinary();
   const gitDir = dirname(gitBinary);
 
@@ -335,10 +375,12 @@ export function createSandbox(): TestSandbox {
     : getSharedPrefixPath();
   const npmCache = join(baseDir, "npm-cache");
   const homeDir = join(baseDir, "home");
+  const runtimeDir = join(baseDir, "runtime");
 
   mkdirSync(repoDir, { recursive: true });
   mkdirSync(npmCache, { recursive: true });
   mkdirSync(homeDir, { recursive: true });
+  mkdirSync(runtimeDir, { recursive: true });
 
   // Build isolated environment
   // Include npm directory in PATH for E2E tests
@@ -359,6 +401,8 @@ export function createSandbox(): TestSandbox {
     XDG_CONFIG_HOME: join(baseDir, "config"),
     XDG_CACHE_HOME: join(baseDir, "cache"),
     XDG_DATA_HOME: join(baseDir, "data"),
+    KIBI_ENGINE_IDLE_TIMEOUT_MS: "30000",
+    KIBI_RUNTIME_DIR: runtimeDir,
     // Ensure NODE_ENV is production-like for tests
     NODE_ENV: "production",
   };
@@ -380,6 +424,7 @@ export function createSandbox(): TestSandbox {
     npmPrefix,
     npmCache,
     homeDir,
+    runtimeDir,
     kibiBin,
     kibiMcpBin,
     env,
@@ -444,9 +489,63 @@ export function createSandbox(): TestSandbox {
 
     async cleanup(): Promise<void> {
       console.log(`🧹 Cleaning up ${baseDir}...`);
-      await run("rm", ["-rf", baseDir], { cwd: "/tmp", env: process.env });
+      await stopRuntimeEngines(runtimeDir);
+      rmSync(baseDir, { recursive: true, force: true });
     },
   };
+}
+
+function isProcessRunning(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Sandbox runtime directories contain only engines created by that sandbox,
+// making their PID files safe exact targets for deterministic teardown.
+// implements REQ-test-journaled-engine-harness
+export async function stopRuntimeEngines(
+  runtimeDir: string,
+  timeoutMs = 5_000,
+): Promise<number> {
+  if (!existsSync(runtimeDir)) return 0;
+  const pids: number[] = [];
+  for (const entry of readdirSync(runtimeDir)) {
+    if (!entry.endsWith(".pid")) continue;
+    try {
+      const pid = Number.parseInt(
+        readFileSync(join(runtimeDir, entry), "utf8"),
+        10,
+      );
+      if (Number.isInteger(pid) && pid > 1 && isProcessRunning(pid))
+        pids.push(pid);
+    } catch {
+      // The daemon may remove its PID file during discovery.
+    }
+  }
+
+  for (const pid of pids) {
+    try {
+      process.kill(pid, "SIGTERM");
+    } catch {
+      // The daemon exited after discovery.
+    }
+  }
+  const deadline = Date.now() + timeoutMs;
+  while (pids.some(isProcessRunning) && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+  for (const pid of pids.filter(isProcessRunning)) {
+    try {
+      process.kill(pid, "SIGKILL");
+    } catch {
+      // The daemon exited between the liveness check and escalation.
+    }
+  }
+  return pids.length;
 }
 
 /**

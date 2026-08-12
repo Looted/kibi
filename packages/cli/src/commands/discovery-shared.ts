@@ -4,10 +4,10 @@ import { getBranchOverride } from "../env.js";
 import { PrologProcess, resolveKbPlPath } from "../prolog.js";
 import { escapeAtom } from "../prolog/codec.js";
 import {
-  type OperationSpec,
   type RuntimeOptions,
   executeOperation,
-} from "../public/operations/index.js";
+} from "../public/operations/runtime-types.js";
+import type { OperationSpec } from "../public/operations/types.js";
 import { createCliRuntime } from "../runtime/cli-runtime.js";
 import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
 import { renderDiscoveryTable } from "./discovery-table.js";
