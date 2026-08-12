@@ -19,6 +19,7 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 import { finalizeLcov } from "./finalize-lcov";
+import { mergeLcovContents } from "./merge-lcov";
 
 const COVERAGE_DIR = "coverage/unit";
 const LCOV_PATH = join(COVERAGE_DIR, "lcov.info");
@@ -104,10 +105,9 @@ export async function runUnitCoverage(): Promise<void> {
 
   writeFileSync(
     LCOV_PATH,
-    shardFiles
-      .map((filePath) => readFileSync(filePath, "utf8"))
-      .map((contents) => (contents.endsWith("\n") ? contents : `${contents}\n`))
-      .join(""),
+    mergeLcovContents(
+      shardFiles.map((filePath) => readFileSync(filePath, "utf8")),
+    ),
     "utf8",
   );
 }

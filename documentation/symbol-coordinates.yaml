@@ -8216,6 +8216,12 @@ coordinates:
     sourceEndLine: 51
     sourceFile: scripts/finalize-lcov.ts
     sourceLine: 35
+  SYM-scripts-mergeLcovContents:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 129
+    sourceFile: scripts/merge-lcov.ts
+    sourceLine: 109
   SYM-scripts-runUnitCoverage:
     sourceColumn: 22
     sourceEndColumn: 1

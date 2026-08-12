@@ -13,6 +13,7 @@ import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { finalizeLcov } from "../finalize-lcov.ts";
+import { mergeLcovContents } from "../merge-lcov.ts";
 
 describe("finalizeLcov", () => {
   test("keeps an existing lcov.info file", async () => {
@@ -34,5 +35,52 @@ describe("finalizeLcov", () => {
     expect(lcovPath).toBe(join(coverageDir, "lcov.info"));
     expect(existsSync(temporaryPath)).toBe(false);
     expect(readFileSync(lcovPath, "utf8")).toBe("TN:\nSF:example.ts\n");
+  });
+});
+
+describe("mergeLcovContents", () => {
+  test("merges duplicate source records by taking line-level coverage union", () => {
+    const merged = mergeLcovContents([
+      [
+        "TN:",
+        "SF:src/example.ts",
+        "FNF:2",
+        "FNH:1",
+        "DA:1,0",
+        "DA:2,3",
+        "LF:2",
+        "LH:1",
+        "end_of_record",
+      ].join("\n"),
+      [
+        "TN:",
+        "SF:src/example.ts",
+        "FNF:2",
+        "FNH:2",
+        "DA:1,4",
+        "DA:2,0",
+        "LF:2",
+        "LH:1",
+        "end_of_record",
+      ].join("\n"),
+    ]);
+
+    expect(merged).toContain("SF:src/example.ts");
+    expect(merged).toContain("FNF:2\nFNH:2");
+    expect(merged).toContain("DA:1,4\nDA:2,3");
+    expect(merged).toContain("LF:2\nLH:2");
+    expect(merged.match(/SF:src\/example\.ts/g)).toHaveLength(1);
+  });
+
+  test("keeps distinct source records in deterministic first-seen order", () => {
+    const merged = mergeLcovContents([
+      "TN:\nSF:src/b.ts\nDA:2,1\nLF:1\nLH:1\nend_of_record",
+      "TN:\nSF:src/a.ts\nDA:1,1\nLF:1\nLH:1\nend_of_record",
+    ]);
+
+    expect(merged.indexOf("SF:src/b.ts")).toBeLessThan(
+      merged.indexOf("SF:src/a.ts"),
+    );
+    expect(merged.match(/end_of_record/g)).toHaveLength(2);
   });
 });

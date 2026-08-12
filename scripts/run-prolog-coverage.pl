@@ -76,8 +76,12 @@ parse_args(Argv, Config) :-
     must_have_option(summary_json, Config1),
     must_have_option(summary_text, Config1),
     (   option(fail_under(_), Config1)
-    ->  Config = Config1
-    ;   Config = [fail_under(100)|Config1]
+    ->  ConfigWithThreshold = Config1
+    ;   ConfigWithThreshold = [fail_under(100)|Config1]
+    ),
+    (   option(ignore_uninstrumented(_), ConfigWithThreshold)
+    ->  Config = ConfigWithThreshold
+    ;   Config = [ignore_uninstrumented(false)|ConfigWithThreshold]
     ).
 
 parse_args([], Config, Config).
@@ -100,6 +104,9 @@ parse_args(["--fail-under", Value|Rest], Acc, Config) :-
     !,
     number_string(Number, Value),
     parse_args(Rest, [fail_under(Number)|Acc], Config).
+parse_args(["--ignore-uninstrumented"|Rest], Acc, Config) :-
+    !,
+    parse_args(Rest, [ignore_uninstrumented(true)|Acc], Config).
 parse_args([Unknown|_], _, _) :-
     throw(error(domain_error(prolog_coverage_runner_argument, Unknown), _)).
 
@@ -159,10 +166,12 @@ run_tests_result(TestsPassed) :-
 
 compute_clause_coverage(Config, ClausePercent, UncoveredClauses) :-
     option(source_root(SourceRoot), Config),
+    option(output_dir(OutputDir), Config),
+    option(ignore_uninstrumented(IgnoreUninstrumented), Config),
     normalize_path(SourceRoot, NormalizedRoot),
     findall(
         clause(Predicate, Line, Enter, Exit),
-        clause_coverage_row(NormalizedRoot, Predicate, Line, Enter, Exit),
+        clause_coverage_row(NormalizedRoot, OutputDir, IgnoreUninstrumented, Predicate, Line, Enter, Exit),
         ClauseRows0
     ),
     sort(ClauseRows0, ClauseRows),
@@ -179,7 +188,7 @@ compute_clause_coverage(Config, ClausePercent, UncoveredClauses) :-
         UncoveredClauses
     ).
 
-clause_coverage_row(SourceRoot, Predicate, Line, Enter, Exit) :-
+clause_coverage_row(SourceRoot, OutputDir, IgnoreUninstrumented, Predicate, Line, Enter, Exit) :-
     current_predicate(Module:Name/Arity),
     functor(Head, Name, Arity),
     predicate_property(Module:Head, file(File)),
@@ -189,8 +198,26 @@ clause_coverage_row(SourceRoot, Predicate, Line, Enter, Exit) :-
     normalize_path(File, NormalizedFile),
     sub_string(NormalizedFile, 0, _, _, SourceRoot),
     clause_property(ClauseRef, line_count(Line)),
-    coverage_counts(ClauseRef, Enter, Exit),
+    (   coverage_counts(ClauseRef, Enter, Exit)
+    ;   % SWI does not allocate a $cov_data row for an unexecuted fact.
+        % show_coverage still marks that source line with `###`; include that
+        % explicit marker without counting unrelated dynamic/expanded clauses.
+        IgnoreUninstrumented == false,
+        uncovered_annotation(OutputDir, File, Line),
+        Enter = 0,
+        Exit = 0
+    ),
     format(string(Predicate), '~w:~w/~d', [Module, Name, Arity]).
+
+uncovered_annotation(OutputDir, SourceFile, Line) :-
+    file_base_name(SourceFile, BaseName),
+    file_name_extension(BaseName, cov, CoverageName),
+    directory_file_path(OutputDir, CoverageName, CoverageFile),
+    exists_file(CoverageFile),
+    read_file_to_string(CoverageFile, Contents, []),
+    split_string(Contents, "\n", "\r", Lines),
+    nth1(Line, Lines, AnnotatedLine),
+    sub_string(AnnotatedLine, _, _, _, "###").
 
 %% Only succeed when coverage data for the clause is available.
 %% If prolog_coverage:'$cov_data'/3 fails the clause was not instrumented
