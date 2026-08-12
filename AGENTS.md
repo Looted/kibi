@@ -2,6 +2,18 @@
 
 This file is intentionally terse. It captures repo-specific operating rules for agents and avoids duplicating MCP tool schemas or long-form docs.
 
+## Product Mission
+
+Kibi is an **agent-native requirements compiler and enforcement layer**, not a human-maintained requirements database or a passive retrieval-memory system.
+
+- Humans state product intent in natural language and resolve genuine ambiguity; agents own the ongoing translation into branch-local requirements, scenarios, tests, semantic facts, and code-symbol links.
+- Kibi must make project memory part of the agent workflow: symbols require requirement ownership, requirements require clause-complete semantics and scenarios, scenarios require tests, and proof-bearing tests require fresh end-to-end evidence tied to the current code snapshot.
+- LLMs provide interpretation, code navigation, and low-cost semantic authoring. Kibi's typed representations and Prolog provide deterministic schema, coherence, contradiction, traceability, and proof checks.
+- The product goal is to use LLM strengths against LLM weaknesses—memory loss, hallucination, context drift, and loss of the product-to-code mapping—without requiring humans to maintain a parallel ticket-and-requirements bureaucracy.
+- Prolog proves only what has been encoded. Ambiguity, ontology gaps, incomplete grounding, and stale evidence must remain explicit rather than being treated as consistency or proof.
+
+Canonical public shorthand: **Prompt the intent. Kibi makes the agent remember it—and prove the implementation.**
+
 ## Source of Truth Hierarchy
 
 1. MCP tool `inputSchema` enums/required fields (authoritative for tool contracts)
