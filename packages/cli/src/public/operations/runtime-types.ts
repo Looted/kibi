@@ -74,7 +74,7 @@ export interface GitPort {
 }
 
 export type WorkspaceSnapshot = Readonly<{
-  version: "kibi.workspace-snapshot.v1";
+  version: "kibi.workspace-snapshot.v2";
   hash: string;
   dirty: boolean;
   fileCount: number;

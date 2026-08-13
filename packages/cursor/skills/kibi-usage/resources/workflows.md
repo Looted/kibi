@@ -13,7 +13,7 @@ The canonical workflow for any KB operation follows this pattern:
 7. **Create endpoints**: validated `kb_upsert` for new entities, sequentially
 8. **Link**: validated `kb_upsert` with `requires_rule`, `requires_predicate`, `constrains`, or `requires_property`, sequentially
 9. **Validate coverage and consistency**: targeted `rule-safety`, `rule-verifiability`, `semantic-completeness`, `logic-coverage`, `predicate-verifiability`, and `domain-contradictions`, then final full `kb_check`
-10. **Prove execution**: read `kb_status.verificationSnapshot`, run each scenario-backed E2E command, append its `kibi.verification-receipt.v1`, and re-run `kb_coverage`; never promote durable test status into fresh evidence
+10. **Prove execution**: read `kb_status.verificationSnapshot`, run each scenario-backed E2E command exactly as declared by its `verification_contract.v1`, ingest the reporter artifact to derive a `kibi.verification-receipt.v2`, and re-run `kb_coverage`; never promote durable test status into fresh evidence
 11. **Repair incrementally**: require `kb_coverage.repairPlan.scope.complete`, apply only one `ready` dependency batch per requirement, validate before every sequential write, and rerun coverage before selecting the next batch
 12. **Gate workflow evidence**: when `.kb/usage.log` exists, run `kibi usage-metrics --format json --require-acceptance`; repair ranked telemetry diagnostics and never treat stale or insufficient evidence as a pass
 
@@ -50,7 +50,7 @@ Do not create a test-fact pair. Facts describe invariants; requirements or scena
 1. Confirm the exact `REQ -> SCEN -> TEST` path and require typed `verification_scope: end_to_end`; direct requirement-to-test links do not satisfy the conservative scenario stage.
 2. Read `kb_status` and retain its available `verificationSnapshot`. Stop if the runtime reports `unknown`; proof must fail closed when the code identity cannot be computed.
 3. Run the exact E2E command against that snapshot. Record runner, command, start/finish timestamps, outcome, an environment SHA-256, and an artifact/output SHA-256. Do not mint a passed receipt from an authored test status or from an unexecuted assertion.
-4. Preserve every existing receipt byte-for-byte and append a unique `kibi.verification-receipt.v1` object with strictly later `finished_at`. Mutation and incremental sync reject history removal, rewriting, and reordering.
+4. Preserve every existing receipt byte-for-byte and append the derived `kibi.verification-receipt.v2` object with strictly later `finished_at`. Mutation and incremental sync reject history removal, rewriting, and reordering.
 5. Re-read `kb_status`; if the snapshot changed during the run, discard the candidate as proof and rerun against the new snapshot. Then run `kb_coverage` and inspect `proofStages.passingE2e.receiptEvidence` plus gap codes.
 
 Only the newest receipt for the live snapshot qualifies, and it must be passed, no more than seven days old, and no more than five minutes in the future. Wrong-snapshot history is retained but stale for current proof. `missing_verification_receipt`, `stale_verification_receipt`, `failed_verification_receipt`, `invalid_verification_receipt`, and `verification_snapshot_unavailable` are repair states, not warnings to waive.

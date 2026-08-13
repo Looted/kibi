@@ -344,6 +344,44 @@
       "type": "string",
       "enum": ["internal", "consumer"]
     },
+    "verification_contract": {
+      "type": "object",
+      "required": [
+        "version",
+        "runner",
+        "command_argv",
+        "required_case_symbols",
+        "required_projects",
+        "success_policy"
+      ],
+      "properties": {
+        "version": {
+          "type": "string",
+          "const": "kibi.verification-contract.v1"
+        },
+        "runner": { "type": "string", "minLength": 1 },
+        "command_argv": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "required_case_symbols": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "required_projects": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "success_policy": {
+          "type": "string",
+          "const": "all_required_cases_first_attempt"
+        }
+      },
+      "additionalProperties": false
+    },
     "verification_receipts": {
       "type": "array",
       "maxItems": 50,
@@ -506,6 +544,7 @@
           "anyOf": [
             { "required": ["verification_scope"] },
             { "required": ["verification_perspective"] },
+            { "required": ["verification_contract"] },
             { "required": ["verification_receipts"] }
           ]
         }

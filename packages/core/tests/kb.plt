@@ -620,6 +620,32 @@ test(logic_coverage_accepts_complete_ground_manifest, [setup(setup_kb), cleanup(
     check_logic_coverage(Violations),
     \+ member(violation('logic-coverage', 'REQ-LOGIC-COMPLETE', _, _, _), Violations).
 
+test(logic_coverage_allows_explicit_unresolved_inventory, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    Modeled = 'CLAIM-AAAAAAAABBBBBBBB',
+    OntologyGap = 'CLAIM-CCCCCCCCDDDDDDDD',
+    ModeledString = "CLAIM-AAAAAAAABBBBBBBB",
+    Inventory = [
+        _{claim_key: Modeled, claim_text: "A modeled claim", role: normative, status: modeled, span: _{start: 0, end: 15}},
+        _{claim_key: OntologyGap, claim_text: "An unsupported domain claim", role: normative, status: ontology_gap, span: _{start: 16, end: 43}}
+    ],
+    assert_fixture_entity(req, 'REQ-LOGIC-UNRESOLVED', "Modeled and unresolved", open, [
+        logic_claims=[Modeled, OntologyGap],
+        semantic_inventory=Inventory
+    ]),
+    assert_fixture_entity(fact, 'FACT-LOGIC-MODELED', "Ground modeled claim", active, [
+        fact_kind=property_value,
+        subject_key="checkout",
+        property_key="modeled_claim",
+        operator=eq,
+        value_type=string,
+        value_string="true",
+        claim_key=ModeledString,
+        claim_text="A modeled claim"
+    ]),
+    kb_assert_relationship(requires_property, 'REQ-LOGIC-UNRESOLVED', 'FACT-LOGIC-MODELED', []),
+    check_logic_coverage(Violations),
+    \+ member(violation('logic-coverage', 'REQ-LOGIC-UNRESOLVED', _, _, _), Violations).
+
 test(logic_coverage_rejects_multiple_ground_facts_for_one_claim, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-LOGIC-DUPLICATE-CLAIM', "Duplicate claim", open, [
         logic_claims=["CLAIM-7777777777777777"]

@@ -334,7 +334,7 @@ Coverage-depth reporting uses typed verification fields before legacy hints. A t
 
 Conservative requirement proof uses receipt history instead. Each receipt binds `receipt_id`, `test_id`, `runner`, `command`, typed `scope`, `outcome`, `code_snapshot`, `environment_hash`, `started_at`, `finished_at`, and `artifact_digest`. History is capped at 50 entries, receipt IDs are unique, finish times increase strictly, and existing entries cannot be removed, changed, or reordered through upsert or incremental sync. Proof accepts only the newest receipt for the deterministic current workspace snapshot when it passed, is not future-dated, and is at most seven days old. Missing, wrong-snapshot, stale, failed, malformed, or future-dated evidence produces explicit proof gaps.
 
-`kibi.workspace-snapshot.v1` hashes current versionable code plus requirement, scenario, fact, test-contract, and symbol-manifest inputs. It excludes `.kb/`, release changesets, general `docs/`, and only the `verification_receipts` frontmatter field inside entity Markdown, preventing a receipt from invalidating its own code hash without hiding changes to the surrounding test contract.
+`kibi.workspace-snapshot.v2` hashes current versionable code plus requirement, scenario, fact, test-contract, and symbol-manifest inputs. It excludes `.kb/`, release changesets, general `docs/`, and the `verification_receipts` frontmatter field inside every tracked Markdown file, preventing a receipt from invalidating its own code hash without hiding changes to the surrounding test contract. The v2 algorithm invalidates v1 snapshot-bound receipts once; they must be rerun.
 
 #### Check output diagnostics
 

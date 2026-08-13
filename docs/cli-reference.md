@@ -218,7 +218,7 @@ Reports the current KB snapshot, branch, and freshness state.
 kibi status [--format json|table]
 ```
 
-JSON output also exposes `verificationSnapshot`, availability, dirty state, file count, and `kibi.workspace-snapshot.v1` version. This deterministic snapshot is the identity coverage uses to accept or reject verification receipts; an unavailable snapshot fails proof closed.
+JSON output also exposes `verificationSnapshot`, availability, dirty state, file count, and `kibi.workspace-snapshot.v2` version. This deterministic snapshot is the identity coverage uses to accept or reject verification receipts; an unavailable snapshot fails proof closed. Receipt-only frontmatter changes are excluded from the hash so ingesting a receipt cannot invalidate its own proof.
 
 ## `kibi find-gaps [type]` (`gaps` alias)
 

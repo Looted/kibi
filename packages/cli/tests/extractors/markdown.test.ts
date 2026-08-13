@@ -1019,6 +1019,13 @@ title: Verification Field Test
 type: test
 verification_scope: integration
 verification_perspective: consumer
+verification_contract:
+  version: kibi.verification-contract.v1
+  runner: pnpm
+  command_argv: [pnpm, run, e2e, --, e2e/verification.spec.ts]
+  required_case_symbols: [SYM-VERIFICATION-CASE]
+  required_projects: [chromium]
+  success_policy: all_required_cases_first_attempt
 ---
 # Verification Field Test
 `,
@@ -1028,6 +1035,11 @@ verification_perspective: consumer
         const result = extractFromMarkdown(tempFile);
         expect(result.entity.verification_scope).toBe("integration");
         expect(result.entity.verification_perspective).toBe("consumer");
+        expect(result.entity.verification_contract).toMatchObject({
+          version: "kibi.verification-contract.v1",
+          runner: "pnpm",
+          required_case_symbols: ["SYM-VERIFICATION-CASE"],
+        });
       } finally {
         unlinkSync(tempFile);
       }

@@ -76,10 +76,7 @@ function withoutVerificationReceiptFrontmatter(content: string): string {
 }
 
 function snapshotFileContent(relativePath: string, content: Buffer): Buffer {
-  if (
-    relativePath.startsWith("documentation/") &&
-    relativePath.endsWith(".md")
-  ) {
+  if (relativePath.endsWith(".md")) {
     return Buffer.from(
       withoutVerificationReceiptFrontmatter(content.toString("utf8")),
     );
@@ -108,7 +105,7 @@ async function workspaceSnapshot(workspaceRoot: string) {
     .filter(includedSnapshotPath)
     .sort();
   const digest = createHash("sha256");
-  digest.update("kibi.workspace-snapshot.v1\0");
+  digest.update("kibi.workspace-snapshot.v2\0");
   for (const relativePath of paths) {
     digest.update(relativePath);
     digest.update("\0");
@@ -136,7 +133,7 @@ async function workspaceSnapshot(workspaceRoot: string) {
     { maxBuffer: 16 * 1024 * 1024 },
   );
   return {
-    version: "kibi.workspace-snapshot.v1" as const,
+    version: "kibi.workspace-snapshot.v2" as const,
     hash: digest.digest("hex"),
     dirty: status.trim().length > 0,
     fileCount: paths.length,

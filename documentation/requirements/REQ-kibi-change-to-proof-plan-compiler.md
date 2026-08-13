@@ -7,7 +7,7 @@ updated_at: 2026-08-13T00:00:00Z
 source: documentation/requirements/REQ-kibi-change-to-proof-plan-compiler.md
 priority: must
 owner: platform-team
-tags: [planning, requirements, prolog, contradiction, traceability]
+tags: [planning, requirements, prolog, contradiction, traceability, proof-runtime]
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
 semantic_source_hash: 23c490d5320cfad82942db1d9ba6c5f5bd9f4d1b4af154ef0673e898389b5b63

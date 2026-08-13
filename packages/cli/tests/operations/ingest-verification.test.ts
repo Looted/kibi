@@ -28,7 +28,7 @@ function context(query: PrologPort["query"]): OperationContext {
     },
     git: {
       workspaceSnapshot: async () => ({
-        version: "kibi.workspace-snapshot.v1",
+        version: "kibi.workspace-snapshot.v2",
         hash: "a".repeat(64),
         dirty: false,
         fileCount: 1,

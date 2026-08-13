@@ -65,6 +65,15 @@ const verificationReceipt = {
   artifact_digest: "c".repeat(64),
 } as const;
 
+const verificationContract = {
+  version: "kibi.verification-contract.v1",
+  runner: "pnpm",
+  command_argv: ["pnpm", "run", "e2e", "--", "e2e/receipt.spec.ts"],
+  required_case_symbols: ["SYM-RECEIPT-CASE"],
+  required_projects: ["chromium"],
+  success_policy: "all_required_cases_first_attempt",
+} as const;
+
 describe("shared mutation operation specs", () => {
   test("builds one combined commit goal without a second auto-save", () => {
     const goal = buildUpsertCommitGoal({
@@ -126,6 +135,21 @@ describe("shared mutation operation specs", () => {
     );
     expect(properties).not.toContain(
       'verification_receipts=[{"version":"kibi.verification-receipt.v1"',
+    );
+  });
+
+  test("serializes verification contracts as one quoted JSON value", () => {
+    const properties = buildPropertyList({
+      id: "TEST-CONTRACT",
+      type: "test",
+      verification_contract: verificationContract,
+    });
+
+    expect(properties).toContain(
+      'verification_contract="{\\"version\\":\\"kibi.verification-contract.v1\\"',
+    );
+    expect(properties).not.toContain(
+      'verification_contract={"version":"kibi.verification-contract.v1"',
     );
   });
 

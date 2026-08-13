@@ -493,6 +493,11 @@ export async function persistEntities(
             `verification_perspective=${toPrologAtom(entity.verification_perspective)}`,
           );
         }
+        if (entity.verification_contract !== undefined) {
+          props.push(
+            `verification_contract=${toPrologString(JSON.stringify(entity.verification_contract))}`,
+          );
+        }
         if (entity.verification_receipts !== undefined) {
           props.push(
             `verification_receipts=${toPrologString(JSON.stringify(entity.verification_receipts))}`,

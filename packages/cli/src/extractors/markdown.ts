@@ -22,6 +22,8 @@ import Ajv from "ajv";
 import { load as yamlLoad } from "js-yaml";
 import { semanticClaimKey } from "../operations/semantic-advisor/clauses.js";
 import {
+  VERIFICATION_CONTRACT_SCHEMA,
+  type VerificationContract,
   type VerificationReceipt,
   verificationReceiptHistoryErrors,
 } from "../public/verification-receipt.js";
@@ -78,6 +80,7 @@ const FACT_ONLY_FIELDS = [
 const TEST_ENUM_FIELDS = [
   "verification_scope",
   "verification_perspective",
+  "verification_contract",
   "verification_receipts",
 ] as const;
 
@@ -112,6 +115,7 @@ export interface ExtractedEntity {
   sourceEndColumn?: number;
   verification_scope?: "unit" | "integration" | "end_to_end";
   verification_perspective?: "internal" | "consumer";
+  verification_contract?: VerificationContract;
   verification_receipts?: readonly VerificationReceipt[];
   // Typed fact fields - only present when type === 'fact'
   fact_kind?:
@@ -716,6 +720,32 @@ function extractFromMarkdownContent(
           );
         }
         entity.verification_perspective = data.verification_perspective;
+      }
+
+      if (data.verification_contract !== undefined) {
+        if (!isObjectRecord(data.verification_contract)) {
+          throw new FrontmatterError(
+            "Invalid verification_contract; expected an object",
+            filePath,
+            {
+              classification: "Invalid Test Verification Contract",
+              hint: "Use the kibi.verification-contract.v1 object shape.",
+            },
+          );
+        }
+        const validateContract = ajv.compile(VERIFICATION_CONTRACT_SCHEMA);
+        if (!validateContract(data.verification_contract)) {
+          throw new FrontmatterError(
+            `Invalid verification_contract: ${ajv.errorsText(validateContract.errors)}`,
+            filePath,
+            {
+              classification: "Invalid Test Verification Contract",
+              hint: "Use the kibi.verification-contract.v1 object shape.",
+            },
+          );
+        }
+        entity.verification_contract =
+          data.verification_contract as VerificationContract;
       }
 
       if (data.verification_receipts !== undefined) {

@@ -2639,33 +2639,33 @@ coordinates:
   SYM-cleanupTempKb:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 447
+    sourceEndLine: 452
     sourceFile: packages/cli/src/traceability/temp-kb.ts
-    sourceLine: 420
+    sourceLine: 425
   SYM-cli-ADR:
     sourceColumn: 12
     sourceEndColumn: 47
-    sourceEndLine: 83
+    sourceEndLine: 90
     sourceFile: packages/cli/src/types/entities.ts
-    sourceLine: 83
+    sourceLine: 90
   SYM-cli-BaseEntity:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 32
+    sourceEndLine: 37
     sourceFile: packages/cli/src/types/entities.ts
-    sourceLine: 19
+    sourceLine: 24
   SYM-cli-Entity:
     sourceColumn: 12
     sourceEndColumn: 9
-    sourceEndLine: 97
+    sourceEndLine: 104
     sourceFile: packages/cli/src/types/entities.ts
-    sourceLine: 89
+    sourceLine: 96
   SYM-cli-Event:
     sourceColumn: 12
     sourceEndColumn: 51
-    sourceEndLine: 85
+    sourceEndLine: 92
     sourceFile: packages/cli/src/types/entities.ts
-    sourceLine: 85
+    sourceLine: 92
   SYM-cli-ExtractionOutput:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -2675,21 +2675,21 @@ coordinates:
   SYM-cli-Fact:
     sourceColumn: 12
     sourceEndColumn: 62
-    sourceEndLine: 87
+    sourceEndLine: 94
     sourceFile: packages/cli/src/types/entities.ts
-    sourceLine: 87
+    sourceLine: 94
   SYM-cli-FactFields:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 69
+    sourceEndLine: 74
     sourceFile: packages/cli/src/types/entities.ts
-    sourceLine: 35
+    sourceLine: 40
   SYM-cli-Flag:
     sourceColumn: 12
     sourceEndColumn: 49
-    sourceEndLine: 84
+    sourceEndLine: 91
     sourceFile: packages/cli/src/types/entities.ts
-    sourceLine: 84
+    sourceLine: 91
   SYM-cli-PersistenceResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -2759,33 +2759,33 @@ coordinates:
   SYM-cli-Requirement:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 80
+    sourceEndLine: 87
     sourceFile: packages/cli/src/types/entities.ts
-    sourceLine: 76
+    sourceLine: 83
   SYM-cli-Scenario:
     sourceColumn: 12
     sourceEndColumn: 57
-    sourceEndLine: 81
+    sourceEndLine: 88
     sourceFile: packages/cli/src/types/entities.ts
-    sourceLine: 81
+    sourceLine: 88
   SYM-cli-Symbol:
     sourceColumn: 12
     sourceEndColumn: 53
-    sourceEndLine: 86
+    sourceEndLine: 93
     sourceFile: packages/cli/src/types/entities.ts
-    sourceLine: 86
+    sourceLine: 93
   SYM-cli-TestEntity:
     sourceColumn: 12
     sourceEndColumn: 80
-    sourceEndLine: 82
+    sourceEndLine: 89
     sourceFile: packages/cli/src/types/entities.ts
-    sourceLine: 82
+    sourceLine: 89
   SYM-cli-TestVerificationFields:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 74
+    sourceEndLine: 81
     sourceFile: packages/cli/src/types/entities.ts
-    sourceLine: 71
+    sourceLine: 76
   SYM-cli-analyzePrologQueryPlanSafety:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3023,123 +3023,123 @@ coordinates:
   SYM-cli-engine-client:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 858
+    sourceEndLine: 920
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 493
+    sourceLine: 555
   SYM-cli-engine-client-cancel:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 774
+    sourceEndLine: 836
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 759
+    sourceLine: 821
   SYM-cli-engine-client-checkpoint:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 792
+    sourceEndLine: 854
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 790
+    sourceLine: 852
   SYM-cli-engine-client-compact:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 800
+    sourceEndLine: 862
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 798
+    sourceLine: 860
   SYM-cli-engine-client-export-storage:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 807
+    sourceEndLine: 869
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 802
+    sourceLine: 864
   SYM-cli-engine-client-get-pid:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 824
+    sourceEndLine: 886
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 817
+    sourceLine: 879
   SYM-cli-engine-client-invalidate-cache:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 811
+    sourceEndLine: 873
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 809
+    sourceLine: 871
   SYM-cli-engine-client-is-running:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 815
+    sourceEndLine: 877
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 813
+    sourceLine: 875
   SYM-cli-engine-client-next-solution:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 780
+    sourceEndLine: 842
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 776
+    sourceLine: 838
   SYM-cli-engine-client-options:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 489
+    sourceEndLine: 551
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 485
+    sourceLine: 547
   SYM-cli-engine-client-query:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 701
+    sourceEndLine: 763
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 683
+    sourceLine: 745
   SYM-cli-engine-client-query-batch:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 706
+    sourceEndLine: 768
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 703
+    sourceLine: 765
   SYM-cli-engine-client-query-entities:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 733
+    sourceEndLine: 795
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 708
+    sourceLine: 770
   SYM-cli-engine-client-query-status:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 796
+    sourceEndLine: 858
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 794
+    sourceLine: 856
   SYM-cli-engine-client-save:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 784
+    sourceEndLine: 846
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 782
+    sourceLine: 844
   SYM-cli-engine-client-search-entities:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 756
+    sourceEndLine: 818
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 735
+    sourceLine: 797
   SYM-cli-engine-client-start:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 599
+    sourceEndLine: 661
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 519
+    sourceLine: 581
   SYM-cli-engine-client-stop:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 847
+    sourceEndLine: 909
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 826
+    sourceLine: 888
   SYM-cli-engine-client-storage-status:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 788
+    sourceEndLine: 850
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 786
+    sourceLine: 848
   SYM-cli-engine-client-terminate:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 857
+    sourceEndLine: 919
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 849
+    sourceLine: 911
   SYM-cli-engine-commands:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3149,15 +3149,15 @@ coordinates:
   SYM-cli-engine-daemon:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1484
+    sourceEndLine: 1546
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 1093
+    sourceLine: 1155
   SYM-cli-engine-durable-fsync:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 249
+    sourceEndLine: 311
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 226
+    sourceLine: 288
   SYM-cli-engine-idle-timeout:
     sourceColumn: 13
     sourceEndColumn: 52
@@ -3167,9 +3167,9 @@ coordinates:
   SYM-cli-engine-migration:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1011
+    sourceEndLine: 1073
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 861
+    sourceLine: 923
   SYM-cli-engine-package-versions:
     sourceColumn: 13
     sourceEndColumn: 48
@@ -3179,9 +3179,9 @@ coordinates:
   SYM-cli-engine-pid-path:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 286
+    sourceEndLine: 348
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 275
+    sourceLine: 337
   SYM-cli-engine-protocol-version:
     sourceColumn: 13
     sourceEndColumn: 40
@@ -3191,15 +3191,15 @@ coordinates:
   SYM-cli-engine-socket-path:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 273
+    sourceEndLine: 335
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 252
+    sourceLine: 314
   SYM-cli-engine-start-lock-path:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 301
+    sourceEndLine: 363
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 288
+    sourceLine: 350
   SYM-cli-engine-status-command:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3635,21 +3635,21 @@ coordinates:
   SYM-cli-mutation-serialization-buildPropertyList:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 60
+    sourceEndLine: 61
     sourceFile: packages/cli/src/operations/mutation/serialization.ts
-    sourceLine: 52
+    sourceLine: 53
   SYM-cli-mutation-serialization-buildRelationshipMetadata:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 70
+    sourceEndLine: 71
     sourceFile: packages/cli/src/operations/mutation/serialization.ts
-    sourceLine: 63
+    sourceLine: 64
   SYM-cli-mutation-serialization-parsePrologList:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 91
+    sourceEndLine: 92
     sourceFile: packages/cli/src/operations/mutation/serialization.ts
-    sourceLine: 73
+    sourceLine: 74
   SYM-cli-mutation-strict-fact-factKindShapeHints:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3731,15 +3731,15 @@ coordinates:
   SYM-cli-persistEntities:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 576
+    sourceEndLine: 581
     sourceFile: packages/cli/src/commands/sync/persistence.ts
     sourceLine: 339
   SYM-cli-persistRelationships:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 827
+    sourceEndLine: 832
     sourceFile: packages/cli/src/commands/sync/persistence.ts
-    sourceLine: 605
+    sourceLine: 610
   SYM-cli-prepare-operation-input:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4301,9 +4301,9 @@ coordinates:
   SYM-consultOverlay:
     sourceColumn: 15
     sourceEndColumn: 1
-    sourceEndLine: 315
+    sourceEndLine: 320
     sourceFile: packages/cli/src/traceability/temp-kb.ts
-    sourceLine: 299
+    sourceLine: 304
   SYM-copySchemaFiles:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -4367,9 +4367,9 @@ coordinates:
   SYM-core-grounded-requirement-claim-fact:
     sourceColumn: 4
     sourceEndColumn: 35
-    sourceEndLine: 1025
+    sourceEndLine: 1046
     sourceFile: packages/core/src/checks.pl
-    sourceLine: 1025
+    sourceLine: 1046
   SYM-core-journaled-index-refresh:
     sourceColumn: 0
     sourceEndColumn: 23
@@ -4439,9 +4439,9 @@ coordinates:
   SYM-core-logical-ground-signature:
     sourceColumn: 4
     sourceEndColumn: 28
-    sourceEndLine: 1047
+    sourceEndLine: 1068
     sourceFile: packages/core/src/checks.pl
-    sourceLine: 1047
+    sourceLine: 1068
   SYM-core-proof-contradiction-stage:
     sourceColumn: 4
     sourceEndColumn: 23
@@ -4553,9 +4553,9 @@ coordinates:
   SYM-createOverlayFacts:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 418
+    sourceEndLine: 423
     sourceFile: packages/cli/src/traceability/temp-kb.ts
-    sourceLine: 400
+    sourceLine: 405
   SYM-createRepoIgnorePolicy:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4577,9 +4577,9 @@ coordinates:
   SYM-createTempKb:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 397
+    sourceEndLine: 402
     sourceFile: packages/cli/src/traceability/temp-kb.ts
-    sourceLine: 352
+    sourceLine: 357
   SYM-createTsMorphSourceAnalysisProvider:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6149,81 +6149,81 @@ coordinates:
   SYM-markdown-ExtractedEntity:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 160
+    sourceEndLine: 164
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 87
+    sourceLine: 90
   SYM-markdown-ExtractedRelationship:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 166
+    sourceEndLine: 170
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 162
+    sourceLine: 166
   SYM-markdown-ExtractionResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 172
+    sourceEndLine: 176
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 168
+    sourceLine: 172
   SYM-markdown-FrontmatterError:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 396
+    sourceEndLine: 400
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 362
+    sourceLine: 366
   SYM-markdown-FrontmatterError-classification:
     sourceColumn: 9
     sourceEndColumn: 32
-    sourceEndLine: 363
+    sourceEndLine: 367
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 363
+    sourceLine: 367
   SYM-markdown-FrontmatterError-hint:
     sourceColumn: 9
     sourceEndColumn: 22
-    sourceEndLine: 364
+    sourceEndLine: 368
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 364
+    sourceLine: 368
   SYM-markdown-FrontmatterError-originalError:
     sourceColumn: 9
     sourceEndColumn: 32
-    sourceEndLine: 365
+    sourceEndLine: 369
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 365
+    sourceLine: 369
   SYM-markdown-FrontmatterError-toString:
     sourceColumn: 11
     sourceEndColumn: 3
-    sourceEndLine: 395
+    sourceEndLine: 399
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 386
+    sourceLine: 390
   SYM-markdown-detectEmbeddedEntities:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 523
+    sourceEndLine: 527
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 469
+    sourceLine: 473
   SYM-markdown-extractFromMarkdown:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 933
+    sourceEndLine: 963
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 920
+    sourceLine: 950
   SYM-markdown-extractFromMarkdownString:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 917
+    sourceEndLine: 947
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 912
+    sourceLine: 942
   SYM-markdown-inferTypeFromPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 944
+    sourceEndLine: 974
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 935
+    sourceLine: 965
   SYM-markdown-normalizeDateLike:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 961
+    sourceEndLine: 991
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 953
+    sourceLine: 983
   SYM-mcp-BranchKbStamp:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -7097,27 +7097,27 @@ coordinates:
   SYM-mutation-entity-properties-schema:
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 327
+    sourceEndLine: 331
     sourceFile: packages/cli/src/public/operations/specs/mutation-schemas.ts
-    sourceLine: 24
+    sourceLine: 27
   SYM-mutation-entity-types-schema:
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 12
+    sourceEndLine: 15
     sourceFile: packages/cli/src/public/operations/specs/mutation-schemas.ts
-    sourceLine: 3
+    sourceLine: 6
   SYM-mutation-relationships-schema:
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 372
+    sourceEndLine: 376
     sourceFile: packages/cli/src/public/operations/specs/mutation-schemas.ts
-    sourceLine: 329
+    sourceLine: 333
   SYM-node-workspace-snapshot:
     sourceColumn: 15
     sourceEndColumn: 1
-    sourceEndLine: 144
+    sourceEndLine: 141
     sourceFile: packages/cli/src/public/operations/node-ports.ts
-    sourceLine: 90
+    sourceLine: 87
   SYM-normalize-semantic-clause:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7277,21 +7277,21 @@ coordinates:
   SYM-operation-node-filesystem:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 164
+    sourceEndLine: 161
     sourceFile: packages/cli/src/public/operations/node-ports.ts
-    sourceLine: 146
+    sourceLine: 143
   SYM-operation-node-git:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 183
+    sourceEndLine: 180
     sourceFile: packages/cli/src/public/operations/node-ports.ts
-    sourceLine: 166
+    sourceLine: 163
   SYM-operation-node-network:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 187
+    sourceEndLine: 184
     sourceFile: packages/cli/src/public/operations/node-ports.ts
-    sourceLine: 185
+    sourceLine: 182
   SYM-operation-query-spec:
     sourceColumn: 13
     sourceEndColumn: 60
@@ -7829,9 +7829,9 @@ coordinates:
   SYM-projectStagedEntities:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 350
+    sourceEndLine: 355
     sourceFile: packages/cli/src/traceability/temp-kb.ts
-    sourceLine: 320
+    sourceLine: 325
   SYM-publicSkillDescriptors:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8459,9 +8459,9 @@ coordinates:
   SYM-requirement-semantic-text:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 451
+    sourceEndLine: 455
     sourceFile: packages/cli/src/extractors/markdown.ts
-    sourceLine: 443
+    sourceLine: 447
   SYM-resetAutopilotGenerateDepsForTests:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -13379,9 +13379,9 @@ coordinates:
   SYM-test-conservative-requirement-proof-chain:
     sourceColumn: 5
     sourceEndColumn: 79
-    sourceEndLine: 1550
+    sourceEndLine: 1576
     sourceFile: packages/core/tests/kb.plt
-    sourceLine: 1550
+    sourceLine: 1576
   SYM-test-journaled-engine-benchmark:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -13493,15 +13493,15 @@ coordinates:
   SYM-test-rule-contradiction-witness-proof:
     sourceColumn: 5
     sourceEndColumn: 64
-    sourceEndLine: 2777
+    sourceEndLine: 2803
     sourceFile: packages/core/tests/kb.plt
-    sourceLine: 2777
+    sourceLine: 2803
   SYM-test-rule-overlap-witness-proof:
     sourceColumn: 5
     sourceEndColumn: 65
-    sourceEndLine: 2797
+    sourceEndLine: 2823
     sourceFile: packages/core/tests/kb.plt
-    sourceLine: 2797
+    sourceLine: 2823
   SYM-test-sparql-fixture-request:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -13517,9 +13517,9 @@ coordinates:
   SYM-test-verification-receipt-proof-states:
     sourceColumn: 5
     sourceEndColumn: 78
-    sourceEndLine: 1649
+    sourceEndLine: 1675
     sourceFile: packages/core/tests/kb.plt
-    sourceLine: 1649
+    sourceLine: 1675
   SYM-updateGitIgnore:
     sourceColumn: 16
     sourceEndColumn: 1

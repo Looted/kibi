@@ -6,7 +6,7 @@ created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
 source: documentation/requirements/REQ-kibi-fresh-verification-receipts.md
 priority: must
-tags: [requirements, proof, verification, receipts, e2e, parity]
+tags: [requirements, proof, verification, receipts, e2e, parity, snapshot-v2]
 logic_claims:
   - CLAIM-5705BEF8033A2F95
   - CLAIM-CA3A58EE7669E556

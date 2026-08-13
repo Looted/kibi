@@ -484,13 +484,13 @@ export async function executeCompileIntent(
   const snapshotEvidence = status?.verificationSnapshot;
   const workspaceSnapshot: WorkspaceSnapshot = snapshotEvidence
     ? {
-        version: "kibi.workspace-snapshot.v1",
+        version: "kibi.workspace-snapshot.v2",
         hash: snapshotEvidence,
         dirty: status?.verificationSnapshotDirty ?? false,
         fileCount: status?.verificationSnapshotFileCount ?? 0,
       }
     : {
-        version: "kibi.workspace-snapshot.v1",
+        version: "kibi.workspace-snapshot.v2",
         hash: "unknown",
         dirty: true,
         fileCount: 0,

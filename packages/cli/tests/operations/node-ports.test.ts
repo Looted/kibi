@@ -25,31 +25,45 @@ describe("node workspace snapshot", () => {
       stdio: "ignore",
     });
     mkdirSync(path.join(workspaceRoot, "src"), { recursive: true });
-    mkdirSync(path.join(workspaceRoot, "documentation"), { recursive: true });
+    mkdirSync(path.join(workspaceRoot, "kibi-docs"), { recursive: true });
     writeFileSync(path.join(workspaceRoot, "src", "feature.ts"), "v1\n");
     writeFileSync(
-      path.join(workspaceRoot, "documentation", "receipt.md"),
+      path.join(workspaceRoot, "kibi-docs", "receipt.md"),
       `---
 id: TEST-RECEIPT
 title: Receipt test
 verification_receipts:
   - receipt_id: VR-ONE
+verification_contract:
+  version: kibi.verification-contract.v1
+  runner: pnpm
+  command_argv: [pnpm, run, e2e]
+  required_case_symbols: [SYM-CASE]
+  required_projects: [chromium]
+  success_policy: all_required_cases_first_attempt
 ---
 Body
 `,
     );
-    execFileSync("git", ["add", "src/feature.ts", "documentation/receipt.md"], {
+    execFileSync("git", ["add", "src/feature.ts", "kibi-docs/receipt.md"], {
       cwd: workspaceRoot,
     });
 
     const initial = await nodeGit.workspaceSnapshot?.(workspaceRoot);
     writeFileSync(
-      path.join(workspaceRoot, "documentation", "receipt.md"),
+      path.join(workspaceRoot, "kibi-docs", "receipt.md"),
       `---
 id: TEST-RECEIPT
 title: Receipt test
 verification_receipts:
   - receipt_id: VR-TWO
+verification_contract:
+  version: kibi.verification-contract.v1
+  runner: pnpm
+  command_argv: [pnpm, run, e2e]
+  required_case_symbols: [SYM-CASE]
+  required_projects: [chromium]
+  success_policy: all_required_cases_first_attempt
 ---
 Body
 `,
@@ -59,7 +73,7 @@ Body
     const codeChanged = await nodeGit.workspaceSnapshot?.(workspaceRoot);
 
     expect(initial).toMatchObject({
-      version: "kibi.workspace-snapshot.v1",
+      version: "kibi.workspace-snapshot.v2",
       dirty: true,
       fileCount: 2,
     });
@@ -68,12 +82,19 @@ Body
     expect(codeChanged?.hash).not.toBe(initial?.hash);
 
     writeFileSync(
-      path.join(workspaceRoot, "documentation", "receipt.md"),
+      path.join(workspaceRoot, "kibi-docs", "receipt.md"),
       `---
 id: TEST-RECEIPT
 title: Changed test contract
 verification_receipts:
   - receipt_id: VR-TWO
+verification_contract:
+  version: kibi.verification-contract.v1
+  runner: pnpm
+  command_argv: [pnpm, run, e2e, --, e2e/changed.spec.ts]
+  required_case_symbols: [SYM-CASE]
+  required_projects: [chromium]
+  success_policy: all_required_cases_first_attempt
 ---
 Body
 `,

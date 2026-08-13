@@ -30,7 +30,7 @@ function createContext(
       revParse: async () => "main",
       showToplevel: async () => workspaceRoot,
       workspaceSnapshot: async () => ({
-        version: "kibi.workspace-snapshot.v1",
+        version: "kibi.workspace-snapshot.v2",
         hash: "a".repeat(64),
         dirty: false,
         fileCount: 7,
@@ -266,7 +266,7 @@ describe("shared discovery operation executors", () => {
       verificationSnapshotAvailable: true,
       verificationSnapshotDirty: false,
       verificationSnapshotFileCount: 7,
-      verificationSnapshotVersion: "kibi.workspace-snapshot.v1",
+      verificationSnapshotVersion: "kibi.workspace-snapshot.v2",
     });
     expect(query).toHaveBeenCalledTimes(1);
     expect(query.mock.calls[0]?.[0]).toContain(

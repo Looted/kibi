@@ -550,6 +550,42 @@ describe("persistEntities", () => {
     expect(assertCall).toContain("verification_perspective=consumer");
   });
 
+  test("serializes test verification contracts as preserved JSON", async () => {
+    const entity = makeEntity({
+      id: "TEST-CONTRACT",
+      type: "test",
+      status: "active",
+      verification_scope: "end_to_end",
+      verification_contract: {
+        version: "kibi.verification-contract.v1",
+        runner: "pnpm",
+        command_argv: ["pnpm", "run", "e2e", "--", "e2e/contract.spec.ts"],
+        required_case_symbols: ["SYM-CONTRACT-CASE"],
+        required_projects: ["chromium"],
+        success_policy: "all_required_cases_first_attempt",
+      },
+    });
+    const prolog = makeProlog({
+      "findall(Id, kb_entity(Id, _, _), ExistingIds)": {
+        success: true,
+        bindings: { ExistingIds: "[]" },
+      },
+    });
+
+    await persistEntities(
+      asPrologProcess(prolog),
+      [{ entity, relationships: [] }],
+      new Set(),
+    );
+
+    const assertCall = prolog.callLog.find((g) =>
+      g.includes("kb_assert_entity"),
+    );
+    expect(assertCall).toContain(
+      'verification_contract="{\\"version\\":\\"kibi.verification-contract.v1\\"',
+    );
+  });
+
   test("serializes test verification receipts as preserved JSON", async () => {
     const entity = makeEntity({
       id: "TEST-RECEIPT",

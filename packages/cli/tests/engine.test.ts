@@ -261,6 +261,23 @@ describe("journaled engine", () => {
     }
   });
 
+  test("allows forbidden words inside entity prose but rejects executable escape hatches", async () => {
+    const root = tempRoot();
+    const client = new EngineClient({ workspaceRoot: root, branch: "main" });
+    try {
+      await client.start();
+      const prose = await client.query(
+        'kb_assert_entity(req, [id=\'REQ-GOAL-DATA\', title="The system ( and shell ( words are prose", status=open, created_at="2026-08-12T00:00:00Z", updated_at="2026-08-12T00:00:00Z", source="tests/goal-data.md"])',
+      );
+      expect(prose.success).toBe(true);
+      await expect(client.query("system('echo unsafe')")).rejects.toThrow(
+        "typed Kibi predicates",
+      );
+    } finally {
+      await client.stop().catch(() => undefined);
+    }
+  });
+
   test("cancels a queued request without poisoning the daemon", async () => {
     const root = tempRoot();
     const client = new EngineClient({ workspaceRoot: root, branch: "main" });

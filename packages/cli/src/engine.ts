@@ -129,14 +129,76 @@ function mutatingEngineGoal(goal: string): boolean {
   );
 }
 
+function maskPrologData(goal: string): string {
+  const chars = [...goal];
+  let quote: "'" | '"' | "`" | null = null;
+  let lineComment = false;
+  let blockComment = false;
+  for (let index = 0; index < chars.length; index += 1) {
+    const current = chars[index];
+    const next = chars[index + 1];
+    if (lineComment) {
+      if (current === "\n") lineComment = false;
+      else chars[index] = " ";
+      continue;
+    }
+    if (blockComment) {
+      if (current === "*" && next === "/") {
+        chars[index] = " ";
+        chars[index + 1] = " ";
+        index += 1;
+        blockComment = false;
+      } else if (current !== "\n") {
+        chars[index] = " ";
+      }
+      continue;
+    }
+    if (quote !== null) {
+      if (current === "\\") {
+        chars[index] = " ";
+        if (index + 1 < chars.length) {
+          chars[index + 1] = " ";
+          index += 1;
+        }
+      } else if (current === quote) {
+        if (next === quote) {
+          chars[index] = " ";
+          chars[index + 1] = " ";
+          index += 1;
+        } else {
+          chars[index] = " ";
+          quote = null;
+        }
+      } else if (current !== "\n") {
+        chars[index] = " ";
+      }
+      continue;
+    }
+    if (current === "%") {
+      chars[index] = " ";
+      lineComment = true;
+    } else if (current === "/" && next === "*") {
+      chars[index] = " ";
+      chars[index + 1] = " ";
+      index += 1;
+      blockComment = true;
+    } else if (current === "'" || current === '"' || current === "`") {
+      chars[index] = " ";
+      quote = current;
+    }
+  }
+  return chars.join("");
+}
+
 function safeEngineGoal(goal: string): boolean {
   // The socket is a local capability boundary, not a general-purpose SWI
   // console. Public clients may compose the typed Kibi predicates needed by
   // the 18 operation contracts, but process/filesystem/network escape hatches
   // are rejected before they reach Prolog.
+  const executable = maskPrologData(goal);
   if (
     /\b(?:halt|abort|shell|system|process_create|consult|load_files|open|close|delete_file|rename_file|make_directory|thread_create|rdf_attach_db|rdf_load|rdf_save|assertz|asserta|retractall)\s*\(/.test(
-      goal,
+      executable,
     )
   ) {
     return false;

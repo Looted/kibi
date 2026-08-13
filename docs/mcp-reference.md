@@ -267,7 +267,7 @@ Derived receipt, proof outcome, receipt count, and the shared upsert result. A c
 Return branch, snapshot, and freshness metadata for the attached KB, plus the deterministic workspace snapshot used to validate execution receipts.
 
 **Returns:**
-Branch name, KB snapshot ID, sync state, dirty flag, KB path metadata, and `verificationSnapshot` evidence (`available`, `dirty`, file count, and `kibi.workspace-snapshot.v1` version). An unavailable workspace snapshot is reported as `unknown` and cannot prove an E2E stage.
+Branch name, KB snapshot ID, sync state, dirty flag, KB path metadata, and `verificationSnapshot` evidence (`available`, `dirty`, file count, and `kibi.workspace-snapshot.v2` version). An unavailable workspace snapshot is reported as `unknown` and cannot prove an E2E stage. Receipt-only frontmatter edits do not change the v2 hash.
 
 **Example:**
 ```json

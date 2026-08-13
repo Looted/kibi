@@ -989,9 +989,11 @@ predicate_verifiability_kind_label(Kind, Label) :-
 
 %% check_logic_coverage(-Violations)
 % Validates explicitly declared atomic requirement claim manifests. Legacy
-% requirements without logic_claims remain eligible for gradual backfill; once
-% a manifest exists, every key must be grounded by a linked strict-property or
-% predicate fact carrying the same claim_key.
+% requirements without logic_claims remain eligible for gradual backfill. A
+% modeled proposition must be grounded exactly once; ambiguous, ontology-gap,
+% and missing propositions remain explicit unresolved inventory states and are
+% not required to have a ground fact (missing is reported by semantic
+% completeness).
 check_logic_coverage(Violations) :-
     findall(Violation, logic_coverage_violation(Violation), Violations0),
     sort(Violations0, Violations).
@@ -1006,11 +1008,30 @@ logic_coverage_violation(violation(
     kb:current_req(ReqId),
     requirement_logic_claims(ReqId, ClaimKeys),
     member(ClaimKey, ClaimKeys),
+    claim_requires_grounding(ReqId, ClaimKey),
     \+ grounded_requirement_claim(ReqId, ClaimKey),
     format(
         string(Description),
         "Requirement declares logical claim ~w but has no matching ground fact",
         [ClaimKey]
+    ),
+    violation_source(ReqId, req, Source).
+
+logic_coverage_violation(violation(
+    'logic-coverage',
+    ReqId,
+    Description,
+    "Keep ontology gaps, ambiguities, and missing interpretations unresolved; only modeled propositions may have logical ground facts",
+    Source
+)) :-
+    kb:current_req(ReqId),
+    requirement_inventory_status(ReqId, ClaimKey, Status),
+    memberchk(Status, [ambiguous, ontology_gap, missing]),
+    grounded_requirement_claim(ReqId, ClaimKey),
+    format(
+        string(Description),
+        "Requirement grounds unresolved ~w proposition ~w",
+        [Status, ClaimKey]
     ),
     violation_source(ReqId, req, Source).
 
@@ -1075,6 +1096,28 @@ requirement_logic_claims(ReqId, ClaimKeys) :-
     kb_entity(ReqId, req, Props),
     memberchk(logic_claims=RawClaimKeys, Props),
     kb:normalize_term_atom_list(RawClaimKeys, ClaimKeys).
+
+claim_requires_grounding(ReqId, ClaimKey) :-
+    requirement_inventory_status(ReqId, ClaimKey, modeled),
+    !.
+claim_requires_grounding(ReqId, ClaimKey) :-
+    \+ requirement_inventory_status(ReqId, ClaimKey, _).
+
+requirement_inventory_status(ReqId, ClaimKey, Status) :-
+    kb_entity(ReqId, req, Props),
+    memberchk(semantic_inventory=RawInventory, Props),
+    inventory_entries(RawInventory, Entries),
+    member(Entry, Entries),
+    checks_inventory_entry_field(Entry, claim_key, RawClaimKey),
+    kb:normalize_term_atom(RawClaimKey, ClaimKey),
+    inventory_entry_status(Entry, Status).
+
+checks_inventory_entry_field(Entry, Key, Value) :-
+    is_dict(Entry),
+    get_dict(Key, Entry, Value).
+checks_inventory_entry_field(Entry, Key, Value) :-
+    is_list(Entry),
+    memberchk(Key=Value, Entry).
 
 grounded_requirement_claim(ReqId, ClaimKey) :-
     grounded_requirement_claim_fact(ReqId, ClaimKey, _FactId).
@@ -1286,6 +1329,10 @@ inventory_entries(Raw, Entries) :-
         catch(atom_json_dict(Raw, JsonEntries, [value_string_as(string)]), _, fail),
         is_list(JsonEntries)
     ->  Entries = JsonEntries
+    ;   (atom(Raw) ; string(Raw)),
+        catch(term_string(PrologEntries, Raw), _, fail),
+        is_list(PrologEntries)
+    ->  Entries = PrologEntries
     ;   Entries = []
     ).
 
