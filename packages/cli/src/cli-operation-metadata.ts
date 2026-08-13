@@ -38,7 +38,7 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_search",
     cliName: "search",
     description:
-      "Search KB entities for discovery using metadata and markdown body text. Use for exploratory lookup before exact follow-up with kb_query. No mutation side effects.",
+      "Search KB entities for discovery using legacy lexical ranking or deterministic intent-v1 ranking. Intent mode accepts host-agent semantic facets and source locations, returns evidence and abstains below its confidence threshold. Use for exploratory lookup before exact follow-up with kb_query. No mutation side effects.",
   },
   {
     name: "kb_status",
@@ -117,6 +117,24 @@ export const CLI_OPERATION_METADATA = [
     cliName: "sparql-remote",
     description:
       "Opt-in remote SPARQL query tool for external HTTP(S) RDF endpoints. This does not query Kibi's local RDF store directly, stores no credentials, and depends on network availability.",
+  },
+  {
+    name: "kb_compile_intent",
+    cliName: "compile-intent",
+    description:
+      "Compile complete change intent into a deterministic, snapshot-bound read-only plan. Reuses intent-aware discovery and semantic modeling, accounts for every proposition, reports contradiction witnesses, proposes traceability links, and emits dependency-ordered kb_upsert-style steps only for resolved typed claims. No mutation side effects.",
+  },
+  {
+    name: "kb_apply_plan",
+    cliName: "apply-plan",
+    description:
+      "Apply an approved kibi.compile-plan.v1 after revalidating its canonical hash, branch/KB/workspace snapshots, source before-hashes, entity shapes, and relationship endpoints. Applies entity steps sequentially through the shared upsert boundary and reports final snapshots. Source publishing and crash recovery are not silently implied by this v1 boundary.",
+  },
+  {
+    name: "kb_ingest_verification",
+    cliName: "ingest-verification",
+    description:
+      "Ingest a reporter-produced kibi.playwright-run.v1 artifact for a contracted test. Revalidates the live workspace snapshot, runner/command contract, required case/project coverage, and append-only receipt history before deriving and appending a kibi.verification-receipt.v2. It never accepts a caller-authored receipt or trusted outcome.",
   },
 ] as const satisfies readonly CliOperationMetadata[];
 

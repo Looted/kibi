@@ -154,8 +154,8 @@ describe("distribution parity matrix", () => {
     expect(report.issues).toEqual([]);
     expect(report.summary).toMatchObject({
       runtimeCount: 4,
-      observationCount: 24,
-      matchCount: 24,
+      observationCount: 28,
+      matchCount: 28,
       divergenceCount: 0,
       unsupportedCount: 0,
     });
@@ -232,7 +232,7 @@ describe("distribution parity matrix", () => {
     expect(projectRow?.comparison).toBe("unsupported");
     expect(projectRow?.action?.kind).toBe("upgrade");
     expect(report.summary.unsupportedCount).toBe(1);
-    expect(report.summary.matchCount).toBe(29);
+    expect(report.summary.matchCount).toBe(34);
   });
 
   test("requires an action for every project divergence", () => {
@@ -284,8 +284,8 @@ describe("distribution parity matrix", () => {
 
     const report = await runDistributionParityMatrix(adapters);
 
-    expect(calls).toHaveLength(24);
-    expect(calls.slice(0, 6)).toEqual(
+    expect(calls).toHaveLength(28);
+    expect(calls.slice(0, 7)).toEqual(
       REQUIREMENT_COMPILER_CAPABILITIES.map(
         (capability) => `source-cli:${capability}`,
       ),

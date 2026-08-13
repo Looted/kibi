@@ -1,3 +1,11 @@
+import {
+  type IntentSearchAnalysis,
+  type IntentSearchFacets,
+  type IntentSearchMatch,
+  type SourceLocation,
+  executeIntentSearch,
+  validateIntentSearchInput,
+} from "../../intent-search.js";
 import { rankEntities } from "../../search-ranking.js";
 import type { SearchMatch } from "../../search-ranking.js";
 import {
@@ -29,11 +37,16 @@ export type SearchInput = {
   readonly type?: string;
   readonly limit?: number;
   readonly offset?: number;
+  readonly rankingMode?: "legacy" | "intent-v1";
+  readonly semanticFacets?: IntentSearchFacets;
+  readonly sourceLocations?: readonly SourceLocation[];
+  readonly minScore?: number;
 };
 
 export type SearchPayload = {
-  readonly results: readonly SearchMatch[];
+  readonly results: readonly (SearchMatch | IntentSearchMatch)[];
   readonly count: number;
+  readonly queryAnalysis?: IntentSearchAnalysis;
 };
 
 export type StatusInput = Readonly<Record<string, never>>;
@@ -144,7 +157,16 @@ export async function executeSearch(
   context: OperationContext,
 ): Promise<OperationResult<SearchPayload>> {
   // implements REQ-kibi-operation-interface-parity, REQ-mcp-search-discovery
-  const { query, type, limit = 20, offset = 0 } = input;
+  const {
+    query,
+    type,
+    limit = 20,
+    offset = 0,
+    rankingMode = "legacy",
+    semanticFacets,
+    sourceLocations,
+    minScore,
+  } = input;
   const trimmedQuery = query.trim();
   if (!trimmedQuery) {
     throw new Error(
@@ -154,6 +176,43 @@ export async function executeSearch(
   validateEntityType(type);
   try {
     const prolog = requireProlog(context);
+    const intentMode =
+      rankingMode === "intent-v1" ||
+      semanticFacets !== undefined ||
+      sourceLocations !== undefined;
+    if (intentMode) {
+      const intentInput = {
+        query: trimmedQuery,
+        ...(type !== undefined ? { type } : {}),
+        ...(semanticFacets !== undefined ? { semanticFacets } : {}),
+        ...(sourceLocations !== undefined ? { sourceLocations } : {}),
+        ...(minScore !== undefined ? { minScore } : {}),
+      } as const;
+      validateIntentSearchInput(intentInput);
+      const intentResult = await executeIntentSearch(
+        intentInput,
+        prolog,
+        context.workspaceRoot,
+      );
+      const paginated = paginateResults(intentResult.matches, limit, offset);
+      const text =
+        intentResult.matches.length === 0
+          ? `No intent search results for '${trimmedQuery}' (abstained).`
+          : `Found ${intentResult.matches.length} intent search results for '${trimmedQuery}'. Showing ${paginated.length} (offset ${offset}, limit ${limit}): ${paginated
+              .map(
+                (match) =>
+                  `${String(match.entity.id ?? "")} [${match.reasons.join(", ")}]`,
+              )
+              .join(", ")}`;
+      return {
+        content: [{ type: "text", text }],
+        structuredContent: {
+          results: paginated,
+          count: intentResult.matches.length,
+          queryAnalysis: intentResult.analysis,
+        },
+      };
+    }
     const indexedCandidates = prolog.searchEntities
       ? await prolog.searchEntities({
           query: trimmedQuery,

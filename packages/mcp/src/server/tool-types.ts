@@ -98,4 +98,17 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
     args: AutopilotGenerateArgs,
     context: OperationContext,
   ) => Promise<unknown>;
+  /** Optional test/host override; production falls back to the shared executor. */
+  handleKbCompileIntent?: (
+    args: Record<string, unknown>,
+    context: OperationContext,
+  ) => Promise<unknown>;
+  handleKbApplyPlan?: (
+    args: Record<string, unknown>,
+    context: OperationContext,
+  ) => Promise<unknown>;
+  handleKbIngestVerification?: (
+    args: Record<string, unknown>,
+    context: OperationContext,
+  ) => Promise<unknown>;
 }

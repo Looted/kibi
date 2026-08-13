@@ -1,0 +1,3 @@
+{"id":"kibi-search-direct","query":"find requirements for export","expectedIds":["REQ-kibi-intent-source-discovery"]}
+{"id":"kibi-search-source","query":"download report","sourceLocation":{"path":"packages/cli/src/intent-search.ts","symbol":"executeIntentSearch"},"expectedIds":["REQ-kibi-intent-source-discovery"]}
+{"id":"kibi-search-abstain","query":"unrelated unknown capability","expectedIds":[],"expectAbstention":true}

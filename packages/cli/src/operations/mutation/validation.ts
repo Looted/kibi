@@ -123,6 +123,11 @@ export function validateUpsertInput(
       input.id,
       entity.verification_scope,
       receipts,
+      typeof entity.verification_contract === "object" &&
+        entity.verification_contract !== null &&
+        !Array.isArray(entity.verification_contract)
+        ? (entity.verification_contract as Record<string, unknown>)
+        : undefined,
     );
     if (receiptErrors.length > 0) {
       throw new Error(`Entity validation failed: ${receiptErrors.join("; ")}`);

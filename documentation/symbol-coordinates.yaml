@@ -1931,9 +1931,9 @@ coordinates:
   SYM-TOOLS:
     sourceColumn: 13
     sourceEndColumn: 19
-    sourceEndLine: 145
+    sourceEndLine: 169
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 143
+    sourceLine: 167
   SYM-TRACEABILITY_RELATIONSHIP_TYPES:
     sourceColumn: 13
     sourceEndColumn: 10
@@ -2015,7 +2015,7 @@ coordinates:
   SYM-ToolsRuntime:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 101
+    sourceEndLine: 114
     sourceFile: packages/mcp/src/server/tool-types.ts
     sourceLine: 46
   SYM-TraceabilityRegistrationResult:
@@ -2135,9 +2135,9 @@ coordinates:
   SYM-append-only-verification-receipt-history-errors:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 170
+    sourceEndLine: 345
     sourceFile: packages/cli/src/public/verification-receipt.ts
-    sourceLine: 147
+    sourceLine: 322
   SYM-appendDiagnosticErrorUsage:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2795,9 +2795,9 @@ coordinates:
   SYM-cli-build-program:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 65
+    sourceEndLine: 67
     sourceFile: packages/cli/src/cli.ts
-    sourceLine: 49
+    sourceLine: 50
   SYM-cli-codec-escape-atom:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2813,9 +2813,9 @@ coordinates:
   SYM-cli-codec-parse-atom-list:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 403
+    sourceEndLine: 404
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 388
+    sourceLine: 389
   SYM-cli-codec-parse-entity-from-binding:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2837,45 +2837,45 @@ coordinates:
   SYM-cli-codec-parse-pair-list:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 424
+    sourceEndLine: 425
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 405
+    sourceLine: 406
   SYM-cli-codec-parse-prolog-value:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 308
+    sourceEndLine: 309
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 210
+    sourceLine: 211
   SYM-cli-codec-parse-triples:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 446
+    sourceEndLine: 447
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 426
+    sourceLine: 427
   SYM-cli-codec-parse-violation-rows:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 573
+    sourceEndLine: 574
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 512
+    sourceLine: 513
   SYM-cli-codec-parsed-violation:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 510
+    sourceEndLine: 511
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 504
+    sourceLine: 505
   SYM-cli-codec-split-top-level:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 367
+    sourceEndLine: 368
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 364
+    sourceLine: 365
   SYM-cli-codec-split-top-level-general:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 362
+    sourceEndLine: 363
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 310
+    sourceLine: 311
   SYM-cli-codec-to-prolog-atom:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3221,9 +3221,9 @@ coordinates:
   SYM-cli-get-operation-metadata:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 135
+    sourceEndLine: 153
     sourceFile: packages/cli/src/cli-operation-metadata.ts
-    sourceLine: 127
+    sourceLine: 145
   SYM-cli-impact-AGGREGATE_KINDS:
     sourceColumn: 13
     sourceEndColumn: 2
@@ -3455,9 +3455,9 @@ coordinates:
   SYM-cli-is-operation-name:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 139
+    sourceEndLine: 157
     sourceFile: packages/cli/src/cli-operation-metadata.ts
-    sourceLine: 137
+    sourceLine: 155
   SYM-cli-json-invocation-type:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -3479,7 +3479,7 @@ coordinates:
   SYM-cli-load-operation-spec:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 65
+    sourceEndLine: 74
     sourceFile: packages/cli/src/cli-operation-loader.ts
     sourceLine: 11
   SYM-cli-logic-ir-LOGIC_IR_VERSION:
@@ -3629,9 +3629,9 @@ coordinates:
   SYM-cli-main:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 84
+    sourceEndLine: 86
     sourceFile: packages/cli/src/cli.ts
-    sourceLine: 68
+    sourceLine: 70
   SYM-cli-mutation-serialization-buildPropertyList:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3677,7 +3677,7 @@ coordinates:
   SYM-cli-operation-metadata:
     sourceColumn: 13
     sourceEndColumn: 52
-    sourceEndLine: 121
+    sourceEndLine: 139
     sourceFile: packages/cli/src/cli-operation-metadata.ts
     sourceLine: 12
   SYM-cli-operation-metadata-type:
@@ -3695,9 +3695,9 @@ coordinates:
   SYM-cli-parity-cases:
     sourceColumn: 13
     sourceEndColumn: 3
-    sourceEndLine: 75
+    sourceEndLine: 128
     sourceFile: packages/cli/tests/parity/cases.ts
-    sourceLine: 72
+    sourceLine: 125
   SYM-cli-parity-cli-result-type:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -3725,7 +3725,7 @@ coordinates:
   SYM-cli-parse-property-list:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 208
+    sourceEndLine: 209
     sourceFile: packages/cli/src/prolog/codec.ts
     sourceLine: 158
   SYM-cli-persistEntities:
@@ -4070,12 +4070,6 @@ coordinates:
     sourceEndLine: 225
     sourceFile: packages/cli/src/commands/sync/persistence.ts
     sourceLine: 188
-  SYM-cli-test-large-entity-goal:
-    sourceColumn: 9
-    sourceEndColumn: 1
-    sourceEndLine: 48
-    sourceFile: packages/cli/tests/operations/discovery.test.ts
-    sourceLine: 46
   SYM-cli-test-makeQualitySymbolResult:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5027,81 +5021,81 @@ coordinates:
   SYM-discovery-execute-query:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 140
+    sourceEndLine: 153
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 76
+    sourceLine: 89
   SYM-discovery-execute-search:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 194
+    sourceEndLine: 253
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 142
+    sourceLine: 155
   SYM-discovery-execute-status:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 239
+    sourceEndLine: 298
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 196
+    sourceLine: 255
   SYM-discovery-query-input:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 20
+    sourceEndLine: 28
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 13
+    sourceLine: 21
   SYM-discovery-query-payload:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 25
+    sourceEndLine: 33
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 22
+    sourceLine: 30
   SYM-discovery-search-input:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 32
+    sourceEndLine: 44
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 27
+    sourceLine: 35
   SYM-discovery-search-payload:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 37
+    sourceEndLine: 50
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 34
+    sourceLine: 46
   SYM-discovery-status-input:
     sourceColumn: 12
     sourceEndColumn: 58
-    sourceEndLine: 39
+    sourceEndLine: 52
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 39
+    sourceLine: 52
   SYM-discovery-status-payload:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 55
+    sourceEndLine: 68
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 41
+    sourceLine: 54
   SYM-distribution-parity-build-report:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 548
+    sourceEndLine: 549
     sourceFile: packages/cli/src/public/distribution-parity.ts
-    sourceLine: 346
+    sourceLine: 347
   SYM-distribution-parity-normalize:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 301
+    sourceEndLine: 302
     sourceFile: packages/cli/src/public/distribution-parity.ts
-    sourceLine: 275
+    sourceLine: 276
   SYM-distribution-parity-resolve-provenance:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 254
+    sourceEndLine: 255
     sourceFile: packages/cli/src/public/distribution-parity.ts
-    sourceLine: 216
+    sourceLine: 217
   SYM-distribution-parity-run-matrix:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 580
+    sourceEndLine: 581
     sourceFile: packages/cli/src/public/distribution-parity.ts
-    sourceLine: 551
+    sourceLine: 552
   SYM-effective-requirement-relationships:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -5666,6 +5660,408 @@ coordinates:
     sourceEndLine: 239
     sourceFile: packages/mcp/src/server/json-schema-to-zod.ts
     sourceLine: 53
+  SYM-kibi-cli-src-cli-register-verification-ts-registerverificationcommand:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 34
+    sourceFile: packages/cli/src/cli-register-verification.ts
+    sourceLine: 5
+  SYM-kibi-cli-src-commands-verify-ts-verifycommand:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 182
+    sourceFile: packages/cli/src/commands/verify.ts
+    sourceLine: 94
+  SYM-kibi-cli-src-commands-verify-ts-verifycommandoptions:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 17
+    sourceFile: packages/cli/src/commands/verify.ts
+    sourceLine: 13
+  SYM-kibi-cli-src-extractors-playwright-cases-ts-extractplaywrightcases:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 181
+    sourceFile: packages/cli/src/extractors/playwright-cases.ts
+    sourceLine: 136
+  SYM-kibi-cli-src-extractors-playwright-cases-ts-playwrightcasediagnostic:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 22
+    sourceFile: packages/cli/src/extractors/playwright-cases.ts
+    sourceLine: 17
+  SYM-kibi-cli-src-extractors-playwright-cases-ts-playwrightcaseextraction:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 28
+    sourceFile: packages/cli/src/extractors/playwright-cases.ts
+    sourceLine: 25
+  SYM-kibi-cli-src-extractors-playwright-cases-ts-playwrightcasesymbol:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 14
+    sourceFile: packages/cli/src/extractors/playwright-cases.ts
+    sourceLine: 4
+  SYM-kibi-cli-src-intent-search-ts-executeintentsearch:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 608
+    sourceFile: packages/cli/src/intent-search.ts
+    sourceLine: 565
+  SYM-kibi-cli-src-intent-search-ts-intentgraphpath:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 54
+    sourceFile: packages/cli/src/intent-search.ts
+    sourceLine: 50
+  SYM-kibi-cli-src-intent-search-ts-intentsearchanalysis:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 78
+    sourceFile: packages/cli/src/intent-search.ts
+    sourceLine: 71
+  SYM-kibi-cli-src-intent-search-ts-intentsearchevidence:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 63
+    sourceFile: packages/cli/src/intent-search.ts
+    sourceLine: 57
+  SYM-kibi-cli-src-intent-search-ts-intentsearchfacetname:
+    sourceColumn: 12
+    sourceEndColumn: 14
+    sourceEndLine: 18
+    sourceFile: packages/cli/src/intent-search.ts
+    sourceLine: 13
+  SYM-kibi-cli-src-intent-search-ts-intentsearchfacets:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 23
+    sourceFile: packages/cli/src/intent-search.ts
+    sourceLine: 21
+  SYM-kibi-cli-src-intent-search-ts-intentsearchmatch:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 68
+    sourceFile: packages/cli/src/intent-search.ts
+    sourceLine: 66
+  SYM-kibi-cli-src-intent-search-ts-intentsearchoptions:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 40
+    sourceFile: packages/cli/src/intent-search.ts
+    sourceLine: 34
+  SYM-kibi-cli-src-intent-search-ts-intentsearchresult:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 84
+    sourceFile: packages/cli/src/intent-search.ts
+    sourceLine: 81
+  SYM-kibi-cli-src-intent-search-ts-intentsourcematch:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 47
+    sourceFile: packages/cli/src/intent-search.ts
+    sourceLine: 43
+  SYM-kibi-cli-src-intent-search-ts-rankintententities:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 476
+    sourceFile: packages/cli/src/intent-search.ts
+    sourceLine: 377
+  SYM-kibi-cli-src-intent-search-ts-sourcelocation:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 31
+    sourceFile: packages/cli/src/intent-search.ts
+    sourceLine: 26
+  SYM-kibi-cli-src-intent-search-ts-validateintentsearchinput:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 653
+    sourceFile: packages/cli/src/intent-search.ts
+    sourceLine: 611
+  SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanargs:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 22
+    sourceFile: packages/cli/src/operations/planning/apply-plan.ts
+    sourceLine: 19
+  SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanresult:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 44
+    sourceFile: packages/cli/src/operations/planning/apply-plan.ts
+    sourceLine: 25
+  SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 251
+    sourceFile: packages/cli/src/operations/planning/apply-plan.ts
+    sourceLine: 166
+  SYM-kibi-cli-src-operations-planning-apply-plan-ts-plan-apply-result-version:
+    sourceColumn: 13
+    sourceEndColumn: 77
+    sourceEndLine: 16
+    sourceFile: packages/cli/src/operations/planning/apply-plan.ts
+    sourceLine: 16
+  SYM-kibi-cli-src-operations-planning-compile-intent-ts-compile-plan-version:
+    sourceColumn: 13
+    sourceEndColumn: 67
+    sourceEndLine: 26
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    sourceLine: 26
+  SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileintentargs:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 41
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    sourceLine: 29
+  SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileplanhash:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 91
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    sourceLine: 86
+  SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileplanv1:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 134
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    sourceLine: 94
+  SYM-kibi-cli-src-operations-planning-compile-intent-ts-contradictionwitness:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 69
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    sourceLine: 66
+  SYM-kibi-cli-src-operations-planning-compile-intent-ts-executecompileintent:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 744
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    sourceLine: 468
+  SYM-kibi-cli-src-operations-planning-compile-intent-ts-planstep:
+    sourceColumn: 12
+    sourceEndColumn: 57
+    sourceEndLine: 83
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    sourceLine: 83
+  SYM-kibi-cli-src-operations-planning-compile-intent-ts-proposaldecision:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 63
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    sourceLine: 60
+  SYM-kibi-cli-src-operations-planning-compile-intent-ts-scenariodraft:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 48
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    sourceLine: 44
+  SYM-kibi-cli-src-operations-planning-compile-intent-ts-testdraft:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 57
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    sourceLine: 51
+  SYM-kibi-cli-src-operations-planning-compile-intent-ts-traceabilityproposal:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 80
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    sourceLine: 72
+  SYM-kibi-cli-src-operations-verification-ingest-verification-ts-executeingestverification:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 296
+    sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
+    sourceLine: 178
+  SYM-kibi-cli-src-operations-verification-ingest-verification-ts-ingestverificationargs:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 31
+    sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
+    sourceLine: 27
+  SYM-kibi-cli-src-operations-verification-ingest-verification-ts-ingestverificationresult:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 40
+    sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
+    sourceLine: 34
+  SYM-kibi-cli-src-operations-verification-ingest-verification-ts-playwright-run-version:
+    sourceColumn: 13
+    sourceEndColumn: 71
+    sourceEndLine: 15
+    sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
+    sourceLine: 15
+  SYM-kibi-cli-src-operations-verification-ingest-verification-ts-verificationcaseartifact:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 24
+    sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
+    sourceLine: 18
+  SYM-kibi-cli-src-public-operations-specs-planning-ts-applyplanspec:
+    sourceColumn: 13
+    sourceEndColumn: 66
+    sourceEndLine: 214
+    sourceFile: packages/cli/src/public/operations/specs/planning.ts
+    sourceLine: 180
+  SYM-kibi-cli-src-public-operations-specs-planning-ts-compileintentspec:
+    sourceColumn: 13
+    sourceEndColumn: 68
+    sourceEndLine: 177
+    sourceFile: packages/cli/src/public/operations/specs/planning.ts
+    sourceLine: 30
+  SYM-kibi-cli-src-public-operations-specs-verification-ts-ingestverificationspec:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 78
+    sourceFile: packages/cli/src/public/operations/specs/verification.ts
+    sourceLine: 15
+  SYM-kibi-cli-src-public-playwright-case-id-ts-normalizeplaywrightsourcefile:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 35
+    sourceFile: packages/cli/src/public/playwright-case-id.ts
+    sourceLine: 23
+  SYM-kibi-cli-src-public-playwright-case-id-ts-playwrightcaseid:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 20
+    sourceFile: packages/cli/src/public/playwright-case-id.ts
+    sourceLine: 10
+  SYM-kibi-cli-src-public-verification-receipt-ts-verification-contract-schema:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 95
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    sourceLine: 61
+  SYM-kibi-cli-src-public-verification-receipt-ts-verification-contract-version:
+    sourceColumn: 13
+    sourceEndColumn: 42
+    sourceEndLine: 10
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    sourceLine: 9
+  SYM-kibi-cli-src-public-verification-receipt-ts-verification-receipt-v2-version:
+    sourceColumn: 13
+    sourceEndColumn: 41
+    sourceEndLine: 7
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    sourceLine: 6
+  SYM-kibi-cli-src-public-verification-receipt-ts-verificationcontract:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 178
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    sourceLine: 171
+  SYM-kibi-cli-src-public-verification-receipt-ts-verificationcontracthash:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 320
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    sourceLine: 316
+  SYM-kibi-cli-src-public-verification-receipt-ts-verificationreceiptv2:
+    sourceColumn: 12
+    sourceEndColumn: 5
+    sourceEndLine: 168
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    sourceLine: 156
+  SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 154
+    sourceFile: packages/cli/src/verification/playwright-reporter.ts
+    sourceLine: 76
+  SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter-onbegin:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 89
+    sourceFile: packages/cli/src/verification/playwright-reporter.ts
+    sourceLine: 87
+  SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter-onend:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 153
+    sourceFile: packages/cli/src/verification/playwright-reporter.ts
+    sourceLine: 128
+  SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter-ontestend:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 125
+    sourceFile: packages/cli/src/verification/playwright-reporter.ts
+    sourceLine: 92
+  SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporteroptions:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 20
+    sourceFile: packages/cli/src/verification/playwright-reporter.ts
+    sourceLine: 13
+  SYM-kibi-cli-src-verification-playwright-reporter-ts-playwright-run-version:
+    sourceColumn: 13
+    sourceEndColumn: 71
+    sourceEndLine: 10
+    sourceFile: packages/cli/src/verification/playwright-reporter.ts
+    sourceLine: 10
+  SYM-kibi-script-change-to-proof-eval-ts-compileevaluation:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 35
+    sourceFile: scripts/change-to-proof-eval.ts
+    sourceLine: 31
+  SYM-kibi-script-change-to-proof-eval-ts-compileevaluator:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 56
+    sourceFile: scripts/change-to-proof-eval.ts
+    sourceLine: 51
+  SYM-kibi-script-change-to-proof-eval-ts-compilegoldcase:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 28
+    sourceFile: scripts/change-to-proof-eval.ts
+    sourceLine: 23
+  SYM-kibi-script-change-to-proof-eval-ts-evaluatecompile:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 157
+    sourceFile: scripts/change-to-proof-eval.ts
+    sourceLine: 138
+  SYM-kibi-script-change-to-proof-eval-ts-evaluatesearch:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 135
+    sourceFile: scripts/change-to-proof-eval.ts
+    sourceLine: 77
+  SYM-kibi-script-change-to-proof-eval-ts-readjsonl:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 74
+    sourceFile: scripts/change-to-proof-eval.ts
+    sourceLine: 59
+  SYM-kibi-script-change-to-proof-eval-ts-searchcandidate:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 41
+    sourceFile: scripts/change-to-proof-eval.ts
+    sourceLine: 38
+  SYM-kibi-script-change-to-proof-eval-ts-searchevaluation:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 20
+    sourceFile: scripts/change-to-proof-eval.ts
+    sourceLine: 13
+  SYM-kibi-script-change-to-proof-eval-ts-searchevaluator:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 48
+    sourceFile: scripts/change-to-proof-eval.ts
+    sourceLine: 44
+  SYM-kibi-script-change-to-proof-eval-ts-searchgoldcase:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 10
+    sourceFile: scripts/change-to-proof-eval.ts
+    sourceLine: 4
   SYM-kibi-usage-fact-lanes-guidance:
     sourceColumn: 2
     sourceEndColumn: 12
@@ -6779,9 +7175,9 @@ coordinates:
   SYM-operation-catalog:
     sourceColumn: 13
     sourceEndColumn: 45
-    sourceEndLine: 42
+    sourceEndLine: 47
     sourceFile: packages/cli/src/public/operations/catalog.ts
-    sourceLine: 23
+    sourceLine: 25
   SYM-operation-check-input:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -6809,9 +7205,9 @@ coordinates:
   SYM-operation-content-type:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 34
+    sourceEndLine: 37
     sourceFile: packages/cli/src/public/operations/types.ts
-    sourceLine: 31
+    sourceLine: 34
   SYM-operation-coverage-spec:
     sourceColumn: 13
     sourceEndColumn: 66
@@ -6827,9 +7223,9 @@ coordinates:
   SYM-operation-effect-type:
     sourceColumn: 12
     sourceEndColumn: 22
-    sourceEndLine: 29
+    sourceEndLine: 32
     sourceFile: packages/cli/src/public/operations/types.ts
-    sourceLine: 23
+    sourceLine: 26
   SYM-operation-execute-check:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -6848,12 +7244,24 @@ coordinates:
     sourceEndLine: 152
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
     sourceLine: 129
+  SYM-operation-get-spec:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 60
+    sourceFile: packages/cli/src/public/operations/catalog.ts
+    sourceLine: 54
   SYM-operation-graph-spec:
     sourceColumn: 13
     sourceEndColumn: 60
     sourceEndLine: 334
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
     sourceLine: 309
+  SYM-operation-list-specs:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 65
+    sourceFile: packages/cli/src/public/operations/catalog.ts
+    sourceLine: 63
   SYM-operation-model-requirement-spec:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -6862,8 +7270,8 @@ coordinates:
     sourceLine: 13
   SYM-operation-name-type:
     sourceColumn: 12
-    sourceEndColumn: 28
-    sourceEndLine: 21
+    sourceEndColumn: 29
+    sourceEndLine: 24
     sourceFile: packages/cli/src/public/operations/types.ts
     sourceLine: 3
   SYM-operation-node-filesystem:
@@ -6893,13 +7301,13 @@ coordinates:
   SYM-operation-result-type:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 39
+    sourceEndLine: 42
     sourceFile: packages/cli/src/public/operations/types.ts
-    sourceLine: 36
+    sourceLine: 39
   SYM-operation-search-spec:
     sourceColumn: 13
     sourceEndColumn: 62
-    sourceEndLine: 115
+    sourceEndLine: 168
     sourceFile: packages/cli/src/public/operations/specs/discovery.ts
     sourceLine: 76
   SYM-operation-semantic-advisor-spec:
@@ -6947,15 +7355,15 @@ coordinates:
   SYM-operation-spec-type:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 57
+    sourceEndLine: 60
     sourceFile: packages/cli/src/public/operations/types.ts
-    sourceLine: 41
+    sourceLine: 44
   SYM-operation-status-spec:
     sourceColumn: 13
     sourceEndColumn: 62
-    sourceEndLine: 126
+    sourceEndLine: 179
     sourceFile: packages/cli/src/public/operations/specs/discovery.ts
-    sourceLine: 117
+    sourceLine: 170
   SYM-operation-suggest-predicates-spec:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -7535,9 +7943,9 @@ coordinates:
   SYM-registerConfiguredTools:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 198
+    sourceEndLine: 224
     sourceFile: packages/mcp/src/server/tool-registration.ts
-    sourceLine: 50
+    sourceLine: 55
   SYM-registerIndexCoverageTests:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7691,105 +8099,105 @@ coordinates:
   SYM-reqcompiler-parity-action:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 59
+    sourceEndLine: 60
     sourceFile: packages/cli/src/public/distribution-parity.ts
-    sourceLine: 56
+    sourceLine: 57
   SYM-reqcompiler-parity-capabilities:
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 24
+    sourceEndLine: 25
     sourceFile: packages/cli/src/public/distribution-parity.ts
     sourceLine: 17
   SYM-reqcompiler-parity-capability:
     sourceColumn: 12
     sourceEndColumn: 53
-    sourceEndLine: 27
+    sourceEndLine: 28
     sourceFile: packages/cli/src/public/distribution-parity.ts
-    sourceLine: 26
+    sourceLine: 27
   SYM-reqcompiler-parity-capability-result:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 66
+    sourceEndLine: 67
     sourceFile: packages/cli/src/public/distribution-parity.ts
-    sourceLine: 61
+    sourceLine: 62
   SYM-reqcompiler-parity-capability-state:
     sourceColumn: 12
     sourceEndColumn: 69
-    sourceEndLine: 33
+    sourceEndLine: 34
     sourceFile: packages/cli/src/public/distribution-parity.ts
-    sourceLine: 33
+    sourceLine: 34
   SYM-reqcompiler-parity-comparison:
     sourceColumn: 12
     sourceEndColumn: 19
-    sourceEndLine: 86
+    sourceEndLine: 87
     sourceFile: packages/cli/src/public/distribution-parity.ts
-    sourceLine: 81
+    sourceLine: 82
   SYM-reqcompiler-parity-issue:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 120
+    sourceEndLine: 121
     sourceFile: packages/cli/src/public/distribution-parity.ts
-    sourceLine: 114
+    sourceLine: 115
   SYM-reqcompiler-parity-issue-code:
     sourceColumn: 12
     sourceEndColumn: 40
-    sourceEndLine: 112
+    sourceEndLine: 113
     sourceFile: packages/cli/src/public/distribution-parity.ts
-    sourceLine: 103
+    sourceLine: 104
   SYM-reqcompiler-parity-observation:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 79
+    sourceEndLine: 80
     sourceFile: packages/cli/src/public/distribution-parity.ts
-    sourceLine: 75
+    sourceLine: 76
   SYM-reqcompiler-parity-options:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 143
+    sourceEndLine: 144
     sourceFile: packages/cli/src/public/distribution-parity.ts
-    sourceLine: 140
+    sourceLine: 141
   SYM-reqcompiler-parity-report:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 138
+    sourceEndLine: 139
     sourceFile: packages/cli/src/public/distribution-parity.ts
-    sourceLine: 122
+    sourceLine: 123
   SYM-reqcompiler-parity-row:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 101
+    sourceEndLine: 102
     sourceFile: packages/cli/src/public/distribution-parity.ts
-    sourceLine: 88
+    sourceLine: 89
   SYM-reqcompiler-parity-runtime:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 54
+    sourceEndLine: 55
     sourceFile: packages/cli/src/public/distribution-parity.ts
-    sourceLine: 45
+    sourceLine: 46
   SYM-reqcompiler-parity-runtime-adapter:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 73
+    sourceEndLine: 74
     sourceFile: packages/cli/src/public/distribution-parity.ts
-    sourceLine: 68
+    sourceLine: 69
   SYM-reqcompiler-parity-runtime-kind:
     sourceColumn: 12
     sourceEndColumn: 23
-    sourceEndLine: 31
+    sourceEndLine: 32
     sourceFile: packages/cli/src/public/distribution-parity.ts
-    sourceLine: 28
+    sourceLine: 29
   SYM-reqcompiler-parity-runtime-provenance:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 43
+    sourceEndLine: 44
     sourceFile: packages/cli/src/public/distribution-parity.ts
-    sourceLine: 35
+    sourceLine: 36
   SYM-reqcompiler-parity-surface:
     sourceColumn: 12
     sourceEndColumn: 48
-    sourceEndLine: 32
+    sourceEndLine: 33
     sourceFile: packages/cli/src/public/distribution-parity.ts
-    sourceLine: 32
+    sourceLine: 33
   SYM-reqcompiler-parity-version:
     sourceColumn: 13
     sourceEndColumn: 40
@@ -7997,33 +8405,33 @@ coordinates:
   SYM-reqcompiler-verification-receipt:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 63
+    sourceEndLine: 153
     sourceFile: packages/cli/src/public/verification-receipt.ts
-    sourceLine: 50
+    sourceLine: 140
   SYM-reqcompiler-verification-receipt-max-age:
     sourceColumn: 13
     sourceEndColumn: 68
-    sourceEndLine: 4
+    sourceEndLine: 12
     sourceFile: packages/cli/src/public/verification-receipt.ts
-    sourceLine: 4
+    sourceLine: 12
   SYM-reqcompiler-verification-receipt-outcomes:
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 12
+    sourceEndLine: 22
     sourceFile: packages/cli/src/public/verification-receipt.ts
-    sourceLine: 6
+    sourceLine: 14
   SYM-reqcompiler-verification-receipt-schema:
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 48
+    sourceEndLine: 138
     sourceFile: packages/cli/src/public/verification-receipt.ts
-    sourceLine: 14
+    sourceLine: 136
   SYM-reqcompiler-verification-receipt-version:
     sourceColumn: 13
     sourceEndColumn: 41
-    sourceEndLine: 2
+    sourceEndLine: 4
     sourceFile: packages/cli/src/public/verification-receipt.ts
-    sourceLine: 1
+    sourceLine: 3
   SYM-reqcompiler-workspace-snapshot-evidence:
     sourceColumn: 12
     sourceEndColumn: 50
@@ -13169,15 +13577,15 @@ coordinates:
   SYM-validateUpsertInput:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 156
+    sourceEndLine: 161
     sourceFile: packages/cli/src/operations/mutation/validation.ts
     sourceLine: 97
   SYM-verification-receipt-history-errors:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 132
+    sourceEndLine: 300
     sourceFile: packages/cli/src/public/verification-receipt.ts
-    sourceLine: 78
+    sourceLine: 193
   SYM-warn:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -13187,9 +13595,9 @@ coordinates:
   SYM-withDiagnosticTelemetrySchema:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 137
+    sourceEndLine: 161
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 117
+    sourceLine: 141
   SYM-withExclusiveMirrorWriterLock:
     sourceColumn: 16
     sourceEndColumn: 1

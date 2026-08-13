@@ -60,7 +60,7 @@ describe("operation-access skill resource", () => {
       cliRoute: spec.cliName.replaceAll(" ", "-"),
     }));
 
-    expect(rows).toHaveLength(18);
+    expect(rows).toHaveLength(21);
     expect(
       rows.map(({ mcpName, cliRoute }) => ({ mcpName, cliRoute })),
     ).toEqual(expected);

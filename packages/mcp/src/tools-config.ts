@@ -51,6 +51,9 @@ const MCP_TOOL_ORDER = [
   "kb_model_requirement",
   "kb_suggest_predicates",
   "kb_autopilot_generate",
+  "kb_compile_intent",
+  "kb_apply_plan",
+  "kb_ingest_verification",
 ] as const satisfies readonly OperationName[];
 
 // implements REQ-002
@@ -95,6 +98,27 @@ const TOOL_ANNOTATIONS: Partial<Record<OperationName, ToolAnnotations>> = {
     readOnlyHint: true,
     destructiveHint: false,
     idempotentHint: true,
+    openWorldHint: false,
+  },
+  kb_compile_intent: {
+    title: "Compile Kibi change intent",
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
+  kb_apply_plan: {
+    title: "Apply an approved Kibi plan",
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: false,
+    openWorldHint: false,
+  },
+  kb_ingest_verification: {
+    title: "Ingest contracted verification evidence",
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: false,
     openWorldHint: false,
   },
 };

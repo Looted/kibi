@@ -133,6 +133,38 @@ describe("shared discovery operation executors", () => {
     expect(result.structuredContent?.results[0]?.entity.id).toBe("REQ-2");
   });
 
+  test("kb_search intent-v1 returns semantic evidence and analysis", async () => {
+    const query = mock(async (goal: string) => {
+      if (goal.includes("kb_relationship")) {
+        return { success: true, bindings: { Edges: "[]" } };
+      }
+      return {
+        success: true,
+        bindings: {
+          Results:
+            '[[REQ-EXPORT,req,[title="Export report as CSV",status=open,tags=[download,reporting]]] , [REQ-LOGIN,req,[title="Authenticate an account",status=open]]]',
+        },
+      };
+    });
+
+    const result = await searchSpec.execute(
+      {
+        query: "download report",
+        rankingMode: "intent-v1",
+        semanticFacets: { actions: ["export"], objects: ["CSV file"] },
+      },
+      createContext(query),
+    );
+
+    expect(result.structuredContent?.queryAnalysis?.rankingMode).toBe(
+      "intent-v1",
+    );
+    expect(result.structuredContent?.results[0]?.entity.id).toBe("REQ-EXPORT");
+    expect(result.structuredContent?.results[0]?.evidence).toMatchObject({
+      matchedFacets: expect.arrayContaining(["actions:export"]),
+    });
+  });
+
   test("kb_search rejects invalid pagination and oversized query input", () => {
     // Given
     const invalidInputs = [

@@ -94,6 +94,18 @@
       "types": "./dist/search-ranking.d.ts",
       "default": "./dist/search-ranking.js"
     },
+    "./intent-search": {
+      "types": "./dist/intent-search.d.ts",
+      "default": "./dist/intent-search.js"
+    },
+    "./playwright-reporter": {
+      "types": "./dist/verification/playwright-reporter.d.ts",
+      "default": "./dist/verification/playwright-reporter.js"
+    },
+    "./playwright-case-id": {
+      "types": "./dist/public/playwright-case-id.d.ts",
+      "default": "./dist/public/playwright-case-id.js"
+    },
     "./public/check-types": {
       "types": "./dist/public/check-types.d.ts",
       "default": "./dist/public/check-types.js"

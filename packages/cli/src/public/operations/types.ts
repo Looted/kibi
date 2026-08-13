@@ -18,7 +18,10 @@ export type OperationName =
   | "kb_check"
   | "kb_model_requirement"
   | "kb_suggest_predicates"
-  | "kb_autopilot_generate";
+  | "kb_autopilot_generate"
+  | "kb_compile_intent"
+  | "kb_apply_plan"
+  | "kb_ingest_verification";
 
 export type OperationEffect =
   | "local-read"

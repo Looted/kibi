@@ -10,6 +10,7 @@ import {
   upsertSpec,
   validateUpsertSpec,
 } from "./specs/mutation.js";
+import { applyPlanSpec, compileIntentSpec } from "./specs/planning.js";
 import { coverageSpec, findGapsSpec, graphSpec } from "./specs/reporting.js";
 import { semanticAdvisorSpec } from "./specs/semantic.js";
 import {
@@ -18,6 +19,7 @@ import {
   skillsReadSpec,
 } from "./specs/skills.js";
 import { sparqlRemoteSpec } from "./specs/sparql.js";
+import { ingestVerificationSpec } from "./specs/verification.js";
 import type { OperationName, OperationSpec } from "./types.js";
 
 export const OPERATION_CATALOG = [
@@ -39,6 +41,9 @@ export const OPERATION_CATALOG = [
   deleteSpec,
   checkSpec,
   sparqlRemoteSpec,
+  compileIntentSpec,
+  applyPlanSpec,
+  ingestVerificationSpec,
 ] as const satisfies readonly OperationSpec[];
 
 const SPECS_BY_NAME: ReadonlyMap<OperationName, OperationSpec> = new Map(

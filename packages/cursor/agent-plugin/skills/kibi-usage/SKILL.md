@@ -24,7 +24,7 @@ Consult this skill before any Kibi knowledge base operation, on first interactio
 
 ## Interface Selection
 
-Kibi exposes two peer surfaces over the same 18 operations: visible MCP tools and the trusted project-local CLI. Both accept the same business input and effects (see `resources/operation-access.md`). Choose by what is visible and approved in the current environment — MCP and the CLI are equal choices, not a preference order:
+Kibi exposes two peer surfaces over the same 21 operations: visible MCP tools and the trusted project-local CLI. Both accept the same business input and effects (see `resources/operation-access.md`). Choose by what is visible and approved in the current environment — MCP and the CLI are equal choices, not a preference order:
 
 1. If Kibi MCP tools are visible and approved in the current environment, use MCP.
 2. Otherwise, in a trusted workspace, use the project-local CLI through a non-installing runner: `npx --no-install kibi ...`. The CLI is a peer interface, not a fallback.
@@ -109,7 +109,7 @@ Use `kb_semantic_advisor` with up to three typed `interpretations` for ambiguous
 
 The portable skill body must carry the core contract even when its detailed resources are unavailable: `kb_semantic_advisor` returns a `propositions[]` ledger and `semantic_inventory`; submit typed `interpretations` when wording has more than one plausible logical reading; validate modeled conditions through `kibi.logic.v1`; and preserve unresolved propositions as explicit gaps. Do not read or edit files inside `.kb` directly.
 
-Requirement proof also requires fresh execution evidence. Read the available `verificationSnapshot` from `kb_status`, run the scenario-backed E2E command, and append a `kibi.verification-receipt.v1` carrying test ID, typed scope, runner, command, snapshot, environment hash, timestamps, outcome, and artifact digest. Never rewrite receipt history or treat durable `status: passing` as execution proof; re-run coverage and repair every receipt-specific gap.
+Requirement proof also requires fresh execution evidence. Read the available `verificationSnapshot` from `kb_status`, run the scenario-backed E2E command through CLI-only `kibi verify --test-id TEST -- <argv>`, and append a contracted `kibi.verification-receipt.v2` carrying the exact command, snapshot, environment hash, timestamps, outcome, artifact digest, and every required case/project result. Never rewrite receipt history or treat durable `status: passing` as execution proof; re-run coverage and repair every receipt-specific gap.
 
 Requirement-mode `kb_coverage` also returns `kibi.repair-plan.v1`. Use it only when `scope.complete` is true; a partial plan means pagination hid actionable requirements. Apply only the earliest `ready` batch for each requirement, query before mutation, create endpoints before relationships, validate every payload, and keep `kb_upsert` calls sequential. Batches are deliberately `autoApplicable: false`: semantic resolution, contradiction supersession, E2E execution, and source ownership always require review. Re-run coverage after every batch instead of continuing from a stale plan.
 

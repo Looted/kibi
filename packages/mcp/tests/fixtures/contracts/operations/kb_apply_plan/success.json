@@ -1,0 +1,65 @@
+{
+  "input": {
+    "approvedPlanHash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "plan": {
+      "contradictionAnalysis": {
+        "outcome": "unresolved",
+        "witnesses": []
+      },
+      "diagnostics": [],
+      "discovery": {
+        "abstained": true,
+        "candidates": []
+      },
+      "expected": {
+        "kbSnapshotId": "stamp:test",
+        "sourceHashes": {},
+        "workspaceSnapshot": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "planHash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "proposals": [],
+      "propositions": [],
+      "sourceWrites": [],
+      "status": "needs_resolution",
+      "steps": [],
+      "target": {
+        "mode": "create",
+        "requirementId": "REQ-test",
+        "selectionReason": "fixture"
+      },
+      "version": "kibi.compile-plan.v1"
+    }
+  },
+  "structuredContent": {
+    "outcome": "applied",
+    "version": "kibi.plan-apply-result.v1"
+  },
+  "tool": {
+    "description": "Apply an approved kibi.compile-plan.v1 after revalidating its canonical hash, branch/KB/workspace snapshots, source before-hashes, entity shapes, and relationship endpoints. Applies entity steps sequentially through the shared upsert boundary and reports final snapshots. Source publishing and crash recovery are not silently implied by this v1 boundary.",
+    "inputSchema": {
+      "properties": {
+        "approvedPlanHash": {
+          "description": "Exact SHA-256 planHash returned by kb_compile_intent after human/agent review.",
+          "pattern": "^[a-fA-F0-9]{64}$",
+          "type": "string"
+        },
+        "plan": {
+          "description": "The complete kibi.compile-plan.v1 object. Partial plans are rejected.",
+          "required": [
+            "version",
+            "planHash",
+            "status",
+            "expected",
+            "target",
+            "steps",
+            "sourceWrites"
+          ],
+          "type": "object"
+        }
+      },
+      "required": ["plan", "approvedPlanHash"],
+      "type": "object"
+    },
+    "name": "kb_apply_plan"
+  }
+}

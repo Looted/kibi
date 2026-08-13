@@ -173,6 +173,610 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+  - id: SYM-kibi-cli-src-cli-register-verification-ts-registerverificationcommand
+    title: registerVerificationCommand
+    sourceFile: packages/cli/src/cli-register-verification.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-commands-verify-ts-verifycommand
+    title: verifyCommand
+    sourceFile: packages/cli/src/commands/verify.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-commands-verify-ts-verifycommandoptions
+    title: VerifyCommandOptions
+    sourceFile: packages/cli/src/commands/verify.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-extractors-playwright-cases-ts-extractplaywrightcases
+    title: extractPlaywrightCases
+    sourceFile: packages/cli/src/extractors/playwright-cases.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-extractors-playwright-cases-ts-playwrightcasesymbol
+    title: PlaywrightCaseSymbol
+    sourceFile: packages/cli/src/extractors/playwright-cases.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-extractors-playwright-cases-ts-playwrightcasediagnostic
+    title: PlaywrightCaseDiagnostic
+    sourceFile: packages/cli/src/extractors/playwright-cases.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-extractors-playwright-cases-ts-playwrightcaseextraction
+    title: PlaywrightCaseExtraction
+    sourceFile: packages/cli/src/extractors/playwright-cases.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-intent-search-ts-rankintententities
+    title: rankIntentEntities
+    sourceFile: packages/cli/src/intent-search.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-intent-aware-source-discovery
+      - type: covered_by
+        target: TEST-kibi-intent-aware-source-discovery
+  - id: SYM-kibi-cli-src-intent-search-ts-executeintentsearch
+    title: executeIntentSearch
+    sourceFile: packages/cli/src/intent-search.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-intent-aware-source-discovery
+      - type: covered_by
+        target: TEST-kibi-intent-aware-source-discovery
+  - id: SYM-kibi-cli-src-intent-search-ts-validateintentsearchinput
+    title: validateIntentSearchInput
+    sourceFile: packages/cli/src/intent-search.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-intent-aware-source-discovery
+      - type: covered_by
+        target: TEST-kibi-intent-aware-source-discovery
+  - id: SYM-kibi-cli-src-intent-search-ts-intentsearchfacetname
+    title: IntentSearchFacetName
+    sourceFile: packages/cli/src/intent-search.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-intent-aware-source-discovery
+      - type: covered_by
+        target: TEST-kibi-intent-aware-source-discovery
+  - id: SYM-kibi-cli-src-intent-search-ts-intentsearchfacets
+    title: IntentSearchFacets
+    sourceFile: packages/cli/src/intent-search.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-intent-aware-source-discovery
+      - type: covered_by
+        target: TEST-kibi-intent-aware-source-discovery
+  - id: SYM-kibi-cli-src-intent-search-ts-sourcelocation
+    title: SourceLocation
+    sourceFile: packages/cli/src/intent-search.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-intent-aware-source-discovery
+      - type: covered_by
+        target: TEST-kibi-intent-aware-source-discovery
+  - id: SYM-kibi-cli-src-intent-search-ts-intentsearchoptions
+    title: IntentSearchOptions
+    sourceFile: packages/cli/src/intent-search.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-intent-aware-source-discovery
+      - type: covered_by
+        target: TEST-kibi-intent-aware-source-discovery
+  - id: SYM-kibi-cli-src-intent-search-ts-intentsourcematch
+    title: IntentSourceMatch
+    sourceFile: packages/cli/src/intent-search.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-intent-aware-source-discovery
+      - type: covered_by
+        target: TEST-kibi-intent-aware-source-discovery
+  - id: SYM-kibi-cli-src-intent-search-ts-intentgraphpath
+    title: IntentGraphPath
+    sourceFile: packages/cli/src/intent-search.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-intent-aware-source-discovery
+      - type: covered_by
+        target: TEST-kibi-intent-aware-source-discovery
+  - id: SYM-kibi-cli-src-intent-search-ts-intentsearchevidence
+    title: IntentSearchEvidence
+    sourceFile: packages/cli/src/intent-search.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-intent-aware-source-discovery
+      - type: covered_by
+        target: TEST-kibi-intent-aware-source-discovery
+  - id: SYM-kibi-cli-src-intent-search-ts-intentsearchmatch
+    title: IntentSearchMatch
+    sourceFile: packages/cli/src/intent-search.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-intent-aware-source-discovery
+      - type: covered_by
+        target: TEST-kibi-intent-aware-source-discovery
+  - id: SYM-kibi-cli-src-intent-search-ts-intentsearchanalysis
+    title: IntentSearchAnalysis
+    sourceFile: packages/cli/src/intent-search.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-intent-aware-source-discovery
+      - type: covered_by
+        target: TEST-kibi-intent-aware-source-discovery
+  - id: SYM-kibi-cli-src-intent-search-ts-intentsearchresult
+    title: IntentSearchResult
+    sourceFile: packages/cli/src/intent-search.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-intent-aware-source-discovery
+      - type: covered_by
+        target: TEST-kibi-intent-aware-source-discovery
+  - id: SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan
+    title: executeApplyPlan
+    sourceFile: packages/cli/src/operations/planning/apply-plan.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+  - id: SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanargs
+    title: ApplyPlanArgs
+    sourceFile: packages/cli/src/operations/planning/apply-plan.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+  - id: SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanresult
+    title: ApplyPlanResult
+    sourceFile: packages/cli/src/operations/planning/apply-plan.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+  - id: SYM-kibi-cli-src-operations-planning-apply-plan-ts-plan-apply-result-version
+    title: PLAN_APPLY_RESULT_VERSION
+    sourceFile: packages/cli/src/operations/planning/apply-plan.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+  - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileplanhash
+    title: compilePlanHash
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+  - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-executecompileintent
+    title: executeCompileIntent
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+  - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileintentargs
+    title: CompileIntentArgs
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+  - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-scenariodraft
+    title: ScenarioDraft
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+  - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-testdraft
+    title: TestDraft
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+  - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-proposaldecision
+    title: ProposalDecision
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+  - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-contradictionwitness
+    title: ContradictionWitness
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+  - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-traceabilityproposal
+    title: TraceabilityProposal
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+  - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-planstep
+    title: PlanStep
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+  - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileplanv1
+    title: CompilePlanV1
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+  - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compile-plan-version
+    title: COMPILE_PLAN_VERSION
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+  - id: SYM-kibi-cli-src-operations-verification-ingest-verification-ts-executeingestverification
+    title: executeIngestVerification
+    sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-operations-verification-ingest-verification-ts-verificationcaseartifact
+    title: VerificationCaseArtifact
+    sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-operations-verification-ingest-verification-ts-ingestverificationargs
+    title: IngestVerificationArgs
+    sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-operations-verification-ingest-verification-ts-ingestverificationresult
+    title: IngestVerificationResult
+    sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-operations-verification-ingest-verification-ts-playwright-run-version
+    title: PLAYWRIGHT_RUN_VERSION
+    sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-operations-specs-planning-ts-compileintentspec
+    title: compileIntentSpec
+    sourceFile: packages/cli/src/public/operations/specs/planning.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+  - id: SYM-kibi-cli-src-public-operations-specs-planning-ts-applyplanspec
+    title: applyPlanSpec
+    sourceFile: packages/cli/src/public/operations/specs/planning.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+  - id: SYM-kibi-cli-src-public-operations-specs-verification-ts-ingestverificationspec
+    title: ingestVerificationSpec
+    sourceFile: packages/cli/src/public/operations/specs/verification.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-playwright-case-id-ts-playwrightcaseid
+    title: playwrightCaseId
+    sourceFile: packages/cli/src/public/playwright-case-id.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-playwright-case-id-ts-normalizeplaywrightsourcefile
+    title: normalizePlaywrightSourceFile
+    sourceFile: packages/cli/src/public/playwright-case-id.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verificationcontracthash
+    title: verificationContractHash
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verificationreceiptv2
+    title: VerificationReceiptV2
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verificationcontract
+    title: VerificationContract
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verification-receipt-v2-version
+    title: VERIFICATION_RECEIPT_V2_VERSION
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verification-contract-version
+    title: VERIFICATION_CONTRACT_VERSION
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verification-contract-schema
+    title: VERIFICATION_CONTRACT_SCHEMA
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter
+    title: KibiPlaywrightReporter
+    sourceFile: packages/cli/src/verification/playwright-reporter.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter-onbegin
+    title: KibiPlaywrightReporter.onBegin
+    sourceFile: packages/cli/src/verification/playwright-reporter.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter-ontestend
+    title: KibiPlaywrightReporter.onTestEnd
+    sourceFile: packages/cli/src/verification/playwright-reporter.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter-onend
+    title: KibiPlaywrightReporter.onEnd
+    sourceFile: packages/cli/src/verification/playwright-reporter.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporteroptions
+    title: KibiPlaywrightReporterOptions
+    sourceFile: packages/cli/src/verification/playwright-reporter.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-verification-playwright-reporter-ts-playwright-run-version
+    title: PLAYWRIGHT_RUN_VERSION
+    sourceFile: packages/cli/src/verification/playwright-reporter.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-script-change-to-proof-eval-ts-readjsonl
+    title: readJsonl
+    sourceFile: scripts/change-to-proof-eval.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation
+  - id: SYM-kibi-script-change-to-proof-eval-ts-evaluatesearch
+    title: evaluateSearch
+    sourceFile: scripts/change-to-proof-eval.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation
+  - id: SYM-kibi-script-change-to-proof-eval-ts-evaluatecompile
+    title: evaluateCompile
+    sourceFile: scripts/change-to-proof-eval.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation
+  - id: SYM-kibi-script-change-to-proof-eval-ts-searchgoldcase
+    title: SearchGoldCase
+    sourceFile: scripts/change-to-proof-eval.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation
+  - id: SYM-kibi-script-change-to-proof-eval-ts-searchevaluation
+    title: SearchEvaluation
+    sourceFile: scripts/change-to-proof-eval.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation
+  - id: SYM-kibi-script-change-to-proof-eval-ts-compilegoldcase
+    title: CompileGoldCase
+    sourceFile: scripts/change-to-proof-eval.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation
+  - id: SYM-kibi-script-change-to-proof-eval-ts-compileevaluation
+    title: CompileEvaluation
+    sourceFile: scripts/change-to-proof-eval.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation
+  - id: SYM-kibi-script-change-to-proof-eval-ts-searchcandidate
+    title: SearchCandidate
+    sourceFile: scripts/change-to-proof-eval.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation
+  - id: SYM-kibi-script-change-to-proof-eval-ts-searchevaluator
+    title: SearchEvaluator
+    sourceFile: scripts/change-to-proof-eval.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation
+  - id: SYM-kibi-script-change-to-proof-eval-ts-compileevaluator
+    title: CompileEvaluator
+    sourceFile: scripts/change-to-proof-eval.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation
   - id: SYM-cli-discovery-deps
     title: DiscoveryDeps
     sourceFile: packages/cli/src/commands/discovery-shared.ts
@@ -3282,13 +3886,6 @@ symbols:
         target: REQ-audit-quality-diagnostics-v1
       - type: covered_by
         target: TEST-coverage-depth-labels
-  - id: SYM-cli-test-large-entity-goal
-    title: largeEntityGoal
-    sourceFile: packages/cli/tests/operations/discovery.test.ts
-    symbol_role: behavioral
-    relationships:
-      - type: executable_for
-        target: TEST-mcp-search-discovery
   - id: SYM-cli-test-makeQualitySymbolResult
     title: makeQualitySymbolResult
     sourceFile: packages/cli/tests/traceability/impact-symbol-quality-fixtures.ts
@@ -8572,6 +9169,24 @@ symbols:
         target: TEST-mcp-init-kibi-autopilot-v1
   - id: SYM-operation-catalog
     title: OPERATION_CATALOG
+    sourceFile: packages/cli/src/public/operations/catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-operation-get-spec
+    title: getSpec
+    sourceFile: packages/cli/src/public/operations/catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-operation-list-specs
+    title: listSpecs
     sourceFile: packages/cli/src/public/operations/catalog.ts
     symbol_role: behavioral
     relationships:

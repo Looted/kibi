@@ -37,7 +37,7 @@ graph TD
 ### CLI
 - Located at `packages/cli/`
 - Peer public operation surface alongside MCP, plus maintenance and human-oriented commands
-- Exposes all 18 public operations through `--input <file|->` JSON routes and preserves ergonomic flag commands where available
+- Exposes all 21 public operations through `--input <file|->` JSON routes and preserves ergonomic flag commands where available
 - Node.js 18+ is the supported CLI/MCP runtime and hosts the long-lived `kibi-engine` daemon
 - Automatically connects to (or starts) one engine per real workspace path and branch over a protected local socket/named pipe
 - Maintenance commands include init, sync, migrate, gc, branch, doctor, and usage-metrics

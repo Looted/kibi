@@ -81,6 +81,9 @@ const TOOL_NAMES = [
   "kb_model_requirement",
   "kb_suggest_predicates",
   "kb_autopilot_generate",
+  "kb_compile_intent",
+  "kb_apply_plan",
+  "kb_ingest_verification",
 ] as const;
 
 function objectRecord(value: unknown): Record<string, unknown> {
@@ -541,6 +544,30 @@ function createRuntime() {
         args: context,
       }),
     );
+  const handleKbCompileIntent: NonNullable<
+    ToolsRuntime<MockProlog>["handleKbCompileIntent"]
+  > = mock(
+    async (args: Record<string, unknown>): Promise<unknown> => ({
+      tool: "kb_compile_intent",
+      args,
+    }),
+  );
+  const handleKbApplyPlan: NonNullable<
+    ToolsRuntime<MockProlog>["handleKbApplyPlan"]
+  > = mock(
+    async (args: Record<string, unknown>): Promise<unknown> => ({
+      tool: "kb_apply_plan",
+      args,
+    }),
+  );
+  const handleKbIngestVerification: NonNullable<
+    ToolsRuntime<MockProlog>["handleKbIngestVerification"]
+  > = mock(
+    async (args: Record<string, unknown>): Promise<unknown> => ({
+      tool: "kb_ingest_verification",
+      args,
+    }),
+  );
   const runtime = {
     diagnosticModeEnabled,
     appendUsageLogLine,
@@ -573,6 +600,9 @@ function createRuntime() {
     handleKbModelRequirement,
     handleKbSuggestPredicates,
     handleKbAutopilotGenerate,
+    handleKbCompileIntent,
+    handleKbApplyPlan,
+    handleKbIngestVerification,
   } satisfies ToolsRuntime<MockProlog>;
 
   return {
@@ -610,6 +640,9 @@ function createRuntime() {
       handleKbModelRequirement,
       handleKbSuggestPredicates,
       handleKbAutopilotGenerate,
+      handleKbCompileIntent,
+      handleKbApplyPlan,
+      handleKbIngestVerification,
     },
   };
 }

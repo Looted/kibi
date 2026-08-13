@@ -61,5 +61,14 @@ export async function loadOperationSpec(
       return (await import("./public/operations/specs/mutation.js")).deleteSpec;
     case "kb_check":
       return (await import("./public/operations/specs/check.js")).checkSpec;
+    case "kb_compile_intent":
+      return (await import("./public/operations/specs/planning.js"))
+        .compileIntentSpec;
+    case "kb_apply_plan":
+      return (await import("./public/operations/specs/planning.js"))
+        .applyPlanSpec;
+    case "kb_ingest_verification":
+      return (await import("./public/operations/specs/verification.js"))
+        .ingestVerificationSpec;
   }
 }

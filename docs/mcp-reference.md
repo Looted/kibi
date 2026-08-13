@@ -1,6 +1,6 @@
 # MCP Server Reference
 
-The Kibi Model Context Protocol (MCP) server is a peer public interface alongside the CLI's 18 dedicated JSON routes. It serves MCP-capable agents over `stdio` and receives JSON-RPC 2.0 requests; operation schemas and executors are shared with the CLI.
+The Kibi Model Context Protocol (MCP) server is a peer public interface alongside the CLI's 21 dedicated JSON routes. It serves MCP-capable agents over `stdio` and receives JSON-RPC 2.0 requests; operation schemas and executors are shared with the CLI.
 
 ## Public Tools
 
@@ -189,16 +189,22 @@ Array of matching entities with deterministic ordering.
 
 ### `kb_search`
 
-Search entities by metadata and markdown body text for exploratory discovery.
+Search entities by metadata and markdown body text for exploratory discovery. Set `rankingMode: "intent-v1"` to use deterministic host-agent facets, source-location matching, bounded traceability evidence, and explicit low-confidence abstention.
 
 **Parameters:**
 - `query` (required): Free-text query
 - `type` (optional): Entity type filter
 - `limit` (optional): Maximum number of ranked results
 - `offset` (optional): Number of results to skip
+- `rankingMode` (optional): `legacy` (default) or `intent-v1`
+- `semanticFacets` (optional): Host-provided `actors`, `actions`, `objects`, `constraints`, or `aliases` arrays
+- `sourceLocations` (optional): Workspace-relative `{path, line?, column?, symbol?}` locations for changed code
+- `minScore` (optional): Intent acceptance threshold between `0` and `1`; defaults to `0.18`
 
 **Returns:**
 Ranked results with match reasons and optional snippets.
+
+Intent-mode results additionally carry `evidence` for matched facets, source locations, graph paths, and normalized score. The payload includes `queryAnalysis` with candidate/accepted counts, top score, top-two margin, ranking mode, and `abstained`. An abstention is an explicit no-answer signal, not a successful empty lexical search.
 
 **Example:**
 ```json
@@ -208,6 +214,53 @@ Ranked results with match reasons and optional snippets.
   "limit": 10
 }
 ```
+
+### `kb_compile_intent`
+
+Compile complete post-change intent into a deterministic, snapshot-bound plan without mutating the KB. The compiler reuses intent-aware discovery and the semantic advisor, accounts for every proposition, checks current contradiction witnesses, proposes canonical traceability links, and emits dependency-ordered `kb_upsert`-style steps only for resolved typed claims.
+
+**Parameters:**
+- `intent` (required): Complete desired behavior, not a patch fragment.
+- `mode` (required): `create` or `update`.
+- `requirementId` (optional): Exact update target; automatic update selection is gated by score and runner-up margin.
+- `title`, `clauses`, `semanticFacets`, `sourceLocations`, `interpretations` (optional): Context for title, proposition decomposition, host-agent facets, changed-code evidence, and typed rule IR.
+- `scenarioDrafts`, `testDrafts` (optional): Draft traceability artifacts. Tests are linked through scenarios with `verified_by`.
+- `proposalDecisions` (optional): Explicit `accept`/`reject` decisions for returned traceability proposals; pending proposals are excluded from executable steps.
+
+**Returns:**
+`kibi.compile-plan.v1` with `planHash`, status (`ready`, `needs_resolution`, or `blocked`), branch/KB/workspace snapshot bindings, discovery candidates, proposition ledger, contradiction witnesses, traceability proposals, dependency-ordered steps, source before-hashes, and diagnostics. The plan is a review artifact; it is not a mutation request.
+
+**Example:**
+```json
+{
+  "intent": "Customer data must be retained for 7 years.",
+  "mode": "create",
+  "sourceLocations": [{"path": "src/retention/policy.ts", "symbol": "retentionYears"}]
+}
+```
+
+### `kb_apply_plan`
+
+Apply an approved `kibi.compile-plan.v1` after revalidating its canonical hash, branch/KB/workspace snapshots, source before-hashes, and entity/relationship shapes. Entity steps are applied sequentially through the shared upsert boundary. This v1 boundary does not publish source files or claim crash recovery.
+
+**Parameters:**
+- `plan` (required): Complete plan returned by `kb_compile_intent`.
+- `approvedPlanHash` (required): Exact reviewed `planHash`.
+
+**Returns:**
+`kibi.plan-apply-result.v1` with applied entity/relationship counts, final snapshots, validation counts, changed paths, and explicit notes about the current sequential boundary.
+
+### `kb_ingest_verification`
+
+Ingest a reporter-produced `kibi.playwright-run.v1` artifact for a contracted test. Kibi rechecks the live workspace snapshot, runner/command contract, required case/project coverage, and append-only history, then derives and appends a `kibi.verification-receipt.v2`. Caller-authored receipts and trusted outcomes are rejected.
+
+**Parameters:**
+- `testId` (required): Existing test entity with `verification_contract.v1`.
+- `snapshot` (required): Workspace snapshot captured immediately before execution.
+- `artifact` (required): Reporter artifact containing runner, command argv, code snapshot, environment hash, timestamps, process exit code, and case results.
+
+**Returns:**
+Derived receipt, proof outcome, receipt count, and the shared upsert result. A changed snapshot, missing contracted case, command drift, duplicate case, or append-only violation fails before mutation.
 
 ### `kb_status`
 

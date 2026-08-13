@@ -21,6 +21,9 @@ const EXPECTED_CLI_NAMES = {
   kb_delete: "delete",
   kb_check: "check",
   kb_sparql_remote: "sparql-remote",
+  kb_compile_intent: "compile-intent",
+  kb_apply_plan: "apply-plan",
+  kb_ingest_verification: "ingest-verification",
 } as const;
 
 const PROLOG_FREE_OPERATIONS = new Set([
@@ -42,9 +45,9 @@ const VALID_EFFECTS = new Set([
 ]);
 
 describe("public operation catalog", () => {
-  test("contains exactly the 18 unique operations and CLI routes", () => {
-    expect(OPERATION_CATALOG).toHaveLength(18);
-    expect(new Set(OPERATION_CATALOG.map(({ name }) => name)).size).toBe(18);
+  test("contains exactly the 21 unique operations and CLI routes", () => {
+    expect(OPERATION_CATALOG).toHaveLength(21);
+    expect(new Set(OPERATION_CATALOG.map(({ name }) => name)).size).toBe(21);
     expect(
       Object.fromEntries(
         OPERATION_CATALOG.map(({ name, cliName }) => [name, cliName]),

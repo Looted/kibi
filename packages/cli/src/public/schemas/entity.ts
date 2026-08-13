@@ -18,7 +18,10 @@
 
 // Typed fact field enums per proposal
 import { SYMBOL_ROLES, type SymbolRole } from "../symbol-granularity.js";
-import { VERIFICATION_RECEIPT_SCHEMA } from "../verification-receipt.js";
+import {
+  VERIFICATION_CONTRACT_SCHEMA,
+  VERIFICATION_RECEIPT_SCHEMA,
+} from "../verification-receipt.js";
 
 type FactKind =
   | "subject"
@@ -453,6 +456,7 @@ const entitySchema: Record<string, unknown> = {
       type: "string",
       enum: ["internal", "consumer"] satisfies VerificationPerspective[],
     },
+    verification_contract: VERIFICATION_CONTRACT_SCHEMA,
     verification_receipts: {
       type: "array",
       maxItems: 50,
@@ -597,6 +601,7 @@ const entitySchema: Record<string, unknown> = {
           anyOf: [
             { required: ["verification_scope"] },
             { required: ["verification_perspective"] },
+            { required: ["verification_contract"] },
             { required: ["verification_receipts"] },
           ],
         },

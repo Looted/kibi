@@ -63,6 +63,9 @@ const OPERATION_NAMES = [
   "kb_suggest_predicates",
   "kb_autopilot_generate",
   "kb_sparql_remote",
+  "kb_compile_intent",
+  "kb_apply_plan",
+  "kb_ingest_verification",
 ] as const;
 
 const VOLATILE_KEYS = new Set([
@@ -242,7 +245,7 @@ describe("mcp contract fixtures", () => {
     const registered = createRegisteredToolsSnapshot();
     const toolDefinitions = new Map(TOOLS.map((tool) => [tool.name, tool]));
 
-    expect(registered.map((tool) => tool.name)).toHaveLength(18);
+    expect(registered.map((tool) => tool.name)).toHaveLength(21);
     expect(registered.map((tool) => tool.name)).not.toContain(
       "kb_briefing_generate",
     );

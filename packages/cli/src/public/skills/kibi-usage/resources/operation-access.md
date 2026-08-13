@@ -22,6 +22,9 @@ This table is the machine-readable interface map for Kibi's shared operation cat
 | `kb_delete` | `delete` | `--input JSON` | write | yes | `kb-write, workspace-write` | peer; capability-selected |
 | `kb_check` | `check` | `--input JSON or flags` | read | yes | `kb-read, workspace-read` | peer; capability-selected |
 | `kb_sparql_remote` | `sparql-remote` | `--input JSON` | read | no | `network-read` | peer; capability-selected |
+| `kb_compile_intent` | `compile-intent` | `--input JSON` | read | yes | `kb-read, workspace-read` | peer; capability-selected |
+| `kb_apply_plan` | `apply-plan` | `--input JSON` | write | yes | `kb-read, kb-write, workspace-read` | peer; capability-selected |
+| `kb_ingest_verification` | `ingest-verification` | `--input JSON` | write | yes | `kb-read, kb-write, workspace-read` | peer; capability-selected |
 
 ## JSON execution recipes
 

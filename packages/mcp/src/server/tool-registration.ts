@@ -1,6 +1,11 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { type OperationName, getSpec } from "kibi-cli/operations";
+import {
+  executeApplyPlan,
+  executeCompileIntent,
+  executeIngestVerification,
+} from "kibi-cli/operations";
 import type {
   OperationContext,
   RuntimeOperationSpec,
@@ -194,5 +199,26 @@ export function registerConfiguredTools<TProlog>(
         args as unknown as AutopilotGenerateArgs,
         context,
       ),
+  });
+  register({
+    name: "kb_compile_intent",
+    execute: async (context, args) =>
+      runtime.handleKbCompileIntent
+        ? runtime.handleKbCompileIntent(args, context)
+        : executeCompileIntent(args as never, context as never),
+  });
+  register({
+    name: "kb_apply_plan",
+    execute: async (context, args) =>
+      runtime.handleKbApplyPlan
+        ? runtime.handleKbApplyPlan(args, context)
+        : executeApplyPlan(args as never, context as never),
+  });
+  register({
+    name: "kb_ingest_verification",
+    execute: async (context, args) =>
+      runtime.handleKbIngestVerification
+        ? runtime.handleKbIngestVerification(args, context)
+        : executeIngestVerification(args as never, context as never),
   });
 }

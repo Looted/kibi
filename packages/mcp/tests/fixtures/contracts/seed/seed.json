@@ -714,6 +714,96 @@
         }
       }
     },
+    "kb_compile_intent": {
+      "input": {
+        "intent": "Customer data must be retained for 7 years.",
+        "mode": "create"
+      },
+      "success": {
+        "structuredContent": {
+          "version": "kibi.compile-plan.v1",
+          "status": "ready"
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "intent must be a non-empty string"
+        }
+      }
+    },
+    "kb_apply_plan": {
+      "input": {
+        "plan": {
+          "version": "kibi.compile-plan.v1",
+          "planHash": "0000000000000000000000000000000000000000000000000000000000000000",
+          "status": "needs_resolution",
+          "expected": {
+            "branch": "develop",
+            "kbSnapshotId": "stamp:test",
+            "workspaceSnapshot": "0000000000000000000000000000000000000000000000000000000000000000",
+            "sourceHashes": {}
+          },
+          "target": {
+            "mode": "create",
+            "requirementId": "REQ-test",
+            "selectionReason": "fixture"
+          },
+          "discovery": { "candidates": [], "abstained": true },
+          "propositions": [],
+          "contradictionAnalysis": { "outcome": "unresolved", "witnesses": [] },
+          "proposals": [],
+          "steps": [],
+          "sourceWrites": [],
+          "diagnostics": []
+        },
+        "approvedPlanHash": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "success": {
+        "structuredContent": {
+          "version": "kibi.plan-apply-result.v1",
+          "outcome": "applied"
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "only ready plans may be applied"
+        }
+      }
+    },
+    "kb_ingest_verification": {
+      "input": {
+        "testId": "TEST-001",
+        "snapshot": "0000000000000000000000000000000000000000000000000000000000000000",
+        "artifact": {
+          "version": "kibi.playwright-run.v1",
+          "runner": "playwright",
+          "command_argv": ["pnpm", "exec", "playwright", "test"],
+          "code_snapshot": "0000000000000000000000000000000000000000000000000000000000000000",
+          "environment_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+          "started_at": "2026-08-13T00:00:00Z",
+          "finished_at": "2026-08-13T00:00:01Z",
+          "process_exit_code": 0,
+          "cases": []
+        }
+      },
+      "success": {
+        "structuredContent": {
+          "receipt": { "version": "kibi.verification-receipt.v2" },
+          "proofOutcome": "passed"
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "artifact.cases must be non-empty"
+        }
+      }
+    },
     "kb_sparql_remote": {
       "input": {
         "endpoint": "http://127.0.0.1:40123/sparql",

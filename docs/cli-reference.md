@@ -4,7 +4,7 @@ This document provides complete command-by-command documentation for the kibi CL
 
 ## Dedicated JSON operation routes
 
-The CLI exposes the same 18 public operations as MCP. Every route accepts one JSON object through `--input <file|->`, where a path is resolved from the current working directory and `-` reads standard input exactly once. JSON mode writes one structured JSON value followed by a newline to stdout.
+The CLI exposes the same 21 public operations as MCP. Every route accepts one JSON object through `--input <file|->`, where a path is resolved from the current working directory and `-` reads standard input exactly once. JSON mode writes one structured JSON value followed by a newline to stdout.
 
 ```bash
 # Read an input object from a file
@@ -31,6 +31,9 @@ The input root must be a JSON object that matches the corresponding operation sc
 | `kb_model_requirement` | `kibi model-requirement --input <file|->` |
 | `kb_suggest_predicates` | `kibi suggest-predicates --input <file|->` |
 | `kb_autopilot_generate` | `kibi autopilot-generate --input <file|->` |
+| `kb_compile_intent` | `kibi compile-intent --input <file|->` |
+| `kb_apply_plan` | `kibi apply-plan --input <file|->` |
+| `kb_ingest_verification` | `kibi ingest-verification --input <file|->` |
 | `kb_validate_upsert` | `kibi validate-upsert --input <file|->` |
 | `kb_upsert` | `kibi upsert --input <file|->` |
 | `kb_delete` | `kibi delete --input <file|->` |
@@ -117,6 +120,22 @@ Node.js 18 or newer is required for both the CLI/MCP clients and the engine.
 Bun remains a repository build/test tool, but is not a supported runtime for
 the published Kibi packages.
 
+## `kibi verify`
+
+Runs an explicit command against a test's current verification contract and
+ingests the raw `kibi.playwright-run.v1` reporter artifact. The command is
+never taken from the KB implicitly: argv after `--` must exactly match the
+contract, and the child process is spawned with `shell: false`.
+
+```bash
+kibi verify --test-id TEST-checkout -- pnpm exec playwright test --project=chromium
+```
+
+The reporter is available as `kibi-cli/playwright-reporter`. Set
+`KIBI_VERIFICATION_OUTPUT` when running Playwright directly. A missing,
+partial, retried, stale, or contract-drifted artifact is rejected by the same
+`kb_ingest_verification` executor used by MCP and JSON CLI callers.
+
 ## `kibi query [type]`
 
 Queries entities from the knowledge base.
@@ -165,7 +184,7 @@ kibi query scenario --limit 10 --offset 10
 
 ## `kibi search <query>`
 
-Searches entity metadata and markdown body text for exploratory discovery.
+Searches entity metadata and markdown body text for exploratory discovery. The JSON route also supports deterministic intent-v1 ranking for host-agent facets and changed source locations.
 
 **Syntax:**
 ```bash
@@ -176,6 +195,19 @@ kibi search <query> [--type TYPE] [--format json|table] [--limit N] [--offset N]
 - Searches markdown-backed knowledge and metadata
 - Does not search raw code file bodies
 - Use `kibi query` for exact follow-up lookups
+
+Intent mode is available through `kibi search --input -`:
+
+```bash
+printf '%s\n' '{
+  "query": "download a report",
+  "rankingMode": "intent-v1",
+  "semanticFacets": {"actions": ["export"], "objects": ["CSV file"]},
+  "sourceLocations": [{"path": "src/reports/export.ts", "line": 42}]
+}' | kibi search --input -
+```
+
+Intent results include `queryAnalysis`, matched semantic facets, source-location evidence, bounded traceability graph paths, and `abstained: true` when no result reaches `minScore` (default `0.18`). Source paths must be workspace-relative. The host agent supplies facets; Kibi does not call a model.
 
 ## `kibi status`
 

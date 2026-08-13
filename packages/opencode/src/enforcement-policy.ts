@@ -349,7 +349,7 @@ function hardBlockText(events: NormalizedPolicyEvent[]): {
       ...pathLines,
       ...evidenceNotes,
       "Capability-based checkpoint instructions:",
-      "- MCP tools and the trusted project-local CLI are peer surfaces over the same 18 operations; choose by what is visible and approved here.",
+      "- MCP tools and the trusted project-local CLI are peer surfaces over the same 21 operations; choose by what is visible and approved here.",
       "- If Kibi MCP tools are visible and approved, use MCP.",
       "- Otherwise, in a trusted workspace, use the project-local CLI's dedicated JSON routes with `--input <file|->`.",
       "- If neither interface is available, Kibi operation is blocked; tell the operator to enable MCP or the trusted project-local CLI.",
