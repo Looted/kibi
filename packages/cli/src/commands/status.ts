@@ -1,4 +1,5 @@
-import { executeOperation, statusSpec } from "../public/operations/index.js";
+import { executeOperation } from "../public/operations/runtime-types.js";
+import { statusSpec } from "../public/operations/specs/discovery.js";
 import { createCliRuntime } from "../runtime/cli-runtime.js";
 import { printDiscoveryResult } from "./discovery-shared.js";
 

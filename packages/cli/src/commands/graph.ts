@@ -1,4 +1,4 @@
-import { graphSpec } from "../public/operations/index.js";
+import { graphSpec } from "../public/operations/specs/reporting.js";
 import {
   executeReportingSpec,
   printDiscoveryResult,

@@ -1,5 +1,13 @@
 import { spawn } from "node:child_process";
-import { resolve } from "node:path";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 
 export type SuiteSummary = {
   pass: number;
@@ -15,6 +23,8 @@ type Batch = {
 // implements REQ-root-suite-batch-diagnostics
 // covered_by TEST-root-suite-batch-diagnostics
 export const BATCH_TIMEOUT_MINUTES = 25;
+export const BATCH_CONCURRENCY = 2;
+export const TEST_ENGINE_SHUTDOWN_TIMEOUT_MS = 5_000;
 
 type BatchOutcome = {
   timedOut: boolean;
@@ -133,6 +143,60 @@ export function parseSuiteSummaries(output: string): SuiteSummary[] {
   return summaries;
 }
 
+function processIsRunning(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Test batches own a private runtime directory, so every PID file in it is an
+// exact engine target rather than an ambient user process.
+// implements REQ-test-journaled-engine-harness
+export async function stopTestEngines(
+  runtimeDirectory: string,
+): Promise<number> {
+  if (!existsSync(runtimeDirectory)) return 0;
+  const pids: number[] = [];
+  for (const entry of readdirSync(runtimeDirectory)) {
+    if (!entry.endsWith(".pid")) continue;
+    try {
+      const pid = Number.parseInt(
+        readFileSync(join(runtimeDirectory, entry), "utf8"),
+        10,
+      );
+      if (Number.isInteger(pid) && pid > 1 && processIsRunning(pid)) {
+        pids.push(pid);
+      }
+    } catch {
+      // The daemon may remove its PID file during discovery.
+    }
+  }
+
+  for (const pid of pids) {
+    try {
+      process.kill(pid, "SIGTERM");
+    } catch {
+      // The daemon may have completed its idle shutdown after discovery.
+    }
+  }
+
+  const deadline = Date.now() + TEST_ENGINE_SHUTDOWN_TIMEOUT_MS;
+  while (pids.some(processIsRunning) && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+  for (const pid of pids.filter(processIsRunning)) {
+    try {
+      process.kill(pid, "SIGKILL");
+    } catch {
+      // The process exited between the liveness check and escalation.
+    }
+  }
+  return pids.length;
+}
+
 function formatSuiteSummary(
   summaries: Array<SuiteSummary & { label: string }>,
 ): string {
@@ -165,9 +229,16 @@ async function runBatch(
   batch: Batch,
 ): Promise<SuiteSummary & { label: string }> {
   console.info(`\n$ bun ${batch.args.join(" ")}`);
+  const runtimeDirectory = mkdtempSync(
+    join(tmpdir(), "kibi-unit-engine-runtime-"),
+  );
   const child = spawn("bun", batch.args, {
     cwd: process.cwd(),
-    env: process.env,
+    env: {
+      ...process.env,
+      KIBI_ENGINE_IDLE_TIMEOUT_MS: "30000",
+      KIBI_RUNTIME_DIR: runtimeDirectory,
+    },
     stdio: ["ignore", "pipe", "pipe"],
   });
 
@@ -196,7 +267,16 @@ async function runBatch(
   const status = await new Promise<number | null>((resolve, reject) => {
     child.once("error", reject);
     child.once("exit", (code) => resolve(code));
-  }).finally(() => clearTimeout(timeout));
+  }).finally(async () => {
+    clearTimeout(timeout);
+    const stopped = await stopTestEngines(runtimeDirectory);
+    rmSync(runtimeDirectory, { recursive: true, force: true });
+    if (stopped > 0) {
+      console.info(
+        `Stopped ${stopped} test engine${stopped === 1 ? "" : "s"} for ${batch.label}.`,
+      );
+    }
+  });
 
   const summaries = parseSuiteSummaries(
     Buffer.concat([...outputChunks, ...errorChunks]).toString("utf8"),
@@ -212,10 +292,24 @@ async function runBatch(
 }
 
 async function runCuratedUnitSuite(): Promise<number> {
-  const summaries: Array<SuiteSummary & { label: string }> = [];
-  for (const batch of BATCHES) {
-    summaries.push(await runBatch(batch));
-  }
+  const summaries = new Array<SuiteSummary & { label: string }>(BATCHES.length);
+  let nextBatch = 0;
+  const workers = Array.from(
+    { length: Math.min(BATCH_CONCURRENCY, BATCHES.length) },
+    async () => {
+      while (nextBatch < BATCHES.length) {
+        const index = nextBatch;
+        nextBatch += 1;
+        const batch = BATCHES[index];
+        if (batch !== undefined) summaries[index] = await runBatch(batch);
+      }
+    },
+  );
+  const workerResults = await Promise.allSettled(workers);
+  const failure = workerResults.find(
+    (result): result is PromiseRejectedResult => result.status === "rejected",
+  );
+  if (failure !== undefined) throw failure.reason;
   console.info(`\n${formatSuiteSummary(summaries)}`);
   return summaries.some((summary) => summary.fail > 0) ? 1 : 0;
 }

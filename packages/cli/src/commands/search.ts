@@ -1,8 +1,6 @@
-import {
-  VALID_ENTITY_TYPES,
-  executeOperation,
-  searchSpec,
-} from "../public/operations/index.js";
+import { VALID_ENTITY_TYPES } from "../public/operations/discovery-entities.js";
+import { executeOperation } from "../public/operations/runtime-types.js";
+import { searchSpec } from "../public/operations/specs/discovery.js";
 import { createCliRuntime } from "../runtime/cli-runtime.js";
 import { printDiscoveryResult } from "./discovery-shared.js";
 

@@ -1,14 +1,11 @@
 import type { Command } from "commander";
 import { InputError } from "./cli-errors.js";
 import { loadInput } from "./cli-input.js";
+import { loadOperationSpec } from "./cli-operation-loader.js";
 import { executeOperation as executeProtocolOperation } from "./cli-protocol.js";
 import { prepareOperationInput } from "./cli-validate.js";
 import { appendCliDiagnosticUsage } from "./public/diagnostic-usage.js";
-import {
-  type OperationName,
-  getSpec,
-  listSpecs,
-} from "./public/operations/index.js";
+import type { OperationName } from "./public/operations/types.js";
 import { createCliRuntime } from "./runtime/cli-runtime.js";
 
 // implements REQ-kibi-operation-interface-parity
@@ -68,7 +65,7 @@ export async function runJsonInvocation(
   const startedAt = new Date();
   const diagnostic = diagnosticModeEnabled(invocation.command);
   const workspaceRoot = process.cwd();
-  const spec = getSpec(invocation.operationName);
+  const spec = await loadOperationSpec(invocation.operationName);
   const conflicts = findInputConflicts(invocation);
   if (conflicts.length > 0) {
     const error = new InputError(
@@ -169,43 +166,4 @@ export async function runJsonInvocation(
     process.stderr.write(result.stderr);
   }
   process.exitCode = result.exitCode;
-}
-
-const INTEGRATED_OPERATIONS = new Set<OperationName>([
-  "kb_query",
-  "kb_search",
-  "kb_status",
-  "kb_find_gaps",
-  "kb_coverage",
-  "kb_graph",
-  "kb_check",
-]);
-
-// implements REQ-kibi-operation-interface-parity
-export function registerJsonOnlyCommands(program: Command): void {
-  for (const spec of listSpecs()) {
-    if (INTEGRATED_OPERATIONS.has(spec.name)) {
-      continue;
-    }
-    program
-      .command(spec.cliName.replaceAll(" ", "-"))
-      .description(spec.description)
-      .option("--input <path>", "JSON input file (use - for stdin)")
-      .action(async (options: { input?: string }, command: Command) => {
-        if (options.input === undefined) {
-          writeInputError(
-            new InputError(
-              "MISSING_INPUT",
-              "The --input option is required for this command.",
-            ),
-          );
-          return;
-        }
-        await runJsonInvocation({
-          operationName: spec.name,
-          inputPath: options.input,
-          command,
-        });
-      });
-  }
 }

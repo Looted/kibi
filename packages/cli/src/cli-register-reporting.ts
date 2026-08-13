@@ -1,18 +1,20 @@
 import type { Command } from "commander";
 import { withExitCode } from "./cli-command.js";
-import { runJsonInvocation } from "./cli-json-command.js";
-import { checkCommand } from "./commands/check.js";
-import { coverageCommand } from "./commands/coverage.js";
-import { gapsCommand } from "./commands/gaps.js";
-import { graphCommand } from "./commands/graph.js";
-import { getSpec } from "./public/operations/index.js";
+import type { JsonInvocation } from "./cli-json-command.js";
+import { getCliOperationMetadata } from "./cli-operation-metadata.js";
+import type { checkCommand } from "./commands/check.js";
+
+async function runJsonInvocation(invocation: JsonInvocation): Promise<void> {
+  const executor = await import("./cli-json-command.js");
+  await executor.runJsonInvocation(invocation);
+}
 
 // implements REQ-kibi-operation-interface-parity
 export function registerReportingCommands(program: Command): void {
   program
     .command("find-gaps [type]")
     .alias("gaps")
-    .description(getSpec("kb_find_gaps").description)
+    .description(getCliOperationMetadata("kb_find_gaps").description)
     .option("--input <path>", "JSON input file (use - for stdin)")
     .option(
       "--missing-rel <rels>",
@@ -37,12 +39,12 @@ export function registerReportingCommands(program: Command): void {
         });
         return;
       }
-      await gapsCommand(type, options);
+      await (await import("./commands/gaps.js")).gapsCommand(type, options);
     });
 
   program
     .command("coverage")
-    .description(getSpec("kb_coverage").description)
+    .description(getCliOperationMetadata("kb_coverage").description)
     .option("--input <path>", "JSON input file (use - for stdin)")
     .option("--by <group>", "Coverage mode: req|symbol|type", "req")
     .option("--tag <tags>", "Comma-separated tag filter")
@@ -85,12 +87,12 @@ export function registerReportingCommands(program: Command): void {
         });
         return;
       }
-      await coverageCommand(options);
+      await (await import("./commands/coverage.js")).coverageCommand(options);
     });
 
   program
     .command("graph")
-    .description(getSpec("kb_graph").description)
+    .description(getCliOperationMetadata("kb_graph").description)
     .option("--input <path>", "JSON input file (use - for stdin)")
     .option("--from <ids>", "Comma-separated seed IDs")
     .option("--relationships <rels>", "Comma-separated relationship filter")
@@ -113,12 +115,12 @@ export function registerReportingCommands(program: Command): void {
         });
         return;
       }
-      await graphCommand(options);
+      await (await import("./commands/graph.js")).graphCommand(options);
     });
 
   program
     .command("check")
-    .description(getSpec("kb_check").description)
+    .description(getCliOperationMetadata("kb_check").description)
     .option("--input <path>", "JSON input file (use - for stdin)")
     .option("--fix", "Suggest fixes for violations")
     .option(
@@ -148,7 +150,7 @@ export function registerReportingCommands(program: Command): void {
             });
             return undefined;
           }
-          return checkCommand(options);
+          return (await import("./commands/check.js")).checkCommand(options);
         },
       ),
     );

@@ -1,17 +1,7 @@
 import type { Command } from "commander";
 import { withExitCode } from "./cli-command.js";
-import { branchEnsureCommand } from "./commands/branch.js";
-import { doctorCommand } from "./commands/doctor.js";
-import {
-  engineStatusCommand,
-  engineStopCommand,
-  storageCompactCommand,
-  storageExportCommand,
-  storageStatusCommand,
-} from "./commands/engine.js";
-import { gcCommand } from "./commands/gc.js";
-import { usageMetricsCommand } from "./commands/usage-metrics.js";
-import { usageRemediationCommand } from "./commands/usage-remediation.js";
+import type { usageMetricsCommand } from "./commands/usage-metrics.js";
+import type { usageRemediationCommand } from "./commands/usage-remediation.js";
 
 // implements REQ-kibi-operation-interface-parity
 export function registerMaintenanceCommands(program: Command): void {
@@ -21,11 +11,15 @@ export function registerMaintenanceCommands(program: Command): void {
   engine
     .command("status")
     .description("Show engine and journaled storage status")
-    .action(async () => engineStatusCommand());
+    .action(async () =>
+      (await import("./commands/engine.js")).engineStatusCommand(),
+    );
   engine
     .command("stop")
     .description("Stop the current workspace engine")
-    .action(async () => engineStopCommand());
+    .action(async () =>
+      (await import("./commands/engine.js")).engineStopCommand(),
+    );
 
   const storage = program
     .command("storage")
@@ -33,17 +27,21 @@ export function registerMaintenanceCommands(program: Command): void {
   storage
     .command("status")
     .description("Show journaled storage status")
-    .action(async () => storageStatusCommand());
+    .action(async () =>
+      (await import("./commands/engine.js")).storageStatusCommand(),
+    );
   storage
     .command("compact")
     .description("Compact RDF journals into binary snapshots")
-    .action(async () => storageCompactCommand());
+    .action(async () =>
+      (await import("./commands/engine.js")).storageCompactCommand(),
+    );
   storage
     .command("export")
     .description("Export legacy RDF/XML and audit files")
     .requiredOption("--output <directory>", "Export destination directory")
     .action(async (options: { output: string }) =>
-      storageExportCommand(options),
+      (await import("./commands/engine.js")).storageExportCommand(options),
     );
 
   program
@@ -52,13 +50,20 @@ export function registerMaintenanceCommands(program: Command): void {
     .option("--dry-run", "Preview without deleting (default)", true)
     .option("--force", "Actually delete stale branches")
     .action(async (options) => {
-      await gcCommand({ dryRun: !options.force, force: options.force });
+      await (await import("./commands/gc.js")).gcCommand({
+        dryRun: !options.force,
+        force: options.force,
+      });
     });
 
   program
     .command("doctor")
     .description("Diagnose KB setup and configuration")
-    .action(withExitCode(async () => doctorCommand()));
+    .action(
+      withExitCode(async () =>
+        (await import("./commands/doctor.js")).doctorCommand(),
+      ),
+    );
 
   program
     .command("usage-metrics")
@@ -71,7 +76,9 @@ export function registerMaintenanceCommands(program: Command): void {
     )
     .action(
       withExitCode(async (options: Parameters<typeof usageMetricsCommand>[0]) =>
-        usageMetricsCommand(options),
+        (await import("./commands/usage-metrics.js")).usageMetricsCommand(
+          options,
+        ),
       ),
     );
 
@@ -85,7 +92,9 @@ export function registerMaintenanceCommands(program: Command): void {
     .action(
       withExitCode(
         async (options: Parameters<typeof usageRemediationCommand>[0]) =>
-          usageRemediationCommand(options),
+          (
+            await import("./commands/usage-remediation.js")
+          ).usageRemediationCommand(options),
       ),
     );
 
@@ -96,7 +105,9 @@ export function registerMaintenanceCommands(program: Command): void {
     .option("--from <branch>", "Source branch to copy KB from")
     .action(async (action, options) => {
       if (action === "ensure") {
-        await branchEnsureCommand(options);
+        await (await import("./commands/branch.js")).branchEnsureCommand(
+          options,
+        );
       }
     });
 }

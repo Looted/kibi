@@ -4,6 +4,166 @@
 # Generated coordinates are stored separately in symbol-coordinates.yaml.
 # Run `kibi sync --refresh-symbol-coordinates` to refresh them.
 symbols:
+  - id: SYM-mcp-model-requirement-isolated-workspace-test
+    title: should handle tools/call for kb_model_requirement
+    sourceFile: packages/mcp/tests/server.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-test-owned-engine-runner
+    title: runOwnedEngineTests
+    sourceFile: scripts/run-owned-engine-tests.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-test-owned-engine-cleanup
+    title: stopOwnedEngines
+    sourceFile: scripts/run-owned-engine-tests.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-test-owned-engine-runner-test
+    title: owned engine test runner
+    sourceFile: scripts/tests/run-owned-engine-tests.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-cli-load-operation-spec
+    title: loadOperationSpec
+    sourceFile: packages/cli/src/cli-operation-loader.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-cli-operation-metadata-type
+    title: CliOperationMetadata
+    sourceFile: packages/cli/src/cli-operation-metadata.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-cli-operation-metadata
+    title: CLI_OPERATION_METADATA
+    sourceFile: packages/cli/src/cli-operation-metadata.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-cli-get-operation-metadata
+    title: getCliOperationMetadata
+    sourceFile: packages/cli/src/cli-operation-metadata.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-cli-is-operation-name
+    title: isOperationName
+    sourceFile: packages/cli/src/cli-operation-metadata.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-test-root-batch-concurrency
+    title: BATCH_CONCURRENCY
+    sourceFile: test/root.test.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-test-root-engine-shutdown-timeout
+    title: TEST_ENGINE_SHUTDOWN_TIMEOUT_MS
+    sourceFile: test/root.test.ts
+    symbol_role: config
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-test-root-stop-engines
+    title: stopTestEngines
+    sourceFile: test/root.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-packed-prepare-shared-install
+    title: prepareSharedPackedInstallation
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-packed-cleanup-shared-install
+    title: cleanupSharedPackedInstallation
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-packed-stop-runtime-engines
+    title: stopRuntimeEngines
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-packed-test-sandbox
+    title: TestSandbox
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: type-shape
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-packed-e2e-runner
+    title: run-packed-e2e.mjs
+    sourceFile: scripts/run-packed-e2e.mjs
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-cli-operation-metadata-tests
+    title: lightweight CLI operation metadata
+    sourceFile: packages/cli/tests/cli-operation-metadata.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-cli-engine-signal-shutdown-test
+    title: flushes journals and exits when the hosting process is terminated
+    sourceFile: packages/cli/tests/engine.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-cli-prolog-shared-fixture-tests
+    title: PrologProcess shared fixture suite
+    sourceFile: packages/cli/tests/prolog.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
   - id: SYM-cli-discovery-command-options
     title: DiscoveryCommandOptions
     sourceFile: packages/cli/src/commands/discovery-shared.ts
@@ -662,6 +822,10 @@ symbols:
         target: REQ-core-journaled-engine-persistence
       - type: covered_by
         target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
   - id: SYM-cli-engine-migration
     title: ensureJournaledBranchStoreAsync
     sourceFile: packages/cli/src/engine.ts
@@ -2056,6 +2220,10 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
   - id: SYM-cli-command-result-type
     title: CommandResult
     sourceFile: packages/cli/src/cli-command.ts
@@ -2074,6 +2242,19 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-protocol-execute-operation
+    title: executeOperation
+    sourceFile: packages/cli/src/cli-protocol.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
   - id: SYM-cli-delete-input-type
     title: DeleteInput
     sourceFile: packages/cli/src/operations/mutation/types.ts
@@ -2828,6 +3009,10 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
   - id: SYM-cli-register-foundation-commands
     title: registerFoundationCommands
     sourceFile: packages/cli/src/cli-register-foundation.ts
@@ -2837,15 +3022,23 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
   - id: SYM-cli-register-json-only-commands
     title: registerJsonOnlyCommands
-    sourceFile: packages/cli/src/cli-json-command.ts
+    sourceFile: packages/cli/src/cli-register-json.ts
     symbol_role: behavioral
     relationships:
       - type: implements
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
   - id: SYM-cli-register-maintenance-commands
     title: registerMaintenanceCommands
     sourceFile: packages/cli/src/cli-register-maintenance.ts
@@ -2859,6 +3052,10 @@ symbols:
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-telemetry-acceptance-gate
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
   - id: SYM-cli-register-reporting-commands
     title: registerReportingCommands
     sourceFile: packages/cli/src/cli-register-reporting.ts
@@ -2868,6 +3065,10 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
   - id: SYM-cli-register-skills-commands
     title: registerSkillsCommands
     sourceFile: packages/cli/src/cli-register-skills.ts
@@ -2877,6 +3078,10 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
   - id: SYM-cli-Requirement
     title: Requirement
     sourceFile: packages/cli/src/types/entities.ts
@@ -3002,6 +3207,10 @@ symbols:
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-telemetry-remediation-evidence
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
   - id: SYM-cli-Scenario
     title: Scenario
     sourceFile: packages/cli/src/types/entities.ts
@@ -3022,6 +3231,10 @@ symbols:
         target: REQ-mcp-search-discovery
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
     title: predicate guidance loads a canonical decision tree with immutable resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
@@ -3049,6 +3262,10 @@ symbols:
         target: REQ-cli-status-pre-first-sync
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
   - id: SYM-cli-status-pre-first-sync-test
     title: cli status pre-sync test
     sourceFile: packages/cli/tests/commands/status.test.ts
@@ -7287,13 +7504,15 @@ symbols:
       - type: executable_for
         target: TEST-mcp-upsert-coverage
   - id: SYM-mcp-test-attached-kb-discovery
-    title: Real attached-KB Node CLI and MCP discovery regression
+    title: Isolated attached-KB Node CLI and MCP discovery regression
     sourceFile: packages/mcp/tests/attached-kb-discovery.test.ts
     symbol_role: behavioral
     granularity_reason: module-level-behavior
     relationships:
       - type: executable_for
         target: TEST-mcp-search-discovery
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
   - id: SYM-mcp-test-bounded-search-fixture
     title: bounded search and stderr fixture
     sourceFile: packages/mcp/tests/fixtures/bounded-search-kb.pl
@@ -8684,6 +8903,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-operation-interface-parity
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
   - id: SYM-packed-install-manifest
     title: writePackedInstallManifest
     sourceFile: documentation/tests/e2e/packed/packed-install-manifest.ts
@@ -8698,6 +8919,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-operation-interface-parity
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
   - id: SYM-packed-parity-bundle-paths
     title: EXPECTED_BUNDLE_PATHS
     sourceFile: documentation/tests/e2e/packed/mcp-cli-operation-parity-fixtures.ts
@@ -18752,6 +18975,10 @@ symbols:
         target: REQ-root-suite-batch-diagnostics
       - type: covered_by
         target: TEST-root-suite-batch-diagnostics
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
   - id: SYM-test-root-summary-timeout-diagnostic
     title: getBatchFailureMessage timeout regression
     sourceFile: test/root-summary.test.ts
@@ -18760,6 +18987,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-root-suite-batch-diagnostics
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
   - id: SYM-test-sparql-fixture-request
     title: SparqlFixtureRequest
     sourceFile: packages/cli/tests/fixtures/sparql-http-server.ts

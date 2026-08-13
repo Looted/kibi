@@ -1359,6 +1359,8 @@ export async function runEngineDaemon(options: {
   const shutdown = async (): Promise<void> => {
     if (shuttingDown) return;
     shuttingDown = true;
+    process.off("SIGTERM", requestSignalShutdown);
+    process.off("SIGINT", requestSignalShutdown);
     if (idleTimer) clearTimeout(idleTimer);
     const saved = await prolog.query("kb_save").catch(() => null);
     if (saved?.success) {
@@ -1392,6 +1394,15 @@ export async function runEngineDaemon(options: {
     // detached Node process on platform-specific server bookkeeping.
     setTimeout(() => process.exit(0), 50).unref();
   };
+
+  // Detached engines must cross the same durability boundary when a service
+  // manager or a test harness terminates them as they do for an RPC stop.
+  // implements REQ-test-journaled-engine-harness
+  const requestSignalShutdown = (): void => {
+    void shutdown();
+  };
+  process.once("SIGTERM", requestSignalShutdown);
+  process.once("SIGINT", requestSignalShutdown);
 
   server.on("connection", (socket) => {
     clients.add(socket);

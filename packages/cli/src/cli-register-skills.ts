@@ -1,12 +1,17 @@
 import type { Command } from "commander";
 import { withExitCode } from "./cli-command.js";
-import { runJsonInvocation } from "./cli-json-command.js";
-import {
+import type { JsonInvocation } from "./cli-json-command.js";
+import type {
   skillsListCommand,
   skillsLoadCommand,
   skillsReadCommand,
   skillsValidateCommand,
 } from "./commands/skills.js";
+
+async function runJsonInvocation(invocation: JsonInvocation): Promise<void> {
+  const executor = await import("./cli-json-command.js");
+  await executor.runJsonInvocation(invocation);
+}
 
 // implements REQ-kibi-operation-interface-parity
 export function registerSkillsCommands(program: Command): void {
@@ -28,7 +33,7 @@ export function registerSkillsCommands(program: Command): void {
         });
         return;
       }
-      await skillsListCommand(options);
+      await (await import("./commands/skills.js")).skillsListCommand(options);
     });
 
   skillsProgram
@@ -47,7 +52,10 @@ export function registerSkillsCommands(program: Command): void {
         });
         return;
       }
-      await skillsLoadCommand(id ?? "", options);
+      await (await import("./commands/skills.js")).skillsLoadCommand(
+        id ?? "",
+        options,
+      );
     });
 
   skillsProgram
@@ -76,7 +84,11 @@ export function registerSkillsCommands(program: Command): void {
           });
           return;
         }
-        await skillsReadCommand(id ?? "", resource ?? "", options);
+        await (await import("./commands/skills.js")).skillsReadCommand(
+          id ?? "",
+          resource ?? "",
+          options,
+        );
       },
     );
 
@@ -90,7 +102,11 @@ export function registerSkillsCommands(program: Command): void {
         async (
           pathLike: Parameters<typeof skillsValidateCommand>[0],
           options: Parameters<typeof skillsValidateCommand>[1],
-        ) => skillsValidateCommand(pathLike, options),
+        ) =>
+          (await import("./commands/skills.js")).skillsValidateCommand(
+            pathLike,
+            options,
+          ),
       ),
     );
 }

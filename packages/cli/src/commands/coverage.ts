@@ -1,4 +1,4 @@
-import { coverageSpec } from "../public/operations/index.js";
+import { coverageSpec } from "../public/operations/specs/reporting.js";
 import {
   executeReportingSpec,
   printDiscoveryResult,
