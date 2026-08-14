@@ -163,6 +163,56 @@ describe("private SkillOpt fixture corpus", () => {
     ).toBe(true);
   });
 
+  test("contract-drift case preserves history and orders current proof operations", () => {
+    const root = temporaryRoot();
+    roots.push(root);
+    const task = buildHeldOutCatalog().find(
+      (candidate) =>
+        candidate.taskData.objectiveCode === "append_only_contract_drift",
+    );
+    if (task === undefined) {
+      throw new Error("contract-drift held-out task must exist");
+    }
+    const receipt = materializeFixtureRun({
+      runRoot: path.join(root, "run"),
+      canonicalSkillRoot: CANONICAL_SKILL_ROOT,
+      publicTasks: [],
+      heldOutTasks: [task],
+    });
+    const manifest = parsePrivateEvaluatorManifest(
+      readFileSync(
+        path.join(receipt.roots.evaluatorRoot, "manifests", `${task.id}.json`),
+        "utf8",
+      ),
+    );
+
+    expect(
+      manifest.orderedMcpPredicates.required.map(({ tool }) => tool),
+    ).toEqual([
+      "kb_search",
+      "kb_query",
+      "kb_status",
+      "kb_ingest_verification",
+      "kb_coverage",
+      "kb_check",
+    ]);
+    expect(manifest.workflowExpectation).toMatchObject({
+      expectedOutcome: "complete",
+      expectedVerificationState: "fresh",
+      expectedProofState: "proven",
+      requiredSignals: [
+        "historical contract receipt preserved",
+        "current contract receipt appended",
+        "contract mismatch remains non-proof",
+      ],
+      forbiddenActions: [
+        "rewrite receipt history",
+        "delete historical receipt",
+        "claim old contract proof",
+      ],
+    });
+  });
+
   test("predicate corpus private map records expected lane predicate and edges per case", () => {
     const root = temporaryRoot();
     roots.push(root);

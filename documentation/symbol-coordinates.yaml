@@ -2135,9 +2135,9 @@ coordinates:
   SYM-append-only-verification-receipt-history-errors:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 386
+    sourceEndLine: 412
     sourceFile: packages/cli/src/public/verification-receipt.ts
-    sourceLine: 363
+    sourceLine: 389
   SYM-appendDiagnosticErrorUsage:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -4445,9 +4445,9 @@ coordinates:
   SYM-core-proof-contradiction-stage:
     sourceColumn: 4
     sourceEndColumn: 23
-    sourceEndLine: 61
+    sourceEndLine: 62
     sourceFile: packages/core/src/requirement_proof.pl
-    sourceLine: 61
+    sourceLine: 62
   SYM-core-req-conflict-witness:
     sourceColumn: 4
     sourceEndColumn: 24
@@ -4487,15 +4487,15 @@ coordinates:
   SYM-core-verification-receipt-evidence:
     sourceColumn: 12
     sourceEndColumn: 33
-    sourceEndLine: 457
+    sourceEndLine: 458
     sourceFile: packages/core/src/requirement_proof.pl
-    sourceLine: 457
+    sourceLine: 458
   SYM-core-verification-receipt-state:
     sourceColumn: 8
     sourceEndColumn: 30
-    sourceEndLine: 500
+    sourceEndLine: 504
     sourceFile: packages/core/src/requirement_proof.pl
-    sourceLine: 500
+    sourceLine: 504
   SYM-createAtomically:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -5873,33 +5873,33 @@ coordinates:
   SYM-kibi-cli-src-operations-verification-ingest-verification-ts-executeingestverification:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 294
+    sourceEndLine: 301
     sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
-    sourceLine: 179
+    sourceLine: 180
   SYM-kibi-cli-src-operations-verification-ingest-verification-ts-ingestverificationargs:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 32
+    sourceEndLine: 33
     sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
-    sourceLine: 28
+    sourceLine: 29
   SYM-kibi-cli-src-operations-verification-ingest-verification-ts-ingestverificationresult:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 41
+    sourceEndLine: 42
     sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
-    sourceLine: 35
+    sourceLine: 36
   SYM-kibi-cli-src-operations-verification-ingest-verification-ts-playwright-run-version:
     sourceColumn: 13
     sourceEndColumn: 71
-    sourceEndLine: 16
+    sourceEndLine: 17
     sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
-    sourceLine: 16
+    sourceLine: 17
   SYM-kibi-cli-src-operations-verification-ingest-verification-ts-verificationcaseartifact:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 25
+    sourceEndLine: 26
     sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
-    sourceLine: 19
+    sourceLine: 20
   SYM-kibi-cli-src-public-operations-specs-planning-ts-applyplanspec:
     sourceColumn: 13
     sourceEndColumn: 66
@@ -5957,9 +5957,15 @@ coordinates:
   SYM-kibi-cli-src-public-verification-receipt-ts-verificationcontracthash:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 361
+    sourceEndLine: 387
     sourceFile: packages/cli/src/public/verification-receipt.ts
-    sourceLine: 357
+    sourceLine: 383
+  SYM-kibi-cli-src-public-verification-receipt-ts-verificationreceiptcurrentbindingerrors:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 367
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    sourceLine: 335
   SYM-kibi-cli-src-public-verification-receipt-ts-verificationreceiptv2:
     sourceColumn: 12
     sourceEndColumn: 5
@@ -7973,9 +7979,9 @@ coordinates:
   SYM-repair-plan-build:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 562
+    sourceEndLine: 563
     sourceFile: packages/cli/src/public/operations/repair-plan.ts
-    sourceLine: 466
+    sourceLine: 467
   SYM-repoRootFromScript:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -8249,27 +8255,27 @@ coordinates:
   SYM-reqcompiler-repair-plan-batch:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 281
+    sourceEndLine: 282
     sourceFile: packages/cli/src/public/operations/repair-plan.ts
-    sourceLine: 268
+    sourceLine: 269
   SYM-reqcompiler-repair-plan-input:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 322
+    sourceEndLine: 323
     sourceFile: packages/cli/src/public/operations/repair-plan.ts
-    sourceLine: 317
+    sourceLine: 318
   SYM-reqcompiler-repair-plan-repair:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 266
+    sourceEndLine: 267
     sourceFile: packages/cli/src/public/operations/repair-plan.ts
-    sourceLine: 259
+    sourceLine: 260
   SYM-reqcompiler-repair-plan-shape:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 315
+    sourceEndLine: 316
     sourceFile: packages/cli/src/public/operations/repair-plan.ts
-    sourceLine: 283
+    sourceLine: 284
   SYM-reqcompiler-repair-plan-version:
     sourceColumn: 13
     sourceEndColumn: 65
@@ -10175,9 +10181,9 @@ coordinates:
   SYM-skillopt-default-codex-cell-dependencies:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 655
+    sourceEndLine: 684
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    sourceLine: 583
+    sourceLine: 612
   SYM-skillopt-default-evaluate-development:
     sourceColumn: 13
     sourceEndColumn: 3
@@ -10739,15 +10745,15 @@ coordinates:
   SYM-skillopt-fixture-private-integrity:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 504
+    sourceEndLine: 522
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    sourceLine: 494
+    sourceLine: 512
   SYM-skillopt-fixture-private-manifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 491
+    sourceEndLine: 509
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    sourceLine: 352
+    sourceLine: 370
   SYM-skillopt-fixture-serialize:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -11327,9 +11333,9 @@ coordinates:
   SYM-skillopt-predicate-build-expectation:
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 348
+    sourceEndLine: 366
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    sourceLine: 328
+    sourceLine: 346
   SYM-skillopt-predicate-candidate-root-manifest:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -12221,9 +12227,9 @@ coordinates:
   SYM-skillopt-reference-targets:
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 290
+    sourceEndLine: 319
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    sourceLine: 282
+    sourceLine: 311
   SYM-skillopt-render-report-markdown:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -12797,9 +12803,9 @@ coordinates:
   SYM-skillopt-safe-mutation-complete:
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 318
+    sourceEndLine: 347
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    sourceLine: 293
+    sourceLine: 322
   SYM-skillopt-scoring-bootstrap:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -12953,9 +12959,9 @@ coordinates:
   SYM-skillopt-seal-default-cell-evidence:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 580
+    sourceEndLine: 609
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    sourceLine: 561
+    sourceLine: 590
   SYM-skillopt-sealed-cell-evidence:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -13493,15 +13499,15 @@ coordinates:
   SYM-test-rule-contradiction-witness-proof:
     sourceColumn: 5
     sourceEndColumn: 64
-    sourceEndLine: 2803
+    sourceEndLine: 2884
     sourceFile: packages/core/tests/kb.plt
-    sourceLine: 2803
+    sourceLine: 2884
   SYM-test-rule-overlap-witness-proof:
     sourceColumn: 5
     sourceEndColumn: 65
-    sourceEndLine: 2823
+    sourceEndLine: 2904
     sourceFile: packages/core/tests/kb.plt
-    sourceLine: 2823
+    sourceLine: 2904
   SYM-test-sparql-fixture-request:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -13577,13 +13583,13 @@ coordinates:
   SYM-validateUpsertInput:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 161
+    sourceEndLine: 156
     sourceFile: packages/cli/src/operations/mutation/validation.ts
     sourceLine: 97
   SYM-verification-receipt-history-errors:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 341
+    sourceEndLine: 332
     sourceFile: packages/cli/src/public/verification-receipt.ts
     sourceLine: 194
   SYM-warn:

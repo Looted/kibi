@@ -242,16 +242,17 @@ describe("kibi init", () => {
     expect(result).toBeDefined();
   });
 
-  test("allows init in non-git directory (uses default 'main' branch)", () => {
+  test("allows init in a non-git directory with an explicit branch", () => {
     execSync(`bun ${kibiBin} init --no-hooks`, {
       cwd: tmpDir,
+      env: { ...process.env, KIBI_BRANCH: "trunk" },
       stdio: "pipe",
     });
 
     expect(existsSync(path.join(tmpDir, ".kb"))).toBe(true);
     expect(existsSync(path.join(tmpDir, ".kb/config.json"))).toBe(true);
     expect(existsSync(path.join(tmpDir, ".kb/schema"))).toBe(true);
-    expect(existsSync(path.join(tmpDir, ".kb/branches/main"))).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/branches/trunk"))).toBe(true);
   });
 
   test("prints helpful message if .kb/ already exists", () => {

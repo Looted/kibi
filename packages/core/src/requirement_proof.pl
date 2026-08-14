@@ -8,6 +8,7 @@
 ]).
 
 :- use_module(library(http/json)).
+:- use_module(library(crypto)).
 :- use_module(library(date)).
 :- use_module(library(pcre)).
 :- use_module('kb.pl').
@@ -460,9 +461,10 @@ passing_e2e_stage(ScenarioTests, Context, Stage, PassingE2eTests) :-
     evidence_tests_with_state(Evidence, stale, StaleReceiptTests),
     evidence_tests_with_state(Evidence, failed, FailedReceiptTests),
     evidence_tests_with_state(Evidence, invalid, InvalidReceiptTests),
+    evidence_tests_with_state(Evidence, contract_mismatch, ContractMismatchReceiptTests),
     evidence_tests_with_state(Evidence, snapshot_unavailable, SnapshotUnavailableTests),
     evidence_tests_with_state(Evidence, not_end_to_end, NonEndToEndTests),
-    passing_e2e_status(PassingE2eTests, InvalidReceiptTests, SnapshotUnavailableTests, Status),
+    passing_e2e_status(PassingE2eTests, InvalidReceiptTests, ContractMismatchReceiptTests, SnapshotUnavailableTests, Status),
     Stage = _{
         status: Status,
         tests: PassingE2eTests,
@@ -471,6 +473,7 @@ passing_e2e_stage(ScenarioTests, Context, Stage, PassingE2eTests) :-
         staleReceiptTests: StaleReceiptTests,
         failedReceiptTests: FailedReceiptTests,
         invalidReceiptTests: InvalidReceiptTests,
+        contractMismatchReceiptTests: ContractMismatchReceiptTests,
         snapshotUnavailableTests: SnapshotUnavailableTests,
         nonEndToEndTests: NonEndToEndTests,
         currentCodeSnapshot: Context.verificationSnapshot,
@@ -478,10 +481,11 @@ passing_e2e_stage(ScenarioTests, Context, Stage, PassingE2eTests) :-
         maxAgeSeconds: Context.verificationMaxAgeSeconds
     }.
 
-passing_e2e_status(Passing, _, _, passed) :- Passing \= [], !.
-passing_e2e_status([], Invalid, _, unresolved) :- Invalid \= [], !.
-passing_e2e_status([], _, SnapshotUnavailable, unresolved) :- SnapshotUnavailable \= [], !.
-passing_e2e_status([], _, _, missing).
+passing_e2e_status(Passing, _, _, _, passed) :- Passing \= [], !.
+passing_e2e_status([], Invalid, _, _, unresolved) :- Invalid \= [], !.
+passing_e2e_status([], _, ContractMismatch, _, unresolved) :- ContractMismatch \= [], !.
+passing_e2e_status([], _, _, SnapshotUnavailable, unresolved) :- SnapshotUnavailable \= [], !.
+passing_e2e_status([], _, _, _, missing).
 
 evidence_tests_with_state(Evidence, State, TestIds) :-
     findall(TestId,
@@ -497,26 +501,33 @@ test_receipt_evidence(Context, TestId, Evidence) :-
     ;   Context.verificationSnapshot == unknown
     ->  Evidence = _{testId: TestId, state: snapshot_unavailable, scope: Scope}
     ;   verification_receipt_entries(Props, Receipts, ReceiptPropertyPresent),
-        receipt_evidence_state(TestId, Scope, Receipts, ReceiptPropertyPresent, Context, Evidence)
+        receipt_evidence_state(TestId, Scope, Props, Receipts, ReceiptPropertyPresent, Context, Evidence)
     ).
 
-receipt_evidence_state(TestId, Scope, [], false, _Context,
+receipt_evidence_state(TestId, Scope, _Props, [], false, _Context,
         _{testId: TestId, state: missing, scope: Scope, receiptCount: 0}) :- !.
-receipt_evidence_state(TestId, Scope, Receipts, _Present, _Context,
+receipt_evidence_state(TestId, Scope, Props, Receipts, _Present, _Context,
         _{testId: TestId, state: invalid, scope: Scope, receiptCount: Count}) :-
     length(Receipts, Count),
-    (Receipts == []
-    ; member(Receipt, Receipts), \+ valid_receipt_shape(TestId, Scope, Receipt)
+    verification_contract_binding(Props, ContractBinding),
+    (ContractBinding == invalid
+    ; Receipts == []
+    ; member(Receipt, Receipts), \+ valid_receipt_shape(TestId, Receipt)
     ; \+ chronological_receipt_history(Receipts)),
     !.
-receipt_evidence_state(TestId, Scope, Receipts, _Present, Context, Evidence) :-
-    include(receipt_for_snapshot(Context.verificationSnapshot), Receipts, CurrentReceipts),
-    (   CurrentReceipts == []
+receipt_evidence_state(TestId, Scope, Props, Receipts, _Present, Context, Evidence) :-
+    include(receipt_for_snapshot(Context.verificationSnapshot), Receipts, SnapshotReceipts),
+    (   SnapshotReceipts == []
     ->  length(Receipts, Count),
         Evidence = _{testId: TestId, state: stale, scope: Scope, receiptCount: Count}
-    ;   latest_receipt(CurrentReceipts, Latest, FinishedStamp),
-        receipt_runtime_state(Latest, FinishedStamp, Context, State, AgeSeconds),
-        receipt_evidence_dict(TestId, Scope, Latest, State, AgeSeconds, Evidence)
+    ;   verification_contract_binding(Props, ContractBinding),
+        include(receipt_matches_current_binding(Scope, ContractBinding), SnapshotReceipts, CurrentReceipts),
+        (   CurrentReceipts == []
+        ->  receipt_contract_mismatch_evidence(TestId, Scope, SnapshotReceipts, ContractBinding, Evidence)
+        ;   latest_receipt(CurrentReceipts, Latest, FinishedStamp),
+            receipt_runtime_state(Latest, FinishedStamp, Context, State, AgeSeconds),
+            receipt_evidence_dict(TestId, Scope, Latest, State, AgeSeconds, Evidence)
+        )
     ).
 
 verification_receipt_entries(Props, Receipts, Present) :-
@@ -527,7 +538,7 @@ verification_receipt_entries(Props, Receipts, Present) :-
         Receipts = []
     ).
 
-valid_receipt_shape(TestId, Scope, Receipt) :-
+valid_receipt_shape(TestId, Receipt) :-
     inventory_entry_field(Receipt, version, RawVersion),
     normalize_receipt_atom(RawVersion, Version),
     memberchk(Version, ['kibi.verification-receipt.v1', 'kibi.verification-receipt.v2']),
@@ -540,7 +551,8 @@ valid_receipt_shape(TestId, Scope, Receipt) :-
     inventory_entry_field(Receipt, command, RawCommand),
     normalize_receipt_atom(RawCommand, Command), Command \= '',
     inventory_entry_field(Receipt, scope, RawScope),
-    normalize_receipt_atom(RawScope, Scope),
+    normalize_receipt_atom(RawScope, ReceiptScope),
+    memberchk(ReceiptScope, [unit, integration, end_to_end]),
     inventory_entry_field(Receipt, outcome, RawOutcome),
     normalize_receipt_atom(RawOutcome, Outcome),
     memberchk(Outcome, [passed, failed, errored, cancelled, skipped, timed_out, interrupted]),
@@ -630,6 +642,82 @@ strictly_increasing([Left, Right|Rest]) :-
 receipt_for_snapshot(Snapshot, Receipt) :-
     inventory_entry_field(Receipt, code_snapshot, RawSnapshot),
     normalize_receipt_atom(RawSnapshot, Snapshot).
+
+receipt_matches_current_binding(Scope, ContractBinding, Receipt) :-
+    inventory_entry_field(Receipt, scope, RawScope),
+    normalize_receipt_atom(RawScope, Scope),
+    receipt_matches_current_contract(ContractBinding, Receipt).
+
+receipt_matches_current_contract(none, _Receipt).
+receipt_matches_current_contract(hash(ExpectedHash), Receipt) :-
+    inventory_entry_field(Receipt, version, RawVersion),
+    normalize_receipt_atom(RawVersion, 'kibi.verification-receipt.v2'),
+    inventory_entry_field(Receipt, contract_hash, RawContractHash),
+    normalize_receipt_atom(RawContractHash, ExpectedHash).
+
+receipt_contract_mismatch_evidence(TestId, Scope, Receipts, ContractBinding, Evidence) :-
+    length(Receipts, Count),
+    findall(Hash,
+        (member(Receipt, Receipts),
+         inventory_entry_field(Receipt, contract_hash, RawHash),
+         normalize_receipt_atom(RawHash, Hash)),
+        Hashes0),
+    sort(Hashes0, Hashes),
+    current_contract_hash_value(ContractBinding, CurrentContractHash),
+    Evidence = _{
+        testId: TestId,
+        state: contract_mismatch,
+        scope: Scope,
+        receiptCount: Count,
+        currentContractHash: CurrentContractHash,
+        receiptContractHashes: Hashes
+    }.
+
+current_contract_hash_value(hash(Hash), Hash).
+current_contract_hash_value(none, none).
+
+verification_contract_binding(Props, Binding) :-
+    (   memberchk(verification_contract=RawContract, Props)
+    ->  (verification_contract_hash(RawContract, Hash) -> Binding = hash(Hash) ; Binding = invalid)
+    ;   Binding = none
+    ).
+
+verification_contract_hash(RawContract, Hash) :-
+    verification_contract_dict(RawContract, Contract),
+    canonical_json_value(Contract, Canonical),
+    crypto_data_hash(Canonical, Hash, [algorithm(sha256), encoding(utf8)]).
+
+verification_contract_dict(^^(Value, _), Contract) :- !,
+    verification_contract_dict(Value, Contract).
+verification_contract_dict(literal(type(_, Value)), Contract) :- !,
+    verification_contract_dict(Value, Contract).
+verification_contract_dict(literal(Value), Contract) :- !,
+    verification_contract_dict(Value, Contract).
+verification_contract_dict(Contract, Contract) :-
+    is_dict(Contract), !.
+verification_contract_dict(Raw, Contract) :-
+    (atom(Raw) ; string(Raw)),
+    catch(atom_json_dict(Raw, Contract, [value_string_as(string)]), _, fail),
+    is_dict(Contract).
+
+canonical_json_value(Value, Json) :-
+    is_dict(Value), !,
+    dict_pairs(Value, _, Pairs),
+    maplist(canonical_json_pair, Pairs, Parts),
+    atomics_to_string(Parts, ",", Body),
+    format(string(Json), "{~s}", [Body]).
+canonical_json_value(Value, Json) :-
+    is_list(Value), !,
+    maplist(canonical_json_value, Value, Parts),
+    atomics_to_string(Parts, ",", Body),
+    format(string(Json), "[~s]", [Body]).
+canonical_json_value(Value, Json) :-
+    with_output_to(string(Json), json_write(current_output, Value, [width(0)])).
+
+canonical_json_pair(Key-Value, Json) :-
+    with_output_to(string(KeyJson), json_write(current_output, Key, [width(0)])),
+    canonical_json_value(Value, ValueJson),
+    format(string(Json), "~s:~s", [KeyJson, ValueJson]).
 
 latest_receipt(Receipts, Latest, FinishedStamp) :-
     findall(Stamp-Receipt,
@@ -830,6 +918,7 @@ proof_gap_present(missing_verification_receipt, Stages) :- Stages.passingE2e.mis
 proof_gap_present(stale_verification_receipt, Stages) :- Stages.passingE2e.staleReceiptTests \= [].
 proof_gap_present(failed_verification_receipt, Stages) :- Stages.passingE2e.failedReceiptTests \= [].
 proof_gap_present(invalid_verification_receipt, Stages) :- Stages.passingE2e.invalidReceiptTests \= [].
+proof_gap_present(verification_contract_mismatch, Stages) :- Stages.passingE2e.contractMismatchReceiptTests \= [].
 proof_gap_present(verification_snapshot_unavailable, Stages) :- Stages.passingE2e.snapshotUnavailableTests \= [].
 proof_gap_present(missing_executable_test_symbol, Stages) :- Stages.executableSymbols.status == missing.
 proof_gap_present(missing_production_symbol, Stages) :- Stages.productionSymbols.symbols == [].
@@ -854,7 +943,8 @@ gap_definition(missing_verification_receipt, 53, passing_e2e, "Record a kibi.ver
 gap_definition(stale_verification_receipt, 54, passing_e2e, "Re-run the E2E test against the current code snapshot and append its receipt.").
 gap_definition(failed_verification_receipt, 55, passing_e2e, "Repair the failing E2E behavior and append a newer passing receipt for the same snapshot.").
 gap_definition(invalid_verification_receipt, 56, passing_e2e, "Repair malformed, future-dated, mismatched, or otherwise uncheckable receipt evidence.").
-gap_definition(verification_snapshot_unavailable, 57, passing_e2e, "Run coverage through a CLI or MCP runtime that exposes the deterministic workspace snapshot.").
+gap_definition(verification_contract_mismatch, 57, passing_e2e, "Run the current verification contract and append its receipt without rewriting historical evidence.").
+gap_definition(verification_snapshot_unavailable, 58, passing_e2e, "Run coverage through a CLI or MCP runtime that exposes the deterministic workspace snapshot.").
 gap_definition(missing_executable_test_symbol, 60, executable_symbols, "Link executable test code to every qualifying E2E test with executable_for.").
 gap_definition(missing_production_symbol, 70, production_symbols, "Link at least one production symbol to the requirement with implements.").
 gap_definition(missing_production_symbol_coverage, 71, production_symbols, "Link every implementing production symbol to a qualifying E2E test with covered_by.").

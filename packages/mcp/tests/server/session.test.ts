@@ -35,6 +35,12 @@ const defaults = {
   getBranchDiagnostic: (_error?: string) => "mock diagnostic",
   isValidBranchName: (_branch: string) => true,
   resolveActiveBranch: (_workspaceRoot: string) => ({ branch: "develop" }),
+  resolveBranchAttachment: (_workspaceRoot: string) => ({
+    gitBranch: "develop",
+    kbBranch: "develop",
+    kind: "exact" as const,
+    migrationRequired: false,
+  }),
   resolveKbPath: (_workspaceRoot: string, _branch: string) => "/mock/kb/path",
   resolveWorkspaceRoot: (_startDir?: string) => "/mock/workspace",
   createRequire: () => {
@@ -74,6 +80,7 @@ const mockCopyCleanSnapshot = mock(defaults.copyCleanSnapshot);
 const mockGetBranchDiagnostic = mock(defaults.getBranchDiagnostic);
 const mockIsValidBranchName = mock(defaults.isValidBranchName);
 const mockResolveActiveBranch = mock(defaults.resolveActiveBranch);
+const mockResolveBranchAttachment = mock(defaults.resolveBranchAttachment);
 const mockResolveKbPath = mock(defaults.resolveKbPath);
 const mockResolveWorkspaceRoot = mock(defaults.resolveWorkspaceRoot);
 const mockCreateRequire = mock(defaults.createRequire);
@@ -93,6 +100,7 @@ function resetMocks() {
   mockGetBranchDiagnostic.mockClear();
   mockIsValidBranchName.mockClear();
   mockResolveActiveBranch.mockClear();
+  mockResolveBranchAttachment.mockClear();
   mockResolveKbPath.mockClear();
   mockResolveWorkspaceRoot.mockClear();
   mockCreateRequire.mockClear();
@@ -110,6 +118,9 @@ function resetMocks() {
   mockGetBranchDiagnostic.mockImplementation(defaults.getBranchDiagnostic);
   mockIsValidBranchName.mockImplementation(defaults.isValidBranchName);
   mockResolveActiveBranch.mockImplementation(defaults.resolveActiveBranch);
+  mockResolveBranchAttachment.mockImplementation(
+    defaults.resolveBranchAttachment,
+  );
   mockResolveKbPath.mockImplementation(defaults.resolveKbPath);
   mockResolveWorkspaceRoot.mockImplementation(defaults.resolveWorkspaceRoot);
   mockCreateRequire.mockImplementation(defaults.createRequire);
@@ -143,6 +154,7 @@ function createMockSessionDeps() {
     getBranchDiagnostic: mockGetBranchDiagnostic,
     isValidBranchName: mockIsValidBranchName,
     resolveActiveBranch: mockResolveActiveBranch,
+    resolveBranchAttachment: mockResolveBranchAttachment,
     resolveKbPath: mockResolveKbPath,
     resolveWorkspaceRoot: mockResolveWorkspaceRoot,
   };
@@ -432,8 +444,11 @@ describe.serial("session module", () => {
   describe("ensureProlog", () => {
     test("should return a PrologProcess-like object on success", async () => {
       process.env = { ...process.env, KIBI_BRANCH: undefined };
-      mockResolveActiveBranch.mockImplementation(() => ({
-        branch: "develop",
+      mockResolveBranchAttachment.mockImplementation(() => ({
+        gitBranch: "develop",
+        kbBranch: "develop",
+        kind: "exact",
+        migrationRequired: false,
       }));
       mockIsValidBranchName.mockImplementation(() => true);
 
@@ -476,23 +491,31 @@ describe.serial("session module", () => {
       expect(mockIsValidBranchName).toHaveBeenCalledWith("feature");
     });
 
-    test("should call resolveActiveBranch when KIBI_BRANCH not set", async () => {
+    test("should resolve the exact branch attachment when KIBI_BRANCH is not set", async () => {
       process.env = { ...process.env, KIBI_BRANCH: undefined };
-      mockResolveActiveBranch.mockImplementation(() => ({
-        branch: "main",
+      mockResolveBranchAttachment.mockImplementation(() => ({
+        gitBranch: "main",
+        kbBranch: "main",
+        kind: "exact",
+        migrationRequired: false,
       }));
       mockIsValidBranchName.mockImplementation(() => true);
 
       const session = await importSession();
       await session.ensureProlog();
 
-      expect(mockResolveActiveBranch).toHaveBeenCalled();
+      expect(mockResolveBranchAttachment).toHaveBeenCalledWith(
+        "/mock/workspace",
+      );
     });
 
     test("should handle concurrent calls without error", async () => {
       process.env = { ...process.env, KIBI_BRANCH: undefined };
-      mockResolveActiveBranch.mockImplementation(() => ({
-        branch: "develop",
+      mockResolveBranchAttachment.mockImplementation(() => ({
+        gitBranch: "develop",
+        kbBranch: "develop",
+        kind: "exact",
+        migrationRequired: false,
       }));
       mockIsValidBranchName.mockImplementation(() => true);
 
@@ -1150,14 +1173,16 @@ describe.serial("session module", () => {
 
       expect(mockIsValidBranchName).toHaveBeenCalledWith("override-only");
       expect(mockResolveActiveBranch).not.toHaveBeenCalled();
+      expect(mockResolveBranchAttachment).not.toHaveBeenCalled();
       expect(session.activeBranchName).toBe("override-only");
     });
 
     test("ensureProlog reports branch resolution diagnostics when active branch lookup fails", async () => {
       process.env = { ...process.env, KIBI_BRANCH: undefined };
-      mockResolveActiveBranch.mockImplementation((() => ({
+      mockResolveBranchAttachment.mockImplementation((() => ({
         error: "detached HEAD",
-      })) as unknown as typeof defaults.resolveActiveBranch);
+        code: "DETACHED_HEAD",
+      })) as unknown as typeof defaults.resolveBranchAttachment);
       mockGetBranchDiagnostic.mockImplementation(
         (_cwd?: string, error?: string) => `diagnostic: ${error}`,
       );

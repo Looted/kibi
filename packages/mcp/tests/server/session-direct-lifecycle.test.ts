@@ -95,6 +95,12 @@ function installDeps(workspace: string): void {
     getBranchDiagnostic: (_cwd, error) => `diagnostic ${error}`,
     isValidBranchName: (branch) => !branch.includes("/"),
     resolveActiveBranch: () => ({ branch: "develop" }),
+    resolveBranchAttachment: () => ({
+      gitBranch: "develop",
+      kbBranch: "develop",
+      kind: "exact",
+      migrationRequired: false,
+    }),
     resolveKbPath: branchPath,
     resolveWorkspaceRoot: () => workspace,
   });
@@ -337,7 +343,10 @@ describe.serial("direct session lifecycle coverage", () => {
     const workspace = createWorkspace();
     installDeps(workspace);
     session._setSessionDepsForTests({
-      resolveActiveBranch: () => ({ error: "detached", code: "DETACHED_HEAD" }),
+      resolveBranchAttachment: () => ({
+        error: "detached",
+        code: "DETACHED_HEAD",
+      }),
     });
     const originalConsoleError = console.error;
     const consoleErrorMock = mock((..._args: unknown[]) => {});

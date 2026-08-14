@@ -95,11 +95,15 @@ the final unfiltered `kb_check` when those signals are relevant.
 
 Reuse a verification receipt only when its live snapshot, contract hash,
 freshness window, and required case results are still valid. Rerun when any of
-those conditions changes. For obsolete symbols, use current extraction and
-Git evidence to choose remap or deletion; transfer coverage only when existing
-test evidence supports it, then sync and read back status. If identically
-versioned artifacts expose different APIs, classify a release defect, require
-a newly versioned package, and describe project overrides as temporary.
+those conditions changes. A contract change never authorizes receipt-history
+rewrites: retain earlier receipts as historical evidence, append a receipt for
+the current contract, and treat history with no current-contract receipt as
+`verification_contract_mismatch` rather than proof. For obsolete symbols, use
+current extraction and Git evidence to choose remap or deletion; transfer
+coverage only when existing test evidence supports it, then sync and read back
+status. If identically versioned artifacts expose different APIs, classify a
+release defect, require a newly versioned package, and describe project
+overrides as temporary.
 
 ## Relationship Directions
 
@@ -158,7 +162,7 @@ Use `kb_semantic_advisor` with up to three typed `interpretations` for ambiguous
 
 The portable skill body must carry the core contract even when its detailed resources are unavailable: `kb_semantic_advisor` returns a `propositions[]` ledger and `semantic_inventory`; submit typed `interpretations` when wording has more than one plausible logical reading; validate modeled conditions through `kibi.logic.v1`; and preserve unresolved propositions as explicit gaps. Do not read or edit files inside `.kb` directly.
 
-Requirement proof also requires fresh execution evidence. Read the available `verificationSnapshot` from `kb_status`, run the scenario-backed E2E command through CLI-only `kibi verify --test-id TEST -- <argv>`, and append a contracted `kibi.verification-receipt.v2` carrying the exact command, snapshot, environment hash, timestamps, outcome, artifact digest, and every required case/project result. Never rewrite receipt history or treat durable `status: passing` as execution proof; re-run coverage and repair every receipt-specific gap.
+Requirement proof also requires fresh execution evidence. Read the available `verificationSnapshot` from `kb_status`, run the scenario-backed E2E command through CLI-only `kibi verify --test-id TEST -- <argv>`, and append a contracted `kibi.verification-receipt.v2` carrying the exact command, snapshot, environment hash, timestamps, outcome, artifact digest, and every required case/project result. Historical receipts may carry older contract hashes and remain append-only; only a receipt matching both the live snapshot and current contract can prove the test. Never rewrite receipt history or treat durable `status: passing` as execution proof; re-run coverage and repair every receipt-specific gap.
 
 Requirement-mode `kb_coverage` also returns `kibi.repair-plan.v1`. Use it only when `scope.complete` is true; a partial plan means pagination hid actionable requirements. Apply only the earliest `ready` batch for each requirement, query before mutation, create endpoints before relationships, validate every payload, and keep `kb_upsert` calls sequential. Batches are deliberately `autoApplicable: false`: semantic resolution, contradiction supersession, E2E execution, and source ownership always require review. Re-run coverage after every batch instead of continuing from a stale plan.
 

@@ -587,6 +587,15 @@ symbols:
         target: REQ-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verificationreceiptcurrentbindingerrors
+    title: verificationReceiptCurrentBindingErrors
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
   - id: SYM-kibi-cli-src-public-verification-receipt-ts-verificationreceiptv2
     title: VerificationReceiptV2
     sourceFile: packages/cli/src/public/verification-receipt.ts

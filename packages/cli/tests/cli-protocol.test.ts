@@ -42,7 +42,7 @@ describe("executeOperation", () => {
 
     expect(result).toEqual({
       exitCode: 0,
-      stdout: `{"branch":"develop","snapshotId":"stamp:test","syncedAt":null,"dirty":false,"syncState":"fresh","verificationSnapshot":"${"a".repeat(64)}","verificationSnapshotAvailable":true,"verificationSnapshotDirty":true,"verificationSnapshotFileCount":12,"verificationSnapshotVersion":"kibi.workspace-snapshot.v2"}\n`,
+      stdout: `{"branch":"develop","snapshotId":"stamp:test","syncedAt":null,"dirty":false,"syncState":"fresh","verificationSnapshot":"${"a".repeat(64)}","verificationSnapshotAvailable":true,"verificationSnapshotDirty":true,"verificationSnapshotFileCount":12,"verificationSnapshotVersion":"kibi.workspace-snapshot.v2","verificationSnapshotChanges":[],"verificationSnapshotChangeCount":0,"verificationSnapshotChangesTruncated":false}\n`,
     });
   });
 

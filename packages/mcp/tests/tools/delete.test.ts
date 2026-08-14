@@ -40,7 +40,7 @@ describe("handleKbDelete", () => {
     const { prolog } = createMockProlog(async () => ({ success: true }));
 
     await expect(handleKbDelete(prolog, { ids: [] })).rejects.toThrow(
-      "At least one ID required for delete",
+      "Delete requires exactly one non-empty input: ids or relationships",
     );
   });
 

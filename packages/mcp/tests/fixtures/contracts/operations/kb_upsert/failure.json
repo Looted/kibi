@@ -330,6 +330,56 @@
               "enum": ["string", "int", "number", "bool"],
               "type": "string"
             },
+            "verification_contract": {
+              "additionalProperties": false,
+              "properties": {
+                "command_argv": {
+                  "items": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "minItems": 1,
+                  "type": "array"
+                },
+                "required_case_symbols": {
+                  "items": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "type": "array",
+                  "uniqueItems": true
+                },
+                "required_projects": {
+                  "items": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "type": "array",
+                  "uniqueItems": true
+                },
+                "runner": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "success_policy": {
+                  "const": "all_required_cases_first_attempt",
+                  "type": "string"
+                },
+                "version": {
+                  "const": "kibi.verification-contract.v1",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "version",
+                "runner",
+                "command_argv",
+                "required_case_symbols",
+                "required_projects",
+                "success_policy"
+              ],
+              "type": "object"
+            },
             "verification_perspective": {
               "description": "Optional typed verification perspective for test entities. Example: 'consumer'.",
               "enum": ["internal", "consumer"],
@@ -463,6 +513,7 @@
                           "type": "object"
                         },
                         "maxItems": 1000,
+                        "minItems": 1,
                         "type": "array"
                       },
                       "code_snapshot": {

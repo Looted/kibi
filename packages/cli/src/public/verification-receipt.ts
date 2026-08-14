@@ -195,7 +195,6 @@ export function verificationReceiptHistoryErrors(
   testId: string,
   verificationScope: unknown,
   receipts: readonly Readonly<Record<string, unknown>>[],
-  contract?: Readonly<Record<string, unknown>>,
 ): readonly string[] {
   const errors: string[] = [];
   let previousFinishedAt: number | null = null;
@@ -218,12 +217,11 @@ export function verificationReceiptHistoryErrors(
       errors.push(`${prefix}.test_id must equal '${testId}'`);
     }
     if (
-      typeof verificationScope === "string" &&
-      receipt.scope !== verificationScope
+      !(["unit", "integration", "end_to_end"] as const).includes(
+        receipt.scope as "unit" | "integration" | "end_to_end",
+      )
     ) {
-      errors.push(
-        `${prefix}.scope must equal the test verification_scope '${verificationScope}'`,
-      );
+      errors.push(`${prefix}.scope must be a supported verification scope`);
     }
     const startedAt = timestamp(receipt.started_at);
     const finishedAt = timestamp(receipt.finished_at);
@@ -328,12 +326,40 @@ export function verificationReceiptHistoryErrors(
             );
         }
       }
-      if (contract && typeof receipt.contract_hash === "string") {
-        const expectedHash = verificationContractHash(contract);
-        if (receipt.contract_hash !== expectedHash)
-          errors.push(
-            `${prefix}.contract_hash does not match the verification_contract`,
-          );
+    }
+  }
+  return errors;
+}
+
+// implements REQ-kibi-verification-evidence-contract
+export function verificationReceiptCurrentBindingErrors(
+  testId: string,
+  verificationScope: unknown,
+  receipt: Readonly<Record<string, unknown>>,
+  contract?: Readonly<Record<string, unknown>>,
+): readonly string[] {
+  const errors: string[] = [];
+  if (receipt.test_id !== testId) {
+    errors.push(`verification receipt test_id must equal '${testId}'`);
+  }
+  if (typeof verificationScope !== "string") {
+    errors.push("verification_scope is required for current receipt evidence");
+  } else if (receipt.scope !== verificationScope) {
+    errors.push(
+      `verification receipt scope must equal the current verification_scope '${verificationScope}'`,
+    );
+  }
+  if (contract !== undefined) {
+    if (receipt.version !== VERIFICATION_RECEIPT_V2_VERSION) {
+      errors.push(
+        "the current verification_contract requires a kibi.verification-receipt.v2",
+      );
+    } else if (typeof receipt.contract_hash === "string") {
+      const expectedHash = verificationContractHash(contract);
+      if (receipt.contract_hash !== expectedHash) {
+        errors.push(
+          "verification receipt contract_hash does not match the current verification_contract",
+        );
       }
     }
   }

@@ -1732,6 +1732,87 @@ test(requirement_proof_receipts_are_snapshot_bound_fresh_and_outcome_sensitive, 
     assertion(PassedRow.proofStages.passingE2e.tests == ['TEST-PROOF-RECEIPTS']),
     assertion(PassedRow.proofStages.passingE2e.status == passed).
 
+test(requirement_proof_preserves_old_contract_receipts_but_only_current_contract_proves, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    Contract = _{
+        version: 'kibi.verification-contract.v1',
+        runner: playwright,
+        command_argv: [pnpm, exec, playwright, test],
+        required_case_symbols: ['SYM-CASE-1'],
+        required_projects: [chromium],
+        success_policy: all_required_cases_first_attempt
+    },
+    atom_json_dict(ContractJsonAtom, Contract, []),
+    atom_string(ContractJsonAtom, ContractJson),
+    requirement_proof:verification_contract_hash(ContractJson, ContractHash),
+    assertion(ContractHash == '4ef7f9eb930e4fe2b9b94809d7e8bd12935aeff8878b8caed01e505807d1d70a'),
+    OldReceipt = _{
+        version: 'kibi.verification-receipt.v2',
+        receipt_id: 'VR-OLD-CONTRACT-0001',
+        test_id: 'TEST-PROOF-CONTRACT-DRIFT',
+        runner: playwright,
+        command: 'pnpm exec playwright test',
+        command_argv: [pnpm, exec, playwright, test],
+        scope: end_to_end,
+        outcome: passed,
+        code_snapshot: Snapshot,
+        environment_hash: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        started_at: '2026-08-10T11:50:00Z',
+        finished_at: '2026-08-10T11:55:00Z',
+        artifact_digest: 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+        contract_hash: 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
+        case_results: [_{
+            symbol_id: 'SYM-CASE-1',
+            project: chromium,
+            outcome: passed,
+            retries: 0,
+            duration_ms: 1000
+        }]
+    },
+    atom_json_dict(OldHistoryAtom, [OldReceipt], []),
+    atom_string(OldHistoryAtom, OldHistory),
+    assert_fixture_entity(req, 'REQ-PROOF-CONTRACT-DRIFT', "Contract-sensitive proof", active, [priority=must]),
+    assert_fixture_entity(scenario, 'SCEN-PROOF-CONTRACT-DRIFT', "Run the current contract", active, []),
+    assert_fixture_entity(test, 'TEST-PROOF-CONTRACT-DRIFT', "Contract-drift E2E", passing, [
+        verification_scope=end_to_end,
+        verification_contract=ContractJson,
+        verification_receipts=OldHistory
+    ]),
+    kb_assert_relationship(specified_by, 'REQ-PROOF-CONTRACT-DRIFT', 'SCEN-PROOF-CONTRACT-DRIFT', []),
+    kb_assert_relationship(verified_by, 'SCEN-PROOF-CONTRACT-DRIFT', 'TEST-PROOF-CONTRACT-DRIFT', []),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, MismatchJson),
+    json_string_dict(MismatchJson, MismatchReport),
+    coverage_row(MismatchReport.rows, 'REQ-PROOF-CONTRACT-DRIFT', MismatchRow),
+    assertion(MismatchRow.proofStages.passingE2e.contractMismatchReceiptTests == ['TEST-PROOF-CONTRACT-DRIFT']),
+    MismatchRow.proofStages.passingE2e.receiptEvidence = [MismatchEvidence],
+    assertion(MismatchEvidence.currentContractHash == ContractHash),
+    assertion(MismatchEvidence.receiptContractHashes == ['dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd']),
+    assertion(MismatchEvidence.receiptCount == 1),
+    assertion(MismatchEvidence.scope == end_to_end),
+    assertion(MismatchEvidence.state == contract_mismatch),
+    assertion(MismatchEvidence.testId == 'TEST-PROOF-CONTRACT-DRIFT'),
+    assertion(memberchk(verification_contract_mismatch, MismatchRow.proofGaps)),
+    CurrentReceipt = OldReceipt.put(_{
+        receipt_id: 'VR-CURRENT-CONTRACT-01',
+        started_at: '2026-08-10T11:56:00Z',
+        finished_at: '2026-08-10T12:00:00Z',
+        artifact_digest: 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+        contract_hash: ContractHash
+    }),
+    atom_json_dict(CurrentHistoryAtom, [OldReceipt, CurrentReceipt], []),
+    atom_string(CurrentHistoryAtom, CurrentHistory),
+    assert_fixture_entity(test, 'TEST-PROOF-CONTRACT-DRIFT', "Contract-drift E2E", passing, [
+        verification_scope=end_to_end,
+        verification_contract=ContractJson,
+        verification_receipts=CurrentHistory
+    ]),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, CurrentJson),
+    json_string_dict(CurrentJson, CurrentReport),
+    coverage_row(CurrentReport.rows, 'REQ-PROOF-CONTRACT-DRIFT', CurrentRow),
+    assertion(CurrentRow.proofStages.passingE2e.tests == ['TEST-PROOF-CONTRACT-DRIFT']),
+    assertion(CurrentRow.proofStages.passingE2e.status == passed),
+    assertion(\+ memberchk(verification_contract_mismatch, CurrentRow.proofGaps)).
+
 test(symbol_coverage_does_not_count_executable_test_symbols_as_production_coverage, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(test, 'TEST-SYMBOL-ROLE', "Executable symbol test", passing, [verification_scope=end_to_end]),
     assert_fixture_entity(symbol, 'SYM-EXECUTABLE-ONLY', "Executable test symbol", active, []),

@@ -7,6 +7,7 @@ import {
   VERIFICATION_CONTRACT_VERSION,
   VERIFICATION_RECEIPT_V2_VERSION,
   verificationContractHash,
+  verificationReceiptCurrentBindingErrors,
   verificationReceiptHistoryErrors,
 } from "../../public/verification-receipt.js";
 import { projectEntityProperties } from "../mutation/entity-projection.js";
@@ -258,14 +259,20 @@ export async function executeIngestVerification(
     case_results: cases,
   };
   const nextReceipts = [...existingReceipts(test), receipt];
+  const bindingErrors = verificationReceiptCurrentBindingErrors(
+    testId,
+    test.verification_scope,
+    receipt,
+    contract,
+  );
   const historyErrors = verificationReceiptHistoryErrors(
     testId,
     test.verification_scope,
     nextReceipts,
-    contract,
   );
-  if (historyErrors.length > 0)
-    throw new Error(`Verification ingest failed: ${historyErrors.join("; ")}`);
+  const receiptErrors = [...historyErrors, ...bindingErrors];
+  if (receiptErrors.length > 0)
+    throw new Error(`Verification ingest failed: ${receiptErrors.join("; ")}`);
   const properties = projectEntityProperties(test);
   properties.verification_receipts = undefined;
   const upsert = await executeUpsert(

@@ -116,6 +116,7 @@ describe("MCP Check Tool Handler", () => {
   let prolog: PrologProcess;
   let testKbPath: string;
   let previousWorkspace: string | undefined;
+  let previousKibiBranch: string | undefined;
 
   beforeAll(async () => {
     prolog = await startIntegrationProlog();
@@ -126,7 +127,9 @@ describe("MCP Check Tool Handler", () => {
     const attachResult = await attachTestKb(prolog, testKbPath);
     expect(attachResult.success).toBe(true);
     previousWorkspace = process.env.KIBI_WORKSPACE;
+    previousKibiBranch = process.env.KIBI_BRANCH;
     process.env.KIBI_WORKSPACE = testKbPath;
+    process.env.KIBI_BRANCH = "main";
   });
 
   afterEach(async () => {
@@ -135,6 +138,11 @@ describe("MCP Check Tool Handler", () => {
       Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
     } else {
       process.env.KIBI_WORKSPACE = previousWorkspace;
+    }
+    if (previousKibiBranch === undefined) {
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+    } else {
+      process.env.KIBI_BRANCH = previousKibiBranch;
     }
     if (testKbPath) {
       await fs.rm(testKbPath, { recursive: true, force: true });

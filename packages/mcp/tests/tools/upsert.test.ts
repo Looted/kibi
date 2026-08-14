@@ -16,6 +16,7 @@ type QueryResult = {
 
 const initialKibiMcpDebug: string | undefined = process.env.KIBI_MCP_DEBUG;
 const initialKibiWorkspace: string | undefined = process.env.KIBI_WORKSPACE;
+const initialKibiBranch: string | undefined = process.env.KIBI_BRANCH;
 let tempWorkspace: string | undefined;
 
 function createMockProlog(
@@ -119,11 +120,17 @@ afterEach(() => {
   } else {
     process.env.KIBI_WORKSPACE = initialKibiWorkspace;
   }
+  if (initialKibiBranch === undefined) {
+    Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+  } else {
+    process.env.KIBI_BRANCH = initialKibiBranch;
+  }
 });
 
 function createTempWorkspace(): string {
   tempWorkspace = mkdtempSync(path.join(tmpdir(), "kibi-mcp-upsert-"));
   process.env.KIBI_WORKSPACE = tempWorkspace;
+  process.env.KIBI_BRANCH = "main";
   return tempWorkspace;
 }
 

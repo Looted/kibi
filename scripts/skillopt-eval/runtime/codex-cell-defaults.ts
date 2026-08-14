@@ -152,6 +152,20 @@ function workflowSignalObserved(
         text.includes("snapshot") &&
         text.includes("fresh")
       );
+    case "historical contract receipt preserved":
+      return (
+        text.includes("verification_receipts") && text.includes("contract_hash")
+      );
+    case "current contract receipt appended":
+      return (
+        text.includes("verification-receipt.v2") &&
+        text.includes("currentcontracthash")
+      );
+    case "contract mismatch remains non-proof":
+      return (
+        text.includes("verification_contract_mismatch") ||
+        text.includes("contract_mismatch")
+      );
     case "diagnostic IDs with dispositions":
       return (
         text.includes("qualitydiagnostics") && text.includes("disposition")
@@ -233,6 +247,21 @@ function forbiddenActionObserved(
       );
     case "rerun unchanged E2E":
       return text.includes("rerun") || text.includes("re-run");
+    case "rewrite receipt history":
+      return (
+        text.includes("replace receipt history") ||
+        text.includes("rewrite receipt history")
+      );
+    case "delete historical receipt":
+      return (
+        text.includes("delete historical receipt") ||
+        text.includes("remove old receipt")
+      );
+    case "claim old contract proof":
+      return (
+        text.includes("old contract proves") ||
+        text.includes("historical receipt proves current")
+      );
     case "blanket acceptance":
       return (
         text.includes("all diagnostics accepted") || text.includes("accept all")

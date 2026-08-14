@@ -228,8 +228,8 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
   },
   "kibi-traceability/executable-coverage/held-out/1": {
     prompt:
-      "A clean KB has passing E2E evidence for part of the scope and unresolved proof for the rest. Report a complete task with fresh verification and mixed proof; do not collapse the axes.",
-    objectiveCode: "fresh_clean_mixed_proof",
+      "A test has append-only passing receipts for an earlier verification contract, and the contract has now changed. Preserve the historical receipts, keep proof unresolved for the mismatch, run the exact current contract, append its receipt, and verify that only current-contract evidence proves the test.",
+    objectiveCode: "append_only_contract_drift",
     kb: "fresh",
     worktree: "clean",
     adversarialCases: ["misleading-success"],

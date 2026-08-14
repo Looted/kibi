@@ -23,12 +23,15 @@ ontology gaps and historical telemetry limitations explicit.
 
 Receipt reuse is safe only when the live verification snapshot, contract hash,
 freshness window, and every required case result still match. Otherwise rerun
-the contracted command. Obsolete symbols require current extraction or Git
-evidence before remap/deletion; transfer coverage only when existing test
-evidence supports it, then sync and read back status. Same-version packages
-with different export surfaces are a release defect: require a new package
-version and label any project override temporary. This skill never selects a
-package manager or edits dependency configuration.
+the contracted command. If the contract changed, retain every older receipt
+unchanged, append evidence for the current contract, and keep proof unresolved
+with `verification_contract_mismatch` until that current receipt exists.
+Obsolete symbols require current extraction or Git evidence before
+remap/deletion; transfer coverage only when existing test evidence supports it,
+then sync and read back status. Same-version packages with different export
+surfaces are a release defect: require a new package version and label any
+project override temporary. This skill never selects a package manager or
+edits dependency configuration.
 
 ## Discovery to Validation Sequence
 
@@ -80,10 +83,10 @@ Do not create a test-fact pair. Facts describe invariants; requirements or scena
 1. Confirm the exact `REQ -> SCEN -> TEST` path and require typed `verification_scope: end_to_end`; direct requirement-to-test links do not satisfy the conservative scenario stage.
 2. Read `kb_status` and retain its available `verificationSnapshot`. Stop if the runtime reports `unknown`; proof must fail closed when the code identity cannot be computed.
 3. Run the exact E2E command against that snapshot. Record runner, command, start/finish timestamps, outcome, an environment SHA-256, and an artifact/output SHA-256. Do not mint a passed receipt from an authored test status or from an unexecuted assertion.
-4. Preserve every existing receipt byte-for-byte and append the derived `kibi.verification-receipt.v2` object with strictly later `finished_at`. Mutation and incremental sync reject history removal, rewriting, and reordering.
+4. Preserve every existing receipt byte-for-byte and append the derived `kibi.verification-receipt.v2` object with strictly later `finished_at`. Earlier receipts may bind older contracts; they remain audit history but cannot prove the current contract. Mutation and incremental sync reject history removal, rewriting, and reordering.
 5. Re-read `kb_status`; if the snapshot changed during the run, discard the candidate as proof and rerun against the new snapshot. Then run `kb_coverage` and inspect `proofStages.passingE2e.receiptEvidence` plus gap codes.
 
-Only the newest receipt for the live snapshot qualifies, and it must be passed, no more than seven days old, and no more than five minutes in the future. Wrong-snapshot history is retained but stale for current proof. `missing_verification_receipt`, `stale_verification_receipt`, `failed_verification_receipt`, `invalid_verification_receipt`, and `verification_snapshot_unavailable` are repair states, not warnings to waive.
+Only the newest receipt matching both the live snapshot and current contract qualifies, and it must be passed, no more than seven days old, and no more than five minutes in the future. Wrong-snapshot and older-contract history is retained but cannot prove the current test. `missing_verification_receipt`, `stale_verification_receipt`, `failed_verification_receipt`, `invalid_verification_receipt`, `verification_contract_mismatch`, and `verification_snapshot_unavailable` are repair states, not warnings to waive.
 
 ## Predicate-First Requirement Modeling
 

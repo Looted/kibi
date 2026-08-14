@@ -21,6 +21,14 @@ import process from "node:process";
 import * as sessionModule from "../../src/server/session.js";
 
 type BranchResult = { branch: string } | { error: string };
+type BranchAttachmentResult =
+  | {
+      gitBranch: string;
+      kbBranch: string;
+      kind: "exact";
+      migrationRequired: false;
+    }
+  | { error: string; code: string };
 type MockRequire = ((path: string) => unknown) & {
   resolve(path: string): string;
 };
@@ -39,6 +47,14 @@ const defaults = {
   isValidBranchName: (_branch: string) => true,
   resolveActiveBranch: (_workspaceRoot: string): BranchResult => ({
     branch: "develop",
+  }),
+  resolveBranchAttachment: (
+    _workspaceRoot: string,
+  ): BranchAttachmentResult => ({
+    gitBranch: "develop",
+    kbBranch: "develop",
+    kind: "exact",
+    migrationRequired: false,
   }),
   resolveKbPath: (_workspaceRoot: string, branch: string) =>
     `/mock/workspace/.kb/branches/${branch}`,
@@ -77,6 +93,7 @@ const mockCopyCleanSnapshot = mock(defaults.copyCleanSnapshot);
 const mockGetBranchDiagnostic = mock(defaults.getBranchDiagnostic);
 const mockIsValidBranchName = mock(defaults.isValidBranchName);
 const mockResolveActiveBranch = mock(defaults.resolveActiveBranch);
+const mockResolveBranchAttachment = mock(defaults.resolveBranchAttachment);
 const mockResolveKbPath = mock(defaults.resolveKbPath);
 const mockResolveWorkspaceRoot = mock(defaults.resolveWorkspaceRoot);
 const mockCreateRequire = mock(defaults.createRequire);
@@ -144,6 +161,7 @@ function resetMocks() {
   mockGetBranchDiagnostic.mockClear();
   mockIsValidBranchName.mockClear();
   mockResolveActiveBranch.mockClear();
+  mockResolveBranchAttachment.mockClear();
   mockResolveKbPath.mockClear();
   mockResolveWorkspaceRoot.mockClear();
   mockCreateRequire.mockClear();
@@ -160,6 +178,9 @@ function resetMocks() {
   mockGetBranchDiagnostic.mockImplementation(defaults.getBranchDiagnostic);
   mockIsValidBranchName.mockImplementation(defaults.isValidBranchName);
   mockResolveActiveBranch.mockImplementation(defaults.resolveActiveBranch);
+  mockResolveBranchAttachment.mockImplementation(
+    defaults.resolveBranchAttachment,
+  );
   mockResolveKbPath.mockImplementation(defaults.resolveKbPath);
   mockResolveWorkspaceRoot.mockImplementation(defaults.resolveWorkspaceRoot);
   mockCreateRequire.mockImplementation(defaults.createRequire);
@@ -194,6 +215,7 @@ async function importSessionModule(tag: string) {
     getBranchDiagnostic: mockGetBranchDiagnostic,
     isValidBranchName: mockIsValidBranchName,
     resolveActiveBranch: mockResolveActiveBranch,
+    resolveBranchAttachment: mockResolveBranchAttachment,
     resolveKbPath: mockResolveKbPath,
     resolveWorkspaceRoot: mockResolveWorkspaceRoot,
   } as unknown as Parameters<typeof session._setSessionDepsForTests>[0]);
@@ -286,8 +308,11 @@ describe.serial("session uncovered branch coverage", () => {
   });
 
   test("surfaces branch resolution diagnostics when git branch lookup fails", async () => {
-    mockResolveActiveBranch.mockImplementation(
-      (): BranchResult => ({ error: "detached HEAD" }),
+    mockResolveBranchAttachment.mockImplementation(
+      (): BranchAttachmentResult => ({
+        error: "detached HEAD",
+        code: "DETACHED_HEAD",
+      }),
     );
     mockGetBranchDiagnostic.mockImplementation(
       (_cwd?: string, error?: string) => `diagnostic for ${error}`,

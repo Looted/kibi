@@ -67,9 +67,12 @@ describe("Integration: schema version warning before migration", () => {
 describe("Integration: kibi migrate idempotency", () => {
   let tmpDir: string;
   let originalCwd: string;
+  let originalKibiBranch: string | undefined;
 
   beforeEach(() => {
     originalCwd = process.cwd();
+    originalKibiBranch = process.env.KIBI_BRANCH;
+    process.env.KIBI_BRANCH = "main";
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-migrate-test-"));
     const kbDir = path.join(tmpDir, ".kb");
     fs.mkdirSync(kbDir, { recursive: true });
@@ -83,6 +86,11 @@ describe("Integration: kibi migrate idempotency", () => {
 
   afterEach(() => {
     process.chdir(originalCwd);
+    if (originalKibiBranch === undefined) {
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+    } else {
+      process.env.KIBI_BRANCH = originalKibiBranch;
+    }
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 

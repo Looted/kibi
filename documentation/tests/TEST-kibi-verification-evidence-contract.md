@@ -4,7 +4,7 @@ title: End-to-end verification receipt contract
 type: test
 status: passing
 created_at: 2026-08-13T00:00:00Z
-updated_at: 2026-08-13T00:00:00Z
+updated_at: 2026-08-14T00:00:00Z
 source: documentation/tests/TEST-kibi-verification-evidence-contract.md
 priority: must
 verification_scope: end_to_end
@@ -15,4 +15,4 @@ links:
     target: SCEN-kibi-verification-evidence-contract
 ---
 
-Receipt and reporter tests verify stable case IDs, contract and snapshot binding, append-only history, exact argv capture, first-attempt proof semantics, and rejection of stale, skipped, retried, partial, or mismatched runs.
+Receipt and reporter tests verify stable case IDs, contract and snapshot binding, append-only history across contract evolution, exact argv capture, first-attempt proof semantics, and rejection of stale, skipped, retried, partial, or mismatched runs. Earlier-contract receipts remain immutable audit evidence, while only a receipt for the current contract and snapshot contributes proof.

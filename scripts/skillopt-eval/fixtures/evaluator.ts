@@ -130,6 +130,16 @@ function adversarialAssessments(task: FixtureTaskSpec) {
 }
 
 function requiredTools(task: FixtureTaskSpec): readonly string[] {
+  if (task.taskData.objectiveCode === "append_only_contract_drift") {
+    return [
+      "kb_search",
+      "kb_query",
+      "kb_status",
+      "kb_ingest_verification",
+      "kb_coverage",
+      "kb_check",
+    ];
+  }
   const extraStatus = [
     "exact_branch_identity",
     "legacy_branch_storage",
@@ -137,7 +147,7 @@ function requiredTools(task: FixtureTaskSpec): readonly string[] {
     "stale_v2_schema",
     "stale_symbol_remap",
     "dirty_editor_config",
-    "fresh_clean_mixed_proof",
+    "append_only_contract_drift",
     "unchanged_snapshot_receipt_reuse",
     "quality_diagnostic_disposition",
     "obsolete_symbol_delete_with_replacement",
@@ -256,14 +266,22 @@ function workflowExpectation(task: FixtureTaskSpec) {
       requiredSignals: ["dirty editor path reported"],
       forbiddenActions: ["silently ignore editor config"],
     },
-    fresh_clean_mixed_proof: {
+    append_only_contract_drift: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
       expectedVerificationState: "fresh",
-      expectedProofState: "mixed",
+      expectedProofState: "proven",
       expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["passing E2E evidence", "proof gaps remain explicit"],
-      forbiddenActions: ["claim proof proven"],
+      requiredSignals: [
+        "historical contract receipt preserved",
+        "current contract receipt appended",
+        "contract mismatch remains non-proof",
+      ],
+      forbiddenActions: [
+        "rewrite receipt history",
+        "delete historical receipt",
+        "claim old contract proof",
+      ],
     },
     unchanged_snapshot_receipt_reuse: {
       expectedOutcome: "complete",

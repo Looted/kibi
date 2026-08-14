@@ -184,7 +184,7 @@ describe("shared mutation operation specs", () => {
     expect(save).not.toHaveBeenCalled();
   });
 
-  test("validate-upsert rejects receipt history that does not bind its test and scope", async () => {
+  test("validate-upsert rejects duplicate history bound to another test without rewriting historical scope", async () => {
     const { context, save } = createContext(() => ({
       success: false,
       bindings: {},
@@ -207,9 +207,7 @@ describe("shared mutation operation specs", () => {
     expect(result.structuredContent).toMatchObject({ valid: false });
     const errorText = result.structuredContent?.errors.join(" ") ?? "";
     expect(errorText).toContain("test_id must equal 'TEST-OTHER'");
-    expect(errorText).toContain(
-      "scope must equal the test verification_scope 'integration'",
-    );
+    expect(errorText).not.toContain("scope must equal");
     expect(errorText).toContain("receipt_id duplicates 'VR-MUTATION-0001'");
     expect(save).not.toHaveBeenCalled();
   });

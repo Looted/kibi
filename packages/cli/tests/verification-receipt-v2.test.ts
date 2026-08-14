@@ -2,7 +2,11 @@ import { describe, expect, test } from "bun:test";
 
 import { validateAgainstSchema } from "../src/cli-validate.js";
 import entitySchema from "../src/public/schemas/entity.js";
-import { verificationReceiptHistoryErrors } from "../src/public/verification-receipt.js";
+import {
+  verificationContractHash,
+  verificationReceiptCurrentBindingErrors,
+  verificationReceiptHistoryErrors,
+} from "../src/public/verification-receipt.js";
 
 const contract = {
   version: "kibi.verification-contract.v1",
@@ -68,5 +72,33 @@ describe("verification contract and receipt v2", () => {
       },
     ]);
     expect(errors.some((error) => error.includes("duplicates"))).toBe(true);
+  });
+
+  test("preserves structurally valid receipts from an earlier contract revision", () => {
+    const historyErrors = verificationReceiptHistoryErrors(
+      "TEST-001",
+      "end_to_end",
+      [receipt],
+    );
+    expect(historyErrors).toEqual([]);
+
+    const bindingErrors = verificationReceiptCurrentBindingErrors(
+      "TEST-001",
+      "end_to_end",
+      receipt,
+      contract,
+    );
+    expect(bindingErrors).toContain(
+      "verification receipt contract_hash does not match the current verification_contract",
+    );
+
+    expect(
+      verificationReceiptCurrentBindingErrors(
+        "TEST-001",
+        "end_to_end",
+        { ...receipt, contract_hash: verificationContractHash(contract) },
+        contract,
+      ),
+    ).toEqual([]);
   });
 });
