@@ -23,7 +23,9 @@ const entityRows = [
   ],
 ] as const;
 
-function makeProlog(): PrologProcess {
+function makeProlog(
+  options: { readonly coverageProof?: boolean } = {},
+): PrologProcess {
   const prolog = new PrologProcess();
   prolog.query = async (
     goal: string | readonly string[],
@@ -47,6 +49,30 @@ function makeProlog(): PrologProcess {
       return {
         success: true,
         bindings: { Rels: "[['REQ-NORMATIVE','TEST-UPLOAD',covered_by]]" },
+      };
+    }
+    if (text.includes("coverage_report_json")) {
+      return {
+        success: true,
+        bindings: {
+          JsonString: JSON.stringify({
+            rows: options.coverageProof
+              ? [
+                  {
+                    id: "REQ-NORMATIVE",
+                    proofStatus: "unresolved",
+                    proofStages: {
+                      passingE2e: {
+                        status: "passed",
+                        tests: ["TEST-UPLOAD"],
+                      },
+                    },
+                    proofGaps: ["unresolved_semantic_proposition"],
+                  },
+                ]
+              : [],
+          }),
+        },
       };
     }
     return { success: true, bindings: { Rels: "[]" } };
@@ -93,6 +119,22 @@ describe("collectFullKbQualityDiagnostics", () => {
     });
 
     expect(diagnostics.length).toBeGreaterThan(1);
+  });
+
+  it("uses the same live receipt proof as coverage to suppress stale depth review", async () => {
+    const diagnostics = await collectFullKbQualityDiagnostics({
+      prolog: makeProlog({ coverageProof: true }),
+      verificationSnapshot: "a".repeat(64),
+      checkedAt: "2026-08-14T12:00:00.000Z",
+    });
+
+    expect(
+      diagnostics.filter(
+        (diagnostic) =>
+          diagnostic.id === "coverage_depth_review" &&
+          diagnostic.entityId === "REQ-NORMATIVE",
+      ),
+    ).toEqual([]);
   });
 
   it("surfaces usage acceptance repairs through the quality diagnostic lane", async () => {

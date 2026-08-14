@@ -153,9 +153,23 @@ function coverageDepthSuggestion(
 
 function createDiagnostic(
   coverage: RequirementCoverage,
+  proofEvidence:
+    | Readonly<{
+        readonly proofStatus?: string;
+        readonly passingE2eStatus?: string;
+        readonly passingE2eTests?: readonly string[];
+        readonly receiptGapCodes?: readonly string[];
+      }>
+    | undefined,
 ): QualityDiagnostic | undefined {
   const coverageDepth = classifyCoverageDepth(coverage);
   if (!isReviewableCoverageDepth(coverageDepth)) return undefined;
+
+  // Structural coverage and conservative proof are separate lanes. A current
+  // scenario-backed E2E receipt is strong execution evidence even when the
+  // requirement remains unresolved for ontology, symbol, or coordinate gaps.
+  // Do not emit a contradictory weak-depth review in that case.
+  if (proofEvidence?.passingE2eStatus === "passed") return undefined;
 
   const allTests = uniqueEntities([
     ...coverage.directTests,
@@ -180,6 +194,18 @@ function createDiagnostic(
       scenarioTests: coverage.scenarioTests.map((test) => test.id),
       testStatuses: uniqueStrings(allTests.map((test) => test.status)),
       verificationScopes: uniqueStrings(allTests.map(testScope)),
+      ...(proofEvidence?.proofStatus !== undefined
+        ? { proofStatus: proofEvidence.proofStatus }
+        : {}),
+      ...(proofEvidence?.passingE2eStatus !== undefined
+        ? { passingE2eStatus: proofEvidence.passingE2eStatus }
+        : {}),
+      ...(proofEvidence?.passingE2eTests !== undefined
+        ? { passingE2eTests: [...proofEvidence.passingE2eTests] }
+        : {}),
+      ...(proofEvidence?.receiptGapCodes !== undefined
+        ? { receiptGapCodes: [...proofEvidence.receiptGapCodes] }
+        : {}),
     },
   };
 }
@@ -252,6 +278,15 @@ function coverageForRequirement(
 
 export function createCoverageDepthQualityDiagnostics(
   manifestResults: readonly ExtractionResult[],
+  proofByRequirement: ReadonlyMap<
+    string,
+    Readonly<{
+      readonly proofStatus?: string;
+      readonly passingE2eStatus?: string;
+      readonly passingE2eTests?: readonly string[];
+      readonly receiptGapCodes?: readonly string[];
+    }>
+  > = new Map(),
 ): readonly QualityDiagnostic[] {
   const entities = entitiesById(manifestResults);
   return manifestResults
@@ -259,6 +294,7 @@ export function createCoverageDepthQualityDiagnostics(
     .flatMap((result) => {
       const diagnostic = createDiagnostic(
         coverageForRequirement(result, manifestResults, entities),
+        proofByRequirement.get(result.entity.id),
       );
       return diagnostic === undefined ? [] : [diagnostic];
     })

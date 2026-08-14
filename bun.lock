@@ -34,7 +34,7 @@
         "gray-matter": "^4.0.3",
         "ignore": "^5.3.0",
         "js-yaml": "^4.1.0",
-        "kibi-core": "^0.7.1",
+        "kibi-core": "^0.10.1",
         "ts-morph": "^23.0.0",
       },
       "devDependencies": {
@@ -92,8 +92,8 @@
         "fast-glob": "^3.2.12",
         "gray-matter": "^4.0.3",
         "js-yaml": "^4.1.0",
-        "kibi-cli": "^0.16.0",
-        "kibi-core": "^0.7.1",
+        "kibi-cli": "^0.20.0",
+        "kibi-core": "^0.10.1",
         "mcpcat": "^0.1.12",
         "ts-morph": "^23.0.0",
         "zod": "^4.3.6",
@@ -101,6 +101,7 @@
       "devDependencies": {
         "@types/bun": "latest",
         "@types/node": "latest",
+        "semver": "^7.7.4",
         "typescript": "^5.7.0",
       },
     },
@@ -111,7 +112,7 @@
         "@opencode-ai/plugin": "^1.4.7",
         "@opentui/core": "^0.1.99",
         "@opentui/solid": "^0.1.99",
-        "kibi-cli": "^0.16.0",
+        "kibi-cli": "^0.20.0",
       },
       "devDependencies": {
         "@types/node": "latest",
@@ -123,7 +124,7 @@
       "version": "0.4.13",
       "dependencies": {
         "js-yaml": "^4.1.0",
-        "kibi-cli": "^0.16.0",
+        "kibi-cli": "^0.20.0",
       },
       "devDependencies": {
         "@types/bun": "latest",

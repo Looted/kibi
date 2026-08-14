@@ -755,7 +755,7 @@ function extractFromMarkdownContent(
             filePath,
             {
               classification: "Invalid Test Verification Receipts",
-              hint: "Use append-only kibi.verification-receipt.v1 objects.",
+              hint: "Use kibi verify to append kibi.verification-receipt.v2 objects; older v1 entries remain historical compatibility data.",
             },
           );
         }

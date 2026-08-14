@@ -70,6 +70,8 @@ links:
     target: FACT-VERIFICATION-RECEIPT-SNAPSHOT-SURFACES
   - type: requires_predicate
     target: FACT-VERIFICATION-RECEIPT-STATUS-NONAUTHORITY
+  - type: supersedes
+    target: REQ-kibi-verification-receipts-v2
 ---
 
 Proof-bearing end-to-end tests must carry append-only kibi.verification-receipt.v1 execution history. Each receipt must bind its test ID, typed verification scope, runner command, current code snapshot, environment hash, timestamps, outcome, and artifact digest. The newest receipt for the current code snapshot must be passing and no older than seven days. A missing, stale, failed, malformed, mismatched, or future-dated receipt must not prove the requirement. Coverage and status must expose the deterministic current code snapshot through CLI and MCP. Durable test status remains structural metadata and cannot substitute for a receipt.

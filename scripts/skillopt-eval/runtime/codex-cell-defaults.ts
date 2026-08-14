@@ -202,6 +202,12 @@ function workflowSignalObserved(
       );
     case "ontology gap remains unresolved":
       return text.includes("ontology_gap") || text.includes("unresolved");
+    case "proof-aware depth warning not emitted":
+      return (
+        text.includes("passinge2e") && !text.includes("coverage_depth_review")
+      );
+    case "receipt gap IDs and affected tests":
+      return text.includes("coverage_receipt_gaps") && text.includes("test");
     case "evidence-backed repair candidates":
       return (
         text.includes("staleReasons") || text.includes("repair candidates")
@@ -237,6 +243,13 @@ function forbiddenActionObserved(
         text.includes('"proofstate":"proven"') &&
         text.includes('"proofproven":0')
       );
+    case "treat stale coverage-depth heuristic as proof failure":
+    case "accept stale coverage-depth heuristic as a real gap":
+      return (
+        text.includes("coverage_depth_review") && text.includes("passinge2e")
+      );
+    case "recommend v1 receipt":
+      return text.includes("recommend v1") || text.includes("use a v1 receipt");
     case "silently ignore editor config":
       return (
         Array.isArray(status?.verificationSnapshotChanges) &&

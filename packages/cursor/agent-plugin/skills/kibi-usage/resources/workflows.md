@@ -46,7 +46,7 @@ The canonical workflow for any KB operation follows this pattern:
 7. **Create endpoints**: validated `kb_upsert` for new entities, sequentially
 8. **Link**: validated `kb_upsert` with `requires_rule`, `requires_predicate`, `constrains`, or `requires_property`, sequentially
 9. **Validate coverage and consistency**: targeted `rule-safety`, `rule-verifiability`, `semantic-completeness`, `logic-coverage`, `predicate-verifiability`, and `domain-contradictions`, then final full `kb_check`
-10. **Prove execution**: read `kb_status.verificationSnapshot`, run each scenario-backed E2E command exactly as declared by its `verification_contract.v1`, ingest the reporter artifact to derive a `kibi.verification-receipt.v2`, and re-run `kb_coverage`; never promote durable test status into fresh evidence
+10. **Prove execution**: read `kb_status.verificationSnapshot`, run each scenario-backed E2E command exactly as declared by its `verification_contract.v1` through `kibi verify`, append the derived `kibi.verification-receipt.v2`, and re-run `kb_coverage`; never promote durable test status into fresh evidence
 11. **Repair incrementally**: require `kb_coverage.repairPlan.scope.complete`, apply only one `ready` dependency batch per requirement, validate before every sequential write, and rerun coverage before selecting the next batch
 12. **Gate workflow evidence**: when `.kb/usage.log` exists, run `kibi usage-metrics --format json --require-acceptance`; repair ranked telemetry diagnostics and never treat stale or insufficient evidence as a pass
 
@@ -55,6 +55,8 @@ Every current requirement without `logic_claims` remains visible as non-blocking
 `kibi.repair-plan.v1` is a deterministic read-only plan, not a mutation script. Its phase order keeps source and proposition analysis ahead of ground endpoints, endpoints ahead of manifests/links, logic ahead of contradictions, scenarios ahead of tests and receipts, and production ownership ahead of coverage and coordinate refresh. A `blocked` batch is waiting on every listed `dependsOn` batch. If pagination makes the plan partial, increase the requirement coverage limit rather than applying an incomplete project view.
 
 `kibi.telemetry-acceptance.v1` evaluates the latest 200 usage events and keeps process health separate from graph correctness. It requires at least 95% complete diagnostic telemetry and, when applicable, exact recent validation before every upsert and a same-requirement/current-hash advisor pass before requirement writes. It also evaluates source lookup misses, comparable complete-scope proof-gap recovery, receipt-specific coverage gaps, and mutation targets retried three or more times. Failed metrics become ranked `category: telemetry` quality diagnostics; missing current coverage fields or evidence older than seven days stays `insufficient_evidence`.
+
+For `e2e_receipt_freshness_low`, query each listed requirement/test gap and run its exact current contract through `kibi verify`; this appends v2 evidence and preserves older history. If `coverage_depth_review` conflicts with a coverage row whose `proofStages.passingE2e.status` is `passed`, report the diagnostic as a stale heuristic and keep any independent proof gaps unresolved.
 
 ## Creating a New Feature
 ```

@@ -3329,9 +3329,9 @@ coordinates:
   SYM-cli-impact-collectFullKbQualityDiagnostics:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 303
+    sourceEndLine: 416
     sourceFile: packages/cli/src/public/impact/full-kb-quality.ts
-    sourceLine: 275
+    sourceLine: 380
   SYM-cli-impact-collectLinkedEntities:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3353,9 +3353,9 @@ coordinates:
   SYM-cli-impact-createCoverageDepthQualityDiagnostics:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 268
+    sourceEndLine: 304
     sourceFile: packages/cli/src/public/impact/coverage-depth-quality.ts
-    sourceLine: 253
+    sourceLine: 279
   SYM-cli-impact-createImpactManifestLookup:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4949,9 +4949,9 @@ coordinates:
   SYM-deriveDiagnosticFields:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 412
+    sourceEndLine: 461
     sourceFile: packages/mcp/src/diagnostics.ts
-    sourceLine: 309
+    sourceLine: 358
   SYM-deriveDiagnosticHints:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7187,21 +7187,21 @@ coordinates:
   SYM-operation-check-input:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 46
+    sourceEndLine: 47
     sourceFile: packages/cli/src/public/operations/check-executor.ts
-    sourceLine: 38
+    sourceLine: 39
   SYM-operation-check-options:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 59
+    sourceEndLine: 60
     sourceFile: packages/cli/src/public/operations/check-executor.ts
-    sourceLine: 57
+    sourceLine: 58
   SYM-operation-check-payload:
     sourceColumn: 12
     sourceEndColumn: 50
-    sourceEndLine: 48
+    sourceEndLine: 49
     sourceFile: packages/cli/src/public/operations/check-executor.ts
-    sourceLine: 48
+    sourceLine: 49
   SYM-operation-check-spec:
     sourceColumn: 13
     sourceEndColumn: 34
@@ -7235,9 +7235,9 @@ coordinates:
   SYM-operation-execute-check:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 189
+    sourceEndLine: 203
     sourceFile: packages/cli/src/public/operations/check-executor.ts
-    sourceLine: 73
+    sourceLine: 74
   SYM-operation-executeCoverage:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -8327,21 +8327,21 @@ coordinates:
   SYM-reqcompiler-telemetry-acceptance-metric:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 77
+    sourceEndLine: 84
     sourceFile: packages/cli/src/public/telemetry-acceptance.ts
-    sourceLine: 65
+    sourceLine: 72
   SYM-reqcompiler-telemetry-acceptance-policy:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 63
+    sourceEndLine: 70
     sourceFile: packages/cli/src/public/telemetry-acceptance.ts
-    sourceLine: 51
+    sourceLine: 58
   SYM-reqcompiler-telemetry-acceptance-report:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 95
+    sourceEndLine: 102
     sourceFile: packages/cli/src/public/telemetry-acceptance.ts
-    sourceLine: 79
+    sourceLine: 86
   SYM-reqcompiler-telemetry-acceptance-status:
     sourceColumn: 12
     sourceEndColumn: 28
@@ -8357,9 +8357,9 @@ coordinates:
   SYM-reqcompiler-telemetry-default-policy:
     sourceColumn: 13
     sourceEndColumn: 46
-    sourceEndLine: 109
+    sourceEndLine: 116
     sourceFile: packages/cli/src/public/telemetry-acceptance.ts
-    sourceLine: 97
+    sourceLine: 104
   SYM-reqcompiler-telemetry-metric-id:
     sourceColumn: 12
     sourceEndColumn: 33
@@ -8375,7 +8375,7 @@ coordinates:
   SYM-reqcompiler-telemetry-usage-event:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 49
+    sourceEndLine: 56
     sourceFile: packages/cli/src/public/telemetry-acceptance.ts
     sourceLine: 26
   SYM-reqcompiler-usage-build-report:
@@ -10181,9 +10181,9 @@ coordinates:
   SYM-skillopt-default-codex-cell-dependencies:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 684
+    sourceEndLine: 697
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    sourceLine: 612
+    sourceLine: 625
   SYM-skillopt-default-evaluate-development:
     sourceColumn: 13
     sourceEndColumn: 3
@@ -10745,15 +10745,15 @@ coordinates:
   SYM-skillopt-fixture-private-integrity:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 522
+    sourceEndLine: 535
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    sourceLine: 512
+    sourceLine: 525
   SYM-skillopt-fixture-private-manifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 509
+    sourceEndLine: 522
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    sourceLine: 370
+    sourceLine: 383
   SYM-skillopt-fixture-serialize:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -11333,9 +11333,9 @@ coordinates:
   SYM-skillopt-predicate-build-expectation:
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 366
+    sourceEndLine: 379
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    sourceLine: 346
+    sourceLine: 359
   SYM-skillopt-predicate-candidate-root-manifest:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -12227,9 +12227,9 @@ coordinates:
   SYM-skillopt-reference-targets:
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 319
+    sourceEndLine: 332
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    sourceLine: 311
+    sourceLine: 324
   SYM-skillopt-render-report-markdown:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -12803,9 +12803,9 @@ coordinates:
   SYM-skillopt-safe-mutation-complete:
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 347
+    sourceEndLine: 360
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    sourceLine: 322
+    sourceLine: 335
   SYM-skillopt-scoring-bootstrap:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -12959,9 +12959,9 @@ coordinates:
   SYM-skillopt-seal-default-cell-evidence:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 609
+    sourceEndLine: 622
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    sourceLine: 590
+    sourceLine: 603
   SYM-skillopt-sealed-cell-evidence:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -13337,33 +13337,33 @@ coordinates:
   SYM-telemetry-acceptance-analyze:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 716
+    sourceEndLine: 731
     sourceFile: packages/cli/src/public/telemetry-acceptance.ts
-    sourceLine: 651
+    sourceLine: 666
   SYM-telemetry-acceptance-diagnostics:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 859
+    sourceEndLine: 874
     sourceFile: packages/cli/src/public/telemetry-acceptance.ts
-    sourceLine: 779
+    sourceLine: 794
   SYM-telemetry-acceptance-parse-log:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 149
+    sourceEndLine: 156
     sourceFile: packages/cli/src/public/telemetry-acceptance.ts
-    sourceLine: 125
+    sourceLine: 132
   SYM-telemetry-diagnostic-append-cli:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 206
+    sourceEndLine: 255
     sourceFile: packages/cli/src/public/diagnostic-usage.ts
-    sourceLine: 174
+    sourceLine: 223
   SYM-telemetry-diagnostic-derive:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 172
+    sourceEndLine: 221
     sourceFile: packages/cli/src/public/diagnostic-usage.ts
-    sourceLine: 116
+    sourceLine: 165
   SYM-telemetry-remediation-build:
     sourceColumn: 16
     sourceEndColumn: 1

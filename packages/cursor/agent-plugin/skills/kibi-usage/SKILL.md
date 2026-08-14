@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Guides agents to use Kibi MCP, facts, relationships, and validation correctly
-version: 1.4.0
+version: 1.4.1
 kibiCompatibility: ">=0.11.0"
 tags:
   - kibi
@@ -163,6 +163,8 @@ Use `kb_semantic_advisor` with up to three typed `interpretations` for ambiguous
 The portable skill body must carry the core contract even when its detailed resources are unavailable: `kb_semantic_advisor` returns a `propositions[]` ledger and `semantic_inventory`; submit typed `interpretations` when wording has more than one plausible logical reading; validate modeled conditions through `kibi.logic.v1`; and preserve unresolved propositions as explicit gaps. Do not read or edit files inside `.kb` directly.
 
 Requirement proof also requires fresh execution evidence. Read the available `verificationSnapshot` from `kb_status`, run the scenario-backed E2E command through CLI-only `kibi verify --test-id TEST -- <argv>`, and append a contracted `kibi.verification-receipt.v2` carrying the exact command, snapshot, environment hash, timestamps, outcome, artifact digest, and every required case/project result. Historical receipts may carry older contract hashes and remain append-only; only a receipt matching both the live snapshot and current contract can prove the test. Never rewrite receipt history or treat durable `status: passing` as execution proof; re-run coverage and repair every receipt-specific gap.
+
+If `e2e_receipt_freshness_low` identifies receipt gaps, query the listed requirement and test IDs, then run each exact current contract through `kibi verify`; do not hand-author a v1 receipt. If a full check reports `coverage_depth_review` for a requirement whose `proofStages.passingE2e.status` is `passed`, treat the diagnostic as stale heuristic output and record that proof-aware evidence resolves the depth warning; do not mutate the KB or weaken proof gaps for unrelated ontology or symbol issues.
 
 Requirement-mode `kb_coverage` also returns `kibi.repair-plan.v1`. Use it only when `scope.complete` is true; a partial plan means pagination hid actionable requirements. Apply only the earliest `ready` batch for each requirement, query before mutation, create endpoints before relationships, validate every payload, and keep `kb_upsert` calls sequential. Batches are deliberately `autoApplicable: false`: semantic resolution, contradiction supersession, E2E execution, and source ownership always require review. Re-run coverage after every batch instead of continuing from a stale plan.
 

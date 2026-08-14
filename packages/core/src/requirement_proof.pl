@@ -939,7 +939,7 @@ gap_definition(contradiction_check_incomplete, 41, contradictions, "Complete log
 gap_definition(missing_scenario, 50, scenarios, "Add a specified_by scenario for the requirement.").
 gap_definition(missing_scenario_test, 51, scenario_tests, "Link the scenario to a test with verified_by or validates.").
 gap_definition(missing_passing_e2e, 52, passing_e2e, "Record fresh passing end-to-end evidence on a scenario-backed test.").
-gap_definition(missing_verification_receipt, 53, passing_e2e, "Record a kibi.verification-receipt.v1 result for the scenario-backed E2E test.").
+gap_definition(missing_verification_receipt, 53, passing_e2e, "Run the exact current verification contract through kibi verify and append its kibi.verification-receipt.v2 result for the scenario-backed E2E test.").
 gap_definition(stale_verification_receipt, 54, passing_e2e, "Re-run the E2E test against the current code snapshot and append its receipt.").
 gap_definition(failed_verification_receipt, 55, passing_e2e, "Repair the failing E2E behavior and append a newer passing receipt for the same snapshot.").
 gap_definition(invalid_verification_receipt, 56, passing_e2e, "Repair malformed, future-dated, mismatched, or otherwise uncheckable receipt evidence.").

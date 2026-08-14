@@ -43,6 +43,13 @@ export interface TelemetryUsageEvent {
   readonly coverage_scope_complete?: boolean;
   readonly coverage_proof_gap_count?: number;
   readonly coverage_receipt_gap_count?: number;
+  readonly coverage_receipt_gaps?: readonly Readonly<{
+    readonly requirementId: string;
+    readonly testIds: readonly string[];
+    readonly codes: readonly string[];
+  }>[];
+  readonly coverage_receipt_gap_total?: number;
+  readonly coverage_receipt_gaps_truncated?: boolean;
   readonly zero_results?: boolean;
   readonly result_count?: number;
   readonly error_category?: string;
@@ -570,6 +577,14 @@ function receiptFreshnessMetric(recent: readonly TimedEvent[]): MutableMetric {
       gapCount === 0
         ? "The latest complete requirement coverage event has no receipt-specific gaps."
         : `The latest complete requirement coverage event has ${gapCount} missing, stale, failed, invalid, or uncheckable receipt gaps.`,
+    evidence: {
+      receiptGaps: latest.coverage_receipt_gaps ?? [],
+      receiptGapTotal:
+        latest.coverage_receipt_gap_total ??
+        latest.coverage_receipt_gaps?.length ??
+        0,
+      receiptGapsTruncated: latest.coverage_receipt_gaps_truncated ?? false,
+    },
   };
 }
 
@@ -765,7 +780,7 @@ const METRIC_DIAGNOSTICS: Readonly<
     severity: "warning",
     rank: 40,
     suggestion:
-      "Run each scenario-backed E2E test against the live snapshot, append a passing kibi.verification-receipt.v1, sync, and rerun complete coverage.",
+      "Query the affected tests and run each exact current verification contract through kibi verify against the live snapshot; preserve history, append the generated kibi.verification-receipt.v2, and rerun complete coverage.",
   },
   repeated_mutation_failures: {
     id: "repeated_mutation_failures",

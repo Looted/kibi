@@ -206,6 +206,78 @@ describe("createCoverageDepthQualityDiagnostics", () => {
     ).toEqual([]);
   });
 
+  it("suppresses a stale weak-depth heuristic when current receipt proof passes", () => {
+    const requirement = result({ id: "REQ-ACTIVE-E2E", type: "req" }, [
+      {
+        type: "specified_by",
+        from: "REQ-ACTIVE-E2E",
+        to: "SCEN-ACTIVE-E2E",
+      },
+    ]);
+    const scenario = result({ id: "SCEN-ACTIVE-E2E", type: "scenario" }, [
+      { type: "verified_by", from: "SCEN-ACTIVE-E2E", to: "TEST-ACTIVE-E2E" },
+    ]);
+    const test = result({
+      id: "TEST-ACTIVE-E2E",
+      type: "test",
+      status: "active",
+      verificationScope: "end_to_end",
+    });
+
+    expect(
+      createCoverageDepthQualityDiagnostics(
+        [requirement, scenario, test],
+        new Map([
+          [
+            "REQ-ACTIVE-E2E",
+            {
+              proofStatus: "unresolved",
+              passingE2eStatus: "passed",
+              passingE2eTests: ["TEST-ACTIVE-E2E"],
+            },
+          ],
+        ]),
+      ),
+    ).toEqual([]);
+  });
+
+  it("keeps the review when receipt evidence is not current", () => {
+    const requirement = result({ id: "REQ-STALE-E2E", type: "req" }, [
+      { type: "specified_by", from: "REQ-STALE-E2E", to: "SCEN-STALE-E2E" },
+    ]);
+    const scenario = result({ id: "SCEN-STALE-E2E", type: "scenario" }, [
+      { type: "verified_by", from: "SCEN-STALE-E2E", to: "TEST-STALE-E2E" },
+    ]);
+    const test = result({
+      id: "TEST-STALE-E2E",
+      type: "test",
+      status: "active",
+      verificationScope: "end_to_end",
+    });
+
+    const diagnostics = createCoverageDepthQualityDiagnostics(
+      [requirement, scenario, test],
+      new Map([
+        [
+          "REQ-STALE-E2E",
+          {
+            proofStatus: "unresolved",
+            passingE2eStatus: "unresolved",
+            receiptGapCodes: ["stale_verification_receipt"],
+          },
+        ],
+      ]),
+    );
+
+    expect(diagnostics).toHaveLength(1);
+    expect(diagnostics[0]?.evidence).toEqual(
+      expect.objectContaining({
+        passingE2eStatus: "unresolved",
+        receiptGapCodes: ["stale_verification_receipt"],
+      }),
+    );
+  });
+
   it("deduplicates incoming direct tests and sorts diagnostics by requirement id", () => {
     const later = result({ id: "REQ-Z", type: "req" });
     const earlier = result({ id: "REQ-A", type: "req" }, [

@@ -84,8 +84,53 @@ const RECEIPT_GAP_CODES = new Set([
   "stale_verification_receipt",
   "failed_verification_receipt",
   "invalid_verification_receipt",
+  "verification_contract_mismatch",
   "verification_snapshot_unavailable",
 ]);
+
+const MAX_COVERAGE_RECEIPT_GAPS = 50;
+
+function coverageReceiptGapDetails(rows: readonly Record<string, unknown>[]): {
+  readonly details: readonly Record<string, unknown>[];
+  readonly total: number;
+  readonly truncated: boolean;
+} {
+  const details = rows
+    .flatMap((row) => {
+      const codes = [...new Set(stringArray(row.proofGaps))]
+        .filter((code) => RECEIPT_GAP_CODES.has(code))
+        .sort();
+      if (codes.length === 0) return [];
+      const stages = isRecord(row.proofStages) ? row.proofStages : undefined;
+      const passingE2e = isRecord(stages?.passingE2e)
+        ? stages.passingE2e
+        : undefined;
+      const testIds = [
+        "missingReceiptTests",
+        "staleReceiptTests",
+        "failedReceiptTests",
+        "invalidReceiptTests",
+        "contractMismatchReceiptTests",
+        "snapshotUnavailableTests",
+      ].flatMap((key) => stringArray(passingE2e?.[key]));
+      const requirementId = typeof row.id === "string" ? row.id : "unknown";
+      return [
+        {
+          requirementId,
+          testIds: [...new Set(testIds)].sort(),
+          codes,
+        },
+      ];
+    })
+    .sort((left, right) =>
+      left.requirementId.localeCompare(right.requirementId),
+    );
+  return {
+    details: details.slice(0, MAX_COVERAGE_RECEIPT_GAPS),
+    total: details.length,
+    truncated: details.length > MAX_COVERAGE_RECEIPT_GAPS,
+  };
+}
 
 function appendCoverageFields(
   fields: Record<string, unknown>,
@@ -108,6 +153,10 @@ function appendCoverageFields(
   fields.coverage_receipt_gap_count = gapCodes.filter((code) =>
     RECEIPT_GAP_CODES.has(code),
   ).length;
+  const receiptGaps = coverageReceiptGapDetails(rows);
+  fields.coverage_receipt_gaps = receiptGaps.details;
+  fields.coverage_receipt_gap_total = receiptGaps.total;
+  fields.coverage_receipt_gaps_truncated = receiptGaps.truncated;
   if (typeof scope?.complete === "boolean") {
     fields.coverage_scope_complete = scope.complete;
   }

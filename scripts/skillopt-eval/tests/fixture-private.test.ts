@@ -209,6 +209,7 @@ describe("private SkillOpt fixture corpus", () => {
         "rewrite receipt history",
         "delete historical receipt",
         "claim old contract proof",
+        "recommend v1 receipt",
       ],
     });
   });

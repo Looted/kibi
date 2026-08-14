@@ -319,7 +319,7 @@ tags:
 | text_ref     | No       | string         | Markdown/doc pointer                             |
 | verification_scope | No | enum           | `unit`, `integration`, or `end_to_end`           |
 | verification_perspective | No | enum     | `internal` or `consumer`                         |
-| verification_receipts | No | array[object] | Append-only `kibi.verification-receipt.v1` execution history; requires `verification_scope` |
+| verification_receipts | No | array[object] | Append-only verification-receipt execution history; new evidence is `kibi.verification-receipt.v2`, while v1 entries remain historical compatibility data; requires `verification_scope` |
 
 `tags` remain metadata only. They do not alias or replace typed verification fields.
 
@@ -356,21 +356,29 @@ updated_at: 2026-02-17T13:00:00Z
 source: https://example.com/fixtures/tests/TEST-001
 tags:
   - sample
-verification_scope: integration
-verification_perspective: internal
+verification_scope: end_to_end
+verification_perspective: consumer
 verification_receipts:
-  - version: kibi.verification-receipt.v1
+  - version: kibi.verification-receipt.v2
     receipt_id: VR-TEST-001-20260217T130500Z
     test_id: TEST-001
     runner: bun
     command: bun test ./tests/e2e/sample.test.ts
-    scope: integration
+    command_argv: [bun, test, ./tests/e2e/sample.test.ts]
+    scope: end_to_end
     outcome: passed
     code_snapshot: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     environment_hash: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
     started_at: 2026-02-17T13:00:00Z
     finished_at: 2026-02-17T13:05:00Z
     artifact_digest: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    contract_hash: dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+    case_results:
+      - symbol_id: SYM-TEST-001
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 300000
 ---
 ```
 

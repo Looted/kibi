@@ -33,6 +33,7 @@ import {
 } from "./check-helpers.js";
 import type { OperationContext, PrologPort } from "./runtime-types.js";
 import type { OperationResult } from "./types.js";
+import { readWorkspaceSnapshot } from "./workspace-snapshot.js";
 
 // implements REQ-kibi-operation-interface-parity, REQ-002
 export type CheckInput = {
@@ -78,6 +79,11 @@ export async function executeCheck(
   try {
     const workspaceRoot = args.workspaceRoot ?? context.workspaceRoot;
     const prolog = requireProlog(context);
+    const snapshotEvidence = await readWorkspaceSnapshot(context);
+    const verificationSnapshot = snapshotEvidence.available
+      ? snapshotEvidence.snapshot.hash
+      : undefined;
+    const checkedAt = context.clock().toISOString();
     const checksConfig = await loadChecksConfig(workspaceRoot);
     const rulesAllowlist =
       args.rules === undefined
@@ -103,6 +109,10 @@ export async function executeCheck(
             : await collectFullKbQualityDiagnostics({
                 prolog,
                 workspaceRoot,
+                ...(verificationSnapshot !== undefined
+                  ? { verificationSnapshot }
+                  : {}),
+                checkedAt,
                 now: context.clock(),
                 ...maxDiagnosticsOption,
               });
@@ -160,6 +170,10 @@ export async function executeCheck(
             prolog,
             hardViolationEntityIds: new Set(violations.map((v) => v.entityId)),
             workspaceRoot,
+            ...(verificationSnapshot !== undefined
+              ? { verificationSnapshot }
+              : {}),
+            checkedAt,
             now: context.clock(),
             ...maxDiagnosticsOption,
           });

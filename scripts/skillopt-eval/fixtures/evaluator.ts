@@ -242,8 +242,13 @@ function workflowExpectation(task: FixtureTaskSpec) {
       requiredSignals: [
         "passing v2 receipt",
         "ontology gap remains unresolved",
+        "proof-aware depth warning not emitted",
       ],
-      forbiddenActions: ["invent ontology grounding", "claim proof proven"],
+      forbiddenActions: [
+        "invent ontology grounding",
+        "claim proof proven",
+        "treat stale coverage-depth heuristic as proof failure",
+      ],
     },
     stale_symbol_remap: {
       expectedOutcome: "complete",
@@ -281,6 +286,7 @@ function workflowExpectation(task: FixtureTaskSpec) {
         "rewrite receipt history",
         "delete historical receipt",
         "claim old contract proof",
+        "recommend v1 receipt",
       ],
     },
     unchanged_snapshot_receipt_reuse: {
@@ -298,8 +304,15 @@ function workflowExpectation(task: FixtureTaskSpec) {
       expectedVerificationState: "fresh",
       expectedProofState: "unresolved",
       expectedLimitationDisposition: "accepted",
-      requiredSignals: ["diagnostic IDs with dispositions"],
-      forbiddenActions: ["blanket acceptance"],
+      requiredSignals: [
+        "diagnostic IDs with dispositions",
+        "receipt gap IDs and affected tests",
+      ],
+      forbiddenActions: [
+        "blanket acceptance",
+        "recommend v1 receipt",
+        "accept stale coverage-depth heuristic as a real gap",
+      ],
     },
     obsolete_symbol_delete_with_replacement: {
       expectedOutcome: "complete",

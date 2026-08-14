@@ -180,6 +180,15 @@ describe("telemetry acceptance", () => {
         coverage_scope_complete: true,
         coverage_proof_gap_count: 5,
         coverage_receipt_gap_count: 2,
+        coverage_receipt_gaps: [
+          {
+            requirementId: "REQ-RECEIPT",
+            testIds: ["TEST-RECEIPT"],
+            codes: ["verification_contract_mismatch"],
+          },
+        ],
+        coverage_receipt_gap_total: 1,
+        coverage_receipt_gaps_truncated: false,
         business_args: { by: "req" },
       },
     );
@@ -199,6 +208,31 @@ describe("telemetry acceptance", () => {
     ]);
     expect(diagnostics.every((diagnostic) => !diagnostic.blocking)).toBe(true);
     expect(diagnostics[0]?.evidence).toMatchObject({ rank: 10 });
+    const receiptDiagnostic = diagnostics.find(
+      (diagnostic) => diagnostic.id === "e2e_receipt_freshness_low",
+    );
+    expect(receiptDiagnostic?.suggestion).toContain("kibi verify");
+    expect(receiptDiagnostic?.suggestion).toContain(
+      "kibi.verification-receipt.v2",
+    );
+    expect(receiptDiagnostic?.suggestion).not.toContain(
+      "kibi.verification-receipt.v1",
+    );
+    expect(receiptDiagnostic?.evidence).toMatchObject({
+      metric: {
+        evidence: {
+          receiptGaps: [
+            {
+              requirementId: "REQ-RECEIPT",
+              testIds: ["TEST-RECEIPT"],
+              codes: ["verification_contract_mismatch"],
+            },
+          ],
+          receiptGapTotal: 1,
+          receiptGapsTruncated: false,
+        },
+      },
+    });
   });
 
   test("treats stale evidence and missing proof telemetry as insufficient", () => {
