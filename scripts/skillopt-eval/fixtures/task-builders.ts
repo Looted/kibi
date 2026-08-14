@@ -296,6 +296,42 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
     mutation: "write",
     approvalPhase: "post-approval",
   },
+  "kibi-freshness/stale-state-recovery/held-out/1": {
+    prompt:
+      "A branch store cannot be attached because legacy migration validation fails. Inspect status, preview the sanctioned branch recovery, preserve the original backup, and never move .kb by hand.",
+    objectiveCode: "unreadable_branch_store_recovery",
+    kb: "stale",
+    worktree: "clean",
+    adversarialCases: ["stale-state", "approval-boundary"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
+  "kibi-freshness/branch-status-classification/held-out/2": {
+    prompt:
+      "Git is on develop and a healthy master KB exists. Refuse to use branch migrate as a cross-branch clone; explain the supported ensure or recovery boundaries without editing .kb.",
+    objectiveCode: "arbitrary_branch_migration_refused",
+    kb: "fresh",
+    worktree: "clean",
+    adversarialCases: ["misleading-success"],
+  },
+  "kibi-freshness/branch-status-classification/held-out/3": {
+    prompt:
+      "The exact branch has no KB store or sync metadata. Report the structured missing-store status and the sanctioned initialization command; never call the state clean or fresh.",
+    objectiveCode: "missing_branch_store_status",
+    kb: "stale",
+    worktree: "clean",
+    adversarialCases: ["stale-state", "misleading-success"],
+  },
+  "kibi-traceability/executable-coverage/held-out/3": {
+    prompt:
+      "A standardization branch has passing receipts, but final integration also merges dependency pins. Merge and establish the final snapshot first, then run only the exact current contracts and append receipts; never reuse pre-integration evidence as proof.",
+    objectiveCode: "final_integration_invalidates_receipts",
+    kb: "fresh",
+    worktree: "clean",
+    adversarialCases: ["misleading-success", "approval-boundary"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
 };
 
 /**

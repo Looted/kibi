@@ -17,7 +17,7 @@
  */
 
 import { execSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, renameSync } from "node:fs";
 import * as path from "node:path";
 import type { Diagnostic, SyncSummary } from "../diagnostics.js";
 import {
@@ -216,11 +216,14 @@ export async function syncCommand(
     validateOnly?: boolean;
     rebuild?: boolean;
     refreshSymbolCoordinates?: boolean;
+    /** Explicitly rebuild an unreadable branch store from authored sources. */
+    recoveryBackupPath?: string;
   } = {},
   runtime: SyncCommandRuntime = {},
 ): Promise<SyncResult> {
   const validateOnly = options.validateOnly ?? false;
   const rebuild = options.rebuild ?? false;
+  const recoveryBackupPath = options.recoveryBackupPath;
   const startTime = Date.now();
   const diagnostics: Diagnostic[] = [];
   const entityCounts: Record<string, number> = {};
@@ -278,7 +281,7 @@ export async function syncCommand(
       process.cwd(),
       `.kb/branches/${currentBranch}`,
     );
-    if (!validateOnly) {
+    if (!validateOnly && recoveryBackupPath === undefined) {
       await ensureJournaledBranchStoreAsync(livePathForEngine);
       const existingEngine = new EngineClient({
         workspaceRoot: process.cwd(),
@@ -291,6 +294,19 @@ export async function syncCommand(
         needsExclusiveGenerationPublish &&
         existsSync(engineSocketPath(process.cwd(), currentBranch))
       ) {
+        await existingEngine.stop(false).catch(() => undefined);
+        await existingEngine.terminate();
+      }
+    } else if (!validateOnly && recoveryBackupPath !== undefined) {
+      // Recovery intentionally avoids attaching the broken live store. The
+      // clean rebuild is compiled into staging and published only after it
+      // can be reopened successfully.
+      const existingEngine = new EngineClient({
+        workspaceRoot: process.cwd(),
+        branch: currentBranch,
+        timeout: 2_000,
+      });
+      if (existsSync(engineSocketPath(process.cwd(), currentBranch))) {
         await existingEngine.stop(false).catch(() => undefined);
         await existingEngine.terminate();
       }
@@ -1055,7 +1071,29 @@ export async function syncCommand(
       await prolog.terminate();
 
       const journaledLive = existsSync(path.join(livePath, "storage.json"));
-      if (rebuild && journaledLive) {
+      if (recoveryBackupPath !== undefined) {
+        if (!existsSync(livePath)) {
+          throw new SyncError(
+            `Recovery target disappeared before publication: ${livePath}`,
+          );
+        }
+        if (existsSync(recoveryBackupPath)) {
+          throw new SyncError(
+            `Recovery backup path already exists: ${recoveryBackupPath}`,
+          );
+        }
+        mkdirSync(path.dirname(recoveryBackupPath), { recursive: true });
+        // Same-filesystem renames give us a recoverable two-step publication:
+        // the original bytes stay at the reported backup path if anything
+        // later needs forensic inspection.
+        renameSync(livePath, recoveryBackupPath);
+        try {
+          renameSync(stagingPath, livePath);
+        } catch (error) {
+          renameSync(recoveryBackupPath, livePath);
+          throw error;
+        }
+      } else if (rebuild && journaledLive) {
         atomicPublishGeneration(stagingPath, livePath);
       } else {
         atomicPublish(stagingPath, livePath);

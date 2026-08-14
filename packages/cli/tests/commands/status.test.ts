@@ -77,6 +77,39 @@ Initial body.
     }
   }, 15000);
 
+  test("reports a missing branch store without creating it", () => {
+    const missingDir = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-test-status-missing-store-"),
+    );
+    try {
+      execSync("git init -b trunk", { cwd: missingDir, stdio: "pipe" });
+
+      const output = execSync(`bun ${kibiBin} status --format json`, {
+        cwd: missingDir,
+        encoding: "utf8",
+      });
+      const result = JSON.parse(output) as {
+        branch: string;
+        dirty: boolean;
+        syncState: string;
+        branchStore: { state: string; errorCode: string };
+      };
+
+      expect(result.branch).toBe("trunk");
+      expect(result.dirty).toBe(true);
+      expect(result.syncState).toBe("unknown");
+      expect(result.branchStore).toMatchObject({
+        state: "missing",
+        errorCode: "branch_store_missing",
+      });
+      expect(
+        existsSync(path.join(missingDir, ".kb", "branches", "trunk")),
+      ).toBe(false);
+    } finally {
+      rmSync(missingDir, { recursive: true, force: true });
+    }
+  }, 15000);
+
   test("reports stale status after workspace edits without sync", () => {
     writeFileSync(
       path.join(tmpDir, "documentation", "requirements", "REQ-001.md"),

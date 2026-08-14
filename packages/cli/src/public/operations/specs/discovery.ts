@@ -173,7 +173,8 @@ export const statusSpec = {
   description:
     "Report current branch, KB snapshot and freshness metadata, plus the deterministic workspace snapshot used to validate execution receipts. Read-only status inspection with no mutation side effects.",
   businessInputSchema: { type: "object", properties: {} },
-  requiresProlog: true,
+  // Status must remain available when the branch store cannot be attached.
+  requiresProlog: false,
   effects: ["kb-read", "workspace-read"],
   execute: executeStatus,
 } as const satisfies OperationSpec<StatusInput, StatusPayload>;

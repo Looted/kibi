@@ -63,7 +63,11 @@ export function createMcpRuntime<TProlog = PrologPort>(
           ? context
           : { ...context, branchAttachment: attachment };
       if (!spec.requiresProlog) {
-        return withAttachment;
+        // Preserve explicit host/test injection without asking the shared MCP
+        // session to initialise a store merely to report its condition.
+        return options.prolog
+          ? { ...withAttachment, prolog: options.prolog }
+          : withAttachment;
       }
       if (options.prolog) {
         return { ...withAttachment, prolog: options.prolog };

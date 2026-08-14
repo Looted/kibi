@@ -226,6 +226,11 @@ Status also reports the exact `branchAttachment` (`gitBranch`, `kbBranch`,
 writes and sync are blocked until the sanctioned migration is applied. Dirty
 editor/config paths are reported rather than silently ignored.
 
+Status does not initialise a missing branch store or repair a damaged one. It
+instead returns `branchStore` (`missing`, `incomplete`, or `unreadable`) with a
+recovery-oriented stale reason. Use the explicit branch commands below after
+reviewing that diagnosis.
+
 ## `kibi find-gaps [type]` (`gaps` alias)
 
 Runs curated missing/present relationship analysis.
@@ -497,11 +502,13 @@ Lists and manages branch knowledge bases.
 ```bash
 kibi branch ensure [--from <branch>]
 kibi branch migrate --from <legacy-branch> [--apply]
+kibi branch recover [--apply]
 ```
 
 **Arguments:**
 - `ensure` - Ensure the active branch has a branch-local KB snapshot
 - `migrate` - Preview (or, with `--apply`, atomically move) a legacy branch KB into the exact active Git branch namespace
+- `recover` - Preview (or, with `--apply`, rebuild) an incomplete or unreadable exact branch store from authored sources while preserving the original bytes
 
 **Flags:**
 - `--from <branch>` - Copy the new branch KB from an existing branch KB instead of creating an empty one
@@ -512,6 +519,8 @@ kibi branch migrate --from <legacy-branch> [--apply]
 - If `--from` is supplied and that branch KB exists, copies from it instead
 - Branch names are never normalized; `master` and `main` are separate namespaces. If no `--from` is supplied, `ensure` creates an empty KB for the exact active ref.
 - `migrate` previews by default, stops an attached branch engine before applying, requires the exact target namespace to be absent, and preserves journals/audit/cache files.
+- `migrate` is deliberately limited to the detected historical `master` -> legacy `main` attachment. It rejects arbitrary cross-branch moves; use `ensure --from` for intentional branch seeding.
+- `recover` publishes only after a clean rebuild has succeeded, moves the prior store to `.kb/recovery/<branch>/...`, and writes an audit record. It never renames a Git branch.
 
 **Examples:**
 ```bash
@@ -524,6 +533,10 @@ kibi branch ensure --from main
 # Preview then apply a legacy master -> main-store migration while on master
 kibi branch migrate --from main
 kibi branch migrate --from main --apply
+
+# Preview then recover an unreadable store for the active exact branch
+kibi branch recover
+kibi branch recover --apply
 ```
 
 HT|## `kibi skills`

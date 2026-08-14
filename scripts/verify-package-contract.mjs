@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import semver from "semver";
 
 const packageName = process.argv[2];
 if (!packageName) {
@@ -11,6 +11,13 @@ if (!packageName) {
 }
 
 const packageRoot = process.cwd();
+// This verifier is invoked from individual package prepack hooks. Resolve its
+// development-only semver dependency from that package, not from this shared
+// script's directory, so a clean consumer checkout does not need a root copy.
+const requireFromPackage = createRequire(
+  path.join(packageRoot, "package.json"),
+);
+const semver = requireFromPackage("semver");
 const packageJson = JSON.parse(
   readFileSync(path.join(packageRoot, "package.json"), "utf8"),
 );

@@ -84,6 +84,8 @@ jobs:
 
       - name: Typecheck matrix
         run: bun run typecheck
+      - name: Verify generated schema parity
+        run: bun run schema:check
 
       - name: Build CLI package
         run: bun run build:cli
@@ -171,6 +173,13 @@ jobs:
         env:
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
         timeout-minutes: 5
+      - name: Isolated CLI and MCP package contract verification
+        run: |
+          corepack enable
+          bun test --cwd documentation/tests/e2e/packed --timeout=300000 release-package-contract.test.ts
+        env:
+          KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
+        timeout-minutes: 10
       - name: Opencode packed behavior verification
         run: |
           bun run typecheck:e2e:packed

@@ -3,7 +3,6 @@ import type { PrologProcess } from "kibi-cli/prolog";
 import { createMcpRuntime } from "../../src/runtime/mcp-runtime.js";
 import { registerAllTools } from "../../src/server/tools.js";
 import { TOOLS } from "../../src/tools-config.js";
-import { resolveCorePlPath } from "../../src/tools/core-module.js";
 import { handleKbStatus } from "../../src/tools/status.js";
 
 describe("MCP status tool handler", () => {
@@ -58,84 +57,90 @@ describe("MCP status tool handler", () => {
     expect(result.content[0]?.text).toContain("stale");
   });
 
-  test("registered status tool enters the runtime freshness gate before kb_status_json", async () => {
-    const calls: string[] = [];
-    const query = mock(async (goal: string) => {
-      calls.push(goal);
-      return {
-        success: true,
-        bindings: {
-          JsonString: JSON.stringify({
-            branch: "main",
-            snapshotId: "stamp:789",
-            syncedAt: "2026-03-22T14:00:00Z",
-            dirty: false,
-            syncState: "fresh",
-          }),
-        },
+  test("registered status tool does not initialise a session engine for diagnostics", async () => {
+    const previousBranch = process.env.KIBI_BRANCH;
+    process.env.KIBI_BRANCH = "test";
+    try {
+      const calls: string[] = [];
+      const query = mock(async (goal: string) => {
+        calls.push(goal);
+        return {
+          success: true,
+          bindings: {
+            JsonString: JSON.stringify({
+              branch: "main",
+              snapshotId: "stamp:789",
+              syncedAt: "2026-03-22T14:00:00Z",
+              dirty: false,
+              syncState: "fresh",
+            }),
+          },
+        };
+      });
+      const prolog = {
+        invalidateCache: mock(() => {}),
+        query,
+      } as unknown as PrologProcess;
+      const ensureProlog = mock(async () => {
+        calls.push("ensureProlog");
+        return prolog;
+      });
+      const registered = new Map<
+        string,
+        (args: Record<string, unknown>) => unknown
+      >();
+      const server = {
+        registerTool: mock(
+          (
+            name: string,
+            _config: unknown,
+            handler: (args: Record<string, unknown>) => unknown,
+          ) => {
+            registered.set(name, handler);
+          },
+        ),
       };
-    });
-    const prolog = {
-      invalidateCache: mock(() => {}),
-      query,
-    } as unknown as PrologProcess;
-    const ensureProlog = mock(async () => {
-      calls.push("ensureProlog");
-      return prolog;
-    });
-    const registered = new Map<
-      string,
-      (args: Record<string, unknown>) => unknown
-    >();
-    const server = {
-      registerTool: mock(
-        (
-          name: string,
-          _config: unknown,
-          handler: (args: Record<string, unknown>) => unknown,
-        ) => {
-          registered.set(name, handler);
-        },
-      ),
-    };
-    const runtime = {
-      tools: TOOLS,
-      diagnosticModeEnabled: () => false,
-      extractToolCallPayload: (args: Record<string, unknown>) => ({
-        businessArgs: args,
-        telemetry: null,
-      }),
-      inFlightRequests: async () => new Map<string, Promise<unknown>>(),
-      isShuttingDown: async () => false,
-      resetProlog: async () => {},
-      prologProcess: async () => null,
-      activeBranchName: async () => "test",
-      appendUsageLogLine: () => {},
-      deriveDiagnosticFields: () => ({}),
-      classifyDiagnosticError: () => ({}),
-      ensureProlog,
-      operationRuntime: createMcpRuntime({
-        workspaceRoot: "/workspace",
-        activeBranchName: async () => "test",
-        attachedBranchKbPath: () => null,
-        ensureProlog,
-        adaptProlog: () => ({
-          query: async () => ({ success: true, bindings: {} }),
-          nextSolution: async () => null,
-          save: async () => ({ success: true, bindings: {} }),
+      const runtime = {
+        tools: TOOLS,
+        diagnosticModeEnabled: () => false,
+        extractToolCallPayload: (args: Record<string, unknown>) => ({
+          businessArgs: args,
+          telemetry: null,
         }),
-        refreshAttachedBranchStamp: async () => undefined,
-      }),
-      handleKbStatus,
-    } as unknown as Parameters<typeof registerAllTools>[1];
+        inFlightRequests: async () => new Map<string, Promise<unknown>>(),
+        isShuttingDown: async () => false,
+        resetProlog: async () => {},
+        prologProcess: async () => null,
+        activeBranchName: async () => "test",
+        appendUsageLogLine: () => {},
+        deriveDiagnosticFields: () => ({}),
+        classifyDiagnosticError: () => ({}),
+        ensureProlog,
+        operationRuntime: createMcpRuntime({
+          workspaceRoot: "/workspace",
+          activeBranchName: async () => "test",
+          attachedBranchKbPath: () => null,
+          ensureProlog,
+          adaptProlog: () => ({
+            query: async () => ({ success: true, bindings: {} }),
+            nextSolution: async () => null,
+            save: async () => ({ success: true, bindings: {} }),
+          }),
+          refreshAttachedBranchStamp: async () => undefined,
+        }),
+        handleKbStatus,
+      } as unknown as Parameters<typeof registerAllTools>[1];
 
-    registerAllTools(server as never, runtime);
-    await registered.get("kb_status")?.({});
+      registerAllTools(server as never, runtime);
+      await registered.get("kb_status")?.({});
 
-    const statusPlPath = resolveCorePlPath("status.pl").replace(/\\/g, "/");
-    const expectedQuery = `(use_module('${statusPlPath}'), status:kb_status_json(JsonString))`;
-    expect(ensureProlog).toHaveBeenCalledTimes(1);
-    expect(query).toHaveBeenCalledWith(expectedQuery);
-    expect(calls).toEqual(["ensureProlog", expectedQuery]);
+      expect(ensureProlog).toHaveBeenCalledTimes(0);
+      expect(query).toHaveBeenCalledTimes(0);
+      expect(calls).toEqual([]);
+    } finally {
+      if (previousBranch === undefined)
+        Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+      else process.env.KIBI_BRANCH = previousBranch;
+    }
   });
 });

@@ -4,6 +4,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -278,4 +279,78 @@ describe("kibi branch ensure", () => {
     },
     TEST_TIMEOUT_MS,
   );
+
+  test(
+    "refuses arbitrary branch moves through migrate",
+    async () => {
+      mkdirSync(path.join(tmpDir, ".kb/branches", "master"), {
+        recursive: true,
+      });
+      writeFileSync(
+        path.join(tmpDir, ".kb/branches", "master", "kb.rdf"),
+        "<rdf:RDF></rdf:RDF>",
+      );
+      execSync("git checkout -b feature/exact-identity", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      const result = Bun.spawnSync({
+        cmd: ["bun", kibiBin, "branch", "migrate", "--from", "master"],
+        cwd: tmpDir,
+        stdout: "pipe",
+        stderr: "pipe",
+      });
+
+      expect(result.exitCode).not.toBe(0);
+      expect(new TextDecoder().decode(result.stderr)).toContain(
+        "only accepts the detected legacy master -> main attachment",
+      );
+      expect(existsSync(path.join(tmpDir, ".kb/branches", "master"))).toBe(
+        true,
+      );
+      expect(
+        existsSync(path.join(tmpDir, ".kb/branches", "feature/exact-identity")),
+      ).toBe(false);
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test("recovers a damaged exact branch store only after explicit apply", async () => {
+    mkdirSync(path.join(tmpDir, "documentation", "requirements"), {
+      recursive: true,
+    });
+    writeFileSync(
+      path.join(tmpDir, "documentation", "requirements", "REQ-RECOVER-001.md"),
+      "---\nid: REQ-RECOVER-001\ntitle: Recover branch storage\nstatus: open\n---\n\nRecovery is explicit.\n",
+    );
+    execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+    const store = path.join(tmpDir, ".kb", "branches", "main");
+    writeFileSync(path.join(store, "CURRENT"), "corrupted-pointer\n");
+
+    const preview = execSync(`bun ${kibiBin} branch recover`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
+    expect(preview).toContain("Preview only");
+    expect(existsSync(path.join(tmpDir, ".kb", "recovery"))).toBe(false);
+
+    const applied = execSync(`bun ${kibiBin} branch recover --apply`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
+    expect(applied).toContain("Original bytes preserved");
+    const status = JSON.parse(
+      execSync(`bun ${kibiBin} status --format json`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      }),
+    ) as { syncState: string; branchStore: { state: string } };
+    expect(status.syncState, JSON.stringify(status)).toBe("fresh");
+    expect(status.branchStore.state).toBe("healthy");
+    expect(
+      readdirSync(path.join(tmpDir, ".kb", "recovery", "main")).length,
+    ).toBe(1);
+  }, 30000);
 });

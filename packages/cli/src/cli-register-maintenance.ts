@@ -102,7 +102,7 @@ export function registerMaintenanceCommands(program: Command): void {
   program
     .command("branch")
     .description("Manage branch KBs")
-    .argument("<action>", "Action: ensure|migrate")
+    .argument("<action>", "Action: ensure|migrate|recover")
     .option("--from <branch>", "Source branch to copy KB from")
     .option("--apply", "Apply a branch migration (preview is the default)")
     .action(async (action, options) => {
@@ -112,6 +112,10 @@ export function registerMaintenanceCommands(program: Command): void {
         );
       } else if (action === "migrate") {
         await (await import("./commands/branch.js")).branchMigrateCommand(
+          options,
+        );
+      } else if (action === "recover") {
+        await (await import("./commands/branch.js")).branchRecoverCommand(
           options,
         );
       } else {

@@ -68,7 +68,12 @@ export function createCliRuntime(
       } satisfies Omit<OperationContext, "prolog">;
 
       if (!spec.requiresProlog) {
-        return contextBase;
+        // Read-only operations such as status may choose to use an explicitly
+        // supplied test or host Prolog port, but must not force engine startup.
+        // That keeps pre-init and damaged-store diagnostics non-mutating.
+        return merged.prolog
+          ? { ...contextBase, prolog: merged.prolog }
+          : contextBase;
       }
 
       const attachment = resolveBranchAttachment(root);

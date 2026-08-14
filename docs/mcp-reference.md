@@ -274,6 +274,12 @@ The response also includes exact `branchAttachment` metadata, bounded sorted
 `verificationSnapshotChanges`. Editor/config paths are reported as ordinary
 workspace changes; they are not silently ignored.
 
+`kb_status` remains diagnostic when the branch store is missing, incomplete,
+or unreadable: it reports `branchStore` and a structured stale reason instead
+of initialising or repairing storage. A missing store is created only by
+`kibi branch ensure`; an incomplete or unreadable exact store is rebuilt only
+through the previewed `kibi branch recover --apply` workflow.
+
 **Example:**
 ```json
 {}

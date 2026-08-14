@@ -154,6 +154,10 @@ function requiredTools(task: FixtureTaskSpec): readonly string[] {
     "source_owned_relationship_delete",
     "same_version_export_surface_drift",
     "legacy_migration_postconditions",
+    "unreadable_branch_store_recovery",
+    "arbitrary_branch_migration_refused",
+    "missing_branch_store_status",
+    "final_integration_invalidates_receipts",
   ].includes(task.taskData.objectiveCode)
     ? ["kb_status"]
     : [];
@@ -213,7 +217,7 @@ function workflowExpectation(task: FixtureTaskSpec) {
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["stale symbol IDs", "syncState stale"],
-      forbiddenActions: ["claim complete with stale KB"],
+      forbiddenActions: ["claim KB clean/fresh with stale status"],
     },
     stale_v2_schema: {
       expectedOutcome: "complete",
@@ -349,6 +353,48 @@ function workflowExpectation(task: FixtureTaskSpec) {
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["target path absent", "journals preserved"],
       forbiddenActions: ["rename Git branch", "direct .kb edit"],
+    },
+    unreadable_branch_store_recovery: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "not_evaluated",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: ["recovery preview", "original backup preserved"],
+      forbiddenActions: ["direct .kb edit", "unreviewed migration"],
+    },
+    arbitrary_branch_migration_refused: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "not_evaluated",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: ["cross-branch migration refused"],
+      forbiddenActions: ["rename Git branch", "direct .kb edit"],
+    },
+    missing_branch_store_status: {
+      expectedOutcome: "complete",
+      expectedKbState: "dirty",
+      expectedVerificationState: "not_evaluated",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: ["missing branch-store status"],
+      forbiddenActions: ["claim KB clean/fresh with stale status"],
+    },
+    final_integration_invalidates_receipts: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "proven",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "final snapshot before verification",
+        "current contract receipt appended",
+      ],
+      forbiddenActions: [
+        "reuse pre-integration receipt",
+        "rewrite receipt history",
+      ],
     },
   };
   const expectation = expectations[task.taskData.objectiveCode];

@@ -1,3 +1,4 @@
+import { EngineClient } from "../../engine.js";
 import {
   type IntentSearchAnalysis,
   type IntentSearchFacets,
@@ -8,6 +9,12 @@ import {
 } from "../../intent-search.js";
 import { rankEntities } from "../../search-ranking.js";
 import type { SearchMatch } from "../../search-ranking.js";
+import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
+import {
+  type BranchStoreInspection,
+  branchStoreReason,
+  inspectBranchStore,
+} from "../../utils/branch-store.js";
 import {
   loadEntities,
   paginateResults,
@@ -77,6 +84,7 @@ export type StatusPayload = {
   readonly verificationSnapshotChanges?: readonly Record<string, unknown>[];
   readonly verificationSnapshotChangeCount?: number;
   readonly verificationSnapshotChangesTruncated?: boolean;
+  readonly branchStore?: BranchStoreInspection;
 };
 
 function requireProlog(context: OperationContext): PrologPort {
@@ -270,21 +278,91 @@ export async function executeStatus(
 ): Promise<OperationResult<StatusPayload>> {
   // implements REQ-kibi-operation-interface-parity, REQ-cli-status-pre-first-sync
   try {
-    const payload = await runOperationJsonQuery<StatusPayload>(
-      requireProlog(context),
-      "status.pl",
-      "status:kb_status_json(JsonString)",
-      "Status execution",
-    );
-    if (!isStatusPayload(payload)) {
-      throw new Error("Status execution query returned an invalid payload");
+    const attachment =
+      context.branchAttachment ??
+      resolveBranchAttachment(context.workspaceRoot);
+    if ("error" in attachment) {
+      throw new Error(`Failed to resolve active branch: ${attachment.error}`);
     }
+    let payload: StatusPayload;
+    let store = inspectBranchStore(context.workspaceRoot, attachment.kbBranch);
+    let ownedEngine: EngineClient | undefined;
+    if (store.state !== "healthy") {
+      // Status is deliberately safe before first sync and during recovery. Starting
+      // EngineClient would initialise (or attempt to repair) the store, which turns
+      // a diagnostic read into an accidental mutation.
+      payload = {
+        branch: attachment.kbBranch,
+        snapshotId: store.state === "missing" ? "missing" : "unavailable",
+        syncedAt: null,
+        dirty: true,
+        syncState: "unknown",
+        kbPath: store.path,
+        lastSyncSource: "unavailable",
+        staleReasons: [],
+        staleReasonCount: 0,
+        staleReasonsTruncated: false,
+      };
+    } else
+      try {
+        const prolog =
+          context.prolog ??
+          (() => {
+            ownedEngine = new EngineClient({
+              workspaceRoot: context.workspaceRoot,
+              branch: attachment.kbBranch,
+              timeout: 15_000,
+            });
+            return ownedEngine;
+          })();
+        payload = await runOperationJsonQuery<StatusPayload>(
+          prolog,
+          "status.pl",
+          "status:kb_status_json(JsonString)",
+          "Status execution",
+        );
+        if (!isStatusPayload(payload)) {
+          throw new Error("Status execution query returned an invalid payload");
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        store = {
+          state: "unreadable",
+          path: store.path,
+          errorCode: "branch_store_unreadable",
+          detail: message,
+          recoveryRequired: true,
+        };
+        payload = {
+          branch: attachment.kbBranch,
+          snapshotId: "unavailable",
+          syncedAt: null,
+          dirty: true,
+          syncState: "unknown",
+          kbPath: store.path,
+          lastSyncSource: "unavailable",
+          staleReasons: [],
+          staleReasonCount: 0,
+          staleReasonsTruncated: false,
+        };
+      } finally {
+        await ownedEngine?.terminate();
+      }
     const snapshotEvidence = await readWorkspaceSnapshot(context);
+    const existingReasons = payload.staleReasons ?? [];
+    const storeReason = branchStoreReason(store);
+    const staleReasons = storeReason
+      ? [...existingReasons, storeReason].sort((left, right) =>
+          String(left.path ?? "").localeCompare(String(right.path ?? "")),
+        )
+      : existingReasons;
     const enrichedPayload: StatusPayload = {
       ...payload,
-      ...(context.branchAttachment
-        ? { branchAttachment: context.branchAttachment }
-        : {}),
+      branchAttachment: attachment,
+      branchStore: store,
+      staleReasons,
+      staleReasonCount: staleReasons.length,
+      staleReasonsTruncated: false,
       verificationSnapshot: snapshotEvidence.available
         ? snapshotEvidence.snapshot.hash
         : "unknown",

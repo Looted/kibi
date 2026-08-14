@@ -2,7 +2,7 @@
 id: kibi-freshness
 name: kibi-freshness
 description: Check branch freshness and source linkage quality before decisions or risky writes.
-version: 1.0.0
+version: 1.0.1
 kibiCompatibility: "*"
 tags:
   - kibi
@@ -16,15 +16,15 @@ Help agents decide whether Kibi knowledge is current enough to support safe chan
 
 ## Interface Selection
 
-1. If Kibi MCP tools are visible and approved for the workspace, use the MCP surface only.
-2. Otherwise, in a trusted workspace, use the canonical project-local CLI fallback through `npx --no-install kibi ...`.
-3. If the project-local CLI is unavailable or too old, stop and tell the operator to enable or install Kibi.
-4. Never use a global fallback or an installing runner.
+1. If Kibi MCP tools are visible and approved for the workspace, use that peer surface.
+2. Otherwise, in a trusted workspace, use the project-local CLI through the repository's supported non-installing invocation.
+3. If neither surface is available, stop and tell the operator which capability must be enabled.
+4. Never install packages, choose a package manager, or use a global fallback as part of freshness inspection.
 
 Use `kibi-usage/resources/operation-access.md` for exact dedicated routes. A project-local CLI freshness check is executable as:
 
 ```bash
-echo '{}' | npx --no-install kibi status --input -
+echo '{}' | kibi status --input -
 ```
 
 ## Capability Workflow
@@ -43,9 +43,13 @@ echo '{}' | npx --no-install kibi status --input -
 ## Guidance
 
 - Prefer the public Kibi MCP surface whenever it is available and approved.
-- Never claim completion when freshness is stale, a legacy attachment remains,
-  or verification snapshot state is dirty, even when blocking `kb_check` rules
-  are zero. Classify that result as interim and name the exact paths/symbol IDs.
+- Report task outcome separately from KB, verification, proof, and limitation
+  state. A maintenance task can be complete with stale KB state or unresolved
+  proof only when its scoped objective is complete and the status is named
+  accurately; never call the KB clean/fresh in that case.
+- A legacy attachment blocks mutation, and a dirty verification snapshot blocks
+  evidence-dependent closeout. Name the exact paths/symbol IDs and whether the
+  result is fixed, accepted, or deferred.
 - If entities look stale, refresh context through an approved Kibi capability and then re-query.
 - Preserve source-file traceability by carrying `sourceFile`, text references, and validation evidence through discovery, mutation, and completion.
 - Do not read or edit files inside `.kb` directly; use the selected Kibi interface instead.

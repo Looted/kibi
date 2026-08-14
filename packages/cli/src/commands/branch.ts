@@ -26,6 +26,7 @@ import {
   resolveActiveBranch,
   resolveBranchAttachment,
 } from "../utils/branch-resolver.js";
+import { inspectBranchStore } from "../utils/branch-store.js";
 
 export interface BranchEnsureOptions {
   from?: string;
@@ -33,6 +34,10 @@ export interface BranchEnsureOptions {
 
 export interface BranchMigrateOptions {
   from?: string;
+  apply?: boolean;
+}
+
+export interface BranchRecoverOptions {
   apply?: boolean;
 }
 
@@ -132,6 +137,17 @@ export async function branchMigrateCommand(
   if (fs.existsSync(targetPath)) {
     throw new Error(`Target branch KB already exists: ${targetPath}`);
   }
+  const attachment = resolveBranchAttachment(process.cwd());
+  if (
+    "error" in attachment ||
+    attachment.kind !== "legacy_compat" ||
+    attachment.gitBranch !== "master" ||
+    attachment.kbBranch !== from
+  ) {
+    throw new Error(
+      "branch migrate only accepts the detected legacy master -> main attachment. Use 'kibi branch ensure --from <branch>' for an intentional new branch or 'kibi branch recover' for an unreadable target store.",
+    );
+  }
   console.log(`Branch KB migration preview: ${from} -> ${to}`);
   console.log(`Source: ${sourcePath}`);
   console.log(`Target: ${targetPath}`);
@@ -152,6 +168,102 @@ export async function branchMigrateCommand(
   fs.renameSync(sourcePath, targetPath);
   console.log(`Migrated branch KB to exact Git branch '${to}'.`);
   console.log(`Git branch remains '${to}'; no branch rename was performed.`);
+}
+
+/**
+ * Rebuild an unreadable exact branch store from the current authored sources.
+ * The existing bytes are moved to a Kibi-owned recovery directory only after a
+ * clean staging store has been created successfully.
+ */
+export async function branchRecoverCommand(
+  options: BranchRecoverOptions = {},
+): Promise<void> {
+  const attachment = resolveBranchAttachment(process.cwd());
+  if ("error" in attachment) {
+    throw new Error(`Failed to resolve active branch: ${attachment.error}`);
+  }
+  if (attachment.kind !== "exact") {
+    throw new Error(
+      "branch recover requires an exact Git/KB attachment; migrate legacy storage before recovery.",
+    );
+  }
+  const inspection = inspectBranchStore(process.cwd(), attachment.kbBranch);
+  if (inspection.state === "missing") {
+    throw new Error(
+      `Branch KB is missing at ${inspection.path}; run 'kibi branch ensure' instead.`,
+    );
+  }
+  const stamp = new Date().toISOString().replaceAll(":", "-");
+  const backupPath = path.join(
+    process.cwd(),
+    ".kb",
+    "recovery",
+    attachment.kbBranch,
+    stamp,
+  );
+  console.log(`Branch KB recovery preview: ${attachment.kbBranch}`);
+  console.log(`Store: ${inspection.path}`);
+  console.log(
+    `State: ${inspection.state}${inspection.errorCode ? ` (${inspection.errorCode})` : ""}`,
+  );
+  console.log(`Backup: ${backupPath}`);
+  console.log(
+    "Strategy: rebuild a clean journaled store from current authored sources.",
+  );
+  console.log(
+    "Git branch remains unchanged; no branch rename will be performed.",
+  );
+  if (!options.apply) {
+    console.log(
+      "Preview only. Re-run with --apply to create the backup and publish the rebuilt store.",
+    );
+    return;
+  }
+  const { syncCommand } = await import("./sync.js");
+  const result = await syncCommand({
+    rebuild: true,
+    recoveryBackupPath: backupPath,
+  });
+  if (!result.success) {
+    throw new Error("Branch KB recovery did not complete successfully.");
+  }
+  // Reattach through the normal delta path after publishing the isolated
+  // generation. This establishes the current checkpoint/snapshot metadata on
+  // the recovered store, so recovery finishes fresh rather than merely
+  // structurally readable.
+  const checkpoint = await syncCommand();
+  if (!checkpoint.success) {
+    throw new Error(
+      "Recovered branch KB could not establish a fresh checkpoint.",
+    );
+  }
+  const auditPath = path.join(
+    process.cwd(),
+    ".kb",
+    "migrations",
+    `${attachment.kbBranch.replaceAll("/", "__")}.recovery.json`,
+  );
+  fs.mkdirSync(path.dirname(auditPath), { recursive: true });
+  fs.writeFileSync(
+    auditPath,
+    `${JSON.stringify(
+      {
+        version: 1,
+        branch: attachment.kbBranch,
+        recoveredAt: new Date().toISOString(),
+        priorState: inspection.state,
+        priorErrorCode: inspection.errorCode ?? null,
+        backupPath: path.relative(process.cwd(), backupPath),
+        strategy: "rebuild_from_authored_sources",
+      },
+      null,
+      2,
+    )}\n`,
+    "utf8",
+  );
+  console.log(`Recovered exact branch KB '${attachment.kbBranch}'.`);
+  console.log(`Original bytes preserved at ${backupPath}.`);
+  console.log(`Recovery audit: ${auditPath}`);
 }
 
 export default branchEnsureCommand;

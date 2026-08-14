@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { after, describe, it } from "node:test";
@@ -11,6 +17,20 @@ const packageNames = ["core", "cli", "mcp"] as const;
 type PackageName = (typeof packageNames)[number];
 
 function packReleasePackage(pkg: PackageName): string {
+  const suppliedRoot = process.env.KIBI_TEST_TARBALLS;
+  if (suppliedRoot) {
+    const packageDir = join(suppliedRoot, pkg);
+    const candidate = existsSync(packageDir)
+      ? readdirSync(packageDir).find(
+          (entry) => entry.startsWith(`kibi-${pkg}-`) && entry.endsWith(".tgz"),
+        )
+      : undefined;
+    assert.ok(
+      candidate,
+      `No supplied kibi-${pkg} tarball found under ${packageDir}`,
+    );
+    return join(packageDir, candidate);
+  }
   const packageDir = join(REPO_ROOT, "packages", pkg);
   const output = execFileSync("npm", ["pack", "--json"], {
     cwd: packageDir,
@@ -36,9 +56,12 @@ function writeConsumerManifest(
         dependencies: Object.fromEntries(
           packageNames.map((pkg) => [`kibi-${pkg}`, `file:${tarballs[pkg]}`]),
         ),
-        overrides: Object.fromEntries(
-          packageNames.map((pkg) => [`kibi-${pkg}`, `$kibi-${pkg}`]),
-        ),
+        overrides: {
+          "kibi-mcp": {
+            "kibi-cli": "$kibi-cli",
+            "kibi-core": "$kibi-core",
+          },
+        },
       },
       null,
       2,
@@ -47,9 +70,11 @@ function writeConsumerManifest(
   );
   writeFileSync(
     join(dir, "pnpm-workspace.yaml"),
-    `overrides:\n${packageNames
-      .map((pkg) => `  kibi-${pkg}: file:${tarballs[pkg]}`)
-      .join("\n")}\n`,
+    `overrides:\n${[
+      `  kibi-cli>kibi-core: file:${tarballs.core}`,
+      `  kibi-mcp>kibi-cli: file:${tarballs.cli}`,
+      `  kibi-mcp>kibi-core: file:${tarballs.core}`,
+    ].join("\n")}\n`,
     "utf8",
   );
 }

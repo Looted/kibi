@@ -1,5 +1,38 @@
 # kibi-cli
 
+## 0.20.1
+
+### Patch Changes
+
+- de7b85a: Verification contracts can now evolve without forcing projects to erase valid historical test evidence. Kibi preserves every earlier receipt, accepts a newly appended receipt for the current contract, and only treats evidence matching both the current contract and live code snapshot as proof.
+
+  - Separate immutable receipt-history validation from current-contract binding during verification ingest.
+  - Report `verification_contract_mismatch` as an explicit proof gap until current-contract evidence is appended.
+  - Teach the usage skill and SkillOpt evaluator to preserve older-contract receipts and forbid history rewrites.
+
+- 584336b: Agents now get consistent guidance when execution proof, structural coverage, and KB freshness disagree. Current-contract E2E evidence is recorded as v2 without rewriting history, and full checks no longer report a contradictory weak-depth warning when the same live receipt already proves the scenario-backed test. Receipt freshness repairs also identify the affected requirements and tests so agents can rerun the exact contract.
+
+  - Share snapshot-bound proof evidence with full quality diagnostics.
+  - Add bounded receipt-gap telemetry and v2-native remediation guidance.
+  - Document and test the new receipt and proof-aware diagnostic requirements.
+  - Refresh the mirrored usage skills and dogfood-derived SkillOpt expectations.
+  - Keep the MCP package contract verifier self-contained with an explicit semver development dependency and matching workspace lock ranges.
+
+- Kibi can now explain a missing or damaged branch-local KB without changing it. Agents receive a precise recovery path, preserving the existing store before a deliberate rebuild, and no longer need to guess whether a clean check also means a clean, fresh KB.
+
+  - Add non-mutating branch-store inspection to status and a preview-first `kibi branch recover --apply` workflow.
+  - Restrict branch migration to the detected historical `master` -> legacy `main` compatibility attachment; arbitrary branch moves are refused.
+  - Refresh CLI/MCP status documentation, mirrored agent skills, and release-gate packed consumer coverage.
+
+- ef75929: Kibi’s release checks now validate compiled package APIs and dependency ranges in isolated npm and pnpm consumers, while the usage skill and private SkillOpt evaluator report task completion, KB freshness, verification, proof, and accepted limitations independently. Consumer repositories keep ownership of their local artifact update scripts and dependency overrides.
+
+  - Remove library-side consumer dogfood installers and retain release-only packed checks.
+  - Add deterministic closeout expectations and dogfood-derived held-out cases.
+
+- Updated dependencies [de7b85a]
+- Updated dependencies [584336b]
+  - kibi-core@0.10.2
+
 ## 0.20.0
 
 ### Minor Changes

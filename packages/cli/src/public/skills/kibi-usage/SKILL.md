@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Guides agents to use Kibi MCP, facts, relationships, and validation correctly
-version: 1.4.1
+version: 1.4.2
 kibiCompatibility: ">=0.11.0"
 tags:
   - kibi
@@ -63,6 +63,15 @@ and mutations/sync are blocked: preview and apply `kibi branch migrate --from
 <legacy-branch> --apply`. Never edit `.kb/branches` or relationship shards by
 hand. Branch initialization creates an empty exact branch unless `--from` is
 explicitly supplied.
+
+`kb_status` may report a missing, incomplete, or unreadable branch store even
+when a workspace snapshot is available. A missing store requires `kibi branch
+ensure`; an incomplete or unreadable exact store requires previewing `kibi
+branch recover` and then explicit `--apply`. Recovery rebuilds from current
+authored sources and preserves the original store in a reported backup. It is
+not a cross-branch copy operation. `kibi branch migrate` is reserved for the
+detected historical `master` -> legacy `main` attachment and rejects other
+branch pairs.
 
 ## Approval Boundaries
 

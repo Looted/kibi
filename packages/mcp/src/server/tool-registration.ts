@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
-import { type OperationName, getSpec } from "kibi-cli/operations";
+import { type OperationName, getSpec, statusSpec } from "kibi-cli/operations";
 import {
   executeApplyPlan,
   executeCompileIntent,
@@ -107,7 +107,10 @@ export function registerConfiguredTools<TProlog>(
   register({
     name: "kb_status",
     execute: async (context, args) =>
-      runtime.handleKbStatus(prologFor(context), args as StatusArgs, context),
+      // Status owns its non-mutating fallback. Do not require the session engine
+      // here: an absent or unreadable branch store is exactly the condition it
+      // must be able to describe.
+      statusSpec.execute(args as StatusArgs, context),
   });
   register({
     name: "kb_skills_list",

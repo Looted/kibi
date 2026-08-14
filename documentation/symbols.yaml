@@ -1333,16 +1333,6 @@ symbols:
         target: REQ-core-journaled-engine-persistence
       - type: covered_by
         target: TEST-core-journaled-engine-delta-sync
-  - id: SYM-cli-sync-noop-checkpoint
-    title: checkpointNoopSync
-    sourceFile: packages/cli/src/commands/sync.ts
-    symbol_role: behavioral
-    granularity_reason: extractor-miss
-    relationships:
-      - type: implements
-        target: REQ-core-journaled-engine-persistence
-      - type: covered_by
-        target: TEST-core-journaled-engine-delta-sync
   - id: SYM-cli-sync-extract-relationship-shard
     title: extractRelationshipShard
     sourceFile: packages/cli/src/extractors/relationships.ts
@@ -3879,13 +3869,6 @@ symbols:
         target: REQ-test-journaled-engine-harness
       - type: covered_by
         target: TEST-test-journaled-engine-harness
-  - id: SYM-cli-status-pre-first-sync-test
-    title: cli status pre-sync test
-    sourceFile: packages/cli/tests/commands/status.test.ts
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-cli-status-pre-first-sync
   - id: SYM-cli-Symbol
     title: Symbol
     sourceFile: packages/cli/src/types/entities.ts
@@ -5445,6 +5428,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: implements
+        target: REQ-branch-store-recovery-v2
+      - type: implements
         target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-cli-status-pre-first-sync
@@ -5454,6 +5439,8 @@ symbols:
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-mcp-search-discovery
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
   - id: SYM-discovery-query-input
     title: QueryInput
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
@@ -14557,7 +14544,6 @@ symbols:
     title: blindedVariantOrder
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
     symbol_role: behavioral
-    granularity_reason: module-level-behavior
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -14567,7 +14553,6 @@ symbols:
     title: buildBundlePayload
     sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
     symbol_role: behavioral
-    granularity_reason: module-level-behavior
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -14623,7 +14608,6 @@ symbols:
     title: FamilyPayload
     sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
     symbol_role: type-shape
-    granularity_reason: module-level-behavior
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -14784,7 +14768,6 @@ symbols:
     title: verifyPrivateManifestIntegrity
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
     symbol_role: behavioral
-    granularity_reason: module-level-behavior
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -15777,16 +15760,6 @@ symbols:
         target: REQ-skillopt-predicate-first-requirements
       - type: covered_by
         target: TEST-skillopt-predicate-first-requirements
-  - id: SYM-skillopt-predicate-build-expectation
-    title: buildPredicateExpectation
-    sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    symbol_role: behavioral
-    granularity_reason: module-level-behavior
-    relationships:
-      - type: implements
-        target: REQ-skillopt-predicate-first-requirements
-      - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
   - id: SYM-skillopt-predicate-candidate-root-manifest
     title: CandidateRootManifest
     sourceFile: scripts/skillopt-eval/fixtures/predicate-corpus.ts
@@ -15995,16 +15968,6 @@ symbols:
     title: OrchestrationEligibility
     sourceFile: scripts/skillopt-eval/fixtures/predicate-corpus.ts
     symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-skillopt-predicate-first-requirements
-      - type: covered_by
-        target: TEST-skillopt-predicate-first-requirements
-  - id: SYM-skillopt-predicate-payload
-    title: predicatePayload
-    sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
-    symbol_role: behavioral
-    granularity_reason: module-level-behavior
     relationships:
       - type: implements
         target: REQ-skillopt-predicate-first-requirements
@@ -19394,6 +19357,8 @@ symbols:
     sourceFile: packages/cli/src/commands/sync.ts
     relationships:
       - type: implements
+        target: REQ-branch-store-recovery-v2
+      - type: implements
         target: REQ-core-extractors
       - type: implements
         target: REQ-core-journaled-engine-persistence
@@ -19409,6 +19374,98 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-core-journaled-engine-delta-sync
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+  - id: SYM-branchMigrateCommand
+    title: branchMigrateCommand
+    sourceFile: packages/cli/src/commands/branch.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+  - id: SYM-BranchEnsureOptions
+    title: BranchEnsureOptions
+    sourceFile: packages/cli/src/commands/branch.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+  - id: SYM-BranchMigrateOptions
+    title: BranchMigrateOptions
+    sourceFile: packages/cli/src/commands/branch.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+  - id: SYM-branchEnsureCommand
+    title: branchEnsureCommand
+    sourceFile: packages/cli/src/commands/branch.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+  - id: SYM-branchRecoverCommand
+    title: branchRecoverCommand
+    sourceFile: packages/cli/src/commands/branch.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+  - id: SYM-BranchRecoverOptions
+    title: BranchRecoverOptions
+    sourceFile: packages/cli/src/commands/branch.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+  - id: SYM-inspectBranchStore
+    title: inspectBranchStore
+    sourceFile: packages/cli/src/utils/branch-store.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+  - id: SYM-branchStoreReason
+    title: branchStoreReason
+    sourceFile: packages/cli/src/utils/branch-store.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+  - id: SYM-BranchStoreState
+    title: BranchStoreState
+    sourceFile: packages/cli/src/utils/branch-store.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+  - id: SYM-BranchStoreInspection
+    title: BranchStoreInspection
+    sourceFile: packages/cli/src/utils/branch-store.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
   - id: SYM-SyncError
     title: SyncError
     sourceFile: packages/cli/src/commands/sync.ts
@@ -20360,26 +20417,6 @@ symbols:
   - id: SYM-skillopt-provider-budget-exhausted
     title: providerBudgetExhausted
     sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-skillopt-logical-evidence-fidelity
-      - type: covered_by
-        target: TEST-skillopt-logical-evidence-fidelity
-    granularity_reason: legacy-link
-  - id: SYM-skillopt-reference-targets
-    title: referenceTargets
-    sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-skillopt-logical-evidence-fidelity
-      - type: covered_by
-        target: TEST-skillopt-logical-evidence-fidelity
-    granularity_reason: legacy-link
-  - id: SYM-skillopt-safe-mutation-complete
-    title: safeMutationComplete
-    sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
     symbol_role: behavioral
     relationships:
       - type: implements
