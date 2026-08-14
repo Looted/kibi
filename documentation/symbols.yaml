@@ -4,6 +4,241 @@
 # Generated coordinates are stored separately in symbol-coordinates.yaml.
 # Run `kibi sync --refresh-symbol-coordinates` to refresh them.
 symbols:
+  - id: SYM-kibi-migration-plan-build
+    title: buildMigrationPlan
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-migration-plan-status-actions
+    title: buildActionsFromStatus
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-migrate-plan-command
+    title: migratePlanCommand
+    sourceFile: packages/cli/src/commands/migrate.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-migration-plan-version
+    title: MIGRATION_PLAN_VERSION
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-migration-action-state
+    title: MigrationActionState
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-migration-safety
+    title: MigrationSafety
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-migration-disposition
+    title: MigrationDisposition
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-migration-invocation
+    title: MigrationInvocation
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-migration-action
+    title: MigrationAction
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-migration-plan
+    title: MigrationPlan
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-migration-config-status
+    title: MigrationConfigStatus
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-migration-merge
+    title: mergeMigrationPlans
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-migration-action-default
+    title: migrationAction
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-migration-check-actions
+    title: buildActionsFromCheck
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-migration-coverage-actions
+    title: buildActionsFromCoverage
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-migration-config-read
+    title: readMigrationConfigStatus
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-check-structured-content
+    title: CheckStructuredContent
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-doctor-options
+    title: DoctorOptions
+    sourceFile: packages/cli/src/commands/doctor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-doctor-command
+    title: doctorCommand
+    sourceFile: packages/cli/src/commands/doctor.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-check-diagnostic
+    title: CheckDiagnostic
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-check-format-impact
+    title: formatImpactText
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-check-format-quality
+    title: formatQualityDiagnosticsText
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-check-format-violation
+    title: formatViolationText
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-check-build-structured-content
+    title: buildStructuredContent
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-check-build-summary
+    title: buildSummary
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+  - id: SYM-kibi-migration-plan-hash
+    title: migrationPlanHash
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
   - id: SYM-mcp-model-requirement-isolated-workspace-test
     title: should handle tools/call for kb_model_requirement
     sourceFile: packages/mcp/tests/server.test.ts
@@ -360,8 +595,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
   - id: SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanargs
     title: ApplyPlanArgs
     sourceFile: packages/cli/src/operations/planning/apply-plan.ts

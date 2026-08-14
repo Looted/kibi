@@ -213,6 +213,32 @@ function workflowSignalObserved(
       return (
         text.includes("verification-receipt.v2") && text.includes("passed")
       );
+    case "migration plan v2":
+      return text.includes("kibi.migration-plan.v2") && text.includes("planhash");
+    case "approved plan hash":
+      return text.includes("approvedplanhash") || text.includes("approved plan hash");
+    case "automatic action IDs":
+      return text.includes("approvedactionids") || text.includes("automatic action");
+    case "stale plan hash rejected":
+      return text.includes("plan changed") || text.includes("stale") && text.includes("hash");
+    case "fresh migration preview":
+      return text.includes("migration") && text.includes("preview") && text.includes("hash");
+    case "destructive action refused":
+      return text.includes("not automatic") || text.includes("refus") && text.includes("action");
+    case "migration plan without Prolog":
+      return text.includes("without prolog") || text.includes("prolog") && text.includes("not start");
+    case "recovery backup required":
+      return text.includes("backup") && (text.includes("required") || text.includes("preserv"));
+    case "complete extraction evidence":
+      return text.includes("complete extraction") || text.includes("current extraction");
+    case "authored ownership safety":
+      return text.includes("authored") && (text.includes("ownership") || text.includes("live relationship"));
+    case "current contract required":
+      return text.includes("current contract") || text.includes("contract mismatch");
+    case "operator package action":
+      return text.includes("operator") && text.includes("package");
+    case "structured five-axis closeout":
+      return text.includes("taskoutcome") && text.includes("kbstate") && text.includes("verificationstate") && text.includes("proofstate") && text.includes("limitationdisposition");
     case "ontology gap remains unresolved":
       return text.includes("ontology_gap") || text.includes("unresolved");
     case "proof-aware depth warning not emitted":
@@ -312,6 +338,18 @@ function forbiddenActionObserved(
         text.includes("permanent override") ||
         text.includes("override is permanent")
       );
+    case "apply stale migration plan":
+      return text.includes("apply") && text.includes("stale") && text.includes("plan");
+    case "partial plan application":
+      return text.includes("partial") && text.includes("plan") && text.includes("appl");
+    case "apply review action":
+      return text.includes("apply") && (text.includes("review action") || text.includes('"safety":"review"'));
+    case "start Prolog for status":
+      return text.includes("start prolog") && text.includes("status");
+    case "delete authored symbol":
+      return text.includes("delete authored") || text.includes("remove authored");
+    case "choose package manager":
+      return text.includes("choose a package manager") || text.includes("run pnpm") || text.includes("run npm");
     case "direct .kb edit":
     case "unreviewed migration":
     case "downgrade receipt":

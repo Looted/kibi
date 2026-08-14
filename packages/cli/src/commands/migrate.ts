@@ -34,10 +34,18 @@ import {
   getSchemaVersionStatus,
   normalizeSchemaVersion,
 } from "../utils/schema-version.js";
+import type { MigrationPlan } from "../public/operations/migration-plan.js";
 
 interface MigrateOptions {
   dryRun?: boolean;
   yes?: boolean;
+  format?: "json" | "table";
+  applySafe?: boolean;
+  approvedPlanHash?: string;
+  approvedActionIds?: string[];
+  workspaceRoot?: string;
+  /** Internal migration-plan executor: create only the canonical baseline config. */
+  initializeMissingConfig?: boolean;
 }
 
 interface RawKbConfigDocument extends Partial<KbConfig> {
@@ -55,6 +63,14 @@ interface MigrationAuditRecord {
   symbolGranularityLegacyLinks: number;
   toVersion: number;
   warning: string | null;
+  steps: readonly string[];
+}
+
+interface SchemaMigrationStep {
+  id: string;
+  from: number;
+  to: number;
+  description: string;
 }
 
 interface SymbolRecord {
@@ -78,6 +94,38 @@ interface ResolvedBranch {
 }
 
 const MIGRATION_AUDIT_VERSION = 1;
+
+const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
+  {
+    id: "config-canonical-v1",
+    from: 0,
+    to: 1,
+    description: "Preserve legacy configuration while recording canonical schema metadata.",
+  },
+  {
+    id: "symbol-granularity-v2",
+    from: 1,
+    to: 2,
+    description: "Mark provable coarse traceability links as legacy-link.",
+  },
+  {
+    id: "compatibility-v3",
+    from: 2,
+    to: 3,
+    description: "Record an audited compatibility no-op for schema v3.",
+  },
+  {
+    id: "semantic-backfill-v4",
+    from: 3,
+    to: 4,
+    description: "Mark semantic-advisor backfill as pending without inventing claims.",
+  },
+];
+
+function migrationStepsFor(fromVersion: number | null): readonly SchemaMigrationStep[] {
+  const start = Math.max(0, fromVersion ?? 0);
+  return SCHEMA_MIGRATION_STEPS.filter((step) => step.from >= start);
+}
 
 function printWarning(message: string): void {
   console.log(`Warning: ${message}`);
@@ -197,6 +245,7 @@ function buildMigrationAuditRecord(args: {
   semanticAdvisorBackfill: "pending" | "completed" | "not_applicable" | null;
   symbolGranularityLegacyLinks: number;
   warning: string | null;
+  steps: readonly string[];
 }): MigrationAuditRecord {
   return {
     auditVersion: MIGRATION_AUDIT_VERSION,
@@ -209,6 +258,7 @@ function buildMigrationAuditRecord(args: {
     symbolGranularityLegacyLinks: args.symbolGranularityLegacyLinks,
     toVersion: LATEST_KB_SCHEMA_VERSION,
     warning: args.warning,
+    steps: args.steps,
   };
 }
 
@@ -407,7 +457,14 @@ function migrateSymbolGranularity(options: {
 export async function migrateCommand(
   options: MigrateOptions = {},
 ): Promise<{ exitCode: number }> {
-  const cwd = process.cwd();
+  if (
+    options.applySafe === true ||
+    options.format === "json" ||
+    (options.yes !== true && options.dryRun !== true)
+  ) {
+    return migratePlanCommand(options);
+  }
+  const cwd = path.resolve(options.workspaceRoot ?? process.cwd());
   const branchResult = resolveMigrationBranch(cwd);
 
   if ("error" in branchResult) {
@@ -415,7 +472,21 @@ export async function migrateCommand(
     return { exitCode: 1 };
   }
 
-  const configResult = loadRawConfigDocument(cwd);
+  let configResult = loadRawConfigDocument(cwd);
+
+  if (
+    "error" in configResult &&
+    options.initializeMissingConfig === true &&
+    configResult.error.includes("Missing .kb/config.json")
+  ) {
+    const configPath = path.join(cwd, ".kb", "config.json");
+    const config = {
+      ...DEFAULT_CONFIG,
+      schemaVersion: LATEST_KB_SCHEMA_VERSION,
+    } as RawKbConfigDocument;
+    writeJsonAtomically(configPath, config);
+    configResult = { config, configPath };
+  }
 
   if ("error" in configResult) {
     console.error(configResult.error);
@@ -472,14 +543,21 @@ export async function migrateCommand(
     rawSchemaVersion,
     normalizedVersion,
   );
+  const migrationSteps = migrationStepsFor(configStatus.currentVersion);
+  const symbolGranularityStep = migrationSteps.some(
+    (step) => step.id === "symbol-granularity-v2",
+  );
+  const semanticBackfillStep = migrationSteps.some(
+    (step) => step.id === "semantic-backfill-v4",
+  );
   const symbolGranularityMigration = migrateSymbolGranularity({
     cwd,
     config,
-    dryRun: options.dryRun || !options.yes,
+    dryRun: !symbolGranularityStep || options.dryRun || !options.yes,
   });
   const semanticAdvisorBackfill =
     normalizeSemanticAdvisorBackfill(config.semanticAdvisorBackfill) ??
-    "pending";
+    (semanticBackfillStep ? "pending" : "not_applicable");
 
   if (options.dryRun) {
     console.log(
@@ -497,6 +575,9 @@ export async function migrateCommand(
       console.log(
         `dry run: would mark semantic advisor backfill as pending in ${configPathRelative}.`,
       );
+    }
+    if (migrationSteps.length > 0) {
+      console.log(`dry run: would evaluate schema steps: ${migrationSteps.map((step) => step.id).join(", ")}.`);
     }
     console.log("Re-run with --yes to apply these changes.");
     return { exitCode: 0 };
@@ -527,6 +608,7 @@ export async function migrateCommand(
       semanticAdvisorBackfill,
       symbolGranularityLegacyLinks: symbolGranularityMigration.count,
       warning: migrationWarning,
+      steps: migrationSteps.map((step) => step.id),
     }),
   );
 
@@ -548,5 +630,103 @@ export async function migrateCommand(
     "Migration complete. Future 'kibi migrate' runs will be a no-op.",
   );
 
+  return { exitCode: 0 };
+}
+
+async function buildWorkspaceMigrationPlan(workspaceRoot = process.cwd()): Promise<MigrationPlan> {
+  const [{ createCliRuntime }, { executeOperation }, { statusSpec }, { checkSpec }, { coverageSpec }, { mergeMigrationPlans }] = await Promise.all([
+    import("../runtime/cli-runtime.js"),
+    import("../public/operations/runtime-types.js"),
+    import("../public/operations/specs/discovery.js"),
+    import("../public/operations/specs/check.js"),
+    import("../public/operations/specs/reporting.js"),
+    import("../public/operations/migration-plan.js"),
+  ]);
+  const runtime = createCliRuntime({ workspaceRoot });
+  const statusResult = await executeOperation(runtime, statusSpec, {});
+  const status = statusResult.structuredContent;
+  const plans: MigrationPlan[] = [];
+  if (status?.migrationPlan !== undefined) plans.push(status.migrationPlan);
+  const storeHealthy = status?.branchStore?.state === "healthy";
+  const schemaCurrent = status?.schemaStatus?.needsMigration !== true;
+  if (storeHealthy && schemaCurrent && status?.branchAttachment?.kind === "exact") {
+    const checkResult = await executeOperation(runtime, checkSpec, {});
+    if (checkResult.structuredContent?.migrationPlan !== undefined) {
+      plans.push(checkResult.structuredContent.migrationPlan);
+    }
+    const coverageInputs = [
+      { by: "req" as const, limit: 10_000, offset: 0 },
+      { by: "symbol" as const, limit: 10_000, offset: 0 },
+    ];
+    for (const input of coverageInputs) {
+      const coverageResult = await executeOperation(runtime, coverageSpec, input);
+      if (coverageResult.structuredContent?.migrationPlan !== undefined) {
+        plans.push(coverageResult.structuredContent.migrationPlan);
+      }
+    }
+  }
+  if (plans.length === 0) {
+    const { buildMigrationPlan } = await import("../public/operations/migration-plan.js");
+    return buildMigrationPlan({
+      evaluatedDomains: ["package", "branch", "storage", "schema"],
+      incompleteDomains: ["status"],
+      diagnostics: ["Unable to assemble downstream migration domains from the current workspace state."],
+    });
+  }
+  return mergeMigrationPlans(plans);
+}
+
+async function migratePlanCommand(
+  options: MigrateOptions,
+): Promise<{ exitCode: number }> {
+  const workspaceRoot = path.resolve(options.workspaceRoot ?? process.cwd());
+  const plan = await buildWorkspaceMigrationPlan(workspaceRoot);
+  if (options.applySafe === true) {
+    if (!options.approvedPlanHash) {
+      console.error("--apply-safe requires --approved-plan-hash <sha256>.");
+      return { exitCode: 2 };
+    }
+    if (options.approvedPlanHash !== plan.planHash) {
+      console.error("Migration plan changed; regenerate the plan and approve its current hash.");
+      return { exitCode: 2 };
+    }
+    const approvedActionIds =
+      options.approvedActionIds && options.approvedActionIds.length > 0
+        ? options.approvedActionIds
+        : plan.actions
+            .filter((action) => action.state === "ready" && action.autoApplicable)
+            .map((action) => action.id);
+    if (approvedActionIds.length === 0) {
+      console.log("No approved automatic migration actions are ready.");
+      return { exitCode: 0 };
+    }
+    const [{ createCliRuntime }, { executeOperation }, { applyPlanSpec }] = await Promise.all([
+      import("../runtime/cli-runtime.js"),
+      import("../public/operations/runtime-types.js"),
+      import("../public/operations/specs/planning.js"),
+    ]);
+    const result = await executeOperation(
+      createCliRuntime({ workspaceRoot }),
+      applyPlanSpec,
+      { plan, approvedPlanHash: options.approvedPlanHash, approvedActionIds },
+    );
+    if (options.format === "json") {
+      console.log(JSON.stringify(result, null, 2));
+    } else {
+      console.log(result.content[0]?.text ?? "Migration applied.");
+      console.log(JSON.stringify(result.structuredContent, null, 2));
+    }
+    return { exitCode: result.structuredContent?.outcome === "applied" ? 0 : 1 };
+  }
+  if (options.format === "json") {
+    console.log(JSON.stringify(plan, null, 2));
+  } else {
+    console.log(`Migration plan ${plan.planHash}`);
+    console.log(`Status: ${plan.status}; actions: ${plan.summary.actionCount}; automatic-ready: ${plan.actions.filter((action) => action.state === "ready" && action.autoApplicable).length}`);
+    for (const action of plan.actions) {
+      console.log(`- ${action.state} ${action.safety} ${action.code}: ${action.id}`);
+    }
+    console.log("Use --format json for structured actions, or --apply-safe with the approved plan hash.");
+  }
   return { exitCode: 0 };
 }

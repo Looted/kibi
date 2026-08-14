@@ -33,6 +33,7 @@ const PROLOG_FREE_OPERATIONS = new Set([
   "kb_semantic_advisor",
   "kb_autopilot_generate",
   "kb_sparql_remote",
+  "kb_apply_plan",
 ]);
 
 const VALID_EFFECTS = new Set([

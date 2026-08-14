@@ -71,9 +71,28 @@ export function createCliRuntime(
         // Read-only operations such as status may choose to use an explicitly
         // supplied test or host Prolog port, but must not force engine startup.
         // That keeps pre-init and damaged-store diagnostics non-mutating.
-        return merged.prolog
-          ? { ...contextBase, prolog: merged.prolog }
-          : contextBase;
+        let lazyProlog: ManagedPrologPort | undefined =
+          merged.prolog as ManagedPrologPort | undefined;
+        let lazyContext: OperationContext | undefined;
+        const ensureProlog = async (): Promise<PrologPort> => {
+          if (lazyProlog !== undefined) return lazyProlog;
+          const attachment = resolveBranchAttachment(root);
+          if ("error" in attachment) {
+            throw new Error(`Failed to resolve active branch: ${attachment.error}`);
+          }
+          const engine = createDefaultProlog(root, attachment.kbBranch);
+          await engine.start?.();
+          lazyProlog = engine;
+          if (lazyContext !== undefined) ownedPrologs.set(lazyContext, engine);
+          return engine;
+        };
+        const context: OperationContext = {
+          ...contextBase,
+          ...(merged.prolog ? { prolog: merged.prolog } : {}),
+          ensureProlog,
+        };
+        lazyContext = context;
+        return context;
       }
 
       const attachment = resolveBranchAttachment(root);

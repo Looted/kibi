@@ -9,7 +9,7 @@ This table is the machine-readable interface map for Kibi's shared operation cat
 | `kb_skills_read` | `skills-read` | `--input JSON` | read | no | `local-read` | peer; capability-selected |
 | `kb_query` | `query` | `--input JSON or flags` | read | yes | `kb-read` | peer; capability-selected |
 | `kb_search` | `search` | `--input JSON or flags` | read | yes | `kb-read` | peer; capability-selected |
-| `kb_status` | `status` | `--input JSON or flags` | read | yes | `kb-read, workspace-read` | peer; capability-selected |
+| `kb_status` | `status` | `--input JSON or flags` | read | no (lazy engine only when available) | `kb-read, workspace-read` | peer; capability-selected |
 | `kb_find_gaps` | `find-gaps` | `--input JSON or flags` | read | yes | `kb-read` | peer; capability-selected |
 | `kb_coverage` | `coverage` | `--input JSON or flags` | read | yes | `kb-read` | peer; capability-selected |
 | `kb_graph` | `graph` | `--input JSON or flags` | read | yes | `kb-read` | peer; capability-selected |
@@ -23,7 +23,7 @@ This table is the machine-readable interface map for Kibi's shared operation cat
 | `kb_check` | `check` | `--input JSON or flags` | read | yes | `kb-read, workspace-read` | peer; capability-selected |
 | `kb_sparql_remote` | `sparql-remote` | `--input JSON` | read | no | `network-read` | peer; capability-selected |
 | `kb_compile_intent` | `compile-intent` | `--input JSON` | read | yes | `kb-read, workspace-read` | peer; capability-selected |
-| `kb_apply_plan` | `apply-plan` | `--input JSON` | write | yes | `kb-read, kb-write, workspace-read` | peer; capability-selected |
+| `kb_apply_plan` | `apply-plan` | `--input JSON` | write | no (lazy engine for compile plans) | `kb-read, kb-write, workspace-read, workspace-write` | peer; capability-selected |
 | `kb_ingest_verification` | `ingest-verification` | `--input JSON` | write | yes | `kb-read, kb-write, workspace-read` | peer; capability-selected |
 
 ## JSON execution recipes

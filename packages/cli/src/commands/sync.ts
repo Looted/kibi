@@ -218,12 +218,15 @@ export async function syncCommand(
     refreshSymbolCoordinates?: boolean;
     /** Explicitly rebuild an unreadable branch store from authored sources. */
     recoveryBackupPath?: string;
+    /** Workspace to operate on when invoked through MCP or another host. */
+    workspaceRoot?: string;
   } = {},
   runtime: SyncCommandRuntime = {},
 ): Promise<SyncResult> {
   const validateOnly = options.validateOnly ?? false;
   const rebuild = options.rebuild ?? false;
   const recoveryBackupPath = options.recoveryBackupPath;
+  const workspaceRoot = path.resolve(options.workspaceRoot ?? process.cwd());
   const startTime = Date.now();
   const diagnostics: Diagnostic[] = [];
   const entityCounts: Record<string, number> = {};
@@ -234,7 +237,7 @@ export async function syncCommand(
   const getCurrentCommit = (): string | undefined => {
     try {
       return execSync("git rev-parse HEAD", {
-        cwd: process.cwd(),
+        cwd: workspaceRoot,
         encoding: "utf8",
         timeout: 5000,
         stdio: ["pipe", "pipe", "pipe"],
@@ -252,7 +255,7 @@ export async function syncCommand(
 
   try {
     // Branch resolution
-    const branchResult = resolveBranchAttachment(process.cwd());
+    const branchResult = resolveBranchAttachment(workspaceRoot);
 
     if ("error" in branchResult) {
       const diagnostic = branchErrorToDiagnostic(
@@ -278,13 +281,13 @@ export async function syncCommand(
     // CLI/MCP operation has an engine attached, stop that single writer so the
     // atomic publish below cannot race its RDF lock.
     const livePathForEngine = path.join(
-      process.cwd(),
+      workspaceRoot,
       `.kb/branches/${currentBranch}`,
     );
     if (!validateOnly && recoveryBackupPath === undefined) {
       await ensureJournaledBranchStoreAsync(livePathForEngine);
       const existingEngine = new EngineClient({
-        workspaceRoot: process.cwd(),
+        workspaceRoot,
         branch: currentBranch,
         timeout: 2_000,
       });
@@ -292,7 +295,7 @@ export async function syncCommand(
         rebuild || runtime.createProlog !== undefined;
       if (
         needsExclusiveGenerationPublish &&
-        existsSync(engineSocketPath(process.cwd(), currentBranch))
+        existsSync(engineSocketPath(workspaceRoot, currentBranch))
       ) {
         await existingEngine.stop(false).catch(() => undefined);
         await existingEngine.terminate();
@@ -302,11 +305,11 @@ export async function syncCommand(
       // clean rebuild is compiled into staging and published only after it
       // can be reopened successfully.
       const existingEngine = new EngineClient({
-        workspaceRoot: process.cwd(),
+        workspaceRoot,
         branch: currentBranch,
         timeout: 2_000,
       });
-      if (existsSync(engineSocketPath(process.cwd(), currentBranch))) {
+      if (existsSync(engineSocketPath(workspaceRoot, currentBranch))) {
         await existingEngine.stop(false).catch(() => undefined);
         await existingEngine.terminate();
       }
@@ -317,11 +320,11 @@ export async function syncCommand(
       console.log("[kibi-debug] currentBranch:", currentBranch);
     }
 
-    const config = loadSyncConfig(process.cwd());
+    const config = loadSyncConfig(workspaceRoot);
     const paths = config.paths;
 
     const { markdownFiles, manifestFiles, relationshipsDir } =
-      await discoverSourceFiles(process.cwd(), paths);
+      await discoverSourceFiles(workspaceRoot, paths);
 
     if (isCliDebugEnabled()) {
       // eslint-disable-next-line no-console
@@ -332,7 +335,7 @@ export async function syncCommand(
 
     const sourceFiles = [...markdownFiles, ...manifestFiles].sort();
     const cachePath = path.join(
-      process.cwd(),
+      workspaceRoot,
       `.kb/branches/${currentBranch}/sync-cache.json`,
     );
     const syncCache = readSyncCache(cachePath);
@@ -358,7 +361,7 @@ export async function syncCommand(
       compilerCacheIsFresh(syncCache, sourceFiles, nowMs) &&
       compilerCacheFilesMatch(syncCache, sourceFiles, relationshipShardFiles)
     ) {
-      await checkpointNoopSync(process.cwd(), currentBranch);
+      await checkpointNoopSync(workspaceRoot, currentBranch);
       console.log("✓ Imported 0 entities, 0 relationships (no changes)");
       return withOptionalCommit(
         {
@@ -407,7 +410,7 @@ export async function syncCommand(
     // sync rather than deleting their last known-good entities.
     const deletedSourceFiles = Object.keys(syncCache.hashes)
       .filter((key) => !currentSourceKeys.has(key))
-      .map((key) => path.resolve(process.cwd(), key));
+      .map((key) => path.resolve(workspaceRoot, key));
 
     const currentRelationshipKeys = new Set<string>();
     for (const shardPath of relationshipShardFiles) {
@@ -516,7 +519,7 @@ export async function syncCommand(
     if (!validateOnly && options.refreshSymbolCoordinates) {
       for (const file of manifestFiles) {
         try {
-          await refreshManifestCoordinates(file, process.cwd(), {
+          await refreshManifestCoordinates(file, workspaceRoot, {
             refreshSymbolCoordinates: options.refreshSymbolCoordinates,
           });
           if (!changedManifestFiles.includes(file)) {
@@ -733,7 +736,7 @@ export async function syncCommand(
       });
 
       if (runtime.createProlog === undefined) {
-        await checkpointNoopSync(process.cwd(), currentBranch);
+        await checkpointNoopSync(workspaceRoot, currentBranch);
       }
 
       console.log("✓ Imported 0 entities, 0 relationships (no changes)");
@@ -753,7 +756,7 @@ export async function syncCommand(
       );
     }
 
-    const livePath = path.join(process.cwd(), `.kb/branches/${currentBranch}`);
+    const livePath = path.join(workspaceRoot, `.kb/branches/${currentBranch}`);
     const kbExists = existsSync(livePath);
     if (!kbExists && !rebuild) {
       diagnostics.push(createKbMissingDiagnostic(currentBranch, livePath));
@@ -767,7 +770,7 @@ export async function syncCommand(
     // for a one-symbol or relationship-only change.
     if (!validateOnly && !rebuild && runtime.createProlog === undefined) {
       const engine = new EngineClient({
-        workspaceRoot: process.cwd(),
+        workspaceRoot,
         branch: currentBranch,
         timeout: 120_000,
       });
@@ -924,7 +927,7 @@ export async function syncCommand(
       }
     }
 
-    stagingPath = createUniqueStagingPath(currentBranch, process.cwd());
+    stagingPath = createUniqueStagingPath(currentBranch, workspaceRoot);
     const runtimeContext: SyncCommandRuntimeContext = {
       currentBranch,
       livePath,

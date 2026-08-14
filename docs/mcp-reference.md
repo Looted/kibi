@@ -248,7 +248,7 @@ Apply an approved `kibi.compile-plan.v1` after revalidating its canonical hash, 
 - `approvedPlanHash` (required): Exact reviewed `planHash`.
 
 **Returns:**
-`kibi.plan-apply-result.v1` with applied entity/relationship counts, final snapshots, validation counts, changed paths, and explicit notes about the current sequential boundary.
+`kibi.plan-apply-result.v1` with applied entity/relationship counts, final snapshots, validation counts, changed paths, and explicit notes about the current sequential boundary. It also accepts `kibi.migration-plan.v2`; migration application requires `approvedActionIds`, an exact `approvedPlanHash`, and rejects blocked or non-automatic actions. Migration results report per-action outcomes and reconciliation failures.
 
 ### `kb_ingest_verification`
 
@@ -273,6 +273,12 @@ The response also includes exact `branchAttachment` metadata, bounded sorted
 `staleReasons` (with affected entity IDs and truncation totals), and
 `verificationSnapshotChanges`. Editor/config paths are reported as ordinary
 workspace changes; they are not silently ignored.
+
+When migration is needed, the response includes `schemaStatus` and a typed
+`migrationPlan` (`kibi.migration-plan.v2`) with canonical hash, scope
+completeness, dependencies, safety classes, exact invocations, evidence, and
+postconditions. Status never mutates and remains available without Prolog for
+missing or damaged stores.
 
 `kb_status` remains diagnostic when the branch store is missing, incomplete,
 or unreadable: it reports `branchStore` and a structured stale reason instead
@@ -517,6 +523,10 @@ When diagnostic mode has produced `.kb/usage.log`, the unfiltered scan evaluates
 Quality diagnostics use explicit `severity` and `blocking` fields. `severity: "review"` and `severity: "info"` are advisory and do not fail checks by default; `severity: "warning"` is still non-blocking unless `blocking: true`; `severity: "error"` or `blocking: true` is a hard failure signal. Existing hard violations remain in `violations[]` rather than being downgraded into the advisory lane.
 
 When impact diagnostics are enabled, `structuredContent` also includes `impactDiagnostics`, `sourceFiles`, `extractedSymbols`, `linkedEntities`, and `nextActions`. Impact diagnostics follow the same blocking convention: advisory unless their severity is `error` or `blocking` is true. `symbol_granularity_violation` means a changed behavioral symbol has only coarse ownership when a narrower anchor is available and remains blocking. `symbol_semantic_review_needed` can fire even when graph coverage already exists; it tells the agent to inspect whether linked requirements, scenarios, and tests actually cover the changed behavior or UI copy. Kibi reports the linked entities and suggested MCP calls, but it does not prove prose semantics.
+
+The structured check response also includes `migrationPlan`. Treat its actions
+as typed evidence, not prose suggestions; apply only ready automatic actions
+with an explicit hash/action approval through `kb_apply_plan`.
 
 **Example:**
 ```json

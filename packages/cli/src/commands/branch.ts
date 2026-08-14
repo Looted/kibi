@@ -30,25 +30,28 @@ import { inspectBranchStore } from "../utils/branch-store.js";
 
 export interface BranchEnsureOptions {
   from?: string;
+  workspaceRoot?: string;
 }
 
 export interface BranchMigrateOptions {
   from?: string;
   apply?: boolean;
+  workspaceRoot?: string;
 }
 
 export interface BranchRecoverOptions {
   apply?: boolean;
+  workspaceRoot?: string;
 }
 
-function resolveExplicitFromBranch(fromBranch: string): string | null {
+function resolveExplicitFromBranch(fromBranch: string, workspaceRoot: string): string | null {
   if (!isValidBranchName(fromBranch)) {
     console.warn(
       `Warning: invalid branch name provided via --from: '${fromBranch}'`,
     );
     return null;
   }
-  const fromPath = path.join(process.cwd(), ".kb/branches", fromBranch);
+  const fromPath = path.join(workspaceRoot, ".kb/branches", fromBranch);
   if (fs.existsSync(fromPath)) {
     return fromBranch;
   }
@@ -59,15 +62,16 @@ function resolveExplicitFromBranch(fromBranch: string): string | null {
 function createBranchKbFromSource(
   sourceBranch: string,
   targetBranch: string,
+  workspaceRoot: string,
 ): void {
-  const sourcePath = path.join(process.cwd(), ".kb/branches", sourceBranch);
-  const targetPath = path.join(process.cwd(), ".kb/branches", targetBranch);
+  const sourcePath = path.join(workspaceRoot, ".kb/branches", sourceBranch);
+  const targetPath = path.join(workspaceRoot, ".kb/branches", targetBranch);
   copyCleanSnapshot(sourcePath, targetPath);
   console.log(`Created branch KB: ${targetBranch} (from ${sourceBranch})`);
 }
 
-function createEmptyBranchKb(branch: string): void {
-  const kbPath = path.join(process.cwd(), ".kb/branches", branch);
+function createEmptyBranchKb(branch: string, workspaceRoot: string): void {
+  const kbPath = path.join(workspaceRoot, ".kb/branches", branch);
   fs.mkdirSync(kbPath, { recursive: true });
   console.log(`Created branch KB: ${branch} (empty schema)`);
 }
@@ -75,7 +79,8 @@ function createEmptyBranchKb(branch: string): void {
 export async function branchEnsureCommand(
   options?: BranchEnsureOptions,
 ): Promise<void> {
-  const branchResult = resolveBranchAttachment(process.cwd());
+  const workspaceRoot = path.resolve(options?.workspaceRoot ?? process.cwd());
+  const branchResult = resolveBranchAttachment(workspaceRoot);
 
   if ("error" in branchResult) {
     console.error(getBranchDiagnostic(undefined, branchResult.error));
@@ -88,7 +93,7 @@ export async function branchEnsureCommand(
     );
   }
   const currentBranch = branchResult.kbBranch;
-  const kbPath = path.join(process.cwd(), ".kb/branches", currentBranch);
+  const kbPath = path.join(workspaceRoot, ".kb/branches", currentBranch);
 
   if (fs.existsSync(kbPath)) {
     console.log(`Branch KB already exists: ${currentBranch}`);
@@ -96,15 +101,15 @@ export async function branchEnsureCommand(
   }
 
   if (options?.from !== undefined) {
-    const sourceBranch = resolveExplicitFromBranch(options.from);
+    const sourceBranch = resolveExplicitFromBranch(options.from, workspaceRoot);
     if (!sourceBranch) {
       throw new Error(
         `Cannot copy branch KB: explicit source '${options.from}' does not exist or is invalid`,
       );
     }
-    createBranchKbFromSource(sourceBranch, currentBranch);
+    createBranchKbFromSource(sourceBranch, currentBranch, workspaceRoot);
   } else {
-    createEmptyBranchKb(currentBranch);
+    createEmptyBranchKb(currentBranch, workspaceRoot);
   }
 }
 
@@ -116,11 +121,12 @@ export async function branchEnsureCommand(
 export async function branchMigrateCommand(
   options: BranchMigrateOptions = {},
 ): Promise<void> {
+  const workspaceRoot = path.resolve(options.workspaceRoot ?? process.cwd());
   const from = options.from?.trim();
   if (!from || !isValidBranchName(from)) {
     throw new Error("branch migrate requires a valid --from branch name");
   }
-  const active = resolveActiveBranch(process.cwd());
+  const active = resolveActiveBranch(workspaceRoot);
   if ("error" in active) {
     throw new Error(`Failed to resolve active branch: ${active.error}`);
   }
@@ -128,7 +134,7 @@ export async function branchMigrateCommand(
   if (from === to) {
     throw new Error(`Source and active branch are both '${to}'`);
   }
-  const root = path.join(process.cwd(), ".kb", "branches");
+  const root = path.join(workspaceRoot, ".kb", "branches");
   const sourcePath = path.join(root, from);
   const targetPath = path.join(root, to);
   if (!fs.existsSync(sourcePath)) {
@@ -137,7 +143,7 @@ export async function branchMigrateCommand(
   if (fs.existsSync(targetPath)) {
     throw new Error(`Target branch KB already exists: ${targetPath}`);
   }
-  const attachment = resolveBranchAttachment(process.cwd());
+  const attachment = resolveBranchAttachment(workspaceRoot);
   if (
     "error" in attachment ||
     attachment.kind !== "legacy_compat" ||
@@ -156,11 +162,11 @@ export async function branchMigrateCommand(
     return;
   }
   const engine = new EngineClient({
-    workspaceRoot: process.cwd(),
+    workspaceRoot,
     branch: from,
     timeout: 2_000,
   });
-  if (fs.existsSync(engineSocketPath(process.cwd(), from))) {
+  if (fs.existsSync(engineSocketPath(workspaceRoot, from))) {
     await engine.stop(false).catch(() => undefined);
     await engine.terminate().catch(() => undefined);
   }
@@ -178,7 +184,8 @@ export async function branchMigrateCommand(
 export async function branchRecoverCommand(
   options: BranchRecoverOptions = {},
 ): Promise<void> {
-  const attachment = resolveBranchAttachment(process.cwd());
+  const workspaceRoot = path.resolve(options.workspaceRoot ?? process.cwd());
+  const attachment = resolveBranchAttachment(workspaceRoot);
   if ("error" in attachment) {
     throw new Error(`Failed to resolve active branch: ${attachment.error}`);
   }
@@ -187,7 +194,7 @@ export async function branchRecoverCommand(
       "branch recover requires an exact Git/KB attachment; migrate legacy storage before recovery.",
     );
   }
-  const inspection = inspectBranchStore(process.cwd(), attachment.kbBranch);
+  const inspection = inspectBranchStore(workspaceRoot, attachment.kbBranch);
   if (inspection.state === "missing") {
     throw new Error(
       `Branch KB is missing at ${inspection.path}; run 'kibi branch ensure' instead.`,
@@ -195,7 +202,7 @@ export async function branchRecoverCommand(
   }
   const stamp = new Date().toISOString().replaceAll(":", "-");
   const backupPath = path.join(
-    process.cwd(),
+    workspaceRoot,
     ".kb",
     "recovery",
     attachment.kbBranch,
@@ -223,6 +230,7 @@ export async function branchRecoverCommand(
   const result = await syncCommand({
     rebuild: true,
     recoveryBackupPath: backupPath,
+    workspaceRoot,
   });
   if (!result.success) {
     throw new Error("Branch KB recovery did not complete successfully.");
@@ -231,14 +239,14 @@ export async function branchRecoverCommand(
   // generation. This establishes the current checkpoint/snapshot metadata on
   // the recovered store, so recovery finishes fresh rather than merely
   // structurally readable.
-  const checkpoint = await syncCommand();
+  const checkpoint = await syncCommand({ workspaceRoot });
   if (!checkpoint.success) {
     throw new Error(
       "Recovered branch KB could not establish a fresh checkpoint.",
     );
   }
   const auditPath = path.join(
-    process.cwd(),
+    workspaceRoot,
     ".kb",
     "migrations",
     `${attachment.kbBranch.replaceAll("/", "__")}.recovery.json`,
@@ -253,7 +261,7 @@ export async function branchRecoverCommand(
         recoveredAt: new Date().toISOString(),
         priorState: inspection.state,
         priorErrorCode: inspection.errorCode ?? null,
-        backupPath: path.relative(process.cwd(), backupPath),
+        backupPath: path.relative(workspaceRoot, backupPath),
         strategy: "rebuild_from_authored_sources",
       },
       null,

@@ -231,6 +231,11 @@ instead returns `branchStore` (`missing`, `incomplete`, or `unreadable`) with a
 recovery-oriented stale reason. Use the explicit branch commands below after
 reviewing that diagnosis.
 
+When migration is needed, JSON status also returns `schemaStatus` and a
+`kibi.migration-plan.v2` `migrationPlan`. Actions are typed with a canonical
+`planHash`, dependencies, safety class, preconditions, postconditions, and
+exact operation/CLI guidance. Status remains read-only.
+
 ## `kibi find-gaps [type]` (`gaps` alias)
 
 Runs curated missing/present relationship analysis.
@@ -268,6 +273,7 @@ kibi coverage [--by req|symbol|type] [--tag TAGS] [--include-passing] [--no-incl
 - Requirement rows also expose the additive `kibi.requirement-proof.v2` contract. `proofStatus` is `proven`, `unresolved`, `missing`, or `not_applicable` for a non-current requirement, and is intentionally independent from compatibility-oriented `coverageStatus`.
 - `proofStages` records semantic inventory, logical grounding, contradiction, scenario, scenario-test, passing E2E, executable-symbol, production-symbol, and exact source-coordinate evidence. `proofGaps` uses stable machine-readable codes and `proofRepairs` ranks concrete recovery actions.
 - Requirement reports also include `repairPlan` (`kibi.repair-plan.v1`). It groups gaps into one small batch per requirement and dependency phase, marks only the earliest unresolved batch `ready`, and links later batches through `dependsOn`. Every batch is read-only guidance with `autoApplicable: false`, a reviewed `workflowSteps` sequence, targeted `validationRules`, and a sequential-write policy.
+- Requirement and symbol reports also include the shared `migrationPlan` (`kibi.migration-plan.v2`). Apply only ready automatic actions after explicitly approving its exact hash and action IDs; review, operator, and E2E execution actions remain agent/operator work.
 - `repairPlan.scope.complete` is false and `status` is `partial` whenever `limit`/`offset` exclude actionable requirements. Increase the limit and reset the offset before using a plan as a project-wide migration inventory. The plan ID is stable for the same snapshot, filters, evidence, and gaps; receipt ages and check timestamps do not churn it.
 - `--include-migration-preview` adds `kibi.legacy-migration-plan.v1` for ready semantic-inventory batches. It defaults to one requirement, reconstructs normalized authored Markdown with exact SHA-256 source identity and UTF-8 proposition spans, ranks project-local schemas before built-ins, and emits review-only property patches. The patch stores authored prose in requirement-only `semantic_text` and never replaces an independent `text_ref`; only an existing `semantic_text` that differs from the current normalized Markdown blocks the batch as source drift. All candidates remain `writeEligible: false` and all batches `autoApplicable: false`.
 - The passing-E2E stage requires append-only verification-receipt history on a scenario-backed test. New evidence is produced by `kibi verify` as `kibi.verification-receipt.v2`; older `v1` entries remain readable historical compatibility data. Only a fresh passed receipt bound to the live `verificationSnapshot` and current contract qualifies; authored `status: passing` remains structural metadata.
@@ -450,7 +456,9 @@ kibi usage-remediation [--format json|table] [--limit N]
 
 ## `kibi migrate`
 
-Upgrades the branch knowledge base to the latest schema version.
+Previews or applies the structured branch migration plan. With no mutation
+flags, it is a read-only preview; `--format json` returns the complete
+`kibi.migration-plan.v2` action graph.
 
 **Behavior:**
 - Upgrades entity schemas and internal storage formats
@@ -462,9 +470,15 @@ Upgrades the branch knowledge base to the latest schema version.
 **Flags:**
 - `--dry-run` - Show what would be migrated without making changes
 - `--yes` - Apply migration changes without prompting
+- `--format json|table` - Render the structured plan or a concise table
+- `--apply-safe` - Apply only approved deterministic actions
+- `--approved-plan-hash SHA256` - Required exact plan hash for `--apply-safe`
+- `--approved-action ID` - Explicit automatic action ID (repeatable or comma-separated)
 
 **Notes:**
 - Use `kibi status` to check if a migration is pending for your branch.
+- Safe application rejects stale hashes, blocked actions, review/operator actions,
+  and actions omitted from `--approved-action`.
 - Migration is recommended when upgrading `kibi-cli` or `kibi-mcp` packages.
 - After migration, run `kibi sync --refresh-symbol-coordinates` if symbol coordinate diagnostics remain.
 

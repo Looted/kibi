@@ -18,6 +18,7 @@ import type { Violation } from "kibi-cli/public/check-types";
  */
 import type { ChangedFileImpactResult } from "kibi-cli/public/impact-diagnostics";
 import type { QualityDiagnostic } from "kibi-cli/public/impact-diagnostics";
+import type { MigrationPlan } from "kibi-cli/operations";
 
 export interface CheckArgs {
   rules?: string[];
@@ -58,5 +59,6 @@ export interface CheckResult {
     extractedSymbols?: ChangedFileImpactResult["extractedSymbols"];
     linkedEntities?: ChangedFileImpactResult["linkedEntities"];
     nextActions?: ChangedFileImpactResult["nextActions"];
+    migrationPlan?: MigrationPlan;
   };
 }

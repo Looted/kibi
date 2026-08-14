@@ -21,6 +21,10 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { createRequire } from "node:module";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  buildMigrationPlan,
+  migrationAction,
+} from "../public/operations/migration-plan.js";
 
 interface DoctorCheck {
   name: string;
@@ -68,14 +72,26 @@ export async function doctorCommand(
 
   const results = checks.map(({ name, check }) => ({ name, ...check() }));
   const allPassed = results.every((result) => result.passed);
+  const runtime = await runtimeProvenance();
+  const packageActions = await packageMigrationActions(runtime);
+  const migrationPlan = buildMigrationPlan({
+    expected: {
+      branch: null,
+      kbBranch: null,
+      configHash: null,
+    },
+    evaluatedDomains: ["package"],
+    actions: packageActions,
+  });
   if (options.format === "json") {
     console.log(
       JSON.stringify(
         {
           version: "kibi.doctor.v1",
           passed: allPassed,
-          runtime: runtimeProvenance(),
+          runtime,
           checks: results,
+          migrationPlan,
         },
         null,
         2,
@@ -101,7 +117,84 @@ export async function doctorCommand(
   return { exitCode: 1 };
 }
 
-function runtimeProvenance(): Record<string, unknown> {
+async function packageMigrationActions(
+  runtime: Readonly<Record<string, unknown>>,
+) {
+  const actions = [];
+  const versions = ["cliVersion", "coreVersion", "mcpVersion"].filter(
+    (key) => runtime[key] === "unresolved" || runtime[key] === "unknown",
+  );
+  if (versions.length > 0) {
+    actions.push(
+      migrationAction({
+        id: "package-provenance-unresolved",
+        code: "package_provenance_unresolved",
+        category: "package",
+        safety: "operator",
+        invocation: {
+          kind: "review",
+          instruction:
+            "Install one coordinated Kibi artifact set and rerun kibi doctor; Kibi never selects a package manager or rewrites dependency configuration.",
+        },
+        evidence: { unresolvedVersions: versions },
+        dispositionRequired: true,
+      }),
+    );
+  }
+  const cliVersion = typeof runtime.cliVersion === "string" ? runtime.cliVersion : "unknown";
+  const mcpCliRange = typeof runtime.mcpCliRange === "string" ? runtime.mcpCliRange : "unknown";
+  if (cliVersion !== "unknown" && mcpCliRange !== "unknown" && !satisfiesCaretRange(cliVersion, mcpCliRange)) {
+    actions.push(
+      migrationAction({
+        id: "package-mcp-cli-range-mismatch",
+        code: "package_dependency_range_mismatch",
+        category: "package",
+        safety: "operator",
+        invocation: {
+          kind: "review",
+          instruction:
+            "Install a newly versioned coordinated Kibi package set whose MCP CLI dependency range includes the installed CLI; project-local overrides are temporary and Kibi never edits dependency configuration.",
+        },
+        evidence: { cliVersion, mcpCliRange },
+        dispositionRequired: true,
+      }),
+    );
+  }
+  if (runtime.executeApplyPlanExported === false) {
+    actions.push(
+      migrationAction({
+        id: "package-cli-export-surface-drift",
+        code: "package_export_surface_drift",
+        category: "package",
+        safety: "operator",
+        invocation: {
+          kind: "review",
+          instruction:
+            "Treat same-version artifacts with different exports as a release defect: obtain a newly versioned CLI/MCP pair and do not downgrade receipts or hand-edit package metadata.",
+        },
+        evidence: { executeApplyPlanExported: false },
+        dispositionRequired: true,
+      }),
+    );
+  }
+  return actions;
+}
+
+function satisfiesCaretRange(version: string, range: string): boolean {
+  const match = range.trim().match(/^\^(\d+)\.(\d+)\.(\d+)/);
+  if (!match) return true;
+  const major = Number(match[1]);
+  const minor = Number(match[2]);
+  const patch = Number(match[3]);
+  const actual = version.match(/^(\d+)\.(\d+)\.(\d+)/);
+  if (!actual) return false;
+  const aMajor = Number(actual[1]);
+  const aMinor = Number(actual[2]);
+  const aPatch = Number(actual[3]);
+  return aMajor === major && (aMinor > minor || (aMinor === minor && aPatch >= patch));
+}
+
+async function runtimeProvenance(): Promise<Record<string, unknown>> {
   const packagePath = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
     "..",
@@ -119,6 +212,13 @@ function runtimeProvenance(): Record<string, unknown> {
   }
   const core = resolveInstalledPackageInfo("kibi-core");
   const mcp = resolveInstalledPackageInfo("kibi-mcp");
+  let executeApplyPlanExported: boolean | undefined;
+  try {
+    const operations = await import("../public/operations/index.js");
+    executeApplyPlanExported = typeof operations.executeApplyPlan === "function";
+  } catch {
+    executeApplyPlanExported = false;
+  }
   return {
     cliVersion: typeof cli.version === "string" ? cli.version : "unknown",
     coreVersion: core.version,
@@ -128,6 +228,8 @@ function runtimeProvenance(): Record<string, unknown> {
         ? ((cli.dependencies as Record<string, unknown>)["kibi-core"] ??
           "unknown")
         : "unknown",
+    mcpCliRange: mcp.dependencies?.["kibi-cli"] ?? "unknown",
+    executeApplyPlanExported,
     entrypoint: process.argv[1] ?? "unknown",
     packageVersions: process.env.KIBI_PACKAGE_VERSIONS ?? "unknown",
     locations: {
@@ -145,6 +247,7 @@ function resolveInstalledPackageInfo(name: string): {
   version: string;
   path: string;
   entrypoint: string;
+  dependencies?: Record<string, string> | undefined;
 } {
   const candidates = [
     `${name}/package.json`,
@@ -165,6 +268,7 @@ function resolveInstalledPackageInfo(name: string): {
     const metadata = JSON.parse(readFileSync(packageJson, "utf8")) as {
       version?: unknown;
       main?: unknown;
+      dependencies?: unknown;
     };
     return {
       version:
@@ -174,6 +278,10 @@ function resolveInstalledPackageInfo(name: string): {
         typeof metadata.main === "string"
           ? path.resolve(path.dirname(packageJson), metadata.main)
           : "unknown",
+      dependencies:
+        metadata.dependencies && typeof metadata.dependencies === "object"
+          ? (metadata.dependencies as Record<string, string>)
+          : undefined,
     };
   } catch {
     const local = candidates[1];
@@ -182,6 +290,7 @@ function resolveInstalledPackageInfo(name: string): {
         const metadata = JSON.parse(readFileSync(local, "utf8")) as {
           version?: unknown;
           main?: unknown;
+          dependencies?: unknown;
         };
         return {
           version:
@@ -191,6 +300,10 @@ function resolveInstalledPackageInfo(name: string): {
             typeof metadata.main === "string"
               ? path.resolve(path.dirname(local), metadata.main)
               : "unknown",
+          dependencies:
+            metadata.dependencies && typeof metadata.dependencies === "object"
+              ? (metadata.dependencies as Record<string, string>)
+              : undefined,
         };
       } catch {
         // Continue to the explicit unresolved result below.
@@ -200,6 +313,7 @@ function resolveInstalledPackageInfo(name: string): {
       version: "unresolved",
       path: "unresolved",
       entrypoint: "unresolved",
+      dependencies: undefined,
     };
   }
 }

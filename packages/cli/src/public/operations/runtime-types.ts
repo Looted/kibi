@@ -110,6 +110,8 @@ export type OperationContext = {
   readonly signal: AbortSignal;
   readonly clock: Clock;
   readonly prolog?: PrologPort;
+  /** Lazily acquire the branch engine for operations that may start without Prolog. */
+  readonly ensureProlog?: () => Promise<PrologPort>;
   readonly fs?: FilesystemPort;
   readonly git?: GitPort;
   readonly net?: NetworkPort;

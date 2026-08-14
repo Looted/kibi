@@ -29,9 +29,26 @@ export function registerFoundationCommands(program: Command): void {
 
   program
     .command("migrate")
-    .description("Migrate .kb/config.json to the latest schema version")
+    .description("Preview or apply the structured migration plan")
     .option("--dry-run", "Preview migration changes without writing files")
     .option("--yes", "Apply migration changes without prompting")
+    .option("--format <format>", "Output format: json|table", "table")
+    .option(
+      "--apply-safe",
+      "Apply only explicitly approved deterministic migration actions",
+    )
+    .option(
+      "--approved-plan-hash <sha256>",
+      "Exact migration plan hash approved for --apply-safe",
+    )
+    .option(
+      "--approved-action <id>",
+      "Approve one migration action (repeatable through comma-separated IDs)",
+      (value: string, previous: string[] = []) => [
+        ...previous,
+        ...value.split(",").map((item) => item.trim()).filter(Boolean),
+      ],
+    )
     .action(
       withExitCode(async (options: Parameters<typeof migrateCommand>[0]) =>
         (await import("./commands/migrate.js")).migrateCommand(options),

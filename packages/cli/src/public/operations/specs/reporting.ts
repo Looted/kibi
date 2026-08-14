@@ -8,6 +8,13 @@ import {
   toPrologAtom,
   toPrologList,
 } from "../prolog-json.js";
+import {
+  buildActionsFromCoverage,
+  buildMigrationPlan,
+  mergeMigrationPlans,
+  type MigrationPlan,
+} from "../migration-plan.js";
+import { executeStatus } from "../discovery-executors.js";
 import { type RepairPlan, buildRepairPlan } from "../repair-plan.js";
 import type { OperationContext } from "../runtime-types.js";
 import { buildSymbolRepairPlan } from "../symbol-repair-plan.js";
@@ -62,6 +69,7 @@ export type CoveragePayload = {
   readonly repairPlan?: RepairPlan;
   readonly legacyMigrationPlan?: LegacyMigrationPlan;
   readonly symbolRepairPlan?: Readonly<Record<string, unknown>>;
+  readonly migrationPlan?: MigrationPlan;
   readonly meta?: Readonly<Record<string, unknown>>;
 };
 
@@ -183,11 +191,39 @@ export async function executeCoverage(
             context,
           )
         : undefined;
+    const statusResult = await executeStatus({}, context);
+    const statusPlan = statusResult.structuredContent?.migrationPlan;
+    const coveragePlan = buildMigrationPlan({
+      expected: {
+        branch: context.branchAttachment?.gitBranch ?? null,
+        kbBranch: context.branchAttachment?.kbBranch ?? null,
+        ...(typeof payload.meta?.snapshotId === "string"
+          ? { kbSnapshotId: payload.meta.snapshotId }
+          : {}),
+        workspaceSnapshot: codeSnapshot,
+      },
+      evaluatedDomains: ["semantic", "verification", "symbol"],
+      incompleteDomains:
+        payload.meta?.scopeComplete === false ? ["coverage"] : [],
+      actions: buildActionsFromCoverage({
+        ...(repairPlan !== undefined
+          ? {
+              repairPlan:
+                repairPlan as unknown as Readonly<Record<string, unknown>>,
+            }
+          : {}),
+        ...(symbolRepairPlan !== undefined ? { symbolRepairPlan } : {}),
+      }),
+    });
+    const migrationPlan = statusPlan
+      ? mergeMigrationPlans([statusPlan, coveragePlan])
+      : coveragePlan;
     const enrichedPayload = {
       ...payload,
       ...(repairPlan !== undefined ? { repairPlan } : {}),
       ...(legacyMigrationPlan !== undefined ? { legacyMigrationPlan } : {}),
       ...(symbolRepairPlan !== undefined ? { symbolRepairPlan } : {}),
+      migrationPlan,
       meta: {
         ...(payload.meta ?? {}),
         verificationReceiptMaxAgeSeconds: VERIFICATION_RECEIPT_MAX_AGE_SECONDS,

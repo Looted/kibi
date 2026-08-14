@@ -3,6 +3,7 @@ import {
   type LegacyMigrationPlan,
   type RepairPlan,
   executeCoverage,
+  type MigrationPlan,
 } from "kibi-cli/operations";
 import type { OperationContext } from "kibi-cli/operations/runtime-types";
 import type { PrologProcess } from "kibi-cli/prolog";
@@ -22,6 +23,8 @@ export interface CoverageResult {
     readonly rows: readonly Readonly<Record<string, unknown>>[];
     readonly repairPlan?: RepairPlan;
     readonly legacyMigrationPlan?: LegacyMigrationPlan;
+    readonly symbolRepairPlan?: Readonly<Record<string, unknown>>;
+    readonly migrationPlan?: MigrationPlan;
     readonly meta?: Readonly<Record<string, unknown>>;
   };
 }

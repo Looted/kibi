@@ -20,6 +20,12 @@ import {
   paginateResults,
   validateEntityType,
 } from "./discovery-entities.js";
+import {
+  buildActionsFromStatus,
+  readMigrationConfigStatus,
+  type MigrationConfigStatus,
+  type MigrationPlan,
+} from "./migration-plan.js";
 import { runOperationJsonQuery } from "./prolog-json.js";
 import type { OperationContext, PrologPort } from "./runtime-types.js";
 import type { OperationResult } from "./types.js";
@@ -85,6 +91,8 @@ export type StatusPayload = {
   readonly verificationSnapshotChangeCount?: number;
   readonly verificationSnapshotChangesTruncated?: boolean;
   readonly branchStore?: BranchStoreInspection;
+  readonly schemaStatus?: MigrationConfigStatus;
+  readonly migrationPlan?: MigrationPlan;
 };
 
 function requireProlog(context: OperationContext): PrologPort {
@@ -381,6 +389,27 @@ export async function executeStatus(
           }
         : { verificationSnapshotError: snapshotEvidence.error }),
     };
+    const schemaStatus = readMigrationConfigStatus(context.workspaceRoot);
+    const migrationPlan = buildActionsFromStatus({
+      workspaceRoot: context.workspaceRoot,
+      branchAttachment: attachment,
+      branchStore: store,
+      staleReasons,
+      verificationSnapshotAvailable: snapshotEvidence.available,
+      ...(snapshotEvidence.available
+        ? { verificationSnapshotDirty: snapshotEvidence.snapshot.dirty }
+        : {}),
+      kbSnapshotId: payload.snapshotId,
+      workspaceSnapshot: snapshotEvidence.available
+        ? snapshotEvidence.snapshot.hash
+        : null,
+      configStatus: schemaStatus,
+    });
+    const statusWithPlan: StatusPayload = {
+      ...enrichedPayload,
+      schemaStatus,
+      migrationPlan,
+    };
     return {
       content: [
         {
@@ -388,7 +417,7 @@ export async function executeStatus(
           text: `Branch ${payload.branch} is ${payload.syncState} (snapshot ${payload.snapshotId}, dirty=${payload.dirty}, verificationSnapshot=${enrichedPayload.verificationSnapshot})`,
         },
       ],
-      structuredContent: enrichedPayload,
+      structuredContent: statusWithPlan,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

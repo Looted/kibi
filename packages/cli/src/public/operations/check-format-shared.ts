@@ -18,6 +18,7 @@ import type { Violation } from "../check-types.js";
  */
 import type { ChangedFileImpactResult } from "../impact-diagnostics.js";
 import type { QualityDiagnostic } from "../impact-diagnostics.js";
+import type { MigrationPlan } from "./migration-plan.js";
 
 // implements REQ-mcp-tool-check
 export interface CheckDiagnostic {
@@ -39,6 +40,7 @@ export interface CheckStructuredContent {
   readonly extractedSymbols?: ChangedFileImpactResult["extractedSymbols"];
   readonly linkedEntities?: ChangedFileImpactResult["linkedEntities"];
   readonly nextActions?: ChangedFileImpactResult["nextActions"];
+  readonly migrationPlan?: MigrationPlan;
 }
 
 function formatDiagnostics(diagnostics: readonly CheckDiagnostic[]) {
@@ -140,6 +142,7 @@ export function buildStructuredContent(input: {
   diagnostics: readonly CheckDiagnostic[];
   qualityDiagnostics?: readonly QualityDiagnostic[];
   impactResult: ChangedFileImpactResult | undefined;
+  migrationPlan?: MigrationPlan;
 }): CheckStructuredContent {
   const qualityDiagnostics = input.qualityDiagnostics ?? [];
   return {
@@ -157,6 +160,9 @@ export function buildStructuredContent(input: {
           linkedEntities: input.impactResult.linkedEntities,
           nextActions: input.impactResult.nextActions,
         }
+        : {}),
+    ...(input.migrationPlan !== undefined
+      ? { migrationPlan: input.migrationPlan }
       : {}),
   };
 }

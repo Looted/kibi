@@ -65,9 +65,23 @@ export function createMcpRuntime<TProlog = PrologPort>(
       if (!spec.requiresProlog) {
         // Preserve explicit host/test injection without asking the shared MCP
         // session to initialise a store merely to report its condition.
-        return options.prolog
-          ? { ...withAttachment, prolog: options.prolog }
-          : withAttachment;
+        const providedProlog = options.prolog;
+        let lazyProlog: TProlog | undefined;
+        let lazyContext: OperationContext | undefined;
+        const ensureProlog = async (): Promise<PrologPort> => {
+          if (providedProlog !== undefined) return providedProlog;
+          if (lazyProlog !== undefined) return session.adaptProlog(lazyProlog);
+          lazyProlog = await session.ensureProlog();
+          if (lazyContext !== undefined) sessionPrologs.set(lazyContext, lazyProlog);
+          return session.adaptProlog(lazyProlog);
+        };
+        const operationContext: OperationContext = {
+          ...withAttachment,
+          ...(options.prolog ? { prolog: options.prolog } : {}),
+          ensureProlog,
+        };
+        lazyContext = operationContext;
+        return operationContext;
       }
       if (options.prolog) {
         return { ...withAttachment, prolog: options.prolog };

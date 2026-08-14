@@ -332,6 +332,104 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
     mutation: "write",
     approvalPhase: "post-approval",
   },
+  "kibi-usage/discovery-exact-lookup/held-out/0": {
+    prompt:
+      "Preview a kibi.migration-plan.v2 for a legacy schema and apply only ready automatic actions with the exact approved plan hash; keep semantic work out of safe application.",
+    objectiveCode: "safe_schema_application",
+    kb: "stale",
+    worktree: "clean",
+    adversarialCases: ["stale-state", "approval-boundary"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
+  "kibi-usage/discovery-exact-lookup/held-out/1": {
+    prompt:
+      "A migration plan was regenerated after a source change. Reject the stale approved plan hash and require a fresh preview; never apply a partial or unlisted action set.",
+    objectiveCode: "stale_plan_hash_rejection",
+    kb: "stale",
+    worktree: "dirty",
+    adversarialCases: ["stale-state", "dirty-state", "approval-boundary"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
+  "kibi-freshness/source-linked-impact/held-out/0": {
+    prompt:
+      "A migration plan contains a destructive review action and one safe automatic action. Apply only the explicit automatic action IDs and refuse the partial plan that would include the destructive action.",
+    objectiveCode: "partial_plan_destructive_refusal",
+    kb: "stale",
+    worktree: "clean",
+    adversarialCases: ["stale-state", "approval-boundary"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
+  "kibi-freshness/source-linked-impact/held-out/1": {
+    prompt:
+      "The branch store is unreadable. Produce the migration plan without starting Prolog, preserve the recovery backup requirement, and apply only the sanctioned recovery action after approval.",
+    objectiveCode: "unreadable_store_without_prolog",
+    kb: "stale",
+    worktree: "clean",
+    adversarialCases: ["stale-state", "approval-boundary"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
+  "kibi-traceability/requirement-discovery/held-out/0": {
+    prompt:
+      "On Git master with only the historical main KB, preview and explicitly apply exact legacy branch storage migration. Keep the Git branch name unchanged and verify exact attachment afterward.",
+    objectiveCode: "exact_legacy_branch_migration",
+    kb: "stale",
+    worktree: "clean",
+    adversarialCases: ["stale-state", "approval-boundary"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
+  "kibi-traceability/requirement-discovery/held-out/1": {
+    prompt:
+      "Reconcile a stale legacy-shard relationship only when current authored sources prove it absent. Preserve endpoints, sync, and read back the exact edge deletion through Kibi.",
+    objectiveCode: "legacy_shard_reconciliation",
+    kb: "stale",
+    worktree: "clean",
+    adversarialCases: ["stale-state", "approval-boundary"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
+  "init-kibi/bootstrap-analysis/held-out/0": {
+    prompt:
+      "An extractor-owned symbol disappeared from complete current extraction. Delete it only when it has no authored ownership or live relationships; never delete an authored symbol automatically.",
+    objectiveCode: "extractor_owned_symbol_safety",
+    kb: "stale",
+    worktree: "clean",
+    adversarialCases: ["stale-state", "approval-boundary"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
+  "init-kibi/bootstrap-analysis/held-out/1": {
+    prompt:
+      "Historical receipts disagree with the current verification contract. Preserve append-only history, report the mismatch, and require a current-contract run without rewriting receipt records.",
+    objectiveCode: "contract_mismatch_preserving_receipt_history",
+    kb: "fresh",
+    worktree: "clean",
+    adversarialCases: ["misleading-success", "approval-boundary"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
+  "init-kibi/bounded-context-questions/held-out/0": {
+    prompt:
+      "Mixed Kibi package versions expose incompatible APIs. Escalate an operator release action with exact versions and exports; do not choose a package manager or treat a local override as permanent.",
+    objectiveCode: "mixed_package_operator_escalation",
+    kb: "fresh",
+    worktree: "clean",
+    adversarialCases: ["malformed-input", "misleading-success"],
+  },
+  "init-kibi/bounded-context-questions/held-out/1": {
+    prompt:
+      "For every quality diagnostic, return an ID-specific fixed, accepted, or deferred disposition with rationale. Keep accepted limitations separate from proof and include the structured five-axis closeout.",
+    objectiveCode: "structured_quality_diagnostic_disposition",
+    kb: "fresh",
+    worktree: "clean",
+    adversarialCases: ["misleading-success"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
 };
 
 /**

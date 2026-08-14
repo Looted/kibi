@@ -23,6 +23,7 @@ export type {
   ApplyPlanArgs,
   ApplyPlanResult,
 } from "../../../operations/planning/apply-plan.js";
+export type { MigrationPlan } from "../migration-plan.js";
 export { executeApplyPlan } from "../../../operations/planning/apply-plan.js";
 export { executeCompileIntent } from "../../../operations/planning/compile-intent.js";
 
@@ -181,7 +182,7 @@ export const applyPlanSpec = {
   name: "kb_apply_plan",
   cliName: "apply-plan",
   description:
-    "Apply an approved kibi.compile-plan.v1 after revalidating its canonical hash, branch/KB/workspace snapshots, source before-hashes, entity shapes, and relationship endpoints. Applies entity steps sequentially through the shared upsert boundary and reports final snapshots. Source publishing and crash recovery are not silently implied by this v1 boundary.",
+    "Apply an approved kibi.compile-plan.v1 or kibi.migration-plan.v2 after revalidating its canonical hash and live snapshots. Compile steps remain sequential entity writes; migration steps require explicit automatic action IDs and preserve backups/audit evidence. Review, operator, and execution actions are rejected.",
   businessInputSchema: {
     type: "object",
     required: ["plan", "approvedPlanHash"],
@@ -194,21 +195,19 @@ export const applyPlanSpec = {
       },
       plan: {
         type: "object",
-        required: [
-          "version",
-          "planHash",
-          "status",
-          "expected",
-          "target",
-          "steps",
-          "sourceWrites",
-        ],
+        required: ["version", "planHash", "status", "expected"],
         description:
-          "The complete kibi.compile-plan.v1 object. Partial plans are rejected.",
+          "The complete kibi.compile-plan.v1 or kibi.migration-plan.v2 object. Migration plans require approvedActionIds and reject blocked/non-automatic actions.",
+      },
+      approvedActionIds: {
+        type: "array",
+        items: { type: "string", minLength: 1 },
+        description:
+          "Required for migration-plan.v2. Exact automatic action IDs explicitly approved for this application.",
       },
     },
   },
-  requiresProlog: true,
-  effects: ["kb-read", "kb-write", "workspace-read"],
+  requiresProlog: false,
+  effects: ["kb-read", "kb-write", "workspace-read", "workspace-write"],
   execute: executeApplyPlan,
 } as const satisfies OperationSpec<ApplyPlanArgs, ApplyPlanResult>;

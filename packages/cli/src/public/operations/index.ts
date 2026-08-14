@@ -6,6 +6,7 @@ export * from "./runtime-types.js";
 export * from "./node-ports.js";
 export * from "./repair-plan.js";
 export * from "./legacy-migration-plan.js";
+export * from "./migration-plan.js";
 export * from "./symbol-repair-plan.js";
 export * from "./specs/autopilot.js";
 export * from "./specs/check.js";

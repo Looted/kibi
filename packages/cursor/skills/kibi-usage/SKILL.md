@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Guides agents to use Kibi MCP, facts, relationships, and validation correctly
-version: 1.4.2
+version: 1.4.3
 kibiCompatibility: ">=0.11.0"
 tags:
   - kibi
@@ -32,6 +32,24 @@ Kibi exposes two peer surfaces over the same 21 operations: visible MCP tools an
 4. Never use a global fallback or an installing runner. Never probe or install packages as a side effect of interface selection.
 
 Use exact MCP tool names, dedicated CLI routes, input modes, effects, and Prolog requirements from `resources/operation-access.md`. Do not invent a generic operation runner. Do not read or edit files inside `.kb/` directly.
+
+## Agent-guided migration
+
+When `kb_status`, unfiltered `kb_check`, or complete-scope `kb_coverage` returns
+`migrationPlan.version: kibi.migration-plan.v2`, consume its typed actions
+instead of interpreting suggestion prose. Inspect `planHash`, scope
+completeness, dependencies, safety, preconditions, and postconditions. Apply
+only `state: ready` actions with `safety: automatic` and `autoApplicable: true`
+after explicitly approving the exact hash and action IDs through `kb_apply_plan`
+or `kibi migrate --apply-safe`. Status and checks never mutate.
+
+Follow this sequence: status → preview the migration plan → apply approved
+automatic actions → unfiltered check → complete coverage → perform reviewed or
+execution actions → final status/check/coverage readback. A partial plan is not
+a project-wide inventory; do not apply destructive symbol or relationship work
+until its scope is complete. Branch moves and storage recovery preserve backups
+but still require explicit plan approval. Never edit `.kb`, rewrite receipt
+history, or treat accepted limitations as proof.
 
 CLI JSON mode accepts MCP-shaped business input at `--input <file|->`.
 
@@ -319,7 +337,7 @@ The `domain-contradictions` rule detects conflicts between strict-lane facts lin
 
 ## Stale or Dirty KB Handling
 
-Call `kb_status` when branch KB context may be stale or after switching context. Report freshness findings to the user rather than relying on outdated KB context. If `kb_status` indicates a schema migration is needed, ask the user or operator to handle it outside the agent session.
+Call `kb_status` when branch KB context may be stale or after switching context. Report freshness findings to the user rather than relying on outdated KB context. If it reports a ready automatic schema/storage action, apply it only through the approved migration plan. Escalate only `operator` actions such as ambiguous provenance, unsupported newer schemas, package installation, or limitation acceptance.
 
 ## Anti-Patterns and Remediation
 

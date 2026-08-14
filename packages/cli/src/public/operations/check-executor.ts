@@ -1,4 +1,5 @@
 import { runAggregatedChecks } from "../../commands/aggregated-checks.js";
+import { executeStatus } from "./discovery-executors.js";
 /*
  Kibi — repo-local, per-branch, queryable long-term memory for software projects
  Copyright (C) 2026 Piotr Franczyk
@@ -24,6 +25,11 @@ import {
   buildStructuredContent,
   buildSummary,
 } from "./check-format-shared.js";
+import {
+  buildActionsFromCheck,
+  buildMigrationPlan,
+  mergeMigrationPlans,
+} from "./migration-plan.js";
 import {
   analyzeKbCheckImpact,
   collectQueryPlanSafetyViolations,
@@ -68,6 +74,26 @@ function requireProlog(context: OperationContext): PrologPort {
 
 function invalidatePrologCache(prolog: PrologPort): void {
   prolog.invalidateCache?.();
+}
+
+async function migrationPlanForCheck(
+  context: OperationContext,
+  violations: readonly Violation[],
+  qualityDiagnostics: readonly Readonly<Record<string, unknown>>[],
+  statusPlan?: ReturnType<typeof buildMigrationPlan>,
+) {
+  const checkPlan = buildMigrationPlan({
+    expected: {
+      branch: context.branchAttachment?.gitBranch ?? null,
+      kbBranch: context.branchAttachment?.kbBranch ?? null,
+    },
+    evaluatedDomains: ["quality"],
+    actions: buildActionsFromCheck({
+      violations: violations as unknown as readonly Readonly<Record<string, unknown>>[],
+      qualityDiagnostics,
+    }),
+  });
+  return statusPlan ? mergeMigrationPlans([statusPlan, checkPlan]) : checkPlan;
 }
 
 // implements REQ-kibi-operation-interface-parity, REQ-002
@@ -116,6 +142,14 @@ export async function executeCheck(
                 now: context.clock(),
                 ...maxDiagnosticsOption,
               });
+      const statusResult = await executeStatus({}, context);
+      const statusPlan = statusResult.structuredContent?.migrationPlan;
+      const migrationPlan = await migrationPlanForCheck(
+        context,
+        [],
+        qualityDiagnostics as unknown as readonly Readonly<Record<string, unknown>>[],
+        statusPlan,
+      );
       return {
         content: [
           {
@@ -132,6 +166,7 @@ export async function executeCheck(
           diagnostics: [],
           qualityDiagnostics,
           impactResult,
+          migrationPlan,
         }),
       };
     }
@@ -178,6 +213,14 @@ export async function executeCheck(
             ...maxDiagnosticsOption,
           });
 
+    const statusResult = await executeStatus({}, context);
+    const statusPlan = statusResult.structuredContent?.migrationPlan;
+    const migrationPlan = await migrationPlanForCheck(
+      context,
+      violations,
+      qualityDiagnostics as unknown as readonly Readonly<Record<string, unknown>>[],
+      statusPlan,
+    );
     return {
       content: [
         {
@@ -194,6 +237,7 @@ export async function executeCheck(
         diagnostics,
         qualityDiagnostics,
         impactResult,
+        migrationPlan,
       }),
     };
   } catch (error) {

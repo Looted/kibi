@@ -56,6 +56,24 @@ Every current requirement without `logic_claims` remains visible as non-blocking
 
 `kibi.telemetry-acceptance.v1` evaluates the latest 200 usage events and keeps process health separate from graph correctness. It requires at least 95% complete diagnostic telemetry and, when applicable, exact recent validation before every upsert and a same-requirement/current-hash advisor pass before requirement writes. It also evaluates source lookup misses, comparable complete-scope proof-gap recovery, receipt-specific coverage gaps, and mutation targets retried three or more times. Failed metrics become ranked `category: telemetry` quality diagnostics; missing current coverage fields or evidence older than seven days stays `insufficient_evidence`.
 
+## Agent-guided migration
+
+`kb_status`, unfiltered `kb_check`, and complete-scope `kb_coverage` may return
+the shared `kibi.migration-plan.v2`. Treat it as a typed action graph: inspect
+the canonical `planHash`, scope completeness, dependencies, safety class,
+preconditions, postconditions, and evidence. Apply only ready automatic actions
+with `autoApplicable: true` through an explicitly approved `kb_apply_plan` or
+`kibi migrate --apply-safe` request containing the exact hash and action IDs.
+Never infer an operation from a prose suggestion, and never apply a partial
+plan's destructive symbol or relationship action.
+
+The migration engine may normalize schema/config metadata, cut over validated
+legacy storage with backups, migrate the exact historical branch attachment,
+refresh coordinates, and perform provenance-proven stale cleanup. It does not
+choose package managers, ground semantic claims, resolve contradictions, rerun
+E2E tests, rewrite receipt history, remap authored symbols, or accept
+limitations. Those actions remain explicit review/operator/execution steps.
+
 For `e2e_receipt_freshness_low`, query each listed requirement/test gap and run its exact current contract through `kibi verify`; this appends v2 evidence and preserves older history. If `coverage_depth_review` conflicts with a coverage row whose `proofStages.passingE2e.status` is `passed`, report the diagnostic as a stale heuristic and keep any independent proof gaps unresolved.
 
 ## Creating a New Feature
