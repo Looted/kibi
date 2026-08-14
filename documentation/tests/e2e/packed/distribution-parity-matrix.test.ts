@@ -448,6 +448,10 @@ function capabilityInput(capability: RequirementCompilerCapability): {
       };
     case "telemetry_acceptance":
       return { tool: "kb_check", route: "check", input: {} };
+    default:
+      throw new CapabilityUnavailableError(
+        `capability ${String(capability)} is not supported by this fixture`,
+      );
   }
 }
 
@@ -467,6 +471,10 @@ function extractOutcome(
       return coverageOutcome(value, capability);
     case "telemetry_acceptance":
       return telemetryOutcome(value, surface);
+    default:
+      throw new CapabilityUnavailableError(
+        `capability ${String(capability)} has no outcome extractor`,
+      );
   }
 }
 

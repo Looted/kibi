@@ -68,7 +68,7 @@ export function resolveCurrentBranch(cwd: string): string {
   // 1. Check KIBI_BRANCH env var first (highest precedence)
   const envBranch = process.env.KIBI_BRANCH?.trim();
   if (envBranch && envBranch.length > 0) {
-    return envBranch === "master" ? "main" : envBranch;
+    return envBranch;
   }
   // 2. Fall back to git branch
   try {
@@ -78,7 +78,7 @@ export function resolveCurrentBranch(cwd: string): string {
       stdio: ["ignore", "pipe", "ignore"],
       timeout: 5000,
     }).trim();
-    return branch === "master" ? "main" : branch;
+    return branch;
   } catch {
     return "unknown";
   }

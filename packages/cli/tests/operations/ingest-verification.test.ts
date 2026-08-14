@@ -4,6 +4,7 @@ import { executeIngestVerification } from "../../src/operations/verification/ing
 import type {
   OperationContext,
   PrologPort,
+  PrologQueryResult,
 } from "../../src/public/operations/runtime-types.js";
 import { verificationContractHash } from "../../src/public/verification-receipt.js";
 
@@ -39,7 +40,7 @@ function context(query: PrologPort["query"]): OperationContext {
 
 describe("kb_ingest_verification", () => {
   test("derives a passing v2 receipt from a complete contracted artifact", async () => {
-    const query = mock(async (goal: string) => {
+    const query = mock(async (goal: string): Promise<PrologQueryResult> => {
       if (goal.includes("kb_entity('TEST-001'")) {
         return {
           success: true,
@@ -88,10 +89,12 @@ describe("kb_ingest_verification", () => {
   });
 
   test("rejects a changed live snapshot before loading or mutating the test", async () => {
-    const query = mock(async () => ({
-      success: true,
-      bindings: { Results: "[]" },
-    }));
+    const query = mock(
+      async (): Promise<PrologQueryResult> => ({
+        success: true,
+        bindings: { Results: "[]" },
+      }),
+    );
     await expect(
       executeIngestVerification(
         {

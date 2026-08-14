@@ -3,7 +3,7 @@ import type { PrologPort } from "../../public/operations/runtime-types.js";
 import { parsePrologList } from "./serialization.js";
 import type { RelationshipInput } from "./types.js";
 
-const RELATIONSHIP_TYPES = [
+export const RELATIONSHIP_TYPES = [
   "depends_on",
   "specified_by",
   "verified_by",
@@ -22,6 +22,7 @@ const RELATIONSHIP_TYPES = [
   "supersedes",
   "relates_to",
 ] as const;
+export type RelationshipType = (typeof RELATIONSHIP_TYPES)[number];
 
 export function dependentRelationshipsGoal(entityId: string): string {
   return `findall([RelType,From], (member(RelType, [${RELATIONSHIP_TYPES.join(", ")}]), kb_relationship(RelType, From, '${escapeAtom(entityId)}')), Dependents)`;

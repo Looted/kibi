@@ -43,6 +43,7 @@ export type BranchErrorCode =
   | "UNBORN_BRANCH"
   | "GIT_NOT_AVAILABLE"
   | "NOT_A_GIT_REPO"
+  | "AMBIGUOUS_ATTACHMENT"
   | "ENV_OVERRIDE"
   | "UNKNOWN_ERROR";
 

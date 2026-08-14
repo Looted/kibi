@@ -21,6 +21,7 @@ export function writePackedInstallManifest(
         overrides: {
           "kibi-core": "$kibi-core",
           "kibi-cli": "$kibi-cli",
+          "kibi-mcp": "$kibi-mcp",
         },
       },
       null,

@@ -30,6 +30,12 @@ echo '{}' | npx --no-install kibi status --input -
 ## Capability Workflow
 
 - Use `kb_status`, or `status --input`, first to confirm branch attachment, freshness state, dirty-worktree evidence, and whether the knowledge snapshot is safe to rely on.
+- Treat `branchAttachment.gitBranch` and `branchAttachment.kbBranch` as exact
+  identities. A `legacy_compat` attachment with `migrationRequired: true` is
+  an interim read-only state; migrate it before writes or sync.
+- Inspect bounded `staleReasons` (indexed source missing/newer or documentation
+  source newer) and `verificationSnapshotChanges`. Kibi deliberately reports
+  editor/config paths such as `.cursor/`; do not silently ignore them.
 - Use `kb_query`, or `query --input`, with `sourceFile` and text references for source-linked discovery.
 - Re-run `kb_search`, or `search --input`, after sync gaps or stale context are detected.
 - If knowledge must change, use the selected interface's `kb_upsert`/`upsert` or `kb_delete`/`delete` operation sequentially, then finish with `kb_check`/`check`.
@@ -37,7 +43,9 @@ echo '{}' | npx --no-install kibi status --input -
 ## Guidance
 
 - Prefer the public Kibi MCP surface whenever it is available and approved.
-- Never proceed with broad changes when freshness is stale and unresolved.
+- Never claim completion when freshness is stale, a legacy attachment remains,
+  or verification snapshot state is dirty, even when blocking `kb_check` rules
+  are zero. Classify that result as interim and name the exact paths/symbol IDs.
 - If entities look stale, refresh context through an approved Kibi capability and then re-query.
 - Preserve source-file traceability by carrying `sourceFile`, text references, and validation evidence through discovery, mutation, and completion.
 - Do not read or edit files inside `.kb` directly; use the selected Kibi interface instead.

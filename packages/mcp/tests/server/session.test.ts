@@ -277,7 +277,7 @@ describe.serial("session module", () => {
       expect(mockIsValidBranchName).toHaveBeenCalledWith("my-branch");
     });
 
-    test("should copy from the previous branch when it exists", async () => {
+    test("should create an empty branch even when another branch exists", async () => {
       process.env.KIBI_BRANCH = "feature-prev";
       mockResolveKbPath.mockImplementation(
         (_workspaceRoot, branch) => `/workspace/.kb/branches/${branch}`,
@@ -294,11 +294,11 @@ describe.serial("session module", () => {
 
       session.ensureBranchKbExists("/workspace", "feature-next");
 
-      expect(mockCopyCleanSnapshot).toHaveBeenCalledWith(
-        "/workspace/.kb/branches/feature-prev",
+      expect(mockCopyCleanSnapshot).not.toHaveBeenCalled();
+      expect(mockMkdirSync).toHaveBeenCalledWith(
         "/workspace/.kb/branches/feature-next",
+        { recursive: true },
       );
-      expect(mockMkdirSync).not.toHaveBeenCalled();
     });
   });
 
@@ -984,7 +984,7 @@ describe.serial("session module", () => {
       expect(mockMkdirSync).not.toHaveBeenCalled();
     });
 
-    test("ensureBranchKbExists copies the previous non-develop branch when available", async () => {
+    test("ensureBranchKbExists does not copy the previous non-develop branch", async () => {
       process.env.KIBI_BRANCH = "previous-copy-branch";
       const session = await importCoveredSession();
       mockResolveKbPath.mockImplementation(
@@ -999,11 +999,11 @@ describe.serial("session module", () => {
 
       session.ensureBranchKbExists("/workspace", "copied-branch");
 
-      expect(mockCopyCleanSnapshot).toHaveBeenCalledWith(
-        "/workspace/.kb/branches/previous-copy-branch",
+      expect(mockCopyCleanSnapshot).not.toHaveBeenCalled();
+      expect(mockMkdirSync).toHaveBeenCalledWith(
         "/workspace/.kb/branches/copied-branch",
+        { recursive: true },
       );
-      expect(mockMkdirSync).not.toHaveBeenCalled();
     });
 
     test("initiateGracefulShutdown returns early when already shutting down", async () => {

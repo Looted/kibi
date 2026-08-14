@@ -12,7 +12,7 @@ import type {
   PrologPort,
   RuntimeOptions,
 } from "../public/operations/runtime-types.js";
-import { resolveActiveBranch } from "../utils/branch-resolver.js";
+import { resolveBranchAttachment } from "../utils/branch-resolver.js";
 
 type ManagedPrologPort = PrologPort & {
   readonly start?: () => Promise<void>;
@@ -71,33 +71,29 @@ export function createCliRuntime(
         return contextBase;
       }
 
-      let branch = process.env.KIBI_BRANCH?.trim();
-      if (!branch) {
-        const resolved = resolveActiveBranch(root);
-        if ("error" in resolved) {
-          const isNonGitContext =
-            resolved.code === "NOT_A_GIT_REPO" ||
-            resolved.code === "GIT_NOT_AVAILABLE";
-          if (isNonGitContext) {
-            branch = "main";
-          } else {
-            await (
-              merged.prolog as ManagedPrologPort | undefined
-            )?.terminate?.();
-            throw new Error(
-              `Failed to resolve active branch: ${resolved.error}`,
-            );
-          }
-        } else {
-          branch = resolved.branch;
-        }
+      const attachment = resolveBranchAttachment(root);
+      if ("error" in attachment) {
+        const isNonGitContext =
+          attachment.code === "NOT_A_GIT_REPO" ||
+          attachment.code === "GIT_NOT_AVAILABLE";
+        await (merged.prolog as ManagedPrologPort | undefined)?.terminate?.();
+        throw new Error(
+          isNonGitContext
+            ? "Kibi requires an active Git branch outside a repository; set KIBI_BRANCH explicitly for a standalone workspace."
+            : `Failed to resolve active branch: ${attachment.error}`,
+        );
+      }
+      if (attachment.migrationRequired) {
+        console.warn(
+          `[KIBI] Legacy branch attachment: Git '${attachment.gitBranch}' is reading KB '${attachment.kbBranch}'. Migrate with 'kibi branch migrate --from ${attachment.kbBranch} --apply'; writes are blocked until then.`,
+        );
       }
       const usesEngine = merged.prolog === undefined;
       const prolog: ManagedPrologPort =
-        merged.prolog ?? createDefaultProlog(root, branch);
+        merged.prolog ?? createDefaultProlog(root, attachment.kbBranch);
       try {
         await prolog.start?.();
-        const kbPath = path.join(root, ".kb", "branches", branch);
+        const kbPath = path.join(root, ".kb", "branches", attachment.kbBranch);
         if (!usesEngine) {
           const attached = await prolog.query(
             `kb_attach('${quoteProlog(kbPath)}')`,
@@ -106,7 +102,11 @@ export function createCliRuntime(
             throw new Error(attached.error ?? "Failed to attach branch KB");
           }
         }
-        const context: OperationContext = { ...contextBase, prolog };
+        const context: OperationContext = {
+          ...contextBase,
+          prolog,
+          branchAttachment: attachment,
+        };
         ownedPrologs.set(context, prolog);
         return context;
       } catch (error) {

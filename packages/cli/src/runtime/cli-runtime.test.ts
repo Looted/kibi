@@ -195,17 +195,13 @@ describe("CLI operation runtime", () => {
     }
   });
 
-  test("falls back to main on non-git workspaces instead of failing", async () => {
-    // A non-git workspace is a supported context: kibi init and kibi migrate
-    // both resolve to "main" for NOT_A_GIT_REPO / GIT_NOT_AVAILABLE, creating
-    // .kb/branches/main. Read-side operations must attach to that same path
-    // so the packed install smoke test (`kibi init` then `kibi query req`)
-    // succeeds without a git repository.
+  test("requires an explicit branch override on non-git workspaces", async () => {
     const events: string[] = [];
     const failingExecSync = (() => {
       throw new Error("fatal: not a git repository");
     }) as unknown as typeof import("node:child_process").execSync;
     _setBranchResolverDepsForTests({ execSync: failingExecSync });
+    process.env.KIBI_BRANCH = "standalone";
     try {
       const runtime = createCliRuntime({
         workspaceRoot: "/not-a-git-repo",
@@ -216,9 +212,10 @@ describe("CLI operation runtime", () => {
       await runtime.close(context, { status: "success", result: undefined });
 
       expect(events).toContain(
-        "query:kb_attach('/not-a-git-repo/.kb/branches/main')",
+        "query:kb_attach('/not-a-git-repo/.kb/branches/standalone')",
       );
     } finally {
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
       _setBranchResolverDepsForTests({
         execSync: fakeBranchExecSync("feature/runtime"),
       });

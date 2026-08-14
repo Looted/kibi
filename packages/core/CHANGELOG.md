@@ -1,5 +1,20 @@
 # kibi-core
 
+## 0.10.1
+
+### Patch Changes
+
+- Dogfood projects now get branch-local knowledge bases that follow the exact Git ref, actionable stale-source diagnostics, and a sanctioned relationship cleanup path. Verification receipts and packed package provenance are stricter and reproducible, while agents receive conservative symbol-recovery guidance and explicit interim-state signals. This prevents silent `master`/`main` drift and makes passing E2E evidence distinguishable from complete semantic proof.
+
+  - Remove implicit branch-name normalization and add previewed legacy branch migration.
+  - Add exact relationship deletion, v2 receipt/schema parity, status diagnostics, dogfood package manifests, and SkillOpt cases.
+
+- 7ddbaff: Dogfood projects can now resume proof work without losing their declared test intent. Test entities persist a typed verification contract, workspace snapshots ignore receipt-only churn consistently, and the sync guard no longer mistakes quoted requirement prose for executable escape hatches. Explicit ontology gaps remain unresolved rather than being reported as missing logical proof.
+
+  - Persist and validate `verification_contract.v1` through extraction, mutation, sync, and staged traceability KBs.
+  - Version the receipt-stable workspace snapshot as `kibi.workspace-snapshot.v2`.
+  - Make logic coverage inventory-aware and support Prolog-encoded semantic inventories.
+
 ## 0.10.0
 
 ### Minor Changes

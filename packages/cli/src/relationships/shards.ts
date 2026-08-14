@@ -181,6 +181,66 @@ export function writeShard(
   fs.writeFileSync(shardPath, yamlContent, "utf8");
 }
 
+export type RelationshipSelector = Readonly<{
+  type: string;
+  from: string;
+  to: string;
+}>;
+
+export type RemovedRelationshipRecords = Readonly<{
+  selector: RelationshipSelector;
+  shardPaths: readonly string[];
+  sources: readonly string[];
+  removed: boolean;
+}>;
+
+/**
+ * Remove exact legacy-shard relationships using an atomic temp-file rename.
+ * The caller is responsible for retracting the compiled RDF edge afterwards.
+ */
+export function removeRelationshipsFromShards(
+  kbRoot: string,
+  selectors: readonly RelationshipSelector[],
+): RemovedRelationshipRecords[] {
+  const wanted = new Set(
+    selectors.map(
+      (selector) => `${selector.type}\0${selector.from}\0${selector.to}`,
+    ),
+  );
+  const removed = new Map<string, { paths: string[]; sources: string[] }>();
+  for (const shardPath of listShards(kbRoot)) {
+    const records = readShard(shardPath);
+    const matching = records.filter((record) =>
+      wanted.has(`${record.type}\0${record.from}\0${record.to}`),
+    );
+    if (matching.length === 0) continue;
+    const remaining = records.filter(
+      (record) => !wanted.has(`${record.type}\0${record.from}\0${record.to}`),
+    );
+    const tempPath = `${shardPath}.kibi-delete-${process.pid}-${Date.now()}`;
+    writeShard(tempPath, remaining);
+    fs.renameSync(tempPath, shardPath);
+    for (const record of matching) {
+      const key = `${record.type}\0${record.from}\0${record.to}`;
+      const entry = removed.get(key) ?? { paths: [], sources: [] };
+      entry.paths.push(shardPath);
+      entry.sources.push(record.source);
+      removed.set(key, entry);
+    }
+  }
+  return selectors.map((selector) => {
+    const entry = removed.get(
+      `${selector.type}\0${selector.from}\0${selector.to}`,
+    );
+    return {
+      selector,
+      shardPaths: entry?.paths ?? [],
+      sources: entry?.sources ?? [],
+      removed: entry !== undefined,
+    };
+  });
+}
+
 /**
  * Serializes records to YAML format.
  */

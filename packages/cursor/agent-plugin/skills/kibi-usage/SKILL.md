@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Guides agents to use Kibi MCP, facts, relationships, and validation correctly
-version: 1.3.0
+version: 1.4.0
 kibiCompatibility: ">=0.11.0"
 tags:
   - kibi
@@ -53,11 +53,53 @@ Always discover before you mutate. Start exploratory work with `kb_search` acros
 
 Use `kb_query` for exact lookups by `id`, `type`, `tags`, or `sourceFile`. Use `kb_status` when branch attachment, freshness, or stale context could affect the decision. Mutate only after discovery confirms the target state.
 
+### Exact branch attachment
+
+The active Git ref is the KB namespace verbatim. `master`, `main`, `trunk`,
+`develop`, and feature branches are distinct; Kibi never renames Git refs or
+silently maps `master` to `main`. `KIBI_BRANCH` is an explicit, unnormalized
+override. If status reports a `legacy_compat` attachment, reads are temporary
+and mutations/sync are blocked: preview and apply `kibi branch migrate --from
+<legacy-branch> --apply`. Never edit `.kb/branches` or relationship shards by
+hand. Branch initialization creates an empty exact branch unless `--from` is
+explicitly supplied.
+
 ## Approval Boundaries
 
 Do not perform Kibi mutations unless the current task calls for knowledge-base changes or the user explicitly asks for them. Discovery and validation are acceptable when needed to understand impact, freshness, traceability, or existing requirements.
 
 Kibi guidance does not define a repository's package manager, branch names, release scripts, or publishing workflow. Follow the repository's own instructions for those concerns. Never use Kibi interface selection to install packages, change dependency manifests, or bypass sandbox and approval boundaries.
+
+## Multi-axis closeout
+
+Every Kibi task must finish with a structured closeout that reports task
+outcome independently from the state of the knowledge base, verification, and
+proof:
+
+```yaml
+taskOutcome: complete | interim | blocked
+kbState: clean_fresh | stale | dirty | legacy_compat | not_evaluated
+verificationState: fresh | dirty | unavailable | not_evaluated
+proofState: proven | mixed | unresolved | not_evaluated
+limitationDisposition: none | accepted | unaccepted | not_applicable
+```
+
+Zero blocking `kb_check` violations do not override a stale, dirty, or legacy
+attachment. Conversely, unresolved proof does not by itself make a completed
+maintenance or standardization task interim. Operator acceptance records a
+limitation; it never grounds an ontology claim, rewrites receipt history, or
+marks a requirement proven. Each quality diagnostic gets an ID-specific
+`fixed`, `accepted`, or `deferred` disposition with a rationale. Do not claim
+completion without reading back `kb_status`, complete-scope `kb_coverage`, and
+the final unfiltered `kb_check` when those signals are relevant.
+
+Reuse a verification receipt only when its live snapshot, contract hash,
+freshness window, and required case results are still valid. Rerun when any of
+those conditions changes. For obsolete symbols, use current extraction and
+Git evidence to choose remap or deletion; transfer coverage only when existing
+test evidence supports it, then sync and read back status. If identically
+versioned artifacts expose different APIs, classify a release defect, require
+a newly versioned package, and describe project overrides as temporary.
 
 ## Relationship Directions
 
@@ -86,6 +128,13 @@ Before/after for reversed direction:
 Preserve source-file traceability whenever creating or updating requirements, facts, scenarios, tests, or symbols. Prefer durable `sourceFile` references and symbol coordinates that point to tracked repository files. For code ownership, create or update a `symbol` entity and add an `implements` relationship from the symbol to the requirement; link symbols to tests with `covered_by` when coverage evidence is needed.
 
 Do not use legacy `// implements REQ-xxx` comments as the primary marker for new or modified code. Use comments only as a temporary compatibility fallback when symbol metadata cannot be updated in the same task.
+
+To retract one relationship, use `kb_delete`/`delete` with exactly one
+`relationships` selector (`type`, `from`, `to`). Kibi preflights the whole
+batch, removes legacy-shard records, preserves endpoints and unrelated edges,
+and reports `source_owned_relationship` when authored Markdown/manifests still
+declare the edge. Do not mutate `.kb/relationships` directly; run the next
+`kibi sync` when the response sets `sync_required`.
 
 Preferred traceability model:
 

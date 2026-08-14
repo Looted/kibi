@@ -10,6 +10,7 @@ import {
 } from "../prolog-json.js";
 import { type RepairPlan, buildRepairPlan } from "../repair-plan.js";
 import type { OperationContext } from "../runtime-types.js";
+import { buildSymbolRepairPlan } from "../symbol-repair-plan.js";
 import type { OperationResult, OperationSpec } from "../types.js";
 import { readWorkspaceSnapshot } from "../workspace-snapshot.js";
 
@@ -60,6 +61,7 @@ export type CoveragePayload = {
   readonly rows: readonly Readonly<Record<string, unknown>>[];
   readonly repairPlan?: RepairPlan;
   readonly legacyMigrationPlan?: LegacyMigrationPlan;
+  readonly symbolRepairPlan?: Readonly<Record<string, unknown>>;
   readonly meta?: Readonly<Record<string, unknown>>;
 };
 
@@ -168,6 +170,10 @@ export async function executeCoverage(
       "Coverage execution",
     );
     const repairPlan = buildRepairPlan(payload, input, codeSnapshot);
+    const symbolRepairPlan =
+      input.by === "symbol"
+        ? await buildSymbolRepairPlan(payload.rows, context)
+        : undefined;
     const legacyMigrationPlan =
       input.includeMigrationPreview === true && repairPlan !== undefined
         ? await buildLegacyMigrationPlanFromContext(
@@ -181,6 +187,7 @@ export async function executeCoverage(
       ...payload,
       ...(repairPlan !== undefined ? { repairPlan } : {}),
       ...(legacyMigrationPlan !== undefined ? { legacyMigrationPlan } : {}),
+      ...(symbolRepairPlan !== undefined ? { symbolRepairPlan } : {}),
       meta: {
         ...(payload.meta ?? {}),
         verificationReceiptMaxAgeSeconds: VERIFICATION_RECEIPT_MAX_AGE_SECONDS,

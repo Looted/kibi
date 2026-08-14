@@ -134,7 +134,7 @@ describe("shared discovery operation executors", () => {
   });
 
   test("kb_search intent-v1 returns semantic evidence and analysis", async () => {
-    const query = mock(async (goal: string) => {
+    const query = mock(async (goal: string): Promise<PrologQueryResult> => {
       if (goal.includes("kb_relationship")) {
         return { success: true, bindings: { Edges: "[]" } };
       }
@@ -160,7 +160,12 @@ describe("shared discovery operation executors", () => {
       "intent-v1",
     );
     expect(result.structuredContent?.results[0]?.entity.id).toBe("REQ-EXPORT");
-    expect(result.structuredContent?.results[0]?.evidence).toMatchObject({
+    const firstResult = result.structuredContent?.results[0];
+    expect(
+      firstResult !== undefined && "evidence" in firstResult
+        ? firstResult.evidence
+        : undefined,
+    ).toMatchObject({
       matchedFacets: expect.arrayContaining(["actions:export"]),
     });
   });
@@ -267,6 +272,9 @@ describe("shared discovery operation executors", () => {
       verificationSnapshotDirty: false,
       verificationSnapshotFileCount: 7,
       verificationSnapshotVersion: "kibi.workspace-snapshot.v2",
+      verificationSnapshotChangeCount: 0,
+      verificationSnapshotChanges: [],
+      verificationSnapshotChangesTruncated: false,
     });
     expect(query).toHaveBeenCalledTimes(1);
     expect(query.mock.calls[0]?.[0]).toContain(

@@ -19,7 +19,7 @@
 import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { EngineClient } from "../engine.js";
-import { getBranchOverride, isCliTraceOrDebugEnabled } from "../env.js";
+import { isCliTraceOrDebugEnabled } from "../env.js";
 import {
   extractFromManifest,
   extractFromManifestString,
@@ -79,12 +79,12 @@ import {
   formatViolations as formatStagedViolations,
   validateStagedSymbols,
 } from "../traceability/validate.js";
+import { resolveBranchAttachment } from "../utils/branch-resolver.js";
 import { loadConfig } from "../utils/config.js";
 import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
 import type { Violation } from "../utils/rule-registry.js";
 
 export type { Violation };
-import { getCurrentBranch } from "./init-helpers.js";
 
 export interface CheckOptions {
   fix?: boolean;
@@ -543,28 +543,24 @@ export async function checkCommand(
   let prolog: PrologProcess | null = null;
   let engine: EngineClient | null = null;
   let attached = false;
-  let resolvedBranch = "develop";
+  let resolvedBranch = "";
   try {
     let resolvedKbPath = "";
     if (options.kbPath) {
       resolvedKbPath = options.kbPath;
     } else {
-      const envBranch = getBranchOverride();
-      let branch = envBranch || undefined;
-      if (!branch) {
-        try {
-          branch = await getCurrentBranch(process.cwd());
-        } catch {
-          branch = undefined;
-        }
+      const attachment = resolveBranchAttachment(process.cwd());
+      if ("error" in attachment) throw new Error(attachment.error);
+      resolvedBranch = attachment.kbBranch;
+      if (attachment.migrationRequired) {
+        console.warn(
+          `Warning: reading legacy KB attachment ${attachment.gitBranch} -> ${attachment.kbBranch}; migrate before writes or sync.`,
+        );
       }
-      if (!branch) branch = envBranch || "develop";
-      resolvedBranch = branch;
-      // fallback to main if develop isn't present? keep path consistent
       resolvedKbPath = path.join(
         process.cwd(),
         ".kb/branches",
-        branch || "main",
+        attachment.kbBranch,
       );
     }
 

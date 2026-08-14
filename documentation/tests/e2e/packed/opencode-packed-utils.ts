@@ -17,6 +17,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { type NpmPackResult, parseNpmPackJsonOutput } from "./npm-pack-json.js";
 
 const REPO_ROOT = resolve(process.cwd());
 
@@ -28,11 +29,6 @@ export interface TarballResult {
 export interface IsolatedInstall {
   tmpDir: string;
   installDir: string;
-}
-
-export interface NpmPackResult {
-  filename: string;
-  version: string;
 }
 
 type KibiPackage = "core" | "cli" | "mcp" | "opencode";
@@ -132,26 +128,10 @@ function packKibiPackageTarball(
   return tarballPath;
 }
 
-export function parseNpmPackJsonOutput(output: string): NpmPackResult[] {
-  // implements REQ-opencode-kibi-plugin-v1
-  for (let i = 0; i < output.length; i += 1) {
-    if (output[i] !== "[") continue;
-
-    const remaining = output.slice(i + 1).trimStart();
-    if (!remaining.startsWith("{")) continue;
-
-    try {
-      const parsed = JSON.parse(output.slice(i)) as unknown;
-      if (Array.isArray(parsed)) {
-        return parsed as NpmPackResult[];
-      }
-    } catch {
-      // Keep scanning: earlier build output may contain non-JSON bracketed text.
-    }
-  }
-
-  throw new Error(`npm pack did not emit parseable JSON output: ${output}`);
-}
+export {
+  type NpmPackResult,
+  parseNpmPackJsonOutput,
+} from "./npm-pack-json.js";
 
 /**
  * Resolve the kibi-opencode tarball.

@@ -18,15 +18,23 @@
 
 import { execSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
+import { createRequire } from "node:module";
 import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 
 interface DoctorCheck {
   name: string;
   check: () => { passed: boolean; message: string; remediation?: string };
 }
 
+export interface DoctorOptions {
+  format?: "json" | "table";
+}
+
 // implements REQ-003
-export async function doctorCommand(): Promise<{ exitCode: number }> {
+export async function doctorCommand(
+  options: DoctorOptions = {},
+): Promise<{ exitCode: number }> {
   const checks: DoctorCheck[] = [
     {
       name: "SWI-Prolog",
@@ -58,23 +66,31 @@ export async function doctorCommand(): Promise<{ exitCode: number }> {
     },
   ];
 
-  console.log("Kibi Environment Diagnostics\n");
-
-  let allPassed = true;
-
-  for (const { name, check } of checks) {
-    const result = check();
-    const status = result.passed ? "✓" : "✗";
-    console.log(`${status} ${name}: ${result.message}`);
-
-    if (!result.passed) {
-      allPassed = false;
-      if (result.remediation) {
-        console.log(`  → ${result.remediation}`);
-      }
-    }
+  const results = checks.map(({ name, check }) => ({ name, ...check() }));
+  const allPassed = results.every((result) => result.passed);
+  if (options.format === "json") {
+    console.log(
+      JSON.stringify(
+        {
+          version: "kibi.doctor.v1",
+          passed: allPassed,
+          runtime: runtimeProvenance(),
+          checks: results,
+        },
+        null,
+        2,
+      ),
+    );
+    return { exitCode: allPassed ? 0 : 1 };
   }
 
+  console.log("Kibi Environment Diagnostics\n");
+  for (const result of results) {
+    const status = result.passed ? "✓" : "✗";
+    console.log(`${status} ${result.name}: ${result.message}`);
+    if (!result.passed && result.remediation)
+      console.log(`  → ${result.remediation}`);
+  }
   console.log();
 
   if (allPassed) {
@@ -83,6 +99,109 @@ export async function doctorCommand(): Promise<{ exitCode: number }> {
   }
   console.log("Some checks failed. Please address the issues above.");
   return { exitCode: 1 };
+}
+
+function runtimeProvenance(): Record<string, unknown> {
+  const packagePath = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "..",
+    "..",
+    "package.json",
+  );
+  let cli: Record<string, unknown> = {};
+  try {
+    cli = JSON.parse(readFileSync(packagePath, "utf8")) as Record<
+      string,
+      unknown
+    >;
+  } catch {
+    // Keep doctor JSON useful even from an unusual packed entrypoint.
+  }
+  const core = resolveInstalledPackageInfo("kibi-core");
+  const mcp = resolveInstalledPackageInfo("kibi-mcp");
+  return {
+    cliVersion: typeof cli.version === "string" ? cli.version : "unknown",
+    coreVersion: core.version,
+    mcpVersion: mcp.version,
+    coreRange:
+      cli.dependencies && typeof cli.dependencies === "object"
+        ? ((cli.dependencies as Record<string, unknown>)["kibi-core"] ??
+          "unknown")
+        : "unknown",
+    entrypoint: process.argv[1] ?? "unknown",
+    packageVersions: process.env.KIBI_PACKAGE_VERSIONS ?? "unknown",
+    locations: {
+      cli: packagePath,
+      cliEntrypoint: process.argv[1] ?? "unknown",
+      core: core.path,
+      coreEntrypoint: core.entrypoint,
+      mcp: mcp.path,
+      mcpEntrypoint: mcp.entrypoint,
+    },
+  };
+}
+
+function resolveInstalledPackageInfo(name: string): {
+  version: string;
+  path: string;
+  entrypoint: string;
+} {
+  const candidates = [
+    `${name}/package.json`,
+    path.resolve(
+      path.dirname(fileURLToPath(import.meta.url)),
+      "..",
+      "..",
+      "..",
+      name.replace(/^kibi-/, ""),
+      "package.json",
+    ),
+  ];
+  try {
+    const require = createRequire(import.meta.url);
+    const packageJson = candidates[0]?.startsWith("/")
+      ? candidates[0]
+      : require.resolve(candidates[0] ?? name);
+    const metadata = JSON.parse(readFileSync(packageJson, "utf8")) as {
+      version?: unknown;
+      main?: unknown;
+    };
+    return {
+      version:
+        typeof metadata.version === "string" ? metadata.version : "unknown",
+      path: packageJson,
+      entrypoint:
+        typeof metadata.main === "string"
+          ? path.resolve(path.dirname(packageJson), metadata.main)
+          : "unknown",
+    };
+  } catch {
+    const local = candidates[1];
+    if (local && existsSync(local)) {
+      try {
+        const metadata = JSON.parse(readFileSync(local, "utf8")) as {
+          version?: unknown;
+          main?: unknown;
+        };
+        return {
+          version:
+            typeof metadata.version === "string" ? metadata.version : "unknown",
+          path: local,
+          entrypoint:
+            typeof metadata.main === "string"
+              ? path.resolve(path.dirname(local), metadata.main)
+              : "unknown",
+        };
+      } catch {
+        // Continue to the explicit unresolved result below.
+      }
+    }
+    return {
+      version: "unresolved",
+      path: "unresolved",
+      entrypoint: "unresolved",
+    };
+  }
 }
 
 function checkSWIProlog(): {

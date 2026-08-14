@@ -18,6 +18,7 @@ const FINAL_STATE_TOOLS = [
   "kb_query",
   "kb_status",
   "kb_check",
+  "kb_coverage",
   "kb_graph",
 ] as const;
 const FinalStateToolSchema = z.enum(FINAL_STATE_TOOLS);

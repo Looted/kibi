@@ -1,0 +1,129 @@
+import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import { after, describe, it } from "node:test";
+import { parseNpmPackJsonOutput } from "./npm-pack-json.js";
+
+const REPO_ROOT = resolve(process.cwd());
+const packageNames = ["core", "cli", "mcp"] as const;
+type PackageName = (typeof packageNames)[number];
+
+function packReleasePackage(pkg: PackageName): string {
+  const packageDir = join(REPO_ROOT, "packages", pkg);
+  const output = execFileSync("npm", ["pack", "--json"], {
+    cwd: packageDir,
+    encoding: "utf8",
+    stdio: ["pipe", "pipe", "pipe"],
+  });
+  const result = parseNpmPackJsonOutput(output)[0];
+  assert.ok(result?.filename, `npm pack returned no filename for ${pkg}`);
+  return join(packageDir, result.filename);
+}
+
+function writeConsumerManifest(
+  dir: string,
+  tarballs: Record<PackageName, string>,
+): void {
+  writeFileSync(
+    join(dir, "package.json"),
+    JSON.stringify(
+      {
+        name: "kibi-release-contract-consumer",
+        private: true,
+        type: "module",
+        dependencies: Object.fromEntries(
+          packageNames.map((pkg) => [`kibi-${pkg}`, `file:${tarballs[pkg]}`]),
+        ),
+        overrides: Object.fromEntries(
+          packageNames.map((pkg) => [`kibi-${pkg}`, `$kibi-${pkg}`]),
+        ),
+      },
+      null,
+      2,
+    ),
+    "utf8",
+  );
+  writeFileSync(
+    join(dir, "pnpm-workspace.yaml"),
+    `overrides:\n${packageNames
+      .map((pkg) => `  kibi-${pkg}: file:${tarballs[pkg]}`)
+      .join("\n")}\n`,
+    "utf8",
+  );
+}
+
+function verifyConsumer(dir: string, packageManager: "npm" | "pnpm"): void {
+  const args =
+    packageManager === "npm"
+      ? ["install", "--ignore-scripts", "--no-audit"]
+      : ["install", "--ignore-scripts", "--no-frozen-lockfile"];
+  const command = packageManager === "npm" ? "npm" : "pnpm";
+  const offline = process.env.KIBI_RELEASE_CONTRACT_OFFLINE === "1";
+  execFileSync(command, offline ? [...args, "--offline"] : args, {
+    cwd: dir,
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      npm_config_audit: "false",
+      ...(offline ? { npm_config_registry: "http://127.0.0.1:9" } : {}),
+    },
+    stdio: "pipe",
+  });
+  const probe = execFileSync(
+    "node",
+    [
+      "--input-type=module",
+      "-e",
+      "import { executeApplyPlan } from 'kibi-cli/operations'; if (typeof executeApplyPlan !== 'function') throw new Error('missing executeApplyPlan'); import 'kibi-mcp';",
+    ],
+    { cwd: dir, encoding: "utf8", stdio: "pipe" },
+  );
+  assert.equal(probe, "");
+}
+
+describe("release package contracts", { concurrency: false }, () => {
+  const tempDirs: string[] = [];
+  after(() => {
+    for (const dir of tempDirs) rmSync(dir, { recursive: true, force: true });
+  });
+
+  it(
+    "packs compiled CLI/core/MCP artifacts and resolves an npm consumer locally",
+    { timeout: 300_000 },
+    () => {
+      const tarballs = Object.fromEntries(
+        packageNames.map((pkg) => [pkg, packReleasePackage(pkg)]),
+      ) as Record<PackageName, string>;
+      const dir = mkdtempSync(join(tmpdir(), "kibi-release-npm-"));
+      tempDirs.push(dir);
+      writeConsumerManifest(dir, tarballs);
+      verifyConsumer(dir, "npm");
+    },
+  );
+
+  it(
+    "packs and resolves a pnpm consumer without registry fallback",
+    {
+      timeout: 300_000,
+      skip: (() => {
+        try {
+          execFileSync("pnpm", ["--version"], { stdio: "ignore" });
+          return false;
+        } catch {
+          return "pnpm is not installed";
+        }
+      })(),
+    },
+    () => {
+      const tarballs = Object.fromEntries(
+        packageNames.map((pkg) => [pkg, packReleasePackage(pkg)]),
+      ) as Record<PackageName, string>;
+      const dir = mkdtempSync(join(tmpdir(), "kibi-release-pnpm-"));
+      tempDirs.push(dir);
+      writeConsumerManifest(dir, tarballs);
+      verifyConsumer(dir, "pnpm");
+    },
+  );
+});

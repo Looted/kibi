@@ -65,6 +65,18 @@ export type StatusPayload = {
   readonly verificationSnapshotFileCount?: number;
   readonly verificationSnapshotVersion?: string;
   readonly verificationSnapshotError?: string;
+  readonly staleReasons?: readonly Record<string, unknown>[];
+  readonly staleReasonCount?: number;
+  readonly staleReasonsTruncated?: boolean;
+  readonly branchAttachment?: {
+    readonly gitBranch: string;
+    readonly kbBranch: string;
+    readonly kind: "exact" | "explicit_override" | "legacy_compat";
+    readonly migrationRequired: boolean;
+  };
+  readonly verificationSnapshotChanges?: readonly Record<string, unknown>[];
+  readonly verificationSnapshotChangeCount?: number;
+  readonly verificationSnapshotChangesTruncated?: boolean;
 };
 
 function requireProlog(context: OperationContext): PrologPort {
@@ -270,6 +282,9 @@ export async function executeStatus(
     const snapshotEvidence = await readWorkspaceSnapshot(context);
     const enrichedPayload: StatusPayload = {
       ...payload,
+      ...(context.branchAttachment
+        ? { branchAttachment: context.branchAttachment }
+        : {}),
       verificationSnapshot: snapshotEvidence.available
         ? snapshotEvidence.snapshot.hash
         : "unknown",
@@ -279,6 +294,12 @@ export async function executeStatus(
             verificationSnapshotDirty: snapshotEvidence.snapshot.dirty,
             verificationSnapshotFileCount: snapshotEvidence.snapshot.fileCount,
             verificationSnapshotVersion: snapshotEvidence.snapshot.version,
+            verificationSnapshotChanges:
+              snapshotEvidence.snapshot.changes ?? [],
+            verificationSnapshotChangeCount:
+              snapshotEvidence.snapshot.changeCount ?? 0,
+            verificationSnapshotChangesTruncated:
+              snapshotEvidence.snapshot.changesTruncated ?? false,
           }
         : { verificationSnapshotError: snapshotEvidence.error }),
     };

@@ -47,7 +47,7 @@ import { validateSemanticInventoryBoundary } from "../operations/semantic-adviso
 import { PrologProcess } from "../prolog.js";
 import {
   copyCleanSnapshot,
-  resolveActiveBranch,
+  resolveBranchAttachment,
 } from "../utils/branch-resolver.js";
 import { loadSyncConfig } from "../utils/config.js";
 import {
@@ -249,7 +249,7 @@ export async function syncCommand(
 
   try {
     // Branch resolution
-    const branchResult = resolveActiveBranch(process.cwd());
+    const branchResult = resolveBranchAttachment(process.cwd());
 
     if ("error" in branchResult) {
       const diagnostic = branchErrorToDiagnostic(
@@ -263,7 +263,13 @@ export async function syncCommand(
       );
     }
 
-    currentBranch = branchResult.branch;
+    if (branchResult.migrationRequired && !validateOnly) {
+      throw new SyncError(
+        `Sync blocked: KB is attached through legacy branch storage (${branchResult.gitBranch} -> ${branchResult.kbBranch}). Run 'kibi branch migrate --from ${branchResult.kbBranch} --apply' first.`,
+      );
+    }
+
+    currentBranch = branchResult.kbBranch;
 
     // Cut over legacy branches before creating a staging copy.  If another
     // CLI/MCP operation has an engine attached, stop that single writer so the

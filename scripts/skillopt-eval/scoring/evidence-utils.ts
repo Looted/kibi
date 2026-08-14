@@ -1,5 +1,18 @@
 export type EvidenceValue = string | number | boolean | null;
 
+export type WorkflowCloseout = Readonly<{
+  taskOutcome: "complete" | "interim" | "blocked";
+  kbState:
+    | "clean_fresh"
+    | "stale"
+    | "dirty"
+    | "legacy_compat"
+    | "not_evaluated";
+  verificationState: "fresh" | "dirty" | "unavailable" | "not_evaluated";
+  proofState: "proven" | "mixed" | "unresolved" | "not_evaluated";
+  limitationDisposition: "none" | "accepted" | "unaccepted" | "not_applicable";
+}>;
+
 export type EvidenceClaim = Readonly<{
   key: string;
   value: EvidenceValue;
@@ -10,6 +23,7 @@ export type EvidenceSource = Readonly<{
   integrityValid: boolean;
   claims: readonly EvidenceClaim[];
   snapshot?: unknown;
+  closeout?: WorkflowCloseout;
 }>;
 
 export function evidenceConflictKeys(

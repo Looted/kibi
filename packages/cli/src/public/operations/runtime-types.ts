@@ -1,3 +1,4 @@
+import type { BranchAttachment } from "../../utils/branch-resolver.js";
 import type { OperationEffect } from "./types.js";
 
 export type { OperationEffect } from "./types.js";
@@ -68,8 +69,9 @@ export interface FilesystemPort {
 }
 
 export interface GitPort {
-  revParse(...args: readonly string[]): Promise<string>;
-  showToplevel(): Promise<string>;
+  /** Optional low-level Git probes; the journaled runtime may provide them. */
+  revParse?(...args: readonly string[]): Promise<string>;
+  showToplevel?(): Promise<string>;
   workspaceSnapshot?(workspaceRoot: string): Promise<WorkspaceSnapshot>;
 }
 
@@ -78,6 +80,13 @@ export type WorkspaceSnapshot = Readonly<{
   hash: string;
   dirty: boolean;
   fileCount: number;
+  readonly changes?: readonly {
+    readonly path: string;
+    readonly status: string;
+    readonly snapshotRelevant: boolean;
+  }[];
+  readonly changeCount?: number;
+  readonly changesTruncated?: boolean;
 }>;
 
 export interface NetworkPort {
@@ -104,6 +113,7 @@ export type OperationContext = {
   readonly fs?: FilesystemPort;
   readonly git?: GitPort;
   readonly net?: NetworkPort;
+  readonly branchAttachment?: BranchAttachment;
 };
 
 export interface RuntimeOperationSpec<TInput = unknown, TResult = unknown> {

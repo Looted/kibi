@@ -234,7 +234,7 @@ function resolveBranch(git: GitMetadata | null): string {
   }
 
   const branch = ref.slice("refs/heads/".length);
-  return branch === "master" ? "main" : branch;
+  return branch;
 }
 
 function normalizeRepoRelativePath(

@@ -18,15 +18,22 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { EngineClient, engineSocketPath } from "../engine.js";
 import {
   copyCleanSnapshot,
   getBranchDiagnostic,
   isValidBranchName,
   resolveActiveBranch,
+  resolveBranchAttachment,
 } from "../utils/branch-resolver.js";
 
 export interface BranchEnsureOptions {
   from?: string;
+}
+
+export interface BranchMigrateOptions {
+  from?: string;
+  apply?: boolean;
 }
 
 function resolveExplicitFromBranch(fromBranch: string): string | null {
@@ -42,24 +49,6 @@ function resolveExplicitFromBranch(fromBranch: string): string | null {
   }
   console.warn(`Warning: --from branch '${fromBranch}' KB does not exist`);
   return null;
-}
-
-function resolveDefaultSourceBranch(): string | null {
-  // No default branch concept - branches are independent
-  // When --from is not specified, an empty branch KB will be created
-  return null;
-}
-
-function determineSourceBranch(
-  explicitFromBranch: string | undefined,
-): string | null {
-  if (explicitFromBranch) {
-    const fromResult = resolveExplicitFromBranch(explicitFromBranch);
-    if (fromResult) {
-      return fromResult;
-    }
-  }
-  return resolveDefaultSourceBranch();
 }
 
 function createBranchKbFromSource(
@@ -81,14 +70,19 @@ function createEmptyBranchKb(branch: string): void {
 export async function branchEnsureCommand(
   options?: BranchEnsureOptions,
 ): Promise<void> {
-  const branchResult = resolveActiveBranch(process.cwd());
+  const branchResult = resolveBranchAttachment(process.cwd());
 
   if ("error" in branchResult) {
     console.error(getBranchDiagnostic(undefined, branchResult.error));
     throw new Error(`Failed to resolve active branch: ${branchResult.error}`);
   }
 
-  const currentBranch = branchResult.branch;
+  if (branchResult.migrationRequired) {
+    throw new Error(
+      `Branch ensure blocked by legacy attachment (${branchResult.gitBranch} -> ${branchResult.kbBranch}). Run 'kibi branch migrate --from ${branchResult.kbBranch} --apply' first.`,
+    );
+  }
+  const currentBranch = branchResult.kbBranch;
   const kbPath = path.join(process.cwd(), ".kb/branches", currentBranch);
 
   if (fs.existsSync(kbPath)) {
@@ -96,12 +90,68 @@ export async function branchEnsureCommand(
     return;
   }
 
-  const sourceBranch = determineSourceBranch(options?.from);
-  if (sourceBranch) {
+  if (options?.from !== undefined) {
+    const sourceBranch = resolveExplicitFromBranch(options.from);
+    if (!sourceBranch) {
+      throw new Error(
+        `Cannot copy branch KB: explicit source '${options.from}' does not exist or is invalid`,
+      );
+    }
     createBranchKbFromSource(sourceBranch, currentBranch);
   } else {
     createEmptyBranchKb(currentBranch);
   }
+}
+
+/**
+ * Move a legacy branch-named KB into the exact active Git branch namespace.
+ * Preview is the default; --apply is required because this changes tracked
+ * workspace state.
+ */
+export async function branchMigrateCommand(
+  options: BranchMigrateOptions = {},
+): Promise<void> {
+  const from = options.from?.trim();
+  if (!from || !isValidBranchName(from)) {
+    throw new Error("branch migrate requires a valid --from branch name");
+  }
+  const active = resolveActiveBranch(process.cwd());
+  if ("error" in active) {
+    throw new Error(`Failed to resolve active branch: ${active.error}`);
+  }
+  const to = active.branch;
+  if (from === to) {
+    throw new Error(`Source and active branch are both '${to}'`);
+  }
+  const root = path.join(process.cwd(), ".kb", "branches");
+  const sourcePath = path.join(root, from);
+  const targetPath = path.join(root, to);
+  if (!fs.existsSync(sourcePath)) {
+    throw new Error(`Legacy source KB does not exist: ${sourcePath}`);
+  }
+  if (fs.existsSync(targetPath)) {
+    throw new Error(`Target branch KB already exists: ${targetPath}`);
+  }
+  console.log(`Branch KB migration preview: ${from} -> ${to}`);
+  console.log(`Source: ${sourcePath}`);
+  console.log(`Target: ${targetPath}`);
+  if (!options.apply) {
+    console.log("Preview only. Re-run with --apply to move the branch KB.");
+    return;
+  }
+  const engine = new EngineClient({
+    workspaceRoot: process.cwd(),
+    branch: from,
+    timeout: 2_000,
+  });
+  if (fs.existsSync(engineSocketPath(process.cwd(), from))) {
+    await engine.stop(false).catch(() => undefined);
+    await engine.terminate().catch(() => undefined);
+  }
+  fs.mkdirSync(root, { recursive: true });
+  fs.renameSync(sourcePath, targetPath);
+  console.log(`Migrated branch KB to exact Git branch '${to}'.`);
+  console.log(`Git branch remains '${to}'; no branch rename was performed.`);
 }
 
 export default branchEnsureCommand;

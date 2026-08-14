@@ -8,6 +8,7 @@ import type {
   PrologPort,
   RuntimeOptions,
 } from "kibi-cli/operations/runtime-types";
+import { resolveBranchAttachment } from "kibi-cli/public/branch-resolver";
 
 // implements REQ-kibi-operation-interface-parity
 export interface McpSession<TProlog = PrologPort> {
@@ -51,15 +52,25 @@ export function createMcpRuntime<TProlog = PrologPort>(
         ...(git ? { git } : {}),
         ...(net ? { net } : {}),
       };
+      const attachment = resolveBranchAttachment(context.workspaceRoot);
+      if (!("error" in attachment) && attachment.migrationRequired) {
+        console.warn(
+          `[KIBI-MCP] Legacy branch attachment: Git '${attachment.gitBranch}' is reading KB '${attachment.kbBranch}'. Run 'kibi branch migrate --from ${attachment.kbBranch} --apply'; writes are blocked until then.`,
+        );
+      }
+      const withAttachment =
+        "error" in attachment
+          ? context
+          : { ...context, branchAttachment: attachment };
       if (!spec.requiresProlog) {
-        return context;
+        return withAttachment;
       }
       if (options.prolog) {
-        return { ...context, prolog: options.prolog };
+        return { ...withAttachment, prolog: options.prolog };
       }
       const sessionProlog = await session.ensureProlog();
       const operationContext: OperationContext = {
-        ...context,
+        ...withAttachment,
         prolog: session.adaptProlog(sessionProlog),
       };
       sessionPrologs.set(operationContext, sessionProlog);

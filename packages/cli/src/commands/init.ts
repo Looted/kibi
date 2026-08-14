@@ -19,7 +19,7 @@
 import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveActiveBranch } from "../utils/branch-resolver.js";
+import { resolveBranchAttachment } from "../utils/branch-resolver.js";
 import {
   copySchemaFiles,
   createConfigFile,
@@ -43,30 +43,30 @@ export async function initCommand(
   const kbDir = path.join(process.cwd(), ".kb");
   const kbExists = existsSync(kbDir);
 
-  // Resolve branch: allow non-git repos to use default "main" for init
+  // Resolve the exact active Git branch. Standalone use must be explicit via
+  // KIBI_BRANCH; there is no implicit default branch.
   let currentBranch: string;
-  const result = resolveActiveBranch();
+  const result = resolveBranchAttachment();
 
   if ("error" in result) {
     const isNonGitError =
       result.code === "NOT_A_GIT_REPO" || result.code === "GIT_NOT_AVAILABLE";
 
-    if (isNonGitError) {
-      // For init command, use "main" as default branch when not in a git repo.
-      // This allows initialization before git init, which is useful for first-time setup.
-      console.warn("Warning: Not in a git repository");
-      console.warn(
-        "Using 'main' as default branch. Run 'kibi sync' in a git repo for proper branch-aware behavior.",
-      );
-      currentBranch = "main";
-    } else {
-      console.error("Error: Failed to resolve the active git branch.");
-      console.error(result.error);
-      return { exitCode: 1 };
-    }
-  } else {
-    currentBranch = result.branch;
+    console.error("Error: Failed to resolve the active git branch.");
+    console.error(
+      isNonGitError
+        ? `${result.error} Set KIBI_BRANCH explicitly for a standalone workspace.`
+        : result.error,
+    );
+    return { exitCode: 1 };
   }
+  if (result.migrationRequired) {
+    console.error(
+      `Error: KB is attached through legacy branch storage (${result.gitBranch} -> ${result.kbBranch}). Run 'kibi branch migrate --from ${result.kbBranch} --apply' first.`,
+    );
+    return { exitCode: 1 };
+  }
+  currentBranch = result.kbBranch;
 
   try {
     if (!kbExists) {

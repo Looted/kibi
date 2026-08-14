@@ -1,5 +1,35 @@
 # Workflows
 
+## Closeout contract
+
+End every task with these five independent fields (not a single inferred
+success flag):
+
+```text
+taskOutcome: complete | interim | blocked
+kbState: clean_fresh | stale | dirty | legacy_compat | not_evaluated
+verificationState: fresh | dirty | unavailable | not_evaluated
+proofState: proven | mixed | unresolved | not_evaluated
+limitationDisposition: none | accepted | unaccepted | not_applicable
+```
+
+`taskOutcome` describes whether the requested objective was completed. The
+other fields describe observed system state. A clean check can coexist with a
+stale or dirty KB; unresolved proof can coexist with a complete maintenance
+task. An accepted limitation is an auditable operator decision, never logical
+grounding, receipt editing, or proof. For every quality diagnostic, record its
+ID, one of `fixed`, `accepted`, or `deferred`, and a rationale. Keep accepted
+ontology gaps and historical telemetry limitations explicit.
+
+Receipt reuse is safe only when the live verification snapshot, contract hash,
+freshness window, and every required case result still match. Otherwise rerun
+the contracted command. Obsolete symbols require current extraction or Git
+evidence before remap/deletion; transfer coverage only when existing test
+evidence supports it, then sync and read back status. Same-version packages
+with different export surfaces are a release defect: require a new package
+version and label any project override temporary. This skill never selects a
+package manager or edits dependency configuration.
+
 ## Discovery to Validation Sequence
 
 The canonical workflow for any KB operation follows this pattern:

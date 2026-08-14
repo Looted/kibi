@@ -39,8 +39,7 @@ const DEFAULT_SYNC_PATHS = {
 
 function loadSyncConfigLocal(cwd = process.cwd()) {
   const configPath = path.join(cwd, ".kb/config.json");
-  let userConfig: { paths?: Record<string, string>; defaultBranch?: string } =
-    {};
+  let userConfig: { paths?: Record<string, string> } = {};
   if (existsSync(configPath)) {
     try {
       userConfig = JSON.parse(readFileSync(configPath, "utf8")) || {};
@@ -53,7 +52,6 @@ function loadSyncConfigLocal(cwd = process.cwd()) {
       ...DEFAULT_SYNC_PATHS,
       ...(userConfig.paths ?? {}),
     },
-    defaultBranch: userConfig.defaultBranch,
   };
 }
 

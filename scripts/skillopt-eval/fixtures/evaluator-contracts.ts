@@ -114,6 +114,64 @@ const PredicateExpectationSchema = z
   })
   .strict();
 
+const WorkflowExpectationSchema = z
+  .object({
+    expectedOutcome: z.enum(["complete", "interim", "blocked"]),
+    expectedKbState: z.enum([
+      "clean_fresh",
+      "stale",
+      "dirty",
+      "legacy_compat",
+      "not_evaluated",
+    ]),
+    expectedVerificationState: z.enum([
+      "fresh",
+      "dirty",
+      "unavailable",
+      "not_evaluated",
+    ]),
+    expectedProofState: z.enum([
+      "proven",
+      "mixed",
+      "unresolved",
+      "not_evaluated",
+    ]),
+    expectedLimitationDisposition: z.enum([
+      "none",
+      "accepted",
+      "unaccepted",
+      "not_applicable",
+    ]),
+    closeout: z
+      .object({
+        taskOutcome: z.enum(["complete", "interim", "blocked"]),
+        kbState: z.enum([
+          "clean_fresh",
+          "stale",
+          "dirty",
+          "legacy_compat",
+          "not_evaluated",
+        ]),
+        verificationState: z.enum([
+          "fresh",
+          "dirty",
+          "unavailable",
+          "not_evaluated",
+        ]),
+        proofState: z.enum(["proven", "mixed", "unresolved", "not_evaluated"]),
+        limitationDisposition: z.enum([
+          "none",
+          "accepted",
+          "unaccepted",
+          "not_applicable",
+        ]),
+      })
+      .strict(),
+    requiredSignals: z.array(z.string().min(1)),
+    forbiddenActions: z.array(z.string().min(1)),
+  })
+  .strict();
+
 const PrivateEvaluatorManifestSchema = z
   .object({
     schemaVersion: z.literal("1.1.0"),
@@ -145,6 +203,7 @@ const PrivateEvaluatorManifestSchema = z
     ]),
     adversarialAssessments: z.array(AssessmentSchema).length(8),
     predicateExpectation: PredicateExpectationSchema.nullable().default(null),
+    workflowExpectation: WorkflowExpectationSchema.nullable().default(null),
   })
   .strict()
   .superRefine((manifest, context) => {

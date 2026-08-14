@@ -299,6 +299,7 @@ export const defaultEvaluateDevelopment: RealOptimizationDependencies["evaluateD
           { tool: "kb_query", args: {} },
           { tool: "kb_check", args: {} },
           { tool: "kb_status", args: {} },
+          { tool: "kb_coverage", args: { by: "req" } },
         ],
         evaluatorManifest: fixture.evaluatorManifest,
         hiddenMarkers: runtime.hiddenMarkers ?? [],

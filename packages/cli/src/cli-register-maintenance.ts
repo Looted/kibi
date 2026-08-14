@@ -59,9 +59,10 @@ export function registerMaintenanceCommands(program: Command): void {
   program
     .command("doctor")
     .description("Diagnose KB setup and configuration")
+    .option("--format <format>", "Output format: json|table", "table")
     .action(
-      withExitCode(async () =>
-        (await import("./commands/doctor.js")).doctorCommand(),
+      withExitCode(async (options: { format?: "json" | "table" }) =>
+        (await import("./commands/doctor.js")).doctorCommand(options),
       ),
     );
 
@@ -101,13 +102,20 @@ export function registerMaintenanceCommands(program: Command): void {
   program
     .command("branch")
     .description("Manage branch KBs")
-    .argument("<action>", "Action: ensure")
+    .argument("<action>", "Action: ensure|migrate")
     .option("--from <branch>", "Source branch to copy KB from")
+    .option("--apply", "Apply a branch migration (preview is the default)")
     .action(async (action, options) => {
       if (action === "ensure") {
         await (await import("./commands/branch.js")).branchEnsureCommand(
           options,
         );
+      } else if (action === "migrate") {
+        await (await import("./commands/branch.js")).branchMigrateCommand(
+          options,
+        );
+      } else {
+        throw new Error(`Unknown branch action '${action}'`);
       }
     });
 }

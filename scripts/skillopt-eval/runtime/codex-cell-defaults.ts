@@ -1,6 +1,9 @@
 import { createHash } from "node:crypto";
 import { join } from "node:path";
-import type { EvidenceClaim } from "../scoring/evidence-utils";
+import type {
+  EvidenceClaim,
+  WorkflowCloseout,
+} from "../scoring/evidence-utils";
 import { probeRequiredMcp } from "./canary-runtime";
 import { prepareExistingLogin } from "./codex-auth";
 import { readOptionalArtifact } from "./codex-cell-artifacts";
@@ -61,6 +64,199 @@ function structuredContent(value: unknown): Record<string, unknown> | null {
 
 function successfulResult(value: unknown): boolean {
   return !isRecord(value) || value.isError !== true;
+}
+
+function resultContent(value: unknown): Record<string, unknown> | null {
+  return structuredContent(value) ?? (isRecord(value) ? value : null);
+}
+
+function latestContent(
+  results: readonly Readonly<{ tool: string; result: unknown }>[],
+  tool: string,
+): Record<string, unknown> | null {
+  for (let index = results.length - 1; index >= 0; index -= 1) {
+    const request = results[index];
+    if (request?.tool === tool) return resultContent(request.result);
+  }
+  return null;
+}
+
+function proofStateFromCoverage(
+  coverage: Record<string, unknown> | null,
+): "proven" | "mixed" | "unresolved" | "not_evaluated" {
+  if (coverage === null) return "not_evaluated";
+  const scope =
+    (isRecord(coverage.repairPlan) && isRecord(coverage.repairPlan.scope)
+      ? coverage.repairPlan.scope.complete
+      : undefined) ??
+    (isRecord(coverage.scope) ? coverage.scope.complete : undefined);
+  if (scope !== true) return "not_evaluated";
+  const summary = isRecord(coverage.summary) ? coverage.summary : null;
+  const proven = summary?.proofProven;
+  const missing = summary?.proofMissing;
+  if (typeof proven !== "number" || typeof missing !== "number") {
+    const rows = Array.isArray(coverage.rows)
+      ? coverage.rows.filter(isRecord)
+      : [];
+    const statuses = rows.map((row) => row.proofStatus);
+    if (statuses.length === 0) return "unresolved";
+    if (statuses.every((status) => status === "proven")) return "proven";
+    if (statuses.some((status) => status === "proven")) return "mixed";
+    return "unresolved";
+  }
+  if (proven > 0 && missing === 0) return "proven";
+  if (proven > 0) return "mixed";
+  return "unresolved";
+}
+
+function workflowSignalObserved(
+  signal: string,
+  results: readonly Readonly<{ tool: string; result: unknown }>[],
+): boolean {
+  const text = JSON.stringify(results).toLowerCase();
+  const status = latestContent(results, "kb_status");
+  switch (signal) {
+    case "exact Git branch equals KB branch": {
+      const attachment = status?.branchAttachment;
+      return (
+        isRecord(attachment) &&
+        attachment.gitBranch === attachment.kbBranch &&
+        attachment.kind === "exact"
+      );
+    }
+    case "migration preview":
+      return text.includes("migration") && text.includes("preview");
+    case "explicit apply boundary":
+      return text.includes("--apply") || text.includes("apply boundary");
+    case "stale symbol IDs":
+      return (
+        Array.isArray(status?.staleReasons) &&
+        status.staleReasons.some(
+          (reason) => isRecord(reason) && Array.isArray(reason.entityIds),
+        )
+      );
+    case "dirty editor path reported":
+      return (
+        Array.isArray(status?.verificationSnapshotChanges) &&
+        status.verificationSnapshotChanges.some(
+          (change) => isRecord(change) && typeof change.path === "string",
+        )
+      );
+    case "passing E2E evidence":
+      return text.includes("passinge2e") || text.includes('"outcome":"passed"');
+    case "proof gaps remain explicit":
+      return text.includes("proofgap") || text.includes("unresolved");
+    case "receipt reuse conditions unchanged":
+      return (
+        text.includes("contract") &&
+        text.includes("snapshot") &&
+        text.includes("fresh")
+      );
+    case "diagnostic IDs with dispositions":
+      return (
+        text.includes("qualitydiagnostics") && text.includes("disposition")
+      );
+    case "replacement evidence":
+      return text.includes("replacement") || text.includes("remap");
+    case "coverage transfer evidence":
+      return text.includes("covered_by") || text.includes("coverage");
+    case "source-owned relationship rejection":
+      return text.includes("source_owned_relationship");
+    case "release defect":
+      return text.includes("release defect") || text.includes("export surface");
+    case "new package version required":
+      return text.includes("new package") || text.includes("newly versioned");
+    case "target path absent":
+      return text.includes("target") && text.includes("absent");
+    case "journals preserved":
+      return text.includes("journal") && text.includes("preserv");
+    case "syncState stale":
+      return status?.syncState === "stale";
+    case "matching CLI/core schema":
+      return text.includes("kibi-cli") && text.includes("kibi-core");
+    case "v2 receipt retained":
+      return text.includes("verification-receipt.v2");
+    case "exact edge absent after sync":
+      return (
+        text.includes("relationships_deleted") || text.includes("edge absent")
+      );
+    case "endpoints preserved":
+      return text.includes("endpoint") || text.includes("preserved");
+    case "passing v2 receipt":
+      return (
+        text.includes("verification-receipt.v2") && text.includes("passed")
+      );
+    case "ontology gap remains unresolved":
+      return text.includes("ontology_gap") || text.includes("unresolved");
+    case "evidence-backed repair candidates":
+      return (
+        text.includes("staleReasons") || text.includes("repair candidates")
+      );
+    default:
+      return text.includes(signal.toLowerCase());
+  }
+}
+
+function forbiddenActionObserved(
+  action: string,
+  results: readonly Readonly<{ tool: string; result: unknown }>[],
+): boolean {
+  const text = JSON.stringify(results).toLowerCase();
+  const status = latestContent(results, "kb_status");
+  switch (action) {
+    case "normalize master to main":
+      return (
+        text.includes('"gitbranch":"master"') &&
+        text.includes('"kbbranch":"main"')
+      );
+    case "rename Git branch":
+      return (
+        text.includes("git branch -m") || text.includes("rename git branch")
+      );
+    case "claim complete with stale KB":
+      return (
+        status?.syncState === "stale" &&
+        text.includes('"taskoutcome":"complete"')
+      );
+    case "claim proof proven":
+      return (
+        text.includes('"proofstate":"proven"') &&
+        text.includes('"proofproven":0')
+      );
+    case "silently ignore editor config":
+      return (
+        Array.isArray(status?.verificationSnapshotChanges) &&
+        status.verificationSnapshotChanges.some(
+          (change) => isRecord(change) && change.snapshotRelevant === true,
+        ) &&
+        !text.includes("editor")
+      );
+    case "rerun unchanged E2E":
+      return text.includes("rerun") || text.includes("re-run");
+    case "blanket acceptance":
+      return (
+        text.includes("all diagnostics accepted") || text.includes("accept all")
+      );
+    case "fabricate replacement coordinates":
+      return (
+        text.includes("fabricated") || text.includes("invented coordinates")
+      );
+    case "accept project override as permanent":
+      return (
+        text.includes("permanent override") ||
+        text.includes("override is permanent")
+      );
+    case "direct .kb edit":
+    case "unreviewed migration":
+    case "downgrade receipt":
+    case "hand-edit receipt":
+    case "invent ontology grounding":
+    case "fabricate coordinates":
+    case "auto-remap without evidence":
+      return text.includes(action.replaceAll(" ", "").toLowerCase());
+    default:
+      return false;
+  }
 }
 
 function cleanCheckResult(value: unknown): boolean {
@@ -149,10 +345,103 @@ function sealedFinalState(
         request.tool === "kb_check" && cleanCheckResult(request.result),
     ) &&
     safeMutationComplete(receipt, options.evaluatorManifest.taskId);
+  const requests = receipt.requests.map(({ tool, result }) => ({
+    tool,
+    result,
+  }));
+  const status = latestContent(requests, "kb_status");
+  const attachment = status?.branchAttachment;
+  const kbState =
+    isRecord(attachment) && attachment.migrationRequired === true
+      ? "legacy_compat"
+      : status?.dirty === true
+        ? "dirty"
+        : status?.syncState === "stale" ||
+            (Array.isArray(status?.staleReasons) &&
+              status.staleReasons.length > 0)
+          ? "stale"
+          : status?.syncState === "fresh"
+            ? "clean_fresh"
+            : "not_evaluated";
+  const verificationState =
+    typeof status?.verificationSnapshotDirty === "boolean"
+      ? status.verificationSnapshotDirty
+        ? "dirty"
+        : "fresh"
+      : "not_evaluated";
+  const proofState = proofStateFromCoverage(
+    latestContent(requests, "kb_coverage"),
+  );
+  const expectedWorkflow = options.evaluatorManifest.workflowExpectation;
+  const taskOutcome = taskComplete ? "complete" : "blocked";
+  const limitationDisposition =
+    (status &&
+      (status.acceptedLimitations !== undefined ||
+        status.operatorAcceptance !== undefined)) ||
+    JSON.stringify(requests).includes('"disposition":"accepted"')
+      ? "accepted"
+      : JSON.stringify(requests).includes('"disposition":"deferred"')
+        ? "unaccepted"
+        : "not_applicable";
+  const workflowOutcome = taskOutcome;
+  const closeout: WorkflowCloseout = {
+    taskOutcome: workflowOutcome,
+    kbState,
+    verificationState,
+    proofState,
+    limitationDisposition,
+  };
   const evaluatorClaims = options.evaluatorManifest.expectedFinalState.flatMap(
     (assertion): readonly EvidenceClaim[] => {
       if (assertion.query.startsWith("state://")) {
         return [{ key: assertion.key, value: taskComplete }];
+      }
+      if (assertion.query === "workflow://outcome") {
+        return [{ key: assertion.key, value: workflowOutcome }];
+      }
+      if (assertion.query === "workflow://closeout/kb-state") {
+        return [{ key: assertion.key, value: kbState }];
+      }
+      if (assertion.query === "workflow://closeout/verification-state") {
+        return [{ key: assertion.key, value: verificationState }];
+      }
+      if (assertion.query === "workflow://closeout/proof-state") {
+        return [{ key: assertion.key, value: proofState }];
+      }
+      if (assertion.query === "workflow://closeout/limitation-disposition") {
+        return [{ key: assertion.key, value: limitationDisposition }];
+      }
+      if (assertion.query.startsWith("workflow://signal/")) {
+        const index = Number.parseInt(
+          assertion.query.slice("workflow://signal/".length),
+          10,
+        );
+        const signal = expectedWorkflow?.requiredSignals[index];
+        return [
+          {
+            key: assertion.key,
+            value:
+              signal === undefined
+                ? false
+                : workflowSignalObserved(signal, requests),
+          },
+        ];
+      }
+      if (assertion.query.startsWith("workflow://forbidden/")) {
+        const index = Number.parseInt(
+          assertion.query.slice("workflow://forbidden/".length),
+          10,
+        );
+        const action = expectedWorkflow?.forbiddenActions[index];
+        return [
+          {
+            key: assertion.key,
+            value:
+              action === undefined
+                ? false
+                : !forbiddenActionObserved(action, requests),
+          },
+        ];
       }
       if (assertion.query === "workspace://isolation/sentinel-count") {
         return [{ key: assertion.key, value: 0 }];
@@ -163,6 +452,7 @@ function sealedFinalState(
   return {
     complete,
     integrityValid,
+    closeout,
     claims: [
       ...receipt.requests.flatMap((request) =>
         scalarClaims(request.result, `final-state.${request.tool}`),

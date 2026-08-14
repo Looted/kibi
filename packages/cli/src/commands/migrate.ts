@@ -26,7 +26,7 @@ import {
 import * as path from "node:path";
 import { load as parseYAML } from "js-yaml";
 import { extractSymbolsFromStagedFile } from "../traceability/symbol-extract.js";
-import { resolveActiveBranch } from "../utils/branch-resolver.js";
+import { resolveBranchAttachment } from "../utils/branch-resolver.js";
 import type { KbConfig } from "../utils/config.js";
 import { DEFAULT_CONFIG } from "../utils/config.js";
 import {
@@ -91,7 +91,7 @@ function toRelativePath(cwd: string, filePath: string): string {
 function resolveMigrationBranch(
   cwd: string,
 ): ResolvedBranch | { error: string } {
-  const result = resolveActiveBranch(cwd);
+  const result = resolveBranchAttachment(cwd);
 
   if ("error" in result) {
     const isNonGitContext =
@@ -99,10 +99,8 @@ function resolveMigrationBranch(
 
     if (isNonGitContext) {
       return {
-        branch: "main",
-        warnings: [
-          "Not in a git repository; using 'main' for migration audit metadata.",
-        ],
+        error:
+          "Not in a git repository; set KIBI_BRANCH explicitly for migration audit metadata.",
       };
     }
 
@@ -111,10 +109,12 @@ function resolveMigrationBranch(
     };
   }
 
-  return {
-    branch: result.branch,
-    warnings: [],
-  };
+  if (result.migrationRequired) {
+    return {
+      error: `Legacy branch attachment ${result.gitBranch} -> ${result.kbBranch} requires 'kibi branch migrate --from ${result.kbBranch} --apply' before schema migration.`,
+    };
+  }
+  return { branch: result.kbBranch, warnings: [] };
 }
 
 function loadRawConfigDocument(

@@ -41,6 +41,11 @@ async function assertPackageCompatibility(): Promise<void> {
       mcpPackage.dependencies["kibi-cli"],
     ),
   ).toBe(true);
+
+  const packedOperations = await import(
+    "../../dist/public/operations/index.js"
+  );
+  expect(typeof packedOperations.executeApplyPlan).toBe("function");
 }
 
 function assertNormalizerContract(): void {

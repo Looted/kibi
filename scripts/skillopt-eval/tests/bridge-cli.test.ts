@@ -94,6 +94,7 @@ describe("bridge CLI", () => {
           "kb_query",
           "kb_check",
           "kb_status",
+          "kb_coverage",
         ]);
         const artifactDirectory = join(
           root,

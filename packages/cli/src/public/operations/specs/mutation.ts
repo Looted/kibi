@@ -42,13 +42,32 @@ export const deleteSpec = {
     "Delete entities by ID. Use only for intentional removals after dependency checks. Do not use as a bulk cleanup shortcut. Side effects: mutates and saves KB; skips entities with dependents.",
   businessInputSchema: {
     type: "object",
-    required: ["ids"],
+    oneOf: [
+      { required: ["ids"], not: { required: ["relationships"] } },
+      { required: ["relationships"], not: { required: ["ids"] } },
+    ],
     properties: {
       ids: {
         type: "array",
         items: { type: "string" },
+        minItems: 1,
+        description: "Entity IDs to delete after dependency checks.",
+      },
+      relationships: {
+        type: "array",
+        minItems: 1,
+        items: {
+          type: "object",
+          required: ["type", "from", "to"],
+          additionalProperties: false,
+          properties: {
+            type: { type: "string", minLength: 1 },
+            from: { type: "string", minLength: 1 },
+            to: { type: "string", minLength: 1 },
+          },
+        },
         description:
-          "Required list of entity IDs to delete. Example: ['REQ-001','TEST-002']. At least one ID is required.",
+          "Exact relationship triples to retract, including legacy shard records.",
       },
     },
   },

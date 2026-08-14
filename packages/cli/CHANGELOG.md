@@ -1,5 +1,49 @@
 # kibi-cli
 
+## 0.20.0
+
+### Minor Changes
+
+- 9d71304: Kibi can now compile a complete change intent into a reviewable, snapshot-bound plan before anything is written, then apply an explicitly approved plan only after rechecking its hash and live snapshots. The new operations reuse intent-aware discovery and semantic modeling, account for every proposition, surface current contradiction witnesses, and keep traceability proposals separate from executable steps until explicitly accepted.
+
+  - Add the shared `kb_compile_intent` / `compile-intent` operation and deterministic `kibi.compile-plan.v1` result.
+  - Add the guarded `kb_apply_plan` / `apply-plan` mutation boundary and `kibi.plan-apply-result.v1` result.
+  - Add contracted verification ingestion through `kb_ingest_verification`, including snapshot-bound `kibi.verification-receipt.v2` case results.
+  - Register the operation through the CLI and MCP parity surfaces with contract tests and documentation.
+
+- Dogfood projects now get branch-local knowledge bases that follow the exact Git ref, actionable stale-source diagnostics, and a sanctioned relationship cleanup path. Verification receipts and packed package provenance are stricter and reproducible, while agents receive conservative symbol-recovery guidance and explicit interim-state signals. This prevents silent `master`/`main` drift and makes passing E2E evidence distinguishable from complete semantic proof.
+
+  - Remove implicit branch-name normalization and add previewed legacy branch migration.
+  - Add exact relationship deletion, v2 receipt/schema parity, status diagnostics, dogfood package manifests, and SkillOpt cases.
+
+- 9d71304: Kibi search can now recover requirements from unfamiliar functionality wording and changed source locations when the host agent supplies semantic facets. Intent searches return deterministic ranking evidence, traceability graph evidence, and an explicit abstention signal for low-confidence results while preserving the existing lexical search behavior.
+
+  - Add the `intent-v1` search ranking mode and source-location validation.
+  - Expose semantic facet matches, source matches, graph paths, and query analysis in shared CLI/MCP structured output.
+
+- 9d71304: Kibi can now run an explicitly contracted Playwright command and immediately ingest its raw reporter artifact as snapshot-bound proof. Stable Playwright case IDs and a dependency-free reporter make exact case/project coverage visible, while command mismatches, missing artifacts, retries, and stale snapshots fail closed.
+
+  - Add the CLI-only `kibi verify` orchestration command.
+  - Export the Playwright reporter and stable case-ID helpers.
+  - Add deterministic case extraction and change-to-proof evaluation utilities.
+
+### Patch Changes
+
+- 7ddbaff: Dogfood projects can now resume proof work without losing their declared test intent. Test entities persist a typed verification contract, workspace snapshots ignore receipt-only churn consistently, and the sync guard no longer mistakes quoted requirement prose for executable escape hatches. Explicit ontology gaps remain unresolved rather than being reported as missing logical proof.
+
+  - Persist and validate `verification_contract.v1` through extraction, mutation, sync, and staged traceability KBs.
+  - Version the receipt-stable workspace snapshot as `kibi.workspace-snapshot.v2`.
+  - Make logic coverage inventory-aware and support Prolog-encoded semantic inventories.
+
+- MCP startup now fails with the original dependency error instead of silently loading an unpackaged source file, and the CLI/MCP package contract is checked against the packed artifacts. The coordinated release also makes MCP require the CLI release that exports every operation it imports.
+
+  - Preserve compiled-entrypoint import errors in the `kibi-mcp` launcher.
+  - Require the compatible `kibi-cli` export surface and verify it in isolated package consumers.
+
+- Updated dependencies
+- Updated dependencies [7ddbaff]
+  - kibi-core@0.10.1
+
 ## 0.19.0
 
 ### Minor Changes

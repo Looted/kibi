@@ -27,6 +27,16 @@ type BuilderContext = Readonly<{
   split: TaskSplit;
   index: number;
 }>;
+
+type DogfoodCase = Readonly<{
+  prompt: string;
+  objectiveCode: string;
+  kb: KnowledgeState;
+  worktree: WorktreeState;
+  adversarialCases: readonly AdversarialCase[];
+  mutation?: "read-only" | "write";
+  approvalPhase?: ApprovalPhase;
+}>;
 export type FamilyPayload = Readonly<{
   prompt: string;
   activationMode: ActivationMode;
@@ -145,6 +155,149 @@ const BUNDLE_DEFINITIONS: Readonly<Record<string, Definition>> = {
   ),
 };
 
+const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
+  "kibi-freshness/branch-status-classification/held-out/0": {
+    prompt:
+      "Resolve the active Git branch exactly. A repository on master must use the master KB namespace; report any legacy storage mapping and never recommend renaming the Git branch.",
+    objectiveCode: "exact_branch_identity",
+    kb: "fresh",
+    worktree: "clean",
+    adversarialCases: ["misleading-success"],
+  },
+  "kibi-freshness/stale-state-recovery/held-out/0": {
+    prompt:
+      "A historical KB is stored under main while Git is on master. Preview the sanctioned branch-storage migration, require explicit apply, and never edit .kb directly.",
+    objectiveCode: "legacy_branch_storage",
+    kb: "stale",
+    worktree: "clean",
+    adversarialCases: ["stale-state", "approval-boundary"],
+  },
+  "kibi-freshness/completion-outcome/held-out/0": {
+    prompt:
+      "Classify a run with zero blocking checks but stale sync caused by deleted symbol files. Report the exact stale symbols, mark the task complete, and report KB state stale separately.",
+    objectiveCode: "zero_blocking_but_stale",
+    kb: "stale",
+    worktree: "dirty",
+    adversarialCases: ["stale-state", "dirty-state", "misleading-success"],
+  },
+  "kibi-usage/validation-recovery/held-out/0": {
+    prompt:
+      "A valid v2 receipt is rejected by a stale installed schema. Diagnose the mixed package set, repair distribution selection, and never downgrade or hand-edit the receipt.",
+    objectiveCode: "stale_v2_schema",
+    kb: "fresh",
+    worktree: "clean",
+    adversarialCases: ["malformed-input", "misleading-success"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
+  "kibi-traceability/relationship-chain/held-out/0": {
+    prompt:
+      "Remove one exact legacy-shard relationship through the sanctioned delete operation, preserve both endpoints, sync, and verify that the edge stays absent.",
+    objectiveCode: "legacy_shard_edge_cleanup",
+    kb: "stale",
+    worktree: "clean",
+    adversarialCases: ["stale-state", "approval-boundary"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
+  "kibi-traceability/executable-coverage/held-out/0": {
+    prompt:
+      "Use the exact verification contract and reporter artifact to record a passing v2 E2E receipt. Mark the task complete while keeping overall proof unresolved when ontology gaps remain.",
+    objectiveCode: "contracted_e2e_with_ontology_gap",
+    kb: "fresh",
+    worktree: "clean",
+    adversarialCases: ["misleading-success"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
+  "kibi-traceability/symbol-impact-granularity/held-out/0": {
+    prompt:
+      "A catalogued symbol points at a deleted production file. Produce evidence-backed remap or obsolete-delete options and never invent coordinates.",
+    objectiveCode: "stale_symbol_remap",
+    kb: "stale",
+    worktree: "clean",
+    adversarialCases: ["stale-state", "misleading-success"],
+  },
+  "kibi-freshness/completion-outcome/held-out/1": {
+    prompt:
+      "The KB check is clean, but verificationSnapshotChanges identifies a dirty editor configuration. Report the exact path and classify the task independently from that verification state.",
+    objectiveCode: "dirty_editor_config",
+    kb: "fresh",
+    worktree: "dirty",
+    adversarialCases: ["dirty-state", "misleading-success"],
+  },
+  "kibi-traceability/executable-coverage/held-out/1": {
+    prompt:
+      "A clean KB has passing E2E evidence for part of the scope and unresolved proof for the rest. Report a complete task with fresh verification and mixed proof; do not collapse the axes.",
+    objectiveCode: "fresh_clean_mixed_proof",
+    kb: "fresh",
+    worktree: "clean",
+    adversarialCases: ["misleading-success"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
+  "kibi-traceability/executable-coverage/held-out/2": {
+    prompt:
+      "The live snapshot, contract hash, freshness window, and required cases are unchanged since the passing receipt. Reuse the receipt, do not rerun the E2E command, and explain the evidence.",
+    objectiveCode: "unchanged_snapshot_receipt_reuse",
+    kb: "fresh",
+    worktree: "clean",
+    adversarialCases: ["misleading-success"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
+  "kibi-usage/validation-recovery/held-out/1": {
+    prompt:
+      "Review every quality diagnostic by ID and record fixed, accepted, or deferred with rationale. Preserve accepted ontology and telemetry limitations without claiming proof.",
+    objectiveCode: "quality_diagnostic_disposition",
+    kb: "fresh",
+    worktree: "clean",
+    adversarialCases: ["misleading-success"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
+  "kibi-traceability/symbol-impact-granularity/held-out/1": {
+    prompt:
+      "An obsolete extracted symbol has a verified replacement. Delete only the obsolete symbol through Kibi, transfer coverage only where test evidence supports it, sync, and read back the result.",
+    objectiveCode: "obsolete_symbol_delete_with_replacement",
+    kb: "stale",
+    worktree: "clean",
+    adversarialCases: ["stale-state", "approval-boundary"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
+  "kibi-traceability/relationship-chain/held-out/1": {
+    prompt:
+      "A relationship is still authored by Markdown. Attempt the sanctioned exact relationship delete, report source_owned_relationship with the source path, and do not edit a legacy shard.",
+    objectiveCode: "source_owned_relationship_delete",
+    kb: "fresh",
+    worktree: "clean",
+    adversarialCases: ["approval-boundary", "misleading-success"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
+  "kibi-usage/validation-recovery/held-out/2": {
+    prompt:
+      "Local and registry artifacts share a version but expose different exports. Diagnose this as a release defect, require a new package version, and label the project override temporary; do not downgrade receipts.",
+    objectiveCode: "same_version_export_surface_drift",
+    kb: "fresh",
+    worktree: "clean",
+    adversarialCases: ["malformed-input", "misleading-success"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
+  "kibi-freshness/branch-status-classification/held-out/1": {
+    prompt:
+      "After an explicit legacy branch migration, verify target-path absence, journal and audit preservation, exact Git attachment, and fresh status. Never rename Git master or edit branch storage directly.",
+    objectiveCode: "legacy_migration_postconditions",
+    kb: "stale",
+    worktree: "clean",
+    adversarialCases: ["stale-state", "approval-boundary"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
+};
+
 /**
  * Predicate-family cases are dispatched to the semantically distinct registry
  * so each of the seven cases carries a distinct claim-derived prompt and
@@ -211,33 +364,44 @@ function payload(
   definition: Definition,
   split: TaskSplit,
   index: number,
+  special?: DogfoodCase,
 ): FamilyPayload {
+  const effectiveAdversarialCases =
+    special?.adversarialCases ?? definition.adversarialCases;
+  const effectiveApprovalPhase =
+    special?.approvalPhase ?? definition.approvalPhase;
+  const effectiveObjectiveCode =
+    special?.objectiveCode ?? definition.objectiveCode;
   const conditionalFiles = [
-    ...(definition.worktree === "dirty" ? ["changes/uncommitted.patch"] : []),
-    ...(definition.kb === "stale" ? ["generated/stale-snapshot.json"] : []),
-    ...(definition.approvalPhase === "not-applicable"
+    ...((special?.worktree ?? definition.worktree) === "dirty"
+      ? ["changes/uncommitted.patch"]
+      : []),
+    ...((special?.kb ?? definition.kb) === "stale"
+      ? ["generated/stale-snapshot.json"]
+      : []),
+    ...(effectiveApprovalPhase === "not-applicable"
       ? []
       : ["approval-state.json"]),
-    ...(definition.adversarialCases.includes("malformed-input")
+    ...(effectiveAdversarialCases.includes("malformed-input")
       ? ["inputs/malformed.json"]
       : []),
-    ...(definition.adversarialCases.includes("misleading-success")
+    ...(effectiveAdversarialCases.includes("misleading-success")
       ? ["agent-output.txt"]
       : []),
-    ...(definition.adversarialCases.includes("interruption-cleanup")
+    ...(effectiveAdversarialCases.includes("interruption-cleanup")
       ? ["interruption-plan.json"]
       : []),
-    ...(definition.objectiveCode === "safe_typed_mutation"
+    ...(effectiveObjectiveCode === "safe_typed_mutation"
       ? SAFE_MUTATION_FILES
       : []),
   ];
   return {
-    prompt: `${definition.instruction} This is ${split} case ${index + 1}; use only the public Kibi MCP surface.`,
+    prompt: `${special?.prompt ?? `${definition.instruction} This is ${split} case ${index + 1}; use only the public Kibi MCP surface.`}`,
     activationMode: definition.activationMode,
     initialState: {
       repository: definition.repository,
-      kb: definition.kb,
-      worktree: definition.worktree,
+      kb: special?.kb ?? definition.kb,
+      worktree: special?.worktree ?? definition.worktree,
       setupBoundary: "external-kibi-adapter",
     },
     allowedPublicFiles: [
@@ -246,11 +410,11 @@ function payload(
       ...conditionalFiles,
     ].sort(),
     taskData: {
-      objectiveCode: definition.objectiveCode,
+      objectiveCode: effectiveObjectiveCode,
       sourceFile: definition.sourceFile,
-      mutation: definition.mutation,
-      approvalPhase: definition.approvalPhase,
-      adversarialCases: definition.adversarialCases,
+      mutation: special?.mutation ?? definition.mutation,
+      approvalPhase: effectiveApprovalPhase,
+      adversarialCases: effectiveAdversarialCases,
     },
   };
 }
@@ -268,7 +432,11 @@ export function buildFamilyPayload(context: BuilderContext): FamilyPayload {
   if (context.family === "fact-predicate-modeling") {
     return predicatePayload(definition, context.split, context.index);
   }
-  return payload(definition, context.split, context.index);
+  const special =
+    DOGFOOD_CASES[
+      `${context.skill}/${context.family}/${context.split}/${context.index}`
+    ];
+  return payload(definition, context.split, context.index, special);
 }
 
 // implements REQ-skillopt-codex-optimization

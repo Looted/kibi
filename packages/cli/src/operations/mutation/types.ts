@@ -43,12 +43,21 @@ export type ValidateUpsertPayload = {
 };
 
 export type DeleteInput = {
-  readonly ids: readonly string[];
+  readonly ids?: readonly string[];
+  readonly relationships?: readonly {
+    readonly type: string;
+    readonly from: string;
+    readonly to: string;
+  }[];
   readonly _requestId?: string;
 };
 
 export type DeletePayload = {
   readonly deleted: number;
+  readonly relationships_deleted?: number;
   readonly skipped: number;
   readonly errors: readonly string[];
+  readonly error_codes?: readonly Readonly<Record<string, unknown>>[];
+  readonly relationship_results?: readonly Record<string, unknown>[];
+  readonly sync_required?: boolean;
 };

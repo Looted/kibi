@@ -9,6 +9,7 @@ import {
   verificationContractHash,
   verificationReceiptHistoryErrors,
 } from "../../public/verification-receipt.js";
+import { projectEntityProperties } from "../mutation/entity-projection.js";
 import { executeUpsert } from "../mutation/upsert.js";
 
 // implements REQ-kibi-verification-evidence-contract
@@ -265,11 +266,8 @@ export async function executeIngestVerification(
   );
   if (historyErrors.length > 0)
     throw new Error(`Verification ingest failed: ${historyErrors.join("; ")}`);
-  const properties = Object.fromEntries(
-    Object.entries(test).filter(
-      ([key]) => !["id", "type", "verification_receipts"].includes(key),
-    ),
-  );
+  const properties = projectEntityProperties(test);
+  properties.verification_receipts = undefined;
   const upsert = await executeUpsert(
     {
       type: "test",

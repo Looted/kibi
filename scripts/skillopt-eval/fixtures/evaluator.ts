@@ -130,8 +130,198 @@ function adversarialAssessments(task: FixtureTaskSpec) {
 }
 
 function requiredTools(task: FixtureTaskSpec): readonly string[] {
-  if (task.taskData.mutation === "read-only") return READ_TOOLS[task.skill];
-  return [...READ_TOOLS[task.skill], "kb_upsert", "kb_check"];
+  const extraStatus = [
+    "exact_branch_identity",
+    "legacy_branch_storage",
+    "zero_blocking_but_stale",
+    "stale_v2_schema",
+    "stale_symbol_remap",
+    "dirty_editor_config",
+    "fresh_clean_mixed_proof",
+    "unchanged_snapshot_receipt_reuse",
+    "quality_diagnostic_disposition",
+    "obsolete_symbol_delete_with_replacement",
+    "source_owned_relationship_delete",
+    "same_version_export_surface_drift",
+    "legacy_migration_postconditions",
+  ].includes(task.taskData.objectiveCode)
+    ? ["kb_status"]
+    : [];
+  const tools =
+    task.taskData.mutation === "read-only"
+      ? [...READ_TOOLS[task.skill], ...extraStatus]
+      : [...READ_TOOLS[task.skill], ...extraStatus, "kb_upsert", "kb_check"];
+  return [...new Set(tools)];
+}
+
+function workflowExpectation(task: FixtureTaskSpec) {
+  type Workflow = {
+    expectedOutcome: "complete" | "interim" | "blocked";
+    expectedKbState:
+      | "clean_fresh"
+      | "stale"
+      | "dirty"
+      | "legacy_compat"
+      | "not_evaluated";
+    expectedVerificationState:
+      | "fresh"
+      | "dirty"
+      | "unavailable"
+      | "not_evaluated";
+    expectedProofState: "proven" | "mixed" | "unresolved" | "not_evaluated";
+    expectedLimitationDisposition:
+      | "none"
+      | "accepted"
+      | "unaccepted"
+      | "not_applicable";
+    requiredSignals: readonly string[];
+    forbiddenActions: readonly string[];
+  };
+  const expectations: Readonly<Record<string, Workflow>> = {
+    exact_branch_identity: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "not_evaluated",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: ["exact Git branch equals KB branch"],
+      forbiddenActions: ["normalize master to main", "rename Git branch"],
+    },
+    legacy_branch_storage: {
+      expectedOutcome: "complete",
+      expectedKbState: "legacy_compat",
+      expectedVerificationState: "not_evaluated",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: ["migration preview", "explicit apply boundary"],
+      forbiddenActions: ["direct .kb edit", "unreviewed migration"],
+    },
+    zero_blocking_but_stale: {
+      expectedOutcome: "complete",
+      expectedKbState: "stale",
+      expectedVerificationState: "not_evaluated",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: ["stale symbol IDs", "syncState stale"],
+      forbiddenActions: ["claim complete with stale KB"],
+    },
+    stale_v2_schema: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: ["matching CLI/core schema", "v2 receipt retained"],
+      forbiddenActions: ["downgrade receipt", "hand-edit receipt"],
+    },
+    legacy_shard_edge_cleanup: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "not_evaluated",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: ["exact edge absent after sync", "endpoints preserved"],
+      forbiddenActions: ["direct .kb edit"],
+    },
+    contracted_e2e_with_ontology_gap: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "unresolved",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "passing v2 receipt",
+        "ontology gap remains unresolved",
+      ],
+      forbiddenActions: ["invent ontology grounding", "claim proof proven"],
+    },
+    stale_symbol_remap: {
+      expectedOutcome: "complete",
+      expectedKbState: "stale",
+      expectedVerificationState: "not_evaluated",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: ["evidence-backed repair candidates"],
+      forbiddenActions: [
+        "fabricate coordinates",
+        "auto-remap without evidence",
+      ],
+    },
+    dirty_editor_config: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: ["dirty editor path reported"],
+      forbiddenActions: ["silently ignore editor config"],
+    },
+    fresh_clean_mixed_proof: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "mixed",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: ["passing E2E evidence", "proof gaps remain explicit"],
+      forbiddenActions: ["claim proof proven"],
+    },
+    unchanged_snapshot_receipt_reuse: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "proven",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: ["receipt reuse conditions unchanged"],
+      forbiddenActions: ["rerun unchanged E2E"],
+    },
+    quality_diagnostic_disposition: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "unresolved",
+      expectedLimitationDisposition: "accepted",
+      requiredSignals: ["diagnostic IDs with dispositions"],
+      forbiddenActions: ["blanket acceptance"],
+    },
+    obsolete_symbol_delete_with_replacement: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "not_evaluated",
+      expectedProofState: "mixed",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: ["replacement evidence", "coverage transfer evidence"],
+      forbiddenActions: ["fabricate replacement coordinates"],
+    },
+    source_owned_relationship_delete: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "not_evaluated",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: ["source-owned relationship rejection"],
+      forbiddenActions: ["direct .kb edit"],
+    },
+    same_version_export_surface_drift: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "unavailable",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "unaccepted",
+      requiredSignals: ["release defect", "new package version required"],
+      forbiddenActions: ["accept project override as permanent"],
+    },
+    legacy_migration_postconditions: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "not_evaluated",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: ["target path absent", "journals preserved"],
+      forbiddenActions: ["rename Git branch", "direct .kb edit"],
+    },
+  };
+  const expectation = expectations[task.taskData.objectiveCode];
+  return expectation === undefined ? null : { ...expectation };
 }
 
 // implements REQ-skillopt-predicate-first-requirements
@@ -167,6 +357,45 @@ export function buildPrivateManifest(input: {
   const criticalKey = `final-${input.task.family}`;
   const workspaceKey = "workspace-isolated";
   const predicateExpectation = buildPredicateExpectation(input.task);
+  const expectedWorkflow = workflowExpectation(input.task);
+  const workflowAssertion = expectedWorkflow
+    ? [
+        {
+          key: "workflow-outcome",
+          query: "workflow://outcome",
+          expected: expectedWorkflow.expectedOutcome,
+          critical: true,
+        },
+        ...(
+          [
+            ["kb-state", expectedWorkflow.expectedKbState],
+            ["verification-state", expectedWorkflow.expectedVerificationState],
+            ["proof-state", expectedWorkflow.expectedProofState],
+            [
+              "limitation-disposition",
+              expectedWorkflow.expectedLimitationDisposition,
+            ],
+          ] as const
+        ).map(([name, expected]) => ({
+          key: `workflow-${name}`,
+          query: `workflow://closeout/${name}`,
+          expected,
+          critical: true,
+        })),
+        ...expectedWorkflow.requiredSignals.map((_, index) => ({
+          key: `workflow-signal-${index + 1}`,
+          query: `workflow://signal/${index}`,
+          expected: true,
+          critical: true,
+        })),
+        ...expectedWorkflow.forbiddenActions.map((_, index) => ({
+          key: `workflow-forbidden-${index + 1}`,
+          query: `workflow://forbidden/${index}`,
+          expected: true,
+          critical: true,
+        })),
+      ]
+    : [];
   return {
     schemaVersion: "1.1.0" as const,
     taskId: input.task.id,
@@ -182,6 +411,7 @@ export function buildPrivateManifest(input: {
         expected: true,
         critical: true,
       },
+      ...workflowAssertion,
       {
         key: workspaceKey,
         query: "workspace://isolation/sentinel-count",
@@ -210,7 +440,24 @@ export function buildPrivateManifest(input: {
       {
         key: "final_state" as const,
         points: 60 as const,
-        criticalAssertionKeys: [criticalKey],
+        criticalAssertionKeys: [
+          criticalKey,
+          ...(expectedWorkflow
+            ? [
+                "workflow-outcome",
+                "workflow-kb-state",
+                "workflow-verification-state",
+                "workflow-proof-state",
+                "workflow-limitation-disposition",
+                ...expectedWorkflow.requiredSignals.map(
+                  (_, index) => `workflow-signal-${index + 1}`,
+                ),
+                ...expectedWorkflow.forbiddenActions.map(
+                  (_, index) => `workflow-forbidden-${index + 1}`,
+                ),
+              ]
+            : []),
+        ],
       },
       {
         key: "protocol" as const,
@@ -226,6 +473,20 @@ export function buildPrivateManifest(input: {
     blindedVariants: [...blindedVariantOrder(input.task.id, input.task.skill)],
     adversarialAssessments: adversarialAssessments(input.task),
     predicateExpectation,
+    workflowExpectation:
+      expectedWorkflow === null
+        ? null
+        : {
+            ...expectedWorkflow,
+            closeout: {
+              taskOutcome: expectedWorkflow.expectedOutcome,
+              kbState: expectedWorkflow.expectedKbState,
+              verificationState: expectedWorkflow.expectedVerificationState,
+              proofState: expectedWorkflow.expectedProofState,
+              limitationDisposition:
+                expectedWorkflow.expectedLimitationDisposition,
+            },
+          },
   };
 }
 

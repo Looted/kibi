@@ -1,5 +1,14 @@
 # kibi-cursor
 
+## 0.6.1
+
+### Patch Changes
+
+- Dogfood projects now get branch-local knowledge bases that follow the exact Git ref, actionable stale-source diagnostics, and a sanctioned relationship cleanup path. Verification receipts and packed package provenance are stricter and reproducible, while agents receive conservative symbol-recovery guidance and explicit interim-state signals. This prevents silent `master`/`main` drift and makes passing E2E evidence distinguishable from complete semantic proof.
+
+  - Remove implicit branch-name normalization and add previewed legacy branch migration.
+  - Add exact relationship deletion, v2 receipt/schema parity, status diagnostics, dogfood package manifests, and SkillOpt cases.
+
 ## 0.6.0
 
 ### Minor Changes

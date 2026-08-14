@@ -113,6 +113,7 @@ const VERIFICATION_RECEIPT_V2_SCHEMA = {
     contract_hash: { type: "string", pattern: "^[a-f0-9]{64}$" },
     case_results: {
       type: "array",
+      minItems: 1,
       maxItems: 1000,
       items: {
         type: "object",
@@ -244,6 +245,23 @@ export function verificationReceiptHistoryErrors(
     }
     if (finishedAt !== null) previousFinishedAt = finishedAt;
     if (receipt.version === VERIFICATION_RECEIPT_V2_VERSION) {
+      if (
+        !Array.isArray(receipt.command_argv) ||
+        receipt.command_argv.length === 0 ||
+        receipt.command_argv.some(
+          (argument) => typeof argument !== "string" || argument.trim() === "",
+        )
+      ) {
+        errors.push(
+          `${prefix}.command_argv must be a non-empty argv of strings`,
+        );
+      }
+      if (
+        typeof receipt.contract_hash !== "string" ||
+        !/^[a-f0-9]{64}$/.test(receipt.contract_hash)
+      ) {
+        errors.push(`${prefix}.contract_hash must be a SHA-256 hex digest`);
+      }
       const caseResults = receipt.case_results;
       if (!Array.isArray(caseResults) || caseResults.length === 0) {
         errors.push(
@@ -263,6 +281,29 @@ export function verificationReceiptHistoryErrors(
             continue;
           }
           const row = caseResult as Record<string, unknown>;
+          if (
+            typeof row.symbol_id !== "string" ||
+            row.symbol_id.trim() === "" ||
+            typeof row.project !== "string" ||
+            row.project.trim() === ""
+          ) {
+            errors.push(
+              `${prefix}.case_results[${caseIndex}] requires non-empty symbol_id and project`,
+            );
+          }
+          if (
+            ![
+              "passed",
+              "failed",
+              "timed_out",
+              "skipped",
+              "interrupted",
+            ].includes(String(row.outcome))
+          ) {
+            errors.push(
+              `${prefix}.case_results[${caseIndex}].outcome is not a supported result`,
+            );
+          }
           const key = `${String(row.project ?? "")}\0${String(row.symbol_id ?? "")}`;
           if (seenCases.has(key))
             errors.push(

@@ -392,7 +392,7 @@ status: open
           cwd: tmpDir,
           encoding: "utf8",
         }).trim() || "master";
-      const effectiveBranch = branch === "master" ? "main" : branch;
+      const effectiveBranch = branch;
       const rdfPath = path.join(
         tmpDir,
         `.kb/branches/${effectiveBranch}/kb.rdf`,

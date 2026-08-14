@@ -9,6 +9,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
+import { parseNpmPackJsonOutput } from "./npm-pack-json.js";
 
 export interface PnpmCommand {
   command: string;
@@ -327,7 +328,7 @@ export async function packAllForPnpmUpgrade(): Promise<Tarballs> {
         ["-lc", `${npmCommand} pack --json --ignore-scripts`],
         { cwd: packageDir, encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] },
       );
-      const packResult = JSON.parse(result) as Array<{ filename?: string }>;
+      const packResult = parseNpmPackJsonOutput(result);
       const filename = packResult[0]?.filename;
       if (!filename) {
         throw new Error(`Failed to pack package ${pkg}: no filename in output`);

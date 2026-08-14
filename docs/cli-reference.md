@@ -220,6 +220,12 @@ kibi status [--format json|table]
 
 JSON output also exposes `verificationSnapshot`, availability, dirty state, file count, and `kibi.workspace-snapshot.v2` version. This deterministic snapshot is the identity coverage uses to accept or reject verification receipts; an unavailable snapshot fails proof closed. Receipt-only frontmatter changes are excluded from the hash so ingesting a receipt cannot invalidate its own proof.
 
+Status also reports the exact `branchAttachment` (`gitBranch`, `kbBranch`,
+`kind`, and `migrationRequired`), bounded `staleReasons`, and
+`verificationSnapshotChanges`. A legacy attachment is read-compatible only;
+writes and sync are blocked until the sanctioned migration is applied. Dirty
+editor/config paths are reported rather than silently ignored.
+
 ## `kibi find-gaps [type]` (`gaps` alias)
 
 Runs curated missing/present relationship analysis.
@@ -357,13 +363,26 @@ Verifies environment setup and diagnostics.
 **Examples:**
 ```bash
 kibi doctor
+kibi doctor --format json
 ```
+
+JSON mode emits `kibi.doctor.v1` with resolved CLI, core, and MCP versions and
+their entrypoint/package locations so release validation can prove which
+artifacts are executing.
 
 **Common Issues Found:**
 - SWI-Prolog not found → See [install guide](install.md)
 - `.kb/` missing → Run `kibi init`
 - Git hooks missing → Run `kibi init`
 - Config invalid → Check `.kb/config.json` syntax
+
+## Release package validation
+
+Release validation packs the published packages in dependency order, verifies
+their compiled entrypoints and dependency ranges, and exercises isolated npm
+and pnpm consumers. Consumer repositories own their local update scripts and
+dependency overrides; Kibi does not rewrite a consumer's manifests or
+workspace configuration.
 
 ## `kibi usage-metrics`
 
@@ -477,10 +496,12 @@ Lists and manages branch knowledge bases.
 **Syntax:**
 ```bash
 kibi branch ensure [--from <branch>]
+kibi branch migrate --from <legacy-branch> [--apply]
 ```
 
 **Arguments:**
 - `ensure` - Ensure the active branch has a branch-local KB snapshot
+- `migrate` - Preview (or, with `--apply`, atomically move) a legacy branch KB into the exact active Git branch namespace
 
 **Flags:**
 - `--from <branch>` - Copy the new branch KB from an existing branch KB instead of creating an empty one
@@ -489,6 +510,8 @@ kibi branch ensure [--from <branch>]
 - Ensures the active git branch has a KB under `.kb/branches/<branch>`
 - Creates an empty branch KB by default when one does not exist
 - If `--from` is supplied and that branch KB exists, copies from it instead
+- Branch names are never normalized; `master` and `main` are separate namespaces. If no `--from` is supplied, `ensure` creates an empty KB for the exact active ref.
+- `migrate` previews by default, stops an attached branch engine before applying, requires the exact target namespace to be absent, and preserves journals/audit/cache files.
 
 **Examples:**
 ```bash
@@ -497,6 +520,10 @@ kibi branch ensure
 
 # Seed the current branch KB from another branch KB
 kibi branch ensure --from main
+
+# Preview then apply a legacy master -> main-store migration while on master
+kibi branch migrate --from main
+kibi branch migrate --from main --apply
 ```
 
 HT|## `kibi skills`

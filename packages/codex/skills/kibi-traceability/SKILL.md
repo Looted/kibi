@@ -37,6 +37,12 @@ echo '{"sourceFiles":["src/auth/login.ts"],"includeImpactDiagnostics":true,"incl
 - Run `kb_coverage` by requirement after validation. Treat `coverageStatus` as structural compatibility only; use the separate `proofStatus`, `proofStages`, `proofGaps`, and ranked `proofRepairs` to decide whether the complete intent-to-code chain is proven.
 - Use `kb_delete` or `delete --input` only for explicit cleanup of obsolete records or relationships.
 
+Passing contracted E2E receipts are evidence for the current snapshot, not a
+claim that every semantic proposition is modeled. Keep ontology gaps and stale
+symbol coordinates explicit. When a symbol path disappears, propose only an
+evidence-backed `remap`, `delete_obsolete_symbol`, or `refresh_coordinates`
+repair; never fabricate a path or coordinate and never auto-apply a candidate.
+
 ## Guidance
 
 - Prefer source-linked relationships so requirements, scenarios, tests, symbols, and files can be traced cleanly.

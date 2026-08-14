@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { spawn } from "node:child_process";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
@@ -59,6 +59,14 @@ function runBin(args: string[], cwd: string, env: Record<string, string> = {}) {
 }
 
 describe("kibi-mcp help CLI", () => {
+  test("launcher ships only the compiled server entrypoint", () => {
+    const binPath = path.resolve(import.meta.dir, "../bin/kibi-mcp");
+    const source = readFileSync(binPath, "utf8");
+
+    expect(source).not.toContain("../src/server.ts");
+    expect(source).toContain("../dist/server.js");
+  });
+
   test("--help exits 0 and prints help text instead of hanging", async () => {
     const cwd = mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-help-"));
     try {

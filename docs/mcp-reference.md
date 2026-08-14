@@ -269,6 +269,11 @@ Return branch, snapshot, and freshness metadata for the attached KB, plus the de
 **Returns:**
 Branch name, KB snapshot ID, sync state, dirty flag, KB path metadata, and `verificationSnapshot` evidence (`available`, `dirty`, file count, and `kibi.workspace-snapshot.v2` version). An unavailable workspace snapshot is reported as `unknown` and cannot prove an E2E stage. Receipt-only frontmatter edits do not change the v2 hash.
 
+The response also includes exact `branchAttachment` metadata, bounded sorted
+`staleReasons` (with affected entity IDs and truncation totals), and
+`verificationSnapshotChanges`. Editor/config paths are reported as ordinary
+workspace changes; they are not silently ignored.
+
 **Example:**
 ```json
 {}
@@ -464,13 +469,24 @@ When invoked through MCP, `kb_validate_upsert` also attaches to Prolog and valid
 
 ### `kb_delete`
 
-Delete one or more entities by ID. Deletion is blocked when dependents still reference the target.
+Delete one or more entities by ID, or retract exact relationship triples. The
+two modes are mutually exclusive. Relationship deletion preflights the whole
+batch, preserves endpoints and unrelated edges, and handles legacy relationship
+shards through Kibi internals.
 
 **Parameters:**
 - `ids`: Array of entity IDs to delete
+- `relationships`: Array of exact `{type, from, to}` triples to retract
+
+Provide exactly one non-empty array; `ids` and `relationships` cannot be mixed.
 
 **Returns:**
-Confirmation of deletion, or an error describing blocked dependents.
+The response includes `relationships_deleted`, per-selector results, and
+`sync_required` when a legacy shard was corrected. Authored Markdown/manifests
+are source-owned: edit those files and run `kibi sync` instead of forcing a
+relationship deletion. Errors use structured codes such as
+`source_owned_relationship` and `reconciliation_required`. Never edit
+`.kb/relationships` directly.
 
 ### `kb_check`
 

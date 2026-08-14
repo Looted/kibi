@@ -529,7 +529,8 @@ verification_receipt_entries(Props, Receipts, Present) :-
 
 valid_receipt_shape(TestId, Scope, Receipt) :-
     inventory_entry_field(Receipt, version, RawVersion),
-    normalize_receipt_atom(RawVersion, 'kibi.verification-receipt.v1'),
+    normalize_receipt_atom(RawVersion, Version),
+    memberchk(Version, ['kibi.verification-receipt.v1', 'kibi.verification-receipt.v2']),
     inventory_entry_field(Receipt, receipt_id, RawReceiptId),
     normalize_receipt_atom(RawReceiptId, ReceiptId), valid_receipt_id(ReceiptId),
     inventory_entry_field(Receipt, test_id, RawTestId),
@@ -542,7 +543,7 @@ valid_receipt_shape(TestId, Scope, Receipt) :-
     normalize_receipt_atom(RawScope, Scope),
     inventory_entry_field(Receipt, outcome, RawOutcome),
     normalize_receipt_atom(RawOutcome, Outcome),
-    memberchk(Outcome, [passed, failed, errored, cancelled, skipped]),
+    memberchk(Outcome, [passed, failed, errored, cancelled, skipped, timed_out, interrupted]),
     inventory_entry_field(Receipt, code_snapshot, RawSnapshot),
     normalize_receipt_atom(RawSnapshot, Snapshot), valid_sha256(Snapshot),
     inventory_entry_field(Receipt, environment_hash, RawEnvironmentHash),
@@ -551,7 +552,53 @@ valid_receipt_shape(TestId, Scope, Receipt) :-
     normalize_receipt_atom(RawArtifactDigest, ArtifactDigest), valid_sha256(ArtifactDigest),
     receipt_timestamp(Receipt, started_at, StartedStamp),
     receipt_timestamp(Receipt, finished_at, FinishedStamp),
-    FinishedStamp >= StartedStamp.
+    FinishedStamp >= StartedStamp,
+    valid_receipt_version_fields(Version, Receipt).
+
+valid_receipt_version_fields('kibi.verification-receipt.v1', _Receipt).
+valid_receipt_version_fields('kibi.verification-receipt.v2', Receipt) :-
+    inventory_entry_field(Receipt, command_argv, RawCommandArgv),
+    is_list(RawCommandArgv),
+    RawCommandArgv \= [],
+    maplist(nonempty_receipt_atom, RawCommandArgv),
+    inventory_entry_field(Receipt, contract_hash, RawContractHash),
+    normalize_receipt_atom(RawContractHash, ContractHash),
+    valid_sha256(ContractHash),
+    inventory_entry_field(Receipt, case_results, RawCases),
+    is_list(RawCases),
+    RawCases \= [],
+    maplist(valid_receipt_case, RawCases),
+    findall(Key,
+        (member(Case, RawCases), receipt_case_key(Case, Key)), Keys),
+    sort(Keys, UniqueKeys),
+    length(Keys, KeyCount),
+    length(UniqueKeys, KeyCount).
+
+nonempty_receipt_atom(Value) :-
+    normalize_receipt_atom(Value, Atom),
+    Atom \= ''.
+
+valid_receipt_case(Case) :-
+    inventory_entry_field(Case, symbol_id, RawSymbolId),
+    nonempty_receipt_atom(RawSymbolId),
+    inventory_entry_field(Case, project, RawProject),
+    nonempty_receipt_atom(RawProject),
+    inventory_entry_field(Case, outcome, RawOutcome),
+    normalize_receipt_atom(RawOutcome, Outcome),
+    memberchk(Outcome, [passed, failed, timed_out, skipped, interrupted]),
+    inventory_entry_field(Case, retries, Retries),
+    normalize_integer(Retries, RetryCount),
+    RetryCount >= 0,
+    inventory_entry_field(Case, duration_ms, Duration),
+    normalize_integer(Duration, DurationMs),
+    DurationMs >= 0.
+
+receipt_case_key(Case, Key) :-
+    inventory_entry_field(Case, project, Project),
+    inventory_entry_field(Case, symbol_id, SymbolId),
+    normalize_receipt_atom(Project, ProjectAtom),
+    normalize_receipt_atom(SymbolId, SymbolAtom),
+    atomic_list_concat([ProjectAtom, SymbolAtom], '/', Key).
 
 valid_sha256(Value) :-
     atom_length(Value, 64),

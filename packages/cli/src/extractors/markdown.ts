@@ -572,7 +572,7 @@ function extractFromMarkdownContent(
         filePath,
         {
           classification: "Embedded Entity Violation",
-          hint: `Move ${entityTypes} to separate entity files and link them via relationship shards in .kb/relationships/.`,
+          hint: `Move ${entityTypes} to separate entity files and declare typed relationship links there; Kibi owns the compiled relationship shards.`,
         },
       );
     }

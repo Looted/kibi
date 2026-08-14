@@ -123,7 +123,7 @@ describe.serial("direct session edge coverage", () => {
       rmSync(root, { recursive: true, force: true });
   });
 
-  test("covers invalid branch, previous-branch copy, and reset termination errors", async () => {
+  test("covers invalid branch, empty branch initialization, and reset termination errors", async () => {
     expect(() =>
       session.ensureBranchKbExists("/workspace", "bad/name"),
     ).toThrow("Invalid branch name: bad/name");
@@ -142,9 +142,8 @@ describe.serial("direct session edge coverage", () => {
       console.error = originalConsoleError;
     }
 
-    expect(
-      calls.some((call) => call.startsWith("copy:previous:copy-target")),
-    ).toBe(true);
+    expect(calls.some((call) => call === "mkdir:copy-target")).toBe(true);
+    expect(calls.some((call) => call.startsWith("copy:"))).toBe(false);
     expect(consoleErrorMock).toHaveBeenCalledWith(
       "[KIBI-MCP] Error resetting Prolog worker:",
       expect.any(Error),

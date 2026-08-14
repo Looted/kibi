@@ -33,12 +33,20 @@ export type BranchResolutionResult =
   | BranchResolutionSuccess
   | BranchResolutionError;
 
+export type BranchAttachment = {
+  gitBranch: string;
+  kbBranch: string;
+  kind: "exact" | "explicit_override" | "legacy_compat";
+  migrationRequired: boolean;
+};
+
 export type BranchErrorCode =
   | "ENV_OVERRIDE"
   | "DETACHED_HEAD"
   | "UNBORN_BRANCH"
   | "GIT_NOT_AVAILABLE"
   | "NOT_A_GIT_REPO"
+  | "AMBIGUOUS_ATTACHMENT"
   | "UNKNOWN_ERROR";
 
 export interface BranchResolverDeps {
@@ -135,10 +143,9 @@ export function resolveActiveBranch(
       };
     }
 
-    // Normalize 'master' to 'main' for consistency
-    const normalizedBranch = branch === "master" ? "main" : branch;
-
-    return { branch: normalizedBranch };
+    // Git branch names are the branch identity.  Do not normalize master,
+    // main, or any other branch name: the KB is branch-local state.
+    return { branch };
   } catch (error) {
     // Try alternative: git rev-parse --abbrev-ref HEAD
     try {
@@ -178,10 +185,7 @@ export function resolveActiveBranch(
         };
       }
 
-      // Normalize 'master' to 'main' for consistency
-      const normalizedBranch = branch === "master" ? "main" : branch;
-
-      return { branch: normalizedBranch };
+      return { branch };
     } catch {
       // Determine specific error type
       const errorMessage =
@@ -211,6 +215,95 @@ export function resolveActiveBranch(
         error: getBranchDiagnostic(undefined, errorMessage),
         code: "UNKNOWN_ERROR",
       };
+    }
+  }
+}
+
+/**
+ * Resolve the storage namespace without treating any branch as canonical.
+ * The only compatibility exception is the old master->main storage layout;
+ * it is read-compatible but must be migrated before mutation.
+ */
+export function resolveBranchAttachment(
+  workspaceRoot: string = process.cwd(),
+): BranchAttachment | BranchResolutionError {
+  const active = resolveActiveBranch(workspaceRoot);
+  if ("error" in active) return active;
+  const explicit = Boolean(getBranchOverride());
+  const exactPath = path.join(workspaceRoot, ".kb", "branches", active.branch);
+  const legacyPath = path.join(workspaceRoot, ".kb", "branches", "main");
+  const mainGitBranch =
+    !explicit && active.branch === "master"
+      ? hasGitMainBranch(workspaceRoot)
+      : false;
+  if (
+    !explicit &&
+    active.branch === "master" &&
+    existsSync(exactPath) &&
+    existsSync(legacyPath) &&
+    !mainGitBranch
+  ) {
+    return {
+      error:
+        "Ambiguous KB attachment: both .kb/branches/master and the legacy .kb/branches/main exist while Git has no main ref. Resolve the stores explicitly before continuing.",
+      code: "AMBIGUOUS_ATTACHMENT",
+    };
+  }
+  if (
+    !explicit &&
+    active.branch === "master" &&
+    !existsSync(exactPath) &&
+    existsSync(legacyPath) &&
+    mainGitBranch
+  ) {
+    return {
+      error:
+        "Ambiguous KB attachment: Git has both master and main refs, but only .kb/branches/main exists. Resolve whether it is the main branch store or legacy master storage before continuing.",
+      code: "AMBIGUOUS_ATTACHMENT",
+    };
+  }
+  if (explicit || active.branch !== "master" || existsSync(exactPath)) {
+    return {
+      gitBranch: active.branch,
+      kbBranch: active.branch,
+      kind: explicit ? "explicit_override" : "exact",
+      migrationRequired: false,
+    };
+  }
+
+  if (!existsSync(legacyPath) || mainGitBranch) {
+    return {
+      gitBranch: active.branch,
+      kbBranch: active.branch,
+      kind: "exact",
+      migrationRequired: false,
+    };
+  }
+  return {
+    gitBranch: active.branch,
+    kbBranch: "main",
+    kind: "legacy_compat",
+    migrationRequired: true,
+  };
+}
+
+function hasGitMainBranch(workspaceRoot: string): boolean {
+  try {
+    defaultDeps.execSync("git show-ref --verify --quiet refs/heads/main", {
+      cwd: workspaceRoot,
+      stdio: "ignore",
+      timeout: 5000,
+    });
+    return true;
+  } catch {
+    try {
+      defaultDeps.execSync(
+        "git show-ref --verify --quiet refs/remotes/origin/main",
+        { cwd: workspaceRoot, stdio: "ignore", timeout: 5000 },
+      );
+      return true;
+    } catch {
+      return false;
     }
   }
 }
@@ -370,41 +463,28 @@ export function getVolatileArtifactPatterns(): string[] {
 }
 
 /**
- * @deprecated defaultBranch is deprecated. Branch lifecycle now follows git naturally
- * without requiring a configured default. This function is kept for backward compatibility
- * but should not be used for new code.
+ * @deprecated Branch lifecycle follows Git naturally. This helper remains for
+ * callers that need informational remote-default discovery, but it never
+ * invents a `main` branch.
  *
- * Resolve the default branch using the following precedence:
- * 1. Configured defaultBranch from config (if set and valid)
- * 2. Git remote HEAD (refs/remotes/origin/HEAD)
- * 3. Fallback to "main"
+ * Resolve a remote default branch for informational display only. It must not
+ * be used to attach a KB or initialize a branch. Callers that need a source
+ * branch must require an explicit `--from` value.
  *
  * Unlike resolveActiveBranch, this does NOT normalize branch names.
  * Configured names are returned verbatim.
  *
  * @param cwd - The working directory to resolve the default branch
- * @param config - Optional config with defaultBranch
+ * @param _config - Retained for source compatibility; ignored.
  * @returns BranchResolutionResult with either the branch name or an error
  */
 export function resolveDefaultBranch(
   cwd: string = process.cwd(),
-  config?: { defaultBranch?: string },
+  _config?: { defaultBranch?: string },
 ): { branch: string } | { error: string; code: string } {
   // implements REQ-012
-  // 1. Check config.defaultBranch first (highest precedence)
-  const configuredBranch = config?.defaultBranch?.trim();
-  if (configuredBranch) {
-    if (!isValidBranchName(configuredBranch)) {
-      return {
-        error: `Invalid defaultBranch configured in .kb/config.json: '${configuredBranch}'`,
-        code: "INVALID_CONFIG",
-      };
-    }
-    // Return configured branch verbatim (no normalization)
-    return { branch: configuredBranch };
-  }
-
-  // 2. Try to get the remote default branch from origin/HEAD
+  // Try to get the remote default branch from origin/HEAD. This is only
+  // informational; attachment always follows the active Git branch.
   try {
     const remoteHead = defaultDeps
       .execSync("git symbolic-ref refs/remotes/origin/HEAD", {
@@ -427,6 +507,8 @@ export function resolveDefaultBranch(
     // origin/HEAD doesn't exist or command failed, fall through to fallback
   }
 
-  // 3. Final fallback to "main"
-  return { branch: "main" };
+  return {
+    error: "No remote default branch is configured; provide --from explicitly.",
+    code: "NO_DEFAULT_BRANCH",
+  };
 }

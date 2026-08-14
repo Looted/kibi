@@ -129,14 +129,44 @@ async function workspaceSnapshot(workspaceRoot: string) {
       "status",
       "--porcelain=v1",
       "--untracked-files=normal",
+      "-z",
     ],
     { maxBuffer: 16 * 1024 * 1024 },
   );
+  const rawChanges = status.split("\0").filter(Boolean);
+  const changes: {
+    path: string;
+    status: string;
+    snapshotRelevant: boolean;
+    previousPath?: string;
+  }[] = [];
+  for (let index = 0; index < rawChanges.length; index++) {
+    const entry = rawChanges[index] ?? "";
+    const statusCode = entry.slice(0, 2);
+    const relativePath = entry.slice(3).replaceAll("\\", "/");
+    const previous = rawChanges[index + 1];
+    const isRenameOrCopy = statusCode[0] === "R" || statusCode[0] === "C";
+    const previousPath =
+      isRenameOrCopy && previous ? previous.replaceAll("\\", "/") : undefined;
+    changes.push({
+      path: relativePath,
+      status: statusCode,
+      snapshotRelevant:
+        includedSnapshotPath(relativePath) ||
+        (previousPath !== undefined && includedSnapshotPath(previousPath)),
+      ...(previousPath !== undefined ? { previousPath } : {}),
+    });
+    if (previousPath !== undefined) index++;
+  }
+  const maxChanges = 200;
   return {
     version: "kibi.workspace-snapshot.v2" as const,
     hash: digest.digest("hex"),
-    dirty: status.trim().length > 0,
+    dirty: changes.length > 0,
     fileCount: paths.length,
+    changes: changes.slice(0, maxChanges),
+    changeCount: changes.length,
+    changesTruncated: changes.length > maxChanges,
   };
 }
 

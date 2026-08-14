@@ -10,6 +10,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
+import { parseNpmPackJsonOutput } from "./npm-pack-json.js";
 import { writePackedInstallManifest } from "./packed-install-manifest.js";
 
 // allow: SIZE_OK — legacy packed E2E helper API spans established tests; splitting it requires a repository-wide migration.
@@ -325,10 +326,7 @@ export async function packAll(): Promise<Tarballs> {
           },
         );
 
-        interface PackResult {
-          filename: string;
-        }
-        const packResult = JSON.parse(result) as PackResult[];
+        const packResult = parseNpmPackJsonOutput(result);
         const filename = packResult[0]?.filename;
         if (!filename) {
           throw new Error(

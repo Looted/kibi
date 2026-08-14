@@ -53,7 +53,7 @@ function contextFor(
 
 describe("kb_compile_intent", () => {
   test("emits a deterministic strict-property plan for a new requirement", async () => {
-    const query = mock(async (goal: string) => {
+    const query = mock(async (goal: string): Promise<PrologQueryResult> => {
       if (goal.includes("findall([A,B,Reason]"))
         return { success: true, bindings: { Rows: "[]" } };
       if (goal.includes("kb_relationship"))
@@ -92,7 +92,7 @@ describe("kb_compile_intent", () => {
   });
 
   test("fails closed when an update target is ambiguous", async () => {
-    const query = mock(async (goal: string) => {
+    const query = mock(async (goal: string): Promise<PrologQueryResult> => {
       if (goal.includes("findall([A,B,Reason]"))
         return { success: true, bindings: { Rows: "[]" } };
       if (goal.includes("kb_relationship"))
@@ -120,7 +120,7 @@ describe("kb_compile_intent", () => {
   });
 
   test("reports current contradiction witnesses for an explicit update", async () => {
-    const query = mock(async (goal: string) => {
+    const query = mock(async (goal: string): Promise<PrologQueryResult> => {
       if (goal.includes("findall([A,B,Reason]"))
         return {
           success: true,

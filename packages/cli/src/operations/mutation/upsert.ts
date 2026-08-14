@@ -4,6 +4,7 @@ import { loadEntities } from "../../public/operations/discovery-entities.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import type { OperationResult } from "../../public/operations/types.js";
 import { appendOnlyVerificationReceiptHistoryErrors } from "../../public/verification-receipt.js";
+import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
 import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
 import {
   assertLogicalGroundingClaimKeys,
@@ -93,6 +94,16 @@ export async function executeUpsert(
   input: UpsertInput,
   context: OperationContext,
 ): Promise<OperationResult<UpsertPayload>> {
+  const branchAttachment =
+    context.branchAttachment ?? resolveBranchAttachment(context.workspaceRoot);
+  if ("error" in branchAttachment) {
+    throw new Error(`Unable to resolve KB branch: ${branchAttachment.error}`);
+  }
+  if (branchAttachment.migrationRequired) {
+    throw new Error(
+      `Upsert blocked: KB is attached through legacy branch storage (${branchAttachment.gitBranch} -> ${branchAttachment.kbBranch}). Run 'kibi branch migrate --from ${branchAttachment.kbBranch} --apply' first.`,
+    );
+  }
   const prolog = requireProlog(context);
   try {
     const validated = validateUpsertInput(input, context.clock());

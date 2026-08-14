@@ -26,6 +26,7 @@ import {
   getBranchDiagnostic,
   isValidBranchName,
   resolveActiveBranch,
+  resolveBranchAttachment,
 } from "kibi-cli/public/branch-resolver";
 import { getBranchOverride, isMcpDebugEnabled } from "../env.js";
 import { resolveKbPath, resolveWorkspaceRoot } from "../workspace.js";
@@ -39,12 +40,15 @@ import {
 
 interface SessionDeps {
   PrologProcess: typeof PrologProcess;
+  // Retained as a test/integration seam for callers that still provide the
+  // legacy dependency, but branch initialization no longer invokes it.
   copyCleanSnapshot: typeof copyCleanSnapshot;
   createRequire: typeof createRequire;
   fs: Pick<typeof fs, "existsSync" | "mkdirSync">;
   getBranchDiagnostic: typeof getBranchDiagnostic;
   isValidBranchName: typeof isValidBranchName;
   resolveActiveBranch: typeof resolveActiveBranch;
+  resolveBranchAttachment: typeof resolveBranchAttachment;
   resolveKbPath: typeof resolveKbPath;
   resolveWorkspaceRoot: typeof resolveWorkspaceRoot;
 }
@@ -57,6 +61,7 @@ const defaultSessionDeps: SessionDeps = {
   getBranchDiagnostic,
   isValidBranchName,
   resolveActiveBranch,
+  resolveBranchAttachment,
   resolveKbPath,
   resolveWorkspaceRoot,
 };
@@ -130,27 +135,9 @@ export function ensureBranchKbExists(
     return false;
   }
 
-  // Try to copy from the previously active branch if available
-  const previousBranch = activeBranchName;
-  const previousBranchPath = sessionDeps.resolveKbPath(
-    workspaceRoot,
-    previousBranch,
-  );
-
-  if (
-    previousBranch !== branch &&
-    previousBranch !== "develop" &&
-    sessionDeps.fs.existsSync(previousBranchPath)
-  ) {
-    // Copy from previous branch for continuity
-    sessionDeps.copyCleanSnapshot(previousBranchPath, branchPath);
-    debugLog(
-      `[KIBI-MCP] Created branch KB for '${branch}' from '${previousBranch}'`,
-    );
-    return false;
-  }
-
-  // No previous branch available - create empty KB
+  // Branch initialization is intentionally empty. Copying another branch is
+  // an explicit operator action (`kibi branch ensure --from ...`), never an
+  // implicit continuity/default-branch behavior in the MCP session.
   sessionDeps.fs.mkdirSync(branchPath, { recursive: true });
   debugLog(`[KIBI-MCP] Created empty branch KB for '${branch}'`);
   return true;
@@ -325,8 +312,9 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
     }
     targetBranch = envBranch;
   } else {
-    // No override - resolve active branch from git (may change between requests)
-    const branchResult = sessionDeps.resolveActiveBranch(workspaceRoot);
+    // No override - resolve exact Git branch, with read-compatible legacy
+    // storage detection for old master->main repositories.
+    const branchResult = sessionDeps.resolveBranchAttachment(workspaceRoot);
 
     if ("error" in branchResult) {
       const diagnostic = sessionDeps.getBranchDiagnostic(
@@ -337,7 +325,7 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
       throw new Error(`Failed to resolve active branch: ${branchResult.error}`);
     }
 
-    targetBranch = branchResult.branch;
+    targetBranch = branchResult.kbBranch;
   }
 
   // Check if we need to switch branches

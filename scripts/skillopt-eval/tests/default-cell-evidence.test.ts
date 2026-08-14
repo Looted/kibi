@@ -91,6 +91,123 @@ function finalStateReceipt(): string {
   })}\n`;
 }
 
+function workflowManifest() {
+  const base = evaluatorManifest("predicate");
+  const workflowExpectation = {
+    expectedOutcome: "complete" as const,
+    expectedKbState: "clean_fresh" as const,
+    expectedVerificationState: "fresh" as const,
+    expectedProofState: "unresolved" as const,
+    expectedLimitationDisposition: "not_applicable" as const,
+    requiredSignals: ["passing v2 receipt", "ontology gap remains unresolved"],
+    forbiddenActions: ["claim proof proven"],
+    closeout: {
+      taskOutcome: "complete" as const,
+      kbState: "clean_fresh" as const,
+      verificationState: "fresh" as const,
+      proofState: "unresolved" as const,
+      limitationDisposition: "not_applicable" as const,
+    },
+  };
+  const workflowAssertions = [
+    ["workflow-outcome", "workflow://outcome", "complete"],
+    ["workflow-kb-state", "workflow://closeout/kb-state", "clean_fresh"],
+    [
+      "workflow-verification-state",
+      "workflow://closeout/verification-state",
+      "fresh",
+    ],
+    ["workflow-proof-state", "workflow://closeout/proof-state", "unresolved"],
+    [
+      "workflow-limitation-disposition",
+      "workflow://closeout/limitation-disposition",
+      "not_applicable",
+    ],
+    ["workflow-signal-1", "workflow://signal/0", true],
+    ["workflow-signal-2", "workflow://signal/1", true],
+    ["workflow-forbidden-1", "workflow://forbidden/0", true],
+  ].map(([key, query, expected]) => ({ key, query, expected, critical: true }));
+  return parsePrivateEvaluatorManifest(
+    JSON.stringify({
+      ...base,
+      expectedFinalState: [...base.expectedFinalState, ...workflowAssertions],
+      rubric: base.rubric.map((item) =>
+        item.key === "final_state"
+          ? {
+              ...item,
+              criticalAssertionKeys: [
+                ...item.criticalAssertionKeys,
+                ...workflowAssertions.map(({ key }) => key),
+              ],
+            }
+          : item,
+      ),
+      workflowExpectation,
+    }),
+  );
+}
+
+function workflowFinalStateReceipt(): string {
+  const queryResult = {
+    structuredContent: {
+      entities: [
+        {
+          id: "REQ-WORKFLOW",
+          type: "req",
+          logic_claims: ["CLAIM-WORKFLOW"],
+          tags: ["ontology_gap"],
+        },
+      ],
+    },
+  };
+  const checkResult = {
+    structuredContent: { violations: [], count: 0, diagnostics: [] },
+  };
+  const statusResult = {
+    structuredContent: {
+      syncState: "fresh",
+      dirty: false,
+      verificationSnapshotDirty: false,
+      branchAttachment: {
+        gitBranch: "main",
+        kbBranch: "main",
+        kind: "exact",
+        migrationRequired: false,
+      },
+    },
+  };
+  const coverageResult = {
+    structuredContent: {
+      repairPlan: { scope: { complete: true } },
+      summary: { proofProven: 0, proofMissing: 1 },
+      rows: [
+        {
+          proofStatus: "unresolved",
+          proofStages: {
+            passingE2e: { receiptEvidence: "verification-receipt.v2 passed" },
+          },
+        },
+      ],
+    },
+  };
+  const requests = [
+    ["kb_query", {}, queryResult],
+    ["kb_check", {}, checkResult],
+    ["kb_status", {}, statusResult],
+    ["kb_coverage", { by: "req" }, coverageResult],
+  ].map(([tool, args, result]) => ({
+    tool,
+    args,
+    result,
+    resultHash: resultHash(result),
+  }));
+  return `${JSON.stringify({
+    schemaVersion: "1.0.0",
+    workspaceRoot: "/isolated/workspace",
+    requests,
+  })}\n`;
+}
+
 function safeMutationManifest() {
   const base = evaluatorManifest("predicate");
   return parsePrivateEvaluatorManifest(
@@ -269,6 +386,41 @@ async function brokerTraceWithFailedThenSuccessfulCall(): Promise<string> {
 }
 
 describe("default Codex cell evidence sealing", () => {
+  test("scores closeout dimensions independently when E2E evidence passes but proof remains unresolved", async () => {
+    const manifest = workflowManifest();
+    const requests = [
+      { tool: "kb_query" as const, args: {} },
+      { tool: "kb_check" as const, args: {} },
+      { tool: "kb_status" as const, args: {} },
+      { tool: "kb_coverage" as const, args: { by: "req" } },
+    ];
+    const evidence = sealDefaultCellEvidence(
+      { evaluatorManifest: manifest, finalStateRequests: requests },
+      {
+        finalState: workflowFinalStateReceipt(),
+        brokerTrace: await brokerTrace(),
+        diagnosticReceipt:
+          '{"tool":"kb_query","status":"success","telemetry":null}\n',
+      },
+    );
+    expect(evidence.finalState.claims).toContainEqual({
+      key: "workflow-outcome",
+      value: "complete",
+    });
+    expect(evidence.finalState.claims).toContainEqual({
+      key: "workflow-proof-state",
+      value: "unresolved",
+    });
+    expect(evidence.finalState.closeout).toEqual({
+      taskOutcome: "complete",
+      kbState: "clean_fresh",
+      verificationState: "fresh",
+      proofState: "unresolved",
+      limitationDisposition: "not_applicable",
+    });
+    expect(scoreCell(manifest, evidence).criticalFailures).toEqual([]);
+  });
+
   test("binds authentic final-state MCP output and derives evaluator claims", async () => {
     const manifest = evaluatorManifest("predicate");
     const requests = [

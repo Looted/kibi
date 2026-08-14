@@ -15,13 +15,14 @@
         "kibi-cli": "workspace:*",
         "kibi-mcp": "workspace:*",
         "mitata": "^1.0.34",
+        "semver": "^7.7.4",
         "typescript": "^5.7.0",
         "zod": "^4.3.6",
       },
     },
     "packages/cli": {
       "name": "kibi-cli",
-      "version": "0.16.1",
+      "version": "0.20.0",
       "bin": {
         "kibi": "bin/kibi",
       },
@@ -43,7 +44,7 @@
     },
     "packages/codex": {
       "name": "kibi-codex",
-      "version": "0.19.0",
+      "version": "0.20.1",
       "devDependencies": {
         "@types/node": "latest",
         "typescript": "^5.7.0",
@@ -59,11 +60,11 @@
     },
     "packages/core": {
       "name": "kibi-core",
-      "version": "0.7.1",
+      "version": "0.10.1",
     },
     "packages/cursor": {
       "name": "kibi-cursor",
-      "version": "0.5.0",
+      "version": "0.6.1",
       "devDependencies": {
         "@types/node": "latest",
         "typescript": "^5.7.0",
@@ -79,7 +80,7 @@
     },
     "packages/mcp": {
       "name": "kibi-mcp",
-      "version": "0.19.2",
+      "version": "0.23.0",
       "bin": {
         "kibi-mcp": "bin/kibi-mcp",
       },
@@ -105,7 +106,7 @@
     },
     "packages/opencode": {
       "name": "kibi-opencode",
-      "version": "0.19.1",
+      "version": "0.19.5",
       "dependencies": {
         "@opencode-ai/plugin": "^1.4.7",
         "@opentui/core": "^0.1.99",
@@ -119,7 +120,7 @@
     },
     "packages/vscode": {
       "name": "kibi-vscode",
-      "version": "0.4.9",
+      "version": "0.4.13",
       "dependencies": {
         "js-yaml": "^4.1.0",
         "kibi-cli": "^0.16.0",

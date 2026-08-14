@@ -269,8 +269,7 @@ User logs in with OAuth2 provider.
           cwd: tmpDir,
           encoding: "utf8",
         }).trim() || "main";
-      const effectiveBranch =
-        currentBranch === "master" ? "main" : currentBranch;
+      const effectiveBranch = currentBranch;
       const kbPath = path.join(tmpDir, `.kb/branches/${effectiveBranch}`);
       expect(existsSync(path.join(kbPath, "kb.rdf"))).toBe(true);
     },
@@ -995,7 +994,7 @@ status: passing
             encoding: "utf8",
           }).trim() || "main";
         const effectiveBranch =
-          currentBranch === "master" ? "main" : currentBranch;
+          currentBranch;
         const kbPath = path.join(tmpDir, `.kb/branches/${effectiveBranch}`);
         const rdfPath = path.join(kbPath, "kb.rdf");
 
