@@ -250,7 +250,7 @@
         "readOnlyHint": true,
         "title": "Inspect Kibi branch status"
       },
-      "description": "Report current branch, KB snapshot and freshness metadata, plus the deterministic workspace snapshot used to validate execution receipts. Read-only status inspection with no mutation side effects.",
+      "description": "Report current branch, KB snapshot, freshness metadata, schema status, and a typed kibi.migration-plan.v2 action graph. Read-only status inspection with no mutation side effects; damaged stores are diagnosed without starting the engine.",
       "inputSchema": {
         "properties": {
           "_diagnostic_telemetry": {
@@ -542,7 +542,7 @@
       "name": "kb_find_gaps"
     },
     {
-      "description": "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Requirement reports include a deterministic, dependency-ordered, read-only repair plan; optional legacy migration previews reconstruct authored proposition inventories and rank exact schema candidates without producing executable writes. Paginated plans identify incomplete scope. Requirement rows keep coverageStatus separate from proofStatus and require fresh snapshot-bound E2E receipts before proof. No mutation side effects.",
+      "description": "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Reports include the compatible repair plan plus typed kibi.migration-plan.v2 actions; semantic and E2E actions remain review/execution work. Paginated plans identify incomplete scope and no mutation occurs.",
       "inputSchema": {
         "properties": {
           "_diagnostic_telemetry": {
@@ -1750,7 +1750,7 @@
       "name": "kb_delete"
     },
     {
-      "description": "Run KB validation rules and return violations. Use before or after mutations, and after meaningful source edits with impact options to surface symbol granularity and semantic-review diagnostics. Do not use for point lookups. No write side effects. Prefer explicit rules for faster iteration; omit rules for final full validation plus full-KB qualityDiagnostics review, including telemetry acceptance when .kb/usage.log exists.",
+      "description": "Run KB validation rules and return violations, quality diagnostics, and typed kibi.migration-plan.v2 actions. Use before or after mutations and after source edits; checks remain read-only and never infer or apply actions from prose suggestions.",
       "inputSchema": {
         "properties": {
           "_diagnostic_telemetry": {
@@ -2433,7 +2433,7 @@
         "readOnlyHint": false,
         "title": "Apply an approved Kibi plan"
       },
-      "description": "Apply an approved kibi.compile-plan.v1 after revalidating its canonical hash, branch/KB/workspace snapshots, source before-hashes, entity shapes, and relationship endpoints. Applies entity steps sequentially through the shared upsert boundary and reports final snapshots. Source publishing and crash recovery are not silently implied by this v1 boundary.",
+      "description": "Apply an approved kibi.compile-plan.v1 or kibi.migration-plan.v2 after revalidating its canonical hash and live snapshots. Compile steps remain sequential entity writes; migration steps require explicit automatic action IDs and preserve backups/audit evidence. Review, operator, and execution actions are rejected.",
       "inputSchema": {
         "properties": {
           "_diagnostic_telemetry": {
@@ -2470,22 +2470,22 @@
             },
             "type": "object"
           },
+          "approvedActionIds": {
+            "description": "Required for migration-plan.v2. Exact automatic action IDs explicitly approved for this application.",
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
           "approvedPlanHash": {
             "description": "Exact SHA-256 planHash returned by kb_compile_intent after human/agent review.",
             "pattern": "^[a-fA-F0-9]{64}$",
             "type": "string"
           },
           "plan": {
-            "description": "The complete kibi.compile-plan.v1 object. Partial plans are rejected.",
-            "required": [
-              "version",
-              "planHash",
-              "status",
-              "expected",
-              "target",
-              "steps",
-              "sourceWrites"
-            ],
+            "description": "The complete kibi.compile-plan.v1 or kibi.migration-plan.v2 object. Migration plans require approvedActionIds and reject blocked/non-automatic actions.",
+            "required": ["version", "planHash", "status", "expected"],
             "type": "object"
           }
         },

@@ -79,11 +79,15 @@ describe("MCP tool handler error wrappers", () => {
     );
   });
 
-  test("wraps kb_status failures", async () => {
-    await expect(
-      handleKbStatus(createFailingProlog("status backend unavailable"), {}),
-    ).rejects.toThrow(
-      "Status execution failed: Status execution query failed: status backend unavailable",
+  test("reports kb_status backend failures as an unreadable store", async () => {
+    const result = await handleKbStatus(
+      createFailingProlog("status backend unavailable"),
+      {},
+    );
+    expect(result.structuredContent?.dirty).toBe(true);
+    expect(result.structuredContent?.branchStore?.state).toBe("unreadable");
+    expect(result.structuredContent?.branchStore?.detail).toContain(
+      "status backend unavailable",
     );
   });
 });

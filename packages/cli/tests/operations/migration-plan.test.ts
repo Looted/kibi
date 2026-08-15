@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
+import { executeApplyPlan } from "../../src/operations/planning/apply-plan.js";
 import {
   buildActionsFromStatus,
   buildMigrationPlan,
   mergeMigrationPlans,
   migrationPlanHash,
 } from "../../src/public/operations/migration-plan.js";
-import { executeApplyPlan } from "../../src/operations/planning/apply-plan.js";
 
 describe("kibi.migration-plan.v2", () => {
   test("hashes equivalent action graphs deterministically", () => {
@@ -18,7 +18,10 @@ describe("kibi.migration-plan.v2", () => {
           category: "schema",
           state: "ready",
           safety: "automatic",
-          invocation: { kind: "cli", command_argv: ["kibi", "migrate", "--yes"] },
+          invocation: {
+            kind: "cli",
+            command_argv: ["kibi", "migrate", "--yes"],
+          },
           affectedEntityIds: [],
           affectedFiles: [".kb/config.json"],
           dependsOn: [],
@@ -36,7 +39,9 @@ describe("kibi.migration-plan.v2", () => {
       actions: [...first.actions].reverse(),
     });
     expect(second.planHash).toBe(first.planHash);
-    expect(migrationPlanHash({ ...first, planHash: "ignored" })).toBe(first.planHash);
+    expect(migrationPlanHash({ ...first, planHash: "ignored" })).toBe(
+      first.planHash,
+    );
   });
 
   test("emits a safe exact legacy branch action and does not normalize other branches", () => {
@@ -91,7 +96,10 @@ describe("kibi.migration-plan.v2", () => {
           category: "schema",
           state: "ready",
           safety: "automatic",
-          invocation: { kind: "cli", command_argv: ["kibi", "migrate", "--yes"] },
+          invocation: {
+            kind: "cli",
+            command_argv: ["kibi", "migrate", "--yes"],
+          },
           affectedEntityIds: [],
           affectedFiles: [],
           dependsOn: [],
@@ -129,8 +137,8 @@ describe("kibi.migration-plan.v2", () => {
     const merged = mergeMigrationPlans([status, quality]);
     expect(merged.scope.evaluatedDomains).toEqual(["quality", "schema"]);
     expect(merged.actions.map((action) => action.id)).toEqual([
-      "diagnostic-telemetry-workspace",
       "schema-config-upgrade",
+      "diagnostic-telemetry-workspace",
     ]);
   });
 
@@ -165,13 +173,21 @@ describe("kibi.migration-plan.v2", () => {
     };
     await expect(
       executeApplyPlan(
-        { plan, approvedPlanHash: "0".repeat(64), approvedActionIds: ["review-contradiction"] },
+        {
+          plan,
+          approvedPlanHash: "0".repeat(64),
+          approvedActionIds: ["review-contradiction"],
+        },
         context,
       ),
     ).rejects.toThrow("approvedPlanHash does not match");
     await expect(
       executeApplyPlan(
-        { plan, approvedPlanHash: plan.planHash, approvedActionIds: ["review-contradiction"] },
+        {
+          plan,
+          approvedPlanHash: plan.planHash,
+          approvedActionIds: ["review-contradiction"],
+        },
         context,
       ),
     ).rejects.toThrow("is not automatic");

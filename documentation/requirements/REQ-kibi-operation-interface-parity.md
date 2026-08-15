@@ -3,7 +3,7 @@ id: REQ-kibi-operation-interface-parity
 title: Kibi public operation surface keeps MCP and CLI in parity
 status: open
 created_at: 2026-07-21T00:00:00Z
-updated_at: 2026-08-08T12:00:00Z
+updated_at: 2026-08-15T08:05:00Z
 source: documentation/requirements/REQ-kibi-operation-interface-parity.md
 priority: must
 owner: platform-team

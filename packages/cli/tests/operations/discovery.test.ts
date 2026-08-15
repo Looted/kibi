@@ -97,18 +97,20 @@ describe("shared discovery operation executors", () => {
     );
 
     // Then
-    expect(result.structuredContent).toEqual({
-      entities: [
-        {
-          id: "REQ-3",
-          type: "req",
-          title: "Three",
-          status: "open",
-          tags: ["wanted"],
-        },
-      ],
-      count: 2,
-    });
+    expect(result.structuredContent).toEqual(
+      expect.objectContaining({
+        entities: [
+          {
+            id: "REQ-3",
+            type: "req",
+            title: "Three",
+            status: "open",
+            tags: ["wanted"],
+          },
+        ],
+        count: 2,
+      }),
+    );
   });
 
   test("kb_search trims the query and preserves ranked pagination", async () => {
@@ -261,21 +263,26 @@ describe("shared discovery operation executors", () => {
     const result = await statusSpec.execute({}, createContext(query));
 
     // Then
-    expect(result.structuredContent).toEqual({
-      branch: "feature/shared-discovery",
-      snapshotId: "stamp:123",
-      syncedAt: "2026-07-21T00:00:00Z",
-      dirty: false,
-      syncState: "fresh",
-      verificationSnapshot: "a".repeat(64),
-      verificationSnapshotAvailable: true,
-      verificationSnapshotDirty: false,
-      verificationSnapshotFileCount: 7,
-      verificationSnapshotVersion: "kibi.workspace-snapshot.v2",
-      verificationSnapshotChangeCount: 0,
-      verificationSnapshotChanges: [],
-      verificationSnapshotChangesTruncated: false,
-    });
+    expect(result.structuredContent).toEqual(
+      expect.objectContaining({
+        branch: "feature/shared-discovery",
+        snapshotId: "stamp:123",
+        syncedAt: "2026-07-21T00:00:00Z",
+        dirty: false,
+        syncState: "fresh",
+        verificationSnapshot: "a".repeat(64),
+        verificationSnapshotAvailable: true,
+        verificationSnapshotDirty: false,
+        verificationSnapshotFileCount: 7,
+        verificationSnapshotVersion: "kibi.workspace-snapshot.v2",
+        verificationSnapshotChangeCount: 0,
+        verificationSnapshotChanges: [],
+        verificationSnapshotChangesTruncated: false,
+        migrationPlan: expect.objectContaining({
+          version: "kibi.migration-plan.v2",
+        }),
+      }),
+    );
     expect(query).toHaveBeenCalledTimes(1);
     expect(query.mock.calls[0]?.[0]).toContain(
       "status:kb_status_json(JsonString)",

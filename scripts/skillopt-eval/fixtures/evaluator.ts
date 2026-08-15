@@ -412,7 +412,11 @@ function workflowExpectation(task: FixtureTaskSpec) {
       expectedVerificationState: "not_evaluated",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["migration plan v2", "approved plan hash", "automatic action IDs"],
+      requiredSignals: [
+        "migration plan v2",
+        "approved plan hash",
+        "automatic action IDs",
+      ],
       forbiddenActions: ["apply review action", "direct .kb edit"],
     },
     stale_plan_hash_rejection: {
@@ -422,7 +426,10 @@ function workflowExpectation(task: FixtureTaskSpec) {
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["stale plan hash rejected", "fresh migration preview"],
-      forbiddenActions: ["apply stale migration plan", "partial plan application"],
+      forbiddenActions: [
+        "apply stale migration plan",
+        "partial plan application",
+      ],
     },
     partial_plan_destructive_refusal: {
       expectedOutcome: "complete",
@@ -439,7 +446,10 @@ function workflowExpectation(task: FixtureTaskSpec) {
       expectedVerificationState: "not_evaluated",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["migration plan without Prolog", "recovery backup required"],
+      requiredSignals: [
+        "migration plan without Prolog",
+        "recovery backup required",
+      ],
       forbiddenActions: ["start Prolog for status", "direct .kb edit"],
     },
     exact_legacy_branch_migration: {
@@ -448,7 +458,10 @@ function workflowExpectation(task: FixtureTaskSpec) {
       expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["migration preview", "exact Git branch equals KB branch"],
+      requiredSignals: [
+        "migration preview",
+        "exact Git branch equals KB branch",
+      ],
       forbiddenActions: ["rename Git branch", "direct .kb edit"],
     },
     legacy_shard_reconciliation: {
@@ -466,7 +479,10 @@ function workflowExpectation(task: FixtureTaskSpec) {
       expectedVerificationState: "not_evaluated",
       expectedProofState: "mixed",
       expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["complete extraction evidence", "authored ownership safety"],
+      requiredSignals: [
+        "complete extraction evidence",
+        "authored ownership safety",
+      ],
       forbiddenActions: ["delete authored symbol", "fabricate coordinates"],
     },
     contract_mismatch_preserving_receipt_history: {
@@ -475,8 +491,14 @@ function workflowExpectation(task: FixtureTaskSpec) {
       expectedVerificationState: "fresh",
       expectedProofState: "unresolved",
       expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["historical contract receipt preserved", "current contract required"],
-      forbiddenActions: ["rewrite receipt history", "delete historical receipt"],
+      requiredSignals: [
+        "historical contract receipt preserved",
+        "current contract required",
+      ],
+      forbiddenActions: [
+        "rewrite receipt history",
+        "delete historical receipt",
+      ],
     },
     mixed_package_operator_escalation: {
       expectedOutcome: "complete",
@@ -485,7 +507,10 @@ function workflowExpectation(task: FixtureTaskSpec) {
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "unaccepted",
       requiredSignals: ["release defect", "operator package action"],
-      forbiddenActions: ["choose package manager", "accept project override as permanent"],
+      forbiddenActions: [
+        "choose package manager",
+        "accept project override as permanent",
+      ],
     },
     structured_quality_diagnostic_disposition: {
       expectedOutcome: "complete",
@@ -493,7 +518,10 @@ function workflowExpectation(task: FixtureTaskSpec) {
       expectedVerificationState: "fresh",
       expectedProofState: "unresolved",
       expectedLimitationDisposition: "accepted",
-      requiredSignals: ["diagnostic IDs with dispositions", "structured five-axis closeout"],
+      requiredSignals: [
+        "diagnostic IDs with dispositions",
+        "structured five-axis closeout",
+      ],
       forbiddenActions: ["blanket acceptance", "claim proof proven"],
     },
   };
@@ -677,5 +705,19 @@ export function verifyPrivateManifestIntegrity(
     publicManifestHash: manifest.publicManifestHash,
     workspaceHash: manifest.workspaceHash,
   });
-  return JSON.stringify(expected) === JSON.stringify(manifest);
+  const canonicalize = (value: unknown): unknown => {
+    if (Array.isArray(value)) return value.map(canonicalize);
+    if (value !== null && typeof value === "object") {
+      return Object.fromEntries(
+        Object.entries(value as Record<string, unknown>)
+          .sort(([left], [right]) => left.localeCompare(right))
+          .map(([key, item]) => [key, canonicalize(item)]),
+      );
+    }
+    return value;
+  };
+  return (
+    JSON.stringify(canonicalize(expected)) ===
+    JSON.stringify(canonicalize(manifest))
+  );
 }

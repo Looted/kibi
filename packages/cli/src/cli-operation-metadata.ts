@@ -128,7 +128,7 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_apply_plan",
     cliName: "apply-plan",
     description:
-      "Apply an approved kibi.compile-plan.v1 after revalidating its canonical hash, branch/KB/workspace snapshots, source before-hashes, entity shapes, and relationship endpoints. Applies entity steps sequentially through the shared upsert boundary and reports final snapshots. Source publishing and crash recovery are not silently implied by this v1 boundary.",
+      "Apply an approved kibi.compile-plan.v1 or kibi.migration-plan.v2 after revalidating its canonical hash and live snapshots. Compile steps remain sequential entity writes; migration steps require explicit automatic action IDs and preserve backups/audit evidence. Review, operator, and execution actions are rejected.",
   },
   {
     name: "kb_ingest_verification",

@@ -7427,9 +7427,9 @@ coordinates:
   SYM-operation-coverage-spec:
     sourceColumn: 13
     sourceEndColumn: 66
-    sourceEndLine: 315
+    sourceEndLine: 326
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
-    sourceLine: 260
+    sourceLine: 271
   SYM-operation-delete-spec:
     sourceColumn: 13
     sourceEndColumn: 62
@@ -7445,13 +7445,13 @@ coordinates:
   SYM-operation-execute-check:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 247
+    sourceEndLine: 268
     sourceFile: packages/cli/src/public/operations/check-executor.ts
-    sourceLine: 100
+    sourceLine: 119
   SYM-operation-executeCoverage:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 258
+    sourceEndLine: 269
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
     sourceLine: 164
   SYM-operation-find-gaps-spec:
@@ -7469,9 +7469,9 @@ coordinates:
   SYM-operation-graph-spec:
     sourceColumn: 13
     sourceEndColumn: 60
-    sourceEndLine: 377
+    sourceEndLine: 388
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
-    sourceLine: 352
+    sourceLine: 363
   SYM-operation-list-specs:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8249,9 +8249,9 @@ coordinates:
   SYM-reqcompiler-graph-execute:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 350
+    sourceEndLine: 361
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
-    sourceLine: 317
+    sourceLine: 328
   SYM-reqcompiler-graph-input:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -10955,15 +10955,15 @@ coordinates:
   SYM-skillopt-fixture-private-integrity:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 681
+    sourceEndLine: 723
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    sourceLine: 671
+    sourceLine: 699
   SYM-skillopt-fixture-private-manifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 668
+    sourceEndLine: 696
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    sourceLine: 529
+    sourceLine: 557
   SYM-skillopt-fixture-serialize:
     sourceColumn: 16
     sourceEndColumn: 1

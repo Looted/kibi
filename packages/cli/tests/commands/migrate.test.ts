@@ -127,8 +127,9 @@ describe("kibi migrate", () => {
 
     const result = runKibi(["migrate"], tmpDir);
 
-    expect(result.status).toBe(1);
-    expect(result.stderr).toContain("Missing .kb/ directory");
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("Migration plan");
+    expect(result.stdout).toContain("missing_exact_branch_store");
   });
 
   test("reports missing config file as a migration error", () => {
@@ -136,24 +137,27 @@ describe("kibi migrate", () => {
 
     const result = runKibi(["migrate"], tmpDir);
 
-    expect(result.status).toBe(1);
-    expect(result.stderr).toContain("Missing .kb/config.json");
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("Migration plan");
+    expect(result.stdout).toContain("schema_version_upgrade");
   });
 
   test("reports invalid JSON config as a migration error", () => {
     writeFileSync(path.join(tmpDir, ".kb", "config.json"), "{ nope", "utf8");
 
     const result = runKibi(["migrate"], tmpDir);
-    expect(result.status).toBe(1);
-    expect(result.stderr).toContain("Invalid .kb/config.json");
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("Migration plan");
+    expect(result.stdout).toContain("invalid_schema_version");
   });
 
   test("reports non-object JSON config as a migration error", () => {
     writeFileSync(path.join(tmpDir, ".kb", "config.json"), "[]", "utf8");
 
     const result = runKibi(["migrate"], tmpDir);
-    expect(result.status).toBe(1);
-    expect(result.stderr).toContain("must contain a JSON object");
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("Migration plan");
+    expect(result.stdout).toContain("schema_version_upgrade");
   });
 
   test("rejects config schema versions newer than the CLI", () => {
@@ -196,13 +200,9 @@ describe("kibi migrate", () => {
     const result = runKibi(["migrate"], tmpDir);
 
     expect(result.status).toBe(0);
-    expect(result.stdout).toContain(
-      `Warning: Migration required for ${path.join(".kb", "config.json")}.`,
-    );
-    expect(result.stdout).toContain("No changes applied.");
-    expect(result.stdout).toContain(
-      "Use --dry-run to preview or --yes to apply the migration.",
-    );
+    expect(result.stdout).toContain("Migration plan");
+    expect(result.stdout).toContain("schema_version_upgrade");
+    expect(result.stdout).toContain("Use --format json for structured actions");
     expect(readFileSync(configPath, "utf8")).toBe(beforeConfig);
     expect(existsSync(auditPath)).toBe(false);
   });

@@ -121,8 +121,15 @@ describe("MCP coverage tool handler", () => {
       includeTransitive: false,
     });
 
-    expect(query).toHaveBeenCalledTimes(1);
-    const firstCall = query.mock.calls[0] as unknown[];
+    // Coverage now appends the status-derived migration fragment when the
+    // workspace attachment is available, so the Prolog query is followed by
+    // a read-only status query. Assert the coverage invocation itself.
+    expect(query.mock.calls.length).toBeGreaterThanOrEqual(1);
+    const coverageCall = query.mock.calls.find((call) =>
+      String((call as unknown[])[0]).includes("coverage_report_json"),
+    );
+    expect(coverageCall).toBeDefined();
+    const firstCall = coverageCall as unknown as unknown[];
     expect(String(firstCall[0])).toContain(
       ", false, false, 100, 0, 'unknown', ",
     );

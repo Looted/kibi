@@ -17,14 +17,14 @@ Help agents decide whether Kibi knowledge is current enough to support safe chan
 ## Interface Selection
 
 1. If Kibi MCP tools are visible and approved for the workspace, use that peer surface.
-2. Otherwise, in a trusted workspace, use the project-local CLI through the repository's supported non-installing invocation.
+2. Otherwise, in a trusted workspace, use the project-local CLI through the repository's supported non-installing invocation, for example `npx --no-install kibi status --input -`.
 3. If neither surface is available, stop and tell the operator which capability must be enabled.
 4. Never install packages, choose a package manager, or use a global fallback as part of freshness inspection.
 
 Use `kibi-usage/resources/operation-access.md` for exact dedicated routes. A project-local CLI freshness check is executable as:
 
 ```bash
-echo '{}' | kibi status --input -
+echo '{}' | npx --no-install kibi status --input -
 ```
 
 ## Capability Workflow

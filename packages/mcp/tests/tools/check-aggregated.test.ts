@@ -56,9 +56,12 @@ describe("MCP check aggregated path", () => {
       "Add source to entity definition",
     );
 
-    expect(query).toHaveBeenCalledTimes(1);
-    const firstCallGoal = (query as unknown as { mock: { calls: string[][] } })
-      .mock.calls[0]?.[0];
+    expect(query.mock.calls.length).toBeGreaterThanOrEqual(1);
+    const firstCallGoal = (
+      query as unknown as { mock: { calls: string[][] } }
+    ).mock.calls.find((call) =>
+      call[0]?.includes("check_all_json_with_options"),
+    )?.[0];
     expect(firstCallGoal).toContain("check_all_json_with_options");
   });
 

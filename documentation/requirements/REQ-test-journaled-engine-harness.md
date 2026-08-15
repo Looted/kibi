@@ -3,7 +3,7 @@ id: REQ-test-journaled-engine-harness
 title: Reuse and clean up journaled engines in tests
 status: open
 created_at: 2026-08-12T00:00:00Z
-updated_at: 2026-08-12T00:00:00Z
+updated_at: 2026-08-15T08:05:00Z
 source: test/root.test.ts
 priority: must
 tags:

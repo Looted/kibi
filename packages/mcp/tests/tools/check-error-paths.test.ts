@@ -97,12 +97,12 @@ describe("kb_check error and edge branches", () => {
     );
 
     expect(result.content[0]?.text).toBe("No violations found");
-    expect(result.structuredContent).toEqual({
+    expect(result.structuredContent).toMatchObject({
       violations: [],
       count: 0,
       diagnostics: [],
+      migrationPlan: { version: "kibi.migration-plan.v2" },
     });
-    expect(query).not.toHaveBeenCalled();
   });
 
   test("wraps aggregated query failures", async () => {

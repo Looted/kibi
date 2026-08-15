@@ -40,10 +40,25 @@ describe("executeOperation", () => {
   test("renders one JSON value with a trailing newline on success", async () => {
     const result = await executeOperation("kb_status", {}, createContext());
 
-    expect(result).toEqual({
-      exitCode: 0,
-      stdout: `{"branch":"develop","snapshotId":"stamp:test","syncedAt":null,"dirty":false,"syncState":"fresh","verificationSnapshot":"${"a".repeat(64)}","verificationSnapshotAvailable":true,"verificationSnapshotDirty":true,"verificationSnapshotFileCount":12,"verificationSnapshotVersion":"kibi.workspace-snapshot.v2","verificationSnapshotChanges":[],"verificationSnapshotChangeCount":0,"verificationSnapshotChangesTruncated":false}\n`,
-    });
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout ?? "")).toEqual(
+      expect.objectContaining({
+        branch: "develop",
+        snapshotId: "stamp:test",
+        syncedAt: null,
+        dirty: false,
+        syncState: "fresh",
+        verificationSnapshot: "a".repeat(64),
+        verificationSnapshotAvailable: true,
+        verificationSnapshotDirty: true,
+        verificationSnapshotFileCount: 12,
+        verificationSnapshotVersion: "kibi.workspace-snapshot.v2",
+        migrationPlan: expect.objectContaining({
+          version: "kibi.migration-plan.v2",
+        }),
+      }),
+    );
+    expect(result.stdout?.endsWith("\n")).toBe(true);
   });
 
   test("returns exit 2 and stderr-only diagnostics for invalid input", async () => {

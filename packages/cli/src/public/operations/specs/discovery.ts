@@ -171,7 +171,7 @@ export const statusSpec = {
   name: "kb_status",
   cliName: "status",
   description:
-    "Report current branch, KB snapshot and freshness metadata, plus the deterministic workspace snapshot used to validate execution receipts. Read-only status inspection with no mutation side effects.",
+    "Report current branch, KB snapshot, freshness metadata, schema status, and a typed kibi.migration-plan.v2 action graph. Read-only status inspection with no mutation side effects; damaged stores are diagnosed without starting the engine.",
   businessInputSchema: { type: "object", properties: {} },
   // Status must remain available when the branch store cannot be attached.
   requiresProlog: false,

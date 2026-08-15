@@ -130,17 +130,17 @@ describe("canonical skills source", () => {
     }
   });
 
-  test("newly-canonical skills are pinned at version 1.0.0 with wildcard compatibility", () => {
-    const newCanonical = [
-      "init-kibi",
-      "kibi-freshness",
-      "kibi-traceability",
-    ] as const;
-    for (const id of newCanonical) {
+  test("newly-canonical skills declare their release versions with wildcard compatibility", () => {
+    const newCanonical = {
+      "init-kibi": "1.0.0",
+      "kibi-freshness": "1.0.2",
+      "kibi-traceability": "1.0.0",
+    } as const;
+    for (const [id, version] of Object.entries(newCanonical)) {
       const skillFile = join(canonicalRoot, id, "SKILL.md");
       const raw = readFileSync(skillFile, "utf8");
       const manifest = parseFrontmatter(raw);
-      expect(manifest.version, `${id} version`).toBe("1.0.0");
+      expect(manifest.version, `${id} version`).toBe(version);
       expect(manifest.kibiCompatibility, `${id} compat`).toBe("*");
     }
   });
@@ -159,7 +159,9 @@ describe("canonical skills source", () => {
       const raw = readFileSync(skillFile, "utf8");
       expect(raw).toContain("## Interface Selection");
       expect(raw).toContain("MCP");
-      expect(raw).toMatch(/npx --no-install|bunx --no-install/);
+      expect(raw).toMatch(
+        /npx --no-install|bunx --no-install|kibi status --input/,
+      );
       expect(raw.toLowerCase()).not.toContain("mcp only");
       expect(raw.toLowerCase()).not.toContain("exclusively through mcp");
     }

@@ -1089,24 +1089,42 @@ describe.serial("server tools coverage", () => {
       TOOL_NAMES.map((name) => [name, { marker: name }]),
     );
 
+    // The captured runtime points at a synthetic non-Git workspace. Make the
+    // required branch identity explicit so the read-only status operation can
+    // report its missing store instead of failing branch resolution.
+    const originalBranch = process.env.KIBI_BRANCH;
+    process.env.KIBI_BRANCH = "feature/test";
     const results = await Promise.all(
       TOOL_NAMES.map(async (name) => {
         const tool = getRegisteredTool(registered, name);
         return invokeTool(tool, argsByTool.get(name) ?? {});
       }),
     );
+    restoreEnvVar("KIBI_BRANCH", originalBranch);
 
-    expect(results).toEqual(
-      TOOL_NAMES.map((name) => ({
-        tool: name,
-        args:
-          name === "kb_sparql_remote" || name === "kb_autopilot_generate"
-            ? expect.objectContaining({ workspaceRoot: "/workspace" })
-            : argsByTool.get(name),
-      })),
-    );
+    expect(results).toHaveLength(TOOL_NAMES.length);
+    for (const [index, name] of TOOL_NAMES.entries()) {
+      const result = results[index] as { tool?: string; args?: unknown };
+      if (name === "kb_status") {
+        expect(result).toMatchObject({
+          structuredContent: {
+            branch: "feature/test",
+            branchStore: { state: "missing" },
+          },
+        });
+        continue;
+      }
+      expect(result.tool).toBe(name);
+      if (name === "kb_sparql_remote" || name === "kb_autopilot_generate") {
+        expect(result.args).toMatchObject({ workspaceRoot: "/workspace" });
+      } else {
+        expect(result.args).toEqual(argsByTool.get(name));
+      }
+    }
 
-    expect(spies.ensureProlog).toHaveBeenCalledTimes(TOOL_NAMES.length - 6);
+    // Status and the other Prolog-free operations are dispatched without
+    // acquiring a session engine.
+    expect(spies.ensureProlog).toHaveBeenCalledTimes(13);
     expect(spies.handleKbQuery).toHaveBeenCalledWith(
       mockProlog,
       argsByTool.get("kb_query"),
@@ -1115,11 +1133,9 @@ describe.serial("server tools coverage", () => {
       mockProlog,
       argsByTool.get("kb_search"),
     );
-    expect(spies.handleKbStatus).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_status"),
-      expect.objectContaining({ workspaceRoot: "/workspace" }),
-    );
+    // Status is deliberately routed through the shared Prolog-free executor;
+    // the runtime handler is not invoked and no session engine is started.
+    expect(spies.handleKbStatus).not.toHaveBeenCalled();
     expect(spies.handleKbSemanticAdvisor).toHaveBeenCalledWith(
       argsByTool.get("kb_semantic_advisor"),
     );

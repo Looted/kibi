@@ -6,7 +6,7 @@
   },
   "input": {},
   "tool": {
-    "description": "Report current branch, KB snapshot and freshness metadata, plus the deterministic workspace snapshot used to validate execution receipts. Read-only status inspection with no mutation side effects.",
+    "description": "Report current branch, KB snapshot, freshness metadata, schema status, and a typed kibi.migration-plan.v2 action graph. Read-only status inspection with no mutation side effects; damaged stores are diagnosed without starting the engine.",
     "inputSchema": {
       "properties": {},
       "type": "object"

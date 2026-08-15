@@ -35,25 +35,25 @@
     "version": "kibi.plan-apply-result.v1"
   },
   "tool": {
-    "description": "Apply an approved kibi.compile-plan.v1 after revalidating its canonical hash, branch/KB/workspace snapshots, source before-hashes, entity shapes, and relationship endpoints. Applies entity steps sequentially through the shared upsert boundary and reports final snapshots. Source publishing and crash recovery are not silently implied by this v1 boundary.",
+    "description": "Apply an approved kibi.compile-plan.v1 or kibi.migration-plan.v2 after revalidating its canonical hash and live snapshots. Compile steps remain sequential entity writes; migration steps require explicit automatic action IDs and preserve backups/audit evidence. Review, operator, and execution actions are rejected.",
     "inputSchema": {
       "properties": {
+        "approvedActionIds": {
+          "description": "Required for migration-plan.v2. Exact automatic action IDs explicitly approved for this application.",
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        },
         "approvedPlanHash": {
           "description": "Exact SHA-256 planHash returned by kb_compile_intent after human/agent review.",
           "pattern": "^[a-fA-F0-9]{64}$",
           "type": "string"
         },
         "plan": {
-          "description": "The complete kibi.compile-plan.v1 object. Partial plans are rejected.",
-          "required": [
-            "version",
-            "planHash",
-            "status",
-            "expected",
-            "target",
-            "steps",
-            "sourceWrites"
-          ],
+          "description": "The complete kibi.compile-plan.v1 or kibi.migration-plan.v2 object. Migration plans require approvedActionIds and reject blocked/non-automatic actions.",
+          "required": ["version", "planHash", "status", "expected"],
           "type": "object"
         }
       },

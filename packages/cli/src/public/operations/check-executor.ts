@@ -1,5 +1,4 @@
 import { runAggregatedChecks } from "../../commands/aggregated-checks.js";
-import { executeStatus } from "./discovery-executors.js";
 /*
  Kibi — repo-local, per-branch, queryable long-term memory for software projects
  Copyright (C) 2026 Piotr Franczyk
@@ -26,17 +25,18 @@ import {
   buildSummary,
 } from "./check-format-shared.js";
 import {
-  buildActionsFromCheck,
-  buildMigrationPlan,
-  mergeMigrationPlans,
-} from "./migration-plan.js";
-import {
   analyzeKbCheckImpact,
   collectQueryPlanSafetyViolations,
   getEffectiveRules,
   loadChecksConfig,
   qualityDiagnosticsFromImpact,
 } from "./check-helpers.js";
+import { executeStatus } from "./discovery-executors.js";
+import {
+  buildActionsFromCheck,
+  buildMigrationPlan,
+  mergeMigrationPlans,
+} from "./migration-plan.js";
 import type { OperationContext, PrologPort } from "./runtime-types.js";
 import type { OperationResult } from "./types.js";
 import { readWorkspaceSnapshot } from "./workspace-snapshot.js";
@@ -89,11 +89,30 @@ async function migrationPlanForCheck(
     },
     evaluatedDomains: ["quality"],
     actions: buildActionsFromCheck({
-      violations: violations as unknown as readonly Readonly<Record<string, unknown>>[],
+      violations: violations as unknown as readonly Readonly<
+        Record<string, unknown>
+      >[],
       qualityDiagnostics,
     }),
   });
   return statusPlan ? mergeMigrationPlans([statusPlan, checkPlan]) : checkPlan;
+}
+
+async function readStatusMigrationPlan(
+  context: OperationContext,
+): Promise<ReturnType<typeof buildMigrationPlan> | undefined> {
+  try {
+    const statusResult = await executeStatus({}, context);
+    return statusResult.structuredContent?.migrationPlan;
+  } catch (error) {
+    // A check can still provide a complete quality-domain plan in a detached
+    // or synthetic workspace used by an agent/test harness. Status remains a
+    // separately actionable domain; preserve the check result rather than
+    // turning a missing Git attachment into a check failure.
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("Failed to resolve active branch")) return undefined;
+    throw error;
+  }
 }
 
 // implements REQ-kibi-operation-interface-parity, REQ-002
@@ -142,12 +161,13 @@ export async function executeCheck(
                 now: context.clock(),
                 ...maxDiagnosticsOption,
               });
-      const statusResult = await executeStatus({}, context);
-      const statusPlan = statusResult.structuredContent?.migrationPlan;
+      const statusPlan = await readStatusMigrationPlan(context);
       const migrationPlan = await migrationPlanForCheck(
         context,
         [],
-        qualityDiagnostics as unknown as readonly Readonly<Record<string, unknown>>[],
+        qualityDiagnostics as unknown as readonly Readonly<
+          Record<string, unknown>
+        >[],
         statusPlan,
       );
       return {
@@ -213,12 +233,13 @@ export async function executeCheck(
             ...maxDiagnosticsOption,
           });
 
-    const statusResult = await executeStatus({}, context);
-    const statusPlan = statusResult.structuredContent?.migrationPlan;
+    const statusPlan = await readStatusMigrationPlan(context);
     const migrationPlan = await migrationPlanForCheck(
       context,
       violations,
-      qualityDiagnostics as unknown as readonly Readonly<Record<string, unknown>>[],
+      qualityDiagnostics as unknown as readonly Readonly<
+        Record<string, unknown>
+      >[],
       statusPlan,
     );
     return {
