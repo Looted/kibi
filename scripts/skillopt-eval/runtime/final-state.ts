@@ -77,7 +77,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function structuredContent(value: unknown): Record<string, unknown> | null {
   if (!isRecord(value)) return null;
   const content = value.structuredContent ?? value.structured_content;
-  return isRecord(content) ? content : null;
+  if (!isRecord(content)) return null;
+  if (content.kibiProtocol === 1 && isRecord(content.data)) {
+    return content.data;
+  }
+  return content;
 }
 
 function entityIdFromReference(value: string): string {

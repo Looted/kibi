@@ -13,6 +13,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import relationshipSchema from "../../src/public/schemas/relationship.js";
 import { createCliRuntime } from "../../src/runtime/cli-runtime.js";
+import { branchStorePath } from "../../src/utils/branch-store-locator.js";
 
 describe("kibi query", () => {
   test("attaches the supplied workspace branch instead of the injected ambient branch", async () => {
@@ -40,7 +41,7 @@ describe("kibi query", () => {
       });
 
       expect(goals).toContainEqual(
-        expect.stringContaining(".kb/branches/develop"),
+        expect.stringContaining(branchStorePath(workspace, "develop")),
       );
     } finally {
       rmSync(workspace, { force: true, recursive: true });
@@ -152,6 +153,11 @@ User logs in with OAuth2 provider.
     tags: [payments]
 `,
     );
+
+    execSync("git add requirements scenarios symbols.yaml", {
+      cwd: tmpDir,
+      stdio: "pipe",
+    });
 
     // Sync the fixtures into KB
     execSync(`node ${kibiBin} sync`, {
@@ -381,6 +387,10 @@ status: open
 ---
 `,
       );
+      execSync("git add documentation/requirements/req-readonly.md", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       execSync(`node ${kibiBin} sync`, {
         cwd: tmpDir,
@@ -393,10 +403,7 @@ status: open
           encoding: "utf8",
         }).trim() || "master";
       const effectiveBranch = branch;
-      const rdfPath = path.join(
-        tmpDir,
-        `.kb/branches/${effectiveBranch}/kb.rdf`,
-      );
+      const rdfPath = path.join(branchStorePath(tmpDir, effectiveBranch), "kb.rdf");
       const before = readFileSync(rdfPath, "utf8");
       const beforeMtime = statSync(rdfPath).mtimeMs;
 

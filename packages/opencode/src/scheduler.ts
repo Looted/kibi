@@ -376,7 +376,7 @@ async function runKibiSync(worktree: string): Promise<SyncRunnerResult> {
             ? `${error.message}${signal}`
             : signal || undefined;
           resolve({
-            exitCode: error.code ?? 1,
+            exitCode: typeof error.code === "number" ? error.code : 1,
             syncCommand: "kibi sync",
             ...(truncatedOut !== undefined ? { syncStdout: truncatedOut } : {}),
             ...(truncatedErr !== undefined ? { syncStderr: truncatedErr } : {}),
@@ -410,7 +410,8 @@ async function runKibiCheck(
         const truncatedOut = truncateSyncOutput(stdout || undefined);
         const truncatedErr = truncateSyncOutput(stderr || undefined);
         resolve({
-          exitCode: error ? (error.code ?? 1) : 0,
+          exitCode:
+            error && typeof error.code === "number" ? error.code : 0,
           ...(truncatedOut !== undefined ? { stdout: truncatedOut } : {}),
           ...(truncatedErr !== undefined ? { stderr: truncatedErr } : {}),
         });

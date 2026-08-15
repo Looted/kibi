@@ -13,7 +13,7 @@ import { after, describe, it } from "node:test";
 import { parseNpmPackJsonOutput } from "./npm-pack-json.js";
 
 const REPO_ROOT = resolve(process.cwd());
-const packageNames = ["core", "cli", "mcp"] as const;
+const packageNames = ["core", "cli", "runtime", "mcp"] as const;
 type PackageName = (typeof packageNames)[number];
 
 function packReleasePackage(pkg: PackageName): string {
@@ -59,6 +59,7 @@ function writeConsumerManifest(
         overrides: {
           "kibi-mcp": {
             "kibi-cli": "$kibi-cli",
+            "kibi-runtime": "$kibi-runtime",
             "kibi-core": "$kibi-core",
           },
         },
@@ -73,7 +74,9 @@ function writeConsumerManifest(
     `overrides:\n${[
       `  kibi-cli>kibi-core: file:${tarballs.core}`,
       `  kibi-mcp>kibi-cli: file:${tarballs.cli}`,
+      `  kibi-mcp>kibi-runtime: file:${tarballs.runtime}`,
       `  kibi-mcp>kibi-core: file:${tarballs.core}`,
+      `  kibi-runtime>kibi-cli: file:${tarballs.cli}`,
     ].join("\n")}\n`,
     "utf8",
   );

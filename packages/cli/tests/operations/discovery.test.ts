@@ -1,4 +1,7 @@
 import { describe, expect, mock, test } from "bun:test";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { validateAgainstSchema } from "../../src/cli-validate.js";
 import { PrologProcess } from "../../src/prolog.js";
 import type {
@@ -11,6 +14,10 @@ import {
   searchSpec,
   statusSpec,
 } from "../../src/public/operations/specs/discovery.js";
+import {
+  branchStorePath,
+  ensureBranchStoreManifest,
+} from "../../src/utils/branch-store-locator.js";
 
 function createContext(
   query: (goal: string) => Promise<PrologQueryResult>,
@@ -35,6 +42,13 @@ function createContext(
         dirty: false,
         fileCount: 7,
       }),
+    },
+    branchAttachment: {
+      gitBranch: "main",
+      kbBranch: "main",
+      storePath: branchStorePath(workspaceRoot, "main"),
+      kind: "exact",
+      migrationRequired: false,
     },
   };
 }
@@ -259,13 +273,20 @@ describe("shared discovery operation executors", () => {
       },
     }));
 
-    // When
-    const result = await statusSpec.execute({}, createContext(query));
+    // When: provide a minimal healthy hashed store so status exercises the
+    // injected Prolog port rather than the pre-first-sync diagnostic path.
+    const workspaceRoot = mkdtempSync(path.join(tmpdir(), "kibi-status-test-"));
+    const storePath = branchStorePath(workspaceRoot, "main");
+    ensureBranchStoreManifest(workspaceRoot, "main");
+    mkdirSync(path.join(storePath, "rdf"), { recursive: true });
+    writeFileSync(path.join(storePath, "storage.json"), "{}\n");
+    writeFileSync(path.join(storePath, "CURRENT"), "generation-1:1\n");
+    const result = await statusSpec.execute({}, createContext(query, workspaceRoot));
 
     // Then
     expect(result.structuredContent).toEqual(
       expect.objectContaining({
-        branch: "feature/shared-discovery",
+        branch: "main",
         snapshotId: "stamp:123",
         syncedAt: "2026-07-21T00:00:00Z",
         dirty: false,
@@ -287,5 +308,6 @@ describe("shared discovery operation executors", () => {
     expect(query.mock.calls[0]?.[0]).toContain(
       "status:kb_status_json(JsonString)",
     );
+    rmSync(workspaceRoot, { recursive: true, force: true });
   });
 });

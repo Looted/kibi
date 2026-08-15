@@ -195,9 +195,9 @@ export const applyPlanSpec = {
       },
       plan: {
         type: "object",
-        required: ["version", "planHash", "status", "expected"],
+        required: ["version", "planHash"],
         description:
-          "The complete kibi.compile-plan.v1 or kibi.migration-plan.v2 object. Migration plans require approvedActionIds and reject blocked/non-automatic actions.",
+          "The complete kibi.compile-plan.v1, kibi.migration-plan.v2, or hash-bound kibi.entity-deletion-plan.v1 object. Migration plans require approvedActionIds and reject blocked/non-automatic actions.",
       },
       approvedActionIds: {
         type: "array",
@@ -207,7 +207,11 @@ export const applyPlanSpec = {
       },
     },
   },
-  requiresProlog: false,
+  // Applying an entity-deletion plan must also retract the compiled entity;
+  // acquire the branch engine up front so the source commit and compiled
+  // retraction run under one capability-scoped operation context. Recovery
+  // journals remain usable even when the engine is unavailable.
+  requiresProlog: true,
   effects: ["kb-read", "kb-write", "workspace-read", "workspace-write"],
   execute: executeApplyPlan,
 } as const satisfies OperationSpec<ApplyPlanArgs, ApplyPlanResult>;

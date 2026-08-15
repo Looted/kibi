@@ -252,6 +252,9 @@ if (RUN_NODE_TEST_SUITE) {
                       "kb_model_requirement",
                       "kb_suggest_predicates",
                       "kb_autopilot_generate",
+                      "kb_compile_intent",
+                      "kb_apply_plan",
+                      "kb_ingest_verification",
                     ]);
                     assert.ok(
                       !toolNames.includes("kb_briefing_generate"),

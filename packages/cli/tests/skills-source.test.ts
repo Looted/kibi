@@ -130,18 +130,18 @@ describe("canonical skills source", () => {
     }
   });
 
-  test("newly-canonical skills declare their release versions with wildcard compatibility", () => {
+  test("canonical skills declare their current release versions and compatibility", () => {
     const newCanonical = {
-      "init-kibi": "1.0.0",
-      "kibi-freshness": "1.0.2",
-      "kibi-traceability": "1.0.0",
+      "init-kibi": "2.0.0",
+      "kibi-freshness": "2.0.0",
+      "kibi-traceability": "2.0.0",
     } as const;
     for (const [id, version] of Object.entries(newCanonical)) {
       const skillFile = join(canonicalRoot, id, "SKILL.md");
       const raw = readFileSync(skillFile, "utf8");
       const manifest = parseFrontmatter(raw);
       expect(manifest.version, `${id} version`).toBe(version);
-      expect(manifest.kibiCompatibility, `${id} compat`).toBe("*");
+      expect(manifest.kibiCompatibility, `${id} compat`).toBe(">=1.0.0");
     }
   });
 
@@ -157,7 +157,7 @@ describe("canonical skills source", () => {
     for (const id of EXPECTED_SKILL_IDS) {
       const skillFile = join(canonicalRoot, id, "SKILL.md");
       const raw = readFileSync(skillFile, "utf8");
-      expect(raw).toContain("## Interface Selection");
+      expect(raw).toMatch(/## Interface (Selection|and preview)/);
       expect(raw).toContain("MCP");
       expect(raw).toMatch(
         /npx --no-install|bunx --no-install|kibi status --input/,

@@ -9,6 +9,10 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  branchStorePath,
+  ensureBranchStoreManifest,
+} from "kibi-cli/public/branch-resolver";
 
 // Read expected version from package.json to prevent drift
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -171,9 +175,12 @@ async function waitForStatusState(
       },
     });
     const result = response.result as Record<string, unknown> | undefined;
-    const structured = result?.structuredContent as
+    const envelope = result?.structuredContent as
       | Record<string, unknown>
       | undefined;
+    const structured = (envelope?.kibiProtocol === 1
+      ? envelope.data
+      : envelope) as Record<string, unknown> | undefined;
     last = structured;
     if (
       structured?.dirty === expected.dirty &&
@@ -520,7 +527,10 @@ describe("MCP Server", () => {
         expect(content.length).toBeGreaterThan(0);
         expect(content[0].type).toBe("text");
 
-        const structured = result.structuredContent as Record<string, unknown>;
+        const envelope = result.structuredContent as Record<string, unknown>;
+        const structured = (envelope.kibiProtocol === 1
+          ? envelope.data
+          : envelope) as Record<string, unknown>;
         expect(structured).toBeDefined();
         expect([
           "root_uninitialized",
@@ -628,7 +638,10 @@ describe("MCP Server", () => {
         expect(content.length).toBeGreaterThan(0);
         expect(content[0]?.type).toBe("text");
 
-        const structured = result.structuredContent as Record<string, unknown>;
+        const envelope = result.structuredContent as Record<string, unknown>;
+        const structured = (envelope.kibiProtocol === 1
+          ? envelope.data
+          : envelope) as Record<string, unknown>;
         expect(structured).toBeDefined();
         expect(structured.isStrict).toBe(true);
         expect(Array.isArray(structured.applyPlan)).toBe(true);
@@ -784,7 +797,8 @@ describe("MCP Server", () => {
       stdio: "ignore",
     });
 
-    const developKb = path.join(tempRoot, ".kb/branches/develop");
+    const developKb = branchStorePath(tempRoot, "develop");
+    ensureBranchStoreManifest(tempRoot, "develop");
     writeEmptyKbSnapshot(developKb);
 
     const proc = startServer({
@@ -816,7 +830,7 @@ describe("MCP Server", () => {
 
       expect(response.error).toBeUndefined();
       expect(
-        fs.existsSync(path.join(tempRoot, ".kb/branches/feature-auto-ensure")),
+        fs.existsSync(branchStorePath(tempRoot, "feature-auto-ensure")),
       ).toBe(true);
     } finally {
       await killServer(proc);
@@ -869,7 +883,8 @@ describe("MCP Server", () => {
     execSync('git commit -m "init"', { cwd: tempRoot, stdio: "ignore" });
     execSync("git checkout -b develop", { cwd: tempRoot, stdio: "ignore" });
 
-    const developKb = path.join(tempRoot, ".kb/branches/develop");
+    const developKb = branchStorePath(tempRoot, "develop");
+    ensureBranchStoreManifest(tempRoot, "develop");
     writeEmptyKbSnapshot(developKb);
 
     const proc = startServer({ cwd: tempRoot });
@@ -906,6 +921,9 @@ describe("MCP Server", () => {
                 properties: {
                   title: `Burst ${i}`,
                   status: "open",
+                },
+                document: {
+                  path: `documentation/requirements/${upsertId}.md`,
                 },
               },
             },
@@ -1198,6 +1216,7 @@ describe("MCP Server", () => {
       staleRequirement,
       "---\nid: REQ-stale-before-rebuild\ntitle: Stale requirement\nstatus: open\n---\n",
     );
+    execSync("git add documentation", { cwd: tempRoot, stdio: "ignore" });
     execSync(`node ${kibiBin} sync --rebuild`, {
       cwd: tempRoot,
       stdio: "ignore",
@@ -1254,6 +1273,7 @@ describe("MCP Server", () => {
         path.join(requirementsDir, "REQ-fresh-after-rebuild.md"),
         "---\nid: REQ-fresh-after-rebuild\ntitle: Fresh requirement\nstatus: open\n---\n",
       );
+      execSync("git add documentation", { cwd: tempRoot, stdio: "ignore" });
       execSync(`node ${kibiBin} sync --rebuild`, {
         cwd: tempRoot,
         stdio: "ignore",

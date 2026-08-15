@@ -1,6 +1,6 @@
 import path from "node:path";
-import { PrologProcess, resolveKbPlPath } from "kibi-cli/prolog";
-import { escapeAtomContent } from "kibi-cli/prolog/codec";
+import { PrologProcess, resolveKbPlPath } from "kibi-runtime";
+import { escapeAtomContent } from "kibi-runtime";
 import { getCoreModulePathOverride, getKbPlPathOverride } from "../env.js";
 
 type PrologQueryResult = Awaited<ReturnType<PrologProcess["query"]>>;

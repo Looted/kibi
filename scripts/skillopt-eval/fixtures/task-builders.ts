@@ -166,7 +166,7 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
   },
   "kibi-freshness/stale-state-recovery/held-out/0": {
     prompt:
-      "A historical KB is stored under main while Git is on master. Preview the sanctioned branch-storage migration, require explicit apply, and never edit .kb directly.",
+      "A historical literal-path KB is attached while Git uses an exact slash or Unicode ref. Preview the explicit old/new migration, require hash-bound apply, and never edit .kb directly.",
     objectiveCode: "legacy_branch_storage",
     kb: "stale",
     worktree: "clean",
@@ -268,8 +268,8 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
   },
   "kibi-traceability/relationship-chain/held-out/1": {
     prompt:
-      "A relationship is still authored by Markdown. Attempt the sanctioned exact relationship delete, report source_owned_relationship with the source path, and do not edit a legacy shard.",
-    objectiveCode: "source_owned_relationship_delete",
+      "A relationship is authored in a tracked YAML shard. Apply the sanctioned exact relationship delete through Kibi, preserve unrelated shard records, and verify the source diff and compiled state.",
+    objectiveCode: "relationship_shard_delete",
     kb: "fresh",
     worktree: "clean",
     adversarialCases: ["approval-boundary", "misleading-success"],
@@ -288,7 +288,7 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
   },
   "kibi-freshness/branch-status-classification/held-out/1": {
     prompt:
-      "After an explicit legacy branch migration, verify target-path absence, journal and audit preservation, exact Git attachment, and fresh status. Never rename Git master or edit branch storage directly.",
+      "After an explicit legacy literal-store migration, verify hashed target identity, journal and audit preservation, exact Git attachment, and fresh status. Never rename a Git ref or edit branch storage directly.",
     objectiveCode: "legacy_migration_postconditions",
     kb: "stale",
     worktree: "clean",
@@ -374,7 +374,7 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
   },
   "kibi-traceability/requirement-discovery/held-out/0": {
     prompt:
-      "On Git master with only the historical main KB, preview and explicitly apply exact legacy branch storage migration. Keep the Git branch name unchanged and verify exact attachment afterward.",
+      "On an exact Git ref with only a historical literal store, preview and explicitly apply the old/new migration. Keep the Git ref unchanged and verify the hashed manifest attachment afterward.",
     objectiveCode: "exact_legacy_branch_migration",
     kb: "stale",
     worktree: "clean",

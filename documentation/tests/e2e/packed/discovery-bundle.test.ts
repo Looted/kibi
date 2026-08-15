@@ -8,6 +8,7 @@ import {
   type TestSandbox,
   checkPrologAvailable,
   createSandbox,
+  parseKibiResult,
   kibi,
   packAll,
 } from "./helpers.js";
@@ -244,18 +245,18 @@ This requirement is intentionally not must-priority.
           "--format",
           "json",
         ]);
-        const searchCliJson = JSON.parse(searchCli.stdout) as {
+        const searchCliJson = parseKibiResult<{
           count: number;
           results: Array<{ entity: { id: string } }>;
-        };
+        }>(searchCli.stdout);
         assert.strictEqual(searchCliJson.count, 1);
         assert.strictEqual(searchCliJson.results[0]?.entity.id, "REQ-DISC-001");
 
         const statusCli = await kibi(sandbox, ["status", "--format", "json"]);
-        const statusCliJson = JSON.parse(statusCli.stdout) as {
+        const statusCliJson = parseKibiResult<{
           branch: string;
           dirty: boolean;
-        };
+        }>(statusCli.stdout);
         assert.strictEqual(statusCliJson.branch, "develop");
         assert.strictEqual(statusCliJson.dirty, false);
 
@@ -267,10 +268,10 @@ This requirement is intentionally not must-priority.
           "--format",
           "json",
         ]);
-        const gapsCliJson = JSON.parse(gapsCli.stdout) as {
+        const gapsCliJson = parseKibiResult<{
           count: number;
           rows: Array<{ id: string }>;
-        };
+        }>(gapsCli.stdout);
         assert.strictEqual(gapsCliJson.count, 1);
         assert.strictEqual(gapsCliJson.rows[0]?.id, "REQ-DISC-002");
 
@@ -281,7 +282,7 @@ This requirement is intentionally not must-priority.
           "--format",
           "json",
         ]);
-        const coverageCliJson = JSON.parse(coverageCli.stdout) as {
+        const coverageCliJson = parseKibiResult<{
           summary: {
             fullyCovered: number;
             notApplicable: number;
@@ -292,7 +293,7 @@ This requirement is intentionally not must-priority.
             coverageStatus: string;
             evaluated: boolean;
           }>;
-        };
+        }>(coverageCli.stdout);
         assert.strictEqual(coverageCliJson.summary.fullyCovered, 1);
         assert.strictEqual(coverageCliJson.summary.notApplicable, 1);
         assert.strictEqual(coverageCliJson.summary.total, 2);
@@ -316,9 +317,9 @@ This requirement is intentionally not must-priority.
           "--format",
           "json",
         ]);
-        const graphCliJson = JSON.parse(graphCli.stdout) as {
+        const graphCliJson = parseKibiResult<{
           nodes: Array<{ id: string }>;
-        };
+        }>(graphCli.stdout);
         assert.ok(
           graphCliJson.nodes.some((node) => node.id === "REQ-DISC-001"),
         );
@@ -357,8 +358,9 @@ This requirement is intentionally not must-priority.
               arguments: { query: "latent discovery token" },
             },
           });
-          const searchStructured = (searchMcp.result?.structuredContent ??
-            {}) as {
+          const searchEnvelope = (searchMcp.result?.structuredContent ??
+            {}) as { data?: unknown };
+          const searchStructured = (searchEnvelope.data ?? searchEnvelope) as {
             count?: number;
             results?: Array<{ entity: { id: string } }>;
           };
@@ -377,8 +379,9 @@ This requirement is intentionally not must-priority.
               arguments: {},
             },
           });
-          const statusStructured = (statusMcp.result?.structuredContent ??
-            {}) as {
+          const statusEnvelope = (statusMcp.result?.structuredContent ??
+            {}) as { data?: unknown };
+          const statusStructured = (statusEnvelope.data ?? statusEnvelope) as {
             branch?: string;
             dirty?: boolean;
           };
@@ -397,7 +400,10 @@ This requirement is intentionally not must-priority.
               },
             },
           });
-          const gapsStructured = (gapsMcp.result?.structuredContent ?? {}) as {
+          const gapsEnvelope = (gapsMcp.result?.structuredContent ?? {}) as {
+            data?: unknown;
+          };
+          const gapsStructured = (gapsEnvelope.data ?? gapsEnvelope) as {
             count?: number;
             rows?: Array<{ id: string }>;
           };
@@ -416,8 +422,10 @@ This requirement is intentionally not must-priority.
               arguments: { by: "req" },
             },
           });
-          const coverageStructured = (coverageMcp.result?.structuredContent ??
-            {}) as {
+          const coverageEnvelope = (coverageMcp.result?.structuredContent ??
+            {}) as { data?: unknown };
+          const coverageStructured = (coverageEnvelope.data ??
+            coverageEnvelope) as {
             summary?: {
               fullyCovered?: number;
               notApplicable?: number;
@@ -463,8 +471,9 @@ This requirement is intentionally not must-priority.
               },
             },
           });
-          const graphStructured = (graphMcp.result?.structuredContent ??
-            {}) as {
+          const graphEnvelope = (graphMcp.result?.structuredContent ??
+            {}) as { data?: unknown };
+          const graphStructured = (graphEnvelope.data ?? graphEnvelope) as {
             nodes?: Array<{ id: string }>;
           };
           assert.ok(

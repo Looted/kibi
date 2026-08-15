@@ -13,6 +13,7 @@ import {
   type TestSandbox,
   checkPrologAvailable,
   createSandbox,
+  exactBranchStorePath,
   kibi,
   packAll,
   run,
@@ -75,12 +76,9 @@ if (RUN_NODE_TEST_SUITE) {
 
       const content = readFileSync(hookPath, "utf8");
       assert.ok(content.includes("kibi sync"), "Hook should contain kibi sync");
-      // Ensure we only run branch-ensure on branch checkout and attempt to forward old branch
+      // Branch checkout compiles the exact branch from tracked sources.
       assert.ok(/branch_flag is 1 for branch checkout/.test(content));
-      assert.ok(
-        /git name-rev --name-only/.test(content) ||
-          /kibi branch ensure --from/.test(content),
-      );
+      assert.ok(!content.includes("--from"));
     });
 
     it("should install post-merge hook by default", async () => {
@@ -148,11 +146,11 @@ status: open
 
       // After init the branch directory exists; after sync the KB RDF exists.
       assert.ok(
-        existsSync(join(sandbox.repoDir, ".kb/branches/develop")),
+        existsSync(exactBranchStorePath(sandbox.repoDir, "develop")),
         "develop branch KB should exist",
       );
       assert.ok(
-        existsSync(join(sandbox.repoDir, ".kb/branches/develop/kb.rdf")),
+        existsSync(join(exactBranchStorePath(sandbox.repoDir, "develop"), "kb.rdf")),
         "develop branch KB RDF should exist after sync",
       );
 
@@ -162,18 +160,18 @@ status: open
       });
 
       assert.ok(
-        existsSync(join(sandbox.repoDir, ".kb/branches/feature/kb.rdf")),
+        existsSync(join(exactBranchStorePath(sandbox.repoDir, "feature"), "kb.rdf")),
         "feature branch KB should be created",
       );
 
-      // Verify the feature KB was copied from develop rather than created fresh.
-      // Both files should have identical content (a real copy, not a blank file).
+      // Verify the feature KB was compiled independently from the checked-out
+      // tracked source rather than copied from the develop store.
       const developKb = readFileSync(
-        join(sandbox.repoDir, ".kb/branches/develop/kb.rdf"),
+        join(exactBranchStorePath(sandbox.repoDir, "develop"), "kb.rdf"),
         "utf8",
       );
       const featureKb = readFileSync(
-        join(sandbox.repoDir, ".kb/branches/feature/kb.rdf"),
+        join(exactBranchStorePath(sandbox.repoDir, "feature"), "kb.rdf"),
         "utf8",
       );
 
@@ -183,7 +181,7 @@ status: open
       assert.strictEqual(
         normalizeTimestamps(featureKb),
         normalizeTimestamps(developKb),
-        "feature KB should preserve develop KB content after checkout sync",
+        "feature KB should contain the same tracked-source entities after checkout sync",
       );
     });
 

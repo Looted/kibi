@@ -16,11 +16,13 @@ export function writePackedInstallManifest(
         dependencies: {
           "kibi-core": `file:${tarballs.core}`,
           "kibi-cli": `file:${tarballs.cli}`,
+          "kibi-runtime": `file:${tarballs.runtime}`,
           "kibi-mcp": `file:${tarballs.mcp}`,
         },
         overrides: {
           "kibi-core": "$kibi-core",
           "kibi-cli": "$kibi-cli",
+          "kibi-runtime": "$kibi-runtime",
           "kibi-mcp": "$kibi-mcp",
         },
       },

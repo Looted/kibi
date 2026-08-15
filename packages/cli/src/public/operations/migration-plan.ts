@@ -468,7 +468,7 @@ export function buildActionsFromStatus(input: {
   const kbBranch = typeof attachment?.kbBranch === "string" ? attachment.kbBranch : null;
 
   if (attachment?.migrationRequired === true) {
-    const legacy = attachment.kind === "legacy_compat" && branch === "master" && kbBranch === "main";
+    const legacy = attachment.kind === "legacy_compat" && typeof branch === "string" && typeof kbBranch === "string";
     actions.push(
       migrationAction({
         id: "branch-legacy-attachment",
@@ -477,9 +477,9 @@ export function buildActionsFromStatus(input: {
         state: legacy ? "ready" : "blocked",
         safety: legacy ? "automatic" : "operator",
         invocation: legacy
-          ? { kind: "cli", command_argv: ["kibi", "branch", "migrate", "--from", "main", "--apply"] }
+          ? { kind: "cli", command_argv: ["kibi", "branch", "migrate", "--from", kbBranch as string, "--to", branch as string, "--apply"] }
           : { kind: "review", instruction: "Resolve branch and KB provenance explicitly; Kibi will not guess or rename Git branches." },
-        affectedFiles: [".kb/branches/main", ".kb/branches/master"],
+        affectedFiles: [typeof attachment.storePath === "string" ? attachment.storePath : ".kb/branches"],
         evidence: { attachment },
         autoApplicable: legacy,
         dispositionRequired: !legacy,

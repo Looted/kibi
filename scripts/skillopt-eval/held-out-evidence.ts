@@ -8,6 +8,7 @@ import {
 } from "./contracts/common";
 import type { FrozenCandidateHashes } from "./fixtures/predicate-corpus";
 import { type CorpusRoots, RootsSchema } from "./real-workflow-types";
+import { CANONICAL_SKILLS } from "./catalog";
 
 const Variants = ["baseline", "one-shot", "skillopt"] as const;
 const Replicates = [1, 2, 3] as const;
@@ -31,12 +32,12 @@ const ReservationSchema = z
     artifactType: z.literal("held-out-matrix-reservation"),
     matrixId: z.uuid(),
     runId: z.uuid(),
-    skill: z.literal("kibi-usage"),
-    cellCount: z.literal(36),
+    skill: z.enum(CANONICAL_SKILLS),
+    cellCount: z.number().int().positive(),
     reservedBeforeCellOne: z.literal(true),
     roots: RootsSchema,
     candidateHashes: CandidateHashesSchema,
-    heldOutCaseIds: z.array(z.string().min(1)).length(4),
+    heldOutCaseIds: z.array(z.string().min(1)).min(1),
     cells: z.array(GenericCellSchema).length(36),
     fixtureClaimRoot: Sha256Schema,
     catalogRoot: Sha256Schema,
@@ -86,12 +87,12 @@ export type HeldOutEvidenceBinding = Readonly<{
   candidateHashes: FrozenCandidateHashes;
   heldOutCaseIds: readonly string[];
   runId: string;
-  skill: "kibi-usage";
+  skill: (typeof CANONICAL_SKILLS)[number];
   fixtureClaimRoot: string;
 }>;
 export type ReservedPredicateMatrix = Readonly<{
   matrixId: string;
-  cellCount: 36;
+  cellCount: number;
   reservedBeforeCellOne: true;
   receiptBytes: string;
   isReservedCell: (cell: PredicateMatrixCell) => boolean;

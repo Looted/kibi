@@ -21,7 +21,7 @@ import { dump as dumpYAML, load as parseYAML } from "js-yaml";
 import {
   type ManifestSymbolEntry as CliManifestSymbolEntry,
   enrichSymbolCoordinates,
-} from "kibi-cli/extractors/symbols-coordinator";
+} from "kibi-runtime";
 import { resolveWorkspaceRoot } from "../workspace.js";
 
 export interface SymbolsRefreshArgs {

@@ -137,7 +137,8 @@ async function cliJson<T>(sandbox: TestSandbox, args: readonly string[]) {
     0,
     `${args.join(" ")} failed: ${result.stdout}${result.stderr}`,
   );
-  return JSON.parse(result.stdout) as T;
+  const parsed = JSON.parse(result.stdout) as { data?: T };
+  return (parsed.data ?? parsed) as T;
 }
 
 function writeRequirement(sandbox: TestSandbox, id: string) {

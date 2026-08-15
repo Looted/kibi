@@ -2,7 +2,7 @@ import type {
   ActivationPolicy,
   Candidate,
   SourceOnlySignal,
-} from "kibi-cli/operations";
+} from "kibi-runtime";
 
 export function record(
   value: unknown,

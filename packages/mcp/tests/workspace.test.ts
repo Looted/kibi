@@ -7,6 +7,7 @@ import {
   resolveKbPath,
   resolveWorkspaceRoot,
 } from "../src/workspace.js";
+import { branchStorePath } from "kibi-cli/public/branch-resolver";
 
 describe("workspace utilities", () => {
   let tempDir: string;
@@ -96,7 +97,7 @@ describe("workspace utilities", () => {
       const kbPath = path.join(tempDir, "custom-kb");
       process.env.KIBI_KB_PATH = kbPath;
       expect(resolveKbPath(tempDir, "main")).toBe(
-        path.join(path.resolve(kbPath), "branches", "main"),
+        branchStorePath(path.resolve(kbPath), "main"),
       );
     });
 
@@ -107,7 +108,7 @@ describe("workspace utilities", () => {
     });
 
     test("should use default path", () => {
-      const expected = path.join(tempDir, ".kb", "branches", "main");
+      const expected = branchStorePath(tempDir, "main");
       expect(resolveKbPath(tempDir, "main")).toBe(expected);
     });
   });

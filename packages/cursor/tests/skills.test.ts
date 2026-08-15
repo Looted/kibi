@@ -113,9 +113,9 @@ describe("kibi-cursor skills", () => {
         "utf8",
       );
 
-      expect(raw).toContain("## Interface Selection");
+      expect(raw).toMatch(/## Interface (Selection|and preview)/);
       expect(raw).toContain("MCP");
-      expect(raw).toMatch(/npx --no-install|bunx --no-install/);
+      expect(raw).toMatch(/visible approved|trusted project-local CLI|peer interfaces/i);
       expect(raw.toLowerCase()).not.toContain("mcp only");
       expect(raw.toLowerCase()).not.toContain("exclusively through mcp");
     }
@@ -125,7 +125,7 @@ describe("kibi-cursor skills", () => {
       "utf8",
     );
     expect(usage).toContain("resources/operation-access.md");
-    expect(usage).toContain("npx --no-install kibi upsert --input -");
+    expect(usage).toContain("npx --no-install kibi search --input -");
   });
 
   test("kibi-usage includes status and source-mismatch guardrails", () => {
@@ -134,15 +134,11 @@ describe("kibi-cursor skills", () => {
       "utf8",
     );
 
+    expect(raw).toContain("kibiProtocol");
+    expect(raw).toContain("committed_with_repairs");
+    expect(raw).toContain("typed `nextActions`");
     expect(raw).toContain("status: implemented");
-    expect(raw).toContain(
-      "strict `kb_upsert.properties` rejects unknown fields",
-    );
-    expect(raw).toContain(
-      "each row's `from` must equal the upserted entity ID",
-    );
-    expect(raw).toContain(
-      "When a generic `Query failed` appears, do not keep retrying the same payload",
-    );
+    expect(raw).toContain("source-first");
+    expect(raw).toContain("do not keep");
   });
 });

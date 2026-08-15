@@ -38,6 +38,9 @@ import type {
   PrologSearchQueryResult,
 } from "./public/operations/runtime-types.js";
 import { isValidBranchName } from "./utils/branch-resolver.js";
+import {
+  ensureBranchStoreManifest,
+} from "./utils/branch-store-locator.js";
 
 export const ENGINE_PROTOCOL_VERSION = 1;
 export const ENGINE_IDLE_TIMEOUT_MS = 10 * 60 * 1000;
@@ -57,10 +60,37 @@ function engineIdleTimeoutMs(): number {
     : ENGINE_IDLE_TIMEOUT_MS;
 }
 
-type EngineRequest = {
+export type EngineCommandV1 =
+  | Readonly<{ version: 1; kind: "status" }>
+  | Readonly<{
+      version: 1;
+      kind: "entities";
+      type?: string;
+      id?: string;
+      tags?: readonly string[];
+      sourceFile?: string;
+      limit: number;
+      offset: number;
+    }>
+  | Readonly<{
+      version: 1;
+      kind: "search";
+      query: string;
+      type?: string;
+      limit: number;
+      offset: number;
+    }>
+  | Readonly<{ version: 1; kind: "checkpoint" }>
+  | Readonly<{ version: 1; kind: "compact" }>
+  | Readonly<{ version: 1; kind: "save" }>
+  | Readonly<{ version: 1; kind: "stop" }>
+  | Readonly<{ version: 1; kind: "cancel"; requestId: number }>;
+
+export type EngineRequest = {
   readonly id: number;
   readonly method:
     | "query"
+    | "command"
     | "entities"
     | "search"
     | "kbStatus"
@@ -84,6 +114,7 @@ type EngineRequest = {
   readonly offset?: number;
   readonly targetDirectory?: string;
   readonly cancelOf?: number;
+  readonly command?: EngineCommandV1;
 };
 
 type EngineResponse = {
@@ -193,7 +224,7 @@ function maskPrologData(goal: string): string {
 function safeEngineGoal(goal: string): boolean {
   // The socket is a local capability boundary, not a general-purpose SWI
   // console. Public clients may compose the typed Kibi predicates needed by
-  // the 18 operation contracts, but process/filesystem/network escape hatches
+  // the 21 operation contracts, but process/filesystem/network escape hatches
   // are rejected before they reach Prolog.
   const executable = maskPrologData(goal);
   if (
@@ -762,6 +793,15 @@ export class EngineClient {
     }
   }
 
+  /** Execute a versioned, goal-free engine command. Raw query remains private
+   * compatibility traffic for the in-process Prolog adapter only. */
+  async command<T = PrologQueryResult>(
+    command: EngineCommandV1,
+    signal?: AbortSignal,
+  ): Promise<T> {
+    return this.request<T>({ method: "command", command }, signal);
+  }
+
   async queryBatch(goals: readonly string[]): Promise<PrologQueryResult> {
     const normalized = goals.map((goal) => goal.trim().replace(/\.+\s*$/, ""));
     return this.query(`rdf_transaction((${normalized.join(", ")}))`);
@@ -769,18 +809,20 @@ export class EngineClient {
 
   async queryEntities(
     input: PrologEntityQueryInput,
+    signal?: AbortSignal,
   ): Promise<PrologEntityQueryResult> {
-    const result = await this.request<PrologQueryResult>({
-      method: "entities",
+    const result = await this.command<PrologQueryResult>({
+      version: 1,
+      kind: "entities",
       ...(input.type !== undefined ? { type: input.type } : {}),
-      ...(input.id !== undefined ? { entityId: input.id } : {}),
+      ...(input.id !== undefined ? { id: input.id } : {}),
       ...(input.tags !== undefined ? { tags: input.tags } : {}),
       ...(input.sourceFile !== undefined
         ? { sourceFile: input.sourceFile }
         : {}),
       limit: input.limit,
       offset: input.offset,
-    });
+    }, signal);
     if (!result.success) {
       throw new Error(result.error ?? "Indexed entity query failed");
     }
@@ -796,14 +838,16 @@ export class EngineClient {
 
   async searchEntities(
     input: PrologSearchQueryInput,
+    signal?: AbortSignal,
   ): Promise<PrologSearchQueryResult> {
-    const result = await this.request<PrologQueryResult>({
-      method: "search",
-      searchQuery: input.query,
+    const result = await this.command<PrologQueryResult>({
+      version: 1,
+      kind: "search",
+      query: input.query,
       ...(input.type !== undefined ? { type: input.type } : {}),
       limit: input.limit,
       offset: input.offset,
-    });
+    }, signal);
     if (!result.success) {
       throw new Error(result.error ?? "Indexed search candidate query failed");
     }
@@ -841,8 +885,8 @@ export class EngineClient {
     return result;
   }
 
-  async save(): Promise<PrologQueryResult> {
-    return this.query("kb_save");
+  async save(signal?: AbortSignal): Promise<PrologQueryResult> {
+    return this.query("kb_save", signal);
   }
 
   async storageStatus(): Promise<PrologQueryResult> {
@@ -850,15 +894,15 @@ export class EngineClient {
   }
 
   async checkpoint(): Promise<PrologQueryResult> {
-    return this.request<PrologQueryResult>({ method: "checkpoint" });
+    return this.command<PrologQueryResult>({ version: 1, kind: "checkpoint" });
   }
 
   async queryStatusJson(): Promise<PrologQueryResult> {
-    return this.request<PrologQueryResult>({ method: "kbStatus" });
+    return this.command<PrologQueryResult>({ version: 1, kind: "status" });
   }
 
   async compact(): Promise<PrologQueryResult> {
-    return this.request<PrologQueryResult>({ method: "compact" });
+    return this.command<PrologQueryResult>({ version: 1, kind: "compact" });
   }
 
   async exportStorage(targetDirectory: string): Promise<PrologQueryResult> {
@@ -1160,17 +1204,13 @@ export async function runEngineDaemon(options: {
   if (!isValidBranchName(options.branch)) {
     throw new Error(`Invalid Kibi engine branch name: ${options.branch}`);
   }
-  await ensureJournaledBranchStoreAsync(
-    path.join(options.workspaceRoot, ".kb", "branches", options.branch),
-  );
-  const prolog = new PrologProcess({ timeout: 120_000, oneShot: false });
-  await prolog.start();
-  const branchPath = path.join(
+  const branchPath = ensureBranchStoreManifest(
     options.workspaceRoot,
-    ".kb",
-    "branches",
     options.branch,
   );
+  await ensureJournaledBranchStoreAsync(branchPath);
+  const prolog = new PrologProcess({ timeout: 120_000, oneShot: false });
+  await prolog.start();
   const attached = await prolog.query(
     `kb_attach('${quoteProlog(branchPath)}')`,
   );
@@ -1226,6 +1266,25 @@ export async function runEngineDaemon(options: {
   const cancelledRequests = new Set<number>();
   const clients = new Set<net.Socket>();
   let shuttingDown = false;
+
+  const exactBranchStatus = (result: PrologQueryResult): PrologQueryResult => {
+    if (!result.success || typeof result.bindings.JsonString !== "string") {
+      return result;
+    }
+    try {
+      const decoded = JSON.parse(JSON.parse(result.bindings.JsonString)) as Record<string, unknown>;
+      decoded.branch = options.branch;
+      return {
+        ...result,
+        bindings: {
+          ...result.bindings,
+          JsonString: JSON.stringify(JSON.stringify(decoded)),
+        },
+      };
+    } catch {
+      return result;
+    }
+  };
 
   const scheduleIdleExit = (): void => {
     if (activeClients > 0) return;
@@ -1338,6 +1397,75 @@ export async function runEngineDaemon(options: {
         }
         return result;
       }
+      case "command": {
+        const command = request.command;
+        if (command === undefined || command.version !== 1) {
+          throw new Error("engine.command must use version 1");
+        }
+        switch (command.kind) {
+          case "status":
+            return exactBranchStatus(await prolog.query("status:kb_status_json(JsonString)"));
+          case "checkpoint": {
+            queryCache.clear();
+            freshnessCache = null;
+            const result = await prolog.query("kb_sync_checkpoint");
+            if (result.success) fsyncJournaledBranchStore(branchPath);
+            return result;
+          }
+          case "compact": {
+            const result = await prolog.query("kb_storage_compact");
+            if (result.success) fsyncJournaledBranchStore(branchPath);
+            return result;
+          }
+          case "save": {
+            const result = await prolog.query("kb_save");
+            if (result.success) fsyncJournaledBranchStore(branchPath);
+            return result;
+          }
+          case "stop":
+            setImmediate(() => void shutdown());
+            return { stopped: true };
+          case "cancel":
+            cancelledRequests.add(command.requestId);
+            return { cancelled: command.requestId };
+          case "entities": {
+            if (
+              !Number.isInteger(command.limit) ||
+              !Number.isInteger(command.offset) ||
+              command.limit < 0 ||
+              command.offset < 0 ||
+              command.limit > 100_000
+            ) {
+              throw new Error("engine.entities.limit/offset must be bounded integers");
+            }
+            const type = command.type === undefined ? "none" : `'${quoteProlog(command.type)}'`;
+            const id = command.id === undefined ? "none" : `'${quoteProlog(command.id)}'`;
+            const tags = `[${(command.tags ?? []).map((tag) => `'${quoteProlog(tag)}'`).join(",")}]`;
+            const source = command.sourceFile === undefined ? "none" : `'${quoteProlog(command.sourceFile)}'`;
+            return prolog.query(
+              `kb_query_entities(${type}, ${id}, ${tags}, ${source}, ${command.limit}, ${command.offset}, Rows, Count)`,
+            );
+          }
+          case "search": {
+            if (!command.query.trim()) throw new Error("engine.search.query must be non-empty");
+            if (
+              !Number.isInteger(command.limit) ||
+              !Number.isInteger(command.offset) ||
+              command.limit < 0 ||
+              command.offset < 0 ||
+              command.limit > 100_000
+            ) {
+              throw new Error("engine.search.limit/offset must be bounded integers");
+            }
+            const type = command.type === undefined ? "none" : `'${quoteProlog(command.type)}'`;
+            return prolog.query(
+              `kb_search_entities(${type}, '${quoteProlog(command.query)}', ${command.limit}, ${command.offset}, Rows, Count)`,
+            );
+          }
+          default:
+            throw new Error("engine.command kind is unsupported");
+        }
+      }
       case "kbStatus": {
         if (
           freshnessCache !== null &&
@@ -1345,7 +1473,7 @@ export async function runEngineDaemon(options: {
         ) {
           return freshnessCache.result;
         }
-        const result = await prolog.query("status:kb_status_json(JsonString)");
+        const result = exactBranchStatus(await prolog.query("status:kb_status_json(JsonString)"));
         if (result.success) {
           freshnessCache = { capturedAt: Date.now(), result };
         }

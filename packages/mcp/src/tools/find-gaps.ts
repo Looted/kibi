@@ -1,5 +1,5 @@
-import { executeFindGaps } from "kibi-cli/operations";
-import type { PrologProcess } from "kibi-cli/prolog";
+import { executeFindGaps } from "kibi-runtime";
+import type { PrologProcess } from "kibi-runtime";
 
 type ReportingProlog = Pick<PrologProcess, "query">;
 

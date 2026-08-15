@@ -1,20 +1,22 @@
 // Kibi — autopilot candidate builders
 // Implements candidate assembly from public CLI extractors
-import { extractFromManifest } from "kibi-cli/extractors/manifest";
-import { extractFromMarkdown } from "kibi-cli/extractors/markdown";
+import { extractFromManifest } from "kibi-runtime";
+import { extractFromMarkdown } from "kibi-runtime";
 import {
   type StrictWriteSet,
   buildStrictWriteSet,
   modelRequirementClaims,
-} from "kibi-cli/public/check-types";
+} from "kibi-runtime";
 
-import type { ExtractionResult as ManifestExtractionResult } from "kibi-cli/extractors/manifest";
-import type { ExtractionResult as MarkdownExtractionResult } from "kibi-cli/extractors/markdown";
+import type {
+  ManifestExtractionResult,
+  MarkdownExtractionResult,
+} from "kibi-runtime";
 import type { AutopilotEvidence } from "./autopilot-discovery.js";
 
 import fs from "node:fs";
 import path from "node:path";
-import { createRepoIgnorePolicy } from "kibi-cli/ignore-policy";
+import { createRepoIgnorePolicy } from "kibi-runtime";
 import {
   estimateNormativeSignalConfidence,
   extractRequirementClaim,

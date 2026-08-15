@@ -9,6 +9,7 @@ import {
   test,
 } from "bun:test";
 import type { PrologProcess } from "../../src/prolog.js";
+import { resolveBranchAttachment } from "../../src/utils/branch-resolver.js";
 
 type QueryResult = {
   success: boolean;
@@ -27,6 +28,12 @@ type MockPrologInstance = {
   query: ReturnType<typeof mock>;
   terminate: ReturnType<typeof mock>;
 };
+
+function expectedStorePath(): string {
+  const attachment = resolveBranchAttachment(process.cwd());
+  if ("error" in attachment) throw new Error(attachment.error);
+  return attachment.storePath;
+}
 
 const state = {
   currentBranch: "feature/test-branch",
@@ -130,7 +137,9 @@ describe("discovery-shared", () => {
     expect(state.createdPrologs[0]?.start).toHaveBeenCalledTimes(1);
     expect(state.queries[0]).toContain("set_prolog_flag(answer_write_options");
     expect(state.queries[1]).toContain("kb_attach('");
-    expect(state.queries[1]).toContain(".kb/branches/feat/search");
+    expect(state.queries[1]).toContain(
+      expectedStorePath(),
+    );
     expect(state.queries[2]).toBe("user_goal");
     expect(state.cleanups).toEqual([state.createdPrologs[0]]);
   });
@@ -141,7 +150,9 @@ describe("discovery-shared", () => {
     state.queryResponses = [{ success: true }, { success: true }];
 
     await discovery.withAttachedBranchProlog(async () => "done", mockDeps);
-    expect(state.queries[1]).toContain(".kb/branches/env-branch");
+    expect(state.queries[1]).toContain(
+      expectedStorePath(),
+    );
 
     setBranch();
     resetState();
@@ -150,7 +161,9 @@ describe("discovery-shared", () => {
     state.queryResponses = [{ success: true }, { success: true }];
 
     await discovery.withAttachedBranchProlog(async () => "done", mockDeps);
-    expect(state.queries[1]).toContain(".kb/branches/main");
+    expect(state.queries[1]).toContain(
+      expectedStorePath(),
+    );
   });
 
   test("withAttachedBranchProlog throws attach failures and still cleans up", async () => {
@@ -183,11 +196,11 @@ describe("discovery-shared", () => {
     expect(state.cleanups).toEqual([state.createdPrologs[0]]);
   });
 
-  test("resolveCurrentKbPath uses current branch or main fallback", async () => {
+  test("resolveCurrentKbPath uses the exact branch identity", async () => {
     // Use env var to control branch instead of mocking
     process.env.KIBI_BRANCH = "topic/x";
     await expect(discovery.resolveCurrentKbPath()).resolves.toBe(
-      `${process.cwd()}/.kb/branches/topic/x`,
+      expectedStorePath(),
     );
 
     // Test fallback: clear env var and expect main

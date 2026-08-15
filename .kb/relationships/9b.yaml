@@ -1,0 +1,22 @@
+relationships:
+  - id: rel-20850f26c64a
+    type: covered_by
+    from: SYM-append-only-verification-receipt-history-errors
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: "2026-08-15T12:41:40.306Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-append-only-verification-receipt-history-errors
+    to: REQ-kibi-verification-receipts-v2
+    created_at: 2026-08-15T16:37:35.765Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d56165b12de1
+  - type: covered_by
+    from: SYM-append-only-verification-receipt-history-errors
+    to: TEST-kibi-verification-receipts-v2
+    created_at: 2026-08-15T16:37:35.769Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12fa4b0308ba

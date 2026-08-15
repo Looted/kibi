@@ -156,6 +156,7 @@ function buildToolListSnapshot(
     name: string;
     description: string;
     inputSchema: JsonRecord;
+    outputSchema?: JsonRecord;
     annotations?: JsonRecord;
   }[],
 ) {
@@ -164,6 +165,9 @@ function buildToolListSnapshot(
       name: tool.name,
       description: tool.description,
       inputSchema: stable(tool.inputSchema) as JsonRecord,
+      ...(tool.outputSchema
+        ? { outputSchema: stable(tool.outputSchema) as JsonRecord }
+        : {}),
       ...(tool.annotations
         ? { annotations: stable(tool.annotations) as JsonRecord }
         : {}),

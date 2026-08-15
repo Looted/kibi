@@ -76,7 +76,8 @@ async function cliJson<T>(sandbox: TestSandbox, args: readonly string[]) {
     0,
     `${args.join(" ")} failed: ${result.stdout}${result.stderr}`,
   );
-  return JSON.parse(result.stdout) as T;
+  const parsed = JSON.parse(result.stdout) as { data?: T };
+  return (parsed.data ?? parsed) as T;
 }
 
 function receiptRow(payload: { readonly rows: readonly CoverageRow[] }) {
@@ -257,12 +258,12 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
             arguments: {},
           });
           assert.ifError(mcpStatus.error);
+          const mcpStatusEnvelope = mcpStatus.result?.structuredContent as {
+            data?: { verificationSnapshot?: string };
+            verificationSnapshot?: string;
+          };
           assert.strictEqual(
-            (
-              mcpStatus.result?.structuredContent as {
-                verificationSnapshot?: string;
-              }
-            )?.verificationSnapshot,
+            (mcpStatusEnvelope.data ?? mcpStatusEnvelope).verificationSnapshot,
             initialStatus.verificationSnapshot,
           );
           const mcpCoverage = await sendMcpRequest(mcp, 3, "tools/call", {
@@ -270,10 +271,13 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
             arguments: { by: "req", includePassing: true },
           });
           assert.ifError(mcpCoverage.error);
-          const mcpPayload = mcpCoverage.result?.structuredContent as
+          const mcpCoverageEnvelope = mcpCoverage.result?.structuredContent as
+            | { data?: { rows: CoverageRow[] }; rows?: CoverageRow[] }
+            | undefined;
+          const mcpPayload = (mcpCoverageEnvelope?.data ?? mcpCoverageEnvelope) as
             | { rows: CoverageRow[] }
             | undefined;
-          assert.ok(mcpPayload);
+          if (!mcpPayload) throw new Error("MCP coverage payload missing");
           assert.strictEqual(
             receiptRow(mcpPayload).proofStages.passingE2e.status,
             "passed",

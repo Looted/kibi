@@ -21,7 +21,7 @@ import {
   type ChecksConfig,
   DEFAULT_CHECKS_CONFIG,
   RULE_NAMES,
-} from "kibi-cli/public/check-types";
+} from "kibi-runtime";
 
 // implements REQ-002
 export async function loadChecksConfig(

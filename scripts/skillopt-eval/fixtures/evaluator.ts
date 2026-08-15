@@ -151,7 +151,7 @@ function requiredTools(task: FixtureTaskSpec): readonly string[] {
     "unchanged_snapshot_receipt_reuse",
     "quality_diagnostic_disposition",
     "obsolete_symbol_delete_with_replacement",
-    "source_owned_relationship_delete",
+    "relationship_shard_delete",
     "same_version_export_surface_drift",
     "legacy_migration_postconditions",
     "unreadable_branch_store_recovery",
@@ -209,7 +209,7 @@ function workflowExpectation(task: FixtureTaskSpec) {
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["exact Git branch equals KB branch"],
-      forbiddenActions: ["normalize master to main", "rename Git branch"],
+      forbiddenActions: ["copy branch store across refs", "rename Git branch"],
     },
     legacy_branch_storage: {
       expectedOutcome: "complete",
@@ -337,13 +337,13 @@ function workflowExpectation(task: FixtureTaskSpec) {
       requiredSignals: ["replacement evidence", "coverage transfer evidence"],
       forbiddenActions: ["fabricate replacement coordinates"],
     },
-    source_owned_relationship_delete: {
+    relationship_shard_delete: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
       expectedVerificationState: "not_evaluated",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["source-owned relationship rejection"],
+      requiredSignals: ["canonical relationship shard", "unrelated records"],
       forbiddenActions: ["direct .kb edit"],
     },
     same_version_export_surface_drift: {

@@ -9,6 +9,7 @@ import {
   createMarkdownFile,
   createSandbox,
   kibi,
+  parseKibiResult,
   packAll,
 } from "./helpers.js";
 
@@ -50,10 +51,10 @@ async function packedCliEnforcesPropositionCompleteIngestion(
     directInput,
   ]);
   assert.strictEqual(direct.exitCode, 0);
-  const directResult = JSON.parse(direct.stdout) as {
+  const directResult = parseKibiResult<{
     valid: boolean;
     errors: string[];
-  };
+  }>(direct.stdout);
   assert.strictEqual(directResult.valid, false);
   assert.match(
     directResult.errors.join("\n"),

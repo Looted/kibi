@@ -302,7 +302,12 @@ describe("independent final-state client", () => {
         expect(request.result).not.toMatchObject({ isError: true });
       }
       expect(receipt.requests[0]?.result).toMatchObject({
-        structuredContent: { branch: "skillopt-eval" },
+        structuredContent: {
+          kibiProtocol: 1,
+          operation: "kb_status",
+          status: "success",
+          data: { branch: "skillopt-eval" },
+        },
       });
     } finally {
       await workspace.cleanup();

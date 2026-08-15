@@ -31,6 +31,7 @@ if [ -n "$1" ]; then
     case $pkg in
       core) check_and_publish "kibi-core" "core" "${@:2}" ;;
       cli) check_and_publish "kibi-cli" "cli" "${@:2}" ;;
+      runtime) check_and_publish "kibi-runtime" "runtime" "${@:2}" ;;
       mcp) check_and_publish "kibi-mcp" "mcp" "${@:2}" ;;
       opencode) check_and_publish "kibi-opencode" "opencode" "${@:2}" ;;
       codex) check_and_publish "kibi-codex" "codex" "${@:2}" ;;
@@ -43,6 +44,7 @@ else
   # Auto-detect: check all packages
   check_and_publish "kibi-core" "core" "${@:2}"
   check_and_publish "kibi-cli" "cli" "${@:2}"
+  check_and_publish "kibi-runtime" "runtime" "${@:2}"
   check_and_publish "kibi-mcp" "mcp" "${@:2}"
   check_and_publish "kibi-opencode" "opencode" "${@:2}"
   check_and_publish "kibi-codex" "codex" "${@:2}"

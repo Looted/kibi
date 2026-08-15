@@ -6,8 +6,9 @@ import { homedir, tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { main as cliMain } from "./cli";
 import { materializeFixtureRun } from "./fixtures/private";
+import { CANONICAL_SKILLS, type CanonicalSkill } from "./catalog";
 
-export type OperatorCommand = "smoke" | "optimize";
+export type OperatorCommand = "smoke" | "optimize" | "suite";
 
 export type OptimizeLayout = Readonly<{
   runId: string;
@@ -20,11 +21,13 @@ export type ParsedOperatorArgs = Readonly<{
   command: OperatorCommand;
   maxSteps: number;
   seedCandidate?: string;
+  skill: CanonicalSkill | "bundle";
 }>;
 
 export type OperatorRunOptions = Readonly<{
   maxSteps?: number;
   seedCandidate?: string;
+  skill?: CanonicalSkill | "bundle";
 }>;
 
 export class OperatorUsageError extends Error {
@@ -236,16 +239,17 @@ async function preparePaidOptimize(
 // implements REQ-skillopt-codex-optimization
 export function parseOperatorArgs(args: readonly string[]): ParsedOperatorArgs {
   const command = args[0];
-  if (command !== "smoke" && command !== "optimize") {
+  if (command !== "smoke" && command !== "optimize" && command !== "suite") {
     throw new OperatorUsageError(
-      "Usage: bun run scripts/skillopt-eval/operator.ts <smoke|optimize> [--max-steps 1..4] [--seed-candidate PATH]",
+      "Usage: bun run scripts/skillopt-eval/operator.ts <smoke|optimize|suite> [--skill kibi-usage|kibi-freshness|kibi-traceability|init-kibi] [--max-steps 1..4] [--seed-candidate PATH]",
     );
   }
   let maxSteps = 1;
+  let skill: CanonicalSkill | "bundle" = command === "suite" ? "bundle" : "kibi-usage";
   let seedCandidate: string | undefined;
   for (let index = 1; index < args.length; index += 1) {
     const arg = args[index];
-    if (arg === "--max-steps" || arg === "--seed-candidate") {
+    if (arg === "--max-steps" || arg === "--seed-candidate" || arg === "--skill") {
       if (command !== "optimize") {
         throw new OperatorUsageError(`${arg} is only valid for optimize`);
       }
@@ -255,6 +259,10 @@ export function parseOperatorArgs(args: readonly string[]): ParsedOperatorArgs {
       }
       if (arg === "--seed-candidate") {
         seedCandidate = value;
+      } else if (arg === "--skill") {
+        if (value === "bundle") skill = value;
+        else if ((CANONICAL_SKILLS as readonly string[]).includes(value)) skill = value as CanonicalSkill;
+        else throw new OperatorUsageError(`--skill must be one of ${CANONICAL_SKILLS.join("|")}`);
       } else {
         const parsed = Number(value);
         if (!Number.isInteger(parsed) || parsed < 1 || parsed > 4) {
@@ -272,6 +280,7 @@ export function parseOperatorArgs(args: readonly string[]): ParsedOperatorArgs {
   return {
     command,
     maxSteps,
+    skill,
     ...(seedCandidate === undefined ? {} : { seedCandidate }),
   };
 }
@@ -294,10 +303,28 @@ export async function runOperatorCommand(
       runId,
     ]);
   }
+  if (command === "suite") {
+    const runId = dependencies.randomId();
+    process.stderr.write(`skillopt suite run-id=${runId}\n`);
+    return await dependencies.runCli([
+      "bundle",
+      "--allow-paid",
+      "--run-id",
+      runId,
+      "--skill",
+      "all",
+    ]);
+  }
   const maxSteps = options.maxSteps ?? 1;
   if (!Number.isInteger(maxSteps) || maxSteps < 1 || maxSteps > 4) {
     throw new OperatorUsageError("--max-steps must be an integer from 1 to 4");
   }
+  if (options.skill === "bundle") {
+    throw new OperatorUsageError(
+      "optimize requires --skill kibi-usage|kibi-freshness|kibi-traceability|init-kibi",
+    );
+  }
+  const selectedSkill = options.skill ?? "kibi-usage";
   const layout = await preparePaidOptimize(dependencies);
   process.stderr.write(
     `skillopt optimize run-id=${layout.runId}\nmax-steps=${maxSteps}\nartifact-root=${layout.artifactRoot}\nfixture-run-root=${layout.fixtureRunRoot}\n`,
@@ -305,7 +332,7 @@ export async function runOperatorCommand(
   return await dependencies.runCli([
     "optimize",
     "--skill",
-    "kibi-usage",
+    selectedSkill,
     "--allow-paid",
     "--run-id",
     layout.runId,
@@ -338,6 +365,7 @@ export async function main(
   try {
     return await runOperatorCommand(parsed.command, dependencies, {
       maxSteps: parsed.maxSteps,
+      skill: parsed.skill,
       ...(parsed.seedCandidate === undefined
         ? {}
         : { seedCandidate: parsed.seedCandidate }),

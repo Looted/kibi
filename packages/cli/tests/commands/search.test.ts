@@ -99,6 +99,8 @@ describe("kibi search", () => {
       ].join("\n"),
     );
 
+    execSync("git add documentation", { cwd: tmpDir, stdio: "pipe" });
+
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
   }, 30000);
 

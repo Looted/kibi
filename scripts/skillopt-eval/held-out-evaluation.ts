@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { buildBundleCatalog, buildSkillCatalog } from "./catalog";
+import { CANONICAL_SKILLS, buildBundleCatalog, buildSkillCatalog, type CanonicalSkill } from "./catalog";
 import { assertCellInfrastructureHealthy } from "./evaluation-infrastructure";
 import { parseHeldOutTaskManifest } from "./fixtures/contracts";
 import {
@@ -39,14 +39,16 @@ function sha256(value: string): string {
   return createHash("sha256").update(value, "utf8").digest("hex");
 }
 
-function terminalTasks(): readonly TerminalTask[] {
-  const predicates = PREDICATE_HELD_OUT_CASE_IDS.map((taskId) => ({
+function terminalTasks(skill: CanonicalSkill): readonly TerminalTask[] {
+  const predicates = skill === "kibi-usage"
+    ? PREDICATE_HELD_OUT_CASE_IDS.map((taskId) => ({
     kind: "predicate" as const,
     taskId,
     family: PREDICATE_SEMANTIC_CLASSES.get(taskId) ?? "predicate",
     replicates: [1, 2, 3] as const,
-  }));
-  const skills = buildSkillCatalog("kibi-usage")
+  }))
+    : [];
+  const skills = buildSkillCatalog(skill)
     .filter(
       (task) =>
         task.split === "held-out" && task.family !== "fact-predicate-modeling",
@@ -133,7 +135,7 @@ export const defaultEvaluateHeldOut: RealOptimizationDependencies["evaluateHeldO
       }
       const reservation = await receiptStore.reserve();
       const tasks = await Promise.all(
-        terminalTasks().map((task) =>
+        terminalTasks(input.skill).map((task) =>
           resolveTerminalTask(runtime.fixtureRunRoot, task),
         ),
       );

@@ -7,6 +7,7 @@ import {
   resolveKbPath,
   resolveWorkspaceRoot,
 } from "../src/workspace.js";
+import { branchStorePath } from "kibi-cli/public/branch-resolver";
 
 const originalKibiWorkspace = process.env.KIBI_WORKSPACE;
 const originalKibiProjectRoot = process.env.KIBI_PROJECT_ROOT;
@@ -124,7 +125,7 @@ describe.serial("workspace uncovered path coverage", () => {
       setEnvVar("KB_PATH", legacyKbRoot);
 
       expect(resolveKbPath(workspaceRoot, "main")).toBe(
-        path.join(path.resolve(legacyKbRoot), "branches", "main"),
+        branchStorePath(path.resolve(legacyKbRoot), "main"),
       );
     });
 
@@ -144,7 +145,7 @@ describe.serial("workspace uncovered path coverage", () => {
 
     test("builds the default branch path when no env override exists", () => {
       expect(resolveKbPath(workspaceRoot, "main")).toBe(
-        path.join(workspaceRoot, ".kb", "branches", "main"),
+        branchStorePath(workspaceRoot, "main"),
       );
     });
   });

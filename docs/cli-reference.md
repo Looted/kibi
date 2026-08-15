@@ -488,25 +488,32 @@ Garbage collects stale branch knowledge bases.
 
 **Behavior:**
 - Lists branch KBs that no longer exist in git
-- Optionally deletes stale branch KBs
+- Quarantines stale stores first; irreversible deletion requires explicit purge
+- Keeps quarantined stores restorable during the retention window (30 days by default)
 - Safe by default (dry-run mode)
 
 **Flags:**
 - `--dry-run` - Only list stale branches (default)
-- `--force` - Delete stale branches
+- `--force` - Quarantine stale branches (reversible)
+- `--purge` - Permanently purge quarantined stores past retention
+- `--retention-days <n>` - Retention window for purge (default: 30)
 
 **Examples:**
 ```bash
 # List stale branches (safe)
 kibi gc --dry-run
 
-# Delete stale branches
+# Quarantine stale branches
 kibi gc --force
+
+# Purge expired quarantined stores
+kibi gc --purge --retention-days 30
 ```
 
 **Notes:**
 - Use `--dry-run` first to see what would be deleted
-- Stale = branch exists in `.kb/branches/` but not in local `git branch` output
+- Stale = an exact or legacy store whose branch is not a local Git head or
+  worktree branch; remote-only refs do not keep stores live
 
 ## `kibi branch`
 
@@ -514,26 +521,29 @@ Lists and manages branch knowledge bases.
 
 **Syntax:**
 ```bash
-kibi branch ensure [--from <branch>]
-kibi branch migrate --from <legacy-branch> [--apply]
+kibi branch ensure
+kibi branch migrate --from <legacy-branch> --to <active-branch> [--apply --approval-hash <sha256>]
 kibi branch recover [--apply]
+kibi branch restore --branch <branch> [--apply]
 ```
 
 **Arguments:**
 - `ensure` - Ensure the active branch has a branch-local KB snapshot
 - `migrate` - Preview (or, with `--apply`, atomically move) a legacy branch KB into the exact active Git branch namespace
 - `recover` - Preview (or, with `--apply`, rebuild) an incomplete or unreadable exact branch store from authored sources while preserving the original bytes
+- `restore` - Preview (or, with `--apply`, restore) the newest quarantined exact branch store within its retention window
 
 **Flags:**
-- `--from <branch>` - Copy the new branch KB from an existing branch KB instead of creating an empty one
+- `--to <active-branch>` - Explicit exact Git identity receiving a legacy-store migration; it must match the active branch
+- `--approval-hash <sha256>` - Required hash copied from the preview; source bytes and identities must still match exactly
 
 **Behavior:**
-- Ensures the active git branch has a KB under `.kb/branches/<branch>`
-- Creates an empty branch KB by default when one does not exist
-- If `--from` is supplied and that branch KB exists, copies from it instead
-- Branch names are never normalized; `master` and `main` are separate namespaces. If no `--from` is supplied, `ensure` creates an empty KB for the exact active ref.
+- Ensures the active git branch has a compiled KB under `.kb/branches/<exact-ref-sha256>/branch.json`
+- A missing exact branch store is compiled from the current checkout's tracked sources; no other branch store is copied
+- Branch names are never normalized; `master` and `main` are separate namespaces and remote-only refs do not keep stores live
 - `migrate` previews by default, stops an attached branch engine before applying, requires the exact target namespace to be absent, and preserves journals/audit/cache files.
-- `migrate` is deliberately limited to the detected historical `master` -> legacy `main` attachment. It rejects arbitrary cross-branch moves; use `ensure --from` for intentional branch seeding.
+- `migrate` is an explicit old/new legacy-literal-path migration. It rejects inferred renames and arbitrary branch-store cloning.
+  The old and new identities may be equal when moving a literal store for the current branch into its hashed path.
 - `recover` publishes only after a clean rebuild has succeeded, moves the prior store to `.kb/recovery/<branch>/...`, and writes an audit record. It never renames a Git branch.
 
 **Examples:**
@@ -541,12 +551,9 @@ kibi branch recover [--apply]
 # Ensure the current branch has a KB
 kibi branch ensure
 
-# Seed the current branch KB from another branch KB
-kibi branch ensure --from main
-
-# Preview then apply a legacy master -> main-store migration while on master
-kibi branch migrate --from main
-kibi branch migrate --from main --apply
+# Preview then apply a legacy literal-store migration while on the target branch
+kibi branch migrate --from old-ref --to feature/target
+kibi branch migrate --from old-ref --to feature/target --apply --approval-hash <preview-hash>
 
 # Preview then recover an unreadable store for the active exact branch
 kibi branch recover

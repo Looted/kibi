@@ -17,6 +17,7 @@
 */
 import fs from "node:fs";
 import path from "node:path";
+import { branchStorePath } from "kibi-runtime";
 
 const WORKSPACE_ENV_KEYS = [
   "KIBI_WORKSPACE",
@@ -54,10 +55,10 @@ export function resolveKbPath(workspaceRoot: string, branch: string): string {
     if (isBranchPath(resolved)) {
       return resolved;
     }
-    return path.join(resolved, "branches", branch);
+    return branchStorePath(resolved, branch);
   }
 
-  return path.join(workspaceRoot, ".kb", "branches", branch);
+  return branchStorePath(workspaceRoot, branch);
 }
 
 // implements REQ-002

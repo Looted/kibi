@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 // implements REQ-opencode-kibi-plugin-v1
 import { createRequire } from "node:module";
 import * as path from "node:path";
-import { createRepoIgnorePolicy } from "kibi-cli/ignore-policy";
+import { createRepoIgnorePolicy } from "kibi-runtime";
 
 const _require = createRequire(import.meta.url);
 

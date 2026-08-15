@@ -49,6 +49,8 @@ status: active
 `,
     );
 
+    execSync("git add documentation", { cwd: tmpDir, stdio: "pipe" });
+
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
   }, 30000); // kibi init + sync can take ~10s; allow 30s for slower CI environments
 

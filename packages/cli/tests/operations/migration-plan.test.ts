@@ -69,7 +69,7 @@ describe("kibi.migration-plan.v2", () => {
       autoApplicable: true,
     });
 
-    const ambiguous = buildActionsFromStatus({
+    const explicitLegacy = buildActionsFromStatus({
       workspaceRoot: "/tmp/project",
       branchAttachment: {
         gitBranch: "develop",
@@ -79,10 +79,22 @@ describe("kibi.migration-plan.v2", () => {
       },
       branchStore: { state: "healthy", path: ".kb/branches/main" },
     });
-    expect(ambiguous.actions[0]).toMatchObject({
-      code: "ambiguous_branch_attachment",
-      safety: "operator",
-      autoApplicable: false,
+    expect(explicitLegacy.actions[0]).toMatchObject({
+      code: "legacy_branch_storage",
+      safety: "automatic",
+      autoApplicable: true,
+      invocation: {
+        command_argv: [
+          "kibi",
+          "branch",
+          "migrate",
+          "--from",
+          "main",
+          "--to",
+          "develop",
+          "--apply",
+        ],
+      },
     });
   });
 

@@ -35,13 +35,19 @@ describe("semantic-advisor --input", () => {
       // Then: success is JSON-only and invalid business input exits 2.
       expect(valid.exitCode, valid.stderr.toString()).toBe(0);
       expect(
-        JSON.parse(valid.stdout.toString()).receipt.suggestions[0],
+        JSON.parse(valid.stdout.toString()).data.receipt.suggestions[0],
       ).toMatchObject({
         kind: "strict_property",
         claim: { property_key: "retention_years", value_int: 7 },
       });
       expect(invalid.exitCode).toBe(2);
-      expect(invalid.stdout.toString()).toBe("");
+      const invalidEnvelope = JSON.parse(invalid.stdout.toString());
+      expect(invalidEnvelope).toMatchObject({
+        kibiProtocol: 1,
+        operation: "kb_semantic_advisor",
+        status: "error",
+        error: { code: "VALIDATION_FAILED", retryable: false },
+      });
     } finally {
       await rm(root, { recursive: true, force: true });
     }

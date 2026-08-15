@@ -57,6 +57,10 @@ if (RUN_NODE_TEST_SUITE) {
           cwd: "/tmp",
           env: process.env,
         });
+        await run("mkdir", ["-p", join(artifactRoot, "runtime")], {
+          cwd: "/tmp",
+          env: process.env,
+        });
         await run("mkdir", ["-p", join(artifactRoot, "mcp")], {
           cwd: "/tmp",
           env: process.env,
@@ -67,6 +71,10 @@ if (RUN_NODE_TEST_SUITE) {
           env: process.env,
         });
         await run("cp", [tarballs.cli, join(artifactRoot, "cli")], {
+          cwd: "/tmp",
+          env: process.env,
+        });
+        await run("cp", [tarballs.runtime, join(artifactRoot, "runtime")], {
           cwd: "/tmp",
           env: process.env,
         });

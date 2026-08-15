@@ -22,7 +22,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function resultRecord(result: unknown): Record<string, unknown> | undefined {
   if (!isRecord(result)) return undefined;
-  return isRecord(result.structuredContent) ? result.structuredContent : result;
+  if (isRecord(result.structuredContent)) return result.structuredContent;
+  // CLI JSON operations return the same versioned KibiResult envelope as MCP
+  // structuredContent.  Unwrap its data before deriving operation-specific
+  // telemetry fields (coverage/proof fields in particular).
+  if (result.kibiProtocol === 1 && isRecord(result.data)) return result.data;
+  return result;
 }
 
 function stringArray(value: unknown): string[] {
@@ -184,6 +189,21 @@ export function deriveDiagnosticUsageFields(
   }
 
   const structured = resultRecord(result);
+  const envelope = isRecord(structured) && structured.kibiProtocol === 1
+    ? structured
+    : undefined;
+  if (envelope) {
+    fields.protocol_version = envelope.kibiProtocol;
+    fields.result_version = typeof envelope.resultVersion === "string" ? envelope.resultVersion : null;
+    fields.result_status = typeof envelope.status === "string" ? envelope.status : null;
+    fields.effect_failures = Array.isArray(envelope.effects)
+      ? envelope.effects.filter((effect) => isRecord(effect) && effect.status === "failed")
+      : [];
+    fields.followed_next_actions = Array.isArray(telemetry?.followed_next_actions)
+      ? telemetry.followed_next_actions
+      : [];
+    fields.unsafe_original_retry = telemetry?.unsafe_original_retry === true;
+  }
   if (tool === "kb_query" || tool === "kb_search") {
     const resultCount = Number(structured?.count ?? 0);
     fields.result_count = resultCount;

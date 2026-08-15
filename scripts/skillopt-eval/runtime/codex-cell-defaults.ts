@@ -59,11 +59,20 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function structuredContent(value: unknown): Record<string, unknown> | null {
   if (!isRecord(value)) return null;
   const content = value.structuredContent ?? value.structured_content;
-  return isRecord(content) ? content : null;
+  if (!isRecord(content)) return null;
+  // Kibi protocol v1 keeps operation metadata beside the typed payload. The
+  // evaluator consumes the payload while retaining the envelope for status
+  // and effect telemetry.
+  if (content.kibiProtocol === 1 && isRecord(content.data)) {
+    return content.data;
+  }
+  return content;
 }
 
 function successfulResult(value: unknown): boolean {
-  return !isRecord(value) || value.isError !== true;
+  if (!isRecord(value) || value.isError === true) return false;
+  const content = value.structuredContent ?? value.structured_content;
+  return !isRecord(content) || content.status !== "error";
 }
 
 function resultContent(value: unknown): Record<string, unknown> | null {
@@ -187,8 +196,10 @@ function workflowSignalObserved(
       return text.includes("replacement") || text.includes("remap");
     case "coverage transfer evidence":
       return text.includes("covered_by") || text.includes("coverage");
-    case "source-owned relationship rejection":
-      return text.includes("source_owned_relationship");
+    case "canonical relationship shard":
+      return text.includes("relationship") && text.includes("shard");
+    case "unrelated records":
+      return text.includes("unrelated") || text.includes("preserv");
     case "release defect":
       return text.includes("release defect") || text.includes("export surface");
     case "new package version required":
@@ -263,10 +274,10 @@ function forbiddenActionObserved(
   const text = JSON.stringify(results).toLowerCase();
   const status = latestContent(results, "kb_status");
   switch (action) {
-    case "normalize master to main":
+    case "copy branch store across refs":
       return (
-        text.includes('"gitbranch":"master"') &&
-        text.includes('"kbbranch":"main"')
+        text.includes("copy") &&
+        (text.includes("branch store") || text.includes("compiled store"))
       );
     case "rename Git branch":
       return (

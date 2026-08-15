@@ -15,7 +15,7 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-import { splitTopLevel } from "kibi-cli/prolog/codec";
+import { splitTopLevel } from "kibi-runtime";
 
 // implements REQ-002
 export function parseAtomList(raw: string): string[] {

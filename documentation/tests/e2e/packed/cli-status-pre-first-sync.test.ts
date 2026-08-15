@@ -7,6 +7,7 @@ import {
   type TestSandbox,
   checkPrologAvailable,
   createSandbox,
+  parseKibiResult,
   kibi,
   packAll,
 } from "./helpers.js";
@@ -82,13 +83,13 @@ if (RUN_NODE_TEST_SUITE) {
           `kibi status should succeed: ${statusResult.stderr}`,
         );
 
-        const statusJson = JSON.parse(statusResult.stdout) as {
+        const statusJson = parseKibiResult<{
           branch: string;
           snapshotId: string;
           syncedAt: string | null;
           dirty: boolean;
           syncState: string;
-        };
+        }>(statusResult.stdout);
 
         // Assert pre-sync contract
         assert.strictEqual(
@@ -171,13 +172,13 @@ Test requirement for CLI status pre-first-sync regression.
           `kibi status should succeed: ${statusResult.stderr}`,
         );
 
-        const statusJson = JSON.parse(statusResult.stdout) as {
+        const statusJson = parseKibiResult<{
           branch: string;
           snapshotId: string;
           syncedAt: string | null;
           dirty: boolean;
           syncState: string;
-        };
+        }>(statusResult.stdout);
 
         // Assert post-sync contract
         assert.strictEqual(

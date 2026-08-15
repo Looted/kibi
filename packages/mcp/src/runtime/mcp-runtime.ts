@@ -7,8 +7,8 @@ import type {
   OperationRuntime,
   PrologPort,
   RuntimeOptions,
-} from "kibi-cli/operations/runtime-types";
-import { resolveBranchAttachment } from "kibi-cli/public/branch-resolver";
+} from "kibi-runtime";
+import { resolveBranchAttachment } from "kibi-runtime";
 
 // implements REQ-kibi-operation-interface-parity
 export interface McpSession<TProlog = PrologPort> {
@@ -49,13 +49,14 @@ export function createMcpRuntime<TProlog = PrologPort>(
           options.signal ?? session.signal ?? new AbortController().signal,
         clock: options.clock ?? session.clock ?? (() => new Date()),
         ...(fs ? { fs } : {}),
+        ...(fs ? { sourceFirst: true } : {}),
         ...(git ? { git } : {}),
         ...(net ? { net } : {}),
       };
       const attachment = resolveBranchAttachment(context.workspaceRoot);
       if (!("error" in attachment) && attachment.migrationRequired) {
         console.warn(
-          `[KIBI-MCP] Legacy branch attachment: Git '${attachment.gitBranch}' is reading KB '${attachment.kbBranch}'. Run 'kibi branch migrate --from ${attachment.kbBranch} --apply'; writes are blocked until then.`,
+          `[KIBI-MCP] Legacy branch attachment: Git '${attachment.gitBranch}' is reading KB '${attachment.kbBranch}'. Run 'kibi branch migrate --from ${attachment.kbBranch} --to ${attachment.gitBranch} --apply'; writes are blocked until then.`,
         );
       }
       const withAttachment =
@@ -82,6 +83,11 @@ export function createMcpRuntime<TProlog = PrologPort>(
         };
         lazyContext = operationContext;
         return operationContext;
+      }
+      if (!("error" in attachment) && attachment.migrationRequired) {
+        throw new Error(
+          `Legacy branch attachment requires explicit migration before '${spec.name}'; run kibi branch migrate --from ${attachment.kbBranch} --to ${attachment.gitBranch} --apply`,
+        );
       }
       if (options.prolog) {
         return { ...withAttachment, prolog: options.prolog };

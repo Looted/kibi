@@ -17,8 +17,8 @@
  */
 
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
-import { getSpec } from "kibi-cli/operations";
-import type { OperationName } from "kibi-cli/operations";
+import { getSpec } from "kibi-runtime";
+import type { OperationName } from "kibi-runtime";
 
 import {
   DIAGNOSTIC_MODE_ENABLED,
@@ -29,6 +29,7 @@ interface ToolConfig {
   name: string;
   description: string;
   inputSchema: Readonly<Record<string, unknown>>;
+  outputSchema?: Readonly<Record<string, unknown>>;
   annotations?: ToolAnnotations;
 }
 
@@ -125,11 +126,31 @@ const TOOL_ANNOTATIONS: Partial<Record<OperationName, ToolAnnotations>> = {
 
 const BASE_TOOLS: readonly ToolConfig[] = MCP_TOOL_ORDER.map((name) => {
   const spec = getSpec(name);
+  const effects = spec.declaredEffects ?? spec.effects.map((kind) => ({
+    kind,
+    mutability: "read" as const,
+    destructive: false,
+    retrySafety: "safe" as const,
+    openWorld: kind === "network-read",
+  }));
+  const derived: ToolAnnotations = {
+    readOnlyHint: effects.every((effect) => effect.mutability === "read"),
+    destructiveHint: effects.some((effect) => effect.destructive),
+    idempotentHint: effects.every((effect) => effect.retrySafety === "safe"),
+    openWorldHint: effects.some((effect) => effect.openWorld),
+  };
   return {
     name: spec.name,
     description: spec.description,
     inputSchema: spec.businessInputSchema,
-    ...(TOOL_ANNOTATIONS[name] ? { annotations: TOOL_ANNOTATIONS[name] } : {}),
+    ...(spec.outputSchema ? { outputSchema: spec.outputSchema } : {}),
+    annotations: {
+      ...(TOOL_ANNOTATIONS[name] ?? {}),
+      // Mutability and world-model hints are generated from the authoritative
+      // operation effects. Hand-authored entries may supply presentation-only
+      // metadata such as a title, but cannot contradict the catalog contract.
+      ...derived,
+    },
   };
 });
 

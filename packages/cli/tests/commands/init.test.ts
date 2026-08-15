@@ -11,6 +11,7 @@ import {
 import * as os from "node:os";
 import * as path from "node:path";
 import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
+import { branchStorePath } from "../../src/utils/branch-store-locator.js";
 
 describe("kibi init", () => {
   let tmpDir: string;
@@ -43,7 +44,7 @@ describe("kibi init", () => {
     expect(existsSync(path.join(tmpDir, ".kb/schema"))).toBe(true);
     expect(existsSync(path.join(tmpDir, ".kb/branches"))).toBe(true);
     // The explicit test branch remains main.
-    expect(existsSync(path.join(tmpDir, ".kb/branches/main"))).toBe(true);
+    expect(existsSync(branchStorePath(tmpDir, "main"))).toBe(true);
   }, 30000);
 
   test("copies schema files to .kb/schema/", () => {
@@ -252,7 +253,7 @@ describe("kibi init", () => {
     expect(existsSync(path.join(tmpDir, ".kb"))).toBe(true);
     expect(existsSync(path.join(tmpDir, ".kb/config.json"))).toBe(true);
     expect(existsSync(path.join(tmpDir, ".kb/schema"))).toBe(true);
-    expect(existsSync(path.join(tmpDir, ".kb/branches/trunk"))).toBe(true);
+    expect(existsSync(branchStorePath(tmpDir, "trunk"))).toBe(true);
   });
 
   test("prints helpful message if .kb/ already exists", () => {

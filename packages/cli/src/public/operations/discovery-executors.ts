@@ -332,6 +332,9 @@ export async function executeStatus(
         if (!isStatusPayload(payload)) {
           throw new Error("Status execution query returned an invalid payload");
         }
+        // The Prolog status module sees the compiled directory key. The public
+        // contract exposes the exact Git branch identity instead.
+        payload = { ...payload, branch: attachment.kbBranch };
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         store = {

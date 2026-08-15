@@ -1,0 +1,22 @@
+relationships:
+  - id: rel-ad20e886ffe4
+    type: covered_by
+    from: SYM-reqcompiler-receipt-append-only-validation
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: "2026-08-15T12:41:40.307Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-reqcompiler-receipt-append-only-validation
+    to: REQ-kibi-verification-receipts-v2
+    created_at: 2026-08-15T16:37:42.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e152c4ebe74
+  - type: covered_by
+    from: SYM-reqcompiler-receipt-append-only-validation
+    to: TEST-kibi-verification-receipts-v2
+    created_at: 2026-08-15T16:37:42.925Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f768e210ca2

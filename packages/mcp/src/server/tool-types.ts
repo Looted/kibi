@@ -1,5 +1,5 @@
-import type { OperationContext } from "kibi-cli/operations/runtime-types";
-import type { PrologProcess } from "kibi-cli/prolog";
+import type { OperationContext } from "kibi-runtime";
+import type { PrologProcess } from "kibi-runtime";
 import type { McpOperationRuntime } from "../runtime/mcp-runtime.js";
 
 import type {

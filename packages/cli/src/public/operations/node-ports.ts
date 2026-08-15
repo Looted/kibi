@@ -175,10 +175,12 @@ export const nodeFilesystem: NodeFilesystemPort = {
   writeFile: async (filePath, data) => {
     await fs.writeFile(filePath, data, "utf8");
   },
+  rename: (from, to) => fs.rename(from, to),
   mkdir: async (directoryPath) => {
     await fs.mkdir(directoryPath, { recursive: true });
   },
   stat: (filePath) => fs.stat(filePath),
+  unlink: (filePath) => fs.unlink(filePath),
   glob: (patterns, options) =>
     fg([...patterns], {
       cwd: options.cwd,

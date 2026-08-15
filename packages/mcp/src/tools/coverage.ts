@@ -4,9 +4,9 @@ import {
   type RepairPlan,
   executeCoverage,
   type MigrationPlan,
-} from "kibi-cli/operations";
-import type { OperationContext } from "kibi-cli/operations/runtime-types";
-import type { PrologProcess } from "kibi-cli/prolog";
+} from "kibi-runtime";
+import type { OperationContext } from "kibi-runtime";
+import type { PrologProcess } from "kibi-runtime";
 import { createDiscoveryContext } from "./discovery-adapter.js";
 
 type ReportingProlog = Pick<PrologProcess, "query">;

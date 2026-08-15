@@ -48,11 +48,15 @@ export function registerMaintenanceCommands(program: Command): void {
     .command("gc")
     .description("Garbage collect stale branch KBs")
     .option("--dry-run", "Preview without deleting (default)", true)
-    .option("--force", "Actually delete stale branches")
+    .option("--force", "Quarantine stale branches (reversible)")
+    .option("--purge", "Permanently purge quarantined stores past retention")
+    .option("--retention-days <n>", "Quarantine retention period", "30")
     .action(async (options) => {
       await (await import("./commands/gc.js")).gcCommand({
         dryRun: !options.force,
         force: options.force,
+        purge: options.purge,
+        retentionDays: Number(options.retentionDays),
       });
     });
 
@@ -102,9 +106,13 @@ export function registerMaintenanceCommands(program: Command): void {
   program
     .command("branch")
     .description("Manage branch KBs")
-    .argument("<action>", "Action: ensure|migrate|recover")
-    .option("--from <branch>", "Source branch to copy KB from")
-    .option("--apply", "Apply a branch migration (preview is the default)")
+    .argument("<action>", "Action: ensure|migrate|recover|restore")
+    .option("--branch <branch>", "Exact branch identity to restore")
+    .option("--from <branch>", "Legacy source branch for explicit migration")
+    .option("--to <branch>", "Exact target Git branch identity (required for migration)")
+    .option("--approval-hash <sha256>", "Hash printed by the migration preview")
+    .option("--recover-journal <id>", "Recover an interrupted branch migration journal")
+    .option("--apply", "Apply an explicit branch migration (preview is default)")
     .action(async (action, options) => {
       if (action === "ensure") {
         await (await import("./commands/branch.js")).branchEnsureCommand(
@@ -116,6 +124,10 @@ export function registerMaintenanceCommands(program: Command): void {
         );
       } else if (action === "recover") {
         await (await import("./commands/branch.js")).branchRecoverCommand(
+          options,
+        );
+      } else if (action === "restore") {
+        await (await import("./commands/branch.js")).branchRestoreCommand(
           options,
         );
       } else {

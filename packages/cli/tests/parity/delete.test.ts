@@ -16,6 +16,7 @@ describe("delete parity", () => {
         type: "req",
         id: "REQ-DELETE-PARITY",
         properties: { title: "Delete transport parity", status: "open" },
+        document: { path: "requirements/REQ-DELETE-PARITY.md" },
       } as const;
       const [cliSeeded, mcpSeeded] = await Promise.all([
         runCliJsonRoute(cliWorkspace.root, "upsert", upsertInput),

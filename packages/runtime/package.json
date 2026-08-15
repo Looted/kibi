@@ -1,0 +1,24 @@
+{
+  "name": "kibi-runtime",
+  "version": "0.1.0",
+  "description": "Narrow first-party runtime contracts and adapters for Kibi operations.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && mkdir -p dist/skills && cp -r src/skills/. dist/skills/",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "kibi-cli": "^0.21.0"
+  },
+  "engines": { "node": ">=22" },
+  "license": "AGPL-3.0-or-later"
+}

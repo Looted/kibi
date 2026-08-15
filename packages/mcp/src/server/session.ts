@@ -19,15 +19,16 @@
 import fs from "node:fs";
 import { createRequire } from "node:module";
 import process from "node:process";
-import { EngineClient } from "kibi-cli/engine";
-import { PrologProcess } from "kibi-cli/prolog";
+import { EngineClient } from "kibi-runtime";
+import { PrologProcess } from "kibi-runtime";
 import {
   copyCleanSnapshot,
+  ensureBranchStoreManifest,
   getBranchDiagnostic,
   isValidBranchName,
   resolveActiveBranch,
   resolveBranchAttachment,
-} from "kibi-cli/public/branch-resolver";
+} from "kibi-runtime";
 import { getBranchOverride, isMcpDebugEnabled } from "../env.js";
 import { resolveKbPath, resolveWorkspaceRoot } from "../workspace.js";
 import {
@@ -135,10 +136,18 @@ export function ensureBranchKbExists(
     return false;
   }
 
-  // Branch initialization is intentionally empty. Copying another branch is
-  // an explicit operator action (`kibi branch ensure --from ...`), never an
-  // implicit continuity/default-branch behavior in the MCP session.
-  sessionDeps.fs.mkdirSync(branchPath, { recursive: true });
+  // Branch initialization is intentionally empty. The compiled store is
+  // materialized from the current checkout's authored sources by sync; it is
+  // never copied from another branch.
+  // Unit/integration hosts can provide a virtual filesystem through the
+  // existing session dependency seam.  Only the real Node filesystem needs
+  // the identity manifest writer; virtual hosts already model the resolved
+  // branch path and should not be forced to create that path on the host.
+  if (sessionDeps.fs === fs) {
+    ensureBranchStoreManifest(workspaceRoot, branch);
+  } else {
+    sessionDeps.fs.mkdirSync(branchPath, { recursive: true });
+  }
   debugLog(`[KIBI-MCP] Created empty branch KB for '${branch}'`);
   return true;
 }
@@ -312,8 +321,8 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
     }
     targetBranch = envBranch;
   } else {
-    // No override - resolve exact Git branch, with read-compatible legacy
-    // storage detection for old master->main repositories.
+    // No override - resolve the exact Git branch, with read-compatible legacy
+    // literal-path storage detection for bridge-release repositories.
     const branchResult = sessionDeps.resolveBranchAttachment(workspaceRoot);
 
     if ("error" in branchResult) {

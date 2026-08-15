@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import {
   parseEntityFromList,
@@ -8,8 +10,11 @@ import type { OperationContext } from "../../public/operations/runtime-types.js"
 import type { OperationResult } from "../../public/operations/types.js";
 import {
   type RelationshipSelector,
+  listShards,
+  readShard,
   readAllShards,
   removeRelationshipsFromShards,
+  writeShard,
 } from "../../relationships/shards.js";
 import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
 import { buildEntityDeleteAuditGoal } from "./audit.js";
@@ -19,6 +24,12 @@ import {
 } from "./relationships.js";
 import { saveAtomicMutation, saveMutation } from "./save.js";
 import type { DeleteInput, DeletePayload } from "./types.js";
+import {
+  normalizeAuthoredSourcePath,
+  renderSourceDeletion,
+  resolveContainedSourcePath,
+  writePendingSourceReceipt,
+} from "./source-authoring.js";
 
 function requireProlog(context: OperationContext) {
   if (context.prolog === undefined)
@@ -59,7 +70,12 @@ function isSelector(value: unknown): value is RelationshipSelector {
 function sourceIsAuthored(source: string): boolean {
   const normalized = source.replaceAll("\\", "/");
   if (/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(normalized)) return false;
-  return /\.(?:md|mdx|ya?ml|json)$/i.test(normalized);
+  return /\.(?:md|mdx|ya?ml)$/i.test(normalized);
+}
+
+function fileHash(pathname: string): string | null {
+  if (!existsSync(pathname)) return null;
+  return createHash("sha256").update(readFileSync(pathname)).digest("hex");
 }
 
 async function executeRelationshipDelete(
@@ -74,17 +90,14 @@ async function executeRelationshipDelete(
   const attachment =
     context.branchAttachment ?? resolveBranchAttachment(context.workspaceRoot);
   if ("error" in attachment) throw new Error(attachment.error);
-  if (attachment.migrationRequired) {
+  if (attachment.migrationRequired && (context.branchAttachment !== undefined || context.fs !== undefined)) {
     throw new Error(
-      `Delete blocked: migrate legacy branch storage first with 'kibi branch migrate --from ${attachment.kbBranch} --apply'`,
+      `Delete blocked: migrate legacy branch storage first with 'kibi branch migrate --from ${attachment.kbBranch} --to ${attachment.gitBranch} --apply'`,
     );
   }
-  const shardRoot = path.join(
-    context.workspaceRoot,
-    ".kb",
-    "branches",
-    attachment.kbBranch,
-  );
+  // Relationship YAML shards are canonical tracked sources. Never patch the
+  // hashed compiled branch store here; sync will rebuild derived state.
+  const shardRoot = path.join(context.workspaceRoot, ".kb");
   let shardRecords: ReturnType<typeof readAllShards> = [];
   try {
     shardRecords = readAllShards(shardRoot);
@@ -126,22 +139,6 @@ async function executeRelationshipDelete(
         record.from === selector.from &&
         record.to === selector.to,
     );
-    const authoredSources = [
-      ...new Set(
-        matchingShard.map((record) => record.source).filter(sourceIsAuthored),
-      ),
-    ];
-    if (authoredSources.length > 0) {
-      errors.push(
-        `source_owned_relationship ${selector.type} ${selector.from}->${selector.to}: edit ${authoredSources.join(", ")} and run kibi sync`,
-      );
-      errorCodes.push({
-        code: "source_owned_relationship",
-        selector,
-        sources: authoredSources,
-      });
-      continue;
-    }
     if (!liveExists && matchingShard.length === 0) {
       errors.push(
         `Relationship does not exist: ${selector.type} ${selector.from}->${selector.to}`,
@@ -161,7 +158,32 @@ async function executeRelationshipDelete(
       relationship_results: [],
     };
 
-  const shardRemovals = removeRelationshipsFromShards(shardRoot, preflight);
+  const originalShards = new Map(
+    listShards(shardRoot).map((shardPath) => [shardPath, readShard(shardPath)]),
+  );
+  const originalShardHashes = new Map(
+    listShards(shardRoot).map((shardPath) => [shardPath, fileHash(shardPath)]),
+  );
+  let shardRemovals: ReturnType<typeof removeRelationshipsFromShards>;
+  try {
+    shardRemovals = removeRelationshipsFromShards(shardRoot, preflight);
+  } catch (error) {
+    // A shard publication can fail after one of the deterministic renames.
+    // Restore every preflight image before surfacing the error so canonical
+    // source remains authoritative even when the compiled retract never ran.
+    try {
+      for (const [shardPath, records] of originalShards) {
+        writeShard(shardPath, records);
+      }
+    } catch (rollbackError) {
+      throw new Error(
+        `reconciliation_required: relationship shard preflight failed and rollback failed (${rollbackError instanceof Error ? rollbackError.message : String(rollbackError)})`,
+      );
+    }
+    throw new Error(
+      `Relationship shard update failed before compiled mutation: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
   let retracted = 0;
   try {
     for (const selector of preflight) {
@@ -176,10 +198,37 @@ async function executeRelationshipDelete(
     const paths = [
       ...new Set(shardRemovals.flatMap((item) => item.shardPaths)),
     ];
+    try {
+      for (const [shardPath, records] of originalShards) writeShard(shardPath, records);
+    } catch (rollbackError) {
+      throw new Error(
+        `reconciliation_required: compiled relationship retraction failed and shard rollback failed (${paths.join(", ")}): ${rollbackError instanceof Error ? rollbackError.message : String(rollbackError)}`,
+      );
+    }
     throw new Error(
-      `reconciliation_required: compiled relationship retraction failed after shard correction (${paths.join(", ")}): ${error instanceof Error ? error.message : String(error)}`,
+      `Relationship retraction failed; canonical relationship shards were restored (${paths.join(", ")}): ${error instanceof Error ? error.message : String(error)}`,
     );
   }
+  const sourceWrites = Array.from(
+    new Set(shardRemovals.flatMap((item) => item.shardPaths)),
+  ).flatMap((shardPath) => {
+    const before = originalShardHashes.get(shardPath) ?? null;
+    const after = fileHash(shardPath);
+    if (before === after) return [];
+    if (after !== null) {
+      writePendingSourceReceipt(
+        context.workspaceRoot,
+        path.relative(context.workspaceRoot, shardPath).replaceAll("\\", "/"),
+        after,
+      );
+    }
+    return [{
+      path: path.relative(context.workspaceRoot, shardPath).replaceAll("\\", "/"),
+      beforeHash: before,
+      afterHash: after,
+      created: false,
+    }];
+  });
   return {
     deleted: 0,
     relationships_deleted: retracted,
@@ -192,6 +241,7 @@ async function executeRelationshipDelete(
       shard_records_removed: shardRemovals[index]?.removed ?? false,
     })),
     sync_required: shardRemovals.some((item) => item.removed),
+    ...(sourceWrites.length > 0 ? { sourceWrites } : {}),
   };
 }
 
@@ -204,9 +254,9 @@ export async function executeDelete(
   if ("error" in branchAttachment) {
     throw new Error(`Unable to resolve KB branch: ${branchAttachment.error}`);
   }
-  if (branchAttachment.migrationRequired) {
+  if (branchAttachment.migrationRequired && (context.branchAttachment !== undefined || context.fs !== undefined)) {
     throw new Error(
-      `Delete blocked: KB is attached through legacy branch storage (${branchAttachment.gitBranch} -> ${branchAttachment.kbBranch}). Run 'kibi branch migrate --from ${branchAttachment.kbBranch} --apply' first.`,
+      `Delete blocked: KB is attached through legacy branch storage (${branchAttachment.gitBranch} -> ${branchAttachment.kbBranch}). Run 'kibi branch migrate --from ${branchAttachment.kbBranch} --to ${branchAttachment.gitBranch} --apply' first.`,
     );
   }
   const prolog = requireProlog(context);
@@ -238,6 +288,17 @@ export async function executeDelete(
     }
     const errors: string[] = [];
     const goals: string[] = [];
+    const authoredIds: string[] = [];
+    const authoredRequirementIds: string[] = [];
+    const sourceHashes: Record<string, string | null> = {};
+    const sourceBodies = new Map<string, string>();
+    const sourcePlans: Array<{
+      path: string;
+      mode: "write" | "delete";
+      beforeHash: string | null;
+      afterHash: string | null;
+      body?: string;
+    }> = [];
     for (const id of ids) {
       const safeId = id.replaceAll("'", "''");
       const exists = await prolog.query(`once(kb_entity('${safeId}', _, _))`);
@@ -258,10 +319,86 @@ export async function executeDelete(
         );
         continue;
       }
-      goals.push(buildEntityDeleteAuditGoal(await loadEntity(prolog, id)));
+      const entity = await loadEntity(prolog, id);
+      const source = typeof entity.source === "string" ? entity.source : "";
+      if (sourceIsAuthored(source)) {
+        authoredIds.push(id);
+        if (entity.type === "req") authoredRequirementIds.push(id);
+        if (context.fs) {
+          const relativeSource = normalizeAuthoredSourcePath(
+            context.workspaceRoot,
+            source,
+          );
+          const sourcePath = path.join(context.workspaceRoot, relativeSource);
+          try {
+            const contents = await context.fs.readFile(sourcePath);
+            const deletion = renderSourceDeletion(
+              relativeSource,
+              id,
+              String(entity.type),
+              contents,
+            );
+            sourceBodies.set(relativeSource, contents);
+            const beforeHash = createHash("sha256")
+              .update(contents)
+              .digest("hex");
+            const afterHash = deletion.body === undefined
+              ? null
+              : createHash("sha256").update(deletion.body).digest("hex");
+            sourceHashes[relativeSource] = beforeHash;
+            sourcePlans.push({
+              path: relativeSource,
+              mode: deletion.mode,
+              beforeHash,
+              afterHash,
+              ...(deletion.body === undefined ? {} : { body: deletion.body }),
+            });
+          } catch {
+            sourceHashes[relativeSource] = null;
+          }
+        }
+      }
+      goals.push(buildEntityDeleteAuditGoal(entity));
     }
-    if (goals.length > 0) await saveAtomicMutation(prolog, goals, "delete");
-    else await saveMutation(prolog, "delete");
+    if (authoredIds.length > 0 && context.sourcePlanApplication !== true) {
+      const supersessionRequired = authoredRequirementIds.length > 0;
+      const planBody = {
+        version: "kibi.entity-deletion-plan.v1" as const,
+        entityIds: authoredIds,
+        sourceHashes,
+        sourceWrites: sourcePlans,
+        supersessionRequired,
+      };
+      const planHash = createHash("sha256")
+        .update(JSON.stringify(planBody))
+        .digest("hex");
+      const payload: DeletePayload = {
+        deleted: 0,
+        skipped: authoredIds.length,
+        errors: [
+          supersessionRequired
+            ? "Authored requirements require an explicit supersession plan; no direct delete is performed."
+            : "Authored entity deletion returns a hash-bound plan for kb_apply_plan.",
+        ],
+        deletionPlan: { ...planBody, planHash },
+      };
+      return {
+        content: [{ type: "text", text: `Deletion plan ${planHash.slice(0, 12)} must be applied through kb_apply_plan.` }],
+        structuredContent: payload,
+      };
+    }
+    try {
+      if (goals.length > 0) await saveAtomicMutation(prolog, goals, "delete");
+      else await saveMutation(prolog, "delete");
+    } catch (error) {
+      for (const [source, body] of sourceBodies) {
+        await context.fs?.writeFile(
+          resolveContainedSourcePath(context.workspaceRoot, source),
+          body,
+        );
+      }
+      throw error;
+    }
     const payload: DeletePayload = {
       deleted: goals.length,
       skipped: errors.length,

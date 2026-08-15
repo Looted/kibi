@@ -1,6 +1,6 @@
 import fs from "node:fs";
 
-import type { Violation } from "kibi-cli/public/check-types";
+import type { Violation } from "kibi-runtime";
 
 const GENERATOR_PATTERN =
   /\b(?:kb_entity|kb_relationship|member|memberchk|findall|setof|bagof)\s*\(/;

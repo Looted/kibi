@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { existsSync, realpathSync } from "node:fs";
 import path from "node:path";
 
 import { executeStatus } from "../../public/operations/discovery-executors.js";
@@ -13,11 +14,14 @@ import { branchEnsureCommand, branchMigrateCommand, branchRecoverCommand } from 
 import { migrateCommand } from "../../commands/migrate.js";
 import { syncCommand } from "../../commands/sync.js";
 import { readMigrationConfigStatus } from "../../public/operations/migration-plan.js";
-import type { RelationshipInput, UpsertInput } from "../mutation/types.js";
+import type { DeletePayload, RelationshipInput, UpsertInput } from "../mutation/types.js";
+import { executeDelete } from "../mutation/delete.js";
 import { executeUpsert } from "../mutation/upsert.js";
+import { writePendingSourceReceipt } from "../mutation/source-authoring.js";
 import {
   type CompilePlanV1,
   type PlanStep,
+  type SourceWritePlan,
   compilePlanHash,
 } from "./compile-intent.js";
 
@@ -32,6 +36,20 @@ export type ApplyPlanArgs = Readonly<{
   plan: MigrationPlan;
   approvedPlanHash: string;
   approvedActionIds: readonly string[];
+}> | Readonly<{
+  plan: EntityDeletionPlan;
+  approvedPlanHash: string;
+}> | Readonly<{
+  recoveryJournalId: string;
+}>;
+
+export type EntityDeletionPlan = Readonly<{
+  version: "kibi.entity-deletion-plan.v1";
+  planHash: string;
+  entityIds: readonly string[];
+  sourceHashes: Readonly<Record<string, string | null>>;
+  sourceWrites?: readonly SourceWritePlan[];
+  supersessionRequired: boolean;
 }>;
 
 // implements REQ-kibi-change-to-proof-plan-compiler
@@ -54,6 +72,18 @@ export type ApplyPlanResult = Readonly<{
     notes: readonly string[];
   };
   recoveryJournalId: string | null;
+  status?: "committed_with_repairs";
+  effectFailures?: readonly Readonly<Record<string, unknown>>[];
+  nextActions?: readonly Readonly<Record<string, unknown>>[];
+}> | Readonly<{
+  version: "kibi.entity-deletion-apply-result.v1";
+  outcome: "applied";
+  planHash: string;
+  deleted: number;
+  sourcePaths: readonly string[];
+  recoveryJournalId?: string | null;
+  status?: "committed_with_repairs";
+  nextActions?: readonly Readonly<Record<string, unknown>>[];
 }> | Readonly<{
   version: "kibi.migration-apply-result.v1";
   outcome: "applied" | "partially_applied" | "replayed" | "reconciliation_required";
@@ -99,7 +129,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function digest(value: string): string {
-  return createHash("sha256").update(JSON.stringify(value)).digest("hex");
+  return createHash("sha256").update(value).digest("hex");
 }
 
 function relationships(step: PlanStep): RelationshipInput[] {
@@ -159,16 +189,36 @@ function validateCompilePlanShape(args: Extract<ApplyPlanArgs, { plan: CompilePl
     throw new Error(
       "Apply plan failed: ready plans must contain at least one step",
     );
-  if (args.plan.sourceWrites.length > 0)
-    throw new Error(
-      "Apply plan failed: sourceWrites are not supported by this apply boundary yet",
-    );
 }
 
 function isMigrationApplyArgs(
   args: ApplyPlanArgs,
 ): args is Extract<ApplyPlanArgs, { plan: MigrationPlan }> {
-  return args.plan.version === "kibi.migration-plan.v2";
+  return "plan" in args && args.plan.version === "kibi.migration-plan.v2";
+}
+
+function isEntityDeletionApplyArgs(
+  args: ApplyPlanArgs,
+): args is Extract<ApplyPlanArgs, { plan: EntityDeletionPlan }> {
+  return "plan" in args && args.plan.version === "kibi.entity-deletion-plan.v1";
+}
+
+function validateEntityDeletionPlan(args: Extract<ApplyPlanArgs, { plan: EntityDeletionPlan }>): void {
+  if (!/^[a-f0-9]{64}$/i.test(args.approvedPlanHash) || args.approvedPlanHash !== args.plan.planHash) {
+    throw new Error("Entity deletion apply failed: approvedPlanHash does not match planHash");
+  }
+  const { planHash: _ignored, ...body } = args.plan;
+  if (createHash("sha256").update(JSON.stringify(body)).digest("hex") !== args.plan.planHash) {
+    throw new Error("Entity deletion apply failed: planHash does not match the canonical plan body");
+  }
+  if (!Array.isArray(args.plan.entityIds) || args.plan.entityIds.length === 0) {
+    throw new Error("Entity deletion apply failed: entityIds must be non-empty");
+  }
+  if (args.plan.supersessionRequired) {
+    throw new Error(
+      "REQUIREMENT_SUPERSESSION_REQUIRED: authored requirements evolve through a new requirement linked with supersedes; compile and approve that evolution plan instead of deleting the requirement",
+    );
+  }
 }
 
 function validateMigrationPlanShape(
@@ -264,6 +314,428 @@ async function validateSources(
   return checked;
 }
 
+async function applySourceWrites(
+  context: OperationContext,
+  writes: readonly SourceWritePlan[],
+  planHash: string,
+  allowReplay = false,
+): Promise<{ paths: string[]; rollback: () => Promise<void>; journalId: string | null }> {
+  if (writes.length === 0) {
+    return { paths: [], rollback: async () => undefined, journalId: null };
+  }
+  if (!context.fs) {
+    throw new Error("Apply plan failed: sourceWrites require a filesystem-capable runtime");
+  }
+  const fsPort = context.fs;
+  const journalPath = path.join(
+    context.workspaceRoot,
+    ".kb",
+    "recovery",
+    `source-writes-${planHash.slice(0, 16)}.json`,
+  );
+  const journalId = `source-writes-${planHash.slice(0, 16)}`;
+  type JournalEntry = {
+    path: string;
+    mode: "write" | "delete";
+    beforeHash: string | null;
+    afterHash: string | null;
+    beforeExisted: boolean;
+    beforeStage: string;
+    afterStage: string;
+  };
+  type SourceJournal = {
+    version: 1;
+    planHash: string;
+    state:
+      | "prepared"
+      | "publishing_sources"
+      | "sources_committed"
+      | "compiled_published"
+      | "committed"
+      | "repair_required"
+      | "rolled_back";
+    entries: JournalEntry[];
+  };
+
+  const sameEntries = (entries: readonly JournalEntry[]): boolean =>
+    entries.length === writes.length &&
+    entries.every((entry) =>
+      writes.some(
+        (write) =>
+          write.path === entry.path &&
+          (write.mode ?? "write") === entry.mode &&
+          write.beforeHash === entry.beforeHash &&
+          write.afterHash === entry.afterHash,
+      ),
+    );
+  const readJournal = async (): Promise<SourceJournal | undefined> => {
+    try {
+      const parsed = JSON.parse(await fsPort.readFile(journalPath)) as Partial<SourceJournal>;
+      if (
+        parsed.version === 1 &&
+        parsed.planHash === planHash &&
+        Array.isArray(parsed.entries) &&
+        (parsed.state === "prepared" || parsed.state === "publishing_sources" ||
+          parsed.state === "sources_committed" || parsed.state === "compiled_published" ||
+          parsed.state === "committed" || parsed.state === "repair_required" ||
+          parsed.state === "rolled_back") &&
+        parsed.entries.every((entry) => entry && typeof entry === "object") &&
+        sameEntries(parsed.entries as JournalEntry[])
+      ) {
+        return parsed as SourceJournal;
+      }
+    } catch {
+      // First attempt or an incomplete journal.
+    }
+    return undefined;
+  };
+
+  const prior = await readJournal();
+  const priorPaths = prior?.entries.map((entry) => entry.path) ?? [];
+  if (
+    prior &&
+    ["committed", "sources_committed", "compiled_published", "repair_required"].includes(
+      prior.state,
+    )
+  ) {
+    let allAfter = true;
+    for (const entry of prior.entries) {
+      try {
+        const current = await context.fs.readFile(path.resolve(context.workspaceRoot, entry.path));
+        if (entry.afterHash === null || digest(current) !== entry.afterHash) {
+          allAfter = false;
+        }
+      } catch {
+        if (entry.afterHash !== null) allAfter = false;
+      }
+    }
+    if (allAfter) {
+      if (!allowReplay) {
+        throw new Error(
+          `MUTATION_ALREADY_COMMITTED: source plan ${planHash} already crossed the authoritative commit boundary; use kb_apply_plan recoveryJournalId=${journalId} instead of retrying the original mutation`,
+        );
+      }
+      for (const entry of prior.entries) {
+        if (entry.mode === "write" && entry.afterHash !== null) {
+          writePendingSourceReceipt(context.workspaceRoot, entry.path, entry.afterHash);
+        }
+      }
+      return { paths: priorPaths, rollback: async () => undefined, journalId };
+    }
+  }
+
+  if (prior && (prior.state === "prepared" || prior.state === "publishing_sources")) {
+    // A crash before the authoritative source commit must restore every
+    // before-image. Refuse recovery if another writer changed a target to a
+    // hash that is neither the planned before nor after value.
+    for (const entry of prior.entries) {
+      const absolute = path.resolve(context.workspaceRoot, entry.path);
+      let current: string | undefined;
+      try {
+        current = await context.fs.readFile(absolute);
+      } catch {
+        current = undefined;
+      }
+      const currentHash = current === undefined ? null : digest(current);
+      if (currentHash !== entry.beforeHash && currentHash !== entry.afterHash) {
+        throw new Error(`Apply plan recovery refused: ${entry.path} changed outside its journal`);
+      }
+      if (entry.beforeExisted) {
+        const before = await context.fs.readFile(entry.beforeStage);
+        await context.fs.writeFile(absolute, before);
+      } else if (context.fs.unlink) {
+        await context.fs.unlink(absolute);
+      }
+    }
+    await context.fs.writeFile(
+      journalPath,
+      `${JSON.stringify({ ...prior, state: "rolled_back" }, null, 2)}\n`,
+    );
+    return { paths: priorPaths, rollback: async () => undefined, journalId };
+  }
+
+  const originals: Array<{ absolute: string; body: string | undefined }> = [];
+  const entries: JournalEntry[] = [];
+  const paths: string[] = [];
+  try {
+    // Validate every target and hash before touching the working tree.
+    for (const write of writes) {
+      if (
+        !write.path ||
+        path.isAbsolute(write.path) ||
+        write.path.split(/[\\/]/).includes("..")
+      ) {
+        throw new Error(`Apply plan failed: sourceWrites.path must be workspace-relative: ${write.path}`);
+      }
+      const absolute = path.resolve(context.workspaceRoot, write.path);
+      const root = path.resolve(context.workspaceRoot);
+      if (absolute !== root && !absolute.startsWith(`${root}${path.sep}`)) {
+        throw new Error(`Apply plan failed: sourceWrites.path escapes workspace: ${write.path}`);
+      }
+      const workspaceRelative = path.relative(root, absolute);
+      if (
+        workspaceRelative === ".kb" ||
+        (workspaceRelative.startsWith(`.kb${path.sep}`) &&
+          !workspaceRelative.startsWith(`.kb${path.sep}relationships${path.sep}`))
+      ) {
+        throw new Error(
+          "Apply plan failed: sourceWrites.path cannot target Kibi's derived .kb directory (except canonical relationship shards)",
+        );
+      }
+      let existingPath = absolute;
+      while (!existsSync(existingPath) && path.dirname(existingPath) !== existingPath) {
+        existingPath = path.dirname(existingPath);
+      }
+      const realExisting = realpathSync.native(existingPath);
+      if (realExisting !== root && !realExisting.startsWith(`${root}${path.sep}`)) {
+        throw new Error(`Apply plan failed: sourceWrites.path follows a symlink outside the workspace: ${write.path}`);
+      }
+      const existing = await context.fs.readFile(absolute).catch(() => undefined);
+      const beforeHash = existing === undefined ? null : digest(existing);
+      if (beforeHash !== write.beforeHash) {
+        throw new Error(`Apply plan failed: source hash changed for ${write.path}`);
+      }
+      const mode = write.mode ?? "write";
+      if (
+        mode === "write" &&
+        (write.body === undefined || write.afterHash === null || digest(write.body) !== write.afterHash)
+      ) {
+        throw new Error(`Apply plan failed: afterHash does not match staged body for ${write.path}`);
+      }
+      if (mode === "delete" && write.afterHash !== null) {
+        throw new Error(`Apply plan failed: delete source write must have a null afterHash for ${write.path}`);
+      }
+      originals.push({ absolute, body: existing });
+      paths.push(write.path);
+      const stageBase = path.join(
+        context.workspaceRoot,
+        ".kb",
+        "recovery",
+        `${journalId}-${entries.length}`,
+      );
+      entries.push({
+        path: write.path,
+        mode,
+        beforeHash: write.beforeHash,
+        afterHash: write.afterHash,
+        beforeExisted: existing !== undefined,
+        beforeStage: `${stageBase}.before`,
+        afterStage: `${stageBase}.after`,
+      });
+    }
+
+    // Stage both versions and publish a prepared journal before any
+    // authoritative working-tree write. This makes a crash replayable.
+    await context.fs.mkdir(path.dirname(journalPath));
+    for (let index = 0; index < writes.length; index += 1) {
+      const original = originals[index];
+      const entry = entries[index];
+      const write = writes[index];
+      if (!original || !entry || !write) continue;
+      if (original.body !== undefined) {
+        await context.fs.writeFile(entry.beforeStage, original.body);
+      }
+      if ((write.mode ?? "write") === "write") {
+        await context.fs.writeFile(entry.afterStage, write.body ?? "");
+      }
+    }
+    await context.fs.writeFile(
+      journalPath,
+      `${JSON.stringify({ version: 1, planHash, state: "prepared", entries }, null, 2)}\n`,
+    );
+
+    // Publish all target files. Journal each boundary so a crash can be
+    // rolled back without trusting in-memory originals.
+    for (let index = 0; index < writes.length; index += 1) {
+      const absolute = originals[index]?.absolute;
+      const write = writes[index];
+      if (!absolute || !write) continue;
+      await context.fs.mkdir(path.dirname(absolute));
+      await context.fs.writeFile(
+        journalPath,
+        `${JSON.stringify({ version: 1, planHash, state: "publishing_sources", entries }, null, 2)}\n`,
+      );
+      if ((write.mode ?? "write") === "delete") {
+        if (!context.fs.unlink) {
+          throw new Error(`Apply plan failed: delete requires filesystem unlink support: ${write.path}`);
+        }
+        await context.fs.unlink(absolute);
+      } else {
+        const staged = `${absolute}.kibi-stage-${journalId}-${index}`;
+        await context.fs.writeFile(staged, write.body ?? "");
+        if (context.fs.rename) {
+          await context.fs.rename(staged, absolute);
+        } else {
+          // Test and constrained host ports may not expose rename. Keep the
+          // compatibility fallback explicit; production nodeFilesystem uses
+          // same-directory rename for atomic replacement.
+          await context.fs.writeFile(absolute, write.body ?? "");
+          if (context.fs.unlink) await context.fs.unlink(staged).catch(() => undefined);
+        }
+      }
+    }
+    await context.fs.writeFile(
+      journalPath,
+      `${JSON.stringify({ version: 1, planHash, state: "sources_committed", entries }, null, 2)}\n`,
+    );
+    // A newly authored file is intentionally excluded from ordinary Git
+    // discovery until the operator stages it. The receipt binds that pending
+    // input to the exact bytes committed by this plan.
+    for (const write of writes) {
+      if ((write.mode ?? "write") === "write" && write.afterHash !== null) {
+        writePendingSourceReceipt(context.workspaceRoot, write.path, write.afterHash);
+      }
+    }
+  } catch (error) {
+    for (const original of [...originals].reverse()) {
+      try {
+        if (original.body === undefined && context.fs.unlink) {
+          await context.fs.unlink(original.absolute);
+        } else {
+          await context.fs.writeFile(original.absolute, original.body ?? "");
+        }
+      } catch {
+        // Preserve the original failure; the journal remains available for
+        // the next recovery attempt.
+      }
+    }
+    try {
+      await context.fs.mkdir(path.dirname(journalPath));
+      await context.fs.writeFile(
+        journalPath,
+        `${JSON.stringify({ version: 1, planHash, state: "rolled_back", entries }, null, 2)}\n`,
+      );
+    } catch {
+      // Best effort only; the original error is authoritative.
+    }
+    throw error;
+  }
+  return {
+    paths,
+    journalId,
+    // Source publication is the authoritative commit boundary. Derived
+    // compiled effects must be repaired from the journal, never rolled back
+    // by retrying the original mutation.
+    rollback: async () => undefined,
+  };
+}
+
+async function markSourceJournal(
+  context: OperationContext,
+  journalId: string | null,
+  state: "compiled_published" | "committed" | "repair_required" | "rolled_back",
+): Promise<void> {
+  if (!journalId || !context.fs) return;
+  const journalPath = path.join(context.workspaceRoot, ".kb", "recovery", `${journalId}.json`);
+  try {
+    const current = JSON.parse(await context.fs.readFile(journalPath)) as Record<string, unknown>;
+    await context.fs.writeFile(journalPath, `${JSON.stringify({ ...current, state }, null, 2)}\n`);
+  } catch {
+    // Journal repair is surfaced by the next status/check; do not hide the
+    // authoritative operation result behind a best-effort metadata write.
+  }
+}
+
+async function executeSourceRecovery(
+  args: Extract<ApplyPlanArgs, { recoveryJournalId: string }>,
+  context: OperationContext,
+): Promise<{
+  content: Array<{ type: "text"; text: string }>;
+  structuredContent: ApplyPlanResult;
+}> {
+  if (!context.fs) throw new Error("Source recovery requires a filesystem-capable runtime");
+  if (!/^[A-Za-z0-9._-]+$/.test(args.recoveryJournalId)) {
+    throw new Error("Source recovery journal ID is invalid");
+  }
+  const journalPath = path.join(
+    context.workspaceRoot,
+    ".kb",
+    "recovery",
+    `${args.recoveryJournalId}.json`,
+  );
+  const journal = JSON.parse(await context.fs.readFile(journalPath)) as {
+    version?: number;
+    planHash?: string;
+    state?: string;
+    entries?: readonly {
+      path: string;
+      mode: "write" | "delete";
+      beforeHash: string | null;
+      afterHash: string | null;
+      beforeExisted: boolean;
+      beforeStage: string;
+      afterStage: string;
+    }[];
+  };
+  if (
+    journal.version !== 1 ||
+    typeof journal.planHash !== "string" ||
+    !Array.isArray(journal.entries) ||
+    !["sources_committed", "compiled_published", "repair_required"].includes(
+      journal.state ?? "",
+    )
+  ) {
+    throw new Error(
+      "Source recovery requires a committed or repair_required journal",
+    );
+  }
+  const writes: SourceWritePlan[] = [];
+  for (const entry of journal.entries) {
+    const body =
+      entry.mode === "write"
+        ? await context.fs.readFile(entry.afterStage)
+        : undefined;
+    writes.push({
+      path: entry.path,
+      mode: entry.mode,
+      beforeHash: entry.beforeHash,
+      afterHash: entry.afterHash,
+      ...(body === undefined ? {} : { body }),
+    });
+  }
+  const sourceWrites = await applySourceWrites(
+    context,
+    writes,
+    journal.planHash,
+    true,
+  );
+  for (const write of writes) {
+    if (write.mode === "write" && write.afterHash !== null) {
+      writePendingSourceReceipt(context.workspaceRoot, write.path, write.afterHash);
+    }
+  }
+  const sync = await syncCommand({
+    workspaceRoot: context.workspaceRoot,
+    rebuild: true,
+  });
+  await markSourceJournal(context, sourceWrites.journalId, "committed");
+  return {
+    content: [{ type: "text", text: `Repaired source journal ${args.recoveryJournalId}.` }],
+    structuredContent: {
+      version: PLAN_APPLY_RESULT_VERSION,
+      outcome: "replayed",
+      planHash: journal.planHash,
+      changedEntities: sync.entityCounts
+        ? Object.values(sync.entityCounts).reduce((sum, count) => sum + count, 0)
+        : 0,
+      changedRelationships: sync.relationshipCount ?? 0,
+      changedPaths: sourceWrites.paths,
+      finalSnapshots: {
+        branch: sync.branch,
+        kbSnapshotId: "recovered",
+        workspaceSnapshot: "recovered",
+      },
+      validationSummary: {
+        stepsValidated: 0,
+        stepsApplied: 0,
+        sourceHashesChecked: writes.length,
+        notes: ["Compiled state rebuilt from the authoritative recovery journal."],
+      },
+      recoveryJournalId: args.recoveryJournalId,
+    },
+  };
+}
+
 // implements REQ-kibi-change-to-proof-plan-compiler, REQ-agent-guided-migration-orchestration
 export async function executeApplyPlan(
   args: ApplyPlanArgs,
@@ -272,14 +744,83 @@ export async function executeApplyPlan(
   content: Array<{ type: "text"; text: string }>;
   structuredContent: ApplyPlanResult;
 }> {
+  if ("recoveryJournalId" in args) {
+    return executeSourceRecovery(args, context);
+  }
   if (isMigrationApplyArgs(args)) {
     return applyMigrationPlan(args, context);
+  }
+  if (isEntityDeletionApplyArgs(args)) {
+    validateEntityDeletionPlan(args);
+    const sourceWrites = await applySourceWrites(
+      context,
+      args.plan.sourceWrites ?? [],
+      args.plan.planHash,
+    );
+    const operationContext = {
+      ...context,
+      sourceFirst: false as const,
+      sourcePlanApplication: true as const,
+    };
+    let payload: DeletePayload;
+    const nextActions: Readonly<Record<string, unknown>>[] = [];
+    let status: "committed_with_repairs" | undefined;
+    try {
+      const result = await executeDelete(
+        { ids: args.plan.entityIds },
+        operationContext,
+      );
+      payload = result.structuredContent as DeletePayload;
+      await markSourceJournal(operationContext, sourceWrites.journalId, "compiled_published");
+    } catch (error) {
+      status = "committed_with_repairs";
+      nextActions.push({
+        operation: "kb_apply_plan",
+        input: { recoveryJournalId: sourceWrites.journalId },
+        detail: error instanceof Error ? error.message : String(error),
+        reason:
+          "The deletion source commit is authoritative but compiled retraction failed; repair from the journal without retrying deletion.",
+        required: true,
+      });
+      await markSourceJournal(operationContext, sourceWrites.journalId, "repair_required");
+      payload = {
+        deleted: 0,
+        skipped: args.plan.entityIds.length,
+        errors: [error instanceof Error ? error.message : String(error)],
+      };
+    }
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Applied entity deletion plan ${args.plan.planHash.slice(0, 12)}.`,
+        },
+      ],
+      structuredContent: {
+        version: "kibi.entity-deletion-apply-result.v1",
+        outcome: "applied",
+        planHash: args.plan.planHash,
+        deleted: payload.deleted,
+        sourcePaths: sourceWrites.paths,
+        ...(sourceWrites.journalId !== null
+          ? { recoveryJournalId: sourceWrites.journalId }
+          : {}),
+        ...(status !== undefined ? { status, nextActions } : {}),
+      },
+    };
   }
   validateCompilePlanShape(args);
   const prolog =
     context.prolog ?? (await context.ensureProlog?.()) ?? undefined;
   if (!prolog) throw new Error("Apply plan requires a Prolog runtime");
-  const operationContext = context.prolog ? context : { ...context, prolog };
+  // Compile plans carry the complete, hash-bound sourceWrites set. Apply the
+  // compiled entity steps against the staged source snapshot without asking
+  // each step to independently select a document target; otherwise a plan
+  // with multiple authored entity kinds could be rejected for an ambiguous
+  // per-entity path after its source batch has already been validated.
+  const operationContext = context.prolog
+    ? { ...context, sourceFirst: false as const }
+    : { ...context, prolog, sourceFirst: false as const };
   const statusResult = await executeStatus({}, operationContext);
   const status = statusResult.structuredContent;
   if (!status)
@@ -300,52 +841,139 @@ export async function executeApplyPlan(
     args.plan.expected.sourceHashes,
   );
   const steps = args.plan.steps.map((step) => asUpsert(step));
+  const sourceWrites = await applySourceWrites(
+    operationContext,
+    args.plan.sourceWrites,
+    args.plan.planHash,
+  );
   const notes: string[] = [
-    "Plan steps are validated before sequential application; source publishing and crash recovery remain outside this v1 boundary.",
+    "Plan steps and tracked source writes are validated before sequential application; source writes are journaled for replay.",
   ];
   let changedEntities = 0;
   let changedRelationships = 0;
-  for (const step of steps) {
-    const result = await executeUpsert(step, operationContext);
-    const payload = result.structuredContent;
-    if (payload && typeof payload === "object") {
-      const row = payload as {
-        created?: number;
-        updated?: number;
-        relationships_created?: number;
-      };
-      changedEntities += Number(row.created ?? 0) + Number(row.updated ?? 0);
-      changedRelationships += Number(row.relationships_created ?? 0);
+  const effectFailures: Readonly<Record<string, unknown>>[] = [];
+  const nextActions: Readonly<Record<string, unknown>>[] = [];
+  let compiledCommit = false;
+  try {
+    for (const step of steps) {
+      const result = await executeUpsert(step, operationContext);
+      const payload = result.structuredContent;
+      if (payload && typeof payload === "object") {
+        const row = payload as {
+          created?: number;
+          updated?: number;
+          relationships_created?: number;
+        };
+        changedEntities += Number(row.created ?? 0) + Number(row.updated ?? 0);
+        changedRelationships += Number(row.relationships_created ?? 0);
+        const details = payload as Record<string, unknown>;
+        if (Array.isArray(details.effectFailures)) {
+          effectFailures.push(
+            ...details.effectFailures.filter(isRecord),
+          );
+        }
+        if (Array.isArray(details.nextActions)) {
+          nextActions.push(...details.nextActions.filter(isRecord));
+        }
+      }
+    }
+    compiledCommit = true;
+  } catch (error) {
+    if (sourceWrites.journalId !== null) {
+      effectFailures.push({
+        kind: "compiled-store",
+        errorCode: "DERIVED_COMMIT_FAILED",
+        detail: error instanceof Error ? error.message : String(error),
+      });
+      nextActions.push({
+        operation: "kb_apply_plan",
+        input: { recoveryJournalId: sourceWrites.journalId },
+        reason:
+          "Authoritative source files are committed but compiled effects failed; replay the recovery journal instead of retrying the original mutation.",
+        required: true,
+      });
+      await markSourceJournal(operationContext, sourceWrites.journalId, "repair_required");
+    } else {
+      throw error;
     }
   }
-  const finalStatusResult = await executeStatus({}, operationContext);
-  const finalStatus = finalStatusResult.structuredContent;
-  if (!finalStatus)
-    throw new Error(
-      "Apply plan failed: final status query returned no payload",
+  if (compiledCommit) {
+    await markSourceJournal(operationContext, sourceWrites.journalId, "compiled_published");
+  }
+  // Everything before this point is authoritative. A status/workspace
+  // readback failure therefore cannot turn the operation into a retryable
+  // mutation: return a repairable partial completion with deterministic next
+  // actions instead.
+  let finalStatus: typeof status | undefined;
+  let finalWorkspace: Awaited<ReturnType<typeof readWorkspaceSnapshot>> | undefined;
+  let postCommitFailure: string | undefined;
+  try {
+    const finalStatusResult = await executeStatus({}, operationContext);
+    finalStatus = finalStatusResult.structuredContent;
+    if (!finalStatus) {
+      throw new Error("final status query returned no payload");
+    }
+    finalWorkspace = await readWorkspaceSnapshot(operationContext);
+    if (!finalWorkspace.available) {
+      throw new Error(finalWorkspace.error ?? "final workspace snapshot unavailable");
+    }
+  } catch (error) {
+    postCommitFailure = error instanceof Error ? error.message : String(error);
+    effectFailures.push({
+      kind: "post-commit-readback",
+      errorCode: "POST_COMMIT_READBACK_FAILED",
+      detail: postCommitFailure,
+    });
+    nextActions.push(
+      {
+        operation: "kb_status",
+        reason:
+          "The plan committed its source and compiled mutations, but final status readback failed; inspect the committed snapshot before any repair.",
+        required: true,
+      },
+      {
+        operation: "kb_check",
+        reason:
+          "After status is readable, run the consistency checks and follow their typed repair actions.",
+        required: true,
+      },
     );
-  const finalWorkspace = await readWorkspaceSnapshot(operationContext);
-  if (!finalWorkspace.available)
-    throw new Error(`Apply plan failed: ${finalWorkspace.error}`);
+    await markSourceJournal(operationContext, sourceWrites.journalId, "repair_required");
+  }
+  const finalSnapshots =
+    finalStatus !== undefined && finalWorkspace?.available === true
+      ? {
+          branch: finalStatus.branch,
+          kbSnapshotId: finalStatus.snapshotId,
+          workspaceSnapshot: finalWorkspace.snapshot.hash,
+        }
+      : {
+          branch: args.plan.expected.branch,
+          kbSnapshotId: args.plan.expected.kbSnapshotId,
+          workspaceSnapshot: args.plan.expected.workspaceSnapshot,
+        };
   const payload: ApplyPlanResult = {
     version: PLAN_APPLY_RESULT_VERSION,
     outcome: "applied",
     planHash: args.plan.planHash,
     changedEntities,
     changedRelationships,
-    changedPaths: [],
-    finalSnapshots: {
-      branch: finalStatus.branch,
-      kbSnapshotId: finalStatus.snapshotId,
-      workspaceSnapshot: finalWorkspace.snapshot.hash,
-    },
+    changedPaths: sourceWrites.paths,
+    finalSnapshots,
     validationSummary: {
       stepsValidated: steps.length,
       stepsApplied: steps.length,
       sourceHashesChecked,
       notes,
     },
-    recoveryJournalId: null,
+    recoveryJournalId: sourceWrites.journalId,
+    ...(effectFailures.length > 0 || postCommitFailure !== undefined
+      ? {
+          status: "committed_with_repairs" as const,
+          effectFailures,
+          nextActions,
+        }
+      : {}),
   };
   return {
     content: [
@@ -495,7 +1123,17 @@ async function applyMigrationAction(
 ): Promise<void> {
   switch (action.code) {
     case "legacy_branch_storage":
-      await branchMigrateCommand({ from: "main", apply: true, workspaceRoot: context.workspaceRoot });
+      if (action.invocation.kind !== "cli")
+        throw new Error("Legacy branch migration action is missing its explicit source identity.");
+      {
+        const argv = action.invocation.command_argv;
+        const fromIndex = argv.indexOf("--from");
+        const toIndex = argv.indexOf("--to");
+        const from = fromIndex >= 0 ? argv[fromIndex + 1] : undefined;
+        const to = toIndex >= 0 ? argv[toIndex + 1] : undefined;
+        if (!from || !to) throw new Error("Legacy branch migration action requires explicit --from and --to.");
+        await branchMigrateCommand({ from, to, apply: true, workspaceRoot: context.workspaceRoot });
+      }
       return;
     case "missing_exact_branch_store":
       await branchEnsureCommand({ workspaceRoot: context.workspaceRoot });

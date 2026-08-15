@@ -2,13 +2,13 @@ import {
   type AutopilotGenerateArgs,
   type AutopilotGenerateResult,
   executeAutopilotGenerate,
-} from "kibi-cli/operations";
-import { nodeFilesystem, nodeGit } from "kibi-cli/operations";
+} from "kibi-runtime";
+import { nodeFilesystem, nodeGit } from "kibi-runtime";
 import type {
   OperationContext,
   PrologPort,
-} from "kibi-cli/operations/runtime-types";
-import { PrologProcess } from "kibi-cli/prolog";
+} from "kibi-runtime";
+import { PrologProcess } from "kibi-runtime";
 
 import { resolveWorkspaceRoot } from "../workspace.js";
 import {
@@ -22,7 +22,7 @@ export type {
   AutopilotBootstrapContext,
   AutopilotGenerateArgs,
   AutopilotGenerateResult,
-} from "kibi-cli/operations";
+} from "kibi-runtime";
 
 export function _setAutopilotGenerateDepsForTests(
   dependencies: LegacyDependencies,

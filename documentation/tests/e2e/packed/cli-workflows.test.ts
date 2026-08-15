@@ -6,6 +6,7 @@ import {
   checkPrologAvailable,
   createMarkdownFile,
   createSandbox,
+  exactBranchStorePath,
   kibi,
   packAll,
   run,
@@ -208,11 +209,11 @@ if (RUN_NODE_TEST_SUITE) {
       // Check branch-specific KB exists
       const { exitCode: branchExists } = await run(
         "test",
-        ["-d", ".kb/branches/develop"],
+        ["-d", exactBranchStorePath(sandbox.repoDir, "develop")],
         { cwd: sandbox.repoDir, env: sandbox.env },
       );
 
-      assert.strictEqual(branchExists, 0, ".kb/branches/develop should exist");
+      assert.strictEqual(branchExists, 0, "exact develop branch store should exist");
 
       console.log("  ✓ KB directory structure validated");
     });

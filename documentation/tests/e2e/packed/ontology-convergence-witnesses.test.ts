@@ -22,7 +22,8 @@ async function cliJson<T>(sandbox: TestSandbox, args: readonly string[]) {
     0,
     `${args.join(" ")} failed: ${result.stdout}${result.stderr}`,
   );
-  return JSON.parse(result.stdout) as T;
+  const parsed = JSON.parse(result.stdout) as { data?: T };
+  return (parsed.data ?? parsed) as T;
 }
 
 function writeInput(
@@ -254,6 +255,21 @@ Packed quota must equal ${value}
         ]);
         assert.notStrictEqual(check.exitCode, 0);
         const checked = JSON.parse(check.stdout) as {
+          data?: {
+          structuredContent: {
+            violations: Array<{
+              evidence?: {
+                witnesses?: Array<{
+                  kind: string;
+                  left: { factId: string; claimKey: string };
+                  right: { factId: string; claimKey: string };
+                }>;
+              };
+            }>;
+          };
+          };
+        };
+        const checkedData = (checked.data ?? checked) as {
           structuredContent: {
             violations: Array<{
               evidence?: {
@@ -267,7 +283,7 @@ Packed quota must equal ${value}
           };
         };
         const witness =
-          checked.structuredContent.violations[0]?.evidence?.witnesses?.[0];
+          checkedData.structuredContent.violations[0]?.evidence?.witnesses?.[0];
         assert.strictEqual(witness?.kind, "strict_property");
         assert.deepStrictEqual(
           [witness?.left.factId, witness?.right.factId],

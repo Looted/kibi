@@ -31,6 +31,14 @@ export type OperationEffect =
   | "kb-write"
   | "workspace-write";
 
+export type OperationEffectDeclaration = Readonly<{
+  kind: OperationEffect;
+  mutability: "read" | "write";
+  destructive: boolean;
+  retrySafety: "safe" | "unsafe";
+  openWorld: boolean;
+}>;
+
 export interface OperationContent {
   readonly type: string;
   readonly text?: string;
@@ -40,6 +48,40 @@ export interface OperationResult<O = unknown> {
   readonly content: readonly OperationContent[];
   readonly structuredContent?: O;
 }
+
+export type KibiResultStatus = "success" | "committed_with_repairs" | "error";
+
+export type KibiResult<T = unknown> = {
+  readonly kibiProtocol: 1;
+  readonly operation: OperationName | string;
+  readonly resultVersion: string;
+  readonly status: KibiResultStatus;
+  readonly data: T;
+  readonly effects: readonly {
+    readonly kind: string;
+    readonly status: "completed" | "failed" | "not_applicable";
+    readonly detail?: unknown;
+    readonly errorCode?: string;
+  }[];
+  readonly diagnostics: readonly {
+    readonly code?: string;
+    readonly severity?: "info" | "warning" | "error";
+    readonly message: string;
+    readonly detail?: unknown;
+  }[];
+  readonly nextActions: readonly {
+    readonly operation: OperationName | string;
+    readonly input?: unknown;
+    readonly reason: string;
+    readonly required: boolean;
+  }[];
+  readonly error?: {
+    readonly code: string;
+    readonly message: string;
+    readonly retryable: boolean;
+    readonly details?: unknown;
+  };
+};
 
 export interface OperationSpec<
   I = Readonly<Record<string, unknown>>,
@@ -51,6 +93,12 @@ export interface OperationSpec<
   readonly businessInputSchema: Readonly<Record<string, unknown>>;
   readonly requiresProlog: boolean;
   readonly effects: readonly OperationEffect[];
+  /** Generated effect metadata used by MCP annotations and telemetry. */
+  readonly declaredEffects?: readonly OperationEffectDeclaration[];
+  /** Version of the machine-readable result data for this operation. */
+  readonly resultVersion?: string;
+  /** JSON Schema for the machine-readable result data. */
+  readonly outputSchema?: Readonly<Record<string, unknown>>;
   readonly execute: {
     bivarianceHack(
       input: I,

@@ -62,7 +62,7 @@ export async function initCommand(
   }
   if (result.migrationRequired) {
     console.error(
-      `Error: KB is attached through legacy branch storage (${result.gitBranch} -> ${result.kbBranch}). Run 'kibi branch migrate --from ${result.kbBranch} --apply' first.`,
+      `Error: KB is attached through legacy branch storage for '${result.gitBranch}'. Run 'kibi branch migrate --from ${result.kbBranch} --to ${result.gitBranch} --apply' first.`,
     );
     return { exitCode: 1 };
   }
@@ -79,6 +79,13 @@ export async function initCommand(
       await copySchemaFiles(kbDir, schemaSourceDir);
     } else {
       console.log("✓ .kb/ directory already exists, skipping creation");
+      // An orphan branch can legitimately remove tracked `.kb/config.json`
+      // while the ignored branch stores remain on disk. Recreate the authored
+      // configuration so sync uses the canonical documentation paths instead
+      // of falling back to legacy relative globs.
+      if (!existsSync(path.join(kbDir, "config.json"))) {
+        createConfigFile(kbDir);
+      }
     }
 
     ensureSymbolsManifestFile(process.cwd());

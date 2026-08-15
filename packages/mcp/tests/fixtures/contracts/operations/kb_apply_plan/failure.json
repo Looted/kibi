@@ -53,8 +53,8 @@
           "type": "string"
         },
         "plan": {
-          "description": "The complete kibi.compile-plan.v1 or kibi.migration-plan.v2 object. Migration plans require approvedActionIds and reject blocked/non-automatic actions.",
-          "required": ["version", "planHash", "status", "expected"],
+          "description": "The complete kibi.compile-plan.v1, kibi.migration-plan.v2, or hash-bound kibi.entity-deletion-plan.v1 object. Migration plans require approvedActionIds and reject blocked/non-automatic actions.",
+          "required": ["version", "planHash"],
           "type": "object"
         }
       },

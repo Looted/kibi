@@ -15,6 +15,8 @@ import type {
   WorkspaceSnapshot,
 } from "../../public/operations/runtime-types.js";
 import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
+import { configuredSourceTarget } from "../mutation/source-authoring.js";
+import { dump as dumpYaml } from "js-yaml";
 import { canonicalize } from "../semantic-advisor/shared.js";
 import type {
   SemanticAdvisorReceipt,
@@ -129,8 +131,16 @@ export type CompilePlanV1 = Readonly<{
   };
   proposals: readonly TraceabilityProposal[];
   steps: readonly PlanStep[];
-  sourceWrites: readonly Readonly<Record<string, unknown>>[];
+  sourceWrites: readonly SourceWritePlan[];
   diagnostics: readonly string[];
+}>;
+
+export type SourceWritePlan = Readonly<{
+  path: string;
+  mode: "write" | "delete";
+  beforeHash: string | null;
+  afterHash: string | null;
+  body?: string;
 }>;
 
 const AUTO_UPDATE_SCORE = 0.85;
@@ -309,12 +319,84 @@ async function sourceHashes(
       const contents = context.fs
         ? await context.fs.readFile(path.join(context.workspaceRoot, relative))
         : null;
-      hashes[relative] = contents === null ? null : hash(contents);
+      hashes[relative] =
+        contents === null
+          ? null
+          : createHash("sha256").update(contents).digest("hex");
     } catch {
       hashes[relative] = null;
     }
   }
   return hashes;
+}
+
+function sourceTarget(
+  context: OperationContext,
+  locations: readonly SourceLocation[] | undefined,
+  existingSource: string,
+): string | undefined {
+  const explicit = locations?.[0]?.path?.trim();
+  if (explicit) return explicit.replaceAll("\\", "/");
+  if (
+    existingSource &&
+    !/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(existingSource) &&
+    /\.(?:md|mdx|ya?ml)$/i.test(existingSource)
+  )
+    return existingSource.replaceAll("\\", "/");
+  return configuredSourceTarget(context.workspaceRoot, "req");
+}
+
+async function sourceWritePlan(
+  context: OperationContext,
+  requirementId: string,
+  title: string,
+  intent: string,
+  locations: readonly SourceLocation[] | undefined,
+  existingSource: string,
+  existingEntityExists: boolean,
+): Promise<SourceWritePlan[]> {
+  if (!context.fs) return [];
+  if (
+    existingEntityExists &&
+    (locations === undefined || locations.length === 0) &&
+    !existingSource.match(/\.(?:md|mdx|ya?ml|json)$/i)
+  ) {
+    return [];
+  }
+  const relative = sourceTarget(context, locations, existingSource);
+  if (!relative || path.isAbsolute(relative) || relative.split(/[\\/]/).includes("..")) {
+    return [];
+  }
+  const absolute = path.resolve(context.workspaceRoot, relative);
+  const root = path.resolve(context.workspaceRoot);
+  if (absolute !== root && !absolute.startsWith(`${root}${path.sep}`)) return [];
+  const workspaceRelative = path.relative(root, absolute);
+  if (
+    workspaceRelative === ".kb" ||
+    workspaceRelative.startsWith(`.kb${path.sep}`)
+  )
+    return [];
+  let before: string | undefined;
+  try {
+    before = await context.fs.readFile(absolute);
+  } catch {
+    before = undefined;
+  }
+  const frontmatter = `---\n${dumpYaml(
+    { id: requirementId, title, type: "req", status: "open" },
+    { noRefs: true, lineWidth: -1 },
+  )}---\n`;
+  const body = `${frontmatter}${intent.trim()}\n`;
+  return [
+    {
+      path: relative,
+      mode: "write",
+      beforeHash:
+        before === undefined ? null : createHash("sha256").update(before).digest("hex"),
+      afterHash: createHash("sha256").update(body).digest("hex"),
+      body,
+    },
+  ];
 }
 
 function generatedRequirementId(intent: string): string {
@@ -707,6 +789,18 @@ export async function executeCompileIntent(
         ? "needs_resolution"
         : "ready";
   const sourceHashMap = await sourceHashes(context, args.sourceLocations);
+  const sourceWrites =
+    statusValue === "ready"
+      ? await sourceWritePlan(
+          context,
+          requirementId,
+          title,
+          intent,
+          args.sourceLocations,
+          source,
+          existing.length > 0,
+        )
+      : [];
   const planBody = {
     version: COMPILE_PLAN_VERSION,
     status: statusValue,
@@ -725,7 +819,7 @@ export async function executeCompileIntent(
     contradictionAnalysis: contradictions,
     proposals,
     steps: stepsWithAcceptedProposals,
-    sourceWrites: [],
+    sourceWrites,
     diagnostics,
   };
   const plan: CompilePlanV1 = {

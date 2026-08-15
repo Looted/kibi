@@ -44,6 +44,13 @@ type ProjectAuditConfig = {
 
 class CapabilityUnavailableError extends Error {}
 
+function unwrapResult(value: JsonRecord): JsonRecord {
+  const data = value.data;
+  return data && typeof data === "object" && !Array.isArray(data)
+    ? (data as JsonRecord)
+    : value;
+}
+
 function asSourceSandbox(sandbox: TestSandbox): TestSandbox {
   return {
     ...sandbox,
@@ -110,11 +117,12 @@ async function commandJson(
   const inputPath = join(sandbox.repoDir, `matrix-${route}.json`);
   writeFileSync(inputPath, JSON.stringify(input), "utf8");
   const result = await kibi(sandbox, [route, "--input", inputPath]);
+  const parsed = result.stdout.trim()
+    ? (JSON.parse(result.stdout) as JsonRecord)
+    : null;
   return {
     exitCode: result.exitCode,
-    value: result.stdout.trim()
-      ? (JSON.parse(result.stdout) as JsonRecord)
-      : null,
+    value: parsed ? unwrapResult(parsed) : null,
     stderr: result.stderr,
   };
 }
@@ -164,6 +172,18 @@ status: failing
 source: tests/e2e/matrix-receipt.test.ts
 verification_scope: end_to_end
 verification_perspective: consumer
+verification_contract:
+  version: kibi.verification-contract.v1
+  runner: playwright
+  command_argv:
+    - pnpm
+    - exec
+    - playwright
+    - test
+  required_case_symbols: []
+  required_projects:
+    - chromium
+  success_policy: all_required_cases_first_attempt
 links:
   - type: validates
     target: SCEN-MATRIX-RECEIPT
@@ -360,8 +380,9 @@ function semanticOutcome(value: JsonRecord): unknown {
 }
 
 function contradictionOutcome(value: JsonRecord): unknown {
-  const structured =
-    (value.structuredContent as JsonRecord | undefined) ?? value;
+  const structured = unwrapResult(
+    (value.structuredContent as JsonRecord | undefined) ?? value,
+  );
   const violations =
     (structured.violations as readonly JsonRecord[] | undefined) ?? [];
   const witnesses = violations.flatMap((violation) => {
@@ -397,7 +418,9 @@ function telemetryOutcome(value: JsonRecord, surface: DistributionSurface) {
       })),
     };
   }
-  const structured = value.structuredContent as JsonRecord;
+  const structured = unwrapResult(
+    (value.structuredContent as JsonRecord | undefined) ?? value,
+  );
   const diagnosticIds = (
     (structured.qualityDiagnostics as readonly JsonRecord[] | undefined) ?? []
   )
@@ -446,6 +469,12 @@ function capabilityInput(capability: RequirementCompilerCapability): {
         route: "coverage",
         input: { by: "req", includePassing: true, limit: 100 },
       };
+    case "verification_contract":
+      return {
+        tool: "kb_query",
+        route: "query",
+        input: { id: "TEST-MATRIX-RECEIPT" },
+      };
     case "telemetry_acceptance":
       return { tool: "kb_check", route: "check", input: {} };
     default:
@@ -469,6 +498,26 @@ function extractOutcome(
     case "repair_plan":
     case "verification_receipts":
       return coverageOutcome(value, capability);
+    case "verification_contract": {
+      const entity = (value.entities as readonly JsonRecord[] | undefined)?.[0];
+      const contract = entity?.verification_contract as JsonRecord | undefined;
+      if (
+        !contract ||
+        contract.version !== "kibi.verification-contract.v1" ||
+        !Array.isArray(contract.required_projects)
+      ) {
+        throw new CapabilityUnavailableError(
+          "kibi.verification-contract.v1 is absent",
+        );
+      }
+      return {
+        version: contract.version,
+        runner: contract.runner,
+        requiredProjects: contract.required_projects,
+        requiredCaseCount: (contract.required_case_symbols as readonly unknown[])
+          ?.length ?? 0,
+      };
+    }
     case "telemetry_acceptance":
       return telemetryOutcome(value, surface);
     default:
@@ -602,14 +651,13 @@ async function mcpAdapter(
             );
           }
           const result = response.result as JsonRecord;
-          const value = (result.structuredContent as JsonRecord) ?? result;
+          const value = unwrapResult(
+            (result.structuredContent as JsonRecord | undefined) ?? result,
+          );
           return extractOutcome(
             capability,
             "mcp",
-            capability === "contradiction_witnesses" ||
-              capability === "telemetry_acceptance"
-              ? result
-              : value,
+            value,
           );
         });
       },
@@ -652,7 +700,7 @@ if (RUN_NODE_TEST_SUITE) {
       });
 
       it(
-        "matches all six stable semantic outcomes through source and packed CLI/MCP",
+        "matches all stable semantic outcomes through source and packed CLI/MCP",
         { timeout: 600_000 },
         async () => {
           if (!hasProlog) return;
@@ -732,17 +780,14 @@ if (RUN_NODE_TEST_SUITE) {
             JSON.stringify(report.issues, null, 2),
           );
           assert.strictEqual(report.version, "kibi.distribution-parity.v1");
-          assert.deepStrictEqual(report.capabilities, [
-            "semantic_inventory",
-            "contradiction_witnesses",
-            "conservative_proof",
-            "repair_plan",
-            "verification_receipts",
-            "telemetry_acceptance",
-          ]);
+          assert.deepStrictEqual(
+            report.capabilities,
+            matrixApi.REQUIREMENT_COMPILER_CAPABILITIES,
+          );
           assert.strictEqual(
             report.summary.observationCount,
-            24 + auditConfigs.length * 12,
+            matrixApi.REQUIREMENT_COMPILER_CAPABILITIES.length *
+              (4 + auditConfigs.length * 2),
           );
           assert.ok(
             report.rows
@@ -779,6 +824,10 @@ if (RUN_NODE_TEST_SUITE) {
               (sourceOutcome("verification_receipts") as JsonRecord)
                 .receiptGaps as readonly string[]
             ).includes("missing_verification_receipt"),
+          );
+          assert.strictEqual(
+            (sourceOutcome("verification_contract") as JsonRecord).version,
+            "kibi.verification-contract.v1",
           );
           assert.strictEqual(
             (sourceOutcome("telemetry_acceptance") as JsonRecord).status,

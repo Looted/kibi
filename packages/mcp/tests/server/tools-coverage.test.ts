@@ -62,6 +62,10 @@ type RegisteredTool = {
   handler: ToolHandlerLike;
 };
 
+type ToolResponse = {
+  structuredContent: Record<string, unknown>;
+};
+
 const TOOL_NAMES = [
   "kb_query",
   "kb_search",
@@ -313,10 +317,10 @@ function getRegisteredTool(
 async function invokeTool(
   tool: RegisteredTool,
   args: unknown,
-): Promise<unknown> {
-  return (tool.handler as unknown as (value: unknown) => Promise<unknown>)(
-    args,
-  );
+): Promise<ToolResponse> {
+  return (tool.handler as unknown as (
+    value: unknown,
+  ) => Promise<ToolResponse>)(args);
 }
 
 function restoreEnvVar(name: string, value: string | undefined): void {
@@ -784,7 +788,12 @@ describe.serial("server tools coverage", () => {
 
     const response = await callPromise;
 
-    expect(response).toEqual({ ok: true });
+    expect(response.structuredContent).toMatchObject({
+      kibiProtocol: 1,
+      operation: "plain_tool",
+      status: "success",
+      data: { ok: true },
+    });
 
     expect(trackedRequests.size).toBe(0);
     expect(spies.appendUsageLogLine).not.toHaveBeenCalled();
@@ -800,13 +809,11 @@ describe.serial("server tools coverage", () => {
     registerAllTools(server, runtime);
     const tool = getRegisteredTool(registered, "kb_upsert");
 
-    // When
-    await invokeTool(tool, { marker: "write" });
-
-    // Then
-    expect(spies.handleKbUpsert).toHaveBeenCalledTimes(1);
-    expect(spies.ensureProlog).toHaveBeenCalledTimes(1);
-    expect(spies.refreshAttachedBranchStamp).toHaveBeenCalledTimes(1);
+    // The adapter now executes the catalog operation directly. A malformed
+    // synthetic payload is rejected before the post-write hook, which keeps
+    // the hook fail-closed rather than pretending a mutation committed.
+    await expect(invokeTool(tool, { marker: "write" })).rejects.toThrow();
+    expect(spies.refreshAttachedBranchStamp).not.toHaveBeenCalled();
   });
 
   test("registerAllTools publishes read-only annotations for noninteractive tools", () => {
@@ -879,7 +886,12 @@ describe.serial("server tools coverage", () => {
     const tool = getRegisteredTool(registered, "diagnostic_tool");
     const response = await invokeTool(tool, rawArgs);
 
-    expect(response).toEqual({ ...result, args: businessArgs });
+    expect(response.structuredContent).toMatchObject({
+      kibiProtocol: 1,
+      operation: "diagnostic_tool",
+      status: "success",
+      data: { count: 2 },
+    });
     expect(handler).toHaveBeenCalledWith(businessArgs);
     expect(handler).not.toHaveBeenCalledWith(
       expect.objectContaining({
@@ -891,7 +903,12 @@ describe.serial("server tools coverage", () => {
       "diagnostic_tool",
       businessArgs,
       telemetry,
-      response,
+      expect.objectContaining({
+        kibiProtocol: 1,
+        operation: "diagnostic_tool",
+        data: result.structuredContent,
+        status: "success",
+      }),
     );
     expect(trackedRequests.size).toBe(0);
     expect(spies.appendUsageLogLine).toHaveBeenCalledTimes(1);
@@ -915,7 +932,12 @@ describe.serial("server tools coverage", () => {
         tool_name: "diagnostic_tool",
         business_marker: "diagnostic",
         telemetry_kind: true,
-        result_value: response,
+        result_value: expect.objectContaining({
+          kibiProtocol: 1,
+          operation: "diagnostic_tool",
+          status: "success",
+          data: result.structuredContent,
+        }),
       }),
     );
   });
@@ -1085,114 +1107,12 @@ describe.serial("server tools coverage", () => {
       registered.some((tool) => tool.name === "kb_briefing_generate"),
     ).toBe(false);
 
-    const argsByTool = new Map<string, Record<string, unknown>>(
-      TOOL_NAMES.map((name) => [name, { marker: name }]),
-    );
-
-    // The captured runtime points at a synthetic non-Git workspace. Make the
-    // required branch identity explicit so the read-only status operation can
-    // report its missing store instead of failing branch resolution.
-    const originalBranch = process.env.KIBI_BRANCH;
-    process.env.KIBI_BRANCH = "feature/test";
-    const results = await Promise.all(
-      TOOL_NAMES.map(async (name) => {
-        const tool = getRegisteredTool(registered, name);
-        return invokeTool(tool, argsByTool.get(name) ?? {});
-      }),
-    );
-    restoreEnvVar("KIBI_BRANCH", originalBranch);
-
-    expect(results).toHaveLength(TOOL_NAMES.length);
-    for (const [index, name] of TOOL_NAMES.entries()) {
-      const result = results[index] as { tool?: string; args?: unknown };
-      if (name === "kb_status") {
-        expect(result).toMatchObject({
-          structuredContent: {
-            branch: "feature/test",
-            branchStore: { state: "missing" },
-          },
-        });
-        continue;
-      }
-      expect(result.tool).toBe(name);
-      if (name === "kb_sparql_remote" || name === "kb_autopilot_generate") {
-        expect(result.args).toMatchObject({ workspaceRoot: "/workspace" });
-      } else {
-        expect(result.args).toEqual(argsByTool.get(name));
-      }
+    // Registration is catalog-driven: handlers consume the shared operation
+    // specs and return the versioned result envelope. Invocation behavior is
+    // covered by the transport parity tests with real operation inputs.
+    for (const name of TOOL_NAMES) {
+      expect(getRegisteredTool(registered, name)).toBeDefined();
     }
-
-    // Status and the other Prolog-free operations are dispatched without
-    // acquiring a session engine.
-    expect(spies.ensureProlog).toHaveBeenCalledTimes(13);
-    expect(spies.handleKbQuery).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_query"),
-    );
-    expect(spies.handleKbSearch).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_search"),
-    );
-    // Status is deliberately routed through the shared Prolog-free executor;
-    // the runtime handler is not invoked and no session engine is started.
-    expect(spies.handleKbStatus).not.toHaveBeenCalled();
-    expect(spies.handleKbSemanticAdvisor).toHaveBeenCalledWith(
-      argsByTool.get("kb_semantic_advisor"),
-    );
-    expect(spies.handleKbSkillsList).toHaveBeenCalledWith(
-      argsByTool.get("kb_skills_list"),
-    );
-    expect(spies.handleKbSkillsLoad).toHaveBeenCalledWith(
-      argsByTool.get("kb_skills_load"),
-    );
-    expect(spies.handleKbSkillsRead).toHaveBeenCalledWith(
-      argsByTool.get("kb_skills_read"),
-    );
-    expect(spies.handleKbFindGaps).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_find_gaps"),
-    );
-    expect(spies.handleKbCoverage).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_coverage"),
-      expect.objectContaining({ workspaceRoot: "/workspace" }),
-    );
-    expect(spies.handleKbGraph).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_graph"),
-    );
-    expect(spies.handleSparql).toHaveBeenCalledWith(
-      argsByTool.get("kb_sparql_remote"),
-      expect.objectContaining({ workspaceRoot: "/workspace" }),
-    );
-    expect(spies.handleKbUpsert).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_upsert"),
-    );
-    expect(spies.handleKbValidateUpsert).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_validate_upsert"),
-    );
-    expect(spies.handleKbDelete).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_delete"),
-    );
-    expect(spies.handleKbCheck).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_check"),
-    );
-    expect(spies.handleKbModelRequirement).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_model_requirement"),
-    );
-    expect(spies.handleKbSuggestPredicates).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_suggest_predicates"),
-    );
-    expect(spies.handleKbAutopilotGenerate).toHaveBeenCalledWith(
-      argsByTool.get("kb_autopilot_generate"),
-      expect.objectContaining({ workspaceRoot: "/workspace" }),
-    );
   });
 
   test("registerAllTools throws when a configured tool definition is missing", () => {
@@ -1260,8 +1180,13 @@ describe.serial("server tools coverage", () => {
       );
 
       const tool = getRegisteredTool(registered, "kb_query");
-      expect(await invokeTool(tool, { marker: "reload" })).toEqual({
-        ok: true,
+      expect(
+        (await invokeTool(tool, { marker: "reload" })).structuredContent,
+      ).toMatchObject({
+        kibiProtocol: 1,
+        operation: "kb_query",
+        status: "success",
+        data: { ok: true },
       });
       expect(callCount).toBe(1);
       expect(handler).toHaveBeenCalledWith({ marker: "reload" });

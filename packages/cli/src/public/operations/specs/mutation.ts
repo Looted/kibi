@@ -69,6 +69,11 @@ export const deleteSpec = {
         description:
           "Exact relationship triples to retract, including legacy shard records.",
       },
+      approvedPlanHash: {
+        type: "string",
+        pattern: "^[a-fA-F0-9]{64}$",
+        description: "Exact hash returned by a prior authored-entity deletion plan.",
+      },
     },
   },
   requiresProlog: true,

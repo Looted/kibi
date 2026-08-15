@@ -1,0 +1,443 @@
+import { createHash } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import { dump as dumpYaml, load as loadYaml } from "js-yaml";
+import { parseDocument, stringify } from "yaml";
+import { OperationError } from "../../cli-errors.js";
+import type { OperationContext } from "../../public/operations/runtime-types.js";
+import { loadConfig } from "../../utils/config.js";
+import type { UpsertInput } from "./types.js";
+
+export type SourceWriteReceipt = Readonly<{
+  path: string;
+  mode: "write" | "delete";
+  beforeHash: string | null;
+  afterHash: string | null;
+  created: boolean;
+}>;
+
+function digest(value: string): string {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+function pendingReceiptPath(workspaceRoot: string, relativePath: string): string {
+  return path.join(
+    workspaceRoot,
+    ".kb",
+    "recovery",
+    "pending-sources",
+    `${digest(relativePath)}.json`,
+  );
+}
+
+export function writePendingSourceReceipt(
+  workspaceRoot: string,
+  relativePath: string,
+  afterHash: string,
+): void {
+  const receiptPath = pendingReceiptPath(workspaceRoot, relativePath);
+  fs.mkdirSync(path.dirname(receiptPath), { recursive: true, mode: 0o700 });
+  fs.writeFileSync(
+    receiptPath,
+    `${JSON.stringify(
+      {
+        version: 1,
+        path: relativePath,
+        afterHash,
+        createdAt: new Date().toISOString(),
+      },
+      null,
+      2,
+    )}\n`,
+    { mode: 0o600 },
+  );
+}
+
+function authoredPath(value: unknown): string | undefined {
+  if (typeof value !== "string" || !value.trim()) return undefined;
+  const normalized = value.replaceAll("\\", "/");
+  if (/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(normalized)) return undefined;
+  if (!/\.(?:md|mdx|ya?ml)$/i.test(normalized)) return undefined;
+  return normalized;
+}
+
+export function resolveContainedSourcePath(
+  workspaceRoot: string,
+  relative: string,
+): string {
+  if (
+    path.isAbsolute(relative) ||
+    relative.split(/[\\/]/).some((part) => part === ".." || part === "")
+  ) {
+    throw new OperationError(
+      "SOURCE_PATH_INVALID",
+      `document.path must be a workspace-relative path without traversal: ${relative}`,
+    );
+  }
+  const absolute = path.resolve(workspaceRoot, relative);
+  const root = path.resolve(workspaceRoot);
+  if (absolute !== root && !absolute.startsWith(`${root}${path.sep}`)) {
+    throw new OperationError(
+      "SOURCE_PATH_INVALID",
+      `document.path escapes the workspace: ${relative}`,
+    );
+  }
+  const workspaceRelative = path.relative(root, absolute);
+  if (
+    workspaceRelative === ".kb" ||
+    workspaceRelative.startsWith(`.kb${path.sep}`)
+  ) {
+    throw new OperationError(
+      "SOURCE_PATH_INVALID",
+      "document.path cannot target Kibi's derived .kb directory",
+    );
+  }
+  // A symlinked existing file or parent could otherwise escape the workspace.
+  let existing = fs.existsSync(absolute) ? absolute : path.dirname(absolute);
+  while (!fs.existsSync(existing) && path.dirname(existing) !== existing) {
+    existing = path.dirname(existing);
+  }
+  const real = fs.realpathSync.native(existing);
+  if (real !== root && !real.startsWith(`${root}${path.sep}`)) {
+    throw new OperationError(
+      "SOURCE_PATH_INVALID",
+      `document.path resolves outside the workspace: ${relative}`,
+    );
+  }
+  return absolute;
+}
+
+export function normalizeAuthoredSourcePath(
+  workspaceRoot: string,
+  source: string,
+): string {
+  const normalized = source.replaceAll("\\", "/");
+  const relative = path.isAbsolute(normalized)
+    ? path.relative(path.resolve(workspaceRoot), path.resolve(normalized))
+    : normalized;
+  return path
+    .relative(
+      path.resolve(workspaceRoot),
+      resolveContainedSourcePath(workspaceRoot, relative),
+    )
+    .replaceAll(path.sep, "/");
+}
+
+function bodyAndFrontmatter(content: string): { frontmatter: Record<string, unknown>; body: string } {
+  if (!content.startsWith("---")) return { frontmatter: {}, body: content };
+  const firstEnd = content.indexOf("\n", 3);
+  if (firstEnd < 0) return { frontmatter: {}, body: content };
+  const marker = content.indexOf("\n---", firstEnd);
+  if (marker < 0) return { frontmatter: {}, body: content };
+  const raw = content.slice(firstEnd + 1, marker);
+  const parsed = loadYaml(raw);
+  return {
+    frontmatter:
+      parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)
+        ? (parsed as Record<string, unknown>)
+        : {},
+    body: content.slice(marker + "\n---".length),
+  };
+}
+
+export function configuredSourceTarget(
+  workspaceRoot: string,
+  type: string,
+): string | undefined {
+  const config = loadConfig(workspaceRoot);
+  const keyByType: Record<string, keyof typeof config.paths> = {
+    req: "requirements",
+    scenario: "scenarios",
+    test: "tests",
+    adr: "adr",
+    flag: "flags",
+    event: "events",
+    fact: "facts",
+    symbol: "symbols",
+  };
+  const key = keyByType[type];
+  if (key === undefined) return undefined;
+  const configured = config.paths[key as keyof typeof config.paths];
+  if (!configured || configured.includes("*")) {
+    return undefined;
+  }
+  const normalized = configured.replaceAll("\\", "/");
+  // A configured document is a single writable target only when it names a
+  // file. Directory and glob configurations intentionally remain ambiguous;
+  // callers must provide document.path rather than guessing a filename.
+  if (/\.(?:md|mdx|ya?ml)$/i.test(normalized)) return normalized;
+  return undefined;
+}
+
+export function hasConfiguredSourceTarget(
+  workspaceRoot: string,
+  type: string,
+): boolean {
+  return configuredSourceTarget(workspaceRoot, type) !== undefined;
+}
+
+function sourcePath(
+  context: OperationContext,
+  input: UpsertInput,
+  entity: Readonly<Record<string, unknown>>,
+  existing: Readonly<Record<string, unknown>> | undefined,
+): string {
+  const requested = input.document?.path;
+  let relative =
+    requested ??
+    authoredPath(existing?.source) ??
+    configuredSourceTarget(context.workspaceRoot, input.type);
+  if (!relative) {
+    throw new OperationError(
+      "DOCUMENT_PATH_REQUIRED",
+      `No single writable source target is configured for ${input.type}; provide document.path explicitly`,
+    );
+  }
+  // Extracted entities may carry an absolute source path even though the
+  // authored document contract is workspace-relative. Rebase paths that are
+  // inside the workspace before applying containment and symlink checks.
+  if (path.isAbsolute(relative)) {
+    const root = path.resolve(context.workspaceRoot);
+    const absolute = path.resolve(relative);
+    if (absolute !== root && !absolute.startsWith(`${root}${path.sep}`)) {
+      throw new OperationError(
+        "SOURCE_PATH_INVALID",
+        `document.path resolves outside the workspace: ${relative}`,
+      );
+    }
+    relative = path.relative(root, absolute).replaceAll(path.sep, "/");
+  }
+  return resolveContainedSourcePath(context.workspaceRoot, relative);
+}
+
+function renderEntityDocument(
+  input: UpsertInput,
+  entity: Readonly<Record<string, unknown>>,
+  existingContent: string | undefined,
+): string {
+  const existing = existingContent ? bodyAndFrontmatter(existingContent) : { frontmatter: {}, body: "" };
+  const body = input.document?.body !== undefined
+    ? input.document.body
+    : existingContent !== undefined
+      ? existing.body
+      : input.type === "req"
+        ? `${String(entity.semantic_text ?? "").trim()}\n`
+        : "\n";
+  const frontmatter = {
+    ...existing.frontmatter,
+    ...Object.fromEntries(
+      Object.entries(entity).filter(([key]) =>
+      // Runtime provenance/timestamps belong to the compiled entity, not to
+      // the authored source artifact. Keeping them out also makes the source
+      // diff deterministic across CLI and MCP transports.
+      ![
+        "id",
+        "type",
+        "source",
+        "links",
+        "relationships",
+        "created_at",
+        "updated_at",
+      ].includes(key),
+      ),
+    ),
+  };
+  frontmatter.id = entity.id;
+  frontmatter.title ??= entity.id;
+  frontmatter.type = entity.type;
+  return `---\n${dumpYaml(frontmatter, { noRefs: true, lineWidth: -1, sortKeys: false })}---${body.startsWith("\n") ? "" : "\n"}${body}`;
+}
+
+function symbolManifestRecord(
+  entity: Readonly<Record<string, unknown>>,
+): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(entity).filter(
+      ([key]) =>
+        !["type", "source", "relationships", "created_at", "updated_at"].includes(
+          key,
+        ),
+    ),
+  );
+}
+
+function renderSymbolManifest(
+  entity: Readonly<Record<string, unknown>>,
+  existingContent: string | undefined,
+): string {
+  if (existingContent === undefined) {
+    const doc = parseDocument(
+      stringify({ symbols: [symbolManifestRecord(entity)] }),
+    );
+    return doc.toString();
+  }
+  const doc = parseDocument(existingContent);
+  const symbols = doc.get("symbols", true);
+  if (!symbols || typeof symbols !== "object" || !("items" in symbols)) {
+    throw new OperationError(
+      "SOURCE_FORMAT_INVALID",
+      "Symbol manifest must contain a symbols array",
+    );
+  }
+  const items = (symbols as { items: unknown[] }).items;
+  const next = symbolManifestRecord(entity);
+  const id = String(entity.id);
+  const index = items.findIndex((item) => {
+    if (!item || typeof item !== "object" || !("get" in item)) return false;
+    return String((item as { get(key: string): unknown }).get("id")) === id;
+  });
+  if (index >= 0) {
+    doc.setIn(["symbols", index], next);
+  } else {
+    doc.addIn(["symbols"], next);
+  }
+  return doc.toString();
+}
+
+export function renderSourceDeletion(
+  sourcePathValue: string,
+  entityId: string,
+  entityType: string,
+  existingContent: string,
+): { mode: "write" | "delete"; body?: string } {
+  const extension = path.extname(sourcePathValue).toLowerCase();
+  if (extension === ".md" || extension === ".mdx") {
+    const parsed = bodyAndFrontmatter(existingContent);
+    if (String(parsed.frontmatter.id ?? "") !== entityId) {
+      throw new OperationError(
+        "SOURCE_ENTITY_MISMATCH",
+        `Authored document ${sourcePathValue} does not contain ${entityId}`,
+      );
+    }
+    return { mode: "delete" };
+  }
+  if (extension === ".yaml" || extension === ".yml") {
+    if (entityType !== "symbol") {
+      throw new OperationError(
+        "SOURCE_FORMAT_UNSUPPORTED",
+        `YAML deletion is supported only for symbol manifests, not ${entityType}`,
+      );
+    }
+    const doc = parseDocument(existingContent);
+    const symbols = doc.get("symbols", true);
+    if (!symbols || typeof symbols !== "object" || !("items" in symbols)) {
+      throw new OperationError(
+        "SOURCE_FORMAT_INVALID",
+        "Symbol manifest must contain a symbols array",
+      );
+    }
+    const items = (symbols as { items: unknown[] }).items;
+    const index = items.findIndex((item) => {
+      if (!item || typeof item !== "object" || !("get" in item)) return false;
+      return String((item as { get(key: string): unknown }).get("id")) === entityId;
+    });
+    if (index < 0) {
+      throw new OperationError(
+        "SOURCE_ENTITY_MISMATCH",
+        `Symbol manifest ${sourcePathValue} does not contain ${entityId}`,
+      );
+    }
+    doc.deleteIn(["symbols", index]);
+    return { mode: "write", body: doc.toString() };
+  }
+  throw new OperationError(
+    "SOURCE_FORMAT_UNSUPPORTED",
+    `Unsupported authored source format: ${extension || "unknown"}`,
+  );
+}
+
+function renderSourceDocument(
+  input: UpsertInput,
+  entity: Readonly<Record<string, unknown>>,
+  existingContent: string | undefined,
+  relativePath: string,
+): string {
+  const extension = path.extname(relativePath).toLowerCase();
+  if (extension === ".yaml" || extension === ".yml") {
+    if (input.type !== "symbol") {
+      throw new OperationError(
+        "SOURCE_FORMAT_UNSUPPORTED",
+        `YAML source authoring is supported only for symbol manifests, not ${input.type}`,
+      );
+    }
+    return renderSymbolManifest(entity, existingContent);
+  }
+  if (extension !== ".md" && extension !== ".mdx") {
+    throw new OperationError(
+      "SOURCE_FORMAT_UNSUPPORTED",
+      `Unsupported authored source format: ${extension || "unknown"}`,
+    );
+  }
+  return renderEntityDocument(input, entity, existingContent);
+}
+
+export async function writeSourceForUpsert(
+  input: UpsertInput,
+  entity: Readonly<Record<string, unknown>>,
+  existing?: Readonly<Record<string, unknown>>,
+  context?: OperationContext,
+): Promise<{ receipt: SourceWriteReceipt; rollback: () => Promise<void> } | null> {
+  if (!context?.fs) return null;
+  const absolute = sourcePath(context, input, entity, existing);
+  const relative = path.relative(context.workspaceRoot, absolute).replaceAll("\\", "/");
+  let before: string | undefined;
+  try {
+    before = await context.fs.readFile(absolute);
+  } catch {
+    before = undefined;
+  }
+  const after = renderSourceDocument(input, entity, before, relative);
+  await context.fs.mkdir(path.dirname(absolute));
+  const temporary = `${absolute}.kibi-source-${digest(relative).slice(0, 12)}`;
+  await context.fs.writeFile(temporary, after);
+  if (context.fs.rename) {
+    await context.fs.rename(temporary, absolute);
+  } else {
+    await context.fs.writeFile(absolute, after);
+    await context.fs.unlink?.(temporary).catch(() => undefined);
+  }
+  const receipt: SourceWriteReceipt = {
+    path: relative,
+    mode: "write",
+    beforeHash: before === undefined ? null : digest(before),
+    afterHash: digest(after),
+    created: before === undefined,
+  };
+  if (before === undefined && receipt.afterHash !== null) {
+    writePendingSourceReceipt(context.workspaceRoot, relative, receipt.afterHash);
+  }
+  return {
+    receipt,
+    rollback: async () => {
+      if (before === undefined) {
+        if (context.fs?.unlink) await context.fs.unlink(absolute);
+        else await context.fs?.writeFile(absolute, "");
+        try {
+          fs.unlinkSync(pendingReceiptPath(context.workspaceRoot, relative));
+        } catch {
+          // The pending receipt is advisory recovery metadata.
+        }
+      } else {
+        const rollbackTemp = `${absolute}.kibi-rollback-${digest(relative).slice(0, 12)}`;
+        await context.fs?.writeFile(rollbackTemp, before);
+        if (context.fs?.rename) await context.fs.rename(rollbackTemp, absolute);
+        else {
+          await context.fs?.writeFile(absolute, before);
+          await context.fs?.unlink?.(rollbackTemp).catch(() => undefined);
+        }
+      }
+    },
+  };
+}
+
+/** Resolve and normalize the canonical authored path for an entity. */
+export function canonicalSourcePath(
+  context: OperationContext,
+  input: UpsertInput,
+  entity: Readonly<Record<string, unknown>>,
+  existing?: Readonly<Record<string, unknown>>,
+): string {
+  return path
+    .relative(context.workspaceRoot, sourcePath(context, input, entity, existing))
+    .replaceAll(path.sep, "/");
+}

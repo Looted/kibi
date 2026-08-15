@@ -12,6 +12,7 @@ describe("mutation JSON command adapters", () => {
       type: "req",
       id: "REQ-TEST",
       properties: { title: "test", status: "open" },
+      document: { path: "requirements/REQ-TEST.md" },
     };
 
     try {
@@ -34,7 +35,12 @@ describe("mutation JSON command adapters", () => {
 
       // Then
       expect(exitCode, stderr).toBe(0);
-      expect(JSON.parse(stdout)).toMatchObject({ created: 1, updated: 0 });
+      expect(JSON.parse(stdout)).toMatchObject({
+        kibiProtocol: 1,
+        operation: "kb_upsert",
+        status: "success",
+        data: { created: 1, updated: 0 },
+      });
     } finally {
       await workspace.cleanup();
     }

@@ -1,10 +1,10 @@
-import { executeSemanticAdvisor } from "kibi-cli/operations";
+import { executeSemanticAdvisor } from "kibi-runtime";
 import type {
   SemanticAdvisorArgs,
   SemanticAdvisorOperationResult,
-} from "kibi-cli/operations/semantic-advisor/types";
+} from "kibi-runtime";
 
-export type { SemanticAdvisorArgs } from "kibi-cli/operations/semantic-advisor/types";
+export type { SemanticAdvisorArgs } from "kibi-runtime";
 export type SemanticAdvisorResult = SemanticAdvisorOperationResult;
 
 export async function handleKbSemanticAdvisor(

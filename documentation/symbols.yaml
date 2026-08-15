@@ -21615,32 +21615,13 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-verification-receipt-history-errors
     title: verificationReceiptHistoryErrors
-    sourceFile: packages/cli/src/public/verification-receipt.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts
-      - type: covered_by
-        target: TEST-kibi-fresh-verification-receipts
+    status: active
   - id: SYM-append-only-verification-receipt-history-errors
     title: appendOnlyVerificationReceiptHistoryErrors
-    sourceFile: packages/cli/src/public/verification-receipt.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts
-      - type: covered_by
-        target: TEST-kibi-fresh-verification-receipts
+    status: active
   - id: SYM-node-workspace-snapshot
     title: workspaceSnapshot
-    sourceFile: packages/cli/src/public/operations/node-ports.ts
-    symbol_role: behavioral
-    granularity_reason: module-level-behavior
-    relationships:
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts
-      - type: covered_by
-        target: TEST-kibi-fresh-verification-receipts
+    status: active
   - id: SYM-read-workspace-snapshot
     title: readWorkspaceSnapshot
     sourceFile: packages/cli/src/public/operations/workspace-snapshot.ts
@@ -21661,19 +21642,10 @@ symbols:
         target: TEST-kibi-fresh-verification-receipts
   - id: SYM-core-verification-receipt-state
     title: receipt_evidence_state
-    sourceFile: packages/core/src/requirement_proof.pl
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts
-      - type: covered_by
-        target: TEST-kibi-fresh-verification-receipts
+    status: active
   - id: SYM-test-verification-receipt-proof-states
     title: requirement_proof_receipts_are_snapshot_bound_fresh_and_outcome_sensitive
-    sourceFile: packages/core/tests/kb.plt
-    relationships:
-      - type: executable_for
-        target: TEST-kibi-fresh-verification-receipts
+    status: active
   - id: SYM-test-packed-fresh-verification-receipts
     title: receiptRow
     sourceFile: documentation/tests/e2e/packed/fresh-verification-receipts.test.ts
@@ -22004,13 +21976,7 @@ symbols:
         target: TEST-kibi-telemetry-remediation-evidence
   - id: SYM-reqcompiler-receipt-append-only-validation
     title: validateAppendOnlyVerificationReceipts
-    sourceFile: packages/cli/src/operations/mutation/upsert.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts
-      - type: covered_by
-        target: TEST-kibi-fresh-verification-receipts
+    status: active
   - id: SYM-reqcompiler-ingestion-boundary-result
     title: SemanticInventoryBoundaryResult
     sourceFile: packages/cli/src/operations/semantic-advisor/ingestion-boundary.ts
@@ -22336,13 +22302,7 @@ symbols:
         target: TEST-kibi-legacy-migration-preview-v2
   - id: SYM-reqcompiler-workspace-snapshot-evidence
     title: WorkspaceSnapshotEvidence
-    sourceFile: packages/cli/src/public/operations/workspace-snapshot.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts
-      - type: covered_by
-        target: TEST-kibi-fresh-verification-receipts
+    status: active
   - id: SYM-reqcompiler-telemetry-usage-event
     title: TelemetryUsageEvent
     sourceFile: packages/cli/src/public/telemetry-acceptance.ts
@@ -22462,22 +22422,10 @@ symbols:
         target: TEST-kibi-telemetry-remediation-evidence
   - id: SYM-reqcompiler-verification-receipt
     title: VerificationReceipt
-    sourceFile: packages/cli/src/public/verification-receipt.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts
-      - type: covered_by
-        target: TEST-kibi-fresh-verification-receipts
+    status: active
   - id: SYM-reqcompiler-verification-receipt-version
     title: VERIFICATION_RECEIPT_VERSION
-    sourceFile: packages/cli/src/public/verification-receipt.ts
-    symbol_role: config
-    relationships:
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts
-      - type: covered_by
-        target: TEST-kibi-fresh-verification-receipts
+    status: active
   - id: SYM-reqcompiler-verification-receipt-max-age
     title: VERIFICATION_RECEIPT_MAX_AGE_SECONDS
     sourceFile: packages/cli/src/public/verification-receipt.ts
@@ -22489,22 +22437,10 @@ symbols:
         target: TEST-kibi-fresh-verification-receipts
   - id: SYM-reqcompiler-verification-receipt-outcomes
     title: VERIFICATION_RECEIPT_OUTCOMES
-    sourceFile: packages/cli/src/public/verification-receipt.ts
-    symbol_role: config
-    relationships:
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts
-      - type: covered_by
-        target: TEST-kibi-fresh-verification-receipts
+    status: active
   - id: SYM-reqcompiler-verification-receipt-schema
     title: VERIFICATION_RECEIPT_SCHEMA
-    sourceFile: packages/cli/src/public/verification-receipt.ts
-    symbol_role: config
-    relationships:
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts
-      - type: covered_by
-        target: TEST-kibi-fresh-verification-receipts
+    status: active
   - id: SYM-reqcompiler-mcp-coverage-result
     title: CoverageResult
     sourceFile: packages/mcp/src/tools/coverage.ts

@@ -13,6 +13,7 @@ describe("delete JSON command", () => {
         type: "req",
         id: "REQ-DELETE-CLI",
         properties: { title: "Delete through CLI", status: "open" },
+        document: { path: "requirements/REQ-DELETE-CLI.md" },
       });
       expect(seeded.exitCode, seeded.stderr).toBe(0);
 
@@ -23,11 +24,12 @@ describe("delete JSON command", () => {
 
       // Then
       expect(result.exitCode, result.stderr).toBe(0);
-      expect(JSON.parse(result.stdout)).toEqual({
-        deleted: 1,
-        skipped: 1,
-        errors: ["Entity REQ-MISSING does not exist"],
-      });
+      const data = JSON.parse(result.stdout).data;
+      expect(data.deleted).toBe(0);
+      expect(data.deletionPlan.version).toBe("kibi.entity-deletion-plan.v1");
+      expect(data.deletionPlan.entityIds).toEqual(["REQ-DELETE-CLI"]);
+      expect(data.deletionPlan.sourceWrites[0].mode).toBe("delete");
+      expect(data.errors[0]).toContain("supersession");
     } finally {
       await workspace.cleanup();
     }

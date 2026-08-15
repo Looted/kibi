@@ -1,6 +1,12 @@
 {
   "tools": [
     {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
       "description": "Read entities from the KB with filters. Use for discovery and lookup before edits. Do not use for writes. No mutation side effects. Tags filter by metadata tags only, not entity IDs.",
       "inputSchema": {
         "properties": {
@@ -46,9 +52,83 @@
         },
         "type": "object"
       },
-      "name": "kb_query"
+      "name": "kb_query",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "description": "Typed kb_query result payload; operation-specific fields are preserved for forward compatibility.",
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_query"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_query.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
     },
     {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
       "description": "Search KB entities for discovery using legacy lexical ranking or deterministic intent-v1 ranking. Intent mode accepts host-agent semantic facets and source locations, returns evidence and abstains below its confidence threshold. Use for exploratory lookup before exact follow-up with kb_query. No mutation side effects.",
       "inputSchema": {
         "properties": {
@@ -172,7 +252,75 @@
         "required": ["query"],
         "type": "object"
       },
-      "name": "kb_search"
+      "name": "kb_search",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "description": "Typed kb_search result payload; operation-specific fields are preserved for forward compatibility.",
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_search"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_search.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
     },
     {
       "annotations": {
@@ -187,7 +335,75 @@
         "properties": {},
         "type": "object"
       },
-      "name": "kb_status"
+      "name": "kb_status",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "description": "Typed kb_status result payload; operation-specific fields are preserved for forward compatibility.",
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_status"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_status.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
     },
     {
       "annotations": {
@@ -202,7 +418,75 @@
         "properties": {},
         "type": "object"
       },
-      "name": "kb_skills_list"
+      "name": "kb_skills_list",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "description": "Typed kb_skills_list result payload; operation-specific fields are preserved for forward compatibility.",
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_skills_list"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_skills_list.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
     },
     {
       "annotations": {
@@ -223,7 +507,75 @@
         "required": ["id"],
         "type": "object"
       },
-      "name": "kb_skills_load"
+      "name": "kb_skills_load",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "description": "Typed kb_skills_load result payload; operation-specific fields are preserved for forward compatibility.",
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_skills_load"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_skills_load.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
     },
     {
       "annotations": {
@@ -248,9 +600,83 @@
         "required": ["id", "resource"],
         "type": "object"
       },
-      "name": "kb_skills_read"
+      "name": "kb_skills_read",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "description": "Typed kb_skills_read result payload; operation-specific fields are preserved for forward compatibility.",
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_skills_read"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_skills_read.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
     },
     {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
       "description": "Run bulk missing/present relationship analysis over KB entities. Use for questions like which requirements lack scenarios or tests. No mutation side effects.",
       "inputSchema": {
         "properties": {
@@ -299,9 +725,83 @@
         },
         "type": "object"
       },
-      "name": "kb_find_gaps"
+      "name": "kb_find_gaps",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "description": "Typed kb_find_gaps result payload; operation-specific fields are preserved for forward compatibility.",
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_find_gaps"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_find_gaps.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
     },
     {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
       "description": "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Reports include the compatible repair plan plus typed kibi.migration-plan.v2 actions; semantic and E2E actions remain review/execution work. Paginated plans identify incomplete scope and no mutation occurs.",
       "inputSchema": {
         "properties": {
@@ -367,9 +867,83 @@
         },
         "type": "object"
       },
-      "name": "kb_coverage"
+      "name": "kb_coverage",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "description": "Typed kb_coverage result payload; operation-specific fields are preserved for forward compatibility.",
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_coverage"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_coverage.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
     },
     {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
       "description": "Run bounded graph traversal from one or more seed IDs across curated relationship types. No mutation side effects.",
       "inputSchema": {
         "properties": {
@@ -414,9 +988,83 @@
         "required": ["seedIds"],
         "type": "object"
       },
-      "name": "kb_graph"
+      "name": "kb_graph",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "description": "Typed kb_graph result payload; operation-specific fields are preserved for forward compatibility.",
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_graph"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_graph.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
     },
     {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
       "description": "Opt-in remote SPARQL query tool for external HTTP(S) RDF endpoints. This does not query Kibi's local RDF store directly, stores no credentials, and depends on network availability.",
       "inputSchema": {
         "properties": {
@@ -436,7 +1084,75 @@
         "required": ["endpoint", "query"],
         "type": "object"
       },
-      "name": "kb_sparql_remote"
+      "name": "kb_sparql_remote",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "description": "Typed kb_sparql_remote result payload; operation-specific fields are preserved for forward compatibility.",
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_sparql_remote"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_sparql_remote.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
     },
     {
       "annotations": {
@@ -523,12 +1239,100 @@
         "required": ["text"],
         "type": "object"
       },
-      "name": "kb_semantic_advisor"
+      "name": "kb_semantic_advisor",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "description": "Typed kb_semantic_advisor result payload; operation-specific fields are preserved for forward compatibility.",
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_semantic_advisor"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_semantic_advisor.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
     },
     {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
       "description": "Create or update one entity and optional relationships. Use for KB mutations after validating intent; prefer kb_validate_upsert first because it returns semantic advisor receipts for prose-heavy requirements. Use kb_model_requirement before hand-writing strict property facts from prose, and kb_suggest_predicates before hand-writing ontology predicate facts. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`, or `requires_predicate`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. For requirements, the write will be rejected if it contradicts existing current requirements that constrain the same subject with incompatible properties. To replace a conflicting requirement, include a `supersedes` relationship from the new requirement to the old one in the same request. Successful writes may return non-blocking semantic advisor warnings; inspect and repair those warnings before treating prose as contradiction-checkable. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",
       "inputSchema": {
         "properties": {
+          "document": {
+            "additionalProperties": false,
+            "description": "Optional source-first document write. Paths are workspace-relative; omit body when updating to preserve the existing body bytes.",
+            "properties": {
+              "body": {
+                "type": "string"
+              },
+              "path": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
           "id": {
             "description": "Unique entity ID (string). Example: 'REQ-123'. Existing ID updates the entity; new ID creates it.",
             "type": "string"
@@ -1178,9 +1982,83 @@
         "required": ["type", "id", "properties"],
         "type": "object"
       },
-      "name": "kb_upsert"
+      "name": "kb_upsert",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "description": "Typed kb_upsert result payload; operation-specific fields are preserved for forward compatibility.",
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_upsert"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_upsert.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
     },
     {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
       "description": "Validate a kb_upsert payload without mutating the KB. Use this read-only preflight before kb_upsert, especially for requirements, because it returns schema/modeling errors plus semantic advisor receipts that identify prose likely needing kb_model_requirement, kb_suggest_predicates, ambiguity review, or an ontology-gap observation.",
       "inputSchema": {
         "properties": {
@@ -1214,9 +2092,83 @@
         "required": ["type", "id", "properties"],
         "type": "object"
       },
-      "name": "kb_validate_upsert"
+      "name": "kb_validate_upsert",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "description": "Typed kb_validate_upsert result payload; operation-specific fields are preserved for forward compatibility.",
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_validate_upsert"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_validate_upsert.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
     },
     {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
       "description": "Delete entities by ID. Use only for intentional removals after dependency checks. Do not use as a bulk cleanup shortcut. Side effects: mutates and saves KB; skips entities with dependents.",
       "inputSchema": {
         "oneOf": [
@@ -1234,6 +2186,11 @@
           }
         ],
         "properties": {
+          "approvedPlanHash": {
+            "description": "Exact hash returned by a prior authored-entity deletion plan.",
+            "pattern": "^[a-fA-F0-9]{64}$",
+            "type": "string"
+          },
           "ids": {
             "description": "Entity IDs to delete after dependency checks.",
             "items": {
@@ -1269,9 +2226,83 @@
         },
         "type": "object"
       },
-      "name": "kb_delete"
+      "name": "kb_delete",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "description": "Typed kb_delete result payload; operation-specific fields are preserved for forward compatibility.",
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_delete"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_delete.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
     },
     {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
       "description": "Run KB validation rules and return violations, quality diagnostics, and typed kibi.migration-plan.v2 actions. Use before or after mutations and after source edits; checks remain read-only and never infer or apply actions from prose suggestions.",
       "inputSchema": {
         "properties": {
@@ -1331,9 +2362,83 @@
         },
         "type": "object"
       },
-      "name": "kb_check"
+      "name": "kb_check",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "description": "Typed kb_check result payload; operation-specific fields are preserved for forward compatibility.",
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_check"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_check.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
     },
     {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
       "description": "Convert a prose requirement plus optional extracted claim fields into a deterministic strict-lane write set. Read-only modeling returns a sequential applyPlan for later kb_upsert calls. High-confidence claims emit req+fact strict output; lower-confidence claims emit an observation review artifact. Includes migration warnings when legacy schemaVersion metadata is detected.",
       "inputSchema": {
         "properties": {
@@ -1408,7 +2513,75 @@
         "required": ["text"],
         "type": "object"
       },
-      "name": "kb_model_requirement"
+      "name": "kb_model_requirement",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "description": "Typed kb_model_requirement result payload; operation-specific fields are preserved for forward compatibility.",
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_model_requirement"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_model_requirement.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
     },
     {
       "annotations": {
@@ -1487,9 +2660,83 @@
         "required": ["text"],
         "type": "object"
       },
-      "name": "kb_suggest_predicates"
+      "name": "kb_suggest_predicates",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "description": "Typed kb_suggest_predicates result payload; operation-specific fields are preserved for forward compatibility.",
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_suggest_predicates"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_suggest_predicates.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
     },
     {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
       "description": "Generate agent-centric bootstrap output for KB population. Read-only analysis that returns activation state, bootstrap guidance, candidate entities with evidence, payoff summary, and exact applyPlan payloads for later kb_upsert calls. No mutation side effects.",
       "inputSchema": {
         "properties": {
@@ -1561,7 +2808,75 @@
         },
         "type": "object"
       },
-      "name": "kb_autopilot_generate"
+      "name": "kb_autopilot_generate",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "description": "Typed kb_autopilot_generate result payload; operation-specific fields are preserved for forward compatibility.",
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_autopilot_generate"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_autopilot_generate.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
     },
     {
       "annotations": {
@@ -1775,11 +3090,79 @@
         "required": ["intent", "mode"],
         "type": "object"
       },
-      "name": "kb_compile_intent"
+      "name": "kb_compile_intent",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "description": "Typed kb_compile_intent result payload; operation-specific fields are preserved for forward compatibility.",
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_compile_intent"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_compile_intent.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
     },
     {
       "annotations": {
-        "destructiveHint": false,
+        "destructiveHint": true,
         "idempotentHint": false,
         "openWorldHint": false,
         "readOnlyHint": false,
@@ -1802,19 +3185,87 @@
             "type": "string"
           },
           "plan": {
-            "description": "The complete kibi.compile-plan.v1 or kibi.migration-plan.v2 object. Migration plans require approvedActionIds and reject blocked/non-automatic actions.",
-            "required": ["version", "planHash", "status", "expected"],
+            "description": "The complete kibi.compile-plan.v1, kibi.migration-plan.v2, or hash-bound kibi.entity-deletion-plan.v1 object. Migration plans require approvedActionIds and reject blocked/non-automatic actions.",
+            "required": ["version", "planHash"],
             "type": "object"
           }
         },
         "required": ["plan", "approvedPlanHash"],
         "type": "object"
       },
-      "name": "kb_apply_plan"
+      "name": "kb_apply_plan",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "description": "Typed kb_apply_plan result payload; operation-specific fields are preserved for forward compatibility.",
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_apply_plan"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_apply_plan.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
     },
     {
       "annotations": {
-        "destructiveHint": false,
+        "destructiveHint": true,
         "idempotentHint": false,
         "openWorldHint": false,
         "readOnlyHint": false,
@@ -1897,7 +3348,75 @@
         "required": ["testId", "snapshot", "artifact"],
         "type": "object"
       },
-      "name": "kb_ingest_verification"
+      "name": "kb_ingest_verification",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "description": "Typed kb_ingest_verification result payload; operation-specific fields are preserved for forward compatibility.",
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_ingest_verification"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_ingest_verification.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
     }
   ]
 }

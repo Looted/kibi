@@ -21,7 +21,8 @@ import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import {
   type RuntimeOperationSpec,
   executeOperation,
-} from "kibi-cli/operations/runtime-types";
+} from "kibi-runtime";
+import { operationData, toKibiResult } from "kibi-runtime";
 import type { z } from "zod";
 import { isMcpDebugEnabled } from "../env.js";
 import {
@@ -88,8 +89,10 @@ async function withToolTimeout<T>(
       new Promise<never>((_, reject) => {
         timeout = setTimeout(() => {
           const error = createToolTimeoutError(toolName, timeoutMs);
-          reject(error);
-          void onTimeout(error, timeoutMs);
+          // Do not report the timeout until cancellation/reset has completed;
+          // otherwise callers can retry while the original mutation is still
+          // inside the engine.
+          void onTimeout(error, timeoutMs).finally(() => reject(error));
         }, timeoutMs);
       }),
     ]);
@@ -113,6 +116,7 @@ export function addTool<TProlog>(
   runtime: ToolsRuntime<TProlog> = DEFAULT_TOOLS_RUNTIME as unknown as ToolsRuntime<TProlog>,
   spec?: RuntimeOperationSpec<Record<string, unknown>, unknown>,
   annotations?: ToolAnnotations,
+  outputSchema?: object,
 ): void {
   const wrappedHandler: ToolHandler = async (args) => {
     const startedAt = new Date();
@@ -190,6 +194,9 @@ export function addTool<TProlog>(
           },
         );
 
+        const data = operationData(result);
+        const envelope = toKibiResult(operationSpec, data);
+
         // Log usage in diagnostic mode
         if (diagnosticModeEnabled) {
           await appendDiagnosticSuccessUsage({
@@ -200,11 +207,25 @@ export function addTool<TProlog>(
             businessArgs,
             telemetry,
             startedAt,
-            result,
+            result: envelope,
           });
         }
 
-        return result;
+        if (
+          result !== null &&
+          typeof result === "object" &&
+          !Array.isArray(result) &&
+          "content" in result
+        ) {
+          return {
+            ...(result as Record<string, unknown>),
+            structuredContent: envelope,
+          };
+        }
+        return {
+          content: [{ type: "text", text: JSON.stringify(envelope) }],
+          structuredContent: envelope,
+        };
       } catch (error) {
         // Log error in diagnostic mode
         if (diagnosticModeEnabled) {
@@ -242,6 +263,7 @@ export function addTool<TProlog>(
         c: {
           description: string;
           inputSchema: z.ZodTypeAny;
+          outputSchema?: z.ZodTypeAny;
           annotations?: ToolAnnotations;
         },
         h: ToolHandler,
@@ -252,6 +274,7 @@ export function addTool<TProlog>(
     {
       description,
       inputSchema: jsonSchemaToZod(inputSchema),
+      ...(outputSchema ? { outputSchema: jsonSchemaToZod(outputSchema) } : {}),
       ...(annotations ? { annotations } : {}),
     },
     wrappedHandler,

@@ -36,20 +36,56 @@ export type PrologSearchQueryResult = Readonly<{
   count: number;
 }>;
 
+/** Goal-free, versioned commands accepted by the journaled engine. */
+export type EngineCommandV1 =
+  | Readonly<{ version: 1; kind: "status" }>
+  | Readonly<{
+      version: 1;
+      kind: "entities";
+      type?: string;
+      id?: string;
+      tags?: readonly string[];
+      sourceFile?: string;
+      limit: number;
+      offset: number;
+    }>
+  | Readonly<{
+      version: 1;
+      kind: "search";
+      query: string;
+      type?: string;
+      limit: number;
+      offset: number;
+    }>
+  | Readonly<{ version: 1; kind: "checkpoint" }>
+  | Readonly<{ version: 1; kind: "compact" }>
+  | Readonly<{ version: 1; kind: "save" }>
+  | Readonly<{ version: 1; kind: "stop" }>
+  | Readonly<{ version: 1; kind: "cancel"; requestId: number }>;
+
+export interface EnginePort {
+  execute<T = PrologQueryResult>(
+    command: EngineCommandV1,
+    signal?: AbortSignal,
+  ): Promise<T>;
+}
+
 // implements REQ-kibi-operation-interface-parity
 export interface PrologPort {
-  query(goal: string): Promise<PrologQueryResult>;
+  query(goal: string, signal?: AbortSignal): Promise<PrologQueryResult>;
   /** Optional index-backed page query supplied by the journaled engine. */
   queryEntities?(
     input: PrologEntityQueryInput,
+    signal?: AbortSignal,
   ): Promise<PrologEntityQueryResult>;
   /** Optional normalized-token candidate lookup supplied by the engine. */
   searchEntities?(
     input: PrologSearchQueryInput,
+    signal?: AbortSignal,
   ): Promise<PrologSearchQueryResult>;
   nextSolution(): Promise<PrologQueryResult | null>;
   invalidateCache?(): void;
-  save(): Promise<PrologQueryResult>;
+  save(signal?: AbortSignal): Promise<PrologQueryResult>;
   /** Present on the journaled engine; used to distinguish a persistent port from one-shot SWI. */
   storageStatus?(): Promise<PrologQueryResult>;
   /** Typed public freshness query; avoids exposing module loading over RPC. */
@@ -64,8 +100,12 @@ export type FilesystemStat = {
 export interface FilesystemPort {
   readFile(path: string): Promise<string>;
   writeFile(path: string, data: string): Promise<void>;
+  /** Replace a file atomically when the host filesystem supports it. */
+  rename?(from: string, to: string): Promise<void>;
   mkdir(path: string): Promise<void>;
   stat(path: string): Promise<FilesystemStat>;
+  /** Optional destructive primitive used only to roll back newly-created files. */
+  unlink?(path: string): Promise<void>;
 }
 
 export interface GitPort {
@@ -110,9 +150,14 @@ export type OperationContext = {
   readonly signal: AbortSignal;
   readonly clock: Clock;
   readonly prolog?: PrologPort;
+  readonly engine?: EnginePort;
   /** Lazily acquire the branch engine for operations that may start without Prolog. */
   readonly ensureProlog?: () => Promise<PrologPort>;
   readonly fs?: FilesystemPort;
+  /** Whether filesystem-capable mutations must author tracked source files. */
+  readonly sourceFirst?: boolean;
+  /** Internal apply-plan capability: source bytes were already approved/published. */
+  readonly sourcePlanApplication?: boolean;
   readonly git?: GitPort;
   readonly net?: NetworkPort;
   readonly branchAttachment?: BranchAttachment;

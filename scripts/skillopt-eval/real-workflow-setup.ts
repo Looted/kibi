@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
-import { buildSkillCatalog } from "./catalog";
+import { buildSkillCatalog, type CanonicalSkill } from "./catalog";
 import { parsePublicTaskManifest } from "./fixtures/contracts";
 import { materializePredicateCorpus } from "./fixtures/predicate-corpus";
 import {
@@ -16,8 +16,9 @@ import {
 // covered_by TEST-skillopt-codex-optimization
 export function publicSkillDescriptors(
   split: "train" | "development",
+  skill: CanonicalSkill = "kibi-usage",
 ): readonly PublicTaskDescriptor[] {
-  return buildSkillCatalog("kibi-usage")
+  return buildSkillCatalog(skill)
     .filter((entry) => entry.split === split)
     .map((entry) => ({
       id: entry.id,
@@ -37,9 +38,10 @@ export function publicSkillDescriptors(
 export async function taskScopedPublicSkillDescriptors(
   split: "train" | "development",
   fixtureRunRoot: string,
+  skill: CanonicalSkill = "kibi-usage",
 ): Promise<readonly PublicTaskDescriptor[]> {
   return Promise.all(
-    buildSkillCatalog("kibi-usage")
+    buildSkillCatalog(skill)
       .filter((entry) => entry.split === split)
       .map(async (entry) => {
         const taskPath = join(

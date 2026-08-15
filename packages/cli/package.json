@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Kibi CLI for knowledge base management",
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "main": "./dist/cli.js",
   "bin": {
@@ -45,6 +45,14 @@
     "./operations/runtime-types": {
       "types": "./dist/public/operations/runtime-types.d.ts",
       "default": "./dist/public/operations/runtime-types.js"
+    },
+    "./operations/result-envelope": {
+      "types": "./dist/public/operations/result-envelope.d.ts",
+      "default": "./dist/public/operations/result-envelope.js"
+    },
+    "./runtime/cli-runtime": {
+      "types": "./dist/runtime/cli-runtime.d.ts",
+      "default": "./dist/runtime/cli-runtime.js"
     },
     "./operations/node-ports": {
       "types": "./dist/public/operations/node-ports.d.ts",
@@ -215,7 +223,8 @@
     "js-yaml": "^4.1.0",
     "kibi-core": "^0.10.3",
     "ts-morph": "^23.0.0",
-    "ignore": "^5.3.0"
+    "ignore": "^5.3.0",
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@types/node": "latest",

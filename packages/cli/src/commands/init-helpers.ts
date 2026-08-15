@@ -30,6 +30,7 @@ import {
   getBranchDiagnostic,
   resolveActiveBranch,
 } from "../utils/branch-resolver.js";
+import { ensureBranchStoreManifest } from "../utils/branch-store-locator.js";
 import { DEFAULT_CONFIG } from "../utils/config.js";
 import { SYMBOLS_MANIFEST_COMMENT_BLOCK } from "./sync/manifest.js";
 
@@ -47,15 +48,9 @@ new_ref=$2
 branch_flag=$3
 
 if [ "$branch_flag" = "1" ]; then
-  # Try to resolve the branch we just left (strip decorations like ^ and ~)
-  old_branch=$(git name-rev --name-only "$old_ref" 2>/dev/null | sed 's/\\^.*//')
-
-  # Basic validation: non-empty and does not contain ~ or ^
-  if [ -n "$old_branch" ] && echo "$old_branch" | grep -qv '[~^]'; then
-    kibi branch ensure --from "$old_branch" && kibi sync
-  else
-    kibi branch ensure && kibi sync
-  fi
+  # Branch stores are derived from the checked-out tracked sources. Never copy
+  # the old branch's compiled store during checkout.
+  kibi sync
 fi
 `;
 
@@ -117,11 +112,9 @@ export function createKbDirectoryStructure(
 ): void {
   mkdirSync(kbDir, { recursive: true });
   mkdirSync(path.join(kbDir, "schema"), { recursive: true });
-  mkdirSync(path.join(kbDir, "branches", currentBranch), {
-    recursive: true,
-  });
+  ensureBranchStoreManifest(path.dirname(kbDir), currentBranch);
   console.log("✓ Created .kb/ directory structure");
-  console.log(`✓ Created branches/${currentBranch}/ directory`);
+  console.log(`✓ Created hashed branch store for ${currentBranch}`);
 }
 
 export function createConfigFile(kbDir: string): void {
@@ -147,7 +140,16 @@ export function updateGitIgnore(cwd: string): void {
     return current ? `${current.trimEnd()}\n${entry}\n` : `${entry}\n`;
   };
 
-  const updatedContent = ensureEntry(gitignoreContent, ".kb/");
+  // Compiled stores and recovery journals are derived state, while config,
+  // schema, and relationship shards are authored source artifacts. Keep the
+  // broad fence for safety, then explicitly re-include the canonical source
+  // lanes so ordinary `git add` makes them compiler inputs.
+  let updatedContent = ensureEntry(gitignoreContent, ".kb/");
+  updatedContent = ensureEntry(updatedContent, "!.kb/");
+  updatedContent = ensureEntry(updatedContent, "!.kb/config.json");
+  updatedContent = ensureEntry(updatedContent, "!.kb/schema/");
+  updatedContent = ensureEntry(updatedContent, "!.kb/relationships/");
+  updatedContent = ensureEntry(updatedContent, "!.kb/relationships/*.yaml");
 
   if (updatedContent !== gitignoreContent) {
     writeFileSync(gitignorePath, updatedContent);

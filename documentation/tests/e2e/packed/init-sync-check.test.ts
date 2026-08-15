@@ -8,6 +8,7 @@ import {
   checkPrologAvailable,
   createMarkdownFile,
   createSandbox,
+  exactBranchStorePath,
   kibi,
   packAll,
   run,
@@ -71,8 +72,8 @@ if (RUN_NODE_TEST_SUITE) {
         "config.json should exist",
       );
       assert.ok(
-        existsSync(join(sandbox.repoDir, ".kb/branches/develop")),
-        "develop branch should exist",
+        existsSync(exactBranchStorePath(sandbox.repoDir, "develop")),
+        "exact develop branch store should exist",
       );
 
       const config = JSON.parse(
@@ -130,7 +131,7 @@ if (RUN_NODE_TEST_SUITE) {
       assert.ok(/\d+ entities/.test(stdout));
 
       assert.ok(
-        existsSync(join(sandbox.repoDir, ".kb/branches/develop/kb.rdf")),
+        existsSync(join(exactBranchStorePath(sandbox.repoDir, "develop"), "kb.rdf")),
         "RDF file should be created",
       );
     });

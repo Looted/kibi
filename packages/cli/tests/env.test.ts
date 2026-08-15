@@ -15,12 +15,12 @@ afterEach(() => {
 });
 
 describe("cli env helpers", () => {
-  test("getBranchOverride returns trimmed branch override", () => {
+  test("getBranchOverride preserves the exact branch override", () => {
     process.env.KIBI_BRANCH = "  feature/test  ";
-    expect(getBranchOverride()).toBe("feature/test");
+    expect(getBranchOverride()).toBe("  feature/test  ");
 
     process.env.KIBI_BRANCH = " ";
-    expect(getBranchOverride()).toBeUndefined();
+    expect(getBranchOverride()).toBe(" ");
 
     process.env.KIBI_BRANCH = undefined;
     expect(getBranchOverride()).toBeUndefined();

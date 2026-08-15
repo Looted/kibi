@@ -1,10 +1,9 @@
-import { getSpec } from "kibi-cli/operations";
-import { nodeGit } from "kibi-cli/operations/node-ports";
+import { getSpec, nodeFilesystem, nodeGit } from "kibi-runtime";
 import type {
   PrologPort,
   PrologQueryResult,
-} from "kibi-cli/operations/runtime-types";
-import type { PrologProcess } from "kibi-cli/prolog";
+} from "kibi-runtime";
+import type { PrologProcess } from "kibi-runtime";
 import {
   DIAGNOSTIC_MODE_ENABLED,
   appendUsageLogLine,
@@ -157,6 +156,7 @@ const operationRuntime = createMcpRuntime<PrologProcess>({
     (await getSessionModule()).attachedBranchKbPath,
   ensureProlog: async () => (await getSessionModule()).ensureProlog(),
   adaptProlog,
+  fs: nodeFilesystem,
   git: nodeGit,
   net: { fetch: (input, init) => globalThis.fetch(input, init) },
   refreshAttachedBranchStamp: async () => {

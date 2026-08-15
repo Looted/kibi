@@ -212,8 +212,8 @@ async function runPaidOptimization(
     throw new CliUsageError(
       "optimize requires --allow-paid after preflight and smoke",
     );
-  if (options.skill !== "kibi-usage")
-    throw new CliUsageError("real optimize accepts only --skill kibi-usage");
+  if (options.skill === undefined || options.skill === "all")
+    throw new CliUsageError("real optimize requires one --skill (use bundle for the assembled suite)");
   if (options.cellRuntime === undefined)
     throw new CliUsageError(
       "optimize requires --fixture-run-root for bounded Codex cells",

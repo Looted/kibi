@@ -18,6 +18,10 @@ import {
   ensureJournaledBranchStoreAsync,
 } from "../dist/engine.js";
 import { PrologProcess } from "../dist/prolog.js";
+import {
+  branchStorePath,
+  ensureBranchStoreManifest,
+} from "../src/utils/branch-store-locator.js";
 
 const roots: string[] = [];
 
@@ -71,8 +75,12 @@ function rawEngineRequest(
 }
 
 async function createLegacyStore(root: string): Promise<string> {
-  const branchPath = path.join(root, ".kb", "branches", "main");
+  const branchPath = branchStorePath(root, "main");
   mkdirSync(branchPath, { recursive: true });
+  // This test exercises the journal conversion inside an already-attached
+  // hashed store. Literal-path branch migration is covered by the branch
+  // command tests and is intentionally never inferred by the engine.
+  ensureBranchStoreManifest(root, "main");
   const prolog = new PrologProcess({ timeout: 30_000, oneShot: true });
   const attached = await prolog.query(`kb_attach('${branchPath}')`);
   expect(attached.success).toBe(true);
@@ -424,7 +432,7 @@ describe("journaled engine", () => {
 
   test("leaves corrupt legacy input usable after migration failure", async () => {
     const root = tempRoot();
-    const branchPath = path.join(root, ".kb", "branches", "main");
+    const branchPath = branchStorePath(root, "main");
     mkdirSync(branchPath, { recursive: true });
     writeFileSync(path.join(branchPath, "kb.rdf"), "not valid RDF @@@\n");
     writeFileSync(path.join(branchPath, "audit.log"), "");

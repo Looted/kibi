@@ -94,7 +94,7 @@ describe("operation-access skill resource", () => {
     expect(markdown).toContain("_diagnostic_telemetry");
     expect(
       bashBlocks.some(
-        (block) => block.includes("--input -") && block.includes("echo '{"),
+        (block) => block.includes("--input -") && block.includes("printf '%s"),
       ),
     ).toBe(true);
   });

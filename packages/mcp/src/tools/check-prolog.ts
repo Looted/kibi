@@ -15,8 +15,8 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import type { PrologProcess } from "kibi-cli/prolog";
-import type { Violation } from "kibi-cli/public/check-types";
+import type { PrologProcess } from "kibi-runtime";
+import type { Violation } from "kibi-runtime";
 import { resolveCorePlPath } from "./core-module.js";
 import { collectQueryPlanSafetyViolations } from "./query-plan-safety.js";
 

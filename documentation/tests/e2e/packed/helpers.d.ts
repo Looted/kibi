@@ -1,6 +1,7 @@
 export interface Tarballs {
   core: string;
   cli: string;
+  runtime: string;
   mcp: string;
 }
 

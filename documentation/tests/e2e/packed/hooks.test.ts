@@ -8,6 +8,7 @@ import {
   checkPrologAvailable,
   createMarkdownFile,
   createSandbox,
+  exactBranchStorePath,
   kibi,
   packAll,
   run,
@@ -179,25 +180,22 @@ if (RUN_NODE_TEST_SUITE) {
 
         assert.strictEqual(exitCode, 0, "git checkout should succeed");
 
-        // The post-checkout hook should have run kibi branch ensure --from + kibi sync
-        // This MUST create a branch-specific KB copied from the source branch (not empty)
+        // The post-checkout hook should run kibi sync for the exact branch.
         const { exitCode: kbExists } = await run(
           "test",
-          ["-d", ".kb/branches/feature/test-hook"],
+          ["-d", exactBranchStorePath(sandbox.repoDir, "feature/test-hook")],
           { cwd: sandbox.repoDir, env: sandbox.env },
         );
 
         assert.strictEqual(
           kbExists,
           0,
-          "Post-checkout hook must create branch KB directory — if this fails, check that the hook resolves old_branch correctly (sed escape bug?)",
+          "Post-checkout hook must create the exact hashed branch KB directory",
         );
 
         // The new branch KB must contain the entity from the source branch.
-        // If the KB was copied correctly, querying on the new branch should find REQ-HOOK-001.
-        // If the KB was created empty and synced from scratch, the entity would still appear
-        // (it has a markdown file) — so we additionally verify no dangling-relationship spam
-        // by checking the query exit code is clean.
+        // The entity is present because the checked-out tracked source is
+        // compiled into the exact branch store; no cross-branch copy is used.
         const { exitCode: queryExit, stdout: queryOut } = await kibi(sandbox, [
           "query",
           "req",

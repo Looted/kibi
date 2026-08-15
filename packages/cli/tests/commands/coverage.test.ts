@@ -12,6 +12,7 @@ import os from "node:os";
 import path from "node:path";
 import { renderCoverageTable } from "../../src/commands/discovery-shared.js";
 import type { LegacyMigrationPlan } from "../../src/public/operations/legacy-migration-plan.js";
+import { branchStorePath } from "../../src/utils/branch-store-locator.js";
 
 describe("kibi coverage", () => {
   let tmpDir: string;
@@ -80,6 +81,8 @@ tags: [authentication, session]
     mkdirSync(path.join(tmpDir, "documentation", "tests"), {
       recursive: true,
     });
+
+    execSync("git add documentation", { cwd: tmpDir, stdio: "pipe" });
 
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
   }, 30000); // kibi init + sync can take ~10s; allow 30s for slower CI environments
@@ -171,7 +174,7 @@ tags: [authentication, session]
     expect(req2Row?.coverageDepth).toBe("no_test_evidence");
   }, 30000); // 30 second test timeout
   test("previews one source-bound migration batch without mutating the KB", () => {
-    const kbPath = path.join(tmpDir, ".kb", "branches", "main", "kb.rdf");
+    const kbPath = path.join(branchStorePath(tmpDir, "main"), "kb.rdf");
     const before = readFileSync(kbPath, "utf8");
     const command = `bun ${kibiBin} coverage --by req --include-migration-preview --migration-predicate-min-score 0 --format json`;
     const first = JSON.parse(

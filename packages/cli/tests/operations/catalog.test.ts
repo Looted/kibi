@@ -34,7 +34,6 @@ const PROLOG_FREE_OPERATIONS = new Set([
   "kb_semantic_advisor",
   "kb_autopilot_generate",
   "kb_sparql_remote",
-  "kb_apply_plan",
 ]);
 
 const VALID_EFFECTS = new Set([
@@ -68,9 +67,14 @@ describe("public operation catalog", () => {
   });
 
   test("exposes immutable list and exact lookup helpers", () => {
-    expect(listSpecs()).toBe(OPERATION_CATALOG);
+    expect(listSpecs()).toHaveLength(OPERATION_CATALOG.length);
     for (const spec of OPERATION_CATALOG) {
-      expect(getSpec(spec.name)).toBe(spec);
+      const decorated = getSpec(spec.name);
+      expect(decorated).toMatchObject({
+        name: spec.name,
+        resultVersion: `kibi.${spec.name}.v1`,
+      });
+      expect(decorated.outputSchema).toBeDefined();
     }
   });
 });

@@ -5,6 +5,11 @@
 
 import { existsSync, readFileSync, statSync } from "node:fs";
 import * as path from "node:path";
+import {
+  branchStorePath,
+  branchStoreManifestMatches,
+  legacyBranchStorePath,
+} from "./branch-store-locator.js";
 
 export type BranchStoreState =
   | "healthy"
@@ -28,8 +33,19 @@ export function inspectBranchStore(
   workspaceRoot: string,
   branch: string,
 ): BranchStoreInspection {
-  const storePath = path.join(workspaceRoot, ".kb", "branches", branch);
+  const storePath = branchStorePath(workspaceRoot, branch);
   if (!existsSync(storePath)) {
+    const legacyPath = legacyBranchStorePath(workspaceRoot, branch);
+    if (existsSync(legacyPath)) {
+      return {
+        state: "incomplete",
+        path: legacyPath,
+        errorCode: "legacy_branch_store",
+        detail:
+          "A literal branch-named store exists; preview and apply the explicit migration before writes.",
+        recoveryRequired: true,
+      };
+    }
     return {
       state: "missing",
       path: storePath,
@@ -45,6 +61,16 @@ export function inspectBranchStore(
         path: storePath,
         errorCode: "branch_store_not_directory",
         detail: "The branch-local KB path is not a directory.",
+        recoveryRequired: true,
+      };
+    }
+    if (!branchStoreManifestMatches(storePath, branch)) {
+      return {
+        state: "unreadable",
+        path: storePath,
+        errorCode: "branch_store_manifest_mismatch",
+        detail:
+          "The hashed branch store is missing a valid manifest for the exact Git branch.",
         recoveryRequired: true,
       };
     }

@@ -1,15 +1,18 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
-import { type OperationName, getSpec, statusSpec } from "kibi-cli/operations";
+import { type OperationName, getSpec, statusSpec } from "kibi-runtime";
 import {
   executeApplyPlan,
   executeCompileIntent,
   executeIngestVerification,
-} from "kibi-cli/operations";
+  validateUpsertSpec,
+  executeDelete,
+  executeUpsert,
+} from "kibi-runtime";
 import type {
   OperationContext,
   RuntimeOperationSpec,
-} from "kibi-cli/operations/runtime-types";
+} from "kibi-runtime";
 
 import type { AutopilotGenerateArgs } from "../tools/autopilot-generate.js";
 import type { CheckArgs } from "../tools/check.js";
@@ -41,6 +44,7 @@ type ToolRegistrar<TProlog> = (
   runtime: ToolsRuntime<TProlog>,
   spec?: RuntimeOperationSpec<Record<string, unknown>, unknown>,
   annotations?: ToolAnnotations,
+  outputSchema?: object,
 ) => void;
 
 type ToolRegistration = {
@@ -60,7 +64,10 @@ export function registerConfiguredTools<TProlog>(
   const toolDef = (name: string) => {
     const t = runtime.tools.find((tool) => tool.name === name);
     if (!t) throw new Error(`Unknown tool: ${name}`);
-    return t as typeof t & { annotations?: ToolAnnotations };
+    return t as typeof t & {
+      annotations?: ToolAnnotations;
+      outputSchema?: Readonly<Record<string, unknown>>;
+    };
   };
   const prologFor = (context: OperationContext): TProlog => {
     const prolog = runtime.operationRuntime.sessionProlog(context);
@@ -69,6 +76,10 @@ export function registerConfiguredTools<TProlog>(
     }
     return prolog;
   };
+  const withSessionProlog = (context: OperationContext): OperationContext => ({
+    ...context,
+    prolog: prologFor(context) as unknown as NonNullable<OperationContext["prolog"]>,
+  });
   const register = ({ name, execute }: ToolRegistration): void => {
     const definition = toolDef(name);
     const publicSpec = getSpec(name);
@@ -87,6 +98,7 @@ export function registerConfiguredTools<TProlog>(
       runtime,
       spec,
       definition.annotations,
+      definition.outputSchema,
     );
   };
 
@@ -159,20 +171,17 @@ export function registerConfiguredTools<TProlog>(
   register({
     name: "kb_upsert",
     execute: async (context, args) =>
-      runtime.handleKbUpsert(prologFor(context), args as unknown as UpsertArgs),
+      executeUpsert(args as unknown as UpsertArgs, withSessionProlog(context)),
   });
   register({
     name: "kb_validate_upsert",
     execute: async (context, args) =>
-      runtime.handleKbValidateUpsert(
-        prologFor(context),
-        args as unknown as UpsertArgs,
-      ),
+      validateUpsertSpec.execute(args as unknown as UpsertArgs, withSessionProlog(context)),
   });
   register({
     name: "kb_delete",
     execute: async (context, args) =>
-      runtime.handleKbDelete(prologFor(context), args as unknown as DeleteArgs),
+      executeDelete(args as unknown as DeleteArgs, withSessionProlog(context)),
   });
   register({
     name: "kb_check",

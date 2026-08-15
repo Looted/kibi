@@ -68,7 +68,7 @@ export async function withAttachedBranchProlog<T>(
     );
 
     if (!usesEngine) {
-      const kbPath = path.join(process.cwd(), ".kb/branches", branchName);
+      const kbPath = attachment.storePath;
       const attachResult = await prolog.query(
         `kb_attach('${escapeAtom(kbPath)}')`,
       );
@@ -95,9 +95,7 @@ export async function withAttachedBranchProlog<T>(
 export async function resolveCurrentKbPath(): Promise<string> {
   const attachment = resolveBranchAttachment(process.cwd());
   if ("error" in attachment) throw new Error(attachment.error);
-  const branch = attachment.kbBranch;
-
-  return path.join(process.cwd(), ".kb/branches", branch);
+  return attachment.storePath;
 }
 
 // implements REQ-003

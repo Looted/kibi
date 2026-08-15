@@ -119,13 +119,13 @@ describe("branch-resolver", () => {
       );
     });
 
-    test("trims KIBI_BRANCH env var before returning it", () => {
+    test("rejects whitespace in KIBI_BRANCH instead of normalizing identity", () => {
       process.env.KIBI_BRANCH = "  env-branch  ";
 
       const result = resolveActiveBranch(tmpDir);
 
-      expect("branch" in result).toBe(true);
-      expect((result as { branch: string }).branch).toBe("env-branch");
+      expect("error" in result).toBe(true);
+      expect((result as { code: BranchErrorCode }).code).toBe("ENV_OVERRIDE");
     });
 
     test("returns current git branch when KIBI_BRANCH not set", () => {
@@ -417,11 +417,17 @@ describe("branch-resolver", () => {
       expect(isValidBranchName("a".repeat(256))).toBe(false);
     });
 
-    test("rejects invalid characters", () => {
-      expect(isValidBranchName("feature@branch")).toBe(false);
-      expect(isValidBranchName("feature#123")).toBe(false);
+    test("accepts Git-valid punctuation and Unicode", () => {
+      expect(isValidBranchName("feature@branch")).toBe(true);
+      expect(isValidBranchName("фича/версия")).toBe(true);
+      expect(isValidBranchName("feature#123")).toBe(true);
+      expect(isValidBranchName("feature;123")).toBe(true);
+    });
+
+    test("rejects Git-ref separators and control characters", () => {
       expect(isValidBranchName("feature:123")).toBe(false);
-      expect(isValidBranchName("feature;123")).toBe(false);
+      expect(isValidBranchName("feature?123")).toBe(false);
+      expect(isValidBranchName("feature*123")).toBe(false);
     });
   });
 

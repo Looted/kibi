@@ -41,6 +41,7 @@ import {
   updateGitIgnore,
 } from "../../src/commands/init-helpers.js";
 import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
+import { branchStoreKey } from "../../src/utils/branch-store-locator.js";
 
 describe("init-helpers", () => {
   let tmpDir: string;
@@ -97,7 +98,7 @@ describe("init-helpers", () => {
     expect(existsSync(kbDir)).toBe(true);
     expect(existsSync(path.join(kbDir, "schema"))).toBe(true);
     expect(existsSync(path.join(kbDir, "branches"))).toBe(true);
-    expect(existsSync(path.join(kbDir, "branches/my-branch"))).toBe(true);
+    expect(existsSync(path.join(kbDir, "branches", branchStoreKey("my-branch")))).toBe(true);
   });
 
   test("createConfigFile creates valid config.json", () => {
@@ -342,7 +343,7 @@ describe("init-helpers", () => {
       path.join(hooksDir, "post-checkout"),
       "utf8",
     );
-    expect(postCheckoutContent).toContain("sed 's/\\^.*//'");
+    expect(postCheckoutContent).toContain("kibi sync");
 
     const preCommitContent = readFileSync(
       path.join(hooksDir, "pre-commit"),
@@ -379,7 +380,7 @@ describe("init-helpers", () => {
     expect(postRewrite).not.toContain("--refresh-symbol-coordinates");
   });
 
-  test("installed post-checkout hook preserves kibi branch ensure", () => {
+  test("installed post-checkout hook uses source compilation without branch cloning", () => {
     const gitDir = path.join(tmpDir, ".git");
     mkdirSync(gitDir);
 
@@ -390,8 +391,7 @@ describe("init-helpers", () => {
       path.join(hooksDir, "post-checkout"),
       "utf8",
     );
-    // Must still call kibi branch ensure for branch tracking
-    expect(postCheckout).toContain("kibi branch ensure");
     expect(postCheckout).toContain("kibi sync");
+    expect(postCheckout).not.toContain("kibi branch ensure");
   });
 });

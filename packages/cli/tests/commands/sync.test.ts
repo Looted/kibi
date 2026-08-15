@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { execSync, spawnSync } from "node:child_process";
+import { execFileSync, execSync, spawnSync } from "node:child_process";
 import {
   closeSync,
   copyFileSync,
@@ -47,6 +47,11 @@ interface SyncTestHarness {
   createProlog?: (options: { timeout?: number }) => PrologProcess;
 }
 
+/** Source compilation intentionally follows Git's index. Keep fixtures explicit. */
+function stageSources(cwd: string, ...paths: string[]): void {
+  execFileSync("git", ["add", "--", ...paths], { cwd, stdio: "pipe" });
+}
+
 function deferred<T>(): Deferred<T> {
   let resolve!: Deferred<T>["resolve"];
   let reject!: Deferred<T>["reject"];
@@ -80,6 +85,10 @@ async function runHarnessedSync(
   options: { rebuild?: boolean; validateOnly?: boolean } = {},
   harness: SyncTestHarness = {},
 ): Promise<SyncResult> {
+  // Authored fixture files must be Git-tracked under the source-first
+  // compiler policy. Tests that exercise arbitrary-untracked exclusion stage
+  // their files explicitly rather than relying on the compatibility path.
+  execSync("git add --all --", { cwd: process.cwd(), stdio: "pipe" });
   return (
     syncCommand as unknown as (
       syncOptions: { rebuild?: boolean; validateOnly?: boolean },
@@ -244,6 +253,13 @@ User logs in with OAuth2 provider.
     tags: [auth]
 `,
     );
+
+    stageSources(
+      tmpDir,
+      "documentation/requirements/req1.md",
+      "documentation/scenarios/scenario1.md",
+      "documentation/symbols.yaml",
+    );
   });
 
   afterEach(() => {
@@ -270,7 +286,10 @@ User logs in with OAuth2 provider.
           encoding: "utf8",
         }).trim() || "main";
       const effectiveBranch = currentBranch;
-      const kbPath = path.join(tmpDir, `.kb/branches/${effectiveBranch}`);
+      const kbPath = (await import("../../src/utils/branch-store-locator.js")).branchStorePath(
+        tmpDir,
+        effectiveBranch,
+      );
       expect(existsSync(path.join(kbPath, "kb.rdf"))).toBe(true);
     },
     TEST_TIMEOUT_MS,
@@ -596,7 +615,13 @@ User logs in with OAuth2 provider.
         encoding: "utf8",
       });
 
-      const cachePath = path.join(tmpDir, ".kb/branches/main/sync-cache.json");
+      const cachePath = path.join(
+        (await import("../../src/utils/branch-store-locator.js")).branchStorePath(
+          tmpDir,
+          "main",
+        ),
+        "sync-cache.json",
+      );
       expect(existsSync(cachePath)).toBe(true);
 
       const cache = JSON.parse(readFileSync(cachePath, "utf8")) as {
@@ -639,7 +664,13 @@ User logs in with OAuth2 provider.
         encoding: "utf8",
       });
 
-      const cachePath = path.join(tmpDir, ".kb/branches/main/sync-cache.json");
+      const cachePath = path.join(
+        (await import("../../src/utils/branch-store-locator.js")).branchStorePath(
+          tmpDir,
+          "main",
+        ),
+        "sync-cache.json",
+      );
       const cache = JSON.parse(readFileSync(cachePath, "utf8")) as {
         version: number;
         hashes: Record<string, string>;
@@ -798,6 +829,7 @@ ${updatedRequirement}
     created_by: agent/test
     source: test://sync-test`,
       );
+      stageSources(tmpDir, ".kb/relationships/a1.yaml");
 
       const result = spawnSync("bun", [kibiBin, "sync"], {
         cwd: tmpDir,
@@ -840,6 +872,7 @@ ${updatedRequirement}
     created_by: agent/test
     source: test://sync-test`,
       );
+      stageSources(tmpDir, ".kb/relationships/a1.yaml");
 
       // Second sync should pick up the relationship
       const output = execSync(`bun ${kibiBin} sync`, {
@@ -861,6 +894,7 @@ ${updatedRequirement}
         path.join(relationshipsDir, "a1.yaml"),
         "relationships: []\n",
       );
+      stageSources(tmpDir, ".kb/relationships/a1.yaml");
       const deletion = execSync(`bun ${kibiBin} sync`, {
         cwd: tmpDir,
         encoding: "utf8",
@@ -924,6 +958,12 @@ status: passing
 
 # Linked Test
 `,
+      );
+      stageSources(
+        tmpDir,
+        "documentation/requirements/req-linked.md",
+        "documentation/scenarios/scenario-linked.md",
+        "documentation/tests/test-linked.md",
       );
 
       const output = execSync(`bun ${kibiBin} sync`, {
@@ -1028,6 +1068,7 @@ invalid: yaml: [
 ---
 `,
         );
+        stageSources(tmpDir, "documentation/requirements/invalid.md");
 
         try {
           execSync(`bun ${kibiBin} sync --validate-only`, {
@@ -1071,6 +1112,10 @@ value_int: "30"
 ---
 # Invalid typed scalar fact
 `,
+        );
+        stageSources(
+          tmpDir,
+          "documentation/facts/FACT-INVALID-TYPED-SCALAR.md",
         );
 
         try {
@@ -1117,6 +1162,7 @@ value_type: int
 # Missing value field fact
 `,
         );
+        stageSources(tmpDir, "documentation/facts/FACT-MISSING-VALUE-FIELD.md");
 
         try {
           execSync(`bun ${kibiBin} sync --validate-only`, {
@@ -1176,6 +1222,7 @@ canonical_key: user.session.timeout_minutes.eq.30
 # Session timeout
 `,
         );
+        stageSources(tmpDir, "documentation/facts/FACT-SESSION-TIMEOUT-30.md");
 
         // Sync
         execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
@@ -1226,6 +1273,7 @@ canonical_key: api.client.rate_limit_rps.eq.1.5
 # Rate limit
 `,
         );
+        stageSources(tmpDir, "documentation/facts/FACT-RATE-LIMIT.md");
 
         // Sync
         execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
@@ -1272,6 +1320,7 @@ canonical_key: user.type.allowed_value.eq.admin
 # User type
 `,
         );
+        stageSources(tmpDir, "documentation/facts/FACT-USER-TYPE.md");
 
         // Sync
         execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });

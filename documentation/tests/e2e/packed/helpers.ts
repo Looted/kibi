@@ -1,4 +1,5 @@
 import { execFileSync, spawn } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
   existsSync,
   mkdirSync,
@@ -26,6 +27,12 @@ import { writePackedInstallManifest } from "./packed-install-manifest.js";
  */
 
 const REPO_ROOT = resolve(process.cwd());
+
+/** Return the exact hashed compiled-store directory for a Git branch identity. */
+export function exactBranchStorePath(repoDir: string, branch: string): string {
+  const key = createHash("sha256").update(branch).digest("hex");
+  return join(repoDir, ".kb", "branches", key);
+}
 
 let cachedTarballsPromise: Promise<Tarballs> | null = null;
 let sharedPrefixPath: string | null = null;
@@ -145,6 +152,7 @@ function findPrePackedTarball(
 const packagesForPack = [
   "core",
   "cli",
+  "runtime",
   "mcp",
   "opencode",
   "codex",
@@ -168,7 +176,15 @@ async function bootstrapSharedInstall(): Promise<void> {
   const cacheDir = mkdtempSync(join(tmpdir(), "kibi-e2e-cache-"));
   ownedSharedPaths.add(homeDir);
   ownedSharedPaths.add(cacheDir);
-  const installKey = [tarballs.core, tarballs.cli, tarballs.mcp].join("|");
+  const installKey = [
+    tarballs.core,
+    tarballs.cli,
+    tarballs.runtime,
+    tarballs.mcp,
+    tarballs.opencode,
+    tarballs.codex,
+    tarballs.cursor,
+  ].join("|");
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     HOME: homeDir,
@@ -223,6 +239,7 @@ export function cleanupSharedPackedInstallation(): void {
 export interface Tarballs {
   core: string;
   cli: string;
+  runtime: string;
   mcp: string;
   opencode: string;
   codex: string;
@@ -241,6 +258,11 @@ export interface RunResult {
   stdout: string;
   stderr: string;
   exitCode: number;
+}
+
+export function parseKibiResult<T>(stdout: string): T {
+  const parsed = JSON.parse(stdout) as { data?: T };
+  return (parsed.data ?? parsed) as T;
 }
 
 /** Options for kibi commands */
@@ -434,7 +456,15 @@ export function createSandbox(): TestSandbox {
         return;
       }
 
-      const installKey = [tarballs.core, tarballs.cli, tarballs.mcp].join("|");
+      const installKey = [
+        tarballs.core,
+        tarballs.cli,
+        tarballs.runtime,
+        tarballs.mcp,
+        tarballs.opencode,
+        tarballs.codex,
+        tarballs.cursor,
+      ].join("|");
 
       if (sharedInstallKey === installKey && sharedInstallPromise) {
         await sharedInstallPromise;
@@ -680,6 +710,15 @@ ${content}
 `;
 
   writeFileSync(fullPath, fileContent, "utf8");
+  // Source-first sync intentionally ignores arbitrary untracked files. E2E
+  // fixtures represent authored project inputs, so stage each fixture before
+  // asking Kibi to compile it; this keeps the test workflow aligned with Git's
+  // authority instead of weakening the compiler policy.
+  execFileSync(resolveGitBinary(), ["add", "--", relativePath], {
+    cwd: sandbox.repoDir,
+    env: sandbox.env,
+    stdio: "pipe",
+  });
   console.log(`  📝 Created ${relativePath}`);
 }
 

@@ -377,7 +377,29 @@ export function deriveDiagnosticFields(
     }
   }
 
-  const structuredContent = structuredContentFrom(result);
+  const envelope = structuredContentFrom(result);
+  const structuredContent =
+    envelope?.kibiProtocol === 1 && isRecord(envelope.data)
+      ? envelope.data
+      : envelope;
+  if (envelope?.kibiProtocol === 1) {
+    fields.protocol_version = envelope.kibiProtocol;
+    fields.result_version = envelope.resultVersion ?? null;
+    fields.result_status = envelope.status ?? null;
+    fields.effect_failures = Array.isArray(envelope.effects)
+      ? envelope.effects.filter(
+          (effect) =>
+            effect !== null &&
+            typeof effect === "object" &&
+            !Array.isArray(effect) &&
+            (effect as Record<string, unknown>).status === "failed",
+        )
+      : [];
+    fields.followed_next_actions = Array.isArray(telemetry?.followed_next_actions)
+      ? telemetry.followed_next_actions
+      : [];
+    fields.unsafe_original_retry = telemetry?.unsafe_original_retry === true;
+  }
 
   if (toolName === "kb_query" || toolName === "kb_search") {
     const resultCount = Number(structuredContent?.count ?? 0);

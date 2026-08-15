@@ -12,6 +12,18 @@ interface JsonRpcRes {
   error?: { code: number; message: string };
 }
 
+function structuredData(
+  result: Record<string, unknown> | undefined,
+): Record<string, unknown> {
+  const structured = result?.structuredContent;
+  if (!structured || typeof structured !== "object") return {};
+  const record = structured as Record<string, unknown>;
+  const data = record.data;
+  return data && typeof data === "object"
+    ? (data as Record<string, unknown>)
+    : record;
+}
+
 function sendRaw(
   proc: ChildProcessWithoutNullStreams,
   payload: string,
@@ -215,6 +227,9 @@ if (RUN_NODE_TEST_SUITE) {
             "kb_model_requirement",
             "kb_suggest_predicates",
             "kb_autopilot_generate",
+            "kb_compile_intent",
+            "kb_apply_plan",
+            "kb_ingest_verification",
           ],
         );
 
@@ -298,14 +313,17 @@ if (RUN_NODE_TEST_SUITE) {
           params: {
             name: "kb_upsert",
             arguments: {
-              type: "req",
+              type: "adr",
               id: entityId,
-              properties: {
-                title: "Issue 58 initial",
-                status: "open",
-                source: "test://issue-58",
-                tags: ["issue-58", "cache"],
-              },
+                properties: {
+                  title: "Issue 58 initial",
+                  status: "open",
+                  source: "test://issue-58",
+                  tags: ["issue-58", "cache"],
+                },
+                document: {
+                  path: "documentation/requirements/req-issue58-cache-001.md",
+                },
             },
           },
         };
@@ -330,7 +348,7 @@ if (RUN_NODE_TEST_SUITE) {
             name: "kb_query",
             arguments: {
               id: entityId,
-              type: "req",
+              type: "adr",
             },
           },
         };
@@ -342,7 +360,7 @@ if (RUN_NODE_TEST_SUITE) {
           params: {
             name: "kb_upsert",
             arguments: {
-              type: "req",
+              type: "adr",
               id: entityId,
               properties: {
                 title: "Issue 58 updated",
@@ -361,7 +379,7 @@ if (RUN_NODE_TEST_SUITE) {
           params: {
             name: "kb_query",
             arguments: {
-              type: "req",
+              type: "adr",
               limit: 500,
             },
           },
@@ -441,6 +459,35 @@ if (RUN_NODE_TEST_SUITE) {
           !deleteLine.result?.isError,
           "delete should not return MCP tool error",
         );
+        const deletionData = structuredData(deleteLine.result);
+        const deletionPlan = deletionData.deletionPlan as
+          | { planHash?: string }
+          | undefined;
+        assert.ok(deletionPlan?.planHash, "delete should return a source plan");
+        const applyLine = JSON.parse(
+          await sendRaw(
+            proc,
+            JSON.stringify({
+              jsonrpc: "2.0",
+              id: 307,
+              method: "tools/call",
+              params: {
+                name: "kb_apply_plan",
+                arguments: {
+                  plan: deletionData.deletionPlan,
+                  approvedPlanHash: deletionPlan?.planHash,
+                },
+              },
+            }),
+          ),
+        ) as JsonRpcRes;
+        assert.ok(!applyLine.error, JSON.stringify(applyLine));
+        assert.ok(!applyLine.result?.isError, JSON.stringify(applyLine));
+        assert.strictEqual(
+          structuredData(applyLine.result).deleted,
+          1,
+          JSON.stringify(applyLine),
+        );
 
         const postDeleteReadLine = JSON.parse(
           await sendRaw(proc, JSON.stringify(readById)),
@@ -502,13 +549,16 @@ if (RUN_NODE_TEST_SUITE) {
             arguments: {
               type: "req",
               id: reqId,
-              properties: {
-                title: "Issue 61 req",
-                status: "open",
-                owner: "platform-team",
-                source: "test://issue-61",
-                tags: ["issue-61", "restart"],
-              },
+                properties: {
+                  title: "Issue 61 req",
+                  status: "open",
+                  owner: "platform-team",
+                  source: "test://issue-61",
+                  tags: ["issue-61", "restart"],
+                },
+                document: {
+                  path: "documentation/requirements/req-issue61-restart-001.md",
+                },
             },
           },
         };
@@ -522,11 +572,14 @@ if (RUN_NODE_TEST_SUITE) {
             arguments: {
               type: "adr",
               id: adrId,
-              properties: {
-                title: "Issue 61 adr",
-                status: "accepted",
-                source: "test://issue-61",
-              },
+                properties: {
+                  title: "Issue 61 adr",
+                  status: "accepted",
+                  source: "test://issue-61",
+                },
+                document: {
+                  path: "documentation/adr/adr-issue61-restart-001.md",
+                },
             },
           },
         };
@@ -540,11 +593,14 @@ if (RUN_NODE_TEST_SUITE) {
             arguments: {
               type: "test",
               id: testId,
-              properties: {
-                title: "Issue 61 test",
-                status: "passing",
-                source: "test://issue-61",
-              },
+                properties: {
+                  title: "Issue 61 test",
+                  status: "passing",
+                  source: "test://issue-61",
+                },
+                document: {
+                  path: "documentation/tests/test-issue61-restart-001.md",
+                },
             },
           },
         };
@@ -635,63 +691,31 @@ if (RUN_NODE_TEST_SUITE) {
             reqByIdLine.result?.content as Array<{ text: string }> | undefined
           )?.[0]?.text;
           assert.match(reqByIdText ?? "", /req-issue61-restart-001/);
-          const reqByIdEntities =
-            (
-              reqByIdLine.result as
-                | {
-                    structuredContent?: {
-                      entities?: Array<{ owner?: string }>;
-                    };
-                  }
-                | undefined
-            )?.structuredContent?.entities ?? [];
+          const reqByIdEntities = (structuredData(reqByIdLine.result).entities ??
+            []) as Array<{ owner?: string }>;
           assert.strictEqual(reqByIdEntities[0]?.owner, "platform-team");
 
           const reqListLine = JSON.parse(
             await sendRaw(procB, JSON.stringify(listReq)),
           ) as JsonRpcRes;
-          const reqEntities =
-            (
-              reqListLine.result as
-                | {
-                    structuredContent?: {
-                      entities?: Array<{ id?: string; type?: string }>;
-                    };
-                  }
-                | undefined
-            )?.structuredContent?.entities ?? [];
+          const reqEntities = (structuredData(reqListLine.result).entities ??
+            []) as Array<{ id?: string; type?: string }>;
           assert.ok(reqEntities.some((entity) => entity.id === reqId));
           assert.ok(reqEntities.every((entity) => entity.type === "req"));
 
           const adrListLine = JSON.parse(
             await sendRaw(procB, JSON.stringify(listAdr)),
           ) as JsonRpcRes;
-          const adrEntities =
-            (
-              adrListLine.result as
-                | {
-                    structuredContent?: {
-                      entities?: Array<{ id?: string; type?: string }>;
-                    };
-                  }
-                | undefined
-            )?.structuredContent?.entities ?? [];
+          const adrEntities = (structuredData(adrListLine.result).entities ??
+            []) as Array<{ id?: string; type?: string }>;
           assert.ok(adrEntities.some((entity) => entity.id === adrId));
           assert.ok(adrEntities.every((entity) => entity.type === "adr"));
 
           const testListLine = JSON.parse(
             await sendRaw(procB, JSON.stringify(listTest)),
           ) as JsonRpcRes;
-          const testEntities =
-            (
-              testListLine.result as
-                | {
-                    structuredContent?: {
-                      entities?: Array<{ id?: string; type?: string }>;
-                    };
-                  }
-                | undefined
-            )?.structuredContent?.entities ?? [];
+          const testEntities = (structuredData(testListLine.result).entities ??
+            []) as Array<{ id?: string; type?: string }>;
           assert.ok(testEntities.some((entity) => entity.id === testId));
           assert.ok(testEntities.every((entity) => entity.type === "test"));
         } finally {

@@ -2,8 +2,8 @@ import type {
   OperationContext,
   PrologPort,
   PrologQueryResult,
-} from "kibi-cli/operations/runtime-types";
-import type { PrologProcess } from "kibi-cli/prolog";
+} from "kibi-runtime";
+import type { PrologProcess } from "kibi-runtime";
 import { resolveWorkspaceRoot } from "../workspace.js";
 
 export function createDiscoveryContext(

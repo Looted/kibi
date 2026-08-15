@@ -55,8 +55,8 @@ describe("human and JSON discovery command parity", () => {
     );
 
     // Then
-    expect(protocol.entities).toEqual(human);
-    expect(protocol.count).toBe(human.length);
+    expect(protocol.data.entities).toEqual(human);
+    expect(protocol.data.count).toBe(human.length);
   }, 15_000);
 
   test("search returns matching ranking through flags and --input", () => {
@@ -74,7 +74,7 @@ describe("human and JSON discovery command parity", () => {
     );
 
     // Then
-    expect(protocol).toEqual(human);
+    expect(protocol.data).toEqual(human);
   }, 15_000);
 
   test("status returns matching freshness through flags and --input", () => {
@@ -85,6 +85,6 @@ describe("human and JSON discovery command parity", () => {
     const protocol = JSON.parse(run(["status", "--input", "-"], "{}"));
 
     // Then
-    expect(protocol).toEqual(human);
+    expect(protocol.data).toEqual(human);
   }, 15_000);
 });

@@ -317,6 +317,7 @@ const videoPlayerStore = createStore(withMethods({
           to: "REQ-GRANULAR-001",
         },
       ],
+      document: { path: "symbols/video-player-store.yaml" },
     });
 
     expect(result.structuredContent?.relationships_created).toBe(1);
@@ -396,6 +397,7 @@ export function greet() {
           to: "REQ-GRANULAR-001",
         },
       ],
+      document: { path: "symbols/worker-run.yaml" },
     });
 
     expect(result.structuredContent?.relationships_created).toBe(1);
@@ -482,6 +484,7 @@ export function greet() {
           to: "REQ-GRANULAR-001",
         },
       ],
+      document: { path: "symbols/greet-module.yaml" },
     });
 
     expect(result.structuredContent?.relationships_created).toBe(1);
@@ -1391,6 +1394,7 @@ export function greet() {
     } as unknown as Parameters<typeof registerAllTools>[1];
 
     registerAllTools(server as never, runtime);
+    process.env.KIBI_BRANCH = "test";
     await registered.get("kb_upsert")?.({
       type: "req",
       id: "REQ-FRESH-SAVE-001",

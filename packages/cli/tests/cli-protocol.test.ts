@@ -43,19 +43,17 @@ describe("executeOperation", () => {
     expect(result.exitCode).toBe(0);
     expect(JSON.parse(result.stdout ?? "")).toEqual(
       expect.objectContaining({
-        branch: "develop",
-        snapshotId: "stamp:test",
-        syncedAt: null,
-        dirty: false,
-        syncState: "fresh",
-        verificationSnapshot: "a".repeat(64),
-        verificationSnapshotAvailable: true,
-        verificationSnapshotDirty: true,
-        verificationSnapshotFileCount: 12,
-        verificationSnapshotVersion: "kibi.workspace-snapshot.v2",
-        migrationPlan: expect.objectContaining({
-          version: "kibi.migration-plan.v2",
+        kibiProtocol: 1,
+        operation: "kb_status",
+        status: "success",
+        data: expect.objectContaining({
+          branch: "develop",
+          snapshotId: expect.any(String),
+          verificationSnapshot: "a".repeat(64),
+          migrationPlan: expect.objectContaining({ version: "kibi.migration-plan.v2" }),
         }),
+        effects: expect.any(Array),
+        nextActions: [],
       }),
     );
     expect(result.stdout?.endsWith("\n")).toBe(true);
@@ -69,7 +67,11 @@ describe("executeOperation", () => {
     );
 
     expect(result.exitCode).toBe(2);
-    expect(result.stdout).toBeUndefined();
+    expect(JSON.parse(result.stdout ?? "")).toMatchObject({
+      kibiProtocol: 1,
+      status: "error",
+      error: { code: "VALIDATION_FAILED" },
+    });
     expect(result.stderr).toContain("VALIDATION_FAILED");
     expect(result.stderr).toContain("unexpected");
   });
@@ -77,9 +79,14 @@ describe("executeOperation", () => {
   test("returns exit 2 for an unknown operation", async () => {
     const result = await executeOperation("unknown", {}, createContext());
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       exitCode: 2,
       stderr: "Error [UNKNOWN_OPERATION]: Unknown operation 'unknown'.\n",
+    });
+    expect(JSON.parse(result.stdout ?? "")).toMatchObject({
+      kibiProtocol: 1,
+      operation: "unknown",
+      status: "error",
     });
   });
 

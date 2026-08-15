@@ -42,7 +42,11 @@ export function isMcpDebugEnabled(): boolean {
 
 export function getBranchOverride(): string | undefined {
   // implements REQ-002
-  return getTrimmedEnvValue("KIBI_BRANCH");
+  // Branch names are identities, not display labels. Preserve the value
+  // exactly so the Git-ref validator can reject whitespace or other invalid
+  // input instead of silently attaching a different branch.
+  const value = getEnvValue("KIBI_BRANCH");
+  return value === undefined || value.length === 0 ? undefined : value;
 }
 
 export function getKbPlPathOverride(): string | undefined {

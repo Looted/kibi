@@ -557,11 +557,7 @@ export async function checkCommand(
           `Warning: reading legacy KB attachment ${attachment.gitBranch} -> ${attachment.kbBranch}; migrate before writes or sync.`,
         );
       }
-      resolvedKbPath = path.join(
-        process.cwd(),
-        ".kb/branches",
-        attachment.kbBranch,
-      );
+      resolvedKbPath = attachment.storePath;
     }
 
     if (options.staged) {

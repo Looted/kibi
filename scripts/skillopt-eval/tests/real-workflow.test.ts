@@ -81,7 +81,7 @@ describe("real SkillOpt workflow", () => {
     }
   });
 
-  test("Given a non-kibi-usage skill When real optimization starts Then it rejects before any evaluation", async () => {
+  test("Given more than one skill When real optimization starts Then it rejects before any evaluation", async () => {
     // Given
     const root = await mkdtemp(join(tmpdir(), "skillopt-real-scope-"));
 
@@ -92,7 +92,7 @@ describe("real SkillOpt workflow", () => {
           runId: RUN_ID,
           artifactRoot: root,
           sourceWorktree: process.cwd(),
-          skills: ["kibi-freshness"],
+          skills: ["kibi-freshness", "kibi-traceability"],
           maxSteps: 1,
         },
         { sourceClean: async () => true },
@@ -105,7 +105,7 @@ describe("real SkillOpt workflow", () => {
         },
         (error: unknown) => {
           if (error instanceof Error)
-            expect(error.message).toContain("kibi-usage");
+            expect(error.message).toContain("exactly one canonical skill");
           else throw error;
         },
       );

@@ -8,6 +8,7 @@ import type {
   RuntimeOperationSpec,
 } from "../public/operations/runtime-types.js";
 import { _setBranchResolverDepsForTests } from "../utils/branch-resolver.js";
+import { branchStorePath } from "../utils/branch-store-locator.js";
 import { createCliRuntime } from "./cli-runtime.js";
 
 const readSpec: RuntimeOperationSpec<Record<string, never>, void> = {
@@ -43,6 +44,10 @@ function createManagedProlog(events: string[]): ManagedProlog {
       events.push("terminate");
     },
   };
+}
+
+function attachEvent(workspaceRoot: string, branch: string): string {
+  return `query:kb_attach('${branchStorePath(workspaceRoot, branch)}')`;
 }
 
 // Branch resolution in the runtime goes through `resolveActiveBranch`, which
@@ -86,7 +91,7 @@ describe("CLI operation runtime", () => {
     expect(context.prolog).toBeDefined();
     expect(events).toEqual([
       "start",
-      "query:kb_attach('/workspace/.kb/branches/feature/runtime')",
+      attachEvent("/workspace", "feature/runtime"),
       "terminate",
     ]);
   });
@@ -106,7 +111,7 @@ describe("CLI operation runtime", () => {
     // Then
     expect(events).toEqual([
       "start",
-      "query:kb_attach('/workspace/.kb/branches/feature/runtime')",
+      attachEvent("/workspace", "feature/runtime"),
     ]);
     await runtime.close(context, { status: "success", result: undefined });
   });
@@ -129,7 +134,7 @@ describe("CLI operation runtime", () => {
     // Then
     expect(events).toEqual([
       "start",
-      "query:kb_attach('/workspace/.kb/branches/feature/runtime')",
+      attachEvent("/workspace", "feature/runtime"),
       "terminate",
     ]);
   });
@@ -183,10 +188,10 @@ describe("CLI operation runtime", () => {
       await runtime.close(context, { status: "success", result: undefined });
 
       expect(events).toContain(
-        "query:kb_attach('/workspace/.kb/branches/develop')",
+        attachEvent("/workspace", "develop"),
       );
       expect(events).not.toContain(
-        "query:kb_attach('/workspace/.kb/branches/main')",
+        attachEvent("/workspace", "main"),
       );
     } finally {
       _setBranchResolverDepsForTests({
@@ -212,7 +217,7 @@ describe("CLI operation runtime", () => {
       await runtime.close(context, { status: "success", result: undefined });
 
       expect(events).toContain(
-        "query:kb_attach('/not-a-git-repo/.kb/branches/standalone')",
+        attachEvent("/not-a-git-repo", "standalone"),
       );
     } finally {
       Reflect.deleteProperty(process.env, "KIBI_BRANCH");

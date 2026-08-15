@@ -98,6 +98,7 @@ function installDeps(workspace: string): void {
     resolveBranchAttachment: () => ({
       gitBranch: "develop",
       kbBranch: "develop",
+      storePath: branchPath(workspace, "develop"),
       kind: "exact",
       migrationRequired: false,
     }),

@@ -90,6 +90,13 @@ function runKibi(
   args: string[],
   cwd: string,
 ): { status: number | null; stdout: string; stderr: string } {
+  // Non-staged checks consume the same Git-tracked source boundary as the
+  // production command. Test fixtures are authored after init, so stage and
+  // compile them here when a test intentionally focuses on check behavior.
+  if (args[0] === "check" && !args.includes("--staged")) {
+    execSync("git add documentation", { cwd, stdio: "pipe" });
+    execSync(`bun ${kibiBin} sync`, { cwd, stdio: "pipe" });
+  }
   const result = spawnSync("bun", [kibiBin, ...args], {
     cwd,
     encoding: "utf8",
@@ -150,6 +157,8 @@ links:
 `,
     );
   }
+
+  execSync("git add documentation", { cwd: root, stdio: "pipe" });
 }
 
 function writeUmbrellaBroadRequirementFixture(root: string): void {
@@ -176,6 +185,7 @@ ${Array.from({ length: 9 }, (_, index) => {
 # Broad check audit requirement
 `,
   );
+  execSync("git add documentation", { cwd: root, stdio: "pipe" });
 }
 
 function addSubjectOnlyStrictFactToBroadRequirement(root: string): void {
@@ -219,6 +229,8 @@ ${Array.from({ length: 9 }, (_, index) => {
 # Broad check audit requirement
 `,
   );
+
+  execSync("git add documentation", { cwd: root, stdio: "pipe" });
 }
 
 type CoverageDepthFixture =
@@ -379,6 +391,8 @@ function writeCoverageDepthFixture(
       ]),
     );
   }
+
+  execSync("git add documentation", { cwd: root, stdio: "pipe" });
 }
 
 describe("kibi check", () => {
@@ -658,6 +672,7 @@ links:
 `,
       );
 
+      execSync("git add documentation", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout, stderr } = runKibi(
@@ -801,6 +816,7 @@ links:
       );
 
       // Sync first
+      execSync("git add documentation", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       // Check should pass
@@ -868,9 +884,16 @@ links:
 `,
       );
 
+      execSync("git add documentation", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
-      const rdfPath = path.join(tmpDir, ".kb/branches/main/kb.rdf");
+      const rdfPath = path.join(
+        (await import("../../src/utils/branch-store-locator.js")).branchStorePath(
+          tmpDir,
+          "main",
+        ),
+        "kb.rdf",
+      );
       const before = readFileSync(rdfPath, "utf8");
       const beforeMtime = statSync(rdfPath).mtimeMs;
 
@@ -1059,6 +1082,7 @@ links:
 `,
       );
 
+      execSync("git add documentation", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
@@ -1086,6 +1110,7 @@ links:
 `,
       );
 
+      execSync("git add documentation", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout, stderr } = runKibi(
@@ -1126,6 +1151,7 @@ links:
 `,
       );
 
+      execSync("git add documentation", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout, stderr } = runKibi(
@@ -1169,6 +1195,7 @@ links:
       );
 
       // Sync first
+      execSync("git add documentation", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
@@ -1245,6 +1272,7 @@ links:
       );
 
       // Sync first
+      execSync("git add documentation", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       // Check should fail
@@ -1315,6 +1343,7 @@ owner: alice
       );
 
       // Sync first
+      execSync("git add documentation", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       // Check with --fix should suggest fixes
@@ -1524,6 +1553,7 @@ links:
 `,
       );
 
+      execSync("git add documentation", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
@@ -1639,6 +1669,7 @@ links:
 `,
       );
 
+      execSync("git add documentation", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
@@ -1814,6 +1845,7 @@ source: documentation/requirements/REQ-STAGED-SCOPED-001.md
 `,
       );
 
+      execSync("git add documentation", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
       execSync('git commit -m "baseline" --no-verify', {
@@ -1977,6 +2009,11 @@ source: documentation/requirements/REQ-CUSTOM-001.md
 }
 `,
       );
+      // Coordinate refresh follows Git's tracked-source boundary.
+      execSync("git add src/app.ts custom/my-symbols.yaml custom/symbols.yaml documentation/requirements/REQ-CUSTOM-001.md", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
       execSync(`bun ${kibiBin} sync --refresh-symbol-coordinates`, {
         cwd: tmpDir,
         stdio: "pipe",

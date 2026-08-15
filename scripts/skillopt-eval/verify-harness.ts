@@ -35,6 +35,7 @@ import {
   hasTraversal,
   parseVerificationHarnessCli,
 } from "./verification-harness-options";
+import type { CanonicalSkill } from "./catalog";
 
 export type VerificationHarnessOptions = Readonly<
   VerificationHarnessCliOptions & { sourceRoot: string }
@@ -45,7 +46,7 @@ type VerificationReview = Readonly<{
   artifactType: "skillopt-verification-review";
   mode: "fake-local";
   runId: string;
-  skill: "kibi-usage";
+  skill: CanonicalSkill;
   sourceRoot: string;
   preflightReceiptHash: string;
   rootAuthorizationHash: string;

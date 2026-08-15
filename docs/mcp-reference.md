@@ -456,13 +456,21 @@ Kibi's Prolog core may use maintained SWI-Prolog libraries such as `library(aggr
 
 ### `kb_upsert`
 
-Create or update a single entity and optional relationships in one call.
+Create or update a single entity and optional relationships in one call. When
+the caller has a filesystem-capable context, the mutation is source-first: the
+tracked entity document and relationship shard are authored transactionally,
+then the compiled branch store is updated. Kibi never stages or commits those
+working-tree files for Git.
 
 **Parameters:**
 - `type`: Entity type enum
 - `id`: Entity ID
 - `properties`: Entity fields, including required `title` and `status` (status values depend on entity type; legacy values may still be accepted for compatibility). For `symbol` entities this may include `sourceFile`, `symbol_role`, and `granularity_reason`; for `fact` entities this includes typed fact fields such as `fact_kind`, `subject_key`, `property_key`, `operator`, `value_type`, and one matching `value_*` field.
 - `relationships` (optional): Relationship rows with enum-backed `type`, `from`, and `to`
+- `document` (optional): `{ path?, body? }` for an explicit tracked source
+  target. Existing entities preserve their current body when `body` is omitted;
+  new requirements default the body to `semantic_text`. New entities without a
+  unique configured target must provide `document.path`.
 
 `symbol_role` values are `behavioral`, `structural`, `type-shape`, `config`, `module`, and `unknown`. Use `behavioral` for manual anchors when behavior is hidden inside factory/expression composition and the extractor cannot create a narrower symbol.
 
@@ -494,11 +502,11 @@ Provide exactly one non-empty array; `ids` and `relationships` cannot be mixed.
 
 **Returns:**
 The response includes `relationships_deleted`, per-selector results, and
-`sync_required` when a legacy shard was corrected. Authored Markdown/manifests
-are source-owned: edit those files and run `kibi sync` instead of forcing a
-relationship deletion. Errors use structured codes such as
-`source_owned_relationship` and `reconciliation_required`. Never edit
-`.kb/relationships` directly.
+`sourceWrites` when a canonical shard was patched. Authored entity deletion
+returns a hash-bound `kibi.entity-deletion-plan.v1`; apply that plan through
+`kb_apply_plan` after approval. Requirements normally return a `supersedes`
+evolution plan instead of destructive deletion. Never edit `.kb/relationships`
+directly.
 
 ### `kb_check`
 
@@ -552,11 +560,21 @@ Interactive onboarding workflow for day-0 KB activation. It guides agents to ask
 
 ## Branch Behavior
 
-- The server attaches to the active git branch automatically at startup.
-- If the active branch KB does not exist, the server copies from the previously active branch KB when available; otherwise it creates an empty branch KB.
-- Branch KBs are revalidated and updated automatically on branch change—no server restart is required for normal branch operations.
-- You can override the branch selection by setting the `KIBI_BRANCH` environment variable before starting the server.
-- Branch garbage collection is not part of the public MCP interface. Use `kibi gc` or automation hooks instead.
+- The server attaches to the exact active Git branch name, or `KIBI_BRANCH`
+  when set. Git-valid slash, Unicode, `@`, and `#` names are preserved
+  verbatim.
+- The compiled store lives at `.kb/branches/<sha256(exact-branch)>/` and is
+  verified by a versioned `branch.json`. A missing store is compiled from the
+  current checkout's tracked sources; Kibi never copies another branch store.
+- Git remains the merge and conflict authority. Unresolved authored-file
+  conflicts block compilation; Kibi does not select merge winners.
+- Branch KBs are revalidated and updated automatically on branch change—no
+  server restart is required for normal branch operations.
+- You can override the branch selection by setting `KIBI_BRANCH` before
+  starting the server; the value is validated without normalization.
+- Branch garbage collection is not part of the public MCP interface. Use
+  `kibi gc` or automation hooks; deleted stores are quarantined before any
+  explicit purge.
 
 ### KB Auto-Refresh
 

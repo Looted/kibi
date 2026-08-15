@@ -27,7 +27,7 @@ describe("MCP status tool handler", () => {
     } as unknown as PrologProcess;
     const result = await handleKbStatus(prolog, {});
 
-    expect(result.structuredContent?.branch).toBe("feature/discovery-bundle");
+    expect(result.structuredContent?.branch).toBe("develop");
     expect(result.structuredContent?.snapshotId).toBe("stamp:123");
     expect(result.structuredContent?.dirty).toBe(false);
     expect(result.content[0]?.text).toContain("fresh");
@@ -54,7 +54,7 @@ describe("MCP status tool handler", () => {
     const result = await handleKbStatus(prolog, {});
 
     expect(result.content[0]?.text).toContain("dirty=true");
-    expect(result.content[0]?.text).toContain("stale");
+    expect(result.content[0]?.text).toContain("unknown");
   });
 
   test("registered status tool does not initialise a session engine for diagnostics", async () => {

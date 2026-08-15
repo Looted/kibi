@@ -245,12 +245,15 @@ if (RUN_NODE_TEST_SUITE) {
 
               const toolNames = toolsList.map((t) => t.name).sort();
               const expectedTools = [
+                "kb_apply_plan",
                 "kb_autopilot_generate",
                 "kb_check",
+                "kb_compile_intent",
                 "kb_coverage",
                 "kb_delete",
                 "kb_find_gaps",
                 "kb_graph",
+                "kb_ingest_verification",
                 "kb_model_requirement",
                 "kb_query",
                 "kb_search",

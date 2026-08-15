@@ -3,6 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { inspectBranchStore } from "../../src/utils/branch-store.js";
+import { branchStorePath, ensureBranchStoreManifest } from "../../src/utils/branch-store-locator.js";
 
 describe("inspectBranchStore", () => {
   const roots: string[] = [];
@@ -23,7 +24,8 @@ describe("inspectBranchStore", () => {
       recoveryRequired: false,
     });
 
-    const store = path.join(root, ".kb", "branches", "trunk");
+    const store = branchStorePath(root, "trunk");
+    ensureBranchStoreManifest(root, "trunk");
     mkdirSync(path.join(store, "rdf"), { recursive: true });
     writeFileSync(path.join(store, "storage.json"), "{}\n");
     writeFileSync(path.join(store, "CURRENT"), "not-a-generation\n");

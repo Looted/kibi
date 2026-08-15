@@ -57,7 +57,8 @@ async function cliJson<T>(sandbox: TestSandbox, args: readonly string[]) {
     0,
     `${args.join(" ")} failed: ${result.stdout}${result.stderr}`,
   );
-  return JSON.parse(result.stdout) as T;
+  const parsed = JSON.parse(result.stdout) as { data?: T };
+  return (parsed.data ?? parsed) as T;
 }
 
 // executable_for TEST-kibi-legacy-migration-preview-v2
@@ -164,7 +165,11 @@ if (RUN_NODE_TEST_SUITE) {
           id: "REQ-PACKED-SEMANTIC-SOURCE",
         });
         assert.strictEqual(query.exitCode, 0, `${query.stdout}${query.stderr}`);
-        const queried = JSON.parse(query.stdout) as {
+        const queriedEnvelope = JSON.parse(query.stdout) as {
+          data?: { entities: readonly Record<string, unknown>[] };
+          entities?: readonly Record<string, unknown>[];
+        };
+        const queried = (queriedEnvelope.data ?? queriedEnvelope) as {
           entities: readonly Record<string, unknown>[];
         };
         assert.deepStrictEqual(
@@ -227,8 +232,14 @@ if (RUN_NODE_TEST_SUITE) {
             },
           });
           assert.ifError(response.error);
+          const mcpStructured = response.result?.structuredContent as
+            | { data?: CoverageResult }
+            | CoverageResult
+            | undefined;
           const mcpPlan = (
-            response.result?.structuredContent as CoverageResult | undefined
+            (mcpStructured && "data" in mcpStructured
+              ? mcpStructured.data
+              : mcpStructured) as CoverageResult | undefined
           )?.legacyMigrationPlan;
           assert.ok(mcpPlan);
           assert.deepStrictEqual(

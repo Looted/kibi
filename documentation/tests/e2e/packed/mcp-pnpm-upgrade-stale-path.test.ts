@@ -90,6 +90,7 @@ function pinLocalKibiTransitives(
       "  - .",
       "overrides:",
       `  kibi-cli: ${JSON.stringify(tarballs.cli)}`,
+      `  kibi-runtime: ${JSON.stringify(tarballs.runtime)}`,
       `  kibi-core: ${JSON.stringify(tarballs.core)}`,
       "",
     ].join("\n"),
@@ -205,6 +206,7 @@ if (RUN_NODE_TEST_SUITE) {
         const upgrade = await installTarballsWithPnpm(sandbox, [
           tarballs.core,
           tarballs.cli,
+          tarballs.runtime,
           tarballs.mcp,
         ]);
         assertInstallSucceeded("current packed kibi pnpm upgrade", upgrade);

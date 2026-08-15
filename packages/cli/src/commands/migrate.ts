@@ -159,7 +159,7 @@ function resolveMigrationBranch(
 
   if (result.migrationRequired) {
     return {
-      error: `Legacy branch attachment ${result.gitBranch} -> ${result.kbBranch} requires 'kibi branch migrate --from ${result.kbBranch} --apply' before schema migration.`,
+    error: `Legacy branch attachment for '${result.gitBranch}' requires 'kibi branch migrate --from ${result.kbBranch} --to ${result.gitBranch} --apply' before schema migration.`,
     };
   }
   return { branch: result.kbBranch, warnings: [] };

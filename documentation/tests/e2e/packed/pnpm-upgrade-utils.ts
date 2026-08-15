@@ -19,6 +19,7 @@ export interface PnpmCommand {
 export interface Tarballs {
   core: string;
   cli: string;
+  runtime: string;
   mcp: string;
 }
 
@@ -261,7 +262,7 @@ export function pnpmLabel(pnpm: PnpmCommand): string {
   return [basename(pnpm.command), ...pnpm.argsPrefix].join(" ");
 }
 
-const packagesForPack = ["core", "cli", "mcp"] as const;
+const packagesForPack = ["core", "cli", "runtime", "mcp"] as const;
 let cachedTarballsPromise: Promise<Tarballs> | null = null;
 
 function findPrePackedTarball(

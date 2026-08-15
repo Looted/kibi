@@ -7,9 +7,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import fg from "fast-glob";
-import * as cliSymbolCoordinator from "kibi-cli/extractors/symbols-coordinator";
-import { createRepoIgnorePolicy } from "kibi-cli/ignore-policy";
-import type { PrologProcess } from "kibi-cli/prolog";
+import * as cliSymbolCoordinator from "kibi-runtime";
+import { createRepoIgnorePolicy } from "kibi-runtime";
+import type { PrologProcess } from "kibi-runtime";
 import { runJsonModuleQuery } from "./core-module.js";
 
 export type ActivationState =

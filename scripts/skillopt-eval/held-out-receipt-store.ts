@@ -21,6 +21,7 @@ import type {
 import { withHeldOutExecutionLease } from "./held-out-execution-lease";
 import { createAtomically, isErrno, readNoFollow } from "./held-out-receipt-io";
 import type { CorpusRoots } from "./real-workflow-types";
+import type { CanonicalSkill } from "./catalog";
 
 export type StoredHeldOutTerminalReceipt = Readonly<{
   receipt: HeldOutTerminalReceipt;
@@ -76,7 +77,7 @@ export class HeldOutReceiptStore {
       candidateHashes: FrozenCandidateHashes;
       heldOutCaseIds: readonly string[];
       runId: string;
-      skill?: "kibi-usage";
+      skill?: CanonicalSkill;
       fixtureClaimRoot: string;
     }>,
   ) {}

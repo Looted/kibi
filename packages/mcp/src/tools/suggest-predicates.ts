@@ -1,12 +1,12 @@
 import {
   type OperationContext,
   suggestPredicatesSpec,
-} from "kibi-cli/operations";
+} from "kibi-runtime";
 import type {
   SuggestPredicatesArgs,
   SuggestPredicatesResult,
-} from "kibi-cli/operations/modeling/suggest-predicates";
-import type { PrologProcess } from "kibi-cli/prolog";
+} from "kibi-runtime";
+import type { PrologProcess } from "kibi-runtime";
 import { resolveWorkspaceRoot } from "../workspace.js";
 import { createDiscoveryContext } from "./discovery-adapter.js";
 
