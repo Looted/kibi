@@ -10,6 +10,7 @@ import {
   createSandbox,
   kibi,
   packAll,
+  stageSourceFile,
 } from "./helpers.js";
 
 const RUN_NODE_TEST_SUITE =
@@ -101,6 +102,10 @@ tags: [packed, convergence, binding]
 
 Defines the packed convergence binding relation.
 `,
+        );
+        stageSourceFile(
+          sandbox,
+          "documentation/facts/FACT-SCHEMA-PACKED-BINDING.md",
         );
         assert.strictEqual((await kibi(sandbox, ["sync"])).exitCode, 0);
 
@@ -239,6 +244,15 @@ Packed quota must equal ${value}
 `,
           );
         }
+        for (const sourcePath of [
+          "documentation/facts/FACT-PACKED-SUBJECT.md",
+          "documentation/facts/FACT-PACKED-A.md",
+          "documentation/facts/FACT-PACKED-B.md",
+          "documentation/requirements/REQ-PACKED-A.md",
+          "documentation/requirements/REQ-PACKED-B.md",
+        ]) {
+          stageSourceFile(sandbox, sourcePath);
+        }
         const conflictSync = await kibi(sandbox, ["sync"]);
         assert.strictEqual(
           conflictSync.exitCode,
@@ -256,17 +270,17 @@ Packed quota must equal ${value}
         assert.notStrictEqual(check.exitCode, 0);
         const checked = JSON.parse(check.stdout) as {
           data?: {
-          structuredContent: {
-            violations: Array<{
-              evidence?: {
-                witnesses?: Array<{
-                  kind: string;
-                  left: { factId: string; claimKey: string };
-                  right: { factId: string; claimKey: string };
-                }>;
-              };
-            }>;
-          };
+            structuredContent: {
+              violations: Array<{
+                evidence?: {
+                  witnesses?: Array<{
+                    kind: string;
+                    left: { factId: string; claimKey: string };
+                    right: { factId: string; claimKey: string };
+                  }>;
+                };
+              }>;
+            };
           };
         };
         const checkedData = (checked.data ?? checked) as {

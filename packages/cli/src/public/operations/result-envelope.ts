@@ -1,8 +1,4 @@
-import type {
-  KibiResult,
-  OperationEffect,
-  OperationName,
-} from "./types.js";
+import type { KibiResult, OperationEffect, OperationName } from "./types.js";
 
 export const KIBI_PROTOCOL_VERSION = 1 as const;
 
@@ -13,7 +9,8 @@ function record(value: unknown): value is Record<string, unknown> {
 function diagnostics(value: unknown): KibiResult["diagnostics"] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((entry) => {
-    if (typeof entry === "string") return [{ message: entry, severity: "warning" as const }];
+    if (typeof entry === "string")
+      return [{ message: entry, severity: "warning" as const }];
     if (!record(entry) || typeof entry.message !== "string") return [];
     return [entry as KibiResult["diagnostics"][number]];
   });
@@ -22,13 +19,20 @@ function diagnostics(value: unknown): KibiResult["diagnostics"] {
 function nextActions(value: unknown): KibiResult["nextActions"] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((entry) => {
-    if (!record(entry) || typeof entry.operation !== "string" || typeof entry.reason !== "string") return [];
-    return [{
-      operation: entry.operation,
-      input: entry.input,
-      reason: entry.reason,
-      required: entry.required === true,
-    }];
+    if (
+      !record(entry) ||
+      typeof entry.operation !== "string" ||
+      typeof entry.reason !== "string"
+    )
+      return [];
+    return [
+      {
+        operation: entry.operation,
+        input: entry.input,
+        reason: entry.reason,
+        required: entry.required === true,
+      },
+    ];
   });
 }
 
@@ -46,7 +50,9 @@ function effectStatus(
         kind: effect,
         status: "failed",
         detail: failure.detail,
-        ...(typeof failure.errorCode === "string" ? { errorCode: failure.errorCode } : {}),
+        ...(typeof failure.errorCode === "string"
+          ? { errorCode: failure.errorCode }
+          : {}),
       };
     }
   }
@@ -61,20 +67,31 @@ function extraFailedEffects(
   if (!Array.isArray(failures)) return [];
   const seen = new Set(declared);
   return failures.flatMap((entry) => {
-    if (!record(entry) || typeof entry.kind !== "string" || seen.has(entry.kind as OperationEffect)) {
+    if (
+      !record(entry) ||
+      typeof entry.kind !== "string" ||
+      seen.has(entry.kind as OperationEffect)
+    ) {
       return [];
     }
     seen.add(entry.kind as OperationEffect);
-    return [{
-      kind: entry.kind,
-      status: "failed" as const,
-      detail: entry.detail,
-      ...(typeof entry.errorCode === "string" ? { errorCode: entry.errorCode } : {}),
-    }];
+    return [
+      {
+        kind: entry.kind,
+        status: "failed" as const,
+        detail: entry.detail,
+        ...(typeof entry.errorCode === "string"
+          ? { errorCode: entry.errorCode }
+          : {}),
+      },
+    ];
   });
 }
 
-export function resultVersion(spec: { readonly name: OperationName | string; readonly resultVersion?: string }): string {
+export function resultVersion(spec: {
+  readonly name: OperationName | string;
+  readonly resultVersion?: string;
+}): string {
   return spec.resultVersion ?? `kibi.${spec.name}.v1`;
 }
 
@@ -85,11 +102,16 @@ export function toKibiResult<T>(
     readonly resultVersion?: string;
   },
   data: T,
-  options: Partial<Pick<KibiResult<T>, "status" | "diagnostics" | "nextActions" | "error">> = {},
+  options: Partial<
+    Pick<KibiResult<T>, "status" | "diagnostics" | "nextActions" | "error">
+  > = {},
 ): KibiResult<T> {
   const row = record(data) ? data : undefined;
-  const status = options.status ??
-    (row?.status === "committed_with_repairs" ? "committed_with_repairs" : "success");
+  const status =
+    options.status ??
+    (row?.status === "committed_with_repairs"
+      ? "committed_with_repairs"
+      : "success");
   return {
     kibiProtocol: KIBI_PROTOCOL_VERSION,
     operation: spec.name as OperationName,

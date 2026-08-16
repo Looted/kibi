@@ -10,3 +10,31 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/flags/FLAG-003.md
+  - type: implements
+    from: SYM-auto-2E8B94C6ABB2
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:16:14.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2851462fb36c
+  - type: executable_for
+    from: SYM-auto-F6D9F411400B
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:21:36.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-089b9ccc5654
+  - type: implements
+    from: SYM-auto-2E8B94C6ABB2
+    to: REQ-core-atomic-upsert-persistence
+    created_at: 2026-08-16T07:50:00.216Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5a9215c41e8
+  - type: covered_by
+    from: SYM-auto-2E8B94C6ABB2
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:50:00.221Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f2a7e4d6f80

@@ -18,7 +18,14 @@
 
 import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  renameSync,
+  writeFileSync,
+} from "node:fs";
 import * as path from "node:path";
 import type { Diagnostic, SyncSummary } from "../diagnostics.js";
 import {
@@ -46,14 +53,12 @@ import {
 import { analyzeSemanticAdvisorInput } from "../operations/semantic-advisor/analyze-prose.js";
 import { validateSemanticInventoryBoundary } from "../operations/semantic-advisor/ingestion-boundary.js";
 import { PrologProcess } from "../prolog.js";
+import { resolveBranchAttachment } from "../utils/branch-resolver.js";
 import {
-  resolveBranchAttachment,
-} from "../utils/branch-resolver.js";
-import {
-  branchStorePath,
   branchStoreManifestPath,
-  expectedBranchStoreManifest,
+  branchStorePath,
   ensureBranchStoreManifest,
+  expectedBranchStoreManifest,
 } from "../utils/branch-store-locator.js";
 import { loadSyncConfig } from "../utils/config.js";
 import {
@@ -70,7 +75,10 @@ import {
   discoverSourceFiles,
   normalizeMarkdownPath,
 } from "./sync/discovery.js";
-import { processExtractions } from "./sync/extraction.js";
+import {
+  normalizeExtractionSources,
+  processExtractions,
+} from "./sync/extraction.js";
 import { refreshManifestCoordinates } from "./sync/manifest.js";
 import {
   persistEntities,
@@ -132,8 +140,9 @@ function trackedRelationshipFiles(
   workspaceRoot: string,
   relationshipsDir: string,
 ): string[] {
+  let tracked: Set<string>;
   try {
-    const tracked = new Set(
+    tracked = new Set(
       execSync("git ls-files --cached -- .kb/relationships", {
         cwd: workspaceRoot,
         encoding: "utf8",
@@ -144,35 +153,69 @@ function trackedRelationshipFiles(
         .filter(Boolean)
         .map((file) => file.replaceAll("\\", "/")),
     );
-    const pending = new Set<string>();
-    const pendingRoot = path.join(workspaceRoot, ".kb", "recovery", "pending-sources");
-    if (existsSync(pendingRoot)) {
-      for (const receiptName of readdirSync(pendingRoot)) {
-        if (!receiptName.endsWith(".json")) continue;
-        try {
-          const receipt = JSON.parse(
-            readFileSync(path.join(pendingRoot, receiptName), "utf8"),
-          ) as { path?: unknown; afterHash?: unknown };
-          if (typeof receipt.path !== "string" || typeof receipt.afterHash !== "string") continue;
-          const relative = receipt.path.replaceAll("\\", "/");
-          if (!relative.startsWith(".kb/relationships/")) continue;
-          const absolute = path.resolve(workspaceRoot, relative);
-          if (!existsSync(absolute)) continue;
-          const actual = createHash("sha256").update(readFileSync(absolute)).digest("hex");
-          if (actual !== receipt.afterHash) {
-            throw new Error(`Pending source hash drift blocks sync for ${relative}`);
-          }
-          pending.add(relative);
-        } catch (error) {
-          if (error instanceof Error && error.message.includes("hash drift")) throw error;
-        }
+  } catch {
+    // A non-Git workspace has no tracked relationship inputs. The caller's
+    // branch resolver will produce the user-facing attachment diagnostic.
+    return [];
+  }
+
+  const pending = new Set<string>();
+  const pendingRoot = path.join(
+    workspaceRoot,
+    ".kb",
+    "recovery",
+    "pending-sources",
+  );
+  if (existsSync(pendingRoot)) {
+    for (const receiptName of readdirSync(pendingRoot)) {
+      if (!receiptName.endsWith(".json")) continue;
+      let receipt: { path?: unknown; afterHash?: unknown };
+      try {
+        receipt = JSON.parse(
+          readFileSync(path.join(pendingRoot, receiptName), "utf8"),
+        ) as { path?: unknown; afterHash?: unknown };
+      } catch {
+        // Malformed receipts are left for explicit recovery diagnostics. They
+        // must never make an unrelated relationship shard disappear silently.
+        continue;
       }
+      if (
+        typeof receipt.path !== "string" ||
+        typeof receipt.afterHash !== "string"
+      ) {
+        continue;
+      }
+      const relative = receipt.path.replaceAll("\\", "/");
+      if (!relative.startsWith(".kb/relationships/")) continue;
+      const absolute = path.resolve(workspaceRoot, relative);
+      if (!absolute.startsWith(`${path.resolve(workspaceRoot)}${path.sep}`)) {
+        throw new SyncError(
+          `Pending source path escapes workspace: ${relative}`,
+        );
+      }
+      if (!existsSync(absolute)) {
+        throw new SyncError(`Pending source is missing: ${relative}`);
+      }
+      const actual = createHash("sha256")
+        .update(readFileSync(absolute))
+        .digest("hex");
+      if (actual !== receipt.afterHash) {
+        throw new SyncError(
+          `Pending source hash drift blocks sync for ${relative}`,
+        );
+      }
+      pending.add(relative);
     }
+  }
+
+  try {
     return readdirSync(relationshipsDir)
       .filter((file) => file.endsWith(".yaml") || file.endsWith(".yml"))
       .map((file) => path.join(relationshipsDir, file))
       .filter((file) => {
-        const relative = path.relative(workspaceRoot, file).replaceAll(path.sep, "/");
+        const relative = path
+          .relative(workspaceRoot, file)
+          .replaceAll(path.sep, "/");
         return tracked.has(relative) || pending.has(relative);
       })
       .sort();
@@ -631,7 +674,10 @@ export async function syncCommand(
       validateOnly,
     );
     const { failedCacheKeys, errors } = extraction;
-    const extractedResults = extraction.results;
+    const extractedResults = normalizeExtractionSources(
+      extraction.results,
+      workspaceRoot,
+    );
     const nextEntityHashes: Record<string, string> = {
       ...(syncCache.entityHashes ?? {}),
     };

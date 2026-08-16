@@ -1,0 +1,15 @@
+relationships:
+  - id: rel-492b69dc3e0d
+    type: relates_to
+    from: TEST-ci-workflow-checkout-contract
+    to: FACT-CI-GATING
+    created_at: "2026-08-15T18:55:03.841Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: executable_for
+    from: SYM-auto-4A8343B906BF
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:15:25.784Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-063c74cbf5a2

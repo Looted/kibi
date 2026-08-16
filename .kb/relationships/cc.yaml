@@ -1,0 +1,22 @@
+relationships:
+  - id: rel-54fc4d50c25d
+    type: implements
+    from: SYM-auto-5E0D46927248
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:16:44.371Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-5E0D46927248
+    to: REQ-core-atomic-upsert-persistence
+    created_at: 2026-08-16T07:50:26.151Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1043680874d
+  - type: covered_by
+    from: SYM-auto-5E0D46927248
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:50:26.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c56cdb7caa72

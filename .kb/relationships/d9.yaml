@@ -1,0 +1,29 @@
+relationships:
+  - id: rel-ee966bb9a112
+    type: implements
+    from: SYM-VerificationHarnessError
+    to: REQ-skillopt-codex-optimization
+    created_at: "2026-08-16T07:14:27.966Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-VerificationHarnessError
+    to: REQ-skillopt-external-adoption-verdict
+    created_at: 2026-08-16T07:14:27.966Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90e2c55a1b13
+  - type: covered_by
+    from: SYM-VerificationHarnessError
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-16T07:14:27.973Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07286bd7f0fb
+  - type: covered_by
+    from: SYM-VerificationHarnessError
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-08-16T07:14:27.976Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-962f913c8e65

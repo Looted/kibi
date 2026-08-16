@@ -20,28 +20,42 @@ relationships:
   - type: implements
     from: SYM-auto-5D3498497C5F
     to: REQ-kibi-html-health-report
-    created_at: 2026-08-16T07:42:09.918Z
+    created_at: 2026-08-15T22:20:07.470Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c8538a0cb4cd
-  - type: covered_by
-    from: SYM-auto-5D3498497C5F
-    to: TEST-kibi-html-health-report
-    created_at: 2026-08-16T07:42:09.923Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c16b83240555
   - type: implements
     from: SYM-auto-6AE190B50290
     to: REQ-kibi-html-health-report
-    created_at: 2026-08-16T07:42:13.690Z
+    created_at: 2026-08-15T22:20:11.223Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-de34a8a15131
+  - type: implements
+    from: SYM-skillopt-bridge-visibility-error
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-15T23:12:42.365Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9bb1e0eda9b
+  - type: covered_by
+    from: SYM-skillopt-bridge-visibility-error
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-15T23:12:42.376Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3092a39d0b8b
+  - type: covered_by
+    from: SYM-auto-5D3498497C5F
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-16T07:53:41.894Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c16b83240555
   - type: covered_by
     from: SYM-auto-6AE190B50290
     to: TEST-kibi-html-health-report
-    created_at: 2026-08-16T07:42:13.695Z
+    created_at: 2026-08-16T07:53:44.329Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c49b79b8bb88

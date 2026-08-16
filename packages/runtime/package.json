@@ -13,11 +13,14 @@
   },
   "files": ["dist"],
   "scripts": {
-    "build": "tsc -p tsconfig.json && mkdir -p dist/skills && cp -r src/skills/. dist/skills/",
+    "build": "tsc -p tsconfig.json && bun build src/index.ts --outfile dist/index.js --target node --format esm --packages bundle --external kibi-core && mkdir -p dist/skills && cp -r src/skills/. dist/skills/",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "kibi-cli": "^0.21.0"
+    "kibi-core": "^0.10.3"
+  },
+  "devDependencies": {
+    "kibi-cli": "workspace:*"
   },
   "engines": { "node": ">=22" },
   "license": "AGPL-3.0-or-later"

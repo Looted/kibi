@@ -5,7 +5,7 @@ content use the same `KibiResult` envelope (protocol 1); result data is versione
 per operation. Effects are authoritative for mutability and adapter annotations.
 
 | MCP tool name | CLI route | Input mode | Mutability | Requires Prolog | Effects | Interface | Result version | Destructive | Retry safety | Open-world | Output schema |
-|---|---|---|---|---|---|---|---|
+|---|---|---|---|---|---|---|---|---|---|---|---|
 | `kb_skills_list` | `skills-list` | --input JSON | read | no | local-read | peer; capability-selected | kibi.kb_skills_list.v1 | no | safe | no | yes |
 | `kb_skills_load` | `skills-load` | --input JSON | read | no | local-read | peer; capability-selected | kibi.kb_skills_load.v1 | no | safe | no | yes |
 | `kb_skills_read` | `skills-read` | --input JSON | read | no | local-read | peer; capability-selected | kibi.kb_skills_read.v1 | no | safe | no | yes |

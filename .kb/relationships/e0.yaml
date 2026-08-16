@@ -24,3 +24,24 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/events/EVT-001.md
+  - type: implements
+    from: SYM-auto-CF2DCAD0569D
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:20:29.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f425cbf3d634
+  - type: implements
+    from: SYM-auto-CF2DCAD0569D
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-16T07:53:56.570Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8cc964d8457
+  - type: covered_by
+    from: SYM-auto-CF2DCAD0569D
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-16T07:53:56.576Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce8aab4a0b2e

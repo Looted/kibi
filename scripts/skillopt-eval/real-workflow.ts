@@ -313,6 +313,7 @@ export async function runRealOptimization(
             runId: options.runId,
             roots,
             env,
+            includeBundle: false,
             ...(options.cellRuntime === undefined
               ? {}
               : { runtime: options.cellRuntime }),

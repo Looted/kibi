@@ -72,7 +72,8 @@ export const deleteSpec = {
       approvedPlanHash: {
         type: "string",
         pattern: "^[a-fA-F0-9]{64}$",
-        description: "Exact hash returned by a prior authored-entity deletion plan.",
+        description:
+          "Exact hash returned by a prior authored-entity deletion plan.",
       },
     },
   },

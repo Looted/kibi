@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import path from "node:path";
 
+import { dump as dumpYaml } from "js-yaml";
 import {
   type IntentSearchFacets,
   type IntentSearchMatch,
@@ -14,9 +15,8 @@ import type {
   OperationContext,
   WorkspaceSnapshot,
 } from "../../public/operations/runtime-types.js";
-import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
 import { configuredSourceTarget } from "../mutation/source-authoring.js";
-import { dump as dumpYaml } from "js-yaml";
+import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
 import { canonicalize } from "../semantic-advisor/shared.js";
 import type {
   SemanticAdvisorReceipt,
@@ -364,12 +364,17 @@ async function sourceWritePlan(
     return [];
   }
   const relative = sourceTarget(context, locations, existingSource);
-  if (!relative || path.isAbsolute(relative) || relative.split(/[\\/]/).includes("..")) {
+  if (
+    !relative ||
+    path.isAbsolute(relative) ||
+    relative.split(/[\\/]/).includes("..")
+  ) {
     return [];
   }
   const absolute = path.resolve(context.workspaceRoot, relative);
   const root = path.resolve(context.workspaceRoot);
-  if (absolute !== root && !absolute.startsWith(`${root}${path.sep}`)) return [];
+  if (absolute !== root && !absolute.startsWith(`${root}${path.sep}`))
+    return [];
   const workspaceRelative = path.relative(root, absolute);
   if (
     workspaceRelative === ".kb" ||
@@ -392,7 +397,9 @@ async function sourceWritePlan(
       path: relative,
       mode: "write",
       beforeHash:
-        before === undefined ? null : createHash("sha256").update(before).digest("hex"),
+        before === undefined
+          ? null
+          : createHash("sha256").update(before).digest("hex"),
       afterHash: createHash("sha256").update(body).digest("hex"),
       body,
     },

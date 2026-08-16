@@ -318,9 +318,9 @@ async function invokeTool(
   tool: RegisteredTool,
   args: unknown,
 ): Promise<ToolResponse> {
-  return (tool.handler as unknown as (
-    value: unknown,
-  ) => Promise<ToolResponse>)(args);
+  return (tool.handler as unknown as (value: unknown) => Promise<ToolResponse>)(
+    args,
+  );
 }
 
 function restoreEnvVar(name: string, value: string | undefined): void {

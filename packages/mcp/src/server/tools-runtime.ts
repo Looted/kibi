@@ -1,8 +1,5 @@
 import { getSpec, nodeFilesystem, nodeGit } from "kibi-runtime";
-import type {
-  PrologPort,
-  PrologQueryResult,
-} from "kibi-runtime";
+import type { PrologPort, PrologQueryResult } from "kibi-runtime";
 import type { PrologProcess } from "kibi-runtime";
 import {
   DIAGNOSTIC_MODE_ENABLED,

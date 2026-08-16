@@ -13,6 +13,14 @@ export interface GraphArgs {
   maxEdges?: number;
 }
 
+function oneShotMode(prolog: ReportingProlog): boolean {
+  const mode = (prolog as unknown as { useOneShotMode?: unknown })
+    .useOneShotMode;
+  return mode === undefined
+    ? typeof (globalThis as { Bun?: unknown }).Bun !== "undefined"
+    : Boolean(mode);
+}
+
 export interface GraphResult {
   readonly content: readonly {
     readonly type: string;
@@ -39,6 +47,7 @@ export async function handleKbGraph(
       clock: () => new Date(),
       prolog: {
         query: (goal) => prolog.query(goal),
+        oneShotMode: oneShotMode(prolog),
         nextSolution: async () => null,
         save: () => prolog.query("kb_save"),
       },

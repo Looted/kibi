@@ -42,6 +42,7 @@ const VOLATILE_KEYS = new Set([
   "request_id",
   "_diagnostic_telemetry",
   "elapsedMs",
+  "syncedAt",
   "usageLogLineNumber",
   "prologPid",
   "pid",

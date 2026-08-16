@@ -1,9 +1,5 @@
 import { statusSpec } from "kibi-runtime";
-import type {
-  OperationResult,
-  StatusInput,
-  StatusPayload,
-} from "kibi-runtime";
+import type { OperationResult, StatusInput, StatusPayload } from "kibi-runtime";
 import type { OperationContext } from "kibi-runtime";
 import type { PrologProcess } from "kibi-runtime";
 import { createDiscoveryContext } from "./discovery-adapter.js";

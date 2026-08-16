@@ -1,0 +1,43 @@
+relationships:
+  - id: rel-0cf73baa2182
+    type: implements
+    from: SYM-auto-5133B22986F1
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:15:33.040Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-87FDC219E2F3
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:21:18.327Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7bcce9819ad
+  - type: implements
+    from: SYM-auto-87FDC219E2F3
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-15T22:59:39.826Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2de9686be319
+  - type: implements
+    from: SYM-auto-5133B22986F1
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-16T07:49:32.769Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-371fc200f6d5
+  - type: covered_by
+    from: SYM-auto-5133B22986F1
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-16T07:49:32.774Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cf8b488c66a
+  - type: covered_by
+    from: SYM-auto-87FDC219E2F3
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-16T07:54:28.488Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0e3c3ce9d4e

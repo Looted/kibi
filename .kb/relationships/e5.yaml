@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-7eff5ebbde7e
+    type: executable_for
+    from: SYM-auto-88E6CA6A3463
+    to: TEST-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:15:11.212Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

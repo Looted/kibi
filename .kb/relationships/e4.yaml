@@ -1,0 +1,15 @@
+relationships:
+  - id: rel-c295476774f0
+    type: implements
+    from: SYM-skillopt-operator-default-dependencies
+    to: REQ-skillopt-codex-optimization
+    created_at: "2026-08-15T23:11:34.153Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-skillopt-operator-default-dependencies
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-15T23:11:34.154Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c55e1e6e6d8

@@ -10,3 +10,17 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/scenarios/SCEN-005.md
+  - type: implements
+    from: SYM-auto-0973EC5179BE
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:19:06.904Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bce41705e53d
+  - type: covered_by
+    from: SYM-auto-0973EC5179BE
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:53:02.249Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6cc8b15ee3b

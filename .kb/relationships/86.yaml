@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-86782dc04c5f
+    type: executable_for
+    from: SYM-test-packed-ontology-convergence-witnesses
+    to: TEST-kibi-ontology-convergence-witnesses
+    created_at: "2026-08-15T22:43:11.222Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

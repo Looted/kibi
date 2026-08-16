@@ -10,3 +10,31 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/scenarios/SCEN-007.md
+  - type: implements
+    from: SYM-auto-159F89573024
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:21:40.057Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9172e4ba5475
+  - type: implements
+    from: SYM-skillopt-runtime-probe-required-mcp
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-15T23:12:17.347Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4f507ab9667
+  - type: covered_by
+    from: SYM-skillopt-runtime-probe-required-mcp
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-15T23:12:17.356Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-257a9b4ecc1e
+  - type: covered_by
+    from: SYM-auto-159F89573024
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:54:39.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cdd3c9f1167d

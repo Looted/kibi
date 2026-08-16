@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import * as path from "node:path";
 import { extractFromManifest } from "../../extractors/manifest.js";
 import {
   type ExtractionResult,
@@ -28,6 +29,37 @@ export interface ExtractionOutput {
   results: ExtractionResult[];
   failedCacheKeys: Set<string>;
   errors: { file: string; message: string }[];
+}
+
+/**
+ * Authored source identities are workspace-relative POSIX paths. Code symbol
+ * coordinates remain a separate `sourceFile` field, but use the same stable
+ * relative identity so branch-local snapshots do not embed host-specific
+ * absolute paths.
+ */
+export function normalizeExtractionSources(
+  results: readonly ExtractionResult[],
+  workspaceRoot: string,
+): ExtractionResult[] {
+  const root = path.resolve(workspaceRoot);
+  const normalize = (value: string): string => {
+    if (/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(value)) return value;
+    const absolute = path.isAbsolute(value) ? path.resolve(value) : undefined;
+    if (absolute?.startsWith(`${root}${path.sep}`)) {
+      return path.relative(root, absolute).replaceAll(path.sep, "/");
+    }
+    return value.replaceAll("\\", "/");
+  };
+  return results.map((result) => ({
+    ...result,
+    entity: {
+      ...result.entity,
+      source: normalize(result.entity.source),
+    },
+    ...(result.sourceFile !== undefined
+      ? { sourceFile: normalize(result.sourceFile) }
+      : {}),
+  }));
 }
 
 interface ExtractionDependencies {

@@ -2,12 +2,12 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { branchStorePath } from "kibi-cli/public/branch-resolver";
 import {
   resolveEnvFilePath,
   resolveKbPath,
   resolveWorkspaceRoot,
 } from "../src/workspace.js";
-import { branchStorePath } from "kibi-cli/public/branch-resolver";
 
 describe("workspace utilities", () => {
   let tempDir: string;

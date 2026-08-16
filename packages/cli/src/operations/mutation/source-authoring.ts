@@ -6,7 +6,7 @@ import { parseDocument, stringify } from "yaml";
 import { OperationError } from "../../cli-errors.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { loadConfig } from "../../utils/config.js";
-import type { UpsertInput } from "./types.js";
+import type { RelationshipInput, UpsertInput } from "./types.js";
 
 export type SourceWriteReceipt = Readonly<{
   path: string;
@@ -20,7 +20,10 @@ function digest(value: string): string {
   return createHash("sha256").update(value).digest("hex");
 }
 
-function pendingReceiptPath(workspaceRoot: string, relativePath: string): string {
+function pendingReceiptPath(
+  workspaceRoot: string,
+  relativePath: string,
+): string {
   return path.join(
     workspaceRoot,
     ".kb",
@@ -123,7 +126,10 @@ export function normalizeAuthoredSourcePath(
     .replaceAll(path.sep, "/");
 }
 
-function bodyAndFrontmatter(content: string): { frontmatter: Record<string, unknown>; body: string } {
+function bodyAndFrontmatter(content: string): {
+  frontmatter: Record<string, unknown>;
+  body: string;
+} {
   if (!content.startsWith("---")) return { frontmatter: {}, body: content };
   const firstEnd = content.indexOf("\n", 3);
   if (firstEnd < 0) return { frontmatter: {}, body: content };
@@ -215,30 +221,34 @@ function renderEntityDocument(
   entity: Readonly<Record<string, unknown>>,
   existingContent: string | undefined,
 ): string {
-  const existing = existingContent ? bodyAndFrontmatter(existingContent) : { frontmatter: {}, body: "" };
-  const body = input.document?.body !== undefined
-    ? input.document.body
-    : existingContent !== undefined
-      ? existing.body
-      : input.type === "req"
-        ? `${String(entity.semantic_text ?? "").trim()}\n`
-        : "\n";
+  const existing = existingContent
+    ? bodyAndFrontmatter(existingContent)
+    : { frontmatter: {}, body: "" };
+  const body =
+    input.document?.body !== undefined
+      ? input.document.body
+      : existingContent !== undefined
+        ? existing.body
+        : input.type === "req"
+          ? `${String(entity.semantic_text ?? "").trim()}\n`
+          : "\n";
   const frontmatter = {
     ...existing.frontmatter,
     ...Object.fromEntries(
-      Object.entries(entity).filter(([key]) =>
-      // Runtime provenance/timestamps belong to the compiled entity, not to
-      // the authored source artifact. Keeping them out also makes the source
-      // diff deterministic across CLI and MCP transports.
-      ![
-        "id",
-        "type",
-        "source",
-        "links",
-        "relationships",
-        "created_at",
-        "updated_at",
-      ].includes(key),
+      Object.entries(entity).filter(
+        ([key]) =>
+          // Runtime provenance/timestamps belong to the compiled entity, not to
+          // the authored source artifact. Keeping them out also makes the source
+          // diff deterministic across CLI and MCP transports.
+          ![
+            "id",
+            "type",
+            "source",
+            "links",
+            "relationships",
+            "created_at",
+            "updated_at",
+          ].includes(key),
       ),
     ),
   };
@@ -250,24 +260,111 @@ function renderEntityDocument(
 
 function symbolManifestRecord(
   entity: Readonly<Record<string, unknown>>,
+  relationships: readonly Readonly<{ type: string; target: string }>[] = [],
 ): Record<string, unknown> {
-  return Object.fromEntries(
+  const record = Object.fromEntries(
     Object.entries(entity).filter(
       ([key]) =>
-        !["type", "source", "relationships", "created_at", "updated_at"].includes(
-          key,
-        ),
+        ![
+          "type",
+          "source",
+          "relationships",
+          "created_at",
+          "updated_at",
+        ].includes(key),
+    ),
+  );
+  if (relationships.length > 0) {
+    record.relationships = relationships.map(({ type, target }) => ({
+      type,
+      target,
+    }));
+  }
+  return record;
+}
+
+function manifestRelationships(
+  item: unknown,
+): Array<{ type: string; target: string }> {
+  if (
+    item === null ||
+    typeof item !== "object" ||
+    !("get" in item) ||
+    typeof (item as { get?: unknown }).get !== "function"
+  ) {
+    return [];
+  }
+  const sequence = (
+    item as { get(key: string, keepCst?: boolean): unknown }
+  ).get("relationships", true);
+  if (
+    sequence === null ||
+    typeof sequence !== "object" ||
+    !("toJSON" in sequence) ||
+    typeof (sequence as { toJSON?: unknown }).toJSON !== "function"
+  ) {
+    return [];
+  }
+  const value = (sequence as { toJSON(): unknown }).toJSON();
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((relationship) => {
+    if (relationship === null || typeof relationship !== "object") {
+      return [];
+    }
+    const candidate = relationship as Record<string, unknown>;
+    const type = candidate.type;
+    const target = candidate.target ?? candidate.to;
+    return typeof type === "string" && typeof target === "string"
+      ? [{ type, target }]
+      : [];
+  });
+}
+
+function mergeManifestRelationships(
+  existing: readonly Readonly<{ type: string; target: string }>[],
+  incoming: readonly RelationshipInput[],
+  entityId: string,
+): Array<{ type: string; target: string }> {
+  const merged = new Map<string, { type: string; target: string }>();
+  for (const relationship of existing) {
+    merged.set(`${relationship.type}\u0000${relationship.target}`, {
+      type: relationship.type,
+      target: relationship.target,
+    });
+  }
+  for (const relationship of incoming) {
+    if (
+      relationship.from !== entityId ||
+      typeof relationship.type !== "string" ||
+      typeof relationship.to !== "string"
+    ) {
+      continue;
+    }
+    const normalized = { type: relationship.type, target: relationship.to };
+    merged.set(`${normalized.type}\u0000${normalized.target}`, normalized);
+  }
+  return [...merged.values()].sort((left, right) =>
+    `${left.type}\u0000${left.target}`.localeCompare(
+      `${right.type}\u0000${right.target}`,
     ),
   );
 }
 
 function renderSymbolManifest(
   entity: Readonly<Record<string, unknown>>,
+  relationships: readonly RelationshipInput[],
   existingContent: string | undefined,
 ): string {
   if (existingContent === undefined) {
     const doc = parseDocument(
-      stringify({ symbols: [symbolManifestRecord(entity)] }),
+      stringify({
+        symbols: [
+          symbolManifestRecord(
+            entity,
+            mergeManifestRelationships([], relationships, String(entity.id)),
+          ),
+        ],
+      }),
     );
     return doc.toString();
   }
@@ -280,12 +377,17 @@ function renderSymbolManifest(
     );
   }
   const items = (symbols as { items: unknown[] }).items;
-  const next = symbolManifestRecord(entity);
   const id = String(entity.id);
   const index = items.findIndex((item) => {
     if (!item || typeof item !== "object" || !("get" in item)) return false;
     return String((item as { get(key: string): unknown }).get("id")) === id;
   });
+  const existingRelationships =
+    index >= 0 ? manifestRelationships(items[index]) : [];
+  const next = symbolManifestRecord(
+    entity,
+    mergeManifestRelationships(existingRelationships, relationships, id),
+  );
   if (index >= 0) {
     doc.setIn(["symbols", index], next);
   } else {
@@ -329,7 +431,9 @@ export function renderSourceDeletion(
     const items = (symbols as { items: unknown[] }).items;
     const index = items.findIndex((item) => {
       if (!item || typeof item !== "object" || !("get" in item)) return false;
-      return String((item as { get(key: string): unknown }).get("id")) === entityId;
+      return (
+        String((item as { get(key: string): unknown }).get("id")) === entityId
+      );
     });
     if (index < 0) {
       throw new OperationError(
@@ -346,6 +450,80 @@ export function renderSourceDeletion(
   );
 }
 
+/**
+ * Remove one legacy relationship declaration from an authored Markdown
+ * document.  Relationship shards are the canonical relationship lane, but
+ * older entity documents may still carry `links` or typed `relationships`
+ * frontmatter.  When such a declaration is explicitly deleted, patch only
+ * that record through the YAML CST so comments, ordering, and the Markdown
+ * body remain byte-stable.
+ */
+export function renderMarkdownRelationshipDeletion(
+  sourcePathValue: string,
+  existingContent: string,
+  selector: Readonly<{ type: string; from: string; to: string }>,
+): { body: string; removed: boolean } {
+  const extension = path.extname(sourcePathValue).toLowerCase();
+  if (extension !== ".md" && extension !== ".mdx") {
+    throw new OperationError(
+      "SOURCE_FORMAT_UNSUPPORTED",
+      `Relationship declarations can only be patched in Markdown documents: ${sourcePathValue}`,
+    );
+  }
+  if (!existingContent.startsWith("---"))
+    return { body: existingContent, removed: false };
+  const firstEnd = existingContent.indexOf("\n", 3);
+  if (firstEnd < 0) return { body: existingContent, removed: false };
+  const marker = existingContent.indexOf("\n---", firstEnd);
+  if (marker < 0) return { body: existingContent, removed: false };
+  const frontmatter = parseDocument(
+    existingContent.slice(firstEnd + 1, marker),
+  );
+  let removed = false;
+  for (const key of ["links", "relationships"] as const) {
+    const sequence = frontmatter.get(key, true);
+    if (!sequence || typeof sequence !== "object" || !("items" in sequence))
+      continue;
+    const items = (sequence as { items: unknown[] }).items;
+    for (let index = items.length - 1; index >= 0; index -= 1) {
+      const item = items[index];
+      if (!item || typeof item !== "object") continue;
+      if (key === "links" && !("get" in item)) {
+        const scalar = item as { toJSON?: () => unknown; value?: unknown };
+        const value = scalar.toJSON?.() ?? scalar.value;
+        if (
+          typeof value === "string" &&
+          value.replace(/^kb:entity\//, "") === selector.to
+        ) {
+          frontmatter.deleteIn([key, index]);
+          removed = true;
+        }
+        continue;
+      }
+      if (!("get" in item)) continue;
+      const node = item as { get(name: string): unknown };
+      const target = node.get("target") ?? node.get("to");
+      const relationType = node.get("type");
+      const matches =
+        typeof target === "string" &&
+        target.replace(/^kb:entity\//, "") === selector.to &&
+        (key === "links" ||
+          relationType === selector.type ||
+          relationType === undefined);
+      if (matches) {
+        frontmatter.deleteIn([key, index]);
+        removed = true;
+      }
+    }
+  }
+  if (!removed) return { body: existingContent, removed: false };
+  const body = existingContent.slice(marker + "\n---".length);
+  return {
+    body: `---\n${frontmatter.toString()}---${body.startsWith("\n") ? "" : "\n"}${body}`,
+    removed: true,
+  };
+}
+
 function renderSourceDocument(
   input: UpsertInput,
   entity: Readonly<Record<string, unknown>>,
@@ -360,7 +538,11 @@ function renderSourceDocument(
         `YAML source authoring is supported only for symbol manifests, not ${input.type}`,
       );
     }
-    return renderSymbolManifest(entity, existingContent);
+    return renderSymbolManifest(
+      entity,
+      input.relationships ?? [],
+      existingContent,
+    );
   }
   if (extension !== ".md" && extension !== ".mdx") {
     throw new OperationError(
@@ -376,10 +558,15 @@ export async function writeSourceForUpsert(
   entity: Readonly<Record<string, unknown>>,
   existing?: Readonly<Record<string, unknown>>,
   context?: OperationContext,
-): Promise<{ receipt: SourceWriteReceipt; rollback: () => Promise<void> } | null> {
+): Promise<{
+  receipt: SourceWriteReceipt;
+  rollback: () => Promise<void>;
+} | null> {
   if (!context?.fs) return null;
   const absolute = sourcePath(context, input, entity, existing);
-  const relative = path.relative(context.workspaceRoot, absolute).replaceAll("\\", "/");
+  const relative = path
+    .relative(context.workspaceRoot, absolute)
+    .replaceAll("\\", "/");
   let before: string | undefined;
   try {
     before = await context.fs.readFile(absolute);
@@ -404,7 +591,11 @@ export async function writeSourceForUpsert(
     created: before === undefined,
   };
   if (before === undefined && receipt.afterHash !== null) {
-    writePendingSourceReceipt(context.workspaceRoot, relative, receipt.afterHash);
+    writePendingSourceReceipt(
+      context.workspaceRoot,
+      relative,
+      receipt.afterHash,
+    );
   }
   return {
     receipt,
@@ -438,6 +629,9 @@ export function canonicalSourcePath(
   existing?: Readonly<Record<string, unknown>>,
 ): string {
   return path
-    .relative(context.workspaceRoot, sourcePath(context, input, entity, existing))
+    .relative(
+      context.workspaceRoot,
+      sourcePath(context, input, entity, existing),
+    )
     .replaceAll(path.sep, "/");
 }

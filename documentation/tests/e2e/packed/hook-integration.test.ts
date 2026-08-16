@@ -150,7 +150,9 @@ status: open
         "develop branch KB should exist",
       );
       assert.ok(
-        existsSync(join(exactBranchStorePath(sandbox.repoDir, "develop"), "kb.rdf")),
+        existsSync(
+          join(exactBranchStorePath(sandbox.repoDir, "develop"), "kb.rdf"),
+        ),
         "develop branch KB RDF should exist after sync",
       );
 
@@ -160,7 +162,9 @@ status: open
       });
 
       assert.ok(
-        existsSync(join(exactBranchStorePath(sandbox.repoDir, "feature"), "kb.rdf")),
+        existsSync(
+          join(exactBranchStorePath(sandbox.repoDir, "feature"), "kb.rdf"),
+        ),
         "feature branch KB should be created",
       );
 

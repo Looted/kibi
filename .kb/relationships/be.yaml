@@ -1,0 +1,29 @@
+relationships:
+  - id: rel-c1027fce4e6a
+    type: executable_for
+    from: SYM-auto-AD2DCA2227C8
+    to: TEST-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:15:03.847Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-13239C566F5C
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:22:51.202Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-307138a52dcc
+  - type: implements
+    from: SYM-auto-13239C566F5C
+    to: REQ-reusable-skill-subsystem
+    created_at: 2026-08-16T07:55:26.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d8d00ddafd5
+  - type: covered_by
+    from: SYM-auto-13239C566F5C
+    to: TEST-mcp-skills-resource-discoverability
+    created_at: 2026-08-16T07:55:26.070Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57a4933f2aed

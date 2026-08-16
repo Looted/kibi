@@ -7,9 +7,9 @@ import {
   nodeNetwork,
 } from "../public/operations/node-ports.js";
 import type {
-  OperationContext,
   EngineCommandV1,
   EnginePort,
+  OperationContext,
   OperationRuntime,
   PrologPort,
   RuntimeOptions,
@@ -44,19 +44,24 @@ function quoteProlog(value: string): string {
   return value.replaceAll("'", "''");
 }
 
-function bindSignal(port: ManagedPrologPort, signal: AbortSignal): ManagedPrologPort {
+function bindSignal(
+  port: ManagedPrologPort,
+  signal: AbortSignal,
+): ManagedPrologPort {
   return new Proxy(port, {
     get(target, property, receiver) {
       if (property === "query") {
         return (goal: string) => target.query(goal, signal);
       }
       if (property === "queryEntities") {
-        return (input: Parameters<NonNullable<PrologPort["queryEntities"]>>[0]) =>
-          target.queryEntities?.(input, signal);
+        return (
+          input: Parameters<NonNullable<PrologPort["queryEntities"]>>[0],
+        ) => target.queryEntities?.(input, signal);
       }
       if (property === "searchEntities") {
-        return (input: Parameters<NonNullable<PrologPort["searchEntities"]>>[0]) =>
-          target.searchEntities?.(input, signal);
+        return (
+          input: Parameters<NonNullable<PrologPort["searchEntities"]>>[0],
+        ) => target.searchEntities?.(input, signal);
       }
       if (property === "save") {
         return () => target.save(signal);
@@ -66,7 +71,10 @@ function bindSignal(port: ManagedPrologPort, signal: AbortSignal): ManagedProlog
   });
 }
 
-function enginePort(port: ManagedPrologPort, signal: AbortSignal): EnginePort | undefined {
+function enginePort(
+  port: ManagedPrologPort,
+  signal: AbortSignal,
+): EnginePort | undefined {
   const candidate = port as ManagedPrologPort & {
     command?: <T>(command: unknown, signal?: AbortSignal) => Promise<T>;
     execute?: <T>(command: unknown, signal?: AbortSignal) => Promise<T>;
@@ -108,19 +116,23 @@ export function createCliRuntime(
         // Read-only operations such as status may choose to use an explicitly
         // supplied test or host Prolog port, but must not force engine startup.
         // That keeps pre-init and damaged-store diagnostics non-mutating.
-        let lazyProlog: ManagedPrologPort | undefined =
-          merged.prolog as ManagedPrologPort | undefined;
-        let lazyContext: OperationContext | undefined;
+        let lazyProlog: ManagedPrologPort | undefined = merged.prolog as
+          | ManagedPrologPort
+          | undefined;
+        const lazyContext: { current?: OperationContext } = {};
         const ensureProlog = async (): Promise<PrologPort> => {
           if (lazyProlog !== undefined) return bindSignal(lazyProlog, signal);
           const attachment = resolveBranchAttachment(root);
           if ("error" in attachment) {
-            throw new Error(`Failed to resolve active branch: ${attachment.error}`);
+            throw new Error(
+              `Failed to resolve active branch: ${attachment.error}`,
+            );
           }
           const engine = createDefaultProlog(root, attachment.kbBranch);
           await engine.start?.();
           lazyProlog = engine;
-          if (lazyContext !== undefined) ownedPrologs.set(lazyContext, engine);
+          if (lazyContext.current !== undefined)
+            ownedPrologs.set(lazyContext.current, engine);
           return bindSignal(engine, signal);
         };
         const lazyEngine = merged.prolog
@@ -134,7 +146,7 @@ export function createCliRuntime(
           ...(lazyEngine ? { engine: lazyEngine } : {}),
           ensureProlog,
         };
-        lazyContext = context;
+        lazyContext.current = context;
         return context;
       }
 

@@ -21,10 +21,10 @@ import {
   validateEntityType,
 } from "./discovery-entities.js";
 import {
-  buildActionsFromStatus,
-  readMigrationConfigStatus,
   type MigrationConfigStatus,
   type MigrationPlan,
+  buildActionsFromStatus,
+  readMigrationConfigStatus,
 } from "./migration-plan.js";
 import { runOperationJsonQuery } from "./prolog-json.js";
 import type { OperationContext, PrologPort } from "./runtime-types.js";

@@ -21,6 +21,12 @@ export function evaluateHeldOutMatrix(
   input: Readonly<{
     reservation: ReservedPredicateMatrix;
     physicalCells: readonly HeldOutPhysicalCell[];
+    expected?: Readonly<{
+      total: number;
+      predicate: number;
+      skill: number;
+      bundle: number;
+    }>;
   }>,
 ): HeldOutEligibilityReceipt {
   const outcome = evaluateHeldOutGateOutcomes(input);

@@ -1,7 +1,4 @@
-import {
-  type OperationContext,
-  modelRequirementSpec,
-} from "kibi-runtime";
+import { type OperationContext, modelRequirementSpec } from "kibi-runtime";
 import {
   estimateNormativeSignalConfidence,
   extractRequirementClaim,

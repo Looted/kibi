@@ -1,0 +1,22 @@
+relationships:
+  - id: rel-04e1a08172b1
+    type: implements
+    from: SYM-auto-F45AD8A9E2FF
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:20:22.155Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-F45AD8A9E2FF
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-15T22:59:29.642Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-416c686514c4
+  - type: covered_by
+    from: SYM-auto-F45AD8A9E2FF
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-16T07:53:51.715Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-867bc86483db

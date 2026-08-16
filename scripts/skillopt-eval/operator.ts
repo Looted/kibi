@@ -4,9 +4,9 @@ import { constants } from "node:fs";
 import { access, chmod, mkdir } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import { resolve } from "node:path";
+import { CANONICAL_SKILLS, type CanonicalSkill } from "./catalog";
 import { main as cliMain } from "./cli";
 import { materializeFixtureRun } from "./fixtures/private";
-import { CANONICAL_SKILLS, type CanonicalSkill } from "./catalog";
 
 export type OperatorCommand = "smoke" | "optimize" | "suite";
 
@@ -245,11 +245,16 @@ export function parseOperatorArgs(args: readonly string[]): ParsedOperatorArgs {
     );
   }
   let maxSteps = 1;
-  let skill: CanonicalSkill | "bundle" = command === "suite" ? "bundle" : "kibi-usage";
+  let skill: CanonicalSkill | "bundle" =
+    command === "suite" ? "bundle" : "kibi-usage";
   let seedCandidate: string | undefined;
   for (let index = 1; index < args.length; index += 1) {
     const arg = args[index];
-    if (arg === "--max-steps" || arg === "--seed-candidate" || arg === "--skill") {
+    if (
+      arg === "--max-steps" ||
+      arg === "--seed-candidate" ||
+      arg === "--skill"
+    ) {
       if (command !== "optimize") {
         throw new OperatorUsageError(`${arg} is only valid for optimize`);
       }
@@ -261,8 +266,12 @@ export function parseOperatorArgs(args: readonly string[]): ParsedOperatorArgs {
         seedCandidate = value;
       } else if (arg === "--skill") {
         if (value === "bundle") skill = value;
-        else if ((CANONICAL_SKILLS as readonly string[]).includes(value)) skill = value as CanonicalSkill;
-        else throw new OperatorUsageError(`--skill must be one of ${CANONICAL_SKILLS.join("|")}`);
+        else if ((CANONICAL_SKILLS as readonly string[]).includes(value))
+          skill = value as CanonicalSkill;
+        else
+          throw new OperatorUsageError(
+            `--skill must be one of ${CANONICAL_SKILLS.join("|")}`,
+          );
       } else {
         const parsed = Number(value);
         if (!Number.isInteger(parsed) || parsed < 1 || parsed > 4) {

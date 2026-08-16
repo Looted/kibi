@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-e7846b0d3ad9
+    type: executable_for
+    from: SYM-test-packed-legacy-migration-preview
+    to: TEST-kibi-legacy-migration-preview
+    created_at: "2026-08-15T22:42:56.515Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

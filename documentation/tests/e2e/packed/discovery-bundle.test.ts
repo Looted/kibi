@@ -8,9 +8,10 @@ import {
   type TestSandbox,
   checkPrologAvailable,
   createSandbox,
-  parseKibiResult,
   kibi,
   packAll,
+  parseKibiResult,
+  stageSourceFile,
 } from "./helpers.js";
 
 const RUN_NODE_TEST_SUITE =
@@ -218,6 +219,15 @@ This requirement is intentionally not must-priority.
 `,
           "utf8",
         );
+
+        for (const sourcePath of [
+          "documentation/requirements/REQ-DISC-001.md",
+          "documentation/requirements/REQ-DISC-002.md",
+          "documentation/scenarios/SCEN-DISC-001.md",
+          "documentation/tests/TEST-DISC-001.md",
+        ]) {
+          stageSourceFile(sandbox, sourcePath);
+        }
 
         await kibi(sandbox, ["sync"]);
       },
@@ -471,8 +481,9 @@ This requirement is intentionally not must-priority.
               },
             },
           });
-          const graphEnvelope = (graphMcp.result?.structuredContent ??
-            {}) as { data?: unknown };
+          const graphEnvelope = (graphMcp.result?.structuredContent ?? {}) as {
+            data?: unknown;
+          };
           const graphStructured = (graphEnvelope.data ?? graphEnvelope) as {
             nodes?: Array<{ id: string }>;
           };

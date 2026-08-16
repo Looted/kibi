@@ -24,15 +24,15 @@ import {
   copyFileSync,
   existsSync,
   mkdirSync,
-  readdirSync,
   readFileSync,
+  readdirSync,
   statSync,
 } from "node:fs";
 import * as path from "node:path";
 import { getBranchOverride } from "../env.js";
 import {
-  branchStorePath,
   branchStoreManifestMatches,
+  branchStorePath,
   legacyBranchStorePath,
 } from "./branch-store-locator.js";
 
@@ -263,15 +263,13 @@ export function resolveBranchAttachment(
         if (journal.state !== "committed" && journal.state !== "rolled_back") {
           const id = journalName.slice(0, -5);
           return {
-            error:
-              `Incomplete branch migration journal '${id}' blocks attachment. Preview recovery with 'kibi branch migrate --recover-journal ${id}', then apply that exact recovery action.`,
+            error: `Incomplete branch migration journal '${id}' blocks attachment. Preview recovery with 'kibi branch migrate --recover-journal ${id}', then apply that exact recovery action.`,
             code: "MIGRATION_RECOVERY_REQUIRED",
           };
         }
       } catch {
         return {
-          error:
-            `Unreadable branch migration journal '${journalName}' blocks attachment; recover it explicitly before continuing.`,
+          error: `Unreadable branch migration journal '${journalName}' blocks attachment; recover it explicitly before continuing.`,
           code: "MIGRATION_RECOVERY_REQUIRED",
         };
       }
@@ -281,8 +279,7 @@ export function resolveBranchAttachment(
   const legacyPath = legacyBranchStorePath(workspaceRoot, active.branch);
   if (existsSync(exactPath) && existsSync(legacyPath)) {
     return {
-      error:
-        `Ambiguous branch storage: both the hashed store ${exactPath} and legacy store ${legacyPath} exist for '${active.branch}'. Preview an explicit migration before continuing.`,
+      error: `Ambiguous branch storage: both the hashed store ${exactPath} and legacy store ${legacyPath} exist for '${active.branch}'. Preview an explicit migration before continuing.`,
       code: "AMBIGUOUS_ATTACHMENT",
     };
   }
@@ -298,10 +295,12 @@ export function resolveBranchAttachment(
   // An exact hash directory is an identity fence, not merely a convenient
   // pathname. A missing, malformed, or mismatched manifest must never be
   // silently attached to the active Git ref.
-  if (existsSync(exactPath) && !branchStoreManifestMatches(exactPath, active.branch)) {
+  if (
+    existsSync(exactPath) &&
+    !branchStoreManifestMatches(exactPath, active.branch)
+  ) {
     return {
-      error:
-        `Branch store identity manifest mismatch at ${exactPath}; refusing to attach it to '${active.branch}'.`,
+      error: `Branch store identity manifest mismatch at ${exactPath}; refusing to attach it to '${active.branch}'.`,
       code: "AMBIGUOUS_ATTACHMENT",
     };
   }
@@ -382,6 +381,11 @@ export function getBranchDiagnostic(
 export function isValidBranchName(name: string): boolean {
   if (!name || name.length === 0 || name.length > 255) return false;
 
+  const hasControlCharacter = [...name].some((character) => {
+    const codePoint = character.codePointAt(0) ?? 0;
+    return codePoint <= 0x20 || codePoint === 0x7f;
+  });
+
   // Reject path traversal attempts
   if (name.includes("..") || path.isAbsolute(name) || name.startsWith("/")) {
     return false;
@@ -396,7 +400,8 @@ export function isValidBranchName(name: string): boolean {
     name.startsWith("-") ||
     name.includes("@{") ||
     name.includes("..") ||
-    /[\u0000-\u0020\u007f~^:?*\[\]]/.test(name)
+    hasControlCharacter ||
+    /[~^:?*\[\]]/.test(name)
   ) {
     return false;
   }
@@ -535,7 +540,8 @@ export function resolveDefaultBranch(
   }
 
   return {
-    error: "No remote default branch is configured; provide explicit migration identities.",
+    error:
+      "No remote default branch is configured; provide explicit migration identities.",
     code: "NO_DEFAULT_BRANCH",
   };
 }

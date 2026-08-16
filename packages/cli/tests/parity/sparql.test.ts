@@ -24,7 +24,9 @@ describe("remote SPARQL CLI and MCP parity", () => {
       // Then
       const comparison = compareResults(cli, mcp, (value) => value);
       expect(comparison.parity, comparison.diff).toBe(true);
-      expect(JSON.parse(cli.stdout).data).toEqual({ rows: SPARQL_FIXTURE_ROWS });
+      expect(JSON.parse(cli.stdout).data).toEqual({
+        rows: SPARQL_FIXTURE_ROWS,
+      });
     } finally {
       await fixture.stop();
     }

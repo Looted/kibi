@@ -133,6 +133,25 @@ function stableStringify(value: unknown): string {
   return JSON.stringify(stable(value), null, 2);
 }
 
+function stableSchemaStringify(value: unknown): string {
+  return JSON.stringify(stableSchema(value), null, 2);
+}
+
+function stableSchema(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((entry) => stableSchema(entry));
+  }
+  if (value === null || typeof value !== "object") {
+    return value;
+  }
+  const record = value as JsonRecord;
+  return Object.fromEntries(
+    Object.entries(record)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, entry]) => [key, stableSchema(entry)]),
+  );
+}
+
 function formatUpdatedFixtures(filePaths: readonly string[]): void {
   const result = Bun.spawnSync({
     cmd: [BIOME_EXECUTABLE, "format", "--write", ...filePaths],
@@ -164,12 +183,12 @@ function buildToolListSnapshot(
     tools: tools.map((tool) => ({
       name: tool.name,
       description: tool.description,
-      inputSchema: stable(tool.inputSchema) as JsonRecord,
+      inputSchema: stableSchema(tool.inputSchema) as JsonRecord,
       ...(tool.outputSchema
-        ? { outputSchema: stable(tool.outputSchema) as JsonRecord }
+        ? { outputSchema: stableSchema(tool.outputSchema) as JsonRecord }
         : {}),
       ...(tool.annotations
-        ? { annotations: stable(tool.annotations) as JsonRecord }
+        ? { annotations: stableSchema(tool.annotations) as JsonRecord }
         : {}),
     })),
   };
@@ -260,18 +279,21 @@ describe("mcp contract fixtures", () => {
     );
 
     if (updateFixtures) {
-      writeFileSync(TOOL_LIST_BASE_PATH, `${stableStringify(baseTools)}\n`);
+      writeFileSync(
+        TOOL_LIST_BASE_PATH,
+        `${stableSchemaStringify(baseTools)}\n`,
+      );
       writeFileSync(
         TOOL_LIST_DIAGNOSTIC_PATH,
-        `${stableStringify(diagnosticTools)}\n`,
+        `${stableSchemaStringify(diagnosticTools)}\n`,
       );
       updatedFixturePaths.push(TOOL_LIST_BASE_PATH, TOOL_LIST_DIAGNOSTIC_PATH);
     } else {
-      expect(stableStringify(baseTools)).toBe(
-        stableStringify(readJson(TOOL_LIST_BASE_PATH)),
+      expect(stableSchemaStringify(baseTools)).toBe(
+        stableSchemaStringify(readJson(TOOL_LIST_BASE_PATH)),
       );
-      expect(stableStringify(diagnosticTools)).toBe(
-        stableStringify(readJson(TOOL_LIST_DIAGNOSTIC_PATH)),
+      expect(stableSchemaStringify(diagnosticTools)).toBe(
+        stableSchemaStringify(readJson(TOOL_LIST_DIAGNOSTIC_PATH)),
       );
     }
 

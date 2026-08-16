@@ -1,9 +1,9 @@
 import {
   type CoverageInput,
   type LegacyMigrationPlan,
+  type MigrationPlan,
   type RepairPlan,
   executeCoverage,
-  type MigrationPlan,
 } from "kibi-runtime";
 import type { OperationContext } from "kibi-runtime";
 import type { PrologProcess } from "kibi-runtime";

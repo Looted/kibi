@@ -38,9 +38,7 @@ import type {
   PrologSearchQueryResult,
 } from "./public/operations/runtime-types.js";
 import { isValidBranchName } from "./utils/branch-resolver.js";
-import {
-  ensureBranchStoreManifest,
-} from "./utils/branch-store-locator.js";
+import { ensureBranchStoreManifest } from "./utils/branch-store-locator.js";
 
 export const ENGINE_PROTOCOL_VERSION = 1;
 export const ENGINE_IDLE_TIMEOUT_MS = 10 * 60 * 1000;
@@ -83,6 +81,27 @@ export type EngineCommandV1 =
   | Readonly<{ version: 1; kind: "checkpoint" }>
   | Readonly<{ version: 1; kind: "compact" }>
   | Readonly<{ version: 1; kind: "save" }>
+  | Readonly<{ version: 1; kind: "check"; rule?: string }>
+  | Readonly<{
+      version: 1;
+      kind: "relationship";
+      action: "assert" | "retract";
+      type: string;
+      from: string;
+      to: string;
+    }>
+  | Readonly<{
+      version: 1;
+      kind: "persistence";
+      action: "checkpoint" | "compact" | "save" | "export";
+      targetDirectory?: string;
+    }>
+  | Readonly<{
+      version: 1;
+      kind: "lifecycle";
+      action: "stop" | "cancel";
+      requestId?: number;
+    }>
   | Readonly<{ version: 1; kind: "stop" }>
   | Readonly<{ version: 1; kind: "cancel"; requestId: number }>;
 
@@ -811,18 +830,21 @@ export class EngineClient {
     input: PrologEntityQueryInput,
     signal?: AbortSignal,
   ): Promise<PrologEntityQueryResult> {
-    const result = await this.command<PrologQueryResult>({
-      version: 1,
-      kind: "entities",
-      ...(input.type !== undefined ? { type: input.type } : {}),
-      ...(input.id !== undefined ? { id: input.id } : {}),
-      ...(input.tags !== undefined ? { tags: input.tags } : {}),
-      ...(input.sourceFile !== undefined
-        ? { sourceFile: input.sourceFile }
-        : {}),
-      limit: input.limit,
-      offset: input.offset,
-    }, signal);
+    const result = await this.command<PrologQueryResult>(
+      {
+        version: 1,
+        kind: "entities",
+        ...(input.type !== undefined ? { type: input.type } : {}),
+        ...(input.id !== undefined ? { id: input.id } : {}),
+        ...(input.tags !== undefined ? { tags: input.tags } : {}),
+        ...(input.sourceFile !== undefined
+          ? { sourceFile: input.sourceFile }
+          : {}),
+        limit: input.limit,
+        offset: input.offset,
+      },
+      signal,
+    );
     if (!result.success) {
       throw new Error(result.error ?? "Indexed entity query failed");
     }
@@ -840,14 +862,17 @@ export class EngineClient {
     input: PrologSearchQueryInput,
     signal?: AbortSignal,
   ): Promise<PrologSearchQueryResult> {
-    const result = await this.command<PrologQueryResult>({
-      version: 1,
-      kind: "search",
-      query: input.query,
-      ...(input.type !== undefined ? { type: input.type } : {}),
-      limit: input.limit,
-      offset: input.offset,
-    }, signal);
+    const result = await this.command<PrologQueryResult>(
+      {
+        version: 1,
+        kind: "search",
+        query: input.query,
+        ...(input.type !== undefined ? { type: input.type } : {}),
+        limit: input.limit,
+        offset: input.offset,
+      },
+      signal,
+    );
     if (!result.success) {
       throw new Error(result.error ?? "Indexed search candidate query failed");
     }
@@ -1272,7 +1297,9 @@ export async function runEngineDaemon(options: {
       return result;
     }
     try {
-      const decoded = JSON.parse(JSON.parse(result.bindings.JsonString)) as Record<string, unknown>;
+      const decoded = JSON.parse(
+        JSON.parse(result.bindings.JsonString),
+      ) as Record<string, unknown>;
       decoded.branch = options.branch;
       return {
         ...result,
@@ -1404,7 +1431,9 @@ export async function runEngineDaemon(options: {
         }
         switch (command.kind) {
           case "status":
-            return exactBranchStatus(await prolog.query("status:kb_status_json(JsonString)"));
+            return exactBranchStatus(
+              await prolog.query("status:kb_status_json(JsonString)"),
+            );
           case "checkpoint": {
             queryCache.clear();
             freshnessCache = null;
@@ -1422,6 +1451,72 @@ export async function runEngineDaemon(options: {
             if (result.success) fsyncJournaledBranchStore(branchPath);
             return result;
           }
+          case "check": {
+            if (
+              command.rule !== undefined &&
+              !/^[a-z][a-z0-9_]*$/.test(command.rule)
+            ) {
+              throw new Error(
+                "engine.check.rule must be a lowercase rule name",
+              );
+            }
+            // Rule selection is intentionally resolved inside the engine. A
+            // caller never supplies a Prolog goal over the command boundary.
+            return prolog.query("checks:check_all_json(JsonString)");
+          }
+          case "relationship": {
+            if (!command.type || !command.from || !command.to) {
+              throw new Error(
+                "engine.relationship requires type, from, and to",
+              );
+            }
+            const type = quoteProlog(command.type);
+            const from = quoteProlog(command.from);
+            const to = quoteProlog(command.to);
+            const goal =
+              command.action === "assert"
+                ? `kb_assert_relationship('${type}', '${from}', '${to}', [])`
+                : `kb_retract_relationship('${type}', '${from}', '${to}')`;
+            const result = await prolog.query(goal);
+            if (result.success) {
+              queryCache.clear();
+              freshnessCache = null;
+              fsyncJournaledBranchStore(branchPath);
+            }
+            return result;
+          }
+          case "persistence": {
+            const goal =
+              command.action === "checkpoint"
+                ? "kb_sync_checkpoint"
+                : command.action === "compact"
+                  ? "kb_storage_compact"
+                  : command.action === "save"
+                    ? "kb_save"
+                    : command.targetDirectory
+                      ? `kb_storage_export('${quoteProlog(command.targetDirectory)}')`
+                      : null;
+            if (goal === null) {
+              throw new Error(
+                "engine.persistence.export requires targetDirectory",
+              );
+            }
+            const result = await prolog.query(goal);
+            if (result.success) fsyncJournaledBranchStore(branchPath);
+            return result;
+          }
+          case "lifecycle": {
+            if (command.action === "stop") {
+              setImmediate(() => void shutdown());
+              return { stopped: true };
+            }
+            if (!Number.isInteger(command.requestId)) {
+              throw new Error("engine.lifecycle.cancel requires requestId");
+            }
+            const requestId = command.requestId as number;
+            cancelledRequests.add(requestId);
+            return { cancelled: requestId };
+          }
           case "stop":
             setImmediate(() => void shutdown());
             return { stopped: true };
@@ -1436,18 +1531,30 @@ export async function runEngineDaemon(options: {
               command.offset < 0 ||
               command.limit > 100_000
             ) {
-              throw new Error("engine.entities.limit/offset must be bounded integers");
+              throw new Error(
+                "engine.entities.limit/offset must be bounded integers",
+              );
             }
-            const type = command.type === undefined ? "none" : `'${quoteProlog(command.type)}'`;
-            const id = command.id === undefined ? "none" : `'${quoteProlog(command.id)}'`;
+            const type =
+              command.type === undefined
+                ? "none"
+                : `'${quoteProlog(command.type)}'`;
+            const id =
+              command.id === undefined
+                ? "none"
+                : `'${quoteProlog(command.id)}'`;
             const tags = `[${(command.tags ?? []).map((tag) => `'${quoteProlog(tag)}'`).join(",")}]`;
-            const source = command.sourceFile === undefined ? "none" : `'${quoteProlog(command.sourceFile)}'`;
+            const source =
+              command.sourceFile === undefined
+                ? "none"
+                : `'${quoteProlog(command.sourceFile)}'`;
             return prolog.query(
               `kb_query_entities(${type}, ${id}, ${tags}, ${source}, ${command.limit}, ${command.offset}, Rows, Count)`,
             );
           }
           case "search": {
-            if (!command.query.trim()) throw new Error("engine.search.query must be non-empty");
+            if (!command.query.trim())
+              throw new Error("engine.search.query must be non-empty");
             if (
               !Number.isInteger(command.limit) ||
               !Number.isInteger(command.offset) ||
@@ -1455,9 +1562,14 @@ export async function runEngineDaemon(options: {
               command.offset < 0 ||
               command.limit > 100_000
             ) {
-              throw new Error("engine.search.limit/offset must be bounded integers");
+              throw new Error(
+                "engine.search.limit/offset must be bounded integers",
+              );
             }
-            const type = command.type === undefined ? "none" : `'${quoteProlog(command.type)}'`;
+            const type =
+              command.type === undefined
+                ? "none"
+                : `'${quoteProlog(command.type)}'`;
             return prolog.query(
               `kb_search_entities(${type}, '${quoteProlog(command.query)}', ${command.limit}, ${command.offset}, Rows, Count)`,
             );
@@ -1473,7 +1585,9 @@ export async function runEngineDaemon(options: {
         ) {
           return freshnessCache.result;
         }
-        const result = exactBranchStatus(await prolog.query("status:kb_status_json(JsonString)"));
+        const result = exactBranchStatus(
+          await prolog.query("status:kb_status_json(JsonString)"),
+        );
         if (result.success) {
           freshnessCache = { capturedAt: Date.now(), result };
         }

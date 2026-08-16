@@ -1,0 +1,15 @@
+relationships:
+  - id: rel-6f0da43da467
+    type: implements
+    from: SYM-auto-EB53162A3CF2
+    to: REQ-branch-store-recovery-v2
+    created_at: "2026-08-16T07:54:37.137Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-auto-EB53162A3CF2
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-16T07:54:37.138Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-979bb6ba8f1d

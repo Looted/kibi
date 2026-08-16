@@ -3,20 +3,41 @@ relationships:
     type: implements
     from: SYM-cli-sync-semantic-boundary-relationships
     to: REQ-kibi-proposition-complete-ingestion
-    created_at: "2026-08-16T07:35:37.680Z"
+    created_at: "2026-08-15T21:33:54.830Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
   - type: covered_by
     from: SYM-cli-sync-semantic-boundary-relationships
     to: TEST-kibi-proposition-complete-ingestion
-    created_at: 2026-08-16T07:35:37.680Z
+    created_at: 2026-08-15T21:33:54.831Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-199d675f485e
   - type: executable_for
     from: SYM-test-sync-semantic-boundary-shards
     to: TEST-kibi-proposition-complete-ingestion
-    created_at: 2026-08-16T07:35:40.423Z
+    created_at: 2026-08-15T21:33:58.823Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d64510bf2c14
+  - type: implements
+    from: SYM-cli-sync-semantic-boundary-relationships
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:49:24.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a311b8a6d00
+  - type: covered_by
+    from: SYM-cli-sync-semantic-boundary-relationships
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:49:24.916Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8e3e7f722a2
+  - type: executable_for
+    from: SYM-test-sync-semantic-boundary-shards
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:49:27.107Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a2562d15ad5

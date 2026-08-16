@@ -17,15 +17,22 @@ describe("kibi gc", () => {
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-test-gc-"));
     spawnSync("git", ["init", "-b", "keep-branch"], { cwd: tmpDir });
-    spawnSync("git", ["config", "user.email", "test@example.com"], { cwd: tmpDir });
+    spawnSync("git", ["config", "user.email", "test@example.com"], {
+      cwd: tmpDir,
+    });
     spawnSync("git", ["config", "user.name", "Kibi Test"], { cwd: tmpDir });
     fs.writeFileSync(path.join(tmpDir, "README.md"), "init\n");
     spawnSync("git", ["add", "README.md"], { cwd: tmpDir });
     spawnSync("git", ["commit", "-m", "init"], { cwd: tmpDir });
     fs.mkdirSync(path.join(tmpDir, ".kb/branches/main"), { recursive: true });
-    fs.mkdirSync(path.join(tmpDir, ".kb/branches/old-branch"), { recursive: true });
+    fs.mkdirSync(path.join(tmpDir, ".kb/branches/old-branch"), {
+      recursive: true,
+    });
     fs.writeFileSync(path.join(tmpDir, ".kb/branches/main/kb.rdf"), "legacy");
-    fs.writeFileSync(path.join(tmpDir, ".kb/branches/old-branch/kb.rdf"), "legacy");
+    fs.writeFileSync(
+      path.join(tmpDir, ".kb/branches/old-branch/kb.rdf"),
+      "legacy",
+    );
   });
 
   afterEach(() => fs.rmSync(tmpDir, { recursive: true, force: true }));
@@ -34,13 +41,17 @@ describe("kibi gc", () => {
     const res = runArgs(["gc", "--dry-run"], tmpDir);
     expect(res.status).toBe(0);
     expect(res.stdout).toMatch(/Found 2 stale branch KB/);
-    expect(fs.existsSync(path.join(tmpDir, ".kb/branches/old-branch"))).toBe(true);
+    expect(fs.existsSync(path.join(tmpDir, ".kb/branches/old-branch"))).toBe(
+      true,
+    );
   });
 
   test("force quarantines stale stores and purge is explicit", () => {
     const res = runArgs(["gc", "--force"], tmpDir);
     expect(res.status).toBe(0);
-    expect(fs.existsSync(path.join(tmpDir, ".kb/branches/old-branch"))).toBe(false);
+    expect(fs.existsSync(path.join(tmpDir, ".kb/branches/old-branch"))).toBe(
+      false,
+    );
     const quarantine = path.join(
       tmpDir,
       ".kb/quarantine/branches",

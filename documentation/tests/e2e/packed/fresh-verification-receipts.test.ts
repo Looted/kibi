@@ -10,6 +10,7 @@ import {
   createSandbox,
   kibi,
   packAll,
+  stageSourceFile,
 } from "./helpers.js";
 import {
   sendMcpRequest,
@@ -169,6 +170,14 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
         join(sandbox.repoDir, "tests", "e2e", "receipt.test.ts"),
         "export const receiptBehavior = 'v1';\n",
       );
+      for (const sourcePath of [
+        "documentation/requirements/REQ-PACKED-RECEIPT.md",
+        "documentation/scenarios/SCEN-PACKED-RECEIPT.md",
+        "documentation/tests/TEST-PACKED-RECEIPT.md",
+        "tests/e2e/receipt.test.ts",
+      ]) {
+        stageSourceFile(sandbox, sourcePath);
+      }
       const sync = await kibi(sandbox, ["sync"]);
       assert.strictEqual(sync.exitCode, 0, `${sync.stdout}${sync.stderr}`);
     });
@@ -274,9 +283,8 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
           const mcpCoverageEnvelope = mcpCoverage.result?.structuredContent as
             | { data?: { rows: CoverageRow[] }; rows?: CoverageRow[] }
             | undefined;
-          const mcpPayload = (mcpCoverageEnvelope?.data ?? mcpCoverageEnvelope) as
-            | { rows: CoverageRow[] }
-            | undefined;
+          const mcpPayload = (mcpCoverageEnvelope?.data ??
+            mcpCoverageEnvelope) as { rows: CoverageRow[] } | undefined;
           if (!mcpPayload) throw new Error("MCP coverage payload missing");
           assert.strictEqual(
             receiptRow(mcpPayload).proofStages.passingE2e.status,

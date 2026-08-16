@@ -26,17 +26,17 @@ import {
   resolveActiveBranch,
   resolveBranchAttachment,
 } from "../utils/branch-resolver.js";
-import { inspectBranchStore } from "../utils/branch-store.js";
 import {
+  branchStoreManifestMatches,
   branchStoreManifestPath,
   branchStorePath,
   branchStoresRoot,
-  branchStoreManifestMatches,
-  readBranchStoreManifest,
   ensureBranchStoreManifest,
   expectedBranchStoreManifest,
   legacyBranchStorePath,
+  readBranchStoreManifest,
 } from "../utils/branch-store-locator.js";
+import { inspectBranchStore } from "../utils/branch-store.js";
 
 export interface BranchEnsureOptions {
   from?: string;
@@ -135,11 +135,15 @@ function recoverBranchMigration(
   apply: boolean,
 ): void {
   const journalPath = migrationJournalPath(workspaceRoot, id);
-  const journal = JSON.parse(fs.readFileSync(journalPath, "utf8")) as Record<string, unknown>;
-  if (journal.version !== 2) throw new Error("Unsupported branch migration journal version");
+  const journal = JSON.parse(fs.readFileSync(journalPath, "utf8")) as Record<
+    string,
+    unknown
+  >;
+  if (journal.version !== 2)
+    throw new Error("Unsupported branch migration journal version");
   const root = path.resolve(workspaceRoot);
-  const paths = ["sourcePath", "targetPath", "stagingPath", "backupPath"].map((key) =>
-    path.resolve(root, String(journal[key])),
+  const paths = ["sourcePath", "targetPath", "stagingPath", "backupPath"].map(
+    (key) => path.resolve(root, String(journal[key])),
   );
   if (paths.some((candidate) => !candidate.startsWith(`${root}${path.sep}`))) {
     throw new Error("Branch migration journal path escapes workspace");
@@ -159,31 +163,53 @@ function recoverBranchMigration(
   }
   if (journal.state === "committed") return;
   if (journal.state === "prepared") {
-    if (fs.existsSync(sourcePath) && fs.existsSync(stagingPath) && !fs.existsSync(targetPath)) {
+    if (
+      fs.existsSync(sourcePath) &&
+      fs.existsSync(stagingPath) &&
+      !fs.existsSync(targetPath)
+    ) {
       fs.renameSync(sourcePath, backupPath);
-      writeMigrationJournal(journalPath, { ...journal, state: "legacy_quarantined" });
+      writeMigrationJournal(journalPath, {
+        ...journal,
+        state: "legacy_quarantined",
+      });
     } else if (fs.existsSync(sourcePath) && fs.existsSync(targetPath)) {
-      throw new Error("Recovery found both legacy source and target; refusing to choose a winner");
+      throw new Error(
+        "Recovery found both legacy source and target; refusing to choose a winner",
+      );
     }
   }
-  if (fs.existsSync(backupPath) && fs.existsSync(stagingPath) && !fs.existsSync(targetPath)) {
+  if (
+    fs.existsSync(backupPath) &&
+    fs.existsSync(stagingPath) &&
+    !fs.existsSync(targetPath)
+  ) {
     fs.renameSync(stagingPath, targetPath);
     if (!branchStoreManifestMatches(targetPath, String(journal.to))) {
-      throw new Error("Recovered target manifest does not match the exact branch identity");
+      throw new Error(
+        "Recovered target manifest does not match the exact branch identity",
+      );
     }
-    writeMigrationJournal(journalPath, { ...journal, state: "target_published" });
+    writeMigrationJournal(journalPath, {
+      ...journal,
+      state: "target_published",
+    });
   }
   if (fs.existsSync(backupPath) && fs.existsSync(targetPath)) {
     if (!branchStoreManifestMatches(targetPath, String(journal.to))) {
       const corrupt = `${targetPath}.corrupt-${Date.now()}`;
       fs.renameSync(targetPath, corrupt);
       fs.renameSync(backupPath, targetPath);
-      throw new Error(`Invalid target moved to ${corrupt}; verified legacy backup restored`);
+      throw new Error(
+        `Invalid target moved to ${corrupt}; verified legacy backup restored`,
+      );
     }
     writeMigrationJournal(journalPath, { ...journal, state: "committed" });
     return;
   }
-  throw new Error(`Migration journal ${id} remains incomplete; rerun its recovery preview`);
+  throw new Error(
+    `Migration journal ${id} remains incomplete; rerun its recovery preview`,
+  );
 }
 
 function createEmptyBranchKb(branch: string, workspaceRoot: string): void {
@@ -232,7 +258,11 @@ export async function branchMigrateCommand(
 ): Promise<void> {
   const workspaceRoot = path.resolve(options.workspaceRoot ?? process.cwd());
   if (options.recoverJournal !== undefined) {
-    recoverBranchMigration(workspaceRoot, options.recoverJournal, options.apply === true);
+    recoverBranchMigration(
+      workspaceRoot,
+      options.recoverJournal,
+      options.apply === true,
+    );
     return;
   }
   const from = options.from;
@@ -245,10 +275,14 @@ export async function branchMigrateCommand(
   }
   const to = options.to;
   if (!to || !isValidBranchName(to)) {
-    throw new Error("branch migrate requires an explicit valid --to branch name");
+    throw new Error(
+      "branch migrate requires an explicit valid --to branch name",
+    );
   }
   if (active.branch !== to) {
-    throw new Error(`branch migrate --to '${to}' does not match the active Git branch '${active.branch}'`);
+    throw new Error(
+      `branch migrate --to '${to}' does not match the active Git branch '${active.branch}'`,
+    );
   }
   // `from === to` is valid for the bridge migration: it names the same exact
   // Git identity while moving a legacy literal directory into its hashed
@@ -302,8 +336,13 @@ export async function branchMigrateCommand(
       );
     }
   }
-  if (branchMigrationApprovalHash(from, to, sourcePath, targetPath) !== approvalHash) {
-    throw new Error("Branch migration source changed after engine shutdown; rerun the preview");
+  if (
+    branchMigrationApprovalHash(from, to, sourcePath, targetPath) !==
+    approvalHash
+  ) {
+    throw new Error(
+      "Branch migration source changed after engine shutdown; rerun the preview",
+    );
   }
   fs.mkdirSync(root, { recursive: true });
   const migrationId = `${Date.now()}-${from.replaceAll("/", "__")}-${to.replaceAll("/", "__")}`;
@@ -343,12 +382,18 @@ export async function branchMigrateCommand(
       { mode: 0o600 },
     );
     fs.renameSync(sourcePath, backupPath);
-    writeMigrationJournal(journalPath, { ...journal, state: "legacy_quarantined" });
+    writeMigrationJournal(journalPath, {
+      ...journal,
+      state: "legacy_quarantined",
+    });
     fs.renameSync(stagingPath, targetPath);
     if (!branchStoreManifestMatches(targetPath, to)) {
       throw new Error("migrated branch store manifest verification failed");
     }
-    writeMigrationJournal(journalPath, { ...journal, state: "target_published" });
+    writeMigrationJournal(journalPath, {
+      ...journal,
+      state: "target_published",
+    });
     writeMigrationJournal(journalPath, { ...journal, state: "committed" });
   } catch (error) {
     // Leave the hash-bound journal and any staging bytes for explicit crash

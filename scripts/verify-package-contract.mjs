@@ -69,28 +69,33 @@ if (packageName === "kibi-mcp") {
       "kibi-mcp launcher must resolve only compiled dist entrypoints",
     );
   }
-  const cliRange = packageJson.dependencies?.["kibi-cli"];
-  if (typeof cliRange !== "string") {
-    throw new Error("kibi-mcp must declare a kibi-cli dependency range");
+  const runtimeRange = packageJson.dependencies?.["kibi-runtime"];
+  if (typeof runtimeRange !== "string") {
+    throw new Error("kibi-mcp must declare a kibi-runtime dependency range");
   }
-  const cliManifestPath = path.resolve(packageRoot, "../cli/package.json");
-  if (!existsSync(cliManifestPath)) {
-    throw new Error(`Missing sibling kibi-cli manifest: ${cliManifestPath}`);
-  }
-  const cliManifest = JSON.parse(readFileSync(cliManifestPath, "utf8"));
-  const cliVersion = cliManifest.version;
-  if (
-    typeof cliVersion !== "string" ||
-    !semver.valid(cliVersion) ||
-    !semver.satisfies(cliVersion, cliRange)
-  ) {
+  const runtimeManifestPath = path.resolve(
+    packageRoot,
+    "../runtime/package.json",
+  );
+  if (!existsSync(runtimeManifestPath)) {
     throw new Error(
-      `kibi-mcp ${packageJson.version} requires kibi-cli ${cliRange}, but the current CLI is ${cliVersion ?? "unknown"}`,
+      `Missing sibling kibi-runtime manifest: ${runtimeManifestPath}`,
     );
   }
-  if (semver.satisfies("0.19.0", cliRange)) {
+  const runtimeManifest = JSON.parse(readFileSync(runtimeManifestPath, "utf8"));
+  const runtimeVersion = runtimeManifest.version;
+  if (
+    typeof runtimeVersion !== "string" ||
+    !semver.valid(runtimeVersion) ||
+    !semver.satisfies(runtimeVersion, runtimeRange)
+  ) {
     throw new Error(
-      `kibi-mcp dependency range ${cliRange} still accepts broken kibi-cli 0.19.0`,
+      `kibi-mcp ${packageJson.version} requires kibi-runtime ${runtimeRange}, but the current runtime is ${runtimeVersion ?? "unknown"}`,
+    );
+  }
+  if (semver.satisfies("0.0.0", runtimeRange)) {
+    throw new Error(
+      `kibi-mcp dependency range ${runtimeRange} is too broad for a versioned runtime contract`,
     );
   }
 }

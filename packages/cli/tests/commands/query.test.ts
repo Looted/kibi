@@ -403,7 +403,10 @@ status: open
           encoding: "utf8",
         }).trim() || "master";
       const effectiveBranch = branch;
-      const rdfPath = path.join(branchStorePath(tmpDir, effectiveBranch), "kb.rdf");
+      const rdfPath = path.join(
+        branchStorePath(tmpDir, effectiveBranch),
+        "kb.rdf",
+      );
       const before = readFileSync(rdfPath, "utf8");
       const beforeMtime = statSync(rdfPath).mtimeMs;
 

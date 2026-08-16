@@ -90,10 +90,9 @@ function assertSemanticSourceSeparation(
       existingSemanticText: semanticText,
     },
   );
-  assert.ok(
-    batch?.sourceBinding.sourceFile?.endsWith(
-      "/documentation/requirements/REQ-PACKED-SEMANTIC-SOURCE.md",
-    ),
+  assert.strictEqual(
+    batch?.sourceBinding.sourceFile,
+    "documentation/requirements/REQ-PACKED-SEMANTIC-SOURCE.md",
   );
   assert.match(batch?.sourceBinding.sourceHash ?? "", /^[a-f0-9]{64}$/);
   assert.match(

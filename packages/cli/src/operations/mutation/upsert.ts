@@ -1,19 +1,30 @@
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import {
+  existsSync,
+  readFileSync,
+  realpathSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
-import { escapeAtom } from "../../prolog/codec.js";
 import { OperationError } from "../../cli-errors.js";
+import { escapeAtom } from "../../prolog/codec.js";
 import { loadEntities } from "../../public/operations/discovery-entities.js";
 // implements REQ-kibi-operation-interface-parity
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import type { OperationResult } from "../../public/operations/types.js";
 import { appendOnlyVerificationReceiptHistoryErrors } from "../../public/verification-receipt.js";
+import {
+  appendRelationship,
+  computeShardPath,
+} from "../../relationships/shards.js";
 import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
 import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
 import {
   assertLogicalGroundingClaimKeys,
   assertSemanticInventoryBoundary,
 } from "../semantic-advisor/ingestion-boundary.js";
+import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
 import { buildUpsertCommitGoal, formatUpsertError } from "./contradictions.js";
 import {
   existingRelationships,
@@ -21,13 +32,12 @@ import {
   validateRelationshipSources,
   validateStrictLanePairing,
 } from "./relationships.js";
-import { validateSymbolGranularity } from "./symbol-granularity.js";
-import { refreshSymbolCoordinates } from "./symbol-refresh.js";
 import {
   writePendingSourceReceipt,
   writeSourceForUpsert,
 } from "./source-authoring.js";
-import { appendRelationship, computeShardPath } from "../../relationships/shards.js";
+import { validateSymbolGranularity } from "./symbol-granularity.js";
+import { refreshSymbolCoordinates } from "./symbol-refresh.js";
 import type { RelationshipInput, UpsertInput, UpsertPayload } from "./types.js";
 import { validateUpsertInput } from "./validation.js";
 import { scenarioCoverageWarnings } from "./warnings.js";
@@ -61,6 +71,51 @@ function parseChangeKind(
 function fileHash(pathname: string): string | null {
   if (!existsSync(pathname)) return null;
   return createHash("sha256").update(readFileSync(pathname)).digest("hex");
+}
+
+function textHash(value: string): string {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+function assertRelationshipShardContained(
+  workspaceRoot: string,
+  shardPath: string,
+): void {
+  const root = path.resolve(workspaceRoot);
+  const relationshipRoot = path.resolve(root, ".kb", "relationships");
+  const absolute = path.resolve(shardPath);
+  if (!absolute.startsWith(`${relationshipRoot}${path.sep}`)) {
+    throw new OperationError(
+      "SOURCE_PATH_INVALID",
+      `Relationship shard escapes the canonical workspace lane: ${shardPath}`,
+    );
+  }
+  let existing = absolute;
+  while (!existsSync(existing) && path.dirname(existing) !== existing) {
+    existing = path.dirname(existing);
+  }
+  const real = realpathSync.native(existing);
+  if (real !== root && !real.startsWith(`${root}${path.sep}`)) {
+    throw new OperationError(
+      "SOURCE_PATH_INVALID",
+      `Relationship shard follows a symlink outside the workspace: ${shardPath}`,
+    );
+  }
+}
+
+function restoreRelationshipShard(
+  shardPath: string,
+  before: string | null,
+): void {
+  if (before === null) {
+    try {
+      unlinkSync(shardPath);
+    } catch {
+      // The file may already be absent after an interrupted atomic replace.
+    }
+    return;
+  }
+  writeFileSync(shardPath, before, "utf8");
 }
 
 export async function validateAppendOnlyVerificationReceipts(
@@ -113,7 +168,10 @@ export async function executeUpsert(
   if ("error" in branchAttachment) {
     throw new Error(`Unable to resolve KB branch: ${branchAttachment.error}`);
   }
-  if (branchAttachment.migrationRequired && (context.branchAttachment !== undefined || context.fs !== undefined)) {
+  if (
+    branchAttachment.migrationRequired &&
+    (context.branchAttachment !== undefined || context.fs !== undefined)
+  ) {
     throw new Error(
       `Upsert blocked: KB is attached through legacy branch storage (${branchAttachment.gitBranch} -> ${branchAttachment.kbBranch}). Run 'kibi branch migrate --from ${branchAttachment.kbBranch} --to ${branchAttachment.gitBranch} --apply' first.`,
     );
@@ -122,6 +180,10 @@ export async function executeUpsert(
   let sourceWrite: Awaited<ReturnType<typeof writeSourceForUpsert>> = null;
   let commitEntity: Readonly<Record<string, unknown>> | undefined;
   let sourceRolledBack = false;
+  let compiledCommitted = false;
+  let relationshipCount = 0;
+  let semanticAdvisor: SemanticAdvisorReceipt | undefined;
+  const relationshipShardBefore = new Map<string, string | null>();
   try {
     const validated = validateUpsertInput(input, context.clock());
     await validateAppendOnlyVerificationReceipts(validated.entity, context);
@@ -137,6 +199,7 @@ export async function executeUpsert(
       validated.relationships,
       context,
     );
+    relationshipCount = relationships.length;
     await validateStrictLanePairing(prolog, relationships);
     await validateLiveRelationshipTargets(
       prolog,
@@ -146,6 +209,7 @@ export async function executeUpsert(
     const semantic = analyzeSemanticAdvisorInput({
       payload: { ...input, relationships },
     });
+    semanticAdvisor = semantic.receipt;
     assertSemanticInventoryBoundary(
       { ...input, relationships },
       relationships,
@@ -196,6 +260,39 @@ export async function executeUpsert(
         }
       }
     }
+
+    // Relationship shards are canonical source artifacts. Patch them before
+    // the compiled transaction so a failed commit can restore exact bytes and
+    // a successful commit never leaves a compiled-only relationship behind.
+    if (context.fs !== undefined && relationships.length > 0) {
+      for (const relationship of relationships) {
+        const type =
+          typeof relationship.type === "string" ? relationship.type : "";
+        const from =
+          typeof relationship.from === "string" ? relationship.from : input.id;
+        const to = typeof relationship.to === "string" ? relationship.to : "";
+        if (!type || !from || !to) continue;
+        const shardPath = computeShardPath(
+          path.join(context.workspaceRoot, ".kb"),
+          from,
+        );
+        assertRelationshipShardContained(context.workspaceRoot, shardPath);
+        if (!relationshipShardBefore.has(shardPath)) {
+          relationshipShardBefore.set(
+            shardPath,
+            existsSync(shardPath) ? readFileSync(shardPath, "utf8") : null,
+          );
+        }
+        appendRelationship(path.join(context.workspaceRoot, ".kb"), {
+          type,
+          from,
+          to,
+          created_at: context.clock().toISOString(),
+          created_by: "kibi/upsert",
+          source: "mcp://kibi/upsert",
+        });
+      }
+    }
     const transaction = buildUpsertCommitGoal({
       entity: commitEntity ?? validated.entity,
       relationships,
@@ -205,8 +302,12 @@ export async function executeUpsert(
     if (!written.success) {
       await sourceWrite?.rollback();
       sourceRolledBack = sourceWrite !== null;
+      for (const [shardPath, before] of relationshipShardBefore) {
+        restoreRelationshipShard(shardPath, before);
+      }
       throw new Error(formatUpsertError(input.id, written.error));
     }
+    compiledCommitted = true;
     // The combined commit is the sole mutation boundary. Invalidate reads only
     // after Prolog reports success so a failed/rolled-back commit does not
     // disturb callers' view of the current snapshot.
@@ -234,52 +335,26 @@ export async function executeUpsert(
     const shardWarnings: string[] = [];
     const relationshipSourceWrites: Array<{
       path: string;
+      mode: "write";
       beforeHash: string | null;
       afterHash: string;
       created: boolean;
     }> = [];
-    if (context.fs !== undefined && relationships.length > 0) {
-      for (const relationship of relationships) {
-        const type = typeof relationship.type === "string" ? relationship.type : "";
-        const from = typeof relationship.from === "string" ? relationship.from : input.id;
-        const to = typeof relationship.to === "string" ? relationship.to : "";
-        if (!type || !from || !to) continue;
-        try {
-          const shardPath = computeShardPath(
-            path.join(context.workspaceRoot, ".kb"),
-            from,
-          );
-          const beforeHash = fileHash(shardPath);
-          // Relationship YAML is a tracked source artifact under the workspace
-          // .kb root. The hashed branch directory is compiled output only.
-          appendRelationship(path.join(context.workspaceRoot, ".kb"), {
-            type,
-            from,
-            to,
-            created_at: context.clock().toISOString(),
-            created_by: "kibi/upsert",
-            source: "mcp://kibi/upsert",
-          });
-          const afterHash = fileHash(shardPath);
-          if (afterHash !== null && afterHash !== beforeHash) {
-            writePendingSourceReceipt(
-              context.workspaceRoot,
-              path.relative(context.workspaceRoot, shardPath).replaceAll("\\", "/"),
-              afterHash,
-            );
-            relationshipSourceWrites.push({
-              path: path.relative(context.workspaceRoot, shardPath).replaceAll("\\", "/"),
-              beforeHash,
-              afterHash,
-              created: beforeHash === null,
-            });
-          }
-        } catch (error) {
-          shardWarnings.push(
-            `Relationship shard update failed for ${type} ${from}->${to}: ${error instanceof Error ? error.message : String(error)}`,
-          );
-        }
-      }
+    for (const [shardPath, before] of relationshipShardBefore) {
+      const afterHash = fileHash(shardPath);
+      const beforeHash = before === null ? null : textHash(before);
+      if (afterHash === null || afterHash === beforeHash) continue;
+      const relative = path
+        .relative(context.workspaceRoot, shardPath)
+        .replaceAll("\\", "/");
+      writePendingSourceReceipt(context.workspaceRoot, relative, afterHash);
+      relationshipSourceWrites.push({
+        path: relative,
+        mode: "write",
+        beforeHash,
+        afterHash,
+        created: before === null,
+      });
     }
     const payload: UpsertPayload = {
       created,
@@ -307,7 +382,12 @@ export async function executeUpsert(
         : {}),
       ...(sourceWrite ? { sourceWrites: [sourceWrite.receipt] } : {}),
       ...(relationshipSourceWrites.length > 0
-        ? { sourceWrites: [...(sourceWrite ? [sourceWrite.receipt] : []), ...relationshipSourceWrites] }
+        ? {
+            sourceWrites: [
+              ...(sourceWrite ? [sourceWrite.receipt] : []),
+              ...relationshipSourceWrites,
+            ],
+          }
         : {}),
       ...(input.type === "req"
         ? {
@@ -334,7 +414,17 @@ export async function executeUpsert(
       structuredContent: payload,
     };
   } catch (error) {
-    if (sourceWrite !== null && !sourceRolledBack) {
+    if (!compiledCommitted) {
+      for (const [shardPath, before] of relationshipShardBefore) {
+        try {
+          restoreRelationshipShard(shardPath, before);
+        } catch {
+          // Preserve the original failure; the next check/sync reports any
+          // canonical source path that could not be restored.
+        }
+      }
+    }
+    if (!compiledCommitted && sourceWrite !== null && !sourceRolledBack) {
       try {
         await sourceWrite.rollback();
         sourceRolledBack = true;
@@ -342,6 +432,46 @@ export async function executeUpsert(
         // Preserve the original mutation error; the recovery journal can
         // reconcile a failed source rollback on the next sync.
       }
+    }
+    if (compiledCommitted) {
+      const detail = error instanceof Error ? error.message : String(error);
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Upserted ${input.id}, but a derived effect requires repair.`,
+          },
+        ],
+        structuredContent: {
+          created: 0,
+          updated: 0,
+          relationships_created: relationshipCount,
+          warnings: [detail],
+          semanticAdvisor: semanticAdvisor as SemanticAdvisorReceipt,
+          status: "committed_with_repairs",
+          effectFailures: [
+            {
+              kind: "derived-effect",
+              errorCode: "POST_COMMIT_EFFECT_FAILED",
+              detail,
+            },
+          ],
+          nextActions: [
+            {
+              operation: "kb_status",
+              reason:
+                "The compiled mutation committed; inspect the authoritative source and derived status before repairing.",
+              required: true,
+            },
+            {
+              operation: "kb_sync",
+              reason:
+                "Recompile canonical source files after the committed derived effect failure; do not retry the original upsert.",
+              required: true,
+            },
+          ],
+        },
+      };
     }
     if (error instanceof OperationError) throw error;
     const message = error instanceof Error ? error.message : String(error);

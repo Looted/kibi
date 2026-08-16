@@ -286,10 +286,9 @@ User logs in with OAuth2 provider.
           encoding: "utf8",
         }).trim() || "main";
       const effectiveBranch = currentBranch;
-      const kbPath = (await import("../../src/utils/branch-store-locator.js")).branchStorePath(
-        tmpDir,
-        effectiveBranch,
-      );
+      const kbPath = (
+        await import("../../src/utils/branch-store-locator.js")
+      ).branchStorePath(tmpDir, effectiveBranch);
       expect(existsSync(path.join(kbPath, "kb.rdf"))).toBe(true);
     },
     TEST_TIMEOUT_MS,
@@ -616,10 +615,9 @@ User logs in with OAuth2 provider.
       });
 
       const cachePath = path.join(
-        (await import("../../src/utils/branch-store-locator.js")).branchStorePath(
-          tmpDir,
-          "main",
-        ),
+        (
+          await import("../../src/utils/branch-store-locator.js")
+        ).branchStorePath(tmpDir, "main"),
         "sync-cache.json",
       );
       expect(existsSync(cachePath)).toBe(true);
@@ -665,10 +663,9 @@ User logs in with OAuth2 provider.
       });
 
       const cachePath = path.join(
-        (await import("../../src/utils/branch-store-locator.js")).branchStorePath(
-          tmpDir,
-          "main",
-        ),
+        (
+          await import("../../src/utils/branch-store-locator.js")
+        ).branchStorePath(tmpDir, "main"),
         "sync-cache.json",
       );
       const cache = JSON.parse(readFileSync(cachePath, "utf8")) as {
@@ -1102,8 +1099,7 @@ status: passing
             cwd: tmpDir,
             encoding: "utf8",
           }).trim() || "main";
-        const effectiveBranch =
-          currentBranch;
+        const effectiveBranch = currentBranch;
         const kbPath = path.join(tmpDir, `.kb/branches/${effectiveBranch}`);
         const rdfPath = path.join(kbPath, "kb.rdf");
 

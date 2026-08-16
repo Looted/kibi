@@ -187,12 +187,8 @@ describe("CLI operation runtime", () => {
       const context = await runtime.open(readSpec);
       await runtime.close(context, { status: "success", result: undefined });
 
-      expect(events).toContain(
-        attachEvent("/workspace", "develop"),
-      );
-      expect(events).not.toContain(
-        attachEvent("/workspace", "main"),
-      );
+      expect(events).toContain(attachEvent("/workspace", "develop"));
+      expect(events).not.toContain(attachEvent("/workspace", "main"));
     } finally {
       _setBranchResolverDepsForTests({
         execSync: fakeBranchExecSync("feature/runtime"),
@@ -216,9 +212,7 @@ describe("CLI operation runtime", () => {
       const context = await runtime.open(readSpec);
       await runtime.close(context, { status: "success", result: undefined });
 
-      expect(events).toContain(
-        attachEvent("/not-a-git-repo", "standalone"),
-      );
+      expect(events).toContain(attachEvent("/not-a-git-repo", "standalone"));
     } finally {
       Reflect.deleteProperty(process.env, "KIBI_BRANCH");
       _setBranchResolverDepsForTests({

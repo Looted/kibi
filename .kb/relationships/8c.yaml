@@ -1,0 +1,15 @@
+relationships:
+  - id: rel-e7a17ff7326c
+    type: implements
+    from: SYM-auto-8A6A1669C54A
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:15:59.566Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-auto-8A6A1669C54A
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:49:49.993Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80e4e0c90b98

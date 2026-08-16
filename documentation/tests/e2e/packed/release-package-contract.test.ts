@@ -63,6 +63,14 @@ function writeConsumerManifest(
             "kibi-core": "$kibi-core",
           },
         },
+        pnpm: {
+          overrides: {
+            "kibi-core": `file:${tarballs.core}`,
+            "kibi-cli": `file:${tarballs.cli}`,
+            "kibi-runtime": `file:${tarballs.runtime}`,
+            "kibi-mcp": `file:${tarballs.mcp}`,
+          },
+        },
       },
       null,
       2,
@@ -72,11 +80,10 @@ function writeConsumerManifest(
   writeFileSync(
     join(dir, "pnpm-workspace.yaml"),
     `overrides:\n${[
-      `  kibi-cli>kibi-core: file:${tarballs.core}`,
-      `  kibi-mcp>kibi-cli: file:${tarballs.cli}`,
-      `  kibi-mcp>kibi-runtime: file:${tarballs.runtime}`,
-      `  kibi-mcp>kibi-core: file:${tarballs.core}`,
-      `  kibi-runtime>kibi-cli: file:${tarballs.cli}`,
+      `  kibi-core: file:${tarballs.core}`,
+      `  kibi-cli: file:${tarballs.cli}`,
+      `  kibi-runtime: file:${tarballs.runtime}`,
+      `  kibi-mcp: file:${tarballs.mcp}`,
     ].join("\n")}\n`,
     "utf8",
   );

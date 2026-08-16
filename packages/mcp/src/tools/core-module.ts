@@ -9,6 +9,17 @@ type PrologQueryLike = {
   query: (goal: string) => Promise<PrologQueryResult>;
 };
 
+function isPrologProcess(value: unknown): value is PrologProcess {
+  return (
+    value instanceof PrologProcess ||
+    (value !== null &&
+      typeof value === "object" &&
+      typeof (value as { query?: unknown }).query === "function" &&
+      typeof (value as { invalidateCache?: unknown }).invalidateCache ===
+        "function")
+  );
+}
+
 // implements REQ-002, REQ-013
 export function resolveCorePlPath(fileName: string): string {
   const override = getCoreModulePathOverride(fileName);
@@ -37,7 +48,7 @@ export async function runJsonModuleQuery<T>(
   const modulePath = escapeAtomContent(
     resolveCorePlPath(fileName).replace(/\\/g, "/"),
   );
-  if (!(prolog instanceof PrologProcess)) {
+  if (!isPrologProcess(prolog)) {
     const mockedResult = await prolog.query(
       `(use_module('${modulePath}'), ${goal})`,
     );

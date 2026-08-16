@@ -3,9 +3,19 @@ import path from "node:path";
 import { listSpecs } from "../packages/cli/src/public/operations/catalog.js";
 
 const mutability = (effects: readonly string[]): string =>
-  effects.includes("kb-write") || effects.includes("workspace-write") ? "write" : "read";
+  effects.includes("kb-write") || effects.includes("workspace-write")
+    ? "write"
+    : "read";
 const inputMode = (name: string): string =>
-  ["kb_query", "kb_search", "kb_status", "kb_find_gaps", "kb_coverage", "kb_graph", "kb_check"].includes(name)
+  [
+    "kb_query",
+    "kb_search",
+    "kb_status",
+    "kb_find_gaps",
+    "kb_coverage",
+    "kb_graph",
+    "kb_check",
+  ].includes(name)
     ? "--input JSON or flags"
     : "--input JSON";
 
@@ -23,7 +33,7 @@ content use the same \`KibiResult\` envelope (protocol 1); result data is versio
 per operation. Effects are authoritative for mutability and adapter annotations.
 
 | MCP tool name | CLI route | Input mode | Mutability | Requires Prolog | Effects | Interface | Result version | Destructive | Retry safety | Open-world | Output schema |
-|---|---|---|---|---|---|---|---|
+|---|---|---|---|---|---|---|---|---|---|---|---|
 ${rows.join("\n")}
 
 ## JSON execution recipe
@@ -41,6 +51,9 @@ into entity properties. On \`committed_with_repairs\`, follow typed required
 `;
 
 writeFileSync(
-  path.resolve(process.cwd(), "packages/runtime/src/skills/kibi-usage/resources/operation-access.md"),
+  path.resolve(
+    process.cwd(),
+    "packages/runtime/src/skills/kibi-usage/resources/operation-access.md",
+  ),
   body,
 );

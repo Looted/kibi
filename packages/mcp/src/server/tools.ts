@@ -18,10 +18,7 @@
 import process from "node:process";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
-import {
-  type RuntimeOperationSpec,
-  executeOperation,
-} from "kibi-runtime";
+import { type RuntimeOperationSpec, executeOperation } from "kibi-runtime";
 import { operationData, toKibiResult } from "kibi-runtime";
 import type { z } from "zod";
 import { isMcpDebugEnabled } from "../env.js";
@@ -71,7 +68,20 @@ function getToolTimeoutMs(): number {
 
 // implements REQ-002
 function createToolTimeoutError(toolName: string, timeoutMs: number): Error {
-  return new Error(`Tool ${toolName} timed out after ${timeoutMs}ms`);
+  const error = new Error(`Tool ${toolName} timed out after ${timeoutMs}ms`);
+  Object.assign(error, { code: "KIBI_TOOL_TIMEOUT", toolName, timeoutMs });
+  return error;
+}
+
+function isToolTimeoutError(value: unknown): value is Error & {
+  readonly code: "KIBI_TOOL_TIMEOUT";
+  readonly toolName: string;
+  readonly timeoutMs: number;
+} {
+  return (
+    value instanceof Error &&
+    (value as Error & { code?: unknown }).code === "KIBI_TOOL_TIMEOUT"
+  );
 }
 
 // implements REQ-002
@@ -89,10 +99,22 @@ async function withToolTimeout<T>(
       new Promise<never>((_, reject) => {
         timeout = setTimeout(() => {
           const error = createToolTimeoutError(toolName, timeoutMs);
-          // Do not report the timeout until cancellation/reset has completed;
-          // otherwise callers can retry while the original mutation is still
-          // inside the engine.
-          void onTimeout(error, timeoutMs).finally(() => reject(error));
+          // Do not report the timeout until cancellation/reset has completed
+          // and the original request has reached a terminal state. This is
+          // especially important for source-first mutations: a caller must
+          // never retry while the authoritative journal is still deciding its
+          // outcome.
+          void onTimeout(error, timeoutMs)
+            .then(async () => {
+              await Promise.race([
+                operation.then(
+                  () => undefined,
+                  () => undefined,
+                ),
+                new Promise<void>((resolve) => setTimeout(resolve, 5_000)),
+              ]);
+            })
+            .finally(() => reject(error));
         }, timeoutMs);
       }),
     ]);
@@ -240,6 +262,55 @@ export function addTool<TProlog>(
             error,
             resetState: { resetAttempted, resetSucceeded, resetError },
           });
+        }
+        if (
+          isToolTimeoutError(error) &&
+          operationSpec.effects.some(
+            (effect) => effect === "kb-write" || effect === "workspace-write",
+          )
+        ) {
+          const recoveryActions = [
+            {
+              operation: "kb_status" as const,
+              reason:
+                "Determine whether the mutation crossed the authoritative source/journal commit boundary before taking any further action.",
+              required: true,
+            },
+            {
+              operation: "kb_apply_plan" as const,
+              reason:
+                "If status exposes a recovery journal, replay that typed journal action; never retry the timed-out mutation request.",
+              required: true,
+            },
+          ];
+          const timeoutData = {
+            effectFailures: [
+              {
+                kind: "mutation",
+                errorCode: "MUTATION_OUTCOME_UNKNOWN",
+                detail: {
+                  requestId,
+                  timeoutMs: error.timeoutMs,
+                },
+              },
+            ],
+            nextActions: recoveryActions,
+          };
+          const envelope = toKibiResult(operationSpec, timeoutData, {
+            status: "error",
+            nextActions: recoveryActions,
+            error: {
+              code: "MUTATION_OUTCOME_UNKNOWN",
+              message:
+                "The mutation timed out after cancellation; its commit state is indeterminate. Inspect status and replay the typed recovery action if required.",
+              retryable: false,
+              details: { requestId, tool: name },
+            },
+          });
+          return {
+            content: [{ type: "text", text: JSON.stringify(envelope) }],
+            structuredContent: envelope,
+          };
         }
         throw error;
       } finally {

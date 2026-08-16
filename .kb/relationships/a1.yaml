@@ -3,13 +3,55 @@ relationships:
     type: implements
     from: SYM-cli-report-options
     to: REQ-kibi-html-health-report
-    created_at: "2026-08-16T07:45:25.572Z"
+    created_at: "2026-08-15T22:14:08.229Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-FF0B85426247
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:19:11.806Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2ea97f870b3
+  - type: implements
+    from: SYM-auto-4B78DAEF6C6B
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:20:44.085Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e804725b50a4
   - type: covered_by
     from: SYM-cli-report-options
     to: TEST-kibi-html-health-report
-    created_at: 2026-08-16T07:45:25.572Z
+    created_at: 2026-08-16T07:49:29.996Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-898f0a1f6b3b
+  - type: implements
+    from: SYM-auto-FF0B85426247
+    to: REQ-mcp-relationship-preflight
+    created_at: 2026-08-16T07:53:05.640Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ad705736311
+  - type: covered_by
+    from: SYM-auto-FF0B85426247
+    to: TEST-mcp-relationship-preflight
+    created_at: 2026-08-16T07:53:05.645Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-318de2793a0e
+  - type: implements
+    from: SYM-auto-4B78DAEF6C6B
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-16T07:54:05.681Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-919a58205d4d
+  - type: covered_by
+    from: SYM-auto-4B78DAEF6C6B
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-16T07:54:05.687Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11121e4e1256

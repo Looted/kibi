@@ -1,7 +1,4 @@
-import {
-  type OperationContext,
-  suggestPredicatesSpec,
-} from "kibi-runtime";
+import { type OperationContext, suggestPredicatesSpec } from "kibi-runtime";
 import type {
   SuggestPredicatesArgs,
   SuggestPredicatesResult,

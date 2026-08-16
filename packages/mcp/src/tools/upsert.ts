@@ -1,10 +1,6 @@
 import { upsertSpec } from "kibi-runtime";
 import { setSymbolRefreshForTests } from "kibi-runtime";
-import type {
-  UpsertInput,
-  UpsertPayload,
-  ValidatedUpsert,
-} from "kibi-runtime";
+import type { UpsertInput, UpsertPayload, ValidatedUpsert } from "kibi-runtime";
 import { validateUpsertInput } from "kibi-runtime";
 import type { PrologProcess } from "kibi-runtime";
 import { isMcpDebugEnabled } from "../env.js";

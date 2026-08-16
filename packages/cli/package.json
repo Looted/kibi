@@ -10,20 +10,14 @@
   "bin": {
     "kibi": "bin/kibi"
   },
-  "files": [
-    "dist",
-    "bin",
-    "schema",
-    "src/schemas",
-    "src/public"
-  ],
+  "files": ["dist", "bin", "schema", "src/schemas", "src/public"],
   "scripts": {
     "build": "tsc -p tsconfig.json && mkdir -p dist/public/skills && cp -r src/public/skills/. dist/public/skills/ && node ../../scripts/generate-entity-schema.mjs --check",
     "test": "node ../../scripts/run-owned-engine-tests.mjs -- bun test --timeout 15000 .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "schema:generate": "tsc -p tsconfig.json && node ../../scripts/generate-entity-schema.mjs",
     "schema:check": "tsc -p tsconfig.json && node ../../scripts/generate-entity-schema.mjs --check",
-    "prepack": "rm -rf dist && npm run build && node ../../scripts/verify-package-contract.mjs kibi-cli"
+    "prepack": "npm run build && node ../../scripts/verify-package-contract.mjs kibi-cli"
   },
   "exports": {
     ".": {

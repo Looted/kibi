@@ -27,3 +27,17 @@ relationships:
     created_at: "2026-08-15T12:41:40.308Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-skillopt-file-bridge-read-private
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-16T07:13:46.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c5fd3e4539e
+  - type: covered_by
+    from: SYM-skillopt-file-bridge-read-private
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-16T07:13:46.365Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-825747b29118

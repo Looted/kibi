@@ -2,8 +2,11 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import {
+  branchStorePath,
+  ensureBranchStoreManifest,
+} from "../../src/utils/branch-store-locator.js";
 import { inspectBranchStore } from "../../src/utils/branch-store.js";
-import { branchStorePath, ensureBranchStoreManifest } from "../../src/utils/branch-store-locator.js";
 
 describe("inspectBranchStore", () => {
   const roots: string[] = [];

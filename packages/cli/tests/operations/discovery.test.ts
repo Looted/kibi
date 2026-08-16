@@ -281,7 +281,10 @@ describe("shared discovery operation executors", () => {
     mkdirSync(path.join(storePath, "rdf"), { recursive: true });
     writeFileSync(path.join(storePath, "storage.json"), "{}\n");
     writeFileSync(path.join(storePath, "CURRENT"), "generation-1:1\n");
-    const result = await statusSpec.execute({}, createContext(query, workspaceRoot));
+    const result = await statusSpec.execute(
+      {},
+      createContext(query, workspaceRoot),
+    );
 
     // Then
     expect(result.structuredContent).toEqual(

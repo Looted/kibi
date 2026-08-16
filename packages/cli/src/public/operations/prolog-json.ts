@@ -29,9 +29,10 @@ export async function runOperationJsonQuery<T>(
   const longLivedEngine =
     typeof (prolog as { storageStatus?: unknown }).storageStatus === "function";
   const oneShotMode =
-    !longLivedEngine &&
-    process.env.NODE_ENV === "test" &&
-    typeof (globalThis as { Bun?: unknown }).Bun !== "undefined";
+    prolog.oneShotMode === true ||
+    (!longLivedEngine &&
+      process.env.NODE_ENV === "test" &&
+      typeof (globalThis as { Bun?: unknown }).Bun !== "undefined");
   const typedStatusQuery = prolog.queryStatusJson;
   const result =
     fileName === "status.pl" && typeof typedStatusQuery === "function"

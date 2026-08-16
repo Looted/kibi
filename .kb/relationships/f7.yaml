@@ -1,0 +1,22 @@
+relationships:
+  - id: rel-69250603120f
+    type: relates_to
+    from: FACT-POL-027
+    to: ADR-013
+    created_at: "2026-08-15T18:53:42.369Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: relates_to
+    from: FACT-POL-027
+    to: ADR-014
+    created_at: 2026-08-15T18:55:00.687Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9492185d6e2a
+  - type: relates_to
+    from: FACT-POL-027
+    to: FACT-034
+    created_at: 2026-08-15T18:55:00.710Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-560a7605ed42

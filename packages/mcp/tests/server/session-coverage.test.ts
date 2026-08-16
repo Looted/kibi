@@ -437,12 +437,9 @@ describe.serial("session uncovered branch coverage", () => {
     );
   });
 
-  test("logs require.resolve failures during debug initialization", async () => {
+  test("logs the runtime boundary during debug initialization", async () => {
     setEnvVar("KIBI_BRANCH", "debug-resolve-branch");
     setEnvVar("KIBI_MCP_DEBUG", "1");
-    mockCreateRequire.mockImplementation(() =>
-      createMockRequire({ resolveError: "resolve blocked" }),
-    );
 
     const session = await importSessionModule("debug-require-resolve-failure");
     session.resetSessionStateForTests();
@@ -456,98 +453,8 @@ describe.serial("session uncovered branch coverage", () => {
       expect(
         includesLog(
           consoleErrorMock.mock.calls,
-          "require.resolve('kibi-cli/prolog') failed:",
+          "[KIBI-MCP] Runtime boundary: kibi-runtime",
         ),
-      ).toBe(true);
-      expect(includesLog(consoleErrorMock.mock.calls, "resolve blocked")).toBe(
-        true,
-      );
-    } finally {
-      console.error = originalConsoleError;
-    }
-  });
-
-  test("logs when kibi-cli package.json has no version in debug mode", async () => {
-    setEnvVar("KIBI_BRANCH", "debug-no-version-branch");
-    setEnvVar("KIBI_MCP_DEBUG", "1");
-    mockCreateRequire.mockImplementation(() =>
-      createMockRequire({ packageValue: { name: "kibi-cli" } }),
-    );
-
-    const session = await importSessionModule("debug-no-version");
-    session.resetSessionStateForTests();
-    const originalConsoleError = console.error;
-    const consoleErrorMock = mock((..._args: unknown[]) => {});
-    console.error = consoleErrorMock as typeof console.error;
-
-    try {
-      await session.ensureProlog();
-
-      expect(
-        includesLog(
-          consoleErrorMock.mock.calls,
-          "kibi-cli package.json read but no version field",
-        ),
-      ).toBe(true);
-    } finally {
-      console.error = originalConsoleError;
-    }
-  });
-
-  test("logs package.json read failures in debug mode", async () => {
-    setEnvVar("KIBI_BRANCH", "debug-package-error-branch");
-    setEnvVar("KIBI_MCP_DEBUG", "1");
-    mockCreateRequire.mockImplementation(() =>
-      createMockRequire({ packageError: "exports blocked" }),
-    );
-
-    const session = await importSessionModule("debug-package-error");
-    session.resetSessionStateForTests();
-    const originalConsoleError = console.error;
-    const consoleErrorMock = mock((..._args: unknown[]) => {});
-    console.error = consoleErrorMock as typeof console.error;
-
-    try {
-      await session.ensureProlog();
-
-      expect(
-        includesLog(
-          consoleErrorMock.mock.calls,
-          "Failed to read kibi-cli package.json (exports may restrict access):",
-        ),
-      ).toBe(true);
-      expect(includesLog(consoleErrorMock.mock.calls, "exports blocked")).toBe(
-        true,
-      );
-    } finally {
-      console.error = originalConsoleError;
-    }
-  });
-
-  test("logs createRequire failures in debug mode", async () => {
-    setEnvVar("KIBI_BRANCH", "debug-create-require-branch");
-    setEnvVar("KIBI_MCP_DEBUG", "1");
-    mockCreateRequire.mockImplementation(() => {
-      throw new Error("createRequire unavailable");
-    });
-
-    const session = await importSessionModule("debug-create-require-error");
-    session.resetSessionStateForTests();
-    const originalConsoleError = console.error;
-    const consoleErrorMock = mock((..._args: unknown[]) => {});
-    console.error = consoleErrorMock as typeof console.error;
-
-    try {
-      await session.ensureProlog();
-
-      expect(
-        includesLog(
-          consoleErrorMock.mock.calls,
-          "Failed to create require() for debug lookup:",
-        ),
-      ).toBe(true);
-      expect(
-        includesLog(consoleErrorMock.mock.calls, "createRequire unavailable"),
       ).toBe(true);
     } finally {
       console.error = originalConsoleError;

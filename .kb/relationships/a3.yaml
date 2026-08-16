@@ -3,6 +3,34 @@ relationships:
     type: verified_by
     from: SCEN-kibi-html-health-report
     to: TEST-kibi-html-health-report
-    created_at: "2026-08-16T07:31:04.287Z"
+    created_at: "2026-08-15T21:03:23.796Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: executable_for
+    from: SYM-auto-B892D7934A27
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:14:52.824Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5fc2978ecc52
+  - type: implements
+    from: SYM-auto-9673173700B2
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:19:26.539Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b956a26cc11
+  - type: implements
+    from: SYM-auto-9673173700B2
+    to: REQ-mcp-relationship-preflight
+    created_at: 2026-08-16T07:53:15.628Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60e9782b43a0
+  - type: covered_by
+    from: SYM-auto-9673173700B2
+    to: TEST-mcp-relationship-preflight
+    created_at: 2026-08-16T07:53:15.630Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4fa90000fa1

@@ -26,20 +26,6 @@ links:
     target: SCEN-skillopt-logical-evidence-fidelity
   - type: verified_by
     target: TEST-skillopt-logical-evidence-fidelity
-  - type: requires_predicate
-    target: FACT-SKILLOPT-FINAL-PROPERTY-KEY
-  - type: requires_predicate
-    target: FACT-SKILLOPT-QUERY-MULTI-TARGET
-  - type: requires_predicate
-    target: FACT-SKILLOPT-SAFE-FIXTURE-EVIDENCE
-  - type: requires_predicate
-    target: FACT-SKILLOPT-SAFE-FINAL-STATE
-  - type: requires_predicate
-    target: FACT-SKILLOPT-PROVIDER-BUDGET
-  - type: requires_predicate
-    target: FACT-SKILLOPT-FEEDBACK-CATEGORY
-  - type: requires_predicate
-    target: FACT-SKILLOPT-SEMANTIC-READINESS
   - type: relates_to
     target: REQ-skillopt-codex-optimization
   - type: relates_to

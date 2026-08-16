@@ -114,32 +114,32 @@ function bundle(
 
 const BUNDLE_DEFINITIONS: Readonly<Record<string, Definition>> = {
   "bootstrap-to-discovery-01": bundle(
-    "Bootstrap then discover the authored requirement.",
+    "Attach the exact Git ref, bootstrap source-first Kibi state, then discover the authored requirement through a typed result envelope.",
     "bundle_bootstrap_discovery",
     "pre-approval",
   ),
   "bootstrap-to-discovery-02": bundle(
-    "Apply an approved bootstrap then perform exact discovery.",
+    "Apply an approved source-first bootstrap then perform exact discovery; never copy a compiled store from another branch.",
     "bundle_bootstrap_discovery",
     "post-approval",
   ),
   "mutation-to-validation-01": bundle(
-    "Apply a typed mutation then validate its final state.",
+    "Apply a typed source-first mutation then validate its final state. If the envelope is committed_with_repairs, follow its recovery nextAction and never retry the original mutation.",
     "bundle_mutation_validation",
     "post-approval",
   ),
   "mutation-to-validation-02": bundle(
-    "Recover a malformed mutation before final validation.",
+    "Recover a malformed source-first mutation before final validation, preserving YAML shard records and deletion-plan approval boundaries.",
     "bundle_mutation_validation_recovery",
     "post-approval",
   ),
   "source-to-freshness-01": bundle(
-    "Inspect source impact then classify freshness.",
+    "Inspect exact Git branch/source impact and pending-source receipts, then classify freshness without including arbitrary untracked files.",
     "bundle_source_freshness",
     "not-applicable",
   ),
   "source-to-freshness-02": bundle(
-    "Preserve dirty source evidence while reporting stale state.",
+    "Preserve dirty source evidence while reporting stale state, refusing unresolved conflicts and repairing a committed_with_repairs result without replaying its mutation.",
     "bundle_source_stale",
     "not-applicable",
   ),
@@ -158,7 +158,7 @@ const BUNDLE_DEFINITIONS: Readonly<Record<string, Definition>> = {
 const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
   "kibi-freshness/branch-status-classification/held-out/0": {
     prompt:
-      "Resolve the active Git branch exactly. A repository on master must use the master KB namespace; report any legacy storage mapping and never recommend renaming the Git branch.",
+      "Resolve the active Git branch exactly, including slash, Unicode, @, main, and master refs. Materialize only that branch's hashed store; report any legacy mapping and never recommend renaming or copying a store.",
     objectiveCode: "exact_branch_identity",
     kb: "fresh",
     worktree: "clean",
@@ -182,7 +182,7 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
   },
   "kibi-usage/validation-recovery/held-out/0": {
     prompt:
-      "A valid v2 receipt is rejected by a stale installed schema. Diagnose the mixed package set, repair distribution selection, and never downgrade or hand-edit the receipt.",
+      "A valid v2 receipt is rejected by a stale installed schema. Diagnose the mixed package set through the versioned envelope, repair distribution selection, and never downgrade, hand-edit, or retry a committed mutation.",
     objectiveCode: "stale_v2_schema",
     kb: "fresh",
     worktree: "clean",
@@ -268,7 +268,7 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
   },
   "kibi-traceability/relationship-chain/held-out/1": {
     prompt:
-      "A relationship is authored in a tracked YAML shard. Apply the sanctioned exact relationship delete through Kibi, preserve unrelated shard records, and verify the source diff and compiled state.",
+      "A relationship is authored in a tracked YAML shard. Apply the sanctioned exact relationship delete through Kibi, preserve comments/order and unrelated records, and verify the source diff and compiled state from the typed result envelope.",
     objectiveCode: "relationship_shard_delete",
     kb: "fresh",
     worktree: "clean",

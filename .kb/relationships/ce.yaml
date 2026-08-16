@@ -1,0 +1,36 @@
+relationships:
+  - id: rel-a448374cc0b8
+    type: implements
+    from: SYM-auto-75AB1677E263
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:20:40.425Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-HeldOutReceiptStore
+    to: REQ-skillopt-external-adoption-verdict
+    created_at: 2026-08-15T22:59:54.715Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb099980c259
+  - type: covered_by
+    from: SYM-HeldOutReceiptStore
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-08-15T23:11:12.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f8ab25bceb8
+  - type: implements
+    from: SYM-auto-75AB1677E263
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-16T07:54:03.243Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6abaff2551f
+  - type: covered_by
+    from: SYM-auto-75AB1677E263
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-16T07:54:03.247Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-114d7f69f83a

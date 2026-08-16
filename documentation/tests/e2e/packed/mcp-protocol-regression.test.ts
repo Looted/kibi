@@ -315,15 +315,15 @@ if (RUN_NODE_TEST_SUITE) {
             arguments: {
               type: "adr",
               id: entityId,
-                properties: {
-                  title: "Issue 58 initial",
-                  status: "open",
-                  source: "test://issue-58",
-                  tags: ["issue-58", "cache"],
-                },
-                document: {
-                  path: "documentation/requirements/req-issue58-cache-001.md",
-                },
+              properties: {
+                title: "Issue 58 initial",
+                status: "open",
+                source: "test://issue-58",
+                tags: ["issue-58", "cache"],
+              },
+              document: {
+                path: "documentation/requirements/req-issue58-cache-001.md",
+              },
             },
           },
         };
@@ -549,16 +549,16 @@ if (RUN_NODE_TEST_SUITE) {
             arguments: {
               type: "req",
               id: reqId,
-                properties: {
-                  title: "Issue 61 req",
-                  status: "open",
-                  owner: "platform-team",
-                  source: "test://issue-61",
-                  tags: ["issue-61", "restart"],
-                },
-                document: {
-                  path: "documentation/requirements/req-issue61-restart-001.md",
-                },
+              properties: {
+                title: "Issue 61 req",
+                status: "open",
+                owner: "platform-team",
+                source: "test://issue-61",
+                tags: ["issue-61", "restart"],
+              },
+              document: {
+                path: "documentation/requirements/req-issue61-restart-001.md",
+              },
             },
           },
         };
@@ -572,14 +572,14 @@ if (RUN_NODE_TEST_SUITE) {
             arguments: {
               type: "adr",
               id: adrId,
-                properties: {
-                  title: "Issue 61 adr",
-                  status: "accepted",
-                  source: "test://issue-61",
-                },
-                document: {
-                  path: "documentation/adr/adr-issue61-restart-001.md",
-                },
+              properties: {
+                title: "Issue 61 adr",
+                status: "accepted",
+                source: "test://issue-61",
+              },
+              document: {
+                path: "documentation/adr/adr-issue61-restart-001.md",
+              },
             },
           },
         };
@@ -593,14 +593,14 @@ if (RUN_NODE_TEST_SUITE) {
             arguments: {
               type: "test",
               id: testId,
-                properties: {
-                  title: "Issue 61 test",
-                  status: "passing",
-                  source: "test://issue-61",
-                },
-                document: {
-                  path: "documentation/tests/test-issue61-restart-001.md",
-                },
+              properties: {
+                title: "Issue 61 test",
+                status: "passing",
+                source: "test://issue-61",
+              },
+              document: {
+                path: "documentation/tests/test-issue61-restart-001.md",
+              },
             },
           },
         };
@@ -691,8 +691,8 @@ if (RUN_NODE_TEST_SUITE) {
             reqByIdLine.result?.content as Array<{ text: string }> | undefined
           )?.[0]?.text;
           assert.match(reqByIdText ?? "", /req-issue61-restart-001/);
-          const reqByIdEntities = (structuredData(reqByIdLine.result).entities ??
-            []) as Array<{ owner?: string }>;
+          const reqByIdEntities = (structuredData(reqByIdLine.result)
+            .entities ?? []) as Array<{ owner?: string }>;
           assert.strictEqual(reqByIdEntities[0]?.owner, "platform-team");
 
           const reqListLine = JSON.parse(

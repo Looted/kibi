@@ -10,8 +10,8 @@ import {
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
 import { branchStorePath } from "../../src/utils/branch-store-locator.js";
+import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
 
 describe("kibi init", () => {
   let tmpDir: string;

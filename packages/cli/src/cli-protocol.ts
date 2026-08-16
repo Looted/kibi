@@ -6,8 +6,11 @@ import {
   type DiagnosticTelemetry,
   prepareOperationInput,
 } from "./cli-validate.js";
+import {
+  operationData,
+  toKibiResult,
+} from "./public/operations/result-envelope.js";
 import type { OperationContext } from "./public/operations/runtime-types.js";
-import { operationData, toKibiResult } from "./public/operations/result-envelope.js";
 import type { OperationSpec } from "./public/operations/types.js";
 import type { OperationEffect } from "./public/operations/types.js";
 
@@ -28,10 +31,18 @@ export type CliProtocolResult = {
 function errorResult(
   operation: string,
   error: InputError | OperationError,
-  spec?: { name: string; effects: readonly OperationEffect[]; resultVersion?: string },
+  spec?: {
+    name: string;
+    effects: readonly OperationEffect[];
+    resultVersion?: string;
+  },
 ): CliProtocolResult {
   const envelope = toKibiResult(
-    spec ?? { name: operation, effects: [], resultVersion: `kibi.${operation}.v1` },
+    spec ?? {
+      name: operation,
+      effects: [],
+      resultVersion: `kibi.${operation}.v1`,
+    },
     null,
     {
       status: "error",
@@ -110,9 +121,14 @@ export async function executeOperation(
       return errorResult(catalogName, error, spec);
     }
     if (error instanceof Error) {
-      return errorResult(catalogName, new OperationError("OPERATION_FAILED", error.message), spec);
+      return errorResult(
+        catalogName,
+        new OperationError("OPERATION_FAILED", error.message),
+        spec,
+      );
     }
-    return errorResult(catalogName,
+    return errorResult(
+      catalogName,
       new OperationError("OPERATION_FAILED", "Operation failed unexpectedly."),
       spec,
     );

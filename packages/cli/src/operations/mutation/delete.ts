@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
   parseEntityFromList,
@@ -11,10 +11,8 @@ import type { OperationResult } from "../../public/operations/types.js";
 import {
   type RelationshipSelector,
   listShards,
-  readShard,
   readAllShards,
   removeRelationshipsFromShards,
-  writeShard,
 } from "../../relationships/shards.js";
 import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
 import { buildEntityDeleteAuditGoal } from "./audit.js";
@@ -23,13 +21,14 @@ import {
   dependentRelationshipsGoal,
 } from "./relationships.js";
 import { saveAtomicMutation, saveMutation } from "./save.js";
-import type { DeleteInput, DeletePayload } from "./types.js";
 import {
   normalizeAuthoredSourcePath,
+  renderMarkdownRelationshipDeletion,
   renderSourceDeletion,
   resolveContainedSourcePath,
   writePendingSourceReceipt,
 } from "./source-authoring.js";
+import type { DeleteInput, DeletePayload } from "./types.js";
 
 function requireProlog(context: OperationContext) {
   if (context.prolog === undefined)
@@ -90,7 +89,10 @@ async function executeRelationshipDelete(
   const attachment =
     context.branchAttachment ?? resolveBranchAttachment(context.workspaceRoot);
   if ("error" in attachment) throw new Error(attachment.error);
-  if (attachment.migrationRequired && (context.branchAttachment !== undefined || context.fs !== undefined)) {
+  if (
+    attachment.migrationRequired &&
+    (context.branchAttachment !== undefined || context.fs !== undefined)
+  ) {
     throw new Error(
       `Delete blocked: migrate legacy branch storage first with 'kibi branch migrate --from ${attachment.kbBranch} --to ${attachment.gitBranch} --apply'`,
     );
@@ -107,6 +109,8 @@ async function executeRelationshipDelete(
     );
   }
   const preflight: RelationshipSelector[] = [];
+  const liveByKey = new Map<string, boolean>();
+  const sourcePatches = new Map<string, { before: string; after: string }>();
   for (const selector of selectors) {
     const selectorKey = `${selector.type}\0${selector.from}\0${selector.to}`;
     if (seenSelectors.has(selectorKey)) {
@@ -122,10 +126,61 @@ async function executeRelationshipDelete(
       errorCodes.push({ code: "unsupported_relationship_type", selector });
       continue;
     }
+    const matchingShard = shardRecords.filter(
+      (record) =>
+        record.type === selector.type &&
+        record.from === selector.from &&
+        record.to === selector.to,
+    );
     const liveResult = await prolog.query(
       `once(kb_relationship(${toPrologAtom(selector.type)}, ${toPrologAtom(selector.from)}, ${toPrologAtom(selector.to)}))`,
     );
-    if (!liveResult.success && liveResult.error) {
+    let sourceRemoved = false;
+    if (!liveResult.success && matchingShard.length === 0 && context.fs) {
+      // Legacy Markdown relationship declarations are still authored source.
+      // Patch them through the public delete operation when a compiled edge or
+      // relationship shard is unavailable, instead of leaving an ignored,
+      // dangling link that makes the next sync fail closed.
+      try {
+        const entity = await loadEntity(prolog, selector.from);
+        const source = typeof entity.source === "string" ? entity.source : "";
+        if (sourceIsAuthored(source)) {
+          const relative = normalizeAuthoredSourcePath(
+            context.workspaceRoot,
+            source,
+          );
+          const absolute = resolveContainedSourcePath(
+            context.workspaceRoot,
+            relative,
+          );
+          const before = await context.fs.readFile(absolute);
+          const rendered = renderMarkdownRelationshipDeletion(
+            relative,
+            before,
+            selector,
+          );
+          if (rendered.removed) {
+            sourcePatches.set(relative, { before, after: rendered.body });
+            sourceRemoved = true;
+          }
+        }
+      } catch {
+        // The normal typed preflight below reports a deterministic not-found
+        // or inspection error when no authored source can prove the edge.
+      }
+    }
+    // A canonical shard is authoritative even when the compiled store cannot
+    // materialize the edge (for example, because one endpoint was deleted or
+    // the previous sync reported a dangling relationship).  Such a record is
+    // still safely removable through the public relationship-delete operation.
+    // Only fail preflight when neither the compiled edge nor a canonical shard
+    // record can prove that the requested relationship exists.
+    if (
+      !liveResult.success &&
+      liveResult.error &&
+      matchingShard.length === 0 &&
+      !sourceRemoved
+    ) {
       errors.push(
         `Failed to inspect ${selector.type} ${selector.from}->${selector.to}: ${liveResult.error ?? "Query failed"}`,
       );
@@ -133,19 +188,14 @@ async function executeRelationshipDelete(
       continue;
     }
     const liveExists = liveResult.success;
-    const matchingShard = shardRecords.filter(
-      (record) =>
-        record.type === selector.type &&
-        record.from === selector.from &&
-        record.to === selector.to,
-    );
-    if (!liveExists && matchingShard.length === 0) {
+    if (!liveExists && matchingShard.length === 0 && !sourceRemoved) {
       errors.push(
         `Relationship does not exist: ${selector.type} ${selector.from}->${selector.to}`,
       );
       errorCodes.push({ code: "relationship_not_found", selector });
       continue;
     }
+    liveByKey.set(selectorKey, liveExists);
     preflight.push(selector);
   }
   if (errors.length > 0)
@@ -158,8 +208,14 @@ async function executeRelationshipDelete(
       relationship_results: [],
     };
 
-  const originalShards = new Map(
-    listShards(shardRoot).map((shardPath) => [shardPath, readShard(shardPath)]),
+  // Keep byte-level before-images for rollback. Re-serializing parsed records
+  // would silently discard comments, ordering, and CST trivia from unrelated
+  // shard records after a later compiled-store failure.
+  const originalShardBytes = new Map(
+    listShards(shardRoot).map((shardPath) => [
+      shardPath,
+      readFileSync(shardPath, "utf8"),
+    ]),
   );
   const originalShardHashes = new Map(
     listShards(shardRoot).map((shardPath) => [shardPath, fileHash(shardPath)]),
@@ -172,8 +228,8 @@ async function executeRelationshipDelete(
     // Restore every preflight image before surfacing the error so canonical
     // source remains authoritative even when the compiled retract never ran.
     try {
-      for (const [shardPath, records] of originalShards) {
-        writeShard(shardPath, records);
+      for (const [shardPath, body] of originalShardBytes) {
+        writeFileSync(shardPath, body, "utf8");
       }
     } catch (rollbackError) {
       throw new Error(
@@ -184,22 +240,66 @@ async function executeRelationshipDelete(
       `Relationship shard update failed before compiled mutation: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
+  const writeSourcePatch = async (
+    relative: string,
+    body: string,
+  ): Promise<void> => {
+    if (!context.fs)
+      throw new Error(
+        "Relationship source patch requires a filesystem-capable runtime",
+      );
+    const absolute = resolveContainedSourcePath(
+      context.workspaceRoot,
+      relative,
+    );
+    await context.fs.mkdir(path.dirname(absolute));
+    const temporary = `${absolute}.kibi-relationship-${process.pid}-${Date.now()}`;
+    await context.fs.writeFile(temporary, body);
+    if (context.fs.rename) await context.fs.rename(temporary, absolute);
+    else {
+      await context.fs.writeFile(absolute, body);
+      await context.fs.unlink?.(temporary).catch(() => undefined);
+    }
+  };
+  try {
+    for (const [relative, patch] of sourcePatches) {
+      await writeSourcePatch(relative, patch.after);
+    }
+  } catch (error) {
+    for (const [relative, patch] of sourcePatches) {
+      try {
+        await writeSourcePatch(relative, patch.before);
+      } catch {
+        // Preserve the original error; the caller can recover from the
+        // hash-bound source state on the next invocation.
+      }
+    }
+    throw new Error(
+      `Relationship source update failed before compiled mutation: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
   let retracted = 0;
   try {
     for (const selector of preflight) {
+      const selectorKey = `${selector.type}\0${selector.from}\0${selector.to}`;
+      if (liveByKey.get(selectorKey) !== true) continue;
       const result = await prolog.query(
         `kb_retract_relationship(${toPrologAtom(selector.type)}, ${toPrologAtom(selector.from)}, ${toPrologAtom(selector.to)})`,
       );
       if (!result.success) throw new Error(result.error ?? "Query failed");
       retracted += 1;
     }
-    await saveMutation(prolog, "delete");
+    if (retracted > 0) await saveMutation(prolog, "delete");
   } catch (error) {
     const paths = [
       ...new Set(shardRemovals.flatMap((item) => item.shardPaths)),
     ];
     try {
-      for (const [shardPath, records] of originalShards) writeShard(shardPath, records);
+      for (const [shardPath, body] of originalShardBytes)
+        writeFileSync(shardPath, body, "utf8");
+      for (const [relative, patch] of sourcePatches) {
+        await writeSourcePatch(relative, patch.before);
+      }
     } catch (rollbackError) {
       throw new Error(
         `reconciliation_required: compiled relationship retraction failed and shard rollback failed (${paths.join(", ")}): ${rollbackError instanceof Error ? rollbackError.message : String(rollbackError)}`,
@@ -215,20 +315,38 @@ async function executeRelationshipDelete(
     const before = originalShardHashes.get(shardPath) ?? null;
     const after = fileHash(shardPath);
     if (before === after) return [];
+    const relative = path
+      .relative(context.workspaceRoot, shardPath)
+      .replaceAll("\\", "/");
     if (after !== null) {
-      writePendingSourceReceipt(
-        context.workspaceRoot,
-        path.relative(context.workspaceRoot, shardPath).replaceAll("\\", "/"),
-        after,
-      );
+      writePendingSourceReceipt(context.workspaceRoot, relative, after);
     }
-    return [{
-      path: path.relative(context.workspaceRoot, shardPath).replaceAll("\\", "/"),
-      beforeHash: before,
-      afterHash: after,
-      created: false,
-    }];
+    return [
+      {
+        path: relative,
+        mode: "write" as const,
+        beforeHash: before,
+        afterHash: after,
+        created: false,
+      },
+    ];
   });
+  sourceWrites.push(
+    ...Array.from(sourcePatches, ([relative, patch]) => {
+      const beforeHash = createHash("sha256")
+        .update(patch.before)
+        .digest("hex");
+      const afterHash = createHash("sha256").update(patch.after).digest("hex");
+      writePendingSourceReceipt(context.workspaceRoot, relative, afterHash);
+      return {
+        path: relative,
+        mode: "write" as const,
+        beforeHash,
+        afterHash,
+        created: false,
+      };
+    }),
+  );
   return {
     deleted: 0,
     relationships_deleted: retracted,
@@ -239,8 +357,12 @@ async function executeRelationshipDelete(
       ...selector,
       deleted: true,
       shard_records_removed: shardRemovals[index]?.removed ?? false,
+      compiled_edge_retracted:
+        liveByKey.get(`${selector.type}\0${selector.from}\0${selector.to}`) ===
+        true,
     })),
-    sync_required: shardRemovals.some((item) => item.removed),
+    sync_required:
+      shardRemovals.some((item) => item.removed) || sourcePatches.size > 0,
     ...(sourceWrites.length > 0 ? { sourceWrites } : {}),
   };
 }
@@ -254,7 +376,10 @@ export async function executeDelete(
   if ("error" in branchAttachment) {
     throw new Error(`Unable to resolve KB branch: ${branchAttachment.error}`);
   }
-  if (branchAttachment.migrationRequired && (context.branchAttachment !== undefined || context.fs !== undefined)) {
+  if (
+    branchAttachment.migrationRequired &&
+    (context.branchAttachment !== undefined || context.fs !== undefined)
+  ) {
     throw new Error(
       `Delete blocked: KB is attached through legacy branch storage (${branchAttachment.gitBranch} -> ${branchAttachment.kbBranch}). Run 'kibi branch migrate --from ${branchAttachment.kbBranch} --to ${branchAttachment.gitBranch} --apply' first.`,
     );
@@ -342,9 +467,10 @@ export async function executeDelete(
             const beforeHash = createHash("sha256")
               .update(contents)
               .digest("hex");
-            const afterHash = deletion.body === undefined
-              ? null
-              : createHash("sha256").update(deletion.body).digest("hex");
+            const afterHash =
+              deletion.body === undefined
+                ? null
+                : createHash("sha256").update(deletion.body).digest("hex");
             sourceHashes[relativeSource] = beforeHash;
             sourcePlans.push({
               path: relativeSource,
@@ -383,7 +509,12 @@ export async function executeDelete(
         deletionPlan: { ...planBody, planHash },
       };
       return {
-        content: [{ type: "text", text: `Deletion plan ${planHash.slice(0, 12)} must be applied through kb_apply_plan.` }],
+        content: [
+          {
+            type: "text",
+            text: `Deletion plan ${planHash.slice(0, 12)} must be applied through kb_apply_plan.`,
+          },
+        ],
         structuredContent: payload,
       };
     }

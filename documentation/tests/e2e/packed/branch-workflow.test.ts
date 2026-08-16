@@ -342,7 +342,9 @@ status: open
         await kibi(sandbox, ["sync"]);
 
         assert.ok(
-          existsSync(join(branchKbPath(sandbox.repoDir, "new-feature"), "kb.rdf")),
+          existsSync(
+            join(branchKbPath(sandbox.repoDir, "new-feature"), "kb.rdf"),
+          ),
           "Branch KB should be created after sync",
         );
       },
@@ -570,11 +572,21 @@ status: open
         assert.match(staged.stdout, /documentation\/requirements\/orphan\.md/);
         const syncResult = await kibi(sandbox, ["sync"]);
         assert.equal(syncResult.exitCode, 0, syncResult.stderr);
-        assert.match(syncResult.stdout, /orphan|Imported|entities/i, syncResult.stdout);
+        assert.match(
+          syncResult.stdout,
+          /orphan|Imported|entities/i,
+          syncResult.stdout,
+        );
 
         const { stdout: orphanQuery } = await kibi(sandbox, ["query", "req"]);
-        assert.ok(orphanQuery.includes("orphan"), `${syncResult.stdout}\n${orphanQuery}`);
-        assert.ok(!orphanQuery.includes("Develop"), `${syncResult.stdout}\n${orphanQuery}`);
+        assert.ok(
+          orphanQuery.includes("orphan"),
+          `${syncResult.stdout}\n${orphanQuery}`,
+        );
+        assert.ok(
+          !orphanQuery.includes("Develop"),
+          `${syncResult.stdout}\n${orphanQuery}`,
+        );
       },
     );
     it(

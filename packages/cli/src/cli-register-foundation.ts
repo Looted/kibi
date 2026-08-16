@@ -46,7 +46,10 @@ export function registerFoundationCommands(program: Command): void {
       "Approve one migration action (repeatable through comma-separated IDs)",
       (value: string, previous: string[] = []) => [
         ...previous,
-        ...value.split(",").map((item) => item.trim()).filter(Boolean),
+        ...value
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
       ],
     )
     .action(

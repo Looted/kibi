@@ -3,6 +3,34 @@ relationships:
     type: executable_for
     from: SYM-e2e-packed-cli-html-report
     to: TEST-kibi-html-health-report
-    created_at: "2026-08-16T07:31:36.700Z"
+    created_at: "2026-08-15T21:06:00.617Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-DFC8FB7A3472
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:20:25.792Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-831d0c4a32ae
+  - type: executable_for
+    from: SYM-e2e-packed-cli-html-report
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:49:22.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-def1bf53c2cd
+  - type: implements
+    from: SYM-auto-DFC8FB7A3472
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-16T07:53:54.155Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ece5efb50d11
+  - type: covered_by
+    from: SYM-auto-DFC8FB7A3472
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-16T07:53:54.160Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edb29e939339

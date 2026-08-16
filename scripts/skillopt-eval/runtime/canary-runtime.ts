@@ -2,6 +2,7 @@ import { cp, mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { Client } from "../../../packages/mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js";
 import { StdioClientTransport } from "../../../packages/mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/client/stdio.js";
+import { CANONICAL_SKILLS } from "../catalog";
 import {
   RequiredMcpStartupError,
   RuntimePrerequisiteError,
@@ -23,12 +24,7 @@ export {
 } from "./canary-probes";
 
 const STARTUP_TIMEOUT_MS = 15_000;
-const SKILLS = [
-  "kibi-usage",
-  "kibi-freshness",
-  "kibi-traceability",
-  "init-kibi",
-] as const;
+const SKILLS = CANONICAL_SKILLS;
 
 export type McpServerLaunch = Readonly<{
   command: string;

@@ -178,9 +178,9 @@ async function waitForStatusState(
     const envelope = result?.structuredContent as
       | Record<string, unknown>
       | undefined;
-    const structured = (envelope?.kibiProtocol === 1
-      ? envelope.data
-      : envelope) as Record<string, unknown> | undefined;
+    const structured = (
+      envelope?.kibiProtocol === 1 ? envelope.data : envelope
+    ) as Record<string, unknown> | undefined;
     last = structured;
     if (
       structured?.dirty === expected.dirty &&
@@ -528,9 +528,9 @@ describe("MCP Server", () => {
         expect(content[0].type).toBe("text");
 
         const envelope = result.structuredContent as Record<string, unknown>;
-        const structured = (envelope.kibiProtocol === 1
-          ? envelope.data
-          : envelope) as Record<string, unknown>;
+        const structured = (
+          envelope.kibiProtocol === 1 ? envelope.data : envelope
+        ) as Record<string, unknown>;
         expect(structured).toBeDefined();
         expect([
           "root_uninitialized",
@@ -639,9 +639,9 @@ describe("MCP Server", () => {
         expect(content[0]?.type).toBe("text");
 
         const envelope = result.structuredContent as Record<string, unknown>;
-        const structured = (envelope.kibiProtocol === 1
-          ? envelope.data
-          : envelope) as Record<string, unknown>;
+        const structured = (
+          envelope.kibiProtocol === 1 ? envelope.data : envelope
+        ) as Record<string, unknown>;
         expect(structured).toBeDefined();
         expect(structured.isStrict).toBe(true);
         expect(Array.isArray(structured.applyPlan)).toBe(true);

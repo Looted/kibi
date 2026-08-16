@@ -722,6 +722,18 @@ ${content}
   console.log(`  📝 Created ${relativePath}`);
 }
 
+/** Mark a fixture path as Git-tracked so source compilation may consume it. */
+export function stageSourceFile(
+  sandbox: TestSandbox,
+  relativePath: string,
+): void {
+  execFileSync(resolveGitBinary(), ["add", "--", relativePath], {
+    cwd: sandbox.repoDir,
+    env: sandbox.env,
+    stdio: "pipe",
+  });
+}
+
 /**
  * Assert that a file exists and is executable
  */

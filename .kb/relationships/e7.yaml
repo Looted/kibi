@@ -1,0 +1,36 @@
+relationships:
+  - id: rel-3519d17e2560
+    type: implements
+    from: SYM-auto-8FB623B4AC3F
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:18:50.018Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-B4EA84AAACA8
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:19:30.252Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aae774871534
+  - type: covered_by
+    from: SYM-auto-8FB623B4AC3F
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:50:46.446Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78b4ca7a27db
+  - type: implements
+    from: SYM-auto-B4EA84AAACA8
+    to: REQ-mcp-relationship-preflight
+    created_at: 2026-08-16T07:53:18.174Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7bf85b91a623
+  - type: covered_by
+    from: SYM-auto-B4EA84AAACA8
+    to: TEST-mcp-relationship-preflight
+    created_at: 2026-08-16T07:53:18.177Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e153e15b5355

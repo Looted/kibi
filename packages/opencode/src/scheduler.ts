@@ -410,8 +410,7 @@ async function runKibiCheck(
         const truncatedOut = truncateSyncOutput(stdout || undefined);
         const truncatedErr = truncateSyncOutput(stderr || undefined);
         resolve({
-          exitCode:
-            error && typeof error.code === "number" ? error.code : 0,
+          exitCode: error && typeof error.code === "number" ? error.code : 0,
           ...(truncatedOut !== undefined ? { stdout: truncatedOut } : {}),
           ...(truncatedErr !== undefined ? { stderr: truncatedErr } : {}),
         });

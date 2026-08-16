@@ -457,49 +457,11 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
   await prologProcess.start();
   await assertGeneration();
 
-  // Startup debug: resolve which kibi-cli is being used and its version (best-effort).
-  // Gate all output under KIBI_MCP_DEBUG and write only to stderr via debugLog.
-  if (isMcpDebugEnabled()) {
-    try {
-      const req = sessionDeps.createRequire(import.meta.url);
-      try {
-        const resolved = req.resolve("kibi-cli/prolog");
-        debugLog(
-          `[KIBI-MCP] require.resolve('kibi-cli/prolog') -> ${resolved}`,
-        );
-      } catch (resolveErr) {
-        debugLog(
-          "[KIBI-MCP] require.resolve('kibi-cli/prolog') failed:",
-          (resolveErr as Error).message,
-        );
-      }
-
-      // Try to read package.json for kibi-cli to get version. This may fail if
-      // the package uses exports blocking package.json access — log explicit failure.
-      try {
-        // prefer direct package.json require; createRequire makes this ESM-friendly
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const pkg = req("kibi-cli/package.json");
-        if (pkg && typeof pkg.version === "string") {
-          debugLog(`[KIBI-MCP] kibi-cli version: ${pkg.version}`);
-        } else {
-          debugLog(
-            "[KIBI-MCP] kibi-cli package.json read but no version field",
-          );
-        }
-      } catch (pkgErr) {
-        debugLog(
-          "[KIBI-MCP] Failed to read kibi-cli package.json (exports may restrict access):",
-          (pkgErr as Error).message,
-        );
-      }
-    } catch (err) {
-      debugLog(
-        "[KIBI-MCP] Failed to create require() for debug lookup:",
-        (err as Error).message,
-      );
-    }
-  }
+  // Adapters report the package that owns runtime execution. Do not resolve
+  // CLI implementation paths from the MCP process; the runtime package is
+  // the sole first-party execution boundary.
+  if (isMcpDebugEnabled())
+    debugLog("[KIBI-MCP] Runtime boundary: kibi-runtime");
 
   debugLog("[KIBI-MCP] Branch selection:");
   debugLog(`[KIBI-MCP]   KIBI_BRANCH env: ${envBranch || "not set"}`);

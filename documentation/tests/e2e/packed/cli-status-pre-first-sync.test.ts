@@ -7,9 +7,9 @@ import {
   type TestSandbox,
   checkPrologAvailable,
   createSandbox,
-  parseKibiResult,
   kibi,
   packAll,
+  parseKibiResult,
 } from "./helpers.js";
 
 const RUN_NODE_TEST_SUITE =

@@ -25,13 +25,14 @@ symbols:
   - id: SYM-kibi-migrate-plan-command
     title: migratePlanCommand
     sourceFile: packages/cli/src/commands/migrate.ts
-    symbol_role: behavioral
-    granularity_reason: module-level-behavior
+    symbol_role: unknown
+    granularity_reason: extractor-miss
+    status: active
     relationships:
-      - type: implements
-        target: REQ-agent-guided-migration-orchestration
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
   - id: SYM-kibi-migration-plan-version
     title: MIGRATION_PLAN_VERSION
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
@@ -242,8 +243,9 @@ symbols:
   - id: SYM-mcp-model-requirement-isolated-workspace-test
     title: should handle tools/call for kb_model_requirement
     sourceFile: packages/mcp/tests/server.test.ts
-    symbol_role: behavioral
+    symbol_role: unknown
     granularity_reason: extractor-miss
+    status: active
     relationships:
       - type: executable_for
         target: TEST-test-journaled-engine-harness
@@ -4080,8 +4082,9 @@ symbols:
   - id: SYM-cli-skills-content-predicate-guidance-tests
     title: predicate guidance loads a canonical decision tree with immutable resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
-    symbol_role: behavioral
+    symbol_role: unknown
     granularity_reason: extractor-miss
+    status: active
     relationships:
       - type: executable_for
         target: TEST-skillopt-predicate-first-requirements
@@ -4498,12 +4501,13 @@ symbols:
     title: CodexRuntimeError
     sourceFile: scripts/skillopt-eval/real-workflow-types.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    granularity_reason: module-level-behavior
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-CodexRuntimeError-name
     title: CodexRuntimeError.name
     sourceFile: scripts/skillopt-eval/real-workflow-types.ts
@@ -6741,12 +6745,13 @@ symbols:
     title: HeldOutEvidenceError
     sourceFile: scripts/skillopt-eval/held-out-evidence.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-external-adoption-verdict
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
-    granularity_reason: module-level-behavior
+      - type: implements
+        target: REQ-skillopt-external-adoption-verdict
   - id: SYM-HeldOutEvidenceError-name
     title: HeldOutEvidenceError.name
     sourceFile: scripts/skillopt-eval/held-out-evidence.ts
@@ -6797,12 +6802,13 @@ symbols:
     title: HeldOutReceiptStore
     sourceFile: scripts/skillopt-eval/held-out-receipt-store.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-external-adoption-verdict
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
-    granularity_reason: module-level-behavior
+      - type: implements
+        target: REQ-skillopt-external-adoption-verdict
   - id: SYM-HeldOutReceiptStore-withLease
     title: HeldOutReceiptStore.withLease
     sourceFile: scripts/skillopt-eval/held-out-receipt-store.ts
@@ -6816,12 +6822,13 @@ symbols:
     title: HeldOutReceiptStoreError
     sourceFile: scripts/skillopt-eval/held-out-receipt-store.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-external-adoption-verdict
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
-    granularity_reason: module-level-behavior
+      - type: implements
+        target: REQ-skillopt-external-adoption-verdict
   - id: SYM-HeldOutReceiptStoreError-name
     title: HeldOutReceiptStoreError.name
     sourceFile: scripts/skillopt-eval/held-out-receipt-store.ts
@@ -8288,8 +8295,9 @@ symbols:
   - id: SYM-mcp-session-tests
     title: MCP session test suite
     sourceFile: packages/mcp/tests/server/session.test.ts
-    symbol_role: test
-    granularity_reason: test-suite
+    symbol_role: unknown
+    granularity_reason: extractor-miss
+    status: active
     relationships:
       - type: executable_for
         target: TEST-005
@@ -8300,8 +8308,9 @@ symbols:
   - id: SYM-mcp-tools-coverage-tests
     title: MCP tools coverage test suite
     sourceFile: packages/mcp/tests/server/tools-coverage.test.ts
-    symbol_role: test
-    granularity_reason: test-suite
+    symbol_role: unknown
+    granularity_reason: extractor-miss
+    status: active
     relationships:
       - type: executable_for
         target: TEST-kibi-operation-interface-parity
@@ -9962,26 +9971,6 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-  - id: SYM-parity-to-prolog-atom
-    title: toPrologAtom
-    sourceFile: packages/cli/src/public/operations/prolog-json.ts
-    symbol_role: behavioral
-    granularity_reason: extractor-miss
-    relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-kibi-operation-interface-parity
-  - id: SYM-parity-to-prolog-list
-    title: toPrologList
-    sourceFile: packages/cli/src/public/operations/prolog-json.ts
-    symbol_role: behavioral
-    granularity_reason: extractor-miss
-    relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-kibi-operation-interface-parity
   - id: SYM-parity-upsert-input-type
     title: UpsertInput
     sourceFile: packages/cli/src/operations/mutation/types.ts
@@ -10866,12 +10855,13 @@ symbols:
     title: RealOptimizationResult
     sourceFile: scripts/skillopt-eval/real-workflow-types.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-    granularity_reason: module-level-behavior
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-receipt
     title: receipt
     sourceFile: scripts/skillopt-eval/tests/held-out-evaluation-test-helpers.ts
@@ -10933,12 +10923,13 @@ symbols:
     title: registerAllTools
     sourceFile: packages/mcp/src/server/tools.ts
     symbol_role: structural
-    granularity_reason: module-level-behavior
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-002
       - type: covered_by
         target: TEST-005
+      - type: implements
+        target: REQ-002
   - id: SYM-registerConfiguredTools
     title: registerConfiguredTools
     sourceFile: packages/mcp/src/server/tool-registration.ts
@@ -12620,17 +12611,18 @@ symbols:
     title: runBridge
     sourceFile: scripts/skillopt-eval/runtime/bridge-cli-execution.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
     text_ref: scripts/skillopt-eval/runtime/bridge-cli-execution.ts#runBridge
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-external-adoption-verdict
       - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-external-adoption-verdict
   - id: SYM-skillopt-bridge-cli-main
     title: bridgeMain
     sourceFile: scripts/skillopt-eval/bridge-cli.ts
@@ -12703,62 +12695,70 @@ symbols:
     title: BridgeRequest
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     symbol_role: type-shape
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bridge-request-schema
     title: BridgeRequestSchema
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     symbol_role: type-shape
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-logical-evidence-fidelity
   - id: SYM-skillopt-bridge-result
     title: BridgeResult
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     symbol_role: type-shape
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bridge-result-schema
     title: BridgeResultSchema
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     symbol_role: type-shape
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bridge-visibility-error
     title: BridgeVisibilityError
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bridge-visibility-error-name
     title: BridgeVisibilityError.name
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     symbol_role: structural
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-broker-options
     title: BrokerOptions
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
@@ -14658,42 +14658,46 @@ symbols:
     title: FileBridge
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-file-bridge-read-private
     title: FileBridge.readPrivate
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-file-bridge-read-public
     title: FileBridge.readPublic
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-file-bridge-resolve
     title: FileBridge.resolve
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-file-bridge-tests
     title: file bridge tests
     sourceFile: scripts/skillopt-eval/tests/file-bridge.test.ts
@@ -14706,22 +14710,24 @@ symbols:
     title: FileBridge.writePrivate
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-file-bridge-write-public
     title: FileBridge.writePublic
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-file-identity
     title: FileIdentity
     sourceFile: scripts/skillopt-eval/adoption-durable.ts
@@ -15619,12 +15625,13 @@ symbols:
     title: OperatorBaseResolutionOptions
     sourceFile: scripts/skillopt-eval/operator.ts
     symbol_role: type-shape
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-operator-build-optimize-layout
     title: buildOptimizeLayout
     sourceFile: scripts/skillopt-eval/operator.ts
@@ -15638,32 +15645,35 @@ symbols:
     title: OperatorCommand
     sourceFile: scripts/skillopt-eval/operator.ts
     symbol_role: type-shape
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-operator-default-dependencies
     title: defaultOperatorDependencies
     sourceFile: scripts/skillopt-eval/operator.ts
     symbol_role: structural
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-operator-dependencies
     title: OperatorDependencies
     sourceFile: scripts/skillopt-eval/operator.ts
     symbol_role: type-shape
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-operator-main
     title: main
     sourceFile: scripts/skillopt-eval/operator.ts
@@ -15677,12 +15687,13 @@ symbols:
     title: OptimizeLayout
     sourceFile: scripts/skillopt-eval/operator.ts
     symbol_role: type-shape
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-operator-parse-args
     title: parseOperatorArgs
     sourceFile: scripts/skillopt-eval/operator.ts
@@ -15696,12 +15707,13 @@ symbols:
     title: ParsedOperatorArgs
     sourceFile: scripts/skillopt-eval/operator.ts
     symbol_role: type-shape
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-operator-resolve-base
     title: resolveOperatorBase
     sourceFile: scripts/skillopt-eval/operator.ts
@@ -15724,12 +15736,13 @@ symbols:
     title: OperatorRunOptions
     sourceFile: scripts/skillopt-eval/operator.ts
     symbol_role: type-shape
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-operator-usage-error
     title: OperatorUsageError
     sourceFile: scripts/skillopt-eval/operator.ts
@@ -17196,22 +17209,24 @@ symbols:
     title: readBridgeRequest
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-read-bridge-result
     title: readBridgeResult
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-read-durable-text
     title: readDurableText
     sourceFile: scripts/skillopt-eval/adoption-durable.ts
@@ -17264,14 +17279,15 @@ symbols:
   - id: SYM-skillopt-load-seed-candidate
     title: loadSeedCandidate
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    symbol_role: behavioral
+    symbol_role: unknown
     granularity_reason: extractor-miss
     text_ref: scripts/skillopt-eval/real-workflow.ts#loadSeedCandidate
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-passes-development-gate
     title: passesDevelopmentGate
     sourceFile: scripts/skillopt-eval/real-workflow.ts
@@ -18152,12 +18168,13 @@ symbols:
     title: probeRequiredMcp
     sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-runtime-probe-sandbox
     title: probeCodexSandbox
     sourceFile: scripts/skillopt-eval/runtime/canary-probes.ts
@@ -18212,12 +18229,13 @@ symbols:
     title: summarizeProcessFailure
     sourceFile: scripts/skillopt-eval/runtime/canary-runtime.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-runtime-required-mcp-error
     title: RequiredMcpStartupError
     sourceFile: scripts/skillopt-eval/runtime/canary-errors.ts
@@ -19000,22 +19018,24 @@ symbols:
     title: writeBridgeRequest
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-write-bridge-result
     title: writeBridgeResult
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-write-offline-review-artifacts
     title: writeOfflineReviewArtifacts
     sourceFile: scripts/skillopt-eval/offline-artifacts.ts
@@ -20186,16 +20206,17 @@ symbols:
     title: VerificationHarnessError
     sourceFile: scripts/skillopt-eval/verify-harness.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-external-adoption-verdict
       - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
-    granularity_reason: module-level-behavior
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-external-adoption-verdict
   - id: SYM-VerificationHarnessError-name
     title: VerificationHarnessError.name
     sourceFile: scripts/skillopt-eval/verify-harness.ts
@@ -20636,13 +20657,14 @@ symbols:
   - id: SYM-skillopt-bridge-row
     title: bridgeRow
     sourceFile: scripts/skillopt-eval/runtime/bridge-cli-execution.ts
-    symbol_role: behavioral
+    symbol_role: unknown
+    granularity_reason: extractor-miss
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-logical-evidence-fidelity
       - type: covered_by
         target: TEST-skillopt-logical-evidence-fidelity
-    granularity_reason: legacy-link
+      - type: implements
+        target: REQ-skillopt-logical-evidence-fidelity
   - id: SYM-skillopt-canonical-property-key
     title: canonicalPropertyKey
     sourceFile: scripts/skillopt-eval/runtime/final-state.ts
@@ -21610,6 +21632,9 @@ symbols:
   - id: SYM-test-packed-proposition-ingestion
     title: packedCliEnforcesPropositionCompleteIngestion
     sourceFile: documentation/tests/e2e/packed/proposition-complete-ingestion.test.ts
+    status: active
+    symbol_role: unknown
+    granularity_reason: extractor-miss
     relationships:
       - type: executable_for
         target: TEST-kibi-proposition-complete-ingestion
@@ -21643,12 +21668,12 @@ symbols:
   - id: SYM-core-verification-receipt-state
     title: receipt_evidence_state
     status: active
-  - id: SYM-test-verification-receipt-proof-states
-    title: requirement_proof_receipts_are_snapshot_bound_fresh_and_outcome_sensitive
-    status: active
   - id: SYM-test-packed-fresh-verification-receipts
     title: receiptRow
     sourceFile: documentation/tests/e2e/packed/fresh-verification-receipts.test.ts
+    status: active
+    symbol_role: unknown
+    granularity_reason: extractor-miss
     relationships:
       - type: executable_for
         target: TEST-kibi-fresh-verification-receipts
@@ -21703,6 +21728,9 @@ symbols:
   - id: SYM-test-packed-ontology-convergence-witnesses
     title: assertExactPredicatePlan
     sourceFile: documentation/tests/e2e/packed/ontology-convergence-witnesses.test.ts
+    status: active
+    symbol_role: unknown
+    granularity_reason: extractor-miss
     relationships:
       - type: executable_for
         target: TEST-kibi-ontology-convergence-witnesses
@@ -21770,18 +21798,27 @@ symbols:
   - id: SYM-test-packed-dependency-ordered-repair-plan
     title: assertDependencyOrderedPlan
     sourceFile: documentation/tests/e2e/packed/dependency-ordered-repair-plan.test.ts
+    status: active
+    symbol_role: unknown
+    granularity_reason: extractor-miss
     relationships:
       - type: executable_for
         target: TEST-kibi-dependency-ordered-repair-plan
   - id: SYM-test-packed-legacy-migration-preview
     title: assertLegacyMigrationPlan
     sourceFile: documentation/tests/e2e/packed/dependency-ordered-repair-plan.test.ts
+    status: active
+    symbol_role: unknown
+    granularity_reason: extractor-miss
     relationships:
       - type: executable_for
         target: TEST-kibi-legacy-migration-preview
   - id: SYM-test-packed-semantic-source-separation
     title: assertSemanticSourceSeparation
     sourceFile: documentation/tests/e2e/packed/semantic-source-separation.test.ts
+    status: active
+    symbol_role: unknown
+    granularity_reason: extractor-miss
     relationships:
       - type: executable_for
         target: TEST-kibi-legacy-migration-preview-v2
@@ -21861,6 +21898,9 @@ symbols:
   - id: SYM-test-packed-distribution-parity
     title: capabilityInput
     sourceFile: documentation/tests/e2e/packed/distribution-parity-matrix.test.ts
+    status: active
+    symbol_role: unknown
+    granularity_reason: extractor-miss
     relationships:
       - type: executable_for
         target: TEST-kibi-distribution-parity-matrix
@@ -22576,43 +22616,28 @@ symbols:
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
   - id: SYM-cli-report-command
-    status: active
-    tags:
-      - cli
-      - report
-      - html
-      - traceability
-    symbol_role: behavioral
-    sourceFile: packages/cli/src/commands/report.ts
     title: reportCommand
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-html-health-report
-      - type: implements
-        target: REQ-kibi-html-health-report
-  - id: SYM-cli-report-render-html
     status: active
+    sourceFile: packages/cli/src/commands/report.ts
     symbol_role: behavioral
-    title: renderHtmlReport
     tags:
       - cli
       - report
       - html
       - traceability
+  - id: SYM-cli-report-render-html
+    title: renderHtmlReport
+    status: active
     sourceFile: packages/cli/src/report/html-report.ts
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-html-health-report
-      - type: implements
-        target: REQ-kibi-html-health-report
+    symbol_role: behavioral
+    tags:
+      - cli
+      - report
+      - html
+      - traceability
   - id: SYM-cli-report-open
     title: openReport
     status: active
-    tags:
-      - cli
-      - report
-      - html
-      - traceability
     sourceFile: packages/cli/src/commands/report.ts
     symbol_role: behavioral
     relationships:
@@ -22623,47 +22648,153 @@ symbols:
   - id: SYM-e2e-packed-cli-html-report
     title: verifyHtmlRequirementHealthReport
     status: active
-    tags:
-      - cli
-      - report
-      - html
-      - traceability
     sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
     relationships:
       - type: executable_for
-        target: TEST-kibi-html-health-report
+        target: TEST-kibi-operation-interface-parity
   - id: SYM-cli-sync-semantic-boundary-relationships
     title: semanticBoundaryRelationships
     status: active
-    tags:
-      - sync
-      - semantic-inventory
-      - relationships
-      - traceability
     sourceFile: packages/cli/src/commands/sync.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
     relationships:
       - type: covered_by
-        target: TEST-kibi-proposition-complete-ingestion
+        target: TEST-kibi-operation-interface-parity
       - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-test-sync-semantic-boundary-shards
     title: uses canonical relationship shards for semantic boundary validation
     status: active
-    tags:
-      - sync
-      - semantic-inventory
-      - relationships
-      - test
     sourceFile: packages/cli/tests/commands/sync.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
     relationships:
       - type: executable_for
-        target: TEST-kibi-proposition-complete-ingestion
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-report-options
+    title: ReportOptions
+    status: active
+    sourceFile: packages/cli/src/commands/report.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-auto-02DDBEE0B7C8
+    title: exactBranchStorePath
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-auto-B4518227A075
+    title: parseKibiResult
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: behavioral
+  - id: SYM-auto-B892D7934A27
+    title: run
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: behavioral
+  - id: SYM-auto-01A7A4554EF9
+    title: kibi
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: behavioral
+  - id: SYM-auto-17A7EF53F461
+    title: kibiMcp
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: behavioral
+  - id: SYM-auto-AD2DCA2227C8
+    title: createMarkdownFile
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: behavioral
+  - id: SYM-auto-AA7E401E854D
+    title: stageSourceFile
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-auto-88E6CA6A3463
+    title: assertExecutable
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: behavioral
+  - id: SYM-auto-E94328F678DF
+    title: checkPrologAvailable
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: behavioral
+  - id: SYM-auto-B9A2DDEE871F
+    title: RunOptions
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: type-shape
+  - id: SYM-auto-29DF88F7A567
+    title: RunResult
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: type-shape
+  - id: SYM-auto-4A8343B906BF
+    title: KibiOptions
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: type-shape
+  - id: SYM-auto-6CE6FE1E5AA4
+    title: Frontmatter
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: type-shape
+  - id: SYM-auto-5133B22986F1
+    title: branchMigrationApprovalHash
+    status: active
+    sourceFile: packages/cli/src/commands/branch.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-EE0B2692CF85
+    title: branchRestoreCommand
+    status: active
+    sourceFile: packages/cli/src/commands/branch.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-FB0CE9A7383B
+    title: BranchRestoreOptions
+    status: active
+    sourceFile: packages/cli/src/commands/branch.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-A4A826B82393
+    title: gcCommand
+    status: active
+    sourceFile: packages/cli/src/commands/gc.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-9213E15DCB18
     title: ReportCommandDeps
     status: active
@@ -22674,6 +22805,483 @@ symbols:
         target: TEST-kibi-html-health-report
       - type: implements
         target: REQ-kibi-html-health-report
+  - id: SYM-auto-E702A9034CD4
+    title: normalizeExtractionSources
+    status: active
+    sourceFile: packages/cli/src/commands/sync/extraction.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-9047D71BA76E
+    title: EngineClient.command
+    status: active
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: unknown
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-8A6A1669C54A
+    title: EngineCommandV1
+    status: active
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-9C1F333AEDAA
+    title: EngineRequest
+    status: active
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-8B6FF5246789
+    title: writePendingSourceReceipt
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+  - id: SYM-auto-7EA45A5BE416
+    title: resolveContainedSourcePath
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+  - id: SYM-auto-2E8B94C6ABB2
+    title: normalizeAuthoredSourcePath
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+  - id: SYM-auto-44CE7BD0251E
+    title: configuredSourceTarget
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+  - id: SYM-auto-897151BA8338
+    title: hasConfiguredSourceTarget
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+  - id: SYM-auto-059ACEEC9EDC
+    title: renderSourceDeletion
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-1EEC676792AC
+    title: renderMarkdownRelationshipDeletion
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-7C9A229C5071
+    title: writeSourceForUpsert
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-9648A5F09C09
+    title: canonicalSourcePath
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-4533A0DDA5BD
+    title: SourceWriteReceipt
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+  - id: SYM-auto-5E0D46927248
+    title: validateAppendOnlyVerificationReceipts
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+  - id: SYM-auto-F6E934B6698C
+    title: EntityDeletionPlan
+    status: active
+    sourceFile: packages/cli/src/operations/planning/apply-plan.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+  - id: SYM-auto-2CA6B4FC2059
+    title: SourceWritePlan
+    status: active
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+  - id: SYM-auto-4024A7FE598A
+    title: withContractDefaults
+    status: active
+    sourceFile: packages/cli/src/public/operations/catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-92BF4F1E0EC1
+    title: declaredEffects
+    status: active
+    sourceFile: packages/cli/src/public/operations/contracts.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-93C73D20FA03
+    title: OperationJsonSchema
+    status: active
+    sourceFile: packages/cli/src/public/operations/contracts.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-D694B2C4BE06
+    title: OPERATION_DATA_SCHEMAS
+    status: active
+    sourceFile: packages/cli/src/public/operations/contracts.ts
+    symbol_role: unknown
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-FF46BD43D461
+    title: resultVersion
+    status: active
+    sourceFile: packages/cli/src/public/operations/result-envelope.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-8FB623B4AC3F
+    title: toKibiResult
+    status: active
+    sourceFile: packages/cli/src/public/operations/result-envelope.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-C85F63A91619
+    title: operationData
+    status: active
+    sourceFile: packages/cli/src/public/operations/result-envelope.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-B6653D50C50F
+    title: KIBI_PROTOCOL_VERSION
+    status: active
+    sourceFile: packages/cli/src/public/operations/result-envelope.ts
+    symbol_role: unknown
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-20020A915D46
+    title: EnginePort
+    status: active
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-37D798643A55
+    title: EngineCommandV1
+    status: active
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-4B796036FBAD
+    title: OperationEffectDeclaration
+    status: active
+    sourceFile: packages/cli/src/public/operations/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-19AD4D240736
+    title: KibiResultStatus
+    status: active
+    sourceFile: packages/cli/src/public/operations/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-0973EC5179BE
+    title: KibiResult
+    status: active
+    sourceFile: packages/cli/src/public/operations/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-67CF23A17B69
+    title: ResolvedOperationSpec
+    status: active
+    sourceFile: packages/cli/src/public/operations/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-FF0B85426247
+    title: getRelationshipsDir
+    status: active
+    sourceFile: packages/cli/src/relationships/shards.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+      - type: implements
+        target: REQ-mcp-relationship-preflight
+  - id: SYM-auto-711E3868D47B
+    title: shardForFromId
+    status: active
+    sourceFile: packages/cli/src/relationships/shards.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+      - type: implements
+        target: REQ-mcp-relationship-preflight
+  - id: SYM-auto-4EA730253252
+    title: computeShardPath
+    status: active
+    sourceFile: packages/cli/src/relationships/shards.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+      - type: implements
+        target: REQ-mcp-relationship-preflight
+  - id: SYM-auto-1B73A7391533
+    title: readShard
+    status: active
+    sourceFile: packages/cli/src/relationships/shards.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+      - type: implements
+        target: REQ-mcp-relationship-preflight
+  - id: SYM-auto-9673173700B2
+    title: writeShard
+    status: active
+    sourceFile: packages/cli/src/relationships/shards.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-mcp-relationship-preflight
+  - id: SYM-auto-B4EA84AAACA8
+    title: removeRelationshipsFromShards
+    status: active
+    sourceFile: packages/cli/src/relationships/shards.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-mcp-relationship-preflight
+  - id: SYM-auto-5EDA4085C185
+    title: appendRelationship
+    status: active
+    sourceFile: packages/cli/src/relationships/shards.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-mcp-relationship-preflight
+  - id: SYM-auto-7167A938465A
+    title: listShards
+    status: active
+    sourceFile: packages/cli/src/relationships/shards.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+      - type: implements
+        target: REQ-mcp-relationship-preflight
+  - id: SYM-auto-C77E34E6931A
+    title: readAllShards
+    status: active
+    sourceFile: packages/cli/src/relationships/shards.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+      - type: implements
+        target: REQ-mcp-relationship-preflight
+  - id: SYM-auto-6B36EF51595B
+    title: pruneDangling
+    status: active
+    sourceFile: packages/cli/src/relationships/shards.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+      - type: implements
+        target: REQ-mcp-relationship-preflight
+  - id: SYM-auto-1ABE353EEDF1
+    title: relationshipIdFor
+    status: active
+    sourceFile: packages/cli/src/relationships/shards.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+      - type: implements
+        target: REQ-mcp-relationship-preflight
+  - id: SYM-auto-7AE5927FBDB9
+    title: mergeRecords
+    status: active
+    sourceFile: packages/cli/src/relationships/shards.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+      - type: implements
+        target: REQ-mcp-relationship-preflight
+  - id: SYM-auto-210A3DA3A95D
+    title: RelationshipRecord
+    status: active
+    sourceFile: packages/cli/src/relationships/shards.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+      - type: implements
+        target: REQ-mcp-relationship-preflight
+  - id: SYM-auto-F3AA3B988CC5
+    title: RelationshipSelector
+    status: active
+    sourceFile: packages/cli/src/relationships/shards.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+      - type: implements
+        target: REQ-mcp-relationship-preflight
+  - id: SYM-auto-6024925825AA
+    title: RemovedRelationshipRecords
+    status: active
+    sourceFile: packages/cli/src/relationships/shards.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+      - type: implements
+        target: REQ-mcp-relationship-preflight
   - id: SYM-auto-5D3498497C5F
     title: HtmlReportCoverage
     status: active
@@ -22694,13 +23302,527 @@ symbols:
         target: TEST-kibi-html-health-report
       - type: implements
         target: REQ-kibi-html-health-report
-  - id: SYM-cli-report-options
-    title: ReportOptions
+  - id: SYM-auto-02C5362C86BE
+    title: _setBranchResolverDepsForTests
     status: active
-    sourceFile: packages/cli/src/commands/report.ts
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-888C4EC7C8E5
+    title: resolveActiveBranch
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-F45AD8A9E2FF
+    title: resolveBranchAttachment
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-DFC8FB7A3472
+    title: isDetachedHead
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-CF2DCAD0569D
+    title: getBranchDiagnostic
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-5D198D1E54F9
+    title: isValidBranchName
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-D4EC6552EDC9
+    title: copyCleanSnapshot
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-75AB1677E263
+    title: getVolatileArtifactPatterns
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-4B78DAEF6C6B
+    title: resolveDefaultBranch
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-09D119AE523D
+    title: BranchResolverDeps
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
     symbol_role: type-shape
     relationships:
       - type: covered_by
-        target: TEST-kibi-html-health-report
+        target: TEST-cli-branch-store-recovery
       - type: implements
-        target: REQ-kibi-html-health-report
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-92638075C834
+    title: BranchResolutionSuccess
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-B2B1769454DE
+    title: BranchResolutionError
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-947A5C4D4E76
+    title: BranchResolutionResult
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-3317F858EB14
+    title: BranchAttachment
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-BDE75AA4DB60
+    title: BranchErrorCode
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-7D6473217301
+    title: branchStoreKey
+    status: active
+    sourceFile: packages/cli/src/utils/branch-store-locator.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-AD376CE47FDF
+    title: branchStoresRoot
+    status: active
+    sourceFile: packages/cli/src/utils/branch-store-locator.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-0955397546A3
+    title: branchStorePath
+    status: active
+    sourceFile: packages/cli/src/utils/branch-store-locator.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-504B217261F9
+    title: branchStoreManifestPath
+    status: active
+    sourceFile: packages/cli/src/utils/branch-store-locator.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-1B3428DDA393
+    title: expectedBranchStoreManifest
+    status: active
+    sourceFile: packages/cli/src/utils/branch-store-locator.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-87FDC219E2F3
+    title: readBranchStoreManifest
+    status: active
+    sourceFile: packages/cli/src/utils/branch-store-locator.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-479CCD24D41F
+    title: branchStoreManifestMatches
+    status: active
+    sourceFile: packages/cli/src/utils/branch-store-locator.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-9AEF238324D1
+    title: ensureBranchStoreManifest
+    status: active
+    sourceFile: packages/cli/src/utils/branch-store-locator.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-23EC77D7D2F2
+    title: legacyBranchStorePath
+    status: active
+    sourceFile: packages/cli/src/utils/branch-store-locator.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-532D065248B0
+    title: isDirectory
+    status: active
+    sourceFile: packages/cli/src/utils/branch-store-locator.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-1861120B3765
+    title: BranchStoreManifest
+    status: active
+    sourceFile: packages/cli/src/utils/branch-store-locator.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-EB53162A3CF2
+    title: BRANCH_STORE_MANIFEST_VERSION
+    status: active
+    sourceFile: packages/cli/src/utils/branch-store-locator.ts
+    symbol_role: unknown
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+  - id: SYM-auto-CC9A2A107D90
+    title: createParityWorkspace
+    status: active
+    sourceFile: packages/cli/tests/parity/helpers.ts
+    symbol_role: behavioral
+  - id: SYM-auto-F6D9F411400B
+    title: normalizeParityValue
+    status: active
+    sourceFile: packages/cli/tests/parity/helpers.ts
+    symbol_role: behavioral
+  - id: SYM-auto-159F89573024
+    title: resolveCorePlPath
+    status: active
+    sourceFile: packages/mcp/src/tools/core-module.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-C773F4C3FF4E
+    title: runJsonModuleQuery
+    status: active
+    sourceFile: packages/mcp/src/tools/core-module.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-23F02839C46A
+    title: toPrologAtom
+    status: active
+    sourceFile: packages/mcp/src/tools/core-module.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-25857E663F0E
+    title: toPrologList
+    status: active
+    sourceFile: packages/mcp/src/tools/core-module.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-974943F1E67A
+    title: handleKbFindGaps
+    status: active
+    sourceFile: packages/mcp/src/tools/find-gaps.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-A41B8718B7AD
+    title: FindGapsArgs
+    status: active
+    sourceFile: packages/mcp/src/tools/find-gaps.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-2847B9215642
+    title: FindGapsResult
+    status: active
+    sourceFile: packages/mcp/src/tools/find-gaps.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-102F79E615A0
+    title: handleKbGraph
+    status: active
+    sourceFile: packages/mcp/src/tools/graph.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-2AED513565C7
+    title: GraphArgs
+    status: active
+    sourceFile: packages/mcp/src/tools/graph.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-F8534C607C20
+    title: GraphResult
+    status: active
+    sourceFile: packages/mcp/src/tools/graph.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-4682A3D1BEB4
+    title: SearchArgs
+    status: active
+    sourceFile: packages/mcp/src/tools/search.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-mcp-search-discovery
+  - id: SYM-auto-B722155D82DD
+    title: SearchResult
+    status: active
+    sourceFile: packages/mcp/src/tools/search.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-mcp-search-discovery
+  - id: SYM-auto-D6D87A820746
+    title: EnginePort
+    status: active
+    sourceFile: packages/runtime/src/engine.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-2A53383A4D89
+    title: EngineCommandV1
+    status: active
+    sourceFile: packages/runtime/src/engine.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-EBFD345AA32E
+    title: skillsListSpec
+    status: active
+    sourceFile: packages/runtime/src/skill-operations.ts
+    symbol_role: unknown
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-2024D0C211DD
+    title: skillsLoadSpec
+    status: active
+    sourceFile: packages/runtime/src/skill-operations.ts
+    symbol_role: unknown
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-FDB3234DFBC2
+    title: skillsReadSpec
+    status: active
+    sourceFile: packages/runtime/src/skill-operations.ts
+    symbol_role: unknown
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-auto-61AB23FEF699
+    title: setBundledSkillsDir
+    status: active
+    sourceFile: packages/runtime/src/skill-system/loader.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-auto-D290A037F617
+    title: resetBundledSkillsDir
+    status: active
+    sourceFile: packages/runtime/src/skill-system/loader.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-auto-87E4086AAAB1
+    title: listBundledSkills
+    status: active
+    sourceFile: packages/runtime/src/skill-system/loader.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-auto-4411F1CA4EE0
+    title: loadBundledSkill
+    status: active
+    sourceFile: packages/runtime/src/skill-system/loader.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-auto-D498ACFE9198
+    title: loadBundledSkillFrom
+    status: active
+    sourceFile: packages/runtime/src/skill-system/loader.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-auto-13239C566F5C
+    title: readBundledSkillResource
+    status: active
+    sourceFile: packages/runtime/src/skill-system/loader.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-auto-355E3C5D09BA
+    title: readBundledSkillResourceFrom
+    status: active
+    sourceFile: packages/runtime/src/skill-system/loader.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
+      - type: implements
+        target: REQ-reusable-skill-subsystem

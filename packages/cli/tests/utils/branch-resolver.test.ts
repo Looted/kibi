@@ -552,7 +552,9 @@ describe("branch-resolver", () => {
       const result = resolveDefaultBranch(tmpDir, { defaultBranch: "trunk" });
 
       expect("error" in result).toBe(true);
-      expect((result as { error: string }).error).toContain("No remote default branch");
+      expect((result as { error: string }).error).toContain(
+        "No remote default branch",
+      );
     });
 
     test("does not use configured branch names with slashes", () => {
@@ -569,7 +571,9 @@ describe("branch-resolver", () => {
       });
 
       expect("error" in result).toBe(true);
-      expect((result as { error: string }).error).toContain("No remote default branch");
+      expect((result as { error: string }).error).toContain(
+        "No remote default branch",
+      );
     });
 
     test("returns origin/HEAD branch when config not set", () => {

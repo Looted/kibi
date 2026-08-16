@@ -64,9 +64,7 @@ describe("skills CLI and MCP parity", () => {
     // Then: it emits the shared load payload without transport errors.
     expect(exitCode, stderr).toBe(0);
     expect(JSON.parse(stdout)).toMatchObject({
-      data: { metadata: { id: "kibi-usage" },
-      sourceType: "bundled",
-      },
+      data: { metadata: { id: "kibi-usage" }, sourceType: "bundled" },
     });
   });
 });

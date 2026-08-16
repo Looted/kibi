@@ -1,0 +1,15 @@
+relationships:
+  - id: rel-4b0fe3cfd269
+    type: implements
+    from: SYM-skillopt-read-bridge-result
+    to: REQ-skillopt-codex-optimization
+    created_at: "2026-08-16T07:14:11.913Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-skillopt-read-bridge-result
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-16T07:14:11.914Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee195b650d52

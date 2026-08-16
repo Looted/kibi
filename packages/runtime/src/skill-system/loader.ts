@@ -18,10 +18,12 @@ import {
   assertMaxBytes,
   parseSkillBundle,
 } from "./validation.js";
-const defaultBundledSkillsDir = resolve(
-  dirname(fileURLToPath(import.meta.url)),
-  "../skills",
-);
+const moduleDir = dirname(fileURLToPath(import.meta.url));
+// Source tests load this module from src/skill-system, while the published
+// bundle inlines it into dist/index.js and copies assets to dist/skills.
+const defaultBundledSkillsDir = existsSync(resolve(moduleDir, "skills"))
+  ? resolve(moduleDir, "skills")
+  : resolve(moduleDir, "../skills");
 let bundledSkillsDir = defaultBundledSkillsDir;
 export function setBundledSkillsDir(dir: string): void {
   bundledSkillsDir = dir;

@@ -131,7 +131,9 @@ if (RUN_NODE_TEST_SUITE) {
       assert.ok(/\d+ entities/.test(stdout));
 
       assert.ok(
-        existsSync(join(exactBranchStorePath(sandbox.repoDir, "develop"), "kb.rdf")),
+        existsSync(
+          join(exactBranchStorePath(sandbox.repoDir, "develop"), "kb.rdf"),
+        ),
         "RDF file should be created",
       );
     });

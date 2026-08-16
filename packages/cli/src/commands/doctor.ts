@@ -141,9 +141,15 @@ async function packageMigrationActions(
       }),
     );
   }
-  const cliVersion = typeof runtime.cliVersion === "string" ? runtime.cliVersion : "unknown";
-  const mcpCliRange = typeof runtime.mcpCliRange === "string" ? runtime.mcpCliRange : "unknown";
-  if (cliVersion !== "unknown" && mcpCliRange !== "unknown" && !satisfiesCaretRange(cliVersion, mcpCliRange)) {
+  const cliVersion =
+    typeof runtime.cliVersion === "string" ? runtime.cliVersion : "unknown";
+  const mcpCliRange =
+    typeof runtime.mcpCliRange === "string" ? runtime.mcpCliRange : "unknown";
+  if (
+    cliVersion !== "unknown" &&
+    mcpCliRange !== "unknown" &&
+    !satisfiesCaretRange(cliVersion, mcpCliRange)
+  ) {
     actions.push(
       migrationAction({
         id: "package-mcp-cli-range-mismatch",
@@ -191,7 +197,10 @@ function satisfiesCaretRange(version: string, range: string): boolean {
   const aMajor = Number(actual[1]);
   const aMinor = Number(actual[2]);
   const aPatch = Number(actual[3]);
-  return aMajor === major && (aMinor > minor || (aMinor === minor && aPatch >= patch));
+  return (
+    aMajor === major &&
+    (aMinor > minor || (aMinor === minor && aPatch >= patch))
+  );
 }
 
 async function runtimeProvenance(): Promise<Record<string, unknown>> {
@@ -215,7 +224,8 @@ async function runtimeProvenance(): Promise<Record<string, unknown>> {
   let executeApplyPlanExported: boolean | undefined;
   try {
     const operations = await import("../public/operations/index.js");
-    executeApplyPlanExported = typeof operations.executeApplyPlan === "function";
+    executeApplyPlanExported =
+      typeof operations.executeApplyPlan === "function";
   } catch {
     executeApplyPlanExported = false;
   }

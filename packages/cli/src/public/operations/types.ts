@@ -106,3 +106,13 @@ export interface OperationSpec<
     ): Promise<OperationResult<O>>;
   }["bivarianceHack"];
 }
+
+/** A catalog spec after its generated machine contract has been attached. */
+export type ResolvedOperationSpec<
+  I = Readonly<Record<string, unknown>>,
+  O = unknown,
+> = OperationSpec<I, O> & {
+  readonly declaredEffects: readonly OperationEffectDeclaration[];
+  readonly resultVersion: string;
+  readonly outputSchema: Readonly<Record<string, unknown>>;
+};

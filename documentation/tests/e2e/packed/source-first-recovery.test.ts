@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { existsSync, readFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 import {
@@ -27,21 +27,30 @@ if (RUN_NODE_TEST_SUITE) {
     let sandbox: TestSandbox;
     let hasProlog = false;
 
-    before(async () => {
-      hasProlog = checkPrologAvailable();
-      if (hasProlog) tarballs = await packAll();
-    }, { timeout: 120000 });
+    before(
+      async () => {
+        hasProlog = checkPrologAvailable();
+        if (hasProlog) tarballs = await packAll();
+      },
+      { timeout: 120000 },
+    );
 
-    beforeEach(async () => {
-      if (!hasProlog) return;
-      sandbox = createSandbox();
-      await sandbox.install(tarballs);
-      await sandbox.initGitRepo();
-    }, { timeout: 120000 });
+    beforeEach(
+      async () => {
+        if (!hasProlog) return;
+        sandbox = createSandbox();
+        await sandbox.install(tarballs);
+        await sandbox.initGitRepo();
+      },
+      { timeout: 120000 },
+    );
 
-    afterEach(async () => {
-      if (sandbox) await sandbox.cleanup();
-    }, { timeout: 120000 });
+    afterEach(
+      async () => {
+        if (sandbox) await sandbox.cleanup();
+      },
+      { timeout: 120000 },
+    );
 
     it("compiles tracked source and refuses arbitrary untracked input", async () => {
       if (!hasProlog) return;
@@ -49,7 +58,12 @@ if (RUN_NODE_TEST_SUITE) {
       createMarkdownFile(
         sandbox,
         "documentation/requirements/REQ-SOURCE-FIRST-E2E.md",
-        { id: "REQ-SOURCE-FIRST-E2E", title: "Source-first proof", type: "req", status: "open" },
+        {
+          id: "REQ-SOURCE-FIRST-E2E",
+          title: "Source-first proof",
+          type: "req",
+          status: "open",
+        },
         "The source file is authoritative.",
       );
       const first = await kibi(sandbox, ["sync"]);
@@ -58,9 +72,15 @@ if (RUN_NODE_TEST_SUITE) {
       assert.strictEqual(query.exitCode, 0, query.stderr);
       assert.match(query.stdout, /REQ-SOURCE-FIRST-E2E/);
 
-      const untracked = join(sandbox.repoDir, "documentation/requirements/REQ-UNTRACKED-E2E.md");
+      const untracked = join(
+        sandbox.repoDir,
+        "documentation/requirements/REQ-UNTRACKED-E2E.md",
+      );
       mkdirSync(join(untracked, ".."), { recursive: true });
-      writeFileSync(untracked, "---\nid: REQ-UNTRACKED-E2E\ntype: req\ntitle: Untracked\n---\n");
+      writeFileSync(
+        untracked,
+        "---\nid: REQ-UNTRACKED-E2E\ntype: req\ntitle: Untracked\n---\n",
+      );
       const second = await kibi(sandbox, ["sync"]);
       assert.strictEqual(second.exitCode, 0, second.stderr);
       const after = await kibi(sandbox, ["query", "req", "--format", "json"]);
@@ -68,11 +88,17 @@ if (RUN_NODE_TEST_SUITE) {
       assert.doesNotMatch(after.stdout, /REQ-UNTRACKED-E2E/);
 
       const trackedContent = readFileSync(
-        join(sandbox.repoDir, "documentation/requirements/REQ-SOURCE-FIRST-E2E.md"),
+        join(
+          sandbox.repoDir,
+          "documentation/requirements/REQ-SOURCE-FIRST-E2E.md",
+        ),
         "utf8",
       );
       assert.match(trackedContent, /The source file is authoritative/);
-      await run("git", ["status", "--short"], { cwd: sandbox.repoDir, env: sandbox.env });
+      await run("git", ["status", "--short"], {
+        cwd: sandbox.repoDir,
+        env: sandbox.env,
+      });
       assert.ok(existsSync(join(sandbox.repoDir, ".kb", "branches")));
     });
   });

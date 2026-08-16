@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CANONICAL_SKILLS } from "./catalog";
 import {
   JsonValueSchema,
   Sha256Schema,
@@ -8,7 +9,6 @@ import {
 } from "./contracts/common";
 import type { FrozenCandidateHashes } from "./fixtures/predicate-corpus";
 import { type CorpusRoots, RootsSchema } from "./real-workflow-types";
-import { CANONICAL_SKILLS } from "./catalog";
 
 const Variants = ["baseline", "one-shot", "skillopt"] as const;
 const Replicates = [1, 2, 3] as const;
@@ -21,7 +21,7 @@ const CandidateHashesSchema = z
   .strict();
 const GenericCellSchema = z
   .object({
-    caseId: z.literal("HELD_OUT_CASE"),
+    caseId: z.string().min(1),
     variant: z.enum(Variants),
     replicate: z.union([z.literal(1), z.literal(2), z.literal(3)]),
   })
@@ -38,7 +38,10 @@ const ReservationSchema = z
     roots: RootsSchema,
     candidateHashes: CandidateHashesSchema,
     heldOutCaseIds: z.array(z.string().min(1)).min(1),
-    cells: z.array(GenericCellSchema).length(36),
+    // The matrix is scoped to the selected canonical skill. Predicate-only
+    // reservations have 4 cases (36 cells); other skills may reserve their
+    // full held-out case set without changing the envelope version.
+    cells: z.array(GenericCellSchema).min(1),
     fixtureClaimRoot: Sha256Schema,
     catalogRoot: Sha256Schema,
     corpusRoot: Sha256Schema,
@@ -142,11 +145,15 @@ function matrixId(
   ].join("-");
 }
 
-function genericCells(): readonly z.infer<typeof GenericCellSchema>[] {
+function genericCells(
+  caseIds: readonly string[],
+): readonly z.infer<typeof GenericCellSchema>[] {
   return Variants.flatMap((variant) =>
     Replicates.flatMap((replicate) =>
-      Array.from({ length: 4 }, () => ({
-        caseId: "HELD_OUT_CASE" as const,
+      caseIds.map((caseId) => ({
+        // The reservation intentionally carries opaque case identities only;
+        // private evaluators bind the real task claims later.
+        caseId,
         variant,
         replicate,
       })),
@@ -155,7 +162,7 @@ function genericCells(): readonly z.infer<typeof GenericCellSchema>[] {
 }
 
 function assertHeldOutCaseIds(caseIds: readonly string[]): void {
-  if (caseIds.length !== 4 || new Set(caseIds).size !== 4) {
+  if (caseIds.length < 4 || new Set(caseIds).size !== caseIds.length) {
     throw new HeldOutEvidenceError("held_out_reservation_invalid");
   }
 }
@@ -175,7 +182,7 @@ export function buildHeldOutReservation(
     roots: binding.roots,
     candidateHashes: binding.candidateHashes,
     heldOutCaseIds: [...binding.heldOutCaseIds],
-    cells: genericCells(),
+    cells: genericCells(binding.heldOutCaseIds),
     fixtureClaimRoot: binding.fixtureClaimRoot,
     catalogRoot: binding.roots.catalog,
     corpusRoot: binding.roots.corpus,

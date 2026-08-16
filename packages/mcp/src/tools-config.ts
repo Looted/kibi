@@ -126,13 +126,15 @@ const TOOL_ANNOTATIONS: Partial<Record<OperationName, ToolAnnotations>> = {
 
 const BASE_TOOLS: readonly ToolConfig[] = MCP_TOOL_ORDER.map((name) => {
   const spec = getSpec(name);
-  const effects = spec.declaredEffects ?? spec.effects.map((kind) => ({
-    kind,
-    mutability: "read" as const,
-    destructive: false,
-    retrySafety: "safe" as const,
-    openWorld: kind === "network-read",
-  }));
+  const effects =
+    spec.declaredEffects ??
+    spec.effects.map((kind) => ({
+      kind,
+      mutability: "read" as const,
+      destructive: false,
+      retrySafety: "safe" as const,
+      openWorld: kind === "network-read",
+    }));
   const derived: ToolAnnotations = {
     readOnlyHint: effects.every((effect) => effect.mutability === "read"),
     destructiveHint: effects.some((effect) => effect.destructive),

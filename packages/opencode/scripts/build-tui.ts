@@ -19,7 +19,7 @@ const result = await build({
   },
   minify: false,
   sourcemap: "none",
-  external: ["@opencode-ai/*", "@opentui/*", "kibi-cli"],
+  external: ["@opencode-ai/*", "@opentui/*"],
 });
 
 if (!result.success) {

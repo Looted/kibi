@@ -160,7 +160,7 @@ export function buildStructuredContent(input: {
           linkedEntities: input.impactResult.linkedEntities,
           nextActions: input.impactResult.nextActions,
         }
-        : {}),
+      : {}),
     ...(input.migrationPlan !== undefined
       ? { migrationPlan: input.migrationPlan }
       : {}),

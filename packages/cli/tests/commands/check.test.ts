@@ -888,10 +888,9 @@ links:
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const rdfPath = path.join(
-        (await import("../../src/utils/branch-store-locator.js")).branchStorePath(
-          tmpDir,
-          "main",
-        ),
+        (
+          await import("../../src/utils/branch-store-locator.js")
+        ).branchStorePath(tmpDir, "main"),
         "kb.rdf",
       );
       const before = readFileSync(rdfPath, "utf8");
@@ -2010,10 +2009,13 @@ source: documentation/requirements/REQ-CUSTOM-001.md
 `,
       );
       // Coordinate refresh follows Git's tracked-source boundary.
-      execSync("git add src/app.ts custom/my-symbols.yaml custom/symbols.yaml documentation/requirements/REQ-CUSTOM-001.md", {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
+      execSync(
+        "git add src/app.ts custom/my-symbols.yaml custom/symbols.yaml documentation/requirements/REQ-CUSTOM-001.md",
+        {
+          cwd: tmpDir,
+          stdio: "pipe",
+        },
+      );
       execSync(`bun ${kibiBin} sync --refresh-symbol-coordinates`, {
         cwd: tmpDir,
         stdio: "pipe",

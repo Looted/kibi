@@ -1,0 +1,15 @@
+relationships:
+  - id: rel-4dd023677384
+    type: implements
+    from: SYM-skillopt-bridge-row
+    to: REQ-skillopt-logical-evidence-fidelity
+    created_at: "2026-08-15T22:44:14.705Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-skillopt-bridge-row
+    to: TEST-skillopt-logical-evidence-fidelity
+    created_at: 2026-08-15T22:44:14.706Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8eb023fcefc4

@@ -395,7 +395,9 @@ export function deriveDiagnosticFields(
             (effect as Record<string, unknown>).status === "failed",
         )
       : [];
-    fields.followed_next_actions = Array.isArray(telemetry?.followed_next_actions)
+    fields.followed_next_actions = Array.isArray(
+      telemetry?.followed_next_actions,
+    )
       ? telemetry.followed_next_actions
       : [];
     fields.unsafe_original_retry = telemetry?.unsafe_original_retry === true;

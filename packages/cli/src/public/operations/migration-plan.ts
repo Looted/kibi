@@ -9,11 +9,7 @@ import {
 export const MIGRATION_PLAN_VERSION = "kibi.migration-plan.v2" as const;
 
 export type MigrationActionState = "ready" | "blocked";
-export type MigrationSafety =
-  | "automatic"
-  | "review"
-  | "operator"
-  | "execution";
+export type MigrationSafety = "automatic" | "review" | "operator" | "execution";
 export type MigrationDisposition = "fixed" | "accepted" | "deferred";
 
 export type MigrationInvocation =
@@ -101,12 +97,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function stableValue(value: unknown, root = true): unknown {
-  if (Array.isArray(value)) return value.map((entry) => stableValue(entry, false));
+  if (Array.isArray(value))
+    return value.map((entry) => stableValue(entry, false));
   if (!isRecord(value)) return value;
   return Object.fromEntries(
     Object.entries(value)
       .filter(([key]) =>
-        root ? key !== "planHash" && key !== "status" && key !== "summary" : key !== "planHash",
+        root
+          ? key !== "planHash" && key !== "status" && key !== "summary"
+          : key !== "planHash",
       )
       .sort(([left], [right]) => left.localeCompare(right))
       .map(([key, item]) => [key, stableValue(item, false)]),
@@ -134,7 +133,9 @@ function actionSort(left: MigrationAction, right: MigrationAction): number {
 }
 
 /** Return actions in a deterministic dependency-first order for agents and the applier. */
-function dependencyOrder(actions: readonly MigrationAction[]): MigrationAction[] {
+function dependencyOrder(
+  actions: readonly MigrationAction[],
+): MigrationAction[] {
   const byId = new Map(actions.map((action) => [action.id, action]));
   const remaining = new Map(
     actions.map((action) => [
@@ -156,18 +157,31 @@ function dependencyOrder(actions: readonly MigrationAction[]): MigrationAction[]
     if (action === undefined) continue;
     ordered.push(action);
     for (const [candidateId, dependencies] of remaining) {
-      if (!dependencies.delete(id) || dependencies.size !== 0 || queued.has(candidateId)) {
+      if (
+        !dependencies.delete(id) ||
+        dependencies.size !== 0 ||
+        queued.has(candidateId)
+      ) {
         continue;
       }
       ready.push(candidateId);
       queued.add(candidateId);
-      ready.sort((left, right) => actionSort(byId.get(left)!, byId.get(right)!));
+      ready.sort((left, right) => {
+        const leftAction = byId.get(left);
+        const rightAction = byId.get(right);
+        if (leftAction === undefined || rightAction === undefined) {
+          return left.localeCompare(right);
+        }
+        return actionSort(leftAction, rightAction);
+      });
     }
   }
   // Preserve cyclic/missing-dependency actions in canonical order; validation will block them.
   if (ordered.length !== actions.length) {
     const emitted = new Set(ordered.map((action) => action.id));
-    ordered.push(...actions.filter((action) => !emitted.has(action.id)).sort(actionSort));
+    ordered.push(
+      ...actions.filter((action) => !emitted.has(action.id)).sort(actionSort),
+    );
   }
   return ordered;
 }
@@ -208,7 +222,11 @@ export function buildMigrationPlan(input: PlanInput = {}): MigrationPlan {
   const body = {
     version: MIGRATION_PLAN_VERSION,
     expected,
-    scope: { evaluatedDomains, incompleteDomains, complete: incompleteDomains.length === 0 },
+    scope: {
+      evaluatedDomains,
+      incompleteDomains,
+      complete: incompleteDomains.length === 0,
+    },
     actions,
     diagnostics: [...(input.diagnostics ?? [])].sort(),
   };
@@ -321,7 +339,9 @@ export function buildActionsFromCheck(input: {
       }),
     );
   }
-  for (const [index, diagnostic] of (input.qualityDiagnostics ?? []).entries()) {
+  for (const [index, diagnostic] of (
+    input.qualityDiagnostics ?? []
+  ).entries()) {
     const id = typeof diagnostic.id === "string" ? diagnostic.id : "quality";
     const entityId =
       typeof diagnostic.entityId === "string" ? diagnostic.entityId : "";
@@ -339,7 +359,9 @@ export function buildActionsFromCheck(input: {
         invocation: { kind: "review", instruction: suggestion },
         affectedEntityIds: entityId ? [entityId] : [],
         affectedFiles: Array.isArray(diagnostic.files)
-          ? diagnostic.files.filter((value): value is string => typeof value === "string")
+          ? diagnostic.files.filter(
+              (value): value is string => typeof value === "string",
+            )
           : [],
         evidence: { diagnostic },
         dispositionRequired: true,
@@ -360,21 +382,40 @@ export function buildActionsFromCoverage(input: {
   for (const batch of batches) {
     const id = typeof batch.id === "string" ? batch.id : "repair-batch";
     const phase = typeof batch.phase === "string" ? batch.phase : "review";
-    const req = typeof batch.requirementId === "string" ? batch.requirementId : "";
+    const req =
+      typeof batch.requirementId === "string" ? batch.requirementId : "";
     const ready = batch.state === "ready";
     const automatic = phase === "source_coordinates";
     actions.push(
       migrationAction({
         id: `coverage-${id}`,
         code: `coverage_${phase}`,
-        category: phase === "verification_evidence" ? "verification" : "semantic",
+        category:
+          phase === "verification_evidence" ? "verification" : "semantic",
         state: ready ? "ready" : "blocked",
-        safety: automatic ? "automatic" : phase === "verification_evidence" ? "execution" : "review",
+        safety: automatic
+          ? "automatic"
+          : phase === "verification_evidence"
+            ? "execution"
+            : "review",
         invocation: automatic
-          ? { kind: "cli", command_argv: ["kibi", "sync", "--refresh-symbol-coordinates"] }
-          : { kind: "review", instruction: typeof batch.objective === "string" ? batch.objective : "Apply the dependency-ordered coverage repair batch." },
+          ? {
+              kind: "cli",
+              command_argv: ["kibi", "sync", "--refresh-symbol-coordinates"],
+            }
+          : {
+              kind: "review",
+              instruction:
+                typeof batch.objective === "string"
+                  ? batch.objective
+                  : "Apply the dependency-ordered coverage repair batch.",
+            },
         affectedEntityIds: req ? [req] : [],
-        dependsOn: Array.isArray(batch.dependsOn) ? batch.dependsOn.filter((value): value is string => typeof value === "string").map((value) => `coverage-${value}`) : [],
+        dependsOn: Array.isArray(batch.dependsOn)
+          ? batch.dependsOn
+              .filter((value): value is string => typeof value === "string")
+              .map((value) => `coverage-${value}`)
+          : [],
         evidence: { batch },
         autoApplicable: automatic && ready,
         dispositionRequired: !automatic,
@@ -385,7 +426,8 @@ export function buildActionsFromCoverage(input: {
     ? input.symbolRepairPlan.repairs.filter(isRecord)
     : [];
   for (const repair of repairs) {
-    const symbolId = typeof repair.symbolId === "string" ? repair.symbolId : "symbol";
+    const symbolId =
+      typeof repair.symbolId === "string" ? repair.symbolId : "symbol";
     const action = typeof repair.action === "string" ? repair.action : "review";
     const automatic = action === "refresh_coordinates";
     actions.push(
@@ -395,8 +437,14 @@ export function buildActionsFromCoverage(input: {
         category: "symbol",
         safety: automatic ? "automatic" : "review",
         invocation: automatic
-          ? { kind: "cli", command_argv: ["kibi", "sync", "--refresh-symbol-coordinates"] }
-          : { kind: "review", instruction: `Review ${action} for ${symbolId} using current extraction and Git evidence.` },
+          ? {
+              kind: "cli",
+              command_argv: ["kibi", "sync", "--refresh-symbol-coordinates"],
+            }
+          : {
+              kind: "review",
+              instruction: `Review ${action} for ${symbolId} using current extraction and Git evidence.`,
+            },
         affectedEntityIds: [symbolId],
         evidence: { repair },
         autoApplicable: automatic,
@@ -442,7 +490,8 @@ export function readMigrationConfigStatus(
     return {
       ...status,
       configHash: null,
-      warning: "KB config.json is invalid JSON and must be repaired before migration.",
+      warning:
+        "KB config.json is invalid JSON and must be repaired before migration.",
     };
   }
 }
@@ -464,11 +513,16 @@ export function buildActionsFromStatus(input: {
   const store = input.branchStore;
   const configStatus =
     input.configStatus ?? readMigrationConfigStatus(input.workspaceRoot);
-  const branch = typeof attachment?.gitBranch === "string" ? attachment.gitBranch : null;
-  const kbBranch = typeof attachment?.kbBranch === "string" ? attachment.kbBranch : null;
+  const branch =
+    typeof attachment?.gitBranch === "string" ? attachment.gitBranch : null;
+  const kbBranch =
+    typeof attachment?.kbBranch === "string" ? attachment.kbBranch : null;
 
   if (attachment?.migrationRequired === true) {
-    const legacy = attachment.kind === "legacy_compat" && typeof branch === "string" && typeof kbBranch === "string";
+    const legacy =
+      attachment.kind === "legacy_compat" &&
+      typeof branch === "string" &&
+      typeof kbBranch === "string";
     actions.push(
       migrationAction({
         id: "branch-legacy-attachment",
@@ -477,9 +531,29 @@ export function buildActionsFromStatus(input: {
         state: legacy ? "ready" : "blocked",
         safety: legacy ? "automatic" : "operator",
         invocation: legacy
-          ? { kind: "cli", command_argv: ["kibi", "branch", "migrate", "--from", kbBranch as string, "--to", branch as string, "--apply"] }
-          : { kind: "review", instruction: "Resolve branch and KB provenance explicitly; Kibi will not guess or rename Git branches." },
-        affectedFiles: [typeof attachment.storePath === "string" ? attachment.storePath : ".kb/branches"],
+          ? {
+              kind: "cli",
+              command_argv: [
+                "kibi",
+                "branch",
+                "migrate",
+                "--from",
+                kbBranch as string,
+                "--to",
+                branch as string,
+                "--apply",
+              ],
+            }
+          : {
+              kind: "review",
+              instruction:
+                "Resolve branch and KB provenance explicitly; Kibi will not guess or rename Git branches.",
+            },
+        affectedFiles: [
+          typeof attachment.storePath === "string"
+            ? attachment.storePath
+            : ".kb/branches",
+        ],
         evidence: { attachment },
         autoApplicable: legacy,
         dispositionRequired: !legacy,
@@ -496,7 +570,9 @@ export function buildActionsFromStatus(input: {
         category: "storage",
         safety: "automatic",
         invocation: { kind: "cli", command_argv: ["kibi", "branch", "ensure"] },
-        affectedFiles: [typeof store?.path === "string" ? store.path : ".kb/branches"],
+        affectedFiles: [
+          typeof store?.path === "string" ? store.path : ".kb/branches",
+        ],
         evidence: { store },
         autoApplicable: true,
       }),
@@ -508,8 +584,13 @@ export function buildActionsFromStatus(input: {
         code: "damaged_exact_branch_store",
         category: "storage",
         safety: "automatic",
-        invocation: { kind: "cli", command_argv: ["kibi", "branch", "recover", "--apply"] },
-        affectedFiles: [typeof store?.path === "string" ? store.path : ".kb/branches"],
+        invocation: {
+          kind: "cli",
+          command_argv: ["kibi", "branch", "recover", "--apply"],
+        },
+        affectedFiles: [
+          typeof store?.path === "string" ? store.path : ".kb/branches",
+        ],
         evidence: { store, backupRequired: true },
         autoApplicable: true,
       }),
@@ -520,15 +601,17 @@ export function buildActionsFromStatus(input: {
     actions.push(
       migrationAction({
         id: "schema-config-upgrade",
-        code: configStatus.status === "invalid" ? "invalid_schema_version" : "schema_version_upgrade",
+        code:
+          configStatus.status === "invalid"
+            ? "invalid_schema_version"
+            : "schema_version_upgrade",
         category: "schema",
         state: configStatus.status === "newer" ? "blocked" : "ready",
         safety: configStatus.status === "newer" ? "operator" : "automatic",
         invocation: { kind: "cli", command_argv: ["kibi", "migrate", "--yes"] },
         affectedFiles: [".kb/config.json", ".kb/migrations"],
         evidence: { configStatus },
-        dependsOn:
-          storeState === "missing" ? ["branch-store-ensure"] : [],
+        dependsOn: storeState === "missing" ? ["branch-store-ensure"] : [],
         autoApplicable: configStatus.status !== "newer",
       }),
     );
@@ -543,7 +626,13 @@ export function buildActionsFromStatus(input: {
         code,
         category: "freshness",
         safety: "review",
-        invocation: { kind: "review", instruction: typeof reason.remediation === "string" ? reason.remediation : "Refresh or reconcile the stale source, then run kibi sync and read back status." },
+        invocation: {
+          kind: "review",
+          instruction:
+            typeof reason.remediation === "string"
+              ? reason.remediation
+              : "Refresh or reconcile the stale source, then run kibi sync and read back status.",
+        },
         affectedFiles: file ? [file] : [],
         evidence: { reason },
         dispositionRequired: true,
@@ -557,7 +646,11 @@ export function buildActionsFromStatus(input: {
         code: "verification_snapshot_unavailable",
         category: "verification",
         safety: "operator",
-        invocation: { kind: "review", instruction: "Use a runtime that can compute a workspace verification snapshot before claiming proof." },
+        invocation: {
+          kind: "review",
+          instruction:
+            "Use a runtime that can compute a workspace verification snapshot before claiming proof.",
+        },
         evidence: { verificationSnapshotAvailable: false },
         dispositionRequired: true,
       }),
@@ -569,19 +662,24 @@ export function buildActionsFromStatus(input: {
         code: "verification_snapshot_dirty",
         category: "verification",
         safety: "review",
-        invocation: { kind: "review", instruction: "Resolve or intentionally record the listed dirty workspace paths before reusing or creating proof receipts." },
+        invocation: {
+          kind: "review",
+          instruction:
+            "Resolve or intentionally record the listed dirty workspace paths before reusing or creating proof receipts.",
+        },
         evidence: { verificationSnapshotDirty: true },
         dispositionRequired: true,
       }),
     );
   }
 
-  const incompleteDomains = actions.some((action) =>
-    action.code === "damaged_exact_branch_store" ||
-    action.code === "ambiguous_branch_attachment" ||
-    action.code === "missing_exact_branch_store" ||
-    action.code === "schema_version_upgrade" ||
-    action.code === "invalid_schema_version",
+  const incompleteDomains = actions.some(
+    (action) =>
+      action.code === "damaged_exact_branch_store" ||
+      action.code === "ambiguous_branch_attachment" ||
+      action.code === "missing_exact_branch_store" ||
+      action.code === "schema_version_upgrade" ||
+      action.code === "invalid_schema_version",
   )
     ? ["kb"]
     : [];
@@ -593,7 +691,14 @@ export function buildActionsFromStatus(input: {
       workspaceSnapshot: input.workspaceSnapshot ?? null,
       configHash: configStatus.configHash,
     },
-    evaluatedDomains: ["package", "branch", "storage", "schema", "freshness", "verification"],
+    evaluatedDomains: [
+      "package",
+      "branch",
+      "storage",
+      "schema",
+      "freshness",
+      "verification",
+    ],
     incompleteDomains,
     actions,
   });

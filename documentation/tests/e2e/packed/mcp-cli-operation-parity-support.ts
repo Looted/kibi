@@ -28,8 +28,16 @@ export function canonicalSchema(value: unknown): unknown {
     record.properties && typeof record.properties === "object"
       ? (record.properties as JsonRecord)
       : undefined;
-  const hasProperties = properties !== undefined && Object.keys(properties).length > 0;
+  const hasProperties =
+    properties !== undefined && Object.keys(properties).length > 0;
   const variants = Array.isArray(record.anyOf) ? record.anyOf : [];
+  const unionTypes = variants.map((variant) => {
+    if (variant === null || typeof variant !== "object") return undefined;
+    const type = (variant as JsonRecord).type;
+    return typeof type === "string" ? type : undefined;
+  });
+  const isSimpleTypeUnion =
+    variants.length > 1 && unionTypes.every((type) => type !== undefined);
   const constants = variants.flatMap((variant) => {
     if (variant === null || typeof variant !== "object") return [];
     const constant = (variant as JsonRecord).const;
@@ -71,6 +79,13 @@ export function canonicalSchema(value: unknown): unknown {
         // metadata on nested output-schema nodes. The catalog fixture already
         // checks the enum itself; ignore this representation-only widening.
         if (key === "type" && entry === "string") return false;
+        if (
+          key === "type" &&
+          ((constants.length === variants.length && constants.length > 0) ||
+            typeof record.const === "string")
+        ) {
+          return false;
+        }
         return key !== "anyOf" && key !== "const";
       })
       .map(([key, entry]) => [
@@ -84,15 +99,15 @@ export function canonicalSchema(value: unknown): unknown {
     // A const/enum string branch is represented by the enum itself in the
     // frozen catalog. The MCP bridge may add `type: string`, but that is
     // transport-only widening and must not make parity fail.
-    delete normalized.type;
     normalized.enum = constants;
   } else if (typeof record.const === "string") {
-    delete normalized.type;
     normalized.enum = [record.const];
   } else if (typeof record.const === "number") {
     // The MCP SDK's Zod bridge widens numeric JSON-Schema const values to a
     // numeric type; retain the same semantic shape for CLI/MCP parity.
     normalized.type = "number";
+  } else if (isSimpleTypeUnion) {
+    normalized.type = [...new Set(unionTypes)];
   }
   return normalized;
 }

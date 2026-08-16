@@ -1,8 +1,8 @@
 /**
- * Narrow first-party runtime surface. MCP and CLI remain the public third-party
- * interfaces; this package is for Kibi's own adapters and keeps the shared
- * operation catalog, contexts, typed engine commands, and result envelope in
- * one versioned import location.
+ * Canonical first-party runtime surface. Adapters import this package rather
+ * than reaching through CLI implementation paths. The exports below are
+ * intentionally explicit: adding a CLI module does not silently widen the
+ * runtime package contract.
  */
 export type {
   Clock,
@@ -30,12 +30,134 @@ export type {
   OperationSpec,
 } from "kibi-cli/operations";
 export {
+  VALID_ENTITY_TYPES,
   OPERATION_CATALOG,
+  applyPlanSpec,
+  autopilotGenerateSpec,
+  checkSpec,
+  compileIntentSpec,
+  coverageSpec,
+  deleteSpec,
+  dedupeEntities,
+  executeApplyPlan,
+  executeAutopilotGenerate,
+  executeCompileIntent,
+  executeCoverage,
+  executeIngestVerification,
+  executeFindGaps,
+  executeGraph,
+  executeIntentSearch,
+  executeQuery,
+  executeSearch,
+  executeSemanticAdvisor,
+  executeStatus,
+  buildEntityGoal,
+  findGapsSpec,
   getSpec,
+  graphSpec,
+  ingestVerificationSpec,
+  loadEntities,
   listSpecs,
+  modelRequirementSpec,
+  nodeFilesystem,
+  nodeGit,
+  nodeNetwork,
+  paginateResults,
+  presentAutopilot,
+  querySpec,
+  searchSpec,
+  selectAutopilotCandidates,
+  semanticAdvisorSpec,
+  sparqlRemoteSpec,
+  statusSpec,
+  suggestPredicatesSpec,
+  upsertSpec,
+  validateEntityType,
+  validateUpsertSpec,
   withContractDefaults,
 } from "kibi-cli/operations";
-export { nodeFilesystem, nodeGit, nodeNetwork } from "kibi-cli/operations/node-ports";
+export {
+  skillsListSpec,
+  skillsLoadSpec,
+  skillsReadSpec,
+} from "./skill-operations.js";
+export type {
+  ActivationPolicy,
+  AutopilotBootstrapContext,
+  AutopilotGenerateArgs,
+  AutopilotGenerateResult,
+  Candidate,
+  DiscoverySummary,
+  SourceOnlySignal,
+  CoverageInput,
+  LegacyMigrationPlan,
+  MigrationPlan,
+  RepairPlan,
+  EntityQueryInput,
+} from "kibi-cli/operations";
+export type {
+  QueryInput,
+  QueryPayload,
+  SearchInput,
+  SearchPayload,
+  StatusInput,
+  StatusPayload,
+} from "kibi-cli/operations";
+export type {
+  ModelRequirementArgs,
+  ModelRequirementResult,
+} from "kibi-cli/operations/modeling/model-requirement";
+export {
+  estimateNormativeSignalConfidence,
+  extractRequirementClaim,
+  getWorkspaceMigrationWarning,
+  strictWriteSetToApplyPlan,
+  writeSetPrimaryEntityId,
+} from "kibi-cli/operations/modeling/model-requirement";
+export type {
+  SemanticAdvisorArgs,
+  SemanticAdvisorOperationResult,
+} from "kibi-cli/operations/semantic-advisor/types";
+export type {
+  SuggestPredicatesArgs,
+  SuggestPredicatesResult,
+} from "kibi-cli/operations/modeling/suggest-predicates";
+export type {
+  DeleteInput,
+  DeletePayload,
+  UpsertInput,
+  UpsertPayload,
+  ValidateUpsertPayload,
+  ValidatedUpsert,
+} from "kibi-cli/operations/mutation/types";
+export { executeDelete } from "kibi-cli/operations/mutation/delete";
+export { executeUpsert } from "kibi-cli/operations/mutation/upsert";
+export { validateUpsertInput } from "kibi-cli/operations/mutation/validation";
+export {
+  formatInvalidRelationshipError,
+  formatInvalidRelationshipTuple,
+  formatRelationshipSourceMismatch,
+  validateLiveRelationshipTargets,
+} from "kibi-cli/operations/mutation/relationships";
+export { setSymbolRefreshForTests } from "kibi-cli/operations/mutation/symbol-refresh";
+export {
+  modelRequirementClaims,
+  buildStrictWriteSet,
+} from "kibi-cli/public/check-types";
+export { analyzeChangedFileImpact } from "kibi-cli/public/impact-diagnostics";
+export {
+  DEFAULT_CHECKS_CONFIG,
+  RULE_NAMES,
+} from "kibi-cli/public/check-types";
+export type {
+  ChecksConfig,
+  StrictWriteSet,
+  Violation,
+} from "kibi-cli/public/check-types";
+export type {
+  ChangedFileImpactResult,
+  QualityDiagnostic,
+} from "kibi-cli/public/impact-diagnostics";
 export {
   branchStorePath,
   branchStoreManifestPath,
@@ -44,6 +166,9 @@ export {
   resolveActiveBranch,
   resolveBranchAttachment,
   isValidBranchName,
+  copyCleanSnapshot,
+  ensureBranchStoreManifest,
+  getBranchDiagnostic,
 } from "kibi-cli/public/branch-resolver";
 export {
   KIBI_PROTOCOL_VERSION,
@@ -53,35 +178,15 @@ export {
 } from "kibi-cli/operations/result-envelope";
 export * from "kibi-cli/public/branch-resolver";
 export { EngineClient, engineSocketPath } from "kibi-cli/engine";
+export { PrologProcess, resolveKbPlPath } from "kibi-cli/prolog";
+export {
+  escapeAtomContent,
+  splitTopLevel,
+} from "kibi-cli/prolog/codec";
 // The socket request envelope is intentionally not part of the runtime public
 // surface; adapters use EnginePort and EngineCommandV1 instead.
 export { createCliRuntime } from "kibi-cli/runtime/cli-runtime";
 
-/*
- * First-party adapters consume these implementation-facing ports through the
- * runtime boundary rather than reaching into kibi-cli's package subpaths.
- * kibi-runtime intentionally remains a first-party package; these exports are
- * the compatibility bridge while the engine/operation implementations are
- * moved behind the runtime in subsequent releases.
- */
-export * from "kibi-cli/operations";
-export * from "kibi-cli/operations/mutation/delete";
-export * from "kibi-cli/operations/mutation/upsert";
-export * from "kibi-cli/operations/mutation/relationships";
-export * from "kibi-cli/operations/mutation/symbol-refresh";
-export * from "kibi-cli/operations/mutation/types";
-export * from "kibi-cli/operations/mutation/validation";
-export * from "kibi-cli/operations/modeling/model-requirement";
-export * from "kibi-cli/operations/modeling/suggest-predicates";
-export * from "kibi-cli/operations/semantic-advisor/types";
-export * from "kibi-cli/prolog";
-export * from "kibi-cli/prolog/codec";
-export * from "kibi-cli/public/check-types";
-export * from "kibi-cli/public/impact-diagnostics";
-export * from "kibi-cli/ignore-policy";
-// Explicitly re-export the adapter-facing ignore policy. A named export keeps
-// packed TypeScript consumers stable even when declaration emit preserves
-// package subpath export stars.
 export { createRepoIgnorePolicy } from "kibi-cli/ignore-policy";
 export type { IgnorePolicy } from "kibi-cli/ignore-policy";
 export {
@@ -96,7 +201,16 @@ export {
   inferTypeFromPath,
 } from "kibi-cli/extractors/markdown";
 export type { ExtractionResult as MarkdownExtractionResult } from "kibi-cli/extractors/markdown";
-export * from "kibi-cli/extractors/symbols-coordinator";
+export {
+  analyzeSourceText,
+  enrichSymbolCoordinates,
+} from "kibi-cli/extractors/symbols-coordinator";
+export type {
+  ManifestSymbolEntry,
+  SourceAnalysisResult,
+  SourceModuleAnalysis,
+  SourceSymbolAnalysis,
+} from "kibi-cli/extractors/symbols-coordinator";
 
 /** Canonical bundled-skill registry used by first-party adapters. */
 export {

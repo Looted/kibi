@@ -4,10 +4,7 @@ import {
   executeAutopilotGenerate,
 } from "kibi-runtime";
 import { nodeFilesystem, nodeGit } from "kibi-runtime";
-import type {
-  OperationContext,
-  PrologPort,
-} from "kibi-runtime";
+import type { OperationContext, PrologPort } from "kibi-runtime";
 import { PrologProcess } from "kibi-runtime";
 
 import { resolveWorkspaceRoot } from "../workspace.js";
@@ -43,6 +40,15 @@ function isOperationContext(value: unknown): value is OperationContext {
   );
 }
 
+function isPrologProcess(value: unknown): value is PrologProcess {
+  return (
+    value instanceof PrologProcess ||
+    (value !== null &&
+      typeof value === "object" &&
+      typeof (value as { query?: unknown }).query === "function")
+  );
+}
+
 function adaptProlog(prolog: PrologProcess): PrologPort {
   return {
     query: (goal) => prolog.query(goal),
@@ -64,13 +70,13 @@ export async function handleKbAutopilotGenerate(
   first: AutopilotGenerateArgs | PrologProcess,
   second: AutopilotGenerateArgs | OperationContext,
 ): Promise<AutopilotGenerateResult> {
-  if (isOperationContext(second) && !(first instanceof PrologProcess))
+  if (isOperationContext(second) && !isPrologProcess(first))
     return executeAutopilotGenerate(first, {
       ...second,
       fs: second.fs ?? nodeFilesystem,
       git: second.git ?? nodeGit,
     });
-  if (!(first instanceof PrologProcess) || isOperationContext(second))
+  if (!isPrologProcess(first) || isOperationContext(second))
     throw new TypeError("Invalid autopilot adapter invocation");
   const testResult = await executeTestDependencies(first, second);
   if (testResult) return testResult;

@@ -20,3 +20,31 @@ relationships:
     created_at: "2026-08-15T12:41:40.307Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-skillopt-runtime-process-summary
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-15T23:12:22.393Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf0d8096cc6d
+  - type: covered_by
+    from: SYM-skillopt-runtime-process-summary
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-15T23:12:22.401Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c810a97461f
+  - type: implements
+    from: SYM-skillopt-bridge-visibility-error-name
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-16T07:13:30.695Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-372b2a0f95de
+  - type: covered_by
+    from: SYM-skillopt-bridge-visibility-error-name
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-16T07:13:30.708Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a2414f49b64

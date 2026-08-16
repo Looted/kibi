@@ -58,18 +58,54 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "description": "Typed kb_query result payload; operation-specific fields are preserved for forward compatibility.",
+            "additionalProperties": false,
+            "properties": {
+              "count": {
+                "type": "integer"
+              },
+              "entities": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "required": ["entities", "count"],
             "type": "object"
           },
           "diagnostics": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
               "type": "object"
             },
             "type": "array"
           },
           "effects": {
             "items": {
+              "additionalProperties": false,
               "properties": {
                 "detail": {},
                 "errorCode": {
@@ -85,9 +121,24 @@
               "required": ["kind", "status"],
               "type": "object"
             },
+            "minItems": 1,
             "type": "array"
           },
           "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
             "type": "object"
           },
           "kibiProtocol": {
@@ -95,6 +146,20 @@
           },
           "nextActions": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
               "type": "object"
             },
             "type": "array"
@@ -258,18 +323,55 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "description": "Typed kb_search result payload; operation-specific fields are preserved for forward compatibility.",
+            "additionalProperties": false,
+            "properties": {
+              "count": {
+                "type": "integer"
+              },
+              "queryAnalysis": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "results": {
+                "items": {},
+                "type": "array"
+              }
+            },
+            "required": ["results", "count"],
             "type": "object"
           },
           "diagnostics": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
               "type": "object"
             },
             "type": "array"
           },
           "effects": {
             "items": {
+              "additionalProperties": false,
               "properties": {
                 "detail": {},
                 "errorCode": {
@@ -285,9 +387,24 @@
               "required": ["kind", "status"],
               "type": "object"
             },
+            "minItems": 1,
             "type": "array"
           },
           "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
             "type": "object"
           },
           "kibiProtocol": {
@@ -295,6 +412,20 @@
           },
           "nextActions": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
               "type": "object"
             },
             "type": "array"
@@ -341,18 +472,124 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "description": "Typed kb_status result payload; operation-specific fields are preserved for forward compatibility.",
+            "additionalProperties": false,
+            "properties": {
+              "branch": {
+                "type": "string"
+              },
+              "branchAttachment": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "branchStore": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "dirty": {
+                "type": "boolean"
+              },
+              "kbPath": {
+                "type": "string"
+              },
+              "lastSyncSource": {
+                "type": "string"
+              },
+              "migrationPlan": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "schemaStatus": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "snapshotId": {
+                "type": "string"
+              },
+              "staleReasonCount": {
+                "type": "integer"
+              },
+              "staleReasons": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "staleReasonsTruncated": {
+                "type": "boolean"
+              },
+              "syncedAt": {
+                "type": ["string", "null"]
+              },
+              "syncState": {
+                "type": "string"
+              },
+              "verificationSnapshot": {
+                "type": "string"
+              },
+              "verificationSnapshotAvailable": {
+                "type": "boolean"
+              },
+              "verificationSnapshotChangeCount": {
+                "type": "integer"
+              },
+              "verificationSnapshotChanges": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "verificationSnapshotChangesTruncated": {
+                "type": "boolean"
+              },
+              "verificationSnapshotDirty": {
+                "type": "boolean"
+              },
+              "verificationSnapshotError": {
+                "type": "string"
+              },
+              "verificationSnapshotFileCount": {
+                "type": "integer"
+              },
+              "verificationSnapshotVersion": {
+                "type": "string"
+              }
+            },
             "type": "object"
           },
           "diagnostics": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
               "type": "object"
             },
             "type": "array"
           },
           "effects": {
             "items": {
+              "additionalProperties": false,
               "properties": {
                 "detail": {},
                 "errorCode": {
@@ -368,9 +605,24 @@
               "required": ["kind", "status"],
               "type": "object"
             },
+            "minItems": 2,
             "type": "array"
           },
           "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
             "type": "object"
           },
           "kibiProtocol": {
@@ -378,6 +630,20 @@
           },
           "nextActions": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
               "type": "object"
             },
             "type": "array"
@@ -424,18 +690,48 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "description": "Typed kb_skills_list result payload; operation-specific fields are preserved for forward compatibility.",
+            "additionalProperties": false,
+            "properties": {
+              "skills": {
+                "items": {},
+                "type": "array"
+              }
+            },
+            "required": ["skills"],
             "type": "object"
           },
           "diagnostics": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
               "type": "object"
             },
             "type": "array"
           },
           "effects": {
             "items": {
+              "additionalProperties": false,
               "properties": {
                 "detail": {},
                 "errorCode": {
@@ -451,9 +747,24 @@
               "required": ["kind", "status"],
               "type": "object"
             },
+            "minItems": 1,
             "type": "array"
           },
           "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
             "type": "object"
           },
           "kibiProtocol": {
@@ -461,6 +772,20 @@
           },
           "nextActions": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
               "type": "object"
             },
             "type": "array"
@@ -513,18 +838,60 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "description": "Typed kb_skills_load result payload; operation-specific fields are preserved for forward compatibility.",
+            "additionalProperties": false,
+            "properties": {
+              "body": {
+                "type": "string"
+              },
+              "contentHash": {
+                "type": "string"
+              },
+              "metadata": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "resources": {
+                "items": {},
+                "type": "array"
+              },
+              "sourceType": {
+                "type": "string"
+              }
+            },
             "type": "object"
           },
           "diagnostics": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
               "type": "object"
             },
             "type": "array"
           },
           "effects": {
             "items": {
+              "additionalProperties": false,
               "properties": {
                 "detail": {},
                 "errorCode": {
@@ -540,9 +907,24 @@
               "required": ["kind", "status"],
               "type": "object"
             },
+            "minItems": 1,
             "type": "array"
           },
           "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
             "type": "object"
           },
           "kibiProtocol": {
@@ -550,6 +932,20 @@
           },
           "nextActions": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
               "type": "object"
             },
             "type": "array"
@@ -606,18 +1002,47 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "description": "Typed kb_skills_read result payload; operation-specific fields are preserved for forward compatibility.",
+            "additionalProperties": false,
+            "properties": {
+              "content": {
+                "type": "string"
+              }
+            },
+            "required": ["content"],
             "type": "object"
           },
           "diagnostics": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
               "type": "object"
             },
             "type": "array"
           },
           "effects": {
             "items": {
+              "additionalProperties": false,
               "properties": {
                 "detail": {},
                 "errorCode": {
@@ -633,9 +1058,24 @@
               "required": ["kind", "status"],
               "type": "object"
             },
+            "minItems": 1,
             "type": "array"
           },
           "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
             "type": "object"
           },
           "kibiProtocol": {
@@ -643,6 +1083,20 @@
           },
           "nextActions": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
               "type": "object"
             },
             "type": "array"
@@ -731,18 +1185,57 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "description": "Typed kb_find_gaps result payload; operation-specific fields are preserved for forward compatibility.",
+            "additionalProperties": false,
+            "properties": {
+              "count": {
+                "type": "integer"
+              },
+              "meta": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "rows": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
             "type": "object"
           },
           "diagnostics": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
               "type": "object"
             },
             "type": "array"
           },
           "effects": {
             "items": {
+              "additionalProperties": false,
               "properties": {
                 "detail": {},
                 "errorCode": {
@@ -758,9 +1251,24 @@
               "required": ["kind", "status"],
               "type": "object"
             },
+            "minItems": 1,
             "type": "array"
           },
           "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
             "type": "object"
           },
           "kibiProtocol": {
@@ -768,6 +1276,20 @@
           },
           "nextActions": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
               "type": "object"
             },
             "type": "array"
@@ -873,18 +1395,74 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "description": "Typed kb_coverage result payload; operation-specific fields are preserved for forward compatibility.",
+            "additionalProperties": false,
+            "properties": {
+              "legacyMigrationPlan": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "meta": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "migrationPlan": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "repairPlan": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "rows": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "summary": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "symbolRepairPlan": {
+                "additionalProperties": true,
+                "type": "object"
+              }
+            },
             "type": "object"
           },
           "diagnostics": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
               "type": "object"
             },
             "type": "array"
           },
           "effects": {
             "items": {
+              "additionalProperties": false,
               "properties": {
                 "detail": {},
                 "errorCode": {
@@ -900,9 +1478,24 @@
               "required": ["kind", "status"],
               "type": "object"
             },
+            "minItems": 1,
             "type": "array"
           },
           "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
             "type": "object"
           },
           "kibiProtocol": {
@@ -910,6 +1503,20 @@
           },
           "nextActions": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
               "type": "object"
             },
             "type": "array"
@@ -994,18 +1601,64 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "description": "Typed kb_graph result payload; operation-specific fields are preserved for forward compatibility.",
+            "additionalProperties": false,
+            "properties": {
+              "edges": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "meta": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "nodes": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "truncated": {
+                "type": "boolean"
+              }
+            },
             "type": "object"
           },
           "diagnostics": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
               "type": "object"
             },
             "type": "array"
           },
           "effects": {
             "items": {
+              "additionalProperties": false,
               "properties": {
                 "detail": {},
                 "errorCode": {
@@ -1021,9 +1674,24 @@
               "required": ["kind", "status"],
               "type": "object"
             },
+            "minItems": 1,
             "type": "array"
           },
           "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
             "type": "object"
           },
           "kibiProtocol": {
@@ -1031,6 +1699,20 @@
           },
           "nextActions": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
               "type": "object"
             },
             "type": "array"
@@ -1090,18 +1772,48 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "description": "Typed kb_sparql_remote result payload; operation-specific fields are preserved for forward compatibility.",
+            "additionalProperties": false,
+            "properties": {
+              "rows": {
+                "items": {},
+                "type": "array"
+              }
+            },
+            "required": ["rows"],
             "type": "object"
           },
           "diagnostics": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
               "type": "object"
             },
             "type": "array"
           },
           "effects": {
             "items": {
+              "additionalProperties": false,
               "properties": {
                 "detail": {},
                 "errorCode": {
@@ -1117,9 +1829,24 @@
               "required": ["kind", "status"],
               "type": "object"
             },
+            "minItems": 1,
             "type": "array"
           },
           "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
             "type": "object"
           },
           "kibiProtocol": {
@@ -1127,6 +1854,20 @@
           },
           "nextActions": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
               "type": "object"
             },
             "type": "array"
@@ -1245,18 +1986,53 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "description": "Typed kb_semantic_advisor result payload; operation-specific fields are preserved for forward compatibility.",
+            "additionalProperties": false,
+            "properties": {
+              "receipt": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "warnings": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
             "type": "object"
           },
           "diagnostics": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
               "type": "object"
             },
             "type": "array"
           },
           "effects": {
             "items": {
+              "additionalProperties": false,
               "properties": {
                 "detail": {},
                 "errorCode": {
@@ -1272,9 +2048,24 @@
               "required": ["kind", "status"],
               "type": "object"
             },
+            "minItems": 1,
             "type": "array"
           },
           "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
             "type": "object"
           },
           "kibiProtocol": {
@@ -1282,6 +2073,20 @@
           },
           "nextActions": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
               "type": "object"
             },
             "type": "array"
@@ -1988,18 +2793,88 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "description": "Typed kb_upsert result payload; operation-specific fields are preserved for forward compatibility.",
+            "additionalProperties": false,
+            "properties": {
+              "contradictionCheck": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "created": {
+                "type": "integer"
+              },
+              "effectFailures": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "nextActions": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "relationships_created": {
+                "type": "integer"
+              },
+              "semanticAdvisor": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "sourceWrites": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "status": {
+                "type": "string"
+              },
+              "updated": {
+                "type": "integer"
+              },
+              "warnings": {
+                "items": {},
+                "type": "array"
+              }
+            },
             "type": "object"
           },
           "diagnostics": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
               "type": "object"
             },
             "type": "array"
           },
           "effects": {
             "items": {
+              "additionalProperties": false,
               "properties": {
                 "detail": {},
                 "errorCode": {
@@ -2015,9 +2890,24 @@
               "required": ["kind", "status"],
               "type": "object"
             },
+            "minItems": 2,
             "type": "array"
           },
           "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
             "type": "object"
           },
           "kibiProtocol": {
@@ -2025,6 +2915,20 @@
           },
           "nextActions": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
               "type": "object"
             },
             "type": "array"
@@ -2098,18 +3002,62 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "description": "Typed kb_validate_upsert result payload; operation-specific fields are preserved for forward compatibility.",
+            "additionalProperties": false,
+            "properties": {
+              "errors": {
+                "items": {},
+                "type": "array"
+              },
+              "normalizedPreview": {
+                "additionalProperties": true,
+                "type": ["object", "null"]
+              },
+              "semanticAdvisor": {
+                "additionalProperties": true,
+                "type": ["object", "null"]
+              },
+              "valid": {
+                "type": "boolean"
+              },
+              "warnings": {
+                "items": {},
+                "type": "array"
+              }
+            },
             "type": "object"
           },
           "diagnostics": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
               "type": "object"
             },
             "type": "array"
           },
           "effects": {
             "items": {
+              "additionalProperties": false,
               "properties": {
                 "detail": {},
                 "errorCode": {
@@ -2125,9 +3073,24 @@
               "required": ["kind", "status"],
               "type": "object"
             },
+            "minItems": 1,
             "type": "array"
           },
           "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
             "type": "object"
           },
           "kibiProtocol": {
@@ -2135,6 +3098,20 @@
           },
           "nextActions": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
               "type": "object"
             },
             "type": "array"
@@ -2232,18 +3209,102 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "description": "Typed kb_delete result payload; operation-specific fields are preserved for forward compatibility.",
+            "additionalProperties": false,
+            "properties": {
+              "deleted": {
+                "type": "integer"
+              },
+              "deletionPlan": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "effectFailures": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "error_codes": {
+                "items": {},
+                "type": "array"
+              },
+              "errors": {
+                "items": {},
+                "type": "array"
+              },
+              "nextActions": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "relationship_results": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "relationships_deleted": {
+                "type": "integer"
+              },
+              "skipped": {
+                "type": "integer"
+              },
+              "sourceWrites": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "status": {
+                "type": "string"
+              },
+              "supersessionPlan": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "sync_required": {
+                "type": "boolean"
+              }
+            },
             "type": "object"
           },
           "diagnostics": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
               "type": "object"
             },
             "type": "array"
           },
           "effects": {
             "items": {
+              "additionalProperties": false,
               "properties": {
                 "detail": {},
                 "errorCode": {
@@ -2259,9 +3320,24 @@
               "required": ["kind", "status"],
               "type": "object"
             },
+            "minItems": 2,
             "type": "array"
           },
           "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
             "type": "object"
           },
           "kibiProtocol": {
@@ -2269,6 +3345,20 @@
           },
           "nextActions": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
               "type": "object"
             },
             "type": "array"
@@ -2368,18 +3458,99 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "description": "Typed kb_check result payload; operation-specific fields are preserved for forward compatibility.",
+            "additionalProperties": false,
+            "properties": {
+              "count": {
+                "type": "integer"
+              },
+              "diagnostics": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "extractedSymbols": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "impactDiagnostics": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "linkedEntities": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "migrationPlan": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "nextActions": {
+                "items": {},
+                "type": "array"
+              },
+              "qualityDiagnostics": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "sourceFiles": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "violations": {
+                "items": {},
+                "type": "array"
+              }
+            },
             "type": "object"
           },
           "diagnostics": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
               "type": "object"
             },
             "type": "array"
           },
           "effects": {
             "items": {
+              "additionalProperties": false,
               "properties": {
                 "detail": {},
                 "errorCode": {
@@ -2395,9 +3566,24 @@
               "required": ["kind", "status"],
               "type": "object"
             },
+            "minItems": 2,
             "type": "array"
           },
           "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
             "type": "object"
           },
           "kibiProtocol": {
@@ -2405,6 +3591,20 @@
           },
           "nextActions": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
               "type": "object"
             },
             "type": "array"
@@ -2519,18 +3719,108 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "description": "Typed kb_model_requirement result payload; operation-specific fields are preserved for forward compatibility.",
+            "additionalProperties": false,
+            "properties": {
+              "applyPlan": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "claim": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "claimKey": {
+                "type": "string"
+              },
+              "confidence": {
+                "type": "number"
+              },
+              "extractionMode": {
+                "type": "string"
+              },
+              "extractionWarnings": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "isStrict": {
+                "type": "boolean"
+              },
+              "logic": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "logicClaims": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "migrationWarning": {
+                "type": ["string", "null"]
+              },
+              "source": {
+                "type": "string"
+              },
+              "sourceFiles": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "statement": {
+                "type": "string"
+              },
+              "warnings": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "writeSet": {
+                "additionalProperties": true,
+                "type": "object"
+              }
+            },
             "type": "object"
           },
           "diagnostics": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
               "type": "object"
             },
             "type": "array"
           },
           "effects": {
             "items": {
+              "additionalProperties": false,
               "properties": {
                 "detail": {},
                 "errorCode": {
@@ -2546,9 +3836,24 @@
               "required": ["kind", "status"],
               "type": "object"
             },
+            "minItems": 1,
             "type": "array"
           },
           "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
             "type": "object"
           },
           "kibiProtocol": {
@@ -2556,6 +3861,20 @@
           },
           "nextActions": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
               "type": "object"
             },
             "type": "array"
@@ -2666,18 +3985,90 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "description": "Typed kb_suggest_predicates result payload; operation-specific fields are preserved for forward compatibility.",
+            "additionalProperties": false,
+            "properties": {
+              "applyPlan": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "candidates": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "claimKey": {
+                "type": "string"
+              },
+              "logicClaims": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "recommendedAction": {
+                "type": "string"
+              },
+              "relationshipPlan": {
+                "type": ["object", "null"]
+              },
+              "requirementId": {
+                "type": ["string", "null"]
+              },
+              "source": {
+                "type": ["string", "null"]
+              },
+              "subject": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              },
+              "warnings": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
             "type": "object"
           },
           "diagnostics": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
               "type": "object"
             },
             "type": "array"
           },
           "effects": {
             "items": {
+              "additionalProperties": false,
               "properties": {
                 "detail": {},
                 "errorCode": {
@@ -2693,9 +4084,24 @@
               "required": ["kind", "status"],
               "type": "object"
             },
+            "minItems": 1,
             "type": "array"
           },
           "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
             "type": "object"
           },
           "kibiProtocol": {
@@ -2703,6 +4109,20 @@
           },
           "nextActions": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
               "type": "object"
             },
             "type": "array"
@@ -2814,18 +4234,114 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "description": "Typed kb_autopilot_generate result payload; operation-specific fields are preserved for forward compatibility.",
+            "additionalProperties": false,
+            "properties": {
+              "activationMode": {
+                "type": "string"
+              },
+              "activationReason": {
+                "type": "string"
+              },
+              "activationState": {
+                "type": "string"
+              },
+              "applyBlocked": {
+                "type": "boolean"
+              },
+              "applyPlan": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "bootstrapMode": {
+                "type": "string"
+              },
+              "candidates": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "confidence": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "declaredContext": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "discoverySummary": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "handoffMessage": {
+                "type": "string"
+              },
+              "migrationWarning": {
+                "type": ["string", "null"]
+              },
+              "payoffSummary": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "promptBlock": {
+                "type": "string"
+              },
+              "recommendedActions": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "suppressedCandidates": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "tldr": {
+                "type": "string"
+              }
+            },
             "type": "object"
           },
           "diagnostics": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
               "type": "object"
             },
             "type": "array"
           },
           "effects": {
             "items": {
+              "additionalProperties": false,
               "properties": {
                 "detail": {},
                 "errorCode": {
@@ -2841,9 +4357,24 @@
               "required": ["kind", "status"],
               "type": "object"
             },
+            "minItems": 1,
             "type": "array"
           },
           "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
             "type": "object"
           },
           "kibiProtocol": {
@@ -2851,6 +4382,20 @@
           },
           "nextActions": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
               "type": "object"
             },
             "type": "array"
@@ -3096,18 +4641,93 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "description": "Typed kb_compile_intent result payload; operation-specific fields are preserved for forward compatibility.",
+            "additionalProperties": false,
+            "properties": {
+              "contradictionAnalysis": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "diagnostics": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "discovery": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "expected": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "planHash": {
+                "type": "string"
+              },
+              "proposals": {
+                "items": {},
+                "type": "array"
+              },
+              "propositions": {
+                "items": {},
+                "type": "array"
+              },
+              "sourceWrites": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "status": {
+                "type": "string"
+              },
+              "steps": {
+                "items": {},
+                "type": "array"
+              },
+              "target": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "version": {
+                "type": "string"
+              }
+            },
             "type": "object"
           },
           "diagnostics": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
               "type": "object"
             },
             "type": "array"
           },
           "effects": {
             "items": {
+              "additionalProperties": false,
               "properties": {
                 "detail": {},
                 "errorCode": {
@@ -3123,9 +4743,24 @@
               "required": ["kind", "status"],
               "type": "object"
             },
+            "minItems": 2,
             "type": "array"
           },
           "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
             "type": "object"
           },
           "kibiProtocol": {
@@ -3133,6 +4768,20 @@
           },
           "nextActions": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
               "type": "object"
             },
             "type": "array"
@@ -3199,18 +4848,122 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "description": "Typed kb_apply_plan result payload; operation-specific fields are preserved for forward compatibility.",
+            "additionalProperties": false,
+            "properties": {
+              "actionResults": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "changedEntities": {
+                "type": "integer"
+              },
+              "changedPaths": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "changedRelationships": {
+                "type": "integer"
+              },
+              "closeout": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "deleted": {
+                "type": "integer"
+              },
+              "effectFailures": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "finalSnapshots": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "nextActions": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "notes": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "outcome": {
+                "type": "string"
+              },
+              "planHash": {
+                "type": "string"
+              },
+              "recoveryJournalId": {
+                "type": ["string", "null"]
+              },
+              "remainingPlan": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "sourcePaths": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "status": {
+                "type": "string"
+              },
+              "validationSummary": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "version": {
+                "type": "string"
+              }
+            },
             "type": "object"
           },
           "diagnostics": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
               "type": "object"
             },
             "type": "array"
           },
           "effects": {
             "items": {
+              "additionalProperties": false,
               "properties": {
                 "detail": {},
                 "errorCode": {
@@ -3226,9 +4979,24 @@
               "required": ["kind", "status"],
               "type": "object"
             },
+            "minItems": 4,
             "type": "array"
           },
           "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
             "type": "object"
           },
           "kibiProtocol": {
@@ -3236,6 +5004,20 @@
           },
           "nextActions": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
               "type": "object"
             },
             "type": "array"
@@ -3354,18 +5136,77 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "description": "Typed kb_ingest_verification result payload; operation-specific fields are preserved for forward compatibility.",
+            "additionalProperties": false,
+            "properties": {
+              "effectFailures": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "nextActions": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "proofOutcome": {
+                "type": "string"
+              },
+              "receipt": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "receiptCount": {
+                "type": "integer"
+              },
+              "status": {
+                "type": "string"
+              },
+              "testId": {
+                "type": "string"
+              },
+              "upsert": {
+                "additionalProperties": true,
+                "type": "object"
+              }
+            },
             "type": "object"
           },
           "diagnostics": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
               "type": "object"
             },
             "type": "array"
           },
           "effects": {
             "items": {
+              "additionalProperties": false,
               "properties": {
                 "detail": {},
                 "errorCode": {
@@ -3381,9 +5222,24 @@
               "required": ["kind", "status"],
               "type": "object"
             },
+            "minItems": 3,
             "type": "array"
           },
           "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
             "type": "object"
           },
           "kibiProtocol": {
@@ -3391,6 +5247,20 @@
           },
           "nextActions": {
             "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
               "type": "object"
             },
             "type": "array"

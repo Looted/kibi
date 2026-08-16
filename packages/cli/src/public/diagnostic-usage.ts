@@ -189,17 +189,26 @@ export function deriveDiagnosticUsageFields(
   }
 
   const structured = resultRecord(result);
-  const envelope = isRecord(structured) && structured.kibiProtocol === 1
-    ? structured
-    : undefined;
+  const envelope =
+    isRecord(structured) && structured.kibiProtocol === 1
+      ? structured
+      : undefined;
   if (envelope) {
     fields.protocol_version = envelope.kibiProtocol;
-    fields.result_version = typeof envelope.resultVersion === "string" ? envelope.resultVersion : null;
-    fields.result_status = typeof envelope.status === "string" ? envelope.status : null;
+    fields.result_version =
+      typeof envelope.resultVersion === "string"
+        ? envelope.resultVersion
+        : null;
+    fields.result_status =
+      typeof envelope.status === "string" ? envelope.status : null;
     fields.effect_failures = Array.isArray(envelope.effects)
-      ? envelope.effects.filter((effect) => isRecord(effect) && effect.status === "failed")
+      ? envelope.effects.filter(
+          (effect) => isRecord(effect) && effect.status === "failed",
+        )
       : [];
-    fields.followed_next_actions = Array.isArray(telemetry?.followed_next_actions)
+    fields.followed_next_actions = Array.isArray(
+      telemetry?.followed_next_actions,
+    )
       ? telemetry.followed_next_actions
       : [];
     fields.unsafe_original_retry = telemetry?.unsafe_original_retry === true;

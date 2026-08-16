@@ -20,3 +20,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f0fc43349d89
+  - type: implements
+    from: SYM-auto-FB0CE9A7383B
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:15:41.094Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9a1ea0f1550
+  - type: implements
+    from: SYM-skillopt-file-bridge
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-16T07:13:40.364Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-043d40970389
+  - type: covered_by
+    from: SYM-skillopt-file-bridge
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-16T07:13:40.380Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a539c4ea1b41
+  - type: implements
+    from: SYM-auto-FB0CE9A7383B
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-16T07:49:37.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e677d4c2d08f
+  - type: covered_by
+    from: SYM-auto-FB0CE9A7383B
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-16T07:49:37.392Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e824e911d5c

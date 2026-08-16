@@ -40,8 +40,8 @@ import {
   installHook,
   updateGitIgnore,
 } from "../../src/commands/init-helpers.js";
-import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
 import { branchStoreKey } from "../../src/utils/branch-store-locator.js";
+import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
 
 describe("init-helpers", () => {
   let tmpDir: string;
@@ -98,7 +98,9 @@ describe("init-helpers", () => {
     expect(existsSync(kbDir)).toBe(true);
     expect(existsSync(path.join(kbDir, "schema"))).toBe(true);
     expect(existsSync(path.join(kbDir, "branches"))).toBe(true);
-    expect(existsSync(path.join(kbDir, "branches", branchStoreKey("my-branch")))).toBe(true);
+    expect(
+      existsSync(path.join(kbDir, "branches", branchStoreKey("my-branch"))),
+    ).toBe(true);
   });
 
   test("createConfigFile creates valid config.json", () => {

@@ -17,13 +17,15 @@ type GcOptions = {
 };
 
 function localBranches(workspaceRoot: string): Set<string> {
-  const result = spawnSync(
-    "git",
-    ["branch", "--format=%(refname:short)"],
-    { encoding: "utf8", cwd: workspaceRoot, stdio: ["pipe", "pipe", "pipe"] },
-  );
+  const result = spawnSync("git", ["branch", "--format=%(refname:short)"], {
+    encoding: "utf8",
+    cwd: workspaceRoot,
+    stdio: ["pipe", "pipe", "pipe"],
+  });
   if (result.status !== 0) {
-    throw new Error(result.stderr?.trim() || "unable to list local Git branches");
+    throw new Error(
+      result.stderr?.trim() || "unable to list local Git branches",
+    );
   }
   const output = result.stdout ?? "";
   const live = new Set(
@@ -133,7 +135,8 @@ export async function gcCommand(options: GcOptions = {}): Promise<void> {
       return;
     }
     const live = localBranches(workspaceRoot);
-    const candidates: Array<{ branch: string; path: string; legacy: boolean }> = [];
+    const candidates: Array<{ branch: string; path: string; legacy: boolean }> =
+      [];
     const visit = (dir: string, relativeBranch: string): void => {
       const entries = fs.readdirSync(dir, { withFileTypes: true });
       for (const entry of entries) {
@@ -141,10 +144,16 @@ export async function gcCommand(options: GcOptions = {}): Promise<void> {
         if (!entry.isDirectory()) continue;
         const manifest = readBranchStoreManifest(candidatePath);
         if (manifest !== null) {
-          candidates.push({ branch: manifest.branch, path: candidatePath, legacy: false });
+          candidates.push({
+            branch: manifest.branch,
+            path: candidatePath,
+            legacy: false,
+          });
           continue;
         }
-        const next = relativeBranch ? `${relativeBranch}/${entry.name}` : entry.name;
+        const next = relativeBranch
+          ? `${relativeBranch}/${entry.name}`
+          : entry.name;
         if (
           fs.existsSync(path.join(candidatePath, "kb.rdf")) ||
           fs.existsSync(path.join(candidatePath, "storage.json"))
@@ -159,7 +168,9 @@ export async function gcCommand(options: GcOptions = {}): Promise<void> {
 
     const stale = candidates.filter(({ branch }) => !live.has(branch));
     if (!options.force && !options.purge) {
-      console.log(`Found ${stale.length} stale branch KB(s) (dry run - not quarantined)`);
+      console.log(
+        `Found ${stale.length} stale branch KB(s) (dry run - not quarantined)`,
+      );
       for (const candidate of stale) {
         console.log(`  - ${candidate.branch}: ${candidate.path}`);
       }

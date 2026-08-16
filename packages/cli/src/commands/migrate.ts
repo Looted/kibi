@@ -25,6 +25,7 @@ import {
 } from "node:fs";
 import * as path from "node:path";
 import { load as parseYAML } from "js-yaml";
+import type { MigrationPlan } from "../public/operations/migration-plan.js";
 import { extractSymbolsFromStagedFile } from "../traceability/symbol-extract.js";
 import { resolveBranchAttachment } from "../utils/branch-resolver.js";
 import type { KbConfig } from "../utils/config.js";
@@ -34,7 +35,6 @@ import {
   getSchemaVersionStatus,
   normalizeSchemaVersion,
 } from "../utils/schema-version.js";
-import type { MigrationPlan } from "../public/operations/migration-plan.js";
 
 interface MigrateOptions {
   dryRun?: boolean;
@@ -100,7 +100,8 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     id: "config-canonical-v1",
     from: 0,
     to: 1,
-    description: "Preserve legacy configuration while recording canonical schema metadata.",
+    description:
+      "Preserve legacy configuration while recording canonical schema metadata.",
   },
   {
     id: "symbol-granularity-v2",
@@ -118,11 +119,14 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     id: "semantic-backfill-v4",
     from: 3,
     to: 4,
-    description: "Mark semantic-advisor backfill as pending without inventing claims.",
+    description:
+      "Mark semantic-advisor backfill as pending without inventing claims.",
   },
 ];
 
-function migrationStepsFor(fromVersion: number | null): readonly SchemaMigrationStep[] {
+function migrationStepsFor(
+  fromVersion: number | null,
+): readonly SchemaMigrationStep[] {
   const start = Math.max(0, fromVersion ?? 0);
   return SCHEMA_MIGRATION_STEPS.filter((step) => step.from >= start);
 }
@@ -159,7 +163,7 @@ function resolveMigrationBranch(
 
   if (result.migrationRequired) {
     return {
-    error: `Legacy branch attachment for '${result.gitBranch}' requires 'kibi branch migrate --from ${result.kbBranch} --to ${result.gitBranch} --apply' before schema migration.`,
+      error: `Legacy branch attachment for '${result.gitBranch}' requires 'kibi branch migrate --from ${result.kbBranch} --to ${result.gitBranch} --apply' before schema migration.`,
     };
   }
   return { branch: result.kbBranch, warnings: [] };
@@ -577,7 +581,9 @@ export async function migrateCommand(
       );
     }
     if (migrationSteps.length > 0) {
-      console.log(`dry run: would evaluate schema steps: ${migrationSteps.map((step) => step.id).join(", ")}.`);
+      console.log(
+        `dry run: would evaluate schema steps: ${migrationSteps.map((step) => step.id).join(", ")}.`,
+      );
     }
     console.log("Re-run with --yes to apply these changes.");
     return { exitCode: 0 };
@@ -633,8 +639,17 @@ export async function migrateCommand(
   return { exitCode: 0 };
 }
 
-async function buildWorkspaceMigrationPlan(workspaceRoot = process.cwd()): Promise<MigrationPlan> {
-  const [{ createCliRuntime }, { executeOperation }, { statusSpec }, { checkSpec }, { coverageSpec }, { mergeMigrationPlans }] = await Promise.all([
+async function buildWorkspaceMigrationPlan(
+  workspaceRoot = process.cwd(),
+): Promise<MigrationPlan> {
+  const [
+    { createCliRuntime },
+    { executeOperation },
+    { statusSpec },
+    { checkSpec },
+    { coverageSpec },
+    { mergeMigrationPlans },
+  ] = await Promise.all([
     import("../runtime/cli-runtime.js"),
     import("../public/operations/runtime-types.js"),
     import("../public/operations/specs/discovery.js"),
@@ -649,7 +664,11 @@ async function buildWorkspaceMigrationPlan(workspaceRoot = process.cwd()): Promi
   if (status?.migrationPlan !== undefined) plans.push(status.migrationPlan);
   const storeHealthy = status?.branchStore?.state === "healthy";
   const schemaCurrent = status?.schemaStatus?.needsMigration !== true;
-  if (storeHealthy && schemaCurrent && status?.branchAttachment?.kind === "exact") {
+  if (
+    storeHealthy &&
+    schemaCurrent &&
+    status?.branchAttachment?.kind === "exact"
+  ) {
     const checkResult = await executeOperation(runtime, checkSpec, {});
     if (checkResult.structuredContent?.migrationPlan !== undefined) {
       plans.push(checkResult.structuredContent.migrationPlan);
@@ -659,18 +678,26 @@ async function buildWorkspaceMigrationPlan(workspaceRoot = process.cwd()): Promi
       { by: "symbol" as const, limit: 10_000, offset: 0 },
     ];
     for (const input of coverageInputs) {
-      const coverageResult = await executeOperation(runtime, coverageSpec, input);
+      const coverageResult = await executeOperation(
+        runtime,
+        coverageSpec,
+        input,
+      );
       if (coverageResult.structuredContent?.migrationPlan !== undefined) {
         plans.push(coverageResult.structuredContent.migrationPlan);
       }
     }
   }
   if (plans.length === 0) {
-    const { buildMigrationPlan } = await import("../public/operations/migration-plan.js");
+    const { buildMigrationPlan } = await import(
+      "../public/operations/migration-plan.js"
+    );
     return buildMigrationPlan({
       evaluatedDomains: ["package", "branch", "storage", "schema"],
       incompleteDomains: ["status"],
-      diagnostics: ["Unable to assemble downstream migration domains from the current workspace state."],
+      diagnostics: [
+        "Unable to assemble downstream migration domains from the current workspace state.",
+      ],
     });
   }
   return mergeMigrationPlans(plans);
@@ -687,24 +714,29 @@ async function migratePlanCommand(
       return { exitCode: 2 };
     }
     if (options.approvedPlanHash !== plan.planHash) {
-      console.error("Migration plan changed; regenerate the plan and approve its current hash.");
+      console.error(
+        "Migration plan changed; regenerate the plan and approve its current hash.",
+      );
       return { exitCode: 2 };
     }
     const approvedActionIds =
       options.approvedActionIds && options.approvedActionIds.length > 0
         ? options.approvedActionIds
         : plan.actions
-            .filter((action) => action.state === "ready" && action.autoApplicable)
+            .filter(
+              (action) => action.state === "ready" && action.autoApplicable,
+            )
             .map((action) => action.id);
     if (approvedActionIds.length === 0) {
       console.log("No approved automatic migration actions are ready.");
       return { exitCode: 0 };
     }
-    const [{ createCliRuntime }, { executeOperation }, { applyPlanSpec }] = await Promise.all([
-      import("../runtime/cli-runtime.js"),
-      import("../public/operations/runtime-types.js"),
-      import("../public/operations/specs/planning.js"),
-    ]);
+    const [{ createCliRuntime }, { executeOperation }, { applyPlanSpec }] =
+      await Promise.all([
+        import("../runtime/cli-runtime.js"),
+        import("../public/operations/runtime-types.js"),
+        import("../public/operations/specs/planning.js"),
+      ]);
     const result = await executeOperation(
       createCliRuntime({ workspaceRoot }),
       applyPlanSpec,
@@ -716,17 +748,25 @@ async function migratePlanCommand(
       console.log(result.content[0]?.text ?? "Migration applied.");
       console.log(JSON.stringify(result.structuredContent, null, 2));
     }
-    return { exitCode: result.structuredContent?.outcome === "applied" ? 0 : 1 };
+    return {
+      exitCode: result.structuredContent?.outcome === "applied" ? 0 : 1,
+    };
   }
   if (options.format === "json") {
     console.log(JSON.stringify(plan, null, 2));
   } else {
     console.log(`Migration plan ${plan.planHash}`);
-    console.log(`Status: ${plan.status}; actions: ${plan.summary.actionCount}; automatic-ready: ${plan.actions.filter((action) => action.state === "ready" && action.autoApplicable).length}`);
+    console.log(
+      `Status: ${plan.status}; actions: ${plan.summary.actionCount}; automatic-ready: ${plan.actions.filter((action) => action.state === "ready" && action.autoApplicable).length}`,
+    );
     for (const action of plan.actions) {
-      console.log(`- ${action.state} ${action.safety} ${action.code}: ${action.id}`);
+      console.log(
+        `- ${action.state} ${action.safety} ${action.code}: ${action.id}`,
+      );
     }
-    console.log("Use --format json for structured actions, or --apply-safe with the approved plan hash.");
+    console.log(
+      "Use --format json for structured actions, or --apply-safe with the approved plan hash.",
+    );
   }
   return { exitCode: 0 };
 }

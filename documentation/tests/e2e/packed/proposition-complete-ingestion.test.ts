@@ -9,8 +9,8 @@ import {
   createMarkdownFile,
   createSandbox,
   kibi,
-  parseKibiResult,
   packAll,
+  parseKibiResult,
 } from "./helpers.js";
 
 const RUN_NODE_TEST_SUITE =

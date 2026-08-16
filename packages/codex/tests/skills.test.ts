@@ -113,7 +113,9 @@ describe("kibi-codex skills", () => {
 
       expect(raw).toMatch(/## Interface (Selection|and preview)/);
       expect(raw).toContain("MCP");
-      expect(raw).toMatch(/visible approved|trusted project-local CLI|peer interfaces/i);
+      expect(raw).toMatch(
+        /visible approved|trusted project-local CLI|peer interfaces/i,
+      );
       expect(raw.toLowerCase()).not.toContain("mcp only");
       expect(raw.toLowerCase()).not.toContain("exclusively through mcp");
     }

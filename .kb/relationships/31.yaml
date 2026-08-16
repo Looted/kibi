@@ -17,3 +17,17 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/scenarios/SCEN-002.md
+  - type: implements
+    from: SYM-skillopt-file-bridge-write-public
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-16T07:14:02.465Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12dc40d80a08
+  - type: covered_by
+    from: SYM-skillopt-file-bridge-write-public
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-16T07:14:02.476Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8279e7a919f2

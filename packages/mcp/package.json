@@ -9,7 +9,6 @@
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "kibi-cli": "^0.21.0",
     "kibi-runtime": "^0.1.0",
     "kibi-core": "^0.10.3",
     "mcpcat": "^0.1.12",
@@ -29,10 +28,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepack": "npm run build && node ../../scripts/verify-package-contract.mjs kibi-mcp"
   },
-  "files": [
-    "dist",
-    "bin"
-  ],
+  "files": ["dist", "bin"],
   "engines": {
     "node": ">=22"
   },
@@ -43,7 +39,8 @@
     "@types/bun": "latest",
     "@types/node": "latest",
     "semver": "^7.7.4",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "kibi-cli": "workspace:*"
   },
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",

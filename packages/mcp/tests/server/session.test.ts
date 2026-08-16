@@ -1299,7 +1299,7 @@ describe.serial("session module", () => {
       );
     });
 
-    test("ensureProlog debug initialization logs createRequire success details", async () => {
+    test("ensureProlog debug initialization identifies the runtime boundary", async () => {
       process.env.KIBI_BRANCH = "debug-success-branch";
       process.env.KIBI_MCP_DEBUG = "1";
       const originalConsoleError = console.error;
@@ -1311,17 +1311,10 @@ describe.serial("session module", () => {
 
         await session.ensureProlog();
 
-        expect(mockCreateRequire).toHaveBeenCalled();
         expect(
           containsConsoleArg(
             consoleErrorMock.mock.calls,
-            "require.resolve('kibi-cli/prolog') -> /path/to/kibi-cli",
-          ),
-        ).toBe(true);
-        expect(
-          containsConsoleArg(
-            consoleErrorMock.mock.calls,
-            "kibi-cli version: 1.0.0",
+            "[KIBI-MCP] Runtime boundary: kibi-runtime",
           ),
         ).toBe(true);
         expect(

@@ -8,10 +8,7 @@
     "node": ">=18"
   },
   "main": "./src/kb.pl",
-  "files": [
-    "src/**/*.pl",
-    "schema/**/*.pl"
-  ],
+  "files": ["src/**/*.pl", "schema/**/*.pl"],
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",
   "repository": {

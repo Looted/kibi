@@ -213,7 +213,9 @@ async function runPaidOptimization(
       "optimize requires --allow-paid after preflight and smoke",
     );
   if (options.skill === undefined || options.skill === "all")
-    throw new CliUsageError("real optimize requires one --skill (use bundle for the assembled suite)");
+    throw new CliUsageError(
+      "real optimize requires one --skill (use bundle for the assembled suite)",
+    );
   if (options.cellRuntime === undefined)
     throw new CliUsageError(
       "optimize requires --fixture-run-root for bounded Codex cells",

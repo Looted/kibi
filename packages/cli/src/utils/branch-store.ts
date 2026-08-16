@@ -6,8 +6,8 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import * as path from "node:path";
 import {
-  branchStorePath,
   branchStoreManifestMatches,
+  branchStorePath,
   legacyBranchStorePath,
 } from "./branch-store-locator.js";
 

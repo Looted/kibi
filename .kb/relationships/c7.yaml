@@ -20,3 +20,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b208163c166
+  - type: implements
+    from: SYM-auto-92638075C834
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:20:51.380Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4cdda46d5a4
+  - type: implements
+    from: SYM-auto-92638075C834
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-16T07:54:10.592Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-afbf71814b32
+  - type: covered_by
+    from: SYM-auto-92638075C834
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-16T07:54:10.597Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc01f42e40d1

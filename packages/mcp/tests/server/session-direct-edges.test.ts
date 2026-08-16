@@ -170,7 +170,7 @@ describe.serial("direct session edge coverage", () => {
     expect(session.ensureProlog()).rejects.toThrow("switch attach failed");
   });
 
-  test("covers debug require resolution and package metadata branches", async () => {
+  test("covers the runtime boundary debug marker", async () => {
     const root = workspace();
     const originalConsoleError = console.error;
     const consoleErrorMock = mock((..._args: unknown[]) => {});
@@ -179,37 +179,13 @@ describe.serial("direct session edge coverage", () => {
     process.env.KIBI_MCP_DEBUG = "1";
 
     try {
-      for (const mode of ["resolve", "no-version", "package-error"] as const) {
-        session.resetSessionStateForTests();
-        setDeps(root);
-        session._setSessionDepsForTests({
-          createRequire: () => {
-            const req = ((_specifier: string) => {
-              if (mode === "package-error") throw new Error("package denied");
-              return mode === "no-version"
-                ? { name: "kibi-cli" }
-                : { version: "1.0.0" };
-            }) as unknown as NodeJS.Require;
-            req.resolve = Object.assign(
-              (_specifier: string) => {
-                if (mode === "resolve") throw new Error("resolve denied");
-                return "/resolved";
-              },
-              { paths: (_specifier: string) => [] },
-            );
-            return req;
-          },
-        });
-        await session.ensureProlog();
-      }
+      await session.ensureProlog();
     } finally {
       console.error = originalConsoleError;
     }
 
     const logged = consoleErrorMock.mock.calls.flat().map(String).join("\n");
-    expect(logged).toContain("resolve denied");
-    expect(logged).toContain("no version field");
-    expect(logged).toContain("package denied");
+    expect(logged).toContain("[KIBI-MCP] Runtime boundary: kibi-runtime");
   });
 
   test("covers reset cleanup while shutdown timeout is pending", async () => {

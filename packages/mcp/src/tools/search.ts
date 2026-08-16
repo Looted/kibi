@@ -1,9 +1,5 @@
 import { searchSpec } from "kibi-runtime";
-import type {
-  OperationResult,
-  SearchInput,
-  SearchPayload,
-} from "kibi-runtime";
+import type { OperationResult, SearchInput, SearchPayload } from "kibi-runtime";
 import type { PrologProcess } from "kibi-runtime";
 import { createDiscoveryContext } from "./discovery-adapter.js";
 

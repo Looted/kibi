@@ -2,22 +2,30 @@ import { createHash } from "node:crypto";
 import { existsSync, realpathSync } from "node:fs";
 import path from "node:path";
 
-import { executeStatus } from "../../public/operations/discovery-executors.js";
 import {
-  migrationPlanHash,
-  type MigrationAction,
-  type MigrationPlan,
-} from "../../public/operations/migration-plan.js";
-import type { OperationContext } from "../../public/operations/runtime-types.js";
-import { readWorkspaceSnapshot } from "../../public/operations/workspace-snapshot.js";
-import { branchEnsureCommand, branchMigrateCommand, branchRecoverCommand } from "../../commands/branch.js";
+  branchEnsureCommand,
+  branchMigrateCommand,
+  branchRecoverCommand,
+} from "../../commands/branch.js";
 import { migrateCommand } from "../../commands/migrate.js";
 import { syncCommand } from "../../commands/sync.js";
+import { executeStatus } from "../../public/operations/discovery-executors.js";
+import {
+  type MigrationAction,
+  type MigrationPlan,
+  migrationPlanHash,
+} from "../../public/operations/migration-plan.js";
 import { readMigrationConfigStatus } from "../../public/operations/migration-plan.js";
-import type { DeletePayload, RelationshipInput, UpsertInput } from "../mutation/types.js";
+import type { OperationContext } from "../../public/operations/runtime-types.js";
+import { readWorkspaceSnapshot } from "../../public/operations/workspace-snapshot.js";
 import { executeDelete } from "../mutation/delete.js";
-import { executeUpsert } from "../mutation/upsert.js";
 import { writePendingSourceReceipt } from "../mutation/source-authoring.js";
+import type {
+  DeletePayload,
+  RelationshipInput,
+  UpsertInput,
+} from "../mutation/types.js";
+import { executeUpsert } from "../mutation/upsert.js";
 import {
   type CompilePlanV1,
   type PlanStep,
@@ -29,19 +37,23 @@ import {
 export const PLAN_APPLY_RESULT_VERSION = "kibi.plan-apply-result.v1" as const;
 
 // implements REQ-kibi-change-to-proof-plan-compiler
-export type ApplyPlanArgs = Readonly<{
-  plan: CompilePlanV1;
-  approvedPlanHash: string;
-}> | Readonly<{
-  plan: MigrationPlan;
-  approvedPlanHash: string;
-  approvedActionIds: readonly string[];
-}> | Readonly<{
-  plan: EntityDeletionPlan;
-  approvedPlanHash: string;
-}> | Readonly<{
-  recoveryJournalId: string;
-}>;
+export type ApplyPlanArgs =
+  | Readonly<{
+      plan: CompilePlanV1;
+      approvedPlanHash: string;
+    }>
+  | Readonly<{
+      plan: MigrationPlan;
+      approvedPlanHash: string;
+      approvedActionIds: readonly string[];
+    }>
+  | Readonly<{
+      plan: EntityDeletionPlan;
+      approvedPlanHash: string;
+    }>
+  | Readonly<{
+      recoveryJournalId: string;
+    }>;
 
 export type EntityDeletionPlan = Readonly<{
   version: "kibi.entity-deletion-plan.v1";
@@ -53,61 +65,77 @@ export type EntityDeletionPlan = Readonly<{
 }>;
 
 // implements REQ-kibi-change-to-proof-plan-compiler
-export type ApplyPlanResult = Readonly<{
-  version: typeof PLAN_APPLY_RESULT_VERSION;
-  outcome: "applied" | "replayed";
-  planHash: string;
-  changedEntities: number;
-  changedRelationships: number;
-  changedPaths: readonly string[];
-  finalSnapshots: {
-    branch: string;
-    kbSnapshotId: string;
-    workspaceSnapshot: string;
-  };
-  validationSummary: {
-    stepsValidated: number;
-    stepsApplied: number;
-    sourceHashesChecked: number;
-    notes: readonly string[];
-  };
-  recoveryJournalId: string | null;
-  status?: "committed_with_repairs";
-  effectFailures?: readonly Readonly<Record<string, unknown>>[];
-  nextActions?: readonly Readonly<Record<string, unknown>>[];
-}> | Readonly<{
-  version: "kibi.entity-deletion-apply-result.v1";
-  outcome: "applied";
-  planHash: string;
-  deleted: number;
-  sourcePaths: readonly string[];
-  recoveryJournalId?: string | null;
-  status?: "committed_with_repairs";
-  nextActions?: readonly Readonly<Record<string, unknown>>[];
-}> | Readonly<{
-  version: "kibi.migration-apply-result.v1";
-  outcome: "applied" | "partially_applied" | "replayed" | "reconciliation_required";
-  planHash: string;
-  actionResults: readonly Readonly<{
-    actionId: string;
-    outcome: "applied" | "failed" | "skipped";
-    detail: string;
-  }>[];
-  finalSnapshots: {
-    branch: string;
-    kbSnapshotId: string;
-    workspaceSnapshot: string;
-  };
-  notes: readonly string[];
-  remainingPlan?: MigrationPlan;
-  closeout?: {
-    taskOutcome: "complete" | "interim" | "blocked";
-    kbState: "clean_fresh" | "stale" | "dirty" | "legacy_compat" | "not_evaluated";
-    verificationState: "fresh" | "dirty" | "unavailable" | "not_evaluated";
-    proofState: "proven" | "mixed" | "unresolved" | "not_evaluated";
-    limitationDisposition: "none" | "accepted" | "unaccepted" | "not_applicable";
-  };
-}>;
+export type ApplyPlanResult =
+  | Readonly<{
+      version: typeof PLAN_APPLY_RESULT_VERSION;
+      outcome: "applied" | "replayed";
+      planHash: string;
+      changedEntities: number;
+      changedRelationships: number;
+      changedPaths: readonly string[];
+      finalSnapshots: {
+        branch: string;
+        kbSnapshotId: string;
+        workspaceSnapshot: string;
+      };
+      validationSummary: {
+        stepsValidated: number;
+        stepsApplied: number;
+        sourceHashesChecked: number;
+        notes: readonly string[];
+      };
+      recoveryJournalId: string | null;
+      status?: "committed_with_repairs";
+      effectFailures?: readonly Readonly<Record<string, unknown>>[];
+      nextActions?: readonly Readonly<Record<string, unknown>>[];
+    }>
+  | Readonly<{
+      version: "kibi.entity-deletion-apply-result.v1";
+      outcome: "applied";
+      planHash: string;
+      deleted: number;
+      sourcePaths: readonly string[];
+      recoveryJournalId?: string | null;
+      status?: "committed_with_repairs";
+      nextActions?: readonly Readonly<Record<string, unknown>>[];
+    }>
+  | Readonly<{
+      version: "kibi.migration-apply-result.v1";
+      outcome:
+        | "applied"
+        | "partially_applied"
+        | "replayed"
+        | "reconciliation_required";
+      planHash: string;
+      actionResults: readonly Readonly<{
+        actionId: string;
+        outcome: "applied" | "failed" | "skipped";
+        detail: string;
+      }>[];
+      finalSnapshots: {
+        branch: string;
+        kbSnapshotId: string;
+        workspaceSnapshot: string;
+      };
+      notes: readonly string[];
+      remainingPlan?: MigrationPlan;
+      closeout?: {
+        taskOutcome: "complete" | "interim" | "blocked";
+        kbState:
+          | "clean_fresh"
+          | "stale"
+          | "dirty"
+          | "legacy_compat"
+          | "not_evaluated";
+        verificationState: "fresh" | "dirty" | "unavailable" | "not_evaluated";
+        proofState: "proven" | "mixed" | "unresolved" | "not_evaluated";
+        limitationDisposition:
+          | "none"
+          | "accepted"
+          | "unaccepted"
+          | "not_applicable";
+      };
+    }>;
 
 const ENTITY_TYPES = new Set([
   "req",
@@ -163,7 +191,9 @@ function asUpsert(step: PlanStep): UpsertInput {
   };
 }
 
-function validateCompilePlanShape(args: Extract<ApplyPlanArgs, { plan: CompilePlanV1 }>): void {
+function validateCompilePlanShape(
+  args: Extract<ApplyPlanArgs, { plan: CompilePlanV1 }>,
+): void {
   if (!isRecord(args.plan))
     throw new Error("Apply plan failed: plan must be an object");
   if (args.plan.version !== "kibi.compile-plan.v1")
@@ -203,16 +233,30 @@ function isEntityDeletionApplyArgs(
   return "plan" in args && args.plan.version === "kibi.entity-deletion-plan.v1";
 }
 
-function validateEntityDeletionPlan(args: Extract<ApplyPlanArgs, { plan: EntityDeletionPlan }>): void {
-  if (!/^[a-f0-9]{64}$/i.test(args.approvedPlanHash) || args.approvedPlanHash !== args.plan.planHash) {
-    throw new Error("Entity deletion apply failed: approvedPlanHash does not match planHash");
+function validateEntityDeletionPlan(
+  args: Extract<ApplyPlanArgs, { plan: EntityDeletionPlan }>,
+): void {
+  if (
+    !/^[a-f0-9]{64}$/i.test(args.approvedPlanHash) ||
+    args.approvedPlanHash !== args.plan.planHash
+  ) {
+    throw new Error(
+      "Entity deletion apply failed: approvedPlanHash does not match planHash",
+    );
   }
   const { planHash: _ignored, ...body } = args.plan;
-  if (createHash("sha256").update(JSON.stringify(body)).digest("hex") !== args.plan.planHash) {
-    throw new Error("Entity deletion apply failed: planHash does not match the canonical plan body");
+  if (
+    createHash("sha256").update(JSON.stringify(body)).digest("hex") !==
+    args.plan.planHash
+  ) {
+    throw new Error(
+      "Entity deletion apply failed: planHash does not match the canonical plan body",
+    );
   }
   if (!Array.isArray(args.plan.entityIds) || args.plan.entityIds.length === 0) {
-    throw new Error("Entity deletion apply failed: entityIds must be non-empty");
+    throw new Error(
+      "Entity deletion apply failed: entityIds must be non-empty",
+    );
   }
   if (args.plan.supersessionRequired) {
     throw new Error(
@@ -229,9 +273,13 @@ function validateMigrationPlanShape(
   if (args.plan.version !== "kibi.migration-plan.v2")
     throw new Error("Migration apply failed: unsupported plan version");
   if (!/^[a-f0-9]{64}$/i.test(args.approvedPlanHash))
-    throw new Error("Migration apply failed: approvedPlanHash must be a SHA-256 hash");
+    throw new Error(
+      "Migration apply failed: approvedPlanHash must be a SHA-256 hash",
+    );
   if (args.approvedPlanHash !== args.plan.planHash)
-    throw new Error("Migration apply failed: approvedPlanHash does not match plan.planHash");
+    throw new Error(
+      "Migration apply failed: approvedPlanHash does not match plan.planHash",
+    );
   const bodyHash = migrationPlanHash({
     version: args.plan.version,
     expected: args.plan.expected,
@@ -240,34 +288,54 @@ function validateMigrationPlanShape(
     diagnostics: args.plan.diagnostics,
   });
   if (bodyHash !== args.plan.planHash)
-    throw new Error("Migration apply failed: planHash does not match the canonical plan body");
-  if (!Array.isArray(args.approvedActionIds) || args.approvedActionIds.length === 0)
-    throw new Error("Migration apply failed: approvedActionIds must contain at least one action");
+    throw new Error(
+      "Migration apply failed: planHash does not match the canonical plan body",
+    );
+  if (
+    !Array.isArray(args.approvedActionIds) ||
+    args.approvedActionIds.length === 0
+  )
+    throw new Error(
+      "Migration apply failed: approvedActionIds must contain at least one action",
+    );
   const selected = new Set(args.approvedActionIds);
   const actions = args.plan.actions.filter((action) => selected.has(action.id));
   if (actions.length !== selected.size)
-    throw new Error("Migration apply failed: approvedActionIds contains an action not present in the plan");
+    throw new Error(
+      "Migration apply failed: approvedActionIds contains an action not present in the plan",
+    );
   for (const action of actions) {
     if (action.state !== "ready")
-      throw new Error(`Migration apply failed: action '${action.id}' is blocked`);
+      throw new Error(
+        `Migration apply failed: action '${action.id}' is blocked`,
+      );
     if (action.safety !== "automatic" || action.autoApplicable !== true)
-      throw new Error(`Migration apply failed: action '${action.id}' is not automatic`);
+      throw new Error(
+        `Migration apply failed: action '${action.id}' is not automatic`,
+      );
     for (const dependency of action.dependsOn) {
       if (!selected.has(dependency))
-        throw new Error(`Migration apply failed: action '${action.id}' requires approved dependency '${dependency}'`);
+        throw new Error(
+          `Migration apply failed: action '${action.id}' requires approved dependency '${dependency}'`,
+        );
     }
   }
   return actions;
 }
 
-function topologicalActions(actions: readonly MigrationAction[]): MigrationAction[] {
+function topologicalActions(
+  actions: readonly MigrationAction[],
+): MigrationAction[] {
   const byId = new Map(actions.map((action) => [action.id, action]));
   const result: MigrationAction[] = [];
   const visiting = new Set<string>();
   const visited = new Set<string>();
   const visit = (action: MigrationAction): void => {
     if (visited.has(action.id)) return;
-    if (visiting.has(action.id)) throw new Error(`Migration apply failed: action dependency cycle at '${action.id}'`);
+    if (visiting.has(action.id))
+      throw new Error(
+        `Migration apply failed: action dependency cycle at '${action.id}'`,
+      );
     visiting.add(action.id);
     for (const dependency of action.dependsOn) {
       const dependencyAction = byId.get(dependency);
@@ -319,12 +387,18 @@ async function applySourceWrites(
   writes: readonly SourceWritePlan[],
   planHash: string,
   allowReplay = false,
-): Promise<{ paths: string[]; rollback: () => Promise<void>; journalId: string | null }> {
+): Promise<{
+  paths: string[];
+  rollback: () => Promise<void>;
+  journalId: string | null;
+}> {
   if (writes.length === 0) {
     return { paths: [], rollback: async () => undefined, journalId: null };
   }
   if (!context.fs) {
-    throw new Error("Apply plan failed: sourceWrites require a filesystem-capable runtime");
+    throw new Error(
+      "Apply plan failed: sourceWrites require a filesystem-capable runtime",
+    );
   }
   const fsPort = context.fs;
   const journalPath = path.join(
@@ -370,14 +444,19 @@ async function applySourceWrites(
     );
   const readJournal = async (): Promise<SourceJournal | undefined> => {
     try {
-      const parsed = JSON.parse(await fsPort.readFile(journalPath)) as Partial<SourceJournal>;
+      const parsed = JSON.parse(
+        await fsPort.readFile(journalPath),
+      ) as Partial<SourceJournal>;
       if (
         parsed.version === 1 &&
         parsed.planHash === planHash &&
         Array.isArray(parsed.entries) &&
-        (parsed.state === "prepared" || parsed.state === "publishing_sources" ||
-          parsed.state === "sources_committed" || parsed.state === "compiled_published" ||
-          parsed.state === "committed" || parsed.state === "repair_required" ||
+        (parsed.state === "prepared" ||
+          parsed.state === "publishing_sources" ||
+          parsed.state === "sources_committed" ||
+          parsed.state === "compiled_published" ||
+          parsed.state === "committed" ||
+          parsed.state === "repair_required" ||
           parsed.state === "rolled_back") &&
         parsed.entries.every((entry) => entry && typeof entry === "object") &&
         sameEntries(parsed.entries as JournalEntry[])
@@ -394,14 +473,19 @@ async function applySourceWrites(
   const priorPaths = prior?.entries.map((entry) => entry.path) ?? [];
   if (
     prior &&
-    ["committed", "sources_committed", "compiled_published", "repair_required"].includes(
-      prior.state,
-    )
+    [
+      "committed",
+      "sources_committed",
+      "compiled_published",
+      "repair_required",
+    ].includes(prior.state)
   ) {
     let allAfter = true;
     for (const entry of prior.entries) {
       try {
-        const current = await context.fs.readFile(path.resolve(context.workspaceRoot, entry.path));
+        const current = await context.fs.readFile(
+          path.resolve(context.workspaceRoot, entry.path),
+        );
         if (entry.afterHash === null || digest(current) !== entry.afterHash) {
           allAfter = false;
         }
@@ -417,14 +501,21 @@ async function applySourceWrites(
       }
       for (const entry of prior.entries) {
         if (entry.mode === "write" && entry.afterHash !== null) {
-          writePendingSourceReceipt(context.workspaceRoot, entry.path, entry.afterHash);
+          writePendingSourceReceipt(
+            context.workspaceRoot,
+            entry.path,
+            entry.afterHash,
+          );
         }
       }
       return { paths: priorPaths, rollback: async () => undefined, journalId };
     }
   }
 
-  if (prior && (prior.state === "prepared" || prior.state === "publishing_sources")) {
+  if (
+    prior &&
+    (prior.state === "prepared" || prior.state === "publishing_sources")
+  ) {
     // A crash before the authoritative source commit must restore every
     // before-image. Refuse recovery if another writer changed a target to a
     // hash that is neither the planned before nor after value.
@@ -438,7 +529,9 @@ async function applySourceWrites(
       }
       const currentHash = current === undefined ? null : digest(current);
       if (currentHash !== entry.beforeHash && currentHash !== entry.afterHash) {
-        throw new Error(`Apply plan recovery refused: ${entry.path} changed outside its journal`);
+        throw new Error(
+          `Apply plan recovery refused: ${entry.path} changed outside its journal`,
+        );
       }
       if (entry.beforeExisted) {
         const before = await context.fs.readFile(entry.beforeStage);
@@ -465,45 +558,69 @@ async function applySourceWrites(
         path.isAbsolute(write.path) ||
         write.path.split(/[\\/]/).includes("..")
       ) {
-        throw new Error(`Apply plan failed: sourceWrites.path must be workspace-relative: ${write.path}`);
+        throw new Error(
+          `Apply plan failed: sourceWrites.path must be workspace-relative: ${write.path}`,
+        );
       }
       const absolute = path.resolve(context.workspaceRoot, write.path);
       const root = path.resolve(context.workspaceRoot);
       if (absolute !== root && !absolute.startsWith(`${root}${path.sep}`)) {
-        throw new Error(`Apply plan failed: sourceWrites.path escapes workspace: ${write.path}`);
+        throw new Error(
+          `Apply plan failed: sourceWrites.path escapes workspace: ${write.path}`,
+        );
       }
       const workspaceRelative = path.relative(root, absolute);
       if (
         workspaceRelative === ".kb" ||
         (workspaceRelative.startsWith(`.kb${path.sep}`) &&
-          !workspaceRelative.startsWith(`.kb${path.sep}relationships${path.sep}`))
+          !workspaceRelative.startsWith(
+            `.kb${path.sep}relationships${path.sep}`,
+          ))
       ) {
         throw new Error(
           "Apply plan failed: sourceWrites.path cannot target Kibi's derived .kb directory (except canonical relationship shards)",
         );
       }
       let existingPath = absolute;
-      while (!existsSync(existingPath) && path.dirname(existingPath) !== existingPath) {
+      while (
+        !existsSync(existingPath) &&
+        path.dirname(existingPath) !== existingPath
+      ) {
         existingPath = path.dirname(existingPath);
       }
       const realExisting = realpathSync.native(existingPath);
-      if (realExisting !== root && !realExisting.startsWith(`${root}${path.sep}`)) {
-        throw new Error(`Apply plan failed: sourceWrites.path follows a symlink outside the workspace: ${write.path}`);
+      if (
+        realExisting !== root &&
+        !realExisting.startsWith(`${root}${path.sep}`)
+      ) {
+        throw new Error(
+          `Apply plan failed: sourceWrites.path follows a symlink outside the workspace: ${write.path}`,
+        );
       }
-      const existing = await context.fs.readFile(absolute).catch(() => undefined);
+      const existing = await context.fs
+        .readFile(absolute)
+        .catch(() => undefined);
       const beforeHash = existing === undefined ? null : digest(existing);
       if (beforeHash !== write.beforeHash) {
-        throw new Error(`Apply plan failed: source hash changed for ${write.path}`);
+        throw new Error(
+          `Apply plan failed: source hash changed for ${write.path}`,
+        );
       }
       const mode = write.mode ?? "write";
       if (
         mode === "write" &&
-        (write.body === undefined || write.afterHash === null || digest(write.body) !== write.afterHash)
+        (write.body === undefined ||
+          write.afterHash === null ||
+          digest(write.body) !== write.afterHash)
       ) {
-        throw new Error(`Apply plan failed: afterHash does not match staged body for ${write.path}`);
+        throw new Error(
+          `Apply plan failed: afterHash does not match staged body for ${write.path}`,
+        );
       }
       if (mode === "delete" && write.afterHash !== null) {
-        throw new Error(`Apply plan failed: delete source write must have a null afterHash for ${write.path}`);
+        throw new Error(
+          `Apply plan failed: delete source write must have a null afterHash for ${write.path}`,
+        );
       }
       originals.push({ absolute, body: existing });
       paths.push(write.path);
@@ -557,7 +674,9 @@ async function applySourceWrites(
       );
       if ((write.mode ?? "write") === "delete") {
         if (!context.fs.unlink) {
-          throw new Error(`Apply plan failed: delete requires filesystem unlink support: ${write.path}`);
+          throw new Error(
+            `Apply plan failed: delete requires filesystem unlink support: ${write.path}`,
+          );
         }
         await context.fs.unlink(absolute);
       } else {
@@ -570,7 +689,8 @@ async function applySourceWrites(
           // compatibility fallback explicit; production nodeFilesystem uses
           // same-directory rename for atomic replacement.
           await context.fs.writeFile(absolute, write.body ?? "");
-          if (context.fs.unlink) await context.fs.unlink(staged).catch(() => undefined);
+          if (context.fs.unlink)
+            await context.fs.unlink(staged).catch(() => undefined);
         }
       }
     }
@@ -583,7 +703,11 @@ async function applySourceWrites(
     // input to the exact bytes committed by this plan.
     for (const write of writes) {
       if ((write.mode ?? "write") === "write" && write.afterHash !== null) {
-        writePendingSourceReceipt(context.workspaceRoot, write.path, write.afterHash);
+        writePendingSourceReceipt(
+          context.workspaceRoot,
+          write.path,
+          write.afterHash,
+        );
       }
     }
   } catch (error) {
@@ -626,10 +750,20 @@ async function markSourceJournal(
   state: "compiled_published" | "committed" | "repair_required" | "rolled_back",
 ): Promise<void> {
   if (!journalId || !context.fs) return;
-  const journalPath = path.join(context.workspaceRoot, ".kb", "recovery", `${journalId}.json`);
+  const journalPath = path.join(
+    context.workspaceRoot,
+    ".kb",
+    "recovery",
+    `${journalId}.json`,
+  );
   try {
-    const current = JSON.parse(await context.fs.readFile(journalPath)) as Record<string, unknown>;
-    await context.fs.writeFile(journalPath, `${JSON.stringify({ ...current, state }, null, 2)}\n`);
+    const current = JSON.parse(
+      await context.fs.readFile(journalPath),
+    ) as Record<string, unknown>;
+    await context.fs.writeFile(
+      journalPath,
+      `${JSON.stringify({ ...current, state }, null, 2)}\n`,
+    );
   } catch {
     // Journal repair is surfaced by the next status/check; do not hide the
     // authoritative operation result behind a best-effort metadata write.
@@ -643,7 +777,8 @@ async function executeSourceRecovery(
   content: Array<{ type: "text"; text: string }>;
   structuredContent: ApplyPlanResult;
 }> {
-  if (!context.fs) throw new Error("Source recovery requires a filesystem-capable runtime");
+  if (!context.fs)
+    throw new Error("Source recovery requires a filesystem-capable runtime");
   if (!/^[A-Za-z0-9._-]+$/.test(args.recoveryJournalId)) {
     throw new Error("Source recovery journal ID is invalid");
   }
@@ -701,7 +836,11 @@ async function executeSourceRecovery(
   );
   for (const write of writes) {
     if (write.mode === "write" && write.afterHash !== null) {
-      writePendingSourceReceipt(context.workspaceRoot, write.path, write.afterHash);
+      writePendingSourceReceipt(
+        context.workspaceRoot,
+        write.path,
+        write.afterHash,
+      );
     }
   }
   const sync = await syncCommand({
@@ -710,13 +849,21 @@ async function executeSourceRecovery(
   });
   await markSourceJournal(context, sourceWrites.journalId, "committed");
   return {
-    content: [{ type: "text", text: `Repaired source journal ${args.recoveryJournalId}.` }],
+    content: [
+      {
+        type: "text",
+        text: `Repaired source journal ${args.recoveryJournalId}.`,
+      },
+    ],
     structuredContent: {
       version: PLAN_APPLY_RESULT_VERSION,
       outcome: "replayed",
       planHash: journal.planHash,
       changedEntities: sync.entityCounts
-        ? Object.values(sync.entityCounts).reduce((sum, count) => sum + count, 0)
+        ? Object.values(sync.entityCounts).reduce(
+            (sum, count) => sum + count,
+            0,
+          )
         : 0,
       changedRelationships: sync.relationshipCount ?? 0,
       changedPaths: sourceWrites.paths,
@@ -729,7 +876,9 @@ async function executeSourceRecovery(
         stepsValidated: 0,
         stepsApplied: 0,
         sourceHashesChecked: writes.length,
-        notes: ["Compiled state rebuilt from the authoritative recovery journal."],
+        notes: [
+          "Compiled state rebuilt from the authoritative recovery journal.",
+        ],
       },
       recoveryJournalId: args.recoveryJournalId,
     },
@@ -771,7 +920,11 @@ export async function executeApplyPlan(
         operationContext,
       );
       payload = result.structuredContent as DeletePayload;
-      await markSourceJournal(operationContext, sourceWrites.journalId, "compiled_published");
+      await markSourceJournal(
+        operationContext,
+        sourceWrites.journalId,
+        "compiled_published",
+      );
     } catch (error) {
       status = "committed_with_repairs";
       nextActions.push({
@@ -782,7 +935,11 @@ export async function executeApplyPlan(
           "The deletion source commit is authoritative but compiled retraction failed; repair from the journal without retrying deletion.",
         required: true,
       });
-      await markSourceJournal(operationContext, sourceWrites.journalId, "repair_required");
+      await markSourceJournal(
+        operationContext,
+        sourceWrites.journalId,
+        "repair_required",
+      );
       payload = {
         deleted: 0,
         skipped: args.plan.entityIds.length,
@@ -868,9 +1025,7 @@ export async function executeApplyPlan(
         changedRelationships += Number(row.relationships_created ?? 0);
         const details = payload as Record<string, unknown>;
         if (Array.isArray(details.effectFailures)) {
-          effectFailures.push(
-            ...details.effectFailures.filter(isRecord),
-          );
+          effectFailures.push(...details.effectFailures.filter(isRecord));
         }
         if (Array.isArray(details.nextActions)) {
           nextActions.push(...details.nextActions.filter(isRecord));
@@ -892,20 +1047,30 @@ export async function executeApplyPlan(
           "Authoritative source files are committed but compiled effects failed; replay the recovery journal instead of retrying the original mutation.",
         required: true,
       });
-      await markSourceJournal(operationContext, sourceWrites.journalId, "repair_required");
+      await markSourceJournal(
+        operationContext,
+        sourceWrites.journalId,
+        "repair_required",
+      );
     } else {
       throw error;
     }
   }
   if (compiledCommit) {
-    await markSourceJournal(operationContext, sourceWrites.journalId, "compiled_published");
+    await markSourceJournal(
+      operationContext,
+      sourceWrites.journalId,
+      "compiled_published",
+    );
   }
   // Everything before this point is authoritative. A status/workspace
   // readback failure therefore cannot turn the operation into a retryable
   // mutation: return a repairable partial completion with deterministic next
   // actions instead.
   let finalStatus: typeof status | undefined;
-  let finalWorkspace: Awaited<ReturnType<typeof readWorkspaceSnapshot>> | undefined;
+  let finalWorkspace:
+    | Awaited<ReturnType<typeof readWorkspaceSnapshot>>
+    | undefined;
   let postCommitFailure: string | undefined;
   try {
     const finalStatusResult = await executeStatus({}, operationContext);
@@ -915,7 +1080,9 @@ export async function executeApplyPlan(
     }
     finalWorkspace = await readWorkspaceSnapshot(operationContext);
     if (!finalWorkspace.available) {
-      throw new Error(finalWorkspace.error ?? "final workspace snapshot unavailable");
+      throw new Error(
+        finalWorkspace.error ?? "final workspace snapshot unavailable",
+      );
     }
   } catch (error) {
     postCommitFailure = error instanceof Error ? error.message : String(error);
@@ -938,7 +1105,11 @@ export async function executeApplyPlan(
         required: true,
       },
     );
-    await markSourceJournal(operationContext, sourceWrites.journalId, "repair_required");
+    await markSourceJournal(
+      operationContext,
+      sourceWrites.journalId,
+      "repair_required",
+    );
   }
   const finalSnapshots =
     finalStatus !== undefined && finalWorkspace?.available === true
@@ -995,61 +1166,112 @@ async function applyMigrationPlan(
 }> {
   const actions = topologicalActions(validateMigrationPlanShape(args));
   const initialStatus = (await executeStatus({}, context)).structuredContent;
-  if (!initialStatus) throw new Error("Migration apply failed: status query returned no payload");
-  if (args.plan.expected.branch !== null && initialStatus.branch !== args.plan.expected.branch)
-    throw new Error("Migration apply failed: active branch changed since planning");
-  if (args.plan.expected.kbBranch !== null && initialStatus.branch !== args.plan.expected.kbBranch)
+  if (!initialStatus)
+    throw new Error("Migration apply failed: status query returned no payload");
+  if (
+    args.plan.expected.branch !== null &&
+    initialStatus.branch !== args.plan.expected.branch
+  )
+    throw new Error(
+      "Migration apply failed: active branch changed since planning",
+    );
+  if (
+    args.plan.expected.kbBranch !== null &&
+    initialStatus.branch !== args.plan.expected.kbBranch
+  )
     throw new Error("Migration apply failed: KB branch changed since planning");
-  if (args.plan.expected.kbSnapshotId !== null && initialStatus.snapshotId !== args.plan.expected.kbSnapshotId)
-    throw new Error("Migration apply failed: KB snapshot changed since planning");
+  if (
+    args.plan.expected.kbSnapshotId !== null &&
+    initialStatus.snapshotId !== args.plan.expected.kbSnapshotId
+  )
+    throw new Error(
+      "Migration apply failed: KB snapshot changed since planning",
+    );
   if (args.plan.expected.workspaceSnapshot !== null) {
     const workspace = await readWorkspaceSnapshot(context);
-    if (!workspace.available || workspace.snapshot.hash !== args.plan.expected.workspaceSnapshot)
-      throw new Error("Migration apply failed: workspace snapshot changed since planning");
+    if (
+      !workspace.available ||
+      workspace.snapshot.hash !== args.plan.expected.workspaceSnapshot
+    )
+      throw new Error(
+        "Migration apply failed: workspace snapshot changed since planning",
+      );
   }
   if (args.plan.expected.configHash !== null) {
     const currentConfig = readMigrationConfigStatus(context.workspaceRoot);
     if (currentConfig.configHash !== args.plan.expected.configHash)
       throw new Error("Migration apply failed: config changed since planning");
   }
-  const results: Array<{ actionId: string; outcome: "applied" | "failed" | "skipped"; detail: string }> = [];
+  const results: Array<{
+    actionId: string;
+    outcome: "applied" | "failed" | "skipped";
+    detail: string;
+  }> = [];
   let failed = false;
   for (const action of actions) {
     if (failed) {
-      results.push({ actionId: action.id, outcome: "skipped", detail: "Skipped after an earlier action failed." });
+      results.push({
+        actionId: action.id,
+        outcome: "skipped",
+        detail: "Skipped after an earlier action failed.",
+      });
       continue;
     }
     try {
       await applyMigrationAction(action, context);
-      results.push({ actionId: action.id, outcome: "applied", detail: `Applied ${action.code}.` });
+      results.push({
+        actionId: action.id,
+        outcome: "applied",
+        detail: `Applied ${action.code}.`,
+      });
     } catch (error) {
       failed = true;
-      results.push({ actionId: action.id, outcome: "failed", detail: error instanceof Error ? error.message : String(error) });
+      results.push({
+        actionId: action.id,
+        outcome: "failed",
+        detail: error instanceof Error ? error.message : String(error),
+      });
     }
   }
   const finalStatus = (await executeStatus({}, context)).structuredContent;
-  if (!finalStatus) throw new Error("Migration apply failed: final status query returned no payload");
+  if (!finalStatus)
+    throw new Error(
+      "Migration apply failed: final status query returned no payload",
+    );
   const finalWorkspace = await readWorkspaceSnapshot(context);
-  if (!finalWorkspace.available) throw new Error(`Migration apply failed: ${finalWorkspace.error}`);
+  if (!finalWorkspace.available)
+    throw new Error(`Migration apply failed: ${finalWorkspace.error}`);
   let remainingPlan: MigrationPlan | undefined;
   let coverageSummary: Readonly<Record<string, number>> | undefined;
   if (!failed && finalStatus.branchStore?.state === "healthy") {
     try {
       const prolog = context.prolog ?? (await context.ensureProlog?.());
       if (prolog !== undefined) {
-        const operationContext = context.prolog ? context : { ...context, prolog };
-        const [{ executeCheck }, { executeCoverage }, { mergeMigrationPlans }] = await Promise.all([
-          import("../../public/operations/check-executor.js"),
-          import("../../public/operations/specs/reporting.js"),
-          import("../../public/operations/migration-plan.js"),
-        ]);
+        const operationContext = context.prolog
+          ? context
+          : { ...context, prolog };
+        const [{ executeCheck }, { executeCoverage }, { mergeMigrationPlans }] =
+          await Promise.all([
+            import("../../public/operations/check-executor.js"),
+            import("../../public/operations/specs/reporting.js"),
+            import("../../public/operations/migration-plan.js"),
+          ]);
         const check = await executeCheck({}, operationContext);
-        const coverage = await executeCoverage({ by: "req", limit: 10_000, offset: 0 }, operationContext);
-        const symbolCoverage = await executeCoverage({ by: "symbol", limit: 10_000, offset: 0 }, operationContext);
-        const fragments = [check.structuredContent?.migrationPlan, coverage.structuredContent?.migrationPlan, symbolCoverage.structuredContent?.migrationPlan].filter(
-          (value): value is MigrationPlan => value !== undefined,
+        const coverage = await executeCoverage(
+          { by: "req", limit: 10_000, offset: 0 },
+          operationContext,
         );
-        if (fragments.length > 0) remainingPlan = mergeMigrationPlans(fragments);
+        const symbolCoverage = await executeCoverage(
+          { by: "symbol", limit: 10_000, offset: 0 },
+          operationContext,
+        );
+        const fragments = [
+          check.structuredContent?.migrationPlan,
+          coverage.structuredContent?.migrationPlan,
+          symbolCoverage.structuredContent?.migrationPlan,
+        ].filter((value): value is MigrationPlan => value !== undefined);
+        if (fragments.length > 0)
+          remainingPlan = mergeMigrationPlans(fragments);
         coverageSummary = coverage.structuredContent?.summary;
       }
     } catch (error) {
@@ -1075,22 +1297,24 @@ async function applyMigrationPlan(
         : finalStatus.syncState === "fresh"
           ? "clean_fresh"
           : "not_evaluated";
-  const verificationState = finalStatus.verificationSnapshotAvailable === false
-    ? "unavailable"
-    : finalStatus.verificationSnapshotDirty === true
-      ? "dirty"
-      : finalStatus.verificationSnapshotDirty === false
-        ? "fresh"
-        : "not_evaluated";
+  const verificationState =
+    finalStatus.verificationSnapshotAvailable === false
+      ? "unavailable"
+      : finalStatus.verificationSnapshotDirty === true
+        ? "dirty"
+        : finalStatus.verificationSnapshotDirty === false
+          ? "fresh"
+          : "not_evaluated";
   const proven = coverageSummary?.proofProven;
   const missing = coverageSummary?.proofMissing;
-  const proofState = typeof proven !== "number" || typeof missing !== "number"
-    ? "not_evaluated"
-    : proven > 0 && missing === 0
-      ? "proven"
-      : proven > 0
-        ? "mixed"
-        : "unresolved";
+  const proofState =
+    typeof proven !== "number" || typeof missing !== "number"
+      ? "not_evaluated"
+      : proven > 0 && missing === 0
+        ? "proven"
+        : proven > 0
+          ? "mixed"
+          : "unresolved";
   const payload: ApplyPlanResult = {
     version: "kibi.migration-apply-result.v1",
     outcome,
@@ -1101,10 +1325,17 @@ async function applyMigrationPlan(
       kbSnapshotId: finalStatus.snapshotId,
       workspaceSnapshot: finalWorkspace.snapshot.hash,
     },
-    notes: ["Migration actions were applied sequentially; rerun kibi status, check, and complete coverage to obtain the next plan."],
+    notes: [
+      "Migration actions were applied sequentially; rerun kibi status, check, and complete coverage to obtain the next plan.",
+    ],
     ...(remainingPlan !== undefined ? { remainingPlan } : {}),
     closeout: {
-      taskOutcome: outcome === "applied" ? "complete" : outcome === "reconciliation_required" ? "blocked" : "interim",
+      taskOutcome:
+        outcome === "applied"
+          ? "complete"
+          : outcome === "reconciliation_required"
+            ? "blocked"
+            : "interim",
       kbState,
       verificationState,
       proofState,
@@ -1112,7 +1343,12 @@ async function applyMigrationPlan(
     },
   };
   return {
-    content: [{ type: "text", text: `${outcome === "applied" ? "Applied" : "Stopped after"} migration plan ${args.plan.planHash.slice(0, 12)}.` }],
+    content: [
+      {
+        type: "text",
+        text: `${outcome === "applied" ? "Applied" : "Stopped after"} migration plan ${args.plan.planHash.slice(0, 12)}.`,
+      },
+    ],
     structuredContent: payload,
   };
 }
@@ -1124,35 +1360,62 @@ async function applyMigrationAction(
   switch (action.code) {
     case "legacy_branch_storage":
       if (action.invocation.kind !== "cli")
-        throw new Error("Legacy branch migration action is missing its explicit source identity.");
+        throw new Error(
+          "Legacy branch migration action is missing its explicit source identity.",
+        );
       {
         const argv = action.invocation.command_argv;
         const fromIndex = argv.indexOf("--from");
         const toIndex = argv.indexOf("--to");
         const from = fromIndex >= 0 ? argv[fromIndex + 1] : undefined;
         const to = toIndex >= 0 ? argv[toIndex + 1] : undefined;
-        if (!from || !to) throw new Error("Legacy branch migration action requires explicit --from and --to.");
-        await branchMigrateCommand({ from, to, apply: true, workspaceRoot: context.workspaceRoot });
+        if (!from || !to)
+          throw new Error(
+            "Legacy branch migration action requires explicit --from and --to.",
+          );
+        await branchMigrateCommand({
+          from,
+          to,
+          apply: true,
+          workspaceRoot: context.workspaceRoot,
+        });
       }
       return;
     case "missing_exact_branch_store":
       await branchEnsureCommand({ workspaceRoot: context.workspaceRoot });
       return;
     case "damaged_exact_branch_store":
-      await branchRecoverCommand({ apply: true, workspaceRoot: context.workspaceRoot });
+      await branchRecoverCommand({
+        apply: true,
+        workspaceRoot: context.workspaceRoot,
+      });
       return;
     case "schema_version_upgrade":
     case "invalid_schema_version":
-      if ((await migrateCommand({ yes: true, workspaceRoot: context.workspaceRoot, initializeMissingConfig: true })).exitCode !== 0)
+      if (
+        (
+          await migrateCommand({
+            yes: true,
+            workspaceRoot: context.workspaceRoot,
+            initializeMissingConfig: true,
+          })
+        ).exitCode !== 0
+      )
         throw new Error("Schema migration did not complete successfully.");
       return;
     case "symbol_refresh_coordinates":
     case "coverage_source_coordinates": {
-      const result = await syncCommand({ refreshSymbolCoordinates: true, workspaceRoot: context.workspaceRoot });
-      if (!result.success) throw new Error("Coordinate refresh did not complete successfully.");
+      const result = await syncCommand({
+        refreshSymbolCoordinates: true,
+        workspaceRoot: context.workspaceRoot,
+      });
+      if (!result.success)
+        throw new Error("Coordinate refresh did not complete successfully.");
       return;
     }
     default:
-      throw new Error(`Migration action '${action.code}' has no automatic executor.`);
+      throw new Error(
+        `Migration action '${action.code}' has no automatic executor.`,
+      );
   }
 }

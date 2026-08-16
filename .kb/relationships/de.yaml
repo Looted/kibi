@@ -38,3 +38,10 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/facts/FACT-034.md
+  - type: relates_to
+    from: FACT-034
+    to: FACT-POL-027
+    created_at: 2026-08-15T18:55:00.715Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3569cfd4f7da

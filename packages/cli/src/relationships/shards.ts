@@ -179,7 +179,29 @@ export function writeShard(
   }
 
   const yamlContent = serializeToYAML(unique);
-  fs.writeFileSync(shardPath, yamlContent, "utf8");
+  atomicWriteText(shardPath, yamlContent);
+}
+
+/**
+ * Publish one canonical shard replacement atomically. Relationship shards are
+ * authored source, so a torn write must never leave a half-valid YAML file
+ * for the next sync or Git operation.
+ */
+function atomicWriteText(targetPath: string, body: string): void {
+  const temporary = `${targetPath}.kibi-write-${process.pid}-${Date.now()}-${Math.random()
+    .toString(16)
+    .slice(2)}`;
+  try {
+    fs.writeFileSync(temporary, body, { encoding: "utf8", mode: 0o600 });
+    fs.renameSync(temporary, targetPath);
+  } catch (error) {
+    try {
+      if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
+    } catch {
+      // Preserve the original publication failure.
+    }
+    throw error;
+  }
 }
 
 export type RelationshipSelector = Readonly<{
@@ -221,20 +243,24 @@ export function removeRelationshipsFromShards(
     const document = parseDocument(fs.readFileSync(shardPath, "utf8"));
     const sequence = document.get("relationships", true);
     if (!sequence || typeof sequence !== "object" || !("items" in sequence)) {
-      throw new Error(`Invalid shard file: missing 'relationships' array at ${shardPath}`);
+      throw new Error(
+        `Invalid shard file: missing 'relationships' array at ${shardPath}`,
+      );
     }
     const items = (sequence as { items: unknown[] }).items;
     for (let index = items.length - 1; index >= 0; index -= 1) {
       const item = items[index];
       if (!item || typeof item !== "object" || !("get" in item)) continue;
       const get = (item as { get(name: string): unknown }).get.bind(item);
-      if (wanted.has(`${String(get("type"))}\0${String(get("from"))}\0${String(get("to"))}`)) {
+      if (
+        wanted.has(
+          `${String(get("type"))}\0${String(get("from"))}\0${String(get("to"))}`,
+        )
+      ) {
         document.deleteIn(["relationships", index]);
       }
     }
-    const tempPath = `${shardPath}.kibi-delete-${process.pid}-${Date.now()}`;
-    fs.writeFileSync(tempPath, document.toString(), "utf8");
-    fs.renameSync(tempPath, shardPath);
+    atomicWriteText(shardPath, document.toString());
     for (const record of matching) {
       const key = `${record.type}\0${record.from}\0${record.to}`;
       const entry = removed.get(key) ?? { paths: [], sources: [] };
@@ -326,10 +352,12 @@ export function appendRelationship(
       const document = parseDocument(fs.readFileSync(shardPath, "utf8"));
       const sequence = document.get("relationships", true);
       if (!sequence || typeof sequence !== "object" || !("items" in sequence)) {
-        throw new Error(`Invalid shard file: missing 'relationships' array at ${shardPath}`);
+        throw new Error(
+          `Invalid shard file: missing 'relationships' array at ${shardPath}`,
+        );
       }
       (sequence as { items: unknown[] }).items.push(newRecord);
-      fs.writeFileSync(shardPath, document.toString(), "utf8");
+      atomicWriteText(shardPath, document.toString());
     } else {
       writeShard(shardPath, [newRecord]);
     }

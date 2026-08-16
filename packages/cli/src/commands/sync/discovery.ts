@@ -16,10 +16,10 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import * as path from "node:path";
-import { createHash } from "node:crypto";
 import { execFile } from "node:child_process";
-import { existsSync, readdirSync, readFileSync, unlinkSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync, readdirSync, unlinkSync } from "node:fs";
+import * as path from "node:path";
 import { promisify } from "node:util";
 import fg from "fast-glob";
 import { getRelationshipsDir } from "../../extractors/relationships.js";
@@ -64,7 +64,9 @@ function pendingSourcePaths(cwd: string): Map<string, string> {
         const relative = receipt.path.replaceAll("\\", "/");
         const absolute = path.resolve(cwd, relative);
         if (!absolute.startsWith(`${path.resolve(cwd)}${path.sep}`)) {
-          throw new Error(`Pending source receipt escapes workspace: ${relative}`);
+          throw new Error(
+            `Pending source receipt escapes workspace: ${relative}`,
+          );
         }
         if (!existsSync(absolute)) {
           throw new Error(`Pending source is missing: ${relative}`);
@@ -166,7 +168,12 @@ export async function discoverSourceFiles(
       tracked,
       new Set(pending.keys()),
     );
-    manifestFiles = filterTracked(cwd, manifestFiles, tracked, new Set(pending.keys()));
+    manifestFiles = filterTracked(
+      cwd,
+      manifestFiles,
+      tracked,
+      new Set(pending.keys()),
+    );
     // A pending receipt is consumed as soon as Git tracks its file. This is
     // deliberately best-effort metadata; the source hash remains authoritative.
     const pendingRoot = path.join(cwd, ".kb", "recovery", "pending-sources");

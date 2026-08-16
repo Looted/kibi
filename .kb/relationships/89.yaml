@@ -1,0 +1,36 @@
+relationships:
+  - id: rel-7c1d4f6f8f80
+    type: implements
+    from: SYM-auto-059ACEEC9EDC
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:16:25.719Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-skillopt-file-bridge-resolve
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-16T07:13:53.970Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16d290653d85
+  - type: covered_by
+    from: SYM-skillopt-file-bridge-resolve
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-16T07:13:53.978Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec50ae3a9024
+  - type: implements
+    from: SYM-auto-059ACEEC9EDC
+    to: REQ-core-atomic-upsert-persistence
+    created_at: 2026-08-16T07:50:06.971Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2973d602a87
+  - type: covered_by
+    from: SYM-auto-059ACEEC9EDC
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:50:06.974Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d15baac8f722

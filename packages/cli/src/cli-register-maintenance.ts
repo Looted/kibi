@@ -109,10 +109,19 @@ export function registerMaintenanceCommands(program: Command): void {
     .argument("<action>", "Action: ensure|migrate|recover|restore")
     .option("--branch <branch>", "Exact branch identity to restore")
     .option("--from <branch>", "Legacy source branch for explicit migration")
-    .option("--to <branch>", "Exact target Git branch identity (required for migration)")
+    .option(
+      "--to <branch>",
+      "Exact target Git branch identity (required for migration)",
+    )
     .option("--approval-hash <sha256>", "Hash printed by the migration preview")
-    .option("--recover-journal <id>", "Recover an interrupted branch migration journal")
-    .option("--apply", "Apply an explicit branch migration (preview is default)")
+    .option(
+      "--recover-journal <id>",
+      "Recover an interrupted branch migration journal",
+    )
+    .option(
+      "--apply",
+      "Apply an explicit branch migration (preview is default)",
+    )
     .action(async (action, options) => {
       if (action === "ensure") {
         await (await import("./commands/branch.js")).branchEnsureCommand(

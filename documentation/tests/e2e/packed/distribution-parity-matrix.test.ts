@@ -19,6 +19,7 @@ import {
   createSandbox,
   kibi,
   packAll,
+  stageSourceFile,
 } from "./helpers.js";
 import {
   sendMcpRequest,
@@ -289,6 +290,7 @@ async function seedSandbox(sandbox: TestSandbox): Promise<void> {
       mkdir(directory, { recursive: true }),
     );
     writeFileSync(fullPath, contents, "utf8");
+    stageSourceFile(sandbox, relativePath);
   }
   const synced = await kibi(sandbox, ["sync"]);
   assert.strictEqual(synced.exitCode, 0, `${synced.stdout}${synced.stderr}`);
@@ -514,8 +516,8 @@ function extractOutcome(
         version: contract.version,
         runner: contract.runner,
         requiredProjects: contract.required_projects,
-        requiredCaseCount: (contract.required_case_symbols as readonly unknown[])
-          ?.length ?? 0,
+        requiredCaseCount:
+          (contract.required_case_symbols as readonly unknown[])?.length ?? 0,
       };
     }
     case "telemetry_acceptance":
@@ -654,11 +656,7 @@ async function mcpAdapter(
           const value = unwrapResult(
             (result.structuredContent as JsonRecord | undefined) ?? result,
           );
-          return extractOutcome(
-            capability,
-            "mcp",
-            value,
-          );
+          return extractOutcome(capability, "mcp", value);
         });
       },
     },

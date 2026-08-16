@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { listBundledSkills, loadBundledSkill, readBundledSkillResource } from "../src/public/skills";
+import {
+  listBundledSkills,
+  loadBundledSkill,
+  readBundledSkillResource,
+} from "../src/public/skills";
 
 describe("bundled Kibi skills", () => {
   test("ships the four canonical skills with source-first descriptions", () => {
@@ -13,7 +17,9 @@ describe("bundled Kibi skills", () => {
     for (const id of skills.map((skill) => skill.id)) {
       const bundle = loadBundledSkill(id);
       expect(bundle.manifest.version).toMatch(/^2\./);
-      expect(bundle.manifest.description).toMatch(/Git|source|traceability|bootstrap/i);
+      expect(bundle.manifest.description).toMatch(
+        /Git|source|traceability|bootstrap/i,
+      );
       expect(bundle.body).toContain("kibiProtocol");
       expect(bundle.body).toContain("committed_with_repairs");
       expect(bundle.body).toContain("nextActions");
@@ -42,7 +48,9 @@ describe("bundled Kibi skills", () => {
       "resources/operation-access.md",
     ]) {
       expect(bundle.manifest.resources).toContain(resource);
-      expect(readBundledSkillResource("kibi-usage", resource).length).toBeGreaterThan(20);
+      expect(
+        readBundledSkillResource("kibi-usage", resource).length,
+      ).toBeGreaterThan(20);
     }
   });
 });

@@ -37,9 +37,7 @@
       "default": "./dist/tui.js"
     }
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "engines": {
     "node": ">=22"
   },
@@ -62,7 +60,6 @@
     "@opencode-ai/plugin": "^1.4.7",
     "@opentui/core": "^0.1.99",
     "@opentui/solid": "^0.1.99",
-    "kibi-cli": "^0.21.0",
     "kibi-runtime": "^0.1.0"
   },
   "devDependencies": {

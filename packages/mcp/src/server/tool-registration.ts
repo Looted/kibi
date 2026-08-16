@@ -4,15 +4,12 @@ import { type OperationName, getSpec, statusSpec } from "kibi-runtime";
 import {
   executeApplyPlan,
   executeCompileIntent,
-  executeIngestVerification,
-  validateUpsertSpec,
   executeDelete,
+  executeIngestVerification,
   executeUpsert,
+  validateUpsertSpec,
 } from "kibi-runtime";
-import type {
-  OperationContext,
-  RuntimeOperationSpec,
-} from "kibi-runtime";
+import type { OperationContext, RuntimeOperationSpec } from "kibi-runtime";
 
 import type { AutopilotGenerateArgs } from "../tools/autopilot-generate.js";
 import type { CheckArgs } from "../tools/check.js";
@@ -78,7 +75,9 @@ export function registerConfiguredTools<TProlog>(
   };
   const withSessionProlog = (context: OperationContext): OperationContext => ({
     ...context,
-    prolog: prologFor(context) as unknown as NonNullable<OperationContext["prolog"]>,
+    prolog: prologFor(context) as unknown as NonNullable<
+      OperationContext["prolog"]
+    >,
   });
   const register = ({ name, execute }: ToolRegistration): void => {
     const definition = toolDef(name);
@@ -176,7 +175,10 @@ export function registerConfiguredTools<TProlog>(
   register({
     name: "kb_validate_upsert",
     execute: async (context, args) =>
-      validateUpsertSpec.execute(args as unknown as UpsertArgs, withSessionProlog(context)),
+      validateUpsertSpec.execute(
+        args as unknown as UpsertArgs,
+        withSessionProlog(context),
+      ),
   });
   register({
     name: "kb_delete",

@@ -2,8 +2,8 @@ import { createHash } from "node:crypto";
 import {
   existsSync,
   mkdirSync,
-  readdirSync,
   readFileSync,
+  readdirSync,
   statSync,
   writeFileSync,
 } from "node:fs";
@@ -23,19 +23,14 @@ export type BranchStoreManifest = Readonly<{
 }>;
 
 export function branchStoreKey(branch: string): string {
-  return createHash("sha256")
-    .update(branch, "utf8")
-    .digest("hex");
+  return createHash("sha256").update(branch, "utf8").digest("hex");
 }
 
 export function branchStoresRoot(workspaceRoot: string): string {
   return path.join(path.resolve(workspaceRoot), ".kb", "branches");
 }
 
-export function branchStorePath(
-  workspaceRoot: string,
-  branch: string,
-): string {
+export function branchStorePath(workspaceRoot: string, branch: string): string {
   return path.join(branchStoresRoot(workspaceRoot), branchStoreKey(branch));
 }
 
@@ -59,9 +54,9 @@ export function readBranchStoreManifest(
   const manifestPath = branchStoreManifestPath(storePath);
   if (!existsSync(manifestPath)) return null;
   try {
-    const parsed = JSON.parse(readFileSync(manifestPath, "utf8")) as Partial<
-      BranchStoreManifest
-    >;
+    const parsed = JSON.parse(
+      readFileSync(manifestPath, "utf8"),
+    ) as Partial<BranchStoreManifest>;
     if (
       parsed.version !== BRANCH_STORE_MANIFEST_VERSION ||
       typeof parsed.branch !== "string" ||

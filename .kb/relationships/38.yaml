@@ -17,3 +17,24 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/scenarios/SCEN-008.md
+  - type: implements
+    from: SYM-auto-711E3868D47B
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:19:15.507Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2c41509ec0e
+  - type: implements
+    from: SYM-auto-711E3868D47B
+    to: REQ-mcp-relationship-preflight
+    created_at: 2026-08-16T07:53:08.171Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37d12e857d10
+  - type: covered_by
+    from: SYM-auto-711E3868D47B
+    to: TEST-mcp-relationship-preflight
+    created_at: 2026-08-16T07:53:08.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8853d4ce71ba

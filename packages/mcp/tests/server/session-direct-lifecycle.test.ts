@@ -340,7 +340,7 @@ describe.serial("direct session lifecycle coverage", () => {
     );
   });
 
-  test("active-branch resolution diagnostics and debug require failures are surfaced", async () => {
+  test("active-branch diagnostics and runtime boundary marker are surfaced", async () => {
     const workspace = createWorkspace();
     installDeps(workspace);
     session._setSessionDepsForTests({
@@ -361,17 +361,14 @@ describe.serial("direct session lifecycle coverage", () => {
     installDeps(workspace);
     process.env.KIBI_BRANCH = "develop";
     process.env.KIBI_MCP_DEBUG = "1";
-    session._setSessionDepsForTests({
-      createRequire: () => {
-        throw new Error("create require denied");
-      },
-    });
     await session.ensureProlog();
     console.error = originalConsoleError;
 
     expect(
       consoleErrorMock.mock.calls.some((call) =>
-        call.some((part) => String(part).includes("create require denied")),
+        call.some((part) =>
+          String(part).includes("[KIBI-MCP] Runtime boundary: kibi-runtime"),
+        ),
       ),
     ).toBe(true);
   });

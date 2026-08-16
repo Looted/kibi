@@ -11,8 +11,8 @@ import {
 import * as os from "node:os";
 import * as path from "node:path";
 import {
-  branchStorePath,
   branchStoreKey,
+  branchStorePath,
 } from "../../src/utils/branch-store-locator.js";
 
 describe("kibi branch lifecycle", () => {
@@ -86,7 +86,9 @@ describe("kibi branch lifecycle", () => {
     );
     expect(applied).toContain("Legacy store preserved");
     const store = branchStorePath(tmpDir, "feature/auth");
-    expect(JSON.parse(readFileSync(path.join(store, "branch.json"), "utf8"))).toEqual({
+    expect(
+      JSON.parse(readFileSync(path.join(store, "branch.json"), "utf8")),
+    ).toEqual({
       version: 1,
       branch: "feature/auth",
       key: branchStoreKey("feature/auth"),
@@ -124,6 +126,8 @@ describe("kibi branch lifecycle", () => {
     ) as { syncState: string; branchStore: { state: string } };
     expect(status.syncState).toBe("fresh");
     expect(status.branchStore.state).toBe("healthy");
-    expect(readdirSync(path.join(tmpDir, ".kb", "recovery", "main"))).toHaveLength(1);
+    expect(
+      readdirSync(path.join(tmpDir, ".kb", "recovery", "main")),
+    ).toHaveLength(1);
   }, 30000);
 });

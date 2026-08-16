@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
-import { buildSkillCatalog, type CanonicalSkill } from "./catalog";
+import { type CanonicalSkill, buildSkillCatalog } from "./catalog";
 import { parsePublicTaskManifest } from "./fixtures/contracts";
 import { materializePredicateCorpus } from "./fixtures/predicate-corpus";
 import {
