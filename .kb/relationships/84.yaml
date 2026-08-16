@@ -34,3 +34,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b17491811b0f
+  - type: verified_by
+    from: REQ-kibi-change-to-proof-evaluation
+    to: TEST-kibi-change-to-proof-evaluation
+    created_at: 2026-08-16T19:43:54.859Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5fc7c19b94d9

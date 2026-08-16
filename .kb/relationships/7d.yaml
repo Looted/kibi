@@ -13,3 +13,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-135a9203d9d7
+  - type: covered_by
+    from: SYM-kibi-script-change-to-proof-eval-ts-searchgoldcase
+    to: TEST-kibi-change-to-proof-evaluation
+    created_at: 2026-08-16T19:43:54.867Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6bc8293ec81

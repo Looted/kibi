@@ -6,3 +6,10 @@ relationships:
     created_at: "2026-08-16T18:52:06.513Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-kibi-script-change-to-proof-eval-ts-evaluatecompile
+    to: TEST-kibi-change-to-proof-evaluation
+    created_at: 2026-08-16T19:43:54.893Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85e40691671a

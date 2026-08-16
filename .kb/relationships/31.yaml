@@ -38,3 +38,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e6d80628ea92
+  - type: verified_by
+    from: SCEN-kibi-change-to-proof-evaluation
+    to: TEST-kibi-change-to-proof-evaluation
+    created_at: 2026-08-16T19:43:54.842Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d52a8a8a27be

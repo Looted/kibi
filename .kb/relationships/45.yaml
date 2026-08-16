@@ -48,3 +48,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ebc900dc9a92
+  - type: covered_by
+    from: SYM-kibi-script-change-to-proof-eval-ts-searchevaluation
+    to: TEST-kibi-change-to-proof-evaluation
+    created_at: 2026-08-16T19:43:54.881Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e012f1f4ce8
