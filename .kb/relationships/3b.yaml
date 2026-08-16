@@ -41,3 +41,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1bfd779218ea
+  - type: depends_on
+    from: REQ-016
+    to: REQ-005
+    created_at: 2026-08-16T22:43:44.273Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ce0e7f93c5c
+  - type: specified_by
+    from: REQ-016
+    to: SCEN-011
+    created_at: 2026-08-16T22:43:44.299Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b3aad86f315
+  - type: verified_by
+    from: REQ-016
+    to: TEST-013
+    created_at: 2026-08-16T22:43:44.304Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af07398d21c9
+  - type: requires_predicate
+    from: REQ-016
+    to: FACT-PRED-92B51C658C50
+    created_at: 2026-08-16T22:43:44.309Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7798ac9a7a9
+  - type: requires_predicate
+    from: REQ-016
+    to: FACT-PRED-BA1B2627841A
+    created_at: 2026-08-16T22:43:44.314Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5380fc0fdcc
+  - type: requires_predicate
+    from: REQ-016
+    to: FACT-PRED-BD225D5497E7
+    created_at: 2026-08-16T22:43:44.318Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6d69e5c1941

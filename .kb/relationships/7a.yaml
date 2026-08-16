@@ -20,3 +20,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d22bd1745cea
+  - type: specified_by
+    from: REQ-020
+    to: SCEN-release-automation
+    created_at: 2026-08-16T22:46:31.109Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb98ae13a102
+  - type: requires_predicate
+    from: REQ-020
+    to: FACT-PRED-59A6842F232A
+    created_at: 2026-08-16T22:46:31.127Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-034f17d1f25c
+  - type: requires_predicate
+    from: REQ-020
+    to: FACT-PRED-BAB69C16074F
+    created_at: 2026-08-16T22:46:31.131Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2cb29467e8a
+  - type: requires_predicate
+    from: REQ-020
+    to: FACT-PRED-14D2321EC372
+    created_at: 2026-08-16T22:46:31.136Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d26f559353dd
+  - type: requires_predicate
+    from: REQ-020
+    to: FACT-PRED-59D97BFB98FB
+    created_at: 2026-08-16T22:46:31.140Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47a5025aa885
+  - type: requires_predicate
+    from: REQ-020
+    to: FACT-PRED-8D9FEBDEF14C
+    created_at: 2026-08-16T22:46:31.146Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6165188a57eb
+  - type: requires_predicate
+    from: REQ-020
+    to: FACT-PRED-2FC3E147C20F
+    created_at: 2026-08-16T22:46:31.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-068e153d70f7
+  - type: requires_predicate
+    from: REQ-020
+    to: FACT-PRED-859B22460C06
+    created_at: 2026-08-16T22:46:31.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-560d8be5803b
+  - type: requires_predicate
+    from: REQ-020
+    to: FACT-PRED-D3FB2B8E38B0
+    created_at: 2026-08-16T22:46:31.159Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a0ee1912422
+  - type: requires_predicate
+    from: REQ-020
+    to: FACT-PRED-4D4F9852D723
+    created_at: 2026-08-16T22:46:31.165Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dbea866fed9
+  - type: requires_predicate
+    from: REQ-020
+    to: FACT-PRED-E95F146CFBD8
+    created_at: 2026-08-16T22:46:31.170Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7b83410d8cf
+  - type: requires_predicate
+    from: REQ-020
+    to: FACT-PRED-341B00229185
+    created_at: 2026-08-16T22:46:31.174Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b46aa134ddb4
+  - type: requires_predicate
+    from: REQ-020
+    to: FACT-PRED-B974E962441C
+    created_at: 2026-08-16T22:46:31.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b9351976f2a
+  - type: requires_predicate
+    from: REQ-020
+    to: FACT-PRED-76A67D11D172
+    created_at: 2026-08-16T22:46:31.183Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-786b1b147769
