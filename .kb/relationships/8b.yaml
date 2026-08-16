@@ -6,3 +6,24 @@ relationships:
     created_at: "2026-08-16T18:52:12.221Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: specified_by
+    from: REQ-cli-query
+    to: SCEN-001
+    created_at: 2026-08-16T22:59:35.222Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39325e08d74c
+  - type: verified_by
+    from: REQ-cli-query
+    to: TEST-003
+    created_at: 2026-08-16T22:59:35.238Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f65f5684d5e4
+  - type: supersedes
+    from: REQ-cli-query
+    to: REQ-003
+    created_at: 2026-08-16T22:59:35.242Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae5b9992f752

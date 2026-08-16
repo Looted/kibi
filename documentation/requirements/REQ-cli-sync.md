@@ -36,30 +36,30 @@ semantic_inventory:
   - claim_key: CLAIM-4CBB83DF1A5C9FD6
     claim_text: The `kibi sync` command performs a full import of entities from the local filesystem into the branch-specific KB
     role: descriptive
-    status: modeled
+    status: ontology_gap
     span:
       start: 0
       end: 112
     payload_hash: fd856c826575a3e48b6863e3523cd7aafc99854831fb70cbc99feb780499f7d2
-    reason: Grounded through the advisor-selected strict fact or approved project-local predicate schema.
+    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
   - claim_key: CLAIM-ECE860D65D9E1B09
     claim_text: It discovers files matching patterns in `config.json`, extracts Markdown and YAML metadata
     role: descriptive
-    status: modeled
+    status: ontology_gap
     span:
       start: 114
       end: 204
     payload_hash: fd856c826575a3e48b6863e3523cd7aafc99854831fb70cbc99feb780499f7d2
-    reason: Grounded through the advisor-selected strict fact or approved project-local predicate schema.
+    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
   - claim_key: CLAIM-213E7367DE1640EE
     claim_text: resolves branch state, and upserts the results into the Prolog KB
     role: descriptive
-    status: modeled
+    status: ontology_gap
     span:
       start: 206
       end: 271
     payload_hash: fd856c826575a3e48b6863e3523cd7aafc99854831fb70cbc99feb780499f7d2
-    reason: Grounded through the advisor-selected strict fact or approved project-local predicate schema.
+    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
 type: req
 ---
 

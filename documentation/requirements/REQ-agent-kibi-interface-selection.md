@@ -40,39 +40,39 @@ semantic_inventory:
   - claim_key: CLAIM-C1862263F103BE07
     claim_text: Agent-facing guidance must treat the Kibi public MCP and CLI surfaces as peers
     role: normative
-    status: modeled
+    status: ontology_gap
     span:
       start: 0
       end: 78
     payload_hash: 9b2b851cface81db89d05f96b0a59db186d280c3f38b4396c020579e171e90f4
-    reason: Grounded through the advisor-selected strict fact or approved project-local predicate schema.
+    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
   - claim_key: CLAIM-83CB27CE535B006D
     claim_text: Guidance must not present MCP as the only public surface
     role: normative
-    status: modeled
+    status: ontology_gap
     span:
       start: 80
       end: 136
     payload_hash: 9b2b851cface81db89d05f96b0a59db186d280c3f38b4396c020579e171e90f4
-    reason: Grounded through the advisor-selected strict fact or approved project-local predicate schema.
+    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
   - claim_key: CLAIM-B2AE424C29508FFF
     claim_text: Guidance may name either public surface when that is the clearest route for the user
     role: normative
-    status: modeled
+    status: ontology_gap
     span:
       start: 138
       end: 222
     payload_hash: 9b2b851cface81db89d05f96b0a59db186d280c3f38b4396c020579e171e90f4
-    reason: Grounded through the advisor-selected strict fact or approved project-local predicate schema.
+    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
   - claim_key: CLAIM-954E745065BDCD3D
     claim_text: Guidance must keep historical policy changes visible through supersession links, not rewritten prose
     role: normative
-    status: modeled
+    status: ontology_gap
     span:
       start: 224
       end: 324
     payload_hash: 9b2b851cface81db89d05f96b0a59db186d280c3f38b4396c020579e171e90f4
-    reason: Grounded through the advisor-selected strict fact or approved project-local predicate schema.
+    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
 type: req
 ---
 

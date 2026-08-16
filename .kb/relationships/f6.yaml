@@ -34,24 +34,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-77cf863615c1
-  - type: requires_predicate
-    from: REQ-cli-check
-    to: FACT-PRED-220F81C55109
-    created_at: 2026-08-16T22:47:35.722Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-79910e655f27
-  - type: requires_predicate
-    from: REQ-cli-check
-    to: FACT-PRED-EFA76B7495C4
-    created_at: 2026-08-16T22:47:35.725Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f5c0d27d7545
-  - type: requires_predicate
-    from: REQ-cli-check
-    to: FACT-PRED-2003C36D6292
-    created_at: 2026-08-16T22:47:35.729Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-30a78076258a

@@ -41,38 +41,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-071efa22e7a2
-  - type: requires_predicate
-    from: REQ-002
-    to: FACT-PRED-E5915B986122
-    created_at: 2026-08-16T22:52:45.845Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-198341cb3f72
-  - type: requires_predicate
-    from: REQ-002
-    to: FACT-PRED-07B9B97F06CD
-    created_at: 2026-08-16T22:52:45.848Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-596418c7fba2
-  - type: requires_predicate
-    from: REQ-002
-    to: FACT-PRED-24427E4E06FF
-    created_at: 2026-08-16T22:52:45.853Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e3b7220bbbbb
-  - type: requires_predicate
-    from: REQ-002
-    to: FACT-PRED-CB691532688C
-    created_at: 2026-08-16T22:52:45.857Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eece03a4e6fb
-  - type: requires_predicate
-    from: REQ-002
-    to: FACT-PRED-C4C9CE2BF0AE
-    created_at: 2026-08-16T22:52:45.861Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0077f6af3003

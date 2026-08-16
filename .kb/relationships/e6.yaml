@@ -20,17 +20,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7fdfa3cff864
-  - type: requires_predicate
-    from: REQ-013
-    to: FACT-PRED-D5A367CB2974
-    created_at: 2026-08-16T22:55:56.880Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b8e714935e17
-  - type: requires_predicate
-    from: REQ-013
-    to: FACT-PRED-EDFC4571752A
-    created_at: 2026-08-16T22:55:56.883Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fabbf02dc69a

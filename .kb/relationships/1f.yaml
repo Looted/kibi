@@ -69,17 +69,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4bea362036d5
-  - type: requires_predicate
-    from: REQ-011
-    to: FACT-PRED-5894D1D63392
-    created_at: 2026-08-16T22:54:52.641Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cd048795b056
-  - type: requires_predicate
-    from: REQ-011
-    to: FACT-PRED-5DBD938934EC
-    created_at: 2026-08-16T22:54:52.644Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f0eb81368cb7

@@ -41,17 +41,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c5b71f2ba16c
-  - type: requires_predicate
-    from: REQ-005
-    to: FACT-PRED-37F708DE54BD
-    created_at: 2026-08-16T22:53:40.779Z
+  - type: specified_by
+    from: REQ-cli-init
+    to: SCEN-001
+    created_at: 2026-08-16T22:59:07.693Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-cd7134c01468
-  - type: requires_predicate
-    from: REQ-005
-    to: FACT-PRED-BD96C5519E5C
-    created_at: 2026-08-16T22:53:40.783Z
+    id: rel-e8427455243d
+  - type: supersedes
+    from: REQ-cli-init
+    to: REQ-003
+    created_at: 2026-08-16T22:59:07.713Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-fbdf8ae4c613
+    id: rel-cb40dd9abeb2

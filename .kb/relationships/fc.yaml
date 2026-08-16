@@ -55,24 +55,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0e63494c241b
-  - type: requires_predicate
-    from: REQ-012
-    to: FACT-PRED-C9A88C8249E7
-    created_at: 2026-08-16T22:55:27.300Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ae29978f2a60
-  - type: requires_predicate
-    from: REQ-012
-    to: FACT-PRED-CEE97D0C3CF1
-    created_at: 2026-08-16T22:55:27.304Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2c0325bd76f9
-  - type: requires_predicate
-    from: REQ-012
-    to: FACT-PRED-D9EEE09F3841
-    created_at: 2026-08-16T22:55:27.310Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4c458cd5ed5a

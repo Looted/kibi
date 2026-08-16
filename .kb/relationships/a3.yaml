@@ -41,3 +41,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1fc20805d780
+  - type: specified_by
+    from: REQ-cli-doctor
+    to: SCEN-001
+    created_at: 2026-08-16T22:58:33.922Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c457ff40d95
+  - type: supersedes
+    from: REQ-cli-doctor
+    to: REQ-003
+    created_at: 2026-08-16T22:58:33.941Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d8cbcc01798
