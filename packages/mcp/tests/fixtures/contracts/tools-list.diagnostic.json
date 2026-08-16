@@ -591,6 +591,10 @@
               "dirty": {
                 "type": "boolean"
               },
+              "engineStatus": {
+                "additionalProperties": true,
+                "type": "object"
+              },
               "kbPath": {
                 "type": "string"
               },
