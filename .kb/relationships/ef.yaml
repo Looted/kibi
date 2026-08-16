@@ -1,18 +1,4 @@
 relationships:
-  - id: rel-f5116ffcdba7
-    type: implements
-    from: SYM-parity-to-prolog-atom
-    to: REQ-kibi-operation-interface-parity
-    created_at: "2026-08-15T23:10:45.327Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-parity-to-prolog-atom
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-15T23:10:45.328Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-189d5007cf14
   - type: implements
     from: SYM-skillopt-write-bridge-result
     to: REQ-skillopt-codex-optimization
