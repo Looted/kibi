@@ -13,3 +13,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9645d4977536
+  - type: requires_predicate
+    from: REQ-cli-sync
+    to: FACT-PRED-B839943BC9E2
+    created_at: 2026-08-16T22:26:11.097Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d5d5bcdecce
+  - type: requires_predicate
+    from: REQ-cli-sync
+    to: FACT-PRED-83D6BA43A0B8
+    created_at: 2026-08-16T22:27:54.746Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1eba4475a54d
+  - type: requires_predicate
+    from: REQ-cli-sync
+    to: FACT-PRED-75A8F7A6263B
+    created_at: 2026-08-16T22:27:54.761Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d25771ba673d
+  - type: specified_by
+    from: REQ-cli-sync
+    to: SCEN-007
+    created_at: 2026-08-16T22:37:16.716Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6298e3c3b89
+  - type: specified_by
+    from: REQ-cli-sync
+    to: SCEN-012
+    created_at: 2026-08-16T22:37:16.734Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d43e78c3d18c
+  - type: verified_by
+    from: REQ-cli-sync
+    to: TEST-002
+    created_at: 2026-08-16T22:37:16.739Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a88900a7e501
+  - type: verified_by
+    from: REQ-cli-sync
+    to: TEST-015
+    created_at: 2026-08-16T22:37:16.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7df1cde79426
+  - type: supersedes
+    from: REQ-cli-sync
+    to: REQ-003
+    created_at: 2026-08-16T22:37:16.750Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d88d87b5472
