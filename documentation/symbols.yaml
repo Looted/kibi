@@ -4084,7 +4084,8 @@ symbols:
       - type: covered_by
         target: TEST-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -24045,6 +24046,8 @@ symbols:
     sourceFile: packages/cli/src/public/operations/prolog-json.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-engine-publication-lock-path
@@ -24073,6 +24076,8 @@ symbols:
     sourceFile: packages/cli/src/engine.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
       - type: implements
         target: REQ-core-journaled-engine-persistence
   - id: SYM-cli-symbol-granularity-validate

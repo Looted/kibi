@@ -13,3 +13,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fa29ce5b2458
+  - type: covered_by
+    from: SYM-cli-engine-publication-lease-type
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-08-16T22:22:15.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b2c600789b6
