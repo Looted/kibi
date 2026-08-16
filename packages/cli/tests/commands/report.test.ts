@@ -38,8 +38,17 @@ function reportCoverage(total = 1, rowCount = 1) {
           logicGrounding: { status: "passed" },
           contradictions: { status: "passed", conflicts: [] },
           scenarios: { status: "passed", scenarios: ["SCEN-1"] },
+          scenarioTests: { status: "passed", tests: ["TEST-1"] },
           productionSymbols: { status: "passed", symbols: ["SYM-report"] },
-          sourceCoordinates: { status: "passed", missingSymbols: [] },
+          executableSymbols: {
+            status: "passed",
+            symbols: ["SYM-test-report"],
+          },
+          sourceCoordinates: {
+            status: "passed",
+            requirementSource: "present",
+            missingSymbols: [],
+          },
           passingE2e: {
             status: "passed",
             receiptEvidence: [
@@ -97,6 +106,8 @@ describe("kibi report", () => {
     const badgePath = path.join(temporaryDirectory, "kibi-report", "badge.svg");
     const badge = readFileSync(badgePath, "utf8");
     expect(badge).toContain("100% proven");
+    expect(badge).toContain("Kibi requirement health: 100% proven");
+    expect(badge).toContain("#a2d3f4");
     expect(badge).not.toContain("https://");
   });
 
@@ -139,7 +150,29 @@ describe("kibi report", () => {
       "utf8",
     );
     expect(badge).toContain("50% proven");
-    expect(badge).toContain("#d14d64");
+    expect(badge).toContain("#f07178");
+  });
+
+  test("renders a valid zero-proven snapshot as strict danger", async () => {
+    const coverage = reportCoverage();
+    coverage.requirements.summary.proofProven = 0;
+    coverage.requirements.rows[0].proofStatus = "missing";
+    coverage.requirements.rows[0].proofGaps = ["missing_passing_e2e"];
+
+    await reportCommand(
+      { output: "zero-health" },
+      {
+        cwd: () => temporaryDirectory,
+        loadCoverage: async () => coverage,
+      },
+    );
+
+    const badge = readFileSync(
+      path.join(temporaryDirectory, "zero-health", "badge.svg"),
+      "utf8",
+    );
+    expect(badge).toContain("Kibi requirement health: 0% proven");
+    expect(badge).toContain("#f07178");
   });
 
   test("rejects pagination that would make health metrics incomplete", async () => {

@@ -12,6 +12,8 @@ Kibi is an agent-native requirements compiler and enforcement layer. You describ
 
 Unlike passive memory or retrieval systems, Kibi is designed to place itself in the agent's workflow. The agent does not have to remember to consult a ticket, board, or requirements folder: Kibi's hooks, tools, and validation gates continuously bring the relevant product context back into the work.
 
+Project references: [brand guide](docs/brand-guide.md) · [proof readiness plan](docs/proof-readiness-plan.md)
+
 ## Why Kibi
 
 Most project knowledge is scattered across prompts, tickets, code, and conversations—and most AI agents eventually forget part of it. Kibi turns that knowledge into an enforceable, branch-local model:

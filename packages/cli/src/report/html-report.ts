@@ -1,3 +1,5 @@
+import { KIBI_BRAND, renderKibiLogo, renderKibiWordmark } from "./brand.js";
+
 type UnknownRecord = Readonly<Record<string, unknown>>;
 
 export type HtmlReportCoverage = Readonly<{
@@ -19,6 +21,13 @@ type ReportStage = Readonly<{
   label: string;
   detail: string;
   state: StageState;
+}>;
+
+type ProofGate = Readonly<{
+  label: string;
+  detail: string;
+  remaining: number;
+  blocked: number;
 }>;
 
 function record(value: unknown): UnknownRecord {
@@ -77,6 +86,73 @@ function combinedStageState(...statuses: readonly string[]): StageState {
   }
   if (statuses.some((status) => status === "not_applicable")) return "muted";
   return "failed";
+}
+
+function stagePassed(stages: UnknownRecord, name: string): boolean {
+  return stageStatus(stages[name]) === "passed";
+}
+
+function hasEndToEndTest(stages: UnknownRecord): boolean {
+  const evidence = records(record(stages.passingE2e).receiptEvidence);
+  return evidence.some((item) => item.scope === "end_to_end");
+}
+
+function implementationOwned(stages: UnknownRecord): boolean {
+  const productionSymbols = strings(record(stages.productionSymbols).symbols);
+  if (productionSymbols.length === 0) return false;
+
+  const sourceCoordinates = record(stages.sourceCoordinates);
+  if (sourceCoordinates.requirementSource !== "present") return false;
+  const missingCoordinates = new Set(strings(sourceCoordinates.missingSymbols));
+  return productionSymbols.every((symbol) => !missingCoordinates.has(symbol));
+}
+
+function passesProofGate(row: UnknownRecord, gate: string): boolean {
+  if (row.proofStatus === "proven") return true;
+  const stages = record(row.proofStages);
+  if (gate === "semantic") {
+    return (
+      stagePassed(stages, "semanticInventory") &&
+      stagePassed(stages, "logicGrounding") &&
+      stagePassed(stages, "contradictions")
+    );
+  }
+  if (gate === "scenario") return stagePassed(stages, "scenarios");
+  if (gate === "implementation") return implementationOwned(stages);
+  if (gate === "e2e") {
+    return stagePassed(stages, "scenarioTests") && hasEndToEndTest(stages);
+  }
+  return row.proofStatus === "proven";
+}
+
+function proofGates(rows: readonly UnknownRecord[]): readonly ProofGate[] {
+  const definitions = [
+    [
+      "semantic",
+      "Semantic model",
+      "Intent is complete, grounded, and coherent",
+    ],
+    ["scenario", "Scenario", "Behavior is specified"],
+    [
+      "implementation",
+      "Implementation",
+      "Production ownership is source-bound",
+    ],
+    ["e2e", "E2E", "A scenario-backed end-to-end test exists"],
+    ["evidence", "Evidence", "Every strict proof stage passes now"],
+  ] as const;
+  let candidates = [...rows];
+  return definitions.map(([key, label, detail]) => {
+    const remainingRows = candidates.filter((row) => passesProofGate(row, key));
+    const gate = {
+      label,
+      detail,
+      remaining: remainingRows.length,
+      blocked: candidates.length - remainingRows.length,
+    };
+    candidates = remainingRows;
+    return gate;
+  });
 }
 
 function formatAge(ageSeconds: number): string {
@@ -147,44 +223,64 @@ function requirementStages(row: UnknownRecord): readonly ReportStage[] {
   const stages = record(row.proofStages);
   const semanticInventory = stageStatus(stages.semanticInventory);
   const logicGrounding = stageStatus(stages.logicGrounding);
+  const contradictions = stageStatus(stages.contradictions);
   const scenarios = stageStatus(stages.scenarios);
+  const scenarioTests = stageStatus(stages.scenarioTests);
   const productionSymbols = record(stages.productionSymbols);
   const sourceCoordinates = record(stages.sourceCoordinates);
+  const executableSymbols = record(stages.executableSymbols);
   const passingE2e = record(stages.passingE2e);
   const implementationSymbols = strings(productionSymbols.symbols);
   const missingCoordinates = strings(sourceCoordinates.missingSymbols);
   const receiptEvidence = records(passingE2e.receiptEvidence);
-  const scopes = new Set([
-    ...strings(row.verificationScopes),
-    ...receiptEvidence.map((item) => text(item.scope)).filter(Boolean),
-  ]);
+  const hasE2e = receiptEvidence.some((item) => item.scope === "end_to_end");
 
   let implementationState: StageState = "failed";
   let implementationDetail = "No production symbol ownership";
-  if (implementationSymbols.length > 0 && missingCoordinates.length === 0) {
+  if (
+    stageStatus(productionSymbols) === "passed" &&
+    stageStatus(sourceCoordinates) === "passed"
+  ) {
     implementationState = "passed";
-    implementationDetail = `${implementationSymbols.length} owned ${implementationSymbols.length === 1 ? "symbol" : "symbols"}`;
+    implementationDetail = `${implementationSymbols.length} owned and E2E-covered ${implementationSymbols.length === 1 ? "symbol" : "symbols"}`;
   } else if (implementationSymbols.length > 0) {
     implementationState = "warning";
-    implementationDetail = `${missingCoordinates.length} ${missingCoordinates.length === 1 ? "symbol needs" : "symbols need"} current coordinates`;
+    implementationDetail =
+      missingCoordinates.length > 0
+        ? `${missingCoordinates.length} ${missingCoordinates.length === 1 ? "symbol needs" : "symbols need"} current coordinates`
+        : "Ownership present; proof coverage is incomplete";
   }
+
+  const e2eState: StageState = hasE2e
+    ? stageStatus(executableSymbols) === "missing"
+      ? "warning"
+      : "passed"
+    : "failed";
 
   return [
     {
       label: "Semantic model",
       detail:
         semanticInventory === "passed" && logicGrounding === "passed"
-          ? "Complete and grounded"
+          ? contradictions === "passed"
+            ? "Complete, grounded, and coherent"
+            : "Grounded with unresolved coherence"
           : "Incomplete proposition grounding",
-      state: combinedStageState(semanticInventory, logicGrounding),
+      state: combinedStageState(
+        semanticInventory,
+        logicGrounding,
+        contradictions,
+      ),
     },
     {
       label: "Scenario",
       detail:
-        scenarios === "passed"
+        scenarios === "passed" && scenarioTests === "passed"
           ? `${strings(record(stages.scenarios).scenarios).length} specified`
-          : "Missing requirement scenario",
-      state: combinedStageState(scenarios),
+          : scenarios !== "passed"
+            ? "Missing requirement scenario"
+            : "Scenario has no linked test",
+      state: combinedStageState(scenarios, scenarioTests),
     },
     {
       label: "Implementation",
@@ -193,10 +289,12 @@ function requirementStages(row: UnknownRecord): readonly ReportStage[] {
     },
     {
       label: "E2E test",
-      detail: scopes.has("end_to_end")
-        ? "Scenario-backed end-to-end test"
+      detail: hasE2e
+        ? stageStatus(executableSymbols) === "missing"
+          ? "Test exists; executable symbol is missing"
+          : "Scenario-backed executable test"
         : "No scenario-backed end-to-end test",
-      state: scopes.has("end_to_end") ? "passed" : "failed",
+      state: e2eState,
     },
     evidenceStage(passingE2e),
   ];
@@ -309,6 +407,17 @@ function metric(label: string, value: number, tone = ""): string {
   return `<div class="metric${tone ? ` metric--${tone}` : ""}"><span>${escapeHtml(label)}</span><strong>${value.toLocaleString("en-US")}</strong></div>`;
 }
 
+function renderProofGate(gate: ProofGate, index: number): string {
+  const state = gate.remaining === 0 ? "blocked" : "active";
+  return `<li class="proof-gate proof-gate--${state}">
+    <div class="proof-gate__node"><span>${index + 1}</span></div>
+    <div class="proof-gate__count">${gate.remaining.toLocaleString("en-US")}</div>
+    <div class="proof-gate__label">${escapeHtml(gate.label)}</div>
+    <div class="proof-gate__drop">${gate.blocked === 0 ? "No drop" : `−${gate.blocked.toLocaleString("en-US")} blocked here`}</div>
+    <p>${escapeHtml(gate.detail)}</p>
+  </li>`;
+}
+
 function reportNotice(input: HtmlReportInput): string {
   const meta = input.requirements.meta ?? {};
   const notices: string[] = [];
@@ -354,6 +463,7 @@ export function renderHtmlReport(input: HtmlReportInput): string {
   const generatedAt = input.generatedAt.toISOString();
   const snapshot = text(input.requirements.meta?.verificationSnapshot);
   const branch = text(input.branch, "unknown");
+  const gates = proofGates(currentRows);
 
   return `<!doctype html>
 <html lang="en">
@@ -507,29 +617,161 @@ export function renderHtmlReport(input: HtmlReportInput): string {
       .requirement { margin-bottom: 14px; }
       .hero__lede, .metric span, .stage__detail, .section-header p, footer { color: #59647a; }
     }
+
+    /* Kibi proof-rail identity. Tokens mirror assets/logo.svg and assets/wordmark.svg. */
+    :root {
+      --carbon: ${KIBI_BRAND.carbon};
+      --deep-carbon: ${KIBI_BRAND.deepCarbon};
+      --panel: ${KIBI_BRAND.panel};
+      --ice: ${KIBI_BRAND.ice};
+      --signal: ${KIBI_BRAND.signal};
+      --snow: ${KIBI_BRAND.snow};
+      --mist: ${KIBI_BRAND.mist};
+      --rail: ${KIBI_BRAND.rail};
+      --success: ${KIBI_BRAND.success};
+      --warning: ${KIBI_BRAND.warning};
+      --danger: ${KIBI_BRAND.danger};
+      --line: rgba(162, 211, 244, .16);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    body { color: var(--snow); background: var(--deep-carbon); }
+    body::before { position: fixed; inset: 0 0 auto; z-index: -1; height: 4px; content: ""; opacity: 1; background: linear-gradient(90deg, var(--ice) 0 17%, var(--signal) 17% 100%); mask-image: none; }
+    .shell { width: min(1180px, calc(100% - 40px)); }
+    .topbar { padding: 30px 0 20px; border-bottom: 1px solid var(--line); }
+    .brand { gap: 13px; letter-spacing: normal; }
+    .brand__logo { width: 42px; height: 42px; flex: none; }
+    .brand__wordmark { width: 86px; height: auto; }
+    .brand__product { padding-left: 14px; border-left: 1px solid var(--rail); color: var(--mist); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .snapshot { color: var(--mist); font: 500 11px/1.4 var(--mono); }
+    .overview { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 36px; align-items: end; padding: clamp(38px, 7vw, 76px) 0 32px; }
+    .eyebrow { margin: 0 0 12px; color: var(--ice); font: 750 11px/1.4 var(--mono); letter-spacing: .12em; }
+    h1 { margin: 0; font-size: clamp(38px, 6vw, 68px); font-weight: 720; letter-spacing: -.052em; line-height: 1; }
+    .overview__copy { max-width: 700px; }
+    .overview__copy p:last-child { max-width: 660px; margin: 19px 0 0; color: var(--mist); font-size: 16px; line-height: 1.65; }
+    .score { min-width: 220px; padding-left: 30px; border-left: 2px solid var(--signal); text-align: right; }
+    .score__value { color: var(--snow); font: 760 clamp(62px, 9vw, 104px)/.84 var(--mono); letter-spacing: -.09em; }
+    .score__value span { color: var(--ice); font-size: .38em; letter-spacing: -.04em; }
+    .score__label { margin-top: 17px; color: var(--ice); font-size: 12px; font-weight: 760; letter-spacing: .12em; text-transform: uppercase; }
+    .score__ratio { margin-top: 6px; color: var(--mist); font: 500 12px/1.4 var(--mono); }
+    .snapshot-notice { margin: 0 0 22px; padding: 14px 16px; border-color: rgba(242,184,75,.4); border-radius: 9px; color: var(--snow); background: rgba(242,184,75,.08); }
+    .snapshot-notice strong { color: var(--warning); font: 750 11px/1.4 var(--mono); }
+    .proof-path { margin-bottom: 20px; padding: 24px 26px 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--carbon); }
+    .proof-path__header { display: flex; gap: 24px; align-items: start; justify-content: space-between; margin-bottom: 25px; }
+    .proof-path__header h2 { margin: 0; font-size: 19px; letter-spacing: -.02em; }
+    .proof-path__header p { max-width: 510px; margin: 0; color: var(--mist); font-size: 12px; line-height: 1.55; text-align: right; }
+    .proof-rail { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; }
+    .proof-gate { position: relative; min-width: 0; padding: 25px 18px 0 0; border-top: 2px solid var(--signal); }
+    .proof-gate:last-child { padding-right: 0; }
+    .proof-gate__node { position: absolute; top: -10px; left: 0; display: grid; width: 19px; height: 19px; place-items: center; border: 2px solid var(--ice); border-radius: 50%; color: var(--deep-carbon); background: var(--ice); font: 800 9px/1 var(--mono); }
+    .proof-gate--blocked { border-top-color: var(--rail); }
+    .proof-gate--blocked .proof-gate__node { border-color: var(--danger); color: var(--danger); background: var(--carbon); }
+    .proof-gate__count { font: 750 28px/1 var(--mono); letter-spacing: -.05em; }
+    .proof-gate__label { margin-top: 8px; font-size: 13px; font-weight: 720; }
+    .proof-gate__drop { min-height: 17px; margin-top: 5px; color: var(--warning); font: 650 10px/1.4 var(--mono); }
+    .proof-gate p { margin: 7px 0 0; color: var(--mist); font-size: 11px; line-height: 1.45; }
+    .metrics { margin: 0 0 62px; border-color: var(--line); border-radius: 12px; background: var(--panel); box-shadow: none; }
+    .metric { position: relative; padding: 18px 17px; border-color: var(--line); }
+    .metric::before { position: absolute; top: 0; left: 17px; width: 28px; height: 2px; content: ""; background: var(--signal); }
+    .metric span { min-height: 31px; color: var(--mist); font-size: 11px; }
+    .metric strong { margin-top: 4px; font: 720 26px/1 var(--mono); letter-spacing: -.04em; }
+    .metric--good strong { color: var(--success); }
+    .metric--warn strong { color: var(--warning); }
+    .metric--bad strong { color: var(--danger); }
+    .section-header p { color: var(--mist); }
+    .controls { margin-bottom: 18px; padding: 10px; border-color: var(--line); border-radius: 12px; background: rgba(17,19,24,.94); box-shadow: none; backdrop-filter: blur(14px); }
+    .search { padding: 11px 13px; border-color: var(--rail); border-radius: 8px; color: var(--snow); background: var(--carbon); }
+    .search:focus { border-color: var(--ice); box-shadow: 0 0 0 3px rgba(162,211,244,.1); }
+    .filters { gap: 6px; }
+    .filter { padding: 9px 11px; border-radius: 7px; color: var(--mist); font: 650 11px/1.4 var(--mono); }
+    .filter:hover { color: var(--snow); background: rgba(162,211,244,.06); }
+    .filter[aria-pressed="true"] { border-color: rgba(162,211,244,.35); color: var(--ice); background: rgba(62,142,214,.13); }
+    .requirements { grid-template-columns: 1fr; gap: 13px; }
+    .requirement { padding: 22px 24px 20px; border-color: var(--line); border-radius: 12px; background: var(--panel); box-shadow: none; }
+    .requirement::before { background: var(--warning); }
+    .requirement--proven::before { background: var(--success); }
+    .requirement--unresolved::before { background: var(--danger); }
+    .requirement__id { color: var(--ice); font: 700 10px/1.2 var(--mono); letter-spacing: .07em; }
+    .requirement h3 { font-size: 18px; line-height: 1.3; }
+    .proof-badge { padding: 6px 8px; border-color: rgba(242,184,75,.3); border-radius: 6px; color: var(--warning); background: rgba(242,184,75,.07); font: 800 9px/1.2 var(--mono); }
+    .proof-badge--proven { border-color: rgba(99,201,154,.3); color: var(--success); background: rgba(99,201,154,.07); }
+    .proof-badge--unresolved { border-color: rgba(240,113,120,.3); color: var(--danger); background: rgba(240,113,120,.07); }
+    .stages { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; }
+    .stage { position: relative; display: block; min-width: 0; padding: 20px 13px 0 0; border-top: 1px solid var(--rail); }
+    .stage:last-child { padding-right: 0; }
+    .stage__icon { position: absolute; top: -8px; left: 0; width: 16px; height: 16px; border: 1px solid var(--success); color: var(--deep-carbon); background: var(--success); font: 900 10px/1 var(--mono); }
+    .stage--warning .stage__icon { border-color: var(--warning); color: var(--warning); background: var(--panel); }
+    .stage--failed .stage__icon { border-color: var(--danger); color: var(--danger); background: var(--panel); }
+    .stage--muted .stage__icon { border-color: var(--rail); color: var(--mist); background: var(--panel); }
+    .stage__label { display: block; font-size: 12px; }
+    .stage__detail { display: block; margin-top: 5px; color: var(--mist); font-size: 11px; }
+    .contradiction { border-color: rgba(240,113,120,.32); border-radius: 9px; background: rgba(240,113,120,.07); }
+    .contradiction__eyebrow, .contradiction__values b { color: var(--danger); }
+    .contradiction p, .proof-gaps { color: var(--mist); }
+    .proof-gaps { border-color: var(--line); }
+    .proof-gaps ul { columns: 3; }
+    .empty { border-color: var(--rail); border-radius: 12px; color: var(--mist); }
+    footer { border-color: var(--line); color: var(--mist); font: 500 11px/1.5 var(--mono); }
+    @media (max-width: 960px) {
+      .proof-rail { grid-template-columns: repeat(5, 180px); overflow-x: auto; padding-top: 8px; }
+    }
+    @media (max-width: 760px) {
+      .shell { width: min(100% - 24px, 1180px); }
+      .overview { grid-template-columns: 1fr; gap: 28px; padding-top: 38px; }
+      .score { min-width: 0; padding: 20px 0 0; border-top: 2px solid var(--signal); border-left: 0; text-align: left; }
+      .score__value { font-size: 66px; }
+      .proof-path__header { align-items: start; flex-direction: column; }
+      .proof-path__header p { text-align: left; }
+      .stages { grid-template-columns: 1fr; }
+      .stage { min-height: 66px; margin-left: 8px; padding: 0 0 18px 30px; border-top: 0; border-left: 1px solid var(--rail); }
+      .stage__icon { top: 0; left: -8px; }
+      .proof-gaps ul { columns: 2; }
+    }
+    @media (max-width: 520px) {
+      .brand__product { display: none; }
+      .proof-path { padding-inline: 18px; }
+      .proof-gaps ul { columns: 1; }
+    }
+    @media print {
+      :root { color-scheme: light; }
+      body { color: #17202a; background: #fff; }
+      .topbar, .proof-path, .metrics, .requirement { border-color: #cbd5dc; color: #17202a; background: #fff; }
+      .proof-gate, .stage { border-color: #7b8b96; }
+      .proof-gate p, .proof-path__header p, .metric span, .stage__detail, .section-header p, footer { color: #4e606c; }
+    }
   </style>
 </head>
 <body>
   <div class="shell">
     <header class="topbar">
-      <div class="brand"><span class="brand__mark">K</span><span>KIBI</span></div>
+      <div class="brand">
+        ${renderKibiLogo("brand__logo")}
+        ${renderKibiWordmark("brand__wordmark")}
+        <span class="brand__product">Requirement health</span>
+      </div>
       <div class="snapshot">${snapshot ? `snapshot ${escapeHtml(snapshot.slice(0, 12))}` : "snapshot unavailable"}</div>
     </header>
     <main>
-      <section class="hero">
-        <div class="hero__copy">
+      <section class="overview">
+        <div class="overview__copy">
           <p class="eyebrow">Requirement health · ${escapeHtml(branch)}</p>
-          <h1>Intent, remembered.<span>Implementation, proven.</span></h1>
-          <p class="hero__lede">A conservative view of product intent, semantic consistency, implementation ownership, and fresh end-to-end evidence.</p>
+          <h1>Intent to proof,<br>without the gaps.</h1>
+          <p>Kibi compiles product intent into an inspectable chain of semantics, scenarios, implementation ownership, end-to-end tests, and fresh evidence.</p>
         </div>
-        <div class="score-card">
-          <div>
-            <div class="score-ring" style="--score: ${proofPercent}%"><div class="score-ring__value">${proofPercent}<span>%</span></div></div>
-            <p>${currentRequirements === 0 ? "No current requirements" : "Fully proven"}</p>
-          </div>
+        <div class="score" aria-label="${proofPercent}% proven, ${proven} of ${currentRequirements} current requirements">
+          <div class="score__value">${proofPercent}<span>%</span></div>
+          <div class="score__label">${currentRequirements === 0 ? "No current requirements" : "Fully proven"}</div>
+          <div class="score__ratio">${proven.toLocaleString("en-US")} of ${currentRequirements.toLocaleString("en-US")} current requirements</div>
         </div>
       </section>
       ${reportNotice(input)}
+      <section class="proof-path" aria-labelledby="proof-path-title">
+        <div class="proof-path__header">
+          <div><p class="eyebrow">Intent → proof</p><h2 id="proof-path-title">Where proof stops</h2></div>
+          <p>Counts are sequential. Each drop is the earliest unmet gate, so a strict score never looks like a broken report.</p>
+        </div>
+        <ol class="proof-rail">${gates.map(renderProofGate).join("")}</ol>
+      </section>
       <section class="metrics" aria-label="Requirement health summary">
         ${metric("Requirements", currentRequirements)}
         ${metric("Fully proven", proven, "good")}
@@ -559,7 +801,7 @@ export function renderHtmlReport(input: HtmlReportInput): string {
     </main>
     <footer>
       <span>Generated ${escapeHtml(generatedAt)} · ${notApplicable.toLocaleString("en-US")} non-current ${notApplicable === 1 ? "requirement" : "requirements"} excluded</span>
-      <span>Kibi · Prompt the intent. Prove the implementation.</span>
+      <span>Kibi · Prompt the intent. Kibi makes the agent remember it—and prove the implementation.</span>
     </footer>
   </div>
   <script>

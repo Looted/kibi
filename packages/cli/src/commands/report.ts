@@ -9,6 +9,7 @@ import type {
   RuntimeOperationSpec,
 } from "../public/operations/runtime-types.js";
 import { coverageSpec } from "../public/operations/specs/reporting.js";
+import { KIBI_BRAND, renderKibiBadge } from "../report/brand.js";
 import {
   type HtmlReportCoverage,
   renderHtmlReport,
@@ -226,34 +227,19 @@ export async function reportCommand(
     currentRequirements === 0 ? "no requirements" : `${proofPercent}% proven`;
   const badgeColor =
     currentRequirements === 0
-      ? "#6b7280"
+      ? KIBI_BRAND.rail
       : hasContradiction
-        ? "#d14d64"
+        ? KIBI_BRAND.danger
         : snapshotStale
-          ? "#c68a2b"
+          ? KIBI_BRAND.warning
           : proofPercent === 100
-            ? "#2fba83"
+            ? KIBI_BRAND.success
             : proofPercent >= 90
-              ? "#4a9f78"
+              ? KIBI_BRAND.signal
               : proofPercent >= 70
-                ? "#c68a2b"
-                : "#d14d64";
-  const badge = `<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="kibi: ${badgeMessage}" width="138" height="20">
-  <title>kibi: ${badgeMessage}</title>
-  <linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#fff" stop-opacity=".12"/><stop offset="1" stop-opacity=".12"/></linearGradient>
-  <clipPath id="r"><rect width="138" height="20" rx="3"/></clipPath>
-  <g clip-path="url(#r)">
-    <rect width="36" height="20" fill="#4b3f72"/>
-    <rect x="36" width="102" height="20" fill="${badgeColor}"/>
-    <rect width="138" height="20" fill="url(#s)"/>
-  </g>
-  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
-    <text x="18" y="15" fill="#010101" fill-opacity=".3">kibi</text>
-    <text x="18" y="14">kibi</text>
-    <text x="87" y="15" fill="#010101" fill-opacity=".3">${badgeMessage}</text>
-    <text x="87" y="14">${badgeMessage}</text>
-  </g>
-</svg>`;
+                ? KIBI_BRAND.warning
+                : KIBI_BRAND.danger;
+  const badge = renderKibiBadge(badgeMessage, badgeColor);
 
   await writeAtomically(outputPath, html);
   await writeAtomically(badgePath, badge);

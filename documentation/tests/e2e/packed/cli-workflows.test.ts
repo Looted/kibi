@@ -216,11 +216,26 @@ if (RUN_NODE_TEST_SUITE) {
         "utf8",
       );
       assert.match(html, /Kibi Requirement Health · develop/);
+      assert.match(html, /aria-label="Kibi logo"/);
+      assert.match(html, /aria-label="Kibi"/);
+      assert.match(html, /Intent → proof/);
+      assert.match(html, /current requirements/);
       assert.match(html, /Test requirement/);
       assert.match(html, /Missing knowledge remains visible/);
       assert.ok(
         !html.includes("https://"),
         "report should not use network assets",
+      );
+
+      const badge = await readFile(
+        path.join(sandbox.repoDir, "kibi-report", "badge.svg"),
+        "utf8",
+      );
+      assert.match(badge, /Kibi requirement health:/);
+      assert.match(badge, /#a2d3f4/);
+      assert.ok(
+        !badge.includes("https://"),
+        "badge should not use network assets",
       );
 
       console.log("  ✓ HTML requirement health report generated");

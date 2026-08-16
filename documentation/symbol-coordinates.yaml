@@ -2531,9 +2531,9 @@ coordinates:
   SYM-auto-5D3498497C5F:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 7
+    sourceEndLine: 9
     sourceFile: packages/cli/src/report/html-report.ts
-    sourceLine: 3
+    sourceLine: 5
   SYM-auto-5E0D46927248:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2567,9 +2567,9 @@ coordinates:
   SYM-auto-6AE190B50290:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 14
+    sourceEndLine: 16
     sourceFile: packages/cli/src/report/html-report.ts
-    sourceLine: 9
+    sourceLine: 11
   SYM-auto-6B36EF51595B:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2681,9 +2681,9 @@ coordinates:
   SYM-auto-9213E15DCB18:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 39
+    sourceEndLine: 40
     sourceFile: packages/cli/src/commands/report.ts
-    sourceLine: 31
+    sourceLine: 32
   SYM-auto-92638075C834:
     sourceColumn: 12
     sourceEndColumn: 57
@@ -4640,30 +4640,60 @@ coordinates:
     sourceEndLine: 204
     sourceFile: packages/cli/src/extractors/relationships.ts
     sourceLine: 182
+  SYM-cli-report-brand-badge:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 53
+    sourceFile: packages/cli/src/report/brand.ts
+    sourceLine: 39
+  SYM-cli-report-brand-logo:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 31
+    sourceFile: packages/cli/src/report/brand.ts
+    sourceLine: 29
+  SYM-cli-report-brand-tokens:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 13
+    sourceFile: packages/cli/src/report/brand.ts
+    sourceLine: 1
+  SYM-cli-report-brand-wordmark:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 36
+    sourceFile: packages/cli/src/report/brand.ts
+    sourceLine: 34
   SYM-cli-report-command:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 268
+    sourceEndLine: 254
     sourceFile: packages/cli/src/commands/report.ts
-    sourceLine: 177
+    sourceLine: 178
   SYM-cli-report-open:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 162
+    sourceEndLine: 163
     sourceFile: packages/cli/src/commands/report.ts
-    sourceLine: 142
+    sourceLine: 143
   SYM-cli-report-options:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 23
+    sourceEndLine: 24
     sourceFile: packages/cli/src/commands/report.ts
-    sourceLine: 18
+    sourceLine: 19
+  SYM-cli-report-proof-gates:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 156
+    sourceFile: packages/cli/src/report/html-report.ts
+    sourceLine: 128
   SYM-cli-report-render-html:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 596
+    sourceEndLine: 838
     sourceFile: packages/cli/src/report/html-report.ts
-    sourceLine: 325
+    sourceLine: 434
   SYM-cli-rule-registry-ChecksConfig:
     sourceColumn: 17
     sourceEndColumn: 1

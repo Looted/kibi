@@ -20,3 +20,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d37e5e1172bc
+  - type: verified_by
+    from: SCEN-kibi-branded-health-report
+    to: TEST-kibi-branded-health-report
+    created_at: 2026-08-16T17:20:44.100Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b287d984bd6b

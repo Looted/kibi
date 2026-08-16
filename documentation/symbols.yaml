@@ -22628,8 +22628,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-html-health-report
+      - type: covered_by
+        target: TEST-kibi-branded-health-report
       - type: implements
         target: REQ-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-branded-health-report
   - id: SYM-cli-report-render-html
     title: renderHtmlReport
     status: active
@@ -22640,6 +22644,93 @@ symbols:
       - report
       - html
       - traceability
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: covered_by
+        target: TEST-kibi-branded-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-branded-health-report
+  - id: SYM-cli-report-proof-gates
+    title: proofGates
+    status: active
+    sourceFile: packages/cli/src/report/html-report.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    tags:
+      - cli
+      - report
+      - proof
+      - brand
+      - proof-rail
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-branded-health-report
+      - type: implements
+        target: REQ-kibi-branded-health-report
+  - id: SYM-cli-report-brand-tokens
+    title: KIBI_BRAND
+    status: active
+    sourceFile: packages/cli/src/report/brand.ts
+    symbol_role: config
+    tags:
+      - cli
+      - report
+      - brand
+      - proof-rail
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-branded-health-report
+      - type: implements
+        target: REQ-kibi-branded-health-report
+  - id: SYM-cli-report-brand-logo
+    title: renderKibiLogo
+    status: active
+    sourceFile: packages/cli/src/report/brand.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - report
+      - brand
+      - proof-rail
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-branded-health-report
+      - type: implements
+        target: REQ-kibi-branded-health-report
+  - id: SYM-cli-report-brand-wordmark
+    title: renderKibiWordmark
+    status: active
+    sourceFile: packages/cli/src/report/brand.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - report
+      - brand
+      - proof-rail
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-branded-health-report
+      - type: implements
+        target: REQ-kibi-branded-health-report
+  - id: SYM-cli-report-brand-badge
+    title: renderKibiBadge
+    status: active
+    sourceFile: packages/cli/src/report/brand.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - report
+      - badge
+      - brand
+      - proof-rail
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-branded-health-report
+      - type: implements
+        target: REQ-kibi-branded-health-report
   - id: SYM-cli-report-open
     title: openReport
     status: active
@@ -22659,6 +22750,10 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-operation-interface-parity
+      - type: executable_for
+        target: TEST-kibi-html-health-report
+      - type: executable_for
+        target: TEST-kibi-branded-health-report
   - id: SYM-cli-sync-semantic-boundary-relationships
     title: semanticBoundaryRelationships
     status: active
