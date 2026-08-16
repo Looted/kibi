@@ -14,7 +14,7 @@
       },
       "steps": [
         ["swipl", "-q", "-g", "load_test_files([]),run_tests,halt", "-t", "halt", "packages/core/tests/kb.plt"],
-        ["bun", "test", "--timeout", "15000", "packages/cli/tests/commands/coverage.test.ts", "packages/cli/tests/commands/status.test.ts", "packages/cli/tests/operations/discovery.test.ts", "packages/cli/tests/operations/reporting.test.ts", "packages/mcp/tests/tools/coverage.test.ts", "packages/mcp/tests/tools/status.test.ts", "packages/mcp/tests/server/tools.test.ts"]
+        ["bun", "test", "--timeout", "15000", "./packages/cli/tests/commands/coverage.test.ts", "./packages/cli/tests/commands/status.test.ts", "./packages/cli/tests/operations/discovery.test.ts", "./packages/cli/tests/operations/reporting.test.ts", "./packages/mcp/tests/tools/coverage.test.ts", "./packages/mcp/tests/tools/status.test.ts", "./packages/mcp/tests/server/tools.test.ts"]
       ]
     },
     {
@@ -136,7 +136,7 @@
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
-        ["bun", "test", "--timeout", "15000", "test/root.test.ts", "packages/cli/tests/engine.test.ts", "scripts/tests/run-owned-engine-tests.test.ts"],
+        ["bun", "test", "--timeout", "15000", "./test/root.test.ts", "./packages/cli/tests/engine.test.ts", "./scripts/tests/run-owned-engine-tests.test.ts"],
         ["node", "scripts/run-packed-e2e.mjs", "/tmp/kibi-e2e-packed-compiled", "/tmp/kibi-e2e-packed-compiled/cli-workflows.test.js"]
       ]
     }

@@ -54,6 +54,7 @@ documentation/tests/e2e/packed/.compiled/
 .kb/branches
 .kb/branches/*/sync-cache.json
 .kb/recovery/
+.kb/verification/
 #! bun.lock
 .sisyphus
 .artifacts/
