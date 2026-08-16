@@ -20,3 +20,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0a93beef673
+  - type: covered_by
+    from: SYM-kibi-cli-src-intent-search-ts-intentsearchfacets
+    to: TEST-kibi-intent-aware-source-discovery
+    created_at: 2026-08-16T19:46:36.834Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b29701a1f661

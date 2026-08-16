@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-15e39445bf34
+    type: covered_by
+    from: SYM-kibi-cli-src-intent-search-ts-intentsearchmatch
+    to: TEST-kibi-intent-aware-source-discovery
+    created_at: "2026-08-16T19:46:36.851Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
