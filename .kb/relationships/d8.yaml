@@ -20,3 +20,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb57b7b07fb6
+  - type: covered_by
+    from: SYM-cli-sync-normalized-hash
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-08-16T19:49:09.984Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92619509ade3

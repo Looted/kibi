@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-e0a5ae2ec00b
+    type: covered_by
+    from: SYM-cli-relationship-shard-result
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: "2026-08-16T19:49:09.963Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

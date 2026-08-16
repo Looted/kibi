@@ -27,3 +27,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-44849e93ac47
+  - type: covered_by
+    from: SYM-cli-sync-extract-relationship-shard
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-08-16T19:49:09.964Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7474805bcec6

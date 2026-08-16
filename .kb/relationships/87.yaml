@@ -62,3 +62,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e8285d20659f
+  - type: covered_by
+    from: SYM-core-journaled-relationship-retract
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-08-16T19:49:09.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd7d1e297777
+  - type: covered_by
+    from: SYM-cli-relationship-directory
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-08-16T19:49:09.974Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dc17bf7eb47

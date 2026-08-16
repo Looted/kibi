@@ -6,3 +6,10 @@ relationships:
     created_at: "2026-08-16T19:47:37.130Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-core-journaled-sync-checkpoint
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-08-16T19:49:09.959Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70ad3da51df9
