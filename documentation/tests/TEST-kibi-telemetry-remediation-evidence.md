@@ -44,6 +44,54 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 41932
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-e30e00242e50a030ce02be72
+    test_id: TEST-kibi-telemetry-remediation-evidence
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-telemetry-remediation-evidence
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-telemetry-remediation-evidence
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a69433014b5f9eb89a2da3131f8923c6db518d979c14f564130f31f6b7135625
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-16T21:25:27.726Z'
+    finished_at: '2026-08-16T21:26:05.795Z'
+    artifact_digest: 29e62a348ae5c34fbac311b7c5808ce62f58a09302d7b6be9ec96c4b7e168d9c
+    contract_hash: 7fb18056888e77d85b1c92e819b830e050be47210c4e89f236319b4e0099f153
+    case_results:
+      - symbol_id: SYM-test-packed-telemetry-remediation
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 38069
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-d56de5b20e0e2369bfd87995
+    test_id: TEST-kibi-telemetry-remediation-evidence
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-telemetry-remediation-evidence
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-telemetry-remediation-evidence
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8b71ffc197df80c9e37218952deac03bb23ad67a801bc972abf7ff56d7eed1cf
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-16T21:51:02.305Z'
+    finished_at: '2026-08-16T21:51:41.890Z'
+    artifact_digest: f60dcd6f3700bf6b49f6a57715735e880264c26050002e1f7c1f48246fcd8897
+    contract_hash: 7fb18056888e77d85b1c92e819b830e050be47210c4e89f236319b4e0099f153
+    case_results:
+      - symbol_id: SYM-test-packed-telemetry-remediation
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 39585
 tags:
   - telemetry
   - diagnostics

@@ -57,6 +57,54 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 670827
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-44cbf456e54cd05d505b230a
+    test_id: TEST-test-journaled-engine-harness
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-test-journaled-engine-harness
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-test-journaled-engine-harness
+    scope: end_to_end
+    outcome: failed
+    code_snapshot: a69433014b5f9eb89a2da3131f8923c6db518d979c14f564130f31f6b7135625
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-16T21:27:22.572Z'
+    finished_at: '2026-08-16T21:38:19.867Z'
+    artifact_digest: 7d359452fb90c468075d7e4bdffcd2efaebdd0ff083ef345812027847e8d02b9
+    contract_hash: 478ec005ea9cec6cb66a8b55cd2945aefaaf440294bd4ddc9eba7d3f3b260777
+    case_results:
+      - symbol_id: SYM-test-owned-engine-runner
+        project: default
+        outcome: failed
+        retries: 0
+        duration_ms: 657295
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-061272bb206e97f259d5d835
+    test_id: TEST-test-journaled-engine-harness
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-test-journaled-engine-harness
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-test-journaled-engine-harness
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8b71ffc197df80c9e37218952deac03bb23ad67a801bc972abf7ff56d7eed1cf
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-16T21:52:37.664Z'
+    finished_at: '2026-08-16T22:04:36.557Z'
+    artifact_digest: 4ec83bfe2bdd60775c981c8200fe2d847e7f13b415853f2b617a77b9d4c9a941
+    contract_hash: 478ec005ea9cec6cb66a8b55cd2945aefaaf440294bd4ddc9eba7d3f3b260777
+    case_results:
+      - symbol_id: SYM-test-owned-engine-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 718893
 ---
 
 The harness tests verify graceful signal-driven journal flush and replay,
