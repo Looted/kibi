@@ -6,3 +6,10 @@ relationships:
     created_at: "2026-08-16T18:52:06.523Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: constrains
+    from: REQ-018
+    to: FACT-USER-ROLE
+    created_at: 2026-08-16T22:49:43.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-849eaedb4edd

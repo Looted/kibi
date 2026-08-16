@@ -41,3 +41,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c5c372bcf051
+  - type: constrains
+    from: REQ-019
+    to: FACT-USER-ROLE
+    created_at: 2026-08-16T22:49:43.708Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7f83555e91c
+  - type: requires_property
+    from: REQ-019
+    to: FACT-LIMIT-3
+    created_at: 2026-08-16T22:49:48.771Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06f19b9c5474
+  - type: specified_by
+    from: REQ-019
+    to: SCEN-001
+    created_at: 2026-08-16T22:50:05.538Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46f2502f9f5e
+  - type: verified_by
+    from: REQ-019
+    to: TEST-004
+    created_at: 2026-08-16T22:50:05.557Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c89c632d777
+  - type: supersedes
+    from: REQ-019
+    to: REQ-018
+    created_at: 2026-08-16T22:50:05.563Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b86cf657119
+  - type: requires_predicate
+    from: REQ-019
+    to: FACT-PRED-AFC35A3CBEBB
+    created_at: 2026-08-16T22:50:05.570Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21f2bb9c0d23
+  - type: requires_predicate
+    from: REQ-019
+    to: FACT-PRED-FAA80F18C7B3
+    created_at: 2026-08-16T22:50:05.577Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cff4c516b22
+  - type: requires_predicate
+    from: REQ-019
+    to: FACT-PRED-8A6D1BC30B07
+    created_at: 2026-08-16T22:50:05.583Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc004975b412
