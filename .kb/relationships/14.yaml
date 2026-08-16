@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-3e19cc68b933
+    type: covered_by
+    from: SYM-cli-engine-idle-timeout
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: "2026-08-16T19:47:37.156Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

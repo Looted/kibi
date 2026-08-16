@@ -41,3 +41,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-37158a2f81c1
+  - type: covered_by
+    from: SYM-cli-engine-client-cancel
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.150Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47962cd69bc5

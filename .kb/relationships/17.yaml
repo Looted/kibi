@@ -17,3 +17,10 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/tests/TEST-005.md
+  - type: covered_by
+    from: SYM-cli-discovery-attached-branch
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.163Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f98c5fa4d171

@@ -59,3 +59,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-acc6a09b92de
+  - type: covered_by
+    from: SYM-cli-engine-client-is-running
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.123Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bfbf80266bf1

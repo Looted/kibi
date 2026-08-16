@@ -6,3 +6,10 @@ relationships:
     created_at: "2026-08-16T19:46:36.837Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-cli-engine-client-invalidate-cache
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.121Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51916b73d5ad

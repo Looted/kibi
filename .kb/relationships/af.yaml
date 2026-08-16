@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-bba53c014b72
+    type: covered_by
+    from: SYM-cli-engine-start-lock-path
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: "2026-08-16T19:47:37.109Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

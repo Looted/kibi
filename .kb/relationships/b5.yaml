@@ -34,3 +34,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-63298fae5064
+  - type: covered_by
+    from: SYM-cli-engine-client-search-entities
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.113Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c09040b4ff2

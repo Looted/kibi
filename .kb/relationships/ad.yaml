@@ -66,3 +66,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb88851e6d88
+  - type: covered_by
+    from: SYM-cli-engine-status-command
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.165Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2896213d7e1

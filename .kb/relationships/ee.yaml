@@ -27,3 +27,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-690937cafc20
+  - type: covered_by
+    from: SYM-cli-engine-client-query-entities
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a7591555186

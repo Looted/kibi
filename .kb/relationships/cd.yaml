@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-5605593f1b76
+    type: covered_by
+    from: SYM-mcp-discovery-context
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: "2026-08-16T19:47:37.169Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

@@ -20,3 +20,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e6bc8293ec81
+  - type: covered_by
+    from: SYM-cli-engine-pid-path
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-269c18b750ec

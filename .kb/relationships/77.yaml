@@ -6,3 +6,10 @@ relationships:
     created_at: "2026-08-16T18:52:06.541Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-cli-engine-client-query
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.149Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c60d627a290

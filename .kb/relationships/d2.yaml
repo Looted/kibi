@@ -83,3 +83,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e369aada3a54
+  - type: covered_by
+    from: SYM-skillopt-runtime-stage-kibi-mcp
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.171Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0697eed4276b

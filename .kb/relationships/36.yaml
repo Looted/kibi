@@ -31,3 +31,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8315436b045a
+  - type: covered_by
+    from: SYM-cli-engine-protocol-version
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.142Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b87d7644ba85
