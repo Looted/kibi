@@ -22,12 +22,16 @@ function reportCoverage(total = 1, rowCount = 1) {
         proofNotApplicable: 0,
         proofProven: rowCount,
       },
-      meta: { branch: "feature/report", verificationSnapshot: "abc123" },
+      meta: {
+        branch: "feature/report",
+        verificationSnapshot: "abc123",
+        verificationSnapshotDirty: false,
+      },
       rows: Array.from({ length: rowCount }, (_, index) => ({
         id: `REQ-${index + 1}`,
         title: "HTML report",
         proofStatus: "proven",
-        proofGaps: [],
+        proofGaps: [] as string[],
         verificationScopes: ["end_to_end"],
         proofStages: {
           semanticInventory: { status: "passed" },
@@ -90,6 +94,10 @@ describe("kibi report", () => {
     expect(readFileSync(outputPath, "utf8")).toContain(
       "Requirement health · feature/report",
     );
+    const badgePath = path.join(temporaryDirectory, "kibi-report", "badge.svg");
+    const badge = readFileSync(badgePath, "utf8");
+    expect(badge).toContain("100% proven");
+    expect(badge).not.toContain("https://");
   });
 
   test("accepts an explicit HTML file output", async () => {
@@ -105,6 +113,33 @@ describe("kibi report", () => {
       path.join(temporaryDirectory, "artifacts", "health.html"),
     );
     expect(existsSync(outputPath)).toBe(true);
+    expect(
+      existsSync(
+        path.join(temporaryDirectory, "artifacts", "health.badge.svg"),
+      ),
+    ).toBe(true);
+  });
+
+  test("renders conservative badge states from the report snapshot", async () => {
+    const coverage = reportCoverage(2, 2);
+    coverage.requirements.summary.proofProven = 1;
+    coverage.requirements.meta.verificationSnapshotDirty = true;
+    coverage.requirements.rows[0].proofGaps = ["blocking_contradiction"];
+
+    await reportCommand(
+      { output: "health" },
+      {
+        cwd: () => temporaryDirectory,
+        loadCoverage: async () => coverage,
+      },
+    );
+
+    const badge = readFileSync(
+      path.join(temporaryDirectory, "health", "badge.svg"),
+      "utf8",
+    );
+    expect(badge).toContain("50% proven");
+    expect(badge).toContain("#d14d64");
   });
 
   test("rejects pagination that would make health metrics incomplete", async () => {

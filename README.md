@@ -3,6 +3,7 @@
 [![Status: Beta](https://img.shields.io/badge/status-beta-4c8bf5.svg)](#beta-status)
 [![CI](https://github.com/Looted/kibi/actions/workflows/ci.yml/badge.svg)](https://github.com/Looted/kibi/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/Looted/kibi/branch/develop/graph/badge.svg)](https://codecov.io/gh/Looted/kibi)
+[![Kibi requirement health](https://looted.github.io/kibi/badge.svg)](https://looted.github.io/kibi/)
 [![License: AGPL-3.0-or-later](https://img.shields.io/badge/license-AGPL--3.0--or--later-6f42c1.svg)](LICENSE.md)
 
 **Say what the software should do. Kibi makes agents follow it—and prove they did.**
@@ -73,10 +74,81 @@ npm exec -- kibi coverage --by req --format table
 npm exec -- kibi report --open
 ```
 
-The report is a self-contained `kibi-report/index.html` file: no server, CDN,
-or external assets are required. The same directory can be uploaded as a CI
-artifact or published directly with GitHub Pages. On pushes to `develop`, this
-repository's CI uploads it as the `kibi-requirement-health` artifact.
+The report directory contains a self-contained `kibi-report/index.html` and a
+matching `badge.svg`: no server, CDN, or external assets are required. The same
+directory can be uploaded as a CI artifact or published directly with GitHub
+Pages. On pushes to `develop`, this repository's CI publishes the report and its
+clickable README badge at `https://looted.github.io/kibi/`.
+
+### Publish a report badge with GitHub Actions
+
+Like a coverage badge, the Kibi badge is an image wrapped in a link to the full
+report. Enable **Settings → Pages → Source: GitHub Actions**, then add a workflow
+like this (replace `main` if your release branch has a different name):
+
+```yaml
+name: Kibi requirement health
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kibi-requirement-health
+  cancel-in-progress: true
+
+jobs:
+  build-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install SWI-Prolog
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y swi-prolog
+      - run: npm ci
+      - run: npm exec -- kibi sync
+      - run: npm exec -- kibi report --output kibi-report
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: kibi-report
+
+  deploy-report:
+    needs: build-report
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy requirement health
+        id: deployment
+        uses: actions/deploy-pages@v5
+```
+
+The command generates both Pages files from one coverage snapshot:
+`kibi-report/index.html` and `kibi-report/badge.svg`. Add the badge to your
+README and replace the placeholders with the lowercase Pages owner and
+repository path:
+
+```markdown
+[![Kibi requirement health](https://OWNER.github.io/REPOSITORY/badge.svg)](https://OWNER.github.io/REPOSITORY/)
+```
+
+The image URL must be anonymously reachable for GitHub to render it. For a
+private report, publish both files to an authenticated static host and use URLs
+that your intended README audience can access.
 
 ## How it works
 

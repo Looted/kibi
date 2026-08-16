@@ -4080,7 +4080,8 @@ symbols:
       - type: covered_by
         target: TEST-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -22625,6 +22626,11 @@ symbols:
       - report
       - html
       - traceability
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
   - id: SYM-cli-report-render-html
     title: renderHtmlReport
     status: active

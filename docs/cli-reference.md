@@ -281,9 +281,9 @@ kibi coverage [--by req|symbol|type] [--tag TAGS] [--include-passing] [--no-incl
 
 ## `kibi report`
 
-Generates a polished, self-contained HTML view of requirement health. This is a
-human-facing presentation command over the existing `kb_coverage` operation,
-not an additional JSON/MCP operation.
+Generates a polished, self-contained HTML view of requirement health and a
+matching SVG badge. This is a human-facing presentation command over the
+existing `kb_coverage` operation, not an additional JSON/MCP operation.
 
 **Syntax:**
 ```bash
@@ -291,7 +291,7 @@ kibi report [--output PATH] [--open] [--tag TAGS] [--limit N]
 ```
 
 **Options:**
-- `--output <path>` writes to an HTML file or to `index.html` inside a directory. The default is `kibi-report/index.html`.
+- `--output <path>` writes to an HTML file or to `index.html` inside a directory. Directory output also writes `badge.svg`; explicit file output writes `<name>.badge.svg` beside the HTML. The default is `kibi-report/index.html` plus `kibi-report/badge.svg`.
 - `--open` opens the report with the operating system's default browser after the file is written successfully.
 - `--tag <tags>` limits requirement and symbol health to comma-separated tags.
 - `--limit <n>` sets the maximum complete requirement row set. It defaults to 10,000 and fails instead of publishing partial per-requirement metrics.
@@ -302,6 +302,7 @@ kibi report [--output PATH] [--open] [--tag TAGS] [--limit N]
 - Requirement cards separate semantic grounding, scenario, implementation, E2E-test, and fresh-receipt stages. Search and health filters run entirely in the generated file.
 - Stale KB state and dirty workspace proof evaluation are shown as a prominent snapshot warning.
 - All KB-provided values are HTML-escaped. The report has no CDN, font, script, or other network dependency, so the output directory can be hosted as-is.
+- The generated SVG badge uses the same complete coverage snapshot as the report. It shows the proven percentage and uses conservative colors for contradictions and stale snapshots.
 
 **Examples:**
 ```bash
@@ -322,8 +323,10 @@ The generated directory is already a valid static Pages artifact:
 ```yaml
 permissions:
   contents: read
-  pages: write
-  id-token: write
+
+concurrency:
+  group: kibi-requirement-health
+  cancel-in-progress: true
 
 jobs:
   build-report:
@@ -341,6 +344,9 @@ jobs:
   deploy-report:
     needs: build-report
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -349,6 +355,19 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v5
 ```
+
+Wrap the published badge image in a link to the report so clicking it opens the
+dashboard:
+
+```markdown
+[![Kibi requirement health](https://OWNER.github.io/REPOSITORY/badge.svg)](https://OWNER.github.io/REPOSITORY/)
+```
+
+Actions artifacts expire and do not provide a stable anonymous URL, so the
+badge and its target should use the GitHub Pages deployment rather than the
+ordinary downloadable artifact. The Pages URL must be anonymously reachable for
+the badge to render in a public README; use an appropriate authenticated static
+host when the report must remain private.
 
 ## `kibi graph`
 

@@ -4643,7 +4643,7 @@ coordinates:
   SYM-cli-report-command:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 205
+    sourceEndLine: 268
     sourceFile: packages/cli/src/commands/report.ts
     sourceLine: 177
   SYM-cli-report-open:

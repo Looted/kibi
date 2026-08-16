@@ -194,9 +194,72 @@ export async function reportCommand(
     (deps.cwd ?? (() => process.cwd()))(),
     options.output,
   );
+  const requestedOutput = options.output?.trim() || "kibi-report";
+  const outputIsHtmlFile = [".html", ".htm"].includes(
+    path.extname(requestedOutput).toLowerCase(),
+  );
+  const badgePath = outputIsHtmlFile
+    ? path.join(
+        path.dirname(outputPath),
+        `${path.basename(outputPath, path.extname(outputPath))}.badge.svg`,
+      )
+    : path.join(path.dirname(outputPath), "badge.svg");
+
+  const summary = coverage.requirements.summary;
+  const total = Number(summary.total ?? 0);
+  const notApplicable = Number(summary.proofNotApplicable ?? 0);
+  const proven = Number(summary.proofProven ?? 0);
+  const currentRequirements = Math.max(0, total - notApplicable);
+  const proofPercent =
+    currentRequirements === 0
+      ? 0
+      : Math.round((proven / currentRequirements) * 100);
+  const hasContradiction = coverage.requirements.rows.some(
+    (row) =>
+      Array.isArray(row.proofGaps) &&
+      row.proofGaps.includes("blocking_contradiction"),
+  );
+  const snapshotStale =
+    coverage.requirements.meta?.dirty === true ||
+    coverage.requirements.meta?.verificationSnapshotDirty === true;
+  const badgeMessage =
+    currentRequirements === 0 ? "no requirements" : `${proofPercent}% proven`;
+  const badgeColor =
+    currentRequirements === 0
+      ? "#6b7280"
+      : hasContradiction
+        ? "#d14d64"
+        : snapshotStale
+          ? "#c68a2b"
+          : proofPercent === 100
+            ? "#2fba83"
+            : proofPercent >= 90
+              ? "#4a9f78"
+              : proofPercent >= 70
+                ? "#c68a2b"
+                : "#d14d64";
+  const badge = `<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="kibi: ${badgeMessage}" width="138" height="20">
+  <title>kibi: ${badgeMessage}</title>
+  <linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#fff" stop-opacity=".12"/><stop offset="1" stop-opacity=".12"/></linearGradient>
+  <clipPath id="r"><rect width="138" height="20" rx="3"/></clipPath>
+  <g clip-path="url(#r)">
+    <rect width="36" height="20" fill="#4b3f72"/>
+    <rect x="36" width="102" height="20" fill="${badgeColor}"/>
+    <rect width="138" height="20" fill="url(#s)"/>
+  </g>
+  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
+    <text x="18" y="15" fill="#010101" fill-opacity=".3">kibi</text>
+    <text x="18" y="14">kibi</text>
+    <text x="87" y="15" fill="#010101" fill-opacity=".3">${badgeMessage}</text>
+    <text x="87" y="14">${badgeMessage}</text>
+  </g>
+</svg>`;
+
   await writeAtomically(outputPath, html);
+  await writeAtomically(badgePath, badge);
 
   console.log(`Kibi report written to ${outputPath}`);
+  console.log(`Kibi badge written to ${badgePath}`);
   if (options.open === true) {
     await (deps.openReport ?? openReport)(outputPath);
     console.log("Opened Kibi report in the default browser");

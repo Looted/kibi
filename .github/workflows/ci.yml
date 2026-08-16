@@ -7,6 +7,9 @@ concurrency:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [develop]
@@ -88,6 +91,16 @@ jobs:
           path: kibi-report
           if-no-files-found: error
           retention-days: 7
+
+      - name: Configure GitHub Pages
+        if: ${{ github.actor != 'nektos/act' && github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+        uses: actions/configure-pages@v6
+
+      - name: Upload Kibi requirement health Pages artifact
+        if: ${{ github.actor != 'nektos/act' && github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: kibi-report
 
       - name: Build MCP package
         run: bun run build:mcp
@@ -463,3 +476,19 @@ jobs:
           path: coverage/prolog
           if-no-files-found: error
           retention-days: 7
+
+  deploy-requirement-health:
+    name: Deploy Kibi requirement health
+    if: ${{ github.actor != 'nektos/act' && github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy requirement health to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
