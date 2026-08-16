@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-e51c7d784d57
+    type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compile-plan-version
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: "2026-08-16T19:45:30.458Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

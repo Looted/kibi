@@ -52,3 +52,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28d885fc400a
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-testdraft
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-16T19:45:30.468Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-acc6a09b92de

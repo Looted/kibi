@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-3af353b0d5af
+    type: verified_by
+    from: SCEN-kibi-change-to-proof-plan-compiler
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: "2026-08-16T19:45:30.443Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

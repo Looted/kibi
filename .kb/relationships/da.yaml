@@ -24,3 +24,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0d0008d3fce1
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileplanhash
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-16T19:45:30.452Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63589a57664b
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanresult
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-16T19:45:30.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce370e512bb6

@@ -34,3 +34,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c72ea9353899
+  - type: covered_by
+    from: SYM-kibi-cli-src-public-operations-specs-planning-ts-compileintentspec
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-16T19:45:30.482Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1bfd779218ea

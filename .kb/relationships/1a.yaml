@@ -48,3 +48,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-568e6e11e36a
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-executecompileintent
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-16T19:45:30.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aac9b3abba07
