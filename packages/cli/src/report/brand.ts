@@ -38,16 +38,15 @@ export function renderKibiWordmark(className = ""): string {
 // implements REQ-kibi-branded-health-report
 export function renderKibiBadge(message: string, statusColor: string): string {
   const label = `Kibi requirement health: ${message}`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${xml(label)}" width="178" height="24" viewBox="0 0 178 24">
+  return `<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${xml(label)}" width="178" height="20" viewBox="0 0 178 20">
   <title>${xml(label)}</title>
-  <defs><clipPath id="kibi-badge"><rect width="178" height="24" rx="5"/></clipPath></defs>
+  <defs><clipPath id="kibi-badge"><rect width="178" height="20" rx="4"/></clipPath></defs>
   <g clip-path="url(#kibi-badge)">
-    <rect width="76" height="24" fill="${KIBI_BRAND.carbon}"/>
-    <rect x="76" width="102" height="24" fill="${xml(statusColor)}"/>
-    <path d="M76 0v24" stroke="${KIBI_BRAND.signal}" stroke-width="2"/>
+    <rect width="28" height="20" fill="${KIBI_BRAND.carbon}"/>
+    <rect x="28" width="150" height="20" fill="${xml(statusColor)}"/>
+    <path d="M28 0v20" stroke="${KIBI_BRAND.signal}" stroke-width="2"/>
   </g>
-  <svg x="5" y="3" width="18" height="18" viewBox="0 0 308 309" aria-hidden="true">${LOGO_BODY}</svg>
-  <svg x="29" y="5" width="39" height="15" viewBox="-2 10 395 148" aria-hidden="true">${WORDMARK_BODY}</svg>
-  <text x="127" y="16" fill="${KIBI_BRAND.deepCarbon}" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="11" font-weight="700">${xml(message)}</text>
+  <svg x="6" y="2" width="16" height="16" viewBox="0 0 308 309" aria-hidden="true">${LOGO_BODY}</svg>
+  <text x="103" y="14" fill="${KIBI_BRAND.deepCarbon}" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="10" font-weight="700">${xml(message)}</text>
 </svg>`;
 }

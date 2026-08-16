@@ -108,6 +108,9 @@ describe("kibi report", () => {
     expect(badge).toContain("100% proven");
     expect(badge).toContain("Kibi requirement health: 100% proven");
     expect(badge).toContain("#a2d3f4");
+    expect(badge).toContain('width="178" height="20" viewBox="0 0 178 20"');
+    expect(badge).toContain('viewBox="0 0 308 309"');
+    expect(badge).not.toContain('viewBox="-2 10 395 148"');
     expect(badge).not.toContain("https://");
   });
 

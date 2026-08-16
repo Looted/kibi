@@ -4643,7 +4643,7 @@ coordinates:
   SYM-cli-report-brand-badge:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 53
+    sourceEndLine: 52
     sourceFile: packages/cli/src/report/brand.ts
     sourceLine: 39
   SYM-cli-report-brand-logo:
