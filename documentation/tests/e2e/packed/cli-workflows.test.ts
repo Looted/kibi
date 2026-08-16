@@ -1,4 +1,6 @@
 import assert from "node:assert";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { after, before, describe, it } from "node:test";
 import {
   type Tarballs,
@@ -195,6 +197,40 @@ if (RUN_NODE_TEST_SUITE) {
       console.log(`  ✓ Check completed (exit code: ${exitCode})`);
     });
 
+    async function verifyHtmlRequirementHealthReport(): Promise<void> {
+      if (!hasProlog) return;
+
+      const { stdout, stderr, exitCode } = await kibi(
+        sandbox,
+        ["report", "--output", "kibi-report"],
+        { timeoutMs: 120000 },
+      );
+      assert.strictEqual(
+        exitCode,
+        0,
+        `report should succeed. Output: ${stdout}${stderr}`,
+      );
+
+      const html = await readFile(
+        path.join(sandbox.repoDir, "kibi-report", "index.html"),
+        "utf8",
+      );
+      assert.match(html, /Kibi Requirement Health · develop/);
+      assert.match(html, /Test requirement/);
+      assert.match(html, /Missing knowledge remains visible/);
+      assert.ok(
+        !html.includes("https://"),
+        "report should not use network assets",
+      );
+
+      console.log("  ✓ HTML requirement health report generated");
+    }
+
+    it(
+      "should generate a self-contained HTML requirement health report",
+      verifyHtmlRequirementHealthReport,
+    );
+
     it("should have created .kb directory structure", async () => {
       if (!hasProlog) return;
 
@@ -213,7 +249,11 @@ if (RUN_NODE_TEST_SUITE) {
         { cwd: sandbox.repoDir, env: sandbox.env },
       );
 
-      assert.strictEqual(branchExists, 0, "exact develop branch store should exist");
+      assert.strictEqual(
+        branchExists,
+        0,
+        "exact develop branch store should exist",
+      );
 
       console.log("  ✓ KB directory structure validated");
     });

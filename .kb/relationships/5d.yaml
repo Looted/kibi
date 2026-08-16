@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-a979912dbb59
+    type: executable_for
+    from: SYM-e2e-packed-cli-html-report
+    to: TEST-kibi-html-health-report
+    created_at: "2026-08-16T07:31:36.700Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

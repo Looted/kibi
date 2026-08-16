@@ -279,6 +279,77 @@ kibi coverage [--by req|symbol|type] [--tag TAGS] [--include-passing] [--no-incl
 - The passing-E2E stage requires append-only verification-receipt history on a scenario-backed test. New evidence is produced by `kibi verify` as `kibi.verification-receipt.v2`; older `v1` entries remain readable historical compatibility data. Only a fresh passed receipt bound to the live `verificationSnapshot` and current contract qualifies; authored `status: passing` remains structural metadata.
 - Symbol rows classify `traceabilityRole` as `production`, `executable_test`, or `mixed`. Executable-only test symbols are `not_applicable` to production coverage instead of being counted as fully covered.
 
+## `kibi report`
+
+Generates a polished, self-contained HTML view of requirement health. This is a
+human-facing presentation command over the existing `kb_coverage` operation,
+not an additional JSON/MCP operation.
+
+**Syntax:**
+```bash
+kibi report [--output PATH] [--open] [--tag TAGS] [--limit N]
+```
+
+**Options:**
+- `--output <path>` writes to an HTML file or to `index.html` inside a directory. The default is `kibi-report/index.html`.
+- `--open` opens the report with the operating system's default browser after the file is written successfully.
+- `--tag <tags>` limits requirement and symbol health to comma-separated tags.
+- `--limit <n>` sets the maximum complete requirement row set. It defaults to 10,000 and fails instead of publishing partial per-requirement metrics.
+
+**Report contents:**
+- Proven percentage and count use current requirements only; superseded and otherwise non-current requirements are reported as excluded rather than lowering the score.
+- Summary metrics show current requirements, fully proven requirements, missing scenarios, stale E2E evidence, unique contradiction witnesses, and production symbols without requirement ownership.
+- Requirement cards separate semantic grounding, scenario, implementation, E2E-test, and fresh-receipt stages. Search and health filters run entirely in the generated file.
+- Stale KB state and dirty workspace proof evaluation are shown as a prominent snapshot warning.
+- All KB-provided values are HTML-escaped. The report has no CDN, font, script, or other network dependency, so the output directory can be hosted as-is.
+
+**Examples:**
+```bash
+# Generate kibi-report/index.html and open it
+kibi report --open
+
+# Write the single-file site to a CI staging directory
+kibi report --output public/requirement-health
+
+# Publish a focused report
+kibi report --tag billing,security --output artifacts/kibi.html
+```
+
+For GitHub Pages, enable **GitHub Actions** as the repository's Pages source and
+add the report steps after installing Kibi, SWI-Prolog, and project dependencies.
+The generated directory is already a valid static Pages artifact:
+
+```yaml
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      # Set up Node, SWI-Prolog, and install project dependencies here.
+      - run: npm exec -- kibi sync
+      - run: npm exec -- kibi report --output kibi-report
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: kibi-report
+
+  deploy-report:
+    needs: build-report
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy requirement health
+        id: deployment
+        uses: actions/deploy-pages@v5
+```
+
 ## `kibi graph`
 
 Runs bounded graph traversal from one or more seed IDs.

@@ -17,7 +17,6 @@ links:
   - ADR-013
   - ADR-014
   - FACT-034
-  - FACT-cursor-worktree-mcp-launch
 fact_kind: meta
 ---
 

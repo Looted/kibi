@@ -43,6 +43,27 @@ export function registerReportingCommands(program: Command): void {
     });
 
   program
+    .command("report")
+    .description(
+      "Generate a self-contained HTML requirement-health report for local viewing or CI publishing",
+    )
+    .option(
+      "--output <path>",
+      "HTML file or directory (directories receive index.html)",
+      "kibi-report",
+    )
+    .option("--open", "Open the generated report in the default browser", false)
+    .option("--tag <tags>", "Comma-separated tag filter")
+    .option(
+      "--limit <n>",
+      "Maximum complete requirement rows (1-100000)",
+      "10000",
+    )
+    .action(async (options) => {
+      await (await import("./commands/report.js")).reportCommand(options);
+    });
+
+  program
     .command("coverage")
     .description(getCliOperationMetadata("kb_coverage").description)
     .option("--input <path>", "JSON input file (use - for stdin)")

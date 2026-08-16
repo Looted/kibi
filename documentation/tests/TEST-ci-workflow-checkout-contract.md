@@ -13,7 +13,6 @@ tags:
   - test
 links:
   - FACT-CI-GATING
-  - FACT-ci-artifact-only-packed-jobs
 ---
 
 Contract tests that assert packed CI regression jobs run from downloaded artifacts without performing a repository checkout, while still waiting on both JavaScript and Prolog coverage gates. The tests validate `build-and-test` keeps unit coverage mandatory on pull requests and pushes, and that packed jobs continue consuming the tarball artifacts emitted upstream.

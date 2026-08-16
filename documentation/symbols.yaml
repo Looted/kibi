@@ -22575,3 +22575,132 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-report-command
+    status: active
+    tags:
+      - cli
+      - report
+      - html
+      - traceability
+    symbol_role: behavioral
+    sourceFile: packages/cli/src/commands/report.ts
+    title: reportCommand
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-render-html
+    status: active
+    symbol_role: behavioral
+    title: renderHtmlReport
+    tags:
+      - cli
+      - report
+      - html
+      - traceability
+    sourceFile: packages/cli/src/report/html-report.ts
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-open
+    title: openReport
+    status: active
+    tags:
+      - cli
+      - report
+      - html
+      - traceability
+    sourceFile: packages/cli/src/commands/report.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-e2e-packed-cli-html-report
+    title: verifyHtmlRequirementHealthReport
+    status: active
+    tags:
+      - cli
+      - report
+      - html
+      - traceability
+    sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
+    symbol_role: unknown
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-html-health-report
+  - id: SYM-cli-sync-semantic-boundary-relationships
+    title: semanticBoundaryRelationships
+    status: active
+    tags:
+      - sync
+      - semantic-inventory
+      - relationships
+      - traceability
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: unknown
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+  - id: SYM-test-sync-semantic-boundary-shards
+    title: uses canonical relationship shards for semantic boundary validation
+    status: active
+    tags:
+      - sync
+      - semantic-inventory
+      - relationships
+      - test
+    sourceFile: packages/cli/tests/commands/sync.test.ts
+    symbol_role: unknown
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-proposition-complete-ingestion
+  - id: SYM-auto-9213E15DCB18
+    title: ReportCommandDeps
+    status: active
+    sourceFile: packages/cli/src/commands/report.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-auto-5D3498497C5F
+    title: HtmlReportCoverage
+    status: active
+    sourceFile: packages/cli/src/report/html-report.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-auto-6AE190B50290
+    title: HtmlReportInput
+    status: active
+    sourceFile: packages/cli/src/report/html-report.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-options
+    title: ReportOptions
+    status: active
+    sourceFile: packages/cli/src/commands/report.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report

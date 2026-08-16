@@ -75,6 +75,20 @@ jobs:
       - name: Build CLI package
         run: bun run build:cli
 
+      - name: Generate Kibi requirement health report
+        run: |
+          bun packages/cli/bin/kibi sync
+          bun packages/cli/bin/kibi report --output kibi-report
+
+      - name: Upload Kibi requirement health report
+        if: ${{ github.actor != 'nektos/act' && github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: kibi-requirement-health
+          path: kibi-report
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Build MCP package
         run: bun run build:mcp
 

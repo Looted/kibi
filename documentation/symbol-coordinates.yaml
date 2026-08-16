@@ -1931,9 +1931,9 @@ coordinates:
   SYM-SyncResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 224
+    sourceEndLine: 237
     sourceFile: packages/cli/src/commands/sync.ts
-    sourceLine: 222
+    sourceLine: 235
   SYM-SyncRunMetadata:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -2252,6 +2252,24 @@ coordinates:
     sourceEndLine: 327
     sourceFile: packages/cli/tests/traceability/release-audit-fixture.ts
     sourceLine: 306
+  SYM-auto-5D3498497C5F:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 7
+    sourceFile: packages/cli/src/report/html-report.ts
+    sourceLine: 3
+  SYM-auto-6AE190B50290:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 14
+    sourceFile: packages/cli/src/report/html-report.ts
+    sourceLine: 9
+  SYM-auto-9213E15DCB18:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 39
+    sourceFile: packages/cli/src/commands/report.ts
+    sourceLine: 31
   SYM-autopilot-activation-mode-shared:
     sourceColumn: 12
     sourceEndColumn: 23
@@ -3887,7 +3905,7 @@ coordinates:
   SYM-cli-register-reporting-commands:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 157
+    sourceEndLine: 178
     sourceFile: packages/cli/src/cli-register-reporting.ts
     sourceLine: 13
   SYM-cli-register-skills-commands:
@@ -3926,6 +3944,30 @@ coordinates:
     sourceEndLine: 204
     sourceFile: packages/cli/src/extractors/relationships.ts
     sourceLine: 182
+  SYM-cli-report-command:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 205
+    sourceFile: packages/cli/src/commands/report.ts
+    sourceLine: 177
+  SYM-cli-report-open:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 162
+    sourceFile: packages/cli/src/commands/report.ts
+    sourceLine: 142
+  SYM-cli-report-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 23
+    sourceFile: packages/cli/src/commands/report.ts
+    sourceLine: 18
+  SYM-cli-report-render-html:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 596
+    sourceFile: packages/cli/src/report/html-report.ts
+    sourceLine: 325
   SYM-cli-rule-registry-ChecksConfig:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -4112,6 +4154,12 @@ coordinates:
     sourceEndLine: 225
     sourceFile: packages/cli/src/commands/sync/persistence.ts
     sourceLine: 188
+  SYM-cli-sync-semantic-boundary-relationships:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 210
+    sourceFile: packages/cli/src/commands/sync.ts
+    sourceLine: 200
   SYM-cli-test-makeQualitySymbolResult:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -13445,9 +13493,9 @@ coordinates:
   SYM-syncCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1288
+    sourceEndLine: 1305
     sourceFile: packages/cli/src/commands/sync.ts
-    sourceLine: 294
+    sourceLine: 307
   SYM-syncPluginManifestVersions:
     sourceColumn: 22
     sourceEndColumn: 1

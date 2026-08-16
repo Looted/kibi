@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-9c42b67d478e
-    type: executable_for
-    from: SYM-test-verification-receipt-proof-states
-    to: TEST-kibi-fresh-verification-receipts
-    created_at: "2026-08-15T12:41:40.308Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: implements
     from: SYM-test-verification-receipt-proof-states
     to: REQ-kibi-verification-receipts-v2

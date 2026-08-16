@@ -68,7 +68,15 @@ npm exec -- kibi query req --source src/auth/login.ts --format table
 # Find under-specified or under-tested requirements
 npm exec -- kibi gaps req --missing-rel specified_by,verified_by --format table
 npm exec -- kibi coverage --by req --format table
+
+# Generate a visual requirement-health report and open it locally
+npm exec -- kibi report --open
 ```
+
+The report is a self-contained `kibi-report/index.html` file: no server, CDN,
+or external assets are required. The same directory can be uploaded as a CI
+artifact or published directly with GitHub Pages. On pushes to `develop`, this
+repository's CI uploads it as the `kibi-requirement-health` artifact.
 
 ## How it works
 

@@ -196,6 +196,19 @@ function normalizedEntityHash(result: ExtractionResult): string {
   });
 }
 
+// implements REQ-kibi-proposition-complete-ingestion
+function semanticBoundaryRelationships(
+  result: ExtractionResult,
+  shardRelationships: readonly ExtractedRelationship[],
+): ExtractedRelationship[] {
+  const relationships = new Map<string, ExtractedRelationship>();
+  for (const relationship of [...result.relationships, ...shardRelationships]) {
+    if (relationship.from !== result.entity.id) continue;
+    relationships.set(relationshipKey(relationship), relationship);
+  }
+  return [...relationships.values()];
+}
+
 async function checkpointNoopSync(
   workspaceRoot: string,
   branch: string,
@@ -693,16 +706,20 @@ export async function syncCommand(
     for (const result of extractedResults) {
       if (result.entity.type !== "req") continue;
       const key = toCacheKey(result.entity.source);
+      const relationships = semanticBoundaryRelationships(
+        result,
+        allRelationships,
+      );
       const payload = {
         type: result.entity.type,
         id: result.entity.id,
         properties: result.entity,
-        relationships: result.relationships,
+        relationships,
       };
       const semantic = analyzeSemanticAdvisorInput({ payload });
       const boundary = validateSemanticInventoryBoundary(
         payload,
-        result.relationships,
+        relationships,
         semantic.receipt,
       );
       const previousSemanticHash = syncCache.semanticHashes[key];

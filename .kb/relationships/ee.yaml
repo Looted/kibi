@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-8024a56d1878
+    type: covered_by
+    from: SYM-cli-report-open
+    to: TEST-kibi-html-health-report
+    created_at: "2026-08-16T07:31:29.871Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

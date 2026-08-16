@@ -813,6 +813,75 @@ ${updatedRequirement}
   );
 
   test(
+    "uses canonical relationship shards for semantic boundary validation",
+    () => {
+      const requirementPath = path.join(
+        tmpDir,
+        "documentation/requirements/req1.md",
+      );
+      writeFileSync(
+        requirementPath,
+        readFileSync(requirementPath, "utf8").replace(
+          "status: ontology_gap",
+          "status: modeled",
+        ),
+      );
+
+      const factsDir = path.join(tmpDir, "documentation/facts");
+      mkdirSync(factsDir, { recursive: true });
+      writeFileSync(
+        path.join(factsDir, "fact1.md"),
+        `---
+id: fact1
+title: OAuth2 authentication rule
+type: fact
+status: active
+fact_kind: predicate
+predicate_namespace: test
+predicate_name: authentication_rule
+predicate_args: [system, OAuth2]
+canonical_key: "authentication_rule(system,OAuth2)"
+polarity: assert
+claim_key: CLAIM-34E07FE8B4A4FB15
+claim_text: System must support OAuth2 authentication
+---
+`,
+      );
+
+      const relationshipsDir = path.join(tmpDir, ".kb", "relationships");
+      mkdirSync(relationshipsDir, { recursive: true });
+      writeFileSync(
+        path.join(relationshipsDir, "semantic.yaml"),
+        `relationships:
+  - id: rel-semantic1234
+    type: requires_predicate
+    from: req1
+    to: fact1
+    created_at: "2026-08-15T00:00:00Z"
+    created_by: agent/test
+    source: test://sync-semantic-boundary
+`,
+      );
+      stageSources(
+        tmpDir,
+        "documentation/requirements/req1.md",
+        "documentation/facts/fact1.md",
+        ".kb/relationships/semantic.yaml",
+      );
+
+      const result = spawnSync("bun", [kibiBin, "sync"], {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
+      const output = `${result.stdout}${result.stderr}`;
+
+      expect(result.status, output).toBe(0);
+      expect(output).not.toContain("proposition-complete ingestion failed");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
     "imports valid shard relationships without false dangling warnings",
     async () => {
       const relationshipsDir = path.join(tmpDir, ".kb", "relationships");
