@@ -2,7 +2,9 @@ name: Kibi strict requirement proof
 
 concurrency:
   group: kibi-proof-${{ github.ref }}
-  cancel-in-progress: true
+  # A proof run writes snapshot-bound receipts for every contract. Let a run
+  # finish instead of cancelling it when another develop commit arrives.
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -37,7 +39,7 @@ jobs:
             sudo apt-add-repository -y ppa:swi-prolog/stable
           fi
           sudo apt-get update
-          sudo apt-get install -y swi-prolog
+          sudo apt-get install -y bubblewrap swi-prolog
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -48,6 +50,22 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: "24"
+
+      - name: Provision strict-proof host prerequisites
+        env:
+          UV_VERSION: "0.9.26"
+          CODEX_CLI_VERSION: "0.144.6"
+        run: |
+          curl --fail --silent --show-error --location \
+            "https://astral.sh/uv/${UV_VERSION}/install.sh" | sh
+          export PATH="$HOME/.local/bin:$PATH"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          npm install --global "@openai/codex@${CODEX_CLI_VERSION}"
+          uv --version
+          codex --version
+          bwrap --version
+          uv sync --project tools/skillopt --frozen
+          uv run --project tools/skillopt python tools/skillopt/verify_pin.py
 
       - name: Install dependencies
         run: |

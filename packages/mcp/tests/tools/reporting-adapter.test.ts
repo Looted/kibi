@@ -19,8 +19,16 @@ function context(prolog: ReturnType<typeof fakeProlog>) {
     workspaceRoot: process.cwd(),
     signal: new AbortController().signal,
     clock: () => new Date(0),
+    branchAttachment: {
+      gitBranch: "reporting-adapter-test",
+      kbBranch: "reporting-adapter-test",
+      storePath: ".kb/branches/reporting-adapter-test",
+      kind: "explicit_override",
+      migrationRequired: false,
+    },
     prolog: {
       query: (goal: string) => prolog.query(goal),
+      oneShotMode: typeof (globalThis as { Bun?: unknown }).Bun !== "undefined",
       nextSolution: async () => null,
       save: () => prolog.query("kb_save"),
     },
@@ -49,7 +57,7 @@ describe("MCP reporting thin adapters", () => {
     const input = { includePassing: true, includeTransitive: false };
 
     const shared = await getSpec("kb_coverage").execute(input, context(prolog));
-    const adapted = await handleKbCoverage(prolog, input);
+    const adapted = await handleKbCoverage(prolog, input, context(prolog));
 
     expect(JSON.stringify(adapted)).toBe(JSON.stringify(shared));
   });
