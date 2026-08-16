@@ -32,6 +32,30 @@ verification_receipts:
     started_at: '2026-08-10T19:41:00.083Z'
     finished_at: '2026-08-10T19:41:26.525Z'
     artifact_digest: 979bd481af2f083679b36fc2eaa7272fd49c7f95358a9d58dc692c6910b30fe7
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-658dc85746339052be727ecb
+    test_id: TEST-kibi-telemetry-acceptance-gate
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-telemetry-acceptance-gate
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-telemetry-acceptance-gate
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 44c17edad52435b3de4fe626e5d73cd0cc61e76de39087a76efd653e8cc619d0
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-16T19:15:46.516Z'
+    finished_at: '2026-08-16T19:16:28.683Z'
+    artifact_digest: d9e1870c1476ad3e27ba1891c7d6cf93a3e5accf5d6a1e1c7895c57e8b2e279a
+    contract_hash: 5da2bb6bde0a390f5577f2a61a6dde2846fc0959e6e75be85b1b12327cb977d7
+    case_results:
+      - symbol_id: SYM-test-packed-telemetry-acceptance
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 42167
 tags:
   - telemetry
   - acceptance
