@@ -32,6 +32,54 @@ verification_receipts:
     started_at: '2026-08-10T17:42:10.048Z'
     finished_at: '2026-08-10T17:42:38.864Z'
     artifact_digest: 6daad591a29bc2c41c1773f35db9105adc0f442c2cde95fb3246d85e9d45d2da
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-9eaa5ec7f58d7e7afe508e4a
+    test_id: TEST-kibi-ontology-convergence-witnesses
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-ontology-convergence-witnesses
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-ontology-convergence-witnesses
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 44c17edad52435b3de4fe626e5d73cd0cc61e76de39087a76efd653e8cc619d0
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-16T19:12:39.976Z'
+    finished_at: '2026-08-16T19:13:30.168Z'
+    artifact_digest: 52aa48631da3e55df0384e1c985c46d1b47c30bba204c9caee052a6939b8e088
+    contract_hash: 8d613b550ceb1c1a07871a02082b3c852b93cda190bdf5e126f1aa3e79e84299
+    case_results:
+      - symbol_id: SYM-test-packed-ontology-convergence-witnesses
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 50192
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-5723f74ce53d44c1b2de8a91
+    test_id: TEST-kibi-ontology-convergence-witnesses
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-ontology-convergence-witnesses
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-ontology-convergence-witnesses
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 44c17edad52435b3de4fe626e5d73cd0cc61e76de39087a76efd653e8cc619d0
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-16T19:13:31.034Z'
+    finished_at: '2026-08-16T19:14:19.351Z'
+    artifact_digest: 5a0c62753f0ec7f9992e404b6e3b92a522eb8acbf39652e45a5a77427857fcef
+    contract_hash: 8d613b550ceb1c1a07871a02082b3c852b93cda190bdf5e126f1aa3e79e84299
+    case_results:
+      - symbol_id: SYM-test-packed-ontology-convergence-witnesses
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 48317
 tags:
   - requirements
   - ontology
