@@ -24,3 +24,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5f81c236f8b2
+  - type: covered_by
+    from: SYM-atomicPublishGeneration
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-08-16T19:47:07.404Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d01fcb412dc

@@ -41,3 +41,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c9c69ba2013b
+  - type: verified_by
+    from: SCEN-core-journaled-engine-migration
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-08-16T19:47:07.367Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95721fe8a7a5

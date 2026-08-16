@@ -20,3 +20,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d89c105748b4
+  - type: verified_by
+    from: REQ-core-journaled-engine-persistence
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-08-16T19:47:07.384Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c667105d717

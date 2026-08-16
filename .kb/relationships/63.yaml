@@ -24,3 +24,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c6cc8b15ee3b
+  - type: covered_by
+    from: SYM-cli-engine-commands
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-08-16T19:47:07.423Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fae73ff5399
