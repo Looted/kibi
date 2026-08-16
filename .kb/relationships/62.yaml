@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-db3492b26dd2
+    type: covered_by
+    from: SYM-reqcompiler-parity-runtime-adapter
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: "2026-08-16T18:51:45.112Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

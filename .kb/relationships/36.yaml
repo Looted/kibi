@@ -10,3 +10,17 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/scenarios/SCEN-006.md
+  - type: covered_by
+    from: SYM-reqcompiler-remediation-version
+    to: TEST-kibi-telemetry-remediation-evidence
+    created_at: 2026-08-16T18:52:17.741Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77e6c4fa78f3
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-verification-ingest-verification-ts-ingestverificationargs
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.853Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80862c0f28e9

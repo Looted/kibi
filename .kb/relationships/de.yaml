@@ -45,3 +45,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3569cfd4f7da
+  - type: covered_by
+    from: SYM-suggest-predicates-core-handler
+    to: TEST-kibi-ontology-convergence-witnesses
+    created_at: 2026-08-16T18:51:59.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e45f80f3aa8
+  - type: covered_by
+    from: SYM-normalize-semantic-clause
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-16T18:52:06.534Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2590892a2f92

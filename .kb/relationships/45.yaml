@@ -41,3 +41,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-97ab498f8f5a
+  - type: covered_by
+    from: SYM-reqcompiler-telemetry-usage-event
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-08-16T18:52:12.212Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebc900dc9a92

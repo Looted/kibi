@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-d052c0a9ba21
+    type: executable_for
+    from: SYM-packed-stop-runtime-engines
+    to: TEST-test-journaled-engine-harness
+    created_at: "2026-08-16T18:52:30.452Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

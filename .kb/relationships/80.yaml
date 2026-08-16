@@ -13,3 +13,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-969538f6618d
+  - type: covered_by
+    from: SYM-core-validation-check-kind
+    to: TEST-kibi-conservative-requirement-proof
+    created_at: 2026-08-16T18:51:34.273Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea7fdde6e5cb
+  - type: covered_by
+    from: SYM-repair-plan-build
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-08-16T18:51:39.481Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-563f3197a0ff

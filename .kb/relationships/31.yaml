@@ -31,3 +31,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8279e7a919f2
+  - type: covered_by
+    from: SYM-reqcompiler-coverage-command
+    to: TEST-kibi-conservative-requirement-proof
+    created_at: 2026-08-16T18:51:34.279Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6d80628ea92

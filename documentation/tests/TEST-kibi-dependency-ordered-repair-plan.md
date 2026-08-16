@@ -2,8 +2,8 @@
 id: TEST-kibi-dependency-ordered-repair-plan
 title: Packed dependency-ordered repair plan tests
 status: passing
-created_at: 2026-08-10T00:00:00Z
-updated_at: 2026-08-10T00:00:00Z
+created_at: 2026-08-10T00:00:00.000Z
+updated_at: 2026-08-10T00:00:00.000Z
 source: documentation/tests/TEST-kibi-dependency-ordered-repair-plan.md
 verification_scope: end_to_end
 verification_perspective: consumer
@@ -17,13 +17,33 @@ verification_receipts:
     outcome: passed
     code_snapshot: 68131fba9962716408e6bf6aa60dfc87b86a6c4eacdf83e623edd51ecf2714b8
     environment_hash: 5d577f4411c4423b228da7556130dc175e2c00cf1e50e4d9608f6720e9d140f5
-    started_at: 2026-08-10T18:20:28.253Z
-    finished_at: 2026-08-10T18:20:59.811Z
+    started_at: '2026-08-10T18:20:28.253Z'
+    finished_at: '2026-08-10T18:20:59.811Z'
     artifact_digest: 1ab7494688bc1609e7ba32a26b73af1ea6c93de6ff4d9316f5c1ae495af940e2
-tags: [requirements, proof, repair, migration, packed, e2e]
+tags:
+  - requirements
+  - proof
+  - repair
+  - migration
+  - packed
+  - e2e
 links:
   - type: validates
     target: SCEN-kibi-dependency-ordered-repair-plan
+verification_contract:
+  version: kibi.verification-contract.v1
+  runner: node
+  command_argv:
+    - node
+    - scripts/run-proof-contract.mjs
+    - '--test-id'
+    - TEST-kibi-dependency-ordered-repair-plan
+  required_case_symbols:
+    - SYM-test-packed-dependency-ordered-repair-plan
+  required_projects:
+    - default
+  success_policy: all_required_cases_first_attempt
+type: test
 ---
 
 Exercises `kibi.repair-plan.v1` through a fresh packed CLI installation, including dependency ordering, pagination fail-closed behavior, stable plan identity, requirement-only scope, table rendering, and read-only KB state.

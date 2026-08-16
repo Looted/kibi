@@ -4080,7 +4080,8 @@ symbols:
       - type: covered_by
         target: TEST-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -21677,6 +21678,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-fresh-verification-receipts
+      - type: executable_for
+        target: TEST-kibi-verification-evidence-contract
   - id: SYM-core-req-conflict-witness
     title: req_conflict_witness
     sourceFile: packages/core/src/kb.pl

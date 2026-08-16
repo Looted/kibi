@@ -6,3 +6,10 @@ relationships:
     created_at: "2026-08-15T22:15:11.212Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-kibi-cli-src-public-operations-specs-verification-ts-ingestverificationspec
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.857Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-309b1eb80d96

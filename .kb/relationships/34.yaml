@@ -1,0 +1,22 @@
+relationships:
+  - id: rel-6f6dc0039b57
+    type: covered_by
+    from: SYM-reqcompiler-telemetry-metric-status
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: "2026-08-16T18:52:12.219Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-reqcompiler-telemetry-metric-id
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-08-16T18:52:12.220Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f83468a9f51
+  - type: covered_by
+    from: SYM-kibi-cli-src-public-verification-receipt-ts-verification-receipt-v2-version
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.862Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6619bcb58bb2

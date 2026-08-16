@@ -20,3 +20,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-00ed80a851c9
+  - type: covered_by
+    from: SYM-cli-persistEntities
+    to: TEST-kibi-conservative-requirement-proof
+    created_at: 2026-08-16T18:51:34.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a282f8d54d9d
+  - type: covered_by
+    from: SYM-cli-persistEntities
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-16T18:52:06.502Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67ffbddb29f1
+  - type: covered_by
+    from: SYM-kibi-cli-src-commands-verify-ts-verifycommandoptions
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.886Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df0422bf5906

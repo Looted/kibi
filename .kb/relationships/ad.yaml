@@ -59,3 +59,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c49b79b8bb88
+  - type: covered_by
+    from: SYM-reqcompiler-parity-capability-result
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-08-16T18:51:45.108Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb88851e6d88

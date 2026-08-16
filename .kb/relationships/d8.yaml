@@ -13,3 +13,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-92a2cfbb5cec
+  - type: verified_by
+    from: SCEN-kibi-verification-evidence-contract
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.823Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb57b7b07fb6

@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-04d6f357eff9
+    type: covered_by
+    from: SYM-core-kb-literal-to-value
+    to: TEST-kibi-conservative-requirement-proof
+    created_at: "2026-08-16T18:51:34.253Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

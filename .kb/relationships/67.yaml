@@ -20,3 +20,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-269d82c2f916
+  - type: covered_by
+    from: SYM-projectStagedEntities
+    to: TEST-kibi-conservative-requirement-proof
+    created_at: 2026-08-16T18:51:34.259Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e63a505f413
+  - type: covered_by
+    from: SYM-projectStagedEntities
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-16T18:52:06.521Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e34840a551d
+  - type: covered_by
+    from: SYM-kibi-cli-src-public-playwright-case-id-ts-normalizeplaywrightsourcefile
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.899Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d636802067fd

@@ -41,3 +41,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6a11fac5f032
+  - type: covered_by
+    from: SYM-reqcompiler-parity-action
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-08-16T18:51:45.103Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80c507efe0bf

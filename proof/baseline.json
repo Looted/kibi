@@ -1,0 +1,21 @@
+{
+  "version": "kibi.proof-baseline.v1",
+  "mode": "ratchet",
+  "currentRequirements": 90,
+  "proofProven": 0,
+  "currentUnproven": 90,
+  "trackedGaps": {
+    "missing_passing_e2e": 90,
+    "contradiction_check_incomplete": 72,
+    "missing_semantic_inventory": 72,
+    "missing_logic_claims": 70,
+    "missing_production_symbol_coverage": 67,
+    "missing_production_symbol": 23,
+    "missing_verification_receipt": 23,
+    "missing_symbol_coordinates": 8,
+    "stale_verification_receipt": 8,
+    "missing_scenario": 6,
+    "logic_manifest_mismatch": 2,
+    "unresolved_semantic_proposition": 2
+  }
+}

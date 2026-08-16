@@ -1,0 +1,15 @@
+relationships:
+  - id: rel-6cbd71972555
+    type: covered_by
+    from: SYM-reqcompiler-parity-options
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: "2026-08-16T18:51:45.120Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-modeling-predicate-loader-loadExistingPredicateSchemas
+    to: TEST-kibi-ontology-convergence-witnesses
+    created_at: 2026-08-16T18:51:59.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0397c85cd494

@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-082037264bf6
+    type: covered_by
+    from: SYM-reqcompiler-diagnostic-mutation-fingerprint
+    to: TEST-kibi-telemetry-remediation-evidence
+    created_at: "2026-08-16T18:52:17.721Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

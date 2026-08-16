@@ -41,3 +41,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2554c1483b2b
+  - type: covered_by
+    from: SYM-telemetry-acceptance-diagnostics
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-08-16T18:52:12.194Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da9e27dab95c
+  - type: covered_by
+    from: SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter-onbegin
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f178e52d1677

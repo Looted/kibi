@@ -13,3 +13,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c455f2fe5d69
+  - type: verified_by
+    from: SCEN-kibi-telemetry-acceptance-gate
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-08-16T18:52:12.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f84e1edfedc9
+  - type: covered_by
+    from: SYM-telemetry-acceptance-analyze
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-08-16T18:52:12.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd5a2c5f33bf
+  - type: covered_by
+    from: SYM-telemetry-acceptance-analyze
+    to: TEST-kibi-telemetry-remediation-evidence
+    created_at: 2026-08-16T18:52:17.700Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aec745992157

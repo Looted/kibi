@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-9670e3d660b5
+    type: covered_by
+    from: SYM-kibi-cli-src-public-verification-receipt-ts-verificationcontract
+    to: TEST-kibi-verification-evidence-contract
+    created_at: "2026-08-16T18:52:23.908Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

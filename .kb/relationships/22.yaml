@@ -34,3 +34,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bee98ee2d164
+  - type: covered_by
+    from: SYM-distribution-parity-resolve-provenance
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-08-16T18:51:45.086Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5dbec6f4413f

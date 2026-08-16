@@ -13,3 +13,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d69b6f5daff7
+  - type: covered_by
+    from: SYM-reqcompiler-sync-cache-key
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-16T18:52:06.550Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8aee8910c0a3

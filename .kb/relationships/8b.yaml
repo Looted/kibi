@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-36233313f05d
+    type: covered_by
+    from: SYM-reqcompiler-telemetry-acceptance-version
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: "2026-08-16T18:52:12.221Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

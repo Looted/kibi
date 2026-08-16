@@ -20,3 +20,17 @@ relationships:
     created_at: "2026-08-15T12:41:40.307Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-reqcompiler-parity-runtime-provenance
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-08-16T18:51:45.100Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c45a6d9fa83d
+  - type: covered_by
+    from: SYM-reqcompiler-parity-observation
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-08-16T18:51:45.113Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15f05f2ef991

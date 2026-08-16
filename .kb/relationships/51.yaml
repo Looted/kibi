@@ -20,3 +20,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8963438ea008
+  - type: covered_by
+    from: SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter-onend
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.875Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cd4b6721f7d
+  - type: covered_by
+    from: SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporteroptions
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.878Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9b4da43f6b3
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-verification-ingest-verification-ts-executeingestverification
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.903Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d962c1f3442

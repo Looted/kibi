@@ -48,3 +48,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9a2414f49b64
+  - type: validates
+    from: TEST-kibi-ontology-convergence-witnesses
+    to: SCEN-kibi-ontology-convergence-witnesses
+    created_at: 2026-08-16T18:51:59.920Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da64d5351f39
+  - type: covered_by
+    from: SYM-model-requirement-core-handler
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-16T18:52:06.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4c0389bde8c

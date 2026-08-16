@@ -1,0 +1,15 @@
+relationships:
+  - id: rel-a056d765606b
+    type: covered_by
+    from: SYM-distribution-parity-run-matrix
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: "2026-08-16T18:51:45.099Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-reqcompiler-parity-issue
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-08-16T18:51:45.117Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3eee86c46c7

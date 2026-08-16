@@ -41,3 +41,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b0e3c3ce9d4e
+  - type: executable_for
+    from: SYM-test-rule-contradiction-witness-proof
+    to: TEST-kibi-ontology-convergence-witnesses
+    created_at: 2026-08-16T18:51:59.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b67c8e53be01

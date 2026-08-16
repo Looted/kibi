@@ -13,3 +13,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b7c924964380
+  - type: covered_by
+    from: SYM-semantic-clauses-of
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-16T18:52:06.533Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67f63e5bb605
+  - type: covered_by
+    from: SYM-reqcompiler-remediation-render
+    to: TEST-kibi-telemetry-remediation-evidence
+    created_at: 2026-08-16T18:52:17.714Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6efde5c8be4
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-verification-ingest-verification-ts-verificationcaseartifact
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.897Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb6e6ff05926
+  - type: covered_by
+    from: SYM-cli-register-skills-commands
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-16T18:52:30.417Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5c372bcf051

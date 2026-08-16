@@ -75,6 +75,19 @@ verification_receipts:
     artifact_digest: 47771f7ec19a76b9d3e85b94b072d0cda1c9e79d8e7473b3f4ded4a3600ffd67
 id: TEST-kibi-fresh-verification-receipts
 type: test
+verification_contract:
+  version: kibi.verification-contract.v1
+  runner: node
+  command_argv:
+    - node
+    - scripts/run-proof-contract.mjs
+    - '--test-id'
+    - TEST-kibi-fresh-verification-receipts
+  required_case_symbols:
+    - SYM-test-packed-fresh-verification-receipts
+  required_projects:
+    - default
+  success_policy: all_required_cases_first_attempt
 ---
 
 Verifies receipt schema and history validation, append-only mutation and sync behavior, deterministic workspace snapshots, Prolog proof-state classification, durable-status non-authority, and CLI/MCP reporting parity.

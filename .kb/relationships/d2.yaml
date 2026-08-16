@@ -62,3 +62,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7426fa24d7a1
+  - type: validates
+    from: TEST-kibi-distribution-parity-matrix
+    to: SCEN-kibi-distribution-parity-matrix
+    created_at: 2026-08-16T18:51:45.080Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e219c74eedfa
+  - type: covered_by
+    from: SYM-kibi-cli-src-public-verification-receipt-ts-verificationcontracthash
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.893Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-639a2ca8e5f8

@@ -34,3 +34,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-114d7f69f83a
+  - type: covered_by
+    from: SYM-kibi-cli-src-commands-verify-ts-verifycommand
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.901Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-408b26823680

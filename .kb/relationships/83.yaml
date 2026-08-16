@@ -17,3 +17,10 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/tests/TEST-006.md
+  - type: covered_by
+    from: SYM-reqcompiler-remediation-options
+    to: TEST-kibi-telemetry-remediation-evidence
+    created_at: 2026-08-16T18:52:17.717Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b641f6eaabd8

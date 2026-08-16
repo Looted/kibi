@@ -20,3 +20,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eadb5a109f3d
+  - type: covered_by
+    from: SYM-core-discovery-symbolCoverageRow
+    to: TEST-kibi-conservative-requirement-proof
+    created_at: 2026-08-16T18:51:34.271Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8c2e7e57d54

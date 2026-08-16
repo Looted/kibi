@@ -13,3 +13,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e95e64aa9fba
+  - type: covered_by
+    from: SYM-cli-load-operation-spec
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-16T18:52:30.436Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-383ff2c75121

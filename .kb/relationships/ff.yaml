@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-f3ac3fc634c5
+    type: covered_by
+    from: SYM-semantic-source-of
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: "2026-08-16T18:52:06.532Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

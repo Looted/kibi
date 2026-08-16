@@ -34,3 +34,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9c46cb444e3d
+  - type: validates
+    from: TEST-kibi-telemetry-acceptance-gate
+    to: SCEN-kibi-telemetry-acceptance-gate
+    created_at: 2026-08-16T18:52:12.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d016f2955a19

@@ -1,0 +1,15 @@
+relationships:
+  - id: rel-1b6eee22ff3e
+    type: covered_by
+    from: SYM-reqcompiler-parity-capabilities
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: "2026-08-16T18:51:45.134Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-write-sync-semantic-cache
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-16T18:52:06.549Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d7046746fef

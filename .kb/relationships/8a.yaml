@@ -13,3 +13,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-850387fd0c4e
+  - type: validates
+    from: TEST-kibi-conservative-requirement-proof
+    to: SCEN-kibi-conservative-requirement-proof
+    created_at: 2026-08-16T18:51:34.245Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-061c9fb5d20c
+  - type: covered_by
+    from: SYM-distribution-parity-build-report
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-08-16T18:51:45.097Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-683e625da128

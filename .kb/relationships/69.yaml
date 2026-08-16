@@ -13,3 +13,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-61a1a09dbb5c
+  - type: covered_by
+    from: SYM-core-requirement-proof
+    to: TEST-kibi-conservative-requirement-proof
+    created_at: 2026-08-16T18:51:34.268Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-110f50119910
+  - type: covered_by
+    from: SYM-kibi-cli-src-cli-register-verification-ts-registerverificationcommand
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.884Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c114d7b5640

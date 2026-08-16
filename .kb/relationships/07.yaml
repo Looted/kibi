@@ -1,0 +1,15 @@
+relationships:
+  - id: rel-343a03e6d8d5
+    type: validates
+    from: TEST-kibi-dependency-ordered-repair-plan
+    to: SCEN-kibi-dependency-ordered-repair-plan
+    created_at: "2026-08-16T18:51:39.469Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-reqcompiler-mcp-coverage-result
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-08-16T18:51:39.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ad5be08988f

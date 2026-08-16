@@ -6,3 +6,17 @@ relationships:
     created_at: "2026-08-15T22:43:11.222Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-core-req-conflict-witness
+    to: TEST-kibi-ontology-convergence-witnesses
+    created_at: 2026-08-16T18:51:59.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e4ec1945c73
+  - type: covered_by
+    from: SYM-cli-logic-modeling-buildLogicApplyPlan
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-16T18:52:06.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0a93beef673

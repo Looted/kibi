@@ -45,3 +45,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0bd1740ebb5e
+  - type: covered_by
+    from: SYM-telemetry-acceptance-parse-log
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-08-16T18:52:12.199Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28d885fc400a

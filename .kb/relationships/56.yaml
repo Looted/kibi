@@ -6,3 +6,10 @@ relationships:
     created_at: "2026-08-15T22:14:45.466Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-reqcompiler-repair-plan-batch
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-08-16T18:51:39.489Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-899f4b332c84

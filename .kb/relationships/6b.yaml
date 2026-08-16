@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-5608ac4cd64b
+    type: executable_for
+    from: SYM-test-conservative-requirement-proof-chain
+    to: TEST-kibi-conservative-requirement-proof
+    created_at: "2026-08-16T18:51:34.283Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

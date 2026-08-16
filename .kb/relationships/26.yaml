@@ -1,0 +1,22 @@
+relationships:
+  - id: rel-b8bedab8298f
+    type: covered_by
+    from: SYM-reqcompiler-parity-runtime
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: "2026-08-16T18:51:45.103Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: verified_by
+    from: SCEN-kibi-proposition-complete-ingestion
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-16T18:52:06.475Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ab4a5e1e8bf
+  - type: covered_by
+    from: SYM-assert-logical-grounding-claim-keys
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-16T18:52:06.540Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30c28ae65cf9

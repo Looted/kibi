@@ -27,3 +27,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-57a4933f2aed
+  - type: covered_by
+    from: SYM-operation-executeCoverage
+    to: TEST-kibi-conservative-requirement-proof
+    created_at: 2026-08-16T18:51:34.275Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1101e8fce83a
+  - type: covered_by
+    from: SYM-operation-executeCoverage
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-08-16T18:51:39.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9c69ba2013b

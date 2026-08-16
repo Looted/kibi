@@ -34,3 +34,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-52f32d93e0c5
+  - type: covered_by
+    from: SYM-reqcompiler-remediation-report
+    to: TEST-kibi-telemetry-remediation-evidence
+    created_at: 2026-08-16T18:52:17.738Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f814471616ef

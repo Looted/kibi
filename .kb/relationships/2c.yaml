@@ -34,3 +34,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-362b50156292
+  - type: covered_by
+    from: SYM-distribution-parity-normalize
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-08-16T18:51:45.091Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04d6f52c3809
+  - type: covered_by
+    from: SYM-cli-impact-collectFullKbQualityDiagnostics
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-08-16T18:52:12.182Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7bede618156

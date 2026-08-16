@@ -1,0 +1,29 @@
+relationships:
+  - id: rel-ab59658dd122
+    type: covered_by
+    from: SYM-reqcompiler-repair-plan-input
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: "2026-08-16T18:51:39.493Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-deriveDiagnosticFields
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-08-16T18:52:12.180Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f324dd13369
+  - type: covered_by
+    from: SYM-deriveDiagnosticFields
+    to: TEST-kibi-telemetry-remediation-evidence
+    created_at: 2026-08-16T18:52:17.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d9298f4ac4c
+  - type: covered_by
+    from: SYM-kibi-cli-src-extractors-playwright-cases-ts-playwrightcasesymbol
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.850Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d528cfbcc455

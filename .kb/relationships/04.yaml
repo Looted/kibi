@@ -41,3 +41,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b7040e50ee24
+  - type: covered_by
+    from: SYM-reqcompiler-parity-comparison
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-08-16T18:51:45.129Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db90e312761d
+  - type: covered_by
+    from: SYM-executeValidateUpsert
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-16T18:52:06.496Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-515d20252002

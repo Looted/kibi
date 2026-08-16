@@ -45,3 +45,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-afd2004fe1ee
+  - type: verified_by
+    from: REQ-kibi-verification-evidence-contract
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.840Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38102aa0445e
+  - type: covered_by
+    from: SYM-kibi-cli-src-extractors-playwright-cases-ts-playwrightcasediagnostic
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c766269a36eb
