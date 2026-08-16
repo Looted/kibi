@@ -7158,22 +7158,22 @@ symbols:
       - type: covered_by
         target: TEST-vscode-traceability
   - id: SYM-kb-status-json
-    title: kb_status/0 (JSON)
+    title: kb_status_json
+    status: active
     sourceFile: packages/core/src/status.pl
-    links:
-      - REQ-cli-status-pre-first-sync
-      - REQ-mcp-search-discovery
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
     relationships:
+      - type: covered_by
+        target: TEST-cli-status-pre-first-sync
+      - type: covered_by
+        target: TEST-mcp-search-discovery
       - type: implements
         target: REQ-cli-status-pre-first-sync
       - type: implements
         target: REQ-core-journaled-engine-persistence
       - type: implements
         target: REQ-mcp-search-discovery
-      - type: covered_by
-        target: TEST-cli-status-pre-first-sync
-      - type: covered_by
-        target: TEST-mcp-search-discovery
   - id: SYM-KbConfig
     title: KbConfig
     sourceFile: packages/cli/src/utils/config.ts
@@ -23929,7 +23929,7 @@ symbols:
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-test-kibi-change-to-proof-evaluation
-    title: change-to-proof evaluator E2E
+    title: changeToProofEvaluationSuite
     status: active
     sourceFile: scripts/tests/change-to-proof-eval.test.ts
     symbol_role: unknown
@@ -23938,7 +23938,7 @@ symbols:
       - type: executable_for
         target: TEST-kibi-change-to-proof-evaluation
   - id: SYM-test-kibi-change-to-proof-plan-compiler
-    title: change-to-proof plan compiler E2E
+    title: contextFor
     status: active
     sourceFile: packages/cli/tests/operations/compile-intent.test.ts
     symbol_role: unknown
@@ -23947,7 +23947,7 @@ symbols:
       - type: executable_for
         target: TEST-kibi-change-to-proof-plan-compiler
   - id: SYM-test-kibi-intent-aware-source-discovery
-    title: intent-aware source discovery E2E
+    title: entity
     status: active
     sourceFile: packages/cli/tests/intent-search.test.ts
     symbol_role: unknown
@@ -23956,7 +23956,7 @@ symbols:
       - type: executable_for
         target: TEST-kibi-intent-aware-source-discovery
   - id: SYM-test-core-journaled-engine-persistence
-    title: journaled engine persistence E2E
+    title: createLegacyStore
     status: active
     sourceFile: packages/cli/tests/engine.test.ts
     symbol_role: unknown
@@ -23965,7 +23965,7 @@ symbols:
       - type: executable_for
         target: TEST-core-journaled-engine-persistence
   - id: SYM-test-core-journaled-engine-lifecycle
-    title: journaled engine lifecycle E2E
+    title: rawEngineRequest
     status: active
     sourceFile: packages/cli/tests/engine.test.ts
     symbol_role: unknown
@@ -23974,7 +23974,7 @@ symbols:
       - type: executable_for
         target: TEST-core-journaled-engine-lifecycle
   - id: SYM-test-core-journaled-engine-delta-sync
-    title: journaled engine delta sync E2E
+    title: runHarnessedSync
     status: active
     sourceFile: packages/cli/tests/commands/sync.test.ts
     symbol_role: unknown

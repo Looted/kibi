@@ -6476,6 +6476,12 @@ coordinates:
     sourceEndLine: 261
     sourceFile: packages/mcp/src/server/json-schema-to-zod.ts
     sourceLine: 53
+  SYM-kb-status-json:
+    sourceColumn: 4
+    sourceEndColumn: 18
+    sourceEndLine: 5
+    sourceFile: packages/core/src/status.pl
+    sourceLine: 5
   SYM-kibi-check-build-structured-content:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -14282,12 +14288,48 @@ coordinates:
     sourceEndLine: 1576
     sourceFile: packages/core/tests/kb.plt
     sourceLine: 1576
+  SYM-test-core-journaled-engine-delta-sync:
+    sourceColumn: 15
+    sourceEndColumn: 1
+    sourceEndLine: 101
+    sourceFile: packages/cli/tests/commands/sync.test.ts
+    sourceLine: 84
+  SYM-test-core-journaled-engine-lifecycle:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 75
+    sourceFile: packages/cli/tests/engine.test.ts
+    sourceLine: 46
+  SYM-test-core-journaled-engine-persistence:
+    sourceColumn: 15
+    sourceEndColumn: 1
+    sourceEndLine: 93
+    sourceFile: packages/cli/tests/engine.test.ts
+    sourceLine: 77
   SYM-test-journaled-engine-benchmark:
     sourceColumn: 9
     sourceEndColumn: 1
     sourceEndLine: 119
     sourceFile: documentation/tests/benchmarks/journaled-engine.bench.mjs
     sourceLine: 57
+  SYM-test-kibi-change-to-proof-evaluation:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 10
+    sourceFile: scripts/tests/change-to-proof-eval.test.ts
+    sourceLine: 8
+  SYM-test-kibi-change-to-proof-plan-compiler:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 52
+    sourceFile: packages/cli/tests/operations/compile-intent.test.ts
+    sourceLine: 10
+  SYM-test-kibi-intent-aware-source-discovery:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 22
+    sourceFile: packages/cli/tests/intent-search.test.ts
+    sourceLine: 9
   SYM-test-owned-engine-cleanup:
     sourceColumn: 22
     sourceEndColumn: 1

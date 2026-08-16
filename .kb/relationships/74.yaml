@@ -27,3 +27,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-63573edf9edd
+  - type: implements
+    from: SYM-kb-status-json
+    to: REQ-cli-status-pre-first-sync
+    created_at: 2026-08-16T19:57:56.307Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60c57c1859fd
+  - type: implements
+    from: SYM-kb-status-json
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-08-16T19:57:56.318Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b2d9173e25b
+  - type: implements
+    from: SYM-kb-status-json
+    to: REQ-mcp-search-discovery
+    created_at: 2026-08-16T19:57:56.323Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-660619b5857d
+  - type: covered_by
+    from: SYM-kb-status-json
+    to: TEST-cli-status-pre-first-sync
+    created_at: 2026-08-16T19:57:56.332Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd971483776c
+  - type: covered_by
+    from: SYM-kb-status-json
+    to: TEST-mcp-search-discovery
+    created_at: 2026-08-16T19:57:56.340Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbdef7ff5bff

@@ -5,7 +5,11 @@ import {
   readJsonl,
 } from "../change-to-proof-eval.js";
 
-describe("change-to-proof evaluator", () => {
+function changeToProofEvaluationSuite(): string {
+  return "change-to-proof evaluator";
+}
+
+describe(changeToProofEvaluationSuite(), () => {
   test("reports deterministic retrieval metrics and abstention precision", async () => {
     const result = await evaluateSearch(
       [
