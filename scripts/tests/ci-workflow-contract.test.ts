@@ -50,6 +50,9 @@ describe("ci.yml CI workflow contract", () => {
   test("artifact names appear in workflow", () => {
     expect(workflowContent).toContain("kibi-tarballs");
     expect(workflowContent).toContain("kibi-e2e-tests-compiled");
+    expect(extractJobBlock(workflowContent, "build-and-test")).toContain(
+      "cd ../runtime && npm pack",
+    );
   });
 
   test("packed-e2e jobs: download artifacts and checkout only when source-dependent", () => {
@@ -115,6 +118,10 @@ describe("ci.yml CI workflow contract", () => {
     expect(block).toContain("actions/checkout@v6");
     expect(block).toContain("fetch-depth: 1");
     expect(block).not.toContain("fetch-depth: 0");
+    expect(block).toContain("bun run build:runtime");
+    expect(block).toContain("cd ../runtime && npm pack");
+    expect(block).toContain("cd ../codex && npm pack");
+    expect(block).toContain("cd ../cursor && npm pack");
   });
 
   describe("negative regression detection", () => {

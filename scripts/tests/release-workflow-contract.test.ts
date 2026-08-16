@@ -58,6 +58,9 @@ describe("publish.yml CI workflow contract", () => {
     expect(block).toContain("fetch-depth: 1");
     expect(block).toContain("ref: refs/heads/master");
     expect(block).not.toContain("fetch-depth: 0");
+    expect(block).toContain("bun run build:runtime");
+    expect(block).toContain("cd ../runtime && npm pack");
+    expect(block).toContain("packages/runtime/*.tgz");
   });
 
   // ── release-gate ────────────────────────────────────────────────────
@@ -67,6 +70,7 @@ describe("publish.yml CI workflow contract", () => {
     expect(block).toContain("fetch-depth: 1");
     expect(block).toContain("ref: refs/heads/master");
     expect(block).not.toContain("fetch-depth: 0");
+    expect(block).toContain("packages/runtime/kibi-runtime-*.tgz");
   });
 
   // ── publish ─────────────────────────────────────────────────────────
