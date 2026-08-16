@@ -19,7 +19,11 @@
 import { createHash } from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { EngineClient, engineSocketPath } from "../engine.js";
+import {
+  EngineClient,
+  acquireEnginePublicationLease,
+  engineSocketPath,
+} from "../engine.js";
 import {
   getBranchDiagnostic,
   isValidBranchName,
@@ -321,90 +325,106 @@ export async function branchMigrateCommand(
       `branch migrate approval hash mismatch; expected ${approvalHash}`,
     );
   }
-  const engine = new EngineClient({
-    workspaceRoot,
-    branch: from,
-    timeout: 2_000,
-  });
-  if (fs.existsSync(engineSocketPath(workspaceRoot, from))) {
+  const publicationLease = acquireEnginePublicationLease(workspaceRoot, from);
+  try {
+    const engine = new EngineClient({
+      workspaceRoot,
+      branch: from,
+      timeout: 2_000,
+      allowPublicationLock: true,
+    });
+    const engineSocket = engineSocketPath(workspaceRoot, from);
     try {
-      await engine.stop(false);
-      await engine.terminate();
+      if (fs.existsSync(engineSocket)) await engine.start(false);
+      if (engine.isRunning()) {
+        await engine.stop(false);
+      } else if (fs.existsSync(engineSocket)) {
+        throw new Error(
+          `Kibi engine socket remains present but is not reachable: ${engineSocket}`,
+        );
+      }
     } catch (error) {
       throw new Error(
         `Branch migration blocked: engine shutdown failed: ${error instanceof Error ? error.message : String(error)}`,
       );
+    } finally {
+      await engine.terminate();
     }
-  }
-  if (
-    branchMigrationApprovalHash(from, to, sourcePath, targetPath) !==
-    approvalHash
-  ) {
-    throw new Error(
-      "Branch migration source changed after engine shutdown; rerun the preview",
-    );
-  }
-  fs.mkdirSync(root, { recursive: true });
-  const migrationId = `${Date.now()}-${from.replaceAll("/", "__")}-${to.replaceAll("/", "__")}`;
-  const journalPath = path.join(
-    workspaceRoot,
-    ".kb",
-    "recovery",
-    "branch-migrations",
-    `${migrationId}.json`,
-  );
-  const stagingPath = `${targetPath}.staging-${process.pid}-${Date.now()}`;
-  const backupPath = path.join(
-    workspaceRoot,
-    ".kb",
-    "recovery",
-    "branch-migrations",
-    `${migrationId}-legacy`,
-  );
-  fs.mkdirSync(path.dirname(backupPath), { recursive: true });
-  const journal = {
-    version: 2,
-    from,
-    to,
-    sourcePath: path.relative(workspaceRoot, sourcePath),
-    targetPath: path.relative(workspaceRoot, targetPath),
-    stagingPath: path.relative(workspaceRoot, stagingPath),
-    backupPath: path.relative(workspaceRoot, backupPath),
-    approvalHash,
-    state: "prepared",
-  } as const;
-  writeMigrationJournal(journalPath, { ...journal });
-  try {
-    fs.cpSync(sourcePath, stagingPath, { recursive: true, errorOnExist: true });
-    fs.writeFileSync(
-      branchStoreManifestPath(stagingPath),
-      `${JSON.stringify(expectedBranchStoreManifest(to), null, 2)}\n`,
-      { mode: 0o600 },
-    );
-    fs.renameSync(sourcePath, backupPath);
-    writeMigrationJournal(journalPath, {
-      ...journal,
-      state: "legacy_quarantined",
-    });
-    fs.renameSync(stagingPath, targetPath);
-    if (!branchStoreManifestMatches(targetPath, to)) {
-      throw new Error("migrated branch store manifest verification failed");
+    if (
+      branchMigrationApprovalHash(from, to, sourcePath, targetPath) !==
+      approvalHash
+    ) {
+      throw new Error(
+        "Branch migration source changed after engine shutdown; rerun the preview",
+      );
     }
-    writeMigrationJournal(journalPath, {
-      ...journal,
-      state: "target_published",
-    });
-    writeMigrationJournal(journalPath, { ...journal, state: "committed" });
-  } catch (error) {
-    // Leave the hash-bound journal and any staging bytes for explicit crash
-    // recovery; never silently select a winner between source and target.
-    throw new Error(
-      `Branch migration failed before authoritative completion; recover ${journalPath}: ${error instanceof Error ? error.message : String(error)}`,
+    fs.mkdirSync(root, { recursive: true });
+    const migrationId = `${Date.now()}-${from.replaceAll("/", "__")}-${to.replaceAll("/", "__")}`;
+    const journalPath = path.join(
+      workspaceRoot,
+      ".kb",
+      "recovery",
+      "branch-migrations",
+      `${migrationId}.json`,
     );
+    const stagingPath = `${targetPath}.staging-${process.pid}-${Date.now()}`;
+    const backupPath = path.join(
+      workspaceRoot,
+      ".kb",
+      "recovery",
+      "branch-migrations",
+      `${migrationId}-legacy`,
+    );
+    fs.mkdirSync(path.dirname(backupPath), { recursive: true });
+    const journal = {
+      version: 2,
+      from,
+      to,
+      sourcePath: path.relative(workspaceRoot, sourcePath),
+      targetPath: path.relative(workspaceRoot, targetPath),
+      stagingPath: path.relative(workspaceRoot, stagingPath),
+      backupPath: path.relative(workspaceRoot, backupPath),
+      approvalHash,
+      state: "prepared",
+    } as const;
+    writeMigrationJournal(journalPath, { ...journal });
+    try {
+      fs.cpSync(sourcePath, stagingPath, {
+        recursive: true,
+        errorOnExist: true,
+      });
+      fs.writeFileSync(
+        branchStoreManifestPath(stagingPath),
+        `${JSON.stringify(expectedBranchStoreManifest(to), null, 2)}\n`,
+        { mode: 0o600 },
+      );
+      fs.renameSync(sourcePath, backupPath);
+      writeMigrationJournal(journalPath, {
+        ...journal,
+        state: "legacy_quarantined",
+      });
+      fs.renameSync(stagingPath, targetPath);
+      if (!branchStoreManifestMatches(targetPath, to)) {
+        throw new Error("migrated branch store manifest verification failed");
+      }
+      writeMigrationJournal(journalPath, {
+        ...journal,
+        state: "target_published",
+      });
+      writeMigrationJournal(journalPath, { ...journal, state: "committed" });
+    } catch (error) {
+      // Leave the hash-bound journal and any staging bytes for explicit crash
+      // recovery; never silently select a winner between source and target.
+      throw new Error(
+        `Branch migration failed before authoritative completion; recover ${journalPath}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+    console.log(`Migrated branch KB to exact Git branch '${to}'.`);
+    console.log(`Legacy store preserved at ${backupPath}.`);
+    console.log(`Migration journal: ${journalPath}.`);
+  } finally {
+    publicationLease.release();
   }
-  console.log(`Migrated branch KB to exact Git branch '${to}'.`);
-  console.log(`Legacy store preserved at ${backupPath}.`);
-  console.log(`Migration journal: ${journalPath}.`);
 }
 
 /**

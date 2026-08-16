@@ -122,7 +122,6 @@ describe("discovery-shared", () => {
     process.env.KIBI_BRANCH = "feat/search";
     state.queryResponses = [
       { success: true },
-      { success: true },
       { success: true, bindings: { ok: true } },
     ];
 
@@ -135,10 +134,9 @@ describe("discovery-shared", () => {
     expect(state.createdPrologs).toHaveLength(1);
     expect(state.createdPrologs[0]?.options).toEqual({ timeout: 120000 });
     expect(state.createdPrologs[0]?.start).toHaveBeenCalledTimes(1);
-    expect(state.queries[0]).toContain("set_prolog_flag(answer_write_options");
-    expect(state.queries[1]).toContain("kb_attach('");
-    expect(state.queries[1]).toContain(expectedStorePath());
-    expect(state.queries[2]).toBe("user_goal");
+    expect(state.queries[0]).toContain("kb_attach('");
+    expect(state.queries[0]).toContain(expectedStorePath());
+    expect(state.queries[1]).toBe("user_goal");
     expect(state.cleanups).toEqual([state.createdPrologs[0]]);
   });
 
@@ -148,7 +146,7 @@ describe("discovery-shared", () => {
     state.queryResponses = [{ success: true }, { success: true }];
 
     await discovery.withAttachedBranchProlog(async () => "done", mockDeps);
-    expect(state.queries[1]).toContain(expectedStorePath());
+    expect(state.queries[0]).toContain(expectedStorePath());
 
     setBranch();
     resetState();
@@ -157,14 +155,11 @@ describe("discovery-shared", () => {
     state.queryResponses = [{ success: true }, { success: true }];
 
     await discovery.withAttachedBranchProlog(async () => "done", mockDeps);
-    expect(state.queries[1]).toContain(expectedStorePath());
+    expect(state.queries[0]).toContain(expectedStorePath());
   });
 
   test("withAttachedBranchProlog throws attach failures and still cleans up", async () => {
-    state.queryResponses = [
-      { success: true },
-      { success: false, error: "attach exploded" },
-    ];
+    state.queryResponses = [{ success: false, error: "attach exploded" }];
 
     await expect(
       discovery.withAttachedBranchProlog(async () => "never", mockDeps),
@@ -174,7 +169,7 @@ describe("discovery-shared", () => {
   });
 
   test("withAttachedBranchProlog cleans up prolog when callback throws", async () => {
-    state.queryResponses = [{ success: true }, { success: true }];
+    state.queryResponses = [{ success: true }];
 
     await expect(
       discovery.withAttachedBranchProlog(async () => {
@@ -185,8 +180,7 @@ describe("discovery-shared", () => {
     expect(state.createdPrologs).toHaveLength(1);
     expect(state.createdPrologs[0]?.options).toEqual({ timeout: 120000 });
     expect(state.createdPrologs[0]?.start).toHaveBeenCalledTimes(1);
-    expect(state.queries[0]).toContain("set_prolog_flag(answer_write_options");
-    expect(state.queries[1]).toContain("kb_attach('");
+    expect(state.queries[0]).toContain("kb_attach('");
     expect(state.cleanups).toEqual([state.createdPrologs[0]]);
   });
 

@@ -14,6 +14,8 @@ import path from "node:path";
 import {
   ENGINE_PROTOCOL_VERSION,
   EngineClient,
+  acquireEnginePublicationLease,
+  enginePublicationLockPath,
   engineSocketPath,
   ensureJournaledBranchStoreAsync,
 } from "../dist/engine.js";
@@ -269,6 +271,47 @@ describe("journaled engine", () => {
     }
   });
 
+  test("fails closed when an exclusive stop cannot reach a stale socket", async () => {
+    const root = tempRoot();
+    const socket = engineSocketPath(root, "main");
+    writeFileSync(socket, "stale socket placeholder\n");
+    const client = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 250,
+    });
+
+    try {
+      await expect(client.stop(false)).rejects.toThrow(
+        "socket remains present but is not reachable",
+      );
+    } finally {
+      rmSync(socket, { force: true });
+      await client.terminate();
+    }
+  });
+
+  test("fences new engine clients while generation publication owns its lease", async () => {
+    const root = tempRoot();
+    const lease = acquireEnginePublicationLease(root, "main");
+    const client = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 250,
+    });
+
+    try {
+      expect(existsSync(enginePublicationLockPath(root, "main"))).toBe(true);
+      await expect(client.start(false)).rejects.toThrow(
+        "engine publication is in progress",
+      );
+    } finally {
+      lease.release();
+      expect(existsSync(enginePublicationLockPath(root, "main"))).toBe(false);
+      await client.terminate();
+    }
+  });
+
   test("allows forbidden words inside entity prose but rejects executable escape hatches", async () => {
     const root = tempRoot();
     const client = new EngineClient({ workspaceRoot: root, branch: "main" });
@@ -281,6 +324,16 @@ describe("journaled engine", () => {
       await expect(client.query("system('echo unsafe')")).rejects.toThrow(
         "typed Kibi predicates",
       );
+      await expect(
+        client.query(
+          "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
+        ),
+      ).rejects.toThrow("typed Kibi predicates");
+      await expect(
+        client.query(
+          "(true, set_prolog_flag(answer_write_options, [max_depth(0)]))",
+        ),
+      ).rejects.toThrow("typed Kibi predicates");
     } finally {
       await client.stop().catch(() => undefined);
     }

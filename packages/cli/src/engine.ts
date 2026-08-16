@@ -47,6 +47,7 @@ export const ENGINE_PACKAGE_VERSIONS =
 const ENGINE_QUERY_CACHE_MAX_ENTRIES = 128;
 const ENGINE_QUERY_CACHE_MAX_RESULT_BYTES = 8 * 1024 * 1024;
 const ENGINE_FRESHNESS_CACHE_MS = 100;
+const ENGINE_PUBLICATION_LOCK_STALE_MS = 5_000;
 
 function engineIdleTimeoutMs(): number {
   const configured = Number.parseInt(
@@ -247,13 +248,13 @@ function safeEngineGoal(goal: string): boolean {
   // are rejected before they reach Prolog.
   const executable = maskPrologData(goal);
   if (
-    /\b(?:halt|abort|shell|system|process_create|consult|load_files|open|close|delete_file|rename_file|make_directory|thread_create|rdf_attach_db|rdf_load|rdf_save|assertz|asserta|retractall)\s*\(/.test(
+    /\b(?:halt|abort|shell|system|process_create|consult|load_files|open|close|delete_file|rename_file|make_directory|thread_create|rdf_attach_db|rdf_load|rdf_save|assertz|asserta|retractall|set_prolog_flag)\s*\(/.test(
       executable,
     )
   ) {
     return false;
   }
-  return /(?:^|[(:,\s])(?:kb_|checks:|status:|discovery:|requirement_proof:|findall\(|aggregate_all\(|rdf_transaction\(|set_prolog_flag\(|use_module\(|atom_json_dict\(|member\(|once\(|true\b|fail\b)/.test(
+  return /(?:^|[(:,\s])(?:kb_|checks:|status:|discovery:|requirement_proof:|findall\(|aggregate_all\(|rdf_transaction\(|use_module\(|atom_json_dict\(|member\(|once\(|true\b|fail\b)/.test(
     goal.trim(),
   );
 }
@@ -410,6 +411,140 @@ export function engineStartLockPath(
     );
   }
   return `${engineSocketPath(workspaceRoot, branch)}.start.lock`;
+}
+
+/**
+ * A generation publisher holds this lease from the existing daemon shutdown
+ * through the atomic branch-store cutover. Engine clients honor the lease so
+ * another process cannot auto-start a writer in the stop-to-publish gap.
+ */
+export function enginePublicationLockPath(
+  workspaceRoot: string,
+  branch: string,
+): string {
+  return `${engineSocketPath(workspaceRoot, branch)}.publish.lock`;
+}
+
+function publicationLockOwner(lockPath: string): {
+  readonly pid: number;
+  readonly createdAt: number;
+} | null {
+  try {
+    const [pidText, createdText] = readFileSync(lockPath, "utf8")
+      .trim()
+      .split(":");
+    const pid = Number.parseInt(pidText ?? "", 10);
+    const createdAt = Number.parseInt(createdText ?? "", 10);
+    if (!Number.isInteger(pid) || pid <= 1 || !Number.isFinite(createdAt)) {
+      return null;
+    }
+    return { pid, createdAt };
+  } catch {
+    return null;
+  }
+}
+
+function processIsAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function clearStalePublicationLock(lockPath: string): boolean {
+  if (!existsSync(lockPath)) return true;
+  const owner = publicationLockOwner(lockPath);
+  let age = 0;
+  try {
+    age = Date.now() - statSync(lockPath).mtimeMs;
+  } catch {
+    return false;
+  }
+  if (
+    (owner === null || !processIsAlive(owner.pid)) &&
+    age > ENGINE_PUBLICATION_LOCK_STALE_MS
+  ) {
+    try {
+      unlinkSync(lockPath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
+function publicationLockIsActive(lockPath: string): boolean {
+  if (!existsSync(lockPath)) return false;
+  if (clearStalePublicationLock(lockPath)) return false;
+  return existsSync(lockPath);
+}
+
+export type EnginePublicationLease = Readonly<{
+  readonly path: string;
+  readonly release: () => void;
+}>;
+
+export function acquireEnginePublicationLease(
+  workspaceRoot: string,
+  branch: string,
+): EnginePublicationLease {
+  const lockPath = enginePublicationLockPath(workspaceRoot, branch);
+  mkdirSync(path.dirname(lockPath), { recursive: true, mode: 0o700 });
+  let descriptor: number | null = null;
+  try {
+    descriptor = openSync(lockPath, "wx", 0o600);
+  } catch {
+    if (clearStalePublicationLock(lockPath)) {
+      try {
+        descriptor = openSync(lockPath, "wx", 0o600);
+      } catch {
+        // Fall through to the stable fail-closed error below.
+      }
+    }
+  }
+  if (descriptor === null) {
+    throw new Error(
+      `Kibi engine publication is already in progress: ${lockPath}`,
+    );
+  }
+  try {
+    writeFileSync(lockPath, `${process.pid}:${Date.now()}\n`, { flag: "w" });
+  } catch (error) {
+    closeSync(descriptor);
+    unlinkSync(lockPath);
+    throw error;
+  }
+  const startLockPath = engineStartLockPath(workspaceRoot, branch);
+  const startDescriptor = tryAcquireStartLock(startLockPath);
+  if (startDescriptor === null) {
+    closeSync(descriptor);
+    unlinkSync(lockPath);
+    throw new Error(
+      `Kibi engine publication cannot acquire the engine start lease: ${startLockPath}`,
+    );
+  }
+  let released = false;
+  return {
+    path: lockPath,
+    release: () => {
+      if (released) return;
+      released = true;
+      try {
+        closeSync(descriptor as number);
+      } catch {
+        // The descriptor may already have been closed during process cleanup.
+      }
+      releaseStartLock(startLockPath, startDescriptor);
+      try {
+        unlinkSync(lockPath);
+      } catch {
+        // A subsequent publisher may have replaced a stale lock after a crash.
+      }
+    },
+  };
 }
 
 function tryAcquireStartLock(lockPath: string): number | null {
@@ -598,6 +733,8 @@ export type EngineClientOptions = {
   readonly workspaceRoot: string;
   readonly branch: string;
   readonly timeout?: number;
+  /** Internal stop-before-publish client may attach while it owns the lease. */
+  readonly allowPublicationLock?: boolean;
 };
 
 /** PrologPort-compatible client used by CLI and MCP operation runtimes. */
@@ -606,6 +743,7 @@ export class EngineClient {
   private readonly workspaceRoot: string;
   private readonly branch: string;
   private readonly timeout: number;
+  private readonly allowPublicationLock: boolean;
   private socket: net.Socket | null = null;
   private daemon: ChildProcess | null = null;
   private inputBuffer: Buffer<ArrayBufferLike> = Buffer.alloc(0);
@@ -626,11 +764,24 @@ export class EngineClient {
     }
     this.branch = options.branch;
     this.timeout = options.timeout ?? 120_000;
+    this.allowPublicationLock = options.allowPublicationLock ?? false;
   }
 
   async start(allowSpawn = true): Promise<void> {
     if (this.socket !== null && !this.socket.destroyed) return;
     const socketPath = engineSocketPath(this.workspaceRoot, this.branch);
+    const publicationLockPath = enginePublicationLockPath(
+      this.workspaceRoot,
+      this.branch,
+    );
+    if (
+      !this.allowPublicationLock &&
+      publicationLockIsActive(publicationLockPath)
+    ) {
+      throw new Error(
+        `Kibi engine publication is in progress: ${publicationLockPath}`,
+      );
+    }
     try {
       if (existsSync(socketPath)) {
         this.socket = await connectWithRetry(socketPath, 150);
@@ -964,8 +1115,20 @@ export class EngineClient {
         throw new Error("Unable to start Kibi engine for stop request");
       }
     }
-    if (!this.isRunning()) return;
-    await this.request({ method: "stop" }).catch(() => undefined);
+    if (!this.isRunning()) {
+      if (existsSync(socketPath)) {
+        throw new Error(
+          `Kibi engine socket remains present but is not reachable: ${socketPath}`,
+        );
+      }
+      return;
+    }
+    let requestError: unknown;
+    try {
+      await this.request({ method: "stop" });
+    } catch (error) {
+      requestError = error;
+    }
     this.socket?.destroy();
     this.socket = null;
     // The daemon acknowledges stop before its SWI child has flushed and the
@@ -974,6 +1137,11 @@ export class EngineClient {
     const deadline = Date.now() + 5_000;
     while (existsSync(socketPath) && Date.now() < deadline) {
       await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    if (existsSync(socketPath)) {
+      const detail =
+        requestError instanceof Error ? `: ${requestError.message}` : "";
+      throw new Error(`Kibi engine did not stop within 5 seconds${detail}`);
     }
   }
 

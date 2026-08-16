@@ -27,3 +27,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2b2a47769bea
+  - type: implements
+    from: SYM-cli-prolog-json-operation-decode-error-prefix-code-points
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-16T21:04:50.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9800596faa8c
+  - type: covered_by
+    from: SYM-cli-prolog-json-operation-decode-error-prefix-code-points
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T21:04:50.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e587bd14fc60

@@ -1,0 +1,15 @@
+relationships:
+  - id: rel-8ffa83cca448
+    type: implements
+    from: SYM-cli-prolog-json-operation-decode-error-raw-length
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-16T21:04:44.071Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-cli-prolog-json-operation-decode-error-raw-length
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T21:04:44.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce7d1df845ec

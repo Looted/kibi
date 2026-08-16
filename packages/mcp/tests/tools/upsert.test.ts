@@ -403,6 +403,47 @@ export function greet() {
     expect(result.structuredContent?.relationships_created).toBe(1);
   });
 
+  test("accepts property symbol traceability when a class property exists", async () => {
+    const root = createTempWorkspace();
+    mkdirSync(path.join(root, "src"), { recursive: true });
+    writeFileSync(
+      path.join(root, "src", "worker.ts"),
+      `export class Worker {
+  readonly state = "ready";
+}
+`,
+    );
+    const { prolog } = createMockProlog(async (goal) => {
+      if (goal.includes("normalize_term_atom")) return { success: false };
+      return { success: true };
+    });
+    __test__.setRefreshCoordinatesForSymbolIdForTests(async () => ({
+      refreshed: true,
+      found: true,
+    }));
+
+    const result = await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "SYM-WORKER-STATE",
+      properties: {
+        title: "Worker.state",
+        status: "active",
+        source: "documentation/symbols.yaml",
+        sourceFile: "src/worker.ts",
+      },
+      relationships: [
+        {
+          type: "implements",
+          from: "SYM-WORKER-STATE",
+          to: "REQ-GRANULAR-001",
+        },
+      ],
+      document: { path: "symbols/worker-state.yaml" },
+    });
+
+    expect(result.structuredContent?.relationships_created).toBe(1);
+  });
+
   test("rejects ambiguous bare method symbol traceability when duplicate class methods exist", async () => {
     const root = createTempWorkspace();
     mkdirSync(path.join(root, "src"), { recursive: true });

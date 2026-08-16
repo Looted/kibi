@@ -245,21 +245,21 @@ coordinates:
   SYM-BranchEnsureOptions:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 44
+    sourceEndLine: 48
     sourceFile: packages/cli/src/commands/branch.ts
-    sourceLine: 41
+    sourceLine: 45
   SYM-BranchMigrateOptions:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 54
+    sourceEndLine: 58
     sourceFile: packages/cli/src/commands/branch.ts
-    sourceLine: 46
+    sourceLine: 50
   SYM-BranchRecoverOptions:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 59
+    sourceEndLine: 63
     sourceFile: packages/cli/src/commands/branch.ts
-    sourceLine: 56
+    sourceLine: 60
   SYM-BranchStoreInspection:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -1919,9 +1919,9 @@ coordinates:
   SYM-SyncError:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 104
+    sourceEndLine: 106
     sourceFile: packages/cli/src/commands/sync.ts
-    sourceLine: 99
+    sourceLine: 101
   SYM-SyncOptions:
     sourceColumn: 10
     sourceEndColumn: 1
@@ -1931,9 +1931,9 @@ coordinates:
   SYM-SyncResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 280
+    sourceEndLine: 282
     sourceFile: packages/cli/src/commands/sync.ts
-    sourceLine: 278
+    sourceLine: 280
   SYM-SyncRunMetadata:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -2513,9 +2513,9 @@ coordinates:
   SYM-auto-5133B22986F1:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 108
+    sourceEndLine: 112
     sourceFile: packages/cli/src/commands/branch.ts
-    sourceLine: 88
+    sourceLine: 92
   SYM-auto-532D065248B0:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2657,9 +2657,9 @@ coordinates:
   SYM-auto-8A6A1669C54A:
     sourceColumn: 12
     sourceEndColumn: 64
-    sourceEndLine: 106
+    sourceEndLine: 107
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 61
+    sourceLine: 62
   SYM-auto-8B6FF5246789:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2675,9 +2675,9 @@ coordinates:
   SYM-auto-9047D71BA76E:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 822
+    sourceEndLine: 973
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 817
+    sourceLine: 968
   SYM-auto-9213E15DCB18:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -2693,9 +2693,9 @@ coordinates:
   SYM-auto-92BF4F1E0EC1:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 343
+    sourceEndLine: 344
     sourceFile: packages/cli/src/public/operations/contracts.ts
-    sourceLine: 318
+    sourceLine: 319
   SYM-auto-93C73D20FA03:
     sourceColumn: 12
     sourceEndColumn: 68
@@ -2735,9 +2735,9 @@ coordinates:
   SYM-auto-9C1F333AEDAA:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 137
+    sourceEndLine: 138
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 108
+    sourceLine: 109
   SYM-auto-A41B8718B7AD:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -2867,7 +2867,7 @@ coordinates:
   SYM-auto-D694B2C4BE06:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 270
+    sourceEndLine: 271
     sourceFile: packages/cli/src/public/operations/contracts.ts
     sourceLine: 61
   SYM-auto-D6D87A820746:
@@ -2909,9 +2909,9 @@ coordinates:
   SYM-auto-EE0B2692CF85:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 561
+    sourceEndLine: 581
     sourceFile: packages/cli/src/commands/branch.ts
-    sourceLine: 509
+    sourceLine: 529
   SYM-auto-F3AA3B988CC5:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -2945,9 +2945,9 @@ coordinates:
   SYM-auto-FB0CE9A7383B:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 65
+    sourceEndLine: 69
     sourceFile: packages/cli/src/commands/branch.ts
-    sourceLine: 61
+    sourceLine: 65
   SYM-auto-FDB3234DFBC2:
     sourceColumn: 13
     sourceEndColumn: 34
@@ -3203,21 +3203,21 @@ coordinates:
   SYM-branchEnsureCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 249
+    sourceEndLine: 253
     sourceFile: packages/cli/src/commands/branch.ts
-    sourceLine: 220
+    sourceLine: 224
   SYM-branchMigrateCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 408
+    sourceEndLine: 428
     sourceFile: packages/cli/src/commands/branch.ts
-    sourceLine: 256
+    sourceLine: 260
   SYM-branchRecoverCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 506
+    sourceEndLine: 526
     sourceFile: packages/cli/src/commands/branch.ts
-    sourceLine: 415
+    sourceLine: 435
   SYM-branchStoreReason:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3683,7 +3683,7 @@ coordinates:
   SYM-cli-discovery-attached-branch:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 91
+    sourceEndLine: 87
     sourceFile: packages/cli/src/commands/discovery-shared.ts
     sourceLine: 37
   SYM-cli-discovery-build-entity-goal:
@@ -3737,9 +3737,9 @@ coordinates:
   SYM-cli-discovery-print-result:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 157
+    sourceEndLine: 153
     sourceFile: packages/cli/src/commands/discovery-shared.ts
-    sourceLine: 145
+    sourceLine: 141
   SYM-cli-discovery-renderCoverageTable:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3755,21 +3755,21 @@ coordinates:
   SYM-cli-discovery-resolve-core-module:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 108
+    sourceEndLine: 104
     sourceFile: packages/cli/src/commands/discovery-shared.ts
-    sourceLine: 102
+    sourceLine: 98
   SYM-cli-discovery-resolve-kb-path:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 99
+    sourceEndLine: 95
     sourceFile: packages/cli/src/commands/discovery-shared.ts
-    sourceLine: 95
+    sourceLine: 91
   SYM-cli-discovery-run-json-module-query:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 142
+    sourceEndLine: 138
     sourceFile: packages/cli/src/commands/discovery-shared.ts
-    sourceLine: 111
+    sourceLine: 107
   SYM-cli-discovery-valid-entity-types:
     sourceColumn: 13
     sourceEndColumn: 10
@@ -3785,123 +3785,123 @@ coordinates:
   SYM-cli-engine-client:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 989
+    sourceEndLine: 1157
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 605
+    sourceLine: 742
   SYM-cli-engine-client-cancel:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 905
+    sourceEndLine: 1056
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 890
+    sourceLine: 1041
   SYM-cli-engine-client-checkpoint:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 923
+    sourceEndLine: 1074
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 921
+    sourceLine: 1072
   SYM-cli-engine-client-compact:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 931
+    sourceEndLine: 1082
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 929
+    sourceLine: 1080
   SYM-cli-engine-client-export-storage:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 938
+    sourceEndLine: 1089
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 933
+    sourceLine: 1084
   SYM-cli-engine-client-get-pid:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 955
+    sourceEndLine: 1106
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 948
+    sourceLine: 1099
   SYM-cli-engine-client-invalidate-cache:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 942
+    sourceEndLine: 1093
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 940
+    sourceLine: 1091
   SYM-cli-engine-client-is-running:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 946
+    sourceEndLine: 1097
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 944
+    sourceLine: 1095
   SYM-cli-engine-client-next-solution:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 911
+    sourceEndLine: 1062
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 907
+    sourceLine: 1058
   SYM-cli-engine-client-options:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 601
+    sourceEndLine: 738
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 597
+    sourceLine: 732
   SYM-cli-engine-client-query:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 813
+    sourceEndLine: 964
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 795
+    sourceLine: 946
   SYM-cli-engine-client-query-batch:
-    sourceColumn: 8
-    sourceEndColumn: 3
-    sourceEndLine: 827
-    sourceFile: packages/cli/src/engine.ts
-    sourceLine: 824
-  SYM-cli-engine-client-query-entities:
-    sourceColumn: 8
-    sourceEndColumn: 3
-    sourceEndLine: 859
-    sourceFile: packages/cli/src/engine.ts
-    sourceLine: 829
-  SYM-cli-engine-client-query-status:
-    sourceColumn: 8
-    sourceEndColumn: 3
-    sourceEndLine: 927
-    sourceFile: packages/cli/src/engine.ts
-    sourceLine: 925
-  SYM-cli-engine-client-save:
-    sourceColumn: 8
-    sourceEndColumn: 3
-    sourceEndLine: 915
-    sourceFile: packages/cli/src/engine.ts
-    sourceLine: 913
-  SYM-cli-engine-client-search-entities:
-    sourceColumn: 8
-    sourceEndColumn: 3
-    sourceEndLine: 887
-    sourceFile: packages/cli/src/engine.ts
-    sourceLine: 861
-  SYM-cli-engine-client-start:
-    sourceColumn: 8
-    sourceEndColumn: 3
-    sourceEndLine: 711
-    sourceFile: packages/cli/src/engine.ts
-    sourceLine: 631
-  SYM-cli-engine-client-stop:
     sourceColumn: 8
     sourceEndColumn: 3
     sourceEndLine: 978
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 957
+    sourceLine: 975
+  SYM-cli-engine-client-query-entities:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 1010
+    sourceFile: packages/cli/src/engine.ts
+    sourceLine: 980
+  SYM-cli-engine-client-query-status:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 1078
+    sourceFile: packages/cli/src/engine.ts
+    sourceLine: 1076
+  SYM-cli-engine-client-save:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 1066
+    sourceFile: packages/cli/src/engine.ts
+    sourceLine: 1064
+  SYM-cli-engine-client-search-entities:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 1038
+    sourceFile: packages/cli/src/engine.ts
+    sourceLine: 1012
+  SYM-cli-engine-client-start:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 862
+    sourceFile: packages/cli/src/engine.ts
+    sourceLine: 770
+  SYM-cli-engine-client-stop:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 1146
+    sourceFile: packages/cli/src/engine.ts
+    sourceLine: 1108
   SYM-cli-engine-client-storage-status:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 919
+    sourceEndLine: 1070
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 917
+    sourceLine: 1068
   SYM-cli-engine-client-terminate:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 988
+    sourceEndLine: 1156
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 980
+    sourceLine: 1148
   SYM-cli-engine-commands:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3911,15 +3911,15 @@ coordinates:
   SYM-cli-engine-daemon:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1788
+    sourceEndLine: 1956
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 1224
+    sourceLine: 1392
   SYM-cli-engine-durable-fsync:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 361
+    sourceEndLine: 362
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 338
+    sourceLine: 339
   SYM-cli-engine-idle-timeout:
     sourceColumn: 13
     sourceEndColumn: 52
@@ -3929,9 +3929,9 @@ coordinates:
   SYM-cli-engine-migration:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1142
+    sourceEndLine: 1310
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 992
+    sourceLine: 1160
   SYM-cli-engine-package-versions:
     sourceColumn: 13
     sourceEndColumn: 48
@@ -3941,27 +3941,45 @@ coordinates:
   SYM-cli-engine-pid-path:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 398
+    sourceEndLine: 399
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 387
+    sourceLine: 388
   SYM-cli-engine-protocol-version:
     sourceColumn: 13
     sourceEndColumn: 40
     sourceEndLine: 43
     sourceFile: packages/cli/src/engine.ts
     sourceLine: 43
+  SYM-cli-engine-publication-lease-acquire:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 548
+    sourceFile: packages/cli/src/engine.ts
+    sourceLine: 490
+  SYM-cli-engine-publication-lease-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 488
+    sourceFile: packages/cli/src/engine.ts
+    sourceLine: 485
+  SYM-cli-engine-publication-lock-path:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 426
+    sourceFile: packages/cli/src/engine.ts
+    sourceLine: 421
   SYM-cli-engine-socket-path:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 385
+    sourceEndLine: 386
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 364
+    sourceLine: 365
   SYM-cli-engine-start-lock-path:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 413
+    sourceEndLine: 414
     sourceFile: packages/cli/src/engine.ts
-    sourceLine: 400
+    sourceLine: 401
   SYM-cli-engine-status-command:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -4535,15 +4553,51 @@ coordinates:
   SYM-cli-prolog-json-atom:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 78
+    sourceEndLine: 132
     sourceFile: packages/cli/src/public/operations/prolog-json.ts
-    sourceLine: 74
+    sourceLine: 128
+  SYM-cli-prolog-json-binding-decode-stage:
+    sourceColumn: 12
+    sourceEndColumn: 55
+    sourceEndLine: 8
+    sourceFile: packages/cli/src/public/operations/prolog-json.ts
+    sourceLine: 8
   SYM-cli-prolog-json-list:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 84
+    sourceEndLine: 138
     sourceFile: packages/cli/src/public/operations/prolog-json.ts
-    sourceLine: 80
+    sourceLine: 134
+  SYM-cli-prolog-json-operation-decode-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 43
+    sourceFile: packages/cli/src/public/operations/prolog-json.ts
+    sourceLine: 16
+  SYM-cli-prolog-json-operation-decode-error-code:
+    sourceColumn: 11
+    sourceEndColumn: 47
+    sourceEndLine: 17
+    sourceFile: packages/cli/src/public/operations/prolog-json.ts
+    sourceLine: 17
+  SYM-cli-prolog-json-operation-decode-error-prefix-code-points:
+    sourceColumn: 11
+    sourceEndColumn: 47
+    sourceEndLine: 20
+    sourceFile: packages/cli/src/public/operations/prolog-json.ts
+    sourceLine: 20
+  SYM-cli-prolog-json-operation-decode-error-raw-length:
+    sourceColumn: 11
+    sourceEndColumn: 29
+    sourceEndLine: 19
+    sourceFile: packages/cli/src/public/operations/prolog-json.ts
+    sourceLine: 19
+  SYM-cli-prolog-json-operation-decode-error-stage:
+    sourceColumn: 11
+    sourceEndColumn: 41
+    sourceEndLine: 18
+    sourceFile: packages/cli/src/public/operations/prolog-json.ts
+    sourceLine: 18
   SYM-cli-prolog-query-batch:
     sourceColumn: 8
     sourceEndColumn: 3
@@ -4844,6 +4898,12 @@ coordinates:
     sourceEndLine: 80
     sourceFile: packages/cli/src/commands/engine.ts
     sourceLine: 78
+  SYM-cli-symbol-granularity-validate:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 143
+    sourceFile: packages/cli/src/operations/mutation/symbol-granularity.ts
+    sourceLine: 102
   SYM-cli-sync-extract-relationship-shard:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4883,9 +4943,9 @@ coordinates:
   SYM-cli-sync-semantic-boundary-relationships:
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 253
+    sourceEndLine: 255
     sourceFile: packages/cli/src/commands/sync.ts
-    sourceLine: 243
+    sourceLine: 245
   SYM-cli-test-makeQualitySymbolResult:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5831,57 +5891,57 @@ coordinates:
   SYM-discovery-execute-query:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 181
+    sourceEndLine: 190
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 117
+    sourceLine: 126
   SYM-discovery-execute-search:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 281
+    sourceEndLine: 290
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 183
+    sourceLine: 192
   SYM-discovery-execute-status:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 429
+    sourceEndLine: 461
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 283
+    sourceLine: 292
   SYM-discovery-query-input:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 41
+    sourceEndLine: 44
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 34
+    sourceLine: 37
   SYM-discovery-query-payload:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 46
+    sourceEndLine: 49
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 43
+    sourceLine: 46
   SYM-discovery-search-input:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 57
+    sourceEndLine: 60
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 48
+    sourceLine: 51
   SYM-discovery-search-payload:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 63
+    sourceEndLine: 66
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 59
+    sourceLine: 62
   SYM-discovery-status-input:
     sourceColumn: 12
     sourceEndColumn: 58
-    sourceEndLine: 65
+    sourceEndLine: 68
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 65
+    sourceLine: 68
   SYM-discovery-status-payload:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 96
+    sourceEndLine: 105
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 67
+    sourceLine: 70
   SYM-distribution-parity-build-report:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8519,9 +8579,9 @@ coordinates:
   SYM-parity-run-operation-json-query:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 57
+    sourceEndLine: 111
     sourceFile: packages/cli/src/public/operations/prolog-json.ts
-    sourceLine: 16
+    sourceLine: 53
   SYM-parity-save-atomic-mutation:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -14213,9 +14273,9 @@ coordinates:
   SYM-syncCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1351
+    sourceEndLine: 1372
     sourceFile: packages/cli/src/commands/sync.ts
-    sourceLine: 350
+    sourceLine: 352
   SYM-syncPluginManifestVersions:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -14297,15 +14357,15 @@ coordinates:
   SYM-test-core-journaled-engine-lifecycle:
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 75
+    sourceEndLine: 77
     sourceFile: packages/cli/tests/engine.test.ts
-    sourceLine: 46
+    sourceLine: 48
   SYM-test-core-journaled-engine-persistence:
     sourceColumn: 15
     sourceEndColumn: 1
-    sourceEndLine: 93
+    sourceEndLine: 95
     sourceFile: packages/cli/tests/engine.test.ts
-    sourceLine: 77
+    sourceLine: 79
   SYM-test-journaled-engine-benchmark:
     sourceColumn: 9
     sourceEndColumn: 1

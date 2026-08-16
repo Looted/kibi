@@ -5,6 +5,43 @@ import { resolveKbPlPath } from "../../prolog.js";
 import { escapeAtom } from "../../prolog/codec.js";
 import type { PrologPort } from "./runtime-types.js";
 
+export type JsonBindingDecodeStage = "outer" | "inner";
+
+/**
+ * A JSON operation result is transported through Prolog's answer printer and
+ * then through the engine frame. Keep decode failures typed and bounded: the
+ * raw binding may contain project-authored data and must never be copied into
+ * diagnostics wholesale.
+ */
+export class OperationJsonDecodeError extends Error {
+  readonly code = "engine_result_invalid_json";
+  readonly stage: JsonBindingDecodeStage;
+  readonly rawLength: number;
+  readonly prefixCodePoints: readonly number[];
+
+  constructor(
+    errorLabel: string,
+    stage: JsonBindingDecodeStage,
+    rawJson: unknown,
+    cause: unknown,
+  ) {
+    const rawText = typeof rawJson === "string" ? rawJson : "";
+    const bindingType = typeof rawJson;
+    const message = cause instanceof Error ? cause.message : String(cause);
+    super(
+      `${errorLabel} returned invalid JSON binding (stage=${stage}, bindingType=${bindingType}, length=${rawText.length}, prefixCodePoints=${JSON.stringify([...rawText].slice(0, 8).map((character) => character.codePointAt(0) ?? 0))}): ${message}`,
+    );
+    this.name = "OperationJsonDecodeError";
+    this.stage = stage;
+    this.rawLength = rawText.length;
+    this.prefixCodePoints = Object.freeze(
+      [...rawText]
+        .slice(0, 8)
+        .map((character) => character.codePointAt(0) ?? 0),
+    );
+  }
+}
+
 function resolveCoreModulePath(fileName: string): string {
   const genericOverride = getKbPlPathOverride();
   return path.join(
@@ -49,9 +86,26 @@ export async function runOperationJsonQuery<T>(
   if (rawJson === undefined) {
     throw new Error(`${errorLabel} query returned no JsonString binding`);
   }
-  let parsed: unknown = JSON.parse(rawJson);
+  if (typeof rawJson !== "string") {
+    throw new OperationJsonDecodeError(
+      errorLabel,
+      "outer",
+      rawJson,
+      new TypeError("JsonString binding is not a string"),
+    );
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(rawJson);
+  } catch (error) {
+    throw new OperationJsonDecodeError(errorLabel, "outer", rawJson, error);
+  }
   if (typeof parsed === "string") {
-    parsed = JSON.parse(parsed);
+    try {
+      parsed = JSON.parse(parsed);
+    } catch (error) {
+      throw new OperationJsonDecodeError(errorLabel, "inner", parsed, error);
+    }
   }
   return parsed as T;
 }

@@ -1,5 +1,5 @@
 import path from "node:path";
-import { Project, ScriptKind } from "ts-morph";
+import { Project, ScriptKind, SyntaxKind } from "ts-morph";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import {
   type GranularSymbolCandidate,
@@ -46,10 +46,24 @@ function candidates(
     const className = cls.getName();
     if (className) found.push(candidate(className, "class"));
     for (const method of cls.getMethods()) {
+      if (isPrivateClassMember(method)) continue;
       const name = method.getName();
       if (className) found.push(candidate(`${className}.${name}`, "method"));
       bareMethods.set(name, candidate(name, "method"));
       methodCounts.set(name, (methodCounts.get(name) ?? 0) + 1);
+    }
+    for (const property of cls.getProperties()) {
+      if (isPrivateClassMember(property)) continue;
+      const name = property.getName();
+      if (className) found.push(candidate(`${className}.${name}`, "property"));
+    }
+    for (const accessor of [
+      ...cls.getGetAccessors(),
+      ...cls.getSetAccessors(),
+    ]) {
+      if (isPrivateClassMember(accessor)) continue;
+      const name = accessor.getName();
+      if (className) found.push(candidate(`${className}.${name}`, "accessor"));
     }
   }
   for (const [name, count] of methodCounts) {
@@ -66,6 +80,16 @@ function candidates(
     if (item.isExported()) found.push(candidate(item.getName(), "enum"));
   }
   return found.sort((left, right) => left.name.localeCompare(right.name));
+}
+
+function isPrivateClassMember(member: {
+  hasModifier(kind: SyntaxKind): boolean;
+  getName(): string;
+}): boolean {
+  return (
+    member.hasModifier(SyntaxKind.PrivateKeyword) ||
+    member.getName().startsWith("#")
+  );
 }
 
 function summarized(names: readonly string[]): string {

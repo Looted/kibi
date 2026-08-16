@@ -45,3 +45,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b3350ca4e8e
+  - type: implements
+    from: SYM-cli-prolog-json-operation-decode-error-stage
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-16T21:04:34.122Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-057e5938572c
+  - type: covered_by
+    from: SYM-cli-prolog-json-operation-decode-error-stage
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T21:04:34.132Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1241559e693

@@ -26,7 +26,10 @@ import {
   buildActionsFromStatus,
   readMigrationConfigStatus,
 } from "./migration-plan.js";
-import { runOperationJsonQuery } from "./prolog-json.js";
+import {
+  OperationJsonDecodeError,
+  runOperationJsonQuery,
+} from "./prolog-json.js";
 import type { OperationContext, PrologPort } from "./runtime-types.js";
 import type { OperationResult } from "./types.js";
 import { readWorkspaceSnapshot } from "./workspace-snapshot.js";
@@ -91,6 +94,12 @@ export type StatusPayload = {
   readonly verificationSnapshotChangeCount?: number;
   readonly verificationSnapshotChangesTruncated?: boolean;
   readonly branchStore?: BranchStoreInspection;
+  readonly engineStatus?: {
+    readonly state: "healthy" | "unavailable";
+    readonly errorCode?: string;
+    readonly detail?: string;
+    readonly recoveryRequired: boolean;
+  };
   readonly schemaStatus?: MigrationConfigStatus;
   readonly migrationPlan?: MigrationPlan;
 };
@@ -293,7 +302,11 @@ export async function executeStatus(
       throw new Error(`Failed to resolve active branch: ${attachment.error}`);
     }
     let payload: StatusPayload;
-    let store = inspectBranchStore(context.workspaceRoot, attachment.kbBranch);
+    const store = inspectBranchStore(
+      context.workspaceRoot,
+      attachment.kbBranch,
+    );
+    let engineStatus: StatusPayload["engineStatus"];
     let ownedEngine: EngineClient | undefined;
     if (store.state !== "healthy") {
       // Status is deliberately safe before first sync and during recovery. Starting
@@ -337,12 +350,14 @@ export async function executeStatus(
         payload = { ...payload, branch: attachment.kbBranch };
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        store = {
-          state: "unreadable",
-          path: store.path,
-          errorCode: "branch_store_unreadable",
+        engineStatus = {
+          state: "unavailable",
+          errorCode:
+            error instanceof OperationJsonDecodeError
+              ? error.code
+              : "engine_status_unavailable",
           detail: message,
-          recoveryRequired: true,
+          recoveryRequired: false,
         };
         payload = {
           branch: attachment.kbBranch,
@@ -362,15 +377,32 @@ export async function executeStatus(
     const snapshotEvidence = await readWorkspaceSnapshot(context);
     const existingReasons = payload.staleReasons ?? [];
     const storeReason = branchStoreReason(store);
-    const staleReasons = storeReason
-      ? [...existingReasons, storeReason].sort((left, right) =>
-          String(left.path ?? "").localeCompare(String(right.path ?? "")),
-        )
-      : existingReasons;
+    const engineReason = engineStatus
+      ? {
+          code: engineStatus.errorCode ?? "engine_status_unavailable",
+          path: store.path,
+          entityIds: [],
+          detail:
+            engineStatus.detail ??
+            "The branch store is structurally readable but the engine status response is unavailable.",
+          remediation: {
+            command_argv: ["kibi", "engine", "stop"],
+            applyRequired: false,
+          },
+        }
+      : null;
+    const staleReasons = [
+      ...existingReasons,
+      ...(storeReason ? [storeReason] : []),
+      ...(engineReason ? [engineReason] : []),
+    ].sort((left, right) =>
+      String(left.path ?? "").localeCompare(String(right.path ?? "")),
+    );
     const enrichedPayload: StatusPayload = {
       ...payload,
       branchAttachment: attachment,
       branchStore: store,
+      ...(engineStatus ? { engineStatus } : {}),
       staleReasons,
       staleReasonCount: staleReasons.length,
       staleReasonsTruncated: false,

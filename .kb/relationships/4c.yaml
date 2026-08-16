@@ -6,3 +6,17 @@ relationships:
     created_at: "2026-08-16T19:45:30.443Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-cli-engine-publication-lock-path
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-08-16T21:08:45.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84fddd789179
+  - type: covered_by
+    from: SYM-cli-engine-publication-lock-path
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T21:08:45.552Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d0f6671359f

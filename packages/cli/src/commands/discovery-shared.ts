@@ -63,10 +63,6 @@ export async function withAttachedBranchProlog<T>(
       prolog = createProlog({ timeout: 120000 });
       await prolog.start();
     }
-    await prolog.query(
-      "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
-    );
-
     if (!usesEngine) {
       const kbPath = attachment.storePath;
       const attachResult = await prolog.query(

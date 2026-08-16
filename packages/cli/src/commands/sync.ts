@@ -37,6 +37,8 @@ import {
 } from "../diagnostics.js";
 import {
   EngineClient,
+  type EnginePublicationLease,
+  acquireEnginePublicationLease,
   engineSocketPath,
   ensureJournaledBranchStoreAsync,
   fsyncJournaledBranchStore,
@@ -369,6 +371,7 @@ export async function syncCommand(
   let published = false;
   let currentBranch: string | undefined;
   let stagingPath: string | undefined;
+  let publicationLease: EnginePublicationLease | undefined;
 
   const getCurrentCommit = (): string | undefined => {
     try {
@@ -421,21 +424,10 @@ export async function syncCommand(
     if (!validateOnly && recoveryBackupPath === undefined) {
       ensureBranchStoreManifest(workspaceRoot, currentBranch);
       await ensureJournaledBranchStoreAsync(livePathForEngine);
-      const existingEngine = new EngineClient({
-        workspaceRoot,
-        branch: currentBranch,
-        timeout: 2_000,
-      });
-      const needsExclusiveGenerationPublish =
-        rebuild || runtime.createProlog !== undefined;
-      if (
-        needsExclusiveGenerationPublish &&
-        existsSync(engineSocketPath(workspaceRoot, currentBranch))
-      ) {
-        await existingEngine.stop(false).catch(() => undefined);
-        await existingEngine.terminate();
-      }
-    } else if (!validateOnly && recoveryBackupPath !== undefined) {
+    }
+    const needsExclusiveGenerationPublish =
+      !validateOnly && (rebuild || recoveryBackupPath !== undefined);
+    if (needsExclusiveGenerationPublish) {
       // Recovery intentionally avoids attaching the broken live store. The
       // clean rebuild is compiled into staging and published only after it
       // can be reopened successfully.
@@ -443,9 +435,36 @@ export async function syncCommand(
         workspaceRoot,
         branch: currentBranch,
         timeout: 2_000,
+        allowPublicationLock: true,
       });
-      if (existsSync(engineSocketPath(workspaceRoot, currentBranch))) {
-        await existingEngine.stop(false).catch(() => undefined);
+      const engineSocketExists = existsSync(
+        engineSocketPath(workspaceRoot, currentBranch),
+      );
+      try {
+        publicationLease = acquireEnginePublicationLease(
+          workspaceRoot,
+          currentBranch,
+        );
+        // This client is explicitly allowed to attach under its own lease so
+        // a daemon that appeared between the socket probe and lease creation
+        // is still stopped before publication.
+        if (
+          engineSocketExists ||
+          existsSync(engineSocketPath(workspaceRoot, currentBranch))
+        ) {
+          await existingEngine.start(false);
+        }
+        if (existingEngine.isRunning()) {
+          await existingEngine.stop(false);
+        } else if (
+          engineSocketExists ||
+          existsSync(engineSocketPath(workspaceRoot, currentBranch))
+        ) {
+          throw new SyncError(
+            `Kibi engine socket remains present but is not reachable: ${engineSocketPath(workspaceRoot, currentBranch)}`,
+          );
+        }
+      } finally {
         await existingEngine.terminate();
       }
     }
@@ -1347,6 +1366,8 @@ export async function syncCommand(
     }
 
     throw error;
+  } finally {
+    publicationLease?.release();
   }
 }
 

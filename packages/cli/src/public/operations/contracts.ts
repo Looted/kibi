@@ -100,6 +100,7 @@ export const OPERATION_DATA_SCHEMAS: Readonly<
     verificationSnapshotChangeCount: integerValue,
     verificationSnapshotChangesTruncated: booleanValue,
     branchStore: recordValue,
+    engineStatus: recordValue,
     schemaStatus: recordValue,
     migrationPlan: recordValue,
   }),

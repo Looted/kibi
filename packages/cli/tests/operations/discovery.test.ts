@@ -313,4 +313,113 @@ describe("shared discovery operation executors", () => {
     );
     rmSync(workspaceRoot, { recursive: true, force: true });
   });
+
+  test("kb_status keeps a healthy store classification when the engine result is malformed", async () => {
+    const query = mock(async (_goal: string) => ({
+      success: true,
+      bindings: { JsonString: "{" },
+    }));
+    const workspaceRoot = mkdtempSync(
+      path.join(tmpdir(), "kibi-status-malformed-engine-test-"),
+    );
+    const storePath = branchStorePath(workspaceRoot, "main");
+    ensureBranchStoreManifest(workspaceRoot, "main");
+    mkdirSync(path.join(storePath, "rdf"), { recursive: true });
+    writeFileSync(path.join(storePath, "storage.json"), "{}\n");
+    writeFileSync(path.join(storePath, "CURRENT"), "generation-1:1\n");
+
+    try {
+      const result = await statusSpec.execute(
+        {},
+        createContext(query, workspaceRoot),
+      );
+      const structured = result.structuredContent as {
+        branchStore?: { state?: string; recoveryRequired?: boolean };
+        engineStatus?: {
+          state?: string;
+          errorCode?: string;
+          detail?: string;
+          recoveryRequired?: boolean;
+        };
+        staleReasons?: readonly { code?: string }[];
+        migrationPlan?: { actions?: readonly { code?: string }[] };
+      };
+
+      expect(structured.branchStore).toMatchObject({
+        state: "healthy",
+        recoveryRequired: false,
+      });
+      expect(structured.engineStatus).toMatchObject({
+        state: "unavailable",
+        errorCode: "engine_result_invalid_json",
+        recoveryRequired: false,
+      });
+      expect(structured.engineStatus?.detail).toContain(
+        "stage=outer, bindingType=string, length=1, prefixCodePoints=[123]",
+      );
+      expect(structured.staleReasons).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ code: "engine_result_invalid_json" }),
+        ]),
+      );
+      expect(
+        structured.migrationPlan?.actions?.some(
+          (action) => action.code === "damaged_exact_branch_store",
+        ),
+      ).toBe(false);
+    } finally {
+      rmSync(workspaceRoot, { recursive: true, force: true });
+    }
+  });
+
+  test("kb_status keeps a healthy store classification for engine query failures", async () => {
+    const query = mock(async (_goal: string) => ({
+      success: false,
+      bindings: {},
+      error: "Kibi engine connection closed",
+    }));
+    const workspaceRoot = mkdtempSync(
+      path.join(tmpdir(), "kibi-status-engine-failure-test-"),
+    );
+    const storePath = branchStorePath(workspaceRoot, "main");
+    ensureBranchStoreManifest(workspaceRoot, "main");
+    mkdirSync(path.join(storePath, "rdf"), { recursive: true });
+    writeFileSync(path.join(storePath, "storage.json"), "{}\n");
+    writeFileSync(path.join(storePath, "CURRENT"), "generation-1:1\n");
+
+    try {
+      const result = await statusSpec.execute(
+        {},
+        createContext(query, workspaceRoot),
+      );
+      const structured = result.structuredContent as {
+        branchStore?: { state?: string; recoveryRequired?: boolean };
+        engineStatus?: {
+          state?: string;
+          errorCode?: string;
+          detail?: string;
+          recoveryRequired?: boolean;
+        };
+        migrationPlan?: { actions?: readonly { code?: string }[] };
+      };
+
+      expect(structured.branchStore).toMatchObject({
+        state: "healthy",
+        recoveryRequired: false,
+      });
+      expect(structured.engineStatus).toMatchObject({
+        state: "unavailable",
+        errorCode: "engine_status_unavailable",
+        detail: expect.stringContaining("Kibi engine connection closed"),
+        recoveryRequired: false,
+      });
+      expect(
+        structured.migrationPlan?.actions?.some(
+          (action) => action.code === "damaged_exact_branch_store",
+        ),
+      ).toBe(false);
+    } finally {
+      rmSync(workspaceRoot, { recursive: true, force: true });
+    }
+  });
 });

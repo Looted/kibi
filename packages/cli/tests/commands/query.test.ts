@@ -312,6 +312,28 @@ User logs in with OAuth2 provider.
   );
 
   test(
+    "does not poison the shared engine JSON output after a relationship query",
+    () => {
+      execSync(
+        `node ${kibiBin} query --relationships REQ-NOT-PRESENT --format json`,
+        { cwd: tmpDir, encoding: "utf8" },
+      );
+
+      const statusOutput = execSync(`node ${kibiBin} status --format json`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
+      const status = JSON.parse(statusOutput) as {
+        branchStore?: { state?: string };
+        engineStatus?: { state?: string };
+      };
+      expect(status.branchStore?.state).toBe("healthy");
+      expect(status.engineStatus).toBeUndefined();
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
     "outputs table format",
     () => {
       const output = execSync(`node ${kibiBin} query req --format table`, {

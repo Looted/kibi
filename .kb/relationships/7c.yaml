@@ -20,3 +20,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5d69a53c90bb
+  - type: implements
+    from: SYM-cli-prolog-json-binding-decode-stage
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-16T21:04:56.043Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2dd341f25648

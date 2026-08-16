@@ -17,3 +17,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-986517822b74
+  - type: implements
+    from: SYM-cli-symbol-granularity-validate
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-16T21:13:56.991Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-783052c01041
+  - type: covered_by
+    from: SYM-cli-symbol-granularity-validate
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-08-16T21:13:57.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d24448833372

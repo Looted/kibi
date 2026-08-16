@@ -24,3 +24,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4d0ec55034fa
+  - type: implements
+    from: SYM-cli-engine-publication-lease-acquire
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-08-16T21:08:52.543Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5eba913ec94a
+  - type: covered_by
+    from: SYM-cli-engine-publication-lease-acquire
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T21:08:52.553Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad00cfa510d3

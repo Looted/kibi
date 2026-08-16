@@ -1911,19 +1911,23 @@ symbols:
         target: TEST-core-atomic-upsert-persistence
   - id: SYM-core-kb-save-locked
     title: kb_save_locked
+    status: active
     sourceFile: packages/core/src/kb.pl
     symbol_role: behavioral
+    granularity_reason: extractor-miss
     relationships:
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
       - type: implements
         target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-core-audit-logging
       - type: implements
         target: REQ-core-journaled-engine-persistence
       - type: implements
         target: REQ-core-persistence
-      - type: implements
-        target: REQ-core-audit-logging
-      - type: covered_by
-        target: TEST-core-atomic-upsert-persistence
   - id: SYM-core-kb-literal-to-value
     title: literal_to_value
     sourceFile: packages/core/src/kb.pl
@@ -23982,3 +23986,102 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-core-journaled-engine-delta-sync
+  - id: SYM-cli-prolog-json-operation-decode-error
+    title: OperationJsonDecodeError
+    status: active
+    sourceFile: packages/cli/src/public/operations/prolog-json.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-cli-prolog-json-operation-decode-error-code
+    title: OperationJsonDecodeError.code
+    status: active
+    sourceFile: packages/cli/src/public/operations/prolog-json.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-cli-prolog-json-operation-decode-error-stage
+    title: OperationJsonDecodeError.stage
+    status: active
+    sourceFile: packages/cli/src/public/operations/prolog-json.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-cli-prolog-json-operation-decode-error-raw-length
+    title: OperationJsonDecodeError.rawLength
+    status: active
+    sourceFile: packages/cli/src/public/operations/prolog-json.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-cli-prolog-json-operation-decode-error-prefix-code-points
+    title: OperationJsonDecodeError.prefixCodePoints
+    status: active
+    sourceFile: packages/cli/src/public/operations/prolog-json.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-cli-prolog-json-binding-decode-stage
+    title: JsonBindingDecodeStage
+    status: active
+    sourceFile: packages/cli/src/public/operations/prolog-json.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-cli-engine-publication-lock-path
+    title: enginePublicationLockPath
+    status: active
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-cli-engine-publication-lease-acquire
+    title: acquireEnginePublicationLease
+    status: active
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-cli-engine-publication-lease-type
+    title: EnginePublicationLease
+    status: active
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-cli-symbol-granularity-validate
+    title: validateSymbolGranularity
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/symbol-granularity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
