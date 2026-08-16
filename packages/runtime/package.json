@@ -17,6 +17,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "gray-matter": "^4.0.3",
     "kibi-core": "^0.10.3"
   },
   "devDependencies": {
