@@ -20,3 +20,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1fd6a12fb0fb
+  - type: validates
+    from: TEST-core-journaled-engine-lifecycle
+    to: SCEN-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:42:18.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df6274adef35
+  - type: validates
+    from: TEST-core-journaled-engine-lifecycle
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-08-16T19:42:18.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-feb14db434fb

@@ -139,6 +139,90 @@
         ["bun", "test", "--timeout", "15000", "./test/root.test.ts", "./packages/cli/tests/engine.test.ts", "./scripts/tests/run-owned-engine-tests.test.ts"],
         ["node", "scripts/run-packed-e2e.mjs", "/tmp/kibi-e2e-packed-compiled", "/tmp/kibi-e2e-packed-compiled/cli-workflows.test.js"]
       ]
+    },
+    {
+      "test_id": "TEST-core-journaled-engine-persistence",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-core-journaled-engine-persistence"],
+        "required_case_symbols": ["SYM-test-core-journaled-engine-persistence"],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        ["node", "scripts/run-owned-engine-tests.mjs", "--", "bun", "test", "--timeout", "15000", "./packages/cli/tests/engine.test.ts"]
+      ]
+    },
+    {
+      "test_id": "TEST-core-journaled-engine-lifecycle",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-core-journaled-engine-lifecycle"],
+        "required_case_symbols": ["SYM-test-core-journaled-engine-lifecycle"],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        ["node", "scripts/run-owned-engine-tests.mjs", "--", "bun", "test", "--timeout", "15000", "./packages/cli/tests/engine.test.ts"]
+      ]
+    },
+    {
+      "test_id": "TEST-core-journaled-engine-delta-sync",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-core-journaled-engine-delta-sync"],
+        "required_case_symbols": ["SYM-test-core-journaled-engine-delta-sync"],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        ["node", "scripts/run-owned-engine-tests.mjs", "--", "bun", "test", "--timeout", "15000", "./packages/cli/tests/commands/sync.test.ts"]
+      ]
+    },
+    {
+      "test_id": "TEST-kibi-change-to-proof-evaluation",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-kibi-change-to-proof-evaluation"],
+        "required_case_symbols": ["SYM-test-kibi-change-to-proof-evaluation"],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        ["bun", "test", "--timeout", "15000", "./scripts/tests/change-to-proof-eval.test.ts"]
+      ]
+    },
+    {
+      "test_id": "TEST-kibi-change-to-proof-plan-compiler",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-kibi-change-to-proof-plan-compiler"],
+        "required_case_symbols": ["SYM-test-kibi-change-to-proof-plan-compiler"],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        ["node", "scripts/run-packed-e2e.mjs", "/tmp/kibi-e2e-packed-compiled", "/tmp/kibi-e2e-packed-compiled/mcp-cli-operation-parity.test.js"]
+      ]
+    },
+    {
+      "test_id": "TEST-kibi-intent-aware-source-discovery",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-kibi-intent-aware-source-discovery"],
+        "required_case_symbols": ["SYM-test-kibi-intent-aware-source-discovery"],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        ["node", "scripts/run-packed-e2e.mjs", "/tmp/kibi-e2e-packed-compiled", "/tmp/kibi-e2e-packed-compiled/discovery-bundle.test.js"]
+      ]
     }
   ]
 }

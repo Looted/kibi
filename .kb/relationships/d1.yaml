@@ -31,3 +31,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-202b7819c35b
+  - type: executable_for
+    from: SYM-test-kibi-intent-aware-source-discovery
+    to: TEST-kibi-intent-aware-source-discovery
+    created_at: 2026-08-16T19:37:36.208Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d155fea8082

@@ -6,3 +6,10 @@ relationships:
     created_at: "2026-08-16T18:52:30.421Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: executable_for
+    from: SYM-test-kibi-change-to-proof-evaluation
+    to: TEST-kibi-change-to-proof-evaluation
+    created_at: 2026-08-16T19:37:02.765Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9645d4977536

@@ -2,15 +2,34 @@
 id: TEST-core-journaled-engine-delta-sync
 title: Delta sync and performance gates
 status: active
-created_at: 2026-08-11T00:00:00Z
-updated_at: 2026-08-11T00:00:00Z
+created_at: 2026-08-11T00:00:00.000Z
+updated_at: 2026-08-11T00:00:00.000Z
 priority: must
-tags: [cli, sync, performance]
+tags:
+  - cli
+  - sync
+  - performance
 links:
   - type: validates
     target: SCEN-core-journaled-engine-delta-sync
   - type: validates
     target: REQ-core-journaled-engine-persistence
+verification_scope: end_to_end
+verification_perspective: consumer
+verification_contract:
+  version: kibi.verification-contract.v1
+  runner: node
+  command_argv:
+    - node
+    - scripts/run-proof-contract.mjs
+    - '--test-id'
+    - TEST-core-journaled-engine-delta-sync
+  required_case_symbols:
+    - SYM-test-core-journaled-engine-delta-sync
+  required_projects:
+    - default
+  success_policy: all_required_cases_first_attempt
+type: test
 ---
 
 Contract fixtures cover no-op, one-symbol, relationship-only, deletion,

@@ -6,3 +6,10 @@ relationships:
     created_at: "2026-08-16T18:52:30.450Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: validates
+    from: TEST-kibi-change-to-proof-plan-compiler
+    to: SCEN-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-16T19:42:25.539Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92c41b4995aa

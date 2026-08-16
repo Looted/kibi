@@ -41,3 +41,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-408b26823680
+  - type: executable_for
+    from: SYM-test-core-journaled-engine-lifecycle
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:38:08.206Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3bfabcf311a3

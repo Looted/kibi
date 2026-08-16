@@ -6,3 +6,17 @@ relationships:
     created_at: "2026-08-15T22:42:56.515Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: validates
+    from: TEST-core-journaled-engine-persistence
+    to: SCEN-core-journaled-engine-migration
+    created_at: 2026-08-16T19:42:16.088Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8506cae1b11
+  - type: validates
+    from: TEST-core-journaled-engine-persistence
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-08-16T19:42:16.104Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5dc2a154c6d2
