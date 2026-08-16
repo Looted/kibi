@@ -13,3 +13,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3d7046746fef
+  - type: specified_by
+    from: REQ-014
+    to: SCEN-009
+    created_at: 2026-08-16T22:56:43.810Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-563b22cead35
+  - type: verified_by
+    from: REQ-014
+    to: TEST-011
+    created_at: 2026-08-16T22:56:43.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93e1cb472071
+  - type: requires_predicate
+    from: REQ-014
+    to: FACT-PRED-606A4D428ACD
+    created_at: 2026-08-16T22:56:43.828Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f0227609995
+  - type: requires_predicate
+    from: REQ-014
+    to: FACT-PRED-DACE0F6994FA
+    created_at: 2026-08-16T22:56:43.831Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5acca99a6c42
+  - type: requires_predicate
+    from: REQ-014
+    to: FACT-PRED-81380DD58E0F
+    created_at: 2026-08-16T22:56:43.835Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2647f29a3fa0
