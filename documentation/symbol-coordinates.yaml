@@ -8387,9 +8387,9 @@ coordinates:
   SYM-node-workspace-snapshot:
     sourceColumn: 15
     sourceEndColumn: 1
-    sourceEndLine: 171
+    sourceEndLine: 204
     sourceFile: packages/cli/src/public/operations/node-ports.ts
-    sourceLine: 87
+    sourceLine: 116
   SYM-normalize-semantic-clause:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8561,21 +8561,21 @@ coordinates:
   SYM-operation-node-filesystem:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 193
+    sourceEndLine: 226
     sourceFile: packages/cli/src/public/operations/node-ports.ts
-    sourceLine: 173
+    sourceLine: 206
   SYM-operation-node-git:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 212
+    sourceEndLine: 245
     sourceFile: packages/cli/src/public/operations/node-ports.ts
-    sourceLine: 195
+    sourceLine: 228
   SYM-operation-node-network:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 216
+    sourceEndLine: 249
     sourceFile: packages/cli/src/public/operations/node-ports.ts
-    sourceLine: 214
+    sourceLine: 247
   SYM-operation-query-spec:
     sourceColumn: 13
     sourceEndColumn: 60

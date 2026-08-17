@@ -1,6 +1,7 @@
-import { execFile } from "node:child_process";
+import { execFile, execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import * as fs from "node:fs/promises";
+import * as fsSync from "node:fs";
 import path from "node:path";
 import { promisify } from "node:util";
 import fg from "fast-glob";
@@ -84,6 +85,34 @@ function snapshotFileContent(relativePath: string, content: Buffer): Buffer {
   return content;
 }
 
+/**
+ * A tracked markdown file whose only change is verification-receipt frontmatter
+ * cannot alter the snapshot hash (receipts are stripped before hashing), so it
+ * must not mark the workspace dirty either. CI proof runs append receipts to
+ * tracked proof documents before reporting, and would otherwise always surface
+ * a dirty-workspace warning.
+ */
+function isReceiptOnlyMarkdownChange(
+  workspaceRoot: string,
+  relativePath: string,
+): boolean {
+  if (!relativePath.endsWith(".md")) return false;
+  try {
+    const working = snapshotFileContent(
+      relativePath,
+      fsSync.readFileSync(path.join(workspaceRoot, relativePath)),
+    );
+    const committed = execFileSync(
+      "git",
+      ["-C", workspaceRoot, "show", `HEAD:${relativePath}`],
+      { encoding: "buffer", maxBuffer: 64 * 1024 * 1024 },
+    ) as Buffer;
+    return working.equals(snapshotFileContent(relativePath, committed));
+  } catch {
+    return false;
+  }
+}
+
 async function workspaceSnapshot(workspaceRoot: string) {
   const { stdout: listed } = await execFileAsync(
     "git",
@@ -148,11 +177,15 @@ async function workspaceSnapshot(workspaceRoot: string) {
     const isRenameOrCopy = statusCode[0] === "R" || statusCode[0] === "C";
     const previousPath =
       isRenameOrCopy && previous ? previous.replaceAll("\\", "/") : undefined;
+    const receiptOnly =
+      statusCode.includes("M") &&
+      includedSnapshotPath(relativePath) &&
+      isReceiptOnlyMarkdownChange(workspaceRoot, relativePath);
     changes.push({
       path: relativePath,
       status: statusCode,
       snapshotRelevant:
-        includedSnapshotPath(relativePath) ||
+        (includedSnapshotPath(relativePath) && !receiptOnly) ||
         (previousPath !== undefined && includedSnapshotPath(previousPath)),
       ...(previousPath !== undefined ? { previousPath } : {}),
     });

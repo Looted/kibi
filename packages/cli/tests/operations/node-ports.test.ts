@@ -177,4 +177,77 @@ Body
     });
     expect(sourceChanged?.hash).not.toBe(clean?.hash);
   });
+
+  test("tracked receipt-appended proof documents stay clean for the verification snapshot", async () => {
+    const workspaceRoot = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-workspace-snapshot-receipts-"),
+    );
+    tempDirs.push(workspaceRoot);
+    execFileSync("git", ["init", "-b", "main"], {
+      cwd: workspaceRoot,
+      stdio: "ignore",
+    });
+    execFileSync("git", ["config", "user.email", "kibi@example.test"], {
+      cwd: workspaceRoot,
+    });
+    execFileSync("git", ["config", "user.name", "Kibi Test"], {
+      cwd: workspaceRoot,
+    });
+    mkdirSync(path.join(workspaceRoot, "documentation", "tests"), {
+      recursive: true,
+    });
+    const proofDoc = path.join(
+      workspaceRoot,
+      "documentation",
+      "tests",
+      "TEST-DEMO.md",
+    );
+    const frontmatter = (receiptId: string) => `---
+id: TEST-DEMO
+title: Demo proof test
+verification_scope: end_to_end
+verification_receipts:
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-ONE
+    test_id: TEST-DEMO
+    outcome: passed
+  - version: kibi.verification-receipt.v2
+    receipt_id: ${receiptId}
+    test_id: TEST-DEMO
+    outcome: passed
+verification_contract:
+  version: kibi.verification-contract.v1
+  command_argv: [node, scripts/run-proof-contract.mjs]
+---
+Demo proof body
+`;
+    writeFileSync(proofDoc, frontmatter("VR-TWO"));
+    execFileSync("git", ["add", "documentation/tests/TEST-DEMO.md"], {
+      cwd: workspaceRoot,
+    });
+    execFileSync("git", ["commit", "--quiet", "-m", "initial"], {
+      cwd: workspaceRoot,
+    });
+
+    const clean = await nodeGit.workspaceSnapshot?.(workspaceRoot);
+    writeFileSync(proofDoc, frontmatter("VR-THREE"));
+    const receiptAppended = await nodeGit.workspaceSnapshot?.(workspaceRoot);
+    writeFileSync(proofDoc, `${frontmatter("VR-THREE")}\nChanged body\n`);
+    const bodyChanged = await nodeGit.workspaceSnapshot?.(workspaceRoot);
+
+    expect(clean).toMatchObject({ dirty: false, changeCount: 0 });
+    expect(receiptAppended?.hash).toBe(clean?.hash);
+    expect(receiptAppended).toMatchObject({
+      dirty: false,
+      changeCount: 1,
+      changes: [
+        {
+          path: "documentation/tests/TEST-DEMO.md",
+          snapshotRelevant: false,
+        },
+      ],
+    });
+    expect(bodyChanged?.dirty).toBe(true);
+    expect(bodyChanged?.hash).not.toBe(clean?.hash);
+  });
 });
