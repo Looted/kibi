@@ -103,6 +103,30 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 7868
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-ca88ab77f3d19777205cd1f9
+    test_id: TEST-core-journaled-engine-lifecycle
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-lifecycle
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-lifecycle
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 36bab0ed975a391ff64ebbae677a18044c9719b29227cad4a6a4264c9e738105
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-17T21:18:07.281Z'
+    finished_at: '2026-08-17T21:18:15.193Z'
+    artifact_digest: 942ad4abf01d49ca8f70a1731577fb815642efafb2f6ec7ed6ecff0b7f8fcbaf
+    contract_hash: 61d4add5b0e3bf8f8b7c432b951f2a2c1211224913c1b93d120583e3ff015cd1
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-lifecycle
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 7912
 ---
 
 The daemon suite starts simultaneous clients, verifies one socket and ordered

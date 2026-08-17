@@ -102,10 +102,8 @@ describe("strict proof workflow contract", () => {
       "missing_production_symbol_coverage",
       "missing_scenario",
       "missing_semantic_inventory",
-      "missing_symbol_coordinates",
       "missing_verification_receipt",
       "unresolved_semantic_proposition",
     ]);
-    expect(baseline.trackedGaps.missing_symbol_coordinates).toBe(3);
   });
 });

@@ -5312,6 +5312,12 @@ coordinates:
     sourceEndLine: 59
     sourceFile: packages/core/src/kb.pl
     sourceLine: 59
+  SYM-core-derived-chr:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 66
+    sourceFile: packages/core/src/derived_chr.pl
+    sourceLine: 1
   SYM-core-discovery-classifyCoverageDepth:
     sourceColumn: 4
     sourceEndColumn: 27
@@ -5468,6 +5474,12 @@ coordinates:
     sourceEndLine: 600
     sourceFile: packages/core/src/checks.pl
     sourceLine: 600
+  SYM-core-sparql-client:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 173
+    sourceFile: packages/core/src/sparql_client.pl
+    sourceLine: 1
   SYM-core-validate-entity-shape:
     sourceColumn: 4
     sourceEndColumn: 25
@@ -7082,6 +7094,12 @@ coordinates:
     sourceEndLine: 36
     sourceFile: packages/cli/src/commands/doctor.ts
     sourceLine: 34
+  SYM-kibi-mcp-bin-entrypoint:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 174
+    sourceFile: packages/mcp/bin/kibi-mcp
+    sourceLine: 1
   SYM-kibi-migrate-plan-command:
     sourceColumn: 15
     sourceEndColumn: 1

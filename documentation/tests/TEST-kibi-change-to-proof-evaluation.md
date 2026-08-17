@@ -104,6 +104,30 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 31
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-08222f11d76ffe358b50497a
+    test_id: TEST-kibi-change-to-proof-evaluation
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-evaluation
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-evaluation
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 36bab0ed975a391ff64ebbae677a18044c9719b29227cad4a6a4264c9e738105
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-17T21:19:34.759Z'
+    finished_at: '2026-08-17T21:19:34.786Z'
+    artifact_digest: da2b77c76a8b84a8f44cf3e00ed041371c3d552f5585cf289c6533489b54d732
+    contract_hash: d3aa4958e77cc2c2df9a6ff5d1d32d1fd88de59cdd4a0f641e5a48f51b6cd8b0
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-evaluation
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 27
 ---
 
 The evaluator reads versioned JSONL gold fixtures and emits deterministic JSON with per-case matches, clause dispositions, abstentions, and aggregate scores. It fails closed when an expected result is missing or when a proof claim lacks the required evidence path.

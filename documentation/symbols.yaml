@@ -4617,6 +4617,7 @@ symbols:
   - id: SYM-core-derived-chr
     title: derived_chr Prolog module derives bounded validation facts
     sourceFile: packages/core/src/derived_chr.pl
+    granularity_reason: module-level-behavior
     owner: core-team
     links:
       - REQ-prolog-library-adoption
@@ -4646,6 +4647,7 @@ symbols:
   - id: SYM-core-sparql-client
     title: kibi_sparql_client Prolog module runs validated remote SELECT queries
     sourceFile: packages/core/src/sparql_client.pl
+    granularity_reason: module-level-behavior
     owner: core-team
     links:
       - REQ-prolog-library-adoption
@@ -7321,6 +7323,7 @@ symbols:
   - id: SYM-kibi-mcp-bin-entrypoint
     title: kibi-mcp CLI entrypoint
     sourceFile: packages/mcp/bin/kibi-mcp
+    granularity_reason: module-level-behavior
     links:
       - REQ-mcp-cli-help
       - REQ-002

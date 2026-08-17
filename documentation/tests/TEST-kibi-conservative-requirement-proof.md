@@ -159,6 +159,30 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 31099
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-17d80e79783b026a2e41328a
+    test_id: TEST-kibi-conservative-requirement-proof
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-conservative-requirement-proof
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-conservative-requirement-proof
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 36bab0ed975a391ff64ebbae677a18044c9719b29227cad4a6a4264c9e738105
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-17T20:57:00.410Z'
+    finished_at: '2026-08-17T20:57:32.204Z'
+    artifact_digest: 381f6b89b675b9ae0b7622b23e2b3ca5298b2f3c5e7d2e792bb2aeebb8b34ca6
+    contract_hash: 5b768b87a0fd1fc6d2971d082e9a22507a107f32b139249e4257e2136f6a7985
+    case_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 31794
 links:
   - type: validates
     target: SCEN-kibi-conservative-requirement-proof

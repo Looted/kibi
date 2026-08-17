@@ -129,6 +129,30 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 40124
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-82cf6ede87380e165feec826
+    test_id: TEST-kibi-verification-evidence-contract
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-verification-evidence-contract
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-verification-evidence-contract
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 36bab0ed975a391ff64ebbae677a18044c9719b29227cad4a6a4264c9e738105
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-17T21:05:53.370Z'
+    finished_at: '2026-08-17T21:06:34.874Z'
+    artifact_digest: 2e368e69a9a5724109489fb3c8db8d81dad1a50db7e6193bc207b47b5f3fba83
+    contract_hash: c40f5a8fa17d333c96838383091b2c2b85d3cdf8ef9f32a46eba32a3f903ef2c
+    case_results:
+      - symbol_id: SYM-test-packed-fresh-verification-receipts
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 41504
 ---
 
 Receipt and reporter tests verify stable case IDs, contract and snapshot binding, append-only history across contract evolution, exact argv capture, first-attempt proof semantics, and rejection of stale, skipped, retried, partial, or mismatched runs. Earlier-contract receipts remain immutable audit evidence, while only a receipt for the current contract and snapshot contributes proof.
