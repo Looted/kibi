@@ -4,7 +4,9 @@ import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-const baseline = JSON.parse(await readFile(path.resolve("proof/baseline.json"), "utf8"));
+const baseline = JSON.parse(
+  await readFile(path.resolve("proof/baseline.json"), "utf8"),
+);
 const kibi = process.env.KIBI_CLI ?? "kibi";
 
 function jsonCommand(argv) {
@@ -19,7 +21,14 @@ function jsonCommand(argv) {
   return JSON.parse(result.stdout);
 }
 
-const coverage = jsonCommand(["coverage", "--format", "json", "--include-passing", "--limit", "100000"]);
+const coverage = jsonCommand([
+  "coverage",
+  "--format",
+  "json",
+  "--include-passing",
+  "--limit",
+  "100000",
+]);
 const status = jsonCommand(["status", "--format", "json"]);
 const check = jsonCommand(["check", "--format", "json"]);
 const summary = coverage.summary;
@@ -29,34 +38,58 @@ const gapCounts = Object.fromEntries(
   coverage.rows
     .filter((row) => row.proofStatus !== "not_applicable")
     .flatMap((row) => row.proofGaps ?? [])
-    .reduce((counts, gap) => counts.set(gap, (counts.get(gap) ?? 0) + 1), new Map()),
+    .reduce(
+      (counts, gap) => counts.set(gap, (counts.get(gap) ?? 0) + 1),
+      new Map(),
+    ),
 );
-const violations = check.structuredContent?.violations ?? check.violations ?? [];
+const violations =
+  check.structuredContent?.violations ?? check.violations ?? [];
 const failures = [];
 if (currentRequirements !== baseline.currentRequirements) {
-  failures.push(`current requirement count changed from ${baseline.currentRequirements} to ${currentRequirements}`);
+  failures.push(
+    `current requirement count changed from ${baseline.currentRequirements} to ${currentRequirements}`,
+  );
 }
 if (summary.proofProven < baseline.proofProven) {
-  failures.push(`proofProven regressed from ${baseline.proofProven} to ${summary.proofProven}`);
+  failures.push(
+    `proofProven regressed from ${baseline.proofProven} to ${summary.proofProven}`,
+  );
 }
 if (currentUnproven > baseline.currentUnproven) {
-  failures.push(`current unproven count increased from ${baseline.currentUnproven} to ${currentUnproven}`);
+  failures.push(
+    `current unproven count increased from ${baseline.currentUnproven} to ${currentUnproven}`,
+  );
 }
 for (const [gap, count] of Object.entries(gapCounts)) {
   if (count > (baseline.trackedGaps[gap] ?? 0)) {
-    failures.push(`tracked gap ${gap} increased from ${baseline.trackedGaps[gap] ?? 0} to ${count}`);
+    failures.push(
+      `tracked gap ${gap} increased from ${baseline.trackedGaps[gap] ?? 0} to ${count}`,
+    );
   }
 }
 for (const [gap, count] of Object.entries(baseline.trackedGaps)) {
-  if (!(gap in gapCounts) && count > 0) failures.push(`tracked gap ${gap} disappeared from the report; refresh the baseline explicitly`);
+  if (!(gap in gapCounts) && count > 0)
+    failures.push(
+      `tracked gap ${gap} disappeared from the report; refresh the baseline explicitly`,
+    );
 }
-if (violations.length > 0) failures.push(`kibi check reported ${violations.length} violation(s)`);
+if (violations.length > 0)
+  failures.push(`kibi check reported ${violations.length} violation(s)`);
 if (baseline.mode === "equality") {
   if (summary.proofProven !== currentRequirements || currentUnproven !== 0) {
-    failures.push(`strict equality failed: proven=${summary.proofProven}, current=${currentRequirements}, unproven=${currentUnproven}`);
+    failures.push(
+      `strict equality failed: proven=${summary.proofProven}, current=${currentRequirements}, unproven=${currentUnproven}`,
+    );
   }
-  if (status.syncState !== "fresh" || status.dirty !== false || status.verificationSnapshotDirty !== false) {
-    failures.push("strict equality requires a clean, fresh Kibi status and verification snapshot");
+  if (
+    status.syncState !== "fresh" ||
+    status.dirty !== false ||
+    status.verificationSnapshotDirty !== false
+  ) {
+    failures.push(
+      "strict equality requires a clean, fresh Kibi status and verification snapshot",
+    );
   }
 }
 

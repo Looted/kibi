@@ -34,3 +34,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-890bd7f880d6
+  - type: implements
+    from: SYM-auto-F45AD8A9E2FF
+    to: REQ-branch-store-recovery-v3
+    created_at: 2026-08-17T08:38:00.467Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f66f6569d61

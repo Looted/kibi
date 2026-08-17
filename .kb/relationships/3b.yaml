@@ -62,3 +62,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-af07398d21c9
+  - type: constrains
+    from: REQ-016
+    to: FACT-ADR-SUPERSESSION
+    created_at: 2026-08-17T09:20:46.131Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d39e790dc466
+  - type: requires_property
+    from: REQ-016
+    to: FACT-ADR-SUPERSESSION-CHAIN
+    created_at: 2026-08-17T09:20:46.146Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-146e491c246d
+  - type: requires_predicate
+    from: REQ-016
+    to: FACT-PRED-ADR-TEMPORAL-INFERENCE-CONTRACT
+    created_at: 2026-08-17T09:20:46.150Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1386099d3cc9
+  - type: requires_predicate
+    from: REQ-016
+    to: FACT-PRED-ADR-DECISION-HISTORY-QUERY-CAPABILITY
+    created_at: 2026-08-17T09:20:46.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-849c5926ea7c

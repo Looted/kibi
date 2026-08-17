@@ -48,3 +48,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b67c8e53be01
+  - type: implements
+    from: SYM-inspectBranchStore
+    to: REQ-branch-store-recovery-v3
+    created_at: 2026-08-17T08:37:53.366Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f21a7eca4308

@@ -59,9 +59,15 @@ describe("strict proof workflow contract", () => {
   });
 
   test("proof runs before baseline enforcement and report generation", () => {
-    const runner = proofWorkflow.indexOf("Run every contracted proof command through Kibi");
-    const baselineCheck = proofWorkflow.indexOf("Enforce proof baseline and clean snapshot");
-    const report = proofWorkflow.indexOf("Generate report only after proof verification");
+    const runner = proofWorkflow.indexOf(
+      "Run every contracted proof command through Kibi",
+    );
+    const baselineCheck = proofWorkflow.indexOf(
+      "Enforce proof baseline and clean snapshot",
+    );
+    const report = proofWorkflow.indexOf(
+      "Generate report only after proof verification",
+    );
     expect(runner).toBeGreaterThanOrEqual(0);
     expect(baselineCheck).toBeGreaterThan(runner);
     expect(report).toBeGreaterThan(baselineCheck);

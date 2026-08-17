@@ -82,6 +82,54 @@ describe("source-first authoring", () => {
     expect(await readFile(target, "utf8")).toContain("exact body");
   });
 
+  test("preserves repeated and unrelated Markdown relationships on a partial upsert", async () => {
+    const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
+    workspaces.push(workspace);
+    const target = path.join(workspace, "docs", "REQ.md");
+    await mkdir(path.dirname(target), { recursive: true });
+    await writeFile(
+      target,
+      [
+        "---",
+        "id: REQ-1",
+        "title: Old",
+        "status: open",
+        "links:",
+        "  - type: requires_property",
+        "    target: FACT-A",
+        "  - type: requires_property",
+        "    target: FACT-B",
+        "  - type: specified_by",
+        "    target: SCEN-KEEP",
+        "type: req",
+        "---",
+        "",
+        "exact body",
+        "",
+      ].join("\n"),
+    );
+
+    await writeSourceForUpsert(
+      {
+        type: "req",
+        id: "REQ-1",
+        properties: { title: "New", status: "open" },
+        relationships: [{ type: "verified_by", from: "REQ-1", to: "TEST-NEW" }],
+      },
+      { id: "REQ-1", type: "req", title: "New", status: "open" },
+      { id: "REQ-1", source: target },
+      context(workspace),
+    );
+
+    const updated = await readFile(target, "utf8");
+    expect(updated.match(/type: requires_property/g)).toHaveLength(2);
+    expect(updated).toContain("target: FACT-A");
+    expect(updated).toContain("target: FACT-B");
+    expect(updated).toContain("type: specified_by");
+    expect(updated).toContain("target: SCEN-KEEP");
+    expect(updated).toContain("exact body");
+  });
+
   test("patches only the selected symbol in a YAML manifest", async () => {
     const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
     workspaces.push(workspace);

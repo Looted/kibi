@@ -31,3 +31,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fd02fb8130d4
+  - type: validates
+    from: TEST-006
+    to: SCEN-003
+    created_at: 2026-08-17T07:13:47.840Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a38d8531e708
+  - type: validates
+    from: TEST-006
+    to: SCEN-git-hook-sync-v2
+    created_at: 2026-08-17T07:13:47.861Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81936085dfdc
+  - type: relates_to
+    from: TEST-006
+    to: REQ-git-hook-sync-v2
+    created_at: 2026-08-17T07:13:47.868Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14db0bd0cbc8
+  - type: relates_to
+    from: TEST-006
+    to: SCEN-git-hook-sync-v2
+    created_at: 2026-08-17T07:13:47.875Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e3a6b0b31a2

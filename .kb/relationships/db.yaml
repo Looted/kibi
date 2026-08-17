@@ -27,3 +27,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-93e1cb472071
+  - type: requires_predicate
+    from: REQ-014
+    to: FACT-REQ-014-PRE-COMMIT-HOOK-INSTALLATION
+    created_at: 2026-08-17T08:17:58.945Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f48a7a5ab2a5
+  - type: constrains
+    from: REQ-014
+    to: FACT-CHECK-ENFORCEMENT
+    created_at: 2026-08-17T08:17:58.956Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-406d07798c6f
+  - type: requires_property
+    from: REQ-014
+    to: FACT-CHECK-ENFORCEMENT-GATE
+    created_at: 2026-08-17T08:17:58.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8839dd875692
+  - type: constrains
+    from: REQ-014
+    to: FACT-CI-GATING
+    created_at: 2026-08-17T08:17:58.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37d2866de88f
+  - type: requires_property
+    from: REQ-014
+    to: FACT-CI-GATING-MODE
+    created_at: 2026-08-17T08:17:58.964Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d84fed194ba

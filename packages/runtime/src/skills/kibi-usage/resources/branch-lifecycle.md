@@ -18,7 +18,9 @@ preview hash (`kibi branch migrate --from <old> --to <new> --apply
 --approval-hash <preview-hash>`) while attached to the exact new ref. The
 approval is mandatory and binds the source bytes and identities; do not infer a
 rename from commits. For a legacy literal store on the current branch, `<old>`
-and `<new>` are intentionally the same exact identity. Deleted local branches may be quarantined for the
+and `<new>` must be the same exact identity. Every cross-identity pair is
+refused, including `main` to `master`; migration changes only the storage
+format from literal to hashed for the active exact branch. Deleted local branches may be quarantined for the
 configured retention period; `branch restore --branch <exact-ref> --apply` is
 reversible during retention and purge is explicit. Remote-only refs do not keep
 a local compiled store alive.

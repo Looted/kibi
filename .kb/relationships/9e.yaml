@@ -41,3 +41,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-445600b53c6a
+  - type: implements
+    from: SYM-collectSourceRelationshipParityViolations
+    to: REQ-kibi-source-relationship-parity
+    created_at: 2026-08-17T08:40:13.028Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b33129020149
+  - type: covered_by
+    from: SYM-collectSourceRelationshipParityViolations
+    to: TEST-kibi-source-relationship-parity
+    created_at: 2026-08-17T08:40:13.052Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10d7ed8e4f1f

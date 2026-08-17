@@ -41,3 +41,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-071efa22e7a2
+  - type: constrains
+    from: REQ-002
+    to: FACT-MCP-SERVER-INTERFACE
+    created_at: 2026-08-17T08:16:19.670Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8082eb89ae06
+  - type: requires_property
+    from: REQ-002
+    to: FACT-TRANSPORT-STDIO
+    created_at: 2026-08-17T08:16:19.681Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ff322156f04
+  - type: requires_predicate
+    from: REQ-002
+    to: FACT-MCP-PUBLIC-SURFACE-POLICY
+    created_at: 2026-08-17T08:16:19.683Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-441056cdaec1
+  - type: requires_predicate
+    from: REQ-002
+    to: FACT-MCP-PUBLIC-CAPABILITY-POLICY
+    created_at: 2026-08-17T08:16:19.686Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c88c348a175e
+  - type: requires_predicate
+    from: REQ-002
+    to: FACT-MCP-ANNOTATION-TRUTH-POLICY
+    created_at: 2026-08-17T08:16:19.689Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b80f9b0442a
+  - type: requires_predicate
+    from: REQ-002
+    to: FACT-KB-STATUS-ANNOTATION-POLICY
+    created_at: 2026-08-17T08:16:19.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b148d1a268a4

@@ -20,3 +20,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-24da9e84d5a3
+  - type: specified_by
+    from: REQ-branch-store-recovery-v2
+    to: SCEN-branch-store-recovery
+    created_at: 2026-08-17T07:08:38.011Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7dc1e4183b8
+  - type: constrains
+    from: REQ-branch-store-recovery-v2
+    to: FACT-KB-PER-BRANCH
+    created_at: 2026-08-17T07:08:38.034Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21ee05a91226
+  - type: requires_property
+    from: REQ-branch-store-recovery-v2
+    to: FACT-EXACT-BRANCH-INITIALIZATION-MODE
+    created_at: 2026-08-17T07:08:38.041Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c766c54e699
+  - type: supersedes
+    from: REQ-branch-store-recovery-v2
+    to: REQ-008
+    created_at: 2026-08-17T07:08:38.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43c84ca1b573
+  - type: supersedes
+    from: REQ-branch-store-recovery-v2
+    to: REQ-012
+    created_at: 2026-08-17T07:08:38.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d53931d144ea
+  - type: requires_property
+    from: REQ-branch-store-recovery-v2
+    to: FACT-EXACT-BRANCH-IDENTITY-SOURCE
+    created_at: 2026-08-17T07:18:05.811Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9cf1e7f94d32
+  - type: requires_predicate
+    from: REQ-branch-store-recovery-v2
+    to: FACT-PRED-D62E80F439F2
+    created_at: 2026-08-17T07:18:05.841Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7406376ec7a
+  - type: requires_predicate
+    from: REQ-branch-store-recovery-v2
+    to: FACT-PRED-1B6C15026E81
+    created_at: 2026-08-17T07:18:05.850Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50b35cfe8c63
+  - type: requires_property
+    from: REQ-branch-store-recovery-v2
+    to: FACT-BRANCH-CROSS-IDENTITY-MIGRATION-LEGACY
+    created_at: 2026-08-17T08:32:03.855Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5258eb3ec95
+  - type: implements
+    from: SYM-compareRelationshipParity
+    to: REQ-kibi-source-relationship-parity
+    created_at: 2026-08-17T08:39:55.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0edeecbb4cd
+  - type: covered_by
+    from: SYM-compareRelationshipParity
+    to: TEST-kibi-source-relationship-parity
+    created_at: 2026-08-17T08:39:55.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9137d25bb60f

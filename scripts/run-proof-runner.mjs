@@ -9,8 +9,13 @@ const registry = JSON.parse(
 );
 const args = process.argv.slice(2);
 const onlyIndex = args.indexOf("--only");
-const only = onlyIndex >= 0 ? new Set((args[onlyIndex + 1] ?? "").split(",").filter(Boolean)) : null;
-const entries = registry.contracts.filter((entry) => !only || only.has(entry.test_id));
+const only =
+  onlyIndex >= 0
+    ? new Set((args[onlyIndex + 1] ?? "").split(",").filter(Boolean))
+    : null;
+const entries = registry.contracts.filter(
+  (entry) => !only || only.has(entry.test_id),
+);
 if (entries.length === 0) throw new Error("No proof contracts selected");
 
 const kibi = process.env.KIBI_CLI ?? "kibi";
@@ -48,5 +53,7 @@ for (const entry of entries) {
   }
 }
 
-process.stdout.write(`\n${JSON.stringify({ version: "kibi.proof-run.v1", results }, null, 2)}\n`);
+process.stdout.write(
+  `\n${JSON.stringify({ version: "kibi.proof-run.v1", results }, null, 2)}\n`,
+);
 if (results.some((result) => result.exitCode !== 0)) process.exitCode = 1;

@@ -68,6 +68,14 @@ export interface BranchRestoreOptions {
   workspaceRoot?: string;
 }
 
+/** Legacy migration changes storage format for one exact branch identity. */
+export function isSupportedLegacyBranchMigration(
+  from: string,
+  to: string,
+): boolean {
+  return from === to;
+}
+
 function hashLegacyStore(sourcePath: string): string {
   const hash = createHash("sha256");
   const visit = (directory: string, relative = ""): void => {
@@ -288,10 +296,15 @@ export async function branchMigrateCommand(
       `branch migrate --to '${to}' does not match the active Git branch '${active.branch}'`,
     );
   }
-  // `from === to` is valid for the bridge migration: it names the same exact
-  // Git identity while moving a legacy literal directory into its hashed
-  // compiled-store path. The explicit pair is still required; no rename is
-  // inferred from commit history.
+  if (!isSupportedLegacyBranchMigration(from, to)) {
+    throw new Error(
+      "branch migrate only supports a same-identity literal-to-hashed migration; every cross-branch move is refused",
+    );
+  }
+  // `from === to` is valid for the same-identity storage bridge: it names the
+  // same exact Git identity while moving a legacy literal directory into its
+  // hashed compiled-store path. The explicit pair is still required; no
+  // rename is inferred from commit history.
   const root = branchStoresRoot(workspaceRoot);
   const sourcePath = legacyBranchStorePath(workspaceRoot, from);
   const targetPath = branchStorePath(workspaceRoot, to);

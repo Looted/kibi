@@ -360,6 +360,50 @@ export function greet() {
     expect(query).not.toHaveBeenCalled();
   });
 
+  test("accepts exact exported config variable traceability", async () => {
+    const root = createTempWorkspace();
+    mkdirSync(path.join(root, "src"), { recursive: true });
+    writeFileSync(
+      path.join(root, "src", "relationships.ts"),
+      `export const RELATIONSHIP_TYPES = ["implements", "covered_by"] as const;
+
+export function validateRelationships() {
+  return RELATIONSHIP_TYPES;
+}
+`,
+    );
+    const { prolog } = createMockProlog(async (goal) => {
+      if (goal.includes("normalize_term_atom")) return { success: false };
+      return { success: true };
+    });
+    __test__.setRefreshCoordinatesForSymbolIdForTests(async () => ({
+      refreshed: true,
+      found: true,
+    }));
+
+    const result = await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "SYM-RELATIONSHIP-TYPES",
+      properties: {
+        title: "RELATIONSHIP_TYPES",
+        status: "active",
+        source: "documentation/symbols.yaml",
+        sourceFile: "src/relationships.ts",
+        symbol_role: "config",
+      },
+      relationships: [
+        {
+          type: "implements",
+          from: "SYM-RELATIONSHIP-TYPES",
+          to: "REQ-GRANULAR-001",
+        },
+      ],
+      document: { path: "symbols/relationship-types.yaml" },
+    });
+
+    expect(result.structuredContent?.relationships_created).toBe(1);
+  });
+
   test("accepts method symbol traceability when a class method exists", async () => {
     const root = createTempWorkspace();
     mkdirSync(path.join(root, "src"), { recursive: true });
@@ -533,6 +577,9 @@ export function greet() {
 
   test("rejects constrains relationships targeting property_value facts", async () => {
     const { prolog, query } = createMockProlog(async (goal) => {
+      if (goal === "once(kb_entity('REQ-STRICT-CONSTRAINS', _, _))") {
+        return { success: false };
+      }
       if (goal.includes("normalize_term_atom(_SlpFK, property_value)")) {
         return { success: true };
       }
@@ -559,11 +606,14 @@ export function greet() {
       }),
     ).rejects.toThrow(/Property_value facts cannot be direct targets/);
 
-    expect(query).toHaveBeenCalledTimes(1);
+    expect(query).toHaveBeenCalledTimes(2);
   });
 
   test("rejects requires_property relationships targeting subject facts", async () => {
     const { prolog, query } = createMockProlog(async (goal) => {
+      if (goal === "once(kb_entity('REQ-STRICT-PROPERTY', _, _))") {
+        return { success: false };
+      }
       if (goal.includes("normalize_term_atom(_SlpFK, subject)")) {
         return { success: true };
       }
@@ -590,7 +640,7 @@ export function greet() {
       }),
     ).rejects.toThrow(/Subject facts cannot be direct targets/);
 
-    expect(query).toHaveBeenCalledTimes(1);
+    expect(query).toHaveBeenCalledTimes(2);
   });
 
   test("supports requirement upserts with relationships and contradiction checks in one transaction", async () => {
@@ -945,15 +995,7 @@ export function greet() {
       if (goal.startsWith("findall(From, kb_relationship(")) {
         return { success: true, bindings: { Sources: "[]" } };
       }
-      if (
-        goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,") &&
-        goal.includes(
-          "kb_assert_relationship_no_audit(specified_by, 'REQ-PRESERVE-EMPTY-RELS', 'SCEN-001', [])",
-        ) &&
-        goal.includes(
-          "kb_assert_relationship_no_audit(verified_by, 'REQ-PRESERVE-EMPTY-RELS', 'TEST-001', [])",
-        )
-      ) {
+      if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,")) {
         return { success: true };
       }
       if (goal.startsWith("kb_log_entity_upsert(updated, req,")) {
@@ -984,13 +1026,14 @@ export function greet() {
       String(goal).startsWith("rdf_transaction"),
     )?.[0] as string | undefined;
 
-    expect(transactionGoal).toContain(
-      "kb_assert_relationship_no_audit(specified_by, 'REQ-PRESERVE-EMPTY-RELS', 'SCEN-001', [])",
+    expect(transactionGoal).not.toContain("kb_assert_relationship_no_audit");
+    expect(result.structuredContent?.relationships_created).toBe(0);
+    expect(query).toHaveBeenCalledWith(
+      "findall(To, kb_relationship(specified_by, 'REQ-PRESERVE-EMPTY-RELS', To), Targets)",
     );
-    expect(transactionGoal).toContain(
-      "kb_assert_relationship_no_audit(verified_by, 'REQ-PRESERVE-EMPTY-RELS', 'TEST-001', [])",
+    expect(query).toHaveBeenCalledWith(
+      "findall(To, kb_relationship(verified_by, 'REQ-PRESERVE-EMPTY-RELS', To), Targets)",
     );
-    expect(result.structuredContent?.relationships_created).toBeGreaterThan(0);
   });
 
   test("deduplicates contradiction details in formatted transaction errors", async () => {

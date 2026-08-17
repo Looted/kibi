@@ -2,6 +2,7 @@ import { describe, expect, mock, test } from "bun:test";
 
 import { buildUpsertCommitGoal } from "../../src/operations/mutation/contradictions.js";
 import { buildPropertyList } from "../../src/operations/mutation/serialization.js";
+import { effectiveRelationships } from "../../src/operations/mutation/upsert.js";
 import { analyzeSemanticAdvisorInput } from "../../src/operations/semantic-advisor/analyze-prose.js";
 import type {
   OperationContext,
@@ -75,6 +76,81 @@ const verificationContract = {
 } as const;
 
 describe("shared mutation operation specs", () => {
+  test("effective relationship projection preserves repeated and omitted outgoing relationships", async () => {
+    const { context } = createContext((goal): PrologQueryResult => {
+      if (goal === "once(kb_entity('REQ-PROJECTION', _, _))") {
+        return { success: true, bindings: {} };
+      }
+      if (goal.includes("findall(To, kb_relationship(requires_property")) {
+        return {
+          success: true,
+          bindings: { Targets: "['FACT-A','FACT-B']" },
+        };
+      }
+      if (goal.includes("findall(To, kb_relationship(specified_by")) {
+        return {
+          success: true,
+          bindings: { Targets: "['SCEN-KEEP']" },
+        };
+      }
+      if (goal.includes("findall(From, kb_relationship(verified_by")) {
+        return {
+          success: true,
+          bindings: { Sources: "['REQ-INCOMING']" },
+        };
+      }
+      if (goal.startsWith("findall(To,")) {
+        return { success: true, bindings: { Targets: "[]" } };
+      }
+      if (goal.startsWith("findall(From,")) {
+        return { success: true, bindings: { Sources: "[]" } };
+      }
+      throw new Error(`Unexpected goal: ${goal}`);
+    });
+    const input = {
+      type: "req",
+      id: "REQ-PROJECTION",
+      properties: { title: "Projection", status: "open" },
+      relationships: [
+        {
+          type: "verified_by",
+          from: "REQ-PROJECTION",
+          to: "TEST-NEW",
+          metadata: { source: "explicit" },
+        },
+      ],
+    } as const;
+
+    const relationships = await effectiveRelationships(
+      input,
+      { id: input.id, type: input.type },
+      input.relationships,
+      context,
+    );
+
+    expect(relationships).toEqual(
+      expect.arrayContaining([
+        {
+          type: "requires_property",
+          from: "REQ-PROJECTION",
+          to: "FACT-A",
+        },
+        {
+          type: "requires_property",
+          from: "REQ-PROJECTION",
+          to: "FACT-B",
+        },
+        {
+          type: "specified_by",
+          from: "REQ-PROJECTION",
+          to: "SCEN-KEEP",
+        },
+        input.relationships[0],
+      ]),
+    );
+    expect(relationships).toHaveLength(4);
+  });
+
   test("builds one combined commit goal without a second auto-save", () => {
     const goal = buildUpsertCommitGoal({
       entity: {

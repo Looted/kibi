@@ -23,6 +23,24 @@ const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")) as {
 const EXPECTED_VERSION = packageJson.version ?? "0.1.0";
 const HEAVY_TOOL_TIMEOUT_MS = 30000;
 
+function syncRebuild(kibiBin: string, cwd: string): void {
+  const result = spawnSync("node", [kibiBin, "sync", "--rebuild"], {
+    cwd,
+    encoding: "utf8",
+  });
+  if (result.error !== undefined) throw result.error;
+  if (result.status === 0) return;
+  throw new Error(
+    [
+      `sync --rebuild exited ${result.status ?? "without a status"}${result.signal ? ` (${result.signal})` : ""}`,
+      result.stdout.trim() ? `stdout:\n${result.stdout.trim()}` : "",
+      result.stderr.trim() ? `stderr:\n${result.stderr.trim()}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n"),
+  );
+}
+
 async function sendRequest(
   proc: ChildProcess,
   request: Record<string, unknown>,
@@ -1217,10 +1235,7 @@ describe("MCP Server", () => {
       "---\nid: REQ-stale-before-rebuild\ntitle: Stale requirement\nstatus: open\n---\n",
     );
     execSync("git add documentation", { cwd: tempRoot, stdio: "ignore" });
-    execSync(`node ${kibiBin} sync --rebuild`, {
-      cwd: tempRoot,
-      stdio: "ignore",
-    });
+    syncRebuild(kibiBin, tempRoot);
 
     const proc = startServer({ cwd: tempRoot });
     const pidBefore = proc.pid;
@@ -1274,10 +1289,7 @@ describe("MCP Server", () => {
         "---\nid: REQ-fresh-after-rebuild\ntitle: Fresh requirement\nstatus: open\n---\n",
       );
       execSync("git add documentation", { cwd: tempRoot, stdio: "ignore" });
-      execSync(`node ${kibiBin} sync --rebuild`, {
-        cwd: tempRoot,
-        stdio: "ignore",
-      });
+      syncRebuild(kibiBin, tempRoot);
 
       // Query SAME process again — must see fresh data
       const after = await sendRequest(

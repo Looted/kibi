@@ -335,7 +335,14 @@ describe("coverage gap branches", () => {
       },
     });
 
-    expect(result.structuredContent?.relationships_created).toBeGreaterThan(0);
+    expect(result.structuredContent?.relationships_created).toBe(0);
     expect(goals.some((goal) => goal.includes("findall"))).toBe(true);
+    expect(
+      goals.some(
+        (goal) =>
+          goal.startsWith("kb_commit_upsert(") &&
+          goal.includes("rel(relates_to"),
+      ),
+    ).toBe(false);
   });
 });

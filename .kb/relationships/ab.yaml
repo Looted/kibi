@@ -31,3 +31,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d24448833372
+  - type: covered_by
+    from: SYM-cli-symbol-granularity-validate
+    to: TEST-mcp-upsert-symbol-behavioral-anchors
+    created_at: 2026-08-17T11:28:44.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39c9e865613a
+  - type: implements
+    from: SYM-cli-symbol-granularity-validate
+    to: REQ-symbol-behavioral-anchors
+    created_at: 2026-08-17T11:28:44.875Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c71eab6b69d

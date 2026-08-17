@@ -53,4 +53,15 @@ describe("bundled Kibi skills", () => {
       ).toBeGreaterThan(20);
     }
   });
+
+  test("documents supersession in the executable new-to-old direction", () => {
+    const directions = readBundledSkillResource(
+      "kibi-usage",
+      "resources/relationship-directions.md",
+    );
+
+    expect(directions).toContain("| `supersedes` | new-req -> old-req |");
+    expect(directions).toContain("from: REQ-001-v2\n    to: REQ-001");
+    expect(directions).not.toContain("| `supersedes` | old-req -> new-req |");
+  });
 });

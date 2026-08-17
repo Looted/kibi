@@ -29,15 +29,22 @@ relationships:
     id: rel-ccab628889b5
   - type: constrains
     from: REQ-004
-    to: FACT-SUBJECT-732EFBE980A8884E
-    created_at: 2026-08-16T22:53:15.592Z
+    to: FACT-SCHEMA-ENTITY-MODEL
+    created_at: 2026-08-17T08:16:39.558Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-5ba30b7b827f
+    id: rel-2bb75a16050d
   - type: requires_property
     from: REQ-004
-    to: FACT-PROP-E1632DF45EFB443F
-    created_at: 2026-08-16T22:53:15.595Z
+    to: FACT-ENTITY-TYPES-CORE-7
+    created_at: 2026-08-17T08:16:39.567Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-4360c24fda00
+    id: rel-082935f3c080
+  - type: requires_predicate
+    from: REQ-004
+    to: FACT-ENTITY-FIELD-POLICY
+    created_at: 2026-08-17T08:16:39.569Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eafd34b70e24

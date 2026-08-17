@@ -1197,7 +1197,11 @@ links:
       execSync("git add documentation", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
-      const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--rules", "no-dangling-refs"],
+        tmpDir,
+      );
       expect(status).toBe(0);
       const output = stdoutToString(stdout || stderr);
       expect(output).toContain("No violations found");
@@ -1309,7 +1313,11 @@ owner: alice
       // Sync first - this should create entity with missing title
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
-      const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--rules", "required-fields"],
+        tmpDir,
+      );
       expect(status).toBe(0);
       const output = stdoutToString(stdout || stderr);
       expect(output).toContain("No violations found");

@@ -55,3 +55,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cb40dd9abeb2
+  - type: relates_to
+    from: EVT-exact-branch-store-ensure
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-17T07:13:28.788Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90f8642428d3
+  - type: relates_to
+    from: EVT-exact-branch-store-ensure
+    to: SCEN-branch-store-recovery
+    created_at: 2026-08-17T07:13:28.821Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16ad4cbc9611
+  - type: relates_to
+    from: EVT-exact-branch-store-ensure
+    to: EVT-003
+    created_at: 2026-08-17T07:13:28.831Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62069e6b702b
+  - type: requires_predicate
+    from: REQ-005
+    to: FACT-FIRST-CLASS-RELATIONSHIP-TYPES
+    created_at: 2026-08-17T08:16:57.467Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6fc6104127a2
+  - type: requires_predicate
+    from: REQ-005
+    to: FACT-RELATIONSHIP-PROVENANCE-TIMESTAMP
+    created_at: 2026-08-17T08:16:57.481Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3fc0e4824055
+  - type: relates_to
+    from: EVT-exact-branch-store-ensure
+    to: REQ-branch-store-recovery-v3
+    created_at: 2026-08-17T08:34:51.991Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aacde46c15ac
+  - type: implements
+    from: SYM-RelationshipParityRecord
+    to: REQ-kibi-source-relationship-parity
+    created_at: 2026-08-17T11:05:02.070Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2bd8cd91d91
+  - type: covered_by
+    from: SYM-RelationshipParityRecord
+    to: TEST-cli-source-relationship-parity-unit
+    created_at: 2026-08-17T11:27:50.990Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3434895ef7dd

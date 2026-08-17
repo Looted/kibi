@@ -17,3 +17,17 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/events/EVT-003.md
+  - type: relates_to
+    from: EVT-003
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-17T07:12:40.833Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f97c36750d7e
+  - type: relates_to
+    from: EVT-003
+    to: SCEN-branch-store-recovery
+    created_at: 2026-08-17T07:12:40.852Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efc440494c58

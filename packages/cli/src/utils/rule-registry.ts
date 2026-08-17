@@ -82,6 +82,13 @@ export const RULES: readonly RuleDefinition[] = [
     category: "integrity",
   },
   {
+    name: "source-relationship-parity",
+    description:
+      "Authored Markdown and relationship-shard edges must exactly match the compiled KB",
+    defaultEnabled: true,
+    category: "integrity",
+  },
+  {
     name: "no-cycles",
     description: "No circular dependency chains in requirements",
     defaultEnabled: true,

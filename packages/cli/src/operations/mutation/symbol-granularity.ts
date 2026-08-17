@@ -79,6 +79,12 @@ function candidates(
   for (const item of source.getEnums()) {
     if (item.isExported()) found.push(candidate(item.getName(), "enum"));
   }
+  for (const statement of source.getVariableStatements()) {
+    if (!statement.isExported()) continue;
+    for (const declaration of statement.getDeclarations()) {
+      found.push(candidate(declaration.getName(), "variable"));
+    }
+  }
   return found.sort((left, right) => left.name.localeCompare(right.name));
 }
 
@@ -129,7 +135,9 @@ export async function validateSymbolGranularity(
     throw error;
   }
   const available = candidates(entity.sourceFile, content);
-  if (available.some(({ name }) => name === entity.title)) return;
+  const exact = available.find(({ name }) => name === entity.title);
+  if (exact && (exact.kind !== "variable" || entity.symbol_role === "config"))
+    return;
   const behavioral = getBehavioralSymbolNames(available);
   if (behavioral.length === 0) return;
   const nonBehavioral = getNonBehavioralSymbolNames(available);

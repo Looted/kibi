@@ -31,6 +31,7 @@ import {
   validateLiveRelationshipTargets,
   validateRelationshipSources,
   validateStrictLanePairing,
+  validateSupersedesSourceHistory,
 } from "./relationships.js";
 import {
   writePendingSourceReceipt,
@@ -142,17 +143,24 @@ export async function effectiveRelationships(
   relationships: readonly RelationshipInput[],
   context: OperationContext,
 ): Promise<readonly RelationshipInput[]> {
-  if (input.relationships !== undefined && input.relationships.length > 0) {
-    return relationships;
-  }
   const prolog = requireProlog(context);
   const exists = await prolog.query(
     `once(kb_entity('${escapeAtom(input.id)}', _, _))`,
   );
   if (!exists.success) return relationships;
   try {
-    const current = await existingRelationships(prolog, String(entity.id));
-    return current.length > 0 ? current : relationships;
+    const current = (await existingRelationships(prolog, String(entity.id)))
+      // An upsert owns only relationships whose source is the upserted entity.
+      // Incoming relationships must not be copied into its validation or
+      // canonical source projection.
+      .filter((relationship) => relationship.from === input.id);
+    const merged = new Map<string, RelationshipInput>();
+    for (const relationship of [...current, ...relationships]) {
+      const key = `${String(relationship.type)}\u0000${String(relationship.from)}\u0000${String(relationship.to)}`;
+      // The explicit input wins so any supplied metadata is retained.
+      merged.set(key, relationship);
+    }
+    return [...merged.values()];
   } catch (error) {
     if (error instanceof Error) return relationships;
     throw error;
@@ -199,12 +207,18 @@ export async function executeUpsert(
       validated.relationships,
       context,
     );
-    relationshipCount = relationships.length;
-    await validateStrictLanePairing(prolog, relationships);
+    relationshipCount = validated.relationships.length;
+    await validateStrictLanePairing(prolog, validated.relationships);
     await validateLiveRelationshipTargets(
       prolog,
       validated.entity,
-      relationships,
+      validated.relationships,
+    );
+    await validateSupersedesSourceHistory(
+      prolog,
+      validated.entity,
+      validated.relationships,
+      context.workspaceRoot,
     );
     const semantic = analyzeSemanticAdvisorInput({
       payload: { ...input, relationships },
@@ -264,8 +278,8 @@ export async function executeUpsert(
     // Relationship shards are canonical source artifacts. Patch them before
     // the compiled transaction so a failed commit can restore exact bytes and
     // a successful commit never leaves a compiled-only relationship behind.
-    if (context.fs !== undefined && relationships.length > 0) {
-      for (const relationship of relationships) {
+    if (context.fs !== undefined && validated.relationships.length > 0) {
+      for (const relationship of validated.relationships) {
         const type =
           typeof relationship.type === "string" ? relationship.type : "";
         const from =
@@ -295,7 +309,7 @@ export async function executeUpsert(
     }
     const transaction = buildUpsertCommitGoal({
       entity: commitEntity ?? validated.entity,
-      relationships,
+      relationships: validated.relationships,
       skipContradictionCheck: input._skipContradictionCheck === true,
     });
     const written = await prolog.query(transaction);
@@ -359,7 +373,7 @@ export async function executeUpsert(
     const payload: UpsertPayload = {
       created,
       updated: changeKind === "updated" ? 1 : 0,
-      relationships_created: relationships.length,
+      relationships_created: validated.relationships.length,
       warnings: [...semantic.warnings, ...coverage, ...shardWarnings],
       semanticAdvisor: semantic.receipt,
       ...(shardWarnings.length > 0

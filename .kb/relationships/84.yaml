@@ -41,3 +41,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5fc7c19b94d9
+  - type: relates_to
+    from: FACT-RELATIONSHIP-PROVENANCE-TIMESTAMP
+    to: FACT-RELATIONSHIP-AUDIT-METADATA
+    created_at: 2026-08-17T08:14:37.965Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c20e12efac4

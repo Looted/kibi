@@ -1418,6 +1418,12 @@ coordinates:
     sourceEndLine: 31
     sourceFile: packages/opencode/src/reconcile-engine.ts
     sourceLine: 26
+  SYM-RelationshipParityRecord:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 19
+    sourceFile: packages/cli/src/public/operations/source-relationship-parity.ts
+    sourceLine: 13
   SYM-RelationshipSpec:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -1919,9 +1925,9 @@ coordinates:
   SYM-SyncError:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 106
+    sourceEndLine: 108
     sourceFile: packages/cli/src/commands/sync.ts
-    sourceLine: 101
+    sourceLine: 103
   SYM-SyncOptions:
     sourceColumn: 10
     sourceEndColumn: 1
@@ -1931,9 +1937,9 @@ coordinates:
   SYM-SyncResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 282
+    sourceEndLine: 304
     sourceFile: packages/cli/src/commands/sync.ts
-    sourceLine: 280
+    sourceLine: 302
   SYM-SyncRunMetadata:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -2183,15 +2189,15 @@ coordinates:
   SYM-assert-logical-grounding-claim-keys:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 277
+    sourceEndLine: 284
     sourceFile: packages/cli/src/operations/semantic-advisor/ingestion-boundary.ts
-    sourceLine: 226
+    sourceLine: 233
   SYM-assert-semantic-inventory-boundary:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 223
+    sourceEndLine: 230
     sourceFile: packages/cli/src/operations/semantic-advisor/ingestion-boundary.ts
-    sourceLine: 208
+    sourceLine: 215
   SYM-assertCanonicalSourceComplete:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -2513,9 +2519,9 @@ coordinates:
   SYM-auto-5133B22986F1:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 112
+    sourceEndLine: 120
     sourceFile: packages/cli/src/commands/branch.ts
-    sourceLine: 92
+    sourceLine: 100
   SYM-auto-532D065248B0:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2537,9 +2543,9 @@ coordinates:
   SYM-auto-5E0D46927248:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 137
+    sourceEndLine: 138
     sourceFile: packages/cli/src/operations/mutation/upsert.ts
-    sourceLine: 121
+    sourceLine: 122
   SYM-auto-5EDA4085C185:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2609,7 +2615,7 @@ coordinates:
   SYM-auto-7C9A229C5071:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 622
+    sourceEndLine: 626
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
     sourceLine: 556
   SYM-auto-7D6473217301:
@@ -2711,9 +2717,9 @@ coordinates:
   SYM-auto-9648A5F09C09:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 637
+    sourceEndLine: 641
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 625
+    sourceLine: 629
   SYM-auto-9673173700B2:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2909,9 +2915,9 @@ coordinates:
   SYM-auto-EE0B2692CF85:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 581
+    sourceEndLine: 594
     sourceFile: packages/cli/src/commands/branch.ts
-    sourceLine: 529
+    sourceLine: 542
   SYM-auto-F3AA3B988CC5:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -3203,21 +3209,21 @@ coordinates:
   SYM-branchEnsureCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 253
+    sourceEndLine: 261
     sourceFile: packages/cli/src/commands/branch.ts
-    sourceLine: 224
+    sourceLine: 232
   SYM-branchMigrateCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 428
+    sourceEndLine: 441
     sourceFile: packages/cli/src/commands/branch.ts
-    sourceLine: 260
+    sourceLine: 268
   SYM-branchRecoverCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 526
+    sourceEndLine: 539
     sourceFile: packages/cli/src/commands/branch.ts
-    sourceLine: 435
+    sourceLine: 448
   SYM-branchStoreReason:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3386,6 +3392,12 @@ coordinates:
     sourceEndLine: 175
     sourceFile: packages/opencode/src/risk-classifier.ts
     sourceLine: 63
+  SYM-classifySupersedesHistory:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 179
+    sourceFile: packages/cli/src/operations/mutation/relationships.ts
+    sourceLine: 156
   SYM-cleanupAbandonedStagingDirectories:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -4412,6 +4424,18 @@ coordinates:
     sourceEndLine: 86
     sourceFile: packages/cli/src/cli.ts
     sourceLine: 70
+  SYM-cli-mutation-RELATIONSHIP_TYPES:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 25
+    sourceFile: packages/cli/src/operations/mutation/relationships.ts
+    sourceLine: 7
+  SYM-cli-mutation-RelationshipType:
+    sourceColumn: 12
+    sourceEndColumn: 67
+    sourceEndLine: 26
+    sourceFile: packages/cli/src/operations/mutation/relationships.ts
+    sourceLine: 26
   SYM-cli-mutation-serialization-buildPropertyList:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4757,21 +4781,21 @@ coordinates:
   SYM-cli-rule-registry-DEFAULT_CHECKS_CONFIG:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 188
+    sourceEndLine: 195
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 183
+    sourceLine: 190
   SYM-cli-rule-registry-RULES:
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 173
+    sourceEndLine: 180
     sourceFile: packages/cli/src/utils/rule-registry.ts
     sourceLine: 55
   SYM-cli-rule-registry-RULE_NAMES:
     sourceColumn: 13
     sourceEndColumn: 59
-    sourceEndLine: 178
+    sourceEndLine: 185
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 178
+    sourceLine: 185
   SYM-cli-rule-registry-RuleDefinition:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -4793,21 +4817,21 @@ coordinates:
   SYM-cli-rule-registry-getEffectiveRules:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 222
+    sourceEndLine: 229
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 197
+    sourceLine: 204
   SYM-cli-rule-registry-mergeChecksConfig:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 251
+    sourceEndLine: 258
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 238
+    sourceLine: 245
   SYM-cli-rule-registry-validateRuleName:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 233
+    sourceEndLine: 240
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 228
+    sourceLine: 235
   SYM-cli-run-aggregated-checks:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -4901,9 +4925,9 @@ coordinates:
   SYM-cli-symbol-granularity-validate:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 143
+    sourceEndLine: 151
     sourceFile: packages/cli/src/operations/mutation/symbol-granularity.ts
-    sourceLine: 102
+    sourceLine: 108
   SYM-cli-sync-extract-relationship-shard:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4943,9 +4967,9 @@ coordinates:
   SYM-cli-sync-semantic-boundary-relationships:
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 255
+    sourceEndLine: 277
     sourceFile: packages/cli/src/commands/sync.ts
-    sourceLine: 245
+    sourceLine: 267
   SYM-cli-test-makeQualitySymbolResult:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5150,6 +5174,12 @@ coordinates:
     sourceEndLine: 563
     sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
     sourceLine: 446
+  SYM-collectSourceRelationshipParityViolations:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 227
+    sourceFile: packages/cli/src/public/operations/source-relationship-parity.ts
+    sourceLine: 165
   SYM-collectStagedAuthoredSymbolsManifestEvidence:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5162,6 +5192,12 @@ coordinates:
     sourceEndLine: 164
     sourceFile: packages/cli/src/traceability/staged-diagnostics.ts
     sourceLine: 115
+  SYM-compareRelationshipParity:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 91
+    sourceFile: packages/cli/src/public/operations/source-relationship-parity.ts
+    sourceLine: 32
   SYM-computeEnforcementPolicy:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5879,9 +5915,9 @@ coordinates:
   SYM-discoverSourceFiles:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 207
+    sourceEndLine: 338
     sourceFile: packages/cli/src/commands/sync/discovery.ts
-    sourceLine: 127
+    sourceLine: 248
   SYM-discoverSources:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5969,9 +6005,9 @@ coordinates:
   SYM-effective-requirement-relationships:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 160
+    sourceEndLine: 168
     sourceFile: packages/cli/src/operations/mutation/upsert.ts
-    sourceLine: 139
+    sourceLine: 140
   SYM-enrichSymbolCoordinates:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -6065,9 +6101,9 @@ coordinates:
   SYM-executeUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 480
+    sourceEndLine: 494
     sourceFile: packages/cli/src/operations/mutation/upsert.ts
-    sourceLine: 162
+    sourceLine: 170
   SYM-executeValidateUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -6140,24 +6176,30 @@ coordinates:
     sourceEndLine: 194
     sourceFile: packages/opencode/src/init-kibi-capability.ts
     sourceLine: 178
+  SYM-firstGitAdditionCommit:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 134
+    sourceFile: packages/cli/src/operations/mutation/relationships.ts
+    sourceLine: 116
   SYM-formatInvalidRelationshipError:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 87
+    sourceEndLine: 88
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 73
+    sourceLine: 74
   SYM-formatInvalidRelationshipTuple:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 71
+    sourceEndLine: 72
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 67
+    sourceLine: 68
   SYM-formatRelationshipSourceMismatch:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 107
+    sourceEndLine: 227
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 100
+    sourceLine: 220
   SYM-formatUpsertError:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6512,6 +6554,12 @@ coordinates:
     sourceEndLine: 210
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
     sourceLine: 202
+  SYM-isSupportedLegacyBranchMigration:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 77
+    sourceFile: packages/cli/src/commands/branch.ts
+    sourceLine: 72
   SYM-isSymbolRole:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8165,9 +8213,9 @@ coordinates:
   SYM-normalizeMarkdownPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 125
+    sourceEndLine: 246
     sourceFile: packages/cli/src/commands/sync/discovery.ts
-    sourceLine: 119
+    sourceLine: 240
   SYM-normalizePropertyKey:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8219,25 +8267,25 @@ coordinates:
   SYM-operation-check-input:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 53
+    sourceEndLine: 54
     sourceFile: packages/cli/src/public/operations/check-executor.ts
-    sourceLine: 45
+    sourceLine: 46
   SYM-operation-check-options:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 66
+    sourceEndLine: 67
     sourceFile: packages/cli/src/public/operations/check-executor.ts
-    sourceLine: 64
+    sourceLine: 65
   SYM-operation-check-payload:
     sourceColumn: 12
     sourceEndColumn: 50
-    sourceEndLine: 55
+    sourceEndLine: 56
     sourceFile: packages/cli/src/public/operations/check-executor.ts
-    sourceLine: 55
+    sourceLine: 56
   SYM-operation-check-spec:
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 75
+    sourceEndLine: 76
     sourceFile: packages/cli/src/public/operations/specs/check.ts
     sourceLine: 4
   SYM-operation-content-type:
@@ -8267,9 +8315,9 @@ coordinates:
   SYM-operation-execute-check:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 268
+    sourceEndLine: 275
     sourceFile: packages/cli/src/public/operations/check-executor.ts
-    sourceLine: 119
+    sourceLine: 120
   SYM-operation-executeCoverage:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -8543,9 +8591,9 @@ coordinates:
   SYM-parity-dependent-relationships-goal:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 29
+    sourceEndLine: 30
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 27
+    sourceLine: 28
   SYM-parity-execute-delete:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -8555,9 +8603,9 @@ coordinates:
   SYM-parity-existing-relationships:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 214
+    sourceEndLine: 334
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 196
+    sourceLine: 316
   SYM-parity-record-entity-audit:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -8609,21 +8657,21 @@ coordinates:
   SYM-parity-validate-live-relationship-targets:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 157
+    sourceEndLine: 277
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 130
+    sourceLine: 250
   SYM-parity-validate-relationship-sources:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 98
+    sourceEndLine: 99
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 89
+    sourceLine: 90
   SYM-parity-validate-strict-lane-pairing:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 194
+    sourceEndLine: 314
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 159
+    sourceLine: 279
   SYM-parity-validate-upsert-payload-type:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -8642,6 +8690,12 @@ coordinates:
     sourceEndLine: 95
     sourceFile: scripts/sync-agent-skills.ts
     sourceLine: 60
+  SYM-parseCompiledRelationshipRows:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 152
+    sourceFile: packages/cli/src/public/operations/source-relationship-parity.ts
+    sourceLine: 130
   SYM-parseHeldOutReservation:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -14273,9 +14327,9 @@ coordinates:
   SYM-syncCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1372
+    sourceEndLine: 1421
     sourceFile: packages/cli/src/commands/sync.ts
-    sourceLine: 352
+    sourceLine: 374
   SYM-syncPluginManifestVersions:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -14402,6 +14456,12 @@ coordinates:
     sourceEndLine: 105
     sourceFile: scripts/run-owned-engine-tests.mjs
     sourceLine: 68
+  SYM-test-packed-default-branch-sync-hooks:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 41
+    sourceFile: documentation/tests/e2e/packed/hook-integration.test.ts
+    sourceLine: 25
   SYM-test-packed-dependency-ordered-repair-plan:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -14414,6 +14474,12 @@ coordinates:
     sourceEndLine: 487
     sourceFile: documentation/tests/e2e/packed/distribution-parity-matrix.test.ts
     sourceLine: 440
+  SYM-test-packed-exact-branch-recovery:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 37
+    sourceFile: documentation/tests/e2e/packed/branch-store-recovery.test.ts
+    sourceLine: 26
   SYM-test-packed-fresh-verification-receipts:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -14432,6 +14498,12 @@ coordinates:
     sourceEndLine: 50
     sourceFile: documentation/tests/e2e/packed/ontology-convergence-witnesses.test.ts
     sourceLine: 40
+  SYM-test-packed-post-merge-sync:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 48
+    sourceFile: documentation/tests/e2e/packed/hook-integration.test.ts
+    sourceLine: 43
   SYM-test-packed-proposition-ingestion:
     sourceColumn: 15
     sourceEndColumn: 1
@@ -14444,6 +14516,12 @@ coordinates:
     sourceEndLine: 113
     sourceFile: documentation/tests/e2e/packed/semantic-source-separation.test.ts
     sourceLine: 65
+  SYM-test-packed-source-relationship-parity:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 23
+    sourceFile: documentation/tests/e2e/packed/source-relationship-parity.test.ts
+    sourceLine: 19
   SYM-test-packed-telemetry-acceptance:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -14531,7 +14609,7 @@ coordinates:
   SYM-validate-semantic-inventory-boundary:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 206
+    sourceEndLine: 213
     sourceFile: packages/cli/src/operations/semantic-advisor/ingestion-boundary.ts
     sourceLine: 71
   SYM-validateAndMerge:
@@ -14570,6 +14648,12 @@ coordinates:
     sourceEndLine: 49
     sourceFile: packages/cli/src/public/skill-system/validation.ts
     sourceLine: 31
+  SYM-validateSupersedesSourceHistory:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 218
+    sourceFile: packages/cli/src/operations/mutation/relationships.ts
+    sourceLine: 182
   SYM-validateUpsertInput:
     sourceColumn: 16
     sourceEndColumn: 1

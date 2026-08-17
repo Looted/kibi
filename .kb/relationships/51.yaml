@@ -41,3 +41,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8d962c1f3442
+  - type: specified_by
+    from: REQ-branch-store-recovery-v3
+    to: SCEN-branch-store-recovery
+    created_at: 2026-08-17T08:32:52.364Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b37dc169d91
+  - type: constrains
+    from: REQ-branch-store-recovery-v3
+    to: FACT-KB-PER-BRANCH
+    created_at: 2026-08-17T08:32:52.404Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d17b247ee7a
+  - type: requires_property
+    from: REQ-branch-store-recovery-v3
+    to: FACT-EXACT-BRANCH-IDENTITY-SOURCE
+    created_at: 2026-08-17T08:32:52.423Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45494ccf7ed3
+  - type: requires_predicate
+    from: REQ-branch-store-recovery-v3
+    to: FACT-PRED-D62E80F439F2
+    created_at: 2026-08-17T08:32:52.433Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-310084f949b1
+  - type: requires_property
+    from: REQ-branch-store-recovery-v3
+    to: FACT-EXACT-BRANCH-INITIALIZATION-MODE
+    created_at: 2026-08-17T08:32:52.450Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a662c39bc4cf
+  - type: requires_predicate
+    from: REQ-branch-store-recovery-v3
+    to: FACT-PRED-1B6C15026E81
+    created_at: 2026-08-17T08:32:52.467Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8db5078a874
+  - type: requires_predicate
+    from: REQ-branch-store-recovery-v3
+    to: FACT-BRANCH-STORE-SAME-IDENTITY-MIGRATION
+    created_at: 2026-08-17T08:32:52.474Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e04005929e5e
+  - type: requires_property
+    from: REQ-branch-store-recovery-v3
+    to: FACT-BRANCH-CROSS-IDENTITY-MIGRATION-REFUSED
+    created_at: 2026-08-17T08:32:52.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50e7d33723c1
+  - type: supersedes
+    from: REQ-branch-store-recovery-v3
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-17T08:32:52.487Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb0d7bdb308c

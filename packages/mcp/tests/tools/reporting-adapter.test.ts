@@ -1,5 +1,6 @@
 import { describe, expect, mock, test } from "bun:test";
 import { getSpec } from "kibi-cli/operations";
+import type { OperationContext } from "kibi-cli/operations/runtime-types";
 
 import { handleKbCoverage } from "../../src/tools/coverage.js";
 import { handleKbFindGaps } from "../../src/tools/find-gaps.js";
@@ -14,7 +15,7 @@ function fakeProlog(payload: Readonly<Record<string, unknown>>) {
   };
 }
 
-function context(prolog: ReturnType<typeof fakeProlog>) {
+function context(prolog: ReturnType<typeof fakeProlog>): OperationContext {
   return {
     workspaceRoot: process.cwd(),
     signal: new AbortController().signal,

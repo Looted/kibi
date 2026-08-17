@@ -6,3 +6,59 @@ relationships:
     created_at: "2026-08-16T18:52:23.908Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: specified_by
+    from: REQ-kibi-source-relationship-parity
+    to: SCEN-kibi-source-relationship-parity
+    created_at: 2026-08-17T08:28:50.604Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ea8aa7eebb7
+  - type: requires_predicate
+    from: REQ-kibi-source-relationship-parity
+    to: FACT-SOURCE-PARITY-AUTHORED-BLOCK
+    created_at: 2026-08-17T08:28:50.618Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45e2e345f421
+  - type: requires_predicate
+    from: REQ-kibi-source-relationship-parity
+    to: FACT-SOURCE-PARITY-RUNTIME-REVERSE-EXEMPT
+    created_at: 2026-08-17T08:28:50.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad02b9c19faa
+  - type: requires_predicate
+    from: REQ-kibi-source-relationship-parity
+    to: FACT-SOURCE-PARITY-FORWARD-NEVER-EXEMPT
+    created_at: 2026-08-17T08:28:50.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a50aaf1e123
+  - type: requires_predicate
+    from: REQ-kibi-source-relationship-parity
+    to: FACT-SOURCE-PARITY-RULE-SELECTION
+    created_at: 2026-08-17T08:28:50.624Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36653ba7c5c6
+  - type: requires_predicate
+    from: REQ-kibi-source-relationship-parity
+    to: FACT-SOURCE-PARITY-DISCOVERY-BLOCK
+    created_at: 2026-08-17T08:28:50.626Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2967de5eebd
+  - type: implements
+    from: SYM-parseCompiledRelationshipRows
+    to: REQ-kibi-source-relationship-parity
+    created_at: 2026-08-17T11:04:53.892Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-649bc8f94156
+  - type: covered_by
+    from: SYM-parseCompiledRelationshipRows
+    to: TEST-kibi-source-relationship-parity
+    created_at: 2026-08-17T11:04:53.897Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0aea6b2e0db

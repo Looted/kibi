@@ -1,0 +1,15 @@
+relationships:
+  - id: rel-350a4ba24176
+    type: implements
+    from: SYM-firstGitAdditionCommit
+    to: REQ-branch-store-recovery-v3
+    created_at: "2026-08-17T11:04:39.202Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-firstGitAdditionCommit
+    to: TEST-cli-supersedes-history-unit
+    created_at: 2026-08-17T11:28:12.512Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e334b7f0fa1

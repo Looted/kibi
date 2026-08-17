@@ -323,6 +323,47 @@ describe("semantic advisor operation", () => {
     ).toEqual([]);
   });
 
+  test("names stale grounding targets when proposition counts disagree", () => {
+    const text = "System must support OAuth2 authentication.";
+    const base = {
+      type: "req",
+      id: "REQ-STALE-GROUNDING",
+      properties: { title: "OAuth", status: "open", text_ref: text },
+      relationships: [
+        {
+          type: "requires_predicate",
+          from: "REQ-STALE-GROUNDING",
+          to: "FACT-STALE",
+        },
+      ],
+    };
+    const semantic = analyzeSemanticAdvisorInput({ payload: base });
+    const contract = semantic.receipt.inventory_contract;
+    const payload = {
+      ...base,
+      properties: {
+        ...base.properties,
+        logic_claims: semantic.receipt.logic_coverage.expected_claim_keys,
+        semantic_inventory_version: contract.version,
+        semantic_source_field: contract.source_field,
+        semantic_source_hash: contract.source_hash,
+        semantic_inventory: semantic.receipt.propositions.map(
+          (proposition) => ({ ...proposition, status: "ontology_gap" }),
+        ),
+      },
+    };
+
+    expect(
+      validateSemanticInventoryBoundary(
+        payload,
+        payload.relationships,
+        analyzeSemanticAdvisorInput({ payload }).receipt,
+      ).errors,
+    ).toContain(
+      "modeled semantic_inventory entries (0) must equal logical grounding relationships (1) [requires_predicate->FACT-STALE]",
+    );
+  });
+
   test("rejects duplicate propositions and spans instead of deduplicating prose", () => {
     const text = "The service must log exports. The service must log exports.";
     const payload = {

@@ -20,3 +20,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e17a8faaf68e
+  - type: validates
+    from: TEST-cli-source-relationship-parity-unit
+    to: SCEN-kibi-source-relationship-parity
+    created_at: 2026-08-17T11:26:33.738Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6fb9d941bfd9

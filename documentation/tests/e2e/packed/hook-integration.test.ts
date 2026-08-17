@@ -22,6 +22,31 @@ import {
 const RUN_NODE_TEST_SUITE =
   typeof (globalThis as { Bun?: unknown }).Bun === "undefined";
 
+export function assertDefaultBranchSyncHooks(repoDir: string): void {
+  for (const hookName of ["post-checkout", "post-merge"]) {
+    const hookPath = join(repoDir, ".git/hooks", hookName);
+    assert.ok(existsSync(hookPath), `${hookName} hook should exist`);
+    assert.ok(
+      (statSync(hookPath).mode & 0o111) !== 0,
+      `${hookName} hook should be executable`,
+    );
+    assert.match(readFileSync(hookPath, "utf8"), /kibi sync/);
+  }
+  const checkout = readFileSync(
+    join(repoDir, ".git/hooks/post-checkout"),
+    "utf8",
+  );
+  assert.match(checkout, /branch_flag is 1 for branch checkout/);
+  assert.doesNotMatch(checkout, /--from/);
+}
+
+export function assertPostMergeSynchronizedTrackedSources(
+  queryOutput: string,
+): void {
+  assert.match(queryOutput, /Develop/);
+  assert.match(queryOutput, /Feature/);
+}
+
 if (RUN_NODE_TEST_SUITE) {
   describe("E2E: Git Hook Integration", () => {
     const TEST_TIMEOUT_MS = 120000;
@@ -66,19 +91,7 @@ if (RUN_NODE_TEST_SUITE) {
       if (!hasProlog) return;
 
       await kibi(sandbox, ["init"]);
-
-      const hookPath = join(sandbox.repoDir, ".git/hooks/post-checkout");
-      assert.ok(existsSync(hookPath), "post-checkout hook should exist");
-
-      const stats = statSync(hookPath);
-      const isExecutable = (stats.mode & 0o111) !== 0;
-      assert.ok(isExecutable, "Hook should be executable");
-
-      const content = readFileSync(hookPath, "utf8");
-      assert.ok(content.includes("kibi sync"), "Hook should contain kibi sync");
-      // Branch checkout compiles the exact branch from tracked sources.
-      assert.ok(/branch_flag is 1 for branch checkout/.test(content));
-      assert.ok(!content.includes("--from"));
+      assertDefaultBranchSyncHooks(sandbox.repoDir);
     });
 
     it("should install post-merge hook by default", async () => {
@@ -255,14 +268,7 @@ status: open
       });
 
       const { stdout: developQuery } = await kibi(sandbox, ["query", "req"]);
-      assert.ok(
-        developQuery.includes("Develop"),
-        "develop query should include Develop requirement after merge",
-      );
-      assert.ok(
-        developQuery.includes("Feature"),
-        "develop query should include Feature requirement after merge",
-      );
+      assertPostMergeSynchronizedTrackedSources(developQuery);
     });
 
     it("should be idempotent on re-install", async () => {

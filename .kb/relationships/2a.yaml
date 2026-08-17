@@ -13,3 +13,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-70ad3da51df9
+  - type: relates_to
+    from: SCEN-branch-store-recovery
+    to: REQ-branch-store-recovery-v3
+    created_at: 2026-08-17T08:34:26.304Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fff0e5450c07

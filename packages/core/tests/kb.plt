@@ -3059,6 +3059,45 @@ test(check_req_contradiction_allows_direct_supersession, [setup(setup_kb), clean
     kb_assert_relationship(supersedes, 'REQ-SUPERSEDES-A', 'REQ-SUPERSEDES-B', []),
     check_req_contradiction('REQ-SUPERSEDES-A').
 
+test(exact_branch_policy_requires_new_to_old_supersession,
+     [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_branch_initialization_policy_pair,
+    catch(
+        (check_req_contradiction('REQ-BRANCH-EXACT'), Caught = false),
+        error(kb_contradiction(Pairs), _),
+        (assertion(Pairs \= []), Caught = true)
+    ),
+    assertion(Caught == true),
+    kb_commit_upsert(req, [
+        id='REQ-BRANCH-EXACT',
+        title="Exact Git branch store policy",
+        status=open,
+        created_at="2026-02-01T00:00:00Z",
+        updated_at="2026-02-01T00:00:00Z",
+        source="test://kb.plt"
+    ], [rel(supersedes, 'REQ-BRANCH-EXACT', 'REQ-BRANCH-LEGACY', [])], false, updated),
+    kb_relationship(supersedes, 'REQ-BRANCH-EXACT', 'REQ-BRANCH-LEGACY'),
+    \+ contradicting_reqs(_, _, _).
+
+test(cross_identity_migration_refusal_conflicts_with_legacy_exception,
+     [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_cross_identity_migration_policy_pair,
+    catch(
+        (check_req_contradiction('REQ-MIGRATION-EXACT'), Caught = false),
+        error(kb_contradiction(Pairs), _),
+        (assertion(Pairs \= []), Caught = true)
+    ),
+    assertion(Caught == true),
+    kb_commit_upsert(req, [
+        id='REQ-MIGRATION-EXACT',
+        title="Same-identity migration policy",
+        status=open,
+        created_at="2026-02-01T00:00:00Z",
+        updated_at="2026-02-01T00:00:00Z",
+        source="test://kb.plt"
+    ], [rel(supersedes, 'REQ-MIGRATION-EXACT', 'REQ-MIGRATION-LEGACY', [])], false, updated),
+    \+ contradicting_reqs(_, _, _).
+
 :- end_tests(kb_wrapper_coverage_gaps).
 
 :- begin_tests(derived_chr_pilot).
@@ -3245,6 +3284,98 @@ assert_contradicting_requirement_pair(ReqA, ValueA, ReqB, ValueB) :-
     kb_assert_relationship(constrains, ReqB, 'FACT-CONFLICT-SUBJECT', []),
     kb_assert_relationship(requires_property, ReqA, 'FACT-CONFLICT-A', []),
     kb_assert_relationship(requires_property, ReqB, 'FACT-CONFLICT-B', []).
+
+assert_branch_initialization_policy_pair :-
+    assert_fixture_entity(fact, 'FACT-BRANCH-SUBJECT', "Branch store subject", active, [
+        fact_kind=subject,
+        subject_key="kibi.kb.branch"
+    ]),
+    assert_fixture_entity(fact, 'FACT-BRANCH-LEGACY-MODE', "Legacy branch initialization mode", active, [
+        fact_kind=property_value,
+        subject_key="kibi.kb.branch",
+        property_key="initialization_mode",
+        operator=eq,
+        value_type=string,
+        value_string="automatic",
+        claim_key="CLAIM-1111111111111111",
+        claim_text="A missing branch store must copy the resolved default branch"
+    ]),
+    assert_fixture_entity(fact, 'FACT-BRANCH-EXACT-MODE', "Exact branch initialization mode", active, [
+        fact_kind=property_value,
+        subject_key="kibi.kb.branch",
+        property_key="initialization_mode",
+        operator=eq,
+        value_type=string,
+        value_string="explicit_branch_ensure",
+        claim_key="CLAIM-2222222222222222",
+        claim_text="A missing exact branch store may only use explicit branch ensure"
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-BRANCH-LEGACY',
+        title="Legacy default-branch copy policy",
+        status=open,
+        created_at="2026-01-01T00:00:00Z",
+        updated_at="2026-01-01T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-BRANCH-EXACT',
+        title="Exact Git branch store policy",
+        status=open,
+        created_at="2026-02-01T00:00:00Z",
+        updated_at="2026-02-01T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(constrains, 'REQ-BRANCH-LEGACY', 'FACT-BRANCH-SUBJECT', []),
+    kb_assert_relationship(constrains, 'REQ-BRANCH-EXACT', 'FACT-BRANCH-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-BRANCH-LEGACY', 'FACT-BRANCH-LEGACY-MODE', []),
+    kb_assert_relationship(requires_property, 'REQ-BRANCH-EXACT', 'FACT-BRANCH-EXACT-MODE', []).
+
+assert_cross_identity_migration_policy_pair :-
+    assert_fixture_entity(fact, 'FACT-MIGRATION-SUBJECT', "Branch migration subject", active, [
+        fact_kind=subject,
+        subject_key="kibi.kb.branch"
+    ]),
+    assert_fixture_entity(fact, 'FACT-MIGRATION-LEGACY-ALLOW', "Legacy cross-identity exception", active, [
+        fact_kind=property_value,
+        subject_key="kibi.kb.branch",
+        property_key="cross_identity_migration_allowed",
+        operator=eq,
+        value_type=bool,
+        value_bool=true,
+        claim_key="CLAIM-3333333333333333",
+        claim_text="The legacy main to master cross-identity move is allowed"
+    ]),
+    assert_fixture_entity(fact, 'FACT-MIGRATION-EXACT-REFUSE', "Exact identity migration refusal", active, [
+        fact_kind=property_value,
+        subject_key="kibi.kb.branch",
+        property_key="cross_identity_migration_allowed",
+        operator=eq,
+        value_type=bool,
+        value_bool=false,
+        claim_key="CLAIM-4444444444444444",
+        claim_text="Every cross-identity migration is refused"
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-MIGRATION-LEGACY',
+        title="Legacy cross-identity migration exception",
+        status=open,
+        created_at="2026-01-01T00:00:00Z",
+        updated_at="2026-01-01T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-MIGRATION-EXACT',
+        title="Same-identity migration policy",
+        status=open,
+        created_at="2026-02-01T00:00:00Z",
+        updated_at="2026-02-01T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(constrains, 'REQ-MIGRATION-LEGACY', 'FACT-MIGRATION-SUBJECT', []),
+    kb_assert_relationship(constrains, 'REQ-MIGRATION-EXACT', 'FACT-MIGRATION-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-MIGRATION-LEGACY', 'FACT-MIGRATION-LEGACY-ALLOW', []),
+    kb_assert_relationship(requires_property, 'REQ-MIGRATION-EXACT', 'FACT-MIGRATION-EXACT-REFUSE', []).
 
 assert_rule_requirement_pair(BodyNameA, BodyNameB) :-
     rule_fixture_json(oblige, BodyNameA, RuleJsonA),

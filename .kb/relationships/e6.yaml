@@ -20,3 +20,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7fdfa3cff864
+  - type: constrains
+    from: REQ-013
+    to: FACT-INFERENCE-SURFACE
+    created_at: 2026-08-17T08:17:37.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29dff5070498
+  - type: requires_property
+    from: REQ-013
+    to: FACT-INFERENCE-DETERMINISTIC
+    created_at: 2026-08-17T08:17:37.485Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d065acdb89e0
+  - type: requires_predicate
+    from: REQ-013
+    to: FACT-RAW-INFERENCE-EXPOSURE
+    created_at: 2026-08-17T08:17:37.488Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ccd793e8d4d8

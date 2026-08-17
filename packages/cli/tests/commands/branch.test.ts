@@ -76,14 +76,14 @@ describe("kibi branch lifecycle", () => {
     );
   });
 
-  test("migrates a literal nested store only with explicit apply", () => {
-    const legacy = path.join(tmpDir, ".kb", "branches", "legacy/source");
+  test("migrates a same-identity literal store only with explicit apply", () => {
+    const legacy = path.join(tmpDir, ".kb", "branches", "feature/auth");
     execSync(`mkdir -p '${legacy}'`);
     writeFileSync(path.join(legacy, "kb.rdf"), "<rdf:RDF></rdf:RDF>");
     execSync("git checkout -b feature/auth", { cwd: tmpDir, stdio: "pipe" });
 
     const preview = execSync(
-      `bun ${kibiBin} branch migrate --from legacy/source --to feature/auth`,
+      `bun ${kibiBin} branch migrate --from feature/auth --to feature/auth`,
       { cwd: tmpDir, encoding: "utf8" },
     );
     expect(preview).toContain("Preview only");
@@ -92,7 +92,7 @@ describe("kibi branch lifecycle", () => {
     expect(approvalHash).toBeDefined();
 
     const applied = execSync(
-      `bun ${kibiBin} branch migrate --from legacy/source --to feature/auth --apply --approval-hash ${approvalHash}`,
+      `bun ${kibiBin} branch migrate --from feature/auth --to feature/auth --apply --approval-hash ${approvalHash}`,
       { cwd: tmpDir, encoding: "utf8" },
     );
     expect(applied).toContain("Legacy store preserved");
@@ -105,6 +105,63 @@ describe("kibi branch lifecycle", () => {
       key: branchStoreKey("feature/auth"),
     });
     expect(existsSync(legacy)).toBe(false);
+  });
+
+  test("rejects arbitrary cross-branch migration", () => {
+    const legacy = path.join(tmpDir, ".kb", "branches", "unrelated");
+    execSync(`mkdir -p '${legacy}'`);
+    writeFileSync(path.join(legacy, "kb.rdf"), "<rdf:RDF></rdf:RDF>");
+    execSync("git checkout -b feature/auth", { cwd: tmpDir, stdio: "pipe" });
+
+    const result = Bun.spawnSync({
+      cmd: [
+        "bun",
+        kibiBin,
+        "branch",
+        "migrate",
+        "--from",
+        "unrelated",
+        "--to",
+        "feature/auth",
+      ],
+      cwd: tmpDir,
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    expect(result.exitCode).not.toBe(0);
+    expect(new TextDecoder().decode(result.stderr)).toContain(
+      "every cross-branch move is refused",
+    );
+    expect(existsSync(legacy)).toBe(true);
+  });
+
+  test("rejects the legacy main to exact master cross-identity move", () => {
+    const legacyMain = path.join(tmpDir, ".kb", "branches", "main");
+    execSync(`mkdir -p '${legacyMain}'`);
+    writeFileSync(path.join(legacyMain, "kb.rdf"), "<rdf:RDF></rdf:RDF>");
+    execSync("git checkout -b master", { cwd: tmpDir, stdio: "pipe" });
+
+    const result = Bun.spawnSync({
+      cmd: [
+        "bun",
+        kibiBin,
+        "branch",
+        "migrate",
+        "--from",
+        "main",
+        "--to",
+        "master",
+      ],
+      cwd: tmpDir,
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    expect(result.exitCode).not.toBe(0);
+    expect(new TextDecoder().decode(result.stderr)).toContain(
+      "every cross-branch move is refused",
+    );
+    expect(existsSync(legacyMain)).toBe(true);
+    expect(existsSync(branchStorePath(tmpDir, "master"))).toBe(false);
   });
 
   test("recovers a damaged exact branch store only after explicit apply", async () => {

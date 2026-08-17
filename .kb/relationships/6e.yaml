@@ -41,3 +41,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28f4f108b8cb
+  - type: implements
+    from: SYM-parity-validate-live-relationship-targets
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-17T11:13:34.398Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-022699c79fae
+  - type: covered_by
+    from: SYM-parity-validate-live-relationship-targets
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-17T11:13:34.403Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36daa19403de

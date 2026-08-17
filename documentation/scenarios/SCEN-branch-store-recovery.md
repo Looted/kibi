@@ -10,6 +10,7 @@ links:
   - REQ-branch-store-recovery-v2
   - type: verified_by
     target: TEST-cli-branch-store-recovery
+type: scenario
 ---
 
 1. An agent calls status while the active exact branch store is missing or has

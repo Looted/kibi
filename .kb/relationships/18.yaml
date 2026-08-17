@@ -41,10 +41,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9902e39af61e
-  - type: supersedes
+  - type: constrains
     from: REQ-008
-    to: REQ-branch-store-recovery-v2
-    created_at: 2026-08-16T22:54:04.848Z
+    to: FACT-KB-PER-BRANCH
+    created_at: 2026-08-17T07:06:28.630Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-0c33017db3c0
+    id: rel-2124d1f988e9
+  - type: requires_property
+    from: REQ-008
+    to: FACT-REQ-008-BRANCH-INITIALIZATION-MODE
+    created_at: 2026-08-17T07:06:28.649Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b6d2a7d04ba

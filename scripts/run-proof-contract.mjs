@@ -10,9 +10,14 @@ const registry = JSON.parse(await readFile(registryPath, "utf8"));
 const args = process.argv.slice(2);
 const testIndex = args.indexOf("--test-id");
 const testId = testIndex >= 0 ? args[testIndex + 1] : undefined;
-if (!testId) throw new Error("Usage: node scripts/run-proof-contract.mjs --test-id TEST-ID");
+if (!testId)
+  throw new Error(
+    "Usage: node scripts/run-proof-contract.mjs --test-id TEST-ID",
+  );
 
-const entry = registry.contracts.find((candidate) => candidate.test_id === testId);
+const entry = registry.contracts.find(
+  (candidate) => candidate.test_id === testId,
+);
 if (!entry) throw new Error(`No proof contract is registered for ${testId}`);
 const outputPath = process.env.KIBI_VERIFICATION_OUTPUT;
 if (!outputPath) throw new Error("KIBI_VERIFICATION_OUTPUT is required");
@@ -42,11 +47,15 @@ for (const step of entry.steps) {
 }
 
 const finishedAt = new Date().toISOString();
-const commandArgv = JSON.parse(process.env.KIBI_VERIFICATION_COMMAND_ARGV ?? "[]");
+const commandArgv = JSON.parse(
+  process.env.KIBI_VERIFICATION_COMMAND_ARGV ?? "[]",
+);
 const environmentHash =
   process.env.KIBI_LOCKFILE_DIGEST ??
   createHash("sha256")
-    .update(JSON.stringify({ node: process.version, platform: process.platform }))
+    .update(
+      JSON.stringify({ node: process.version, platform: process.platform }),
+    )
     .digest("hex");
 const outcome = exitCode === 0 ? "passed" : "failed";
 const duration = Math.max(
@@ -71,5 +80,9 @@ const artifact = {
   })),
 };
 await mkdir(path.dirname(path.resolve(outputPath)), { recursive: true });
-await writeFile(path.resolve(outputPath), `${JSON.stringify(artifact, null, 2)}\n`, "utf8");
+await writeFile(
+  path.resolve(outputPath),
+  `${JSON.stringify(artifact, null, 2)}\n`,
+  "utf8",
+);
 process.exitCode = exitCode;

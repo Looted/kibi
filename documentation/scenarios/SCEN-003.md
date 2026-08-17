@@ -1,13 +1,14 @@
 ---
 id: SCEN-003
 title: Branch switch triggers copy-from-default-branch KB creation and auto-sync
-status: active
+status: superseded
 created_at: 2026-02-18T13:12:25.000Z
 updated_at: 2026-02-18T13:12:25.000Z
 priority: must
 tags:
   - branching
   - hooks
+  - legacy-policy
 links:
   - REQ-008
   - REQ-012
@@ -15,6 +16,7 @@ links:
     target: TEST-006
   - type: verified_by
     target: TEST-009
+type: scenario
 ---
 
 Steps:

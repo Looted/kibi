@@ -12,6 +12,23 @@ tags:
 links:
   - type: validates
     target: SCEN-003
+type: test
+verification_scope: end_to_end
+verification_perspective: consumer
+verification_contract:
+  version: kibi.verification-contract.v1
+  runner: node
+  command_argv:
+    - node
+    - scripts/run-proof-contract.mjs
+    - '--test-id'
+    - TEST-006
+  required_case_symbols:
+    - SYM-test-packed-default-branch-sync-hooks
+    - SYM-test-packed-post-merge-sync
+  required_projects:
+    - default
+  success_policy: all_required_cases_first_attempt
 ---
 
 In a temp git repo with hooks installed:

@@ -69,3 +69,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c90a99a51d0b
+  - type: specified_by
+    from: REQ-git-hook-sync-v2
+    to: SCEN-git-hook-sync-v2
+    created_at: 2026-08-17T07:11:54.235Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de4f15592635
+  - type: requires_predicate
+    from: REQ-git-hook-sync-v2
+    to: FACT-PRED-EBFEFF1CF787
+    created_at: 2026-08-17T07:11:54.264Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-823506e9ab99
+  - type: requires_predicate
+    from: REQ-git-hook-sync-v2
+    to: FACT-PRED-1D7F5E553F97
+    created_at: 2026-08-17T07:11:54.274Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-babe2e9aef8e
+  - type: supersedes
+    from: REQ-git-hook-sync-v2
+    to: REQ-008
+    created_at: 2026-08-17T07:11:54.281Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1e7c720551b

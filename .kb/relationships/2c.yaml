@@ -48,3 +48,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d7bede618156
+  - type: validates
+    from: TEST-kibi-source-relationship-parity
+    to: SCEN-kibi-source-relationship-parity
+    created_at: 2026-08-17T08:28:01.233Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94d6de6d0717

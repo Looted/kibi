@@ -4,6 +4,30 @@
 # Generated coordinates are stored separately in symbol-coordinates.yaml.
 # Run `kibi sync --refresh-symbol-coordinates` to refresh them.
 symbols:
+  - id: SYM-test-packed-exact-branch-recovery
+    title: assertExactBranchRecoveryOutcome
+    sourceFile: documentation/tests/e2e/packed/branch-store-recovery.test.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-cli-branch-store-recovery
+  - id: SYM-test-packed-default-branch-sync-hooks
+    title: assertDefaultBranchSyncHooks
+    sourceFile: documentation/tests/e2e/packed/hook-integration.test.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-006
+  - id: SYM-test-packed-post-merge-sync
+    title: assertPostMergeSynchronizedTrackedSources
+    sourceFile: documentation/tests/e2e/packed/hook-integration.test.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-006
   - id: SYM-kibi-migration-plan-build
     title: buildMigrationPlan
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
@@ -4084,8 +4108,7 @@ symbols:
       - type: covered_by
         target: TEST-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable
-      resource examples
+    title: predicate guidance loads a canonical decision tree with immutable resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -9906,14 +9929,14 @@ symbols:
         target: TEST-kibi-operation-interface-parity
   - id: SYM-parity-existing-relationships
     title: existingRelationships
+    status: active
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-parity-record-entity-audit
     title: recordEntityAudit
     sourceFile: packages/cli/src/operations/mutation/audit.ts
@@ -9996,34 +10019,34 @@ symbols:
         target: TEST-kibi-operation-interface-parity
   - id: SYM-parity-validate-live-relationship-targets
     title: validateLiveRelationshipTargets
+    status: active
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-parity-validate-relationship-sources
     title: validateRelationshipSources
+    status: active
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-parity-validate-strict-lane-pairing
     title: validateStrictLanePairing
+    status: active
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-parity-validate-upsert-payload-type
     title: ValidateUpsertPayload
     sourceFile: packages/cli/src/operations/mutation/types.ts
@@ -19618,10 +19641,24 @@ symbols:
         target: TEST-skillopt-external-adoption-verdict
   - id: SYM-syncCommand
     title: syncCommand
+    status: active
     sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-007
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: covered_by
+        target: TEST-kibi-conservative-requirement-proof
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-branch-store-recovery-v2
+      - type: implements
+        target: REQ-branch-store-recovery-v3
       - type: implements
         target: REQ-core-extractors
       - type: implements
@@ -19630,25 +19667,18 @@ symbols:
         target: REQ-kibi-conservative-requirement-proof
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
-      - type: covered_by
-        target: TEST-007
-      - type: covered_by
-        target: TEST-kibi-conservative-requirement-proof
-      - type: covered_by
-        target: TEST-kibi-proposition-complete-ingestion
-      - type: covered_by
-        target: TEST-core-journaled-engine-delta-sync
-      - type: covered_by
-        target: TEST-cli-branch-store-recovery
   - id: SYM-branchMigrateCommand
     title: branchMigrateCommand
+    status: active
     sourceFile: packages/cli/src/commands/branch.ts
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-branch-store-recovery-v2
       - type: covered_by
         target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+      - type: implements
+        target: REQ-branch-store-recovery-v3
   - id: SYM-BranchEnsureOptions
     title: BranchEnsureOptions
     sourceFile: packages/cli/src/commands/branch.ts
@@ -19669,22 +19699,28 @@ symbols:
         target: TEST-cli-branch-store-recovery
   - id: SYM-branchEnsureCommand
     title: branchEnsureCommand
+    status: active
     sourceFile: packages/cli/src/commands/branch.ts
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-branch-store-recovery-v2
       - type: covered_by
         target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+      - type: implements
+        target: REQ-branch-store-recovery-v3
   - id: SYM-branchRecoverCommand
     title: branchRecoverCommand
+    status: active
     sourceFile: packages/cli/src/commands/branch.ts
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-branch-store-recovery-v2
       - type: covered_by
         target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+      - type: implements
+        target: REQ-branch-store-recovery-v3
   - id: SYM-BranchRecoverOptions
     title: BranchRecoverOptions
     sourceFile: packages/cli/src/commands/branch.ts
@@ -19696,13 +19732,16 @@ symbols:
         target: TEST-cli-branch-store-recovery
   - id: SYM-inspectBranchStore
     title: inspectBranchStore
+    status: active
     sourceFile: packages/cli/src/utils/branch-store.ts
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-branch-store-recovery-v2
       - type: covered_by
         target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v2
+      - type: implements
+        target: REQ-branch-store-recovery-v3
   - id: SYM-branchStoreReason
     title: branchStoreReason
     sourceFile: packages/cli/src/utils/branch-store.ts
@@ -22770,8 +22809,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-test-sync-semantic-boundary-shards
     title: uses canonical relationship shards for semantic boundary validation
     status: active
@@ -22872,6 +22915,8 @@ symbols:
         target: TEST-cli-branch-store-recovery
       - type: implements
         target: REQ-branch-store-recovery-v2
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-EE0B2692CF85
     title: branchRestoreCommand
     status: active
@@ -22882,6 +22927,8 @@ symbols:
         target: TEST-cli-branch-store-recovery
       - type: implements
         target: REQ-branch-store-recovery-v2
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-FB0CE9A7383B
     title: BranchRestoreOptions
     status: active
@@ -23071,6 +23118,8 @@ symbols:
         target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-F6E934B6698C
     title: EntityDeletionPlan
     status: active
@@ -23439,6 +23488,8 @@ symbols:
         target: TEST-cli-branch-store-recovery
       - type: implements
         target: REQ-branch-store-recovery-v2
+      - type: implements
+        target: REQ-branch-store-recovery-v3
   - id: SYM-auto-DFC8FB7A3472
     title: isDetachedHead
     status: active
@@ -24088,5 +24139,119 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-mcp-upsert-coverage
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+  - id: SYM-isSupportedLegacyBranchMigration
+    title: isSupportedLegacyBranchMigration
+    status: active
+    sourceFile: packages/cli/src/commands/branch.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v3
+  - id: SYM-test-packed-source-relationship-parity
+    title: assertSourceRelationshipParityOutcome
+    status: active
+    sourceFile: documentation/tests/e2e/packed/source-relationship-parity.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-source-relationship-parity
+  - id: SYM-compareRelationshipParity
+    title: compareRelationshipParity
+    status: active
+    sourceFile: packages/cli/src/public/operations/source-relationship-parity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-source-relationship-parity
+      - type: implements
+        target: REQ-kibi-source-relationship-parity
+  - id: SYM-collectSourceRelationshipParityViolations
+    title: collectSourceRelationshipParityViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/source-relationship-parity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-source-relationship-parity
+      - type: implements
+        target: REQ-kibi-source-relationship-parity
+  - id: SYM-firstGitAdditionCommit
+    title: firstGitAdditionCommit
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/relationships.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-supersedes-history-unit
+      - type: implements
+        target: REQ-branch-store-recovery-v3
+  - id: SYM-classifySupersedesHistory
+    title: classifySupersedesHistory
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/relationships.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-supersedes-history-unit
+      - type: implements
+        target: REQ-branch-store-recovery-v3
+  - id: SYM-parseCompiledRelationshipRows
+    title: parseCompiledRelationshipRows
+    status: active
+    sourceFile: packages/cli/src/public/operations/source-relationship-parity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-source-relationship-parity
+      - type: implements
+        target: REQ-kibi-source-relationship-parity
+  - id: SYM-RelationshipParityRecord
+    title: RelationshipParityRecord
+    status: active
+    sourceFile: packages/cli/src/public/operations/source-relationship-parity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-source-relationship-parity-unit
+      - type: implements
+        target: REQ-kibi-source-relationship-parity
+  - id: SYM-cli-mutation-RelationshipType
+    title: RelationshipType
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/relationships.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-relationship-type-contract
+      - type: implements
+        target: REQ-mcp-relationship-preflight
+  - id: SYM-validateSupersedesSourceHistory
+    title: validateSupersedesSourceHistory
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/relationships.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-supersedes-history-unit
+      - type: implements
+        target: REQ-branch-store-recovery-v3
+  - id: SYM-cli-mutation-RELATIONSHIP_TYPES
+    title: RELATIONSHIP_TYPES
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/relationships.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-cli-relationship-type-contract
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
+      - type: implements
+        target: REQ-mcp-relationship-preflight

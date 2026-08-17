@@ -118,6 +118,15 @@ describe("rule-registry constants", () => {
     expect(RULE_NAMES.has("query-plan-safety")).toBe(true);
   });
 
+  test("source-relationship-parity rule exists and is enabled by default", () => {
+    const rule = RULES.find(
+      (entry) => entry.name === "source-relationship-parity",
+    );
+    expect(rule?.defaultEnabled).toBe(true);
+    expect(rule?.category).toBe("integrity");
+    expect(RULE_NAMES.has("source-relationship-parity")).toBe(true);
+  });
+
   test("RULE_NAMES is a proper Set for O(1) lookups", () => {
     expect(RULE_NAMES.has).toBeInstanceOf(Function);
     expect(RULE_NAMES.add).toBeInstanceOf(Function);

@@ -38,6 +38,7 @@ import {
   mergeMigrationPlans,
 } from "./migration-plan.js";
 import type { OperationContext, PrologPort } from "./runtime-types.js";
+import { collectSourceRelationshipParityViolations } from "./source-relationship-parity.js";
 import type { OperationResult } from "./types.js";
 import { readWorkspaceSnapshot } from "./workspace-snapshot.js";
 
@@ -201,9 +202,15 @@ export async function executeCheck(
     const queryPlanViolations = rulesAllowlist.has("query-plan-safety")
       ? collectQueryPlanSafetyViolations()
       : [];
+    const sourceRelationshipParityViolations = rulesAllowlist.has(
+      "source-relationship-parity",
+    )
+      ? await collectSourceRelationshipParityViolations(workspaceRoot, prolog)
+      : [];
     const violations: Violation[] = [
       ...aggregatedViolations,
       ...queryPlanViolations,
+      ...sourceRelationshipParityViolations,
     ];
 
     const diagnostics: CheckDiagnostic[] = violations.map((v) => ({

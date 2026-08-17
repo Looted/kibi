@@ -3,18 +3,120 @@
   "description": "Version-controlled contracted verification commands for strict requirement proof.",
   "contracts": [
     {
-      "test_id": "TEST-kibi-conservative-requirement-proof",
+      "test_id": "TEST-kibi-source-relationship-parity",
       "contract": {
         "version": "kibi.verification-contract.v1",
         "runner": "node",
-        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-kibi-conservative-requirement-proof"],
-        "required_case_symbols": ["SYM-test-conservative-requirement-proof-chain"],
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-kibi-source-relationship-parity"
+        ],
+        "required_case_symbols": ["SYM-test-packed-source-relationship-parity"],
         "required_projects": ["default"],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
-        ["swipl", "-q", "-g", "load_test_files([]),run_tests,halt", "-t", "halt", "packages/core/tests/kb.plt"],
-        ["bun", "test", "--timeout", "15000", "./packages/cli/tests/commands/coverage.test.ts", "./packages/cli/tests/commands/status.test.ts", "./packages/cli/tests/operations/discovery.test.ts", "./packages/cli/tests/operations/reporting.test.ts", "./packages/mcp/tests/tools/coverage.test.ts", "./packages/mcp/tests/tools/status.test.ts", "./packages/mcp/tests/server/tools.test.ts"]
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/source-relationship-parity.test.js"
+        ]
+      ]
+    },
+    {
+      "test_id": "TEST-cli-branch-store-recovery",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-cli-branch-store-recovery"
+        ],
+        "required_case_symbols": ["SYM-test-packed-exact-branch-recovery"],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/branch-store-recovery.test.js"
+        ]
+      ]
+    },
+    {
+      "test_id": "TEST-006",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-006"
+        ],
+        "required_case_symbols": [
+          "SYM-test-packed-default-branch-sync-hooks",
+          "SYM-test-packed-post-merge-sync"
+        ],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/hook-integration.test.js"
+        ]
+      ]
+    },
+    {
+      "test_id": "TEST-kibi-conservative-requirement-proof",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-kibi-conservative-requirement-proof"
+        ],
+        "required_case_symbols": [
+          "SYM-test-conservative-requirement-proof-chain"
+        ],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        [
+          "swipl",
+          "-q",
+          "-g",
+          "load_test_files([]),run_tests,halt",
+          "-t",
+          "halt",
+          "packages/core/tests/kb.plt"
+        ],
+        [
+          "bun",
+          "test",
+          "--timeout",
+          "15000",
+          "./packages/cli/tests/commands/coverage.test.ts",
+          "./packages/cli/tests/commands/status.test.ts",
+          "./packages/cli/tests/operations/discovery.test.ts",
+          "./packages/cli/tests/operations/reporting.test.ts",
+          "./packages/mcp/tests/tools/coverage.test.ts",
+          "./packages/mcp/tests/tools/status.test.ts",
+          "./packages/mcp/tests/server/tools.test.ts"
+        ]
       ]
     },
     {
@@ -22,122 +124,256 @@
       "contract": {
         "version": "kibi.verification-contract.v1",
         "runner": "node",
-        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-kibi-dependency-ordered-repair-plan"],
-        "required_case_symbols": ["SYM-test-packed-dependency-ordered-repair-plan"],
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-kibi-dependency-ordered-repair-plan"
+        ],
+        "required_case_symbols": [
+          "SYM-test-packed-dependency-ordered-repair-plan"
+        ],
         "required_projects": ["default"],
         "success_policy": "all_required_cases_first_attempt"
       },
-      "steps": [["node", "scripts/run-packed-e2e.mjs", "/tmp/kibi-e2e-packed-compiled", "/tmp/kibi-e2e-packed-compiled/dependency-ordered-repair-plan.test.js"]]
+      "steps": [
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/dependency-ordered-repair-plan.test.js"
+        ]
+      ]
     },
     {
       "test_id": "TEST-kibi-distribution-parity-matrix",
       "contract": {
         "version": "kibi.verification-contract.v1",
         "runner": "node",
-        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-kibi-distribution-parity-matrix"],
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-kibi-distribution-parity-matrix"
+        ],
         "required_case_symbols": ["SYM-test-packed-distribution-parity"],
         "required_projects": ["default"],
         "success_policy": "all_required_cases_first_attempt"
       },
-      "steps": [["node", "scripts/run-packed-e2e.mjs", "/tmp/kibi-e2e-packed-compiled", "/tmp/kibi-e2e-packed-compiled/distribution-parity-matrix.test.js"]]
+      "steps": [
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/distribution-parity-matrix.test.js"
+        ]
+      ]
     },
     {
       "test_id": "TEST-kibi-fresh-verification-receipts",
       "contract": {
         "version": "kibi.verification-contract.v1",
         "runner": "node",
-        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-kibi-fresh-verification-receipts"],
-        "required_case_symbols": ["SYM-test-packed-fresh-verification-receipts"],
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-kibi-fresh-verification-receipts"
+        ],
+        "required_case_symbols": [
+          "SYM-test-packed-fresh-verification-receipts"
+        ],
         "required_projects": ["default"],
         "success_policy": "all_required_cases_first_attempt"
       },
-      "steps": [["node", "scripts/run-packed-e2e.mjs", "/tmp/kibi-e2e-packed-compiled", "/tmp/kibi-e2e-packed-compiled/fresh-verification-receipts.test.js"]]
+      "steps": [
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/fresh-verification-receipts.test.js"
+        ]
+      ]
     },
     {
       "test_id": "TEST-kibi-html-health-report",
       "contract": {
         "version": "kibi.verification-contract.v1",
         "runner": "node",
-        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-kibi-html-health-report"],
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-kibi-html-health-report"
+        ],
         "required_case_symbols": ["SYM-e2e-packed-cli-html-report"],
         "required_projects": ["default"],
         "success_policy": "all_required_cases_first_attempt"
       },
-      "steps": [["node", "scripts/run-packed-e2e.mjs", "/tmp/kibi-e2e-packed-compiled", "/tmp/kibi-e2e-packed-compiled/cli-workflows.test.js"]]
+      "steps": [
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/cli-workflows.test.js"
+        ]
+      ]
     },
     {
       "test_id": "TEST-kibi-ontology-convergence-witnesses",
       "contract": {
         "version": "kibi.verification-contract.v1",
         "runner": "node",
-        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-kibi-ontology-convergence-witnesses"],
-        "required_case_symbols": ["SYM-test-packed-ontology-convergence-witnesses"],
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-kibi-ontology-convergence-witnesses"
+        ],
+        "required_case_symbols": [
+          "SYM-test-packed-ontology-convergence-witnesses"
+        ],
         "required_projects": ["default"],
         "success_policy": "all_required_cases_first_attempt"
       },
-      "steps": [["node", "scripts/run-packed-e2e.mjs", "/tmp/kibi-e2e-packed-compiled", "/tmp/kibi-e2e-packed-compiled/ontology-convergence-witnesses.test.js"]]
+      "steps": [
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/ontology-convergence-witnesses.test.js"
+        ]
+      ]
     },
     {
       "test_id": "TEST-kibi-proposition-complete-ingestion",
       "contract": {
         "version": "kibi.verification-contract.v1",
         "runner": "node",
-        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-kibi-proposition-complete-ingestion"],
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-kibi-proposition-complete-ingestion"
+        ],
         "required_case_symbols": ["SYM-test-packed-proposition-ingestion"],
         "required_projects": ["default"],
         "success_policy": "all_required_cases_first_attempt"
       },
-      "steps": [["node", "scripts/run-packed-e2e.mjs", "/tmp/kibi-e2e-packed-compiled", "/tmp/kibi-e2e-packed-compiled/proposition-complete-ingestion.test.js"]]
+      "steps": [
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/proposition-complete-ingestion.test.js"
+        ]
+      ]
     },
     {
       "test_id": "TEST-kibi-telemetry-acceptance-gate",
       "contract": {
         "version": "kibi.verification-contract.v1",
         "runner": "node",
-        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-kibi-telemetry-acceptance-gate"],
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-kibi-telemetry-acceptance-gate"
+        ],
         "required_case_symbols": ["SYM-test-packed-telemetry-acceptance"],
         "required_projects": ["default"],
         "success_policy": "all_required_cases_first_attempt"
       },
-      "steps": [["node", "scripts/run-packed-e2e.mjs", "/tmp/kibi-e2e-packed-compiled", "/tmp/kibi-e2e-packed-compiled/telemetry-acceptance-gate.test.js"]]
+      "steps": [
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/telemetry-acceptance-gate.test.js"
+        ]
+      ]
     },
     {
       "test_id": "TEST-kibi-telemetry-remediation-evidence",
       "contract": {
         "version": "kibi.verification-contract.v1",
         "runner": "node",
-        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-kibi-telemetry-remediation-evidence"],
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-kibi-telemetry-remediation-evidence"
+        ],
         "required_case_symbols": ["SYM-test-packed-telemetry-remediation"],
         "required_projects": ["default"],
         "success_policy": "all_required_cases_first_attempt"
       },
-      "steps": [["node", "scripts/run-packed-e2e.mjs", "/tmp/kibi-e2e-packed-compiled", "/tmp/kibi-e2e-packed-compiled/telemetry-remediation-evidence.test.js"]]
+      "steps": [
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/telemetry-remediation-evidence.test.js"
+        ]
+      ]
     },
     {
       "test_id": "TEST-kibi-verification-evidence-contract",
       "contract": {
         "version": "kibi.verification-contract.v1",
         "runner": "node",
-        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-kibi-verification-evidence-contract"],
-        "required_case_symbols": ["SYM-test-packed-fresh-verification-receipts"],
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-kibi-verification-evidence-contract"
+        ],
+        "required_case_symbols": [
+          "SYM-test-packed-fresh-verification-receipts"
+        ],
         "required_projects": ["default"],
         "success_policy": "all_required_cases_first_attempt"
       },
-      "steps": [["node", "scripts/run-packed-e2e.mjs", "/tmp/kibi-e2e-packed-compiled", "/tmp/kibi-e2e-packed-compiled/fresh-verification-receipts.test.js"]]
+      "steps": [
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/fresh-verification-receipts.test.js"
+        ]
+      ]
     },
     {
       "test_id": "TEST-test-journaled-engine-harness",
       "contract": {
         "version": "kibi.verification-contract.v1",
         "runner": "node",
-        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-test-journaled-engine-harness"],
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-test-journaled-engine-harness"
+        ],
         "required_case_symbols": ["SYM-test-owned-engine-runner"],
         "required_projects": ["default"],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
-        ["bun", "test", "--timeout", "15000", "./test/root.test.ts", "./packages/cli/tests/engine.test.ts", "./scripts/tests/run-owned-engine-tests.test.ts"],
-        ["node", "scripts/run-packed-e2e.mjs", "/tmp/kibi-e2e-packed-compiled", "/tmp/kibi-e2e-packed-compiled/cli-workflows.test.js"]
+        [
+          "bun",
+          "test",
+          "--timeout",
+          "15000",
+          "./test/root.test.ts",
+          "./packages/cli/tests/engine.test.ts",
+          "./scripts/tests/run-owned-engine-tests.test.ts"
+        ],
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/cli-workflows.test.js"
+        ]
       ]
     },
     {
@@ -145,13 +381,27 @@
       "contract": {
         "version": "kibi.verification-contract.v1",
         "runner": "node",
-        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-core-journaled-engine-persistence"],
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-core-journaled-engine-persistence"
+        ],
         "required_case_symbols": ["SYM-test-core-journaled-engine-persistence"],
         "required_projects": ["default"],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
-        ["node", "scripts/run-owned-engine-tests.mjs", "--", "bun", "test", "--timeout", "15000", "./packages/cli/tests/engine.test.ts"]
+        [
+          "node",
+          "scripts/run-owned-engine-tests.mjs",
+          "--",
+          "bun",
+          "test",
+          "--timeout",
+          "15000",
+          "./packages/cli/tests/engine.test.ts"
+        ]
       ]
     },
     {
@@ -159,13 +409,27 @@
       "contract": {
         "version": "kibi.verification-contract.v1",
         "runner": "node",
-        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-core-journaled-engine-lifecycle"],
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-core-journaled-engine-lifecycle"
+        ],
         "required_case_symbols": ["SYM-test-core-journaled-engine-lifecycle"],
         "required_projects": ["default"],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
-        ["node", "scripts/run-owned-engine-tests.mjs", "--", "bun", "test", "--timeout", "15000", "./packages/cli/tests/engine.test.ts"]
+        [
+          "node",
+          "scripts/run-owned-engine-tests.mjs",
+          "--",
+          "bun",
+          "test",
+          "--timeout",
+          "15000",
+          "./packages/cli/tests/engine.test.ts"
+        ]
       ]
     },
     {
@@ -173,13 +437,27 @@
       "contract": {
         "version": "kibi.verification-contract.v1",
         "runner": "node",
-        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-core-journaled-engine-delta-sync"],
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-core-journaled-engine-delta-sync"
+        ],
         "required_case_symbols": ["SYM-test-core-journaled-engine-delta-sync"],
         "required_projects": ["default"],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
-        ["node", "scripts/run-owned-engine-tests.mjs", "--", "bun", "test", "--timeout", "15000", "./packages/cli/tests/commands/sync.test.ts"]
+        [
+          "node",
+          "scripts/run-owned-engine-tests.mjs",
+          "--",
+          "bun",
+          "test",
+          "--timeout",
+          "15000",
+          "./packages/cli/tests/commands/sync.test.ts"
+        ]
       ]
     },
     {
@@ -187,13 +465,24 @@
       "contract": {
         "version": "kibi.verification-contract.v1",
         "runner": "node",
-        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-kibi-change-to-proof-evaluation"],
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-kibi-change-to-proof-evaluation"
+        ],
         "required_case_symbols": ["SYM-test-kibi-change-to-proof-evaluation"],
         "required_projects": ["default"],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
-        ["bun", "test", "--timeout", "15000", "./scripts/tests/change-to-proof-eval.test.ts"]
+        [
+          "bun",
+          "test",
+          "--timeout",
+          "15000",
+          "./scripts/tests/change-to-proof-eval.test.ts"
+        ]
       ]
     },
     {
@@ -201,13 +490,25 @@
       "contract": {
         "version": "kibi.verification-contract.v1",
         "runner": "node",
-        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-kibi-change-to-proof-plan-compiler"],
-        "required_case_symbols": ["SYM-test-kibi-change-to-proof-plan-compiler"],
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-kibi-change-to-proof-plan-compiler"
+        ],
+        "required_case_symbols": [
+          "SYM-test-kibi-change-to-proof-plan-compiler"
+        ],
         "required_projects": ["default"],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
-        ["node", "scripts/run-packed-e2e.mjs", "/tmp/kibi-e2e-packed-compiled", "/tmp/kibi-e2e-packed-compiled/mcp-cli-operation-parity.test.js"]
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/mcp-cli-operation-parity.test.js"
+        ]
       ]
     },
     {
@@ -215,13 +516,25 @@
       "contract": {
         "version": "kibi.verification-contract.v1",
         "runner": "node",
-        "command_argv": ["node", "scripts/run-proof-contract.mjs", "--test-id", "TEST-kibi-intent-aware-source-discovery"],
-        "required_case_symbols": ["SYM-test-kibi-intent-aware-source-discovery"],
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-kibi-intent-aware-source-discovery"
+        ],
+        "required_case_symbols": [
+          "SYM-test-kibi-intent-aware-source-discovery"
+        ],
         "required_projects": ["default"],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
-        ["node", "scripts/run-packed-e2e.mjs", "/tmp/kibi-e2e-packed-compiled", "/tmp/kibi-e2e-packed-compiled/discovery-bundle.test.js"]
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/discovery-bundle.test.js"
+        ]
       ]
     }
   ]

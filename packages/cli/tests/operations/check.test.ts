@@ -7,6 +7,11 @@ import type {
   PrologPort,
   PrologQueryResult,
 } from "../../src/public/operations/runtime-types.js";
+import {
+  type RelationshipParityRecord,
+  compareRelationshipParity,
+  parseCompiledRelationshipRows,
+} from "../../src/public/operations/source-relationship-parity.js";
 import { checkSpec } from "../../src/public/operations/specs/check.js";
 
 function createContext(
@@ -37,6 +42,109 @@ function emptyFullQualityResult(goal: string): PrologQueryResult | undefined {
 }
 
 describe("shared check operation executor", () => {
+  test("keeps the authored relationship parity record contract explicit", () => {
+    const record: RelationshipParityRecord = {
+      type: "implements",
+      from: "SYM-PARITY",
+      to: "REQ-PARITY",
+      source: "documentation/symbols.yaml",
+      ownership: "authored",
+    };
+
+    expect(record).toEqual({
+      type: "implements",
+      from: "SYM-PARITY",
+      to: "REQ-PARITY",
+      source: "documentation/symbols.yaml",
+      ownership: "authored",
+    });
+  });
+
+  test("detects authored relationship loss without collapsing repeated or unrelated edges", () => {
+    const violations = compareRelationshipParity(
+      [
+        {
+          type: "requires_property",
+          from: "REQ-1",
+          to: "FACT-A",
+          source: "documentation/requirements/REQ-1.md",
+        },
+        {
+          type: "requires_property",
+          from: "REQ-1",
+          to: "FACT-B",
+          source: "documentation/requirements/REQ-1.md",
+        },
+        {
+          type: "specified_by",
+          from: "REQ-1",
+          to: "SCEN-KEEP",
+          source: "documentation/requirements/REQ-1.md",
+        },
+      ],
+      [
+        { type: "requires_property", from: "REQ-1", to: "FACT-A" },
+        { type: "specified_by", from: "REQ-1", to: "SCEN-KEEP" },
+      ],
+    );
+
+    expect(violations).toEqual([
+      expect.objectContaining({
+        rule: "source-relationship-parity",
+        entityId: "REQ-1",
+        description: expect.stringContaining("requires_property REQ-1->FACT-B"),
+        evidence: expect.objectContaining({
+          direction: "authored_to_compiled",
+        }),
+      }),
+    ]);
+  });
+
+  test("does not require authored ownership for explicitly runtime-only relationships", () => {
+    const violations = compareRelationshipParity(
+      [
+        {
+          type: "specified_by",
+          from: "REQ-AUTHORED",
+          to: "SCEN-MISSING",
+          source: "documentation/requirements/REQ-AUTHORED.md",
+        },
+      ],
+      [
+        {
+          type: "validates",
+          from: "TEST-RUNTIME",
+          to: "SCEN-RUNTIME",
+          source: "test://fixture",
+          ownership: "runtime",
+        },
+      ],
+    );
+
+    expect(violations).toHaveLength(1);
+    expect(violations[0]).toMatchObject({
+      entityId: "REQ-AUTHORED",
+      evidence: { direction: "authored_to_compiled" },
+    });
+  });
+
+  test("normalizes quoted Prolog entity IDs before parity comparison", () => {
+    expect(
+      parseCompiledRelationshipRows(
+        "specified_by",
+        "[['REQ-PARITY-E2E','SCEN-PARITY-E2E',\"documentation/requirements/REQ-PARITY-E2E.md\"]]",
+      ),
+    ).toEqual([
+      {
+        type: "specified_by",
+        from: "REQ-PARITY-E2E",
+        to: "SCEN-PARITY-E2E",
+        source: "documentation/requirements/REQ-PARITY-E2E.md",
+        ownership: "authored",
+      },
+    ]);
+  });
+
   test("returns no violations for empty aggregated result", async () => {
     // Given: an aggregated Prolog response with no violations and empty KB tables.
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {

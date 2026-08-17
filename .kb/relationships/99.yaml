@@ -24,3 +24,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2b262c81f552
+  - type: relates_to
+    from: EVT-004
+    to: REQ-git-hook-sync-v2
+    created_at: 2026-08-17T07:13:31.856Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d8023d736ed
+  - type: relates_to
+    from: EVT-004
+    to: SCEN-git-hook-sync-v2
+    created_at: 2026-08-17T07:13:31.876Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-feaea2702bcb

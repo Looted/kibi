@@ -62,3 +62,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fbdef7ff5bff
+  - type: verified_by
+    from: SCEN-git-hook-sync-v2
+    to: TEST-006
+    created_at: 2026-08-17T07:11:20.309Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79533d1fe686
+  - type: relates_to
+    from: SCEN-git-hook-sync-v2
+    to: SCEN-003
+    created_at: 2026-08-17T07:11:20.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4f4a1e25618

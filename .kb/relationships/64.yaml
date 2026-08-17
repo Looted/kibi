@@ -1,0 +1,22 @@
+relationships:
+  - id: rel-c17d341c9950
+    type: relates_to
+    from: FACT-BRANCH-CROSS-IDENTITY-MIGRATION-REFUSED
+    to: FACT-BRANCH-CROSS-IDENTITY-MIGRATION-LEGACY
+    created_at: "2026-08-17T08:35:25.337Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-cli-mutation-RelationshipType
+    to: REQ-mcp-relationship-preflight
+    created_at: 2026-08-17T11:09:25.415Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfa6f8610958
+  - type: covered_by
+    from: SYM-cli-mutation-RelationshipType
+    to: TEST-cli-relationship-type-contract
+    created_at: 2026-08-17T11:28:07.173Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9c83b0dc64b

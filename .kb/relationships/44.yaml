@@ -1,0 +1,15 @@
+relationships:
+  - id: rel-253abf11044a
+    type: implements
+    from: SYM-isSupportedLegacyBranchMigration
+    to: REQ-branch-store-recovery-v3
+    created_at: "2026-08-17T08:38:26.458Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-isSupportedLegacyBranchMigration
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-17T08:38:26.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e62ce9eedfa4

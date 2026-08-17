@@ -11,7 +11,7 @@
 | `executable_for` | symbol -> test | Test symbol (code) is executable code for a test entity |
 | `constrains` | req -> fact(subject) | Requirement constrains a strict-lane domain fact |
 | `requires_property` | req -> fact(property_value) | Requirement requires a specific property value fact |
-| `supersedes` | old-req -> new-req | Old requirement is formally replaced by a new requirement |
+| `supersedes` | new-req -> old-req | New requirement formally replaces an old requirement |
 | `covered_by` | symbol -> test | Production symbol has test coverage evidence |
 
 ## Valid Payload Examples
@@ -76,8 +76,8 @@ relationships:
 ```yaml
 relationships:
   - type: supersedes
-    from: REQ-001
-    to: REQ-001-v2
+    from: REQ-001-v2
+    to: REQ-001
 ```
 
 ### covered_by
