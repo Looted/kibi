@@ -10,6 +10,7 @@ import {
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { writePendingSourceReceipt } from "../../src/operations/mutation/source-authoring.js";
 import {
   branchStoreKey,
   branchStorePath,
@@ -31,6 +32,16 @@ describe("kibi branch lifecycle", () => {
   });
 
   afterEach(() => {
+    try {
+      // Tests that run status/sync can leave the fixture daemon alive after
+      // the temporary repository is removed. Stop only this fixture's engine.
+      execSync(`bun ${kibiBin} engine stop`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+    } catch {
+      // A test may fail before the fixture has an attached engine.
+    }
     process.chdir(originalCwd);
     rmSync(tmpDir, { recursive: true, force: true });
   });
@@ -129,5 +140,73 @@ describe("kibi branch lifecycle", () => {
     expect(
       readdirSync(path.join(tmpDir, ".kb", "recovery", "main")),
     ).toHaveLength(1);
+  }, 30000);
+
+  test("retires only unchanged missing source receipts during explicit recovery", async () => {
+    execSync("mkdir -p documentation/requirements", { cwd: tmpDir });
+    writeFileSync(
+      path.join(tmpDir, "documentation/requirements/REQ-RECEIPT.md"),
+      "---\nid: REQ-RECEIPT\ntitle: Receipt lifecycle\nstatus: open\n---\n\nReceipt lifecycle.\n",
+    );
+    execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
+    execSync("git add -- documentation/requirements/REQ-RECEIPT.md", {
+      cwd: tmpDir,
+      stdio: "pipe",
+    });
+    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+    writePendingSourceReceipt(
+      tmpDir,
+      "documentation/requirements/REQ-DELETED.md",
+      "a".repeat(64),
+    );
+    writePendingSourceReceipt(
+      tmpDir,
+      ".kb/relationships/missing.yaml",
+      "b".repeat(64),
+    );
+    const statusBeforeRecovery = JSON.parse(
+      execSync(`bun ${kibiBin} status --format json`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      }),
+    ) as { branchStore: { state: string; recoveryRequired: boolean } };
+    expect(statusBeforeRecovery.branchStore).toMatchObject({
+      state: "healthy",
+      recoveryRequired: false,
+    });
+    const receiptRoot = path.join(tmpDir, ".kb", "recovery", "pending-sources");
+    const beforePreview = readdirSync(receiptRoot).sort();
+    const { discoverSourceFiles } = await import(
+      "../../src/commands/sync/discovery.js"
+    );
+    await expect(
+      discoverSourceFiles(
+        tmpDir,
+        { requirements: "documentation/requirements" },
+        { trackedOnly: true },
+      ),
+    ).rejects.toThrow("Pending source is missing");
+    const preview = execSync(`bun ${kibiBin} branch recover`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
+    expect(preview).toContain("Preview only");
+    expect(readdirSync(receiptRoot).sort()).toEqual(beforePreview);
+
+    const applied = execSync(`bun ${kibiBin} branch recover --apply`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
+    expect(applied).toContain("Recovered exact branch KB");
+    expect(readdirSync(receiptRoot)).toHaveLength(0);
+
+    await expect(
+      discoverSourceFiles(
+        tmpDir,
+        { requirements: "documentation/requirements" },
+        { trackedOnly: true },
+      ),
+    ).resolves.toMatchObject({ markdownFiles: expect.any(Array) });
   }, 30000);
 });

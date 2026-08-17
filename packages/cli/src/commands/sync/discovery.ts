@@ -28,7 +28,27 @@ import type { KbConfigPaths } from "../../utils/config.js";
 const MARKDOWN_DISCOVERY_IGNORE = ["**/README.md"] as const;
 const execFileAsync = promisify(execFile);
 
-type DiscoveryOptions = Readonly<{ trackedOnly?: boolean }>;
+export type DiscoveryOptions = Readonly<{
+  trackedOnly?: boolean;
+  recoverMissingPendingSources?: boolean;
+  /** Read-only callers must not consume receipts merely by discovering files. */
+  consumeTrackedPendingReceipts?: boolean;
+}>;
+
+/**
+ * A missing-source receipt selected for explicit recovery.
+ *
+ * The receipt path alone is not enough: another Kibi process may publish a
+ * newer receipt between discovery and the derived-store publication.  The
+ * raw digest lets the recovery boundary compare-and-delete the exact receipt
+ * it observed, leaving a newer receipt available for its owner to handle.
+ */
+export type PendingSourceReceiptSnapshot = Readonly<{
+  receiptPath: string;
+  path: string;
+  afterHash: string;
+  rawHash: string;
+}>;
 
 async function gitTrackedPaths(cwd: string): Promise<Set<string>> {
   const result = await execFileAsync(
@@ -45,16 +65,28 @@ async function gitTrackedPaths(cwd: string): Promise<Set<string>> {
   );
 }
 
-function pendingSourcePaths(cwd: string): Map<string, string> {
+function pendingSourcePaths(
+  cwd: string,
+  recoverMissing: boolean,
+): {
+  paths: Map<string, string>;
+  recoveredReceipts: PendingSourceReceiptSnapshot[];
+} {
   const root = path.join(cwd, ".kb", "recovery", "pending-sources");
-  if (!existsSync(root)) return new Map();
+  if (!existsSync(root)) {
+    return { paths: new Map(), recoveredReceipts: [] };
+  }
   const paths = new Map<string, string>();
+  const recoveredReceipts: PendingSourceReceiptSnapshot[] = [];
   for (const name of readdirSync(root)) {
     if (!name.endsWith(".json")) continue;
+    const receiptPath = path.join(root, name);
     try {
-      const receipt = JSON.parse(
-        readFileSync(path.join(root, name), "utf8"),
-      ) as { path?: unknown; afterHash?: unknown };
+      const raw = readFileSync(receiptPath, "utf8");
+      const receipt = JSON.parse(raw) as {
+        path?: unknown;
+        afterHash?: unknown;
+      };
       if (
         typeof receipt.path === "string" &&
         receipt.path.length > 0 &&
@@ -69,6 +101,15 @@ function pendingSourcePaths(cwd: string): Map<string, string> {
           );
         }
         if (!existsSync(absolute)) {
+          if (recoverMissing) {
+            recoveredReceipts.push({
+              receiptPath,
+              path: relative,
+              afterHash: receipt.afterHash,
+              rawHash: createHash("sha256").update(raw).digest("hex"),
+            });
+            continue;
+          }
           throw new Error(`Pending source is missing: ${relative}`);
         }
         const actual = createHash("sha256")
@@ -93,7 +134,87 @@ function pendingSourcePaths(cwd: string): Map<string, string> {
       // receipt through the normal recovery operation.
     }
   }
-  return paths;
+  return { paths, recoveredReceipts };
+}
+
+export function clearRecoveredPendingSourceReceipts(
+  cwd: string,
+  receipts: readonly PendingSourceReceiptSnapshot[],
+): void {
+  const root = path.resolve(cwd, ".kb", "recovery", "pending-sources");
+  for (const receipt of receipts) {
+    const absolute = path.resolve(receipt.receiptPath);
+    if (!absolute.startsWith(`${root}${path.sep}`)) {
+      throw new Error(
+        `Pending source receipt escapes recovery root: ${absolute}`,
+      );
+    }
+    if (!existsSync(absolute)) continue;
+
+    // Compare-and-delete: a receipt may have been replaced while the
+    // recovery rebuild was running.  Never remove the replacement merely
+    // because it has the same receipt filename.  Failing closed here is
+    // important: publication may have completed, but recovery must not claim
+    // that pending intent was retired when a newer intent remains.
+    let raw: string;
+    try {
+      raw = readFileSync(absolute, "utf8");
+    } catch (error) {
+      if (
+        error !== null &&
+        typeof error === "object" &&
+        "code" in error &&
+        error.code === "ENOENT"
+      ) {
+        continue;
+      }
+      throw new Error(
+        `Failed to inspect pending source receipt for ${receipt.path}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+    const rawHash = createHash("sha256").update(raw).digest("hex");
+    if (rawHash !== receipt.rawHash) {
+      throw new Error(
+        `Pending source receipt changed during recovery for ${receipt.path}; refusing to retire newer receipt`,
+      );
+    }
+    let current: { path?: unknown; afterHash?: unknown };
+    try {
+      current = JSON.parse(raw) as {
+        path?: unknown;
+        afterHash?: unknown;
+      };
+    } catch {
+      throw new Error(
+        `Pending source receipt changed during recovery for ${receipt.path}; refusing to retire newer receipt`,
+      );
+    }
+    if (
+      current.path !== receipt.path ||
+      current.afterHash !== receipt.afterHash
+    ) {
+      throw new Error(
+        `Pending source receipt changed during recovery for ${receipt.path}; refusing to retire newer receipt`,
+      );
+    }
+    try {
+      unlinkSync(absolute);
+    } catch (error) {
+      if (
+        error !== null &&
+        typeof error === "object" &&
+        "code" in error &&
+        error.code === "ENOENT"
+      ) {
+        // Another recovery or source publication may have consumed it
+        // already; cleanup is idempotent for that case.
+        continue;
+      }
+      throw new Error(
+        `Failed to retire pending source receipt for ${receipt.path}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
 }
 
 function filterTracked(
@@ -132,6 +253,7 @@ export async function discoverSourceFiles(
   markdownFiles: string[];
   manifestFiles: string[];
   relationshipsDir: string;
+  recoveredPendingReceiptPaths: PendingSourceReceiptSnapshot[];
 }> {
   const markdownPatterns = [
     normalizeMarkdownPath(paths.requirements),
@@ -158,26 +280,34 @@ export async function discoverSourceFiles(
         absolute: true,
       })
     : [];
+  const recoveredPendingReceiptPaths: PendingSourceReceiptSnapshot[] = [];
 
   if (options.trackedOnly) {
     const tracked = await gitTrackedPaths(cwd);
-    const pending = pendingSourcePaths(cwd);
+    const pending = pendingSourcePaths(
+      cwd,
+      options.recoverMissingPendingSources === true,
+    );
+    recoveredPendingReceiptPaths.push(...pending.recoveredReceipts);
     entityMarkdownFiles = filterTracked(
       cwd,
       entityMarkdownFiles,
       tracked,
-      new Set(pending.keys()),
+      new Set(pending.paths.keys()),
     );
     manifestFiles = filterTracked(
       cwd,
       manifestFiles,
       tracked,
-      new Set(pending.keys()),
+      new Set(pending.paths.keys()),
     );
     // A pending receipt is consumed as soon as Git tracks its file. This is
     // deliberately best-effort metadata; the source hash remains authoritative.
     const pendingRoot = path.join(cwd, ".kb", "recovery", "pending-sources");
-    if (existsSync(pendingRoot)) {
+    if (
+      options.consumeTrackedPendingReceipts !== false &&
+      existsSync(pendingRoot)
+    ) {
       for (const name of readdirSync(pendingRoot)) {
         if (!name.endsWith(".json")) continue;
         try {
@@ -203,5 +333,6 @@ export async function discoverSourceFiles(
     markdownFiles: entityMarkdownFiles,
     manifestFiles,
     relationshipsDir,
+    recoveredPendingReceiptPaths,
   };
 }

@@ -74,9 +74,11 @@ import {
 } from "./sync/cache.js";
 import type { SyncCache } from "./sync/cache.js";
 import {
+  clearRecoveredPendingSourceReceipts,
   discoverSourceFiles,
   normalizeMarkdownPath,
 } from "./sync/discovery.js";
+import type { PendingSourceReceiptSnapshot } from "./sync/discovery.js";
 import {
   normalizeExtractionSources,
   processExtractions,
@@ -141,6 +143,8 @@ function assertNoUnresolvedGitConflicts(workspaceRoot: string): void {
 function trackedRelationshipFiles(
   workspaceRoot: string,
   relationshipsDir: string,
+  recoverMissingPendingSources = false,
+  recoveredPendingReceiptPaths: PendingSourceReceiptSnapshot[] = [],
 ): string[] {
   let tracked: Set<string>;
   try {
@@ -196,6 +200,24 @@ function trackedRelationshipFiles(
         );
       }
       if (!existsSync(absolute)) {
+        if (recoverMissingPendingSources) {
+          const receiptPath = path.join(pendingRoot, receiptName);
+          if (
+            !recoveredPendingReceiptPaths.some(
+              (candidate) => candidate.receiptPath === receiptPath,
+            )
+          ) {
+            recoveredPendingReceiptPaths.push({
+              receiptPath,
+              path: relative,
+              afterHash: receipt.afterHash,
+              rawHash: createHash("sha256")
+                .update(readFileSync(receiptPath))
+                .digest("hex"),
+            });
+          }
+          continue;
+        }
         throw new SyncError(`Pending source is missing: ${relative}`);
       }
       const actual = createHash("sha256")
@@ -477,8 +499,15 @@ export async function syncCommand(
     const config = loadSyncConfig(workspaceRoot);
     const paths = config.paths;
 
-    const { markdownFiles, manifestFiles, relationshipsDir } =
-      await discoverSourceFiles(workspaceRoot, paths, { trackedOnly: true });
+    const {
+      markdownFiles,
+      manifestFiles,
+      relationshipsDir,
+      recoveredPendingReceiptPaths,
+    } = await discoverSourceFiles(workspaceRoot, paths, {
+      trackedOnly: true,
+      recoverMissingPendingSources: recoveryBackupPath !== undefined,
+    });
 
     if (isCliDebugEnabled()) {
       // eslint-disable-next-line no-console
@@ -494,7 +523,12 @@ export async function syncCommand(
     const nowMs = Date.now();
     const currentSourceKeys = new Set(sourceFiles.map(toCacheKey));
     const relationshipShardFiles = existsSync(relationshipsDir)
-      ? trackedRelationshipFiles(workspaceRoot, relationshipsDir)
+      ? trackedRelationshipFiles(
+          workspaceRoot,
+          relationshipsDir,
+          recoveryBackupPath !== undefined,
+          recoveredPendingReceiptPaths,
+        )
       : [];
 
     // No-op is a first-class compiler result. Hashing the configured inputs is
@@ -1267,7 +1301,22 @@ export async function syncCommand(
         atomicPublish(stagingPath, livePath);
       }
       fsyncJournaledBranchStore(livePath);
-      cleanupStaging(stagingPath);
+      try {
+        if (
+          recoveryBackupPath !== undefined &&
+          recoveredPendingReceiptPaths.length > 0
+        ) {
+          clearRecoveredPendingSourceReceipts(
+            workspaceRoot,
+            recoveredPendingReceiptPaths,
+          );
+        }
+      } finally {
+        // Receipt compare-and-delete can fail closed after publication when a
+        // newer receipt wins a race.  Staging bytes are still disposable;
+        // leave the published store and surface the pending intent error.
+        cleanupStaging(stagingPath);
+      }
 
       const evictedHashes: Record<string, string> = {};
       const evictedSeenAt: Record<string, string> = {};

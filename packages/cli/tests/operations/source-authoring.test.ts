@@ -1,9 +1,13 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { discoverSourceFiles } from "../../src/commands/sync/discovery.js";
+import {
+  clearRecoveredPendingSourceReceipts,
+  discoverSourceFiles,
+} from "../../src/commands/sync/discovery.js";
 import {
   configuredSourceTarget,
   normalizeAuthoredSourcePath,
@@ -132,5 +136,107 @@ describe("source-first authoring", () => {
       ),
     ).rejects.toThrow("Pending source hash drift");
   });
+
+  test("refreshes a pending receipt after a second Kibi source write", async () => {
+    const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
+    workspaces.push(workspace);
+    execFileSync("git", ["init", "-b", "main"], { cwd: workspace });
+    const source = "docs/REQ-PENDING-UPDATE.md";
+    await writeSourceForUpsert(
+      {
+        type: "req",
+        id: "REQ-PENDING-UPDATE",
+        properties: { title: "First", semantic_text: "Pending source." },
+        document: { path: source },
+      },
+      {
+        id: "REQ-PENDING-UPDATE",
+        type: "req",
+        title: "First",
+        semantic_text: "Pending source.",
+        source,
+      },
+      undefined,
+      context(workspace),
+    );
+    await writeSourceForUpsert(
+      {
+        type: "req",
+        id: "REQ-PENDING-UPDATE",
+        properties: { title: "Second", semantic_text: "Pending source." },
+      },
+      {
+        id: "REQ-PENDING-UPDATE",
+        type: "req",
+        title: "Second",
+        semantic_text: "Pending source.",
+        source,
+      },
+      { id: "REQ-PENDING-UPDATE", source },
+      context(workspace),
+    );
+
+    const paths = await discoverSourceFiles(
+      workspace,
+      { requirements: "docs" },
+      { trackedOnly: true },
+    );
+    expect(paths.markdownFiles).toEqual([path.join(workspace, source)]);
+    expect(await readFile(path.join(workspace, source), "utf8")).toContain(
+      "title: Second",
+    );
+  });
+
+  test("only explicit recovery may retire a missing pending source", async () => {
+    const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
+    workspaces.push(workspace);
+    execFileSync("git", ["init", "-b", "main"], { cwd: workspace });
+    writePendingSourceReceipt(workspace, "docs/REQ-MISSING.md", "a".repeat(64));
+
+    await expect(
+      discoverSourceFiles(
+        workspace,
+        { requirements: "docs" },
+        { trackedOnly: true },
+      ),
+    ).rejects.toThrow("Pending source is missing");
+
+    const recovery = await discoverSourceFiles(
+      workspace,
+      { requirements: "docs" },
+      { trackedOnly: true, recoverMissingPendingSources: true },
+    );
+    expect(recovery.markdownFiles).toEqual([]);
+    expect(recovery.recoveredPendingReceiptPaths).toHaveLength(1);
+
+    // Simulate another source operation replacing the receipt while the
+    // recovery rebuild is publishing.  Cleanup must retain that newer
+    // receipt instead of deleting by the stable hashed filename.
+    writePendingSourceReceipt(workspace, "docs/REQ-MISSING.md", "b".repeat(64));
+    expect(() =>
+      clearRecoveredPendingSourceReceipts(
+        workspace,
+        recovery.recoveredPendingReceiptPaths,
+      ),
+    ).toThrow(
+      "Pending source receipt changed during recovery for docs/REQ-MISSING.md",
+    );
+    const newer = await discoverSourceFiles(
+      workspace,
+      { requirements: "docs" },
+      { trackedOnly: true, recoverMissingPendingSources: true },
+    );
+    expect(newer.recoveredPendingReceiptPaths).toHaveLength(1);
+
+    clearRecoveredPendingSourceReceipts(
+      workspace,
+      newer.recoveredPendingReceiptPaths,
+    );
+    const after = await discoverSourceFiles(
+      workspace,
+      { requirements: "docs" },
+      { trackedOnly: true },
+    );
+    expect(after.markdownFiles).toEqual([]);
+  });
 });
-import { execFileSync } from "node:child_process";

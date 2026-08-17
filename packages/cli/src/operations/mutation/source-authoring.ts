@@ -590,7 +590,11 @@ export async function writeSourceForUpsert(
     afterHash: digest(after),
     created: before === undefined,
   };
-  if (before === undefined && receipt.afterHash !== null) {
+  const pendingReceipt = pendingReceiptPath(context.workspaceRoot, relative);
+  if (
+    receipt.afterHash !== null &&
+    (before === undefined || fs.existsSync(pendingReceipt))
+  ) {
     writePendingSourceReceipt(
       context.workspaceRoot,
       relative,
