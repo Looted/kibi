@@ -104,4 +104,40 @@ describe("supersedes source-history direction", () => {
       ),
     ).rejects.toThrow("new -> old");
   });
+
+  test("uses the journaled engine entity projection for target provenance", async () => {
+    const indexedProlog = {
+      query: async () => {
+        throw new Error("raw Prolog query should not be used");
+      },
+      queryEntities: async () => ({
+        entities: [
+          {
+            id: "REQ-EXACT",
+            source: "documentation/requirements/exact.md",
+          },
+        ],
+        count: 1,
+      }),
+    } as unknown as PrologPort;
+
+    await expect(
+      validateSupersedesSourceHistory(
+        indexedProlog,
+        {
+          id: "REQ-LEGACY",
+          source: "documentation/requirements/legacy.md",
+        },
+        [
+          {
+            type: "supersedes",
+            from: "REQ-LEGACY",
+            to: "REQ-EXACT",
+          },
+        ],
+        "/repo",
+        ancestry,
+      ),
+    ).rejects.toThrow("new -> old");
+  });
 });

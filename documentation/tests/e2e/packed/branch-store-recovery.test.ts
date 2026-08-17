@@ -88,12 +88,83 @@ if (RUN_NODE_TEST_SUITE) {
           cwd: sandbox.repoDir,
           env: sandbox.env,
         });
+
+        createMarkdownFile(
+          sandbox,
+          "documentation/requirements/REQ-BRANCH-HISTORY-OLD.md",
+          {
+            id: "REQ-BRANCH-HISTORY-OLD",
+            title: "Legacy branch history fixture",
+            type: "req",
+            status: "open",
+          },
+          "Reference material.",
+        );
+        await run("git", ["commit", "-m", "add legacy branch policy"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+        createMarkdownFile(
+          sandbox,
+          "documentation/requirements/REQ-BRANCH-HISTORY-NEW.md",
+          {
+            id: "REQ-BRANCH-HISTORY-NEW",
+            title: "Replacement branch history fixture",
+            type: "req",
+            status: "open",
+          },
+          "Reference material.",
+        );
+        await run("git", ["commit", "-m", "add replacement branch policy"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
         assert.strictEqual(
           (await kibi(sandbox, ["init", "--no-hooks"])).exitCode,
           0,
         );
         const initialSync = await kibi(sandbox, ["sync"]);
         assert.strictEqual(initialSync.exitCode, 0, initialSync.stderr);
+
+        const reversedSupersedesInput = join(
+          sandbox.repoDir,
+          "reversed-supersedes.json",
+        );
+        writeFileSync(
+          reversedSupersedesInput,
+          JSON.stringify({
+            type: "req",
+            id: "REQ-BRANCH-HISTORY-OLD",
+            properties: {
+              title: "Legacy branch history fixture",
+              status: "open",
+              source: "documentation/requirements/REQ-BRANCH-HISTORY-OLD.md",
+            },
+            relationships: [
+              {
+                type: "supersedes",
+                from: "REQ-BRANCH-HISTORY-OLD",
+                to: "REQ-BRANCH-HISTORY-NEW",
+              },
+            ],
+          }),
+        );
+        const reversedSupersedes = await kibi(sandbox, [
+          "upsert",
+          "--input",
+          reversedSupersedesInput,
+        ]);
+        const reversedSupersedesOutput =
+          reversedSupersedes.stdout + reversedSupersedes.stderr;
+        assert.notStrictEqual(
+          reversedSupersedes.exitCode,
+          0,
+          reversedSupersedesOutput,
+        );
+        assert.match(
+          reversedSupersedesOutput,
+          /Invalid supersedes direction.*new -> old/,
+        );
 
         const developStore = exactBranchStorePath(sandbox.repoDir, "develop");
         writeFileSync(join(developStore, "CURRENT"), "corrupted-pointer\n");

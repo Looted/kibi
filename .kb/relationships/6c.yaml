@@ -27,3 +27,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-55f2e9f9227b
+  - type: implements
+    from: SYM-installHook
+    to: REQ-cli-init
+    created_at: 2026-08-17T12:55:13.975Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1bbc0aeb634b
+  - type: implements
+    from: SYM-installHook
+    to: REQ-git-hook-sync-v2
+    created_at: 2026-08-17T12:55:13.984Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3eece4884af4
+  - type: covered_by
+    from: SYM-installHook
+    to: TEST-001
+    created_at: 2026-08-17T12:55:13.987Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32c4431ffbc0
+  - type: covered_by
+    from: SYM-installHook
+    to: TEST-006
+    created_at: 2026-08-17T12:55:13.990Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c26ea97a7f9c

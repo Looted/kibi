@@ -6981,20 +6981,32 @@ symbols:
         target: TEST-opencode-kibi-plugin-v1
   - id: SYM-installGitHooks
     title: installGitHooks
+    status: active
     sourceFile: packages/cli/src/commands/init-helpers.ts
+    symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-cli-init
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-006
+      - type: implements
+        target: REQ-cli-init
+      - type: implements
+        target: REQ-git-hook-sync-v2
   - id: SYM-installHook
     title: installHook
+    status: active
     sourceFile: packages/cli/src/commands/init-helpers.ts
+    symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-cli-init
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-006
+      - type: implements
+        target: REQ-cli-init
+      - type: implements
+        target: REQ-git-hook-sync-v2
   - id: SYM-invalidateKibiOpencodePackage
     title: invalidateKibiOpencodePackage
     sourceFile: packages/opencode/src/auto-update.ts
@@ -20959,14 +20971,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-logical-requirement-coverage
-  - id: SYM-cli-git-hooks-tests
-    title: Git hooks tests
-    sourceFile: packages/cli/tests/hooks.test.ts
-    symbol_role: test
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-006
   - id: SYM-cli-main
     title: main
     sourceFile: packages/cli/src/cli.ts
@@ -21675,10 +21679,9 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-test-packed-proposition-ingestion
     title: packedCliEnforcesPropositionCompleteIngestion
-    sourceFile: documentation/tests/e2e/packed/proposition-complete-ingestion.test.ts
     status: active
-    symbol_role: unknown
-    granularity_reason: extractor-miss
+    sourceFile: documentation/tests/e2e/packed/proposition-complete-ingestion.test.ts
+    symbol_role: behavioral
     relationships:
       - type: executable_for
         target: TEST-kibi-proposition-complete-ingestion
@@ -22808,15 +22811,14 @@ symbols:
     title: verifyHtmlRequirementHealthReport
     status: active
     sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
-    symbol_role: unknown
-    granularity_reason: extractor-miss
+    symbol_role: behavioral
     relationships:
       - type: executable_for
-        target: TEST-kibi-operation-interface-parity
+        target: TEST-kibi-branded-health-report
       - type: executable_for
         target: TEST-kibi-html-health-report
       - type: executable_for
-        target: TEST-kibi-branded-health-report
+        target: TEST-kibi-operation-interface-parity
   - id: SYM-cli-sync-semantic-boundary-relationships
     title: semanticBoundaryRelationships
     status: active
@@ -24207,6 +24209,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: covered_by
         target: TEST-cli-supersedes-history-unit
       - type: implements
         target: REQ-branch-store-recovery-v3
@@ -24216,6 +24220,8 @@ symbols:
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
       - type: covered_by
         target: TEST-cli-supersedes-history-unit
       - type: implements
@@ -24228,16 +24234,6 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-source-relationship-parity
-      - type: implements
-        target: REQ-kibi-source-relationship-parity
-  - id: SYM-RelationshipParityRecord
-    title: RelationshipParityRecord
-    status: active
-    sourceFile: packages/cli/src/public/operations/source-relationship-parity.ts
-    symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-cli-source-relationship-parity-unit
       - type: implements
         target: REQ-kibi-source-relationship-parity
   - id: SYM-cli-mutation-RelationshipType
@@ -24257,6 +24253,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: covered_by
         target: TEST-cli-supersedes-history-unit
       - type: implements
         target: REQ-branch-store-recovery-v3
@@ -24272,3 +24270,13 @@ symbols:
         target: TEST-mcp-relationship-preflight
       - type: implements
         target: REQ-mcp-relationship-preflight
+  - id: SYM-RelationshipParityRecord
+    title: RelationshipParityRecord
+    status: active
+    sourceFile: packages/cli/src/public/operations/source-relationship-parity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-source-relationship-parity-unit
+      - type: implements
+        target: REQ-kibi-source-relationship-parity

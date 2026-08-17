@@ -13,13 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-199d675f485e
-  - type: executable_for
-    from: SYM-test-sync-semantic-boundary-shards
-    to: TEST-kibi-proposition-complete-ingestion
-    created_at: 2026-08-15T21:33:58.823Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d64510bf2c14
   - type: implements
     from: SYM-cli-sync-semantic-boundary-relationships
     to: REQ-kibi-operation-interface-parity

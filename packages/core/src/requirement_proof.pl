@@ -818,16 +818,34 @@ production_symbol_stage(ReqId, PassingE2eTests, Stage, ProductionSymbols) :-
         (kb_relationship(implements, SymbolId, ReqId),
          kb_entity(SymbolId, symbol, _),
          \+ kb:executable_test_symbol(SymbolId)),
-        Production0),
-    sort(Production0, ProductionSymbols),
+        Implementing0),
+    sort(Implementing0, ImplementingSymbols),
+    include(type_shape_symbol_with_structural_contract, ImplementingSymbols, StructuralSymbols),
+    exclude(type_shape_symbol_with_structural_contract, ImplementingSymbols, ProductionSymbols),
     include(symbol_not_covered_by_tests(PassingE2eTests), ProductionSymbols, UncoveredSymbols),
-    production_stage_status(ProductionSymbols, PassingE2eTests, UncoveredSymbols, Status),
-    Stage = _{status: Status, symbols: ProductionSymbols, uncoveredSymbols: UncoveredSymbols}.
+    production_stage_status(ProductionSymbols, StructuralSymbols, PassingE2eTests, UncoveredSymbols, Status),
+    Stage = _{
+        status: Status,
+        symbols: ProductionSymbols,
+        structuralSymbols: StructuralSymbols,
+        uncoveredSymbols: UncoveredSymbols
+    }.
 
-production_stage_status([], _, _, missing) :- !.
-production_stage_status(_, [], _, blocked) :- !.
-production_stage_status(_, _, [], passed) :- !.
-production_stage_status(_, _, _, missing).
+type_shape_symbol_with_structural_contract(SymbolId) :-
+    kb_entity(SymbolId, symbol, SymbolProps),
+    memberchk(symbol_role=RawRole, SymbolProps),
+    normalize_atom(RawRole, 'type-shape'),
+    kb_relationship(covered_by, SymbolId, TestId),
+    kb_entity(TestId, test, TestProps),
+    test_scope(TestProps, unit),
+    memberchk(status=RawStatus, TestProps),
+    normalize_atom(RawStatus, Status),
+    memberchk(Status, [active, passing]).
+
+production_stage_status([], [], _, _, missing) :- !.
+production_stage_status(_, _, [], _, blocked) :- !.
+production_stage_status(_, _, _, [], passed) :- !.
+production_stage_status(_, _, _, _, missing).
 
 symbol_not_covered_by_tests(Tests, SymbolId) :-
     \+ (member(TestId, Tests), kb_relationship(covered_by, SymbolId, TestId)).
@@ -921,7 +939,9 @@ proof_gap_present(invalid_verification_receipt, Stages) :- Stages.passingE2e.inv
 proof_gap_present(verification_contract_mismatch, Stages) :- Stages.passingE2e.contractMismatchReceiptTests \= [].
 proof_gap_present(verification_snapshot_unavailable, Stages) :- Stages.passingE2e.snapshotUnavailableTests \= [].
 proof_gap_present(missing_executable_test_symbol, Stages) :- Stages.executableSymbols.status == missing.
-proof_gap_present(missing_production_symbol, Stages) :- Stages.productionSymbols.symbols == [].
+proof_gap_present(missing_production_symbol, Stages) :-
+    Stages.productionSymbols.symbols == [],
+    Stages.productionSymbols.structuralSymbols == [].
 proof_gap_present(missing_production_symbol_coverage, Stages) :- Stages.productionSymbols.uncoveredSymbols \= [].
 proof_gap_present(missing_symbol_coordinates, Stages) :- Stages.sourceCoordinates.missingSymbols \= [].
 proof_gap_present(missing_requirement_source, Stages) :- Stages.sourceCoordinates.requirementSource == missing.
@@ -947,7 +967,7 @@ gap_definition(verification_contract_mismatch, 57, passing_e2e, "Run the current
 gap_definition(verification_snapshot_unavailable, 58, passing_e2e, "Run coverage through a CLI or MCP runtime that exposes the deterministic workspace snapshot.").
 gap_definition(missing_executable_test_symbol, 60, executable_symbols, "Link executable test code to every qualifying E2E test with executable_for.").
 gap_definition(missing_production_symbol, 70, production_symbols, "Link at least one production symbol to the requirement with implements.").
-gap_definition(missing_production_symbol_coverage, 71, production_symbols, "Link every implementing production symbol to a qualifying E2E test with covered_by.").
+gap_definition(missing_production_symbol_coverage, 71, production_symbols, "Link every runtime implementing production symbol to a qualifying E2E test with covered_by; type-shape symbols retain structural unit contracts instead.").
 gap_definition(missing_symbol_coordinates, 80, source_coordinates, "Refresh and persist exact coordinates for every proof-bearing symbol.").
 gap_definition(missing_requirement_source, 81, source_coordinates, "Bind the requirement to its current source document.").
 

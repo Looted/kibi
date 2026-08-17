@@ -6002,6 +6002,12 @@ coordinates:
     sourceEndLine: 581
     sourceFile: packages/cli/src/public/distribution-parity.ts
     sourceLine: 552
+  SYM-e2e-packed-cli-html-report:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 56
+    sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
+    sourceLine: 20
   SYM-effective-requirement-relationships:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -6197,9 +6203,9 @@ coordinates:
   SYM-formatRelationshipSourceMismatch:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 227
+    sourceEndLine: 238
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 220
+    sourceLine: 231
   SYM-formatUpsertError:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8609,9 +8615,9 @@ coordinates:
   SYM-parity-existing-relationships:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 334
+    sourceEndLine: 345
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 316
+    sourceLine: 327
   SYM-parity-record-entity-audit:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -8663,9 +8669,9 @@ coordinates:
   SYM-parity-validate-live-relationship-targets:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 277
+    sourceEndLine: 288
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 250
+    sourceLine: 261
   SYM-parity-validate-relationship-sources:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8675,9 +8681,9 @@ coordinates:
   SYM-parity-validate-strict-lane-pairing:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 314
+    sourceEndLine: 325
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
-    sourceLine: 279
+    sourceLine: 290
   SYM-parity-validate-upsert-payload-type:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -14405,9 +14411,9 @@ coordinates:
   SYM-test-conservative-requirement-proof-chain:
     sourceColumn: 5
     sourceEndColumn: 79
-    sourceEndLine: 1576
+    sourceEndLine: 1658
     sourceFile: packages/core/tests/kb.plt
-    sourceLine: 1576
+    sourceLine: 1658
   SYM-test-core-journaled-engine-delta-sync:
     sourceColumn: 15
     sourceEndColumn: 1
@@ -14579,15 +14585,15 @@ coordinates:
   SYM-test-rule-contradiction-witness-proof:
     sourceColumn: 5
     sourceEndColumn: 64
-    sourceEndLine: 2884
+    sourceEndLine: 2966
     sourceFile: packages/core/tests/kb.plt
-    sourceLine: 2884
+    sourceLine: 2966
   SYM-test-rule-overlap-witness-proof:
     sourceColumn: 5
     sourceEndColumn: 65
-    sourceEndLine: 2904
+    sourceEndLine: 2986
     sourceFile: packages/core/tests/kb.plt
-    sourceLine: 2904
+    sourceLine: 2986
   SYM-test-sparql-fixture-request:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -14657,7 +14663,7 @@ coordinates:
   SYM-validateSupersedesSourceHistory:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 218
+    sourceEndLine: 229
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
     sourceLine: 182
   SYM-validateUpsertInput:

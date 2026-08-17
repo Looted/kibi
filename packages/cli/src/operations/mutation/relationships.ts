@@ -192,15 +192,26 @@ export async function validateSupersedesSourceHistory(
   for (const relationship of relationships) {
     if (relationship.type !== "supersedes") continue;
     const targetId = stringField(relationship, "to");
-    const targetResult = await prolog.query(
-      `once((kb_entity('${escapeAtom(targetId)}', _, _SupTargetProps), memberchk(source=_SupTargetRaw, _SupTargetProps), normalize_term_atom(_SupTargetRaw, TargetSource)))`,
-    );
-    const targetSource = targetResult.success
-      ? String(targetResult.bindings.TargetSource ?? "").replace(
-          /^['"]|['"]$/g,
-          "",
-        )
-      : "";
+    let targetSource = "";
+    if (prolog.queryEntities) {
+      const targetPage = await prolog.queryEntities({
+        id: targetId,
+        limit: 1,
+        offset: 0,
+      });
+      const indexedSource = targetPage.entities[0]?.source;
+      targetSource = typeof indexedSource === "string" ? indexedSource : "";
+    } else {
+      const targetResult = await prolog.query(
+        `once((kb_entity('${escapeAtom(targetId)}', _, _SupTargetProps), memberchk(source=_SupTargetRaw, _SupTargetProps), normalize_term_atom(_SupTargetRaw, TargetSource)))`,
+      );
+      targetSource = targetResult.success
+        ? String(targetResult.bindings.TargetSource ?? "").replace(
+            /^['"]|['"]$/g,
+            "",
+          )
+        : "";
+    }
     const targetCommit = deps.firstAdditionCommit(workspaceRoot, targetSource);
     if (
       classifySupersedesHistory(

@@ -17,6 +17,44 @@ import {
 const RUN_NODE_TEST_SUITE =
   typeof (globalThis as { Bun?: unknown }).Bun === "undefined";
 
+export async function verifyHtmlRequirementHealthReport(
+  sandbox: TestSandbox,
+): Promise<void> {
+  const { stdout, stderr, exitCode } = await kibi(
+    sandbox,
+    ["report", "--output", "kibi-report"],
+    { timeoutMs: 120000 },
+  );
+  assert.strictEqual(
+    exitCode,
+    0,
+    `report should succeed. Output: ${stdout}${stderr}`,
+  );
+
+  const html = await readFile(
+    path.join(sandbox.repoDir, "kibi-report", "index.html"),
+    "utf8",
+  );
+  assert.match(html, /Kibi Requirement Health · develop/);
+  assert.match(html, /aria-label="Kibi logo"/);
+  assert.match(html, /aria-label="Kibi"/);
+  assert.match(html, /Intent → proof/);
+  assert.match(html, /current requirements/);
+  assert.match(html, /Test requirement/);
+  assert.match(html, /Missing knowledge remains visible/);
+  assert.ok(!html.includes("https://"), "report should not use network assets");
+
+  const badge = await readFile(
+    path.join(sandbox.repoDir, "kibi-report", "badge.svg"),
+    "utf8",
+  );
+  assert.match(badge, /Kibi requirement health:/);
+  assert.match(badge, /#a2d3f4/);
+  assert.ok(!badge.includes("https://"), "badge should not use network assets");
+
+  console.log("  ✓ HTML requirement health report generated");
+}
+
 if (RUN_NODE_TEST_SUITE) {
   describe("CLI E2E: Install and Basic Commands", () => {
     let tarballs: Tarballs;
@@ -197,54 +235,10 @@ if (RUN_NODE_TEST_SUITE) {
       console.log(`  ✓ Check completed (exit code: ${exitCode})`);
     });
 
-    async function verifyHtmlRequirementHealthReport(): Promise<void> {
+    it("should generate a self-contained HTML requirement health report", async () => {
       if (!hasProlog) return;
-
-      const { stdout, stderr, exitCode } = await kibi(
-        sandbox,
-        ["report", "--output", "kibi-report"],
-        { timeoutMs: 120000 },
-      );
-      assert.strictEqual(
-        exitCode,
-        0,
-        `report should succeed. Output: ${stdout}${stderr}`,
-      );
-
-      const html = await readFile(
-        path.join(sandbox.repoDir, "kibi-report", "index.html"),
-        "utf8",
-      );
-      assert.match(html, /Kibi Requirement Health · develop/);
-      assert.match(html, /aria-label="Kibi logo"/);
-      assert.match(html, /aria-label="Kibi"/);
-      assert.match(html, /Intent → proof/);
-      assert.match(html, /current requirements/);
-      assert.match(html, /Test requirement/);
-      assert.match(html, /Missing knowledge remains visible/);
-      assert.ok(
-        !html.includes("https://"),
-        "report should not use network assets",
-      );
-
-      const badge = await readFile(
-        path.join(sandbox.repoDir, "kibi-report", "badge.svg"),
-        "utf8",
-      );
-      assert.match(badge, /Kibi requirement health:/);
-      assert.match(badge, /#a2d3f4/);
-      assert.ok(
-        !badge.includes("https://"),
-        "badge should not use network assets",
-      );
-
-      console.log("  ✓ HTML requirement health report generated");
-    }
-
-    it(
-      "should generate a self-contained HTML requirement health report",
-      verifyHtmlRequirementHealthReport,
-    );
+      await verifyHtmlRequirementHealthReport(sandbox);
+    });
 
     it("should have created .kb directory structure", async () => {
       if (!hasProlog) return;

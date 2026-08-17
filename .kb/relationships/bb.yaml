@@ -100,14 +100,14 @@ relationships:
   - type: implements
     from: SYM-RelationshipParityRecord
     to: REQ-kibi-source-relationship-parity
-    created_at: 2026-08-17T11:05:02.070Z
+    created_at: 2026-08-17T13:10:32.317Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e2bd8cd91d91
   - type: covered_by
     from: SYM-RelationshipParityRecord
     to: TEST-cli-source-relationship-parity-unit
-    created_at: 2026-08-17T11:27:50.990Z
+    created_at: 2026-08-17T13:10:32.330Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3434895ef7dd

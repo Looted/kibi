@@ -1573,6 +1573,88 @@ test(requirement_proof_marks_noncurrent_requirements_not_applicable, [setup(setu
     assertion(Row.proofGaps == []),
     assertion(Report.summary.proofNotApplicable == 1).
 
+test(requirement_proof_uncovered_behavioral_implementation_still_blocks, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-PROOF-BEHAVIORAL-GAP', "Behavioral proof gap", active, []),
+    assert_fixture_entity(test, 'TEST-PROOF-BEHAVIORAL-E2E', "Behavioral proof E2E", passing, [verification_scope=end_to_end]),
+    assert_fixture_entity(symbol, 'SYM-PROOF-BEHAVIORAL-GAP', "runtime_behavior", active, [
+        symbol_role=behavioral,
+        sourceFile="src/runtime.ts"
+    ]),
+    kb_assert_relationship(implements, 'SYM-PROOF-BEHAVIORAL-GAP', 'REQ-PROOF-BEHAVIORAL-GAP', []),
+    requirement_proof:production_symbol_stage(
+        'REQ-PROOF-BEHAVIORAL-GAP',
+        ['TEST-PROOF-BEHAVIORAL-E2E'],
+        Stage,
+        Symbols
+    ),
+    assertion(Symbols == ['SYM-PROOF-BEHAVIORAL-GAP']),
+    assertion(Stage.structuralSymbols == []),
+    assertion(Stage.uncoveredSymbols == ['SYM-PROOF-BEHAVIORAL-GAP']),
+    assertion(Stage.status == missing).
+
+test(requirement_proof_type_shape_contract_is_not_runtime_e2e_or_coordinate_evidence, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-PROOF-TYPE-SHAPE', "Type-shape proof contract", active, []),
+    assert_fixture_entity(test, 'TEST-PROOF-TYPE-SHAPE-E2E', "Type-shape scenario E2E", passing, [verification_scope=end_to_end]),
+    assert_fixture_entity(test, 'TEST-PROOF-TYPE-SHAPE-UNIT', "Type import contract", passing, [verification_scope=unit]),
+    assert_fixture_entity(symbol, 'SYM-PROOF-RUNTIME', "runtime_behavior", active, [
+        symbol_role=behavioral,
+        sourceFile="src/runtime.ts",
+        sourceLine=1,
+        sourceColumn=0,
+        sourceEndLine=3,
+        sourceEndColumn=1
+    ]),
+    assert_fixture_entity(symbol, 'SYM-PROOF-TYPE-SHAPE', "RuntimeShape", active, [
+        symbol_role='type-shape',
+        sourceFile="src/runtime.ts"
+    ]),
+    kb_assert_relationship(implements, 'SYM-PROOF-RUNTIME', 'REQ-PROOF-TYPE-SHAPE', []),
+    kb_assert_relationship(implements, 'SYM-PROOF-TYPE-SHAPE', 'REQ-PROOF-TYPE-SHAPE', []),
+    kb_assert_relationship(covered_by, 'SYM-PROOF-RUNTIME', 'TEST-PROOF-TYPE-SHAPE-E2E', []),
+    kb_assert_relationship(covered_by, 'SYM-PROOF-TYPE-SHAPE', 'TEST-PROOF-TYPE-SHAPE-UNIT', []),
+    requirement_proof:production_symbol_stage(
+        'REQ-PROOF-TYPE-SHAPE',
+        ['TEST-PROOF-TYPE-SHAPE-E2E'],
+        Stage,
+        Symbols
+    ),
+    assertion(Symbols == ['SYM-PROOF-RUNTIME']),
+    assertion(Stage.structuralSymbols == ['SYM-PROOF-TYPE-SHAPE']),
+    assertion(Stage.uncoveredSymbols == []),
+    assertion(Stage.status == passed),
+    requirement_proof:source_coordinate_stage(
+        [source="documentation/requirements/type-shape.md"],
+        [],
+        Symbols,
+        CoordinateStage
+    ),
+    assertion(CoordinateStage.status == passed),
+    assertion(CoordinateStage.missingSymbols == []).
+
+test(requirement_proof_preserves_structurally_tested_type_shape_symbols, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-PROOF-STRUCTURAL-TYPE', "Structural type requirement", active, []),
+    assert_fixture_entity(test, 'TEST-PROOF-STRUCTURAL-E2E', "Structural scenario E2E", passing, [verification_scope=end_to_end]),
+    assert_fixture_entity(test, 'TEST-PROOF-STRUCTURAL-UNIT', "Structural type unit contract", active, [verification_scope=unit]),
+    assert_fixture_entity(symbol, 'SYM-PROOF-STRUCTURAL-TYPE', "StructuralType", active, [
+        symbol_role='type-shape',
+        sourceFile="src/structural.ts"
+    ]),
+    kb_assert_relationship(implements, 'SYM-PROOF-STRUCTURAL-TYPE', 'REQ-PROOF-STRUCTURAL-TYPE', []),
+    kb_assert_relationship(covered_by, 'SYM-PROOF-STRUCTURAL-TYPE', 'TEST-PROOF-STRUCTURAL-UNIT', []),
+    requirement_proof:production_symbol_stage(
+        'REQ-PROOF-STRUCTURAL-TYPE',
+        ['TEST-PROOF-STRUCTURAL-E2E'],
+        Stage,
+        Symbols
+    ),
+    assertion(Symbols == []),
+    assertion(Stage.structuralSymbols == ['SYM-PROOF-STRUCTURAL-TYPE']),
+    assertion(Stage.status == passed),
+    assertion(kb_entity('SYM-PROOF-STRUCTURAL-TYPE', symbol, _)),
+    Stages = _{productionSymbols: Stage},
+    assertion(\+ requirement_proof:proof_gap_present(missing_production_symbol, Stages)),
+    assertion(\+ requirement_proof:proof_gap_present(missing_production_symbol_coverage, Stages)).
+
 test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     ClaimKey = 'CLAIM-ABCDEF0123456789',
     ClaimKeyString = "CLAIM-ABCDEF0123456789",
