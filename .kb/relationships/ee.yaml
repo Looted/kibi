@@ -34,3 +34,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8a7591555186
+  - type: specified_by
+    from: REQ-kibi-fresh-verification-receipts
+    to: SCEN-kibi-snapshot-relevance
+    created_at: 2026-08-17T11:55:17.134Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-35d587508688
+  - type: specified_by
+    from: REQ-kibi-fresh-verification-receipts
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-08-17T11:58:07.869Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27c94f451ba5
+  - type: requires_predicate
+    from: REQ-kibi-fresh-verification-receipts
+    to: FACT-VERIFICATION-RECEIPT-HISTORY
+    created_at: 2026-08-17T11:58:07.886Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59841d80af1f
+  - type: requires_predicate
+    from: REQ-kibi-fresh-verification-receipts
+    to: FACT-VERIFICATION-RECEIPT-BINDING
+    created_at: 2026-08-17T11:58:07.891Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24f3e84b9079
+  - type: requires_predicate
+    from: REQ-kibi-fresh-verification-receipts
+    to: FACT-VERIFICATION-RECEIPT-FRESHNESS
+    created_at: 2026-08-17T11:58:07.895Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33d4a49411da
+  - type: requires_predicate
+    from: REQ-kibi-fresh-verification-receipts
+    to: FACT-VERIFICATION-RECEIPT-REJECTS-INVALID
+    created_at: 2026-08-17T11:58:07.900Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1cef29bbf547
+  - type: requires_predicate
+    from: REQ-kibi-fresh-verification-receipts
+    to: FACT-VERIFICATION-RECEIPT-SNAPSHOT-SURFACES
+    created_at: 2026-08-17T11:58:07.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7c5354fbdbe
+  - type: requires_predicate
+    from: REQ-kibi-fresh-verification-receipts
+    to: FACT-VERIFICATION-RECEIPT-STATUS-NONAUTHORITY
+    created_at: 2026-08-17T11:58:07.908Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b0fe59edb06
+  - type: supersedes
+    from: REQ-kibi-fresh-verification-receipts
+    to: REQ-kibi-verification-receipts-v2
+    created_at: 2026-08-17T11:58:07.912Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-413408f7da08

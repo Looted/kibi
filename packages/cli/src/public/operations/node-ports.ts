@@ -162,7 +162,7 @@ async function workspaceSnapshot(workspaceRoot: string) {
   return {
     version: "kibi.workspace-snapshot.v2" as const,
     hash: digest.digest("hex"),
-    dirty: changes.length > 0,
+    dirty: changes.some((change) => change.snapshotRelevant),
     fileCount: paths.length,
     changes: changes.slice(0, maxChanges),
     changeCount: changes.length,

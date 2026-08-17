@@ -90,3 +90,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0697eed4276b
+  - type: implements
+    from: SYM-node-workspace-snapshot
+    to: REQ-kibi-fresh-verification-receipts
+    created_at: 2026-08-17T11:55:22.231Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6c586e84394
+  - type: covered_by
+    from: SYM-node-workspace-snapshot
+    to: TEST-cli-workspace-snapshot-dirtiness
+    created_at: 2026-08-17T11:55:22.244Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4da0517f0611

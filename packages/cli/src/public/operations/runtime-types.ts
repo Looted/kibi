@@ -141,6 +141,7 @@ export interface GitPort {
 export type WorkspaceSnapshot = Readonly<{
   version: "kibi.workspace-snapshot.v2";
   hash: string;
+  /** True only when at least one change can alter the verification snapshot. */
   dirty: boolean;
   fileCount: number;
   readonly changes?: readonly {

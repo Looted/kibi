@@ -103,4 +103,78 @@ Body
       await nodeGit.workspaceSnapshot?.(workspaceRoot);
     expect(testContractChanged?.hash).not.toBe(codeChanged?.hash);
   });
+
+  test("reports operational artifacts without marking the verification snapshot dirty", async () => {
+    const workspaceRoot = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-workspace-snapshot-dirty-"),
+    );
+    tempDirs.push(workspaceRoot);
+    execFileSync("git", ["init", "-b", "main"], {
+      cwd: workspaceRoot,
+      stdio: "ignore",
+    });
+    execFileSync("git", ["config", "user.email", "kibi@example.test"], {
+      cwd: workspaceRoot,
+    });
+    execFileSync("git", ["config", "user.name", "Kibi Test"], {
+      cwd: workspaceRoot,
+    });
+    mkdirSync(path.join(workspaceRoot, "src"), { recursive: true });
+    mkdirSync(path.join(workspaceRoot, ".kb", "migrations"), {
+      recursive: true,
+    });
+    writeFileSync(path.join(workspaceRoot, "src", "feature.ts"), "v1\n");
+    writeFileSync(
+      path.join(workspaceRoot, ".kb", "migrations", "recovery.json"),
+      '{"state":"initial"}\n',
+    );
+    execFileSync(
+      "git",
+      ["add", "-f", "src/feature.ts", ".kb/migrations/recovery.json"],
+      {
+        cwd: workspaceRoot,
+      },
+    );
+    execFileSync("git", ["commit", "--quiet", "-m", "initial"], {
+      cwd: workspaceRoot,
+    });
+
+    const clean = await nodeGit.workspaceSnapshot?.(workspaceRoot);
+    writeFileSync(
+      path.join(workspaceRoot, ".kb", "migrations", "recovery.json"),
+      '{"state":"operator-recovery"}\n',
+    );
+    const operationalOnly = await nodeGit.workspaceSnapshot?.(workspaceRoot);
+    writeFileSync(path.join(workspaceRoot, "src", "feature.ts"), "v2\n");
+    const sourceChanged = await nodeGit.workspaceSnapshot?.(workspaceRoot);
+
+    expect(clean).toMatchObject({ dirty: false, changeCount: 0, changes: [] });
+    expect(operationalOnly).toMatchObject({
+      dirty: false,
+      changeCount: 1,
+      changes: [
+        {
+          path: ".kb/migrations/recovery.json",
+          status: " M",
+          snapshotRelevant: false,
+        },
+      ],
+    });
+    expect(operationalOnly?.hash).toBe(clean?.hash);
+    expect(sourceChanged).toMatchObject({
+      dirty: true,
+      changeCount: 2,
+      changes: expect.arrayContaining([
+        expect.objectContaining({
+          path: "src/feature.ts",
+          snapshotRelevant: true,
+        }),
+        expect.objectContaining({
+          path: ".kb/migrations/recovery.json",
+          snapshotRelevant: false,
+        }),
+      ]),
+    });
+    expect(sourceChanged?.hash).not.toBe(clean?.hash);
+  });
 });

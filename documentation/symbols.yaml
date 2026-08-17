@@ -21691,6 +21691,20 @@ symbols:
   - id: SYM-node-workspace-snapshot
     title: workspaceSnapshot
     status: active
+    sourceFile: packages/cli/src/public/operations/node-ports.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-cli-workspace-snapshot-dirtiness
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-verification-receipts-v2
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
   - id: SYM-read-workspace-snapshot
     title: readWorkspaceSnapshot
     sourceFile: packages/cli/src/public/operations/workspace-snapshot.ts
@@ -22353,13 +22367,16 @@ symbols:
         target: TEST-kibi-dependency-ordered-repair-plan
   - id: SYM-reqcompiler-runtime-workspace-snapshot
     title: WorkspaceSnapshot
+    status: active
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-cli-workspace-snapshot-dirtiness
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
   - id: SYM-reqcompiler-coverage-input
     title: CoverageInput
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts

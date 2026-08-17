@@ -6089,9 +6089,9 @@ coordinates:
   SYM-executeOperation:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 233
+    sourceEndLine: 234
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 214
+    sourceLine: 215
   SYM-executeSemanticAdvisor:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -8204,6 +8204,12 @@ coordinates:
     sourceEndLine: 376
     sourceFile: packages/cli/src/public/operations/specs/mutation-schemas.ts
     sourceLine: 333
+  SYM-node-workspace-snapshot:
+    sourceColumn: 15
+    sourceEndColumn: 1
+    sourceEndLine: 171
+    sourceFile: packages/cli/src/public/operations/node-ports.ts
+    sourceLine: 87
   SYM-normalize-semantic-clause:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -9353,7 +9359,7 @@ coordinates:
   SYM-reqcompiler-runtime-workspace-snapshot:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 153
+    sourceEndLine: 154
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     sourceLine: 141
   SYM-reqcompiler-semantic-source-field:
@@ -9641,9 +9647,9 @@ coordinates:
   SYM-runtime-Clock:
     sourceColumn: 12
     sourceEndColumn: 31
-    sourceEndLine: 159
+    sourceEndLine: 160
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 159
+    sourceLine: 160
   SYM-runtime-FilesystemPort:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -9677,27 +9683,27 @@ coordinates:
   SYM-runtime-NetworkPort:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 157
+    sourceEndLine: 158
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 155
+    sourceLine: 156
   SYM-runtime-OperationContext:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 187
+    sourceEndLine: 188
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 171
+    sourceLine: 172
   SYM-runtime-OperationOutcome:
     sourceColumn: 12
     sourceEndColumn: 58
-    sourceEndLine: 198
+    sourceEndLine: 199
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 196
+    sourceLine: 197
   SYM-runtime-OperationRuntime:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 211
+    sourceEndLine: 212
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 201
+    sourceLine: 202
   SYM-runtime-PrologPort:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -9713,15 +9719,15 @@ coordinates:
   SYM-runtime-RuntimeOperationSpec:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 194
+    sourceEndLine: 195
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 189
+    sourceLine: 190
   SYM-runtime-RuntimeOptions:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 169
+    sourceEndLine: 170
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 161
+    sourceLine: 162
   SYM-scripts-finalizeLcov:
     sourceColumn: 22
     sourceEndColumn: 1
