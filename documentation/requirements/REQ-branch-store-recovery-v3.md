@@ -8,6 +8,25 @@ tags:
   - storage
   - recovery
   - exact-identity
+links:
+  - type: specified_by
+    target: SCEN-branch-store-recovery
+  - type: constrains
+    target: FACT-KB-PER-BRANCH
+  - type: requires_property
+    target: FACT-BRANCH-CROSS-IDENTITY-MIGRATION-REFUSED
+  - type: requires_property
+    target: FACT-EXACT-BRANCH-IDENTITY-SOURCE
+  - type: requires_property
+    target: FACT-EXACT-BRANCH-INITIALIZATION-MODE
+  - type: requires_predicate
+    target: FACT-BRANCH-STORE-SAME-IDENTITY-MIGRATION
+  - type: requires_predicate
+    target: FACT-PRED-1B6C15026E81
+  - type: requires_predicate
+    target: FACT-PRED-D62E80F439F2
+  - type: supersedes
+    target: REQ-branch-store-recovery-v2
 semantic_text: Kibi must use the exact active Git branch name as the branch-local KB identity. It must not normalize master to main, infer a default branch for a new store, or rename a Git branch. A missing exact store is created only on an explicit branch ensure. A damaged exact store is diagnosed without mutation and rebuilt only through a previewed, explicit recovery that preserves the previous bytes. Legacy migration may only convert a literal branch store to the hashed store for the same exact active Git branch identity. Every cross-identity pair, including main to master, must be refused.
 semantic_clauses:
   - Kibi must use the exact active Git branch name as the branch-local KB identity.

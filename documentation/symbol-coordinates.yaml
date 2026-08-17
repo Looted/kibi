@@ -14489,9 +14489,9 @@ coordinates:
   SYM-test-packed-eight-entity-schema-roundtrip:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 330
+    sourceEndLine: 333
     sourceFile: documentation/tests/e2e/packed/schema-relationship-roundtrip.test.ts
-    sourceLine: 273
+    sourceLine: 276
   SYM-test-packed-exact-branch-recovery:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -14555,9 +14555,9 @@ coordinates:
   SYM-test-packed-typed-relationship-roundtrip:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 423
+    sourceEndLine: 426
     sourceFile: documentation/tests/e2e/packed/schema-relationship-roundtrip.test.ts
-    sourceLine: 333
+    sourceLine: 336
   SYM-test-root-batch-concurrency:
     sourceColumn: 13
     sourceEndColumn: 34

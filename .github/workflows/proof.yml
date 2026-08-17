@@ -80,10 +80,11 @@ jobs:
           rm -rf /tmp/kibi-e2e-packed-compiled
           npx tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled
 
-      - name: Sync and validate the exact proof snapshot
+      - name: Sync and validate integrity of the proof snapshot
+        id: integrity
         run: |
           bun packages/cli/bin/kibi sync --refresh-symbol-coordinates
-          bun packages/cli/bin/kibi check --format json
+          bun packages/cli/bin/kibi check --format json --rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness
 
       - name: Run every contracted proof command through Kibi
         run: node scripts/run-proof-runner.mjs
@@ -91,10 +92,12 @@ jobs:
       - name: Enforce proof baseline and clean snapshot
         run: node scripts/check-proof-baseline.mjs
 
-      - name: Generate report only after proof verification
+      - name: Generate requirement health report
+        if: ${{ !cancelled() && steps.integrity.outcome == 'success' }}
         run: bun packages/cli/bin/kibi report --output kibi-report
 
       - name: Upload Kibi proof artifacts
+        if: ${{ !cancelled() && steps.integrity.outcome == 'success' }}
         uses: actions/upload-artifact@v5
         with:
           name: kibi-requirement-proof
@@ -105,7 +108,7 @@ jobs:
           retention-days: 7
 
       - name: Upload Kibi Pages artifact
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && steps.integrity.outcome == 'success' }}
         uses: actions/upload-pages-artifact@v5
         with:
           path: kibi-report

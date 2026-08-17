@@ -1,12 +1,72 @@
-import { describe, expect, mock, test } from "bun:test";
+import { afterAll, describe, expect, mock, test } from "bun:test";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import type { OperationContext } from "kibi-cli/operations/runtime-types";
+import {
+  branchStorePath,
+  ensureBranchStoreManifest,
+} from "kibi-cli/public/branch-resolver";
 import type { PrologProcess } from "kibi-cli/prolog";
 import { createMcpRuntime } from "../../src/runtime/mcp-runtime.js";
 import { registerAllTools } from "../../src/server/tools.js";
 import { TOOLS } from "../../src/tools-config.js";
 import { handleKbStatus } from "../../src/tools/status.js";
 
+const tempRoots: string[] = [];
+
+function isolatedWorkspace(): string {
+  const workspaceRoot = mkdtempSync(path.join(tmpdir(), "kibi-mcp-status-"));
+  tempRoots.push(workspaceRoot);
+  return workspaceRoot;
+}
+
+function writeHealthyStore(workspaceRoot: string, branch: string): void {
+  const storePath = branchStorePath(workspaceRoot, branch);
+  ensureBranchStoreManifest(workspaceRoot, branch);
+  mkdirSync(path.join(storePath, "rdf"), { recursive: true });
+  writeFileSync(path.join(storePath, "storage.json"), "{}\n");
+  writeFileSync(path.join(storePath, "CURRENT"), "generation-1:1\n");
+}
+
+function statusContext(
+  workspaceRoot: string,
+  branch: string,
+): OperationContext {
+  return {
+    workspaceRoot,
+    signal: new AbortController().signal,
+    clock: () => new Date("2026-03-22T12:00:00Z"),
+    git: {
+      revParse: async () => branch,
+      showToplevel: async () => workspaceRoot,
+      workspaceSnapshot: async () => ({
+        version: "kibi.workspace-snapshot.v2",
+        hash: "a".repeat(64),
+        dirty: false,
+        fileCount: 1,
+      }),
+    },
+    branchAttachment: {
+      gitBranch: branch,
+      kbBranch: branch,
+      storePath: branchStorePath(workspaceRoot, branch),
+      kind: "exact",
+      migrationRequired: false,
+    },
+  };
+}
+
+afterAll(() => {
+  for (const root of tempRoots) {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 describe("MCP status tool handler", () => {
   test("returns branch, snapshot, and freshness metadata", async () => {
+    const workspaceRoot = isolatedWorkspace();
+    writeHealthyStore(workspaceRoot, "main");
     const query = mock(async () => ({
       success: true,
       bindings: {
@@ -25,15 +85,22 @@ describe("MCP status tool handler", () => {
       invalidateCache: mock(() => {}),
       query,
     } as unknown as PrologProcess;
-    const result = await handleKbStatus(prolog, {});
+    const result = await handleKbStatus(
+      prolog,
+      {},
+      statusContext(workspaceRoot, "main"),
+    );
 
-    expect(result.structuredContent?.branch).toBe("develop");
+    expect(result.structuredContent?.branch).toBe("main");
     expect(result.structuredContent?.snapshotId).toBe("stamp:123");
     expect(result.structuredContent?.dirty).toBe(false);
     expect(result.content[0]?.text).toContain("fresh");
+    expect(query).toHaveBeenCalled();
   });
 
   test("includes dirty flag in human-readable status text", async () => {
+    const workspaceRoot = isolatedWorkspace();
+    writeHealthyStore(workspaceRoot, "main");
     const query = mock(async () => ({
       success: true,
       bindings: {
@@ -51,10 +118,40 @@ describe("MCP status tool handler", () => {
       invalidateCache: mock(() => {}),
       query,
     } as unknown as PrologProcess;
-    const result = await handleKbStatus(prolog, {});
+    const result = await handleKbStatus(
+      prolog,
+      {},
+      statusContext(workspaceRoot, "main"),
+    );
 
     expect(result.content[0]?.text).toContain("dirty=true");
+    expect(result.content[0]?.text).toContain("stale");
+  });
+
+  test("reports a missing branch store without querying Prolog", async () => {
+    const workspaceRoot = isolatedWorkspace();
+    const query = mock(async () => ({
+      success: true,
+      bindings: {
+        JsonString: JSON.stringify({
+          snapshotId: "stamp:should-not-be-used",
+        }),
+      },
+    }));
+    const prolog = {
+      invalidateCache: mock(() => {}),
+      query,
+    } as unknown as PrologProcess;
+    const result = await handleKbStatus(
+      prolog,
+      {},
+      statusContext(workspaceRoot, "trunk"),
+    );
+
+    expect(result.structuredContent?.snapshotId).toBe("missing");
+    expect(result.structuredContent?.branchStore?.state).toBe("missing");
     expect(result.content[0]?.text).toContain("unknown");
+    expect(query).toHaveBeenCalledTimes(0);
   });
 
   test("registered status tool does not initialise a session engine for diagnostics", async () => {

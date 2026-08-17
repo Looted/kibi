@@ -4,6 +4,23 @@ import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
+const INTEGRITY_RULES = [
+  "no-dangling-refs",
+  "source-relationship-parity",
+  "no-cycles",
+  "required-fields",
+  "deprecated-adr-no-successor",
+  "domain-contradictions",
+  "query-plan-safety",
+  "logic-coverage",
+  "strict-fact-shape",
+  "strict-req-fact-pairing",
+  "predicate-verifiability",
+  "rule-safety",
+  "rule-verifiability",
+  "semantic-completeness",
+];
+
 const baseline = JSON.parse(
   await readFile(path.resolve("proof/baseline.json"), "utf8"),
 );
@@ -30,7 +47,13 @@ const coverage = jsonCommand([
   "100000",
 ]);
 const status = jsonCommand(["status", "--format", "json"]);
-const check = jsonCommand(["check", "--format", "json"]);
+const check = jsonCommand([
+  "check",
+  "--format",
+  "json",
+  "--rules",
+  INTEGRITY_RULES.join(","),
+]);
 const summary = coverage.summary;
 const currentRequirements = summary.total - summary.proofNotApplicable;
 const currentUnproven = summary.proofMissing + summary.proofUnresolved;

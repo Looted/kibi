@@ -6,6 +6,19 @@ tags:
   - relationships
   - validation
   - parity
+links:
+  - type: specified_by
+    target: SCEN-kibi-source-relationship-parity
+  - type: requires_predicate
+    target: FACT-SOURCE-PARITY-AUTHORED-BLOCK
+  - type: requires_predicate
+    target: FACT-SOURCE-PARITY-DISCOVERY-BLOCK
+  - type: requires_predicate
+    target: FACT-SOURCE-PARITY-FORWARD-NEVER-EXEMPT
+  - type: requires_predicate
+    target: FACT-SOURCE-PARITY-RULE-SELECTION
+  - type: requires_predicate
+    target: FACT-SOURCE-PARITY-RUNTIME-REVERSE-EXEMPT
 semantic_text: Kibi check must compare every relationship authored in tracked Markdown, symbol manifests, or canonical relationship shards with compiled RDF and block when an authored edge is missing. Compiled relationships owned by explicit runtime-only source entities are exempt from reverse source ownership only; authored-to-compiled drift is never exempt. The parity rule must honor explicit rule selection and source-discovery failures must remain blocking.
 semantic_clauses:
   - Kibi check must compare every relationship authored in tracked Markdown, symbol manifests, or canonical relationship shards with compiled RDF and block when an authored edge is missing.

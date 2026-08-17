@@ -65,20 +65,21 @@ describe("strict proof workflow contract", () => {
     const baselineCheck = proofWorkflow.indexOf(
       "Enforce proof baseline and clean snapshot",
     );
-    const report = proofWorkflow.indexOf(
-      "Generate report only after proof verification",
-    );
+    const report = proofWorkflow.indexOf("Generate requirement health report");
     expect(runner).toBeGreaterThanOrEqual(0);
     expect(baselineCheck).toBeGreaterThan(runner);
     expect(report).toBeGreaterThan(baselineCheck);
+    expect(proofWorkflow).toContain(
+      "--rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness",
+    );
     expect(ciWorkflow).not.toContain("Generate Kibi requirement health report");
   });
 
   test("ratchet baseline fixes the denominator and tracks every observed gap", () => {
     expect(baseline.mode).toBe("ratchet");
-    expect(baseline.currentRequirements).toBe(90);
+    expect(baseline.currentRequirements).toBe(91);
     expect(baseline.proofProven).toBe(0);
-    expect(baseline.currentUnproven).toBe(90);
+    expect(baseline.currentUnproven).toBe(91);
     expect(Object.keys(baseline.trackedGaps).sort()).toEqual([
       "contradiction_check_incomplete",
       "logic_manifest_mismatch",
