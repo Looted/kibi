@@ -96,5 +96,29 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 42575
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-df90f8ee8a0f39ac5af6e2b6
+    test_id: TEST-kibi-html-health-report
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-html-health-report
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-html-health-report
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 41b936ce6f2ba0c88a57db980ec2e18c2ca652e74cc92e928daa53b28860e4bd
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-17T12:09:58.517Z'
+    finished_at: '2026-08-17T12:10:38.803Z'
+    artifact_digest: e62f2e691a807c85ebf84d2a4bebe09034ec7e75abd8a0553b17b0b37ce964bb
+    contract_hash: cfe77abad85887a678c3099429d6be62b67c18376db7745303c2924e0d1362fc
+    case_results:
+      - symbol_id: SYM-e2e-packed-cli-html-report
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 40286
 ---
 Covers the pure HTML renderer, command output and browser-launch sequencing, pagination safety, HTML escaping, and a packed consumer workflow that generates the report through the installed CLI.
