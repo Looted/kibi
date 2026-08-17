@@ -55,6 +55,19 @@ describe("strict proof workflow contract", () => {
         expect(step[0]).not.toBe("sh");
         expect(step[0]).not.toBe("bash");
       }
+
+      const markdown = readFileSync(
+        join(ROOT, "documentation", "tests", `${entry.test_id}.md`),
+        "utf8",
+      );
+      const frontmatter = markdown.match(/^---\n([\s\S]*?)\n---/)?.[1];
+      expect(frontmatter).toBeTruthy();
+      const parsed = Bun.YAML.parse(frontmatter ?? "") as {
+        verification_contract?: { command_argv?: string[] };
+      };
+      expect(parsed.verification_contract?.command_argv).toEqual(
+        entry.contract.command_argv,
+      );
     }
   });
 
