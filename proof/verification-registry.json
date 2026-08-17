@@ -220,6 +220,57 @@
       ]
     },
     {
+      "test_id": "TEST-kibi-branded-health-report",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-kibi-branded-health-report"
+        ],
+        "required_case_symbols": ["SYM-e2e-packed-cli-html-report"],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/cli-workflows.test.js"
+        ]
+      ]
+    },
+    {
+      "test_id": "TEST-kibi-entity-relationship-schema-roundtrip",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-kibi-entity-relationship-schema-roundtrip"
+        ],
+        "required_case_symbols": [
+          "SYM-test-packed-eight-entity-schema-roundtrip",
+          "SYM-test-packed-typed-relationship-roundtrip"
+        ],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/schema-relationship-roundtrip.test.js"
+        ]
+      ]
+    },
+    {
       "test_id": "TEST-kibi-ontology-convergence-witnesses",
       "contract": {
         "version": "kibi.verification-contract.v1",

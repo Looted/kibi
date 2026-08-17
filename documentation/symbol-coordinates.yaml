@@ -6005,9 +6005,9 @@ coordinates:
   SYM-e2e-packed-cli-html-report:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 56
+    sourceEndLine: 325
     sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
-    sourceLine: 20
+    sourceLine: 115
   SYM-effective-requirement-relationships:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -14486,6 +14486,12 @@ coordinates:
     sourceEndLine: 487
     sourceFile: documentation/tests/e2e/packed/distribution-parity-matrix.test.ts
     sourceLine: 440
+  SYM-test-packed-eight-entity-schema-roundtrip:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 330
+    sourceFile: documentation/tests/e2e/packed/schema-relationship-roundtrip.test.ts
+    sourceLine: 273
   SYM-test-packed-exact-branch-recovery:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -14546,6 +14552,12 @@ coordinates:
     sourceEndLine: 59
     sourceFile: documentation/tests/e2e/packed/telemetry-remediation-evidence.test.ts
     sourceLine: 49
+  SYM-test-packed-typed-relationship-roundtrip:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 423
+    sourceFile: documentation/tests/e2e/packed/schema-relationship-roundtrip.test.ts
+    sourceLine: 333
   SYM-test-root-batch-concurrency:
     sourceColumn: 13
     sourceEndColumn: 34

@@ -22819,6 +22819,22 @@ symbols:
         target: TEST-kibi-html-health-report
       - type: executable_for
         target: TEST-kibi-operation-interface-parity
+  - id: SYM-test-packed-eight-entity-schema-roundtrip
+    title: packedEightEntitySchemaRoundTrip
+    status: active
+    sourceFile: documentation/tests/e2e/packed/schema-relationship-roundtrip.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-entity-relationship-schema-roundtrip
+  - id: SYM-test-packed-typed-relationship-roundtrip
+    title: packedTypedRelationshipRoundTrip
+    status: active
+    sourceFile: documentation/tests/e2e/packed/schema-relationship-roundtrip.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-entity-relationship-schema-roundtrip
   - id: SYM-cli-sync-semantic-boundary-relationships
     title: semanticBoundaryRelationships
     status: active
