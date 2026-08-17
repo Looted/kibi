@@ -2,6 +2,7 @@ import assert from "node:assert";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { after, before, describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
 import {
   type Tarballs,
   type TestSandbox,
@@ -106,6 +107,27 @@ function labeledSvg(html: string, ariaLabel: string): string {
   return svg;
 }
 
+async function readCanonicalBrandAsset(
+  filename: "logo.svg" | "wordmark.svg",
+): Promise<string> {
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const candidates = [
+    path.join(here, "assets", filename),
+    path.resolve(process.cwd(), "assets", filename),
+  ];
+  const errors: string[] = [];
+  for (const candidate of candidates) {
+    try {
+      return await readFile(candidate, "utf8");
+    } catch (error) {
+      errors.push(`${candidate}: ${(error as Error).message}`);
+    }
+  }
+  throw new Error(
+    `canonical brand asset ${filename} not found:\n${errors.join("\n")}`,
+  );
+}
+
 function proofStageStatus(row: Record<string, unknown>, name: string): string {
   const stages = row.proofStages as Record<string, unknown> | undefined;
   const stage = stages?.[name] as Record<string, unknown> | undefined;
@@ -185,14 +207,8 @@ export async function verifyHtmlRequirementHealthReport(
   assert.match(html, /Test requirement/);
   assert.match(html, /Missing knowledge remains visible/);
 
-  const canonicalLogo = await readFile(
-    path.resolve(process.cwd(), "assets", "logo.svg"),
-    "utf8",
-  );
-  const canonicalWordmark = await readFile(
-    path.resolve(process.cwd(), "assets", "wordmark.svg"),
-    "utf8",
-  );
+  const canonicalLogo = await readCanonicalBrandAsset("logo.svg");
+  const canonicalWordmark = await readCanonicalBrandAsset("wordmark.svg");
   assert.deepStrictEqual(
     svgVisualFingerprint(labeledSvg(html, "Kibi logo")),
     svgVisualFingerprint(canonicalLogo),

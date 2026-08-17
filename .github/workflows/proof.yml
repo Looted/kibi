@@ -76,9 +76,7 @@ jobs:
         run: bun run build
 
       - name: Compile packed proof tests
-        run: |
-          rm -rf /tmp/kibi-e2e-packed-compiled
-          npx tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled
+        run: bun run compile:e2e:packed
 
       - name: Sync and validate integrity of the proof snapshot
         id: integrity

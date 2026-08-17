@@ -4721,15 +4721,15 @@ coordinates:
   SYM-cli-report-brand-badge:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 52
+    sourceEndLine: 55
     sourceFile: packages/cli/src/report/brand.ts
-    sourceLine: 39
+    sourceLine: 42
   SYM-cli-report-brand-logo:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 31
+    sourceEndLine: 34
     sourceFile: packages/cli/src/report/brand.ts
-    sourceLine: 29
+    sourceLine: 32
   SYM-cli-report-brand-tokens:
     sourceColumn: 13
     sourceEndColumn: 10
@@ -4739,9 +4739,9 @@ coordinates:
   SYM-cli-report-brand-wordmark:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 36
+    sourceEndLine: 39
     sourceFile: packages/cli/src/report/brand.ts
-    sourceLine: 34
+    sourceLine: 37
   SYM-cli-report-command:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -6005,9 +6005,9 @@ coordinates:
   SYM-e2e-packed-cli-html-report:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 325
+    sourceEndLine: 341
     sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
-    sourceLine: 115
+    sourceLine: 137
   SYM-effective-requirement-relationships:
     sourceColumn: 22
     sourceEndColumn: 1
