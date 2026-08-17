@@ -32,6 +32,65 @@ verification_contract:
   required_projects:
     - default
   success_policy: all_required_cases_first_attempt
+verification_receipts:
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-1fc4452baa29a26465c11a4d
+    test_id: TEST-kibi-entity-relationship-schema-roundtrip
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-entity-relationship-schema-roundtrip
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-entity-relationship-schema-roundtrip
+    scope: end_to_end
+    outcome: failed
+    code_snapshot: 8fcb38ac8aedffbedf4b6a52c8e28b46ff79eb712af662445ed58452b538c3e4
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-17T19:09:04.858Z'
+    finished_at: '2026-08-17T19:09:57.977Z'
+    artifact_digest: 4d0df3683c840374f86321f1c633c6b3ec733a514b43d91f710dac8731832f95
+    contract_hash: 639cec8caf7c418fcf0af268fe5f77ef2aca798443fa404ac99f2e48e61c6e68
+    case_results:
+      - symbol_id: SYM-test-packed-eight-entity-schema-roundtrip
+        project: default
+        outcome: failed
+        retries: 0
+        duration_ms: 53119
+      - symbol_id: SYM-test-packed-typed-relationship-roundtrip
+        project: default
+        outcome: failed
+        retries: 0
+        duration_ms: 53119
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-25460626d9ceb00c11ad7830
+    test_id: TEST-kibi-entity-relationship-schema-roundtrip
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-entity-relationship-schema-roundtrip
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-entity-relationship-schema-roundtrip
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 12ef6da62e45d998a2f489133906f6fe7818382c717c9f38d509813834a2f200
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-17T19:13:54.657Z'
+    finished_at: '2026-08-17T19:14:48.191Z'
+    artifact_digest: 5b1e194caac2ce01617e0446b94ffd7683b135c8a6a3272d9d7d6437a549304d
+    contract_hash: 639cec8caf7c418fcf0af268fe5f77ef2aca798443fa404ac99f2e48e61c6e68
+    case_results:
+      - symbol_id: SYM-test-packed-eight-entity-schema-roundtrip
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 53534
+      - symbol_id: SYM-test-packed-typed-relationship-roundtrip
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 53534
 ---
 
 Asserts that:

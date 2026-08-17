@@ -141,8 +141,8 @@ function canonicalRelationshipRecords(repoDir: string): JsonRecord[] {
     .filter((file) => file.endsWith(".yaml"))
     .flatMap((file) =>
       readFileSync(join(directory, file), "utf8")
-        .split(/\n(?=\s{2}- type:)/)
-        .filter((block) => /(?:^|\n)\s{2}- type:/.test(block))
+        .split(/\n(?=\s{2}- )/)
+        .filter((block) => /(?:^|\n)\s{2}- /.test(block))
         .map((block) => ({
           type: shardField(block, "- type") ?? shardField(block, "type"),
           from: shardField(block, "from"),
