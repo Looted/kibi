@@ -88,19 +88,115 @@ const GENERATED_MANIFEST_FIELDS = new Set<string>([
 ]);
 
 /**
- * Coarse symbol anchors for which per-symbol coordinates are not expected.
+ * Coarse symbol anchors for which AST per-declaration coordinates are not
+ * expected.
  *
  * Test-suite, module-level-behavior, and config-artifact symbols represent a
  * whole file or configuration unit, and `extractor-miss` explicitly documents
- * that the extractor cannot locate a declaration. These entries legitimately
- * carry no generated coordinates, so coordinate refresh counts them as
- * unchanged instead of flagging them as failures.
+ * that the extractor cannot locate a declaration. Refresh still counts those
+ * entries as unchanged instead of failures, but it persists title-match or
+ * whole-file coordinates so proof-bearing executable symbols can resolve.
  */
 export { COARSE_GRANULARITY_REASONS };
 
 export function isCoarseGranularityAnchor(entry: ManifestSymbolEntry): boolean {
   const reason = entry.granularity_reason;
   return isCoarseGranularityReason(reason);
+}
+
+function extractedCoordinates(
+  entry: ManifestSymbolEntry,
+): SymbolCoordinatesRecord | null {
+  const { sourceFile, sourceLine, sourceColumn, sourceEndLine, sourceEndColumn } =
+    entry;
+  return typeof sourceFile === "string" &&
+    typeof sourceLine === "number" &&
+    typeof sourceColumn === "number" &&
+    typeof sourceEndLine === "number" &&
+    typeof sourceEndColumn === "number"
+    ? {
+        sourceFile,
+        sourceLine,
+        sourceColumn,
+        sourceEndLine,
+        sourceEndColumn,
+      }
+    : null;
+}
+
+function readSourceText(
+  sourceFile: string,
+  workspaceRoot: string,
+  deps: ManifestDeps,
+): string | null {
+  const absolute = path.isAbsolute(sourceFile)
+    ? sourceFile
+    : path.resolve(workspaceRoot, sourceFile);
+  if (!deps.existsSync(absolute)) return null;
+  try {
+    const content = deps.readFileSync(absolute, "utf8");
+    return typeof content === "string" ? content : null;
+  } catch {
+    return null;
+  }
+}
+
+function titleMatchCoordinates(
+  sourceFile: string,
+  title: string,
+  content: string,
+): SymbolCoordinatesRecord | null {
+  if (title.length === 0) return null;
+  const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(`\\b${escaped}\\b`);
+  const lines = content.split(/\r?\n/);
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
+    if (line === undefined) continue;
+    const match = pattern.exec(line);
+    if (!match || match.index < 0) continue;
+    return {
+      sourceFile,
+      sourceLine: index + 1,
+      sourceColumn: match.index,
+      sourceEndLine: index + 1,
+      sourceEndColumn: match.index + title.length,
+    };
+  }
+  return null;
+}
+
+function wholeFileCoordinates(
+  sourceFile: string,
+  content: string,
+): SymbolCoordinatesRecord {
+  const lines = content.split(/\r?\n/);
+  const lastLine = lines[lines.length - 1] ?? "";
+  return {
+    sourceFile,
+    sourceLine: 1,
+    sourceColumn: 0,
+    sourceEndLine: Math.max(1, lines.length),
+    sourceEndColumn: lastLine.length,
+  };
+}
+
+function fallbackCoarseCoordinates(
+  entry: ManifestSymbolEntry,
+  workspaceRoot: string,
+  deps: ManifestDeps,
+): SymbolCoordinatesRecord | null {
+  if (!isCoarseGranularityAnchor(entry)) return null;
+  const sourceFile =
+    typeof entry.sourceFile === "string" ? entry.sourceFile : undefined;
+  const title = typeof entry.title === "string" ? entry.title : "";
+  if (sourceFile === undefined) return null;
+  const content = readSourceText(sourceFile, workspaceRoot, deps);
+  if (content === null) return null;
+  return (
+    titleMatchCoordinates(sourceFile, title, content) ??
+    wholeFileCoordinates(sourceFile, content)
+  );
 }
 
 export async function refreshManifestCoordinates(
@@ -147,21 +243,14 @@ export async function refreshManifestCoordinates(
   for (const entry of enriched) {
     const id = typeof entry?.id === "string" ? entry.id : undefined;
     if (!id) continue;
-    if (
-      typeof entry.sourceFile === "string" &&
-      typeof entry.sourceLine === "number" &&
-      typeof entry.sourceColumn === "number" &&
-      typeof entry.sourceEndLine === "number" &&
-      typeof entry.sourceEndColumn === "number"
-    ) {
-      coordinatesMap[id] = {
-        sourceFile: entry.sourceFile,
-        sourceLine: entry.sourceLine,
-        sourceColumn: entry.sourceColumn,
-        sourceEndLine: entry.sourceEndLine,
-        sourceEndColumn: entry.sourceEndColumn,
-      };
+    const extracted = extractedCoordinates(entry);
+    if (extracted !== null) {
+      coordinatesMap[id] = extracted;
+      continue;
     }
+    const fallback = fallbackCoarseCoordinates(entry, workspaceRoot, resolved);
+    if (fallback === null) continue;
+    coordinatesMap[id] = fallback;
   }
 
   // Optionally write the coordinate artifact to the coordinates path when explicitly requested

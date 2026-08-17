@@ -575,6 +575,99 @@ describe("refreshManifestCoordinates", () => {
     restore();
   });
 
+  test("persists title-match coordinates for coarse anchors during artifact refresh", async () => {
+    const entry = makeEntry({
+      sourceLine: undefined,
+      sourceColumn: undefined,
+      sourceEndLine: undefined,
+      sourceEndColumn: undefined,
+      granularity_reason: "test-suite",
+      title: "owned engine test runner",
+      sourceFile: "src/foo.ts",
+    });
+    mockParseYAML.mockImplementation(() => ({ symbols: [entry] }));
+    mockEnrichSymbolCoordinates.mockImplementation(async (e) => e);
+    mockExistsSync.mockImplementation(() => true);
+    mockReadFileSync.mockImplementation((filePath) =>
+      String(filePath).endsWith("foo.ts")
+        ? 'describe("owned engine test runner", () => {\n});\n'
+        : "original-content",
+    );
+
+    await refreshManifestCoordinates(
+      manifestPath,
+      workspaceRoot,
+      Object.assign(manifestDeps(), { refreshSymbolCoordinates: true }),
+    );
+
+    expect(mockWriteCoordinateArtifact).toHaveBeenCalledWith({
+      "SYM-001": {
+        sourceFile: "src/foo.ts",
+        sourceLine: 1,
+        sourceColumn: 10,
+        sourceEndLine: 1,
+        sourceEndColumn: 34,
+      },
+    });
+  });
+
+  test("persists whole-file coordinates for coarse anchors when the title is absent", async () => {
+    const entry = makeEntry({
+      sourceLine: undefined,
+      sourceColumn: undefined,
+      sourceEndLine: undefined,
+      sourceEndColumn: undefined,
+      granularity_reason: "extractor-miss",
+      title: "Isolated attached-KB Node CLI and MCP discovery regression",
+      sourceFile: "src/foo.ts",
+    });
+    mockParseYAML.mockImplementation(() => ({ symbols: [entry] }));
+    mockEnrichSymbolCoordinates.mockImplementation(async (e) => e);
+    mockExistsSync.mockImplementation(() => true);
+    mockReadFileSync.mockImplementation((filePath) =>
+      String(filePath).endsWith("foo.ts")
+        ? "line one\nline two\n"
+        : "original-content",
+    );
+
+    await refreshManifestCoordinates(
+      manifestPath,
+      workspaceRoot,
+      Object.assign(manifestDeps(), { refreshSymbolCoordinates: true }),
+    );
+
+    expect(mockWriteCoordinateArtifact).toHaveBeenCalledWith({
+      "SYM-001": {
+        sourceFile: "src/foo.ts",
+        sourceLine: 1,
+        sourceColumn: 0,
+        sourceEndLine: 3,
+        sourceEndColumn: 0,
+      },
+    });
+  });
+
+  test("does not invent coordinates for extractable symbols that still lack them", async () => {
+    const entry = makeEntry({
+      sourceLine: undefined,
+      sourceColumn: undefined,
+      sourceEndLine: undefined,
+      sourceEndColumn: undefined,
+      sourceFile: "src/foo.ts",
+    });
+    mockParseYAML.mockImplementation(() => ({ symbols: [entry] }));
+    mockEnrichSymbolCoordinates.mockImplementation(async (e) => e);
+    mockExistsSync.mockImplementation(() => true);
+
+    await refreshManifestCoordinates(
+      manifestPath,
+      workspaceRoot,
+      Object.assign(manifestDeps(), { refreshSymbolCoordinates: true }),
+    );
+
+    expect(mockWriteCoordinateArtifact).toHaveBeenCalledWith({});
+  });
+
   test("still counts legacy-link symbols without coordinates as failed", async () => {
     const entry = makeEntry({
       sourceLine: undefined,

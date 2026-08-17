@@ -3086,12 +3086,24 @@ coordinates:
     sourceEndLine: 198
     sourceFile: packages/cli/src/operations/autopilot/markdown-candidates.ts
     sourceLine: 142
+  SYM-autopilot-mcp-adapter-test:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 45
+    sourceFile: packages/mcp/tests/tools/autopilot-adapter.test.ts
+    sourceLine: 1
   SYM-autopilot-normalize-context:
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 29
     sourceFile: packages/cli/src/operations/autopilot/presentation.ts
     sourceLine: 18
+  SYM-autopilot-parity-test:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 46
+    sourceFile: packages/cli/tests/parity/autopilot.test.ts
+    sourceLine: 1
   SYM-autopilot-present-shared:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3122,6 +3134,12 @@ coordinates:
     sourceEndLine: 89
     sourceFile: packages/cli/src/operations/autopilot/generate.ts
     sourceLine: 32
+  SYM-autopilot-shared-executor-test:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 64
+    sourceFile: packages/cli/tests/operations/autopilot.test.ts
+    sourceLine: 1
   SYM-autopilot-slug:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3980,6 +3998,12 @@ coordinates:
     sourceEndLine: 426
     sourceFile: packages/cli/src/engine.ts
     sourceLine: 421
+  SYM-cli-engine-signal-shutdown-test:
+    sourceColumn: 8
+    sourceEndColumn: 73
+    sourceEndLine: 386
+    sourceFile: packages/cli/tests/engine.test.ts
+    sourceLine: 386
   SYM-cli-engine-socket-path:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4238,6 +4262,12 @@ coordinates:
     sourceEndLine: 39
     sourceFile: packages/cli/src/public/impact/source-changes.ts
     sourceLine: 37
+  SYM-cli-import-purity-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 51
+    sourceFile: packages/cli/tests/cli-import-purity.test.ts
+    sourceLine: 1
   SYM-cli-input-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -4484,6 +4514,12 @@ coordinates:
     sourceEndLine: 139
     sourceFile: packages/cli/src/cli-operation-metadata.ts
     sourceLine: 12
+  SYM-cli-operation-metadata-tests:
+    sourceColumn: 10
+    sourceEndColumn: 44
+    sourceEndLine: 7
+    sourceFile: packages/cli/tests/cli-operation-metadata.test.ts
+    sourceLine: 7
   SYM-cli-operation-metadata-type:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -4640,6 +4676,12 @@ coordinates:
     sourceEndLine: 37
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     sourceLine: 34
+  SYM-cli-prolog-shared-fixture-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 395
+    sourceFile: packages/cli/tests/prolog.test.ts
+    sourceLine: 1
   SYM-cli-protocol-execute-operation:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -4904,6 +4946,18 @@ coordinates:
     sourceEndLine: 145
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
     sourceLine: 139
+  SYM-cli-skills-content-predicate-guidance-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 68
+    sourceFile: packages/cli/tests/skills-content.test.ts
+    sourceLine: 1
+  SYM-cli-skills-mirror-parity-tests:
+    sourceColumn: 8
+    sourceEndColumn: 67
+    sourceEndLine: 15
+    sourceFile: packages/cli/tests/skills-mirror-parity.test.ts
+    sourceLine: 15
   SYM-cli-status-command:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -4982,6 +5036,30 @@ coordinates:
     sourceEndLine: 82
     sourceFile: packages/cli/tests/traceability/impact-symbol-quality-fixtures.ts
     sourceLine: 66
+  SYM-cli-traceability-release-audit:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 215
+    sourceFile: packages/cli/tests/traceability/release-audit.test.ts
+    sourceLine: 1
+  SYM-cli-traceability-release-audit-corrective:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 186
+    sourceFile: packages/cli/tests/traceability/release-audit-corrective.test.ts
+    sourceLine: 1
+  SYM-cli-traceability-release-scope:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 132
+    sourceFile: packages/cli/tests/traceability/release-scope.ts
+    sourceLine: 1
+  SYM-cli-traceability-temp-kb-signal:
+    sourceColumn: 10
+    sourceEndColumn: 37
+    sourceEndLine: 126
+    sourceFile: packages/cli/tests/traceability/temp-kb-signal.test.ts
+    sourceLine: 126
   SYM-cli-validate-against-schema:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5336,6 +5414,12 @@ coordinates:
     sourceEndLine: 1284
     sourceFile: packages/core/src/kb.pl
     sourceLine: 1284
+  SYM-core-kb-logic-coverage-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 3557
+    sourceFile: packages/core/tests/kb.plt
+    sourceLine: 1
   SYM-core-kb-save-locked:
     sourceColumn: 51
     sourceEndColumn: 65
@@ -6413,9 +6497,9 @@ coordinates:
   SYM-hasAllGeneratedCoordinates:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 258
+    sourceEndLine: 347
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 248
+    sourceLine: 337
   SYM-hasOverrideRationale:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6515,9 +6599,9 @@ coordinates:
   SYM-isCoarseGranularityAnchor:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 104
+    sourceEndLine: 105
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 101
+    sourceLine: 102
   SYM-isCoarseGranularityReason:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6527,9 +6611,9 @@ coordinates:
   SYM-isEligibleForCoordinateRefresh:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 275
+    sourceEndLine: 364
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 260
+    sourceLine: 349
   SYM-isErrno:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7178,6 +7262,12 @@ coordinates:
     sourceEndLine: 1
     sourceFile: packages/cli/src/public/skills/kibi-usage/resources/workflows.md
     sourceLine: 1
+  SYM-kibiOpencodePlugin:
+    sourceColumn: 6
+    sourceEndColumn: 24
+    sourceEndLine: 212
+    sourceFile: packages/opencode/src/plugin.ts
+    sourceLine: 212
   SYM-legacy-migration-plan-build:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7370,6 +7460,12 @@ coordinates:
     sourceEndLine: 118
     sourceFile: packages/mcp/src/tools/check-format.ts
     sourceLine: 94
+  SYM-mcp-cli-help-test:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 117
+    sourceFile: packages/mcp/tests/cli-help.test.ts
+    sourceLine: 1
   SYM-mcp-collectQueryPlanSafetyViolations:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7442,6 +7538,12 @@ coordinates:
     sourceEndLine: 42
     sourceFile: packages/mcp/src/tools/coverage.ts
     sourceLine: 33
+  SYM-mcp-handle-sparql:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 30
+    sourceFile: packages/mcp/src/tools/sparql.ts
+    sourceLine: 1
   SYM-mcp-hasImpactOptions:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7454,6 +7556,12 @@ coordinates:
     sourceEndLine: 67
     sourceFile: packages/mcp/src/tools/check-config.ts
     sourceLine: 27
+  SYM-mcp-model-requirement-isolated-workspace-test:
+    sourceColumn: 5
+    sourceEndColumn: 54
+    sourceEndLine: 598
+    sourceFile: packages/mcp/tests/server.test.ts
+    sourceLine: 598
   SYM-mcp-parity-run-operation:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7550,6 +7658,12 @@ coordinates:
     sourceEndLine: 112
     sourceFile: packages/mcp/src/server/session.ts
     sourceLine: 107
+  SYM-mcp-session-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 1383
+    sourceFile: packages/mcp/tests/server/session.test.ts
+    sourceLine: 1
   SYM-mcp-session-updateAttachedBranchStamp:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7634,6 +7748,24 @@ coordinates:
     sourceEndLine: 63
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
     sourceLine: 56
+  SYM-mcp-test-attached-kb-discovery:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 317
+    sourceFile: packages/mcp/tests/attached-kb-discovery.test.ts
+    sourceLine: 1
+  SYM-mcp-test-bounded-search-fixture:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 30
+    sourceFile: packages/mcp/tests/fixtures/bounded-search-kb.pl
+    sourceLine: 1
+  SYM-mcp-test-graph-json-fixture:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 11
+    sourceFile: packages/mcp/tests/fixtures/discovery.pl
+    sourceLine: 1
   SYM-mcp-test-node-driver-isAlive:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7652,6 +7784,12 @@ coordinates:
     sourceEndLine: 59
     sourceFile: packages/mcp/tests/drivers/node-mcp-driver-helpers.mjs
     sourceLine: 54
+  SYM-mcp-test-node-driver-startServer:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 136
+    sourceFile: packages/mcp/tests/drivers/node-mcp-driver-helpers.mjs
+    sourceLine: 1
   SYM-mcp-test-node-driver-stopServer:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7670,12 +7808,30 @@ coordinates:
     sourceEndLine: 124
     sourceFile: packages/mcp/tests/drivers/node-mcp-driver-helpers.mjs
     sourceLine: 118
+  SYM-mcp-test-search-transport-node-driver:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 240
+    sourceFile: packages/mcp/tests/drivers/search-transport-node.mjs
+    sourceLine: 1
   SYM-mcp-test-serialized-broad-search-entities:
     sourceColumn: 9
     sourceEndColumn: 1
     sourceEndLine: 17
     sourceFile: packages/mcp/tests/tools/search.test.ts
     sourceLine: 11
+  SYM-mcp-test-status-json-fixture:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 15
+    sourceFile: packages/mcp/tests/fixtures/status.pl
+    sourceLine: 1
+  SYM-mcp-tools-coverage-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 1204
+    sourceFile: packages/mcp/tests/server/tools-coverage.test.ts
+    sourceLine: 1
   SYM-mergeCoordinatesWithManifest:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8264,6 +8420,12 @@ coordinates:
     sourceEndLine: 192
     sourceFile: packages/vscode/src/codeActionProvider.ts
     sourceLine: 176
+  SYM-opencode-work-context-resolver-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 308
+    sourceFile: packages/opencode/tests/work-context-resolver.test.ts
+    sourceLine: 1
   SYM-operation-autopilot-generate-spec:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -8366,6 +8528,12 @@ coordinates:
     sourceEndLine: 106
     sourceFile: packages/cli/src/public/operations/specs/modeling.ts
     sourceLine: 13
+  SYM-operation-modeling-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 79
+    sourceFile: packages/cli/tests/operations/modeling.test.ts
+    sourceLine: 1
   SYM-operation-name-type:
     sourceColumn: 12
     sourceEndColumn: 29
@@ -8492,6 +8660,12 @@ coordinates:
     sourceEndLine: 524
     sourceFile: documentation/tests/e2e/packed/helpers.ts
     sourceLine: 382
+  SYM-packed-e2e-runner:
+    sourceColumn: 25
+    sourceEndColumn: 43
+    sourceEndLine: 11
+    sourceFile: scripts/run-packed-e2e.mjs
+    sourceLine: 11
   SYM-packed-install-manifest:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8516,6 +8690,12 @@ coordinates:
     sourceEndLine: 113
     sourceFile: documentation/tests/e2e/packed/mcp-cli-operation-parity-support.ts
     sourceLine: 23
+  SYM-packed-parity-e2e-module:
+    sourceColumn: 10
+    sourceEndColumn: 45
+    sourceEndLine: 30
+    sourceFile: documentation/tests/e2e/packed/mcp-cli-operation-parity.test.ts
+    sourceLine: 30
   SYM-packed-parity-json-record:
     sourceColumn: 12
     sourceEndColumn: 49
@@ -8924,6 +9104,12 @@ coordinates:
     sourceEndLine: 355
     sourceFile: packages/cli/src/traceability/temp-kb.ts
     sourceLine: 325
+  SYM-prolog-codec-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 431
+    sourceFile: packages/cli/tests/prolog/codec.test.ts
+    sourceLine: 1
   SYM-publicSkillDescriptors:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -9023,9 +9209,9 @@ coordinates:
   SYM-refreshManifestCoordinates:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 246
+    sourceEndLine: 335
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 106
+    sourceLine: 202
   SYM-registerAllTools:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -9626,6 +9812,12 @@ coordinates:
     sourceEndLine: 75
     sourceFile: packages/vscode/src/shared/manifestResolver.ts
     sourceLine: 63
+  SYM-resolveWorkContext:
+    sourceColumn: 6
+    sourceEndColumn: 24
+    sourceEndLine: 257
+    sourceFile: packages/opencode/src/work-context-resolver.ts
+    sourceLine: 257
   SYM-resolveWorkspaceRoot:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -9896,6 +10088,12 @@ coordinates:
     sourceEndLine: 44
     sourceFile: packages/cli/src/operations/semantic-advisor/observation-plan.ts
     sourceLine: 11
+  SYM-semantic-advisor-operation-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 404
+    sourceFile: packages/cli/tests/operations/semantic-advisor.test.ts
+    sourceLine: 1
   SYM-semantic-advisor-payloadHash:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -10076,6 +10274,12 @@ coordinates:
     sourceEndLine: 68
     sourceFile: scripts/skillopt-eval/adoption-types.ts
     sourceLine: 59
+  SYM-skillopt-adoption-exactly-once-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 251
+    sourceFile: scripts/skillopt-eval/tests/adoption-exactly-once.test.ts
+    sourceLine: 1
   SYM-skillopt-adoption-fixture-approval-artifacts:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -10172,6 +10376,12 @@ coordinates:
     sourceEndLine: 101
     sourceFile: scripts/skillopt-eval/adoption-types.ts
     sourceLine: 101
+  SYM-skillopt-adoption-lock-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 208
+    sourceFile: scripts/skillopt-eval/tests/adoption-lock.test.ts
+    sourceLine: 1
   SYM-skillopt-adoption-once-fixture-adoption-id-of:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -10202,6 +10412,12 @@ coordinates:
     sourceEndLine: 68
     sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
     sourceLine: 63
+  SYM-skillopt-adoption-once-fixture-checkpoint-hash:
+    sourceColumn: 6
+    sourceEndColumn: 20
+    sourceEndLine: 19
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    sourceLine: 19
   SYM-skillopt-adoption-once-fixture-cleanup-roots:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -10220,6 +10436,12 @@ coordinates:
     sourceEndLine: 15
     sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
     sourceLine: 15
+  SYM-skillopt-adoption-once-fixture-manifest:
+    sourceColumn: 6
+    sourceEndColumn: 14
+    sourceEndLine: 20
+    sourceFile: scripts/skillopt-eval/tests/fixtures/adoption-once-fixtures.ts
+    sourceLine: 20
   SYM-skillopt-adoption-once-fixture-resource-body:
     sourceColumn: 13
     sourceEndColumn: 48
@@ -10262,6 +10484,18 @@ coordinates:
     sourceEndLine: 24
     sourceFile: scripts/skillopt-eval/adoption-types.ts
     sourceLine: 20
+  SYM-skillopt-adoption-recovery-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 446
+    sourceFile: scripts/skillopt-eval/tests/adoption-recovery.test.ts
+    sourceLine: 1
+  SYM-skillopt-adoption-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 232
+    sourceFile: scripts/skillopt-eval/tests/adoption.test.ts
+    sourceLine: 1
   SYM-skillopt-adoption-transaction-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -10298,12 +10532,24 @@ coordinates:
     sourceEndLine: 11
     sourceFile: scripts/skillopt-eval/skillopt-artifacts.ts
     sourceLine: 6
+  SYM-skillopt-artifact-path-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 136
+    sourceFile: scripts/skillopt-eval/tests/artifact-path.test.ts
+    sourceLine: 1
   SYM-skillopt-artifact-root-options:
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 12
     sourceFile: scripts/skillopt-eval/runtime/artifact-root.ts
     sourceLine: 8
+  SYM-skillopt-artifact-root-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 41
+    sourceFile: scripts/skillopt-eval/tests/artifact-root.test.ts
+    sourceLine: 1
   SYM-skillopt-assemble-canonical-skills:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -10334,6 +10580,12 @@ coordinates:
     sourceEndLine: 254
     sourceFile: scripts/skillopt-eval/held-out-evidence.ts
     sourceLine: 241
+  SYM-skillopt-authorization-broker-tests:
+    sourceColumn: 10
+    sourceEndColumn: 48
+    sourceEndLine: 25
+    sourceFile: scripts/skillopt-eval/tests/authorization-broker.test.ts
+    sourceLine: 25
   SYM-skillopt-auto-adoption-input:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -10388,6 +10640,12 @@ coordinates:
     sourceEndLine: 150
     sourceFile: scripts/skillopt-eval/runtime/bridge-cli-options.ts
     sourceLine: 71
+  SYM-skillopt-bridge-cli-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 272
+    sourceFile: scripts/skillopt-eval/tests/bridge-cli.test.ts
+    sourceLine: 1
   SYM-skillopt-bridge-codex-executable-env:
     sourceColumn: 13
     sourceEndColumn: 75
@@ -10670,6 +10928,12 @@ coordinates:
     sourceEndLine: 10
     sourceFile: scripts/skillopt-eval/cli-options.ts
     sourceLine: 10
+  SYM-skillopt-cli-workflow-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 432
+    sourceFile: scripts/skillopt-eval/tests/cli-workflow.test.ts
+    sourceLine: 1
   SYM-skillopt-codex-cell-dependencies-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -10736,6 +11000,18 @@ coordinates:
     sourceEndLine: 56
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
     sourceLine: 40
+  SYM-skillopt-codex-cell-runner-rejection-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 65
+    sourceFile: scripts/skillopt-eval/tests/codex-cell-runner-rejection.test.ts
+    sourceLine: 1
+  SYM-skillopt-codex-cell-runner-tests:
+    sourceColumn: 10
+    sourceEndColumn: 27
+    sourceEndLine: 26
+    sourceFile: scripts/skillopt-eval/tests/codex-cell-runner.test.ts
+    sourceLine: 26
   SYM-skillopt-codex-episode-receipt-schema:
     sourceColumn: 13
     sourceEndColumn: 11
@@ -10748,6 +11024,18 @@ coordinates:
     sourceEndLine: 53
     sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
     sourceLine: 51
+  SYM-skillopt-codex-episode-replay-tests:
+    sourceColumn: 10
+    sourceEndColumn: 44
+    sourceEndLine: 71
+    sourceFile: scripts/skillopt-eval/tests/codex-episode-replay.test.ts
+    sourceLine: 71
+  SYM-skillopt-codex-events-tests:
+    sourceColumn: 10
+    sourceEndColumn: 35
+    sourceEndLine: 7
+    sourceFile: scripts/skillopt-eval/tests/codex-events.test.ts
+    sourceLine: 7
   SYM-skillopt-codex-normalization-options-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -11228,6 +11516,12 @@ coordinates:
     sourceEndLine: 135
     sourceFile: scripts/skillopt-eval/contracts/evidence.ts
     sourceLine: 112
+  SYM-skillopt-default-cell-evidence-tests:
+    sourceColumn: 10
+    sourceEndColumn: 45
+    sourceEndLine: 388
+    sourceFile: scripts/skillopt-eval/tests/default-cell-evidence.test.ts
+    sourceLine: 388
   SYM-skillopt-default-codex-cell-dependencies:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -11288,6 +11582,12 @@ coordinates:
     sourceEndLine: 35
     sourceFile: scripts/skillopt-eval/optimize.ts
     sourceLine: 31
+  SYM-skillopt-docs-contract-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 172
+    sourceFile: scripts/skillopt-eval/tests/docs-contract.test.ts
+    sourceLine: 1
   SYM-skillopt-durability-observer:
     sourceColumn: 12
     sourceEndColumn: 73
@@ -11384,6 +11684,18 @@ coordinates:
     sourceEndLine: 16
     sourceFile: scripts/skillopt-eval/evaluation-infrastructure.ts
     sourceLine: 12
+  SYM-skillopt-evaluator-authority-fixtures:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 171
+    sourceFile: scripts/skillopt-eval/tests/fixtures/evaluator-authority-fixtures.ts
+    sourceLine: 1
+  SYM-skillopt-evaluator-authority-tests:
+    sourceColumn: 10
+    sourceEndColumn: 29
+    sourceEndLine: 12
+    sourceFile: scripts/skillopt-eval/tests/evaluator-authority.test.ts
+    sourceLine: 12
   SYM-skillopt-evaluator-evidence-fixture:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -11468,12 +11780,90 @@ coordinates:
     sourceEndLine: 216
     sourceFile: scripts/skillopt-eval/adoption-transaction.ts
     sourceLine: 192
+  SYM-skillopt-external-episode-contract-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 39
+    sourceFile: scripts/skillopt-eval/tests/episode-contract.test.ts
+    sourceLine: 1
+  SYM-skillopt-external-held-out-evaluation-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 45
+    sourceFile: scripts/skillopt-eval/tests/held-out-evaluation.test.ts
+    sourceLine: 1
+  SYM-skillopt-external-held-out-receipt-store-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 219
+    sourceFile: scripts/skillopt-eval/tests/held-out-receipt-store.test.ts
+    sourceLine: 1
+  SYM-skillopt-external-python-adapter-contract-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 383
+    sourceFile: tools/skillopt/tests/test_adapter_contract.py
+    sourceLine: 1
+  SYM-skillopt-external-python-adapter-invocation-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 155
+    sourceFile: tools/skillopt/tests/test_adapter_invocation_contract.py
+    sourceLine: 1
+  SYM-skillopt-external-python-bridge-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 194
+    sourceFile: tools/skillopt/tests/test_bridge.py
+    sourceLine: 1
+  SYM-skillopt-external-python-lineage-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 35
+    sourceFile: tools/skillopt/tests/test_adapter_lineage_contract.py
+    sourceLine: 1
+  SYM-skillopt-external-python-model-validation-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 118
+    sourceFile: tools/skillopt/tests/test_model_validation_errors.py
+    sourceLine: 1
+  SYM-skillopt-external-python-trainer-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 291
+    sourceFile: tools/skillopt/tests/test_trainer_contract.py
+    sourceLine: 1
+  SYM-skillopt-external-real-workflow-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 510
+    sourceFile: scripts/skillopt-eval/tests/real-workflow.test.ts
+    sourceLine: 1
+  SYM-skillopt-external-source-tree-hash-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 147
+    sourceFile: scripts/skillopt-eval/tests/source-tree-hash.test.ts
+    sourceLine: 1
+  SYM-skillopt-external-task-fixture-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 156
+    sourceFile: scripts/skillopt-eval/tests/task-fixture.test.ts
+    sourceLine: 1
   SYM-skillopt-external-trust-client-main:
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 77
     sourceFile: scripts/skillopt-eval/runtime/external-trust-client-cli.ts
     sourceLine: 42
+  SYM-skillopt-external-verify-harness-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 235
+    sourceFile: scripts/skillopt-eval/tests/verify-harness.test.ts
+    sourceLine: 1
   SYM-skillopt-fake-provider-capability:
     sourceColumn: 12
     sourceEndColumn: 68
@@ -11600,6 +11990,12 @@ coordinates:
     sourceEndLine: 196
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     sourceLine: 186
+  SYM-skillopt-file-bridge-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 128
+    sourceFile: scripts/skillopt-eval/tests/file-bridge.test.ts
+    sourceLine: 1
   SYM-skillopt-file-bridge-write-private:
     sourceColumn: 8
     sourceEndColumn: 3
@@ -11672,6 +12068,12 @@ coordinates:
     sourceEndLine: 33
     sourceFile: scripts/skillopt-eval/fixtures/materialize-common.ts
     sourceLine: 27
+  SYM-skillopt-fixture-catalog-tests:
+    sourceColumn: 10
+    sourceEndColumn: 34
+    sourceEndLine: 31
+    sourceFile: scripts/skillopt-eval/tests/catalog.test.ts
+    sourceLine: 31
   SYM-skillopt-fixture-corpus-entry-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -11804,6 +12206,24 @@ coordinates:
     sourceEndLine: 696
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
     sourceLine: 557
+  SYM-skillopt-fixture-private-tests:
+    sourceColumn: 10
+    sourceEndColumn: 41
+    sourceEndLine: 49
+    sourceFile: scripts/skillopt-eval/tests/fixture-private.test.ts
+    sourceLine: 49
+  SYM-skillopt-fixture-public-tests:
+    sourceColumn: 10
+    sourceEndColumn: 40
+    sourceEndLine: 26
+    sourceFile: scripts/skillopt-eval/tests/fixture-public.test.ts
+    sourceLine: 26
+  SYM-skillopt-fixture-resilience-tests:
+    sourceColumn: 10
+    sourceEndColumn: 49
+    sourceEndLine: 22
+    sourceFile: scripts/skillopt-eval/tests/fixture-resilience.test.ts
+    sourceLine: 22
   SYM-skillopt-fixture-serialize:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -11900,6 +12320,12 @@ coordinates:
     sourceEndLine: 116
     sourceFile: scripts/skillopt-eval/source-tree-hash.ts
     sourceLine: 90
+  SYM-skillopt-held-out-concurrency-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 151
+    sourceFile: scripts/skillopt-eval/tests/held-out-evaluation-concurrency.test.ts
+    sourceLine: 1
   SYM-skillopt-held-out-evaluate-matrix:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -11924,6 +12350,12 @@ coordinates:
     sourceEndLine: 17
     sourceFile: scripts/skillopt-eval/scoring/held-out-predicate.ts
     sourceLine: 11
+  SYM-skillopt-held-out-predicate-gate-tests:
+    sourceColumn: 10
+    sourceEndColumn: 40
+    sourceEndLine: 190
+    sourceFile: scripts/skillopt-eval/tests/scoring-gates.test.ts
+    sourceLine: 190
   SYM-skillopt-held-out-predicate-gate-verdict:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -11948,6 +12380,12 @@ coordinates:
     sourceEndLine: 99
     sourceFile: scripts/skillopt-eval/held-out-receipt-store.ts
     sourceLine: 90
+  SYM-skillopt-held-out-test-helpers:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 177
+    sourceFile: scripts/skillopt-eval/tests/held-out-evaluation-test-helpers.ts
+    sourceLine: 1
   SYM-skillopt-install-receipt:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -11966,6 +12404,12 @@ coordinates:
     sourceEndLine: 242
     sourceFile: scripts/skillopt-eval/adoption-journal.ts
     sourceLine: 240
+  SYM-skillopt-isolation-workspace-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 62
+    sourceFile: scripts/skillopt-eval/tests/isolation-workspace.test.ts
+    sourceLine: 1
   SYM-skillopt-journal:
     sourceColumn: 12
     sourceEndColumn: 52
@@ -12086,12 +12530,36 @@ coordinates:
     sourceEndLine: 74
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
     sourceLine: 74
+  SYM-skillopt-mcp-broker-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 370
+    sourceFile: scripts/skillopt-eval/tests/mcp-broker.test.ts
+    sourceLine: 1
+  SYM-skillopt-mcp-startup-probe-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 155
+    sourceFile: scripts/skillopt-eval/tests/mcp-startup-probe.test.ts
+    sourceLine: 1
   SYM-skillopt-measured-report-metrics-type:
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 70
     sourceFile: scripts/skillopt-eval/report.ts
     sourceLine: 63
+  SYM-skillopt-model-gateway-security-tests:
+    sourceColumn: 10
+    sourceEndColumn: 47
+    sourceEndLine: 53
+    sourceFile: scripts/skillopt-eval/tests/model-gateway-security.test.ts
+    sourceLine: 53
+  SYM-skillopt-model-gateway-tests:
+    sourceColumn: 10
+    sourceEndColumn: 38
+    sourceEndLine: 50
+    sourceFile: scripts/skillopt-eval/tests/model-gateway.test.ts
+    sourceLine: 50
   SYM-skillopt-model-schema:
     sourceColumn: 13
     sourceEndColumn: 66
@@ -12224,6 +12692,12 @@ coordinates:
     sourceEndLine: 31
     sourceFile: scripts/skillopt-eval/operator.ts
     sourceLine: 27
+  SYM-skillopt-operator-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 250
+    sourceFile: scripts/skillopt-eval/tests/operator.test.ts
+    sourceLine: 1
   SYM-skillopt-operator-usage-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -12260,6 +12734,18 @@ coordinates:
     sourceEndLine: 364
     sourceFile: scripts/skillopt-eval/optimize.ts
     sourceLine: 212
+  SYM-skillopt-paid-launch-evidence-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 76
+    sourceFile: scripts/skillopt-eval/tests/paid-launch-evidence.test.ts
+    sourceLine: 1
+  SYM-skillopt-paid-launch-receipt-tests:
+    sourceColumn: 10
+    sourceEndColumn: 47
+    sourceEndLine: 14
+    sourceFile: scripts/skillopt-eval/tests/paid-launch-receipts.test.ts
+    sourceLine: 14
   SYM-skillopt-parse-debit-subentry-receipt:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -12884,18 +13370,36 @@ coordinates:
     sourceEndLine: 17
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
     sourceLine: 13
+  SYM-skillopt-prepared-root-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 107
+    sourceFile: scripts/skillopt-eval/tests/prepared-root.test.ts
+    sourceLine: 1
   SYM-skillopt-print-help:
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 135
     sourceFile: scripts/skillopt-eval/cli-options.ts
     sourceLine: 126
+  SYM-skillopt-process-control-tests:
+    sourceColumn: 10
+    sourceEndColumn: 32
+    sourceEndLine: 31
+    sourceFile: scripts/skillopt-eval/tests/process-control.test.ts
+    sourceLine: 31
   SYM-skillopt-process-group-exists:
     sourceColumn: 9
     sourceEndColumn: 1
     sourceEndLine: 18
     sourceFile: scripts/skillopt-eval/tests/process-control.test.ts
     sourceLine: 8
+  SYM-skillopt-promise-assertion-hygiene-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 225
+    sourceFile: scripts/skillopt-eval/tests/promise-assertion-hygiene.test.ts
+    sourceLine: 1
   SYM-skillopt-prototype-call-type:
     sourceColumn: 12
     sourceEndColumn: 70
@@ -13058,6 +13562,12 @@ coordinates:
     sourceEndLine: 100
     sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
     sourceLine: 100
+  SYM-skillopt-python-main-module:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 112
+    sourceFile: tools/skillopt/kibi_skillopt/__main__.py
+    sourceLine: 1
   SYM-skillopt-python-parse-timestamp:
     sourceColumn: 4
     sourceEndColumn: 19
@@ -13286,6 +13796,12 @@ coordinates:
     sourceEndLine: 26
     sourceFile: scripts/skillopt-eval/report.ts
     sourceLine: 20
+  SYM-skillopt-report-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 140
+    sourceFile: scripts/skillopt-eval/tests/report.test.ts
+    sourceLine: 1
   SYM-skillopt-repository-state-type:
     sourceColumn: 12
     sourceEndColumn: 75
@@ -13526,12 +14042,24 @@ coordinates:
     sourceEndLine: 34
     sourceFile: scripts/skillopt-eval/runtime/canary-evidence.ts
     sourceLine: 29
+  SYM-skillopt-runtime-codex-optimizer-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 151
+    sourceFile: scripts/skillopt-eval/tests/codex-optimizer.test.ts
+    sourceLine: 1
   SYM-skillopt-runtime-config-options:
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 67
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     sourceLine: 60
+  SYM-skillopt-runtime-config-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 460
+    sourceFile: scripts/skillopt-eval/tests/runtime-config.test.ts
+    sourceLine: 1
   SYM-skillopt-runtime-create-workspace:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -14012,12 +14540,24 @@ coordinates:
     sourceEndLine: 27
     sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
     sourceLine: 19
+  SYM-skillopt-skill-assembly-tests:
+    sourceColumn: 10
+    sourceEndColumn: 34
+    sourceEndLine: 28
+    sourceFile: scripts/skillopt-eval/tests/skill-assembly.test.ts
+    sourceLine: 28
   SYM-skillopt-skill-candidate-surface-type:
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 17
     sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
     sourceLine: 13
+  SYM-skillopt-skill-reader-lock-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 218
+    sourceFile: scripts/skillopt-eval/tests/skill-reader-lock.test.ts
+    sourceLine: 1
   SYM-skillopt-source-lock-python-tests:
     sourceColumn: 6
     sourceEndColumn: 21
@@ -14144,6 +14684,12 @@ coordinates:
     sourceEndLine: 45
     sourceFile: scripts/skillopt-eval/training-setup.ts
     sourceLine: 35
+  SYM-skillopt-training-setup-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 268
+    sourceFile: scripts/skillopt-eval/tests/training-setup.test.ts
+    sourceLine: 1
   SYM-skillopt-validate-approval:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -14246,6 +14792,12 @@ coordinates:
     sourceEndLine: 26
     sourceFile: scripts/skillopt-eval/cli-options.ts
     sourceLine: 15
+  SYM-skillopt-workspace-auth-cleanup-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 82
+    sourceFile: scripts/skillopt-eval/tests/workspace-auth-cleanup.test.ts
+    sourceLine: 1
   SYM-skillopt-worktree-state-type:
     sourceColumn: 12
     sourceEndColumn: 46
@@ -14276,6 +14828,12 @@ coordinates:
     sourceEndLine: 151
     sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
     sourceLine: 125
+  SYM-skills-scoped-readers-tests:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 120
+    sourceFile: packages/cli/tests/skills-scoped-readers.test.ts
+    sourceLine: 1
   SYM-skillsListCommand:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -14468,6 +15026,12 @@ coordinates:
     sourceEndLine: 105
     sourceFile: scripts/run-owned-engine-tests.mjs
     sourceLine: 68
+  SYM-test-owned-engine-runner-test:
+    sourceColumn: 10
+    sourceEndColumn: 34
+    sourceEndLine: 7
+    sourceFile: scripts/tests/run-owned-engine-tests.test.ts
+    sourceLine: 7
   SYM-test-packed-default-branch-sync-hooks:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -14558,6 +15122,12 @@ coordinates:
     sourceEndLine: 426
     sourceFile: documentation/tests/e2e/packed/schema-relationship-roundtrip.test.ts
     sourceLine: 336
+  SYM-test-predicate-first-graph:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 260
+    sourceFile: packages/cli/tests/traceability/predicate-first.test.ts
+    sourceLine: 1
   SYM-test-root-batch-concurrency:
     sourceColumn: 13
     sourceEndColumn: 34
@@ -14594,6 +15164,12 @@ coordinates:
     sourceEndLine: 198
     sourceFile: test/root.test.ts
     sourceLine: 158
+  SYM-test-root-summary-timeout-diagnostic:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 164
+    sourceFile: test/root-summary.test.ts
+    sourceLine: 1
   SYM-test-rule-contradiction-witness-proof:
     sourceColumn: 5
     sourceEndColumn: 64
@@ -14618,6 +15194,12 @@ coordinates:
     sourceEndLine: 4
     sourceFile: packages/cli/tests/fixtures/sparql-http-server.ts
     sourceLine: 2
+  SYM-test-sync-semantic-boundary-shards:
+    sourceColumn: 5
+    sourceEndColumn: 72
+    sourceEndLine: 813
+    sourceFile: packages/cli/tests/commands/sync.test.ts
+    sourceLine: 813
   SYM-updateGitIgnore:
     sourceColumn: 16
     sourceEndColumn: 1
