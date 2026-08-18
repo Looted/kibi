@@ -40,19 +40,25 @@ export function renderKibiWordmark(className = ""): string {
 
 const BADGE_HEIGHT = 20;
 const BADGE_LABEL = "kibi";
-const BADGE_FONT =
-  "Verdana,Geneva,DejaVu Sans,sans-serif";
+const BADGE_FONT = "DejaVu Sans,Verdana,Geneva,sans-serif";
 const BADGE_LOGO = 14;
 const BADGE_LOGO_LEFT = 5;
 const BADGE_LOGO_GAP = 3;
-const BADGE_TEXT_PAD = 5;
+const BADGE_TEXT_PAD = 8;
+const BADGE_LABEL_FILL = "#555";
+const BADGE_TEXT_FILL = "#fff";
+const BADGE_TEXT_SHADOW = "#010101";
+const BADGE_LOGO_BODY = LOGO_BODY.replaceAll(
+  `fill="${KIBI_BRAND.carbon}"`,
+  `fill="${BADGE_LABEL_FILL}"`,
+);
 
 function badgeTextWidth(text: string): number {
   let width = 0;
   for (const char of text) {
-    if (char === " ") width += 3.5;
-    else if (char === "%") width += 8.5;
-    else width += 6.6;
+    if (char === " ") width += 4;
+    else if (char === "%") width += 9;
+    else width += 7;
   }
   return Math.ceil(width);
 }
@@ -71,6 +77,12 @@ function badgeMessageWidth(message: string): number {
   return BADGE_TEXT_PAD + badgeTextWidth(message) + BADGE_TEXT_PAD;
 }
 
+function badgeCaption(x: number, text: string): string {
+  const safe = xml(text);
+  return `<text x="${x}" y="15" fill="${BADGE_TEXT_SHADOW}" fill-opacity=".3">${safe}</text>
+    <text x="${x}" y="14" fill="${BADGE_TEXT_FILL}">${safe}</text>`;
+}
+
 // implements REQ-kibi-branded-health-report
 export function renderKibiBadge(message: string, statusColor: string): string {
   const accessible = `Kibi requirement health: ${message}`;
@@ -80,18 +92,27 @@ export function renderKibiBadge(message: string, statusColor: string): string {
   const logoX = BADGE_LOGO_LEFT;
   const logoY = (BADGE_HEIGHT - BADGE_LOGO) / 2;
   const labelTextX =
-    BADGE_LOGO_LEFT + BADGE_LOGO + BADGE_LOGO_GAP + badgeTextWidth(BADGE_LABEL) / 2;
+    BADGE_LOGO_LEFT +
+    BADGE_LOGO +
+    BADGE_LOGO_GAP +
+    badgeTextWidth(BADGE_LABEL) / 2;
   const messageTextX = labelWidth + messageWidth / 2;
   return `<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${xml(accessible)}" width="${width}" height="${BADGE_HEIGHT}" viewBox="0 0 ${width} ${BADGE_HEIGHT}">
   <title>${xml(accessible)}</title>
-  <defs><clipPath id="kibi-badge"><rect width="${width}" height="${BADGE_HEIGHT}" rx="4"/></clipPath></defs>
+  <linearGradient id="kibi-badge-s" x2="0" y2="100%">
+    <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+    <stop offset="1" stop-opacity=".1"/>
+  </linearGradient>
+  <clipPath id="kibi-badge"><rect width="${width}" height="${BADGE_HEIGHT}" rx="3" fill="#fff"/></clipPath>
   <g clip-path="url(#kibi-badge)">
-    <rect width="${labelWidth}" height="${BADGE_HEIGHT}" fill="${KIBI_BRAND.carbon}"/>
+    <rect width="${labelWidth}" height="${BADGE_HEIGHT}" fill="${BADGE_LABEL_FILL}"/>
     <rect x="${labelWidth}" width="${messageWidth}" height="${BADGE_HEIGHT}" fill="${xml(statusColor)}"/>
-    <path d="M${labelWidth} 0v${BADGE_HEIGHT}" stroke="${KIBI_BRAND.signal}" stroke-width="1"/>
+    <rect width="${width}" height="${BADGE_HEIGHT}" fill="url(#kibi-badge-s)"/>
   </g>
-  <svg x="${logoX}" y="${logoY}" width="${BADGE_LOGO}" height="${BADGE_LOGO}" viewBox="0 0 308 309" aria-hidden="true">${LOGO_BODY}</svg>
-  <text x="${labelTextX}" y="14" fill="${KIBI_BRAND.snow}" text-anchor="middle" font-family="${BADGE_FONT}" font-size="11" font-weight="700">${xml(BADGE_LABEL)}</text>
-  <text x="${messageTextX}" y="14" fill="${KIBI_BRAND.deepCarbon}" text-anchor="middle" font-family="${BADGE_FONT}" font-size="11" font-weight="700">${xml(message)}</text>
+  <g fill="${BADGE_TEXT_FILL}" text-anchor="middle" font-family="${BADGE_FONT}" font-size="11">
+    ${badgeCaption(labelTextX, BADGE_LABEL)}
+    ${badgeCaption(messageTextX, message)}
+  </g>
+  <svg x="${logoX}" y="${logoY}" width="${BADGE_LOGO}" height="${BADGE_LOGO}" viewBox="0 0 308 309" aria-hidden="true">${BADGE_LOGO_BODY}</svg>
 </svg>`;
 }

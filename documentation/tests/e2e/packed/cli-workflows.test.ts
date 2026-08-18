@@ -321,16 +321,18 @@ export async function verifyHtmlRequirementHealthReport(
   assert.match(badge, /Kibi requirement health:/);
   assert.match(badge, /role="img" aria-label="Kibi requirement health:/);
   assert.match(badge, /viewBox="0 0 308 309" aria-hidden="true"/);
-  assert.match(badge, /#1d1e23/);
   assert.match(badge, /#a2d3f4/);
+  assert.match(badge, /fill="#555"/);
+  assert.match(badge, /DejaVu Sans,Verdana,Geneva,sans-serif/);
+  assert.doesNotMatch(badge, /font-weight="700"/);
   const badgeLogo = badge.match(
     /<svg x="\d+" y="\d+"[\s\S]*?<\/svg>/,
   )?.[0];
   assert.ok(badgeLogo, "badge should embed the canonical logo");
   assert.deepStrictEqual(
-    svgVisualFingerprint(badgeLogo),
+    svgVisualFingerprint(badgeLogo.replaceAll("#555", "#1d1e23")),
     svgVisualFingerprint(canonicalLogo),
-    "badge logo geometry and fills should match the canonical asset fingerprint",
+    "badge logo geometry should match the canonical asset with label-fill ground",
   );
   assert.doesNotMatch(
     badge,

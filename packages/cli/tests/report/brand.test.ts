@@ -32,12 +32,15 @@ function svgVisualFingerprint(svg: string): string[] {
     if (kind === "path") {
       const data = element.match(/\bd="([^"]+)"/)?.[1];
       expect(data).toBeTruthy();
-      const tokens = data?.match(/[A-Za-z]|-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/g) ?? [];
+      const tokens =
+        data?.match(/[A-Za-z]|-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/g) ?? [];
       expect(tokens.length).toBeGreaterThanOrEqual(5);
       return [
         "path",
         fill,
-        ...tokens.map((token) => (/[A-Za-z]/.test(token) ? token : rounded(token))),
+        ...tokens.map((token) =>
+          /[A-Za-z]/.test(token) ? token : rounded(token),
+        ),
       ].join(":");
     }
 
@@ -62,7 +65,10 @@ function svgVisualFingerprint(svg: string): string[] {
 
 describe("canonical brand marks", () => {
   test("inline logo and wordmark match the canonical asset fingerprints", () => {
-    const logo = readFileSync(path.join(REPO_ROOT, "assets", "logo.svg"), "utf8");
+    const logo = readFileSync(
+      path.join(REPO_ROOT, "assets", "logo.svg"),
+      "utf8",
+    );
     const wordmark = readFileSync(
       path.join(REPO_ROOT, "assets", "wordmark.svg"),
       "utf8",
@@ -77,22 +83,39 @@ describe("canonical brand marks", () => {
   });
 
   test("badge embeds the canonical logo fingerprint", () => {
-    const logo = readFileSync(path.join(REPO_ROOT, "assets", "logo.svg"), "utf8");
+    const logo = readFileSync(
+      path.join(REPO_ROOT, "assets", "logo.svg"),
+      "utf8",
+    );
     const badge = renderKibiBadge("0% proven", "#f2b84b");
     const badgeLogo = badge.match(/<svg x="\d+" y="\d+"[\s\S]*?<\/svg>/)?.[0];
     expect(badgeLogo).toBeTruthy();
-    expect(svgVisualFingerprint(badgeLogo ?? "")).toEqual(svgVisualFingerprint(logo));
+    expect(
+      svgVisualFingerprint((badgeLogo ?? "").replaceAll("#555", "#1d1e23")),
+    ).toEqual(svgVisualFingerprint(logo));
   });
 
-  test("badge uses a compact shields-style kibi label sized to its message", () => {
+  test("badge uses compact Codecov-style chrome sized to its message", () => {
     const short = renderKibiBadge("0% proven", "#f2b84b");
     const long = renderKibiBadge("100% proven", "#a2d3f4");
     const shortWidth = Number(short.match(/\bwidth="(\d+)"/)?.[1]);
     const longWidth = Number(long.match(/\bwidth="(\d+)"/)?.[1]);
     expect(short).toContain("kibi</text>");
     expect(short).toContain("0% proven</text>");
-    expect(shortWidth).toBeLessThan(140);
-    expect(shortWidth).toBeGreaterThan(90);
+    expect(short).toContain('fill="#555"');
+    expect(short).toContain(
+      'font-family="DejaVu Sans,Verdana,Geneva,sans-serif"',
+    );
+    expect(short).toContain('font-size="11"');
+    expect(short).toContain('rx="3"');
+    expect(short).toContain("linearGradient");
+    expect(short).not.toContain("textLength");
+    expect(short).toMatch(/<rect width="\d+" height="20" fill="#555"/);
+    expect(short).not.toContain('font-weight="700"');
+    expect(short).not.toMatch(/<rect[^>]*fill="#1d1e23"/);
+    expect(short).not.toContain('fill="#111318"');
+    expect(shortWidth).toBeLessThan(160);
+    expect(shortWidth).toBeGreaterThan(100);
     expect(longWidth).toBeGreaterThan(shortWidth);
     expect(short).toContain('height="20"');
   });

@@ -37,7 +37,9 @@ The canonical files are [`assets/logo.svg`](../assets/logo.svg) and [`assets/wor
 | Warning | `#f2b84b` | Stale, incomplete, or attention-needed evidence |
 | Contradiction | `#f07178` | Contradictions, failed evidence, and materially low proof health |
 
-Semantic color is never the only signal; pair it with text, counts, or symbols. On colored status surfaces, use deep-carbon text. Reserve green for fully satisfied proof—not generic positive decoration.
+Semantic color is never the only signal; pair it with text, counts, or symbols. On colored status surfaces in the HTML report, use deep-carbon text. Reserve green for fully satisfied proof—not generic positive decoration.
+
+README and Pages badges follow the Codecov/Shields convention so they sit in a row with CI and coverage badges: 20px height, regular 11px `DejaVu Sans`/Verdana, a `#555` label pane, white status text with a 1px shadow, a light vertical sheen, 3px corners, and reserved horizontal padding. Keep the canonical logo on the label with the carbon ground blended into the label fill; do not use bold type or carbon as the label fill.
 
 ## Typography and shape
 
