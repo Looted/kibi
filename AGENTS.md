@@ -166,6 +166,14 @@ Before declaring tests passing:
 - Reset mutable module/global state between tests.
 - Verify both isolated test runs and full-suite runs.
 
+## Session Artifact Cleanup
+
+Before staging, committing, or handing off:
+
+- Delete ephemeral agent/tool outputs from the working tree. Examples include `.playwright-mcp/` browser snapshots from Playwright MCP sessions, ad hoc logs, and other scratch files created while debugging or inspecting external UIs.
+- Do not commit session artifacts. Prefer gitignore coverage for known tool output directories; delete anything else that should not persist.
+- Review `git status` before staging. Avoid broad `git add .` or `git add -A` when browser automation, MCP tools, or local debugging may have written files outside the intended change set.
+
 ## Quick References
 
 - `docs/mcp-reference.md`
