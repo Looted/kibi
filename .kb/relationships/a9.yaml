@@ -34,3 +34,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1564c7bf421f
+  - type: covered_by
+    from: SYM-cli-register-foundation-commands
+    to: TEST-kibi-github-report-integration
+    created_at: 2026-08-18T12:04:26.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-085e204cd88b

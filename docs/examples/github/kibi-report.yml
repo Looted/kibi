@@ -1,0 +1,58 @@
+# Canonical Kibi GitHub Pages workflow: badge + full HTML report.
+#
+# Copy this file to .github/workflows/kibi-report.yml
+# Manual step: Settings → Pages → Source → GitHub Actions
+#
+# Package manager: this example uses npm (`cache: npm` and `npm ci`).
+# For pnpm, Yarn, or Bun, change those two values; see
+# https://github.com/Looted/kibi/blob/develop/docs/github-integration.md
+
+name: Kibi requirement health
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-report:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install SWI-Prolog
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y swi-prolog
+      - run: npm ci
+      - run: npm exec -- kibi sync
+      - run: npm exec -- kibi report --output kibi-report
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: kibi-report
+
+  deploy-report:
+    needs: build-report
+    if: ${{ github.event_name == 'workflow_dispatch' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy requirement health
+        id: deployment
+        uses: actions/deploy-pages@v5

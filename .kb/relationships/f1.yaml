@@ -34,3 +34,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-90424fc31372
+  - type: executable_for
+    from: SYM-test-cli-init-github-flags
+    to: TEST-kibi-github-report-integration
+    created_at: 2026-08-18T12:05:15.664Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f006d7c37df6
+  - type: executable_for
+    from: SYM-test-cli-init-github-flags
+    to: TEST-001
+    created_at: 2026-08-18T12:05:15.671Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99c1222dcc48

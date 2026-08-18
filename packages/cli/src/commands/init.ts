@@ -20,6 +20,7 @@ import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { resolveBranchAttachment } from "../utils/branch-resolver.js";
+import { scaffoldGitHubIntegration } from "./github-init.js";
 import {
   copySchemaFiles,
   createConfigFile,
@@ -34,12 +35,22 @@ const __dirname = path.dirname(__filename);
 
 interface InitOptions {
   hooks?: boolean;
+  github?: boolean;
+  badgeOnly?: boolean;
 }
 
-// implements REQ-003
+// implements REQ-cli-init
+// implements REQ-kibi-github-report-integration
 export async function initCommand(
   options: InitOptions,
 ): Promise<{ exitCode: number }> {
+  if (options.badgeOnly === true && options.github !== true) {
+    console.error(
+      "Error: --badge-only requires --github. The recommended integration is `kibi init --github` (badge + full report).",
+    );
+    return { exitCode: 1 };
+  }
+
   const kbDir = path.join(process.cwd(), ".kb");
   const kbExists = existsSync(kbDir);
 
@@ -103,6 +114,13 @@ export async function initCommand(
     console.log("Next steps:");
     console.log("  1. Run 'kibi doctor' to verify setup");
     console.log("  2. Run 'kibi sync' to extract entities from documents");
+
+    if (options.github === true) {
+      scaffoldGitHubIntegration({
+        cwd: process.cwd(),
+        badgeOnly: options.badgeOnly === true,
+      });
+    }
 
     return { exitCode: 0 };
   } catch (error) {

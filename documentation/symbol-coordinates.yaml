@@ -4040,6 +4040,198 @@ coordinates:
     sourceEndLine: 153
     sourceFile: packages/cli/src/cli-operation-metadata.ts
     sourceLine: 145
+  SYM-cli-github-badge-alt:
+    sourceColumn: 13
+    sourceEndColumn: 55
+    sourceEndLine: 36
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 36
+  SYM-cli-github-badge-workflow-relpath:
+    sourceColumn: 13
+    sourceEndColumn: 36
+    sourceEndLine: 35
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 34
+  SYM-cli-github-detect-readme:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 190
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 182
+  SYM-cli-github-ensure-gitignore:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 283
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 270
+  SYM-cli-github-format-badge-markdown:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 161
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 156
+  SYM-cli-github-gitignore-write-status:
+    sourceColumn: 12
+    sourceEndColumn: 59
+    sourceEndLine: 69
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 69
+  SYM-cli-github-has-badge:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 180
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 178
+  SYM-cli-github-init-deps:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 80
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 76
+  SYM-cli-github-insert-badge:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 218
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 192
+  SYM-cli-github-list-remotes:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 237
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 220
+  SYM-cli-github-load-workflow-template:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 110
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 101
+  SYM-cli-github-metric-docs-url:
+    sourceColumn: 13
+    sourceEndColumn: 95
+    sourceEndLine: 38
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 37
+  SYM-cli-github-pages-urls:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 154
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 145
+  SYM-cli-github-pages-urls-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 59
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 56
+  SYM-cli-github-parse-remote:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 143
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 112
+  SYM-cli-github-placeholder-badge-markdown:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 176
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 170
+  SYM-cli-github-placeholder-owner:
+    sourceColumn: 13
+    sourceEndColumn: 40
+    sourceEndLine: 39
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 39
+  SYM-cli-github-placeholder-pages-urls:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 168
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 163
+  SYM-cli-github-placeholder-repo:
+    sourceColumn: 13
+    sourceEndColumn: 44
+    sourceEndLine: 40
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 40
+  SYM-cli-github-readme-write-status:
+    sourceColumn: 12
+    sourceEndColumn: 27
+    sourceEndLine: 68
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 64
+  SYM-cli-github-remote:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 54
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 51
+  SYM-cli-github-repo:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 49
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 46
+  SYM-cli-github-report-workflow-relpath:
+    sourceColumn: 13
+    sourceEndColumn: 37
+    sourceEndLine: 33
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 32
+  SYM-cli-github-resolve-repo:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 248
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 239
+  SYM-cli-github-scaffold:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 343
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 286
+  SYM-cli-github-scaffold-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 74
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 71
+  SYM-cli-github-scaffold-result:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 88
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 82
+  SYM-cli-github-template-dir:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 93
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 91
+  SYM-cli-github-workflow-kind:
+    sourceColumn: 12
+    sourceEndColumn: 52
+    sourceEndLine: 61
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 61
+  SYM-cli-github-workflow-template-filename:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 99
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 95
+  SYM-cli-github-workflow-write-status:
+    sourceColumn: 12
+    sourceEndColumn: 71
+    sourceEndLine: 63
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 63
+  SYM-cli-github-write-workflow:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 268
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 250
   SYM-cli-impact-AGGREGATE_KINDS:
     sourceColumn: 13
     sourceEndColumn: 2
@@ -4268,6 +4460,12 @@ coordinates:
     sourceEndLine: 51
     sourceFile: packages/cli/tests/cli-import-purity.test.ts
     sourceLine: 1
+  SYM-cli-init-command:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 130
+    sourceFile: packages/cli/src/commands/init.ts
+    sourceLine: 44
   SYM-cli-input-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -4703,7 +4901,7 @@ coordinates:
   SYM-cli-register-foundation-commands:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 155
+    sourceEndLine: 163
     sourceFile: packages/cli/src/cli-register-foundation.ts
     sourceLine: 16
   SYM-cli-register-json-only-commands:

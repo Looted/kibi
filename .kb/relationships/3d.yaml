@@ -13,3 +13,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f4021e134de6
+  - type: implements
+    from: SYM-cli-github-pages-urls
+    to: REQ-kibi-github-report-integration
+    created_at: 2026-08-18T12:03:19.113Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac0b2c5d2710
+  - type: covered_by
+    from: SYM-cli-github-pages-urls
+    to: TEST-kibi-github-report-integration
+    created_at: 2026-08-18T12:03:19.117Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7a36f5bb79e

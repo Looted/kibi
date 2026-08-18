@@ -27,3 +27,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9a6f4e1c0b7e
+  - type: validates
+    from: TEST-kibi-github-report-integration
+    to: SCEN-kibi-github-report-integration
+    created_at: 2026-08-18T12:04:41.111Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30af0cfa6261

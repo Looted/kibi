@@ -21,6 +21,14 @@ export function registerFoundationCommands(program: Command): void {
       "--no-hooks",
       "Do not install git hooks (hooks installed by default)",
     )
+    .option(
+      "--github",
+      "Scaffold the GitHub Pages badge + requirement-health report workflow",
+    )
+    .option(
+      "--badge-only",
+      "With --github, publish only the badge (opt out of the full report)",
+    )
     .action(
       withExitCode(async (options: Parameters<typeof initCommand>[0]) =>
         (await import("./commands/init.js")).initCommand(options),

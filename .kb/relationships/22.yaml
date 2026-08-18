@@ -41,3 +41,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5dbec6f4413f
+  - type: specified_by
+    from: REQ-kibi-github-report-integration
+    to: SCEN-kibi-github-report-integration
+    created_at: 2026-08-18T12:06:05.315Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d6df4414171
+  - type: verified_by
+    from: REQ-kibi-github-report-integration
+    to: TEST-kibi-github-report-integration
+    created_at: 2026-08-18T12:06:05.319Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b1aeed029df

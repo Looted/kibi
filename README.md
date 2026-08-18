@@ -12,7 +12,7 @@ Kibi is an agent-native requirements compiler and enforcement layer. You describ
 
 Unlike passive memory or retrieval systems, Kibi is designed to place itself in the agent's workflow. The agent does not have to remember to consult a ticket, board, or requirements folder: Kibi's hooks, tools, and validation gates continuously bring the relevant product context back into the work.
 
-Project references: [brand guide](docs/brand-guide.md) · [proof readiness plan](docs/proof-readiness-plan.md)
+Project references: [brand guide](docs/brand-guide.md) · [proof readiness plan](docs/proof-readiness-plan.md) · [GitHub badge + report](docs/github-integration.md)
 
 ## Why Kibi
 
@@ -76,35 +76,63 @@ npm exec -- kibi coverage --by req --format table
 npm exec -- kibi report --open
 ```
 
-The report directory contains a self-contained `kibi-report/index.html` and a
-matching `badge.svg`: no server, CDN, or external assets are required. The same
-directory can be uploaded as a CI artifact or published directly with GitHub
-Pages. On pushes to `develop`, this repository's CI publishes the report and its
-clickable README badge at `https://looted.github.io/kibi/`.
+The same `kibi report` command writes both files from **one** coverage snapshot:
 
-### Publish a report badge with GitHub Actions
+```text
+kibi-report/index.html
+kibi-report/badge.svg
+```
 
-Like a coverage badge, the Kibi badge is an image wrapped in a link to the full
-report. Enable **Settings → Pages → Source: GitHub Actions**, then add a workflow
-like this (replace `main` if your release branch has a different name):
+They are meant to be published together. `% proven` is the share of applicable
+current Kibi requirements that have current proof. The HTML report is where to
+inspect which requirements are proven, which are missing proof, contradictions,
+and stale verification. No server, CDN, or external assets are required. On
+pushes to `develop`, this repository publishes that pair at
+`https://looted.github.io/kibi/`.
+
+### Publish requirement health on GitHub
+
+The recommended integration is a continuously updated report on GitHub Pages
+with a clickable `% proven` badge in the README. Kibi does not host badges or
+reports; GitHub Pages is the expected publisher, and the only GitHub UI step is
+enabling Actions as the Pages source.
+
+1. In GitHub: **Settings → Pages → Source → GitHub Actions**.
+2. Copy the canonical workflow to `.github/workflows/kibi-report.yml`. The
+   complete file lives at
+   [docs/examples/github/kibi-report.yml](docs/examples/github/kibi-report.yml)
+   (same content as the `kibi-cli` template).
+3. Add the clickable badge, replacing the lowercase Pages owner and repository
+   path. For an owner-site repo named `OWNER.github.io`, omit the repository
+   segment (`https://OWNER.github.io/` and `https://OWNER.github.io/badge.svg`).
+
+```markdown
+[![Kibi requirement health](https://OWNER.github.io/REPOSITORY/badge.svg)](https://OWNER.github.io/REPOSITORY/)
+```
+
+The workflow runs on the repository default branch (it does not assume `main`)
+and on `workflow_dispatch`. It installs SWI-Prolog, runs `kibi sync` and
+`kibi report`, and deploys the `kibi-report` directory. It does not build or
+test the rest of the application. Adapt `cache: npm` and `npm ci` if the
+project does not use npm; see [GitHub integration](docs/github-integration.md).
 
 ```yaml
 name: Kibi requirement health
 
 on:
   push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: kibi-requirement-health
-  cancel-in-progress: true
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   build-report:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -126,6 +154,7 @@ jobs:
 
   deploy-report:
     needs: build-report
+    if: ${{ github.event_name == 'workflow_dispatch' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
     runs-on: ubuntu-latest
     permissions:
       pages: write
@@ -139,18 +168,30 @@ jobs:
         uses: actions/deploy-pages@v5
 ```
 
-The command generates both Pages files from one coverage snapshot:
-`kibi-report/index.html` and `kibi-report/badge.svg`. Add the badge to your
-README and replace the placeholders with the lowercase Pages owner and
-repository path:
+To scaffold those same files automatically:
 
-```markdown
-[![Kibi requirement health](https://OWNER.github.io/REPOSITORY/badge.svg)](https://OWNER.github.io/REPOSITORY/)
+```bash
+npm exec -- kibi init --github
 ```
 
-The image URL must be anonymously reachable for GitHub to render it. For a
-private report, publish both files to an authenticated static host and use URLs
-that your intended README audience can access.
+`kibi init --github` writes the documented workflow, adds the clickable badge
+when a README exists, and prints the Pages enable step. It is safe to re-run:
+it will not duplicate the badge or overwrite a customized workflow.
+
+Do not commit generated `kibi-report/` files. The image URL must be anonymously
+reachable for GitHub to render it in a public README.
+
+Badge-only publishing is an explicit opt-out, not the recommended flow:
+
+```bash
+npm exec -- kibi init --github --badge-only
+```
+
+That still generates the report from the same snapshot, but publishes only
+`badge.svg`. The README link then points at the metric explanation rather than
+a report that was never published. See
+[docs/github-integration.md](docs/github-integration.md) for package-manager
+adaptations, owner-site URLs, and troubleshooting.
 
 ## How it works
 

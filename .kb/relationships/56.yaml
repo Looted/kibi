@@ -83,3 +83,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b148d1a268a4
+  - type: implements
+    from: SYM-cli-github-parse-remote
+    to: REQ-kibi-github-report-integration
+    created_at: 2026-08-18T12:03:06.557Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49577ab42299
+  - type: covered_by
+    from: SYM-cli-github-parse-remote
+    to: TEST-kibi-github-report-integration
+    created_at: 2026-08-18T12:03:06.562Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bedcda4d6a35

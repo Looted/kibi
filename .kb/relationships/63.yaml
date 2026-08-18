@@ -31,3 +31,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9fae73ff5399
+  - type: implements
+    from: SYM-cli-github-insert-badge
+    to: REQ-kibi-github-report-integration
+    created_at: 2026-08-18T12:03:36.728Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1eb37ed7571b
+  - type: covered_by
+    from: SYM-cli-github-insert-badge
+    to: TEST-kibi-github-report-integration
+    created_at: 2026-08-18T12:03:36.733Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03b7ec373bc4

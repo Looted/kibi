@@ -1,0 +1,64 @@
+# Opt-out Kibi GitHub Pages workflow: badge only.
+#
+# Prefer kibi-report.yml so the badge links to the full report.
+# Copy this file to .github/workflows/kibi-badge.yml only when you
+# explicitly do not want to publish the HTML report.
+# Manual step: Settings → Pages → Source → GitHub Actions
+#
+# Package manager: this example uses npm (`cache: npm` and `npm ci`).
+# For pnpm, Yarn, or Bun, change those two values; see
+# https://github.com/Looted/kibi/blob/develop/docs/github-integration.md
+
+name: Kibi requirement health
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-report:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install SWI-Prolog
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y swi-prolog
+      - run: npm ci
+      - run: npm exec -- kibi sync
+      - run: npm exec -- kibi report --output kibi-report
+      - name: Keep only the badge for Pages
+        run: |
+          mkdir -p kibi-badge
+          cp kibi-report/badge.svg kibi-badge/badge.svg
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: kibi-badge
+
+  deploy-report:
+    needs: build-report
+    if: ${{ github.event_name == 'workflow_dispatch' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy requirement-health badge
+        id: deployment
+        uses: actions/deploy-pages@v5

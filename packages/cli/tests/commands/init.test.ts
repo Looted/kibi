@@ -7,6 +7,7 @@ import {
   readFileSync,
   rmSync,
   statSync,
+  writeFileSync,
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -272,4 +273,61 @@ describe("kibi init", () => {
     // init is idempotent and prints a skipping message when .kb exists
     expect(out.toLowerCase()).toContain("already exists, skipping");
   });
+
+  test("init --help documents --github and --badge-only", () => {
+    const help = execSync(`bun ${kibiBin} init --help`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
+    expect(help).toContain("--github");
+    expect(help).toContain("--badge-only");
+  });
+
+  test("rejects --badge-only without --github", () => {
+    let caught: { status?: number | null; stderr?: string } | undefined;
+    try {
+      execSync(`bun ${kibiBin} init --badge-only`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+        stdio: "pipe",
+      });
+    } catch (error) {
+      caught = error as { status?: number | null; stderr?: string };
+    }
+    expect(caught).toBeDefined();
+    expect(caught?.status).toBe(1);
+    expect(caught?.stderr ?? "").toContain("--badge-only requires --github");
+  });
+
+  test("init --github scaffolds the documented report workflow", () => {
+    execSync("git init -b main", { cwd: tmpDir });
+    execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
+    execSync("git config user.name 'Test User'", { cwd: tmpDir });
+    execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
+    execSync("git remote add origin https://github.com/Acme/Widgets.git", {
+      cwd: tmpDir,
+    });
+    writeFileSync(path.join(tmpDir, "README.md"), "# Widgets\n");
+
+    const out = execSync(`bun ${kibiBin} init --github --no-hooks`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+      stdio: "pipe",
+    });
+
+    expect(out).toContain("Added .github/workflows/kibi-report.yml");
+    expect(out).toContain("GitHub → Settings → Pages → Source → GitHub Actions");
+    const workflow = readFileSync(
+      path.join(tmpDir, ".github/workflows/kibi-report.yml"),
+      "utf8",
+    );
+    expect(workflow).toContain("kibi report --output kibi-report");
+    const readme = readFileSync(path.join(tmpDir, "README.md"), "utf8");
+    expect(readme).toContain(
+      "[![Kibi requirement health](https://acme.github.io/widgets/badge.svg)](https://acme.github.io/widgets/)",
+    );
+    expect(readFileSync(path.join(tmpDir, ".gitignore"), "utf8")).toContain(
+      "kibi-report/",
+    );
+  }, 30000);
 });

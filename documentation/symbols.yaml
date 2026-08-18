@@ -3891,17 +3891,370 @@ symbols:
         target: TEST-test-journaled-engine-harness
   - id: SYM-cli-register-foundation-commands
     title: registerFoundationCommands
+    status: active
     sourceFile: packages/cli/src/cli-register-foundation.ts
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-test-journaled-engine-harness
       - type: covered_by
         target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+  - id: SYM-cli-init-command
+    title: initCommand
+    status: active
+    sourceFile: packages/cli/src/commands/init.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-001
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-cli-init
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-scaffold
+    title: scaffoldGitHubIntegration
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-parse-remote
+    title: parseGitHubRemote
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-pages-urls
+    title: githubPagesUrls
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-insert-badge
+    title: insertKibiBadge
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-write-workflow
+    title: writeGitHubWorkflow
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-template-dir
+    title: githubTemplateDir
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-workflow-template-filename
+    title: githubWorkflowTemplateFileName
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-load-workflow-template
+    title: loadGitHubWorkflowTemplate
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-format-badge-markdown
+    title: formatKibiBadgeMarkdown
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-placeholder-pages-urls
+    title: placeholderPagesUrls
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-placeholder-badge-markdown
+    title: placeholderBadgeMarkdown
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-has-badge
+    title: hasKibiBadge
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-detect-readme
+    title: detectReadmePath
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-list-remotes
+    title: listGitRemotes
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-resolve-repo
+    title: resolveGitHubRepo
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-ensure-gitignore
+    title: ensureKibiReportGitIgnore
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-report-workflow-relpath
+    title: GITHUB_REPORT_WORKFLOW_RELPATH
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-badge-workflow-relpath
+    title: GITHUB_BADGE_WORKFLOW_RELPATH
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-badge-alt
+    title: KIBI_BADGE_ALT
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-metric-docs-url
+    title: KIBI_METRIC_DOCS_URL
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-placeholder-owner
+    title: PLACEHOLDER_OWNER
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-placeholder-repo
+    title: PLACEHOLDER_REPO
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-repo
+    title: GitHubRepo
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-remote
+    title: GitRemote
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-pages-urls-type
+    title: GitHubPagesUrls
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-workflow-kind
+    title: GitHubWorkflowKind
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-workflow-write-status
+    title: WorkflowWriteStatus
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-readme-write-status
+    title: ReadmeWriteStatus
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-gitignore-write-status
+    title: GitIgnoreWriteStatus
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-scaffold-options
+    title: GitHubScaffoldOptions
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-init-deps
+    title: GitHubInitDeps
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-scaffold-result
+    title: GitHubScaffoldResult
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-test-cli-github-init
+    title: GitHub init scaffolding tests
+    status: active
+    sourceFile: packages/cli/tests/commands/github-init.test.ts
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-github-report-integration
+  - id: SYM-test-cli-init-github-flags
+    title: kibi init GitHub flag tests
+    status: active
+    sourceFile: packages/cli/tests/commands/init.test.ts
+    relationships:
+      - type: executable_for
+        target: TEST-001
+      - type: executable_for
+        target: TEST-kibi-github-report-integration
   - id: SYM-cli-register-json-only-commands
     title: registerJsonOnlyCommands
     sourceFile: packages/cli/src/cli-register-json.ts

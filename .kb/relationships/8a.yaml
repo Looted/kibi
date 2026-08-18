@@ -27,3 +27,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-683e625da128
+  - type: implements
+    from: SYM-cli-github-write-workflow
+    to: REQ-kibi-github-report-integration
+    created_at: 2026-08-18T12:03:49.668Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e66e1aa26468
+  - type: covered_by
+    from: SYM-cli-github-write-workflow
+    to: TEST-kibi-github-report-integration
+    created_at: 2026-08-18T12:03:49.671Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c95b74dffe91

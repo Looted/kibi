@@ -63,6 +63,15 @@ Initializes a kibi project in the current directory.
 
 **Flags:**
 - `--no-hooks` - Skip git hook installation (hooks are installed by default)
+- `--github` - Scaffold the documented GitHub Pages badge + full report integration (workflow, README badge, `kibi-report/` gitignore entry)
+- `--badge-only` - With `--github` only: publish the badge without the HTML report. Rejected if used alone.
+
+**GitHub integration:**
+- `--github` by itself always means **badge + full report**. It copies the canonical workflow from the `kibi-cli` package (the same file as [docs/examples/github/kibi-report.yml](examples/github/kibi-report.yml)).
+- Re-running is safe: matching files are left as already configured; customized workflows are not overwritten; an existing Kibi badge is not duplicated.
+- If no README exists, the workflow is still written and the badge Markdown is printed.
+- If a github.com owner/repository cannot be determined from git remotes, the workflow is still written and placeholder badge Markdown is printed instead of inventing a URL.
+- After scaffolding, enable **Settings → Pages → Source → GitHub Actions**. See [GitHub badge + report](github-integration.md).
 
 **Notes:**
 - Hooks are installed by default. Only use `--no-hooks` if you specifically don't want automated syncing.
@@ -316,45 +325,12 @@ kibi report --output public/requirement-health
 kibi report --tag billing,security --output artifacts/kibi.html
 ```
 
-For GitHub Pages, enable **GitHub Actions** as the repository's Pages source and
-add the report steps after installing Kibi, SWI-Prolog, and project dependencies.
-The generated directory is already a valid static Pages artifact:
-
-```yaml
-permissions:
-  contents: read
-
-concurrency:
-  group: kibi-requirement-health
-  cancel-in-progress: true
-
-jobs:
-  build-report:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      # Set up Node, SWI-Prolog, and install project dependencies here.
-      - run: npm exec -- kibi sync
-      - run: npm exec -- kibi report --output kibi-report
-      - uses: actions/configure-pages@v6
-      - uses: actions/upload-pages-artifact@v5
-        with:
-          path: kibi-report
-
-  deploy-report:
-    needs: build-report
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy requirement health
-        id: deployment
-        uses: actions/deploy-pages@v5
-```
+For GitHub Pages, follow the copyable workflow in
+[docs/examples/github/kibi-report.yml](examples/github/kibi-report.yml) or run
+`kibi init --github`. That command scaffolds the same documented integration.
+Enable **Settings → Pages → Source → GitHub Actions**. Details, package-manager
+adaptations, owner-site URLs, and the badge-only opt-out are in
+[GitHub badge + report](github-integration.md).
 
 Wrap the published badge image in a link to the report so clicking it opens the
 dashboard:
