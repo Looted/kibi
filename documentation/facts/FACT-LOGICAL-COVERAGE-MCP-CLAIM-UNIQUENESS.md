@@ -13,7 +13,7 @@ predicate_args: [mcp_tool_schema, logic_claim_uniqueness, preserved]
 canonical_key: logical_requirement_rule(mcp_tool_schema,logic_claim_uniqueness,preserved)
 polarity: assert
 claim_key: CLAIM-3CBD873F99A468BD
-claim_text: MCP tool schemas must preserve logic-claim uniqueness constraints.
+claim_text: MCP tool schemas must preserve logic-claim uniqueness constraints
 ---
 
 Ground representation of the MCP logic-claim uniqueness contract.

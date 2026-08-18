@@ -13,7 +13,7 @@ predicate_args: [predicate_contradiction, opposite_polarity_same_ground_term, bl
 canonical_key: logical_requirement_rule(predicate_contradiction,opposite_polarity_same_ground_term,blocking_violation)
 polarity: assert
 claim_key: CLAIM-AB495994E2FB1C33
-claim_text: Current requirements with opposite polarities over the same ground predicate term must produce a blocking contradiction.
+claim_text: Current requirements with opposite polarities over the same ground predicate term must produce a blocking contradiction
 ---
 
 Ground representation of the generic exact-polarity contradiction invariant.

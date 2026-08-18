@@ -13,7 +13,7 @@ predicate_args: [mcp_tool_schema, conditional_claim_provenance, preserved]
 canonical_key: logical_requirement_rule(mcp_tool_schema,conditional_claim_provenance,preserved)
 polarity: assert
 claim_key: CLAIM-3C684BC9D8615DF1
-claim_text: MCP tool schemas must preserve conditional claim provenance requirements.
+claim_text: MCP tool schemas must preserve conditional claim provenance requirements
 ---
 
 Ground representation of the MCP paired-provenance contract.

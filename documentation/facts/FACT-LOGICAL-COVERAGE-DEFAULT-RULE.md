@@ -13,7 +13,7 @@ predicate_args: [declared_logic_manifest, default_validation, gradual_backfill_w
 canonical_key: logical_requirement_rule(declared_logic_manifest,default_validation,gradual_backfill_without_manifest)
 polarity: assert
 claim_key: CLAIM-ECAE7557CD5C48F8
-claim_text: The logic-coverage rule must run by default for explicitly manifested requirements while requirements without manifests remain gradual-backfill debt.
+claim_text: The logic-coverage rule must run by default for explicitly manifested requirements while requirements without manifests remain gradual-backfill debt
 ---
 
 Ground representation of default structural enforcement without forcing incomplete legacy manifests.

@@ -13,7 +13,7 @@ predicate_args: [staged_validation_overlay, every_typed_predicate_field, preserv
 canonical_key: logical_requirement_rule(staged_validation_overlay,every_typed_predicate_field,preserved)
 polarity: assert
 claim_key: CLAIM-20FA89A0E6B17C19
-claim_text: Staged validation overlays must preserve every typed predicate fact field.
+claim_text: Staged validation overlays must preserve every typed predicate fact field
 ---
 
 Ground representation of staged predicate-field fidelity.

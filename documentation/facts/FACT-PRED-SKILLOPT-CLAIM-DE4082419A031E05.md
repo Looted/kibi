@@ -11,7 +11,7 @@ predicate_args:
 canonical_key: evaluation_evidence_rule(semantic_advisor,every_normative_claim,distinct_logical_grounding_edge)
 polarity: assert
 claim_key: CLAIM-DE4082419A031E05
-claim_text: Semantic-advisor readiness must remain partial until every normative claim has a distinct logical grounding edge.
+claim_text: Semantic-advisor readiness must remain partial until every normative claim has a distinct logical grounding edge
 id: FACT-PRED-SKILLOPT-CLAIM-DE4082419A031E05
 type: fact
 ---

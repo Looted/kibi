@@ -7,13 +7,12 @@
   "trackedGaps": {
     "missing_passing_e2e": 72,
     "missing_production_symbol_coverage": 50,
-    "contradiction_check_incomplete": 51,
-    "missing_semantic_inventory": 51,
+    "contradiction_check_incomplete": 49,
+    "missing_semantic_inventory": 49,
     "missing_logic_claims": 49,
     "missing_production_symbol": 23,
     "missing_verification_receipt": 17,
     "unresolved_semantic_proposition": 14,
-    "missing_scenario": 6,
-    "logic_manifest_mismatch": 2
+    "missing_scenario": 6
   }
 }

@@ -11,7 +11,7 @@ predicate_args:
 canonical_key: evaluation_evidence_rule(safe_mutation_final_state_scoring,ownership_coverage_relationships,verify_exact)
 polarity: assert
 claim_key: CLAIM-368FEE750F2FC6BA
-claim_text: Safe-mutation final-state scoring must verify the exact requested ownership and coverage relationships.
+claim_text: Safe-mutation final-state scoring must verify the exact requested ownership and coverage relationships
 id: FACT-PRED-SKILLOPT-CLAIM-368FEE750F2FC6BA
 type: fact
 ---

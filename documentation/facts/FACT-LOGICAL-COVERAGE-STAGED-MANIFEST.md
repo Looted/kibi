@@ -13,7 +13,7 @@ predicate_args: [staged_validation_overlay, requirement_logic_claims, preserved]
 canonical_key: logical_requirement_rule(staged_validation_overlay,requirement_logic_claims,preserved)
 polarity: assert
 claim_key: CLAIM-6147C3D428852FD3
-claim_text: Staged validation overlays must preserve requirement logic_claims manifests.
+claim_text: Staged validation overlays must preserve requirement logic_claims manifests
 ---
 
 Ground representation of staged requirement-manifest fidelity.

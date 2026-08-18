@@ -95,7 +95,6 @@ describe("strict proof workflow contract", () => {
     expect(baseline.currentUnproven).toBe(73);
     expect(Object.keys(baseline.trackedGaps).sort()).toEqual([
       "contradiction_check_incomplete",
-      "logic_manifest_mismatch",
       "missing_logic_claims",
       "missing_passing_e2e",
       "missing_production_symbol",

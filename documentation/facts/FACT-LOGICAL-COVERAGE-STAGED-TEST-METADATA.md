@@ -13,7 +13,7 @@ predicate_args: [staged_validation_overlay, typed_test_verification_metadata, pr
 canonical_key: logical_requirement_rule(staged_validation_overlay,typed_test_verification_metadata,preserved)
 polarity: assert
 claim_key: CLAIM-3FA5A045CEB60211
-claim_text: Staged validation overlays must preserve typed test verification metadata.
+claim_text: Staged validation overlays must preserve typed test verification metadata
 ---
 
 Ground representation of staged verification-metadata fidelity.

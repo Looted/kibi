@@ -13,7 +13,7 @@ predicate_args: [mcp_tool_schema, claim_key_pattern, preserved]
 canonical_key: logical_requirement_rule(mcp_tool_schema,claim_key_pattern,preserved)
 polarity: assert
 claim_key: CLAIM-132B6D1222244173
-claim_text: MCP tool schemas must preserve claim-key patterns.
+claim_text: MCP tool schemas must preserve claim-key patterns
 ---
 
 Ground representation of the MCP claim-key contract.

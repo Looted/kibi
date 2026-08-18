@@ -13,7 +13,7 @@ predicate_args: [normative_requirement, every_atomic_clause, keyed_ground_fact]
 canonical_key: logical_requirement_rule(normative_requirement,every_atomic_clause,keyed_ground_fact)
 polarity: assert
 claim_key: CLAIM-B7EDA6002F1B38E1
-claim_text: Every atomic normative clause in a requirement must have a stable claim key and a linked ground property or predicate fact.
+claim_text: Every atomic normative clause in a requirement must have a stable claim key and a linked ground property or predicate fact
 ---
 
 Ground representation of the clause-completeness invariant.

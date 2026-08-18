@@ -13,7 +13,7 @@ predicate_args: [ground_fact, mismatched_claim_key_and_text, rejected_before_per
 canonical_key: logical_requirement_rule(ground_fact,mismatched_claim_key_and_text,rejected_before_persistence)
 polarity: assert
 claim_key: CLAIM-6A1D53864E9D3D90
-claim_text: Kibi must reject a ground fact when its claim_key is not the stable key derived from claim_text.
+claim_text: Kibi must reject a ground fact when its claim_key is not the stable key derived from claim_text
 ---
 
 Ground representation of stable claim provenance integrity.

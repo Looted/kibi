@@ -13,7 +13,7 @@ predicate_args: [current_requirement, missing_logic_claims, non_blocking_debt_di
 canonical_key: logical_requirement_rule(current_requirement,missing_logic_claims,non_blocking_debt_diagnostic)
 polarity: assert
 claim_key: CLAIM-5C075A0CE1F05208
-claim_text: Every current requirement without a logic_claims manifest must receive a non-blocking logical-coverage debt diagnostic.
+claim_text: Every current requirement without a logic_claims manifest must receive a non-blocking logical-coverage debt diagnostic
 ---
 
 Ground representation of the gradual logical-coverage backfill signal.
