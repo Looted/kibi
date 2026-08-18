@@ -1,0 +1,15 @@
+relationships:
+  - id: rel-aa8f17e1019a
+    type: implements
+    from: SYM-cursor-HookStopStatus
+    to: REQ-cursor-stop-job-vs-plan
+    created_at: "2026-08-18T11:57:06.920Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-cursor-HookStopStatus
+    to: TEST-cursor-stop-job-vs-plan
+    created_at: 2026-08-18T11:57:06.922Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4a82f2286ec

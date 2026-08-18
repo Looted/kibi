@@ -34,3 +34,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-05a1e96dd6d2
+  - type: validates
+    from: TEST-cursor-stop-job-vs-plan
+    to: SCEN-cursor-stop-job-vs-plan
+    created_at: 2026-08-18T11:55:25.968Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06f088800b5f
+  - type: relates_to
+    from: TEST-cursor-stop-job-vs-plan
+    to: REQ-cursor-stop-job-vs-plan
+    created_at: 2026-08-18T11:56:33.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b96b148baabd

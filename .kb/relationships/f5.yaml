@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-3ebcc63d45a3
+    type: executable_for
+    from: SYM-cursor-hook-runner-plan-vs-job-tests
+    to: TEST-cursor-stop-job-vs-plan
+    created_at: "2026-08-18T11:57:24.162Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

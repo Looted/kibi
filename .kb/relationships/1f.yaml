@@ -90,3 +90,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d2fa28e6f1e1
+  - type: verified_by
+    from: SCEN-cursor-stop-job-vs-plan
+    to: TEST-cursor-stop-job-vs-plan
+    created_at: 2026-08-18T11:56:20.019Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-706061dd62dd
+  - type: relates_to
+    from: SCEN-cursor-stop-job-vs-plan
+    to: REQ-cursor-stop-job-vs-plan
+    created_at: 2026-08-18T11:56:20.030Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb8059650a66

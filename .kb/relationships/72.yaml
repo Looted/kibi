@@ -27,3 +27,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ec5254c6bd35
+  - type: specified_by
+    from: REQ-cursor-stop-job-vs-plan
+    to: SCEN-cursor-stop-job-vs-plan
+    created_at: 2026-08-18T11:56:05.295Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-560c3b9f7d8b
+  - type: verified_by
+    from: REQ-cursor-stop-job-vs-plan
+    to: TEST-cursor-stop-job-vs-plan
+    created_at: 2026-08-18T11:56:05.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-365a23bdd13c
+  - type: relates_to
+    from: REQ-cursor-stop-job-vs-plan
+    to: REQ-cursor-kibi-plugin-v1
+    created_at: 2026-08-18T11:56:05.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c59aeee3587c
+  - type: relates_to
+    from: REQ-cursor-stop-job-vs-plan
+    to: FACT-OBS-cursor-stop-plan-vs-job
+    created_at: 2026-08-18T11:56:05.320Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79c20116a836
+  - type: relates_to
+    from: REQ-cursor-stop-job-vs-plan
+    to: FACT-OBS-cursor-stop-createplan-silent
+    created_at: 2026-08-18T11:56:05.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4cdf16cf6780
+  - type: relates_to
+    from: REQ-cursor-stop-job-vs-plan
+    to: FACT-OBS-cursor-stop-reads-not-dirty
+    created_at: 2026-08-18T11:56:05.336Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e49444f5b98d
+  - type: relates_to
+    from: REQ-cursor-stop-job-vs-plan
+    to: FACT-OBS-cursor-stop-plan-with-edits
+    created_at: 2026-08-18T11:56:05.343Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16d2070ab09d
