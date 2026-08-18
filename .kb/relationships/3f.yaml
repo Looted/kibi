@@ -34,3 +34,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7474805bcec6
+  - type: validates
+    from: TEST-mcp-relationship-preflight
+    to: SCEN-mcp-relationship-preflight
+    created_at: 2026-08-18T07:53:48.521Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-454903306286

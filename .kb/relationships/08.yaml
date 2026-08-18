@@ -41,3 +41,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-df0422bf5906
+  - type: validates
+    from: TEST-mcp-skills-resource-discoverability
+    to: SCEN-mcp-skills-resource-discoverability
+    created_at: 2026-08-18T07:53:54.535Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-270af233ed2e

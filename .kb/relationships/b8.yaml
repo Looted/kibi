@@ -6,3 +6,10 @@ relationships:
     created_at: "2026-08-16T19:45:30.458Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: specified_by
+    from: REQ-mcp-skills-resource-discoverability
+    to: SCEN-mcp-skills-resource-discoverability
+    created_at: 2026-08-18T07:53:32.243Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-201dc23e2007
