@@ -1,5 +1,11 @@
 # Kibi Proof Readiness: 0% → 100%
 
+- Status: Active
+- Date: 2026-08-16
+- Audience: Kibi maintainers
+
+Internal delivery plan for bringing **this repository's** requirement proof from 0% to 100%. It is not product documentation.
+
 Kibi reaches 100% only when every current requirement clears every strict proof stage. The target is not negotiable by changing the denominator, marking valid requirements non-current, weakening E2E scope, or treating structural coverage as evidence.
 
 ## Baseline

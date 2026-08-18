@@ -1,5 +1,7 @@
 # Kibi Brand Guide
 
+This guide is for Kibi maintainers working on the logo, HTML report, and badge. It is not a user-facing product document.
+
 Kibi is an agent-native requirements compiler and enforcement layer. Its visual identity should feel precise, calm, inspectable, and earned: product intent enters as a human signal, travels through a traceable system, and exits through a deterministic proof gate.
 
 ## Core idea: the proof rail

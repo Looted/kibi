@@ -27,6 +27,13 @@ tests/
   benchmarks/   # Performance benchmarks
 ```
 
+## Maintainer docs
+
+These are internal working documents, not user-facing product docs:
+
+- [Brand guide](docs/brand-guide.md) — visual identity for the logo, HTML report, and badge
+- [Proof readiness plan](docs/plans/2026-08-16-proof-readiness-plan.md) — bringing this repository's own proof from 0% to 100%
+
 ## Testing
 
 **Unit Tests (TypeScript/CLI)**

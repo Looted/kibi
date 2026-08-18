@@ -5,14 +5,13 @@
 [![Coverage](https://codecov.io/gh/Looted/kibi/branch/develop/graph/badge.svg)](https://codecov.io/gh/Looted/kibi)
 [![Kibi requirement health](https://looted.github.io/kibi/badge.svg)](https://looted.github.io/kibi/)
 [![License: AGPL-3.0-or-later](https://img.shields.io/badge/license-AGPL--3.0--or--later-6f42c1.svg)](LICENSE.md)
+[![X @kibi_dev](https://img.shields.io/badge/X-%40kibi__dev-000000.svg?logo=x&logoColor=white)](https://x.com/kibi_dev)
 
 **Say what the software should do. Kibi makes agents follow it—and prove they did.**
 
 Kibi is an agent-native requirements compiler and enforcement layer. You describe product intent in natural language; the agent creates and maintains the structured requirements, scenarios, tests, semantic facts, and code links. Kibi then checks that the implementation remains coherent with that intent.
 
 Unlike passive memory or retrieval systems, Kibi is designed to place itself in the agent's workflow. The agent does not have to remember to consult a ticket, board, or requirements folder: Kibi's hooks, tools, and validation gates continuously bring the relevant product context back into the work.
-
-Project references: [brand guide](docs/brand-guide.md) · [proof readiness plan](docs/proof-readiness-plan.md) · [GitHub badge + report](docs/github-integration.md)
 
 ## Why Kibi
 
@@ -411,6 +410,7 @@ See [generic agent onboarding](docs/mcp-reference.md#generic-agent-onboarding) f
 ## Documentation
 
 - [Installation guide](docs/install.md) — Prerequisites, package managers, client setup, and verification
+- [GitHub badge + report](docs/github-integration.md) — Publish requirement health on GitHub Pages
 - [CLI reference](docs/cli-reference.md) — Commands, flags, and structured JSON routes
 - [MCP reference](docs/mcp-reference.md) — Tools, schemas, examples, and agent onboarding
 - [Entity schema](docs/entity-schema.md) — Entity types, relationships, and semantic fact lanes

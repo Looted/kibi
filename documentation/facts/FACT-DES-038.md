@@ -3,7 +3,7 @@ id: FACT-DES-038
 title: Brand Guide Evolution and Maintenance
 status: active
 tags: [policy, design, documentation, versioning]
-source: docs/design-system.md
+source: docs/brand-guide.md
 created_at: 2026-02-20T21:42:12Z
 updated_at: 2026-02-20T21:42:12Z
 fact_kind: meta
