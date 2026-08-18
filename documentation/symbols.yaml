@@ -24263,6 +24263,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-relationship-type-contract
+      - type: covered_by
+        target: TEST-mcp-relationship-preflight
       - type: implements
         target: REQ-mcp-relationship-preflight
   - id: SYM-validateSupersedesSourceHistory

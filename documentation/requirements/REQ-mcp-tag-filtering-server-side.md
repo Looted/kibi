@@ -2,8 +2,8 @@
 id: REQ-mcp-tag-filtering-server-side
 title: kb_query restores server-side tag filtering after tag normalization
 status: open
-created_at: 2026-03-21T00:00:00Z
-updated_at: 2026-03-21T00:00:00Z
+created_at: 2026-03-21T00:00:00.000Z
+updated_at: 2026-08-18T00:00:00.000Z
 priority: should
 source: documentation/requirements/REQ-mcp-tag-filtering-server-side.md
 tags:
@@ -13,7 +13,11 @@ tags:
   - normalization
   - performance
 links:
-  - REQ-002
+  - type: specified_by
+    target: SCEN-mcp-tag-filtering-server-side
+  - type: relates_to
+    target: REQ-002
+type: req
 ---
 
 ## Overview

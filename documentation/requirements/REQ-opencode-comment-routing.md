@@ -3,7 +3,7 @@ id: REQ-opencode-comment-routing
 title: OpenCode plugin routes durable code comments to Kibi artifacts
 status: open
 created_at: 2026-03-21T13:00:00Z
-updated_at: 2026-03-21T13:00:00Z
+updated_at: 2026-08-18T00:00:00Z
 priority: should
 source: documentation/requirements/REQ-opencode-comment-routing.md
 tags:
@@ -14,7 +14,12 @@ tags:
   - javascript
   - typescript
 links:
-  - REQ-opencode-kibi-plugin-v1
+  - type: specified_by
+    target: SCEN-opencode-python-comment-routing
+  - type: verified_by
+    target: TEST-opencode-python-comment-routing
+  - type: relates_to
+    target: REQ-opencode-kibi-plugin-v1
 ---
 
 ## Overview
