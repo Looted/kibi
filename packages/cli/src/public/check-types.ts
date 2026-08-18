@@ -39,7 +39,9 @@ export {
   getDefaultRules,
   getEffectiveRules,
   getRuleDefinition,
+  getRuleEnforcementClass,
   isCanonicalRule,
+  ruleRunsByDefault,
   validateRuleName,
 } from "../utils/rule-registry.js";
 

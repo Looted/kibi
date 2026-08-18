@@ -28,6 +28,7 @@ import {
   analyzeKbCheckImpact,
   collectQueryPlanSafetyViolations,
   getEffectiveRules,
+  partitionCheckFindings,
   qualityDiagnosticsFromImpact,
   resolveCheckRules,
 } from "./check-helpers.js";
@@ -190,7 +191,7 @@ export async function executeCheck(
 
     invalidatePrologCache(prolog);
 
-    const aggregatedViolations = await runAggregatedChecks(
+    const aggregatedFindings = await runAggregatedChecks(
       prolog,
       rulesAllowlist,
     );
@@ -202,11 +203,12 @@ export async function executeCheck(
     )
       ? await collectSourceRelationshipParityViolations(workspaceRoot, prolog)
       : [];
-    const violations: Violation[] = [
-      ...aggregatedViolations,
+    const partitioned = partitionCheckFindings([
+      ...aggregatedFindings,
       ...queryPlanViolations,
       ...sourceRelationshipParityViolations,
-    ];
+    ]);
+    const violations: Violation[] = partitioned.violations;
 
     const diagnostics: CheckDiagnostic[] = violations.map((v) => ({
       category: "SYNC_ERROR",
@@ -219,7 +221,7 @@ export async function executeCheck(
     const collectFullQualityDiagnostics =
       !hasExplicitRules ||
       options.collectFullQualityDiagnosticsForExplicitRules === true;
-    const qualityDiagnostics = !collectFullQualityDiagnostics
+    const extraQualityDiagnostics = !collectFullQualityDiagnostics
       ? impactQualityDiagnostics
       : impactResult
         ? impactQualityDiagnostics
@@ -234,6 +236,10 @@ export async function executeCheck(
             now: context.clock(),
             ...maxDiagnosticsOption,
           });
+    const qualityDiagnostics = [
+      ...partitioned.qualityDiagnostics,
+      ...extraQualityDiagnostics,
+    ];
 
     const statusPlan = await readStatusMigrationPlan(context);
     const migrationPlan = await migrationPlanForCheck(

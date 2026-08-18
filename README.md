@@ -111,67 +111,16 @@ enabling Actions as the Pages source.
 [![Kibi requirement health](https://OWNER.github.io/REPOSITORY/kibi-report/badge.svg)](https://OWNER.github.io/REPOSITORY/kibi-report/)
 ```
 
-The workflow runs on the repository default branch (it does not assume `main`)
-and on `workflow_dispatch`. It installs SWI-Prolog, runs `kibi sync` and
-`kibi report`, and deploys that output under `/kibi-report/`. It does not build
-or test the rest of the application. Adapt `cache: npm` and `npm ci` if the
-project does not use npm; see [GitHub integration](docs/github-integration.md).
-
-```yaml
-name: Kibi requirement health
-
-on:
-  push:
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
-concurrency:
-  group: pages
-  cancel-in-progress: false
-
-jobs:
-  build-report:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24
-          cache: npm
-      - name: Install SWI-Prolog
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y swi-prolog
-      - run: npm ci
-      - run: npm exec -- kibi sync
-      - run: npm exec -- kibi report --output kibi-report
-      - name: Namespace Pages output under /kibi-report/
-        run: |
-          mkdir -p pages/kibi-report
-          cp -R kibi-report/. pages/kibi-report/
-      - uses: actions/configure-pages@v6
-      - uses: actions/upload-pages-artifact@v5
-        with:
-          path: pages
-
-  deploy-report:
-    needs: build-report
-    if: ${{ github.event_name == 'workflow_dispatch' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy requirement health
-        id: deployment
-        uses: actions/deploy-pages@v5
-```
+The workflow generates the report on pull requests, on the repository default
+branch (it does not assume `main`), and on `workflow_dispatch`. Pull requests
+fail if `kibi report` fails and upload the candidate `kibi-report/` directory
+as the `kibi-pr-report` artifact. Only the default branch and
+`workflow_dispatch` deploy GitHub Pages under `/kibi-report/`. A pull request
+never replaces the canonical public report or badge. Copy
+[docs/examples/github/kibi-report.yml](docs/examples/github/kibi-report.yml)
+rather than maintaining a second workflow. Adapt `cache: npm` and `npm ci` if
+the project does not use npm; see
+[GitHub integration](docs/github-integration.md).
 
 To scaffold those same files automatically:
 

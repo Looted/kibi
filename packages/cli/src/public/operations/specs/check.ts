@@ -34,7 +34,7 @@ export const checkSpec = {
           ],
         },
         description:
-          "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, source-relationship-parity, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, logic-coverage, rule-safety, rule-verifiability, semantic-completeness, query-plan-safety. If omitted, server runs all rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; if supplied, server preserves scoped validation and skips the full-KB advisory scan.",
+          "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, source-relationship-parity, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, logic-coverage, rule-safety, rule-verifiability, semantic-completeness, query-plan-safety. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
       },
       sourceFiles: {
         type: "array",

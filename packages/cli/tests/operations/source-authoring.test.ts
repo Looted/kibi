@@ -186,6 +186,26 @@ describe("source-first authoring", () => {
     ).rejects.toThrow("Pending source hash drift");
   });
 
+  test("does not treat pending relationship shards as symbol manifests", async () => {
+    const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
+    workspaces.push(workspace);
+    execFileSync("git", ["init", "-b", "main"], { cwd: workspace });
+    const shard = ".kb/relationships/ab.yaml";
+    const absolute = path.join(workspace, shard);
+    await mkdir(path.dirname(absolute), { recursive: true });
+    const body = "from: REQ-1\nto: SCEN-1\ntype: specified_by\n";
+    await writeFile(absolute, body);
+    writePendingSourceReceipt(
+      workspace,
+      shard,
+      createHash("sha256").update(body).digest("hex"),
+    );
+
+    const paths = await discoverSourceFiles(workspace, { trackedOnly: true });
+    expect(paths.manifestFiles).not.toContain(absolute);
+    expect(paths.markdownFiles).not.toContain(absolute);
+  });
+
   test("refreshes a pending receipt after a second Kibi source write", async () => {
     const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
     workspaces.push(workspace);

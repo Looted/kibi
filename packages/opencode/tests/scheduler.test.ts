@@ -75,10 +75,10 @@ describe("sync scheduler", () => {
     );
     const worktreeA = path.join(tmpDir, "worktree-a");
     const worktreeB = path.join(tmpDir, "worktree-b");
-    fs.mkdirSync(path.join(worktreeA, "documentation", "requirements"), {
+    fs.mkdirSync(path.join(worktreeA, ".kb", "requirements"), {
       recursive: true,
     });
-    fs.mkdirSync(path.join(worktreeB, "documentation", "requirements"), {
+    fs.mkdirSync(path.join(worktreeB, ".kb", "requirements"), {
       recursive: true,
     });
     const runs: string[] = [];

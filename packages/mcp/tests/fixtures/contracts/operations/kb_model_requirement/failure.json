@@ -57,7 +57,7 @@
           "type": "string"
         },
         "provenance": {
-          "description": "Optional extracted text reference. Falls back to source when omitted. Example: 'documentation/requirements/customer-retention.md#L1'.",
+          "description": "Optional extracted text reference. Falls back to source when omitted. Example: '.kb/requirements/customer-retention.md#L1'.",
           "type": "string"
         },
         "requirementId": {
@@ -65,7 +65,7 @@
           "type": "string"
         },
         "source": {
-          "description": "Optional primary source path or provenance root used for stable IDs and text refs. Example: 'documentation/requirements/customer-retention.md'.",
+          "description": "Optional primary source path or provenance root used for stable IDs and text refs. Example: '.kb/requirements/customer-retention.md'.",
           "type": "string"
         },
         "sourceFiles": {

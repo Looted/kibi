@@ -54,6 +54,24 @@ function readJson(filePath: string): Record<string, unknown> {
   return JSON.parse(readFileSync(filePath, "utf8")) as Record<string, unknown>;
 }
 
+const LEGACY_KIBI_GITIGNORE = `.kb/
+!.kb/config.json
+!.kb/schema/
+!.kb/relationships/
+!.kb/relationships/*.yaml
+`;
+
+function writeLegacyGitIgnore(root: string): void {
+  writeFileSync(path.join(root, ".gitignore"), LEGACY_KIBI_GITIGNORE, "utf8");
+}
+
+function gitCheckIgnoreStatus(cwd: string, relPath: string): number | null {
+  return spawnSync("git", ["check-ignore", "-q", "--", relPath], {
+    cwd,
+    encoding: "utf8",
+  }).status;
+}
+
 function writeLegacyConfig(
   root: string,
   extra: Record<string, unknown> = {},
@@ -127,9 +145,9 @@ describe("kibi migrate", () => {
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("No migration needed");
     expect(existsSync(path.join(tmpDir, ".kb", "config.json"))).toBe(false);
-    expect(readJson(path.join(tmpDir, ".kb", "manifest.json")).schemaVersion).toBe(
-      LATEST_KB_SCHEMA_VERSION,
-    );
+    expect(
+      readJson(path.join(tmpDir, ".kb", "manifest.json")).schemaVersion,
+    ).toBe(LATEST_KB_SCHEMA_VERSION);
   });
 
   test("dry-run reports storage moves without writing files", () => {
@@ -145,13 +163,13 @@ describe("kibi migrate", () => {
     );
     expect(result.stdout).toContain("would retire legacy .kb/config.json");
     expect(result.stdout).toContain("would mark 1 legacy coarse symbol");
-    expect(existsSync(path.join(tmpDir, "documentation/requirements/REQ-ONE.md"))).toBe(
-      true,
-    );
+    expect(
+      existsSync(path.join(tmpDir, "documentation/requirements/REQ-ONE.md")),
+    ).toBe(true);
     expect(existsSync(path.join(tmpDir, ".kb", "manifest.json"))).toBe(false);
-    expect(existsSync(path.join(tmpDir, ".kb", "migrations", "main.json"))).toBe(
-      false,
-    );
+    expect(
+      existsSync(path.join(tmpDir, ".kb", "migrations", "main.json")),
+    ).toBe(false);
   });
 
   test("--yes moves knowledge, retires config.json, and writes the manifest", () => {
@@ -185,6 +203,56 @@ describe("kibi migrate", () => {
     expect(audit.symbolGranularityLegacyLinks).toBe(1);
   });
 
+  test("--yes rewrites the pre-canonical gitignore fence so migrated knowledge is trackable", () => {
+    writeLegacyConfig(tmpDir, { schemaVersion: 1 });
+    writeLegacyKnowledge(tmpDir);
+    writeLegacyGitIgnore(tmpDir);
+
+    expect(gitCheckIgnoreStatus(tmpDir, ".kb/requirements/REQ-ONE.md")).toBe(0);
+
+    const result = runKibi(["migrate", "--yes"], tmpDir);
+    expect(result.status).toBe(0);
+
+    const gitignore = readFileSync(path.join(tmpDir, ".gitignore"), "utf8");
+    expect(gitignore).not.toMatch(/^\.kb\/$/m);
+    expect(gitignore).toContain(".kb/migrations/");
+    expect(gitCheckIgnoreStatus(tmpDir, ".kb/requirements/REQ-ONE.md")).toBe(1);
+    expect(gitCheckIgnoreStatus(tmpDir, ".kb/migrations/main.json")).toBe(0);
+  });
+
+  test("dry-run does not rewrite a legacy gitignore fence", () => {
+    writeLegacyConfig(tmpDir, { schemaVersion: 1 });
+    writeLegacyKnowledge(tmpDir);
+    writeLegacyGitIgnore(tmpDir);
+
+    const result = runKibi(["migrate", "--dry-run"], tmpDir);
+    expect(result.status).toBe(0);
+    expect(readFileSync(path.join(tmpDir, ".gitignore"), "utf8")).toBe(
+      LEGACY_KIBI_GITIGNORE,
+    );
+  });
+
+  test("malformed leftover config is a blocker and does not guess documentation/ paths", () => {
+    mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
+    writeFileSync(path.join(tmpDir, ".kb", "config.json"), "{", "utf8");
+    writeLegacyKnowledge(tmpDir);
+    writeLegacyGitIgnore(tmpDir);
+
+    const result = runKibi(["migrate", "--yes"], tmpDir);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("malformed");
+    expect(result.stderr).toContain("will not infer");
+    expect(
+      existsSync(path.join(tmpDir, "documentation/requirements/REQ-ONE.md")),
+    ).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/requirements/REQ-ONE.md"))).toBe(
+      false,
+    );
+    expect(readFileSync(path.join(tmpDir, ".gitignore"), "utf8")).toBe(
+      LEGACY_KIBI_GITIGNORE,
+    );
+  });
+
   test("blocks conflicting destinations instead of overwriting", () => {
     writeLegacyConfig(tmpDir);
     writeLegacyKnowledge(tmpDir);
@@ -199,7 +267,10 @@ describe("kibi migrate", () => {
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("already exists");
     expect(
-      readFileSync(path.join(tmpDir, "documentation/requirements/REQ-ONE.md"), "utf8"),
+      readFileSync(
+        path.join(tmpDir, "documentation/requirements/REQ-ONE.md"),
+        "utf8",
+      ),
     ).toContain("Keep this.");
     expect(
       readFileSync(path.join(tmpDir, ".kb/requirements/REQ-ONE.md"), "utf8"),

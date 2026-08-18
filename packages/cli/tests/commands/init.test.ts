@@ -121,6 +121,7 @@ describe("kibi init", () => {
     expect(content).toContain(".kb/recovery/");
     expect(content).toContain(".kb/verification/");
     expect(content).toContain(".kb/briefs/");
+    expect(content).toContain(".kb/migrations/");
     expect(content).toContain(".kb/usage.log");
     expect(content).not.toMatch(/^\.kb\/$/m);
   }, 30000);
@@ -307,12 +308,18 @@ describe("kibi init", () => {
     });
 
     expect(out).toContain("Added .github/workflows/kibi-report.yml");
-    expect(out).toContain("GitHub → Settings → Pages → Source → GitHub Actions");
+    expect(out).toContain(
+      "GitHub → Settings → Pages → Source → GitHub Actions",
+    );
     const workflow = readFileSync(
       path.join(tmpDir, ".github/workflows/kibi-report.yml"),
       "utf8",
     );
     expect(workflow).toContain("kibi report --output kibi-report");
+    expect(workflow).toContain("KIBI_BRANCH: ${{ github.head_ref || github.ref_name }}");
+    expect(workflow).toContain("pull_request:");
+    expect(workflow).not.toContain("pull_request_target");
+    expect(workflow).toContain("name: kibi-pr-report");
     const readme = readFileSync(path.join(tmpDir, "README.md"), "utf8");
     expect(readme).toContain(
       "[![Kibi requirement health](https://acme.github.io/widgets/kibi-report/badge.svg)](https://acme.github.io/widgets/kibi-report/)",

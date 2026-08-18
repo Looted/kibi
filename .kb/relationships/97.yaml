@@ -27,3 +27,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bf626df7f401
+  - type: implements
+    from: SYM-cli-rule-registry-getRuleEnforcementClass
+    to: REQ-cli-check
+    created_at: 2026-08-18T18:22:44.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50811e69487a
+  - type: covered_by
+    from: SYM-cli-rule-registry-getRuleEnforcementClass
+    to: TEST-cli-quality-diagnostics-contract
+    created_at: 2026-08-18T18:22:44.738Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ee52869204d

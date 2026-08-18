@@ -34,3 +34,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-30af0cfa6261
+  - type: implements
+    from: SYM-opencode-risk-class
+    to: REQ-opencode-risk-classification
+    created_at: 2026-08-18T21:04:43.812Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e7d836acbcf
+  - type: covered_by
+    from: SYM-opencode-risk-class
+    to: TEST-opencode-smart-enforcement
+    created_at: 2026-08-18T21:04:43.827Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f22b9c4ae65e

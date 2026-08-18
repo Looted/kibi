@@ -6,3 +6,17 @@ relationships:
     created_at: "2026-08-18T11:57:24.162Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-cli-report-repository-type
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-18T20:42:37.276Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-141c1a99d082
+  - type: covered_by
+    from: SYM-cli-report-repository-type
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-18T20:42:37.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43d99eeb089b

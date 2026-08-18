@@ -44,11 +44,7 @@ function writeUploadSource(workspaceRoot: string): void {
 }
 
 function writeSymbolsManifest(workspaceRoot: string, content: string): void {
-  const absolutePath = path.join(
-    workspaceRoot,
-    "documentation",
-    "symbols.yaml",
-  );
+  const absolutePath = path.join(workspaceRoot, ".kb", "symbols.yaml");
   mkdirSync(path.dirname(absolutePath), { recursive: true });
   writeFileSync(absolutePath, content);
 }

@@ -28,7 +28,7 @@ describe("getE2eCoverageSignal", () => {
       relationships?: Array<{ type: string; target: string }>;
     }>,
   ) {
-    const docDir = path.join(tmpDir, "documentation");
+    const docDir = path.join(tmpDir, ".kb");
     fs.mkdirSync(docDir, { recursive: true });
 
     const entriesYaml = entries
@@ -59,7 +59,7 @@ describe("getE2eCoverageSignal", () => {
       body?: string;
     },
   ) {
-    const docDir = path.join(tmpDir, "documentation", "tests");
+    const docDir = path.join(tmpDir, ".kb", "tests");
     // Allow subdirectories like e2e/packed/
     const fullPath = path.join(docDir, filename);
     fs.mkdirSync(path.dirname(fullPath), { recursive: true });

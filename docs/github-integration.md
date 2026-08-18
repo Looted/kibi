@@ -53,22 +53,36 @@ The file to copy is
 [docs/examples/github/kibi-report.yml](examples/github/kibi-report.yml). It is
 byte-identical to the template shipped in `kibi-cli`.
 
-The workflow:
+One `build-report` job generates the report. Pull requests validate that
+generation and upload the candidate site as an ordinary workflow artifact.
+Only the repository **default branch** (it does not assume the branch is named
+`main`) and `workflow_dispatch` may deploy GitHub Pages. A `pull_request` event
+never deploys Pages, never replaces the canonical report or badge, and never
+receives `pages: write` or `id-token: write`. The workflow uses `pull_request`,
+not `pull_request_target`, with repository-level `contents: read`. GitHub
+Actions checkouts are detached, so the workflow sets `KIBI_BRANCH` to the
+pull-request head ref or the pushed/dispatched branch name before `kibi sync`
+and `kibi report`.
 
-1. checks out the repository
+The generate job:
+
+1. checks out the candidate GitHub Actions ref (the PR merge commit on pull
+   requests, otherwise the pushed or dispatched commit)
 2. sets up Node.js
 3. installs SWI-Prolog
 4. installs project dependencies with npm
 5. runs `kibi sync`
-6. runs `kibi report --output kibi-report`
-7. copies that output under `pages/kibi-report/` so the public path is `/kibi-report/`
-8. uploads `pages` as a GitHub Pages artifact
-9. deploys it to GitHub Pages
+6. runs `kibi report --output kibi-report` (the job fails if this fails)
+7. on `pull_request`, uploads the `kibi-report/` directory as the
+   `kibi-pr-report` artifact (HTML report plus badge)
+8. on the default branch or `workflow_dispatch`, copies that output under
+   `pages/kibi-report/` so the public path is `/kibi-report/` and uploads it as
+   a GitHub Pages artifact
 
-It runs on the repository **default branch** (it does not assume the branch is
-named `main`) and on `workflow_dispatch`. It does not build or test the rest of
-the application, does not commit generated files, and does not use an orphan
-`gh-pages` branch.
+The `deploy-report` job then deploys that Pages artifact. It does not run for
+pull requests. Pushes to non-default branches start the workflow and skip both
+jobs. The workflow does not build or test the rest of the application, does not
+commit generated files, and does not use an orphan `gh-pages` branch.
 
 ### 3. Add the clickable badge
 
@@ -180,8 +194,10 @@ kibi init --github --badge-only
 Or copy [docs/examples/github/kibi-badge.yml](examples/github/kibi-badge.yml) to
 `.github/workflows/kibi-badge.yml`.
 
-That workflow still runs `kibi report` (same snapshot, same `% proven`) and
-then publishes only `badge.svg`. The README link should point at this section
+That workflow still runs `kibi report` (same snapshot, same `% proven`). Pull
+requests upload the generated report directory as `kibi-pr-report` and still
+do not deploy Pages. Default-branch and `workflow_dispatch` publishes only
+`badge.svg` under `/kibi-report/`. The README link should point at this section
 rather than pretending a report exists:
 
 ```markdown
@@ -201,10 +217,12 @@ Pages deployments do not go live. The report is not at the Pages site root.
 The SVG URL must be anonymously reachable. Private Pages sites will not render
 in public READMEs. Confirm `/kibi-report/badge.svg` loads in a logged-out browser.
 
-**The workflow is skipped on every push.**
-Report jobs run on `workflow_dispatch` or the repository **default** branch.
-Pushes to other branches start the workflow and then skip the jobs. Change the
-GitHub default branch, or use **Run workflow** for a one-off publish.
+**The workflow is skipped on every feature-branch push.**
+Report generation runs on `pull_request`, `workflow_dispatch`, or a push to the
+repository **default** branch. Pushes to other branches start the workflow and
+then skip the jobs. Open a pull request to validate a candidate report, change
+the GitHub default branch, or use **Run workflow** for a one-off publish.
+GitHub Pages still deploys only from the default branch or `workflow_dispatch`.
 
 **`kibi: command not found` or `npm exec -- kibi` fails.**
 Install `kibi-cli` as a project dependency and commit the lockfile. The

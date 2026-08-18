@@ -57,7 +57,7 @@ Initializes a kibi project in the current directory.
 **Behavior:**
 - Creates `.kb/` directory structure with canonical knowledge lanes (`requirements/`, `scenarios/`, `tests/`, `facts/`, `adr/`, `flags/`, `events/`)
 - Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default
-- Ignores derived `.kb/` runtime state in `.gitignore` (`.kb/branches/`, `.kb/recovery/`, `.kb/verification/`, `.kb/briefs/`, `.kb/usage.log`). Authored knowledge under `.kb/` stays tracked. Migration audit files under `.kb/migrations/` stay Git-trackable but are excluded from verification snapshots.
+- Ignores derived `.kb/` runtime state in `.gitignore` (`.kb/branches/`, `.kb/recovery/`, `.kb/verification/`, `.kb/briefs/`, `.kb/migrations/`, `.kb/usage.log`). Authored knowledge under `.kb/` stays tracked. `kibi migrate` also removes the pre-canonical blanket `.kb/` ignore stanza so migrated knowledge files are not left Git-ignored.
 - Creates Kibi-owned `.kb/manifest.json` (lifecycle metadata only; not a user configuration file)
 - Creates `.kb/symbols.yaml` and `.kb/symbol-coordinates.yaml` when they do not already exist
 
@@ -67,7 +67,7 @@ Initializes a kibi project in the current directory.
 - `--badge-only` - With `--github` only: publish the badge without the HTML report. Rejected if used alone.
 
 **GitHub integration:**
-- `--github` by itself always means **badge + full report**. It copies the canonical workflow from the `kibi-cli` package (the same file as [docs/examples/github/kibi-report.yml](examples/github/kibi-report.yml)).
+- `--github` by itself always means **badge + full report**. It copies the canonical workflow from the `kibi-cli` package (the same file as [docs/examples/github/kibi-report.yml](examples/github/kibi-report.yml)). That workflow generates the report on pull requests (artifact only) and deploys GitHub Pages only from the repository default branch or `workflow_dispatch`.
 - Re-running is safe: matching files are left as already configured; customized workflows are not overwritten; an existing Kibi badge is not duplicated.
 - If no README exists, the workflow is still written and the badge Markdown is printed.
 - If a github.com owner/repository cannot be determined from git remotes, the workflow is still written and placeholder badge Markdown is printed instead of inventing a URL.
@@ -280,7 +280,7 @@ kibi coverage [--by req|symbol|type] [--tag TAGS] [--include-passing] [--no-incl
 - Requirement coverage rows include coverage-depth labels when evidence can be classified: `direct_passing_e2e`, `scenario_passing_e2e`, `unit_only`, `open_or_nonpassing_tests_only`, `scenario_only_no_test`, or `no_test_evidence`.
 - Coverage-depth labels are informational. They do not change existing covered/uncovered pass-fail semantics, and typed test fields (`verification_scope`, then `verification_perspective`) take precedence over legacy `e2e` tags or `/e2e/` path heuristics.
 - Requirement rows also expose the additive `kibi.requirement-proof.v2` contract. `proofStatus` is `proven`, `unresolved`, `missing`, or `not_applicable` for a non-current requirement, and is intentionally independent from compatibility-oriented `coverageStatus`.
-- `proofStages` records semantic inventory, logical grounding, contradiction, scenario, scenario-test, passing E2E, executable-symbol, production-symbol, and exact source-coordinate evidence. `proofGaps` uses stable machine-readable codes and `proofRepairs` ranks concrete recovery actions.
+- `proofStages` records semantic inventory, logical grounding, contradiction, scenario, scenario-test, passing E2E, executable-symbol, production-symbol, and exact source-coordinate evidence. `proofGaps` lists only blocking issues that prevent `proven`. `proofAdvisories` lists non-blocking extra-evidence issues, such as additional scenario-backed tests that still lack a receipt after strict proof already exists. `proofRepairs` ranks concrete recovery actions for blocking gaps only.
 - Requirement reports also include `repairPlan` (`kibi.repair-plan.v1`). It groups gaps into one small batch per requirement and dependency phase, marks only the earliest unresolved batch `ready`, and links later batches through `dependsOn`. Every batch is read-only guidance with `autoApplicable: false`, a reviewed `workflowSteps` sequence, targeted `validationRules`, and a sequential-write policy.
 - Requirement and symbol reports also include the shared `migrationPlan` (`kibi.migration-plan.v2`). Apply only ready automatic actions after explicitly approving its exact hash and action IDs; review, operator, and E2E execution actions remain agent/operator work.
 - `repairPlan.scope.complete` is false and `status` is `partial` whenever `limit`/`offset` exclude actionable requirements. Increase the limit and reset the offset before using a plan as a project-wide migration inventory. The plan ID is stable for the same snapshot, filters, evidence, and gaps; receipt ages and check timestamps do not churn it.
@@ -307,8 +307,9 @@ kibi report [--output PATH] [--open] [--tag TAGS] [--limit N]
 
 **Report contents:**
 - Proven percentage and count use current requirements only; superseded and otherwise non-current requirements are reported as excluded rather than lowering the score.
-- Summary metrics show current requirements, fully proven requirements, missing scenarios, stale E2E evidence, unique contradiction witnesses, and production symbols without requirement ownership.
-- Requirement cards separate semantic grounding, scenario, implementation, E2E-test, and fresh-receipt stages. Search and health filters run entirely in the generated file.
+- Summary metrics show current requirements, strict proof coverage, missing scenarios, stale E2E evidence, unique contradiction witnesses, unmapped production symbols, and requirements without implementation.
+- Requirement cards separate semantic grounding, scenario, implementation, E2E-test, and fresh-receipt stages. Search, health filters, and proof-gate filters run entirely in the generated file. Filter buttons include counts. Relative evidence and generation ages are computed in the viewer from preserved absolute timestamps.
+- Stale KB state and dirty workspace proof evaluation are shown as a prominent snapshot warning.
 - Stale KB state and dirty workspace proof evaluation are shown as a prominent snapshot warning.
 - All KB-provided values are HTML-escaped. The report has no CDN, font, script, or other network dependency, so the output directory can be hosted as-is.
 - The generated SVG badge uses the same complete coverage snapshot as the report. It pairs the Kibi logo with a `kibi` label in Codecov/Shields chrome (regular 11px type, `#555` label pane, reserved padding, and white status text), sizes itself to the proven-percentage message, and uses conservative colors for contradictions and stale snapshots.
@@ -328,7 +329,9 @@ kibi report --tag billing,security --output artifacts/kibi.html
 For GitHub Pages, follow the copyable workflow in
 [docs/examples/github/kibi-report.yml](examples/github/kibi-report.yml) or run
 `kibi init --github`. That command scaffolds the same documented integration.
-Enable **Settings → Pages → Source → GitHub Actions**. Details, package-manager
+Pull requests generate and validate `kibi report`, then upload `kibi-pr-report`;
+only the default branch publishes the canonical Pages site. Enable
+**Settings → Pages → Source → GitHub Actions**. Details, package-manager
 adaptations, owner-site URLs, and the badge-only opt-out are in
 [GitHub badge + report](github-integration.md).
 
@@ -372,7 +375,7 @@ Validates knowledge base integrity and runs inference rules.
 - Checks requirement coverage (must-priority rules)
 - Detects dangling references (entities that reference non-existent IDs)
 - Detects cycles in dependency graphs
-- Supports strict migration checks like `strict-fact-shape` and `strict-req-fact-pairing`, a default-off semantic audit (`predicate-verifiability`) for `requires_predicate` links that still target prose/observation facts, and default-on `query-plan-safety` for Prolog clauses that place negation before later generator calls. Rule enforcement is owned by the installed Kibi version (`canonical`, `advisory`, or `migration`). `--rules` is an invocation-time diagnostic filter only; leftover `.kb/config.json` cannot disable canonical checks.
+- Supports strict advisory modeling checks (`strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`) that run by default as non-blocking `qualityDiagnostics`, and default-off migration diagnostics (`strict-readiness`, `semantic-completeness`) that run only when explicitly selected with `--rules`. Canonical rules always populate blocking `violations[]`. `--rules` is an invocation-time diagnostic filter only; leftover `.kb/config.json` cannot disable canonical checks.
 - With `--staged`, runs commit-time changed-file impact enforcement for behavior-changing source edits, including missing Kibi impact evidence, stale symbol coordinates, and changed behavioral symbols that are only linked through coarse class/module ownership
 - Reports blocking `violations[]` with actionable suggestions and additive `qualityDiagnostics[]` audit signals for modeling quality, coverage depth, broad requirements, duplicate coordinates, symbol fanout, and strict-fact review
 - When `.kb/usage.log` exists, an unfiltered check also turns failed or insufficient `kibi.telemetry-acceptance.v1` metrics into ranked, non-blocking `category: telemetry` quality diagnostics; a missing log is skipped because diagnostic logging is opt-in
@@ -406,13 +409,13 @@ kibi check --staged
 # Run specific rules
 kibi check --rules must-priority-coverage,no-dangling-refs
 
-# Opt into strict fact migration checks
-kibi check --rules strict-fact-shape # Migration-oriented check
+# Audit advisory strict-fact modeling without failing canonical health
+kibi check --rules strict-fact-shape
 
-# Audit strict requirement/fact pairing during migration
+# Audit strict requirement/fact pairing without failing canonical health
 kibi check --rules strict-req-fact-pairing
 
-# Audit predicate ontology links during migration
+# Audit predicate ontology links without failing canonical health
 kibi check --rules predicate-verifiability
 
 # Audit Prolog validation query plans
@@ -532,6 +535,8 @@ flags, it is a read-only preview; `--format json` returns the complete
 - Marks pre-existing coarse symbol links with `granularity_reason: legacy-link` when narrower exported symbols or class methods (`ClassName.methodName`) are already available
 - Fixes legacy requirement modeling to follow strict fact-pairing rules
 - Moves legacy `documentation/` knowledge lanes and leftover `.kb/config.json` into the canonical `.kb/` layout
+- Replaces the pre-canonical blanket `.kb/` gitignore stanza with derived-runtime ignores so migrated `.kb/<lane>/` files are trackable
+- Treats malformed `.kb/config.json` as a blocker instead of guessing `documentation/` paths
 - Writes `.kb/manifest.json` with the latest `schemaVersion`
 - Idempotent: safe to run if already on the latest version
 

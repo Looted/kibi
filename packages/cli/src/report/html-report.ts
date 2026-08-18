@@ -1,6 +1,33 @@
-import { KIBI_BRAND, renderKibiLogo, renderKibiWordmark } from "./brand.js";
+import {
+  KIBI_BRAND,
+  renderKibiFaviconDataUri,
+  renderKibiLogo,
+  renderKibiWordmark,
+} from "./brand.js";
+import { formatAbsoluteUtc, parseTimestamp } from "./relative-time.js";
+import {
+  type ProofGateKey,
+  REPORT_FILTERS,
+  reportFilterCounts,
+} from "./report-view.js";
+import {
+  type ReportRepository,
+  type SourceCoordinate,
+  commitWebUrl,
+  formatSourceCoordinate,
+  shortCommitSha,
+  sourceWebUrl,
+} from "./repository.js";
 
 type UnknownRecord = Readonly<Record<string, unknown>>;
+
+// implements REQ-kibi-html-health-report
+export const REPORT_CSP =
+  "default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'";
+
+// implements REQ-kibi-html-health-report
+export const KIBI_GETTING_STARTED_URL =
+  "https://github.com/Looted/kibi/blob/develop/docs/install.md";
 
 export type HtmlReportCoverage = Readonly<{
   summary: UnknownRecord;
@@ -13,6 +40,7 @@ export type HtmlReportInput = Readonly<{
   symbols: HtmlReportCoverage;
   branch: string;
   generatedAt: Date;
+  repository?: ReportRepository;
 }>;
 
 type StageState = "passed" | "warning" | "failed" | "muted";
@@ -24,6 +52,7 @@ type ReportStage = Readonly<{
 }>;
 
 type ProofGate = Readonly<{
+  key: ProofGateKey;
   label: string;
   detail: string;
   remaining: number;
@@ -69,6 +98,58 @@ function humanize(value: string): string {
   return value
     .replaceAll("_", " ")
     .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+function sourceCoordinate(value: unknown): SourceCoordinate | undefined {
+  const item = record(value);
+  const path = text(item.path);
+  if (!path) return undefined;
+  const line = Number(item.line);
+  const endLine = Number(item.endLine);
+  const id = text(item.id);
+  return {
+    path,
+    ...(id ? { id } : {}),
+    ...(Number.isInteger(line) && line >= 1 ? { line } : {}),
+    ...(Number.isInteger(endLine) && endLine >= 1 ? { endLine } : {}),
+  };
+}
+
+function sourceCoordinates(value: unknown): readonly SourceCoordinate[] {
+  return Array.isArray(value)
+    ? value.flatMap((item) => {
+        const coordinate = sourceCoordinate(item);
+        return coordinate ? [coordinate] : [];
+      })
+    : [];
+}
+
+function linkedLabel(label: string, href: string | undefined): string {
+  const safe = escapeHtml(label);
+  if (!href) return safe;
+  return `<a class="source-link" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${safe}</a>`;
+}
+
+function linkedCoordinate(
+  coordinate: SourceCoordinate | undefined,
+  repository: ReportRepository | undefined,
+  fallback: string,
+): string {
+  const label = formatSourceCoordinate(coordinate) ?? fallback;
+  return linkedLabel(label, sourceWebUrl(repository, coordinate));
+}
+
+function renderRelativeTime(
+  iso: string | undefined,
+  prefixHtml: string,
+): string {
+  const date = parseTimestamp(iso);
+  if (!date) {
+    return `${prefixHtml} timestamp unavailable`;
+  }
+  const absolute = formatAbsoluteUtc(date);
+  const datetime = date.toISOString();
+  return `${prefixHtml} <time datetime="${escapeHtml(datetime)}">${escapeHtml(absolute)}</time><span class="relative-age" data-relative-from="${escapeHtml(datetime)}"></span>`;
 }
 
 function stageStatus(stage: unknown): string {
@@ -145,6 +226,7 @@ function proofGates(rows: readonly UnknownRecord[]): readonly ProofGate[] {
   return definitions.map(([key, label, detail]) => {
     const remainingRows = candidates.filter((row) => passesProofGate(row, key));
     const gate = {
+      key,
       label,
       detail,
       remaining: remainingRows.length,
@@ -155,30 +237,35 @@ function proofGates(rows: readonly UnknownRecord[]): readonly ProofGate[] {
   });
 }
 
-function formatAge(ageSeconds: number): string {
-  if (ageSeconds < 60) return "just now";
-  if (ageSeconds < 3_600) {
-    const minutes = Math.round(ageSeconds / 60);
-    return `${minutes} min ago`;
+function earliestUnmetGate(row: UnknownRecord): ProofGateKey | "proven" {
+  if (row.proofStatus === "proven") return "proven";
+  for (const gate of [
+    "semantic",
+    "scenario",
+    "implementation",
+    "e2e",
+    "evidence",
+  ] as const) {
+    if (!passesProofGate(row, gate)) return gate;
   }
-  if (ageSeconds < 86_400) {
-    const hours = Math.round(ageSeconds / 3_600);
-    return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
-  }
-  const days = Math.round(ageSeconds / 86_400);
-  return `${days} ${days === 1 ? "day" : "days"} ago`;
+  return "proven";
 }
 
-function evidenceStage(passingE2e: UnknownRecord): ReportStage {
+function evidenceStage(
+  passingE2e: UnknownRecord,
+  testSources: readonly SourceCoordinate[],
+  repository: ReportRepository | undefined,
+): ReportStage {
   const evidence = records(passingE2e.receiptEvidence);
   const passed = evidence.find((item) => item.state === "passed");
   if (passed) {
-    const ageSeconds = Number(passed.ageSeconds);
+    const testSource =
+      testSources.find((item) => item.id === text(passed.testId)) ??
+      testSources[0];
+    const prefix = linkedLabel("Passed", sourceWebUrl(repository, testSource));
     return {
       label: "Evidence",
-      detail: Number.isFinite(ageSeconds)
-        ? `Fresh ${formatAge(Math.max(0, ageSeconds))}`
-        : "Fresh receipt",
+      detail: renderRelativeTime(text(passed.finishedAt) || undefined, prefix),
       state: "passed",
     };
   }
@@ -208,7 +295,7 @@ function evidenceStage(passingE2e: UnknownRecord): ReportStage {
   if (["failed", "invalid"].includes(evidenceState)) {
     return {
       label: "Evidence",
-      detail: `${humanize(evidenceState)} E2E receipt`,
+      detail: `${escapeHtml(humanize(evidenceState))} E2E receipt`,
       state: "failed",
     };
   }
@@ -219,7 +306,31 @@ function evidenceStage(passingE2e: UnknownRecord): ReportStage {
   };
 }
 
-function requirementStages(row: UnknownRecord): readonly ReportStage[] {
+function linkedSourceList(
+  coordinates: readonly SourceCoordinate[],
+  repository: ReportRepository | undefined,
+  fallback: string,
+): string {
+  if (coordinates.length === 0) return escapeHtml(fallback);
+  const visible = coordinates
+    .slice(0, 2)
+    .map((coordinate) =>
+      linkedCoordinate(
+        coordinate,
+        repository,
+        formatSourceCoordinate(coordinate) ?? text(coordinate.id, fallback),
+      ),
+    );
+  const extra = coordinates.length - visible.length;
+  return extra > 0
+    ? `${visible.join(", ")} +${extra.toLocaleString("en-US")} more`
+    : visible.join(", ");
+}
+
+function requirementStages(
+  row: UnknownRecord,
+  repository: ReportRepository | undefined,
+): readonly ReportStage[] {
   const stages = record(row.proofStages);
   const semanticInventory = stageStatus(stages.semanticInventory);
   const logicGrounding = stageStatus(stages.logicGrounding);
@@ -227,22 +338,31 @@ function requirementStages(row: UnknownRecord): readonly ReportStage[] {
   const scenarios = stageStatus(stages.scenarios);
   const scenarioTests = stageStatus(stages.scenarioTests);
   const productionSymbols = record(stages.productionSymbols);
-  const sourceCoordinates = record(stages.sourceCoordinates);
+  const sourceCoordinatesStage = record(stages.sourceCoordinates);
   const executableSymbols = record(stages.executableSymbols);
   const passingE2e = record(stages.passingE2e);
   const implementationSymbols = strings(productionSymbols.symbols);
-  const missingCoordinates = strings(sourceCoordinates.missingSymbols);
+  const missingCoordinates = strings(sourceCoordinatesStage.missingSymbols);
   const receiptEvidence = records(passingE2e.receiptEvidence);
   const hasE2e = receiptEvidence.some((item) => item.scope === "end_to_end");
+  const factSources = sourceCoordinates(record(stages.logicGrounding).sources);
+  const scenarioSources = sourceCoordinates(record(stages.scenarios).sources);
+  const testSources = sourceCoordinates(record(stages.scenarioTests).sources);
+  const productionSources = sourceCoordinates(productionSymbols.coordinates);
+  const executableSources = sourceCoordinates(executableSymbols.coordinates);
 
   let implementationState: StageState = "failed";
   let implementationDetail = "No production symbol ownership";
   if (
     stageStatus(productionSymbols) === "passed" &&
-    stageStatus(sourceCoordinates) === "passed"
+    stageStatus(sourceCoordinatesStage) === "passed"
   ) {
     implementationState = "passed";
-    implementationDetail = `${implementationSymbols.length} owned and E2E-covered ${implementationSymbols.length === 1 ? "symbol" : "symbols"}`;
+    implementationDetail = linkedSourceList(
+      productionSources,
+      repository,
+      `${implementationSymbols.length} owned and E2E-covered ${implementationSymbols.length === 1 ? "symbol" : "symbols"}`,
+    );
   } else if (implementationSymbols.length > 0) {
     implementationState = "warning";
     implementationDetail =
@@ -257,15 +377,41 @@ function requirementStages(row: UnknownRecord): readonly ReportStage[] {
       : "passed"
     : "failed";
 
+  const semanticDetail =
+    semanticInventory === "passed" && logicGrounding === "passed"
+      ? contradictions === "passed"
+        ? linkedSourceList(
+            factSources,
+            repository,
+            "Complete, grounded, and coherent",
+          )
+        : "Grounded with unresolved coherence"
+      : "Incomplete proposition grounding";
+  const scenarioCount = strings(record(stages.scenarios).scenarios).length;
+  const scenarioDetail =
+    scenarios === "passed" && scenarioTests === "passed"
+      ? linkedSourceList(
+          scenarioSources,
+          repository,
+          `${scenarioCount} specified`,
+        )
+      : scenarios !== "passed"
+        ? "Missing requirement scenario"
+        : "Scenario has no linked test";
+  const e2eDetail = hasE2e
+    ? stageStatus(executableSymbols) === "missing"
+      ? "Test exists; executable symbol is missing"
+      : linkedSourceList(
+          testSources.length > 0 ? testSources : executableSources,
+          repository,
+          "Scenario-backed executable test",
+        )
+    : "No scenario-backed end-to-end test";
+
   return [
     {
       label: "Semantic model",
-      detail:
-        semanticInventory === "passed" && logicGrounding === "passed"
-          ? contradictions === "passed"
-            ? "Complete, grounded, and coherent"
-            : "Grounded with unresolved coherence"
-          : "Incomplete proposition grounding",
+      detail: semanticDetail,
       state: combinedStageState(
         semanticInventory,
         logicGrounding,
@@ -274,12 +420,7 @@ function requirementStages(row: UnknownRecord): readonly ReportStage[] {
     },
     {
       label: "Scenario",
-      detail:
-        scenarios === "passed" && scenarioTests === "passed"
-          ? `${strings(record(stages.scenarios).scenarios).length} specified`
-          : scenarios !== "passed"
-            ? "Missing requirement scenario"
-            : "Scenario has no linked test",
+      detail: scenarioDetail,
       state: combinedStageState(scenarios, scenarioTests),
     },
     {
@@ -289,14 +430,10 @@ function requirementStages(row: UnknownRecord): readonly ReportStage[] {
     },
     {
       label: "E2E test",
-      detail: hasE2e
-        ? stageStatus(executableSymbols) === "missing"
-          ? "Test exists; executable symbol is missing"
-          : "Scenario-backed executable test"
-        : "No scenario-backed end-to-end test",
+      detail: e2eDetail,
       state: e2eState,
     },
-    evidenceStage(passingE2e),
+    evidenceStage(passingE2e, testSources, repository),
   ];
 }
 
@@ -310,7 +447,7 @@ function renderStage(stage: ReportStage): string {
   return `<li class="stage stage--${stage.state}">
     <span class="stage__icon" aria-hidden="true">${icons[stage.state]}</span>
     <span class="stage__label">${escapeHtml(stage.label)}</span>
-    <span class="stage__detail">${escapeHtml(stage.detail)}</span>
+    <span class="stage__detail">${stage.detail}</span>
   </li>`;
 }
 
@@ -374,32 +511,60 @@ function rowStates(row: UnknownRecord): string {
   return [...states].join(" ");
 }
 
-function renderRequirement(row: UnknownRecord): string {
+function renderIssueList(
+  codes: readonly string[],
+  className: string,
+  singular: string,
+  plural: string,
+): string {
+  if (codes.length === 0) return "";
+  const label = `${codes.length} ${codes.length === 1 ? singular : plural}`;
+  return `<details class="${className}"><summary>${escapeHtml(label)}</summary><ul>${codes.map((code) => `<li>${escapeHtml(humanize(code))}</li>`).join("")}</ul></details>`;
+}
+
+function renderRequirement(
+  row: UnknownRecord,
+  repository: ReportRepository | undefined,
+): string {
   const id = text(row.id, "REQ-UNKNOWN");
   const title = text(row.title, "Untitled requirement");
   const proofStatus = text(row.proofStatus, "missing");
   const proofGaps = strings(row.proofGaps);
+  const proofAdvisories = strings(row.proofAdvisories);
+  const blockingGaps = proofStatus === "proven" ? [] : proofGaps;
+  const advisories =
+    proofStatus === "proven"
+      ? [
+          ...proofAdvisories,
+          ...proofGaps.filter((gap) => !proofAdvisories.includes(gap)),
+        ]
+      : proofAdvisories;
   const conflicts = records(
     record(record(row.proofStages).contradictions).conflicts,
   ).filter((conflict) => text(conflict.status) === "contradiction");
-  const stages = requirementStages(row);
+  const stages = requirementStages(row, repository);
   const badgeLabel = proofStatus === "proven" ? "Proven" : "Needs attention";
+  const requirementSource =
+    sourceCoordinate({
+      path: text(
+        record(record(row.proofStages).sourceCoordinates).requirementPath,
+        text(row.source),
+      ),
+    }) ?? sourceCoordinate({ path: text(row.source) });
+  const gate = earliestUnmetGate(row);
 
-  return `<article class="requirement requirement--${escapeHtml(proofStatus)}" data-state="${rowStates(row)}">
+  return `<article class="requirement requirement--${escapeHtml(proofStatus)}" data-state="${rowStates(row)}" data-gate="${escapeHtml(gate)}">
     <header class="requirement__header">
       <div>
-        <div class="requirement__id">${escapeHtml(id)}</div>
-        <h3>${escapeHtml(title)}</h3>
+        <div class="requirement__id">${linkedLabel(id, sourceWebUrl(repository, requirementSource))}</div>
+        <h3>${linkedLabel(title, sourceWebUrl(repository, requirementSource))}</h3>
       </div>
       <span class="proof-badge proof-badge--${escapeHtml(proofStatus)}">${escapeHtml(badgeLabel)}</span>
     </header>
     <ul class="stages">${stages.map(renderStage).join("")}</ul>
     ${conflicts.map(renderContradiction).join("")}
-    ${
-      proofGaps.length > 0
-        ? `<details class="proof-gaps"><summary>${proofGaps.length} proof ${proofGaps.length === 1 ? "gap" : "gaps"}</summary><ul>${proofGaps.map((gap) => `<li>${escapeHtml(humanize(gap))}</li>`).join("")}</ul></details>`
-        : ""
-    }
+    ${renderIssueList(blockingGaps, "proof-gaps", "proof gap", "proof gaps")}
+    ${renderIssueList(advisories, "proof-advisories", "advisory", "advisories")}
   </article>`;
 }
 
@@ -409,12 +574,19 @@ function metric(label: string, value: number, tone = ""): string {
 
 function renderProofGate(gate: ProofGate, index: number): string {
   const state = gate.remaining === 0 ? "blocked" : "active";
-  return `<li class="proof-gate proof-gate--${state}">
-    <div class="proof-gate__node"><span>${index + 1}</span></div>
-    <div class="proof-gate__count">${gate.remaining.toLocaleString("en-US")}</div>
-    <div class="proof-gate__label">${escapeHtml(gate.label)}</div>
-    <div class="proof-gate__drop">${gate.blocked === 0 ? "No drop" : `−${gate.blocked.toLocaleString("en-US")} blocked here`}</div>
-    <p>${escapeHtml(gate.detail)}</p>
+  const drop =
+    gate.blocked === 0
+      ? "No drop"
+      : `−${gate.blocked.toLocaleString("en-US")} blocked here`;
+  const accessible = `${gate.label}. ${gate.blocked} blocked here. Filter requirements whose earliest unmet proof gate is ${gate.label}.`;
+  return `<li>
+    <button type="button" class="proof-gate proof-gate--${state}" data-gate="${escapeHtml(gate.key)}" aria-pressed="false" aria-controls="requirements" aria-label="${escapeHtml(accessible)}">
+      <div class="proof-gate__node"><span>${index + 1}</span></div>
+      <div class="proof-gate__count">${gate.remaining.toLocaleString("en-US")}</div>
+      <div class="proof-gate__label">${escapeHtml(gate.label)}</div>
+      <div class="proof-gate__drop">${escapeHtml(drop)}</div>
+      <p>${escapeHtml(gate.detail)}</p>
+    </button>
   </li>`;
 }
 
@@ -428,6 +600,50 @@ function reportNotice(input: HtmlReportInput): string {
   }
   if (notices.length === 0) return "";
   return `<aside class="snapshot-notice"><strong>Snapshot warning</strong><span>${escapeHtml(notices.join(" "))}</span></aside>`;
+}
+
+function reportIdentity(input: HtmlReportInput): {
+  title: string;
+  snapshotHtml: string;
+} {
+  const branch = text(input.branch, "unknown");
+  const repository = input.repository;
+  const identity = text(repository?.identity);
+  const shortSha = shortCommitSha(repository?.commitSha);
+  const repoHref = repository?.webUrl;
+  const commitHref = commitWebUrl(repository);
+  const parts = [
+    identity ? linkedLabel(identity, repoHref) : "",
+    escapeHtml(branch),
+    shortSha ? linkedLabel(shortSha, commitHref) : "",
+  ].filter(Boolean);
+  const snapshotHtml =
+    parts.length > 0
+      ? parts.join(' <span aria-hidden="true">/</span> ')
+      : "local workspace";
+  const titleParts = ["Kibi Requirement Health", identity, branch].filter(
+    Boolean,
+  );
+  return {
+    title: titleParts.join(" · "),
+    snapshotHtml,
+  };
+}
+
+function renderFilters(
+  counts: Readonly<Record<(typeof REPORT_FILTERS)[number], number>>,
+): string {
+  const labels: Readonly<Record<(typeof REPORT_FILTERS)[number], string>> = {
+    all: "All",
+    proven: "Proven",
+    attention: "Needs attention",
+    stale: "Stale evidence",
+    contradiction: "Contradictions",
+  };
+  return REPORT_FILTERS.map((filter, index) => {
+    const countValue = counts[filter].toLocaleString("en-US");
+    return `<button class="filter" type="button" data-filter="${filter}" aria-pressed="${index === 0 ? "true" : "false"}">${escapeHtml(labels[filter])} <span class="filter__count">${countValue}</span></button>`;
+  }).join("");
 }
 
 // implements REQ-kibi-html-health-report
@@ -455,15 +671,39 @@ export function renderHtmlReport(input: HtmlReportInput): string {
   const staleEvidence = currentRows.filter((row) =>
     strings(row.proofGaps).includes("stale_verification_receipt"),
   ).length;
+  const withoutImplementation = currentRows.filter((row) =>
+    strings(row.proofGaps).includes("missing_production_symbol"),
+  ).length;
   const contradictions = contradictionRows(currentRows);
-  const unownedCode = Math.max(
+  const unmappedProductionSymbols = Math.max(
     0,
     count(symbolSummary.uncovered) - count(symbolSummary.mixedRole),
   );
   const generatedAt = input.generatedAt.toISOString();
   const snapshot = text(input.requirements.meta?.verificationSnapshot);
   const branch = text(input.branch, "unknown");
+  const repository = {
+    ...input.repository,
+    branch: input.repository?.branch ?? branch,
+  };
   const gates = proofGates(currentRows);
+  const filterCounts = reportFilterCounts(
+    currentRows.map((row) => ({
+      text: `${text(row.id)} ${text(row.title)}`,
+      states: rowStates(row).split(" ").filter(Boolean),
+      earliestGate: earliestUnmetGate(row),
+    })),
+  );
+  const identity = reportIdentity({ ...input, repository });
+  const faviconHref = renderKibiFaviconDataUri();
+  const scoreLabel =
+    currentRequirements === 0
+      ? "No current requirements"
+      : "Strict proof coverage";
+  const scoreRatio =
+    currentRequirements === 0
+      ? "No current requirements to prove"
+      : `${proven.toLocaleString("en-US")} of ${currentRequirements.toLocaleString("en-US")} current requirements fully proven end-to-end`;
 
   return `<!doctype html>
 <html lang="en">
@@ -471,8 +711,10 @@ export function renderHtmlReport(input: HtmlReportInput): string {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark light">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
-  <title>Kibi Requirement Health · ${escapeHtml(branch)}</title>
+  <meta name="theme-color" content="${KIBI_BRAND.deepCarbon}">
+  <meta http-equiv="Content-Security-Policy" content="${REPORT_CSP}">
+  <link rel="icon" type="image/svg+xml" href="${escapeHtml(faviconHref)}">
+  <title>${escapeHtml(identity.title)}</title>
   <style>
     :root {
       color-scheme: dark;
@@ -531,8 +773,8 @@ export function renderHtmlReport(input: HtmlReportInput): string {
     .score-card p { position: relative; margin: 13px 0 0; color: var(--muted); font-size: 13px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
     .snapshot-notice { display: flex; gap: 14px; align-items: center; margin: 3px 0 23px; padding: 15px 18px; border: 1px solid rgba(255,201,107,.3); border-radius: 15px; color: #f8dfb2; background: rgba(255,201,107,.08); }
     .snapshot-notice strong { flex: none; color: var(--amber); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
-    .metrics { display: grid; grid-template-columns: repeat(6, 1fr); overflow: hidden; margin: 0 0 62px; border: 1px solid var(--line); border-radius: 20px; background: rgba(18,25,42,.74); box-shadow: var(--shadow); }
-    .metric { min-width: 0; padding: 22px 20px; border-right: 1px solid var(--line); }
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); overflow: hidden; margin: 0 0 62px; border: 1px solid var(--line); border-radius: 20px; background: rgba(18,25,42,.74); box-shadow: var(--shadow); }
+    .metric { min-width: 0; padding: 22px 20px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
     .metric:last-child { border-right: 0; }
     .metric span { display: block; min-height: 32px; color: var(--muted); font-size: 12px; line-height: 1.35; }
     .metric strong { display: block; margin-top: 6px; font-size: 30px; letter-spacing: -.035em; }
@@ -575,9 +817,10 @@ export function renderHtmlReport(input: HtmlReportInput): string {
     .contradiction__values b { color: var(--red); }
     .contradiction p { margin: 8px 0 0; color: #d9a9b1; font-size: 12px; line-height: 1.5; }
     .proof-gaps { margin-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
-    .proof-gaps summary { padding-top: 14px; cursor: pointer; font-weight: 700; }
-    .proof-gaps ul { columns: 2; margin: 11px 0 0; padding-left: 18px; }
-    .proof-gaps li { margin-bottom: 7px; break-inside: avoid; }
+    .proof-advisories { margin-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+    .proof-gaps summary, .proof-advisories summary { padding-top: 14px; cursor: pointer; font-weight: 700; }
+    .proof-gaps ul, .proof-advisories ul { columns: 2; margin: 11px 0 0; padding-left: 18px; }
+    .proof-gaps li, .proof-advisories li { margin-bottom: 7px; break-inside: avoid; }
     .empty { display: none; padding: 70px 20px; border: 1px dashed var(--line); border-radius: 20px; color: var(--muted); text-align: center; }
     .empty[data-visible="true"] { display: block; }
     footer { display: flex; gap: 20px; justify-content: space-between; padding: 30px 0 48px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
@@ -591,7 +834,6 @@ export function renderHtmlReport(input: HtmlReportInput): string {
     @media (max-width: 760px) {
       .shell { width: min(100% - 24px, 1160px); }
       .topbar { padding-top: 22px; }
-      .snapshot { display: none; }
       .hero { padding-top: 20px; }
       .hero__copy, .score-card { border-radius: 22px; }
       .requirements { grid-template-columns: 1fr; }
@@ -643,7 +885,11 @@ export function renderHtmlReport(input: HtmlReportInput): string {
     .brand__logo { width: 42px; height: 42px; flex: none; }
     .brand__wordmark { width: 86px; height: auto; }
     .brand__product { padding-left: 14px; border-left: 1px solid var(--rail); color: var(--mist); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-    .snapshot { color: var(--mist); font: 500 11px/1.4 var(--mono); }
+    .snapshot { max-width: min(52vw, 420px); overflow: hidden; color: var(--mist); font: 500 11px/1.4 var(--mono); text-align: right; text-overflow: ellipsis; }
+    .snapshot a, .source-link, .cta { color: var(--ice); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+    .snapshot a:hover, .source-link:hover, .cta:hover { color: var(--snow); }
+    .relative-age::before { content: " · "; }
+    .relative-age:empty::before { content: none; }
     .overview { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 36px; align-items: end; padding: clamp(38px, 7vw, 76px) 0 32px; }
     .eyebrow { margin: 0 0 12px; color: var(--ice); font: 750 11px/1.4 var(--mono); letter-spacing: .12em; }
     h1 { margin: 0; font-size: clamp(38px, 6vw, 68px); font-weight: 720; letter-spacing: -.052em; line-height: 1; }
@@ -654,6 +900,7 @@ export function renderHtmlReport(input: HtmlReportInput): string {
     .score__value span { color: var(--ice); font-size: .38em; letter-spacing: -.04em; }
     .score__label { margin-top: 17px; color: var(--ice); font-size: 12px; font-weight: 760; letter-spacing: .12em; text-transform: uppercase; }
     .score__ratio { margin-top: 6px; color: var(--mist); font: 500 12px/1.4 var(--mono); }
+    .score__note { max-width: 260px; margin: 10px 0 0 auto; color: var(--mist); font-size: 11px; font-weight: 500; letter-spacing: 0; line-height: 1.45; text-transform: none; }
     .snapshot-notice { margin: 0 0 22px; padding: 14px 16px; border-color: rgba(242,184,75,.4); border-radius: 9px; color: var(--snow); background: rgba(242,184,75,.08); }
     .snapshot-notice strong { color: var(--warning); font: 750 11px/1.4 var(--mono); }
     .proof-path { margin-bottom: 20px; padding: 24px 26px 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--carbon); }
@@ -661,8 +908,11 @@ export function renderHtmlReport(input: HtmlReportInput): string {
     .proof-path__header h2 { margin: 0; font-size: 19px; letter-spacing: -.02em; }
     .proof-path__header p { max-width: 510px; margin: 0; color: var(--mist); font-size: 12px; line-height: 1.55; text-align: right; }
     .proof-rail { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; }
-    .proof-gate { position: relative; min-width: 0; padding: 25px 18px 0 0; border-top: 2px solid var(--signal); }
-    .proof-gate:last-child { padding-right: 0; }
+    .proof-rail > li { min-width: 0; }
+    .proof-gate { position: relative; display: block; width: 100%; min-width: 0; margin: 0; padding: 25px 18px 0 0; border: 0; border-top: 2px solid var(--signal); border-radius: 0; color: inherit; background: transparent; font: inherit; text-align: left; cursor: pointer; }
+    .proof-gate:last-child, .proof-rail > li:last-child .proof-gate { padding-right: 0; }
+    .proof-gate:focus-visible { outline: 2px solid var(--ice); outline-offset: 4px; }
+    .proof-gate[aria-pressed="true"] { background: rgba(62, 142, 214, .1); }
     .proof-gate__node { position: absolute; top: -10px; left: 0; display: grid; width: 19px; height: 19px; place-items: center; border: 2px solid var(--ice); border-radius: 50%; color: var(--deep-carbon); background: var(--ice); font: 800 9px/1 var(--mono); }
     .proof-gate--blocked { border-top-color: var(--rail); }
     .proof-gate--blocked .proof-gate__node { border-color: var(--danger); color: var(--danger); background: var(--carbon); }
@@ -686,6 +936,8 @@ export function renderHtmlReport(input: HtmlReportInput): string {
     .filter { padding: 9px 11px; border-radius: 7px; color: var(--mist); font: 650 11px/1.4 var(--mono); }
     .filter:hover { color: var(--snow); background: rgba(162,211,244,.06); }
     .filter[aria-pressed="true"] { border-color: rgba(162,211,244,.35); color: var(--ice); background: rgba(62,142,214,.13); }
+    .filter:focus-visible { outline: 2px solid var(--ice); outline-offset: 2px; }
+    .cta:focus-visible, .source-link:focus-visible, .snapshot a:focus-visible { outline: 2px solid var(--ice); outline-offset: 2px; }
     .requirements { grid-template-columns: 1fr; gap: 13px; }
     .requirement { padding: 22px 24px 20px; border-color: var(--line); border-radius: 12px; background: var(--panel); box-shadow: none; }
     .requirement::before { background: var(--warning); }
@@ -707,37 +959,44 @@ export function renderHtmlReport(input: HtmlReportInput): string {
     .stage__detail { display: block; margin-top: 5px; color: var(--mist); font-size: 11px; }
     .contradiction { border-color: rgba(240,113,120,.32); border-radius: 9px; background: rgba(240,113,120,.07); }
     .contradiction__eyebrow, .contradiction__values b { color: var(--danger); }
-    .contradiction p, .proof-gaps { color: var(--mist); }
-    .proof-gaps { border-color: var(--line); }
-    .proof-gaps ul { columns: 3; }
+    .contradiction p, .proof-gaps, .proof-advisories { color: var(--mist); }
+    .proof-gaps, .proof-advisories { border-color: var(--line); }
+    .proof-gaps ul, .proof-advisories ul { columns: 3; }
     .empty { border-color: var(--rail); border-radius: 12px; color: var(--mist); }
     footer { border-color: var(--line); color: var(--mist); font: 500 11px/1.5 var(--mono); }
+    .filter__count { margin-left: 6px; color: var(--ice); }
+    .requirement h3 .source-link { color: inherit; }
     @media (max-width: 960px) {
       .proof-rail { grid-template-columns: repeat(5, 180px); overflow-x: auto; padding-top: 8px; }
+      .snapshot { max-width: 100%; }
     }
     @media (max-width: 760px) {
       .shell { width: min(100% - 24px, 1180px); }
+      .topbar { align-items: start; flex-wrap: wrap; gap: 12px; }
+      .snapshot { max-width: 100%; text-align: left; }
       .overview { grid-template-columns: 1fr; gap: 28px; padding-top: 38px; }
       .score { min-width: 0; padding: 20px 0 0; border-top: 2px solid var(--signal); border-left: 0; text-align: left; }
       .score__value { font-size: 66px; }
+      .score__note { margin-left: 0; }
       .proof-path__header { align-items: start; flex-direction: column; }
       .proof-path__header p { text-align: left; }
       .stages { grid-template-columns: 1fr; }
       .stage { min-height: 66px; margin-left: 8px; padding: 0 0 18px 30px; border-top: 0; border-left: 1px solid var(--rail); }
       .stage__icon { top: 0; left: -8px; }
-      .proof-gaps ul { columns: 2; }
+      .proof-gaps ul, .proof-advisories ul { columns: 2; }
     }
     @media (max-width: 520px) {
       .brand__product { display: none; }
       .proof-path { padding-inline: 18px; }
-      .proof-gaps ul { columns: 1; }
+      .proof-gaps ul, .proof-advisories ul { columns: 1; }
     }
     @media print {
       :root { color-scheme: light; }
       body { color: #17202a; background: #fff; }
       .topbar, .proof-path, .metrics, .requirement { border-color: #cbd5dc; color: #17202a; background: #fff; }
-      .proof-gate, .stage { border-color: #7b8b96; }
-      .proof-gate p, .proof-path__header p, .metric span, .stage__detail, .section-header p, footer { color: #4e606c; }
+      .proof-gate, .stage { border-color: #7b8b96; background: transparent; }
+      .proof-gate p, .proof-path__header p, .metric span, .stage__detail, .section-header p, footer, .score__note { color: #4e606c; }
+      .source-link, .cta, .snapshot a { color: inherit; }
     }
   </style>
 </head>
@@ -749,7 +1008,7 @@ export function renderHtmlReport(input: HtmlReportInput): string {
         ${renderKibiWordmark("brand__wordmark")}
         <span class="brand__product">Requirement health</span>
       </div>
-      <div class="snapshot">${snapshot ? `snapshot ${escapeHtml(snapshot.slice(0, 12))}` : "snapshot unavailable"}</div>
+      <div class="snapshot">${identity.snapshotHtml}</div>
     </header>
     <main>
       <section class="overview">
@@ -758,27 +1017,29 @@ export function renderHtmlReport(input: HtmlReportInput): string {
           <h1>Intent to proof,<br>without the gaps.</h1>
           <p>Kibi compiles product intent into an inspectable chain of semantics, scenarios, implementation ownership, end-to-end tests, and fresh evidence.</p>
         </div>
-        <div class="score" aria-label="${proofPercent}% proven, ${proven} of ${currentRequirements} current requirements">
+        <div class="score" aria-label="${proofPercent}% strict proof coverage, ${proven} of ${currentRequirements} current requirements fully proven end-to-end">
           <div class="score__value">${proofPercent}<span>%</span></div>
-          <div class="score__label">${currentRequirements === 0 ? "No current requirements" : "Fully proven"}</div>
-          <div class="score__ratio">${proven.toLocaleString("en-US")} of ${currentRequirements.toLocaleString("en-US")} current requirements</div>
+          <div class="score__label">${escapeHtml(scoreLabel)}</div>
+          <div class="score__ratio">${escapeHtml(scoreRatio)}</div>
+          ${currentRequirements === 0 ? "" : `<p class="score__note">Kibi only counts a requirement when every required proof gate passes.</p>`}
         </div>
       </section>
       ${reportNotice(input)}
       <section class="proof-path" aria-labelledby="proof-path-title">
         <div class="proof-path__header">
           <div><p class="eyebrow">Intent → proof</p><h2 id="proof-path-title">Where proof stops</h2></div>
-          <p>Counts are sequential. Each drop is the earliest unmet gate, so a strict score never looks like a broken report.</p>
+          <p>Counts are sequential. Each drop is the earliest unmet gate, so a strict score never looks like a broken report. Select a gate to inspect those requirements.</p>
         </div>
-        <ol class="proof-rail">${gates.map(renderProofGate).join("")}</ol>
+        <ol class="proof-rail" aria-label="Filter requirements by earliest unmet proof gate">${gates.map(renderProofGate).join("")}</ol>
       </section>
       <section class="metrics" aria-label="Requirement health summary">
         ${metric("Requirements", currentRequirements)}
-        ${metric("Fully proven", proven, "good")}
+        ${metric("Strict proof coverage", proven, "good")}
         ${metric("Missing scenarios", missingScenarios, missingScenarios ? "warn" : "")}
         ${metric("Stale E2E evidence", staleEvidence, staleEvidence ? "warn" : "")}
         ${metric("Contradictions", contradictions.length, contradictions.length ? "bad" : "")}
-        ${metric("Unowned code", unownedCode, unownedCode ? "bad" : "")}
+        ${metric("Unmapped production symbols", unmappedProductionSymbols, unmappedProductionSymbols ? "bad" : "")}
+        ${metric("Requirements without implementation", withoutImplementation, withoutImplementation ? "warn" : "")}
       </section>
       <section>
         <div class="section-header">
@@ -788,20 +1049,16 @@ export function renderHtmlReport(input: HtmlReportInput): string {
         <div class="controls">
           <input class="search" id="search" type="search" placeholder="Search requirements" aria-label="Search requirements">
           <div class="filters" role="group" aria-label="Filter requirements">
-            <button class="filter" type="button" data-filter="all" aria-pressed="true">All</button>
-            <button class="filter" type="button" data-filter="proven" aria-pressed="false">Proven</button>
-            <button class="filter" type="button" data-filter="attention" aria-pressed="false">Needs attention</button>
-            <button class="filter" type="button" data-filter="stale" aria-pressed="false">Stale evidence</button>
-            <button class="filter" type="button" data-filter="contradiction" aria-pressed="false">Contradictions</button>
+            ${renderFilters(filterCounts)}
           </div>
         </div>
-        <div class="requirements" id="requirements">${currentRows.map(renderRequirement).join("")}</div>
-        <div class="empty" id="empty">No requirements match this view.</div>
+        <div class="requirements" id="requirements">${currentRows.map((row) => renderRequirement(row, repository)).join("")}</div>
+        <div class="empty" id="empty" aria-live="polite">No requirements match this view.</div>
       </section>
     </main>
     <footer>
-      <span>Generated ${escapeHtml(generatedAt)} · ${notApplicable.toLocaleString("en-US")} non-current ${notApplicable === 1 ? "requirement" : "requirements"} excluded</span>
-      <span>Kibi · Prompt the intent. Kibi makes the agent remember it—and prove the implementation.</span>
+      <span>${renderRelativeTime(generatedAt, "Generated")}${snapshot ? ` · snapshot ${escapeHtml(snapshot.slice(0, 12))}` : ""}${notApplicable > 0 ? ` · ${notApplicable.toLocaleString("en-US")} non-current ${notApplicable === 1 ? "requirement" : "requirements"} excluded` : ""}</span>
+      <span>Generated by Kibi · <a class="cta" href="${KIBI_GETTING_STARTED_URL}">Add requirement proof to your repo →</a></span>
     </footer>
   </div>
   <script>
@@ -809,16 +1066,41 @@ export function renderHtmlReport(input: HtmlReportInput): string {
       const search = document.querySelector("#search");
       const cards = [...document.querySelectorAll(".requirement")];
       const filters = [...document.querySelectorAll(".filter")];
+      const gates = [...document.querySelectorAll(".proof-gate")];
       const empty = document.querySelector("#empty");
       let activeFilter = "all";
+      let activeGate = "all";
+      const formatRelativeAge = (fromMs, nowMs) => {
+        if (!Number.isFinite(fromMs) || !Number.isFinite(nowMs)) return "timestamp unavailable";
+        const deltaSeconds = Math.floor((nowMs - fromMs) / 1000);
+        if (deltaSeconds < 0) return "in the future";
+        if (deltaSeconds < 60) return "just now";
+        const minutes = Math.floor(deltaSeconds / 60);
+        if (minutes < 60) return minutes + "m ago";
+        const hours = Math.floor(deltaSeconds / 3600);
+        const remainingMinutes = minutes % 60;
+        if (hours < 24) return remainingMinutes === 0 ? hours + "h ago" : hours + "h " + remainingMinutes + "m ago";
+        const days = Math.floor(deltaSeconds / 86400);
+        const remainingHours = hours % 24;
+        if (days < 7 && remainingHours > 0) return days + "d " + remainingHours + "h ago";
+        return days + "d ago";
+      };
+      const refreshAges = (now = Date.now()) => {
+        for (const node of document.querySelectorAll("[data-relative-from]")) {
+          const from = Date.parse(node.getAttribute("data-relative-from") || "");
+          node.textContent = formatRelativeAge(from, now);
+        }
+      };
       const apply = () => {
-        const query = search.value.trim().toLocaleLowerCase();
+        const query = (search.value || "").trim().toLocaleLowerCase();
         let visible = 0;
         for (const card of cards) {
-          const states = (card.dataset.state || "").split(" ");
+          const states = (card.dataset.state || "").split(" ").filter(Boolean);
+          const gate = card.dataset.gate || "";
           const matchesState = activeFilter === "all" || states.includes(activeFilter);
-          const matchesQuery = !query || card.textContent.toLocaleLowerCase().includes(query);
-          card.hidden = !(matchesState && matchesQuery);
+          const matchesGate = activeGate === "all" || gate === activeGate;
+          const matchesQuery = !query || (card.textContent || "").toLocaleLowerCase().includes(query);
+          card.hidden = !(matchesState && matchesGate && matchesQuery);
           if (!card.hidden) visible += 1;
         }
         empty.dataset.visible = String(visible === 0);
@@ -831,6 +1113,18 @@ export function renderHtmlReport(input: HtmlReportInput): string {
           apply();
         });
       }
+      for (const gate of gates) {
+        gate.addEventListener("click", () => {
+          const selected = gate.dataset.gate || "all";
+          activeGate = activeGate === selected ? "all" : selected;
+          for (const candidate of gates) {
+            candidate.setAttribute("aria-pressed", String(candidate.dataset.gate === activeGate));
+          }
+          apply();
+        });
+      }
+      refreshAges();
+      setInterval(refreshAges, 30000);
     })();
   </script>
 </body>

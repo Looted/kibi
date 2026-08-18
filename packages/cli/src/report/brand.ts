@@ -38,6 +38,16 @@ export function renderKibiWordmark(className = ""): string {
   return `<svg${className ? ` class="${xml(className)}"` : ""} viewBox="-2 10 395 148" role="img" aria-label="Kibi">${WORDMARK_BODY}</svg>`;
 }
 
+// implements REQ-kibi-branded-health-report
+export function renderKibiFaviconSvg(): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 308 309">${LOGO_BODY}</svg>`;
+}
+
+// implements REQ-kibi-branded-health-report
+export function renderKibiFaviconDataUri(): string {
+  return `data:image/svg+xml;utf8,${encodeURIComponent(renderKibiFaviconSvg())}`;
+}
+
 const BADGE_HEIGHT = 20;
 const BADGE_LABEL = "kibi";
 const BADGE_FONT = "DejaVu Sans,Verdana,Geneva,sans-serif";

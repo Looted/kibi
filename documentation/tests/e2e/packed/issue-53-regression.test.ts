@@ -9,6 +9,7 @@ import {
   createSandbox,
   kibi,
   packAll,
+  stageSourceFile,
 } from "./helpers.js";
 
 const RUN_NODE_TEST_SUITE =
@@ -63,17 +64,14 @@ if (RUN_NODE_TEST_SUITE) {
         "installed kibi-cli should survive init and sync without errors",
         { timeout: 60000 },
         async () => {
-          const docsDir = join(
-            sandbox.repoDir,
-            "documentation",
-            "requirements",
-          );
+          const docsDir = join(sandbox.repoDir, ".kb", "requirements");
           mkdirSync(docsDir, { recursive: true });
           writeFileSync(
             join(docsDir, "REQ-ISSUE53-001.md"),
             "---\nid: REQ-ISSUE53-001\ntitle: Issue 53 Test Requirement\nstatus: open\n---\n\nTest requirement for issue 53 regression.",
             "utf8",
           );
+          stageSourceFile(sandbox, ".kb/requirements/REQ-ISSUE53-001.md");
 
           const syncResult = await kibi(sandbox, ["sync"]);
           assert.strictEqual(

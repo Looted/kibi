@@ -152,7 +152,9 @@ export {
   getDefaultRules,
   getEffectiveRules,
   getRuleDefinition,
+  getRuleEnforcementClass,
   isCanonicalRule,
+  ruleRunsByDefault,
 } from "kibi-cli/public/check-types";
 export type {
   RuleDefinition,

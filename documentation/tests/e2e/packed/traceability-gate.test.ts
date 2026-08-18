@@ -145,7 +145,7 @@ if (RUN_NODE_TEST_SUITE) {
     status: active
 `;
       fs.writeFileSync(
-        join(sandbox.repoDir, "documentation", "symbols.yaml"),
+        join(sandbox.repoDir, ".kb", "symbols.yaml"),
         symbolsYaml,
         "utf8",
       );
@@ -156,12 +156,7 @@ if (RUN_NODE_TEST_SUITE) {
 
       await run(
         "git",
-        [
-          "add",
-          "file.js",
-          ".kb/symbols.yaml",
-          ".kb/symbol-coordinates.yaml",
-        ],
+        ["add", "file.js", ".kb/symbols.yaml", ".kb/symbol-coordinates.yaml"],
         {
           cwd: sandbox.repoDir,
           env: sandbox.env,
@@ -306,7 +301,7 @@ if (RUN_NODE_TEST_SUITE) {
     status: active
 `;
       fs.writeFileSync(
-        join(sandbox.repoDir, "documentation", "symbols.yaml"),
+        join(sandbox.repoDir, ".kb", "symbols.yaml"),
         symbolsYaml,
         "utf8",
       );
@@ -376,11 +371,11 @@ links:
 
 Coverage test for split semantics.
 `;
-      fs.mkdirSync(join(sandbox.repoDir, "documentation", "tests"), {
+      fs.mkdirSync(join(sandbox.repoDir, ".kb", "tests"), {
         recursive: true,
       });
       fs.writeFileSync(
-        join(sandbox.repoDir, "documentation", "tests", "TEST-COV-001.md"),
+        join(sandbox.repoDir, ".kb", "tests", "TEST-COV-001.md"),
         testContent,
         "utf8",
       );
@@ -395,7 +390,7 @@ Coverage test for split semantics.
     status: active
 `;
       fs.writeFileSync(
-        join(sandbox.repoDir, "documentation", "symbols.yaml"),
+        join(sandbox.repoDir, ".kb", "symbols.yaml"),
         symbolsYaml,
         "utf8",
       );

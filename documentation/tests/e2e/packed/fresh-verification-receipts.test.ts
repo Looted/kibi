@@ -108,23 +108,18 @@ if (RUN_NODE_TEST_SUITE) {
       await sandbox.initGitRepo();
       await kibi(sandbox, ["init"]);
 
-      mkdirSync(join(sandbox.repoDir, "documentation", "requirements"), {
+      mkdirSync(join(sandbox.repoDir, ".kb", "requirements"), {
         recursive: true,
       });
-      mkdirSync(join(sandbox.repoDir, "documentation", "scenarios"), {
+      mkdirSync(join(sandbox.repoDir, ".kb", "scenarios"), {
         recursive: true,
       });
-      mkdirSync(join(sandbox.repoDir, "documentation", "tests"), {
+      mkdirSync(join(sandbox.repoDir, ".kb", "tests"), {
         recursive: true,
       });
       mkdirSync(join(sandbox.repoDir, "tests", "e2e"), { recursive: true });
       writeFileSync(
-        join(
-          sandbox.repoDir,
-          "documentation",
-          "requirements",
-          "REQ-PACKED-RECEIPT.md",
-        ),
+        join(sandbox.repoDir, ".kb", "requirements", "REQ-PACKED-RECEIPT.md"),
         `---
 id: REQ-PACKED-RECEIPT
 title: Packed receipt fixture
@@ -139,12 +134,7 @@ Packed receipt fixture.
 `,
       );
       writeFileSync(
-        join(
-          sandbox.repoDir,
-          "documentation",
-          "scenarios",
-          "SCEN-PACKED-RECEIPT.md",
-        ),
+        join(sandbox.repoDir, ".kb", "scenarios", "SCEN-PACKED-RECEIPT.md"),
         `---
 id: SCEN-PACKED-RECEIPT
 title: Packed receipt scenario
@@ -158,12 +148,7 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
 `,
       );
       writeFileSync(
-        join(
-          sandbox.repoDir,
-          "documentation",
-          "tests",
-          "TEST-PACKED-RECEIPT.md",
-        ),
+        join(sandbox.repoDir, ".kb", "tests", "TEST-PACKED-RECEIPT.md"),
         testDocument(),
       );
       writeFileSync(
@@ -211,12 +196,7 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
         const finishedAt = new Date();
         const startedAt = new Date(finishedAt.getTime() - 1_000);
         writeFileSync(
-          join(
-            sandbox.repoDir,
-            "documentation",
-            "tests",
-            "TEST-PACKED-RECEIPT.md",
-          ),
+          join(sandbox.repoDir, ".kb", "tests", "TEST-PACKED-RECEIPT.md"),
           testDocument({
             snapshot: initialStatus.verificationSnapshot,
             startedAt: startedAt.toISOString(),

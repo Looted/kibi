@@ -20,3 +20,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8a9f7ef2a73d
+  - type: implements
+    from: SYM-cli-report-repository-provider
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-18T20:42:32.034Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eef88b8074fb
+  - type: covered_by
+    from: SYM-cli-report-repository-provider
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-18T20:42:32.044Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eac7e5221258

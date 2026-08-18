@@ -16,23 +16,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { createHash } from "node:crypto";
 import {
   existsSync,
   mkdirSync,
-  readdirSync,
   readFileSync,
+  readdirSync,
   renameSync,
   rmSync,
   statSync,
   writeFileSync,
 } from "node:fs";
-import { createHash } from "node:crypto";
 import * as path from "node:path";
 import fg from "fast-glob";
 import {
+  type LegacyKbConfig,
+  readLegacyKbConfig,
+  resolveLegacyEntityPaths,
+} from "../utils/config.js";
+import {
+  type SemanticAdvisorBackfill,
   defaultKbManifest,
   readKbManifest,
-  type SemanticAdvisorBackfill,
   writeKbManifest,
 } from "../utils/kb-manifest.js";
 import {
@@ -41,12 +46,8 @@ import {
   type EntityLane,
   KB_PATHS,
 } from "../utils/kb-paths.js";
-import {
-  readLegacyKbConfig,
-  resolveLegacyEntityPaths,
-  type LegacyKbConfig,
-} from "../utils/config.js";
 import { LATEST_KB_SCHEMA_VERSION } from "../utils/schema-version.js";
+import { updateGitIgnore } from "./init-helpers.js";
 
 /**
  * One-way migration from the legacy configurable layout (entity documents
@@ -107,12 +108,25 @@ function normalizeLegacySource(raw: string): { root: string; glob: string } {
 }
 
 /** Discover the concrete migration moves for a workspace. */
-export function planLegacyStorageMigration(
-  cwd: string,
-): StorageMigrationPlan {
+export function planLegacyStorageMigration(cwd: string): StorageMigrationPlan {
   const legacyConfigResult = readLegacyKbConfig(cwd);
+  if (legacyConfigResult.kind === "malformed") {
+    return {
+      moves: [],
+      legacyConfig: "malformed",
+      legacyConfigError: legacyConfigResult.error,
+      schemaVersion: null,
+      semanticAdvisorBackfill: null,
+      blockers: [
+        `Legacy .kb/config.json is malformed (${legacyConfigResult.error}). Repair the JSON or provide an explicit recovery/migration override; Kibi will not infer default legacy paths.`,
+      ],
+    };
+  }
+
   const config: LegacyKbConfig | undefined =
-    legacyConfigResult.kind === "present" ? legacyConfigResult.config : undefined;
+    legacyConfigResult.kind === "present"
+      ? legacyConfigResult.config
+      : undefined;
   const legacyPaths = resolveLegacyEntityPaths(config);
 
   const moves: StorageMigrationMove[] = [];
@@ -162,15 +176,13 @@ export function planLegacyStorageMigration(
         lane: "symbols",
       });
     }
-    const legacyCoordinates = legacySymbols.replace(/\.ya?ml$/, ".yaml").replace(
-      /symbols\.yaml$/,
-      "symbol-coordinates.yaml",
-    );
+    const legacyCoordinates = legacySymbols
+      .replace(/\.ya?ml$/, ".yaml")
+      .replace(/symbols\.yaml$/, "symbol-coordinates.yaml");
     const legacyCoordinatesPath = path.resolve(cwd, legacyCoordinates);
     if (
       existsSync(legacyCoordinatesPath) &&
-      legacyCoordinatesPath !==
-        path.resolve(cwd, KB_PATHS.symbolCoordinates)
+      legacyCoordinatesPath !== path.resolve(cwd, KB_PATHS.symbolCoordinates)
     ) {
       moves.push({
         from: path
@@ -205,16 +217,9 @@ export function planLegacyStorageMigration(
     destinations.set(move.to, move.from);
   }
 
-  const malformed =
-    legacyConfigResult.kind === "malformed" ? legacyConfigResult.error : undefined;
-
   return {
     moves,
-    legacyConfig:
-      legacyConfigResult.kind === "none"
-        ? "absent"
-        : legacyConfigResult.kind,
-    ...(malformed !== undefined ? { legacyConfigError: malformed } : {}),
+    legacyConfig: legacyConfigResult.kind === "none" ? "absent" : "present",
     schemaVersion:
       typeof config?.schemaVersion === "number" ? config.schemaVersion : null,
     semanticAdvisorBackfill: config?.semanticAdvisorBackfill ?? null,
@@ -282,6 +287,7 @@ export function applyLegacyStorageMigration(
 
   pruneEmptyLegacyDirs(cwd, plan);
   rewritePendingSourceReceiptPaths(cwd, plan.moves);
+  updateGitIgnore(cwd);
 
   return {
     movedFiles,
@@ -335,7 +341,10 @@ export function rewritePendingSourceReceiptPaths(
     const receiptPath = path.join(pendingRoot, name);
     try {
       const raw = readFileSync(receiptPath, "utf8");
-      const receipt = JSON.parse(raw) as { path?: unknown; afterHash?: unknown };
+      const receipt = JSON.parse(raw) as {
+        path?: unknown;
+        afterHash?: unknown;
+      };
       if (typeof receipt.path !== "string") continue;
       const normalized = receipt.path.replaceAll("\\", "/");
       const destination =

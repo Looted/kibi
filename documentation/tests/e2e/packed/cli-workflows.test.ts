@@ -190,7 +190,11 @@ export async function verifyHtmlRequirementHealthReport(
     path.join(sandbox.repoDir, "kibi-report", "index.html"),
     "utf8",
   );
-  assert.match(html, /Kibi Requirement Health · develop/);
+  assert.match(html, /Kibi Requirement Health(?: · [^<]+)? · develop/);
+  assert.match(
+    html,
+    /viewBox="0 0 308 309" role="img" aria-label="Kibi logo"/,
+  );
   assert.match(
     html,
     /viewBox="0 0 308 309" role="img" aria-label="Kibi logo"/,
@@ -201,9 +205,12 @@ export async function verifyHtmlRequirementHealthReport(
   );
   assert.match(
     html,
-    /Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'"/,
+    /Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'"/,
   );
   assert.match(html, /current requirements/);
+  assert.match(html, /Strict proof coverage/);
+  assert.match(html, /rel="icon" type="image\/svg\+xml"/);
+  assert.match(html, /data:image\/svg\+xml;utf8,/);
   assert.match(html, /Test requirement/);
   assert.match(html, /Missing knowledge remains visible/);
 
@@ -221,7 +228,7 @@ export async function verifyHtmlRequirementHealthReport(
   );
 
   const ratio = html.match(
-    /aria-label="(\d+)% proven, ([\d,]+) of ([\d,]+) current requirements"/,
+    /aria-label="(\d+)% strict proof coverage, ([\d,]+) of ([\d,]+) current requirements fully proven end-to-end"/,
   );
   assert.ok(ratio, "report should expose its exact proof ratio to assistive technology");
   const percent = Number(ratio[1]);
@@ -234,7 +241,7 @@ export async function verifyHtmlRequirementHealthReport(
   assert.match(html, new RegExp(`>${percent}<span>%<\\/span>`));
   assert.match(
     html,
-    new RegExp(`${proven.toLocaleString("en-US")} of ${current.toLocaleString("en-US")} current requirements`),
+    new RegExp(`${proven.toLocaleString("en-US")} of ${current.toLocaleString("en-US")} current requirements fully proven end-to-end`),
   );
 
   const gates = [
@@ -309,8 +316,13 @@ export async function verifyHtmlRequirementHealthReport(
   assert.match(html, /color-scheme: light/);
   assert.doesNotMatch(
     html,
-    /(?:src|href)=["']https?:\/\//i,
-    "report should not reference network assets",
+    /(?:src)=["']https?:\/\//i,
+    "report should not load network assets",
+  );
+  assert.doesNotMatch(
+    html,
+    /<link[^>]+href=["']https?:\/\//i,
+    "report should not load hosted stylesheets or icons",
   );
 
   const badge = await readFile(

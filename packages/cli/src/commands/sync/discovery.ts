@@ -23,7 +23,10 @@ import * as path from "node:path";
 import { promisify } from "node:util";
 import fg from "fast-glob";
 import { getRelationshipsDir } from "../../extractors/relationships.js";
-import { CANONICAL_ENTITY_PATHS } from "../../utils/kb-paths.js";
+import {
+  CANONICAL_ENTITY_PATHS,
+  isSymbolsManifestPath,
+} from "../../utils/kb-paths.js";
 
 const MARKDOWN_DISCOVERY_IGNORE = ["**/README.md"] as const;
 const execFileAsync = promisify(execFile);
@@ -305,7 +308,7 @@ export async function discoverSourceFiles(
         entityMarkdownFiles.push(absolute);
       }
       if (
-        (relative.endsWith(".yaml") || relative.endsWith(".yml")) &&
+        isSymbolsManifestPath(relative) &&
         !manifestFiles.includes(absolute)
       ) {
         manifestFiles.push(absolute);

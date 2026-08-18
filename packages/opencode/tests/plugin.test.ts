@@ -76,7 +76,7 @@ function makeTempWorkspace(prefix: string): string {
   ]) {
     fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
   }
-  fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "[]\n");
+  fs.writeFileSync(path.join(tmpDir, ".kb", "symbols.yaml"), "[]\n");
   return tmpDir;
 }
 
@@ -372,7 +372,7 @@ describe("kibiOpencodePlugin requirement lint integration", () => {
         (_, index) => `Requirement detail line ${index + 1}`,
       );
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "requirements", "REQ-001.md"),
+        path.join(tmpDir, ".kb", "requirements", "REQ-001.md"),
         [
           "# Requirement",
           "Given a user has an account",

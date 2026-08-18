@@ -6,3 +6,17 @@ relationships:
     created_at: "2026-08-16T18:51:34.283Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-opencode-classify-risk-params
+    to: REQ-opencode-risk-classification
+    created_at: 2026-08-18T21:04:38.211Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06eb4865f3f8
+  - type: covered_by
+    from: SYM-opencode-classify-risk-params
+    to: TEST-opencode-smart-enforcement
+    created_at: 2026-08-18T21:04:38.221Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e74f2b4252c

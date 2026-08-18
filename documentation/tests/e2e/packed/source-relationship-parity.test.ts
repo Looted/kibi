@@ -82,7 +82,7 @@ if (RUN_NODE_TEST_SUITE) {
           },
           "Reference fixture.",
         );
-        await run("git", ["add", "documentation"], {
+        await run("git", ["add", ".kb"], {
           cwd: sandbox.repoDir,
           env: sandbox.env,
         });

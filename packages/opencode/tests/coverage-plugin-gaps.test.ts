@@ -68,7 +68,7 @@ function makeTempWorkspace(prefix: string): string {
   ]) {
     fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
   }
-  fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "[]\n");
+  fs.writeFileSync(path.join(tmpDir, ".kb", "symbols.yaml"), "[]\n");
   return tmpDir;
 }
 
@@ -396,7 +396,7 @@ describe("plugin coverage gaps - deleted file lifecycle", () => {
     globals.__kibi_test_schedule_startup_notify = () => {};
     try {
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "requirements", "REQ-del.md"),
+        path.join(tmpDir, ".kb", "requirements", "REQ-del.md"),
         "---\npriority: must\n---\nTest\n",
       );
       const hooks = await kibiOpencodePlugin({
@@ -495,7 +495,7 @@ describe("plugin coverage gaps - degraded mode advisory branches", () => {
     });
     try {
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "requirements", "REQ-policy.md"),
+        path.join(tmpDir, ".kb", "requirements", "REQ-policy.md"),
         "---\npriority: must\n---\nRequirement body\n",
       );
       const hooks = await kibiOpencodePlugin({
@@ -560,7 +560,7 @@ describe("plugin coverage gaps - degraded mode advisory branches", () => {
     });
     try {
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "facts", "FACT-1.md"),
+        path.join(tmpDir, ".kb", "facts", "FACT-1.md"),
         "---\ntitle: Fact\nstatus: active\n---\nFact body\n",
       );
       const hooks = await kibiOpencodePlugin({
@@ -630,7 +630,7 @@ describe("plugin coverage gaps - degraded mode advisory branches", () => {
     });
     try {
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "requirements", "REQ-structured.md"),
+        path.join(tmpDir, ".kb", "requirements", "REQ-structured.md"),
         "---\npriority: must\n---\nRequirement\n",
       );
       const hooks = await kibiOpencodePlugin({

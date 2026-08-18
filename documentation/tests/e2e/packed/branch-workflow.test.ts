@@ -28,7 +28,7 @@ function branchKbPath(repoDir: string, branch: string): string {
 }
 
 function stageSources(sandbox: TestSandbox): Promise<unknown> {
-  return run("git", ["add", "documentation"], {
+  return run("git", ["add", ".kb"], {
     cwd: sandbox.repoDir,
     env: sandbox.env,
   });
@@ -569,7 +569,7 @@ status: open
           cwd: sandbox.repoDir,
           env: sandbox.env,
         });
-        assert.match(staged.stdout, /documentation\/requirements\/orphan\.md/);
+        assert.match(staged.stdout, /\.kb\/requirements\/orphan\.md/);
         const syncResult = await kibi(sandbox, ["sync"]);
         assert.equal(syncResult.exitCode, 0, syncResult.stderr);
         assert.match(

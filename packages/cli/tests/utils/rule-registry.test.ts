@@ -11,7 +11,9 @@ import {
   getDefaultRules,
   getEffectiveRules,
   getRuleDefinition,
+  getRuleEnforcementClass,
   isCanonicalRule,
+  ruleRunsByDefault,
   validateRuleName,
 } from "../../src/utils/rule-registry.js";
 
@@ -27,7 +29,7 @@ describe("rule-registry constants", () => {
       expect(["coverage", "integrity", "lifecycle", "traceability"]).toContain(
         rule.category,
       );
-      expect(typeof rule.runsByDefault).toBe("boolean");
+      expect("runsByDefault" in rule).toBe(false);
     }
   });
 
@@ -39,24 +41,32 @@ describe("rule-registry constants", () => {
   });
 
   test("migration rules do not run by default", () => {
-    for (const rule of RULES.filter((r) => r.enforcementClass === "migration")) {
-      expect(rule.runsByDefault).toBe(false);
+    for (const rule of RULES.filter(
+      (r) => r.enforcementClass === "migration",
+    )) {
+      expect(ruleRunsByDefault(rule.enforcementClass)).toBe(false);
     }
   });
 
-  test("canonical rules run by default", () => {
-    for (const rule of RULES.filter((r) => r.enforcementClass === "canonical")) {
-      expect(rule.runsByDefault).toBe(true);
+  test("canonical and advisory rules run by default", () => {
+    for (const rule of RULES.filter(
+      (r) => r.enforcementClass !== "migration",
+    )) {
+      expect(ruleRunsByDefault(rule.enforcementClass)).toBe(true);
     }
   });
 });
 
 describe("getDefaultRules", () => {
-  test("returns Kibi-owned default policy", () => {
+  test("returns Kibi-owned default policy derived from enforcement class", () => {
     const defaults = getDefaultRules();
     for (const rule of RULES) {
-      expect(defaults.has(rule.name)).toBe(rule.runsByDefault);
+      expect(defaults.has(rule.name)).toBe(
+        ruleRunsByDefault(rule.enforcementClass),
+      );
     }
+    expect(defaults.has("strict-fact-shape")).toBe(true);
+    expect(defaults.has("semantic-completeness")).toBe(false);
   });
 });
 
@@ -66,7 +76,9 @@ describe("getCanonicalRules", () => {
     for (const name of canonical) {
       expect(isCanonicalRule(name)).toBe(true);
     }
-    for (const rule of RULES.filter((r) => r.enforcementClass !== "canonical")) {
+    for (const rule of RULES.filter(
+      (r) => r.enforcementClass !== "canonical",
+    )) {
       expect(canonical.has(rule.name)).toBe(false);
     }
   });
@@ -90,8 +102,8 @@ describe("getEffectiveRules", () => {
   });
 
   test("diagnostic selector can opt into migration rules", () => {
-    const result = getEffectiveRules(["strict-fact-shape"]);
-    expect(result).toEqual(new Set(["strict-fact-shape"]));
+    const result = getEffectiveRules(["semantic-completeness"]);
+    expect(result).toEqual(new Set(["semantic-completeness"]));
   });
 
   test("empty diagnostic selector returns empty set", () => {
@@ -118,5 +130,9 @@ describe("getRuleDefinition", () => {
     expect(getRuleDefinition("must-priority-coverage")?.enforcementClass).toBe(
       "canonical",
     );
+  });
+
+  test("getRuleEnforcementClass is undefined for unknown rules", () => {
+    expect(getRuleEnforcementClass("not-a-real-rule")).toBeUndefined();
   });
 });

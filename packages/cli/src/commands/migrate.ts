@@ -16,7 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  writeFileSync,
+} from "node:fs";
 import * as path from "node:path";
 import { load as parseYAML } from "js-yaml";
 import type { MigrationPlan } from "../public/operations/migration-plan.js";
@@ -34,6 +40,7 @@ import {
   getSchemaVersionStatus,
   normalizeSchemaVersion,
 } from "../utils/schema-version.js";
+import { updateGitIgnore } from "./init-helpers.js";
 import {
   applyLegacyStorageMigration,
   planLegacyStorageMigration,
@@ -442,7 +449,11 @@ export async function migrateCommand(
     writeKbManifest(cwd, defaultKbManifest());
   }
 
-  if (manifestStatus.state === "missing" && storagePlan.moves.length === 0 && storagePlan.legacyConfig === "absent") {
+  if (
+    manifestStatus.state === "missing" &&
+    storagePlan.moves.length === 0 &&
+    storagePlan.legacyConfig === "absent"
+  ) {
     console.error(
       "Missing .kb/ lifecycle state. Run 'kibi init' to create the canonical layout before migrating.",
     );
@@ -452,11 +463,12 @@ export async function migrateCommand(
   const { branch, warnings: branchWarnings } = branchResult;
   const currentManifest = readKbManifest(cwd);
   const legacySchemaVersion = normalizeSchemaVersion(storagePlan.schemaVersion);
-  const currentVersion =
-    currentManifest?.schemaVersion ?? legacySchemaVersion;
+  const currentVersion = currentManifest?.schemaVersion ?? legacySchemaVersion;
   const normalizedVersion = normalizeSchemaVersion(currentVersion);
   const configStatus = getSchemaVersionStatus(
-    normalizedVersion === null ? undefined : { schemaVersion: normalizedVersion },
+    normalizedVersion === null
+      ? undefined
+      : { schemaVersion: normalizedVersion },
   );
   const needsStorageMigration =
     storagePlan.moves.length > 0 || storagePlan.legacyConfig !== "absent";
@@ -469,11 +481,6 @@ export async function migrateCommand(
   const warnings = [
     ...branchWarnings,
     ...(migrationWarning ? [migrationWarning] : []),
-    ...(storagePlan.legacyConfig === "malformed" && storagePlan.legacyConfigError
-      ? [
-          `Legacy .kb/config.json is malformed (${storagePlan.legacyConfigError}); migration will use default legacy paths.`,
-        ]
-      : []),
   ];
   const auditPath = path.join(cwd, ".kb", "migrations", `${branch}.json`);
 
@@ -509,10 +516,17 @@ export async function migrateCommand(
       );
     }
 
+    if (options.yes === true) {
+      updateGitIgnore(cwd);
+    }
+
     return { exitCode: 0 };
   }
 
-  const fromVersionLabel = formatSchemaVersion(currentVersion, normalizedVersion);
+  const fromVersionLabel = formatSchemaVersion(
+    currentVersion,
+    normalizedVersion,
+  );
   const migrationSteps = migrationStepsFor(configStatus.currentVersion);
   const symbolGranularityStep = migrationSteps.some(
     (step) => step.id === "symbol-granularity-v2",
@@ -540,8 +554,9 @@ export async function migrateCommand(
     );
     if (symbolGranularityStep) {
       const symbolsSource =
-        storagePlan.moves.find((move) => move.to === CANONICAL_ENTITY_PATHS.symbols)
-          ?.from ?? CANONICAL_ENTITY_PATHS.symbols;
+        storagePlan.moves.find(
+          (move) => move.to === CANONICAL_ENTITY_PATHS.symbols,
+        )?.from ?? CANONICAL_ENTITY_PATHS.symbols;
       const preview = migrateSymbolGranularity({
         cwd,
         dryRun: true,
@@ -629,10 +644,13 @@ export async function migrateCommand(
       `Marked semantic advisor backfill as pending in ${KB_MANIFEST_RELATIVE}.`,
     );
   }
-  console.log(`Wrote migration audit metadata to ${toRelativePath(cwd, auditPath)}.`);
+  console.log(
+    `Wrote migration audit metadata to ${toRelativePath(cwd, auditPath)}.`,
+  );
   console.log(
     "Migration complete. Future 'kibi migrate' runs will be a no-op.",
   );
+  updateGitIgnore(cwd);
 
   return { exitCode: 0 };
 }

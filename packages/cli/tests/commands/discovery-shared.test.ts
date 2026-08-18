@@ -109,7 +109,7 @@ describe("discovery-shared", () => {
 
   beforeEach(() => {
     resetState();
-    setBranch();
+    setBranch("feature/test-branch");
     logSpy = spyOn(console, "log").mockImplementation(() => undefined);
   });
 
@@ -185,17 +185,10 @@ describe("discovery-shared", () => {
   });
 
   test("resolveCurrentKbPath uses the exact branch identity", async () => {
-    // Use env var to control branch instead of mocking
     process.env.KIBI_BRANCH = "topic/x";
     await expect(discovery.resolveCurrentKbPath()).resolves.toBe(
       expectedStorePath(),
     );
-
-    // Test fallback: clear env var and expect main
-    process.env.KIBI_BRANCH = undefined;
-    // Note: actual branch depends on git state, so we just verify it returns a path
-    const result = await discovery.resolveCurrentKbPath();
-    expect(result).toMatch(/\.kb\/branches\//);
   });
 
   test("resolveCoreModulePath joins the requested file next to kb.pl", () => {

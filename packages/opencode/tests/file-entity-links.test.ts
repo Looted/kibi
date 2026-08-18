@@ -32,7 +32,7 @@ describe("getFileLinkedEntityIds", () => {
     }>,
     wrapInSymbolsKey = false,
   ) {
-    const docDir = path.join(tmpDir, "documentation");
+    const docDir = path.join(tmpDir, ".kb");
     fs.mkdirSync(docDir, { recursive: true });
 
     const entriesYaml = entries
@@ -233,7 +233,7 @@ describe("getFileLinkedEntityIds", () => {
   // ── Doc-path identity ─────────────────────────────────────────────
 
   test("maps .kb/requirements/REQ-001.md to REQ-001 via doc-path", () => {
-    const docDir = path.join(tmpDir, "documentation", "requirements");
+    const docDir = path.join(tmpDir, ".kb", "requirements");
     fs.mkdirSync(docDir, { recursive: true });
     fs.writeFileSync(path.join(docDir, "REQ-001.md"), "---\nid: REQ-001\n---");
 
@@ -246,7 +246,7 @@ describe("getFileLinkedEntityIds", () => {
   });
 
   test("maps .kb/scenarios/SCEN-001.md via doc-path", () => {
-    const docDir = path.join(tmpDir, "documentation", "scenarios");
+    const docDir = path.join(tmpDir, ".kb", "scenarios");
     fs.mkdirSync(docDir, { recursive: true });
     fs.writeFileSync(path.join(docDir, "SCEN-001.md"), "");
 
@@ -259,7 +259,7 @@ describe("getFileLinkedEntityIds", () => {
   });
 
   test("maps .kb/tests/TEST-001.md via doc-path", () => {
-    const docDir = path.join(tmpDir, "documentation", "tests");
+    const docDir = path.join(tmpDir, ".kb", "tests");
     fs.mkdirSync(docDir, { recursive: true });
     fs.writeFileSync(path.join(docDir, "TEST-001.md"), "");
 
@@ -272,7 +272,7 @@ describe("getFileLinkedEntityIds", () => {
   });
 
   test("maps .kb/adr/ADR-001.md via doc-path", () => {
-    const docDir = path.join(tmpDir, "documentation", "adr");
+    const docDir = path.join(tmpDir, ".kb", "adr");
     fs.mkdirSync(docDir, { recursive: true });
     fs.writeFileSync(path.join(docDir, "ADR-001.md"), "");
 
@@ -285,7 +285,7 @@ describe("getFileLinkedEntityIds", () => {
   });
 
   test("maps .kb/flags/FLAG-001.md via doc-path", () => {
-    const docDir = path.join(tmpDir, "documentation", "flags");
+    const docDir = path.join(tmpDir, ".kb", "flags");
     fs.mkdirSync(docDir, { recursive: true });
     fs.writeFileSync(path.join(docDir, "FLAG-001.md"), "");
 
@@ -298,7 +298,7 @@ describe("getFileLinkedEntityIds", () => {
   });
 
   test("maps .kb/events/EVT-001.md via doc-path", () => {
-    const docDir = path.join(tmpDir, "documentation", "events");
+    const docDir = path.join(tmpDir, ".kb", "events");
     fs.mkdirSync(docDir, { recursive: true });
     fs.writeFileSync(path.join(docDir, "EVT-001.md"), "");
 
@@ -311,7 +311,7 @@ describe("getFileLinkedEntityIds", () => {
   });
 
   test("maps .kb/facts/FACT-001.md via doc-path", () => {
-    const docDir = path.join(tmpDir, "documentation", "facts");
+    const docDir = path.join(tmpDir, ".kb", "facts");
     fs.mkdirSync(docDir, { recursive: true });
     fs.writeFileSync(path.join(docDir, "FACT-001.md"), "");
 
@@ -324,7 +324,7 @@ describe("getFileLinkedEntityIds", () => {
   });
 
   test("does not match non-entity files in doc roots as doc-path", () => {
-    const docDir = path.join(tmpDir, "documentation", "requirements");
+    const docDir = path.join(tmpDir, ".kb", "requirements");
     fs.mkdirSync(docDir, { recursive: true });
     fs.writeFileSync(path.join(docDir, "README.md"), "# Requirements");
 
@@ -443,7 +443,7 @@ describe("getFileLinkedTargetsByType", () => {
       relationships?: Array<{ type: string; target: string }>;
     }>,
   ) {
-    const docDir = path.join(tmpDir, "documentation");
+    const docDir = path.join(tmpDir, ".kb");
     fs.mkdirSync(docDir, { recursive: true });
 
     const entriesYaml = entries

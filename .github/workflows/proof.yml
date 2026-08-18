@@ -21,6 +21,7 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   KIBI_CLI: ./packages/cli/bin/kibi
+  KIBI_BRANCH: ${{ github.head_ref || github.ref_name }}
 
 jobs:
   proof:

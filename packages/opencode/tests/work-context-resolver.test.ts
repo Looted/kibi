@@ -74,9 +74,9 @@ function createAuthoritativeKb(root: string): void {
     "events",
     "facts",
   ]) {
-    mkdirSync(join(root, "documentation", dir), { recursive: true });
+    mkdirSync(join(root, ".kb", dir), { recursive: true });
   }
-  writeFileSync(join(root, "documentation", "symbols.yaml"), "[]\n");
+  writeFileSync(join(root, ".kb", "symbols.yaml"), "[]\n");
 }
 
 function createLinkedWorktree(

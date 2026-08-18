@@ -20574,12 +20574,18 @@ symbols:
         target: TEST-mcp-upsert-symbol-behavioral-anchors
   - id: SYM-updateGitIgnore
     title: updateGitIgnore
+    status: active
     sourceFile: packages/cli/src/commands/init-helpers.ts
+    symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-cli-init
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init
+      - type: implements
+        target: REQ-cli-init-canonical
   - id: SYM-UpsertArgs
     title: UpsertArgs
     sourceFile: packages/mcp/src/tools/upsert.ts
@@ -24814,6 +24820,8 @@ symbols:
       - type: covered_by
         target: TEST-cli-migrate
       - type: implements
+        target: REQ-cli-canonical-runtime
+      - type: implements
         target: REQ-cli-init-canonical
   - id: SYM-canonical-applyLegacyStorageMigration
     title: applyLegacyStorageMigration
@@ -24823,6 +24831,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-migrate
+      - type: implements
+        target: REQ-cli-canonical-runtime
       - type: implements
         target: REQ-cli-init-canonical
   - id: SYM-canonical-rewritePendingSourceReceiptPaths
@@ -25255,11 +25265,6 @@ symbols:
         target: TEST-opencode-kibi-plugin-v1
       - type: implements
         target: REQ-opencode-bootstrap-nudge
-  - id: SYM-cli-rule-registry-mergeChecksConfig
-    title: mergeChecksConfig
-    status: active
-    sourceFile: packages/cli/src/utils/rule-registry.ts
-    granularity_reason: extractor-miss
   - id: SYM-KbConfigPaths
     title: KbConfigPaths
     status: active
@@ -25625,3 +25630,323 @@ symbols:
         target: TEST-vscode-traceability
       - type: implements
         target: REQ-vscode-traceability
+  - id: SYM-canonical-partitionCheckFindings
+    title: partitionCheckFindings
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-quality-diagnostics-contract
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-cli-rule-registry-getRuleEnforcementClass
+    title: getRuleEnforcementClass
+    status: active
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-quality-diagnostics-contract
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-cli-rule-registry-ruleRunsByDefault
+    title: ruleRunsByDefault
+    status: active
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-quality-diagnostics-contract
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-cli-report-favicon
+    title: renderKibiFaviconSvg
+    status: active
+    sourceFile: packages/cli/src/report/brand.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-branded-health-report
+      - type: implements
+        target: REQ-kibi-branded-health-report
+  - id: SYM-cli-report-favicon-data-uri
+    title: renderKibiFaviconDataUri
+    status: active
+    sourceFile: packages/cli/src/report/brand.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-branded-health-report
+      - type: implements
+        target: REQ-kibi-branded-health-report
+  - id: SYM-cli-report-view
+    title: matchesReportView
+    status: active
+    sourceFile: packages/cli/src/report/report-view.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-repository
+    title: resolveReportRepository
+    status: active
+    sourceFile: packages/cli/src/report/repository.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-relative-time
+    title: formatRelativeAge
+    status: active
+    sourceFile: packages/cli/src/report/relative-time.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-core-proof-issues
+    title: proof_issues
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-conservative-requirement-proof
+      - type: implements
+        target: REQ-kibi-conservative-requirement-proof
+  - id: SYM-cli-report-filter-counts
+    title: reportFilterCounts
+    status: active
+    sourceFile: packages/cli/src/report/report-view.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-short-sha
+    title: shortCommitSha
+    status: active
+    sourceFile: packages/cli/src/report/repository.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-commit-web-url
+    title: commitWebUrl
+    status: active
+    sourceFile: packages/cli/src/report/repository.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-source-web-url
+    title: sourceWebUrl
+    status: active
+    sourceFile: packages/cli/src/report/repository.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-format-source-coordinate
+    title: formatSourceCoordinate
+    status: active
+    sourceFile: packages/cli/src/report/repository.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-csp
+    title: REPORT_CSP
+    status: active
+    sourceFile: packages/cli/src/report/html-report.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-getting-started-url
+    title: KIBI_GETTING_STARTED_URL
+    status: active
+    sourceFile: packages/cli/src/report/html-report.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-filters
+    title: REPORT_FILTERS
+    status: active
+    sourceFile: packages/cli/src/report/report-view.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-proof-gate-keys
+    title: PROOF_GATE_KEYS
+    status: active
+    sourceFile: packages/cli/src/report/report-view.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-filter-type
+    title: ReportFilter
+    status: active
+    sourceFile: packages/cli/src/report/report-view.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-proof-gate-key-type
+    title: ProofGateKey
+    status: active
+    sourceFile: packages/cli/src/report/report-view.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-requirement-view
+    title: RequirementView
+    status: active
+    sourceFile: packages/cli/src/report/report-view.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-view-query
+    title: ReportViewQuery
+    status: active
+    sourceFile: packages/cli/src/report/report-view.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-git-remote
+    title: ReportGitRemote
+    status: active
+    sourceFile: packages/cli/src/report/repository.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-repository-provider
+    title: ReportRepositoryProvider
+    status: active
+    sourceFile: packages/cli/src/report/repository.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-repository-type
+    title: ReportRepository
+    status: active
+    sourceFile: packages/cli/src/report/repository.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-source-coordinate
+    title: SourceCoordinate
+    status: active
+    sourceFile: packages/cli/src/report/repository.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-format-absolute-utc
+    title: formatAbsoluteUtc
+    status: active
+    sourceFile: packages/cli/src/report/relative-time.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-parse-timestamp
+    title: parseTimestamp
+    status: active
+    sourceFile: packages/cli/src/report/relative-time.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-cli-report-parse-git-remote
+    title: parseGitRemote
+    status: active
+    sourceFile: packages/cli/src/report/repository.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-html-health-report
+  - id: SYM-opencode-classify-risk-params
+    title: ClassifyRiskParams
+    status: active
+    sourceFile: packages/opencode/src/risk-classifier.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+      - type: implements
+        target: REQ-opencode-risk-classification
+  - id: SYM-opencode-risk-class
+    title: RiskClass
+    status: active
+    sourceFile: packages/opencode/src/risk-classifier.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+      - type: implements
+        target: REQ-opencode-risk-classification
+  - id: SYM-opencode-risk-classification-type
+    title: RiskClassification
+    status: active
+    sourceFile: packages/opencode/src/risk-classifier.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+      - type: implements
+        target: REQ-opencode-risk-classification

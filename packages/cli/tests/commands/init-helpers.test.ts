@@ -17,7 +17,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { execSync } from "node:child_process";
+import { execSync, spawnSync } from "node:child_process";
 import {
   chmodSync,
   existsSync,
@@ -32,8 +32,8 @@ import { tmpdir } from "node:os";
 import * as path from "node:path";
 import {
   copySchemaFiles,
-  createManifestFile,
   createKbDirectoryStructure,
+  createManifestFile,
   ensureSymbolsManifestFile,
   getCurrentBranch,
   installGitHooks,
@@ -136,6 +136,7 @@ describe("init-helpers", () => {
     expect(content).toContain(".kb/recovery/");
     expect(content).toContain(".kb/verification/");
     expect(content).toContain(".kb/briefs/");
+    expect(content).toContain(".kb/migrations/");
     expect(content).toContain(".kb/usage.log");
     expect(content).not.toMatch(/^\.kb\/$/m);
   });
@@ -160,6 +161,73 @@ describe("init-helpers", () => {
     const content = readFileSync(gitignorePath, "utf8");
     const branchMatches = content.match(/^\.kb\/branches\/$/gm);
     expect(branchMatches?.length ?? 0).toBe(1);
+  });
+
+  test("updateGitIgnore strips the pre-canonical .kb/ fence so authored lanes are trackable", () => {
+    execSync("git init -b main", { cwd: tmpDir });
+    const gitignorePath = path.join(tmpDir, ".gitignore");
+    // Historical Kibi init wrote `.kb/` plus selective reincludes. Without
+    // `!.kb/`, Git treats that fence as a blanket ignore of migrated
+    // knowledge lanes. The fingerprint still matches with any `!.kb/...`.
+    writeFileSync(
+      gitignorePath,
+      `.kb/
+!.kb/config.json
+!.kb/schema/
+!.kb/relationships/
+!.kb/relationships/*.yaml
+`,
+    );
+    mkdirSync(path.join(tmpDir, ".kb/requirements"), { recursive: true });
+    mkdirSync(path.join(tmpDir, ".kb/branches/main"), { recursive: true });
+    mkdirSync(path.join(tmpDir, ".kb/migrations"), { recursive: true });
+    writeFileSync(path.join(tmpDir, ".kb/requirements/REQ-ONE.md"), "req\n");
+    writeFileSync(path.join(tmpDir, ".kb/branches/main/store.json"), "{}\n");
+    writeFileSync(path.join(tmpDir, ".kb/migrations/main.json"), "{}\n");
+
+    expect(
+      spawnSync(
+        "git",
+        ["check-ignore", "-q", "--", ".kb/requirements/REQ-ONE.md"],
+        {
+          cwd: tmpDir,
+        },
+      ).status,
+    ).toBe(0);
+
+    updateGitIgnore(tmpDir);
+
+    const content = readFileSync(gitignorePath, "utf8");
+    expect(content).not.toMatch(/^\.kb\/$/m);
+    expect(content).not.toContain("!.kb/config.json");
+    expect(content).toContain(".kb/migrations/");
+    expect(
+      spawnSync(
+        "git",
+        ["check-ignore", "-q", "--", ".kb/requirements/REQ-ONE.md"],
+        {
+          cwd: tmpDir,
+        },
+      ).status,
+    ).toBe(1);
+    expect(
+      spawnSync(
+        "git",
+        ["check-ignore", "-q", "--", ".kb/branches/main/store.json"],
+        {
+          cwd: tmpDir,
+        },
+      ).status,
+    ).toBe(0);
+    expect(
+      spawnSync(
+        "git",
+        ["check-ignore", "-q", "--", ".kb/migrations/main.json"],
+        {
+          cwd: tmpDir,
+        },
+      ).status,
+    ).toBe(0);
   });
 
   test("ensureSymbolsManifestFile creates the canonical symbols manifest", () => {

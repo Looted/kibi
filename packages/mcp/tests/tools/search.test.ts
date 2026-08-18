@@ -25,7 +25,7 @@ describe("MCP search tool handler", () => {
       path.join(os.tmpdir(), "kibi-mcp-search-"),
     );
     process.env.KIBI_WORKSPACE = workspaceRoot;
-    await fs.mkdir(path.join(workspaceRoot, "documentation", "requirements"), {
+    await fs.mkdir(path.join(workspaceRoot, ".kb", "requirements"), {
       recursive: true,
     });
   });
@@ -41,12 +41,12 @@ describe("MCP search tool handler", () => {
 
   test("ranks exact title matches ahead of markdown body matches", async () => {
     await fs.writeFile(
-      path.join(workspaceRoot, "documentation", "requirements", "REQ-001.md"),
+      path.join(workspaceRoot, ".kb", "requirements", "REQ-001.md"),
       "---\nid: REQ-001\ntitle: OAuth login flow\nstatus: open\n---\n\nThe login body mentions approval.\n",
     );
 
     await fs.writeFile(
-      path.join(workspaceRoot, "documentation", "requirements", "REQ-002.md"),
+      path.join(workspaceRoot, ".kb", "requirements", "REQ-002.md"),
       "---\nid: REQ-002\ntitle: Session refresh\nstatus: open\n---\n\nThis markdown body talks about OAuth login flow in prose.\n",
     );
 
@@ -70,7 +70,7 @@ describe("MCP search tool handler", () => {
 
   test("searches markdown bodies but does not search raw code bodies", async () => {
     await fs.writeFile(
-      path.join(workspaceRoot, "documentation", "requirements", "REQ-003.md"),
+      path.join(workspaceRoot, ".kb", "requirements", "REQ-003.md"),
       "---\nid: REQ-003\ntitle: Searchable markdown\nstatus: open\nsource: .kb/requirements/REQ-003.md\n---\n\nThe body mentions latent discovery token.\n",
     );
 
@@ -120,7 +120,7 @@ describe("MCP search tool handler", () => {
     await fs.writeFile(
       path.join(
         workspaceRoot,
-        "documentation",
+        ".kb",
         "requirements",
         "REQ-search-revenuecat-entitlement.md",
       ),
@@ -129,7 +129,7 @@ describe("MCP search tool handler", () => {
     await fs.writeFile(
       path.join(
         workspaceRoot,
-        "documentation",
+        ".kb",
         "requirements",
         "FACT-search-apple-signin-revenuecat-recovery.md",
       ),
@@ -138,7 +138,7 @@ describe("MCP search tool handler", () => {
     await fs.writeFile(
       path.join(
         workspaceRoot,
-        "documentation",
+        ".kb",
         "requirements",
         "FACT-search-unrelated-sync-feedback.md",
       ),

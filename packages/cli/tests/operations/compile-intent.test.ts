@@ -1,4 +1,4 @@
-import { describe, expect, mock, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 
 import type {
   OperationContext,
@@ -52,6 +52,19 @@ function contextFor(
 }
 
 describe("kb_compile_intent", () => {
+  const originalBranch = process.env.KIBI_BRANCH;
+
+  beforeEach(() => {
+    process.env.KIBI_BRANCH = "test-branch";
+  });
+
+  afterEach(() => {
+    if (originalBranch === undefined) {
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+    } else {
+      process.env.KIBI_BRANCH = originalBranch;
+    }
+  });
   test("emits a deterministic strict-property plan for a new requirement", async () => {
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
       if (goal.includes("findall([A,B,Reason]"))

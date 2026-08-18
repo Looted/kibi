@@ -116,6 +116,7 @@ tags: [authentication, session]
         proofVersion: string;
         proofStatus: string;
         proofGaps: string[];
+        proofAdvisories: string[];
       }>;
       repairPlan: {
         version: string;
@@ -155,6 +156,7 @@ tags: [authentication, session]
     expect(req1Row?.proofVersion).toBe("kibi.requirement-proof.v2");
     expect(req1Row?.proofStatus).toBe("missing");
     expect(req1Row?.proofGaps).toContain("missing_semantic_inventory");
+    expect(req1Row?.proofAdvisories).toEqual([]);
     expect(result.repairPlan.version).toBe("kibi.repair-plan.v1");
     expect(result.repairPlan.readOnly).toBe(true);
     expect(result.repairPlan.status).toBe("ready");

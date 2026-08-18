@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { executeOperation } from "../src/cli-protocol.js";
 import type { CliContext } from "../src/cli-protocol.js";
 
@@ -37,6 +37,19 @@ function createContext(): CliContext {
 }
 
 describe("executeOperation", () => {
+  const originalBranch = process.env.KIBI_BRANCH;
+
+  beforeEach(() => {
+    process.env.KIBI_BRANCH = "develop";
+  });
+
+  afterEach(() => {
+    if (originalBranch === undefined) {
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+    } else {
+      process.env.KIBI_BRANCH = originalBranch;
+    }
+  });
   test("renders one JSON value with a trailing newline on success", async () => {
     const result = await executeOperation("kb_status", {}, createContext());
 

@@ -62,3 +62,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a9419e1fb6b
+  - type: implements
+    from: SYM-canonical-planLegacyStorageMigration
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T18:23:44.239Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d451c3950fe

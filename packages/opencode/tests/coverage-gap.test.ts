@@ -160,7 +160,7 @@ priority: 1
   test("checkWorkspaceHealth uses defaults when config exists but is unreadable", () => {
     fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
     fs.writeFileSync(path.join(tmpDir, ".kb", "manifest.json"), "{not-json");
-    fs.mkdirSync(path.join(tmpDir, "documentation", "requirements"), {
+    fs.mkdirSync(path.join(tmpDir, ".kb", "requirements"), {
       recursive: true,
     });
 

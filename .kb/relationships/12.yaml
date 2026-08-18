@@ -13,3 +13,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d60607b5f952
+  - type: implements
+    from: SYM-cli-report-view-query
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-18T20:42:22.352Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c380768c213a
+  - type: covered_by
+    from: SYM-cli-report-view-query
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-18T20:42:22.361Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e7c36978727

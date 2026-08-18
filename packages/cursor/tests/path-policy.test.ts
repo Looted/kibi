@@ -43,6 +43,9 @@ describe("Cursor hook path policy", () => {
     expect(isMeaningfulTrackedPath("README.md")).toBe(true);
 
     expect(isMeaningfulTrackedPath(".kb/config.json")).toBe(false);
+    expect(isMeaningfulTrackedPath(".kb/requirements/REQ.md")).toBe(true);
+    expect(isMeaningfulTrackedPath(".kb/symbols.yaml")).toBe(true);
+    expect(isMeaningfulTrackedPath(".kb/branches/main/store.pl")).toBe(false);
     expect(isMeaningfulTrackedPath("dist/hook-runner.js")).toBe(false);
     expect(isMeaningfulTrackedPath("docs/generated.json")).toBe(false);
     expect(isMeaningfulTrackedPath("package.json")).toBe(false);
@@ -61,9 +64,7 @@ describe("Cursor hook path policy", () => {
     expect(
       isSourceImpactRelevantPath("packages/cursor/tests/hook.test.ts"),
     ).toBe(false);
-    expect(isSourceImpactRelevantPath(".kb/symbols.yaml")).toBe(
-      false,
-    );
+    expect(isSourceImpactRelevantPath(".kb/symbols.yaml")).toBe(false);
   });
 
   test("Given documentation paths When classifying Then docs folders and extensions match", () => {
@@ -71,6 +72,7 @@ describe("Cursor hook path policy", () => {
       true,
     );
     expect(isDocumentationTrackedPath("notes.txt")).toBe(true);
+    expect(isDocumentationTrackedPath(".kb/requirements/REQ.md")).toBe(true);
     expect(isDocumentationTrackedPath("src/index.ts")).toBe(false);
   });
 

@@ -639,8 +639,7 @@ describe("MCP Server", () => {
                 propertyKey: "Retention Years",
                 operator: "eq",
                 value: 7,
-                provenance:
-                  ".kb/requirements/customer-retention.md#L1",
+                provenance: ".kb/requirements/customer-retention.md#L1",
               },
             },
           },
@@ -1039,11 +1038,11 @@ describe("MCP Server", () => {
       cwd: tempRoot,
       stdio: "ignore",
     });
-    fs.mkdirSync(path.join(tempRoot, "documentation", "requirements"), {
+    fs.mkdirSync(path.join(tempRoot, ".kb", "requirements"), {
       recursive: true,
     });
     fs.writeFileSync(
-      path.join(tempRoot, "documentation", "requirements", "REQ-LIVE-BASE.md"),
+      path.join(tempRoot, ".kb", "requirements", "REQ-LIVE-BASE.md"),
       "---\nid: REQ-LIVE-BASE\ntitle: Live session baseline\nstatus: open\n---\n",
     );
     execSync(`bun ${kibiBin} sync`, {
@@ -1078,7 +1077,7 @@ describe("MCP Server", () => {
       });
 
       fs.writeFileSync(
-        path.join(tempRoot, "documentation", "requirements", "REQ-LIVE-001.md"),
+        path.join(tempRoot, ".kb", "requirements", "REQ-LIVE-001.md"),
         "---\nid: REQ-LIVE-001\ntitle: Live session status\nstatus: open\n---\n",
       );
 
@@ -1220,11 +1219,7 @@ describe("MCP Server", () => {
       cwd: tempRoot,
       stdio: "ignore",
     });
-    const requirementsDir = path.join(
-      tempRoot,
-      "documentation",
-      "requirements",
-    );
+    const requirementsDir = path.join(tempRoot, ".kb", "requirements");
     fs.mkdirSync(requirementsDir, { recursive: true });
     const staleRequirement = path.join(
       requirementsDir,
@@ -1234,7 +1229,7 @@ describe("MCP Server", () => {
       staleRequirement,
       "---\nid: REQ-stale-before-rebuild\ntitle: Stale requirement\nstatus: open\n---\n",
     );
-    execSync("git add documentation", { cwd: tempRoot, stdio: "ignore" });
+    execSync("git add .kb/requirements", { cwd: tempRoot, stdio: "ignore" });
     syncRebuild(kibiBin, tempRoot);
 
     const proc = startServer({ cwd: tempRoot });
@@ -1288,7 +1283,7 @@ describe("MCP Server", () => {
         path.join(requirementsDir, "REQ-fresh-after-rebuild.md"),
         "---\nid: REQ-fresh-after-rebuild\ntitle: Fresh requirement\nstatus: open\n---\n",
       );
-      execSync("git add documentation", { cwd: tempRoot, stdio: "ignore" });
+      execSync("git add .kb/requirements", { cwd: tempRoot, stdio: "ignore" });
       syncRebuild(kibiBin, tempRoot);
 
       // Query SAME process again — must see fresh data

@@ -32,6 +32,7 @@ const KIBI_LANE_KINDS: Array<{ prefix: string; kind: PathKind }> = [
   { prefix: "events/", kind: "event" },
   { prefix: "facts/", kind: "fact" },
   { prefix: "symbols.yaml", kind: "symbol" },
+  { prefix: "symbol-coordinates.yaml", kind: "symbol" },
 ];
 
 export function analyzePath(

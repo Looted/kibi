@@ -55,3 +55,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-10d7ed8e4f1f
+  - type: implements
+    from: SYM-cli-report-favicon
+    to: REQ-kibi-branded-health-report
+    created_at: 2026-08-18T19:48:20.517Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30a0b0994755
+  - type: covered_by
+    from: SYM-cli-report-favicon
+    to: TEST-kibi-branded-health-report
+    created_at: 2026-08-18T19:50:12.379Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-990fd9a99e39
+  - type: implements
+    from: SYM-cli-report-requirement-view
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-18T20:42:19.641Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5fd5ed0cfc6a
+  - type: covered_by
+    from: SYM-cli-report-requirement-view
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-18T20:42:19.652Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03c37131af47

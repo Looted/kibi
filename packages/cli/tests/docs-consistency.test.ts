@@ -66,7 +66,7 @@ describe("Docs Consistency: Fact Model & Contradictions", () => {
   });
 
   describe("Rule Descriptions", () => {
-    test("strict-fact-shape must be described as default-off migration check", () => {
+    test("strict-fact-shape must be described as an advisory default-on quality diagnostic", () => {
       const docs = [
         "docs/cli-reference.md",
         "docs/mcp-reference.md",
@@ -75,7 +75,8 @@ describe("Docs Consistency: Fact Model & Contradictions", () => {
       for (const file of docs) {
         const content = getFileContent(file).toLowerCase();
         if (content.includes("strict-fact-shape")) {
-          expect(content).toMatch(/default-off|migration/i);
+          expect(content).toMatch(/advisory/);
+          expect(content).toMatch(/qualitydiagnostic|quality diagnostic/);
         }
       }
     });

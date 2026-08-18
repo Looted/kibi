@@ -83,3 +83,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f885279f086d
+  - type: implements
+    from: SYM-canonical-applyLegacyStorageMigration
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T18:23:55.416Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b21fcf5f83a4

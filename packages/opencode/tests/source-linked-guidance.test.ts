@@ -30,7 +30,7 @@ describe("getSourceLinkedRequirementIds", () => {
     }>,
     wrapInSymbolsKey = false,
   ) {
-    const docDir = path.join(tmpDir, "documentation");
+    const docDir = path.join(tmpDir, ".kb");
     fs.mkdirSync(docDir, { recursive: true });
 
     const entriesYaml = entries

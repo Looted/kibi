@@ -64,32 +64,34 @@ describe("risk-classifier classifyRisk", () => {
   // ─── manual_kb_edit ────────────────────────────────────────
 
   describe("manual_kb_edit", () => {
-    it("classifies .kb/ files regardless of pathKind", () => {
-      for (const pathKind of [
-        "code",
-        "test",
-        "requirement",
-        "unknown",
-      ] as const) {
-        const result = classifyRisk(makeParams({ pathKind, isUnderKb: true }));
-        assert.equal(
-          result.riskClass,
-          "manual_kb_edit",
-          `pathKind=${pathKind}`,
-        );
-        assert.ok(result.reasons.length > 0);
-      }
+    it("classifies opaque .kb/ runtime files as manual_kb_edit", () => {
+      const result = classifyRisk(
+        makeParams({ pathKind: "kb", isUnderKb: true }),
+      );
+      assert.equal(result.riskClass, "manual_kb_edit");
+      assert.ok(result.reasons.length > 0);
     });
 
-    it("classifies .kb/ files even with exports in content", () => {
+    it("classifies opaque .kb/ files even with exports in content", () => {
       const result = classifyRisk(
         makeParams({
-          pathKind: "code",
+          pathKind: "kb",
           isUnderKb: true,
           fileContent: CODE_WITH_EXPORTS,
         }),
       );
       assert.equal(result.riskClass, "manual_kb_edit");
+    });
+
+    it("does not treat canonical entity lanes as manual_kb_edit", () => {
+      const result = classifyRisk(
+        makeParams({
+          pathKind: "requirement",
+          isUnderKb: true,
+          hasMustPriority: true,
+        }),
+      );
+      assert.equal(result.riskClass, "req_policy_candidate");
     });
   });
 
@@ -296,10 +298,10 @@ describe("risk-classifier classifyRisk", () => {
   // ─── edge cases and false positive prevention ──────────────
 
   describe("edge cases", () => {
-    it("manual_kb_edit takes precedence over all other pathKinds", () => {
+    it("opaque .kb/ runtime still takes precedence over code classification", () => {
       const result = classifyRisk(
         makeParams({
-          pathKind: "requirement",
+          pathKind: "kb",
           isUnderKb: true,
           hasMustPriority: true,
         }),
@@ -464,8 +466,7 @@ const el = document.querySelector('.my-class');
         ).riskClass,
       );
       reached.add(
-        classifyRisk(makeParams({ pathKind: "code", isUnderKb: true }))
-          .riskClass,
+        classifyRisk(makeParams({ pathKind: "kb", isUnderKb: true })).riskClass,
       );
 
       for (const cls of classes) {

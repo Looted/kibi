@@ -44,6 +44,35 @@ const sourceExtensions = new Set([
 
 const documentationExtensions = new Set([".md", ".mdx", ".rst", ".txt"]);
 
+const CANONICAL_KB_KNOWLEDGE_LANES = new Set([
+  "requirements",
+  "scenarios",
+  "tests",
+  "facts",
+  "adr",
+  "flags",
+  "events",
+]);
+
+const CANONICAL_KB_KNOWLEDGE_FILES = new Set([
+  "symbols.yaml",
+  "symbol-coordinates.yaml",
+]);
+
+function isCanonicalKbKnowledgePath(segments: readonly string[]): boolean {
+  if (segments[0] !== ".kb") {
+    return false;
+  }
+  const lane = segments[1];
+  if (lane === undefined) {
+    return false;
+  }
+  return (
+    CANONICAL_KB_KNOWLEDGE_FILES.has(lane) ||
+    CANONICAL_KB_KNOWLEDGE_LANES.has(lane)
+  );
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -109,8 +138,12 @@ export function isMeaningfulTrackedPath(candidate: string): boolean {
   const normalized = normalizePath(candidate);
   const segments = pathSegments(normalized);
 
-  if (segments.includes(".kb") || segments.includes("dist")) {
+  if (segments.includes("dist")) {
     return false;
+  }
+
+  if (segments.includes(".kb")) {
+    return isCanonicalKbKnowledgePath(segments);
   }
 
   const basename = segments.at(-1) ?? "";

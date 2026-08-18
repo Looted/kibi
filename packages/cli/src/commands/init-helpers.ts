@@ -31,10 +31,7 @@ import {
   resolveActiveBranch,
 } from "../utils/branch-resolver.js";
 import { ensureBranchStoreManifest } from "../utils/branch-store-locator.js";
-import {
-  defaultKbManifest,
-  writeKbManifest,
-} from "../utils/kb-manifest.js";
+import { defaultKbManifest, writeKbManifest } from "../utils/kb-manifest.js";
 import { ENTITY_LANES, KB_PATHS } from "../utils/kb-paths.js";
 import { SYMBOLS_MANIFEST_COMMENT_BLOCK } from "./sync/manifest.js";
 
@@ -131,35 +128,80 @@ export function createManifestFile(kbDir: string): void {
 }
 
 export function updateGitIgnore(cwd: string): void {
-  // implements REQ-001
+  // implements REQ-cli-init-canonical
   const gitignorePath = path.join(cwd, ".gitignore");
   const gitignoreContent = existsSync(gitignorePath)
     ? readFileSync(gitignorePath, "utf8")
     : "";
 
   const ensureEntry = (current: string, entry: string): string => {
-    if (current.includes(entry)) {
+    const lines = current.split(/\r?\n/).map((line) => line.trim());
+    if (lines.includes(entry)) {
       return current;
     }
 
     return current ? `${current.trimEnd()}\n${entry}\n` : `${entry}\n`;
   };
 
-  // Derived runtime state (branch stores, recovery, verification, briefs,
-  // usage telemetry) stays ignored. Kibi-owned knowledge lanes under .kb/
-  // (entity markdown, symbols manifest, relationship shards, schema, the
-  // lifecycle manifest, and migration audits) are tracked project
-  // knowledge and must remain committable.
-  let updatedContent = ensureEntry(gitignoreContent, ".kb/branches/");
-  updatedContent = ensureEntry(updatedContent, ".kb/recovery/");
-  updatedContent = ensureEntry(updatedContent, ".kb/verification/");
-  updatedContent = ensureEntry(updatedContent, ".kb/briefs/");
-  updatedContent = ensureEntry(updatedContent, ".kb/usage.log");
+  // Derived runtime state stays ignored. Authored knowledge lanes, the
+  // symbols manifest, relationship shards, schema, and the lifecycle
+  // manifest stay committable. `.kb/migrations/` is derived runtime
+  // audit state, not tracked project knowledge.
+  let updatedContent = stripLegacyKibiGitIgnoreStanza(gitignoreContent);
+  for (const entry of CANONICAL_DERIVED_GITIGNORE_ENTRIES) {
+    updatedContent = ensureEntry(updatedContent, entry);
+  }
 
   if (updatedContent !== gitignoreContent) {
     writeFileSync(gitignorePath, updatedContent);
     console.log("✓ Configured .gitignore for the canonical .kb/ layout");
   }
+}
+
+/** Exact derived-runtime entries owned by current Kibi init/migrate. */
+const CANONICAL_DERIVED_GITIGNORE_ENTRIES = [
+  ".kb/branches/",
+  ".kb/recovery/",
+  ".kb/verification/",
+  ".kb/briefs/",
+  ".kb/migrations/",
+  ".kb/usage.log",
+] as const;
+
+/**
+ * Pre-canonical Kibi init wrote a blanket `.kb/` fence and then
+ * re-included only config/schema/relationship artifacts. After the
+ * knowledge cutover that fence would keep `.kb/requirements/*` ignored.
+ */
+const LEGACY_KIBI_GITIGNORE_FENCE = ".kb/";
+const LEGACY_KIBI_GITIGNORE_REINCLUDES = [
+  "!.kb/",
+  "!.kb/config.json",
+  "!.kb/schema/",
+  "!.kb/relationships/",
+  "!.kb/relationships/*.yaml",
+] as const;
+
+function stripLegacyKibiGitIgnoreStanza(content: string): string {
+  if (content.length === 0) return content;
+  const lines = content.split(/\r?\n/);
+  const trimmed = lines.map((line) => line.trim());
+  const hasFence = trimmed.includes(LEGACY_KIBI_GITIGNORE_FENCE);
+  const hasReinclude = LEGACY_KIBI_GITIGNORE_REINCLUDES.some((entry) =>
+    trimmed.includes(entry),
+  );
+  if (!hasFence || !hasReinclude) {
+    return content;
+  }
+  const drop = new Set<string>([
+    LEGACY_KIBI_GITIGNORE_FENCE,
+    ...LEGACY_KIBI_GITIGNORE_REINCLUDES,
+  ]);
+  const kept = lines.filter((line) => !drop.has(line.trim()));
+  while (kept.length > 0 && kept[kept.length - 1] === "") {
+    kept.pop();
+  }
+  return kept.length === 0 ? "" : `${kept.join("\n")}\n`;
 }
 
 // implements REQ-003

@@ -55,3 +55,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-94d6de6d0717
+  - type: implements
+    from: SYM-cli-report-source-web-url
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-18T20:41:25.858Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90b14a197e9e
+  - type: covered_by
+    from: SYM-cli-report-source-web-url
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-18T20:41:25.876Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc37c7345d97

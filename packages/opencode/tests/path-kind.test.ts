@@ -88,6 +88,12 @@ describe("path-kind analyzePath", () => {
     assert.equal(result.isKibiDocRelevant, true);
   });
 
+  it("classifies symbol coordinates as symbol", () => {
+    const result = analyzePath(".kb/symbol-coordinates.yaml", cwd);
+    assert.equal(result.kind, "symbol");
+    assert.equal(result.isKibiDocRelevant, true);
+  });
+
   it("detects files under .kb/**", () => {
     const result = analyzePath(".kb/config.json", cwd);
     assert.equal(result.kind, "kb");

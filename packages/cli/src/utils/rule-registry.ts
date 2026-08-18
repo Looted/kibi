@@ -48,12 +48,6 @@ export interface RuleDefinition {
   /** Kibi-owned role of this rule in the enforcement contract. */
   enforcementClass: RuleEnforcementClass;
   category: "coverage" | "integrity" | "lifecycle" | "traceability";
-  /**
-   * Whether a plain `kibi check` evaluates this rule. Derived from the
-   * enforcement class: canonical and advisory rules run, migration rules do
-   * not unless explicitly selected.
-   */
-  runsByDefault: boolean;
 }
 
 /** A single KB check violation. */
@@ -79,7 +73,6 @@ export const RULES: readonly RuleDefinition[] = [
       "Every must-priority requirement must have a scenario and a test",
     enforcementClass: "canonical",
     category: "coverage",
-    runsByDefault: true,
   },
   {
     name: "symbol-coverage",
@@ -87,7 +80,6 @@ export const RULES: readonly RuleDefinition[] = [
       "Production symbols need qualifying coverage via covered_by plus a canonical requirement/scenario test path",
     enforcementClass: "canonical",
     category: "coverage",
-    runsByDefault: true,
   },
   {
     name: "symbol-traceability",
@@ -95,14 +87,12 @@ export const RULES: readonly RuleDefinition[] = [
       "Production symbols must directly implement requirements for ownership; covered_by is coverage only and executable_for is test identity only",
     enforcementClass: "canonical",
     category: "traceability",
-    runsByDefault: true,
   },
   {
     name: "no-dangling-refs",
     description: "All relationship targets must exist in the KB",
     enforcementClass: "canonical",
     category: "integrity",
-    runsByDefault: true,
   },
   {
     name: "source-relationship-parity",
@@ -110,21 +100,18 @@ export const RULES: readonly RuleDefinition[] = [
       "Authored Markdown and relationship-shard edges must exactly match the compiled KB",
     enforcementClass: "canonical",
     category: "integrity",
-    runsByDefault: true,
   },
   {
     name: "no-cycles",
     description: "No circular dependency chains in requirements",
     enforcementClass: "canonical",
     category: "integrity",
-    runsByDefault: true,
   },
   {
     name: "required-fields",
     description: "All entities must have required fields",
     enforcementClass: "canonical",
     category: "integrity",
-    runsByDefault: true,
   },
   {
     name: "deprecated-adr-no-successor",
@@ -132,7 +119,6 @@ export const RULES: readonly RuleDefinition[] = [
       "Deprecated ADRs must have a successor ADR that supersedes them",
     enforcementClass: "canonical",
     category: "lifecycle",
-    runsByDefault: true,
   },
   {
     name: "domain-contradictions",
@@ -140,7 +126,6 @@ export const RULES: readonly RuleDefinition[] = [
       "Detect contradictions between requirements constraining the same fact",
     enforcementClass: "canonical",
     category: "integrity",
-    runsByDefault: true,
   },
   {
     name: "logic-coverage",
@@ -148,7 +133,6 @@ export const RULES: readonly RuleDefinition[] = [
       "Require every explicitly declared atomic requirement claim to be grounded by a linked strict-property or predicate fact",
     enforcementClass: "canonical",
     category: "integrity",
-    runsByDefault: true,
   },
   {
     name: "rule-safety",
@@ -156,7 +140,6 @@ export const RULES: readonly RuleDefinition[] = [
       "Stored Logic IR rules use only the typed, bounded, stratified vocabulary",
     enforcementClass: "canonical",
     category: "integrity",
-    runsByDefault: true,
   },
   {
     name: "rule-verifiability",
@@ -164,7 +147,6 @@ export const RULES: readonly RuleDefinition[] = [
       "Requirement rule links resolve to safe rules and registered rule schemas",
     enforcementClass: "canonical",
     category: "integrity",
-    runsByDefault: true,
   },
   {
     name: "query-plan-safety",
@@ -172,7 +154,6 @@ export const RULES: readonly RuleDefinition[] = [
       "Detect Prolog validation clauses that place negation before generator calls",
     enforcementClass: "canonical",
     category: "integrity",
-    runsByDefault: true,
   },
   {
     name: "strict-fact-shape",
@@ -180,7 +161,6 @@ export const RULES: readonly RuleDefinition[] = [
       "Detect malformed strict facts (facts with fact_kind that are missing required fields)",
     enforcementClass: "advisory",
     category: "integrity",
-    runsByDefault: true,
   },
   {
     name: "strict-req-fact-pairing",
@@ -188,7 +168,6 @@ export const RULES: readonly RuleDefinition[] = [
       "Detect requirements with incomplete strict subject/property fact pairing for contradiction-safe semantics",
     enforcementClass: "advisory",
     category: "integrity",
-    runsByDefault: true,
   },
   {
     name: "predicate-verifiability",
@@ -196,7 +175,6 @@ export const RULES: readonly RuleDefinition[] = [
       "Detect requires_predicate links that do not target ground fact_kind: predicate facts",
     enforcementClass: "advisory",
     category: "integrity",
-    runsByDefault: true,
   },
   {
     name: "strict-readiness",
@@ -204,7 +182,6 @@ export const RULES: readonly RuleDefinition[] = [
       "Report strict contradiction-readiness levels for requirements that are still prose-only or otherwise not contradiction-ready",
     enforcementClass: "migration",
     category: "integrity",
-    runsByDefault: false,
   },
   {
     name: "semantic-completeness",
@@ -212,7 +189,6 @@ export const RULES: readonly RuleDefinition[] = [
       "Every inventoried assertive proposition is modeled or explicitly classified",
     enforcementClass: "migration",
     category: "integrity",
-    runsByDefault: false,
   },
 ] as const;
 
@@ -227,12 +203,33 @@ export function getRuleDefinition(name: string): RuleDefinition | undefined {
   return RULES_BY_NAME.get(name);
 }
 
+export function getRuleEnforcementClass(
+  name: string,
+): RuleEnforcementClass | undefined {
+  return RULES_BY_NAME.get(name)?.enforcementClass;
+}
+
 /**
- * Rules that a plain `kibi check` evaluates. Deterministic from the
- * installed Kibi version; never weakened by project configuration.
+ * Whether a plain `kibi check` evaluates this enforcement class.
+ * Canonical and advisory rules run; migration rules run only when
+ * explicitly selected with `--rules`.
+ */
+export function ruleRunsByDefault(
+  enforcementClass: RuleEnforcementClass,
+): boolean {
+  return enforcementClass !== "migration";
+}
+
+/**
+ * Rules that a plain `kibi check` evaluates. Derived from enforcement
+ * class: canonical and advisory run, migration does not.
  */
 export function getDefaultRules(): Set<string> {
-  return new Set(RULES.filter((rule) => rule.runsByDefault).map((r) => r.name));
+  return new Set(
+    RULES.filter((rule) => ruleRunsByDefault(rule.enforcementClass)).map(
+      (rule) => rule.name,
+    ),
+  );
 }
 
 /**
@@ -255,9 +252,9 @@ export function isCanonicalRule(name: string): boolean {
  * Resolve the rule set for one check invocation.
  *
  * @param requestedRules Optional invocation-time diagnostic selector
- *   (`--rules`). When absent, Kibi's canonical default policy runs. When
+ *   (`--rules`). When absent, canonical and advisory rules run. When
  *   present, only the selected rules run for that invocation and nothing is
- *   persisted.
+ *   persisted. Selection never changes enforcement class.
  * @returns Set of rule names that should run
  */
 // implements REQ-006

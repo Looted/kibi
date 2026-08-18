@@ -25,7 +25,7 @@ describe("autopilot candidates", () => {
   });
 
   test("symbol manifest candidates include extracted entities, relationships, and apply plans", async () => {
-    const manifestPath = path.join(tmp, "documentation", "symbols.yaml");
+    const manifestPath = path.join(tmp, ".kb", "symbols.yaml");
     await fs.mkdir(path.dirname(manifestPath), { recursive: true });
     await fs.writeFile(
       manifestPath,
@@ -76,18 +76,8 @@ describe("autopilot candidates", () => {
   });
 
   test("typed markdown candidates prefer evidence-scoped files and skip existing entities", async () => {
-    const requirementPath = path.join(
-      tmp,
-      "documentation",
-      "requirements",
-      "REQ-NEW.md",
-    );
-    const skippedPath = path.join(
-      tmp,
-      "documentation",
-      "requirements",
-      "REQ-OLD.md",
-    );
+    const requirementPath = path.join(tmp, ".kb", "requirements", "REQ-NEW.md");
+    const skippedPath = path.join(tmp, ".kb", "requirements", "REQ-OLD.md");
     await fs.mkdir(path.dirname(requirementPath), { recursive: true });
     await fs.writeFile(
       requirementPath,
@@ -158,7 +148,7 @@ describe("autopilot candidates", () => {
   test("typed markdown candidates fall back to markdownFiles without provider evidence", async () => {
     const requirementPath = path.join(
       tmp,
-      "documentation",
+      ".kb",
       "requirements",
       "REQ-FALLBACK.md",
     );

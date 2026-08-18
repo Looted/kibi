@@ -41,3 +41,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-532033223140
+  - type: implements
+    from: SYM-cli-report-proof-gate-key-type
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-18T20:42:16.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-063dcff914b4
+  - type: covered_by
+    from: SYM-cli-report-proof-gate-key-type
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-18T20:42:16.972Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3486edae78bf

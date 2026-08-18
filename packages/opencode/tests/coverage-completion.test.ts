@@ -166,7 +166,7 @@ function makeWorkspace(prefix: string): string {
   ]) {
     fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
   }
-  fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "[]\n");
+  fs.writeFileSync(path.join(tmpDir, ".kb", "symbols.yaml"), "[]\n");
   return tmpDir;
 }
 
@@ -674,7 +674,7 @@ describe("coverage completion for small pure modules", () => {
     const tmpDir = makeWorkspace("kibi-e2e-more-");
     try {
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "symbols.yaml"),
+        path.join(tmpDir, ".kb", "symbols.yaml"),
         [
           "symbols:",
           "  - id: SYM-one",
@@ -687,7 +687,7 @@ describe("coverage completion for small pure modules", () => {
         ].join("\n"),
       );
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "tests", "TEST-no-frontmatter.md"),
+        path.join(tmpDir, ".kb", "tests", "TEST-no-frontmatter.md"),
         "plain body names src/other.ts only\n",
       );
 
@@ -708,7 +708,7 @@ describe("coverage completion for small pure modules", () => {
     try {
       const result = getFileLinkedEntityIds(
         tmpDir,
-        path.join(tmpDir, "documentation", "events", "EVT-created.md"),
+        path.join(tmpDir, ".kb", "events", "EVT-created.md"),
       );
 
       expect(result).toEqual({ ids: ["EVT-created"], source: "doc-path" });
@@ -1247,7 +1247,7 @@ describe("coverage completion for plugin lifecycle", () => {
     try {
       const reqPath = path.join(
         tmpDir,
-        "documentation",
+        ".kb",
         "requirements",
         "REQ-must.md",
       );
@@ -1525,7 +1525,7 @@ describe("coverage completion for plugin lifecycle", () => {
     const scheduled: ScheduledSync[] = [];
     installSchedulerStub(scheduled);
     try {
-      const factPath = path.join(tmpDir, "documentation", "facts", "FACT-1.md");
+      const factPath = path.join(tmpDir, ".kb", "facts", "FACT-1.md");
       fs.writeFileSync(factPath, "---\ntitle: Fact\n---\nFact body\n");
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
@@ -1553,7 +1553,7 @@ describe("coverage completion for plugin lifecycle", () => {
     const tmpDir = makeWorkspace("kibi-plugin-e2e-reminder-");
     try {
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "symbols.yaml"),
+        path.join(tmpDir, ".kb", "symbols.yaml"),
         [
           "symbols:",
           "  - id: SYM-e2e",
@@ -1564,7 +1564,7 @@ describe("coverage completion for plugin lifecycle", () => {
         ].join("\n"),
       );
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "tests", "TEST-e2e.md"),
+        path.join(tmpDir, ".kb", "tests", "TEST-e2e.md"),
         [
           "---",
           "title: E2E",

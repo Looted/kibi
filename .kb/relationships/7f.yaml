@@ -34,3 +34,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c53f2aecc80d
+  - type: implements
+    from: SYM-cli-report-favicon-data-uri
+    to: REQ-kibi-branded-health-report
+    created_at: 2026-08-18T19:58:11.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae40d0f98d0f
+  - type: covered_by
+    from: SYM-cli-report-favicon-data-uri
+    to: TEST-kibi-branded-health-report
+    created_at: 2026-08-18T19:58:11.782Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a831bcca2eba

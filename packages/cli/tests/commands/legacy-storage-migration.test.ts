@@ -52,11 +52,13 @@ describe("legacy storage migration", () => {
 
     const plan = planLegacyStorageMigration(tmpDir);
     expect(plan.legacyConfig).toBe("absent");
-    expect(plan.moves.map((move) => `${move.from}->${move.to}`).sort()).toEqual([
-      "documentation/requirements/REQ-ONE.md->.kb/requirements/REQ-ONE.md",
-      "documentation/symbol-coordinates.yaml->.kb/symbol-coordinates.yaml",
-      "documentation/symbols.yaml->.kb/symbols.yaml",
-    ]);
+    expect(plan.moves.map((move) => `${move.from}->${move.to}`).sort()).toEqual(
+      [
+        "documentation/requirements/REQ-ONE.md->.kb/requirements/REQ-ONE.md",
+        "documentation/symbol-coordinates.yaml->.kb/symbol-coordinates.yaml",
+        "documentation/symbols.yaml->.kb/symbols.yaml",
+      ],
+    );
     expect(plan.blockers).toEqual([]);
   });
 
@@ -67,11 +69,17 @@ describe("legacy storage migration", () => {
       JSON.stringify({
         schemaVersion: 4,
         semanticAdvisorBackfill: "pending",
-        paths: { requirements: "kb-docs/reqs", symbols: "kb-docs/symbols.yaml" },
+        paths: {
+          requirements: "kb-docs/reqs",
+          symbols: "kb-docs/symbols.yaml",
+        },
       }),
     );
     writeReq(tmpDir, "kb-docs/reqs", "REQ-CUSTOM");
-    writeFileSync(path.join(tmpDir, "kb-docs", "symbols.yaml"), "symbols: []\n");
+    writeFileSync(
+      path.join(tmpDir, "kb-docs", "symbols.yaml"),
+      "symbols: []\n",
+    );
 
     const plan = planLegacyStorageMigration(tmpDir);
     expect(plan.legacyConfig).toBe("present");
@@ -98,9 +106,9 @@ describe("legacy storage migration", () => {
     writeReq(tmpDir, ".kb/requirements", "REQ-ONE", "canonical");
 
     const plan = planLegacyStorageMigration(tmpDir);
-    expect(plan.blockers.some((blocker) => blocker.includes("already exists"))).toBe(
-      true,
-    );
+    expect(
+      plan.blockers.some((blocker) => blocker.includes("already exists")),
+    ).toBe(true);
     expect(() => applyLegacyStorageMigration(tmpDir, plan)).toThrow(/blocked/);
     expect(
       readFileSync(
@@ -118,7 +126,10 @@ describe("legacy storage migration", () => {
     mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
     writeFileSync(
       path.join(tmpDir, ".kb", "config.json"),
-      JSON.stringify({ schemaVersion: 4, semanticAdvisorBackfill: "completed" }),
+      JSON.stringify({
+        schemaVersion: 4,
+        semanticAdvisorBackfill: "completed",
+      }),
     );
 
     const plan = planLegacyStorageMigration(tmpDir);
@@ -179,7 +190,7 @@ describe("legacy storage migration", () => {
     );
   });
 
-  test("treats malformed legacy config as a migration input, not a silent skip", () => {
+  test("treats malformed legacy config as a blocker and does not infer default paths", () => {
     mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
     writeFileSync(path.join(tmpDir, ".kb", "config.json"), "{", "utf8");
     writeReq(tmpDir, "documentation/requirements", "REQ-ONE");
@@ -187,8 +198,21 @@ describe("legacy storage migration", () => {
     const plan = planLegacyStorageMigration(tmpDir);
     expect(plan.legacyConfig).toBe("malformed");
     expect(plan.legacyConfigError).toBeDefined();
-    expect(plan.moves.map((move) => move.from)).toContain(
-      "documentation/requirements/REQ-ONE.md",
+    expect(plan.moves).toEqual([]);
+    expect(plan.blockers.some((blocker) => blocker.includes("malformed"))).toBe(
+      true,
+    );
+    expect(
+      plan.blockers.some((blocker) => blocker.includes("will not infer")),
+    ).toBe(true);
+    expect(() => applyLegacyStorageMigration(tmpDir, plan)).toThrow(
+      /malformed|will not infer/,
+    );
+    expect(
+      existsSync(path.join(tmpDir, "documentation/requirements/REQ-ONE.md")),
+    ).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/requirements/REQ-ONE.md"))).toBe(
+      false,
     );
   });
 

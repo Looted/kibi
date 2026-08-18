@@ -188,51 +188,6 @@ ${Array.from({ length: 9 }, (_, index) => {
   execSync("git add .kb", { cwd: root, stdio: "pipe" });
 }
 
-function addSubjectOnlyStrictFactToBroadRequirement(root: string): void {
-  const factDir = path.join(root, ".kb/facts");
-  mkdirSync(factDir, { recursive: true });
-  writeFileSync(
-    path.join(factDir, "FACT-BROAD-SUBJECT-ONLY-001.md"),
-    `---
-id: FACT-BROAD-SUBJECT-ONLY-001
-title: Broad subject only fact
-type: fact
-status: active
-source: .kb/facts/FACT-BROAD-SUBJECT-ONLY-001.md
-fact_kind: subject
-subject_key: broad.audit
----
-
-# Broad subject only fact
-`,
-  );
-
-  writeFileSync(
-    path.join(root, ".kb/requirements/REQ-BROAD-CHECK-001.md"),
-    `---
-id: REQ-BROAD-CHECK-001
-title: Broad check audit requirement
-type: req
-status: open
-priority: should
-source: .kb/requirements/REQ-BROAD-CHECK-001.md
-links:
-${Array.from({ length: 9 }, (_, index) => {
-  const ordinal = index + 1;
-  return `  - type: verified_by
-    target: TEST-BROAD-CHECK-${String(ordinal).padStart(3, "0")}`;
-}).join("\n")}
-  - type: constrains
-    target: FACT-BROAD-SUBJECT-ONLY-001
----
-
-# Broad check audit requirement
-`,
-  );
-
-  execSync("git add .kb", { cwd: root, stdio: "pipe" });
-}
-
 type CoverageDepthFixture =
   | "unit_only"
   | "open_or_nonpassing_tests_only"
@@ -611,20 +566,37 @@ describe("kibi check", () => {
     "keeps hard violation exit status when quality diagnostics are present",
     async () => {
       writeBroadRequirementFixture(tmpDir);
-      addSubjectOnlyStrictFactToBroadRequirement(tmpDir);
+      writeFileSync(
+        path.join(tmpDir, ".kb/requirements/REQ-MUST-UNCOVERED-001.md"),
+        `---
+id: REQ-MUST-UNCOVERED-001
+title: Uncovered must requirement
+type: req
+status: open
+priority: must
+source: .kb/requirements/REQ-MUST-UNCOVERED-001.md
+---
+
+# Uncovered must requirement
+`,
+      );
+      execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
-      const { status, stdout, stderr } = runKibi(
+      const { status, stdout } = runKibi(
         kibiBin,
-        ["check", "--rules", "strict-req-fact-pairing"],
+        ["check", "--rules", "must-priority-coverage", "--format", "json"],
         tmpDir,
       );
 
-      const output = stdoutToString(stdout || stderr);
+      const parsed = parseCheckJson(stdout);
       expect(status).toBe(1);
-      expect(output).toContain("Found 1 violation");
-      expect(output).toContain("strict-req-fact-pairing");
-      expect(output).toContain("broad_requirement_review");
+      expect(parsed.structuredContent?.count).toBeGreaterThan(0);
+      expect(
+        parsed.structuredContent?.qualityDiagnostics?.some(
+          (diagnostic) => diagnostic.id === "broad_requirement_review",
+        ) ?? false,
+      ).toBe(true);
     },
     TEST_TIMEOUT_MS,
   );
@@ -682,8 +654,9 @@ links:
       );
 
       const output = stdoutToString(stdout || stderr);
-      expect(status).toBe(1);
-      expect(output).toContain("strict-readiness");
+      expect(status).toBe(0);
+      expect(output).toContain("No violations found");
+      expect(output).toContain("rule.strict-readiness");
       expect(output).toContain("REQ-LEGACY-TRACEABLE-001");
       expect(output).toContain("traceable");
       expect(output).toContain("not-ready");
@@ -693,7 +666,7 @@ links:
   );
 
   test(
-    "reports subject-only requirements as has-subject and pairing violations",
+    "reports subject-only requirements as has-subject and pairing quality diagnostics",
     async () => {
       const reqDir = path.join(tmpDir, ".kb/requirements");
       const factDir = path.join(tmpDir, ".kb/facts");
@@ -745,11 +718,12 @@ links:
       );
 
       const output = stdoutToString(stdout || stderr);
-      expect(status).toBe(1);
-      expect(output).toContain("strict-readiness");
+      expect(status).toBe(0);
+      expect(output).toContain("No violations found");
+      expect(output).toContain("rule.strict-readiness");
       expect(output).toContain("REQ-SUBJECT-ONLY-001");
       expect(output).toContain("has-subject");
-      expect(output).toContain("strict-req-fact-pairing");
+      expect(output).toContain("rule.strict-req-fact-pairing");
       expect(output).toContain("requires_property");
     },
     TEST_TIMEOUT_MS,
@@ -2211,8 +2185,9 @@ links:
 
       const output = stdoutToString(stdout || stderr);
 
-      expect(status).toBe(1);
-      expect(output).toContain("strict-req-fact-pairing");
+      expect(status).toBe(0);
+      expect(output).toContain("No violations found");
+      expect(output).toContain("rule.strict-req-fact-pairing");
       expect(output).toContain("REQ-PAIRING-CLI-001");
     },
     TEST_TIMEOUT_MS,

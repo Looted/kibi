@@ -34,3 +34,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-536ac6362c2a
+  - type: implements
+    from: SYM-cli-report-filter-counts
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-18T20:41:11.643Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9350659a5a55
+  - type: covered_by
+    from: SYM-cli-report-filter-counts
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-18T20:41:11.653Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00853a91c76a

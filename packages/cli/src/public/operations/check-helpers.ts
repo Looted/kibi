@@ -22,9 +22,11 @@ import { getKbPlPathOverride } from "../../env.js";
 import { resolveKbPlPath } from "../../prolog.js";
 import { analyzePrologQueryPlanSafety } from "../../utils/prolog-query-plan-safety.js";
 import {
-  type Violation,
   RULE_NAMES,
+  type Violation,
   getEffectiveRules,
+  getRuleDefinition,
+  getRuleEnforcementClass,
 } from "../../utils/rule-registry.js";
 import {
   type ChangedFileImpactResult,
@@ -34,6 +36,46 @@ import {
 import type { CheckInput } from "./check-executor.js";
 
 export { RULE_NAMES, getEffectiveRules };
+
+/**
+ * Split Prolog/check findings by enforcement class so advisory and
+ * migration results cannot gate canonical health.
+ *
+ * Canonical findings stay in `violations` (blocking). Advisory findings
+ * always become non-blocking quality diagnostics. Migration findings are
+ * also non-blocking and only appear when that rule was selected to run.
+ */
+// implements REQ-cli-check, REQ-mcp-tool-check
+export function partitionCheckFindings(findings: readonly Violation[]): {
+  violations: Violation[];
+  qualityDiagnostics: QualityDiagnostic[];
+} {
+  const violations: Violation[] = [];
+  const qualityDiagnostics: QualityDiagnostic[] = [];
+
+  for (const finding of findings) {
+    const enforcement = getRuleEnforcementClass(finding.rule) ?? "canonical";
+    if (enforcement === "canonical") {
+      violations.push(finding);
+      continue;
+    }
+
+    const definition = getRuleDefinition(finding.rule);
+    qualityDiagnostics.push({
+      id: `rule.${finding.rule}`,
+      severity: "warning",
+      blocking: false,
+      category: definition?.category ?? "integrity",
+      ...(finding.entityId !== undefined ? { entityId: finding.entityId } : {}),
+      ...(finding.source !== undefined ? { source: finding.source } : {}),
+      message: finding.description,
+      suggestion: finding.suggestion ?? "",
+      ...(finding.evidence !== undefined ? { evidence: finding.evidence } : {}),
+    });
+  }
+
+  return { violations, qualityDiagnostics };
+}
 
 function resolveChecksPlPath(): string {
   const override = getKbPlPathOverride();

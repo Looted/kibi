@@ -78,7 +78,7 @@ if (RUN_NODE_TEST_SUITE) {
       { timeout: 300_000 },
       async () => {
         if (!hasProlog) return;
-        mkdirSync(join(sandbox.repoDir, "documentation", "facts"), {
+        mkdirSync(join(sandbox.repoDir, ".kb", "facts"), {
           recursive: true,
         });
         writeFileSync(
@@ -156,7 +156,7 @@ Defines the packed convergence binding relation.
         }>(sandbox, ["suggest-predicates", "--input", exactInput]);
         assertExactPredicatePlan(exact);
 
-        mkdirSync(join(sandbox.repoDir, "documentation", "requirements"), {
+        mkdirSync(join(sandbox.repoDir, ".kb", "requirements"), {
           recursive: true,
         });
         writeFileSync(
