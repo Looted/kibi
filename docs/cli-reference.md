@@ -302,7 +302,7 @@ kibi report [--output PATH] [--open] [--tag TAGS] [--limit N]
 - Requirement cards separate semantic grounding, scenario, implementation, E2E-test, and fresh-receipt stages. Search and health filters run entirely in the generated file.
 - Stale KB state and dirty workspace proof evaluation are shown as a prominent snapshot warning.
 - All KB-provided values are HTML-escaped. The report has no CDN, font, script, or other network dependency, so the output directory can be hosted as-is.
-- The generated SVG badge uses the same complete coverage snapshot as the report. It shows the proven percentage and uses conservative colors for contradictions and stale snapshots.
+- The generated SVG badge uses the same complete coverage snapshot as the report. It pairs the Kibi logo with a `kibi` label, sizes itself to the proven-percentage message, and uses conservative colors for contradictions and stale snapshots.
 
 **Examples:**
 ```bash

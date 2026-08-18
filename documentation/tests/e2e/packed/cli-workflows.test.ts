@@ -317,13 +317,14 @@ export async function verifyHtmlRequirementHealthReport(
     path.join(sandbox.repoDir, "kibi-report", "badge.svg"),
     "utf8",
   );
+  assert.match(badge, />kibi</);
   assert.match(badge, /Kibi requirement health:/);
   assert.match(badge, /role="img" aria-label="Kibi requirement health:/);
   assert.match(badge, /viewBox="0 0 308 309" aria-hidden="true"/);
   assert.match(badge, /#1d1e23/);
   assert.match(badge, /#a2d3f4/);
   const badgeLogo = badge.match(
-    /<svg x="6" y="2"[\s\S]*?<\/svg>/,
+    /<svg x="\d+" y="\d+"[\s\S]*?<\/svg>/,
   )?.[0];
   assert.ok(badgeLogo, "badge should embed the canonical logo");
   assert.deepStrictEqual(

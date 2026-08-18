@@ -106,9 +106,11 @@ describe("kibi report", () => {
     const badgePath = path.join(temporaryDirectory, "kibi-report", "badge.svg");
     const badge = readFileSync(badgePath, "utf8");
     expect(badge).toContain("100% proven");
+    expect(badge).toContain("kibi</text>");
     expect(badge).toContain("Kibi requirement health: 100% proven");
     expect(badge).toContain("#a2d3f4");
-    expect(badge).toContain('width="178" height="20" viewBox="0 0 178 20"');
+    expect(badge).toMatch(/width="\d+" height="20" viewBox="0 0 \d+ 20"/);
+    expect(Number(badge.match(/\bwidth="(\d+)"/)?.[1])).toBeLessThan(140);
     expect(badge).toContain('viewBox="0 0 308 309"');
     expect(badge).not.toContain('viewBox="-2 10 395 148"');
     expect(badge).not.toContain("https://");

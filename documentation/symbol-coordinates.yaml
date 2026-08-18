@@ -4763,9 +4763,9 @@ coordinates:
   SYM-cli-report-brand-badge:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 55
+    sourceEndLine: 97
     sourceFile: packages/cli/src/report/brand.ts
-    sourceLine: 42
+    sourceLine: 75
   SYM-cli-report-brand-logo:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6101,7 +6101,7 @@ coordinates:
   SYM-e2e-packed-cli-html-report:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 341
+    sourceEndLine: 342
     sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
     sourceLine: 137
   SYM-effective-requirement-relationships:

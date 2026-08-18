@@ -79,8 +79,21 @@ describe("canonical brand marks", () => {
   test("badge embeds the canonical logo fingerprint", () => {
     const logo = readFileSync(path.join(REPO_ROOT, "assets", "logo.svg"), "utf8");
     const badge = renderKibiBadge("0% proven", "#f2b84b");
-    const badgeLogo = badge.match(/<svg x="6" y="2"[\s\S]*?<\/svg>/)?.[0];
+    const badgeLogo = badge.match(/<svg x="\d+" y="\d+"[\s\S]*?<\/svg>/)?.[0];
     expect(badgeLogo).toBeTruthy();
     expect(svgVisualFingerprint(badgeLogo ?? "")).toEqual(svgVisualFingerprint(logo));
+  });
+
+  test("badge uses a compact shields-style kibi label sized to its message", () => {
+    const short = renderKibiBadge("0% proven", "#f2b84b");
+    const long = renderKibiBadge("100% proven", "#a2d3f4");
+    const shortWidth = Number(short.match(/\bwidth="(\d+)"/)?.[1]);
+    const longWidth = Number(long.match(/\bwidth="(\d+)"/)?.[1]);
+    expect(short).toContain("kibi</text>");
+    expect(short).toContain("0% proven</text>");
+    expect(shortWidth).toBeLessThan(140);
+    expect(shortWidth).toBeGreaterThan(90);
+    expect(longWidth).toBeGreaterThan(shortWidth);
+    expect(short).toContain('height="20"');
   });
 });
