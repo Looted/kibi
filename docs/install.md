@@ -153,9 +153,13 @@ If you use pnpm, replace `"command": "npx"` and `"args"` with:
 
 `kibi-opencode` is an optional OpenCode plugin. It injects Kibi guidance,
 provides the `/init-kibi` convenience command when the host supports it, and runs
-background sync/check maintenance. It does **not** ship a replacement `kibi` or
-`kibi-mcp` binary, so keep the base `kibi-cli`, `kibi-mcp`, and `kibi-core`
-packages installed and keep the `mcp.kibi` server configured separately.
+background sync/check maintenance. Canonical bootstrap behavior lives in the
+bundled `init-kibi` skill (`kb_autopilot_generate`, preview, sequential apply).
+Generic MCP agents should start from
+[generic-agent onboarding](generic-agent-onboarding.md). The plugin does **not**
+ship a replacement `kibi` or `kibi-mcp` binary, so keep the base `kibi-cli`,
+`kibi-mcp`, and `kibi-core` packages installed and keep the `mcp.kibi` server
+configured separately.
 
 ```bash
 npm install --save-dev kibi-opencode

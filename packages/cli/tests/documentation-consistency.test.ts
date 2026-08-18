@@ -61,8 +61,8 @@ describe("flag and fact canonical wording", () => {
       "AGENTS.md",
       "docs/entity-schema.md",
       "docs/inference-rules.md",
-      "docs/prompts/llm-rules.md",
-      "docs/prompts/retroactive-init.md",
+      "docs/generic-agent-onboarding.md",
+      "packages/runtime/src/skills/kibi-usage/SKILL.md",
       "README.md",
       "docs/mcp-reference.md",
       "docs/cli-reference.md",
@@ -101,8 +101,8 @@ describe("flag and fact canonical wording", () => {
     const filesToCheck = [
       "AGENTS.md",
       "docs/entity-schema.md",
-      "docs/prompts/llm-rules.md",
-      "docs/prompts/retroactive-init.md",
+      "docs/generic-agent-onboarding.md",
+      "packages/runtime/src/skills/kibi-usage/SKILL.md",
     ];
     const pseudoTypePatterns = [
       /type:\s*workaround/i,

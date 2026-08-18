@@ -46,6 +46,7 @@ describe("bundled Kibi skills", () => {
       "resources/branch-lifecycle.md",
       "resources/source-authoring.md",
       "resources/operation-access.md",
+      "resources/kb-improvement.md",
     ]) {
       expect(bundle.manifest.resources).toContain(resource);
       expect(

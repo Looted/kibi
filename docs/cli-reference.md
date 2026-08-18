@@ -671,6 +671,7 @@ PY|
 HX|**Notes:**
 YS|- Skills are bundled with Kibi. Remote installation, marketplace, and script execution are not supported in v1.
 QT|- OpenCode is an adapter for skill discovery, not the source of truth. The bundled skill set is authoritative.
+- Generic MCP/CLI agents should start with [generic-agent onboarding](generic-agent-onboarding.md) and load `kibi-usage`. Do not copy a long prompt as a substitute for skill discovery.
 XB
 
 ## Staged Symbol Traceability

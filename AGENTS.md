@@ -16,11 +16,14 @@ Canonical public shorthand: **Prompt the intent. Kibi makes the agent remember i
 
 ## Source of Truth Hierarchy
 
-1. MCP tool `inputSchema` enums/required fields (authoritative for tool contracts)
-2. `docs/mcp-reference.md` and `docs/entity-schema.md`
-3. This file (workflow and policy guardrails)
+1. Operation/tool schemas (MCP `inputSchema` and CLI JSON contracts) define the executable contract.
+2. Bundled Kibi skills define canonical agent workflows and behavioral guidance.
+3. Reference documentation (`docs/mcp-reference.md`, `docs/entity-schema.md`) explains those capabilities to humans.
+4. This file captures repo-specific policy (`.kb/` path, dogfood rebuild, pre-existing issues).
+5. Generic-agent onboarding (`docs/generic-agent-onboarding.md`) only tells an agent how to discover the skills.
+6. Example prompts (`docs/examples/prompts/`) express user intent and must not become an alternative policy layer.
 
-If this file and MCP schema details diverge, follow MCP schema and update this file.
+If this file and MCP schema details diverge, follow MCP schema and update this file. Skill text is guidance, not permission to bypass schemas, approvals, or mutation safeguards.
 
 ## Non-Negotiables
 
@@ -168,6 +171,6 @@ Before declaring tests passing:
 - `docs/mcp-reference.md`
 - `docs/entity-schema.md`
 - `docs/inference-rules.md`
-- `docs/prompts/llm-rules.md`
+- `docs/generic-agent-onboarding.md`
 - `docs/cli-reference.md`
 - `docs/ui-requirements.md`

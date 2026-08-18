@@ -397,9 +397,9 @@ The optional `kibi-cursor` plugin adds rules, bundled skills, commands, and advi
 
 ### Bundled agent guidance
 
-Kibi's **skill subsystem** provides reusable, bundled skills for discovery, initialization, freshness, and traceability workflows. MCP-capable agents can discover them with `kb_skills_list` and load the relevant guidance with `kb_skills_load`. The same read-only operations are available through the trusted project-local CLI.
+Kibi's **skill subsystem** is the preferred agent-guidance mechanism. It ships reusable, bundled skills for discovery, initialization, freshness, and traceability. MCP-capable agents discover them with `kb_skills_list` and load `kibi-usage` with `kb_skills_load`. The same read-only operations are available through the trusted project-local CLI. Do not copy a long system prompt into the agent.
 
-See [generic agent onboarding](docs/mcp-reference.md#generic-agent-onboarding) for the progressive-disclosure and safety contract.
+See [generic-agent onboarding](docs/generic-agent-onboarding.md) for the copy-paste discovery snippet, and [MCP reference](docs/mcp-reference.md#generic-agent-onboarding) for the progressive-disclosure and safety contract.
 
 ## Packages
 
@@ -423,7 +423,7 @@ See [generic agent onboarding](docs/mcp-reference.md#generic-agent-onboarding) f
 - [Inference rules](docs/inference-rules.md) — Validation and contradiction checks
 - [Architecture](docs/architecture.md) — Storage, branch isolation, data flow, and components
 - [Troubleshooting](docs/troubleshooting.md) — Common setup and recovery procedures
-- [LLM prompts](docs/prompts/llm-rules.md) — Ready-to-use guidance for AI agents
+- [Generic-agent onboarding](docs/generic-agent-onboarding.md) — Copy-paste skill discovery for generic MCP/CLI agents
 
 ## Beta status
 

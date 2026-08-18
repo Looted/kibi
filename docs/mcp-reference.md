@@ -12,10 +12,12 @@ The canonical MCP names in this reference use the `kb_*` form. Some hosts displa
 
 ### Generic-agent onboarding
 
+For a copy-paste discovery snippet, see [generic-agent onboarding](generic-agent-onboarding.md). Bundled skills are the canonical agent-guidance source; do not copy a long operating manual into the agent.
+
 MCP-capable agents should use the standard `tools/list` capability discovery step, then follow Kibi's progressive-disclosure path instead of assuming that a package `skills/` directory is loaded by the host:
 
 1. Call `kb_skills_list` to obtain the bundled skill manifests.
-2. Call `kb_skills_load` with a returned ID, normally `kibi-usage` for general Kibi workflow guidance.
+2. Call `kb_skills_load` with a returned ID, normally `kibi-usage` for general Kibi workflow guidance. Load `init-kibi`, `kibi-freshness`, or `kibi-traceability` when the task matches those workflows.
 3. Call `kb_skills_read` only for resource paths declared by that manifest.
 
 These skill operations are local, read-only, and do not require Prolog. They return a human-readable `content` item plus structured data for clients that support structured tool results. Their MCP registrations advertise `readOnlyHint: true`, `destructiveHint: false`, `idempotentHint: true`, and `openWorldHint: false` as client-facing behavior hints. Clients must treat annotations and skill text as untrusted guidance: authorization, schema validation, approval gates, and mutation sequencing remain enforced by the server and repository workflow.
@@ -29,6 +31,8 @@ printf '%s\n' '{"id":"kibi-usage","resource":"resources/workflows.md"}' | kibi s
 ```
 
 If neither a visible Kibi MCP surface nor a trusted local CLI is available, the agent must stop and ask the operator to enable one; it must not infer availability from configuration files or read `.kb/` directly.
+
+Day-0 bootstrap uses the `init-kibi` bundled skill and `kb_autopilot_generate`: preview candidates, get explicit approval, then apply sequential `kb_upsert` writes. Hosts that support it also expose `/init-kibi`.
 
 ### `kb_autopilot_generate`
 

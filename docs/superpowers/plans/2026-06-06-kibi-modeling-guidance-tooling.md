@@ -1,5 +1,7 @@
 # Kibi Modeling Guidance and Error Ergonomics Implementation Plan
 
+> **Archival note:** Agent operating guidance now lives in bundled Kibi skills (`kibi-usage`, `init-kibi`). Historical mentions of `docs/prompts/llm-rules.md` below are not current runbooks.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make Kibi's semantic modeling lane discoverable and hard to misuse, so agents can model requirements as strict facts or ontology predicates without falling back to prose after opaque validation errors.
