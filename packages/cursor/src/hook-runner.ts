@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// implements REQ-cursor-kibi-plugin-v1
+// implements REQ-cursor-kibi-plugin-v1, REQ-cursor-stop-job-vs-plan
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -12,6 +12,7 @@ import {
   hasGuidedPath,
   loadHookState,
   recordKbMcpTool,
+  recordPlanDelivered,
   rememberGuidedPath,
   resolveStateDir,
 } from "./hook-state.js";
@@ -48,9 +49,11 @@ const editableTools = new Set([
   "Write",
   "StrReplace",
   "apply_patch",
+  "EditNotebook",
 ]);
 
 const readTools = new Set(["Read", "TabRead"]);
+const planDeliveryTools = new Set(["CreatePlan", "create_plan", "createPlan"]);
 
 function emptyResult(): CursorHookResult {
   return {};
@@ -66,6 +69,14 @@ function hasKibiConfig(cwd: string | undefined): boolean {
 
 function isEditLikeTool(toolName: string | undefined): boolean {
   return toolName === undefined || editableTools.has(toolName);
+}
+
+function isKnownEditableTool(toolName: string | undefined): boolean {
+  return toolName !== undefined && editableTools.has(toolName);
+}
+
+function isPlanDeliveryTool(toolName: string | undefined): boolean {
+  return toolName !== undefined && planDeliveryTools.has(toolName);
 }
 
 function isReadLikeTool(toolName: string | undefined): boolean {
@@ -175,13 +186,19 @@ export async function runHook(
         });
       }
 
-      const explicitPaths = extractExplicitPathFields(input.toolInput);
-      const dirtyPaths = explicitPaths
-        .map((candidate) => toRepoRelativePath(candidate, cwd))
-        .filter(isMeaningfulTrackedPath);
+      if (isPlanDeliveryTool(input.toolName)) {
+        recordPlanDelivered(stateDir);
+      }
 
-      if (dirtyPaths.length > 0) {
-        addDirtyPaths(stateDir, dirtyPaths);
+      const explicitPaths = extractExplicitPathFields(input.toolInput);
+      if (isKnownEditableTool(input.toolName)) {
+        const dirtyPaths = explicitPaths
+          .map((candidate) => toRepoRelativePath(candidate, cwd))
+          .filter(isMeaningfulTrackedPath);
+
+        if (dirtyPaths.length > 0) {
+          addDirtyPaths(stateDir, dirtyPaths);
+        }
       }
 
       const primaryPath = resolvePrimaryPath(input);
@@ -235,17 +252,26 @@ export async function runHook(
 
     case "stop": {
       const state = loadHookState(stateDir);
+      const shouldClearSession =
+        state.dirtyPaths.length > 0 ||
+        state.kbMutationTools.length > 0 ||
+        state.kbCheckRun ||
+        state.planDelivered;
+
+      if (input.status === "aborted" || input.status === "error") {
+        if (shouldClearSession) {
+          clearSessionHookState(stateDir);
+        }
+        return emptyResult();
+      }
+
       const followupMessage = stopFollowupMessage(state);
       if (followupMessage) {
         clearSessionHookState(stateDir);
         return { followup_message: followupMessage };
       }
 
-      if (
-        state.dirtyPaths.length > 0 ||
-        state.kbMutationTools.length > 0 ||
-        state.kbCheckRun
-      ) {
+      if (shouldClearSession) {
         clearSessionHookState(stateDir);
       }
 

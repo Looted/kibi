@@ -18,6 +18,7 @@ describe("Cursor hook input", () => {
         input: { file_path: "src/a.ts" },
         conversation_id: "conversation-1",
         path: "src/a.ts",
+        status: "completed",
       }),
     ).toEqual({
       event: "postToolUse",
@@ -27,6 +28,7 @@ describe("Cursor hook input", () => {
       toolInput: { file_path: "src/a.ts" },
       conversationId: "conversation-1",
       filePath: "src/a.ts",
+      status: "completed",
     });
   });
 
@@ -44,5 +46,23 @@ describe("Cursor hook input", () => {
   test("Given raw stdin JSON When parsing Then blank input becomes an empty object", () => {
     expect(parseStdinJson("  \n")).toEqual({});
     expect(parseStdinJson('{"event":"stop"}')).toEqual({ event: "stop" });
+  });
+
+  test("Given stop status When parsing Then only completed aborted and error are kept", () => {
+    expect(
+      parseHookInput({ hook_event_name: "stop", status: "aborted" }),
+    ).toEqual({
+      event: "stop",
+      status: "aborted",
+    });
+    expect(
+      parseHookInput({ hook_event_name: "stop", status: "error" }),
+    ).toEqual({
+      event: "stop",
+      status: "error",
+    });
+    expect(
+      parseHookInput({ hook_event_name: "stop", status: "cancelled" }),
+    ).toEqual({ event: "stop" });
   });
 });

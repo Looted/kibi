@@ -4816,11 +4816,16 @@ symbols:
     granularity_reason: legacy-link
     links:
       - REQ-cursor-kibi-plugin-v1
+      - REQ-cursor-stop-job-vs-plan
     relationships:
       - type: implements
         target: REQ-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-stop-job-vs-plan
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-stop-job-vs-plan
   - id: SYM-cursor-agentPluginRoot
     title: agentPluginRoot
     sourceFile: packages/cursor/scripts/build-agent-plugin.ts
@@ -4934,11 +4939,16 @@ symbols:
     symbol_role: behavioral
     links:
       - REQ-cursor-worktree-kibi-continuity
+      - REQ-cursor-stop-job-vs-plan
     relationships:
       - type: implements
         target: REQ-cursor-worktree-kibi-continuity
+      - type: implements
+        target: REQ-cursor-stop-job-vs-plan
       - type: covered_by
         target: TEST-cursor-worktree-kibi-continuity
+      - type: covered_by
+        target: TEST-cursor-stop-job-vs-plan
   - id: SYM-cursor-extractExplicitPathFields
     title: extractExplicitPathFields
     sourceFile: packages/cursor/src/path-policy.ts
@@ -5031,11 +5041,16 @@ symbols:
     sourceFile: packages/cursor/src/hook-input.ts
     links:
       - REQ-cursor-kibi-plugin-v1
+      - REQ-cursor-stop-job-vs-plan
     relationships:
       - type: implements
         target: REQ-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-stop-job-vs-plan
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-stop-job-vs-plan
   - id: SYM-cursor-hookRunnerPath
     title: hookRunnerPath
     sourceFile: packages/cursor/src/hook-runner.ts
@@ -5047,6 +5062,15 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
+  - id: SYM-cursor-hook-runner-plan-vs-job-tests
+    title: Cursor hook runner plan-versus-job tests
+    sourceFile: packages/cursor/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    text_ref: packages/cursor/tests/hook-runner.test.ts
+    relationships:
+      - type: executable_for
+        target: TEST-cursor-stop-job-vs-plan
   - id: SYM-cursor-HookState
     title: HookState
     sourceFile: packages/cursor/src/hook-state.ts
@@ -5054,11 +5078,27 @@ symbols:
     symbol_role: type-shape
     links:
       - REQ-cursor-kibi-plugin-v1
+      - REQ-cursor-stop-job-vs-plan
     relationships:
       - type: implements
         target: REQ-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-stop-job-vs-plan
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-stop-job-vs-plan
+  - id: SYM-cursor-HookStopStatus
+    title: HookStopStatus
+    status: active
+    text_ref: packages/cursor/src/hook-input.ts#HookStopStatus
+    sourceFile: packages/cursor/src/hook-input.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-stop-job-vs-plan
+      - type: implements
+        target: REQ-cursor-stop-job-vs-plan
   - id: SYM-cursor-impactCheckFollowup
     title: impactCheckFollowup
     sourceFile: packages/cursor/src/messages.ts
@@ -5243,11 +5283,16 @@ symbols:
     sourceFile: packages/cursor/src/hook-input.ts
     links:
       - REQ-cursor-kibi-plugin-v1
+      - REQ-cursor-stop-job-vs-plan
     relationships:
       - type: implements
         target: REQ-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-stop-job-vs-plan
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-stop-job-vs-plan
   - id: SYM-cursor-parseStdinJson
     title: parseStdinJson
     sourceFile: packages/cursor/src/hook-input.ts
@@ -5293,6 +5338,17 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
+  - id: SYM-cursor-recordPlanDelivered
+    title: recordPlanDelivered
+    status: active
+    text_ref: packages/cursor/src/hook-state.ts#recordPlanDelivered
+    sourceFile: packages/cursor/src/hook-state.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-stop-job-vs-plan
+      - type: implements
+        target: REQ-cursor-stop-job-vs-plan
   - id: SYM-cursor-rememberGuidedPath
     title: rememberGuidedPath
     sourceFile: packages/cursor/src/hook-state.ts
@@ -5331,11 +5387,16 @@ symbols:
     text_ref: packages/cursor/src/hook-runner.ts#runHook
     links:
       - REQ-cursor-kibi-plugin-v1
+      - REQ-cursor-stop-job-vs-plan
     relationships:
       - type: implements
         target: REQ-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-stop-job-vs-plan
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-stop-job-vs-plan
   - id: SYM-cursor-saveHookState
     title: saveHookState
     sourceFile: packages/cursor/src/hook-state-storage.ts
@@ -5352,11 +5413,16 @@ symbols:
     granularity_reason: legacy-link
     links:
       - REQ-cursor-kibi-plugin-v1
+      - REQ-cursor-stop-job-vs-plan
     relationships:
       - type: implements
         target: REQ-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-stop-job-vs-plan
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-stop-job-vs-plan
   - id: SYM-cursor-toRepoRelativePath
     title: toRepoRelativePath
     sourceFile: packages/cursor/src/path-policy.ts

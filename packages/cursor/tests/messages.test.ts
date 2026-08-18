@@ -13,6 +13,7 @@ function state(overrides: Partial<HookState> = {}): HookState {
     kbCheckRun: false,
     impactCheckRun: false,
     impactCheckedPaths: [],
+    planDelivered: false,
     ...overrides,
   };
 }
@@ -85,6 +86,32 @@ describe("stopFollowupMessage", () => {
       stopFollowupMessage(
         state({
           kbMutationTools: ["kb_upsert", "kb_upsert"],
+        }),
+      ),
+    ).toBe("Kibi KB updated (kb_upsert).");
+  });
+
+  test("stays silent after plan delivery without edits or KB mutations", () => {
+    expect(stopFollowupMessage(state({ planDelivered: true }))).toBeUndefined();
+  });
+
+  test("still prompts after plan delivery when source was edited", () => {
+    expect(
+      stopFollowupMessage(
+        state({
+          planDelivered: true,
+          dirtyPaths: ["packages/core/src/kb.pl"],
+        }),
+      ),
+    ).toContain("impact-enabled kb_check");
+  });
+
+  test("still summarizes KB mutations after plan delivery", () => {
+    expect(
+      stopFollowupMessage(
+        state({
+          planDelivered: true,
+          kbMutationTools: ["kb_upsert"],
         }),
       ),
     ).toBe("Kibi KB updated (kb_upsert).");

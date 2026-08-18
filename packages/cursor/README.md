@@ -114,7 +114,7 @@ Hooks are warning-only and never replace MCP/CLI behavior:
 - **preToolUse**: warns on explicit direct `.kb/**` edits without blocking.
 - **beforeReadFile** and **postToolUse (Read)**: inject source-linked lookup guidance once per path per session.
 - **postToolUse (Write/Edit)**: inject traceability and freshness guidance once per path per session, including `kb_check({sourceFiles:[...], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})` for meaningful source edits.
-- **stop**: emits a single freshness or impact-check follow-up when meaningful paths changed during the session.
+- **stop**: emits a single freshness or impact-check follow-up when meaningful paths were **edited** during the turn (reads and search do not count). Plan delivery (`CreatePlan`) stays silent unless that same turn also edited source or mutated the KB.
 
 ### What the plugin does not do
 

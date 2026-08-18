@@ -465,6 +465,148 @@ describe("Cursor hook runner", () => {
     expect(result.followup_message).toBe("Kibi KB updated (kb_upsert).");
   });
 
+  test("stop stays quiet after Read or Grep of source files", async () => {
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
+    await runHook(
+      {
+        hook_event_name: "postToolUse",
+        tool_name: "Read",
+        tool_input: { file_path: "packages/cursor/src/hook-runner.ts" },
+      },
+      { pluginData },
+    );
+    await runHook(
+      {
+        hook_event_name: "postToolUse",
+        tool_name: "Grep",
+        tool_input: { path: "packages/cursor/src/messages.ts" },
+      },
+      { pluginData },
+    );
+
+    expect(loadHookState(pluginData).dirtyPaths).toEqual([]);
+    expect(await runHook({ hook_event_name: "stop" }, { pluginData })).toEqual(
+      {},
+    );
+  });
+
+  test("stop stays quiet after CreatePlan without edits", async () => {
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
+    await runHook(
+      {
+        hook_event_name: "postToolUse",
+        tool_name: "CreatePlan",
+        tool_input: {
+          path: "packages/cursor/src/hook-runner.ts",
+        },
+      },
+      { pluginData },
+    );
+
+    expect(loadHookState(pluginData).planDelivered).toBe(true);
+    expect(loadHookState(pluginData).dirtyPaths).toEqual([]);
+    expect(await runHook({ hook_event_name: "stop" }, { pluginData })).toEqual(
+      {},
+    );
+    expect(loadHookState(pluginData).planDelivered).toBe(false);
+  });
+
+  test("stop still prompts after CreatePlan when source was edited", async () => {
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
+    await runHook(
+      {
+        hook_event_name: "postToolUse",
+        tool_name: "CreatePlan",
+        tool_input: {},
+      },
+      { pluginData },
+    );
+    await runHook(
+      {
+        hook_event_name: "postToolUse",
+        tool_name: "Write",
+        tool_input: { file_path: "packages/cursor/src/hook-runner.ts" },
+      },
+      { pluginData },
+    );
+
+    const result = await runHook({ hook_event_name: "stop" }, { pluginData });
+    expect(result.followup_message).toContain("includeImpactDiagnostics");
+    expect(result.followup_message).toContain(
+      "packages/cursor/src/hook-runner.ts",
+    );
+  });
+
+  test("stop still summarizes KB mutations after CreatePlan", async () => {
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
+    await runHook(
+      {
+        hook_event_name: "postToolUse",
+        tool_name: "create_plan",
+        tool_input: {},
+      },
+      { pluginData },
+    );
+    await runHook(
+      {
+        hook_event_name: "postToolUse",
+        tool_name: "kb_upsert",
+        tool_input: { type: "fact", id: "FACT-001" },
+      },
+      { pluginData },
+    );
+
+    const result = await runHook({ hook_event_name: "stop" }, { pluginData });
+    expect(result.followup_message).toBe("Kibi KB updated (kb_upsert).");
+  });
+
+  test("stop does not treat SwitchMode as plan delivery", async () => {
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
+    await runHook(
+      {
+        hook_event_name: "postToolUse",
+        tool_name: "SwitchMode",
+        tool_input: {
+          target_mode_id: "plan",
+          path: "packages/cursor/src/hook-runner.ts",
+        },
+      },
+      { pluginData },
+    );
+
+    expect(loadHookState(pluginData).planDelivered).toBe(false);
+    expect(loadHookState(pluginData).dirtyPaths).toEqual([]);
+    expect(await runHook({ hook_event_name: "stop" }, { pluginData })).toEqual(
+      {},
+    );
+  });
+
+  test("stop stays quiet when status is aborted even after source edits", async () => {
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
+    await runHook(
+      {
+        hook_event_name: "postToolUse",
+        tool_name: "Write",
+        tool_input: { file_path: "packages/cursor/src/hook-runner.ts" },
+      },
+      { pluginData },
+    );
+
+    expect(
+      await runHook(
+        { hook_event_name: "stop", status: "aborted" },
+        { pluginData },
+      ),
+    ).toEqual({});
+    expect(loadHookState(pluginData).dirtyPaths).toEqual([]);
+  });
+
   test("unknown hook events return empty output", async () => {
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(pluginData);
