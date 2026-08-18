@@ -1,3 +1,5 @@
+import { isEntityLanePath, isSymbolsManifestPath } from "../utils/kb-paths.js";
+
 const SUPPORTED_BEHAVIOR_SOURCE_EXTENSIONS = new Set([
   ".ts",
   ".tsx",
@@ -8,16 +10,6 @@ const SUPPORTED_BEHAVIOR_SOURCE_EXTENSIONS = new Set([
   ".mjs",
   ".cjs",
 ]);
-
-const ENTITY_EVIDENCE_SEGMENTS = [
-  "/requirements/",
-  "/scenarios/",
-  "/tests/",
-  "/facts/",
-  "/adr/",
-  "/flags/",
-  "/events/",
-];
 
 export const KIBI_IMPACT_DIAGNOSTIC_IDS = [
   "kibi_impact_evidence_missing",
@@ -72,9 +64,9 @@ export interface AuditedNoImpactOverrideInput {
  * - `behavior_source_edit` is a supported source-file edit whose staged hunks
  *   intersect exported or other behavior-bearing/user-facing surfaces and whose
  *   changed lines are not comment-only or formatting-only.
- * - `kibi_impact_evidence` is staged entity markdown, staged authored
- *   `documentation/symbols.yaml` metadata, refreshed
- *   `documentation/symbol-coordinates.yaml` when extraction output changes, or
+ * - `kibi_impact_evidence` is staged entity markdown under `.kb/`, staged
+ *   authored `.kb/symbols.yaml` metadata, refreshed
+ *   `.kb/symbol-coordinates.yaml` when extraction output changes, or
  *   an explicit audited `Kibi-Impact: none` declaration with
  *   rationale for false positives/non-behavior-only edits.
  * - `Kibi-Impact: none` never satisfies a genuine behavior change.
@@ -94,7 +86,7 @@ export const KIBI_IMPACT_DIAGNOSTICS: Record<
     title: "Behavior edit requires staged Kibi impact evidence",
     resolution: [
       "Query Kibi via visible MCP tools or the trusted project-local CLI (peer surfaces): use kb_search for discovery, then kb_query for exact follow-up.",
-      "MCP writes update KB state but do not stage tracked evidence; also stage related KB entity markdown, authored documentation/symbols.yaml metadata, or refreshed documentation/symbol-coordinates.yaml.",
+      "MCP writes update KB state but do not stage tracked evidence; also stage related KB entity markdown under .kb/, authored .kb/symbols.yaml metadata, or refreshed .kb/symbol-coordinates.yaml.",
       "Re-run or let the hook run kibi check --staged.",
     ],
   },
@@ -103,7 +95,7 @@ export const KIBI_IMPACT_DIAGNOSTICS: Record<
     title: "Symbol coordinates evidence is stale for changed extraction output",
     resolution: [
       "Refresh symbol coordinates for the changed source file with kibi sync --refresh-symbol-coordinates.",
-      "Stage documentation/symbol-coordinates.yaml in the same change as the behavior edit, and stage documentation/symbols.yaml only if migration cleanup changed it.",
+      "Stage .kb/symbol-coordinates.yaml in the same change as the behavior edit, and stage .kb/symbols.yaml only if migration cleanup changed it.",
       "Re-run or let the hook run kibi check --staged.",
     ],
   },
@@ -214,40 +206,15 @@ function isEntityEvidenceMarkdown(filePath: string): boolean {
     return false;
   }
 
-  return ENTITY_EVIDENCE_SEGMENTS.some((segment) => filePath.includes(segment));
+  return isEntityLanePath(filePath);
 }
 
 function isSymbolsManifest(
   filePath: string,
-  symbolsManifestPath?: string,
+  _symbolsManifestPath?: string,
 ): boolean {
-  const candidates = new Set<string>([
-    "symbols.yaml",
-    "symbols.yml",
-    "documentation/symbols.yaml",
-    "documentation/symbols.yml",
-  ]);
-
-  if (symbolsManifestPath) {
-    candidates.add(symbolsManifestPath);
-    if (symbolsManifestPath.endsWith(".yaml")) {
-      candidates.add(`${symbolsManifestPath.slice(0, -5)}.yml`);
-    }
-    if (symbolsManifestPath.endsWith(".yml")) {
-      candidates.add(`${symbolsManifestPath.slice(0, -4)}.yaml`);
-    }
-  }
-
-  if (candidates.has(filePath)) {
-    return true;
-  }
-
-  return (
-    filePath.endsWith("/symbols.yaml") ||
-    filePath.endsWith("/symbols.yml") ||
-    filePath === "symbols.yaml" ||
-    filePath === "symbols.yml"
-  );
+  const posix = filePath.replaceAll("\\", "/");
+  return isSymbolsManifestPath(posix) || posix === ".kb/symbols.yml";
 }
 
 function hasText(value: string | null | undefined): boolean {

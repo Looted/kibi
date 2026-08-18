@@ -20,3 +20,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5dc2a154c6d2
+  - type: implements
+    from: SYM-canonical-KbEntityPaths
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:03:03.337Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95746e696626
+  - type: covered_by
+    from: SYM-canonical-KbEntityPaths
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:03:03.345Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f254a47a3f4b

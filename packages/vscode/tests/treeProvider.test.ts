@@ -245,7 +245,7 @@ test("getTreeItem maps file-backed and relationship-backed nodes to commands", (
 
   const fileTreeItem = provider.getTreeItem({
     label: "REQ-001: Test",
-    description: "documentation/requirements/REQ-001.md",
+    description: ".kb/requirements/REQ-001.md",
     iconPath: "list-ordered",
     contextValue: "kibi-entity-req",
     collapsibleState: TreeItemCollapsibleState.Collapsed,
@@ -255,7 +255,7 @@ test("getTreeItem maps file-backed and relationship-backed nodes to commands", (
   });
 
   expect(fileTreeItem.description).toBe(
-    "documentation/requirements/REQ-001.md",
+    ".kb/requirements/REQ-001.md",
   );
   expect((fileTreeItem.iconPath as ThemeIcon).id).toBe("list-ordered");
   expect(fileTreeItem.contextValue).toBe("kibi-entity-req");
@@ -340,7 +340,7 @@ test("parseRdf resolves absolute, file URI, relative, windows, and invalid local
       <kb:title>Relative</kb:title>
       <kb:status rdf:resource="http://kibi.dev/kb/status/open"/>
       <kb:tags></kb:tags>
-      <kb:source>documentation/requirements/REQ-REL.md</kb:source>
+      <kb:source>.kb/requirements/REQ-REL.md</kb:source>
     </rdf:Description>
     <rdf:Description rdf:about="urn:kibi:entity/REQ-WIN">
       <kb:type>req</kb:type>
@@ -430,7 +430,7 @@ test("relationship children use executable_for label", () => {
       title: "identity spec",
       status: "passing",
       tags: "",
-      source: "documentation/tests/TEST-001.md",
+      source: ".kb/tests/TEST-001.md",
     },
   ];
   internals.relationships = [
@@ -473,7 +473,7 @@ test("relationship children render scenario verified_by and test validates label
       title: "login flow",
       status: "active",
       tags: "",
-      source: "documentation/scenarios/SCEN-SCENARIO-001.md",
+      source: ".kb/scenarios/SCEN-SCENARIO-001.md",
     },
     {
       id: "TEST-VALIDATES-001",
@@ -481,7 +481,7 @@ test("relationship children render scenario verified_by and test validates label
       title: "login spec",
       status: "passing",
       tags: "",
-      source: "documentation/tests/TEST-VALIDATES-001.md",
+      source: ".kb/tests/TEST-VALIDATES-001.md",
     },
     {
       id: "TEST-VERIFIED-001",
@@ -489,7 +489,7 @@ test("relationship children render scenario verified_by and test validates label
       title: "login verified spec",
       status: "passing",
       tags: "",
-      source: "documentation/tests/TEST-VERIFIED-001.md",
+      source: ".kb/tests/TEST-VERIFIED-001.md",
     },
   ];
   internals.relationships = [
@@ -571,15 +571,16 @@ test("frontmatter helpers normalize tags and links from YAML content", () => {
   ]);
 });
 
-test("documentation directory resolution honors config, fallback defaults, and caching", () => {
+test("documentation directory resolution uses canonical .kb/ lanes and legacy fallback", () => {
   const provider = makeProvider();
   const internals = provider as unknown as DocumentationDirsInternals;
 
-  writeFile(path.join(tmpDir, "docs", "requirements", ".gitkeep"));
+  writeFile(path.join(tmpDir, ".kb", "requirements", ".gitkeep"));
   writeFile(path.join(tmpDir, "documentation", "tests", ".gitkeep"));
   writeJson(path.join(tmpDir, ".kb", "config.json"), {
     paths: { requirements: "docs/requirements" },
   });
+  writeFile(path.join(tmpDir, "docs", "requirements", ".gitkeep"));
 
   expect(internals.resolveConfiguredPath("docs/requirements")).toBe(
     path.join(tmpDir, "docs", "requirements"),
@@ -591,11 +592,11 @@ test("documentation directory resolution honors config, fallback defaults, and c
   const first = internals.getDocumentationEntityDirs();
   const second = internals.getDocumentationEntityDirs();
   expect(first).toBe(second);
-  expect(first.req).toBe(path.join(tmpDir, "docs", "requirements"));
+  expect(first.req).toBe(path.join(tmpDir, ".kb", "requirements"));
   expect(first.test).toBe(path.join(tmpDir, "documentation", "tests"));
 
   internals.documentationEntityDirs = null;
-  writeFile(path.join(tmpDir, ".kb", "config.json"), "{not-json");
+  fs.rmSync(path.join(tmpDir, ".kb", "requirements"), { recursive: true, force: true });
   writeFile(path.join(tmpDir, "documentation", "requirements", ".gitkeep"));
 
   const fallback = internals.getDocumentationEntityDirs();
@@ -650,7 +651,7 @@ test("navigation helpers prefer entity paths, then symbol sources, then document
       title: "Missing File",
       status: "open",
       tags: "",
-      source: "documentation/requirements/REQ-MISSING.md",
+      source: ".kb/requirements/REQ-MISSING.md",
       localPath: path.join(
         tmpDir,
         "documentation",
@@ -664,7 +665,7 @@ test("navigation helpers prefer entity paths, then symbol sources, then document
       title: "Local File",
       status: "open",
       tags: "",
-      source: "documentation/requirements/REQ-LOCAL.md",
+      source: ".kb/requirements/REQ-LOCAL.md",
       localPath: docPath,
       sourceLine: 9,
     },

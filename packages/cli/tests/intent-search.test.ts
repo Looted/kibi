@@ -16,7 +16,7 @@ function entity(
     type: "req",
     title,
     status: "active",
-    source: `documentation/requirements/${id}.md`,
+    source: `.kb/requirements/${id}.md`,
     ...properties,
   };
 }

@@ -30,7 +30,7 @@ function makeRequirementResult(fixture: RequirementFixture): ExtractionResult {
       status: fixture.status ?? "active",
       created_at: "2026-06-30T00:00:00.000Z",
       updated_at: "2026-06-30T00:00:00.000Z",
-      source: `documentation/requirements/${fixture.id}.md`,
+      source: `.kb/requirements/${fixture.id}.md`,
       ...(fixture.tags !== undefined ? { tags: [...fixture.tags] } : {}),
       ...(logicClaims !== undefined ? { logic_claims: [...logicClaims] } : {}),
     },
@@ -60,7 +60,7 @@ function makeSymbolImplementing(
       status: "active",
       created_at: "2026-06-30T00:00:00.000Z",
       updated_at: "2026-06-30T00:00:00.000Z",
-      source: "documentation/symbols.yaml",
+      source: ".kb/symbols.yaml",
     },
     sourceFile: "src/broad.ts",
     relationships: [
@@ -78,7 +78,7 @@ function makeTestResult(status: string): ExtractionResult {
       status,
       created_at: "2026-06-30T00:00:00.000Z",
       updated_at: "2026-06-30T00:00:00.000Z",
-      source: "documentation/tests/TEST-PASSING.md",
+      source: ".kb/tests/TEST-PASSING.md",
     },
     relationships: [],
   };

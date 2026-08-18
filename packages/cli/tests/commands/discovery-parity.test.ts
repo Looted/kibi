@@ -29,13 +29,17 @@ describe("human and JSON discovery command parity", () => {
       stdio: "pipe",
     });
     run(["init"]);
-    mkdirSync(path.join(workspaceRoot, "documentation", "requirements"), {
+    mkdirSync(path.join(workspaceRoot, ".kb", "requirements"), {
       recursive: true,
     });
     writeFileSync(
-      path.join(workspaceRoot, "documentation", "requirements", "REQ-1.md"),
+      path.join(workspaceRoot, ".kb", "requirements", "REQ-1.md"),
       "---\nid: REQ-1\ntitle: OAuth discovery parity\nstatus: open\ntags: [auth]\n---\n\nOAuth discovery body.\n",
     );
+    execFileSync("git", ["add", ".kb"], {
+      cwd: workspaceRoot,
+      stdio: "pipe",
+    });
     run(["sync"]);
   }, 30_000);
 

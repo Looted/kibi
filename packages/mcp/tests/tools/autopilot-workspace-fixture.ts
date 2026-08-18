@@ -2,28 +2,6 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const ROOT_DOC_PATHS = {
-  requirements: "documentation/requirements/**/*.md",
-  scenarios: "documentation/scenarios/**/*.md",
-  tests: "documentation/tests/**/*.md",
-  adr: "documentation/adr/**/*.md",
-  flags: "documentation/flags/**/*.md",
-  events: "documentation/events/**/*.md",
-  facts: "documentation/facts/**/*.md",
-  symbols: "documentation/symbols.yaml",
-};
-
-const MULTI_ROOT_DOC_PATHS = {
-  requirements: "packages/*/documentation/requirements/**/*.md",
-  scenarios: "packages/*/documentation/scenarios/**/*.md",
-  tests: "packages/*/documentation/tests/**/*.md",
-  adr: "packages/*/documentation/adr/**/*.md",
-  flags: "packages/*/documentation/flags/**/*.md",
-  events: "packages/*/documentation/events/**/*.md",
-  facts: "packages/*/documentation/facts/**/*.md",
-  symbols: "documentation/symbols.yaml",
-};
-
 function ensureDir(dirPath: string) {
   fs.mkdirSync(dirPath, { recursive: true });
 }
@@ -107,7 +85,7 @@ function ensureDocsAt(docRoot: string, prefix = "ROOT") {
 function createNoise(root: string) {
   const noisyFiles = [
     ".git/notes.md",
-    ".kb/notes.md",
+    ".kb/branches/notes.md",
     "node_modules/kibi/readme.md",
     "vendor/README.md",
     "vendors/internal.md",
@@ -149,12 +127,20 @@ export function setupWorkspace(): AutopilotWorkspaceFixture {
 }
 
 // implements REQ-mcp-init-kibi-autopilot-v1
-export function writeRootConfig(root: string, obj: unknown) {
+export function writeRootManifest(root: string) {
   const kbDir = path.join(root, ".kb");
   fs.mkdirSync(kbDir, { recursive: true });
   fs.writeFileSync(
-    path.join(kbDir, "config.json"),
-    JSON.stringify(obj, null, 2),
+    path.join(kbDir, "manifest.json"),
+    `${JSON.stringify(
+      {
+        manifestVersion: 1,
+        schemaVersion: 5,
+        semanticAdvisorBackfill: "not_applicable",
+      },
+      null,
+      2,
+    )}\n`,
   );
 }
 
@@ -173,7 +159,7 @@ export function createVendoredTree(root: string) {
 
 // implements REQ-mcp-init-kibi-autopilot-v1
 export function ensureDocs(root: string) {
-  ensureDocsAt(path.join(root, "documentation"));
+  ensureDocsAt(path.join(root, ".kb"));
 }
 
 // implements REQ-mcp-init-kibi-autopilot-v1
@@ -244,9 +230,9 @@ export function createColdStartRepo(root: string) {
 
 // implements REQ-mcp-init-kibi-autopilot-v1
 export function createPartialRepo(root: string) {
-  writeRootConfig(root, { paths: ROOT_DOC_PATHS });
+  writeRootManifest(root);
   writeEntityDoc(
-    path.join(root, "documentation", "requirements", "REQ-PARTIAL-001.md"),
+    path.join(root, ".kb", "requirements", "REQ-PARTIAL-001.md"),
     "REQ-PARTIAL-001",
     "Partial workspace requirement",
     "open",
@@ -260,13 +246,9 @@ export function createPartialRepo(root: string) {
 
 // implements REQ-mcp-init-kibi-autopilot-v1
 export function createMultiRootRepo(root: string) {
-  ensureDocsAt(path.join(root, "packages", "app", "documentation"), "APP");
-  ensureDocsAt(path.join(root, "packages", "api", "documentation"), "API");
-  ensureDir(path.join(root, "documentation"));
-  fs.writeFileSync(
-    path.join(root, "documentation", "symbols.yaml"),
-    "symbols: []\n",
-  );
+  ensureDocsAt(path.join(root, ".kb"));
+  ensureDocsAt(path.join(root, "packages", "app", "docs"), "APP");
+  ensureDocsAt(path.join(root, "packages", "api", "docs"), "API");
   ensureDir(path.join(root, "docs"));
   fs.writeFileSync(
     path.join(root, "docs", "bootstrap.md"),
@@ -286,10 +268,10 @@ export function createThinRepo(
 ) {
   if (options.multiRoot) {
     createMultiRootRepo(root);
-    writeRootConfig(root, { paths: MULTI_ROOT_DOC_PATHS });
+    writeRootManifest(root);
   } else {
     ensureDocs(root);
-    writeRootConfig(root, { paths: ROOT_DOC_PATHS });
+    writeRootManifest(root);
   }
 
   if (options.noisy) {
@@ -304,9 +286,7 @@ export function createSeededRepo(
 ) {
   createThinRepo(root, options);
 
-  const rootDoc = options.multiRoot
-    ? path.join(root, "packages", "app", "documentation")
-    : path.join(root, "documentation");
+  const rootDoc = path.join(root, ".kb");
 
   writeEntityDoc(
     path.join(rootDoc, "requirements", "REQ-SEEDED-002.md"),

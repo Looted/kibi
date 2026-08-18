@@ -48,3 +48,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7298c3c71af0
+  - type: implements
+    from: SYM-canonical-DEFAULT_CONFIG_PATHS
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:01:58.338Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd2614a7f54f
+  - type: covered_by
+    from: SYM-canonical-DEFAULT_CONFIG_PATHS
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:01:58.348Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75cb584af7f1
+  - type: implements
+    from: SYM-cli-rule-registry-getDefaultRules
+    to: REQ-cli-check
+    created_at: 2026-08-18T17:03:39.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1a281223984
+  - type: covered_by
+    from: SYM-cli-rule-registry-getDefaultRules
+    to: TEST-004
+    created_at: 2026-08-18T17:03:39.740Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22832ed3a1a5

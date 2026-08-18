@@ -34,3 +34,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c79c8edf3725
+  - type: implements
+    from: SYM-cli-rule-registry-isCanonicalRule
+    to: REQ-cli-check
+    created_at: 2026-08-18T17:03:47.818Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ccfdcedaf87
+  - type: covered_by
+    from: SYM-cli-rule-registry-isCanonicalRule
+    to: TEST-004
+    created_at: 2026-08-18T17:03:47.828Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32c7a73ba5de

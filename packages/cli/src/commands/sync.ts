@@ -62,7 +62,7 @@ import {
   ensureBranchStoreManifest,
   expectedBranchStoreManifest,
 } from "../utils/branch-store-locator.js";
-import { loadSyncConfig } from "../utils/config.js";
+import { loadEntityPaths } from "../utils/config.js";
 import {
   SYNC_CACHE_TTL_MS,
   SYNC_CACHE_VERSION,
@@ -496,15 +496,14 @@ export async function syncCommand(
       console.log("[kibi-debug] currentBranch:", currentBranch);
     }
 
-    const config = loadSyncConfig(workspaceRoot);
-    const paths = config.paths;
+    const paths = loadEntityPaths(workspaceRoot);
 
     const {
       markdownFiles,
       manifestFiles,
       relationshipsDir,
       recoveredPendingReceiptPaths,
-    } = await discoverSourceFiles(workspaceRoot, paths, {
+    } = await discoverSourceFiles(workspaceRoot, {
       trackedOnly: true,
       recoverMissingPendingSources: recoveryBackupPath !== undefined,
     });

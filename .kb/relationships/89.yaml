@@ -41,3 +41,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-edd70dce9431
+  - type: implements
+    from: SYM-canonical-DERIVED_KB_PREFIXES
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:03:23.464Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56112bcb1676
+  - type: covered_by
+    from: SYM-canonical-DERIVED_KB_PREFIXES
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:03:23.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2fc82c7af539

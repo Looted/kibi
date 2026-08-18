@@ -1,6 +1,8 @@
 import path from "node:path";
 
 import type { OperationContext } from "../../public/operations/runtime-types.js";
+import { KB_PATHS } from "../../utils/kb-paths.js";
+import { readKbManifestStatus } from "../../utils/kb-manifest.js";
 import type { ActivationPolicy, ActivationState } from "./types.js";
 
 function activationFor(state: ActivationState): ActivationPolicy {
@@ -100,8 +102,8 @@ export async function classifyActivation(
   context: OperationContext,
   files: readonly string[],
 ): Promise<ActivationPolicy> {
-  const configPath = path.join(context.workspaceRoot, ".kb", "config.json");
-  if (!(await exists(context, configPath))) {
+  const manifestStatus = readKbManifestStatus(context.workspaceRoot);
+  if (manifestStatus.state === "missing") {
     const vendored = files.some((file) => file.startsWith("kibi/"));
     const projectSignal = files.some(
       (file) =>
@@ -112,33 +114,11 @@ export async function classifyActivation(
       vendored && !projectSignal ? "vendored_only" : "root_uninitialized",
     );
   }
-  let config: { readonly paths?: Readonly<Record<string, string>> } = {};
-  try {
-    config = JSON.parse((await context.fs?.readFile(configPath)) ?? "{}") ?? {};
-  } catch {
-    return activationFor("root_partial");
-  }
-  const defaults = [
-    "documentation/requirements",
-    "documentation/scenarios",
-    "documentation/tests",
-    "documentation/adr",
-    "documentation/flags",
-    "documentation/events",
-    "documentation/facts",
-    "documentation/symbols.yaml",
-  ];
-  const configured = Object.values(config.paths ?? {});
-  const targets = configured.length >= 8 ? configured : defaults;
+  if (manifestStatus.state !== "ok") return activationFor("root_partial");
+  const targets = [...Object.values(KB_PATHS.lanes), KB_PATHS.symbolsManifest];
   const resolved = await Promise.all(
     targets.map((target) =>
-      exists(
-        context,
-        path.resolve(
-          context.workspaceRoot,
-          target.replace(/[*?\[].*$/, "").replace(/\/$/, ""),
-        ),
-      ),
+      exists(context, path.resolve(context.workspaceRoot, target)),
     ),
   );
   if (resolved.some((value) => !value)) return activationFor("root_partial");

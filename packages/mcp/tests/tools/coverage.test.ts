@@ -248,8 +248,8 @@ describe("kb_coverage isolated-core regression (issue #118)", () => {
       path.join(os.tmpdir(), "kibi-mcp-migration-preview-"),
     );
     try {
-      const source = "documentation/requirements/REQ-MCP-MIGRATION.md";
-      mkdirSync(path.join(workspaceRoot, "documentation/requirements"), {
+      const source = ".kb/requirements/REQ-MCP-MIGRATION.md";
+      mkdirSync(path.join(workspaceRoot, ".kb/requirements"), {
         recursive: true,
       });
       writeFileSync(

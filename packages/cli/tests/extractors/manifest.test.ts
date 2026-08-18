@@ -404,7 +404,7 @@ symbols:
       - type: executable_for
         target: TEST-RICH
 `,
-      "documentation/symbols.yaml",
+      ".kb/symbols.yaml",
     );
 
     expect(results).toHaveLength(1);
@@ -431,7 +431,7 @@ symbols:
     title: Clone
     sourceFile: src/clone.ts
 `,
-      "documentation/symbols.yaml",
+      ".kb/symbols.yaml",
     );
 
     expect(records).toEqual([
@@ -441,7 +441,7 @@ symbols:
 
   test("wraps invalid manifest YAML as ManifestError", () => {
     expect(() =>
-      extractFromManifestString("symbols: [", "documentation/symbols.yaml"),
+      extractFromManifestString("symbols: [", ".kb/symbols.yaml"),
     ).toThrow(ManifestError);
   });
 

@@ -38,7 +38,7 @@ function manifestResult(
       status: "active",
       created_at: "2026-07-01T00:00:00.000Z",
       updated_at: "2026-07-01T00:00:00.000Z",
-      source: "documentation/symbols.yaml",
+      source: ".kb/symbols.yaml",
     },
     relationships,
     ...(sourceFile !== undefined ? { sourceFile } : {}),

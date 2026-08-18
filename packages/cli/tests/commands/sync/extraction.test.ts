@@ -47,7 +47,7 @@ function makeResult(
       status: "open",
       created_at: "2026-01-01T00:00:00Z",
       updated_at: "2026-01-01T00:00:00Z",
-      source: "documentation/requirements/REQ-001.md",
+      source: ".kb/requirements/REQ-001.md",
       ...overrides,
     },
     relationships: [],
@@ -103,7 +103,7 @@ describe("processExtractions", () => {
     mockExtractFromMarkdown.mockReturnValueOnce(extractionResult);
 
     const result = await processExtractions(
-      ["documentation/requirements/REQ-001.md"],
+      [".kb/requirements/REQ-001.md"],
       [],
       true,
     );
@@ -112,7 +112,7 @@ describe("processExtractions", () => {
     expect(result.results[0]).toEqual(extractionResult);
     expect(result.errors).toEqual([]);
     expect(mockExtractFromMarkdown).toHaveBeenCalledWith(
-      "documentation/requirements/REQ-001.md",
+      ".kb/requirements/REQ-001.md",
     );
   });
 
@@ -126,8 +126,8 @@ describe("processExtractions", () => {
 
     const result = await processExtractions(
       [
-        "documentation/requirements/REQ-001.md",
-        "documentation/requirements/REQ-002.md",
+        ".kb/requirements/REQ-001.md",
+        ".kb/requirements/REQ-002.md",
       ],
       [],
       true,
@@ -144,7 +144,7 @@ describe("processExtractions", () => {
     });
 
     const result = await processExtractions(
-      ["documentation/requirements/REQ-001.md"],
+      [".kb/requirements/REQ-001.md"],
       [],
       true,
     );
@@ -156,7 +156,7 @@ describe("processExtractions", () => {
 
   test("dry run mode collects errors without stopping", async () => {
     const manifestResults = [
-      makeResult({ source: "documentation/symbols.yaml" }),
+      makeResult({ source: ".kb/symbols.yaml" }),
     ];
     mockExtractFromManifest.mockReturnValueOnce(manifestResults);
     mockExtractFromMarkdown.mockImplementation(() => {
@@ -164,8 +164,8 @@ describe("processExtractions", () => {
     });
 
     const result = await processExtractions(
-      ["documentation/requirements/REQ-001.md"],
-      ["documentation/symbols.yaml"],
+      [".kb/requirements/REQ-001.md"],
+      [".kb/symbols.yaml"],
       true, // validateOnly - errors should be collected
     );
 
@@ -173,7 +173,7 @@ describe("processExtractions", () => {
     expect(mockExtractFromMarkdown).toHaveBeenCalled();
     // Manifest extraction still works
     expect(mockExtractFromManifest).toHaveBeenCalledWith(
-      "documentation/symbols.yaml",
+      ".kb/symbols.yaml",
     );
     // Errors are collected
     expect(result.errors.length).toBeGreaterThan(0);
@@ -189,7 +189,7 @@ describe("processExtractions", () => {
         status: "open" as const,
         created_at: "2026-01-01T00:00:00Z",
         updated_at: "2026-01-01T00:00:00Z",
-        source: "documentation/requirements/REQ-001.md",
+        source: ".kb/requirements/REQ-001.md",
       },
       relationships: [
         {
@@ -207,7 +207,7 @@ describe("processExtractions", () => {
     mockExtractFromMarkdown.mockReturnValueOnce(extractionResult);
 
     const result = await processExtractions(
-      ["documentation/requirements/REQ-001.md"],
+      [".kb/requirements/REQ-001.md"],
       [],
       true,
     );
@@ -224,13 +224,13 @@ describe("processExtractions", () => {
     // Same entity ID returned twice (simulating duplicate source files)
     const extractionResult = makeResult({
       id: "REQ-001",
-      source: "documentation/requirements/REQ-001.md",
+      source: ".kb/requirements/REQ-001.md",
     });
 
     mockExtractFromMarkdown.mockReturnValueOnce(extractionResult);
 
     const result = await processExtractions(
-      ["documentation/requirements/REQ-001.md"],
+      [".kb/requirements/REQ-001.md"],
       [],
       true,
     );
@@ -267,7 +267,7 @@ describe("processExtractions edge cases", () => {
 
     const result = await processExtractions(
       [],
-      ["documentation/symbols.yaml"],
+      [".kb/symbols.yaml"],
       true,
     );
 
@@ -280,7 +280,7 @@ describe("processExtractions edge cases", () => {
 
     const result = await processExtractions(
       [],
-      ["documentation/symbols.yaml"],
+      [".kb/symbols.yaml"],
       true,
     );
 
@@ -291,19 +291,19 @@ describe("processExtractions edge cases", () => {
   test("processes both manifest and markdown results", async () => {
     const manifestResult = makeResult({
       id: "REQ-FROM-MANIFEST",
-      source: "documentation/symbols.yaml",
+      source: ".kb/symbols.yaml",
     });
     const markdownResult = makeResult({
       id: "REQ-FROM-MARKDOWN",
-      source: "documentation/requirements/REQ-001.md",
+      source: ".kb/requirements/REQ-001.md",
     });
 
     mockExtractFromManifest.mockReturnValueOnce([manifestResult]);
     mockExtractFromMarkdown.mockReturnValueOnce(markdownResult);
 
     const result = await processExtractions(
-      ["documentation/requirements/REQ-001.md"],
-      ["documentation/symbols.yaml"],
+      [".kb/requirements/REQ-001.md"],
+      [".kb/symbols.yaml"],
       false,
     );
 

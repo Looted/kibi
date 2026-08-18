@@ -25,6 +25,8 @@ import {
   buildMigrationPlan,
   migrationAction,
 } from "../public/operations/migration-plan.js";
+import { planLegacyStorageMigration } from "./legacy-storage-migration.js";
+import { readKbManifestStatus } from "../utils/kb-manifest.js";
 
 interface DoctorCheck {
   name: string;
@@ -49,8 +51,12 @@ export async function doctorCommand(
       check: checkKbDirectory,
     },
     {
-      name: "config.json",
-      check: checkConfigJson,
+      name: ".kb/ manifest",
+      check: checkKbManifest,
+    },
+    {
+      name: "Canonical storage",
+      check: checkLegacyStorage,
     },
     {
       name: "Git repository",
@@ -400,14 +406,14 @@ function checkKbDirectory(): {
   };
 }
 
-function checkConfigJson(): {
+function checkKbManifest(): {
   passed: boolean;
   message: string;
   remediation?: string;
 } {
-  const configPath = path.join(process.cwd(), ".kb/config.json");
+  const status = readKbManifestStatus(process.cwd());
 
-  if (!existsSync(configPath)) {
+  if (status.state === "missing") {
     return {
       passed: false,
       message: "Not found",
@@ -415,21 +421,52 @@ function checkConfigJson(): {
     };
   }
 
-  try {
-    const content = readFileSync(configPath, "utf-8");
-    JSON.parse(content);
-
-    return {
-      passed: true,
-      message: "Valid JSON",
-    };
-  } catch (error) {
+  if (status.state !== "ok") {
     return {
       passed: false,
-      message: "Invalid JSON",
-      remediation: "Fix .kb/config.json syntax or run: kibi init",
+      message: status.state === "invalid" ? "Invalid manifest" : "Future version",
+      remediation: `Repair .kb/manifest.json: ${status.warning}`,
     };
   }
+
+  return {
+    passed: true,
+    message: `schemaVersion ${status.manifest.schemaVersion}`,
+  };
+}
+
+function checkLegacyStorage(): {
+  passed: boolean;
+  message: string;
+  remediation?: string;
+} {
+  const plan = planLegacyStorageMigration(process.cwd());
+
+  if (plan.legacyConfig === "malformed") {
+    return {
+      passed: false,
+      message: "Legacy .kb/config.json is malformed",
+      remediation:
+        plan.legacyConfigError ??
+        "Repair or remove the legacy .kb/config.json, then run: kibi migrate --yes",
+    };
+  }
+
+  if (plan.legacyConfig === "present" || plan.moves.length > 0) {
+    return {
+      passed: false,
+      message:
+        plan.moves.length > 0
+          ? `${plan.moves.length} legacy knowledge file(s) still outside .kb/`
+          : "Legacy .kb/config.json still present",
+      remediation: "Run: kibi migrate --yes",
+    };
+  }
+
+  return {
+    passed: true,
+    message: "Canonical .kb/ layout",
+  };
 }
 
 function checkGitRepository(): {

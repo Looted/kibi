@@ -143,7 +143,7 @@ async function cliJson<T>(sandbox: TestSandbox, args: readonly string[]) {
 }
 
 function writeRequirement(sandbox: TestSandbox, id: string) {
-  const relativePath = `documentation/requirements/${id}.md`;
+  const relativePath = `.kb/requirements/${id}.md`;
   writeFileSync(
     join(sandbox.repoDir, relativePath),
     `---

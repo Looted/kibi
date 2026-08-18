@@ -20,3 +20,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5ddefbd24dd4
+  - type: implements
+    from: SYM-canonical-stripToRoot
+    to: REQ-opencode-bootstrap-nudge
+    created_at: 2026-08-18T17:37:06.824Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2802054d625
+  - type: covered_by
+    from: SYM-canonical-stripToRoot
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-18T17:37:06.832Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-743a2e990057

@@ -6,3 +6,31 @@ relationships:
     created_at: "2026-08-16T18:52:17.673Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: validates
+    from: TEST-cli-canonical-runtime
+    to: SCEN-cli-canonical-runtime
+    created_at: 2026-08-18T16:39:36.586Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c060fa10112
+  - type: validates
+    from: TEST-cli-canonical-runtime
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T16:39:36.606Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5cbf4b13062
+  - type: implements
+    from: SYM-canonical-SchemaVersionSource
+    to: REQ-cli-schema-migration
+    created_at: 2026-08-18T17:03:54.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-001fbc5c179a
+  - type: covered_by
+    from: SYM-canonical-SchemaVersionSource
+    to: TEST-cli-config-schema
+    created_at: 2026-08-18T17:03:54.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3bbac920993f

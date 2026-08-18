@@ -6,3 +6,10 @@ relationships:
     created_at: "2026-08-16T18:52:30.456Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: verified_by
+    from: SCEN-cli-canonical-status
+    to: TEST-cli-canonical-status
+    created_at: 2026-08-18T16:20:31.867Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84dc2dc3cbab

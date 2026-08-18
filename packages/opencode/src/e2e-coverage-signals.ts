@@ -22,14 +22,14 @@ type TestDocMeta = {
 
 // ── TEST doc reader ──────────────────────────────────────────────
 //
-// Reads a TEST-*.md file from documentation/tests/ and extracts
+// Reads a TEST-*.md file from .kb/tests/ and extracts
 // frontmatter tags, source, and body.
 
 function readTestDoc(worktree: string, testId: string): TestDocMeta | null {
   // Try common locations for TEST docs
   const candidates = [
-    `documentation/tests/${testId}.md`,
-    `documentation/tests/${testId.toLowerCase()}.md`,
+    `.kb/tests/${testId}.md`,
+    `.kb/tests/${testId.toLowerCase()}.md`,
   ];
 
   for (const rel of candidates) {

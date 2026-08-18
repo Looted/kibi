@@ -523,7 +523,7 @@ Run KB validation rules after mutations. Agents can also opt into read-only chan
 - `includeWorkingTreeDiff` (optional): Include unstaged working-tree content/diffs for the supplied `sourceFiles`.
 - `includeImpactDiagnostics` (optional): Include changed-file diagnostics such as `symbol_granularity_violation` and `symbol_semantic_review_needed` in structured output.
 - `maxDiagnostics` (optional): Cap returned impact diagnostics. Graph validation violations are not capped by this value.
-- `workspaceRoot` (optional): Workspace root for impact diagnostics and `.kb/config.json` lookup. Defaults to the MCP server workspace.
+- `workspaceRoot` (optional): Workspace root for impact diagnostics. Defaults to the MCP server workspace.
 
 **Returns:**
 Validation report with any hard violations found and suggested fixes. `structuredContent.violations[]` is the blocking correctness lane: graph, schema, contradiction, query-plan, and staged enforcement failures live there and continue to drive `count` and failure status. `structuredContent.qualityDiagnostics[]` is the additive audit-quality lane for non-blocking modeling, coverage-depth, symbol fanout, duplicate-coordinate, broad-requirement, status, strict-fact, and telemetry-acceptance review signals.

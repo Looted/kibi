@@ -34,11 +34,11 @@ export const CURRENT_CHANGED_PATHS: readonly string[] = [
   ".changeset/scoped-skill-readers.md",
   ".gitignore",
   "docs/skillopt.md",
-  "documentation/requirements/REQ-skillopt-external-adoption-verdict.md",
-  "documentation/scenarios/SCEN-skillopt-external-adoption-verdict.md",
-  "documentation/symbol-coordinates.yaml",
-  "documentation/symbols.yaml",
-  "documentation/tests/TEST-skillopt-external-adoption-verdict.md",
+  ".kb/requirements/REQ-skillopt-external-adoption-verdict.md",
+  ".kb/scenarios/SCEN-skillopt-external-adoption-verdict.md",
+  ".kb/symbol-coordinates.yaml",
+  ".kb/symbols.yaml",
+  ".kb/tests/TEST-skillopt-external-adoption-verdict.md",
   "package.json",
   "packages/cli/src/public/skill-system/errors.ts",
   "packages/cli/src/public/skill-system/loader.ts",
@@ -197,7 +197,7 @@ function traceabilityFindings(input: AuditInput): readonly string[] {
   );
   const symbols = extractFromManifestString(
     input.symbolsManifest,
-    "documentation/symbols.yaml",
+    ".kb/symbols.yaml",
   ).filter(
     (symbol) =>
       symbol.sourceFile !== undefined &&

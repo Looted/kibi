@@ -76,3 +76,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-00c97ca8fd24
+  - type: implements
+    from: SYM-getStagedFiles
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T16:41:19.562Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9461dbc4f284
+  - type: covered_by
+    from: SYM-getStagedFiles
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T16:41:19.576Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7df981e63ad7

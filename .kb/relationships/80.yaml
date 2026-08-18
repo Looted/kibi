@@ -48,3 +48,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b96b148baabd
+  - type: implements
+    from: SYM-canonical-clearRecoveredPendingSourceReceipts
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T17:35:44.747Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-168aa3af3725
+  - type: covered_by
+    from: SYM-canonical-clearRecoveredPendingSourceReceipts
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T17:35:44.762Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9faad000d1c5

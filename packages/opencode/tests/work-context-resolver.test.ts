@@ -63,7 +63,7 @@ function createTempGitRepo(): TempGitRepo {
 
 function createAuthoritativeKb(root: string): void {
   mkdirSync(join(root, ".kb"), { recursive: true });
-  writeFileSync(join(root, ".kb", "config.json"), "{}\n");
+  writeFileSync(join(root, ".kb", "manifest.json"), "{}\n");
 
   for (const dir of [
     "requirements",

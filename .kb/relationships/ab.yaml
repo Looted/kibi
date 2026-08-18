@@ -45,3 +45,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9c71eab6b69d
+  - type: implements
+    from: SYM-classifyKibiImpactEvidence
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T16:41:32.196Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3246b977ebe
+  - type: covered_by
+    from: SYM-classifyKibiImpactEvidence
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T16:41:32.207Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ce600dda7c7

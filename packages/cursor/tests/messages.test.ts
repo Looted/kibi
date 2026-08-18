@@ -26,7 +26,7 @@ describe("stopFollowupMessage", () => {
   test("returns a short freshness nudge for documentation paths without KB activity", () => {
     expect(
       stopFollowupMessage(
-        state({ dirtyPaths: ["documentation/symbols.yaml"] }),
+        state({ dirtyPaths: [".kb/symbols.yaml"] }),
       ),
     ).toBe("Kibi: sync or record no-impact after 1 edited file.");
   });

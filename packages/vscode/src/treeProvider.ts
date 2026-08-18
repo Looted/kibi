@@ -79,17 +79,17 @@ interface FrontmatterLinkRecord {
   to?: unknown;
 }
 
-const ENTITY_TYPE_CONFIG_KEYS: Record<DocumentationEntityType, string> = {
-  req: "requirements",
-  scenario: "scenarios",
-  test: "tests",
-  adr: "adr",
-  flag: "flags",
-  event: "events",
-  fact: "facts",
+const CANONICAL_ENTITY_PATHS: Record<DocumentationEntityType, string> = {
+  req: ".kb/requirements",
+  scenario: ".kb/scenarios",
+  test: ".kb/tests",
+  adr: ".kb/adr",
+  flag: ".kb/flags",
+  event: ".kb/events",
+  fact: ".kb/facts",
 };
 
-const DEFAULT_DOCUMENTATION_PATHS: Record<DocumentationEntityType, string> = {
+const LEGACY_ENTITY_PATHS: Record<DocumentationEntityType, string> = {
   req: "documentation/requirements",
   scenario: "documentation/scenarios",
   test: "documentation/tests",
@@ -436,31 +436,18 @@ export class KibiTreeDataProvider
       return this.documentationEntityDirs;
     }
 
-    let configuredPaths: Record<string, unknown> = {};
-    const configPath = path.join(this.workspaceRoot, ".kb", "config.json");
-    if (fs.existsSync(configPath)) {
-      try {
-        const parsed = JSON.parse(fs.readFileSync(configPath, "utf8")) as {
-          paths?: Record<string, unknown>;
-        };
-        configuredPaths = parsed.paths ?? {};
-      } catch {
-        configuredPaths = {};
-      }
-    }
-
     const dirs: Partial<Record<DocumentationEntityType, string>> = {};
-    for (const [type, configKey] of Object.entries(
-      ENTITY_TYPE_CONFIG_KEYS,
-    ) as Array<[DocumentationEntityType, string]>) {
-      const configuredPath = configuredPaths[configKey];
-      const candidate =
-        typeof configuredPath === "string" && configuredPath.length > 0
-          ? configuredPath
-          : DEFAULT_DOCUMENTATION_PATHS[type];
-      const resolved = this.resolveConfiguredPath(candidate);
-      if (fs.existsSync(resolved)) {
-        dirs[type] = resolved;
+    for (const type of Object.keys(
+      CANONICAL_ENTITY_PATHS,
+    ) as DocumentationEntityType[]) {
+      const canonical = this.resolveConfiguredPath(CANONICAL_ENTITY_PATHS[type]);
+      if (fs.existsSync(canonical)) {
+        dirs[type] = canonical;
+        continue;
+      }
+      const legacy = this.resolveConfiguredPath(LEGACY_ENTITY_PATHS[type]);
+      if (fs.existsSync(legacy)) {
+        dirs[type] = legacy;
       }
     }
 

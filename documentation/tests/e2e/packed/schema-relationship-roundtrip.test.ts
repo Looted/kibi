@@ -157,7 +157,7 @@ function canonicalRelationshipRecords(repoDir: string): JsonRecord[] {
 function writeSchemaFixtures(sandbox: TestSandbox): void {
   createMarkdownFile(
     sandbox,
-    "documentation/requirements/REQ-SCHEMA-ROUNDTRIP.md",
+    ".kb/requirements/REQ-SCHEMA-ROUNDTRIP.md",
     {
       id: "REQ-SCHEMA-ROUNDTRIP",
       type: "req",
@@ -172,7 +172,7 @@ function writeSchemaFixtures(sandbox: TestSandbox): void {
   );
   createMarkdownFile(
     sandbox,
-    "documentation/requirements/REQ-SCHEMA-DEPENDENCY.md",
+    ".kb/requirements/REQ-SCHEMA-DEPENDENCY.md",
     {
       id: "REQ-SCHEMA-DEPENDENCY",
       type: "req",
@@ -183,7 +183,7 @@ function writeSchemaFixtures(sandbox: TestSandbox): void {
   );
   createMarkdownFile(
     sandbox,
-    "documentation/scenarios/SCEN-SCHEMA-ROUNDTRIP.md",
+    ".kb/scenarios/SCEN-SCHEMA-ROUNDTRIP.md",
     {
       id: "SCEN-SCHEMA-ROUNDTRIP",
       type: "scenario",
@@ -194,7 +194,7 @@ function writeSchemaFixtures(sandbox: TestSandbox): void {
   );
   createMarkdownFile(
     sandbox,
-    "documentation/tests/TEST-SCHEMA-ROUNDTRIP.md",
+    ".kb/tests/TEST-SCHEMA-ROUNDTRIP.md",
     {
       id: "TEST-SCHEMA-ROUNDTRIP",
       type: "test",
@@ -207,7 +207,7 @@ function writeSchemaFixtures(sandbox: TestSandbox): void {
   );
   createMarkdownFile(
     sandbox,
-    "documentation/adr/ADR-SCHEMA-ROUNDTRIP.md",
+    ".kb/adr/ADR-SCHEMA-ROUNDTRIP.md",
     {
       id: "ADR-SCHEMA-ROUNDTRIP",
       type: "adr",
@@ -218,7 +218,7 @@ function writeSchemaFixtures(sandbox: TestSandbox): void {
   );
   createMarkdownFile(
     sandbox,
-    "documentation/flags/FLAG-SCHEMA-ROUNDTRIP.md",
+    ".kb/flags/FLAG-SCHEMA-ROUNDTRIP.md",
     {
       id: "FLAG-SCHEMA-ROUNDTRIP",
       type: "flag",
@@ -229,7 +229,7 @@ function writeSchemaFixtures(sandbox: TestSandbox): void {
   );
   createMarkdownFile(
     sandbox,
-    "documentation/events/EVT-SCHEMA-ROUNDTRIP.md",
+    ".kb/events/EVT-SCHEMA-ROUNDTRIP.md",
     {
       id: "EVT-SCHEMA-ROUNDTRIP",
       type: "event",
@@ -240,7 +240,7 @@ function writeSchemaFixtures(sandbox: TestSandbox): void {
   );
   createMarkdownFile(
     sandbox,
-    "documentation/facts/FACT-SCHEMA-ROUNDTRIP.md",
+    ".kb/facts/FACT-SCHEMA-ROUNDTRIP.md",
     {
       id: "FACT-SCHEMA-ROUNDTRIP",
       type: "fact",
@@ -269,7 +269,7 @@ function writeSchemaFixtures(sandbox: TestSandbox): void {
 `,
     "utf8",
   );
-  stageSourceFile(sandbox, "documentation/symbols.yaml");
+  stageSourceFile(sandbox, ".kb/symbols.yaml");
 }
 
 // implements REQ-004
@@ -321,7 +321,7 @@ export async function packedEightEntitySchemaRoundTrip(
   assert.strictEqual(primary.priority, "must");
   assert.strictEqual(
     primary.source,
-    "documentation/requirements/REQ-SCHEMA-ROUNDTRIP.md",
+    ".kb/requirements/REQ-SCHEMA-ROUNDTRIP.md",
     "source provenance should be generated from the authored document path",
   );
 

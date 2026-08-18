@@ -143,6 +143,24 @@ export function isMeaningfulTrackedPath(candidate: string): boolean {
 export function isKbFreshnessRelevantPath(candidate: string): boolean {
   const segments = pathSegments(normalizePath(candidate));
 
+  if (segments[0] === ".kb") {
+    const lane = segments[1];
+    if (
+      lane === "requirements" ||
+      lane === "scenarios" ||
+      lane === "tests" ||
+      lane === "facts" ||
+      lane === "adr" ||
+      lane === "flags" ||
+      lane === "events" ||
+      lane === "symbols.yaml" ||
+      lane === "symbol-coordinates.yaml"
+    ) {
+      return true;
+    }
+  }
+
+  // Legacy layout during migration
   if (segments.includes("documentation")) {
     return true;
   }

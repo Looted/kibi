@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
+import { readKbManifestStatus } from "../../utils/kb-manifest.js";
+import { legacyConfigExists } from "../../utils/config.js";
 import {
   getSchemaVersionStatus,
   normalizeSchemaVersion,
@@ -467,32 +469,56 @@ export type MigrationConfigStatus = Readonly<{
 export function readMigrationConfigStatus(
   workspaceRoot: string,
 ): MigrationConfigStatus {
-  const configPath = path.join(workspaceRoot, ".kb", "config.json");
-  if (!existsSync(configPath)) {
-    const status = getSchemaVersionStatus(undefined);
-    return { ...status, configHash: null };
+  const status = readKbManifestStatus(workspaceRoot);
+  if (status.state === "ok") {
+    return {
+      status: getSchemaVersionStatus({
+        schemaVersion: status.manifest.schemaVersion,
+      }).status,
+      currentVersion: status.manifest.schemaVersion,
+      latestVersion: getSchemaVersionStatus({
+        schemaVersion: status.manifest.schemaVersion,
+      }).latestVersion,
+      needsMigration:
+        getSchemaVersionStatus({
+          schemaVersion: status.manifest.schemaVersion,
+        }).needsMigration,
+      warning: null,
+      configHash: status.manifestHash,
+    };
   }
+  const legacySchemaVersion = readLegacySchemaVersion(workspaceRoot);
+  const schemaStatus = getSchemaVersionStatus(
+    legacySchemaVersion === null
+      ? undefined
+      : { schemaVersion: legacySchemaVersion },
+  );
+  return {
+    ...schemaStatus,
+    currentVersion: normalizeSchemaVersion(legacySchemaVersion),
+    configHash: null,
+    warning: status.warning,
+  };
+}
+
+/**
+ * Best-effort recognition of a legacy `.kb/config.json` schemaVersion for
+ * repositories that have not yet run the storage migration. Malformed
+ * documents return null so status reports demand repair rather than
+ * silently treating the KB as uninitialized.
+ */
+function readLegacySchemaVersion(
+  workspaceRoot: string,
+): number | string | null {
+  const legacyPath = path.join(workspaceRoot, ".kb", "config.json");
+  if (!existsSync(legacyPath)) return null;
   try {
-    const contents = readFileSync(configPath, "utf8");
-    const parsed = JSON.parse(contents) as unknown;
-    const config =
-      parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)
-        ? (parsed as { schemaVersion?: number | string })
-        : null;
-    const status = getSchemaVersionStatus(config);
-    return {
-      ...status,
-      currentVersion: normalizeSchemaVersion(config?.schemaVersion),
-      configHash: createHash("sha256").update(contents).digest("hex"),
+    const parsed = JSON.parse(readFileSync(legacyPath, "utf8")) as {
+      schemaVersion?: number | string;
     };
+    return parsed.schemaVersion ?? null;
   } catch {
-    const status = getSchemaVersionStatus({ schemaVersion: "" });
-    return {
-      ...status,
-      configHash: null,
-      warning:
-        "KB config.json is invalid JSON and must be repaired before migration.",
-    };
+    return "";
   }
 }
 
@@ -562,6 +588,7 @@ export function buildActionsFromStatus(input: {
   }
 
   const storeState = typeof store?.state === "string" ? store.state : null;
+  const legacyStorageMigrationRequired = legacyConfigExists(input.workspaceRoot);
   if (storeState === "missing") {
     actions.push(
       migrationAction({
@@ -597,19 +624,21 @@ export function buildActionsFromStatus(input: {
     );
   }
 
-  if (configStatus.needsMigration) {
+  if (configStatus.needsMigration || legacyStorageMigrationRequired) {
     actions.push(
       migrationAction({
         id: "schema-config-upgrade",
         code:
           configStatus.status === "invalid"
             ? "invalid_schema_version"
-            : "schema_version_upgrade",
+            : legacyStorageMigrationRequired
+              ? "legacy_storage_migration"
+              : "schema_version_upgrade",
         category: "schema",
         state: configStatus.status === "newer" ? "blocked" : "ready",
         safety: configStatus.status === "newer" ? "operator" : "automatic",
         invocation: { kind: "cli", command_argv: ["kibi", "migrate", "--yes"] },
-        affectedFiles: [".kb/config.json", ".kb/migrations"],
+        affectedFiles: [".kb/manifest.json", ".kb/migrations", ".kb/config.json"],
         evidence: { configStatus },
         dependsOn: storeState === "missing" ? ["branch-store-ensure"] : [],
         autoApplicable: configStatus.status !== "newer",
@@ -679,7 +708,8 @@ export function buildActionsFromStatus(input: {
       action.code === "ambiguous_branch_attachment" ||
       action.code === "missing_exact_branch_store" ||
       action.code === "schema_version_upgrade" ||
-      action.code === "invalid_schema_version",
+      action.code === "invalid_schema_version" ||
+      action.code === "legacy_storage_migration",
   )
     ? ["kb"]
     : [];

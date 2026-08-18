@@ -47,7 +47,7 @@ export const OPERATIONS: readonly OperationCase[] = [
       type: "req",
       id: "REQ-PACKED-UPSERT",
       properties: { title: "Packed upsert", status: "open" },
-      document: { path: "documentation/requirements/REQ-PACKED-UPSERT.md" },
+      document: { path: ".kb/requirements/REQ-PACKED-UPSERT.md" },
       relationships: [
         {
           type: "relates_to",

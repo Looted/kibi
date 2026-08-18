@@ -26,6 +26,7 @@ import {
 import {
   extractExplicitPathFields,
   isDirectKbPath,
+  isKbFreshnessRelevantPath,
   isMeaningfulTrackedPath,
   toRepoRelativePath,
 } from "./path-policy.js";
@@ -64,7 +65,7 @@ function hasKibiConfig(cwd: string | undefined): boolean {
     return false;
   }
 
-  return fs.existsSync(path.join(cwd, ".kb", "config.json"));
+  return fs.existsSync(path.join(cwd, ".kb", "manifest.json"));
 }
 
 function isEditLikeTool(toolName: string | undefined): boolean {
@@ -194,7 +195,11 @@ export async function runHook(
       if (isKnownEditableTool(input.toolName)) {
         const dirtyPaths = explicitPaths
           .map((candidate) => toRepoRelativePath(candidate, cwd))
-          .filter(isMeaningfulTrackedPath);
+          .filter(
+            (candidate) =>
+              isMeaningfulTrackedPath(candidate) ||
+              isKbFreshnessRelevantPath(candidate),
+          );
 
         if (dirtyPaths.length > 0) {
           addDirtyPaths(stateDir, dirtyPaths);

@@ -212,7 +212,7 @@ Production code: use \`implements\` (symbol→req) for requirement ownership. Te
 - \`covered_by\` is coverage evidence only
 - Prefer scenario-first: req→scenario→test when scenarios exist
 - Route durable knowledge comments to KB entities, not inline comments
-- documentation/symbols.yaml refresh is required when extraction output changes; do not revert as scope creep`,
+- .kb/symbols.yaml refresh is required when extraction output changes; do not revert as scope creep`,
 
   manual_kb_edit: `⚠️  **WARNING: Direct .kb/ edits bypass validation**
 
@@ -241,7 +241,7 @@ ${buildBootstrapRequiredBody(capability)}`;
     case "root_partial":
       return `⚠️  **Partial KB setup detected**
 
-Root .kb/config.json exists but some configured KB targets are missing. Guidance remains advisory until the user/operator restores the configured KB targets.`;
+Root .kb/manifest.json exists but some canonical KB targets under .kb/ are missing. Guidance remains advisory until the user/operator restores the canonical layout.`;
     default:
       return null;
   }
@@ -580,7 +580,7 @@ function buildCommentSuggestionGuidance(
 Your recent code edit contains a comment that looks like a **strict domain fact** (invariants, properties, limits, defaults, or cardinality constraints).
 
 **Action**: Route to a FACT entity in the strict fact lane:
-- Create \`documentation/facts/FACT-xxx.md\` with the invariant (use \`constrains\` + \`requires_property\` for contradiction-safe reasoning)
+- Create \`.kb/facts/FACT-xxx.md\` with the invariant (use \`constrains\` + \`requires_property\` for contradiction-safe reasoning)
 - Bug/workaround notes: use \`fact_kind: observation\` or \`meta\` instead — these are non-blocking and excluded from contradiction inference
 - Link it to relevant requirements
 
@@ -591,7 +591,7 @@ This keeps domain truths centralized, searchable, and contradiction-safe.`;
 Your recent code edit contains a comment that looks like a **technical decision** (tradeoffs, rationale, or architecture choices).
 
 **Action**: Instead of inline comments, route this to an ADR entity:
-- Create \`documentation/adr/ADR-xxx.md\` documenting the decision
+- Create \`.kb/adr/ADR-xxx.md\` documenting the decision
 - Include context, options considered, and the chosen approach
 - Link to constrained code symbols
 
@@ -602,7 +602,7 @@ This preserves decision context for future maintainers.`;
 Your recent code edit contains a comment that looks like **behavior intent** (system capabilities or user-facing requirements).
 
 **Action**: Instead of inline comments, route this to a REQ entity:
-- Create \`documentation/requirements/REQ-xxx.md\` with the behavior description
+- Create \`.kb/requirements/REQ-xxx.md\` with the behavior description
 - Add SCEN and TEST entities for specification and verification
 - Link code: production uses \`implements\` (symbol→req) for ownership; test code uses \`executable_for\`; \`covered_by\` is coverage evidence only
 
@@ -648,7 +648,7 @@ Dogfood note for this repo: OpenCode here uses local built \`kibi-mcp\` and \`ki
 4. **Document intent**: If you are about to explain code, STOP. Route that explanation to kb_upsert instead of inline comments.
 5. **Link during work**: When creating KB entities, include relationship rows: specified_by (req→scenario), implements (symbol→req for ownership), covered_by (symbol→test for coverage), executable_for (test code→test).
 6. **Validate**: Run kb_check after KB mutations to catch violations early.
-7. **Before completion/commit**: Kibi impact evidence is required before completion/commit. If extraction output changes, refresh documentation/symbols.yaml and do not revert that update as scope creep.
+7. **Before completion/commit**: Kibi impact evidence is required before completion/commit. If extraction output changes, refresh .kb/symbols.yaml and do not revert that update as scope creep.
 
 MCP and CLI expose the same 18 Kibi operations. Use the exact MCP tool or dedicated CLI route; do not invent a generic runner.
 

@@ -23,7 +23,7 @@ import * as path from "node:path";
 import { promisify } from "node:util";
 import fg from "fast-glob";
 import { getRelationshipsDir } from "../../extractors/relationships.js";
-import type { KbConfigPaths } from "../../utils/config.js";
+import { CANONICAL_ENTITY_PATHS } from "../../utils/kb-paths.js";
 
 const MARKDOWN_DISCOVERY_IGNORE = ["**/README.md"] as const;
 const execFileAsync = promisify(execFile);
@@ -247,7 +247,6 @@ export function normalizeMarkdownPath(
 
 export async function discoverSourceFiles(
   cwd: string,
-  paths: KbConfigPaths,
   options: DiscoveryOptions = {},
 ): Promise<{
   markdownFiles: string[];
@@ -256,13 +255,13 @@ export async function discoverSourceFiles(
   recoveredPendingReceiptPaths: PendingSourceReceiptSnapshot[];
 }> {
   const markdownPatterns = [
-    normalizeMarkdownPath(paths.requirements),
-    normalizeMarkdownPath(paths.scenarios),
-    normalizeMarkdownPath(paths.tests),
-    normalizeMarkdownPath(paths.adr),
-    normalizeMarkdownPath(paths.flags),
-    normalizeMarkdownPath(paths.events),
-    normalizeMarkdownPath(paths.facts),
+    normalizeMarkdownPath(CANONICAL_ENTITY_PATHS.requirements),
+    normalizeMarkdownPath(CANONICAL_ENTITY_PATHS.scenarios),
+    normalizeMarkdownPath(CANONICAL_ENTITY_PATHS.tests),
+    normalizeMarkdownPath(CANONICAL_ENTITY_PATHS.adr),
+    normalizeMarkdownPath(CANONICAL_ENTITY_PATHS.flags),
+    normalizeMarkdownPath(CANONICAL_ENTITY_PATHS.events),
+    normalizeMarkdownPath(CANONICAL_ENTITY_PATHS.facts),
   ].filter((p): p is string => Boolean(p));
 
   const markdownFiles = await fg(markdownPatterns, {
@@ -274,12 +273,10 @@ export async function discoverSourceFiles(
     (file) => !file.endsWith("/README.md"),
   );
 
-  let manifestFiles = paths.symbols
-    ? await fg(paths.symbols, {
-        cwd,
-        absolute: true,
-      })
-    : [];
+  let manifestFiles = await fg(CANONICAL_ENTITY_PATHS.symbols, {
+    cwd,
+    absolute: true,
+  });
   const recoveredPendingReceiptPaths: PendingSourceReceiptSnapshot[] = [];
 
   if (options.trackedOnly) {
@@ -301,6 +298,19 @@ export async function discoverSourceFiles(
       tracked,
       new Set(pending.paths.keys()),
     );
+    for (const relative of pending.paths.keys()) {
+      const absolute = path.resolve(cwd, relative);
+      if (!existsSync(absolute)) continue;
+      if (relative.endsWith(".md") && !entityMarkdownFiles.includes(absolute)) {
+        entityMarkdownFiles.push(absolute);
+      }
+      if (
+        (relative.endsWith(".yaml") || relative.endsWith(".yml")) &&
+        !manifestFiles.includes(absolute)
+      ) {
+        manifestFiles.push(absolute);
+      }
+    }
     // A pending receipt is consumed as soon as Git tracks its file. This is
     // deliberately best-effort metadata; the source hash remains authoritative.
     const pendingRoot = path.join(cwd, ".kb", "recovery", "pending-sources");

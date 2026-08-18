@@ -282,38 +282,22 @@ export async function resolveManifestPath(
   workspaceRoot: string,
 ): Promise<string> {
   // implements REQ-002, REQ-013
-  const configPath = path.join(workspaceRoot, ".kb", "config.json");
-  try {
-    const config = JSON.parse(await readFile(configPath, "utf8")) as {
-      symbolsManifest?: string;
-      paths?: { symbols?: string };
-    };
-    // Prefer paths.symbols (new standard) over symbolsManifest (legacy)
-    if (config.paths?.symbols) {
-      return path.isAbsolute(config.paths.symbols)
-        ? config.paths.symbols
-        : path.resolve(workspaceRoot, config.paths.symbols);
-    }
-    // Backward compatibility: check legacy symbolsManifest field
-    if (config.symbolsManifest) {
-      return path.isAbsolute(config.symbolsManifest)
-        ? config.symbolsManifest
-        : path.resolve(workspaceRoot, config.symbolsManifest);
-    }
-  } catch {
-    // config file missing or malformed; fall through to defaults
+  const canonical = path.join(workspaceRoot, ".kb", "symbols.yaml");
+  if (await fileExists(canonical)) {
+    return canonical;
   }
 
-  const candidates = [
+  const legacyCandidates = [
+    path.join(workspaceRoot, "documentation", "symbols.yaml"),
     path.join(workspaceRoot, "symbols.yaml"),
     path.join(workspaceRoot, "symbols.yml"),
   ];
-  for (const candidate of candidates) {
+  for (const candidate of legacyCandidates) {
     if (await fileExists(candidate)) {
       return candidate;
     }
   }
-  return candidates[0] ?? path.join(workspaceRoot, "symbols.yaml");
+  return canonical;
 }
 
 function hasGeneratedCoordinates(entry: ManifestSymbolEntry): boolean {

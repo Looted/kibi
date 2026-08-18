@@ -1,5 +1,4 @@
 import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
-import type { KbConfigPaths } from "../../../src/utils/config.js";
 
 const fgMock = mock(
   async (
@@ -40,8 +39,8 @@ describe("normalizeMarkdownPath", () => {
   });
 
   test("appends /**/*.md to normal pattern without wildcard", () => {
-    expect(normalizeMarkdownPath("documentation/requirements")).toBe(
-      "documentation/requirements/**/*.md",
+    expect(normalizeMarkdownPath(".kb/requirements")).toBe(
+      ".kb/requirements/**/*.md",
     );
   });
 
@@ -51,6 +50,16 @@ describe("normalizeMarkdownPath", () => {
 });
 
 describe("discoverSourceFiles", () => {
+  const canonicalMarkdownPatterns = [
+    ".kb/requirements/**/*.md",
+    ".kb/scenarios/**/*.md",
+    ".kb/tests/**/*.md",
+    ".kb/adr/**/*.md",
+    ".kb/flags/**/*.md",
+    ".kb/events/**/*.md",
+    ".kb/facts/**/*.md",
+  ];
+
   beforeEach(() => {
     fgMock.mockReset();
   });
@@ -59,155 +68,94 @@ describe("discoverSourceFiles", () => {
     mock.restore();
   });
 
-  test("returns all markdown files when all paths are set", async () => {
-    const mdFiles = ["/project/docs/REQ-001.md", "/project/docs/SCEN-001.md"];
+  test("globs canonical .kb/ lanes regardless of leftover path arguments", async () => {
+    const mdFiles = [
+      "/project/.kb/requirements/REQ-001.md",
+      "/project/.kb/scenarios/SCEN-001.md",
+    ];
     fgMock.mockResolvedValueOnce(mdFiles);
-    fgMock.mockResolvedValueOnce(["/project/docs/symbols.yaml"]);
+    fgMock.mockResolvedValueOnce(["/project/.kb/symbols.yaml"]);
 
-    const paths: KbConfigPaths = {
-      requirements: "docs/requirements",
-      scenarios: "docs/scenarios",
-      tests: "docs/tests",
-      adr: "docs/adr",
-      flags: "docs/flags",
-      events: "docs/events",
-      facts: "docs/facts",
-      symbols: "docs/symbols.yaml",
-    };
-
-    const result = await discoverSourceFiles("/project", paths);
+    const result = await discoverSourceFiles("/project");
 
     expect(result.markdownFiles).toEqual(mdFiles);
-    expect(result.manifestFiles).toEqual(["/project/docs/symbols.yaml"]);
+    expect(result.manifestFiles).toEqual(["/project/.kb/symbols.yaml"]);
     expect(result.relationshipsDir).toBe("/project/.kb/relationships");
     expect(fgMock).toHaveBeenCalledTimes(2);
+    expect(fgMock.mock.calls[0][0]).toEqual(canonicalMarkdownPatterns);
+    expect(fgMock.mock.calls[1][0]).toBe(".kb/symbols.yaml");
   });
 
-  test("filters out undefined paths from markdown patterns", async () => {
-    fgMock.mockResolvedValueOnce(["/project/docs/REQ-001.md"]);
-
-    const paths: KbConfigPaths = {
-      requirements: "docs/requirements",
-      // scenarios is undefined
-      tests: undefined,
-      adr: undefined,
-      flags: undefined,
-      events: undefined,
-      facts: undefined,
-    };
-
-    const result = await discoverSourceFiles("/project", paths);
-
-    // Only one pattern should be passed (requirements)
-    const patternsArg = fgMock.mock.calls[0][0];
-    expect(patternsArg).toEqual(["docs/requirements/**/*.md"]);
-    expect(result.markdownFiles).toEqual(["/project/docs/REQ-001.md"]);
-  });
-
-  test("returns empty markdownFiles when all paths are undefined", async () => {
+  test("always discovers every canonical markdown lane", async () => {
+    fgMock.mockResolvedValueOnce(["/project/.kb/requirements/REQ-001.md"]);
     fgMock.mockResolvedValueOnce([]);
 
-    const paths: KbConfigPaths = {};
+    await discoverSourceFiles("/project");
 
-    const result = await discoverSourceFiles("/project", paths);
-
-    expect(result.markdownFiles).toEqual([]);
-    const patternsArg = fgMock.mock.calls[0][0];
-    expect(patternsArg).toEqual([]);
+    expect(fgMock.mock.calls[0][0]).toEqual(canonicalMarkdownPatterns);
   });
 
-  test("returns empty manifestFiles when symbols is undefined", async () => {
-    fgMock.mockResolvedValueOnce([]);
-
-    const paths: KbConfigPaths = {
-      requirements: "docs/reqs",
-    };
-
-    const result = await discoverSourceFiles("/project", paths);
-
-    expect(result.manifestFiles).toEqual([]);
-    // fg should only be called once (for markdown, not symbols)
-    expect(fgMock).toHaveBeenCalledTimes(1);
-  });
-
-  test("returns manifestFiles when symbols path is set", async () => {
-    const symbolFiles = ["/project/docs/symbols.yaml"];
+  test("discovers the canonical symbols manifest", async () => {
+    const symbolFiles = ["/project/.kb/symbols.yaml"];
     fgMock.mockResolvedValueOnce([]);
     fgMock.mockResolvedValueOnce(symbolFiles);
 
-    const paths: KbConfigPaths = {
-      symbols: "docs/symbols.yaml",
-    };
-
-    const result = await discoverSourceFiles("/project", paths);
+    const result = await discoverSourceFiles("/project");
 
     expect(result.manifestFiles).toEqual(symbolFiles);
-    // Second call should be for symbols with cwd and absolute
     expect(fgMock.mock.calls[1]).toEqual([
-      "docs/symbols.yaml",
+      ".kb/symbols.yaml",
       { cwd: "/project", absolute: true },
     ]);
   });
 
   test("passes cwd and absolute options to fast-glob for markdown patterns", async () => {
     fgMock.mockResolvedValueOnce([]);
+    fgMock.mockResolvedValueOnce([]);
 
-    const paths: KbConfigPaths = {
-      requirements: "docs/requirements",
-    };
-
-    await discoverSourceFiles("/test/cwd", paths);
+    await discoverSourceFiles("/test/cwd");
 
     expect(fgMock.mock.calls[0]).toEqual([
-      ["docs/requirements/**/*.md"],
+      canonicalMarkdownPatterns,
       { cwd: "/test/cwd", absolute: true, ignore: ["**/README.md"] },
     ]);
   });
 
   test("ignores README markdown files under entity directories", async () => {
     fgMock.mockResolvedValueOnce([
-      "/project/docs/tests/README.md",
-      "/project/docs/tests/TEST-001.md",
+      "/project/.kb/tests/README.md",
+      "/project/.kb/tests/TEST-001.md",
     ]);
+    fgMock.mockResolvedValueOnce([]);
 
-    const paths: KbConfigPaths = {
-      tests: "docs/tests",
-    };
+    const result = await discoverSourceFiles("/project");
 
-    const result = await discoverSourceFiles("/project", paths);
-
-    expect(result.markdownFiles).toEqual(["/project/docs/tests/TEST-001.md"]);
+    expect(result.markdownFiles).toEqual(["/project/.kb/tests/TEST-001.md"]);
     expect(fgMock.mock.calls[0]).toEqual([
-      ["docs/tests/**/*.md"],
+      canonicalMarkdownPatterns,
       { cwd: "/project", absolute: true, ignore: ["**/README.md"] },
     ]);
   });
 
   test("returns correct relationshipsDir based on cwd", async () => {
     fgMock.mockResolvedValueOnce([]);
+    fgMock.mockResolvedValueOnce([]);
 
-    const paths: KbConfigPaths = {};
-
-    const result = await discoverSourceFiles("/my/project", paths);
+    const result = await discoverSourceFiles("/my/project");
 
     expect(result.relationshipsDir).toBe("/my/project/.kb/relationships");
   });
 
-  test("handles wildcard patterns from config paths", async () => {
-    fgMock.mockResolvedValueOnce(["/project/docs/REQ-001.md"]);
+  test("does not honor leftover wildcard config paths", async () => {
+    fgMock.mockResolvedValueOnce(["/project/.kb/requirements/REQ-001.md"]);
     fgMock.mockResolvedValueOnce([]);
 
-    const paths: KbConfigPaths = {
+    await discoverSourceFiles("/project", {
       requirements: "docs/**/reqs/**/*.md",
       symbols: "src/**/*.symbols.yaml",
-    };
+    } as never);
 
-    await discoverSourceFiles("/project", paths);
-
-    // Wildcard patterns should pass through unchanged
-    const mdPatterns = fgMock.mock.calls[0][0];
-    expect(mdPatterns).toEqual(["docs/**/reqs/**/*.md"]);
-
-    expect(fgMock.mock.calls[1][0]).toBe("src/**/*.symbols.yaml");
+    expect(fgMock.mock.calls[0][0]).toEqual(canonicalMarkdownPatterns);
+    expect(fgMock.mock.calls[1][0]).toBe(".kb/symbols.yaml");
   });
 });

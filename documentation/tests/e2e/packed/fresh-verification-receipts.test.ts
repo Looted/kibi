@@ -171,9 +171,9 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
         "export const receiptBehavior = 'v1';\n",
       );
       for (const sourcePath of [
-        "documentation/requirements/REQ-PACKED-RECEIPT.md",
-        "documentation/scenarios/SCEN-PACKED-RECEIPT.md",
-        "documentation/tests/TEST-PACKED-RECEIPT.md",
+        ".kb/requirements/REQ-PACKED-RECEIPT.md",
+        ".kb/scenarios/SCEN-PACKED-RECEIPT.md",
+        ".kb/tests/TEST-PACKED-RECEIPT.md",
         "tests/e2e/receipt.test.ts",
       ]) {
         stageSourceFile(sandbox, sourcePath);

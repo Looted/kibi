@@ -29,42 +29,48 @@ const resolveSymbolsManifestPaths = (
 let tempDir: string;
 
 beforeAll(() => {
-  // Create a temporary directory for all tests
   tempDir = fs.mkdtempSync(
     path.join(os.tmpdir(), "kibi-manifest-resolver-test-"),
   );
 });
 
 afterEach(() => {
-  // Clean up .kb directory after each test if it exists
   const kbDir = path.join(tempDir, ".kb");
   if (fs.existsSync(kbDir)) {
     fs.rmSync(kbDir, { recursive: true });
   }
-  // Clean up any symbols files
-  const symbolsYaml = path.join(tempDir, "symbols.yaml");
-  const symbolsYml = path.join(tempDir, "symbols.yml");
-  if (fs.existsSync(symbolsYaml)) {
-    fs.unlinkSync(symbolsYaml);
-  }
-  if (fs.existsSync(symbolsYml)) {
-    fs.unlinkSync(symbolsYml);
+  for (const name of ["symbols.yaml", "symbols.yml"]) {
+    const candidate = path.join(tempDir, name);
+    if (fs.existsSync(candidate)) {
+      fs.unlinkSync(candidate);
+    }
   }
   const docsDir = path.join(tempDir, "documentation");
   if (fs.existsSync(docsDir)) {
     fs.rmSync(docsDir, { recursive: true, force: true });
   }
+  const customDir = path.join(tempDir, "custom");
+  if (fs.existsSync(customDir)) {
+    fs.rmSync(customDir, { recursive: true, force: true });
+  }
 });
 
 afterAll(() => {
-  // Clean up the entire temp directory
   if (fs.existsSync(tempDir)) {
     fs.rmSync(tempDir, { recursive: true });
   }
 });
 
-describe("resolveSymbolsManifestPath - missing config", () => {
-  test("resolveSymbolsManifestPaths returns manifest and derived coordinate artifact paths", () => {
+function writeKbSymbols(): string {
+  const kbDir = path.join(tempDir, ".kb");
+  fs.mkdirSync(kbDir, { recursive: true });
+  const symbolsPath = path.join(kbDir, "symbols.yaml");
+  fs.writeFileSync(symbolsPath, "symbols: []");
+  return symbolsPath;
+}
+
+describe("resolveSymbolsManifestPath - canonical layout", () => {
+  test("resolveSymbolsManifestPaths returns canonical paths when nothing exists", () => {
     expect(typeof resolveSymbolsManifestPaths).toBe("function");
     if (typeof resolveSymbolsManifestPaths !== "function") {
       return;
@@ -72,516 +78,100 @@ describe("resolveSymbolsManifestPath - missing config", () => {
 
     const result = resolveSymbolsManifestPaths(tempDir);
     expect(result).toEqual({
-      symbolsPath: path.join(tempDir, "documentation", "symbols.yaml"),
-      coordinatesPath: path.join(
-        tempDir,
-        "documentation",
-        "symbol-coordinates.yaml",
-      ),
+      symbolsPath: path.join(tempDir, ".kb", "symbols.yaml"),
+      coordinatesPath: path.join(tempDir, ".kb", "symbol-coordinates.yaml"),
     });
     expect(resolveSymbolsManifestPath(tempDir)).toBe(result.symbolsPath);
   });
 
-  test("no config file falls back to default candidates", () => {
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
+  test("empty workspace resolves to canonical .kb/symbols.yaml", () => {
+    expect(resolveSymbolsManifestPath(tempDir)).toBe(
+      path.join(tempDir, ".kb", "symbols.yaml"),
+    );
   });
 
-  test("documentation/symbols.yaml takes precedence over workspace-root defaults", () => {
+  test(".kb/symbols.yaml wins over leftover config.json and repo-root files", () => {
+    const canonical = writeKbSymbols();
+    fs.mkdirSync(path.join(tempDir, ".kb"), { recursive: true });
+    fs.writeFileSync(
+      path.join(tempDir, ".kb", "config.json"),
+      JSON.stringify({ paths: { symbols: "custom/symbols.yaml" } }),
+    );
+    fs.mkdirSync(path.join(tempDir, "custom"), { recursive: true });
+    fs.writeFileSync(path.join(tempDir, "custom", "symbols.yaml"), "custom: true");
+    fs.writeFileSync(path.join(tempDir, "symbols.yaml"), "root: true");
+
+    expect(resolveSymbolsManifestPath(tempDir)).toBe(canonical);
+  });
+
+  test("legacy documentation/symbols.yaml is used when canonical is missing", () => {
     const docsDir = path.join(tempDir, "documentation");
     fs.mkdirSync(docsDir, { recursive: true });
     const docsSymbols = path.join(docsDir, "symbols.yaml");
     fs.writeFileSync(docsSymbols, "symbols: []");
 
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(docsSymbols);
+    expect(resolveSymbolsManifestPath(tempDir)).toBe(docsSymbols);
   });
 
-  test("no config file but symbols.yaml exists returns symbols.yaml", () => {
+  test("repo-root symbols.yaml is used when canonical and documentation copies are missing", () => {
     const symbolsYaml = path.join(tempDir, "symbols.yaml");
     fs.writeFileSync(symbolsYaml, "test: value");
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(symbolsYaml);
+    expect(resolveSymbolsManifestPath(tempDir)).toBe(symbolsYaml);
   });
 
-  test("no config file but symbols.yml exists returns symbols.yml", () => {
+  test("repo-root symbols.yml is used when no yaml sibling exists", () => {
     const symbolsYml = path.join(tempDir, "symbols.yml");
     fs.writeFileSync(symbolsYml, "test: value");
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(symbolsYml);
+    expect(resolveSymbolsManifestPath(tempDir)).toBe(symbolsYml);
   });
 
-  test("no config file but both symbols files exist returns symbols.yaml", () => {
-    const symbolsYaml = path.join(tempDir, "symbols.yaml");
-    const symbolsYml = path.join(tempDir, "symbols.yml");
-    fs.writeFileSync(symbolsYaml, "yaml content");
-    fs.writeFileSync(symbolsYml, "yml content");
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(symbolsYaml);
-  });
-});
+  test("leftover config.json cannot relocate the manifest", () => {
+    fs.mkdirSync(path.join(tempDir, ".kb"), { recursive: true });
+    fs.writeFileSync(
+      path.join(tempDir, ".kb", "config.json"),
+      JSON.stringify({ paths: { symbols: "custom/symbols.yaml" } }),
+    );
+    fs.mkdirSync(path.join(tempDir, "custom"), { recursive: true });
+    const custom = path.join(tempDir, "custom", "symbols.yaml");
+    fs.writeFileSync(custom, "custom: true");
 
-describe("resolveSymbolsManifestPath - malformed config", () => {
-  test("invalid JSON in config.json falls back to defaults", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(configPath, "{ invalid json }");
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
-  });
-
-  test("empty config.json falls back to defaults", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(configPath, "");
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
-  });
-
-  test("config.json with syntax errors falls back to defaults", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(configPath, '{ "symbolsManifest": "/path/to/file" ');
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
-  });
-
-  test("malformed config with symbols.yaml fallback returns symbols.yaml", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(configPath, "{ invalid }");
-    const symbolsYaml = path.join(tempDir, "symbols.yaml");
-    fs.writeFileSync(symbolsYaml, "test: value");
-
-    const result = manifestResolver.resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(symbolsYaml);
+    expect(resolveSymbolsManifestPath(tempDir)).toBe(
+      path.join(tempDir, ".kb", "symbols.yaml"),
+    );
   });
 });
 
-describe("resolveSymbolsManifestPath - paths.symbols handling", () => {
-  test("resolveSymbolsManifestPaths derives sibling coordinate artifact from configured manifest path", () => {
+describe("resolveSymbolsManifestPaths - coordinates", () => {
+  test("prefers canonical .kb/symbol-coordinates.yaml when present", () => {
     expect(typeof resolveSymbolsManifestPaths).toBe("function");
     if (typeof resolveSymbolsManifestPaths !== "function") {
       return;
     }
 
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({ paths: { symbols: "custom/nested/symbols.yaml" } }),
-    );
+    const canonical = writeKbSymbols();
+    const coordinatesPath = path.join(tempDir, ".kb", "symbol-coordinates.yaml");
+    fs.writeFileSync(coordinatesPath, "coordinates: {}");
 
     expect(resolveSymbolsManifestPaths(tempDir)).toEqual({
-      symbolsPath: path.join(tempDir, "custom", "nested", "symbols.yaml"),
-      coordinatesPath: path.join(
-        tempDir,
-        "custom",
-        "nested",
-        "symbol-coordinates.yaml",
-      ),
+      symbolsPath: canonical,
+      coordinatesPath,
     });
   });
 
-  test("config with paths.symbols returns resolved path", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({ paths: { symbols: "custom/symbols.yaml" } }),
-    );
+  test("legacy documentation coordinates sit beside the legacy symbols file", () => {
+    expect(typeof resolveSymbolsManifestPaths).toBe("function");
+    if (typeof resolveSymbolsManifestPaths !== "function") {
+      return;
+    }
 
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "custom", "symbols.yaml"));
-  });
+    const docsDir = path.join(tempDir, "documentation");
+    fs.mkdirSync(docsDir, { recursive: true });
+    const docsSymbols = path.join(docsDir, "symbols.yaml");
+    fs.writeFileSync(docsSymbols, "symbols: []");
 
-  test("config with paths.symbols and nested directory resolves correctly", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({ paths: { symbols: "deep/nested/path/symbols.yaml" } }),
-    );
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(
-      path.join(tempDir, "deep", "nested", "path", "symbols.yaml"),
-    );
-  });
-
-  test("config with paths.symbols as parent directory path resolves correctly", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({ paths: { symbols: "../other/symbols.yaml" } }),
-    );
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(
-      path.join(path.dirname(tempDir), "other", "symbols.yaml"),
-    );
-  });
-
-  test("config with paths.symbols null falls back to defaults", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(configPath, JSON.stringify({ paths: { symbols: null } }));
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
-  });
-
-  test("config with paths.symbols empty string falls back to defaults", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(configPath, JSON.stringify({ paths: { symbols: "" } }));
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
-  });
-});
-
-describe("resolveSymbolsManifestPath - symbolsManifest legacy handling", () => {
-  test("config with symbolsManifest returns resolved path", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({ symbolsManifest: "legacy/symbols.yaml" }),
-    );
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "legacy", "symbols.yaml"));
-  });
-
-  test("config with symbolsManifest and nested directory resolves correctly", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({ symbolsManifest: "config/legacy/symbols.yml" }),
-    );
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "config", "legacy", "symbols.yml"));
-  });
-
-  test("config with both symbolsManifest and paths.symbols prefers paths.symbols (current convention)", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({
-        symbolsManifest: "legacy/symbols.yaml",
-        paths: { symbols: "new/symbols.yaml" },
-      }),
-    );
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "new/symbols.yaml"));
-  });
-
-  test("config with symbolsManifest null falls back to defaults", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(configPath, JSON.stringify({ symbolsManifest: null }));
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
-  });
-
-  test("config with symbolsManifest empty string falls back to defaults", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(configPath, JSON.stringify({ symbolsManifest: "" }));
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
-  });
-});
-
-describe("resolveSymbolsManifestPath - absolute paths", () => {
-  test("config with absolute paths.symbols returns absolute path", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    const absolutePath = "/absolute/path/to/symbols.yaml";
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({ paths: { symbols: absolutePath } }),
-    );
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(absolutePath);
-  });
-
-  test("config with absolute symbolsManifest returns absolute path", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    const absolutePath = "/absolute/legacy/symbols.yml";
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({ symbolsManifest: absolutePath }),
-    );
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(absolutePath);
-  });
-
-  test("config with absolute path on different drive (Windows)", () => {
-    // On non-Windows systems, drive-letter paths are not recognized as absolute
-    // This test verifies the actual behavior on the current platform
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    const absolutePath = "C:\\absolute\\path\\symbols.yaml";
-
-    // Create a symbols.yaml at the location where the path would resolve to on non-Windows
-    const resolvedPath = path.resolve(tempDir, absolutePath);
-    fs.mkdirSync(path.dirname(resolvedPath), { recursive: true });
-    fs.writeFileSync(resolvedPath, "test: value");
-
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({ paths: { symbols: absolutePath } }),
-    );
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    // On Windows, this would be the absolute path; on Unix, it resolves relative to tempDir
-    expect(result).toBe(
-      path.isAbsolute(absolutePath) ? absolutePath : resolvedPath,
-    );
-  });
-});
-
-describe("resolveSymbolsManifestPath - relative paths", () => {
-  test("config with relative paths.symbols resolves against workspace root", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({ paths: { symbols: "relative/symbols.yaml" } }),
-    );
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "relative", "symbols.yaml"));
-  });
-
-  test("config with relative symbolsManifest resolves against workspace root", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({ symbolsManifest: "relative/symbols.yml" }),
-    );
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "relative", "symbols.yml"));
-  });
-
-  test("config with dot-relative path resolves correctly", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({ paths: { symbols: "./config/symbols.yaml" } }),
-    );
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "config", "symbols.yaml"));
-  });
-
-  test("config with parent-relative path resolves correctly", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({ paths: { symbols: "../shared/symbols.yaml" } }),
-    );
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(
-      path.join(path.dirname(tempDir), "shared", "symbols.yaml"),
-    );
-  });
-});
-
-describe("resolveSymbolsManifestPath - fallback to symbols.yaml/symbols.yml", () => {
-  test("empty config returns symbols.yaml as default", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(configPath, "{}");
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
-  });
-
-  test("config with paths object but no symbols returns symbols.yaml", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(configPath, JSON.stringify({ paths: {} }));
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
-  });
-
-  test("config with null paths returns symbols.yaml", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(configPath, JSON.stringify({ paths: null }));
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
-  });
-
-  test("both symbols.yaml and symbols.yml exist returns symbols.yaml", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(configPath, "{}");
-
-    const symbolsYaml = path.join(tempDir, "symbols.yaml");
-    const symbolsYml = path.join(tempDir, "symbols.yml");
-    fs.writeFileSync(symbolsYaml, "yaml content");
-    fs.writeFileSync(symbolsYml, "yml content");
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(symbolsYaml);
-  });
-
-  test("only symbols.yml exists returns symbols.yml", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(configPath, "{}");
-
-    const symbolsYml = path.join(tempDir, "symbols.yml");
-    fs.writeFileSync(symbolsYml, "yml content");
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(symbolsYml);
-  });
-
-  test("neither symbols.yaml nor symbols.yml exist returns symbols.yaml", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(configPath, "{}");
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
-  });
-
-  test("config with symbolsManifest undefined returns symbols.yaml", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({ paths: { symbols: undefined } }),
-    );
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
-  });
-});
-
-describe("resolveSymbolsManifestPath - priority and fallback behavior", () => {
-  test("paths.symbols takes priority over symbolsManifest (legacy field)", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({
-        symbolsManifest: "legacy/symbols.yaml",
-        paths: { symbols: "current/symbols.yaml" },
-      }),
-    );
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "current/symbols.yaml"));
-  });
-
-  test("symbolsManifest used when paths.symbols is null", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({
-        symbolsManifest: "legacy/symbols.yaml",
-        paths: { symbols: null },
-      }),
-    );
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "legacy", "symbols.yaml"));
-  });
-
-  test("fallback to symbols.yaml when config paths exist but symbols don't", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({ paths: { docs: "docs/path" } }),
-    );
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
-  });
-
-  test("config error falls back to existing symbols.yaml", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(configPath, "{ invalid }");
-
-    const symbolsYaml = path.join(tempDir, "symbols.yaml");
-    fs.writeFileSync(symbolsYaml, "yaml content");
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(symbolsYaml);
-  });
-
-  test("config error falls back to existing symbols.yml if symbols.yaml doesn't exist", () => {
-    const kbDir = path.join(tempDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    const configPath = path.join(kbDir, "config.json");
-    fs.writeFileSync(configPath, "{ invalid }");
-
-    const symbolsYml = path.join(tempDir, "symbols.yml");
-    fs.writeFileSync(symbolsYml, "yml content");
-
-    const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(symbolsYml);
+    expect(resolveSymbolsManifestPaths(tempDir)).toEqual({
+      symbolsPath: docsSymbols,
+      coordinatesPath: path.join(docsDir, "symbol-coordinates.yaml"),
+    });
   });
 });

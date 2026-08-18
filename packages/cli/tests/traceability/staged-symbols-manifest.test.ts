@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { execSync } from "node:child_process";
 import {
   existsSync,
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
@@ -17,6 +18,7 @@ import {
 
 function writeFile(root: string, relativePath: string, content: string): void {
   const fullPath = path.join(root, relativePath);
+  mkdirSync(path.dirname(fullPath), { recursive: true });
   writeFileSync(fullPath, content);
 }
 
@@ -48,7 +50,7 @@ describe("assessStagedSymbolsManifest", () => {
       cwd: tmpDir,
       stdio: "pipe",
     });
-    execSync("mkdir -p src custom documentation", {
+    execSync("mkdir -p src custom .kb", {
       cwd: tmpDir,
       stdio: "pipe",
     });
@@ -60,7 +62,7 @@ describe("assessStagedSymbolsManifest", () => {
     }
   });
 
-  it("uses configured paths.symbols (yaml) for baseline manifest comparison", () => {
+  it("uses canonical .kb/symbols.yaml for baseline manifest comparison", () => {
     writeFile(
       tmpDir,
       "src/app.ts",
@@ -68,7 +70,7 @@ describe("assessStagedSymbolsManifest", () => {
     );
     writeFile(
       tmpDir,
-      "custom/my-symbols.yaml",
+      ".kb/symbols.yaml",
       "symbols:\n  - id: SYMBOL-CUSTOM-001\n    title: customFunction\n    sourceFile: src/app.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 3\n    sourceEndColumn: 1\n",
     );
     commitAll(tmpDir, "initial");
@@ -84,21 +86,21 @@ describe("assessStagedSymbolsManifest", () => {
     process.chdir(tmpDir);
     try {
       const result = assessStagedSymbolsManifest({
-        symbolsManifestPath: "custom/my-symbols.yaml",
+        symbolsManifestPath: ".kb/symbols.yaml",
         sourceFiles: [createSourceStagedFile(tmpDir)],
         stagedFiles: [createSourceStagedFile(tmpDir)],
       });
       expect(result).toEqual({
         state: "not_required",
         sourcePaths: [],
-        path: "custom/symbol-coordinates.yaml",
+        path: ".kb/symbol-coordinates.yaml",
       });
     } finally {
       process.chdir(previousCwd);
     }
   });
 
-  it("supports configured .yml symbols manifests", () => {
+  it("supports the canonical .yml twin of .kb/symbols.yaml", () => {
     writeFile(
       tmpDir,
       "src/app.ts",
@@ -106,7 +108,7 @@ describe("assessStagedSymbolsManifest", () => {
     );
     writeFile(
       tmpDir,
-      "custom/my-symbols.yml",
+      ".kb/symbols.yml",
       "symbols:\n  - id: SYMBOL-CUSTOM-001\n    title: customFunction\n    sourceFile: src/app.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 3\n    sourceEndColumn: 1\n",
     );
     commitAll(tmpDir, "initial");
@@ -122,14 +124,14 @@ describe("assessStagedSymbolsManifest", () => {
     process.chdir(tmpDir);
     try {
       const result = assessStagedSymbolsManifest({
-        symbolsManifestPath: "custom/my-symbols.yml",
+        symbolsManifestPath: ".kb/symbols.yml",
         sourceFiles: [createSourceStagedFile(tmpDir)],
         stagedFiles: [createSourceStagedFile(tmpDir)],
       });
       expect(result).toEqual({
         state: "not_required",
         sourcePaths: [],
-        path: "custom/symbol-coordinates.yaml",
+        path: ".kb/symbol-coordinates.yaml",
       });
     } finally {
       process.chdir(previousCwd);
@@ -144,12 +146,12 @@ describe("assessStagedSymbolsManifest", () => {
     );
     writeFile(
       tmpDir,
-      "documentation/symbols.yaml",
+      ".kb/symbols.yaml",
       "symbols:\n  - id: SYM-app\n    title: app\n    sourceFile: src/app.ts\n  - id: SYM-private-helper\n    title: privateHelper\n    sourceFile: src/app.ts\n    granularity_reason: module-level-behavior\n",
     );
     writeFile(
       tmpDir,
-      "documentation/symbol-coordinates.yaml",
+      ".kb/symbol-coordinates.yaml",
       "coordinates:\n  SYM-app:\n    sourceFile: src/app.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 3\n    sourceEndColumn: 1\n",
     );
     commitAll(tmpDir, "initial");
@@ -161,7 +163,7 @@ describe("assessStagedSymbolsManifest", () => {
     );
     writeFile(
       tmpDir,
-      "documentation/symbol-coordinates.yaml",
+      ".kb/symbol-coordinates.yaml",
       "coordinates:\n  SYM-app:\n    sourceFile: src/app.ts\n    sourceLine: 2\n    sourceColumn: 16\n    sourceEndLine: 4\n    sourceEndColumn: 1\n",
     );
 
@@ -170,25 +172,25 @@ describe("assessStagedSymbolsManifest", () => {
     try {
       const sourceFile = createSourceStagedFile(tmpDir);
       const coordinatesFile: StagedFile = {
-        path: "documentation/symbol-coordinates.yaml",
+        path: ".kb/symbol-coordinates.yaml",
         status: "M",
         hunkRanges: [],
         content: readFileSync(
-          path.join(tmpDir, "documentation", "symbol-coordinates.yaml"),
+          path.join(tmpDir, ".kb", "symbol-coordinates.yaml"),
           "utf8",
         ),
       };
 
       expect(
         assessStagedSymbolsManifest({
-          symbolsManifestPath: "documentation/symbols.yaml",
+          symbolsManifestPath: ".kb/symbols.yaml",
           sourceFiles: [sourceFile],
           stagedFiles: [sourceFile, coordinatesFile],
         }),
       ).toEqual({
         state: "fresh",
         sourcePaths: ["src/app.ts"],
-        path: "documentation/symbol-coordinates.yaml",
+        path: ".kb/symbol-coordinates.yaml",
       });
     } finally {
       process.chdir(previousCwd);
@@ -203,7 +205,7 @@ describe("assessStagedSymbolsManifest", () => {
     );
     writeFile(
       tmpDir,
-      "documentation/symbols.yaml",
+      ".kb/symbols.yaml",
       `symbols:
   - id: SYM-app-module
     title: app
@@ -226,14 +228,14 @@ describe("assessStagedSymbolsManifest", () => {
     try {
       expect(
         assessStagedSymbolsManifest({
-          symbolsManifestPath: "documentation/symbols.yaml",
+          symbolsManifestPath: ".kb/symbols.yaml",
           sourceFiles: [createSourceStagedFile(tmpDir)],
           stagedFiles: [createSourceStagedFile(tmpDir)],
         }),
       ).toEqual({
         state: "not_required",
         sourcePaths: [],
-        path: "documentation/symbol-coordinates.yaml",
+        path: ".kb/symbol-coordinates.yaml",
       });
     } finally {
       process.chdir(previousCwd);
@@ -248,7 +250,7 @@ describe("assessStagedSymbolsManifest", () => {
     );
     writeFile(
       tmpDir,
-      "documentation/symbols.yaml",
+      ".kb/symbols.yaml",
       `symbols:
   - id: SYM-app
     title: app
@@ -265,7 +267,7 @@ describe("assessStagedSymbolsManifest", () => {
     );
     writeFile(
       tmpDir,
-      "documentation/symbol-coordinates.yaml",
+      ".kb/symbol-coordinates.yaml",
       `coordinates:
   SYM-app:
     sourceFile: src/app.ts
@@ -284,7 +286,7 @@ describe("assessStagedSymbolsManifest", () => {
     );
     writeFile(
       tmpDir,
-      "documentation/symbol-coordinates.yaml",
+      ".kb/symbol-coordinates.yaml",
       `coordinates:
   SYM-app:
     sourceFile: src/app.ts
@@ -300,25 +302,25 @@ describe("assessStagedSymbolsManifest", () => {
     try {
       const sourceFile = createSourceStagedFile(tmpDir);
       const coordinatesFile: StagedFile = {
-        path: "documentation/symbol-coordinates.yaml",
+        path: ".kb/symbol-coordinates.yaml",
         status: "M",
         hunkRanges: [],
         content: readFileSync(
-          path.join(tmpDir, "documentation", "symbol-coordinates.yaml"),
+          path.join(tmpDir, ".kb", "symbol-coordinates.yaml"),
           "utf8",
         ),
       };
 
       expect(
         assessStagedSymbolsManifest({
-          symbolsManifestPath: "documentation/symbols.yaml",
+          symbolsManifestPath: ".kb/symbols.yaml",
           sourceFiles: [sourceFile],
           stagedFiles: [sourceFile, coordinatesFile],
         }),
       ).toEqual({
         state: "fresh",
         sourcePaths: ["src/app.ts"],
-        path: "documentation/symbol-coordinates.yaml",
+        path: ".kb/symbol-coordinates.yaml",
       });
     } finally {
       process.chdir(previousCwd);
@@ -333,7 +335,7 @@ describe("assessStagedSymbolsManifest", () => {
     );
     writeFile(
       tmpDir,
-      "documentation/symbols.yaml",
+      ".kb/symbols.yaml",
       `symbols:
   - id: SYM-app
     title: app
@@ -347,7 +349,7 @@ describe("assessStagedSymbolsManifest", () => {
     );
     writeFile(
       tmpDir,
-      "documentation/symbol-coordinates.yaml",
+      ".kb/symbol-coordinates.yaml",
       `coordinates:
   SYM-app:
     sourceFile: src/app.ts
@@ -370,7 +372,7 @@ describe("assessStagedSymbolsManifest", () => {
     try {
       const sourceFile = createSourceStagedFile(tmpDir);
       const coordinatesFile: StagedFile = {
-        path: "documentation/symbol-coordinates.yaml",
+        path: ".kb/symbol-coordinates.yaml",
         status: "M",
         hunkRanges: [],
         content: `coordinates:
@@ -385,14 +387,14 @@ describe("assessStagedSymbolsManifest", () => {
 
       expect(
         assessStagedSymbolsManifest({
-          symbolsManifestPath: "documentation/symbols.yaml",
+          symbolsManifestPath: ".kb/symbols.yaml",
           sourceFiles: [sourceFile],
           stagedFiles: [sourceFile, coordinatesFile],
         }),
       ).toEqual({
         state: "fresh",
         sourcePaths: ["src/app.ts"],
-        path: "documentation/symbol-coordinates.yaml",
+        path: ".kb/symbol-coordinates.yaml",
       });
     } finally {
       process.chdir(previousCwd);
@@ -407,7 +409,7 @@ describe("assessStagedSymbolsManifest", () => {
     );
     writeFile(
       tmpDir,
-      "documentation/symbols.yaml",
+      ".kb/symbols.yaml",
       `symbols:
   - id: SYM-app
     title: app
@@ -420,7 +422,7 @@ describe("assessStagedSymbolsManifest", () => {
     );
     writeFile(
       tmpDir,
-      "documentation/symbol-coordinates.yaml",
+      ".kb/symbol-coordinates.yaml",
       `coordinates:
   SYM-app:
     sourceFile: src/app.ts
@@ -443,7 +445,7 @@ describe("assessStagedSymbolsManifest", () => {
     try {
       const sourceFile = createSourceStagedFile(tmpDir);
       const stagedCoordinates = {
-        path: "documentation/symbol-coordinates.yaml",
+        path: ".kb/symbol-coordinates.yaml",
         status: "M",
         hunkRanges: [],
         content: `coordinates:
@@ -458,14 +460,14 @@ describe("assessStagedSymbolsManifest", () => {
 
       expect(
         assessStagedSymbolsManifest({
-          symbolsManifestPath: "documentation/symbols.yaml",
+          symbolsManifestPath: ".kb/symbols.yaml",
           sourceFiles: [sourceFile],
           stagedFiles: [sourceFile, stagedCoordinates],
         }),
       ).toEqual({
         state: "stale",
         sourcePaths: ["src/app.ts"],
-        path: "documentation/symbol-coordinates.yaml",
+        path: ".kb/symbol-coordinates.yaml",
       });
     } finally {
       process.chdir(previousCwd);
@@ -480,7 +482,7 @@ describe("assessStagedSymbolsManifest", () => {
     );
     writeFile(
       tmpDir,
-      "documentation/symbols.yaml",
+      ".kb/symbols.yaml",
       `symbols:
   - id: SYM-app-module
     title: app
@@ -502,7 +504,7 @@ describe("assessStagedSymbolsManifest", () => {
     process.chdir(tmpDir);
     try {
       const result = assessStagedSymbolsManifest({
-        symbolsManifestPath: "documentation/symbols.yaml",
+        symbolsManifestPath: ".kb/symbols.yaml",
         sourceFiles: [createSourceStagedFile(tmpDir)],
         stagedFiles: [createSourceStagedFile(tmpDir)],
       });
@@ -526,7 +528,7 @@ describe("assessStagedSymbolsManifest", () => {
     );
     writeFile(
       tmpDir,
-      "documentation/symbols.yaml",
+      ".kb/symbols.yaml",
       `symbols:
   - id: SYM-App
     title: App
@@ -547,7 +549,7 @@ describe("assessStagedSymbolsManifest", () => {
     commitAll(tmpDir, "initial");
     writeFile(
       tmpDir,
-      "documentation/symbols.yaml",
+      ".kb/symbols.yaml",
       `symbols:
   - id: SYM-App
     title: App
@@ -572,13 +574,10 @@ describe("assessStagedSymbolsManifest", () => {
     process.chdir(tmpDir);
     try {
       const manifestFile: StagedFile = {
-        path: "documentation/symbols.yaml",
+        path: ".kb/symbols.yaml",
         status: "M",
         hunkRanges: [],
-        content: readFileSync(
-          path.join(tmpDir, "documentation", "symbols.yaml"),
-          "utf8",
-        ),
+        content: readFileSync(path.join(tmpDir, ".kb", "symbols.yaml"), "utf8"),
       };
 
       expect(
@@ -587,7 +586,7 @@ describe("assessStagedSymbolsManifest", () => {
           stagedFiles: [manifestFile],
         }),
       ).toEqual({
-        path: "documentation/symbols.yaml",
+        path: ".kb/symbols.yaml",
         entries: [{ sourcePath: "src/app.ts", entityIds: ["SYM-App-run"] }],
         changedEntityIds: ["SYM-App-run"],
       });
@@ -607,7 +606,7 @@ describe("assessStagedSymbolsManifest", () => {
     );
     writeFile(
       tmpDir,
-      "documentation/symbols.yaml",
+      ".kb/symbols.yaml",
       `symbols:
   - id: SYM-DUP-001
     title: duplicate
@@ -622,7 +621,7 @@ describe("assessStagedSymbolsManifest", () => {
     commitAll(tmpDir, "initial");
     writeFile(
       tmpDir,
-      "documentation/symbols.yaml",
+      ".kb/symbols.yaml",
       `symbols:
   - id: SYM-DUP-001
     title: duplicate
@@ -643,11 +642,11 @@ describe("assessStagedSymbolsManifest", () => {
         sourceFiles: [],
         stagedFiles: [
           {
-            path: "documentation/symbols.yaml",
+            path: ".kb/symbols.yaml",
             status: "M",
             hunkRanges: [],
             content: readFileSync(
-              path.join(tmpDir, "documentation", "symbols.yaml"),
+              path.join(tmpDir, ".kb", "symbols.yaml"),
               "utf8",
             ),
           },
@@ -655,7 +654,7 @@ describe("assessStagedSymbolsManifest", () => {
       });
 
       expect(result).toEqual({
-        path: "documentation/symbols.yaml",
+        path: ".kb/symbols.yaml",
         entries: [],
         changedEntityIds: [],
       });

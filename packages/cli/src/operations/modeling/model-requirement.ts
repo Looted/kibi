@@ -1,8 +1,6 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import { buildStrictWriteSet } from "../../public/check-types.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
-import { getSchemaVersionStatus } from "../../public/schema-version.js";
+import { readKbManifestStatus } from "../../utils/kb-manifest.js";
 import {
   normalizeSemanticClause,
   semanticClaimKey,
@@ -40,21 +38,9 @@ export {
 export async function getWorkspaceMigrationWarning(
   workspaceRoot: string,
 ): Promise<string | null> {
-  const configPath = path.join(workspaceRoot, ".kb", "config.json");
-  let rawConfig: string;
-  try {
-    rawConfig = await readFile(configPath, "utf8");
-  } catch {
-    return null;
-  }
-  try {
-    const parsed = JSON.parse(rawConfig) as {
-      schemaVersion?: number | string;
-    } | null;
-    return getSchemaVersionStatus(parsed ?? undefined).warning;
-  } catch {
-    return "KB config schemaVersion could not be read and should be checked before applying automated modeling.";
-  }
+  const status = readKbManifestStatus(workspaceRoot);
+  if (status.state === "ok") return null;
+  return status.warning;
 }
 
 export async function handleKbModelRequirement(

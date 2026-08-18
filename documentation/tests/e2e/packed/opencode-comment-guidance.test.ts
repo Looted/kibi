@@ -134,13 +134,13 @@ if (RUN_NODE_TEST_SUITE) {
             "utf8",
           );
           for (const dir of [
-            "documentation/requirements",
-            "documentation/scenarios",
-            "documentation/tests",
-            "documentation/adr",
-            "documentation/flags",
-            "documentation/events",
-            "documentation/facts",
+            ".kb/requirements",
+            ".kb/scenarios",
+            ".kb/tests",
+            ".kb/adr",
+            ".kb/flags",
+            ".kb/events",
+            ".kb/facts",
           ]) {
             mkdirSync(join(projectDir, dir), { recursive: true });
           }
@@ -295,13 +295,13 @@ class User:
             "utf8",
           );
           for (const dir of [
-            "documentation/requirements",
-            "documentation/scenarios",
-            "documentation/tests",
-            "documentation/adr",
-            "documentation/flags",
-            "documentation/events",
-            "documentation/facts",
+            ".kb/requirements",
+            ".kb/scenarios",
+            ".kb/tests",
+            ".kb/adr",
+            ".kb/flags",
+            ".kb/events",
+            ".kb/facts",
           ]) {
             mkdirSync(join(projectDir, dir), { recursive: true });
           }

@@ -52,3 +52,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b7488b6c0880
+  - type: implements
+    from: SYM-canonical-StorageMigrationPlan
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:01:21.887Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b3fbda5f39d
+  - type: covered_by
+    from: SYM-canonical-StorageMigrationPlan
+    to: TEST-cli-migrate
+    created_at: 2026-08-18T17:01:21.897Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7ad627a239d

@@ -616,17 +616,22 @@ symbols:
         target: TEST-kibi-intent-aware-source-discovery
   - id: SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan
     title: executeApplyPlan
+    status: active
     sourceFile: packages/cli/src/operations/planning/apply-plan.ts
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-agent-guided-migration-orchestration
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-cli-canonical-runtime
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-cli-canonical-runtime
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
   - id: SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanargs
     title: ApplyPlanArgs
     sourceFile: packages/cli/src/operations/planning/apply-plan.ts
@@ -2987,12 +2992,18 @@ symbols:
         target: TEST-opencode-kibi-plugin-v1
   - id: SYM-classifyActivationState
     title: classifyActivationState
+    status: active
     sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
+    symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-002
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-canonical-activation
+      - type: implements
+        target: REQ-002
+      - type: implements
+        target: REQ-cli-canonical-runtime
   - id: SYM-classifyDiagnosticError
     title: classifyDiagnosticError
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
@@ -3005,12 +3016,18 @@ symbols:
         target: TEST-005
   - id: SYM-classifyKibiImpactEvidence
     title: classifyKibiImpactEvidence
+    status: active
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-canonical-runtime
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-cli-canonical-runtime
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
   - id: SYM-classifyKnowledge
     title: classifyKnowledge
     sourceFile: packages/opencode/src/knowledge-classifier.ts
@@ -4332,33 +4349,28 @@ symbols:
         target: TEST-coverage-depth-labels
   - id: SYM-cli-rule-registry-ChecksConfig
     title: ChecksConfig
+    status: active
     sourceFile: packages/cli/src/utils/rule-registry.ts
     symbol_role: type-shape
+    granularity_reason: config-artifact
     relationships:
-      - type: implements
-        target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-004
+      - type: implements
+        target: REQ-core-validation-rules
   - id: SYM-cli-rule-registry-DEFAULT_CHECKS_CONFIG
     title: DEFAULT_CHECKS_CONFIG
+    status: active
     sourceFile: packages/cli/src/utils/rule-registry.ts
     symbol_role: config
+    granularity_reason: config-artifact
     relationships:
-      - type: implements
-        target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-004
+      - type: implements
+        target: REQ-core-validation-rules
   - id: SYM-cli-rule-registry-getEffectiveRules
     title: getEffectiveRules
-    sourceFile: packages/cli/src/utils/rule-registry.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-core-validation-rules
-      - type: covered_by
-        target: TEST-004
-  - id: SYM-cli-rule-registry-mergeChecksConfig
-    title: mergeChecksConfig
     sourceFile: packages/cli/src/utils/rule-registry.ts
     symbol_role: behavioral
     relationships:
@@ -4399,13 +4411,15 @@ symbols:
         target: TEST-kibi-logical-requirement-coverage
   - id: SYM-cli-rule-registry-SymbolTraceabilityOptions
     title: SymbolTraceabilityOptions
+    status: active
     sourceFile: packages/cli/src/utils/rule-registry.ts
     symbol_role: type-shape
+    granularity_reason: config-artifact
     relationships:
-      - type: implements
-        target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-004
+      - type: implements
+        target: REQ-core-validation-rules
   - id: SYM-cli-rule-registry-validateRuleName
     title: validateRuleName
     sourceFile: packages/cli/src/utils/rule-registry.ts
@@ -4914,12 +4928,18 @@ symbols:
         target: TEST-skillopt-codex-optimization
   - id: SYM-collectMarkdownFiles
     title: collectMarkdownFiles
+    status: active
     sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
+    symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-002
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-canonical-activation
+      - type: implements
+        target: REQ-002
+      - type: implements
+        target: REQ-cli-canonical-runtime
   - id: SYM-collectSourceOnlyAuthoringSignals
     title: collectSourceOnlyAuthoringSignals
     sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
@@ -5051,12 +5071,14 @@ symbols:
         target: TEST-kibi-operation-interface-parity
   - id: SYM-createConfigFile
     title: createConfigFile
+    status: active
     sourceFile: packages/cli/src/commands/init-helpers.ts
+    granularity_reason: extractor-miss
     relationships:
-      - type: implements
-        target: REQ-cli-init
       - type: covered_by
         target: TEST-001
+      - type: implements
+        target: REQ-cli-init
   - id: SYM-createFileOperationState
     title: createFileOperationState
     sourceFile: packages/opencode/src/file-operation-state.ts
@@ -5108,12 +5130,18 @@ symbols:
         target: TEST-cli-staged-impact-enforcement
   - id: SYM-createRepoIgnorePolicy
     title: createRepoIgnorePolicy
+    status: active
     sourceFile: packages/cli/src/public/ignore-policy.ts
+    symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-001
       - type: covered_by
         target: TEST-008
+      - type: covered_by
+        target: TEST-cli-canonical-runtime
+      - type: implements
+        target: REQ-001
+      - type: implements
+        target: REQ-cli-canonical-runtime
   - id: SYM-createSessionEditState
     title: createSessionEditState
     sourceFile: packages/opencode/src/session-edit-state.ts
@@ -5746,20 +5774,22 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
   - id: SYM-cursor-runHook
     title: runHook
+    status: active
     sourceFile: packages/cursor/src/hook-runner.ts
-    text_ref: packages/cursor/src/hook-runner.ts#runHook
-    links:
-      - REQ-cursor-kibi-plugin-v1
-      - REQ-cursor-stop-job-vs-plan
+    symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-cursor-kibi-plugin-v1
-      - type: implements
-        target: REQ-cursor-stop-job-vs-plan
+      - type: covered_by
+        target: TEST-cursor-canonical-manifest
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-stop-job-vs-plan
+      - type: implements
+        target: REQ-cli-canonical-runtime
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-stop-job-vs-plan
   - id: SYM-cursor-saveHookState
     title: saveHookState
     sourceFile: packages/cursor/src/hook-state-storage.ts
@@ -5852,12 +5882,14 @@ symbols:
         target: TEST-vscode-traceability
   - id: SYM-DEFAULT-CONFIG
     title: DEFAULT_CONFIG
+    status: active
     sourceFile: packages/cli/src/utils/config.ts
+    granularity_reason: extractor-miss
     relationships:
-      - type: implements
-        target: REQ-011
       - type: covered_by
         target: TEST-cli-config-schema
+      - type: implements
+        target: REQ-011
   - id: SYM-DEFAULT-COORDINATES-PATH
     title: DEFAULT_COORDINATES_PATH
     sourceFile: packages/cli/src/utils/manifest-paths.ts
@@ -5876,12 +5908,14 @@ symbols:
         target: TEST-001
   - id: SYM-DEFAULT-SYNC-PATHS
     title: DEFAULT_SYNC_PATHS
+    status: active
     sourceFile: packages/cli/src/utils/config.ts
+    granularity_reason: extractor-miss
     relationships:
-      - type: implements
-        target: REQ-011
       - type: covered_by
         target: TEST-cli-config-schema
+      - type: implements
+        target: REQ-011
   - id: SYM-DEFAULT-TOOLS-RUNTIME
     title: DEFAULT_TOOLS_RUNTIME
     sourceFile: packages/mcp/src/server/tools-runtime.ts
@@ -6085,13 +6119,18 @@ symbols:
         target: TEST-005
   - id: SYM-discoverSourceFiles
     title: discoverSourceFiles
+    status: active
     sourceFile: packages/cli/src/commands/sync/discovery.ts
-    granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-cli-canonical-runtime
       - type: covered_by
         target: TEST-cli-sync-discovery-readme-ignore
+      - type: implements
+        target: REQ-cli-canonical-runtime
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-discoverSources
     title: discoverSources
     sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
@@ -7653,20 +7692,14 @@ symbols:
         target: REQ-mcp-search-discovery
   - id: SYM-KbConfig
     title: KbConfig
+    status: active
     sourceFile: packages/cli/src/utils/config.ts
+    granularity_reason: extractor-miss
     relationships:
-      - type: implements
-        target: REQ-011
       - type: covered_by
         target: TEST-cli-config-schema
-  - id: SYM-KbConfigPaths
-    title: KbConfigPaths
-    sourceFile: packages/cli/src/utils/config.ts
-    relationships:
       - type: implements
         target: REQ-011
-      - type: covered_by
-        target: TEST-cli-config-schema
   - id: SYM-KbFreshnessDecision
     title: KbFreshnessDecision
     sourceFile: packages/opencode/src/kb-freshness-state.ts
@@ -8104,16 +8137,16 @@ symbols:
         target: TEST-opencode-kibi-plugin-v1
   - id: SYM-LATEST-KB-SCHEMA-VERSION
     title: LATEST_KB_SCHEMA_VERSION
+    status: active
     sourceFile: packages/cli/src/utils/schema-version.ts
     symbol_role: config
-    granularity_reason: extractor-miss
     relationships:
+      - type: covered_by
+        target: TEST-cli-config-schema
       - type: implements
         target: REQ-011
       - type: implements
         target: REQ-cli-schema-migration
-      - type: covered_by
-        target: TEST-cli-config-schema
   - id: SYM-LinkedEntityResult
     title: LinkedEntityResult
     sourceFile: packages/opencode/src/file-operation-reminders.ts
@@ -8151,12 +8184,14 @@ symbols:
     symbol_role: behavioral
   - id: SYM-loadConfig
     title: loadConfig
+    status: active
     sourceFile: packages/cli/src/utils/config.ts
+    granularity_reason: extractor-miss
     relationships:
-      - type: implements
-        target: REQ-011
       - type: covered_by
         target: TEST-cli-config-schema
+      - type: implements
+        target: REQ-011
   - id: SYM-loadConfig-2
     title: loadConfig
     sourceFile: packages/opencode/src/config.ts
@@ -8184,12 +8219,14 @@ symbols:
         target: TEST-skillopt-codex-optimization
   - id: SYM-loadSyncConfig
     title: loadSyncConfig
+    status: active
     sourceFile: packages/cli/src/utils/config.ts
+    granularity_reason: extractor-miss
     relationships:
-      - type: implements
-        target: REQ-011
       - type: covered_by
         target: TEST-cli-config-schema
+      - type: implements
+        target: REQ-011
   - id: SYM-LogMetadata
     title: LogMetadata
     sourceFile: packages/opencode/src/logger.ts
@@ -8563,16 +8600,6 @@ symbols:
         target: REQ-mcp-tool-check
       - type: covered_by
         target: TEST-001
-  - id: SYM-mcp-getEffectiveRules
-    title: getEffectiveRules
-    sourceFile: packages/mcp/src/tools/check-config.ts
-    links:
-      - REQ-mcp-tool-check
-    relationships:
-      - type: implements
-        target: REQ-mcp-tool-check
-      - type: covered_by
-        target: TEST-001
   - id: SYM-mcp-handle-sparql
     title: handleSparql validates and dispatches remote SPARQL MCP calls
     sourceFile: packages/mcp/src/tools/sparql.ts
@@ -8606,16 +8633,6 @@ symbols:
         target: REQ-mcp-kb-freshness
       - type: covered_by
         target: TEST-005
-  - id: SYM-mcp-loadChecksConfig
-    title: loadChecksConfig
-    sourceFile: packages/mcp/src/tools/check-config.ts
-    links:
-      - REQ-mcp-tool-check
-    relationships:
-      - type: implements
-        target: REQ-mcp-tool-check
-      - type: covered_by
-        target: TEST-001
   - id: SYM-mcp-readBranchKbStamp
     title: readBranchKbStamp
     sourceFile: packages/mcp/src/server/kb-freshness.ts
@@ -23512,7 +23529,11 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-cli-canonical-runtime
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-cli-canonical-runtime
       - type: implements
         target: REQ-core-atomic-upsert-persistence
   - id: SYM-auto-2E8B94C6ABB2
@@ -23532,7 +23553,11 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-cli-canonical-runtime
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-cli-canonical-runtime
       - type: implements
         target: REQ-core-atomic-upsert-persistence
   - id: SYM-auto-897151BA8338
@@ -24760,3 +24785,843 @@ symbols:
         target: TEST-cli-source-relationship-parity-unit
       - type: implements
         target: REQ-kibi-source-relationship-parity
+  - id: SYM-getStagedFiles
+    title: getStagedFiles
+    status: active
+    sourceFile: packages/cli/src/traceability/git-staged.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-runtime
+      - type: implements
+        target: REQ-cli-canonical-runtime
+  - id: SYM-canonical-createManifestFile
+    title: createManifestFile
+    status: active
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-planLegacyStorageMigration
+    title: planLegacyStorageMigration
+    status: active
+    sourceFile: packages/cli/src/commands/legacy-storage-migration.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-applyLegacyStorageMigration
+    title: applyLegacyStorageMigration
+    status: active
+    sourceFile: packages/cli/src/commands/legacy-storage-migration.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-rewritePendingSourceReceiptPaths
+    title: rewritePendingSourceReceiptPaths
+    status: active
+    sourceFile: packages/cli/src/commands/legacy-storage-migration.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-needsLegacyStorageMigration
+    title: needsLegacyStorageMigration
+    status: active
+    sourceFile: packages/cli/src/commands/legacy-storage-migration.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-missingCanonicalLanes
+    title: missingCanonicalLanes
+    status: active
+    sourceFile: packages/cli/src/commands/legacy-storage-migration.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-StorageMigrationPlan
+    title: StorageMigrationPlan
+    status: active
+    sourceFile: packages/cli/src/commands/legacy-storage-migration.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-StorageMigrationMove
+    title: StorageMigrationMove
+    status: active
+    sourceFile: packages/cli/src/commands/legacy-storage-migration.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-StorageMigrationResult
+    title: StorageMigrationResult
+    status: active
+    sourceFile: packages/cli/src/commands/legacy-storage-migration.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-loadEntityPaths
+    title: loadEntityPaths
+    status: active
+    sourceFile: packages/cli/src/utils/config.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-legacyConfigExists
+    title: legacyConfigExists
+    status: active
+    sourceFile: packages/cli/src/utils/config.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-readLegacyKbConfig
+    title: readLegacyKbConfig
+    status: active
+    sourceFile: packages/cli/src/utils/config.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-resolveLegacyEntityPaths
+    title: resolveLegacyEntityPaths
+    status: active
+    sourceFile: packages/cli/src/utils/config.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-LegacyKbConfigPaths
+    title: LegacyKbConfigPaths
+    status: active
+    sourceFile: packages/cli/src/utils/config.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-LegacyKbConfig
+    title: LegacyKbConfig
+    status: active
+    sourceFile: packages/cli/src/utils/config.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-DEFAULT_CONFIG_PATHS
+    title: DEFAULT_CONFIG_PATHS
+    status: active
+    sourceFile: packages/cli/src/utils/config.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-defaultKbManifest
+    title: defaultKbManifest
+    status: active
+    sourceFile: packages/cli/src/utils/kb-manifest.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-readKbManifestStatus
+    title: readKbManifestStatus
+    status: active
+    sourceFile: packages/cli/src/utils/kb-manifest.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-readKbManifest
+    title: readKbManifest
+    status: active
+    sourceFile: packages/cli/src/utils/kb-manifest.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-readKbManifestOrDefault
+    title: readKbManifestOrDefault
+    status: active
+    sourceFile: packages/cli/src/utils/kb-manifest.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-writeKbManifest
+    title: writeKbManifest
+    status: active
+    sourceFile: packages/cli/src/utils/kb-manifest.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-KbManifest
+    title: KbManifest
+    status: active
+    sourceFile: packages/cli/src/utils/kb-manifest.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-SemanticAdvisorBackfill
+    title: SemanticAdvisorBackfill
+    status: active
+    sourceFile: packages/cli/src/utils/kb-manifest.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-KbManifestStatus
+    title: KbManifestStatus
+    status: active
+    sourceFile: packages/cli/src/utils/kb-manifest.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-KB_MANIFEST_VERSION
+    title: KB_MANIFEST_VERSION
+    status: active
+    sourceFile: packages/cli/src/utils/kb-manifest.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-isEntityLanePath
+    title: isEntityLanePath
+    status: active
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-entityLaneForPath
+    title: entityLaneForPath
+    status: active
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-isSymbolsManifestPath
+    title: isSymbolsManifestPath
+    status: active
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-isKbKnowledgePath
+    title: isKbKnowledgePath
+    status: active
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-isDerivedKbPath
+    title: isDerivedKbPath
+    status: active
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-EntityLane
+    title: EntityLane
+    status: active
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-KbEntityPaths
+    title: KbEntityPaths
+    status: active
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-KB_ROOT
+    title: KB_ROOT
+    status: active
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-ENTITY_LANES
+    title: ENTITY_LANES
+    status: active
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-LEGACY_CONFIG_PATH_KEYS
+    title: LEGACY_CONFIG_PATH_KEYS
+    status: active
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-KB_PATHS
+    title: KB_PATHS
+    status: active
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-DERIVED_KB_PREFIXES
+    title: DERIVED_KB_PREFIXES
+    status: active
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-CANONICAL_ENTITY_PATHS
+    title: CANONICAL_ENTITY_PATHS
+    status: active
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-canonical-LEGACY_DEFAULT_ENTITY_PATHS
+    title: LEGACY_DEFAULT_ENTITY_PATHS
+    status: active
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init-canonical
+  - id: SYM-cli-rule-registry-getRuleDefinition
+    title: getRuleDefinition
+    status: active
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-cli-rule-registry-getDefaultRules
+    title: getDefaultRules
+    status: active
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-cli-rule-registry-getCanonicalRules
+    title: getCanonicalRules
+    status: active
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-cli-rule-registry-isCanonicalRule
+    title: isCanonicalRule
+    status: active
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-cli-rule-registry-RuleEnforcementClass
+    title: RuleEnforcementClass
+    status: active
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-canonical-SchemaVersionSource
+    title: SchemaVersionSource
+    status: active
+    sourceFile: packages/cli/src/utils/schema-version.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-config-schema
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-canonical-loadKbSyncPaths
+    title: loadKbSyncPaths
+    status: active
+    sourceFile: packages/opencode/src/file-filter.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-opencode-bootstrap-nudge
+  - id: SYM-cli-rule-registry-mergeChecksConfig
+    title: mergeChecksConfig
+    status: active
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    granularity_reason: extractor-miss
+  - id: SYM-KbConfigPaths
+    title: KbConfigPaths
+    status: active
+    sourceFile: packages/cli/src/utils/config.ts
+    granularity_reason: extractor-miss
+  - id: SYM-canonical-DiscoveryOptions
+    title: DiscoveryOptions
+    status: active
+    sourceFile: packages/cli/src/commands/sync/discovery.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-runtime
+      - type: implements
+        target: REQ-cli-canonical-runtime
+  - id: SYM-canonical-PendingSourceReceiptSnapshot
+    title: PendingSourceReceiptSnapshot
+    status: active
+    sourceFile: packages/cli/src/commands/sync/discovery.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-runtime
+      - type: implements
+        target: REQ-cli-canonical-runtime
+  - id: SYM-canonical-clearRecoveredPendingSourceReceipts
+    title: clearRecoveredPendingSourceReceipts
+    status: active
+    sourceFile: packages/cli/src/commands/sync/discovery.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-runtime
+      - type: implements
+        target: REQ-cli-canonical-runtime
+  - id: SYM-canonical-refreshSymbolCoordinates
+    title: refreshSymbolCoordinates
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-cli-sync
+  - id: SYM-canonical-setSymbolRefreshForTests
+    title: setSymbolRefreshForTests
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-cli-sync
+  - id: SYM-canonical-analyzeKbCheckImpact
+    title: analyzeKbCheckImpact
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-canonical-collectQueryPlanSafetyViolations
+    title: collectQueryPlanSafetyViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-canonical-hasImpactOptions
+    title: hasImpactOptions
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-canonical-qualityDiagnosticsFromImpact
+    title: qualityDiagnosticsFromImpact
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-canonical-readLegacyChecksHint
+    title: readLegacyChecksHint
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-runtime
+      - type: implements
+        target: REQ-cli-canonical-runtime
+  - id: SYM-canonical-resolveCheckRules
+    title: resolveCheckRules
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-canonical-HunkRange
+    title: HunkRange
+    status: active
+    sourceFile: packages/cli/src/traceability/git-staged.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-runtime
+      - type: implements
+        target: REQ-cli-canonical-runtime
+  - id: SYM-canonical-StagedFile
+    title: StagedFile
+    status: active
+    sourceFile: packages/cli/src/traceability/git-staged.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-runtime
+      - type: implements
+        target: REQ-cli-canonical-runtime
+  - id: SYM-canonical-git-staged-Status
+    title: Status
+    status: active
+    sourceFile: packages/cli/src/traceability/git-staged.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-runtime
+      - type: implements
+        target: REQ-cli-canonical-runtime
+  - id: SYM-canonical-parseHunksFromDiff
+    title: parseHunksFromDiff
+    status: active
+    sourceFile: packages/cli/src/traceability/git-staged.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-runtime
+      - type: implements
+        target: REQ-cli-canonical-runtime
+  - id: SYM-canonical-parseNameStatusNull
+    title: parseNameStatusNull
+    status: active
+    sourceFile: packages/cli/src/traceability/git-staged.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-runtime
+      - type: implements
+        target: REQ-cli-canonical-runtime
+  - id: SYM-canonical-MarkdownValidationResult
+    title: MarkdownValidationResult
+    status: active
+    sourceFile: packages/cli/src/traceability/markdown-validate.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+  - id: SYM-canonical-validateStagedMarkdown
+    title: validateStagedMarkdown
+    status: active
+    sourceFile: packages/cli/src/traceability/markdown-validate.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+  - id: SYM-canonical-KbExistenceTarget
+    title: KbExistenceTarget
+    status: active
+    sourceFile: packages/opencode/src/file-filter.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-opencode-bootstrap-nudge
+  - id: SYM-canonical-shouldHandleFile
+    title: shouldHandleFile
+    status: active
+    sourceFile: packages/opencode/src/file-filter.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-opencode-bootstrap-nudge
+  - id: SYM-canonical-stripToRoot
+    title: stripToRoot
+    status: active
+    sourceFile: packages/opencode/src/file-filter.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-opencode-bootstrap-nudge
+  - id: SYM-canonical-PathAnalysis
+    title: PathAnalysis
+    status: active
+    sourceFile: packages/opencode/src/path-kind.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+  - id: SYM-canonical-PathKind
+    title: PathKind
+    status: active
+    sourceFile: packages/opencode/src/path-kind.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+  - id: SYM-canonical-analyzePath
+    title: analyzePath
+    status: active
+    sourceFile: packages/opencode/src/path-kind.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+  - id: SYM-canonical-PostureResult
+    title: PostureResult
+    status: active
+    sourceFile: packages/opencode/src/repo-posture.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+      - type: implements
+        target: REQ-opencode-posture-detection
+  - id: SYM-canonical-RepoPosture
+    title: RepoPosture
+    status: active
+    sourceFile: packages/opencode/src/repo-posture.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+      - type: implements
+        target: REQ-opencode-posture-detection
+  - id: SYM-canonical-WorkspaceHealth
+    title: WorkspaceHealth
+    status: active
+    sourceFile: packages/opencode/src/workspace-health.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-opencode-bootstrap-nudge
+  - id: SYM-canonical-KibiTreeDataProvider-getChildren
+    title: KibiTreeDataProvider.getChildren
+    status: active
+    sourceFile: packages/vscode/src/treeProvider.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-vscode-traceability
+      - type: implements
+        target: REQ-vscode-traceability
+  - id: SYM-canonical-KibiTreeDataProvider-getEntityById
+    title: KibiTreeDataProvider.getEntityById
+    status: active
+    sourceFile: packages/vscode/src/treeProvider.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-vscode-traceability
+      - type: implements
+        target: REQ-vscode-traceability
+  - id: SYM-canonical-KibiTreeDataProvider-getEntityCount
+    title: KibiTreeDataProvider.getEntityCount
+    status: active
+    sourceFile: packages/vscode/src/treeProvider.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-vscode-traceability
+      - type: implements
+        target: REQ-vscode-traceability
+  - id: SYM-canonical-KibiTreeDataProvider-getFallbackSymbolEntity
+    title: KibiTreeDataProvider.getFallbackSymbolEntity
+    status: active
+    sourceFile: packages/vscode/src/treeProvider.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-vscode-traceability
+      - type: implements
+        target: REQ-vscode-traceability
+  - id: SYM-canonical-KibiTreeDataProvider-getLocalPathForEntity
+    title: KibiTreeDataProvider.getLocalPathForEntity
+    status: active
+    sourceFile: packages/vscode/src/treeProvider.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-vscode-traceability
+      - type: implements
+        target: REQ-vscode-traceability
+  - id: SYM-canonical-KibiTreeDataProvider-getNavigationTargetForEntity
+    title: KibiTreeDataProvider.getNavigationTargetForEntity
+    status: active
+    sourceFile: packages/vscode/src/treeProvider.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-vscode-traceability
+      - type: implements
+        target: REQ-vscode-traceability
+  - id: SYM-canonical-KibiTreeDataProvider-getTreeItem
+    title: KibiTreeDataProvider.getTreeItem
+    status: active
+    sourceFile: packages/vscode/src/treeProvider.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-vscode-traceability
+      - type: implements
+        target: REQ-vscode-traceability
+  - id: SYM-canonical-KibiTreeDataProvider-onDidChangeTreeData
+    title: KibiTreeDataProvider.onDidChangeTreeData
+    status: active
+    sourceFile: packages/vscode/src/treeProvider.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-vscode-traceability
+      - type: implements
+        target: REQ-vscode-traceability
+  - id: SYM-canonical-KibiTreeDataProvider-refresh
+    title: KibiTreeDataProvider.refresh
+    status: active
+    sourceFile: packages/vscode/src/treeProvider.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-vscode-traceability
+      - type: implements
+        target: REQ-vscode-traceability

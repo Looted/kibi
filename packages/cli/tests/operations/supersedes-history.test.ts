@@ -31,7 +31,7 @@ const ancestry = {
 const prolog = {
   query: async () => ({
     success: true,
-    bindings: { TargetSource: "documentation/requirements/exact.md" },
+    bindings: { TargetSource: ".kb/requirements/exact.md" },
   }),
 } as unknown as PrologPort;
 
@@ -90,7 +90,7 @@ describe("supersedes source-history direction", () => {
         prolog,
         {
           id: "REQ-LEGACY",
-          source: "documentation/requirements/legacy.md",
+          source: ".kb/requirements/legacy.md",
         },
         [
           {
@@ -114,7 +114,7 @@ describe("supersedes source-history direction", () => {
         entities: [
           {
             id: "REQ-EXACT",
-            source: "documentation/requirements/exact.md",
+            source: ".kb/requirements/exact.md",
           },
         ],
         count: 1,
@@ -126,7 +126,7 @@ describe("supersedes source-history direction", () => {
         indexedProlog,
         {
           id: "REQ-LEGACY",
-          source: "documentation/requirements/legacy.md",
+          source: ".kb/requirements/legacy.md",
         },
         [
           {

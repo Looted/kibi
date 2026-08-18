@@ -23,15 +23,15 @@ export interface PathAnalysis {
 const CODE_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx", ".py"];
 const KB_PREFIX = ".kb";
 
-const KIBI_DOC_PATTERNS = [
-  "requirements/**",
-  "scenarios/**",
-  "tests/**",
-  "adr/**",
-  "flags/**",
-  "events/**",
-  "facts/**",
-  "symbols.yaml",
+const KIBI_LANE_KINDS: Array<{ prefix: string; kind: PathKind }> = [
+  { prefix: "requirements/", kind: "requirement" },
+  { prefix: "scenarios/", kind: "scenario" },
+  { prefix: "tests/", kind: "test" },
+  { prefix: "adr/", kind: "adr" },
+  { prefix: "flags/", kind: "flag" },
+  { prefix: "events/", kind: "event" },
+  { prefix: "facts/", kind: "fact" },
+  { prefix: "symbols.yaml", kind: "symbol" },
 ];
 
 export function analyzePath(
@@ -47,31 +47,20 @@ export function analyzePath(
   let isUnderKb = false;
   let isKibiDocRelevant = false;
 
-  // Check if under .kb/**
-  if (rel.startsWith(`${KB_PREFIX}/`)) {
-    kind = "kb";
-    isUnderKb = true;
-  }
-
-  // Check for Kibi doc paths
   const normalized = rel.toLowerCase();
-  for (const pattern of KIBI_DOC_PATTERNS) {
-    const patternPrefix = pattern.replace(/\*\*/g, "");
-    const fullPathPattern = `documentation/${patternPrefix}`;
-    if (normalized.startsWith(fullPathPattern)) {
-      isKibiDocRelevant = true;
-      if (kind === "unknown") {
-        // Map to specific kind based on path
-        if (patternPrefix.includes("requirements")) kind = "requirement";
-        else if (patternPrefix.includes("scenarios")) kind = "scenario";
-        else if (patternPrefix.includes("tests")) kind = "test";
-        else if (patternPrefix.includes("adr")) kind = "adr";
-        else if (patternPrefix.includes("facts")) kind = "fact";
-        else if (patternPrefix.includes("events")) kind = "event";
-        else if (patternPrefix.includes("flags")) kind = "flag";
-        else if (patternPrefix.includes("symbols")) kind = "symbol";
+
+  if (normalized.startsWith(`${KB_PREFIX}/`)) {
+    isUnderKb = true;
+    const rest = normalized.slice(KB_PREFIX.length + 1);
+    for (const lane of KIBI_LANE_KINDS) {
+      if (rest === lane.prefix || rest.startsWith(lane.prefix)) {
+        kind = lane.kind;
+        isKibiDocRelevant = true;
+        break;
       }
-      break;
+    }
+    if (kind === "unknown") {
+      kind = "kb";
     }
   }
 

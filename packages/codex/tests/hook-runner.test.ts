@@ -38,7 +38,7 @@ describe("Codex hook runner", () => {
     const pluginData = createTempRoot("kibi-codex-data-");
     tempRoots.push(cwd, pluginData);
     fs.mkdirSync(path.join(cwd, ".kb"));
-    fs.writeFileSync(path.join(cwd, ".kb", "config.json"), "{}");
+    fs.writeFileSync(path.join(cwd, ".kb", "manifest.json"), "{}");
 
     expect(
       await runHook({ event: "SessionStart", cwd }, { pluginData }),

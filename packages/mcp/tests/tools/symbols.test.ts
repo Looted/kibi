@@ -46,12 +46,14 @@ describe("resolveManifestPath precedence (regression)", () => {
   let configPath: string;
   let repoRootSymbols: string;
   let customSymbolsPath: string;
+  let canonicalSymbols: string;
 
   beforeEach(() => {
     testRoot = makeTmpDir();
     configPath = path.join(testRoot, ".kb/config.json");
     repoRootSymbols = path.join(testRoot, "symbols.yaml");
     customSymbolsPath = path.join(testRoot, "custom/symbols.yaml");
+    canonicalSymbols = path.join(testRoot, ".kb/symbols.yaml");
     emptyDirSync(testRoot);
   });
 
@@ -63,10 +65,12 @@ describe("resolveManifestPath precedence (regression)", () => {
     configSymbolsPath,
     hasRepoRootSymbols,
     hasCustomSymbols,
+    hasCanonicalSymbols,
   }: {
     configSymbolsPath: string | null;
     hasRepoRootSymbols: boolean;
     hasCustomSymbols: boolean;
+    hasCanonicalSymbols?: boolean;
   }) {
     emptyDirSync(testRoot);
     ensureDirSync(path.dirname(configPath));
@@ -79,6 +83,10 @@ describe("resolveManifestPath precedence (regression)", () => {
       );
     }
 
+    if (hasCanonicalSymbols) {
+      fs.writeFileSync(canonicalSymbols, "canonical: true\n");
+    }
+
     if (hasRepoRootSymbols) {
       fs.writeFileSync(repoRootSymbols, "repo-root: true\n");
     }
@@ -88,17 +96,18 @@ describe("resolveManifestPath precedence (regression)", () => {
     }
   }
 
-  it("should prefer .kb/config.json paths.symbols over repo-root symbols.yaml (regression)", async () => {
+  it("prefers canonical .kb/symbols.yaml over leftover config.json custom paths", async () => {
     writeFixture({
       configSymbolsPath: "custom/symbols.yaml",
       hasRepoRootSymbols: true,
       hasCustomSymbols: true,
+      hasCanonicalSymbols: true,
     });
     const resolved = await resolveManifestPath(testRoot);
-    expect(resolved).toBe(customSymbolsPath);
+    expect(resolved).toBe(canonicalSymbols);
   });
 
-  it("should fall back to repo-root symbols.yaml if no paths.symbols is set", async () => {
+  it("falls back to repo-root symbols.yaml when canonical is missing", async () => {
     writeFixture({
       configSymbolsPath: null,
       hasRepoRootSymbols: true,
@@ -108,32 +117,30 @@ describe("resolveManifestPath precedence (regression)", () => {
     expect(resolved).toBe(repoRootSymbols);
   });
 
-  it("should return fallback path if neither config nor repo-root symbols.yaml exist", async () => {
+  it("returns canonical .kb/symbols.yaml when no symbols file exists", async () => {
     writeFixture({
       configSymbolsPath: null,
       hasRepoRootSymbols: false,
       hasCustomSymbols: false,
     });
     const resolved = await resolveManifestPath(testRoot);
-    expect(resolved).toBe(repoRootSymbols);
+    expect(resolved).toBe(canonicalSymbols);
   });
 });
 
-// ---------------------------------------------------------------------------
-// Suite 2: resolveManifestPath additional coverage
-// ---------------------------------------------------------------------------
-
-describe("resolveManifestPath - additional coverage", () => {
+describe("resolveManifestPath - leftover config.json is ignored", () => {
   let testRoot: string;
   let configPath: string;
   let repoRootSymbols: string;
   let customSymbolsPath: string;
+  let canonicalSymbols: string;
 
   beforeEach(() => {
     testRoot = makeTmpDir();
     configPath = path.join(testRoot, ".kb/config.json");
     repoRootSymbols = path.join(testRoot, "symbols.yaml");
     customSymbolsPath = path.join(testRoot, "custom/symbols.yaml");
+    canonicalSymbols = path.join(testRoot, ".kb/symbols.yaml");
     emptyDirSync(testRoot);
     ensureDirSync(path.dirname(configPath));
   });
@@ -142,65 +149,51 @@ describe("resolveManifestPath - additional coverage", () => {
     fs.rmSync(testRoot, { recursive: true, force: true });
   });
 
-  it("should handle absolute paths.symbols (line 130)", async () => {
-    const absoluteCustomPath = "/absolute/custom/symbols.yaml";
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({ paths: { symbols: absoluteCustomPath } }, null, 2),
-    );
-    const resolved = await resolveManifestPath(testRoot);
-    expect(resolved).toBe(absoluteCustomPath);
-  });
-
-  it("should handle legacy symbolsManifest with absolute path (line 132-136)", async () => {
-    const absoluteLegacyPath = "/legacy/symbols.yaml";
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({ symbolsManifest: absoluteLegacyPath }, null, 2),
-    );
-    const resolved = await resolveManifestPath(testRoot);
-    expect(resolved).toBe(absoluteLegacyPath);
-  });
-
-  it("should handle legacy symbolsManifest with relative path (line 133-135)", async () => {
-    const relativeLegacyPath = "legacy/symbols.yaml";
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({ symbolsManifest: relativeLegacyPath }, null, 2),
-    );
-    const resolved = await resolveManifestPath(testRoot);
-    expect(resolved).toBe(path.resolve(testRoot, relativeLegacyPath));
-  });
-
-  it("should prefer paths.symbols over legacy symbolsManifest", async () => {
-    ensureDirSync(path.dirname(customSymbolsPath));
+  it("ignores leftover absolute paths.symbols", async () => {
     fs.writeFileSync(
       configPath,
       JSON.stringify(
-        {
-          paths: { symbols: "custom/symbols.yaml" },
-          symbolsManifest: "legacy/symbols.yaml",
-        },
+        { paths: { symbols: "/absolute/custom/symbols.yaml" } },
         null,
         2,
       ),
     );
+    const resolved = await resolveManifestPath(testRoot);
+    expect(resolved).toBe(canonicalSymbols);
+  });
+
+  it("ignores leftover symbolsManifest", async () => {
+    fs.writeFileSync(
+      configPath,
+      JSON.stringify({ symbolsManifest: "/legacy/symbols.yaml" }, null, 2),
+    );
+    const resolved = await resolveManifestPath(testRoot);
+    expect(resolved).toBe(canonicalSymbols);
+  });
+
+  it("ignores leftover custom relative paths even when the custom file exists", async () => {
+    ensureDirSync(path.dirname(customSymbolsPath));
+    fs.writeFileSync(
+      configPath,
+      JSON.stringify({ paths: { symbols: "custom/symbols.yaml" } }, null, 2),
+    );
     fs.writeFileSync(customSymbolsPath, "custom: true\n");
     const resolved = await resolveManifestPath(testRoot);
-    expect(resolved).toBe(customSymbolsPath);
+    expect(resolved).toBe(canonicalSymbols);
   });
 
-  it("should handle malformed config.json (catch block at line 137)", async () => {
+  it("ignores malformed leftover config.json", async () => {
     fs.writeFileSync(configPath, "invalid json{");
     const resolved = await resolveManifestPath(testRoot);
-    expect(resolved).toBe(repoRootSymbols);
+    expect(resolved).toBe(canonicalSymbols);
   });
 
-  it("should handle empty paths.symbols gracefully", async () => {
+  it("still falls back to repo-root symbols.yaml after ignoring leftover config", async () => {
     fs.writeFileSync(
       configPath,
       JSON.stringify({ paths: { symbols: "" } }, null, 2),
     );
+    fs.writeFileSync(repoRootSymbols, "repo-root: true\n");
     const resolved = await resolveManifestPath(testRoot);
     expect(resolved).toBe(repoRootSymbols);
   });

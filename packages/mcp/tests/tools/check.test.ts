@@ -39,7 +39,7 @@ async function createBroadQualityFixture(prolog: PrologProcess): Promise<void> {
       title: "Broad MCP audit requirement",
       status: "open",
       priority: "should",
-      source: "documentation/requirements/REQ-BROAD-MCP-001.md",
+      source: ".kb/requirements/REQ-BROAD-MCP-001.md",
     },
   });
 
@@ -51,7 +51,7 @@ async function createBroadQualityFixture(prolog: PrologProcess): Promise<void> {
       properties: {
         title: `Broad MCP test ${ordinal}`,
         status: "passing",
-        source: `documentation/tests/${testId}.md`,
+        source: `.kb/tests/${testId}.md`,
       },
       relationships: [
         { type: "validates", from: testId, to: "REQ-BROAD-MCP-001" },
@@ -66,7 +66,7 @@ async function createBroadQualityFixture(prolog: PrologProcess): Promise<void> {
       title: "Broad MCP audit requirement",
       status: "open",
       priority: "should",
-      source: "documentation/requirements/REQ-BROAD-MCP-001.md",
+      source: ".kb/requirements/REQ-BROAD-MCP-001.md",
     },
     relationships: Array.from({ length: 9 }, (_, index) => {
       const ordinal = index + 1;
@@ -88,7 +88,7 @@ async function createCoverageDepthQualityFixture(
     properties: {
       title: "Unit coverage MCP test",
       status: "passing",
-      source: "documentation/tests/TEST-COVERAGE-MCP-UNIT-001.md",
+      source: ".kb/tests/TEST-COVERAGE-MCP-UNIT-001.md",
       verification_scope: "unit",
     },
   });
@@ -100,7 +100,7 @@ async function createCoverageDepthQualityFixture(
       title: "Unit-only MCP coverage requirement",
       status: "open",
       priority: "should",
-      source: "documentation/requirements/REQ-COVERAGE-MCP-UNIT-001.md",
+      source: ".kb/requirements/REQ-COVERAGE-MCP-UNIT-001.md",
     },
     relationships: [
       {
@@ -212,7 +212,7 @@ describe("MCP Check Tool Handler", () => {
       properties: {
         title: "Requirement with test status",
         status: "passing",
-        source: "documentation/requirements/REQ-STATUS-MCP-001.md",
+        source: ".kb/requirements/REQ-STATUS-MCP-001.md",
       },
     });
 
@@ -1100,7 +1100,7 @@ describe("MCP Check Tool Handler", () => {
     expect(symbolTraceabilityViolation?.entityId).toBe("symbol-all-001");
   }, 15000);
 
-  test("should respect disabled rules from .kb/config.json", async () => {
+  test("should ignore disabled rules from leftover .kb/config.json", async () => {
     await fs.mkdir(path.join(testKbPath, ".kb"), { recursive: true });
     await fs.writeFile(
       path.join(testKbPath, ".kb", "config.json"),
@@ -1134,10 +1134,10 @@ describe("MCP Check Tool Handler", () => {
         v.entityId === "symbol-config-disabled-001",
     );
 
-    expect(violation).toBeUndefined();
+    expect(violation).toBeDefined();
   }, 15000);
 
-  test("should respect requireAdr from .kb/config.json", async () => {
+  test("should ignore leftover requireAdr from .kb/config.json", async () => {
     await fs.mkdir(path.join(testKbPath, ".kb"), { recursive: true });
     await fs.writeFile(
       path.join(testKbPath, ".kb", "config.json"),
@@ -1192,8 +1192,7 @@ describe("MCP Check Tool Handler", () => {
         v.entityId === "symbol-config-adr-001",
     );
 
-    expect(violation).toBeDefined();
-    expect(violation?.description).toMatch(/ADR/i);
+    expect(violation).toBeUndefined();
   }, 15000);
 
   test("should pass well-formed strict facts with strict-fact-shape rule", async () => {

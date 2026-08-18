@@ -261,7 +261,7 @@ describe("query service", () => {
         {
           entities: [
             {
-              id: "file:///tmp/documentation/requirements/REQ-7.md",
+              id: "file:///tmp/.kb/requirements/REQ-7.md",
               title: "Readable title",
               status: "open",
             },

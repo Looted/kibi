@@ -55,11 +55,11 @@ Errors are written to stderr as `Error [CODE]: detail`. Failed routes do not wri
 Initializes a kibi project in the current directory.
 
 **Behavior:**
-- Creates `.kb/` directory structure
+- Creates `.kb/` directory structure with canonical knowledge lanes (`requirements/`, `scenarios/`, `tests/`, `facts/`, `adr/`, `flags/`, `events/`)
 - Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default
-- Adds `.kb/` to `.gitignore`
-- Creates default `config.json` with document path patterns
-- Creates `documentation/symbols.yaml` and `documentation/symbol-coordinates.yaml` when they do not already exist
+- Ignores derived `.kb/` runtime state in `.gitignore` (`.kb/branches/`, `.kb/recovery/`, `.kb/verification/`, `.kb/briefs/`, `.kb/usage.log`). Authored knowledge under `.kb/` stays tracked. Migration audit files under `.kb/migrations/` stay Git-trackable but are excluded from verification snapshots.
+- Creates Kibi-owned `.kb/manifest.json` (lifecycle metadata only; not a user configuration file)
+- Creates `.kb/symbols.yaml` and `.kb/symbol-coordinates.yaml` when they do not already exist
 
 **Flags:**
 - `--no-hooks` - Skip git hook installation (hooks are installed by default)
@@ -75,7 +75,7 @@ Initializes a kibi project in the current directory.
 
 **Notes:**
 - Hooks are installed by default. Only use `--no-hooks` if you specifically don't want automated syncing.
-- The pre-commit hook blocks commits when `documentation/symbol-coordinates.yaml` has unstaged changes, forcing refreshed symbol coordinates to be staged with the related code changes.
+- The pre-commit hook blocks commits when `.kb/symbol-coordinates.yaml` has unstaged changes, forcing refreshed symbol coordinates to be staged with the related code changes.
 - The pre-commit hook also blocks behavior-changing source edits that lack staged Kibi impact evidence (KB entity docs or refreshed manifest). Test-only and docs-only edits are exempt.
 - Idempotent: safe to run multiple times
 - After running, see the quick start guide in README.md for next steps
@@ -93,7 +93,7 @@ Extracts entities and relationships from project documents and updates the knowl
 **Flags:**
 - `--validate-only` - Perform validation without making mutations
 - `--rebuild` - Rebuild branch snapshot from scratch (discards current KB)
-- `--refresh-symbol-coordinates` - Refresh symbol location data in `documentation/symbol-coordinates.yaml` during sync
+- `--refresh-symbol-coordinates` - Refresh symbol location data in `.kb/symbol-coordinates.yaml` during sync
 
 **Notes (sync + MCP):**
 
@@ -372,7 +372,7 @@ Validates knowledge base integrity and runs inference rules.
 - Checks requirement coverage (must-priority rules)
 - Detects dangling references (entities that reference non-existent IDs)
 - Detects cycles in dependency graphs
-- Supports strict migration checks like `strict-fact-shape` and `strict-req-fact-pairing`, a default-off semantic audit (`predicate-verifiability`) for `requires_predicate` links that still target prose/observation facts, and default-on `query-plan-safety` for Prolog clauses that place negation before later generator calls. Rule defaults can be overridden in `.kb/config.json`.
+- Supports strict migration checks like `strict-fact-shape` and `strict-req-fact-pairing`, a default-off semantic audit (`predicate-verifiability`) for `requires_predicate` links that still target prose/observation facts, and default-on `query-plan-safety` for Prolog clauses that place negation before later generator calls. Rule enforcement is owned by the installed Kibi version (`canonical`, `advisory`, or `migration`). `--rules` is an invocation-time diagnostic filter only; leftover `.kb/config.json` cannot disable canonical checks.
 - With `--staged`, runs commit-time changed-file impact enforcement for behavior-changing source edits, including missing Kibi impact evidence, stale symbol coordinates, and changed behavioral symbols that are only linked through coarse class/module ownership
 - Reports blocking `violations[]` with actionable suggestions and additive `qualityDiagnostics[]` audit signals for modeling quality, coverage depth, broad requirements, duplicate coordinates, symbol fanout, and strict-fact review
 - When `.kb/usage.log` exists, an unfiltered check also turns failed or insufficient `kibi.telemetry-acceptance.v1` metrics into ranked, non-blocking `category: telemetry` quality diagnostics; a missing log is skipped because diagnostic logging is opt-in
@@ -388,7 +388,7 @@ Validates knowledge base integrity and runs inference rules.
 
 ### Staged Impact Evidence
 
-When `kibi check --staged` reports `kibi_impact_evidence_missing`, first use Kibi discovery (`kb_search`, then `kb_query`) through visible MCP tools or trusted CLI JSON routes to inspect existing requirements, scenarios, tests, facts, and symbols for the edited source file. If the edit changes behavior, update the KB through either peer surface and also stage tracked evidence that the commit can carry: related entity markdown, authored `documentation/symbols.yaml` entries, or refreshed `documentation/symbol-coordinates.yaml` output.
+When `kibi check --staged` reports `kibi_impact_evidence_missing`, first use Kibi discovery (`kb_search`, then `kb_query`) through visible MCP tools or trusted CLI JSON routes to inspect existing requirements, scenarios, tests, facts, and symbols for the edited source file. If the edit changes behavior, update the KB through either peer surface and also stage tracked evidence that the commit can carry: related entity markdown under `.kb/`, authored `.kb/symbols.yaml` entries, or refreshed `.kb/symbol-coordinates.yaml` output.
 
 KB writes through MCP or CLI JSON routes update branch state, but they do not automatically stage markdown or manifest files. The staged hook can only accept evidence present in the staged change-set, so run the required sync/authoring step and `git add` the tracked evidence before rerunning `kibi check --staged`.
 
@@ -432,7 +432,8 @@ Verifies environment setup and diagnostics.
 **Behavior:**
 - Checks SWI-Prolog installation and version
 - Verifies `.kb/` directory exists
-- Validates `.kb/config.json` syntax
+- Validates `.kb/manifest.json` syntax
+- Recognizes leftover `.kb/config.json` and recommends `kibi migrate --yes`
 - Checks git repository presence
 - Verifies git hooks are installed and executable
 - Reports issues with remediation suggestions
@@ -451,7 +452,7 @@ artifacts are executing.
 - SWI-Prolog not found → See [install guide](install.md)
 - `.kb/` missing → Run `kibi init`
 - Git hooks missing → Run `kibi init`
-- Config invalid → Check `.kb/config.json` syntax
+- Config invalid → Check `.kb/manifest.json` syntax; leftover `.kb/config.json` is retired with `kibi migrate --yes`
 
 ## Release package validation
 
@@ -530,7 +531,8 @@ flags, it is a read-only preview; `--format json` returns the complete
 - Upgrades entity schemas and internal storage formats
 - Marks pre-existing coarse symbol links with `granularity_reason: legacy-link` when narrower exported symbols or class methods (`ClassName.methodName`) are already available
 - Fixes legacy requirement modeling to follow strict fact-pairing rules
-- Updates `.kb/config.json` with the latest `schemaVersion`
+- Moves legacy `documentation/` knowledge lanes and leftover `.kb/config.json` into the canonical `.kb/` layout
+- Writes `.kb/manifest.json` with the latest `schemaVersion`
 - Idempotent: safe to run if already on the latest version
 
 **Flags:**
@@ -682,7 +684,7 @@ The `kibi check --staged` command enforces traceability on code before commit.
 Every new or modified code symbol (function, class, method, accessor, behavioral class property, or module) must be explicitly linked to at least one requirement before it can be committed. This prevents "orphan" code from being merged and catches edits hidden behind broad class/module links when a narrower changed anchor exists.
 
 **Workflow Options:**
-1. **Relationship-based (Preferred for Test/e2e):** Model the code as a symbol in your manifest (e.g., `documentation/symbols.yaml`), link it to a `TEST-*` entity with `executable_for` to establish its identity. The canonical traceability chain is `REQ-xxx` → `SCEN-xxx` → `TEST-xxx`. Use `covered_by` to link symbols to the tests that exercise them. This satisfies the staged check without modifying source code. Note that physical symbol coordinates are maintained separately in `documentation/symbol-coordinates.yaml` and must be refreshed via `kibi sync --refresh-symbol-coordinates` when code changes.
+1. **Relationship-based (Preferred for Test/e2e):** Model the code as a symbol in your manifest (e.g., `.kb/symbols.yaml`), link it to a `TEST-*` entity with `executable_for` to establish its identity. The canonical traceability chain is `REQ-xxx` → `SCEN-xxx` → `TEST-xxx`. Use `covered_by` to link symbols to the tests that exercise them. This satisfies the staged check without modifying source code. Note that physical symbol coordinates are maintained separately in `.kb/symbol-coordinates.yaml` and must be refreshed via `kibi sync --refresh-symbol-coordinates` when code changes.
 2. **Comment-based (Optional Shortcut):** Add an inline `// implements REQ-xxx` comment. This remains backward-compatible and useful for quick code-only changes.
 
 **How to use:**

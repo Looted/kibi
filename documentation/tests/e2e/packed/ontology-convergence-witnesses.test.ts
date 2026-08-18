@@ -84,7 +84,7 @@ if (RUN_NODE_TEST_SUITE) {
         writeFileSync(
           join(
             sandbox.repoDir,
-            "documentation/facts/FACT-SCHEMA-PACKED-BINDING.md",
+            ".kb/facts/FACT-SCHEMA-PACKED-BINDING.md",
           ),
           `---
 id: FACT-SCHEMA-PACKED-BINDING
@@ -105,7 +105,7 @@ Defines the packed convergence binding relation.
         );
         stageSourceFile(
           sandbox,
-          "documentation/facts/FACT-SCHEMA-PACKED-BINDING.md",
+          ".kb/facts/FACT-SCHEMA-PACKED-BINDING.md",
         );
         assert.strictEqual((await kibi(sandbox, ["sync"])).exitCode, 0);
 
@@ -160,7 +160,7 @@ Defines the packed convergence binding relation.
           recursive: true,
         });
         writeFileSync(
-          join(sandbox.repoDir, "documentation/facts/FACT-PACKED-SUBJECT.md"),
+          join(sandbox.repoDir, ".kb/facts/FACT-PACKED-SUBJECT.md"),
           `---
 id: FACT-PACKED-SUBJECT
 title: Packed quota subject
@@ -190,7 +190,7 @@ Fixture subject.
           writeFileSync(
             join(
               sandbox.repoDir,
-              `documentation/facts/FACT-PACKED-${suffix}.md`,
+              `.kb/facts/FACT-PACKED-${suffix}.md`,
             ),
             `---
 id: FACT-PACKED-${suffix}
@@ -215,7 +215,7 @@ Fixture value ${suffix}.
           writeFileSync(
             join(
               sandbox.repoDir,
-              `documentation/requirements/REQ-PACKED-${suffix}.md`,
+              `.kb/requirements/REQ-PACKED-${suffix}.md`,
             ),
             `---
 id: REQ-PACKED-${suffix}
@@ -245,11 +245,11 @@ Packed quota must equal ${value}
           );
         }
         for (const sourcePath of [
-          "documentation/facts/FACT-PACKED-SUBJECT.md",
-          "documentation/facts/FACT-PACKED-A.md",
-          "documentation/facts/FACT-PACKED-B.md",
-          "documentation/requirements/REQ-PACKED-A.md",
-          "documentation/requirements/REQ-PACKED-B.md",
+          ".kb/facts/FACT-PACKED-SUBJECT.md",
+          ".kb/facts/FACT-PACKED-A.md",
+          ".kb/facts/FACT-PACKED-B.md",
+          ".kb/requirements/REQ-PACKED-A.md",
+          ".kb/requirements/REQ-PACKED-B.md",
         ]) {
           stageSourceFile(sandbox, sourcePath);
         }

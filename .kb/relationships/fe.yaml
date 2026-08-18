@@ -48,3 +48,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-47962cd69bc5
+  - type: verified_by
+    from: SCEN-cli-canonical-init
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T15:33:27.821Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6bc4ff4b6437

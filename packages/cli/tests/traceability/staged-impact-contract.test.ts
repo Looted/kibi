@@ -84,14 +84,14 @@ describe("isSupportedBehaviorSourcePath", () => {
   });
 
   it("rejects yaml files", () => {
-    expect(isSupportedBehaviorSourcePath("documentation/symbols.yaml")).toBe(
+    expect(isSupportedBehaviorSourcePath(".kb/symbols.yaml")).toBe(
       false,
     );
   });
 
   it("rejects markdown files", () => {
     expect(
-      isSupportedBehaviorSourcePath("documentation/requirements/REQ-001.md"),
+      isSupportedBehaviorSourcePath(".kb/requirements/REQ-001.md"),
     ).toBe(false);
   });
 
@@ -171,28 +171,28 @@ describe("isBehaviorSourceEdit", () => {
 describe("classifyKibiImpactEvidence", () => {
   it("classifies entity markdown under /requirements/ as entity_markdown", () => {
     const input: KibiImpactEvidenceInput = {
-      filePath: "documentation/requirements/REQ-001.md",
+      filePath: ".kb/requirements/REQ-001.md",
     };
     expect(classifyKibiImpactEvidence(input)).toBe("entity_markdown");
   });
 
   it("classifies entity markdown under /scenarios/ as entity_markdown", () => {
     const input: KibiImpactEvidenceInput = {
-      filePath: "documentation/scenarios/SCEN-001.md",
+      filePath: ".kb/scenarios/SCEN-001.md",
     };
     expect(classifyKibiImpactEvidence(input)).toBe("entity_markdown");
   });
 
   it("classifies entity markdown under /facts/ as entity_markdown", () => {
     const input: KibiImpactEvidenceInput = {
-      filePath: "documentation/facts/FACT-001.md",
+      filePath: ".kb/facts/FACT-001.md",
     };
     expect(classifyKibiImpactEvidence(input)).toBe("entity_markdown");
   });
 
   it("classifies a symbols manifest with changed extraction output as symbols_manifest", () => {
     const input: KibiImpactEvidenceInput = {
-      filePath: "documentation/symbols.yaml",
+      filePath: ".kb/symbols.yaml",
       extractionOutputChanged: true,
     };
     expect(classifyKibiImpactEvidence(input)).toBe("symbols_manifest");
@@ -200,7 +200,7 @@ describe("classifyKibiImpactEvidence", () => {
 
   it("does NOT classify a symbols manifest when extraction output is unchanged", () => {
     const input: KibiImpactEvidenceInput = {
-      filePath: "documentation/symbols.yaml",
+      filePath: ".kb/symbols.yaml",
       extractionOutputChanged: false,
     };
     expect(classifyKibiImpactEvidence(input)).toBeNull();
@@ -455,7 +455,7 @@ describe("staged diagnostics: kibi_impact_evidence_missing contract", () => {
         kbArtifacts: [
           {
             kind: "entity_markdown",
-            path: "documentation/requirements/REQ-cli-check.md",
+            path: ".kb/requirements/REQ-cli-check.md",
             sourcePaths: [sourcePath],
             entityTypes: ["req"],
             entityIds: [],
@@ -486,7 +486,7 @@ describe("staged diagnostics: kibi_impact_evidence_missing contract", () => {
         kbArtifacts: [
           {
             kind: "entity_markdown",
-            path: "documentation/requirements/REQ-evidence.md",
+            path: ".kb/requirements/REQ-evidence.md",
             sourcePaths: [sourceB],
             entityTypes: ["req"],
             entityIds: [],

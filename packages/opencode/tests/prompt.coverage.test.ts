@@ -116,7 +116,7 @@ describe("prompt coverage", () => {
         hardGateBlock: {
           shownPaths: [
             "packages/opencode/src/prompt.ts",
-            "documentation/symbols.yaml",
+            ".kb/symbols.yaml",
           ],
           remainingCount: 2,
           reason: "preflight checkpoint failed",
@@ -170,7 +170,7 @@ describe("prompt coverage", () => {
         workspaceHealth: {
           needsBootstrap: true,
           missingConfig: true,
-          missingDocDirs: ["documentation/requirements"],
+          missingDocDirs: [".kb/requirements"],
           hasKbEvidence: false,
         },
       },
@@ -388,7 +388,7 @@ describe("prompt coverage", () => {
       baseConfig,
       {
         recentEdits: [
-          { path: "documentation/requirements/REQ-1.md", kind: "requirement" },
+          { path: ".kb/requirements/REQ-1.md", kind: "requirement" },
         ],
         posture: "root_active",
         riskClass: "req_policy_candidate",

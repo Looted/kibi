@@ -84,7 +84,7 @@ if (RUN_NODE_TEST_SUITE) {
 
         await kibi(sandbox, ["init", "--no-hooks"]);
 
-        const reqDir = join(sandbox.repoDir, "documentation/requirements");
+        const reqDir = join(sandbox.repoDir, ".kb/requirements");
         mkdirSync(reqDir, { recursive: true });
 
         writeFileSync(
@@ -150,7 +150,7 @@ status: open
 
         await kibi(sandbox, ["init", "--no-hooks"]);
 
-        const reqDir = join(sandbox.repoDir, "documentation/requirements");
+        const reqDir = join(sandbox.repoDir, ".kb/requirements");
         mkdirSync(reqDir, { recursive: true });
 
         writeFileSync(
@@ -234,7 +234,7 @@ status: open
 
         await kibi(sandbox, ["init", "--no-hooks"]);
 
-        const reqDir = join(sandbox.repoDir, "documentation/requirements");
+        const reqDir = join(sandbox.repoDir, ".kb/requirements");
         mkdirSync(reqDir, { recursive: true });
 
         writeFileSync(
@@ -318,7 +318,7 @@ status: open
           env: sandbox.env,
         });
 
-        const reqDir = join(sandbox.repoDir, "documentation/requirements");
+        const reqDir = join(sandbox.repoDir, ".kb/requirements");
         mkdirSync(reqDir, { recursive: true });
 
         writeFileSync(
@@ -358,7 +358,7 @@ status: open
 
         await kibi(sandbox, ["init", "--no-hooks"]);
 
-        const reqDir = join(sandbox.repoDir, "documentation/requirements");
+        const reqDir = join(sandbox.repoDir, ".kb/requirements");
         mkdirSync(reqDir, { recursive: true });
 
         writeFileSync(
@@ -421,7 +421,7 @@ status: open
 
         await kibi(sandbox, ["init", "--no-hooks"]);
 
-        const reqDir = join(sandbox.repoDir, "documentation/requirements");
+        const reqDir = join(sandbox.repoDir, ".kb/requirements");
         mkdirSync(reqDir, { recursive: true });
 
         writeFileSync(
@@ -511,7 +511,7 @@ status: open
 
         await kibi(sandbox, ["init", "--no-hooks"]);
 
-        const reqDir = join(sandbox.repoDir, "documentation/requirements");
+        const reqDir = join(sandbox.repoDir, ".kb/requirements");
         mkdirSync(reqDir, { recursive: true });
 
         writeFileSync(
@@ -598,7 +598,7 @@ status: open
         // Use real hooks so the post-checkout hook fires on branch creation
         await kibi(sandbox, ["init"]);
 
-        const reqDir = join(sandbox.repoDir, "documentation/requirements");
+        const reqDir = join(sandbox.repoDir, ".kb/requirements");
         mkdirSync(reqDir, { recursive: true });
 
         writeFileSync(

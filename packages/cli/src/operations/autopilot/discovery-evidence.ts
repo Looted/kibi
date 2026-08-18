@@ -70,6 +70,17 @@ function isScanGit(value: GitPort | undefined): value is ScanGit {
   );
 }
 
+const TYPED_KIBI_LANE =
+  /(^|\/)(\.kb|documentation)\/(requirements|scenarios|tests|adr|flags|events|facts)\//;
+const EXECUTABLE_TEST_HARNESS =
+  /(^|\/)(\.kb|documentation)\/tests\/(e2e|benchmarks)\//;
+
+function isTypedKibiMarkdownPath(relativePath: string): boolean {
+  const posix = relativePath.replaceAll("\\", "/");
+  if (EXECUTABLE_TEST_HARNESS.test(posix)) return false;
+  return TYPED_KIBI_LANE.test(posix);
+}
+
 function classifyFile(
   relativePath: string,
   content: string,
@@ -78,9 +89,7 @@ function classifyFile(
     return ["typed_kibi_docs", "symbol_manifest"];
   if (/\.md$/i.test(relativePath)) {
     return /^---\s*[\r\n]/.test(content) &&
-      /(^|\/)documentation\/(requirements|scenarios|tests|adr|flags|events|facts)\//.test(
-        relativePath,
-      )
+      isTypedKibiMarkdownPath(relativePath)
       ? ["typed_kibi_docs", "typed_markdown"]
       : ["generic_repo_docs", "generic_markdown"];
   }

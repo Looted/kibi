@@ -49,7 +49,7 @@ describe("Cursor hook path policy", () => {
   });
 
   test("Given freshness and source candidates When classifying Then only eligible paths match", () => {
-    expect(isKbFreshnessRelevantPath("documentation/symbols.yaml")).toBe(true);
+    expect(isKbFreshnessRelevantPath(".kb/symbols.yaml")).toBe(true);
     expect(isKbFreshnessRelevantPath("packages/core/src/kb.pl")).toBe(true);
     expect(isKbFreshnessRelevantPath("packages/cursor/src/hook.ts")).toBe(
       false,
@@ -61,7 +61,7 @@ describe("Cursor hook path policy", () => {
     expect(
       isSourceImpactRelevantPath("packages/cursor/tests/hook.test.ts"),
     ).toBe(false);
-    expect(isSourceImpactRelevantPath("documentation/symbols.yaml")).toBe(
+    expect(isSourceImpactRelevantPath(".kb/symbols.yaml")).toBe(
       false,
     );
   });

@@ -20,7 +20,7 @@ import { createHash } from "node:crypto";
 import * as path from "node:path";
 import type { BaseEntity, FactFields } from "../types/entities.js";
 import type { BaseRelationship } from "../types/relationships.js";
-import { DEFAULT_CONFIG, type KbConfigPaths } from "./config.js";
+import { CANONICAL_ENTITY_PATHS } from "./kb-paths.js";
 
 const STRICT_CONFIDENCE_THRESHOLD = 0.7;
 
@@ -37,7 +37,6 @@ export interface SemanticClaim {
 export interface StrictModelInput {
   claim: SemanticClaim;
   statement: string;
-  config?: Pick<{ paths: KbConfigPaths }, "paths">;
 }
 
 type EntityProperties = Partial<
@@ -166,7 +165,7 @@ export function buildStrictWriteSet(input: StrictModelInput): StrictWriteSet {
     confidence,
     provenance: textRef,
   });
-  const sourcePaths = resolveEntitySourcePaths(input.config?.paths);
+  const sourcePaths = resolveEntitySourcePaths();
 
   if (confidence < STRICT_CONFIDENCE_THRESHOLD) {
     return {
@@ -527,28 +526,18 @@ function dedupeRelationships(
   return deduped;
 }
 
-function resolveEntitySourcePaths(configPaths: KbConfigPaths | undefined): {
+function resolveEntitySourcePaths(): {
   requirements: string;
   facts: string;
 } {
   return {
-    requirements: normalizeEntityDirectory(
-      configPaths?.requirements,
-      DEFAULT_CONFIG.paths.requirements,
-    ),
-    facts: normalizeEntityDirectory(
-      configPaths?.facts,
-      DEFAULT_CONFIG.paths.facts,
-    ),
+    requirements: normalizeEntityDirectory(CANONICAL_ENTITY_PATHS.requirements),
+    facts: normalizeEntityDirectory(CANONICAL_ENTITY_PATHS.facts),
   };
 }
 
-function normalizeEntityDirectory(
-  directory: string | undefined,
-  fallback: string | undefined,
-): string {
-  const selected = directory?.trim() || fallback?.trim() || "documentation";
-  return selected.split(path.sep).join("/").replace(/\/+$/g, "");
+function normalizeEntityDirectory(directory: string): string {
+  return directory.split(path.sep).join("/").replace(/\/+$/g, "");
 }
 
 function buildEntitySourcePath(directory: string, entityId: string): string {

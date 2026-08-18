@@ -633,14 +633,14 @@ describe("MCP Server", () => {
               name: "kb_model_requirement",
               arguments: {
                 text: "Customer data must be retained for 7 years.",
-                source: "documentation/requirements/customer-retention.md",
+                source: ".kb/requirements/customer-retention.md",
                 confidence: 0.92,
                 subjectKey: "Customer.Data",
                 propertyKey: "Retention Years",
                 operator: "eq",
                 value: 7,
                 provenance:
-                  "documentation/requirements/customer-retention.md#L1",
+                  ".kb/requirements/customer-retention.md#L1",
               },
             },
           },
@@ -941,7 +941,7 @@ describe("MCP Server", () => {
                   status: "open",
                 },
                 document: {
-                  path: `documentation/requirements/${upsertId}.md`,
+                  path: `.kb/requirements/${upsertId}.md`,
                 },
               },
             },

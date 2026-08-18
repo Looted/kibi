@@ -62,3 +62,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3ba8e5ab3d6b
+  - type: implements
+    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T16:41:25.593Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7672252cb69
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T16:41:25.607Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11a2aaab8716

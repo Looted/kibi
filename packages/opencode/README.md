@@ -301,7 +301,7 @@ Disable specific features while keeping others:
 
 ## Troubleshooting
 
-If you see a false "workspace needs Kibi bootstrap" warning even though your workspace is already initialized with `.kb/config.json` pointing at relocated `kibi-docs/*` paths, this indicates a stale plugin cache. See [the main troubleshooting docs](../../docs/troubleshooting.md#opencode-shows-workspace-needs-kibi-bootstrap-before-the-tui) for recovery steps.
+If you see a false "workspace needs Kibi bootstrap" warning even though `.kb/manifest.json` and the canonical knowledge lanes exist, this usually means a stale plugin cache. Leftover `.kb/config.json` custom paths are ignored. See [the main troubleshooting docs](../../docs/troubleshooting.md#opencode-shows-workspace-needs-kibi-bootstrap-before-the-tui) for recovery steps.
 
 ## Architecture
 
@@ -318,7 +318,7 @@ A proposed enhancement would inject Kibi context hints into file-read results (e
 
 1. OpenCode's current plugin surface does not expose file-content interception hooks
 2. The `experimental.chat.system.transform` hook only supports system prompt injection
-3. Symbol metadata from `documentation/symbols.yaml` can inform this feature once host support exists
+3. Symbol metadata from `.kb/symbols.yaml` can inform this feature once host support exists
 
 Current workaround: static system prompt guidance directs agents to query Kibi explicitly.
 
@@ -335,7 +335,7 @@ The plugin provides proactive guidance when agents perform file operations:
 The OpenCode plugin respects the repository ignore policy used by Kibi's discovery pipeline. In practice this means:
 
 - The plugin's background sync and file-event handling skip paths matched by repository `.gitignore` files, nested `.gitignore` files, and `.git/info/exclude`.
-- The plugin also treats a curated set of tool/runtime directories as never-relevant for KB sync (for example: `.sisyphus`, `.opencode`, `.kb`, `.git`, `node_modules`, `vendor`, `third_party`).
+- The plugin also treats a curated set of tool/runtime directories as never-relevant for KB sync (for example: `.sisyphus`, `.opencode`, `.git`, `node_modules`, `vendor`, `third_party`). Derived `.kb/branches`, `.kb/recovery`, `.kb/verification`, and `.kb/briefs` trees are ignored; authored knowledge lanes under `.kb/` are not.
 
 When a file event occurs for an ignored path, the plugin skips processing and will not surface candidate guidance for that file. This avoids noisy sync triggers and prevents build/editor artifacts from triggering KB sync work.
 

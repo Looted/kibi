@@ -49,7 +49,7 @@ const mockWriteCoordinateArtifact = mock(
   (_coords: Record<string, SymbolCoordinatesRecord>) => "artifact-content\n",
 );
 const mockResolveSymbolsManifestPaths = mock((_workspaceRoot: string) => ({
-  coordinatesPath: "/workspace/documentation/symbol-coordinates.yaml",
+  coordinatesPath: "/workspace/.kb/symbol-coordinates.yaml",
 }));
 
 import {
@@ -400,7 +400,7 @@ describe("isCoarseGranularityAnchor", () => {
 });
 
 describe("refreshManifestCoordinates", () => {
-  const manifestPath = "/workspace/documentation/symbols.yaml";
+  const manifestPath = "/workspace/.kb/symbols.yaml";
   const workspaceRoot = "/workspace";
 
   beforeEach(() => {
@@ -416,7 +416,7 @@ describe("refreshManifestCoordinates", () => {
     );
     mockWriteCoordinateArtifact.mockImplementation(() => "artifact-content\n");
     mockResolveSymbolsManifestPaths.mockImplementation(() => ({
-      coordinatesPath: "/workspace/documentation/symbol-coordinates.yaml",
+      coordinatesPath: "/workspace/.kb/symbol-coordinates.yaml",
     }));
   });
 
@@ -876,8 +876,8 @@ describe("refreshManifestCoordinates", () => {
       manifestDeps(),
     );
 
-    // path.relative("/workspace", "/workspace/documentation/symbols.yaml") => "documentation/symbols.yaml"
-    expect(messages[0]).toContain("documentation/symbols.yaml");
+    // path.relative("/workspace", "/workspace/.kb/symbols.yaml") => ".kb/symbols.yaml"
+    expect(messages[0]).toContain(".kb/symbols.yaml");
     expect(messages[0]).toContain("✓ Refreshed symbol coordinates");
 
     restore();

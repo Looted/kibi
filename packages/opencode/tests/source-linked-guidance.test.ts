@@ -20,7 +20,7 @@ describe("getSourceLinkedRequirementIds", () => {
     } catch {}
   });
 
-  /** Helper to write a documentation/symbols.yaml in tmpDir */
+  /** Helper to write a .kb/symbols.yaml in tmpDir */
   function writeSymbolsYaml(
     entries: Array<{
       id: string;

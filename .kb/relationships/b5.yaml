@@ -62,3 +62,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a21306557a1a
+  - type: implements
+    from: SYM-canonical-hasImpactOptions
+    to: REQ-cli-check
+    created_at: 2026-08-18T17:36:06.685Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f42f5ae30e9
+  - type: covered_by
+    from: SYM-canonical-hasImpactOptions
+    to: TEST-004
+    created_at: 2026-08-18T17:36:06.696Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-738069ced0fc
+  - type: implements
+    from: SYM-canonical-KibiTreeDataProvider-getEntityById
+    to: REQ-vscode-traceability
+    created_at: 2026-08-18T17:37:40.814Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2dbe2301c67e
+  - type: covered_by
+    from: SYM-canonical-KibiTreeDataProvider-getEntityById
+    to: TEST-vscode-traceability
+    created_at: 2026-08-18T17:37:40.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f7bb98db90c

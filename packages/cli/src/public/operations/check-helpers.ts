@@ -1,4 +1,6 @@
 import { readFileSync } from "node:fs";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 /*
  Kibi — repo-local, per-branch, queryable long-term memory for software projects
  Copyright (C) 2026 Piotr Franczyk
@@ -16,16 +18,12 @@ import { readFileSync } from "node:fs";
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import { getKbPlPathOverride } from "../../env.js";
 import { resolveKbPlPath } from "../../prolog.js";
 import { analyzePrologQueryPlanSafety } from "../../utils/prolog-query-plan-safety.js";
 import {
-  type ChecksConfig,
-  DEFAULT_CHECKS_CONFIG,
-  RULE_NAMES,
   type Violation,
+  RULE_NAMES,
   getEffectiveRules,
 } from "../../utils/rule-registry.js";
 import {
@@ -55,43 +53,42 @@ export function collectQueryPlanSafetyViolations(): Violation[] {
   }));
 }
 
+/**
+ * Resolve the rules for one check invocation.
+ *
+ * Enforcement policy is Kibi-owned: repositories cannot disable canonical
+ * checks. `args.rules` is an invocation-time diagnostic selector that never
+ * persists and never redefines project health.
+ */
 // implements REQ-mcp-tool-check
-export async function loadChecksConfig(
+export function resolveCheckRules(
+  args: Pick<CheckInput, "rules">,
+): Set<string> {
+  if (args.rules === undefined) {
+    return getEffectiveRules();
+  }
+  if (args.rules.length === 0) {
+    return new Set<string>();
+  }
+  return getEffectiveRules(args.rules);
+}
+
+/**
+ * Read whether the workspace still carries a legacy `.kb/config.json`.
+ * Retained only so check summaries can point operators at migration; the
+ * document never alters rule selection.
+ */
+// implements REQ-mcp-tool-check
+export async function readLegacyChecksHint(
   workspaceRoot: string,
-): Promise<ChecksConfig> {
+): Promise<string | null> {
   const configPath = path.join(workspaceRoot, ".kb", "config.json");
   try {
-    const content = await readFile(configPath, "utf8");
-    const parsed = JSON.parse(content) as {
-      checks?: Partial<ChecksConfig>;
-    };
-
-    const parsedRules = parsed.checks?.rules;
-    const normalizedRules: Record<string, boolean> = {
-      ...DEFAULT_CHECKS_CONFIG.rules,
-    };
-    if (parsedRules && typeof parsedRules === "object") {
-      for (const [key, value] of Object.entries(parsedRules)) {
-        if (typeof value === "boolean") {
-          normalizedRules[key] = value;
-        }
-      }
-    }
-
-    const parsedSt = parsed.checks?.symbolTraceability;
-    const normalizedSt = { ...DEFAULT_CHECKS_CONFIG.symbolTraceability };
-    if (
-      parsedSt &&
-      typeof parsedSt === "object" &&
-      typeof parsedSt.requireAdr === "boolean"
-    ) {
-      normalizedSt.requireAdr = parsedSt.requireAdr;
-    }
-
-    return { rules: normalizedRules, symbolTraceability: normalizedSt };
+    await readFile(configPath, "utf8");
   } catch {
-    return DEFAULT_CHECKS_CONFIG;
+    return null;
   }
+  return `Legacy ${path.join(".kb", "config.json")} is present. Kibi no longer reads project check or path configuration; run 'kibi migrate' to adopt the canonical .kb/ layout and retire this file.`;
 }
 
 // implements REQ-mcp-tool-check

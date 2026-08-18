@@ -13,3 +13,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d57e82d7f212
+  - type: implements
+    from: SYM-discoverSourceFiles
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T16:40:45.252Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c56df87fec5
+  - type: covered_by
+    from: SYM-discoverSourceFiles
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T16:40:45.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bfda523f16e6
+  - type: implements
+    from: SYM-canonical-StorageMigrationResult
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:01:29.829Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0547024fa598
+  - type: covered_by
+    from: SYM-canonical-StorageMigrationResult
+    to: TEST-cli-migrate
+    created_at: 2026-08-18T17:01:29.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd54918010f1

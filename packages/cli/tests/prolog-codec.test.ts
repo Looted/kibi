@@ -71,19 +71,19 @@ describe("parseViolationRows", () => {
 
   test("parses a single violation", () => {
     const raw =
-      "[violation(strict-fact-shape,'FACT-001',\"Missing subject_key\",\"Add subject_key field\",'documentation/facts/FACT-001.md')]";
+      "[violation(strict-fact-shape,'FACT-001',\"Missing subject_key\",\"Add subject_key field\",'.kb/facts/FACT-001.md')]";
     const result = parseViolationRows(raw);
     expect(result).toHaveLength(1);
     expect(result[0].rule).toBe("strict-fact-shape");
     expect(result[0].entityId).toBe("FACT-001");
     expect(result[0].description).toBe("Missing subject_key");
     expect(result[0].suggestion).toBe("Add subject_key field");
-    expect(result[0].source).toBe("documentation/facts/FACT-001.md");
+    expect(result[0].source).toBe(".kb/facts/FACT-001.md");
   });
 
   test("parses violation with comma in description", () => {
     const raw =
-      "[violation(strict-fact-shape,'FACT-002',\"Missing fields: subject_key, property_key\",\"Add required fields\",'documentation/facts/FACT-002.md')]";
+      "[violation(strict-fact-shape,'FACT-002',\"Missing fields: subject_key, property_key\",\"Add required fields\",'.kb/facts/FACT-002.md')]";
     const result = parseViolationRows(raw);
     expect(result).toHaveLength(1);
     expect(result[0].description).toBe(

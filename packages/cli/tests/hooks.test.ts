@@ -41,7 +41,7 @@ describe("Git hooks", () => {
     const content = fs.readFileSync(hookPath, "utf-8");
     expect(content).toContain("kibi check");
     expect(content).toContain("Hard enforcement boundary");
-    expect(content).toContain("documentation/symbols.yaml");
+    expect(content).toContain(".kb/symbols.yaml");
     expect(content).toContain("kibi sync --refresh-symbol-coordinates");
   });
 

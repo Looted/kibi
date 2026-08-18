@@ -19,16 +19,34 @@
 import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import {
-  type ChecksConfig,
-  DEFAULT_CHECKS_CONFIG,
-  type SymbolTraceabilityOptions,
-} from "./rule-registry.js";
-import { LATEST_KB_SCHEMA_VERSION } from "./schema-version.js";
+  CANONICAL_ENTITY_PATHS,
+  type KbEntityPaths,
+  LEGACY_DEFAULT_ENTITY_PATHS,
+} from "./kb-paths.js";
 
 /**
- * Configuration paths for entity documentation directories.
+ * Kibi no longer has a user-editable configuration file. Entity source
+ * locations live in the canonical `.kb/` namespace defined in `kb-paths.ts`,
+ * and check policy is owned by Kibi's rule registry. This module retains
+ * only the canonical accessors plus read-only recognition of the legacy
+ * `.kb/config.json` document for migration tooling.
  */
-export interface KbConfigPaths {
+
+export type { KbEntityPaths };
+
+/** Canonical entity paths; always the same, never merged with user input. */
+export const DEFAULT_CONFIG_PATHS: KbEntityPaths = CANONICAL_ENTITY_PATHS;
+
+/**
+ * Load the canonical entity paths. The result is constant: Kibi owns the
+ * layout and repositories cannot relocate knowledge lanes.
+ */
+export function loadEntityPaths(_cwd: string = process.cwd()): KbEntityPaths {
+  return CANONICAL_ENTITY_PATHS;
+}
+
+/** Legacy `.kb/config.json` path document, kept only for migration input. */
+export interface LegacyKbConfigPaths {
   requirements?: string;
   scenarios?: string;
   tests?: string;
@@ -39,172 +57,143 @@ export interface KbConfigPaths {
   symbols?: string;
 }
 
-/**
- * Shared configuration for Kibi.
- * Stored in .kb/config.json
- */
-export interface KbConfig {
-  paths: KbConfigPaths;
+/** Recognized legacy `.kb/config.json` fields (migration recognition only). */
+export interface LegacyKbConfig {
+  paths?: LegacyKbConfigPaths;
+  /** Pre-manifest top-level symbols manifest override. */
+  symbolsManifest?: string;
   schemaVersion?: number | string;
   semanticAdvisorBackfill?: "pending" | "completed" | "not_applicable";
-  /**
-   * @deprecated defaultBranch is deprecated. Branch lifecycle now follows git naturally
-   * without requiring a configured default. This field is ignored but kept for compatibility.
-   */
+  checks?: unknown;
   defaultBranch?: string;
-  checks?: ChecksConfig;
 }
 
-export type { ChecksConfig, SymbolTraceabilityOptions };
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function pickLegacyPathValue(
+  paths: Record<string, unknown>,
+  key: keyof LegacyKbConfigPaths,
+): string | undefined {
+  const value = paths[key];
+  return typeof value === "string" ? value : undefined;
+}
+
+/** Whether a legacy `.kb/config.json` exists at the workspace root. */
+export function legacyConfigExists(cwd: string): boolean {
+  return existsSync(path.join(cwd, ".kb", "config.json"));
+}
 
 /**
- * Default configuration values for new repositories.
+ * Read a legacy `.kb/config.json` if one exists. Malformed JSON returns
+ * `kind: "malformed"` so migration can report actionable diagnostics
+ * instead of silently guessing paths.
  */
-// implements REQ-003
-export const DEFAULT_CONFIG: KbConfig & { $schema: string } = {
-  // implements REQ-003
-  $schema:
-    "https://raw.githubusercontent.com/Looted/kibi/master/packages/cli/schema/config.json",
-  schemaVersion: LATEST_KB_SCHEMA_VERSION,
-  paths: {
-    requirements: "documentation/requirements",
-    scenarios: "documentation/scenarios",
-    tests: "documentation/tests",
-    adr: "documentation/adr",
-    flags: "documentation/flags",
-    events: "documentation/events",
-    facts: "documentation/facts",
-    symbols: "documentation/symbols.yaml",
-  },
-  checks: DEFAULT_CHECKS_CONFIG,
-};
-
-/**
- * Default paths used by sync command (backward compatible glob patterns).
- */
-export const DEFAULT_SYNC_PATHS: KbConfigPaths = {
-  // implements REQ-003
-  requirements: "requirements/**/*.md",
-  scenarios: "scenarios/**/*.md",
-  tests: "tests/**/*.md",
-  adr: "adr/**/*.md",
-  flags: "flags/**/*.md",
-  events: "events/**/*.md",
-  facts: "facts/**/*.md",
-  symbols: "symbols.yaml",
-};
-
-function readUserConfig(configPath: string): {
-  userConfig: Partial<KbConfig>;
-  useDefaultSchemaVersion: boolean;
-} {
-  if (!existsSync(configPath)) {
-    return {
-      userConfig: {},
-      useDefaultSchemaVersion: true,
-    };
-  }
-
+export function readLegacyKbConfig(
+  cwd: string,
+):
+  | { kind: "none" }
+  | { kind: "malformed"; error: string }
+  | { kind: "present"; config: LegacyKbConfig } {
+  const configPath = path.join(cwd, ".kb", "config.json");
+  if (!existsSync(configPath)) return { kind: "none" };
+  let raw: string;
   try {
-    const content = readFileSync(configPath, "utf8");
-
+    raw = readFileSync(configPath, "utf8");
+  } catch (error) {
     return {
-      userConfig: JSON.parse(content) as Partial<KbConfig>,
-      useDefaultSchemaVersion: false,
+      kind: "malformed",
+      error: error instanceof Error ? error.message : String(error),
     };
-  } catch {
+  }
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!isRecord(parsed)) {
+      return {
+        kind: "malformed",
+        error: "config.json must contain a JSON object",
+      };
+    }
+    const paths = isRecord(parsed.paths) ? parsed.paths : undefined;
+    let legacyPaths: LegacyKbConfigPaths | undefined = undefined;
+    if (paths !== undefined) {
+      const next: LegacyKbConfigPaths = {};
+      for (const key of [
+        "requirements",
+        "scenarios",
+        "tests",
+        "adr",
+        "flags",
+        "events",
+        "facts",
+        "symbols",
+      ] as const) {
+        const value = pickLegacyPathValue(paths, key);
+        if (value !== undefined) {
+          next[key] = value;
+        }
+      }
+      legacyPaths = Object.keys(next).length > 0 ? next : undefined;
+    }
     return {
-      userConfig: {},
-      useDefaultSchemaVersion: true,
+      kind: "present",
+      config: {
+        ...(typeof parsed.schemaVersion === "number" ||
+        typeof parsed.schemaVersion === "string"
+          ? { schemaVersion: parsed.schemaVersion }
+          : {}),
+        ...(parsed.semanticAdvisorBackfill === "pending" ||
+        parsed.semanticAdvisorBackfill === "completed" ||
+        parsed.semanticAdvisorBackfill === "not_applicable"
+          ? { semanticAdvisorBackfill: parsed.semanticAdvisorBackfill }
+          : {}),
+        ...(typeof parsed.symbolsManifest === "string"
+          ? { symbolsManifest: parsed.symbolsManifest }
+          : {}),
+        ...(typeof parsed.defaultBranch === "string"
+          ? { defaultBranch: parsed.defaultBranch }
+          : {}),
+        ...(parsed.checks !== undefined ? { checks: parsed.checks } : {}),
+        ...(legacyPaths !== undefined ? { paths: legacyPaths } : {}),
+      },
+    };
+  } catch (error) {
+    return {
+      kind: "malformed",
+      error: error instanceof Error ? error.message : String(error),
     };
   }
 }
 
 /**
- * Load and parse the Kibi configuration from .kb/config.json.
- * Falls back to DEFAULT_CONFIG if the file doesn't exist or is invalid.
- *
- * @param cwd - The working directory to look for .kb/config.json
- * @returns The merged configuration (defaults + user config)
+ * Resolve the effective legacy entity paths for migration discovery:
+ * configured values win, then the historical `documentation/` defaults.
+ * Glob-bearing values are preserved so migration can strip them to roots.
  */
-export function loadConfig(cwd: string = process.cwd()): KbConfig {
-  // implements REQ-003
-  const configPath = path.join(cwd, ".kb/config.json");
-  const { userConfig, useDefaultSchemaVersion } = readUserConfig(configPath);
-
-  return {
-    paths: {
-      ...DEFAULT_CONFIG.paths,
-      ...userConfig.paths,
-    },
-    ...(userConfig.schemaVersion !== undefined || useDefaultSchemaVersion
-      ? {
-          schemaVersion:
-            userConfig.schemaVersion ?? DEFAULT_CONFIG.schemaVersion,
-        }
-      : {}),
-    ...(userConfig.defaultBranch !== undefined
-      ? { defaultBranch: userConfig.defaultBranch }
-      : {}),
-    ...(userConfig.semanticAdvisorBackfill !== undefined
-      ? { semanticAdvisorBackfill: userConfig.semanticAdvisorBackfill }
-      : {}),
-    checks: userConfig.checks
-      ? {
-          rules: {
-            ...DEFAULT_CHECKS_CONFIG.rules,
-            ...userConfig.checks.rules,
-          },
-          symbolTraceability: {
-            ...DEFAULT_CHECKS_CONFIG.symbolTraceability,
-            ...userConfig.checks.symbolTraceability,
-          },
-        }
-      : DEFAULT_CHECKS_CONFIG,
+export function resolveLegacyEntityPaths(
+  config: LegacyKbConfig | undefined,
+): KbEntityPaths {
+  const paths = config?.paths;
+  const pick = (key: keyof LegacyKbConfigPaths): string => {
+    const configured = paths?.[key];
+    if (typeof configured === "string" && configured.trim().length > 0) {
+      return configured.trim();
+    }
+    return LEGACY_DEFAULT_ENTITY_PATHS[key];
   };
-}
-
-/**
- * Load sync configuration with fallback to glob patterns.
- * This is used by sync.ts to maintain backward compatibility with
- * older config files that may use glob patterns.
- *
- * @param cwd - The working directory to look for .kb/config.json
- * @returns The merged configuration with sync-compatible paths
- */
-export function loadSyncConfig(cwd: string = process.cwd()): KbConfig {
-  // implements REQ-003
-  const configPath = path.join(cwd, ".kb/config.json");
-  const { userConfig, useDefaultSchemaVersion } = readUserConfig(configPath);
-
+  const symbolsConfigured = paths?.symbols ?? config?.symbolsManifest;
   return {
-    paths: {
-      ...DEFAULT_SYNC_PATHS,
-      ...userConfig.paths,
-    },
-    ...(userConfig.schemaVersion !== undefined || useDefaultSchemaVersion
-      ? {
-          schemaVersion:
-            userConfig.schemaVersion ?? DEFAULT_CONFIG.schemaVersion,
-        }
-      : {}),
-    ...(userConfig.defaultBranch !== undefined
-      ? { defaultBranch: userConfig.defaultBranch }
-      : {}),
-    ...(userConfig.semanticAdvisorBackfill !== undefined
-      ? { semanticAdvisorBackfill: userConfig.semanticAdvisorBackfill }
-      : {}),
-    checks: userConfig.checks
-      ? {
-          rules: {
-            ...DEFAULT_CHECKS_CONFIG.rules,
-            ...userConfig.checks.rules,
-          },
-          symbolTraceability: {
-            ...DEFAULT_CHECKS_CONFIG.symbolTraceability,
-            ...userConfig.checks.symbolTraceability,
-          },
-        }
-      : DEFAULT_CHECKS_CONFIG,
+    requirements: pick("requirements"),
+    scenarios: pick("scenarios"),
+    tests: pick("tests"),
+    adr: pick("adr"),
+    flags: pick("flags"),
+    events: pick("events"),
+    facts: pick("facts"),
+    symbols:
+      typeof symbolsConfigured === "string" && symbolsConfigured.trim().length > 0
+        ? symbolsConfigured.trim()
+        : LEGACY_DEFAULT_ENTITY_PATHS.symbols,
   };
 }

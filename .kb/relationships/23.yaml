@@ -10,3 +10,17 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/flags/FLAG-002.md
+  - type: implements
+    from: SYM-canonical-KbManifestStatus
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:02:30.960Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0989f56ba52c
+  - type: covered_by
+    from: SYM-canonical-KbManifestStatus
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:02:30.971Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0bf42ea429bb

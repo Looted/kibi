@@ -116,7 +116,6 @@ export interface SourceDiscoveryResult {
 
 const IGNORED_DIRECTORY_NAMES = new Set([
   ".git",
-  ".kb",
   ".venv",
   "build",
   "coverage",
@@ -130,17 +129,25 @@ const IGNORED_DIRECTORY_NAMES = new Set([
   "venv",
 ]);
 
-// Minimal copy of the opencode defaults used by other packages. Keep in sync
-// with packages/opencode/src/file-filter.ts DEFAULT_SYNC_PATHS.
-const DEFAULT_SYNC_PATHS: Record<string, string> = {
-  requirements: "documentation/requirements/**/*.md",
-  scenarios: "documentation/scenarios/**/*.md",
-  tests: "documentation/tests/**/*.md",
-  adr: "documentation/adr/**/*.md",
-  flags: "documentation/flags/**/*.md",
-  events: "documentation/events/**/*.md",
-  facts: "documentation/facts/**/*.md",
-  symbols: "documentation/symbols.yaml",
+/** Derived .kb/ runtime trees. Authored knowledge lanes stay visible. */
+const DERIVED_KB_PREFIXES = [
+  ".kb/branches",
+  ".kb/recovery",
+  ".kb/verification",
+  ".kb/briefs",
+  ".kb/migrations",
+] as const;
+
+// Canonical Kibi knowledge paths — must stay in sync with kb-paths.ts.
+const CANONICAL_KB_PATHS: Record<string, string> = {
+  requirements: ".kb/requirements/**/*.md",
+  scenarios: ".kb/scenarios/**/*.md",
+  tests: ".kb/tests/**/*.md",
+  adr: ".kb/adr/**/*.md",
+  flags: ".kb/flags/**/*.md",
+  events: ".kb/events/**/*.md",
+  facts: ".kb/facts/**/*.md",
+  symbols: ".kb/symbols.yaml",
 };
 
 const SOURCE_LANGUAGE_EXTENSIONS: Record<string, string> = {
@@ -195,6 +202,7 @@ function findVendoredTrees(cwd: string): string[] {
     ["kibi", "opencode.json"],
     ["kibi", "package.json"],
     ["kibi", "packages", "mcp"],
+    ["kibi", ".kb"],
     ["kibi", "documentation"],
   ];
 
@@ -221,8 +229,8 @@ function findVendoredTrees(cwd: string): string[] {
   return Array.from(results).sort();
 }
 
-function rootKbConfigExists(cwd: string): boolean {
-  return fs.existsSync(path.join(cwd, ".kb", "config.json"));
+function rootKbManifestExists(cwd: string): boolean {
+  return fs.existsSync(path.join(cwd, ".kb", "manifest.json"));
 }
 
 function hasWorkspaceProjectSignals(
@@ -250,15 +258,6 @@ function hasWorkspaceProjectSignals(
   }
 
   return false;
-}
-
-function readRootConfig(cwd: string): Record<string, unknown> | null {
-  try {
-    const raw = fs.readFileSync(path.join(cwd, ".kb", "config.json"), "utf8");
-    return JSON.parse(raw) || null;
-  } catch {
-    return null;
-  }
 }
 
 function stripToRoot(p: string): string {
@@ -320,28 +319,16 @@ function toRelativePosixPath(
   return path.relative(workspaceRoot, targetPath).split(path.sep).join("/");
 }
 
-function normalizeDiscoveryPaths(cwd: string): DiscoveryPaths {
-  const config = readRootConfig(cwd) || {};
-  const configured = (config.paths as Record<string, string> | undefined) ?? {};
-  const readPath = (key: keyof DiscoveryPaths): string => {
-    const configuredValue = configured[key];
-    if (typeof configuredValue === "string" && configuredValue.length > 0) {
-      return configuredValue;
-    }
-
-    const fallbackValue = DEFAULT_SYNC_PATHS[key];
-    return typeof fallbackValue === "string" ? fallbackValue : "";
-  };
-
+function normalizeDiscoveryPaths(_cwd: string): DiscoveryPaths {
   return {
-    requirements: readPath("requirements"),
-    scenarios: readPath("scenarios"),
-    tests: readPath("tests"),
-    adr: readPath("adr"),
-    flags: readPath("flags"),
-    events: readPath("events"),
-    facts: readPath("facts"),
-    symbols: readPath("symbols"),
+    requirements: CANONICAL_KB_PATHS.requirements ?? "",
+    scenarios: CANONICAL_KB_PATHS.scenarios ?? "",
+    tests: CANONICAL_KB_PATHS.tests ?? "",
+    adr: CANONICAL_KB_PATHS.adr ?? "",
+    flags: CANONICAL_KB_PATHS.flags ?? "",
+    events: CANONICAL_KB_PATHS.events ?? "",
+    facts: CANONICAL_KB_PATHS.facts ?? "",
+    symbols: CANONICAL_KB_PATHS.symbols ?? "",
   };
 }
 
@@ -354,6 +341,11 @@ function buildIgnoredGlobs(
   for (const dirName of IGNORED_DIRECTORY_NAMES) {
     ignored.add(`**/${dirName}`);
     ignored.add(`**/${dirName}/**`);
+  }
+
+  for (const prefix of DERIVED_KB_PREFIXES) {
+    ignored.add(prefix);
+    ignored.add(`${prefix}/**`);
   }
 
   for (const vendoredRoot of vendoredRoots) {
@@ -1079,9 +1071,6 @@ export async function resolveActivationPolicy(
 }
 
 function rootTargetsAllResolve(cwd: string): boolean {
-  const config = readRootConfig(cwd) || {};
-  const paths = (config.paths as Record<string, string> | undefined) ?? {};
-
   const keys = [
     "requirements",
     "scenarios",
@@ -1094,7 +1083,7 @@ function rootTargetsAllResolve(cwd: string): boolean {
   ] as const;
 
   for (const key of keys) {
-    const raw = paths[key] ?? DEFAULT_SYNC_PATHS[key];
+    const raw = CANONICAL_KB_PATHS[key];
     if (!raw) return false;
     const normalized = raw.replace(/\/+$|\s+$/g, "");
     const isFile = normalized.endsWith(".yaml") || normalized.endsWith(".yml");
@@ -1115,18 +1104,18 @@ export async function classifyActivationState(
   workspaceRoot: string,
   prolog: PrologProcess,
 ): Promise<ActivationState> {
-  const hasRootConfig = rootKbConfigExists(workspaceRoot);
+  const hasRootManifest = rootKbManifestExists(workspaceRoot);
   const vendored = findVendoredTrees(workspaceRoot);
 
   if (
-    !hasRootConfig &&
+    !hasRootManifest &&
     vendored.length > 0 &&
     !hasWorkspaceProjectSignals(workspaceRoot, vendored)
   ) {
     return "vendored_only";
   }
 
-  if (!hasRootConfig) {
+  if (!hasRootManifest) {
     return "root_uninitialized";
   }
 
@@ -1202,6 +1191,13 @@ export function collectMarkdownFiles(
     const rel = path.relative(workspaceRoot, full).split(path.sep).join("/");
     if (vendoredRoots.some((v) => rel === v || rel.startsWith(`${v}/`)))
       continue;
+    if (
+      DERIVED_KB_PREFIXES.some(
+        (prefix) => rel === prefix || rel.startsWith(`${prefix}/`),
+      )
+    ) {
+      continue;
+    }
 
     const st = fs.statSync(full);
     if (st.isDirectory()) {

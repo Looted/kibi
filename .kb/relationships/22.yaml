@@ -55,3 +55,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8b1aeed029df
+  - type: implements
+    from: SYM-canonical-KB_ROOT
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:03:07.347Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-792cfec91f2a
+  - type: covered_by
+    from: SYM-canonical-KB_ROOT
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:03:07.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb50590c1977

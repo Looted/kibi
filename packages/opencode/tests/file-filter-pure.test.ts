@@ -74,14 +74,14 @@ describe("stripToRoot", () => {
 describe("loadKbSyncPaths", () => {
   test("returns default paths when no config exists", () => {
     const paths = loadKbSyncPaths("/nonexistent");
-    expect(paths.requirements).toBe("documentation/requirements/**/*.md");
-    expect(paths.scenarios).toBe("documentation/scenarios/**/*.md");
-    expect(paths.tests).toBe("documentation/tests/**/*.md");
-    expect(paths.adr).toBe("documentation/adr/**/*.md");
-    expect(paths.flags).toBe("documentation/flags/**/*.md");
-    expect(paths.events).toBe("documentation/events/**/*.md");
-    expect(paths.facts).toBe("documentation/facts/**/*.md");
-    expect(paths.symbols).toBe("documentation/symbols.yaml");
+    expect(paths.requirements).toBe(".kb/requirements/**/*.md");
+    expect(paths.scenarios).toBe(".kb/scenarios/**/*.md");
+    expect(paths.tests).toBe(".kb/tests/**/*.md");
+    expect(paths.adr).toBe(".kb/adr/**/*.md");
+    expect(paths.flags).toBe(".kb/flags/**/*.md");
+    expect(paths.events).toBe(".kb/events/**/*.md");
+    expect(paths.facts).toBe(".kb/facts/**/*.md");
+    expect(paths.symbols).toBe(".kb/symbols.yaml");
   });
 
   // implements REQ-opencode-kibi-plugin-v1
@@ -92,8 +92,8 @@ describe("loadKbSyncPaths", () => {
 
     const paths = loadKbSyncPaths(tmpDir);
 
-    expect(paths.requirements).toBe("documentation/requirements/**/*.md");
-    expect(paths.symbols).toBe("documentation/symbols.yaml");
+    expect(paths.requirements).toBe(".kb/requirements/**/*.md");
+    expect(paths.symbols).toBe(".kb/symbols.yaml");
   });
 });
 
@@ -118,7 +118,7 @@ describe("getKbExistenceTargets", () => {
     const symbols = targets.find((t) => t.key === "symbols");
     expect(Boolean(symbols)).toBe(true);
     expect(symbols?.kind).toBe("file");
-    expect(symbols?.relativePath).toBe("documentation/symbols.yaml");
+    expect(symbols?.relativePath).toBe(".kb/symbols.yaml");
   });
 
   test("requirements target is a directory", () => {
@@ -126,7 +126,7 @@ describe("getKbExistenceTargets", () => {
     const reqs = targets.find((t) => t.key === "requirements");
     expect(Boolean(reqs)).toBe(true);
     expect(reqs?.kind).toBe("dir");
-    expect(reqs?.relativePath).toBe("documentation/requirements");
+    expect(reqs?.relativePath).toBe(".kb/requirements");
   });
 
   test("all directory targets have dir kind", () => {
@@ -143,25 +143,25 @@ describe("getKbExistenceTargets", () => {
 
 describe("shouldHandleFile", () => {
   test("returns true for requirements markdown files", () => {
-    expect(shouldHandleFile("documentation/requirements/REQ-001.md")).toBe(
+    expect(shouldHandleFile(".kb/requirements/REQ-001.md")).toBe(
       true,
     );
   });
 
   test("returns true for scenarios markdown files", () => {
-    expect(shouldHandleFile("documentation/scenarios/SCEN-001.md")).toBe(true);
+    expect(shouldHandleFile(".kb/scenarios/SCEN-001.md")).toBe(true);
   });
 
   test("returns true for tests markdown files", () => {
-    expect(shouldHandleFile("documentation/tests/TEST-001.md")).toBe(true);
+    expect(shouldHandleFile(".kb/tests/TEST-001.md")).toBe(true);
   });
 
   test("returns true for ADR markdown files", () => {
-    expect(shouldHandleFile("documentation/adr/ADR-001.md")).toBe(true);
+    expect(shouldHandleFile(".kb/adr/ADR-001.md")).toBe(true);
   });
 
   test("returns true for symbols yaml file", () => {
-    expect(shouldHandleFile("documentation/symbols.yaml")).toBe(true);
+    expect(shouldHandleFile(".kb/symbols.yaml")).toBe(true);
   });
 
   test("returns false for files in .kb directory", () => {
@@ -203,7 +203,7 @@ describe("shouldHandleFile", () => {
   });
 
   test("handles absolute paths", () => {
-    const absPath = "/home/user/project/documentation/requirements/REQ-001.md";
+    const absPath = "/home/user/project/.kb/requirements/REQ-001.md";
     expect(shouldHandleFile(absPath, "/home/user/project")).toBe(true);
   });
 

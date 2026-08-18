@@ -1,7 +1,23 @@
-import type { KbConfig } from "./config.js";
+/*
+ * Kibi — repo-local, per-branch, queryable long-term memory for software projects
+ * Copyright (C) 2026 Piotr Franczyk
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 
 // implements REQ-003
-export const LATEST_KB_SCHEMA_VERSION = 4;
+export const LATEST_KB_SCHEMA_VERSION = 5;
 
 export interface SchemaVersionStatus {
   status: "missing" | "invalid" | "older" | "current" | "newer";
@@ -11,7 +27,10 @@ export interface SchemaVersionStatus {
   warning: string | null;
 }
 
-type SchemaVersionConfig = Pick<KbConfig, "schemaVersion"> | null | undefined;
+export type SchemaVersionSource =
+  | { schemaVersion: number | string | null | undefined }
+  | null
+  | undefined;
 
 // implements REQ-003
 export function normalizeSchemaVersion(
@@ -36,11 +55,14 @@ export function normalizeSchemaVersion(
 
 // implements REQ-003
 export function getSchemaVersionStatus(
-  config?: SchemaVersionConfig,
+  config?: SchemaVersionSource,
 ): SchemaVersionStatus {
   const latestVersion = LATEST_KB_SCHEMA_VERSION;
   const hasSchemaVersion =
-    config !== null && config !== undefined && "schemaVersion" in config;
+    config !== null &&
+    config !== undefined &&
+    "schemaVersion" in config &&
+    config.schemaVersion !== undefined;
   const currentVersion = normalizeSchemaVersion(config?.schemaVersion);
 
   if (currentVersion === null) {
@@ -50,8 +72,8 @@ export function getSchemaVersionStatus(
       latestVersion,
       needsMigration: true,
       warning: hasSchemaVersion
-        ? "KB config schemaVersion is invalid and should be migrated."
-        : "KB config schemaVersion is missing; legacy config should be migrated.",
+        ? "KB schemaVersion is invalid and should be migrated."
+        : "KB schemaVersion is missing; the repository should be initialized or migrated.",
     };
   }
 
@@ -61,7 +83,7 @@ export function getSchemaVersionStatus(
       currentVersion,
       latestVersion,
       needsMigration: false,
-      warning: `KB config schemaVersion ${currentVersion} is newer than the latest supported version ${latestVersion}.`,
+      warning: `KB schemaVersion ${currentVersion} is newer than the latest supported version ${latestVersion}.`,
     };
   }
 
@@ -71,7 +93,7 @@ export function getSchemaVersionStatus(
       currentVersion,
       latestVersion,
       needsMigration: true,
-      warning: `KB config schemaVersion ${currentVersion} is older than the latest version ${latestVersion} and should be migrated.`,
+      warning: `KB schemaVersion ${currentVersion} is older than the latest version ${latestVersion} and should be migrated.`,
     };
   }
 

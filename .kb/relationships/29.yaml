@@ -13,3 +13,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-01701aa0691f
+  - type: implements
+    from: SYM-createRepoIgnorePolicy
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T16:40:39.283Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a87443cc25b
+  - type: covered_by
+    from: SYM-createRepoIgnorePolicy
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T16:40:39.297Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00388e049924

@@ -6,3 +6,31 @@ relationships:
     created_at: "2026-08-16T18:52:12.220Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-canonical-writeKbManifest
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:02:18.727Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10d593b39c6d
+  - type: covered_by
+    from: SYM-canonical-writeKbManifest
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:02:18.734Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80828d70c5cb
+  - type: implements
+    from: SYM-canonical-DiscoveryOptions
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T17:35:36.476Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59fae9714cee
+  - type: covered_by
+    from: SYM-canonical-DiscoveryOptions
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T17:35:36.485Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e56d44080eaa

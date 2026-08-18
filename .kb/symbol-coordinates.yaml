@@ -143,9 +143,9 @@ coordinates:
   SYM-AuditedNoImpactOverrideInput:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 65
+    sourceEndLine: 57
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
-    sourceLine: 62
+    sourceLine: 54
   SYM-AutoUpdateInput:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -233,9 +233,9 @@ coordinates:
   SYM-BehaviorSourceEditInput:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 55
+    sourceEndLine: 47
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
-    sourceLine: 50
+    sourceLine: 42
   SYM-BoundPhysicalCell:
     sourceColumn: 12
     sourceEndColumn: 5
@@ -293,9 +293,9 @@ coordinates:
   SYM-CheckOptions:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 97
+    sourceEndLine: 98
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 89
+    sourceLine: 90
   SYM-CheckRunner:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -339,29 +339,29 @@ coordinates:
     sourceFile: scripts/skillopt-eval/real-workflow-types.ts
     sourceLine: 170
   SYM-DEFAULT-CONFIG:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 80
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 200
     sourceFile: packages/cli/src/utils/config.ts
-    sourceLine: 64
+    sourceLine: 1
   SYM-DEFAULT-COORDINATES-PATH:
     sourceColumn: 13
-    sourceEndColumn: 79
-    sourceEndLine: 5
+    sourceEndColumn: 66
+    sourceEndLine: 8
     sourceFile: packages/cli/src/utils/manifest-paths.ts
-    sourceLine: 5
+    sourceLine: 8
   SYM-DEFAULT-SYMBOLS-PATH:
     sourceColumn: 13
-    sourceEndColumn: 64
-    sourceEndLine: 4
+    sourceEndColumn: 60
+    sourceEndLine: 7
     sourceFile: packages/cli/src/utils/manifest-paths.ts
-    sourceLine: 4
+    sourceLine: 7
   SYM-DEFAULT-SYNC-PATHS:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 95
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 200
     sourceFile: packages/cli/src/utils/config.ts
-    sourceLine: 85
+    sourceLine: 1
   SYM-DEFAULT-TOOLS-RUNTIME:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -485,9 +485,9 @@ coordinates:
   SYM-EntitySpec:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 59
+    sourceEndLine: 58
     sourceFile: packages/cli/src/utils/strict-modeling.ts
-    sourceLine: 52
+    sourceLine: 51
   SYM-EvidenceProviderName:
     sourceColumn: 12
     sourceEndColumn: 77
@@ -725,9 +725,9 @@ coordinates:
   SYM-IgnorePolicy:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 25
+    sourceEndLine: 22
     sourceFile: packages/cli/src/public/ignore-policy.ts
-    sourceLine: 21
+    sourceLine: 18
   SYM-InitKibiCommandCapability:
     sourceColumn: 12
     sourceEndColumn: 6
@@ -761,21 +761,21 @@ coordinates:
   SYM-KIBI-IMPACT-DIAGNOSTIC-IDS:
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 26
+    sourceEndLine: 18
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
-    sourceLine: 22
+    sourceLine: 14
   SYM-KIBI-IMPACT-DIAGNOSTICS:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 119
+    sourceEndLine: 111
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
-    sourceLine: 88
+    sourceLine: 80
   SYM-KIBI-NO-IMPACT-DECLARATION:
     sourceColumn: 13
     sourceEndColumn: 61
-    sourceEndLine: 22
+    sourceEndLine: 21
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 22
+    sourceLine: 21
   SYM-KIBI-REFRESH-TREE-COMMAND:
     sourceColumn: 13
     sourceEndColumn: 59
@@ -790,13 +790,13 @@ coordinates:
     sourceLine: 9
   SYM-KIBI-SYMBOL-COORDINATES-PATH:
     sourceColumn: 13
-    sourceEndColumn: 41
-    sourceEndLine: 19
+    sourceEndColumn: 73
+    sourceEndLine: 18
     sourceFile: packages/cli/src/traceability/evidence-model.ts
     sourceLine: 18
   SYM-KIBI-SYMBOLS-MANIFEST-PATH:
     sourceColumn: 13
-    sourceEndColumn: 70
+    sourceEndColumn: 60
     sourceEndLine: 15
     sourceFile: packages/cli/src/traceability/evidence-model.ts
     sourceLine: 15
@@ -807,17 +807,17 @@ coordinates:
     sourceFile: packages/vscode/src/extensionIds.ts
     sourceLine: 4
   SYM-KbConfig:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 56
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 200
     sourceFile: packages/cli/src/utils/config.ts
-    sourceLine: 46
+    sourceLine: 1
   SYM-KbConfigPaths:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 40
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 200
     sourceFile: packages/cli/src/utils/config.ts
-    sourceLine: 31
+    sourceLine: 1
   SYM-KbFreshnessDecision:
     sourceColumn: 12
     sourceEndColumn: 13
@@ -911,9 +911,9 @@ coordinates:
   SYM-KibiEntityType:
     sourceColumn: 12
     sourceEndColumn: 11
-    sourceEndLine: 33
+    sourceEndLine: 32
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 25
+    sourceLine: 24
   SYM-KibiImpactDiagnostic:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -923,9 +923,9 @@ coordinates:
   SYM-KibiImpactDiagnosticContract:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 40
+    sourceEndLine: 32
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
-    sourceLine: 36
+    sourceLine: 28
   SYM-KibiImpactDiagnosticId:
     sourceColumn: 12
     sourceEndColumn: 45
@@ -935,81 +935,81 @@ coordinates:
   SYM-KibiImpactDiagnosticId-contract:
     sourceColumn: 12
     sourceEndColumn: 46
-    sourceEndLine: 29
+    sourceEndLine: 21
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
-    sourceLine: 28
+    sourceLine: 20
   SYM-KibiImpactEvidence:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 157
+    sourceEndLine: 156
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 150
+    sourceLine: 149
   SYM-KibiImpactEvidenceInput:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 48
+    sourceEndLine: 40
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
-    sourceLine: 42
+    sourceLine: 34
   SYM-KibiImpactEvidenceKind:
     sourceColumn: 12
     sourceEndColumn: 24
-    sourceEndLine: 34
+    sourceEndLine: 26
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
-    sourceLine: 31
+    sourceLine: 23
   SYM-KibiImpactKbArtifact:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 72
+    sourceEndLine: 71
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 61
+    sourceLine: 60
   SYM-KibiImpactKbChangesMode:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 122
+    sourceEndLine: 121
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 118
+    sourceLine: 117
   SYM-KibiImpactMissingMode:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 134
+    sourceEndLine: 133
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 132
+    sourceLine: 131
   SYM-KibiImpactMode:
     sourceColumn: 12
     sourceEndColumn: 26
-    sourceEndLine: 140
+    sourceEndLine: 139
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 137
+    sourceLine: 136
   SYM-KibiImpactNoImpactOverrideMode:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 129
+    sourceEndLine: 128
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 125
+    sourceLine: 124
   SYM-KibiImpactSourceChange:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 53
+    sourceEndLine: 52
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 48
+    sourceLine: 47
   SYM-KibiImpactSymbolsManifest:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 91
+    sourceEndLine: 90
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 84
+    sourceLine: 83
   SYM-KibiNoImpactOverride:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 115
+    sourceEndLine: 114
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 104
+    sourceLine: 103
   SYM-KibiNoImpactReason:
     sourceColumn: 12
     sourceEndColumn: 33
-    sourceEndLine: 96
+    sourceEndLine: 95
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 94
+    sourceLine: 93
   SYM-KibiOpencodePluginEntry:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1019,7 +1019,7 @@ coordinates:
   SYM-KibiTreeDataProvider:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 973
+    sourceEndLine: 960
     sourceFile: packages/vscode/src/treeProvider.ts
     sourceLine: 174
   SYM-KibiTreeItem:
@@ -1037,9 +1037,9 @@ coordinates:
   SYM-LATEST-KB-SCHEMA-VERSION:
     sourceColumn: 13
     sourceEndColumn: 41
-    sourceEndLine: 4
+    sourceEndLine: 20
     sourceFile: packages/cli/src/utils/schema-version.ts
-    sourceLine: 4
+    sourceLine: 20
   SYM-LinkedEntityResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1163,9 +1163,9 @@ coordinates:
   SYM-ParsedKibiImpactOverride:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 60
+    sourceEndLine: 52
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
-    sourceLine: 57
+    sourceLine: 49
   SYM-PendingLifecycleEvent:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1421,15 +1421,15 @@ coordinates:
   SYM-RelationshipParityRecord:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 19
+    sourceEndLine: 18
     sourceFile: packages/cli/src/public/operations/source-relationship-parity.ts
-    sourceLine: 13
+    sourceLine: 12
   SYM-RelationshipSpec:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 64
+    sourceEndLine: 63
     sourceFile: packages/cli/src/utils/strict-modeling.ts
-    sourceLine: 61
+    sourceLine: 60
   SYM-ReleaseAction:
     sourceColumn: 12
     sourceEndColumn: 29
@@ -1505,9 +1505,9 @@ coordinates:
   SYM-SchemaVersionStatus:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 12
+    sourceEndLine: 28
     sourceFile: packages/cli/src/utils/schema-version.ts
-    sourceLine: 6
+    sourceLine: 22
   SYM-SearchMatch:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1733,9 +1733,9 @@ coordinates:
   SYM-SourceChangeKind:
     sourceColumn: 12
     sourceEndColumn: 31
-    sourceEndLine: 45
+    sourceEndLine: 44
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 43
+    sourceLine: 42
   SYM-SourceDiscoveryResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1799,9 +1799,9 @@ coordinates:
   SYM-StableRequirementIds:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 76
+    sourceEndLine: 75
     sourceFile: packages/cli/src/utils/strict-modeling.ts
-    sourceLine: 66
+    sourceLine: 65
   SYM-StagedAuthoredSymbolsManifestEvidence:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1835,15 +1835,15 @@ coordinates:
   SYM-StrictModelInput:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 41
+    sourceEndLine: 40
     sourceFile: packages/cli/src/utils/strict-modeling.ts
     sourceLine: 37
   SYM-StrictWriteSet:
     sourceColumn: 12
     sourceEndColumn: 77
-    sourceEndLine: 94
+    sourceEndLine: 93
     sourceFile: packages/cli/src/utils/strict-modeling.ts
-    sourceLine: 94
+    sourceLine: 93
   SYM-SuggestPredicatesArgs:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -2279,9 +2279,9 @@ coordinates:
   SYM-auto-059ACEEC9EDC:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 451
+    sourceEndLine: 456
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 399
+    sourceLine: 404
   SYM-auto-0955397546A3:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2357,9 +2357,9 @@ coordinates:
   SYM-auto-1EEC676792AC:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 525
+    sourceEndLine: 530
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 461
+    sourceLine: 466
   SYM-auto-20020A915D46:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -2429,9 +2429,9 @@ coordinates:
   SYM-auto-2E8B94C6ABB2:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 127
+    sourceEndLine: 129
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 113
+    sourceLine: 115
   SYM-auto-3317F858EB14:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -2465,15 +2465,15 @@ coordinates:
   SYM-auto-44CE7BD0251E:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 176
+    sourceEndLine: 171
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 149
+    sourceLine: 156
   SYM-auto-4533A0DDA5BD:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 17
+    sourceEndLine: 20
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 11
+    sourceLine: 14
   SYM-auto-4682A3D1BEB4:
     sourceColumn: 12
     sourceEndColumn: 37
@@ -2615,9 +2615,9 @@ coordinates:
   SYM-auto-7C9A229C5071:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 626
+    sourceEndLine: 631
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 556
+    sourceLine: 561
   SYM-auto-7D6473217301:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2627,9 +2627,9 @@ coordinates:
   SYM-auto-7EA45A5BE416:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 111
+    sourceEndLine: 113
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 67
+    sourceLine: 70
   SYM-auto-87E4086AAAB1:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2657,9 +2657,9 @@ coordinates:
   SYM-auto-897151BA8338:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 183
+    sourceEndLine: 178
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 178
+    sourceLine: 173
   SYM-auto-8A6A1669C54A:
     sourceColumn: 12
     sourceEndColumn: 64
@@ -2669,9 +2669,9 @@ coordinates:
   SYM-auto-8B6FF5246789:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 57
+    sourceEndLine: 60
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 36
+    sourceLine: 39
   SYM-auto-8FB623B4AC3F:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2717,9 +2717,9 @@ coordinates:
   SYM-auto-9648A5F09C09:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 641
+    sourceEndLine: 646
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 629
+    sourceLine: 634
   SYM-auto-9673173700B2:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2939,9 +2939,9 @@ coordinates:
   SYM-auto-F6E934B6698C:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 65
+    sourceEndLine: 66
     sourceFile: packages/cli/src/operations/planning/apply-plan.ts
-    sourceLine: 58
+    sourceLine: 59
   SYM-auto-F8534C607C20:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -3029,9 +3029,9 @@ coordinates:
   SYM-autopilot-classify-activation:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 173
+    sourceEndLine: 153
     sourceFile: packages/cli/src/operations/autopilot/activation.ts
-    sourceLine: 99
+    sourceLine: 101
   SYM-autopilot-confidence-band:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3041,9 +3041,9 @@ coordinates:
   SYM-autopilot-discover-shared:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 132
+    sourceEndLine: 131
     sourceFile: packages/cli/src/operations/autopilot/discovery.ts
-    sourceLine: 83
+    sourceLine: 82
   SYM-autopilot-discovery-result-shared:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -3125,9 +3125,9 @@ coordinates:
   SYM-autopilot-scan-evidence:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 225
+    sourceEndLine: 234
     sourceFile: packages/cli/src/operations/autopilot/discovery-evidence.ts
-    sourceLine: 170
+    sourceLine: 179
   SYM-autopilot-select-candidates:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3317,15 +3317,15 @@ coordinates:
   SYM-buildStableRequirementIds:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 158
+    sourceEndLine: 157
     sourceFile: packages/cli/src/utils/strict-modeling.ts
-    sourceLine: 132
+    sourceLine: 131
   SYM-buildStrictWriteSet:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 278
+    sourceEndLine: 277
     sourceFile: packages/cli/src/utils/strict-modeling.ts
-    sourceLine: 160
+    sourceLine: 159
   SYM-buildSymbolManifestCandidates:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3356,6 +3356,468 @@ coordinates:
     sourceEndLine: 119
     sourceFile: scripts/skillopt-eval/held-out-cell-binding.ts
     sourceLine: 115
+  SYM-canonical-CANONICAL_ENTITY_PATHS:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 105
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    sourceLine: 96
+  SYM-canonical-DEFAULT_CONFIG_PATHS:
+    sourceColumn: 13
+    sourceEndColumn: 73
+    sourceEndLine: 38
+    sourceFile: packages/cli/src/utils/config.ts
+    sourceLine: 38
+  SYM-canonical-DERIVED_KB_PREFIXES:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 82
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    sourceLine: 76
+  SYM-canonical-DiscoveryOptions:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 36
+    sourceFile: packages/cli/src/commands/sync/discovery.ts
+    sourceLine: 31
+  SYM-canonical-ENTITY_LANES:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 39
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    sourceLine: 31
+  SYM-canonical-EntityLane:
+    sourceColumn: 12
+    sourceEndColumn: 55
+    sourceEndLine: 41
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    sourceLine: 41
+  SYM-canonical-HunkRange:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 10
+    sourceFile: packages/cli/src/traceability/git-staged.ts
+    sourceLine: 7
+  SYM-canonical-KB_MANIFEST_VERSION:
+    sourceColumn: 13
+    sourceEndColumn: 36
+    sourceEndLine: 34
+    sourceFile: packages/cli/src/utils/kb-manifest.ts
+    sourceLine: 34
+  SYM-canonical-KB_PATHS:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 73
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    sourceLine: 58
+  SYM-canonical-KB_ROOT:
+    sourceColumn: 13
+    sourceEndColumn: 28
+    sourceEndLine: 28
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    sourceLine: 28
+  SYM-canonical-KbEntityPaths:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 93
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    sourceLine: 84
+  SYM-canonical-KbExistenceTarget:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 47
+    sourceFile: packages/opencode/src/file-filter.ts
+    sourceLine: 43
+  SYM-canonical-KbManifest:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 48
+    sourceFile: packages/cli/src/utils/kb-manifest.ts
+    sourceLine: 41
+  SYM-canonical-KbManifestStatus:
+    sourceColumn: 12
+    sourceEndColumn: 6
+    sourceEndLine: 65
+    sourceFile: packages/cli/src/utils/kb-manifest.ts
+    sourceLine: 58
+  SYM-canonical-KibiTreeDataProvider-getChildren:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 264
+    sourceFile: packages/vscode/src/treeProvider.ts
+    sourceLine: 249
+  SYM-canonical-KibiTreeDataProvider-getEntityById:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 925
+    sourceFile: packages/vscode/src/treeProvider.ts
+    sourceLine: 923
+  SYM-canonical-KibiTreeDataProvider-getEntityCount:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 920
+    sourceFile: packages/vscode/src/treeProvider.ts
+    sourceLine: 918
+  SYM-canonical-KibiTreeDataProvider-getFallbackSymbolEntity:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 947
+    sourceFile: packages/vscode/src/treeProvider.ts
+    sourceLine: 928
+  SYM-canonical-KibiTreeDataProvider-getLocalPathForEntity:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 959
+    sourceFile: packages/vscode/src/treeProvider.ts
+    sourceLine: 957
+  SYM-canonical-KibiTreeDataProvider-getNavigationTargetForEntity:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 915
+    sourceFile: packages/vscode/src/treeProvider.ts
+    sourceLine: 881
+  SYM-canonical-KibiTreeDataProvider-getTreeItem:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 247
+    sourceFile: packages/vscode/src/treeProvider.ts
+    sourceLine: 207
+  SYM-canonical-KibiTreeDataProvider-onDidChangeTreeData:
+    sourceColumn: 11
+    sourceEndColumn: 36
+    sourceEndLine: 181
+    sourceFile: packages/vscode/src/treeProvider.ts
+    sourceLine: 180
+  SYM-canonical-KibiTreeDataProvider-refresh:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 204
+    sourceFile: packages/vscode/src/treeProvider.ts
+    sourceLine: 197
+  SYM-canonical-LEGACY_CONFIG_PATH_KEYS:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 52
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    sourceLine: 44
+  SYM-canonical-LEGACY_DEFAULT_ENTITY_PATHS:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 117
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    sourceLine: 108
+  SYM-canonical-LegacyKbConfig:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 69
+    sourceFile: packages/cli/src/utils/config.ts
+    sourceLine: 61
+  SYM-canonical-LegacyKbConfigPaths:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 58
+    sourceFile: packages/cli/src/utils/config.ts
+    sourceLine: 49
+  SYM-canonical-MarkdownValidationResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 11
+    sourceFile: packages/cli/src/traceability/markdown-validate.ts
+    sourceLine: 8
+  SYM-canonical-PathAnalysis:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 21
+    sourceFile: packages/opencode/src/path-kind.ts
+    sourceLine: 17
+  SYM-canonical-PathKind:
+    sourceColumn: 12
+    sourceEndColumn: 14
+    sourceEndLine: 15
+    sourceFile: packages/opencode/src/path-kind.ts
+    sourceLine: 4
+  SYM-canonical-PendingSourceReceiptSnapshot:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 51
+    sourceFile: packages/cli/src/commands/sync/discovery.ts
+    sourceLine: 46
+  SYM-canonical-PostureResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 21
+    sourceFile: packages/opencode/src/repo-posture.ts
+    sourceLine: 16
+  SYM-canonical-RepoPosture:
+    sourceColumn: 12
+    sourceEndColumn: 32
+    sourceEndLine: 14
+    sourceFile: packages/opencode/src/repo-posture.ts
+    sourceLine: 9
+  SYM-canonical-SchemaVersionSource:
+    sourceColumn: 12
+    sourceEndColumn: 14
+    sourceEndLine: 33
+    sourceFile: packages/cli/src/utils/schema-version.ts
+    sourceLine: 30
+  SYM-canonical-SemanticAdvisorBackfill:
+    sourceColumn: 12
+    sourceEndColumn: 21
+    sourceEndLine: 39
+    sourceFile: packages/cli/src/utils/kb-manifest.ts
+    sourceLine: 36
+  SYM-canonical-StagedFile:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 19
+    sourceFile: packages/cli/src/traceability/git-staged.ts
+    sourceLine: 12
+  SYM-canonical-StorageMigrationMove:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 82
+    sourceFile: packages/cli/src/commands/legacy-storage-migration.ts
+    sourceLine: 78
+  SYM-canonical-StorageMigrationPlan:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 76
+    sourceFile: packages/cli/src/commands/legacy-storage-migration.ts
+    sourceLine: 65
+  SYM-canonical-StorageMigrationResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 231
+    sourceFile: packages/cli/src/commands/legacy-storage-migration.ts
+    sourceLine: 225
+  SYM-canonical-WorkspaceHealth:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 12
+    sourceFile: packages/opencode/src/workspace-health.ts
+    sourceLine: 7
+  SYM-canonical-analyzeKbCheckImpact:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 128
+    sourceFile: packages/cli/src/public/operations/check-helpers.ts
+    sourceLine: 105
+  SYM-canonical-analyzePath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 86
+    sourceFile: packages/opencode/src/path-kind.ts
+    sourceLine: 37
+  SYM-canonical-applyLegacyStorageMigration:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 293
+    sourceFile: packages/cli/src/commands/legacy-storage-migration.ts
+    sourceLine: 238
+  SYM-canonical-clearRecoveredPendingSourceReceipts:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 218
+    sourceFile: packages/cli/src/commands/sync/discovery.ts
+    sourceLine: 140
+  SYM-canonical-collectQueryPlanSafetyViolations:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 54
+    sourceFile: packages/cli/src/public/operations/check-helpers.ts
+    sourceLine: 44
+  SYM-canonical-createManifestFile:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 131
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    sourceLine: 128
+  SYM-canonical-defaultKbManifest:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 56
+    sourceFile: packages/cli/src/utils/kb-manifest.ts
+    sourceLine: 50
+  SYM-canonical-entityLaneForPath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 133
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    sourceLine: 126
+  SYM-canonical-git-staged-Status:
+    sourceColumn: 12
+    sourceEndColumn: 43
+    sourceEndLine: 5
+    sourceFile: packages/cli/src/traceability/git-staged.ts
+    sourceLine: 5
+  SYM-canonical-hasImpactOptions:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 102
+    sourceFile: packages/cli/src/public/operations/check-helpers.ts
+    sourceLine: 95
+  SYM-canonical-isDerivedKbPath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 160
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    sourceLine: 155
+  SYM-canonical-isEntityLanePath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 124
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    sourceLine: 119
+  SYM-canonical-isKbKnowledgePath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 148
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    sourceLine: 143
+  SYM-canonical-isSymbolsManifestPath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 140
+    sourceFile: packages/cli/src/utils/kb-paths.ts
+    sourceLine: 135
+  SYM-canonical-legacyConfigExists:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 86
+    sourceFile: packages/cli/src/utils/config.ts
+    sourceLine: 84
+  SYM-canonical-loadEntityPaths:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 46
+    sourceFile: packages/cli/src/utils/config.ts
+    sourceLine: 44
+  SYM-canonical-loadKbSyncPaths:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 40
+    sourceFile: packages/opencode/src/file-filter.ts
+    sourceLine: 38
+  SYM-canonical-missingCanonicalLanes:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 382
+    sourceFile: packages/cli/src/commands/legacy-storage-migration.ts
+    sourceLine: 378
+  SYM-canonical-needsLegacyStorageMigration:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 375
+    sourceFile: packages/cli/src/commands/legacy-storage-migration.ts
+    sourceLine: 368
+  SYM-canonical-parseHunksFromDiff:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 137
+    sourceFile: packages/cli/src/traceability/git-staged.ts
+    sourceLine: 110
+  SYM-canonical-parseNameStatusNull:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 64
+    sourceFile: packages/cli/src/traceability/git-staged.ts
+    sourceLine: 38
+  SYM-canonical-planLegacyStorageMigration:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 223
+    sourceFile: packages/cli/src/commands/legacy-storage-migration.ts
+    sourceLine: 110
+  SYM-canonical-qualityDiagnosticsFromImpact:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 138
+    sourceFile: packages/cli/src/public/operations/check-helpers.ts
+    sourceLine: 131
+  SYM-canonical-readKbManifest:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 178
+    sourceFile: packages/cli/src/utils/kb-manifest.ts
+    sourceLine: 173
+  SYM-canonical-readKbManifestOrDefault:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 183
+    sourceFile: packages/cli/src/utils/kb-manifest.ts
+    sourceLine: 181
+  SYM-canonical-readKbManifestStatus:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 171
+    sourceFile: packages/cli/src/utils/kb-manifest.ts
+    sourceLine: 112
+  SYM-canonical-readLegacyChecksHint:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 92
+    sourceFile: packages/cli/src/public/operations/check-helpers.ts
+    sourceLine: 82
+  SYM-canonical-readLegacyKbConfig:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 167
+    sourceFile: packages/cli/src/utils/config.ts
+    sourceLine: 93
+  SYM-canonical-refreshSymbolCoordinates:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 111
+    sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
+    sourceLine: 106
+  SYM-canonical-resolveCheckRules:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 74
+    sourceFile: packages/cli/src/public/operations/check-helpers.ts
+    sourceLine: 64
+  SYM-canonical-resolveLegacyEntityPaths:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 199
+    sourceFile: packages/cli/src/utils/config.ts
+    sourceLine: 174
+  SYM-canonical-rewritePendingSourceReceiptPaths:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 365
+    sourceFile: packages/cli/src/commands/legacy-storage-migration.ts
+    sourceLine: 325
+  SYM-canonical-setSymbolRefreshForTests:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 118
+    sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
+    sourceLine: 114
+  SYM-canonical-shouldHandleFile:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 140
+    sourceFile: packages/opencode/src/file-filter.ts
+    sourceLine: 108
+  SYM-canonical-stripToRoot:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 95
+    sourceFile: packages/opencode/src/file-filter.ts
+    sourceLine: 86
+  SYM-canonical-validateStagedMarkdown:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 48
+    sourceFile: packages/cli/src/traceability/markdown-validate.ts
+    sourceLine: 13
+  SYM-canonical-writeKbManifest:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 199
+    sourceFile: packages/cli/src/utils/kb-manifest.ts
+    sourceLine: 192
   SYM-canonicalSkillsDir:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -3365,21 +3827,21 @@ coordinates:
   SYM-checkCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 907
+    sourceEndLine: 883
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 540
+    sourceLine: 517
   SYM-checkWorkspaceHealth:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 96
+    sourceEndLine: 51
     sourceFile: packages/opencode/src/workspace-health.ts
-    sourceLine: 33
+    sourceLine: 22
   SYM-classifyActivationState:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1180
+    sourceEndLine: 1169
     sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    sourceLine: 1114
+    sourceLine: 1103
   SYM-classifyDiagnosticError:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3389,9 +3851,9 @@ coordinates:
   SYM-classifyKibiImpactEvidence:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 145
+    sourceEndLine: 137
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
-    sourceLine: 121
+    sourceLine: 113
   SYM-classifyKnowledge:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4373,9 +4835,9 @@ coordinates:
   SYM-cli-impact-createImpactManifestLookup:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 57
+    sourceEndLine: 55
     sourceFile: packages/cli/src/public/impact/manifest.ts
-    sourceLine: 43
+    sourceLine: 41
   SYM-cli-impact-createRequirementQualityDiagnostics:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -4451,7 +4913,7 @@ coordinates:
   SYM-cli-impact-readImpactManifestResults:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 41
+    sourceEndLine: 39
     sourceFile: packages/cli/src/public/impact/manifest.ts
     sourceLine: 19
   SYM-cli-impact-uniqueSorted:
@@ -5019,71 +5481,101 @@ coordinates:
     sourceFile: packages/cli/src/report/html-report.ts
     sourceLine: 434
   SYM-cli-rule-registry-ChecksConfig:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 49
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 285
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 46
+    sourceLine: 1
   SYM-cli-rule-registry-DEFAULT_CHECKS_CONFIG:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 195
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 285
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 190
+    sourceLine: 1
   SYM-cli-rule-registry-RULES:
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 180
+    sourceEndLine: 217
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 55
+    sourceLine: 74
   SYM-cli-rule-registry-RULE_NAMES:
     sourceColumn: 13
     sourceEndColumn: 59
-    sourceEndLine: 185
+    sourceEndLine: 224
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 185
+    sourceLine: 224
   SYM-cli-rule-registry-RuleDefinition:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 29
+    sourceEndLine: 57
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 24
+    sourceLine: 45
+  SYM-cli-rule-registry-RuleEnforcementClass:
+    sourceColumn: 12
+    sourceEndColumn: 16
+    sourceEndLine: 43
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 27
   SYM-cli-rule-registry-SymbolTraceabilityOptions:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 33
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 285
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 31
+    sourceLine: 1
   SYM-cli-rule-registry-Violation:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 44
+    sourceEndLine: 68
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 36
+    sourceLine: 60
+  SYM-cli-rule-registry-getCanonicalRules:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 248
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 242
+  SYM-cli-rule-registry-getDefaultRules:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 236
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 234
   SYM-cli-rule-registry-getEffectiveRules:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 229
+    sourceEndLine: 273
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 204
-  SYM-cli-rule-registry-mergeChecksConfig:
+    sourceLine: 264
+  SYM-cli-rule-registry-getRuleDefinition:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 258
+    sourceEndLine: 228
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 245
+    sourceLine: 226
+  SYM-cli-rule-registry-isCanonicalRule:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 252
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 250
+  SYM-cli-rule-registry-mergeChecksConfig:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 285
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 1
   SYM-cli-rule-registry-validateRuleName:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 240
+    sourceEndLine: 284
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 235
+    sourceLine: 279
   SYM-cli-run-aggregated-checks:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 83
+    sourceEndLine: 79
     sourceFile: packages/cli/src/commands/aggregated-checks.ts
-    sourceLine: 23
+    sourceLine: 22
   SYM-cli-run-json-invocation:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -5447,9 +5939,9 @@ coordinates:
   SYM-collectMarkdownFiles:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 1219
+    sourceEndLine: 1215
     sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    sourceLine: 1183
+    sourceLine: 1172
   SYM-collectSourceOnlyAuthoringSignals:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5459,9 +5951,9 @@ coordinates:
   SYM-collectSourceRelationshipParityViolations:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 227
+    sourceEndLine: 225
     sourceFile: packages/cli/src/public/operations/source-relationship-parity.ts
-    sourceLine: 165
+    sourceLine: 164
   SYM-collectStagedAuthoredSymbolsManifestEvidence:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5477,9 +5969,9 @@ coordinates:
   SYM-compareRelationshipParity:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 91
+    sourceEndLine: 90
     sourceFile: packages/cli/src/public/operations/source-relationship-parity.ts
-    sourceLine: 32
+    sourceLine: 31
   SYM-computeEnforcementPolicy:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5501,9 +5993,9 @@ coordinates:
   SYM-copySchemaFiles:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 189
+    sourceEndLine: 193
     sourceFile: packages/cli/src/commands/init-helpers.ts
-    sourceLine: 174
+    sourceLine: 178
   SYM-core-check-logic-coverage:
     sourceColumn: 4
     sourceEndColumn: 24
@@ -5733,11 +6225,11 @@ coordinates:
     sourceFile: packages/cli/src/runtime/cli-runtime.ts
     sourceLine: 91
   SYM-createConfigFile:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 126
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 256
     sourceFile: packages/cli/src/commands/init-helpers.ts
-    sourceLine: 120
+    sourceLine: 1
   SYM-createFileOperationState:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5747,9 +6239,9 @@ coordinates:
   SYM-createKbDirectoryStructure:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 118
+    sourceEndLine: 126
     sourceFile: packages/cli/src/commands/init-helpers.ts
-    sourceLine: 109
+    sourceLine: 113
   SYM-createKbFreshnessEvidenceStore:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5777,9 +6269,9 @@ coordinates:
   SYM-createRepoIgnorePolicy:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 245
+    sourceEndLine: 251
     sourceFile: packages/cli/src/public/ignore-policy.ts
-    sourceLine: 45
+    sourceLine: 42
   SYM-createSessionEditState:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5819,9 +6311,9 @@ coordinates:
   SYM-cursor-CursorHookResult:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 39
+    sourceEndLine: 40
     sourceFile: packages/cursor/src/hook-runner.ts
-    sourceLine: 33
+    sourceLine: 34
   SYM-cursor-DIRECT_KB_EDIT_WARNING:
     sourceColumn: 13
     sourceEndColumn: 229
@@ -5837,9 +6329,9 @@ coordinates:
   SYM-cursor-HookEnvironment:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 44
+    sourceEndLine: 45
     sourceFile: packages/cursor/src/hook-runner.ts
-    sourceLine: 41
+    sourceLine: 42
   SYM-cursor-HookEvent:
     sourceColumn: 12
     sourceEndColumn: 11
@@ -5975,9 +6467,9 @@ coordinates:
   SYM-cursor-hookRunnerPath:
     sourceColumn: 13
     sourceEndColumn: 60
-    sourceEndLine: 309
+    sourceEndLine: 314
     sourceFile: packages/cursor/src/hook-runner.ts
-    sourceLine: 309
+    sourceLine: 314
   SYM-cursor-impactCheckFollowup:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -5999,13 +6491,13 @@ coordinates:
   SYM-cursor-isDocumentationTrackedPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 193
+    sourceEndLine: 211
     sourceFile: packages/cursor/src/path-policy.ts
-    sourceLine: 180
+    sourceLine: 198
   SYM-cursor-isKbFreshnessRelevantPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 155
+    sourceEndLine: 173
     sourceFile: packages/cursor/src/path-policy.ts
     sourceLine: 143
   SYM-cursor-isMeaningfulTrackedPath:
@@ -6017,9 +6509,9 @@ coordinates:
   SYM-cursor-isSourceImpactRelevantPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 178
+    sourceEndLine: 196
     sourceFile: packages/cursor/src/path-policy.ts
-    sourceLine: 157
+    sourceLine: 175
   SYM-cursor-loadHookState:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6119,9 +6611,9 @@ coordinates:
   SYM-cursor-runHook:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 284
+    sourceEndLine: 289
     sourceFile: packages/cursor/src/hook-runner.ts
-    sourceLine: 103
+    sourceLine: 104
   SYM-cursor-saveHookState:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6137,9 +6629,9 @@ coordinates:
   SYM-cursor-toRepoRelativePath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 210
+    sourceEndLine: 228
     sourceFile: packages/cursor/src/path-policy.ts
-    sourceLine: 195
+    sourceLine: 213
   SYM-cursor-updateHookState:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6215,9 +6707,9 @@ coordinates:
   SYM-detectPosture:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 245
+    sourceEndLine: 187
     sourceFile: packages/opencode/src/repo-posture.ts
-    sourceLine: 166
+    sourceLine: 123
   SYM-detectScopeDrift:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6239,21 +6731,21 @@ coordinates:
   SYM-discoverProviderEvidence:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 1011
+    sourceEndLine: 1003
     sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    sourceLine: 956
+    sourceLine: 948
   SYM-discoverSourceFiles:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 338
+    sourceEndLine: 348
     sourceFile: packages/cli/src/commands/sync/discovery.ts
     sourceLine: 248
   SYM-discoverSources:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 1248
+    sourceEndLine: 1244
     sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    sourceLine: 1223
+    sourceLine: 1219
   SYM-discovery-execute-query:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -6359,9 +6851,9 @@ coordinates:
   SYM-ensureSymbolsManifestFile:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 172
+    sourceEndLine: 176
     sourceFile: packages/cli/src/commands/init-helpers.ts
-    sourceLine: 161
+    sourceLine: 166
   SYM-episodeHashes:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6413,9 +6905,9 @@ coordinates:
   SYM-execute-model-requirement:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 237
+    sourceEndLine: 223
     sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
-    sourceLine: 232
+    sourceLine: 218
   SYM-execute-suggest-predicates:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -6551,9 +7043,9 @@ coordinates:
   SYM-getBehaviorSourcePaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 169
+    sourceEndLine: 168
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 164
+    sourceLine: 163
   SYM-getBehavioralSymbolNames:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6569,9 +7061,9 @@ coordinates:
   SYM-getCurrentBranch:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 107
+    sourceEndLine: 111
     sourceFile: packages/cli/src/commands/init-helpers.ts
-    sourceLine: 96
+    sourceLine: 100
   SYM-getE2eCoverageSignal:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6581,21 +7073,21 @@ coordinates:
   SYM-getFileLinkedEntityIds:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 274
+    sourceEndLine: 272
     sourceFile: packages/opencode/src/file-entity-links.ts
-    sourceLine: 213
+    sourceLine: 211
   SYM-getFileLinkedTargetsByType:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 306
+    sourceEndLine: 304
     sourceFile: packages/opencode/src/file-entity-links.ts
-    sourceLine: 277
+    sourceLine: 275
   SYM-getFreshSymbolsManifestSourcePaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 193
+    sourceEndLine: 192
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 185
+    sourceLine: 184
   SYM-getInitKibiCommandCapability:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6605,21 +7097,21 @@ coordinates:
   SYM-getKbCoveredSourcePaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 182
+    sourceEndLine: 181
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 172
+    sourceLine: 171
   SYM-getKbEvidencePaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 211
+    sourceEndLine: 210
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 199
+    sourceLine: 198
   SYM-getKbExistenceTargets:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 101
+    sourceEndLine: 80
     sourceFile: packages/opencode/src/file-filter.ts
-    sourceLine: 71
+    sourceLine: 50
   SYM-getLatestPluginVersion:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -6629,9 +7121,9 @@ coordinates:
   SYM-getMissingBehaviorSourcePaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 235
+    sourceEndLine: 234
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 225
+    sourceLine: 224
   SYM-getNonBehavioralSymbolNames:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6641,15 +7133,21 @@ coordinates:
   SYM-getSchemaVersionStatus:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 85
+    sourceEndLine: 107
     sourceFile: packages/cli/src/utils/schema-version.ts
-    sourceLine: 38
+    sourceLine: 57
   SYM-getSourceLinkedRequirementIds:
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 22
     sourceFile: packages/opencode/src/source-linked-guidance.ts
     sourceLine: 13
+  SYM-getStagedFiles:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 247
+    sourceFile: packages/cli/src/traceability/git-staged.ts
+    sourceLine: 143
   SYM-getSymbolRole:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6665,9 +7163,9 @@ coordinates:
   SYM-getWorkspaceMigrationWarning:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 58
+    sourceEndLine: 44
     sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
-    sourceLine: 40
+    sourceLine: 38
   SYM-handleKbAutopilotGenerate:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -6749,9 +7247,9 @@ coordinates:
   SYM-hasOverrideRationale:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 219
+    sourceEndLine: 218
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 214
+    sourceLine: 213
   SYM-hasTraversal:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6803,15 +7301,15 @@ coordinates:
   SYM-installGitHooks:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 251
+    sourceEndLine: 255
     sourceFile: packages/cli/src/commands/init-helpers.ts
-    sourceLine: 234
+    sourceLine: 238
   SYM-installHook:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 232
+    sourceEndLine: 236
     sourceFile: packages/cli/src/commands/init-helpers.ts
-    sourceLine: 198
+    sourceLine: 202
   SYM-invalidateKibiOpencodePackage:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6827,15 +7325,15 @@ coordinates:
   SYM-isAuditedNoImpactOverrideAllowed:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 168
+    sourceEndLine: 160
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
-    sourceLine: 160
+    sourceLine: 152
   SYM-isBehaviorSourceEdit:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 200
+    sourceEndLine: 192
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
-    sourceLine: 170
+    sourceLine: 162
   SYM-isBehavioralSymbol:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6887,9 +7385,9 @@ coordinates:
   SYM-isSupportedBehaviorSourcePath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 210
+    sourceEndLine: 202
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
-    sourceLine: 202
+    sourceLine: 194
   SYM-isSupportedLegacyBranchMigration:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7091,27 +7589,27 @@ coordinates:
   SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanargs:
     sourceColumn: 12
     sourceEndColumn: 7
-    sourceEndLine: 56
+    sourceEndLine: 57
     sourceFile: packages/cli/src/operations/planning/apply-plan.ts
-    sourceLine: 40
+    sourceLine: 41
   SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanresult:
     sourceColumn: 12
     sourceEndColumn: 7
-    sourceEndLine: 138
+    sourceEndLine: 139
     sourceFile: packages/cli/src/operations/planning/apply-plan.ts
-    sourceLine: 68
+    sourceLine: 69
   SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1158
+    sourceEndLine: 1156
     sourceFile: packages/cli/src/operations/planning/apply-plan.ts
-    sourceLine: 889
+    sourceLine: 887
   SYM-kibi-cli-src-operations-planning-apply-plan-ts-plan-apply-result-version:
     sourceColumn: 13
     sourceEndColumn: 77
-    sourceEndLine: 37
+    sourceEndLine: 38
     sourceFile: packages/cli/src/operations/planning/apply-plan.ts
-    sourceLine: 37
+    sourceLine: 38
   SYM-kibi-cli-src-operations-planning-compile-intent-ts-compile-plan-version:
     sourceColumn: 13
     sourceEndColumn: 67
@@ -7319,15 +7817,15 @@ coordinates:
   SYM-kibi-doctor-command:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 118
+    sourceEndLine: 124
     sourceFile: packages/cli/src/commands/doctor.ts
-    sourceLine: 39
+    sourceLine: 41
   SYM-kibi-doctor-options:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 36
+    sourceEndLine: 38
     sourceFile: packages/cli/src/commands/doctor.ts
-    sourceLine: 34
+    sourceLine: 36
   SYM-kibi-mcp-bin-entrypoint:
     sourceColumn: 0
     sourceEndColumn: 0
@@ -7343,99 +7841,99 @@ coordinates:
   SYM-kibi-migration-action:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 56
+    sourceEndLine: 58
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
-    sourceLine: 30
+    sourceLine: 32
   SYM-kibi-migration-action-default:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 312
+    sourceEndLine: 314
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
-    sourceLine: 308
+    sourceLine: 310
   SYM-kibi-migration-action-state:
     sourceColumn: 12
     sourceEndColumn: 55
-    sourceEndLine: 11
-    sourceFile: packages/cli/src/public/operations/migration-plan.ts
-    sourceLine: 11
-  SYM-kibi-migration-check-actions:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 372
-    sourceFile: packages/cli/src/public/operations/migration-plan.ts
-    sourceLine: 314
-  SYM-kibi-migration-config-read:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 497
-    sourceFile: packages/cli/src/public/operations/migration-plan.ts
-    sourceLine: 467
-  SYM-kibi-migration-config-status:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 465
-    sourceFile: packages/cli/src/public/operations/migration-plan.ts
-    sourceLine: 458
-  SYM-kibi-migration-coverage-actions:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 456
-    sourceFile: packages/cli/src/public/operations/migration-plan.ts
-    sourceLine: 374
-  SYM-kibi-migration-disposition:
-    sourceColumn: 12
-    sourceEndColumn: 69
     sourceEndLine: 13
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
     sourceLine: 13
+  SYM-kibi-migration-check-actions:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 374
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    sourceLine: 316
+  SYM-kibi-migration-config-read:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 502
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    sourceLine: 469
+  SYM-kibi-migration-config-status:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 467
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    sourceLine: 460
+  SYM-kibi-migration-coverage-actions:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 458
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    sourceLine: 376
+  SYM-kibi-migration-disposition:
+    sourceColumn: 12
+    sourceEndColumn: 69
+    sourceEndLine: 15
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    sourceLine: 15
   SYM-kibi-migration-invocation:
     sourceColumn: 12
     sourceEndColumn: 7
-    sourceEndLine: 28
+    sourceEndLine: 30
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
-    sourceLine: 15
+    sourceLine: 17
   SYM-kibi-migration-merge:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 279
+    sourceEndLine: 281
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
-    sourceLine: 251
+    sourceLine: 253
   SYM-kibi-migration-plan:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 85
+    sourceEndLine: 87
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
-    sourceLine: 58
+    sourceLine: 60
   SYM-kibi-migration-plan-build:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 249
+    sourceEndLine: 251
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
-    sourceLine: 211
+    sourceLine: 213
   SYM-kibi-migration-plan-hash:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 120
+    sourceEndLine: 122
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
-    sourceLine: 116
+    sourceLine: 118
   SYM-kibi-migration-plan-status-actions:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 705
+    sourceEndLine: 735
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
-    sourceLine: 500
+    sourceLine: 526
   SYM-kibi-migration-plan-version:
     sourceColumn: 13
     sourceEndColumn: 71
-    sourceEndLine: 9
+    sourceEndLine: 11
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
-    sourceLine: 9
+    sourceLine: 11
   SYM-kibi-migration-safety:
     sourceColumn: 12
     sourceEndColumn: 80
-    sourceEndLine: 12
+    sourceEndLine: 14
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
-    sourceLine: 12
+    sourceLine: 14
   SYM-kibi-script-change-to-proof-eval-ts-compileevaluation:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -7557,11 +8055,11 @@ coordinates:
     sourceFile: packages/cli/src/public/skill-system/loader.ts
     sourceLine: 40
   SYM-loadConfig:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 165
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 200
     sourceFile: packages/cli/src/utils/config.ts
-    sourceLine: 130
+    sourceLine: 1
   SYM-loadConfig-2:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7581,11 +8079,11 @@ coordinates:
     sourceFile: scripts/skillopt-eval/offline-artifacts.ts
     sourceLine: 60
   SYM-loadSyncConfig:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 210
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 200
     sourceFile: packages/cli/src/utils/config.ts
-    sourceLine: 175
+    sourceLine: 1
   SYM-markdown-ExtractedEntity:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -7778,12 +8276,6 @@ coordinates:
     sourceEndLine: 139
     sourceFile: packages/mcp/src/tools/check-format.ts
     sourceLine: 120
-  SYM-mcp-getEffectiveRules:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 88
-    sourceFile: packages/mcp/src/tools/check-config.ts
-    sourceLine: 70
   SYM-mcp-handle-repair-plan-coverage:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7802,12 +8294,6 @@ coordinates:
     sourceEndLine: 31
     sourceFile: packages/mcp/src/tools/check-impact.ts
     sourceLine: 24
-  SYM-mcp-loadChecksConfig:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 67
-    sourceFile: packages/mcp/src/tools/check-config.ts
-    sourceLine: 27
   SYM-mcp-model-requirement-isolated-workspace-test:
     sourceColumn: 5
     sourceEndColumn: 54
@@ -8093,9 +8579,9 @@ coordinates:
   SYM-migrateCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 640
+    sourceEndLine: 638
     sourceFile: packages/cli/src/commands/migrate.ts
-    sourceLine: 461
+    sourceLine: 416
   SYM-mirrorSkillsDir:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -8105,15 +8591,15 @@ coordinates:
   SYM-model-requirement-core-handler:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 230
+    sourceEndLine: 216
     sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
-    sourceLine: 60
+    sourceLine: 46
   SYM-modelRequirementClaims:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 300
+    sourceEndLine: 299
     sourceFile: packages/cli/src/utils/strict-modeling.ts
-    sourceLine: 280
+    sourceLine: 279
   SYM-modeling-predicate-applyplan-buildGapApplyPlan:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8621,9 +9107,9 @@ coordinates:
   SYM-node-workspace-snapshot:
     sourceColumn: 15
     sourceEndColumn: 1
-    sourceEndLine: 204
+    sourceEndLine: 216
     sourceFile: packages/cli/src/public/operations/node-ports.ts
-    sourceLine: 116
+    sourceLine: 128
   SYM-normalize-semantic-clause:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8639,9 +9125,9 @@ coordinates:
   SYM-normalizePropertyKey:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 130
+    sourceEndLine: 129
     sourceFile: packages/cli/src/utils/strict-modeling.ts
-    sourceLine: 115
+    sourceLine: 114
   SYM-normalizeResourcePath:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8651,15 +9137,15 @@ coordinates:
   SYM-normalizeSchemaVersion:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 35
+    sourceEndLine: 54
     sourceFile: packages/cli/src/utils/schema-version.ts
-    sourceLine: 17
+    sourceLine: 36
   SYM-normalizeSubjectKey:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 113
+    sourceEndLine: 112
     sourceFile: packages/cli/src/utils/strict-modeling.ts
-    sourceLine: 96
+    sourceLine: 95
   SYM-notifyStartup:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8741,7 +9227,7 @@ coordinates:
   SYM-operation-execute-check:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 275
+    sourceEndLine: 270
     sourceFile: packages/cli/src/public/operations/check-executor.ts
     sourceLine: 120
   SYM-operation-executeCoverage:
@@ -8795,21 +9281,21 @@ coordinates:
   SYM-operation-node-filesystem:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 226
+    sourceEndLine: 238
     sourceFile: packages/cli/src/public/operations/node-ports.ts
-    sourceLine: 206
+    sourceLine: 218
   SYM-operation-node-git:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 245
+    sourceEndLine: 257
     sourceFile: packages/cli/src/public/operations/node-ports.ts
-    sourceLine: 228
+    sourceLine: 240
   SYM-operation-node-network:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 249
+    sourceEndLine: 261
     sourceFile: packages/cli/src/public/operations/node-ports.ts
-    sourceLine: 247
+    sourceLine: 259
   SYM-operation-query-spec:
     sourceColumn: 13
     sourceEndColumn: 60
@@ -9137,9 +9623,9 @@ coordinates:
   SYM-parseCompiledRelationshipRows:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 152
+    sourceEndLine: 151
     sourceFile: packages/cli/src/public/operations/source-relationship-parity.ts
-    sourceLine: 130
+    sourceLine: 129
   SYM-parseHeldOutReservation:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -9155,9 +9641,9 @@ coordinates:
   SYM-parseKibiImpactOverride:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 158
+    sourceEndLine: 150
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
-    sourceLine: 147
+    sourceLine: 139
   SYM-parseRdfRelationships:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -10007,9 +10493,9 @@ coordinates:
   SYM-resolveActivationPolicy:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1079
+    sourceEndLine: 1071
     sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    sourceLine: 1072
+    sourceLine: 1064
   SYM-resolveCurrentBranch:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -10025,7 +10511,7 @@ coordinates:
   SYM-resolveManifestPath:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 317
+    sourceEndLine: 301
     sourceFile: packages/mcp/src/tools/symbols.ts
     sourceLine: 281
   SYM-resolveNpmFixture:
@@ -10043,27 +10529,27 @@ coordinates:
   SYM-resolveSymbolsManifestPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 107
+    sourceEndLine: 24
     sourceFile: packages/cli/src/utils/manifest-paths.ts
-    sourceLine: 102
+    sourceLine: 22
   SYM-resolveSymbolsManifestPath-2:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 61
+    sourceEndLine: 35
     sourceFile: packages/vscode/src/shared/manifestResolver.ts
-    sourceLine: 23
+    sourceLine: 21
   SYM-resolveSymbolsManifestPaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 99
+    sourceEndLine: 19
     sourceFile: packages/cli/src/utils/manifest-paths.ts
-    sourceLine: 87
+    sourceLine: 11
   SYM-resolveSymbolsManifestPaths-2:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 75
+    sourceEndLine: 56
     sourceFile: packages/vscode/src/shared/manifestResolver.ts
-    sourceLine: 63
+    sourceLine: 37
   SYM-resolveWorkContext:
     sourceColumn: 6
     sourceEndColumn: 24
@@ -15149,7 +15635,7 @@ coordinates:
   SYM-syncCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1421
+    sourceEndLine: 1420
     sourceFile: packages/cli/src/commands/sync.ts
     sourceLine: 374
   SYM-syncPluginManifestVersions:
@@ -15449,15 +15935,15 @@ coordinates:
   SYM-test-sync-semantic-boundary-shards:
     sourceColumn: 5
     sourceEndColumn: 72
-    sourceEndLine: 813
+    sourceEndLine: 798
     sourceFile: packages/cli/tests/commands/sync.test.ts
-    sourceLine: 813
+    sourceLine: 798
   SYM-updateGitIgnore:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 158
+    sourceEndLine: 163
     sourceFile: packages/cli/src/commands/init-helpers.ts
-    sourceLine: 128
+    sourceLine: 133
   SYM-usage-metrics-command:
     sourceColumn: 22
     sourceEndColumn: 1

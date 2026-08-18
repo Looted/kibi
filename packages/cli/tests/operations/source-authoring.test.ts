@@ -44,13 +44,22 @@ describe("source-first authoring", () => {
     );
   });
 
-  test("uses plural config keys and leaves directory targets ambiguous", async () => {
+  test("returns canonical lane directories and the symbols manifest", async () => {
     const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
     workspaces.push(workspace);
-    expect(configuredSourceTarget(workspace, "scenario")).toBeUndefined();
+    expect(configuredSourceTarget(workspace, "scenario")).toBe(".kb/scenarios");
     expect(configuredSourceTarget(workspace, "symbol")).toBe(
-      "documentation/symbols.yaml",
+      ".kb/symbols.yaml",
     );
+  });
+
+  test("allows canonical .kb/ knowledge paths and rejects derived runtime trees", () => {
+    expect(normalizeAuthoredSourcePath("/tmp", ".kb/adr/ADR-026.md")).toBe(
+      ".kb/adr/ADR-026.md",
+    );
+    expect(() =>
+      normalizeAuthoredSourcePath("/tmp", ".kb/branches/develop/kb.pl"),
+    ).toThrow(/derived state/);
   });
 
   test("writes canonical relative identity and preserves Markdown body bytes", async () => {
@@ -169,19 +178,11 @@ describe("source-first authoring", () => {
       "docs/REQ.md",
       createHash("sha256").update(body).digest("hex"),
     );
-    const paths = await discoverSourceFiles(
-      workspace,
-      { requirements: "docs" },
-      { trackedOnly: true },
-    );
+    const paths = await discoverSourceFiles(workspace, { trackedOnly: true });
     expect(paths.markdownFiles).toEqual([target]);
     await writeFile(target, `${body}drift\n`);
     await expect(
-      discoverSourceFiles(
-        workspace,
-        { requirements: "docs" },
-        { trackedOnly: true },
-      ),
+      discoverSourceFiles(workspace, { trackedOnly: true }),
     ).rejects.toThrow("Pending source hash drift");
   });
 
@@ -224,11 +225,7 @@ describe("source-first authoring", () => {
       context(workspace),
     );
 
-    const paths = await discoverSourceFiles(
-      workspace,
-      { requirements: "docs" },
-      { trackedOnly: true },
-    );
+    const paths = await discoverSourceFiles(workspace, { trackedOnly: true });
     expect(paths.markdownFiles).toEqual([path.join(workspace, source)]);
     expect(await readFile(path.join(workspace, source), "utf8")).toContain(
       "title: Second",
@@ -242,18 +239,13 @@ describe("source-first authoring", () => {
     writePendingSourceReceipt(workspace, "docs/REQ-MISSING.md", "a".repeat(64));
 
     await expect(
-      discoverSourceFiles(
-        workspace,
-        { requirements: "docs" },
-        { trackedOnly: true },
-      ),
+      discoverSourceFiles(workspace, { trackedOnly: true }),
     ).rejects.toThrow("Pending source is missing");
 
-    const recovery = await discoverSourceFiles(
-      workspace,
-      { requirements: "docs" },
-      { trackedOnly: true, recoverMissingPendingSources: true },
-    );
+    const recovery = await discoverSourceFiles(workspace, {
+      trackedOnly: true,
+      recoverMissingPendingSources: true,
+    });
     expect(recovery.markdownFiles).toEqual([]);
     expect(recovery.recoveredPendingReceiptPaths).toHaveLength(1);
 
@@ -269,22 +261,17 @@ describe("source-first authoring", () => {
     ).toThrow(
       "Pending source receipt changed during recovery for docs/REQ-MISSING.md",
     );
-    const newer = await discoverSourceFiles(
-      workspace,
-      { requirements: "docs" },
-      { trackedOnly: true, recoverMissingPendingSources: true },
-    );
+    const newer = await discoverSourceFiles(workspace, {
+      trackedOnly: true,
+      recoverMissingPendingSources: true,
+    });
     expect(newer.recoveredPendingReceiptPaths).toHaveLength(1);
 
     clearRecoveredPendingSourceReceipts(
       workspace,
       newer.recoveredPendingReceiptPaths,
     );
-    const after = await discoverSourceFiles(
-      workspace,
-      { requirements: "docs" },
-      { trackedOnly: true },
-    );
+    const after = await discoverSourceFiles(workspace, { trackedOnly: true });
     expect(after.markdownFiles).toEqual([]);
   });
 });

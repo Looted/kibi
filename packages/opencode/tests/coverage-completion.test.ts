@@ -153,15 +153,15 @@ function makeWorkspace(prefix: string): string {
   const tmpDir = makeTempDir(prefix);
   fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
   fs.mkdirSync(path.join(tmpDir, ".opencode"), { recursive: true });
-  fs.writeFileSync(path.join(tmpDir, ".kb", "config.json"), "{}\n");
+  fs.writeFileSync(path.join(tmpDir, ".kb", "manifest.json"), "{}\n");
   for (const dir of [
-    "documentation/requirements",
-    "documentation/scenarios",
-    "documentation/tests",
-    "documentation/adr",
-    "documentation/flags",
-    "documentation/events",
-    "documentation/facts",
+    ".kb/requirements",
+    ".kb/scenarios",
+    ".kb/tests",
+    ".kb/adr",
+    ".kb/flags",
+    ".kb/events",
+    ".kb/facts",
     "src",
   ]) {
     fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
@@ -954,14 +954,14 @@ describe("coverage completion for policy, prompt, and reconcile", () => {
     expect(
       buildPrompt({
         recentEdits: [
-          { path: "documentation/requirements/REQ-1.md", kind: "requirement" },
+          { path: ".kb/requirements/REQ-1.md", kind: "requirement" },
         ],
         posture: "root_active",
       }),
     ).toContain("Requirement changes detected");
     expect(
       buildPrompt({
-        recentEdits: [{ path: "documentation/facts/FACT-1.md", kind: "fact" }],
+        recentEdits: [{ path: ".kb/facts/FACT-1.md", kind: "fact" }],
         posture: "root_active",
       }),
     ).toContain("Kibi documentation changes detected");
@@ -1043,8 +1043,8 @@ describe("coverage completion for policy, prompt, and reconcile", () => {
             changeKind: "updated",
             properties: {
               title: "Fact title",
-              source: "documentation/facts/FACT-1.md",
-              text_ref: "documentation/facts/FACT-1.md#L1",
+              source: ".kb/facts/FACT-1.md",
+              text_ref: ".kb/facts/FACT-1.md#L1",
             },
           },
         },
@@ -1054,8 +1054,8 @@ describe("coverage completion for policy, prompt, and reconcile", () => {
         id: "FACT-1",
         type: "fact",
         title: "Fact title",
-        source: "documentation/facts/FACT-1.md",
-        textRef: "documentation/facts/FACT-1.md#L1",
+        source: ".kb/facts/FACT-1.md",
+        textRef: ".kb/facts/FACT-1.md#L1",
       },
     ]);
   });
@@ -1261,12 +1261,12 @@ describe("coverage completion for plugin lifecycle", () => {
       await hooks.event?.({
         event: {
           type: "file.edited",
-          properties: { file: "documentation/requirements/REQ-must.md" },
+          properties: { file: ".kb/requirements/REQ-must.md" },
         },
       });
       const output = { system: [] as string[] };
       await hooks["experimental.chat.system.transform"]?.(
-        { focusFilePath: "documentation/requirements/REQ-must.md" },
+        { focusFilePath: ".kb/requirements/REQ-must.md" },
         output,
       );
 
@@ -1535,7 +1535,7 @@ describe("coverage completion for plugin lifecycle", () => {
       await hooks.event?.({
         event: {
           type: "file.edited",
-          properties: { file: "documentation/facts/FACT-1.md" },
+          properties: { file: ".kb/facts/FACT-1.md" },
         },
       });
 

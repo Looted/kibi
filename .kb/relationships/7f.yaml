@@ -13,3 +13,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b4a82f2286ec
+  - type: relates_to
+    from: FACT-canonical-kb-contract
+    to: ADR-026
+    created_at: 2026-08-18T15:33:32.519Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af7a02cef56e
+  - type: relates_to
+    from: FACT-canonical-kb-contract
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T15:33:32.541Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0104070961a3
+  - type: relates_to
+    from: FACT-canonical-kb-contract
+    to: REQ-cli-check
+    created_at: 2026-08-18T15:33:32.545Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c53f2aecc80d

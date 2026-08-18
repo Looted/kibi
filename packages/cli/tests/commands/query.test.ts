@@ -397,7 +397,7 @@ User logs in with OAuth2 provider.
   test(
     "query is read-only and does not rewrite kb.rdf",
     () => {
-      const docReqDir = path.join(tmpDir, "documentation/requirements");
+      const docReqDir = path.join(tmpDir, ".kb/requirements");
       mkdirSync(docReqDir, { recursive: true });
       writeFileSync(
         path.join(docReqDir, "req-readonly.md"),
@@ -409,7 +409,7 @@ status: open
 ---
 `,
       );
-      execSync("git add documentation/requirements/req-readonly.md", {
+      execSync("git add .kb/requirements/req-readonly.md", {
         cwd: tmpDir,
         stdio: "pipe",
       });

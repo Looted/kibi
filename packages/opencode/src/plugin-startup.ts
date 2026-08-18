@@ -86,7 +86,7 @@ export function resolveCurrentBranch(cwd: string): string {
 
 function readConfigFingerprint(cwd: string): string {
   try {
-    return fs.readFileSync(path.join(cwd, ".kb", "config.json"), "utf-8");
+    return fs.readFileSync(path.join(cwd, ".kb", "manifest.json"), "utf-8");
   } catch {
     return "missing";
   }

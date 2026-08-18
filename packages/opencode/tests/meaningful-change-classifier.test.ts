@@ -44,7 +44,7 @@ describe("classifyMeaningfulChange", () => {
 
     it("returns requires-kb-evidence for symbol files", () => {
       const result = classifyMeaningfulChange({
-        normalizedPath: "documentation/symbols.yaml",
+        normalizedPath: ".kb/symbols.yaml",
         pathKind: "symbol",
         lifecycle: "edited",
       });

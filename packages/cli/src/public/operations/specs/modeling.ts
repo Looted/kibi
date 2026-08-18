@@ -27,7 +27,7 @@ export const modelRequirementSpec = {
       source: {
         type: "string",
         description:
-          "Optional primary source path or provenance root used for stable IDs and text refs. Example: 'documentation/requirements/customer-retention.md'.",
+          "Optional primary source path or provenance root used for stable IDs and text refs. Example: '.kb/requirements/customer-retention.md'.",
       },
       sourceFiles: {
         type: "array",
@@ -66,7 +66,7 @@ export const modelRequirementSpec = {
       provenance: {
         type: "string",
         description:
-          "Optional extracted text reference. Falls back to source when omitted. Example: 'documentation/requirements/customer-retention.md#L1'.",
+          "Optional extracted text reference. Falls back to source when omitted. Example: '.kb/requirements/customer-retention.md#L1'.",
       },
       existingLogicClaims: {
         type: "array",

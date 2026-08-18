@@ -322,7 +322,7 @@ if (RUN_NODE_TEST_SUITE) {
                 tags: ["issue-58", "cache"],
               },
               document: {
-                path: "documentation/requirements/req-issue58-cache-001.md",
+                path: ".kb/requirements/req-issue58-cache-001.md",
               },
             },
           },
@@ -557,7 +557,7 @@ if (RUN_NODE_TEST_SUITE) {
                 tags: ["issue-61", "restart"],
               },
               document: {
-                path: "documentation/requirements/req-issue61-restart-001.md",
+                path: ".kb/requirements/req-issue61-restart-001.md",
               },
             },
           },
@@ -578,7 +578,7 @@ if (RUN_NODE_TEST_SUITE) {
                 source: "test://issue-61",
               },
               document: {
-                path: "documentation/adr/adr-issue61-restart-001.md",
+                path: ".kb/adr/adr-issue61-restart-001.md",
               },
             },
           },
@@ -599,7 +599,7 @@ if (RUN_NODE_TEST_SUITE) {
                 source: "test://issue-61",
               },
               document: {
-                path: "documentation/tests/test-issue61-restart-001.md",
+                path: ".kb/tests/test-issue61-restart-001.md",
               },
             },
           },

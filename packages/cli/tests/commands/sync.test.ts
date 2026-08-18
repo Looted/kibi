@@ -189,8 +189,8 @@ describe("kibi sync", () => {
     });
 
     // Create test fixtures
-    const reqDir = path.join(tmpDir, "documentation/requirements");
-    const scenarioDir = path.join(tmpDir, "documentation/scenarios");
+    const reqDir = path.join(tmpDir, ".kb/requirements");
+    const scenarioDir = path.join(tmpDir, ".kb/scenarios");
 
     mkdirSync(reqDir, { recursive: true });
     mkdirSync(scenarioDir, { recursive: true });
@@ -239,11 +239,9 @@ User logs in with OAuth2 provider.
 `,
     );
 
-    // Symbol manifest
-    const docDir = path.join(tmpDir, "documentation");
-    mkdirSync(docDir, { recursive: true });
+    // Symbol manifest lives at the canonical path created by `kibi init`.
     writeFileSync(
-      path.join(docDir, "symbols.yaml"),
+      path.join(tmpDir, ".kb/symbols.yaml"),
       `symbols:
   - title: authenticate()
     status: active
@@ -256,9 +254,9 @@ User logs in with OAuth2 provider.
 
     stageSources(
       tmpDir,
-      "documentation/requirements/req1.md",
-      "documentation/scenarios/scenario1.md",
-      "documentation/symbols.yaml",
+      ".kb/requirements/req1.md",
+      ".kb/scenarios/scenario1.md",
+      ".kb/symbols.yaml",
     );
   });
 
@@ -342,10 +340,7 @@ User logs in with OAuth2 provider.
           expect(baseline.success).toBe(true);
 
           // Touch a file to force re-processing (without this, cache makes sync return early)
-          const touchedFile = path.join(
-            tmpDir,
-            "documentation/requirements/req1.md",
-          );
+          const touchedFile = path.join(tmpDir, ".kb/requirements/req1.md");
           const originalContent = readFileSync(touchedFile, "utf8");
           writeFileSync(touchedFile, `${originalContent}\n`, "utf8");
 
@@ -473,10 +468,7 @@ User logs in with OAuth2 provider.
           expect(baseline.success).toBe(true);
 
           // Touch a file to force re-processing (without this, cache makes sync return early)
-          const touchedFile = path.join(
-            tmpDir,
-            "documentation/requirements/req1.md",
-          );
+          const touchedFile = path.join(tmpDir, ".kb/requirements/req1.md");
           const originalContent = readFileSync(touchedFile, "utf8");
           writeFileSync(touchedFile, `${originalContent}\n`, "utf8");
 
@@ -630,25 +622,19 @@ User logs in with OAuth2 provider.
 
       expect(cache.version).toBe(1);
       expect(Object.keys(cache.hashes).length).toBeGreaterThanOrEqual(3);
-      expect(cache.hashes["documentation/requirements/req1.md"]).toMatch(
+      expect(cache.hashes[".kb/requirements/req1.md"]).toMatch(
         /^[a-f0-9]{64}$/,
       );
-      expect(cache.hashes["documentation/scenarios/scenario1.md"]).toMatch(
+      expect(cache.hashes[".kb/scenarios/scenario1.md"]).toMatch(
         /^[a-f0-9]{64}$/,
       );
-      expect(cache.hashes["documentation/symbols.yaml"]).toMatch(
-        /^[a-f0-9]{64}$/,
-      );
-      expect(typeof cache.seenAt["documentation/requirements/req1.md"]).toBe(
-        "string",
-      );
-      expect(cache.seenAt["documentation/requirements/req1.md"]).not.toMatch(
+      expect(cache.hashes[".kb/symbols.yaml"]).toMatch(/^[a-f0-9]{64}$/);
+      expect(typeof cache.seenAt[".kb/requirements/req1.md"]).toBe("string");
+      expect(cache.seenAt[".kb/requirements/req1.md"]).not.toMatch(
         /^[a-f0-9]{64}$/,
       );
       expect(
-        Number.isNaN(
-          Date.parse(cache.seenAt["documentation/requirements/req1.md"]),
-        ),
+        Number.isNaN(Date.parse(cache.seenAt[".kb/requirements/req1.md"])),
       ).toBe(false);
     },
     TEST_TIMEOUT_MS,
@@ -716,7 +702,7 @@ User logs in with OAuth2 provider.
       const updatedRequirement =
         "System must support OAuth2 authentication with session renewal.";
       writeFileSync(
-        path.join(tmpDir, "documentation/requirements", "req1.md"),
+        path.join(tmpDir, ".kb/requirements", "req1.md"),
         `---
 title: User Authentication Updated
 type: req
@@ -755,7 +741,7 @@ ${updatedRequirement}
   test(
     "compiles one changed symbol from a multi-symbol manifest",
     () => {
-      const manifestPath = path.join(tmpDir, "documentation/symbols.yaml");
+      const manifestPath = path.join(tmpDir, ".kb/symbols.yaml");
       const manifest = (middleTitle: string) => `symbols:
   - id: SYM-DELTA-ONE
     title: First delta symbol
@@ -789,22 +775,21 @@ ${updatedRequirement}
   );
 
   test(
-    "handles missing paths gracefully",
+    "leftover config.json custom paths cannot break sync",
     async () => {
-      // Add non-existent path to config
-      const configPath = path.join(tmpDir, ".kb/config.json");
-      const config = JSON.parse(readFileSync(configPath, "utf8"));
-      config.paths.nonexistent = "nonexistent/**/*.md";
-      writeFileSync(configPath, JSON.stringify(config, null, 2));
+      writeFileSync(
+        path.join(tmpDir, ".kb/config.json"),
+        JSON.stringify({
+          paths: { nonexistent: "nonexistent/**/*.md" },
+        }),
+      );
 
-      // Should warn but not crash
       const output = execSync(`bun ${kibiBin} sync`, {
         cwd: tmpDir,
         encoding: "utf8",
       });
 
       expect(output).toContain("Imported");
-      // No error exit code
     },
     TEST_TIMEOUT_MS,
   );
@@ -812,10 +797,7 @@ ${updatedRequirement}
   test(
     "uses canonical relationship shards for semantic boundary validation",
     () => {
-      const requirementPath = path.join(
-        tmpDir,
-        "documentation/requirements/req1.md",
-      );
+      const requirementPath = path.join(tmpDir, ".kb/requirements/req1.md");
       writeFileSync(
         requirementPath,
         readFileSync(requirementPath, "utf8").replace(
@@ -824,7 +806,7 @@ ${updatedRequirement}
         ),
       );
 
-      const factsDir = path.join(tmpDir, "documentation/facts");
+      const factsDir = path.join(tmpDir, ".kb/facts");
       mkdirSync(factsDir, { recursive: true });
       writeFileSync(
         path.join(factsDir, "fact1.md"),
@@ -861,8 +843,8 @@ claim_text: System must support OAuth2 authentication
       );
       stageSources(
         tmpDir,
-        "documentation/requirements/req1.md",
-        "documentation/facts/fact1.md",
+        ".kb/requirements/req1.md",
+        ".kb/facts/fact1.md",
         ".kb/relationships/semantic.yaml",
       );
 
@@ -980,11 +962,11 @@ claim_text: System must support OAuth2 authentication
   test(
     "imports markdown string links as relates_to relationships",
     async () => {
-      const testsDir = path.join(tmpDir, "documentation/tests");
+      const testsDir = path.join(tmpDir, ".kb/tests");
       mkdirSync(testsDir, { recursive: true });
 
       writeFileSync(
-        path.join(tmpDir, "documentation/requirements", "req-linked.md"),
+        path.join(tmpDir, ".kb/requirements", "req-linked.md"),
         `---
 id: req-linked
 title: Requirement with mixed links
@@ -1003,7 +985,7 @@ Import plain string links as generic relationships.
       );
 
       writeFileSync(
-        path.join(tmpDir, "documentation/scenarios", "scenario-linked.md"),
+        path.join(tmpDir, ".kb/scenarios", "scenario-linked.md"),
         `---
 id: scenario-linked
 title: Linked Scenario
@@ -1027,9 +1009,9 @@ status: passing
       );
       stageSources(
         tmpDir,
-        "documentation/requirements/req-linked.md",
-        "documentation/scenarios/scenario-linked.md",
-        "documentation/tests/test-linked.md",
+        ".kb/requirements/req-linked.md",
+        ".kb/scenarios/scenario-linked.md",
+        ".kb/tests/test-linked.md",
       );
 
       const output = execSync(`bun ${kibiBin} sync`, {
@@ -1124,7 +1106,7 @@ status: passing
     test(
       "validate-only returns non-zero on errors",
       async () => {
-        const invalidDir = path.join(tmpDir, "documentation/requirements");
+        const invalidDir = path.join(tmpDir, ".kb/requirements");
         mkdirSync(invalidDir, { recursive: true });
         writeFileSync(
           path.join(invalidDir, "invalid.md"),
@@ -1133,7 +1115,7 @@ invalid: yaml: [
 ---
 `,
         );
-        stageSources(tmpDir, "documentation/requirements/invalid.md");
+        stageSources(tmpDir, ".kb/requirements/invalid.md");
 
         try {
           execSync(`bun ${kibiBin} sync --validate-only`, {
@@ -1159,7 +1141,7 @@ invalid: yaml: [
     test(
       "validate-only returns non-zero for malformed typed fact scalar fields",
       async () => {
-        const factsDir = path.join(tmpDir, "documentation/facts");
+        const factsDir = path.join(tmpDir, ".kb/facts");
         mkdirSync(factsDir, { recursive: true });
         writeFileSync(
           path.join(factsDir, "FACT-INVALID-TYPED-SCALAR.md"),
@@ -1178,10 +1160,7 @@ value_int: "30"
 # Invalid typed scalar fact
 `,
         );
-        stageSources(
-          tmpDir,
-          "documentation/facts/FACT-INVALID-TYPED-SCALAR.md",
-        );
+        stageSources(tmpDir, ".kb/facts/FACT-INVALID-TYPED-SCALAR.md");
 
         try {
           execSync(`bun ${kibiBin} sync --validate-only`, {
@@ -1209,7 +1188,7 @@ value_int: "30"
     test(
       "validate-only reuses Prolog strict fact-shape validation",
       async () => {
-        const factsDir = path.join(tmpDir, "documentation/facts");
+        const factsDir = path.join(tmpDir, ".kb/facts");
         mkdirSync(factsDir, { recursive: true });
         writeFileSync(
           path.join(factsDir, "FACT-MISSING-VALUE-FIELD.md"),
@@ -1227,7 +1206,7 @@ value_type: int
 # Missing value field fact
 `,
         );
-        stageSources(tmpDir, "documentation/facts/FACT-MISSING-VALUE-FIELD.md");
+        stageSources(tmpDir, ".kb/facts/FACT-MISSING-VALUE-FIELD.md");
 
         try {
           execSync(`bun ${kibiBin} sync --validate-only`, {
@@ -1247,7 +1226,7 @@ value_type: int
             "Failed to upsert entity FACT-MISSING-VALUE-FIELD",
           );
           expect(stderr).toContain(
-            "source=documentation/facts/FACT-MISSING-VALUE-FIELD.md",
+            "source=.kb/facts/FACT-MISSING-VALUE-FIELD.md",
           );
           expect(stderr).toContain("fact_kind=property_value");
           expect(stderr).toContain("missing value field");
@@ -1261,7 +1240,7 @@ value_type: int
     test(
       "syncs and queries typed fact with value_int",
       async () => {
-        const factsDir = path.join(tmpDir, "documentation/facts");
+        const factsDir = path.join(tmpDir, ".kb/facts");
         mkdirSync(factsDir, { recursive: true });
 
         writeFileSync(
@@ -1287,7 +1266,7 @@ canonical_key: user.session.timeout_minutes.eq.30
 # Session timeout
 `,
         );
-        stageSources(tmpDir, "documentation/facts/FACT-SESSION-TIMEOUT-30.md");
+        stageSources(tmpDir, ".kb/facts/FACT-SESSION-TIMEOUT-30.md");
 
         // Sync
         execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
@@ -1314,7 +1293,7 @@ canonical_key: user.session.timeout_minutes.eq.30
     test(
       "syncs and queries typed fact with value_number",
       async () => {
-        const factsDir = path.join(tmpDir, "documentation/facts");
+        const factsDir = path.join(tmpDir, ".kb/facts");
         mkdirSync(factsDir, { recursive: true });
 
         writeFileSync(
@@ -1338,7 +1317,7 @@ canonical_key: api.client.rate_limit_rps.eq.1.5
 # Rate limit
 `,
         );
-        stageSources(tmpDir, "documentation/facts/FACT-RATE-LIMIT.md");
+        stageSources(tmpDir, ".kb/facts/FACT-RATE-LIMIT.md");
 
         // Sync
         execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
@@ -1362,7 +1341,7 @@ canonical_key: api.client.rate_limit_rps.eq.1.5
     test(
       "syncs and queries typed fact with value_string",
       async () => {
-        const factsDir = path.join(tmpDir, "documentation/facts");
+        const factsDir = path.join(tmpDir, ".kb/facts");
         mkdirSync(factsDir, { recursive: true });
 
         writeFileSync(
@@ -1385,7 +1364,7 @@ canonical_key: user.type.allowed_value.eq.admin
 # User type
 `,
         );
-        stageSources(tmpDir, "documentation/facts/FACT-USER-TYPE.md");
+        stageSources(tmpDir, ".kb/facts/FACT-USER-TYPE.md");
 
         // Sync
         execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
@@ -1455,10 +1434,10 @@ export class ServerManager {
         );
 
         // Write a symbols.yaml pointing to those symbols
-        const docDir = path.join(tmpDir, "documentation");
-        mkdirSync(docDir, { recursive: true });
+        const kbDir = path.join(tmpDir, ".kb");
+        mkdirSync(kbDir, { recursive: true });
         writeFileSync(
-          path.join(docDir, "symbols.yaml"),
+          path.join(kbDir, "symbols.yaml"),
           `symbols:
   - id: SYM-start-server
     title: startServer
@@ -1474,6 +1453,11 @@ export class ServerManager {
     sourceFile: src/server.ts
 `,
         );
+
+        execSync("git add src/server.ts .kb/symbols.yaml", {
+          cwd: tmpDir,
+          stdio: "pipe",
+        });
 
         const output = execSync(
           `bun ${kibiBin} sync --refresh-symbol-coordinates`,

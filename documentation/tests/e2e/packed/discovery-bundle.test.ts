@@ -221,10 +221,10 @@ This requirement is intentionally not must-priority.
         );
 
         for (const sourcePath of [
-          "documentation/requirements/REQ-DISC-001.md",
-          "documentation/requirements/REQ-DISC-002.md",
-          "documentation/scenarios/SCEN-DISC-001.md",
-          "documentation/tests/TEST-DISC-001.md",
+          ".kb/requirements/REQ-DISC-001.md",
+          ".kb/requirements/REQ-DISC-002.md",
+          ".kb/scenarios/SCEN-DISC-001.md",
+          ".kb/tests/TEST-DISC-001.md",
         ]) {
           stageSourceFile(sandbox, sourcePath);
         }

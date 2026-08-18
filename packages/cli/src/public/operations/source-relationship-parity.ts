@@ -6,7 +6,6 @@ import type { ExtractedRelationship } from "../../extractors/markdown.js";
 import { RELATIONSHIP_TYPES } from "../../operations/mutation/relationships.js";
 import { parseListOfLists, parsePrologValue } from "../../prolog/codec.js";
 import { readAllShards } from "../../relationships/shards.js";
-import { loadConfig } from "../../utils/config.js";
 import type { Violation } from "../check-types.js";
 import type { PrologPort } from "./runtime-types.js";
 
@@ -167,10 +166,9 @@ export async function collectSourceRelationshipParityViolations(
   prolog: PrologPort,
 ): Promise<Violation[]> {
   if (!isGitWorkspace(workspaceRoot)) return [];
-  const config = loadConfig(workspaceRoot);
   let discovery: Awaited<ReturnType<typeof discoverSourceFiles>>;
   try {
-    discovery = await discoverSourceFiles(workspaceRoot, config.paths, {
+    discovery = await discoverSourceFiles(workspaceRoot, {
       trackedOnly: true,
       consumeTrackedPendingReceipts: false,
     });

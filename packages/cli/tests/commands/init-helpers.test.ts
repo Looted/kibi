@@ -32,7 +32,7 @@ import { tmpdir } from "node:os";
 import * as path from "node:path";
 import {
   copySchemaFiles,
-  createConfigFile,
+  createManifestFile,
   createKbDirectoryStructure,
   ensureSymbolsManifestFile,
   getCurrentBranch,
@@ -97,35 +97,47 @@ describe("init-helpers", () => {
 
     expect(existsSync(kbDir)).toBe(true);
     expect(existsSync(path.join(kbDir, "schema"))).toBe(true);
+    expect(existsSync(path.join(kbDir, "requirements"))).toBe(true);
+    expect(existsSync(path.join(kbDir, "scenarios"))).toBe(true);
+    expect(existsSync(path.join(kbDir, "tests"))).toBe(true);
+    expect(existsSync(path.join(kbDir, "facts"))).toBe(true);
+    expect(existsSync(path.join(kbDir, "adr"))).toBe(true);
+    expect(existsSync(path.join(kbDir, "flags"))).toBe(true);
+    expect(existsSync(path.join(kbDir, "events"))).toBe(true);
     expect(existsSync(path.join(kbDir, "branches"))).toBe(true);
     expect(
       existsSync(path.join(kbDir, "branches", branchStoreKey("my-branch"))),
     ).toBe(true);
   });
 
-  test("createConfigFile creates valid config.json", () => {
+  test("createManifestFile writes a Kibi-owned lifecycle manifest", () => {
     const kbDir = path.join(tmpDir, ".kb");
     mkdirSync(kbDir);
 
-    createConfigFile(kbDir);
+    createManifestFile(kbDir);
 
-    const configPath = path.join(kbDir, "config.json");
-    expect(existsSync(configPath)).toBe(true);
+    const manifestPath = path.join(kbDir, "manifest.json");
+    expect(existsSync(manifestPath)).toBe(true);
 
-    const config = JSON.parse(readFileSync(configPath, "utf8"));
-    expect(config.paths).toBeDefined();
-    expect(config.schemaVersion).toBe(LATEST_KB_SCHEMA_VERSION);
-    expect(config.paths.requirements).toBe("documentation/requirements");
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+    expect(manifest.manifestVersion).toBe(1);
+    expect(manifest.schemaVersion).toBe(LATEST_KB_SCHEMA_VERSION);
+    expect(manifest.paths).toBeUndefined();
+    expect(manifest.checks).toBeUndefined();
   });
 
-  test("updateGitIgnore adds only .kb/", () => {
+  test("updateGitIgnore ignores derived .kb/ state only", () => {
     updateGitIgnore(tmpDir);
 
     const gitignorePath = path.join(tmpDir, ".gitignore");
     expect(existsSync(gitignorePath)).toBe(true);
     const content = readFileSync(gitignorePath, "utf8");
-    expect(content).toContain(".kb/");
-    expect(content).not.toContain(".kb/briefs/");
+    expect(content).toContain(".kb/branches/");
+    expect(content).toContain(".kb/recovery/");
+    expect(content).toContain(".kb/verification/");
+    expect(content).toContain(".kb/briefs/");
+    expect(content).toContain(".kb/usage.log");
+    expect(content).not.toMatch(/^\.kb\/$/m);
   });
 
   test("updateGitIgnore appends to existing .gitignore", () => {
@@ -136,27 +148,24 @@ describe("init-helpers", () => {
 
     const content = readFileSync(gitignorePath, "utf8");
     expect(content).toContain("node_modules/");
-    expect(content).toContain(".kb/");
-    expect(content).not.toContain(".kb/briefs/");
+    expect(content).toContain(".kb/branches/");
   });
 
-  test("updateGitIgnore does not duplicate existing .kb entry", () => {
+  test("updateGitIgnore does not duplicate existing derived-state entries", () => {
     const gitignorePath = path.join(tmpDir, ".gitignore");
-    writeFileSync(gitignorePath, ".kb/\n");
+    writeFileSync(gitignorePath, ".kb/branches/\n.kb/recovery/\n");
 
     updateGitIgnore(tmpDir);
 
     const content = readFileSync(gitignorePath, "utf8");
-    const kbMatches = content.match(/^\.kb\/$/gm);
-
-    expect(kbMatches?.length ?? 0).toBe(1);
-    expect(content).not.toContain(".kb/briefs/");
+    const branchMatches = content.match(/^\.kb\/branches\/$/gm);
+    expect(branchMatches?.length ?? 0).toBe(1);
   });
 
-  test("ensureSymbolsManifestFile creates the default symbols manifest", () => {
+  test("ensureSymbolsManifestFile creates the canonical symbols manifest", () => {
     ensureSymbolsManifestFile(tmpDir);
 
-    const manifestPath = path.join(tmpDir, "documentation", "symbols.yaml");
+    const manifestPath = path.join(tmpDir, ".kb", "symbols.yaml");
     expect(existsSync(manifestPath)).toBe(true);
     const content = readFileSync(manifestPath, "utf8");
     expect(content).toContain("# symbols.yaml");
@@ -164,7 +173,7 @@ describe("init-helpers", () => {
   });
 
   test("ensureSymbolsManifestFile preserves an existing manifest", () => {
-    const manifestPath = path.join(tmpDir, "documentation", "symbols.yaml");
+    const manifestPath = path.join(tmpDir, ".kb", "symbols.yaml");
     mkdirSync(path.dirname(manifestPath), { recursive: true });
     writeFileSync(manifestPath, "symbols:\n  - id: SYM-existing\n");
 
@@ -351,7 +360,7 @@ describe("init-helpers", () => {
       path.join(hooksDir, "pre-commit"),
       "utf8",
     );
-    expect(preCommitContent).toContain("documentation/symbols.yaml");
+    expect(preCommitContent).toContain(".kb/symbols.yaml");
     expect(preCommitContent).toContain(
       "kibi sync --refresh-symbol-coordinates",
     );

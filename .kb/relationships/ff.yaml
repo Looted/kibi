@@ -6,3 +6,17 @@ relationships:
     created_at: "2026-08-16T18:52:06.532Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-canonical-LegacyKbConfigPaths
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:01:50.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc30d458a7bc
+  - type: covered_by
+    from: SYM-canonical-LegacyKbConfigPaths
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:01:50.313Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b46dd65730f4

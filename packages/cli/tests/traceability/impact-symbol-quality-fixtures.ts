@@ -31,7 +31,7 @@ export function makeQualitySymbolResult(
       status: fixture.status ?? "active",
       created_at: "2026-06-25T00:00:00.000Z",
       updated_at: "2026-06-25T00:00:00.000Z",
-      source: "documentation/symbols.yaml",
+      source: ".kb/symbols.yaml",
       ...(fixture.granularityReason !== undefined
         ? { granularity_reason: fixture.granularityReason }
         : {}),
@@ -74,7 +74,7 @@ export function makeRequirementResult(
       status: "active",
       created_at: "2026-06-25T00:00:00.000Z",
       updated_at: "2026-06-25T00:00:00.000Z",
-      source: `documentation/requirements/${fixture.id}.md`,
+      source: `.kb/requirements/${fixture.id}.md`,
       ...(fixture.tags !== undefined ? { tags: [...fixture.tags] } : {}),
     },
     relationships: [],

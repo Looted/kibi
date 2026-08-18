@@ -137,7 +137,7 @@ function findGitMetadata(
 }
 
 function hasRootKbConfig(root: string): boolean {
-  return existsSync(join(root, ".kb", "config.json"));
+  return existsSync(join(root, ".kb", "manifest.json"));
 }
 
 function uniqueResolved(paths: Array<string | null | undefined>): string[] {

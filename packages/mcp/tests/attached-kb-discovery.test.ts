@@ -58,7 +58,7 @@ function prepareDiscoveryWorkspace(): string {
   }
   const requirementsDir = path.join(
     workspaceRoot,
-    "documentation/requirements",
+    ".kb/requirements",
   );
   mkdirSync(requirementsDir, { recursive: true });
   writeFileSync(

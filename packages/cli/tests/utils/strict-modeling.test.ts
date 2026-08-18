@@ -30,13 +30,13 @@ const CUSTOMER_RETENTION_STATEMENT =
   "Customer data must be retained for 7 years.";
 
 const CUSTOMER_RETENTION_CLAIM: SemanticClaim = {
-  source: "documentation/requirements/customer-retention.md",
+  source: ".kb/requirements/customer-retention.md",
   subjectKey: "Customer.Data",
   propertyKey: "Retention Years",
   operator: "eq",
   value: 7,
   confidence: 0.92,
-  provenance: "documentation/requirements/customer-retention.md#L1",
+  provenance: ".kb/requirements/customer-retention.md#L1",
 };
 
 describe("strict-modeling", () => {
@@ -53,7 +53,7 @@ describe("strict-modeling", () => {
 
     expect(idsA).toEqual(idsB);
     expect(idsA.stableKey).toBe(
-      "documentation-requirements-customer-retention-md:customer.data:retention_years:eq:7",
+      "kb-requirements-customer-retention-md:customer.data:retention_years:eq:7",
     );
     expect(idsA.reqId).toMatch(/^REQ-AUTO-[A-F0-9]{16}$/);
     expect(idsA.subjectFactId).toMatch(/^FACT-SUBJECT-[A-F0-9]{16}$/);
@@ -83,7 +83,7 @@ describe("strict-modeling", () => {
       id: writeSet.req.id,
       title: CUSTOMER_RETENTION_STATEMENT,
       status: "open",
-      source: `documentation/requirements/${writeSet.req.id}.md`,
+      source: `.kb/requirements/${writeSet.req.id}.md`,
       text_ref: CUSTOMER_RETENTION_CLAIM.provenance,
     });
     expect(writeSet.req.properties.tags).toEqual(
@@ -92,7 +92,7 @@ describe("strict-modeling", () => {
         "lane:strict",
         "confidence:0.92",
         "confidence-band:high",
-        "provenance:documentation-requirements-customer-retention-md-l1",
+        "provenance:kb-requirements-customer-retention-md-l1",
       ]),
     );
 
@@ -101,7 +101,7 @@ describe("strict-modeling", () => {
       fact_kind: "subject",
       subject_key: "customer.data",
       canonical_key: "customer.data",
-      source: `documentation/facts/${writeSet.subjectFact.id}.md`,
+      source: `.kb/facts/${writeSet.subjectFact.id}.md`,
     });
     expect(writeSet.propertyFact.properties).toMatchObject({
       id: writeSet.propertyFact.id,
@@ -112,8 +112,8 @@ describe("strict-modeling", () => {
       value_type: "int",
       value_int: 7,
       canonical_key:
-        "documentation-requirements-customer-retention-md:customer.data:retention_years:eq:7",
-      source: `documentation/facts/${writeSet.propertyFact.id}.md`,
+        "kb-requirements-customer-retention-md:customer.data:retention_years:eq:7",
+      source: `.kb/facts/${writeSet.propertyFact.id}.md`,
     });
 
     expect(writeSet.relationships).toEqual(
@@ -204,12 +204,12 @@ describe("strict-modeling", () => {
       title: CUSTOMER_RETENTION_STATEMENT,
       status: "active",
       fact_kind: "observation",
-      source: `documentation/facts/${writeSet.observationFact.id}.md`,
+      source: `.kb/facts/${writeSet.observationFact.id}.md`,
       text_ref: CUSTOMER_RETENTION_CLAIM.provenance,
       subject_key: "customer.data",
       property_key: "retention_years",
       canonical_key:
-        "documentation-requirements-customer-retention-md:customer.data:retention_years:eq:7",
+        "kb-requirements-customer-retention-md:customer.data:retention_years:eq:7",
     });
     expect(writeSet.observationFact.properties.tags).toEqual(
       expect.arrayContaining([

@@ -149,7 +149,7 @@ if (RUN_NODE_TEST_SUITE) {
 
         createMarkdownFile(
           sandbox,
-          "documentation/requirements/REQ-HOOK-001.md",
+          ".kb/requirements/REQ-HOOK-001.md",
           {
             id: "REQ-HOOK-001",
             title: "Hook test requirement",
@@ -229,7 +229,7 @@ if (RUN_NODE_TEST_SUITE) {
       // Create a file to commit
       createMarkdownFile(
         sandbox,
-        "documentation/requirements/REQ-PRE-001.md",
+        ".kb/requirements/REQ-PRE-001.md",
         {
           id: "REQ-PRE-001",
           title: "Pre-commit test",

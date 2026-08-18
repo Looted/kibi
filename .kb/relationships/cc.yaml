@@ -27,3 +27,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a9959331f954
+  - type: implements
+    from: SYM-canonical-MarkdownValidationResult
+    to: REQ-cli-staged-impact-enforcement
+    created_at: 2026-08-18T17:36:45.217Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d24a7c52ca7
+  - type: covered_by
+    from: SYM-canonical-MarkdownValidationResult
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-08-18T17:36:45.226Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eaaf4de266fb

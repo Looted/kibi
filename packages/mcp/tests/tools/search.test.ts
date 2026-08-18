@@ -54,7 +54,7 @@ describe("MCP search tool handler", () => {
       success: true,
       bindings: {
         Results:
-          '[[REQ-001,req,[title="OAuth login flow",status=open,source="documentation/requirements/REQ-001.md"]],[REQ-002,req,[title="Session refresh",status=open,source="documentation/requirements/REQ-002.md"]]]',
+          '[[REQ-001,req,[title="OAuth login flow",status=open,source=".kb/requirements/REQ-001.md"]],[REQ-002,req,[title="Session refresh",status=open,source=".kb/requirements/REQ-002.md"]]]',
       },
     }));
 
@@ -71,7 +71,7 @@ describe("MCP search tool handler", () => {
   test("searches markdown bodies but does not search raw code bodies", async () => {
     await fs.writeFile(
       path.join(workspaceRoot, "documentation", "requirements", "REQ-003.md"),
-      "---\nid: REQ-003\ntitle: Searchable markdown\nstatus: open\nsource: documentation/requirements/REQ-003.md\n---\n\nThe body mentions latent discovery token.\n",
+      "---\nid: REQ-003\ntitle: Searchable markdown\nstatus: open\nsource: .kb/requirements/REQ-003.md\n---\n\nThe body mentions latent discovery token.\n",
     );
 
     await fs.mkdir(path.join(workspaceRoot, "src"), { recursive: true });
@@ -84,7 +84,7 @@ describe("MCP search tool handler", () => {
       success: true,
       bindings: {
         Results:
-          '[[REQ-003,req,[title="Searchable markdown",status=open,source="documentation/requirements/REQ-003.md"]],[SYM-hidden,symbol,[title="hidden",status=active,source="src/hidden.ts"]]]',
+          '[[REQ-003,req,[title="Searchable markdown",status=open,source=".kb/requirements/REQ-003.md"]],[SYM-hidden,symbol,[title="hidden",status=active,source="src/hidden.ts"]]]',
       },
     }));
 
@@ -102,7 +102,7 @@ describe("MCP search tool handler", () => {
       success: true,
       bindings: {
         Results:
-          '[[REQ-404,req,[title="Missing source fallback",status=open,source="documentation/requirements/MISSING.md"]]]',
+          '[[REQ-404,req,[title="Missing source fallback",status=open,source=".kb/requirements/MISSING.md"]]]',
       },
     }));
 
@@ -149,7 +149,7 @@ describe("MCP search tool handler", () => {
       success: true,
       bindings: {
         Results:
-          '[[FACT-search-apple-signin-revenuecat-recovery,req,[title="Apple Sign-In RevenueCat recovery",status=open,source="documentation/requirements/FACT-search-apple-signin-revenuecat-recovery.md"]],[REQ-search-revenuecat-entitlement,req,[title="RevenueCat entitlement restore",status=open,source="documentation/requirements/REQ-search-revenuecat-entitlement.md"]],[FACT-search-unrelated-sync-feedback,req,[title="Sync feedback note",status=open,source="documentation/requirements/FACT-search-unrelated-sync-feedback.md"]]]',
+          '[[FACT-search-apple-signin-revenuecat-recovery,req,[title="Apple Sign-In RevenueCat recovery",status=open,source=".kb/requirements/FACT-search-apple-signin-revenuecat-recovery.md"]],[REQ-search-revenuecat-entitlement,req,[title="RevenueCat entitlement restore",status=open,source=".kb/requirements/REQ-search-revenuecat-entitlement.md"]],[FACT-search-unrelated-sync-feedback,req,[title="Sync feedback note",status=open,source=".kb/requirements/FACT-search-unrelated-sync-feedback.md"]]]',
       },
     }));
 

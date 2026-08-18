@@ -146,11 +146,17 @@ export {
 } from "kibi-cli/public/check-types";
 export { analyzeChangedFileImpact } from "kibi-cli/public/impact-diagnostics";
 export {
-  DEFAULT_CHECKS_CONFIG,
   RULE_NAMES,
+  RULES,
+  getCanonicalRules,
+  getDefaultRules,
+  getEffectiveRules,
+  getRuleDefinition,
+  isCanonicalRule,
 } from "kibi-cli/public/check-types";
 export type {
-  ChecksConfig,
+  RuleDefinition,
+  RuleEnforcementClass,
   StrictWriteSet,
   Violation,
 } from "kibi-cli/public/check-types";

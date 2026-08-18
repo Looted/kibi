@@ -742,9 +742,8 @@ describe("KibiCodeLensProvider \u2013 refresh and watchers", () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  test("refresh uses relative symbolsManifest from .kb/config.json", () => {
+  test("refresh uses canonical .kb/symbols.yaml", () => {
     const testFile = path.join(tmpDir, "src", "main.ts");
-    const altDir = path.join(tmpDir, "config");
     fs.mkdirSync(path.dirname(testFile), { recursive: true });
     fs.writeFileSync(testFile, "// main\n", "utf8");
 
@@ -752,14 +751,8 @@ describe("KibiCodeLensProvider \u2013 refresh and watchers", () => {
     expect(provider.provideCodeLenses(makeDoc(testFile), noCancel)).toBeNull();
 
     fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
-    fs.mkdirSync(altDir, { recursive: true });
-    fs.writeFileSync(
-      path.join(tmpDir, ".kb", "config.json"),
-      JSON.stringify({ symbolsManifest: "config/symbols.yaml" }),
-      "utf8",
-    );
     writeTestSymbols(
-      altDir,
+      path.join(tmpDir, ".kb"),
       [
         {
           id: "SYM-001",
@@ -778,21 +771,13 @@ describe("KibiCodeLensProvider \u2013 refresh and watchers", () => {
     expect(lenses?.length).toBe(1);
   });
 
-  test("refresh uses absolute paths.symbols, clears cache, and emits change", async () => {
+  test("refresh uses canonical .kb/symbols.yaml, clears cache, and emits change", async () => {
     const testFile = path.join(tmpDir, "src", "main.ts");
-    const manifestDir = path.join(tmpDir, "absolute");
-    const manifestPath = path.join(manifestDir, "symbols.yml");
     fs.mkdirSync(path.dirname(testFile), { recursive: true });
     fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
-    fs.mkdirSync(manifestDir, { recursive: true });
     fs.writeFileSync(testFile, "// main\n", "utf8");
-    fs.writeFileSync(
-      path.join(tmpDir, ".kb", "config.json"),
-      JSON.stringify({ paths: { symbols: manifestPath } }),
-      "utf8",
-    );
     writeTestSymbols(
-      manifestDir,
+      path.join(tmpDir, ".kb"),
       [
         {
           id: "SYM-ABS-001",
@@ -802,7 +787,7 @@ describe("KibiCodeLensProvider \u2013 refresh and watchers", () => {
           links: [],
         },
       ],
-      "symbols.yml",
+      "symbols.yaml",
     );
 
     const cache = new RelationshipCache();

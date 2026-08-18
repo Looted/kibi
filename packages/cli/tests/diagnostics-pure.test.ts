@@ -229,7 +229,7 @@ describe("createDocsNotIndexedDiagnostic", () => {
 
 describe("createInvalidAuthoringDiagnostic", () => {
   test("creates invalid authoring diagnostic for a single embedded type", () => {
-    const filePath = "documentation/requirements/REQ-001.md";
+    const filePath = ".kb/requirements/REQ-001.md";
     const result = createInvalidAuthoringDiagnostic(filePath, ["scenario"]);
 
     expect(result.category).toBe("INVALID_AUTHORING");
@@ -241,7 +241,7 @@ describe("createInvalidAuthoringDiagnostic", () => {
   });
 
   test("creates invalid authoring diagnostic for multiple embedded types", () => {
-    const filePath = "documentation/requirements/REQ-002.md";
+    const filePath = ".kb/requirements/REQ-002.md";
     const result = createInvalidAuthoringDiagnostic(filePath, [
       "scenario",
       "test",

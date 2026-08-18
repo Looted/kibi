@@ -448,7 +448,7 @@ if (RUN_NODE_TEST_SUITE) {
       // Create test markdown files
       createMarkdownFile(
         sandbox,
-        "documentation/requirements/REQ-001.md",
+        ".kb/requirements/REQ-001.md",
         {
           id: "REQ-001",
           title: "Test requirement",
@@ -460,7 +460,7 @@ if (RUN_NODE_TEST_SUITE) {
 
       createMarkdownFile(
         sandbox,
-        "documentation/scenarios/SCEN-001.md",
+        ".kb/scenarios/SCEN-001.md",
         {
           id: "SCEN-001",
           title: "Test scenario",

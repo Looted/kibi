@@ -6,3 +6,31 @@ relationships:
     created_at: "2026-08-16T18:52:12.222Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: supersedes
+    from: REQ-cli-init-canonical
+    to: REQ-cli-init
+    created_at: 2026-08-18T15:32:25.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5332230310a0
+  - type: relates_to
+    from: REQ-cli-init-canonical
+    to: ADR-026
+    created_at: 2026-08-18T15:32:25.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ad58c42a669
+  - type: specified_by
+    from: REQ-cli-init-canonical
+    to: SCEN-cli-canonical-init
+    created_at: 2026-08-18T15:33:24.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ed3d9afd0d9
+  - type: specified_by
+    from: REQ-cli-init-canonical
+    to: SCEN-cli-canonical-status
+    created_at: 2026-08-18T16:20:42.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-536ac6362c2a

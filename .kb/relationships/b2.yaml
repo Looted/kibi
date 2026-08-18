@@ -41,3 +41,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f27f613e9747
+  - type: implements
+    from: SYM-auto-7EA45A5BE416
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T16:40:51.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79b19e64758a
+  - type: covered_by
+    from: SYM-auto-7EA45A5BE416
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T16:40:51.146Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5cadd6866363
+  - type: implements
+    from: SYM-canonical-refreshSymbolCoordinates
+    to: REQ-cli-sync
+    created_at: 2026-08-18T17:35:48.836Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bde92b1ebfc9
+  - type: covered_by
+    from: SYM-canonical-refreshSymbolCoordinates
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-08-18T17:35:48.848Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be5b62e23e08

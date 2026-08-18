@@ -51,7 +51,7 @@ afterEach(async () => {
 });
 
 describe("kb_check error and edge branches", () => {
-  test("falls back to default checks config when .kb/config.json is invalid", async () => {
+  test("leftover invalid .kb/config.json cannot weaken canonical checks", async () => {
     const workspaceRoot = await createWorkspace();
     process.env.KIBI_WORKSPACE = workspaceRoot;
 

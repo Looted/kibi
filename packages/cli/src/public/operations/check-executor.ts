@@ -28,8 +28,8 @@ import {
   analyzeKbCheckImpact,
   collectQueryPlanSafetyViolations,
   getEffectiveRules,
-  loadChecksConfig,
   qualityDiagnosticsFromImpact,
+  resolveCheckRules,
 } from "./check-helpers.js";
 import { executeStatus } from "./discovery-executors.js";
 import {
@@ -59,7 +59,7 @@ export {
   buildStructuredContent,
   buildSummary,
   getEffectiveRules,
-  loadChecksConfig,
+  resolveCheckRules,
 };
 
 export type CheckExecutionOptions = {
@@ -130,13 +130,9 @@ export async function executeCheck(
       ? snapshotEvidence.snapshot.hash
       : undefined;
     const checkedAt = context.clock().toISOString();
-    const checksConfig = await loadChecksConfig(workspaceRoot);
-    const rulesAllowlist =
-      args.rules === undefined
-        ? getEffectiveRules(checksConfig.rules)
-        : args.rules.length === 0
-          ? new Set<string>()
-          : getEffectiveRules(undefined, args.rules.join(","));
+    // Enforcement policy is Kibi-owned and deterministic from the installed
+    // version. `args.rules` is an invocation-time diagnostic selector only.
+    const rulesAllowlist = resolveCheckRules(args);
     const hasExplicitRules = args.rules !== undefined;
     const impactResult = analyzeKbCheckImpact(workspaceRoot, args);
     const impactQualityDiagnostics = qualityDiagnosticsFromImpact(impactResult);
@@ -197,7 +193,6 @@ export async function executeCheck(
     const aggregatedViolations = await runAggregatedChecks(
       prolog,
       rulesAllowlist,
-      checksConfig.symbolTraceability.requireAdr,
     );
     const queryPlanViolations = rulesAllowlist.has("query-plan-safety")
       ? collectQueryPlanSafetyViolations()

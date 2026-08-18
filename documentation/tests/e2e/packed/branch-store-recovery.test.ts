@@ -75,7 +75,7 @@ if (RUN_NODE_TEST_SUITE) {
 
         createMarkdownFile(
           sandbox,
-          "documentation/requirements/REQ-BRANCH-RECOVERY-E2E.md",
+          ".kb/requirements/REQ-BRANCH-RECOVERY-E2E.md",
           {
             id: "REQ-BRANCH-RECOVERY-E2E",
             title: "Exact branch recovery fixture",
@@ -91,7 +91,7 @@ if (RUN_NODE_TEST_SUITE) {
 
         createMarkdownFile(
           sandbox,
-          "documentation/requirements/REQ-BRANCH-HISTORY-OLD.md",
+          ".kb/requirements/REQ-BRANCH-HISTORY-OLD.md",
           {
             id: "REQ-BRANCH-HISTORY-OLD",
             title: "Legacy branch history fixture",
@@ -106,7 +106,7 @@ if (RUN_NODE_TEST_SUITE) {
         });
         createMarkdownFile(
           sandbox,
-          "documentation/requirements/REQ-BRANCH-HISTORY-NEW.md",
+          ".kb/requirements/REQ-BRANCH-HISTORY-NEW.md",
           {
             id: "REQ-BRANCH-HISTORY-NEW",
             title: "Replacement branch history fixture",
@@ -138,7 +138,7 @@ if (RUN_NODE_TEST_SUITE) {
             properties: {
               title: "Legacy branch history fixture",
               status: "open",
-              source: "documentation/requirements/REQ-BRANCH-HISTORY-OLD.md",
+              source: ".kb/requirements/REQ-BRANCH-HISTORY-OLD.md",
             },
             relationships: [
               {

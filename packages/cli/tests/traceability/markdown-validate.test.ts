@@ -93,7 +93,7 @@ title: Consumer login flow smoke test
 status: passing
 created_at: 2026-04-01T00:00:00Z
 updated_at: 2026-04-01T00:00:00Z
-source: documentation/tests/TEST-200.md
+source: .kb/tests/TEST-200.md
 verification_scope: end_to_end
 verification_perspective: consumer
 ---
@@ -116,7 +116,7 @@ title: Invalid verification scope test
 status: passing
 created_at: 2026-04-01T00:00:00Z
 updated_at: 2026-04-01T00:00:00Z
-source: documentation/tests/TEST-201.md
+source: .kb/tests/TEST-201.md
 verification_scope: playwright
 ---
 `;
@@ -133,7 +133,7 @@ title: Requirement with invalid test field
 status: open
 created_at: 2026-04-01T00:00:00Z
 updated_at: 2026-04-01T00:00:00Z
-source: documentation/requirements/REQ-200.md
+source: .kb/requirements/REQ-200.md
 verification_perspective: consumer
 ---
 `;

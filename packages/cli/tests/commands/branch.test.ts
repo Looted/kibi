@@ -165,9 +165,9 @@ describe("kibi branch lifecycle", () => {
   });
 
   test("recovers a damaged exact branch store only after explicit apply", async () => {
-    execSync("mkdir -p documentation/requirements", { cwd: tmpDir });
+    execSync("mkdir -p .kb/requirements", { cwd: tmpDir });
     writeFileSync(
-      path.join(tmpDir, "documentation/requirements/REQ-RECOVER-001.md"),
+      path.join(tmpDir, ".kb/requirements/REQ-RECOVER-001.md"),
       "---\nid: REQ-RECOVER-001\ntitle: Recover branch storage\nstatus: open\n---\n\nRecovery is explicit.\n",
     );
     execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
@@ -200,13 +200,13 @@ describe("kibi branch lifecycle", () => {
   }, 30000);
 
   test("retires only unchanged missing source receipts during explicit recovery", async () => {
-    execSync("mkdir -p documentation/requirements", { cwd: tmpDir });
+    execSync("mkdir -p .kb/requirements", { cwd: tmpDir });
     writeFileSync(
-      path.join(tmpDir, "documentation/requirements/REQ-RECEIPT.md"),
+      path.join(tmpDir, ".kb/requirements/REQ-RECEIPT.md"),
       "---\nid: REQ-RECEIPT\ntitle: Receipt lifecycle\nstatus: open\n---\n\nReceipt lifecycle.\n",
     );
     execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
-    execSync("git add -- documentation/requirements/REQ-RECEIPT.md", {
+    execSync("git add -- .kb/requirements/REQ-RECEIPT.md", {
       cwd: tmpDir,
       stdio: "pipe",
     });
@@ -214,7 +214,7 @@ describe("kibi branch lifecycle", () => {
 
     writePendingSourceReceipt(
       tmpDir,
-      "documentation/requirements/REQ-DELETED.md",
+      ".kb/requirements/REQ-DELETED.md",
       "a".repeat(64),
     );
     writePendingSourceReceipt(
@@ -238,11 +238,7 @@ describe("kibi branch lifecycle", () => {
       "../../src/commands/sync/discovery.js"
     );
     await expect(
-      discoverSourceFiles(
-        tmpDir,
-        { requirements: "documentation/requirements" },
-        { trackedOnly: true },
-      ),
+      discoverSourceFiles(tmpDir, { trackedOnly: true }),
     ).rejects.toThrow("Pending source is missing");
     const preview = execSync(`bun ${kibiBin} branch recover`, {
       cwd: tmpDir,
@@ -259,11 +255,7 @@ describe("kibi branch lifecycle", () => {
     expect(readdirSync(receiptRoot)).toHaveLength(0);
 
     await expect(
-      discoverSourceFiles(
-        tmpDir,
-        { requirements: "documentation/requirements" },
-        { trackedOnly: true },
-      ),
+      discoverSourceFiles(tmpDir, { trackedOnly: true }),
     ).resolves.toMatchObject({ markdownFiles: expect.any(Array) });
   }, 30000);
 });

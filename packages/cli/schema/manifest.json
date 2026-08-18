@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/Looted/kibi/master/packages/cli/schema/manifest.json",
+  "title": "Kibi Lifecycle Manifest",
+  "description": "Kibi-owned lifecycle metadata written to .kb/manifest.json. This is not a user configuration file: entity paths and check enforcement are canonical and cannot be overridden here.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["manifestVersion", "schemaVersion"],
+  "properties": {
+    "manifestVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Payload schema for this lifecycle manifest"
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "KB entity/relationship schema generation"
+    },
+    "semanticAdvisorBackfill": {
+      "type": "string",
+      "enum": ["pending", "completed", "not_applicable"],
+      "description": "Retroactive semantic-advisor backfill review state"
+    }
+  }
+}

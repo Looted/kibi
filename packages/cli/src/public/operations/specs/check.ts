@@ -66,7 +66,7 @@ export const checkSpec = {
       workspaceRoot: {
         type: "string",
         description:
-          "Optional workspace root for impact diagnostics and .kb/config.json lookup. Defaults to the MCP server workspace.",
+          "Optional workspace root for impact diagnostics. Defaults to the MCP server workspace.",
       },
     },
   },

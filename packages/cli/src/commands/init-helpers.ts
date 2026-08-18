@@ -31,7 +31,11 @@ import {
   resolveActiveBranch,
 } from "../utils/branch-resolver.js";
 import { ensureBranchStoreManifest } from "../utils/branch-store-locator.js";
-import { DEFAULT_CONFIG } from "../utils/config.js";
+import {
+  defaultKbManifest,
+  writeKbManifest,
+} from "../utils/kb-manifest.js";
+import { ENTITY_LANES, KB_PATHS } from "../utils/kb-paths.js";
 import { SYMBOLS_MANIFEST_COMMENT_BLOCK } from "./sync/manifest.js";
 
 const POST_CHECKOUT_HOOK = `#!/bin/sh
@@ -83,10 +87,10 @@ const PRE_COMMIT_HOOK = `#!/bin/sh
 # Hard enforcement boundary: commits are blocked only here via kibi check.
 # The OpenCode plugin remains advisory and must not replace this gate.
 # Behavior-changing source edits require staged Kibi impact evidence
-# (KB entity docs, authored symbols metadata, or refreshed symbol
-# coordinates). Test-only and docs-only edits are exempt.
+# (KB entity docs under .kb/, authored symbols metadata, or refreshed
+# symbol coordinates). Test-only and docs-only edits are exempt.
 # Refresh with:
-#   kibi sync --refresh-symbol-coordinates && git add documentation/symbol-coordinates.yaml documentation/symbols.yaml
+#   kibi sync --refresh-symbol-coordinates && git add .kb/symbol-coordinates.yaml .kb/symbols.yaml
 
 set -e
 
@@ -112,17 +116,18 @@ export function createKbDirectoryStructure(
 ): void {
   mkdirSync(kbDir, { recursive: true });
   mkdirSync(path.join(kbDir, "schema"), { recursive: true });
+  // Canonical tracked knowledge lanes under .kb/.
+  for (const lane of ENTITY_LANES) {
+    mkdirSync(path.join(kbDir, lane), { recursive: true });
+  }
   ensureBranchStoreManifest(path.dirname(kbDir), currentBranch);
   console.log("✓ Created .kb/ directory structure");
   console.log(`✓ Created hashed branch store for ${currentBranch}`);
 }
 
-export function createConfigFile(kbDir: string): void {
-  writeFileSync(
-    path.join(kbDir, "config.json"),
-    JSON.stringify(DEFAULT_CONFIG, null, 2),
-  );
-  console.log("✓ Created config.json with default paths");
+export function createManifestFile(kbDir: string): void {
+  writeKbManifest(path.dirname(kbDir), defaultKbManifest());
+  console.log("✓ Created Kibi lifecycle manifest at .kb/manifest.json");
 }
 
 export function updateGitIgnore(cwd: string): void {
@@ -140,27 +145,26 @@ export function updateGitIgnore(cwd: string): void {
     return current ? `${current.trimEnd()}\n${entry}\n` : `${entry}\n`;
   };
 
-  // Compiled stores and recovery journals are derived state, while config,
-  // schema, and relationship shards are authored source artifacts. Keep the
-  // broad fence for safety, then explicitly re-include the canonical source
-  // lanes so ordinary `git add` makes them compiler inputs.
-  let updatedContent = ensureEntry(gitignoreContent, ".kb/");
-  updatedContent = ensureEntry(updatedContent, "!.kb/");
-  updatedContent = ensureEntry(updatedContent, "!.kb/config.json");
-  updatedContent = ensureEntry(updatedContent, "!.kb/schema/");
-  updatedContent = ensureEntry(updatedContent, "!.kb/relationships/");
-  updatedContent = ensureEntry(updatedContent, "!.kb/relationships/*.yaml");
+  // Derived runtime state (branch stores, recovery, verification, briefs,
+  // usage telemetry) stays ignored. Kibi-owned knowledge lanes under .kb/
+  // (entity markdown, symbols manifest, relationship shards, schema, the
+  // lifecycle manifest, and migration audits) are tracked project
+  // knowledge and must remain committable.
+  let updatedContent = ensureEntry(gitignoreContent, ".kb/branches/");
+  updatedContent = ensureEntry(updatedContent, ".kb/recovery/");
+  updatedContent = ensureEntry(updatedContent, ".kb/verification/");
+  updatedContent = ensureEntry(updatedContent, ".kb/briefs/");
+  updatedContent = ensureEntry(updatedContent, ".kb/usage.log");
 
   if (updatedContent !== gitignoreContent) {
     writeFileSync(gitignorePath, updatedContent);
-    console.log("✓ Added .kb/ to .gitignore");
+    console.log("✓ Configured .gitignore for the canonical .kb/ layout");
   }
 }
 
 // implements REQ-003
 export function ensureSymbolsManifestFile(cwd: string): void {
-  const symbolsRelPath =
-    DEFAULT_CONFIG.paths.symbols ?? "documentation/symbols.yaml";
+  const symbolsRelPath = KB_PATHS.symbolsManifest;
   const symbolsPath = path.join(cwd, symbolsRelPath);
   if (existsSync(symbolsPath)) {
     return;

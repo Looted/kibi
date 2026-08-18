@@ -36,7 +36,7 @@ test("persistRelationships continues retries when query-only Prolog cannot be re
       status: "open",
       created_at: "2026-01-01T00:00:00Z",
       updated_at: "2026-01-01T00:00:00Z",
-      source: "documentation/requirements/REQ-001.md",
+      source: ".kb/requirements/REQ-001.md",
     },
     relationships: [{ type: "depends_on", from: "REQ-001", to: "REQ-002" }],
   };

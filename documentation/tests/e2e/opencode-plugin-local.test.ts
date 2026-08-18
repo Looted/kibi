@@ -40,7 +40,7 @@ if (RUN_NODE_TEST_SUITE) {
           join(tmpDir, ".kb", "config.json"),
           JSON.stringify({
             paths: {
-              requirements: "documentation/requirements/**/*.md",
+              requirements: ".kb/requirements/**/*.md",
             },
           }),
         );
@@ -115,7 +115,7 @@ if (RUN_NODE_TEST_SUITE) {
           join(REPO_ROOT, "packages/opencode/dist/file-filter.js")
         );
         const result = shouldHandleFile(
-          "documentation/requirements/REQ-001.md",
+          ".kb/requirements/REQ-001.md",
           tmpDir,
         );
         assert.equal(result, true);
