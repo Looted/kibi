@@ -105,11 +105,17 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+      - name: Namespace Pages output under /kibi-report/
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && steps.integrity.outcome == 'success' }}
+        run: |
+          mkdir -p pages/kibi-report
+          cp -R kibi-report/. pages/kibi-report/
+
       - name: Upload Kibi Pages artifact
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && steps.integrity.outcome == 'success' }}
         uses: actions/upload-pages-artifact@v5
         with:
-          path: kibi-report
+          path: pages
 
   deploy:
     name: Deploy Kibi proof report

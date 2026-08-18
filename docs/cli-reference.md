@@ -336,7 +336,7 @@ Wrap the published badge image in a link to the report so clicking it opens the
 dashboard:
 
 ```markdown
-[![Kibi requirement health](https://OWNER.github.io/REPOSITORY/badge.svg)](https://OWNER.github.io/REPOSITORY/)
+[![Kibi requirement health](https://OWNER.github.io/REPOSITORY/kibi-report/badge.svg)](https://OWNER.github.io/REPOSITORY/kibi-report/)
 ```
 
 Actions artifacts expire and do not provide a stable anonymous URL, so the

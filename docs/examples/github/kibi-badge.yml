@@ -39,14 +39,14 @@ jobs:
       - run: npm ci
       - run: npm exec -- kibi sync
       - run: npm exec -- kibi report --output kibi-report
-      - name: Keep only the badge for Pages
+      - name: Keep only the namespaced badge for Pages
         run: |
-          mkdir -p kibi-badge
-          cp kibi-report/badge.svg kibi-badge/badge.svg
+          mkdir -p pages/kibi-report
+          cp kibi-report/badge.svg pages/kibi-report/badge.svg
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: kibi-badge
+          path: pages
 
   deploy-report:
     needs: build-report

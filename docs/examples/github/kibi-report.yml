@@ -37,10 +37,14 @@ jobs:
       - run: npm ci
       - run: npm exec -- kibi sync
       - run: npm exec -- kibi report --output kibi-report
+      - name: Namespace Pages output under /kibi-report/
+        run: |
+          mkdir -p pages/kibi-report
+          cp -R kibi-report/. pages/kibi-report/
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: kibi-report
+          path: pages
 
   deploy-report:
     needs: build-report

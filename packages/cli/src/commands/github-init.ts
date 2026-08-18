@@ -33,6 +33,7 @@ export const GITHUB_REPORT_WORKFLOW_RELPATH =
   ".github/workflows/kibi-report.yml";
 export const GITHUB_BADGE_WORKFLOW_RELPATH =
   ".github/workflows/kibi-badge.yml";
+export const GITHUB_PAGES_NAMESPACE = "kibi-report";
 export const KIBI_BADGE_ALT = "Kibi requirement health";
 export const KIBI_METRIC_DOCS_URL =
   "https://github.com/Looted/kibi/blob/develop/docs/github-integration.md#what-the-badge-means";
@@ -146,9 +147,10 @@ export function githubPagesUrls(repo: GitHubRepo): GitHubPagesUrls {
   const owner = repo.owner.toLowerCase();
   const name = repo.repo.toLowerCase();
   const isUserSite = name === `${owner}.github.io`;
-  const siteUrl = isUserSite
+  const origin = isUserSite
     ? `https://${owner}.github.io/`
     : `https://${owner}.github.io/${name}/`;
+  const siteUrl = `${origin}${GITHUB_PAGES_NAMESPACE}/`;
   const badgeUrl = `${siteUrl}badge.svg`;
   return { siteUrl, badgeUrl };
 }
@@ -162,8 +164,8 @@ export function formatKibiBadgeMarkdown(
 
 export function placeholderPagesUrls(): GitHubPagesUrls {
   return {
-    siteUrl: `https://${PLACEHOLDER_OWNER}.github.io/${PLACEHOLDER_REPO}/`,
-    badgeUrl: `https://${PLACEHOLDER_OWNER}.github.io/${PLACEHOLDER_REPO}/badge.svg`,
+    siteUrl: `https://${PLACEHOLDER_OWNER}.github.io/${PLACEHOLDER_REPO}/${GITHUB_PAGES_NAMESPACE}/`,
+    badgeUrl: `https://${PLACEHOLDER_OWNER}.github.io/${PLACEHOLDER_REPO}/${GITHUB_PAGES_NAMESPACE}/badge.svg`,
   };
 }
 

@@ -4099,6 +4099,16 @@ symbols:
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
+  - id: SYM-cli-github-pages-namespace
+    title: GITHUB_PAGES_NAMESPACE
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
   - id: SYM-cli-github-badge-alt
     title: KIBI_BADGE_ALT
     status: active

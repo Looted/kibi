@@ -61,8 +61,9 @@ The workflow:
 4. installs project dependencies with npm
 5. runs `kibi sync`
 6. runs `kibi report --output kibi-report`
-7. uploads `kibi-report` as a GitHub Pages artifact
-8. deploys it to GitHub Pages
+7. copies that output under `pages/kibi-report/` so the public path is `/kibi-report/`
+8. uploads `pages` as a GitHub Pages artifact
+9. deploys it to GitHub Pages
 
 It runs on the repository **default branch** (it does not assume the branch is
 named `main`) and on `workflow_dispatch`. It does not build or test the rest of
@@ -72,18 +73,23 @@ the application, does not commit generated files, and does not use an orphan
 ### 3. Add the clickable badge
 
 ```markdown
-[![Kibi requirement health](https://OWNER.github.io/REPOSITORY/badge.svg)](https://OWNER.github.io/REPOSITORY/)
+[![Kibi requirement health](https://OWNER.github.io/REPOSITORY/kibi-report/badge.svg)](https://OWNER.github.io/REPOSITORY/kibi-report/)
 ```
 
 Replace `OWNER` and `REPOSITORY` with the lowercase GitHub Pages owner and
-repository path. Clicking the badge must open the report.
+repository path. Clicking the badge must open the report. Files are published
+under `/kibi-report/` so Kibi does not occupy the Pages site root.
+
+This workflow still **replaces** the GitHub Pages deployment. If the repository
+already publishes a site, copy `kibi-report/` into that site's output instead
+of using this workflow as the only deploy.
 
 ### Expected URLs
 
 | Repository | Report | Badge |
 | --- | --- | --- |
-| `OWNER/REPOSITORY` | `https://OWNER.github.io/REPOSITORY/` | `https://OWNER.github.io/REPOSITORY/badge.svg` |
-| `OWNER/OWNER.github.io` (owner site) | `https://OWNER.github.io/` | `https://OWNER.github.io/badge.svg` |
+| `OWNER/REPOSITORY` | `https://OWNER.github.io/REPOSITORY/kibi-report/` | `https://OWNER.github.io/REPOSITORY/kibi-report/badge.svg` |
+| `OWNER/OWNER.github.io` (owner site) | `https://OWNER.github.io/kibi-report/` | `https://OWNER.github.io/kibi-report/badge.svg` |
 
 The image URL must be anonymously reachable for GitHub to render it in a public
 README. For a private report, publish both files to an authenticated static
@@ -179,7 +185,7 @@ then publishes only `badge.svg`. The README link should point at this section
 rather than pretending a report exists:
 
 ```markdown
-[![Kibi requirement health](https://OWNER.github.io/REPOSITORY/badge.svg)](https://github.com/Looted/kibi/blob/develop/docs/github-integration.md#what-the-badge-means)
+[![Kibi requirement health](https://OWNER.github.io/REPOSITORY/kibi-report/badge.svg)](https://github.com/Looted/kibi/blob/develop/docs/github-integration.md#what-the-badge-means)
 ```
 
 `--badge-only` without `--github` is rejected. `--github` by itself always
@@ -187,13 +193,13 @@ means badge + full report.
 
 ## Troubleshooting
 
-**The workflow succeeds but `https://OWNER.github.io/REPOSITORY/` is 404.**
+**The workflow succeeds but `https://OWNER.github.io/REPOSITORY/kibi-report/` is 404.**
 Enable **Settings → Pages → Source → GitHub Actions**. Until that is set,
-Pages deployments do not go live.
+Pages deployments do not go live. The report is not at the Pages site root.
 
 **The badge image is a broken picture in the README.**
 The SVG URL must be anonymously reachable. Private Pages sites will not render
-in public READMEs. Confirm `/badge.svg` loads in a logged-out browser.
+in public READMEs. Confirm `/kibi-report/badge.svg` loads in a logged-out browser.
 
 **The workflow is skipped on every push.**
 Report jobs run on `workflow_dispatch` or the repository **default** branch.

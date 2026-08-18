@@ -3,7 +3,7 @@
 [![Status: Beta](https://img.shields.io/badge/status-beta-4c8bf5.svg)](#beta-status)
 [![CI](https://github.com/Looted/kibi/actions/workflows/ci.yml/badge.svg)](https://github.com/Looted/kibi/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/Looted/kibi/branch/develop/graph/badge.svg)](https://codecov.io/gh/Looted/kibi)
-[![Kibi requirement health](https://looted.github.io/kibi/badge.svg)](https://looted.github.io/kibi/)
+[![Kibi requirement health](https://looted.github.io/kibi/kibi-report/badge.svg)](https://looted.github.io/kibi/kibi-report/)
 [![License: AGPL-3.0-or-later](https://img.shields.io/badge/license-AGPL--3.0--or--later-6f42c1.svg)](LICENSE.md)
 [![X @kibi_dev](https://img.shields.io/badge/%40kibi__dev-000000.svg?logo=x&logoColor=white)](https://x.com/kibi_dev)
 
@@ -87,7 +87,7 @@ current Kibi requirements that have current proof. The HTML report is where to
 inspect which requirements are proven, which are missing proof, contradictions,
 and stale verification. No server, CDN, or external assets are required. On
 pushes to `develop`, this repository publishes that pair at
-`https://looted.github.io/kibi/`.
+`https://looted.github.io/kibi/kibi-report/`.
 
 ### Publish requirement health on GitHub
 
@@ -102,17 +102,19 @@ enabling Actions as the Pages source.
    [docs/examples/github/kibi-report.yml](docs/examples/github/kibi-report.yml)
    (same content as the `kibi-cli` template).
 3. Add the clickable badge, replacing the lowercase Pages owner and repository
-   path. For an owner-site repo named `OWNER.github.io`, omit the repository
-   segment (`https://OWNER.github.io/` and `https://OWNER.github.io/badge.svg`).
+   path. Files are published under `/kibi-report/` so they do not occupy the
+   Pages site root. For an owner-site repo named `OWNER.github.io`, omit the
+   repository segment (`https://OWNER.github.io/kibi-report/` and
+   `https://OWNER.github.io/kibi-report/badge.svg`).
 
 ```markdown
-[![Kibi requirement health](https://OWNER.github.io/REPOSITORY/badge.svg)](https://OWNER.github.io/REPOSITORY/)
+[![Kibi requirement health](https://OWNER.github.io/REPOSITORY/kibi-report/badge.svg)](https://OWNER.github.io/REPOSITORY/kibi-report/)
 ```
 
 The workflow runs on the repository default branch (it does not assume `main`)
 and on `workflow_dispatch`. It installs SWI-Prolog, runs `kibi sync` and
-`kibi report`, and deploys the `kibi-report` directory. It does not build or
-test the rest of the application. Adapt `cache: npm` and `npm ci` if the
+`kibi report`, and deploys that output under `/kibi-report/`. It does not build
+or test the rest of the application. Adapt `cache: npm` and `npm ci` if the
 project does not use npm; see [GitHub integration](docs/github-integration.md).
 
 ```yaml
@@ -146,10 +148,14 @@ jobs:
       - run: npm ci
       - run: npm exec -- kibi sync
       - run: npm exec -- kibi report --output kibi-report
+      - name: Namespace Pages output under /kibi-report/
+        run: |
+          mkdir -p pages/kibi-report
+          cp -R kibi-report/. pages/kibi-report/
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: kibi-report
+          path: pages
 
   deploy-report:
     needs: build-report

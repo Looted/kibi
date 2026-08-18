@@ -18,8 +18,9 @@ type: test
 ---
 
 Validates `kibi init --github` and `--github --badge-only` option registration,
-GitHub remote parsing, Pages URL construction including owner-site repositories,
-canonical workflow scaffolding, idempotent re-runs, refusal to overwrite a
+GitHub remote parsing, Pages URL construction including owner-site repositories
+and the `/kibi-report/` public path, canonical workflow scaffolding that
+namespaces the Pages artifact, idempotent re-runs, refusal to overwrite a
 customized workflow, README badge insertion without duplicates, and graceful
 degradation when no README or github.com remote exists. Also asserts the
 documented example workflows are byte-identical to the packaged `kibi-cli`
