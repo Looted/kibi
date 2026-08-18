@@ -3,6 +3,7 @@
 :- module(kibi_entities, [entity_type/1, entity_property/3, required_property/2, optional_property/2]).
 
 % Entity types
+% implements REQ-004
 entity_type(req).
 entity_type(scenario).
 entity_type(test).

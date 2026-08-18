@@ -72,6 +72,8 @@ links:
     target: SCEN-core-journaled-engine-migration
   - type: specified_by
     target: SCEN-core-journaled-engine-delta-sync
+  - type: specified_by
+    target: SCEN-core-journaled-engine-lifecycle
   - type: verified_by
     target: TEST-core-journaled-engine-persistence
   - type: verified_by

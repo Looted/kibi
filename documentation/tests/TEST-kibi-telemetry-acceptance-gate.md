@@ -176,6 +176,30 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 39654
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-072aef7a9bc68b19acf631c9
+    test_id: TEST-kibi-telemetry-acceptance-gate
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-telemetry-acceptance-gate
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-telemetry-acceptance-gate
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 6fcd0eb00007cab8568d1fe7480b9cafcc53bbd136e68885532e4ceedfe5ad6a
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-18T10:46:52.156Z'
+    finished_at: '2026-08-18T10:47:32.995Z'
+    artifact_digest: 339a194d2e151d168ba8d0d95e2cdd0e923575628c1bdc2ecc2f42677025d1f2
+    contract_hash: 5da2bb6bde0a390f5577f2a61a6dde2846fc0959e6e75be85b1b12327cb977d7
+    case_results:
+      - symbol_id: SYM-test-packed-telemetry-acceptance
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 40839
 tags:
   - telemetry
   - acceptance

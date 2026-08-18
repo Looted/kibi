@@ -99,5 +99,29 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 42154
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-fc22b6fb595998644126d1f7
+    test_id: TEST-cli-branch-store-recovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cli-branch-store-recovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cli-branch-store-recovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 6fcd0eb00007cab8568d1fe7480b9cafcc53bbd136e68885532e4ceedfe5ad6a
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-18T10:37:50.386Z'
+    finished_at: '2026-08-18T10:38:36.756Z'
+    artifact_digest: 9814512f43cfd771137b3995dfbcc458a5e22ae69d8d89a8708a3d02a1118b77
+    contract_hash: 9a973eb1511c1857a8910cd47b851b302469d5aaa942f8b8594d982cffa30317
+    case_results:
+      - symbol_id: SYM-test-packed-exact-branch-recovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 46370
 ---
 The CLI branch and packed consumer tests prove that same-identity literal-to-hashed migration remains available, every cross-identity pair (including main to master) is refused, and explicitly applied recovery preserves a backup and returns a fresh exact branch store.

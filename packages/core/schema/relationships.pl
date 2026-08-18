@@ -3,6 +3,7 @@
 :- module(kibi_relationships, [relationship_type/1, valid_relationship/3, relationship_metadata/1]).
 
 % Relationship types
+% implements REQ-005
 relationship_type(depends_on).
 relationship_type(executable_for).
 relationship_type(specified_by).

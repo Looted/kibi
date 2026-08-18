@@ -152,6 +152,30 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 79395
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-11bddff89d04ca9d60990089
+    test_id: TEST-kibi-change-to-proof-plan-compiler
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-plan-compiler
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-plan-compiler
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 6fcd0eb00007cab8568d1fe7480b9cafcc53bbd136e68885532e4ceedfe5ad6a
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-18T11:01:28.789Z'
+    finished_at: '2026-08-18T11:02:48.783Z'
+    artifact_digest: c0c7c9c7213e478ec1ed28a8e8b948c84e88a9c24715aec4041cc6806e85f42f
+    contract_hash: c1f7a009aef05413f810222cdf76b7c6cc8b9e90b37c9ed7484ca9166030e232
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-plan-compiler
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 79994
 ---
 
 Operation tests verify deterministic plan hashes, one disposition per assertive clause, contradiction and ontology-gap abstentions, dependency ordering, sequential apply behavior, and rejection of stale plan hashes. MCP and CLI fixtures assert the same planning and mutation contracts.

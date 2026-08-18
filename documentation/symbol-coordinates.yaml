@@ -5360,6 +5360,12 @@ coordinates:
     sourceEndLine: 3
     sourceFile: packages/core/schema/entities.pl
     sourceLine: 3
+  SYM-core-entity-type:
+    sourceColumn: 26
+    sourceEndColumn: 37
+    sourceEndLine: 3
+    sourceFile: packages/core/schema/entities.pl
+    sourceLine: 3
   SYM-core-grounded-requirement-claim-fact:
     sourceColumn: 4
     sourceEndColumn: 35
@@ -5450,6 +5456,12 @@ coordinates:
     sourceEndLine: 62
     sourceFile: packages/core/src/requirement_proof.pl
     sourceLine: 62
+  SYM-core-relationship-type:
+    sourceColumn: 31
+    sourceEndColumn: 48
+    sourceEndLine: 3
+    sourceFile: packages/core/schema/relationships.pl
+    sourceLine: 3
   SYM-core-req-conflict-witness:
     sourceColumn: 4
     sourceEndColumn: 24

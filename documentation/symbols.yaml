@@ -1919,6 +1919,8 @@ symbols:
         target: REQ-mcp-tool-upsert
       - type: covered_by
         target: TEST-core-atomic-upsert-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
   - id: SYM-core-kb-attach-audit-store
     title: kb_attach
     sourceFile: packages/core/src/kb.pl
@@ -1933,6 +1935,8 @@ symbols:
         target: REQ-core-audit-logging
       - type: covered_by
         target: TEST-core-atomic-upsert-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
   - id: SYM-core-kb-save-locked
     title: kb_save_locked
     status: active
@@ -7210,6 +7214,8 @@ symbols:
         target: TEST-cli-status-pre-first-sync
       - type: covered_by
         target: TEST-mcp-search-discovery
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
       - type: implements
         target: REQ-cli-status-pre-first-sync
       - type: implements
@@ -21502,11 +21508,22 @@ symbols:
         target: REQ-kibi-conservative-requirement-proof
       - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
+  - id: SYM-core-entity-type
+    title: entity_type
+    sourceFile: packages/core/schema/entities.pl
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-004
+      - type: covered_by
+        target: TEST-kibi-entity-relationship-schema-roundtrip
   - id: SYM-core-entity-property-schema
     title: entity_property
     sourceFile: packages/core/schema/entities.pl
     symbol_role: structural
     relationships:
+      - type: implements
+        target: REQ-004
       - type: implements
         target: REQ-kibi-conservative-requirement-proof
       - type: implements
@@ -21514,11 +21531,22 @@ symbols:
       - type: implements
         target: REQ-kibi-legacy-migration-preview-v2
       - type: covered_by
+        target: TEST-kibi-entity-relationship-schema-roundtrip
+      - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-kibi-legacy-migration-preview-v2
+  - id: SYM-core-relationship-type
+    title: relationship_type
+    sourceFile: packages/core/schema/relationships.pl
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-005
+      - type: covered_by
+        target: TEST-kibi-entity-relationship-schema-roundtrip
   - id: SYM-core-validation-check-kind
     title: check_kind
     sourceFile: packages/core/schema/validation.pl
@@ -24085,6 +24113,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
       - type: implements
         target: REQ-core-journaled-engine-persistence
       - type: implements
