@@ -5,7 +5,7 @@
 [![Coverage](https://codecov.io/gh/Looted/kibi/branch/develop/graph/badge.svg)](https://codecov.io/gh/Looted/kibi)
 [![Kibi requirement health](https://looted.github.io/kibi/badge.svg)](https://looted.github.io/kibi/)
 [![License: AGPL-3.0-or-later](https://img.shields.io/badge/license-AGPL--3.0--or--later-6f42c1.svg)](LICENSE.md)
-[![X @kibi_dev](https://img.shields.io/badge/X-%40kibi__dev-000000.svg?logo=x&logoColor=white)](https://x.com/kibi_dev)
+[![X @kibi_dev](https://img.shields.io/badge/%40kibi__dev-000000.svg?logo=x&logoColor=white)](https://x.com/kibi_dev)
 
 **Say what the software should do. Kibi makes agents follow it—and prove they did.**
 
