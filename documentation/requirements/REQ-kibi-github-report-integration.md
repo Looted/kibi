@@ -56,12 +56,12 @@ semantic_inventory:
   - claim_key: CLAIM-EF8339811C295A78
     claim_text: The canonical installation is copying the documented standalone GitHub Actions workflow and adding a README badge that links to the report
     payload_hash: f9154cc6b804c64b8ca2ee2ed9536ca4e6021cb7719e99707c55806982cedcd6
-    reason: No accepted typed interpretation grounds this assertive proposition.
+    reason: No approved domain predicate schema expresses this clause; keep it unresolved instead of treating prose as logic-complete.
     role: descriptive
     span:
       start: 249
       end: 387
-    status: missing
+    status: ontology_gap
   - claim_key: CLAIM-358E142FE0DB4DB6
     claim_text: kibi init --github must scaffold that same documented workflow and badge
     payload_hash: f9154cc6b804c64b8ca2ee2ed9536ca4e6021cb7719e99707c55806982cedcd6
@@ -74,12 +74,12 @@ semantic_inventory:
   - claim_key: CLAIM-1B54DAC812A4AD29
     claim_text: kibi init --github --badge-only is an explicit opt-out that publishes only the badge
     payload_hash: f9154cc6b804c64b8ca2ee2ed9536ca4e6021cb7719e99707c55806982cedcd6
-    reason: No accepted typed interpretation grounds this assertive proposition.
+    reason: No approved domain predicate schema expresses this clause; keep it unresolved instead of treating prose as logic-complete.
     role: descriptive
     span:
       start: 463
       end: 547
-    status: missing
+    status: ontology_gap
   - claim_key: CLAIM-840B2E1602F835E3
     claim_text: kibi init --badge-only without --github must be rejected
     payload_hash: f9154cc6b804c64b8ca2ee2ed9536ca4e6021cb7719e99707c55806982cedcd6
@@ -92,12 +92,12 @@ semantic_inventory:
   - claim_key: CLAIM-9A0814514C1FF77C
     claim_text: Re-running the GitHub scaffold must not overwrite a customized workflow or duplicate an existing Kibi badge
     payload_hash: f9154cc6b804c64b8ca2ee2ed9536ca4e6021cb7719e99707c55806982cedcd6
-    reason: No accepted typed interpretation grounds this assertive proposition.
+    reason: No approved domain predicate schema expresses this clause; keep it unresolved instead of treating prose as logic-complete.
     role: normative
     span:
       start: 607
       end: 714
-    status: missing
+    status: ontology_gap
 ---
 
 The recommended GitHub integration publishes `kibi-report/index.html` and

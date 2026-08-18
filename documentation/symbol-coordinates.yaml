@@ -5153,7 +5153,7 @@ coordinates:
   SYM-cli-skills-content-predicate-guidance-tests:
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 68
+    sourceEndLine: 69
     sourceFile: packages/cli/tests/skills-content.test.ts
     sourceLine: 1
   SYM-cli-skills-mirror-parity-tests:
