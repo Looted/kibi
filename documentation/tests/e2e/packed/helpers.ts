@@ -38,7 +38,15 @@ export function isolatedPackedSandboxEnv(
   overrides: NodeJS.ProcessEnv = {},
 ): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = { ...process.env, ...overrides };
-  env.KIBI_BRANCH = undefined;
+  delete env.KIBI_BRANCH;
+  const explicit = overrides.KIBI_BRANCH;
+  if (
+    typeof explicit === "string" &&
+    explicit.length > 0 &&
+    explicit !== process.env.KIBI_BRANCH
+  ) {
+    env.KIBI_BRANCH = explicit;
+  }
   return env;
 }
 

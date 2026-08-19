@@ -36,6 +36,7 @@ function restoreEnv(): void {
   for (const key of Object.keys(process.env))
     Reflect.deleteProperty(process.env, key);
   Object.assign(process.env, originalEnv);
+  Reflect.deleteProperty(process.env, "KIBI_BRANCH");
 }
 
 function workspace(): string {

@@ -383,34 +383,46 @@ symbols:
         target: TEST-kibi-operation-interface-parity
   - id: SYM-cli-isolated-sandbox-env
     title: isolatedCliSandboxEnv
+    status: active
     sourceFile: packages/cli/tests/helpers/isolated-env.ts
     symbol_role: behavioral
     relationships:
-      - type: executable_for
-        target: TEST-kibi-conservative-requirement-proof
       - type: executable_for
         target: TEST-cli-canonical-status
+      - type: executable_for
+        target: TEST-kibi-conservative-requirement-proof
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
   - id: SYM-cli-isolated-exec-sync
     title: execSync
+    status: active
     sourceFile: packages/cli/tests/helpers/isolated-env.ts
     symbol_role: behavioral
     relationships:
       - type: executable_for
         target: TEST-kibi-conservative-requirement-proof
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
   - id: SYM-cli-isolated-spawn-sync
     title: spawnSync
+    status: active
     sourceFile: packages/cli/tests/helpers/isolated-env.ts
     symbol_role: behavioral
     relationships:
       - type: executable_for
         target: TEST-kibi-conservative-requirement-proof
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
   - id: SYM-cli-isolated-exec-file-sync
     title: execFileSync
+    status: active
     sourceFile: packages/cli/tests/helpers/isolated-env.ts
     symbol_role: behavioral
     relationships:
       - type: executable_for
         target: TEST-kibi-conservative-requirement-proof
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
   - id: SYM-packed-pnpm-upgrade-create-sandbox
     title: createPnpmUpgradeSandbox
     sourceFile: documentation/tests/e2e/packed/pnpm-upgrade-utils.ts
@@ -26081,3 +26093,35 @@ symbols:
         target: TEST-opencode-smart-enforcement
       - type: implements
         target: REQ-opencode-risk-classification
+  - id: SYM-mcp-isolated-sandbox-env
+    title: isolatedMcpSandboxEnv
+    status: active
+    sourceFile: packages/mcp/tests/helpers/isolated-env.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-mcp-clear-host-kibi-branch
+    title: clearHostKibiBranch
+    status: active
+    sourceFile: packages/mcp/tests/helpers/isolated-env.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-mcp-isolated-exec-sync
+    title: execSync
+    status: active
+    sourceFile: packages/mcp/tests/helpers/isolated-env.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-mcp-isolated-spawn-sync
+    title: spawnSync
+    status: active
+    sourceFile: packages/mcp/tests/helpers/isolated-env.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness

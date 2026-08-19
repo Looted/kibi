@@ -3,6 +3,7 @@ import { spawn } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { isolatedMcpSandboxEnv } from "./helpers/isolated-env.js";
 
 type RunResult = {
   code: number | null;
@@ -15,7 +16,7 @@ function runBin(args: string[], cwd: string, env: Record<string, string> = {}) {
   const binPath = path.resolve(import.meta.dir, "../bin/kibi-mcp");
   const proc = spawn("node", [binPath, ...args], {
     cwd,
-    env: { ...process.env, ...env },
+    env: isolatedMcpSandboxEnv(env),
     stdio: ["ignore", "pipe", "pipe"],
   });
 

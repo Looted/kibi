@@ -34,25 +34,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install SWI-Prolog
-        run: |
-          retry() {
-            local attempts="$1"
-            shift
-            local attempt=1
-            until timeout 180 "$@"; do
-              if [ "$attempt" -ge "$attempts" ]; then
-                return 1
-              fi
-              attempt=$((attempt + 1))
-              sleep 10
-            done
-          }
-          sudo apt-get install -y software-properties-common
-          if [ "${{ github.actor }}" != "nektos/act" ]; then
-            retry 3 sudo apt-add-repository -y ppa:swi-prolog/stable
-          fi
-          retry 3 sudo apt-get update
-          retry 3 sudo apt-get install -y swi-prolog
+        run: bash scripts/ci-install-swi-prolog.sh
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -155,26 +137,12 @@ jobs:
     needs: [build-and-test, prolog-unit-coverage]
     if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
       - name: Install SWI-Prolog
-        run: |
-          retry() {
-            local attempts="$1"
-            shift
-            local attempt=1
-            until timeout 180 "$@"; do
-              if [ "$attempt" -ge "$attempts" ]; then
-                return 1
-              fi
-              attempt=$((attempt + 1))
-              sleep 10
-            done
-          }
-          sudo apt-get install -y software-properties-common
-          if [ "${{ github.actor }}" != "nektos/act" ]; then
-            retry 3 sudo apt-add-repository -y ppa:swi-prolog/stable
-          fi
-          retry 3 sudo apt-get update
-          retry 3 sudo apt-get install -y swi-prolog
+        run: bash scripts/ci-install-swi-prolog.sh
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -213,25 +181,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install SWI-Prolog
-        run: |
-          retry() {
-            local attempts="$1"
-            shift
-            local attempt=1
-            until timeout 180 "$@"; do
-              if [ "$attempt" -ge "$attempts" ]; then
-                return 1
-              fi
-              attempt=$((attempt + 1))
-              sleep 10
-            done
-          }
-          sudo apt-get install -y software-properties-common
-          if [ "${{ github.actor }}" != "nektos/act" ]; then
-            retry 3 sudo apt-add-repository -y ppa:swi-prolog/stable
-          fi
-          retry 3 sudo apt-get update
-          retry 3 sudo apt-get install -y swi-prolog
+        run: bash scripts/ci-install-swi-prolog.sh
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -308,26 +258,12 @@ jobs:
     needs: [build-and-test, prolog-unit-coverage]
     if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
       - name: Install SWI-Prolog
-        run: |
-          retry() {
-            local attempts="$1"
-            shift
-            local attempt=1
-            until timeout 180 "$@"; do
-              if [ "$attempt" -ge "$attempts" ]; then
-                return 1
-              fi
-              attempt=$((attempt + 1))
-              sleep 10
-            done
-          }
-          sudo apt-get install -y software-properties-common
-          if [ "${{ github.actor }}" != "nektos/act" ]; then
-            retry 3 sudo apt-add-repository -y ppa:swi-prolog/stable
-          fi
-          retry 3 sudo apt-get update
-          retry 3 sudo apt-get install -y swi-prolog
+        run: bash scripts/ci-install-swi-prolog.sh
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -409,25 +345,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install SWI-Prolog
-        run: |
-          retry() {
-            local attempts="$1"
-            shift
-            local attempt=1
-            until timeout 180 "$@"; do
-              if [ "$attempt" -ge "$attempts" ]; then
-                return 1
-              fi
-              attempt=$((attempt + 1))
-              sleep 10
-            done
-          }
-          sudo apt-get install -y software-properties-common
-          if [ "${{ github.actor }}" != "nektos/act" ]; then
-            retry 3 sudo apt-add-repository -y ppa:swi-prolog/stable
-          fi
-          retry 3 sudo apt-get update
-          retry 3 sudo apt-get install -y swi-prolog
+        run: bash scripts/ci-install-swi-prolog.sh
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2

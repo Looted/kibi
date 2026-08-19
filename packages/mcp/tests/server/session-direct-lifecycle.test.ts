@@ -35,6 +35,7 @@ function restoreEnv(): void {
     Reflect.deleteProperty(process.env, key);
   }
   Object.assign(process.env, originalEnv);
+  Reflect.deleteProperty(process.env, "KIBI_BRANCH");
 }
 
 function createWorkspace(): string {

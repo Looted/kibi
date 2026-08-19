@@ -1,10 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import {
-  type ChildProcess,
-  execSync,
-  spawn,
-  spawnSync,
-} from "node:child_process";
+import { type ChildProcess, spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -13,6 +8,11 @@ import {
   branchStorePath,
   ensureBranchStoreManifest,
 } from "kibi-cli/public/branch-resolver";
+import {
+  execSync,
+  isolatedMcpSandboxEnv,
+  spawnSync,
+} from "./helpers/isolated-env.js";
 
 // Read expected version from package.json to prevent drift
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -105,11 +105,7 @@ function startServer(options?: {
   const proc = spawn("bun", ["run", serverPath, ...(options?.args ?? [])], {
     stdio: ["pipe", "pipe", "pipe"],
     cwd: options?.cwd,
-    env: {
-      ...process.env,
-      KIBI_BRANCH: undefined,
-      ...options?.env,
-    },
+    env: isolatedMcpSandboxEnv(options?.env),
   });
 
   // Log errors from the server process
@@ -1114,7 +1110,7 @@ describe("MCP Server", () => {
     const proc = spawn("bun", ["run", serverPath, "--diagnostic-mode"], {
       stdio: ["pipe", "pipe", "pipe"],
       cwd: repoDir,
-      env: process.env,
+      env: isolatedMcpSandboxEnv(),
     });
 
     try {
@@ -1144,7 +1140,7 @@ describe("MCP Server", () => {
         `node ${path.resolve(import.meta.dir, "../../cli/bin/kibi")} init`,
         {
           cwd: repoDir,
-          env: process.env,
+          env: isolatedMcpSandboxEnv(),
         },
       );
 

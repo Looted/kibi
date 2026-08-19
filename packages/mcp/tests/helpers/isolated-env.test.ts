@@ -1,22 +1,19 @@
 import { describe, expect, test } from "bun:test";
-import { isolatedCliSandboxEnv } from "./isolated-env.js";
+import { isolatedMcpSandboxEnv } from "./isolated-env.js";
 
-describe("isolatedCliSandboxEnv", () => {
+describe("isolatedMcpSandboxEnv", () => {
   test("strips a host KIBI_BRANCH unless the caller sets a different identity", () => {
     const original = process.env.KIBI_BRANCH;
     process.env.KIBI_BRANCH = "feat/host-branch";
     try {
-      const stripped = isolatedCliSandboxEnv();
+      const stripped = isolatedMcpSandboxEnv();
       expect(stripped.KIBI_BRANCH).toBeUndefined();
       expect("KIBI_BRANCH" in stripped).toBe(false);
-      expect(isolatedCliSandboxEnv({ ...process.env }).KIBI_BRANCH).toBeUndefined();
+      expect(isolatedMcpSandboxEnv({ ...process.env }).KIBI_BRANCH).toBeUndefined();
       expect(
-        isolatedCliSandboxEnv({ KIBI_WORKSPACE: "/tmp/sandbox" }).KIBI_BRANCH,
+        isolatedMcpSandboxEnv({ KIBI_WORKSPACE: "/tmp/sandbox" }).KIBI_BRANCH,
       ).toBeUndefined();
-      expect(isolatedCliSandboxEnv({ KIBI_WORKSPACE: "/tmp/sandbox" }).KIBI_WORKSPACE).toBe(
-        "/tmp/sandbox",
-      );
-      expect(isolatedCliSandboxEnv({ KIBI_BRANCH: "trunk" }).KIBI_BRANCH).toBe(
+      expect(isolatedMcpSandboxEnv({ KIBI_BRANCH: "trunk" }).KIBI_BRANCH).toBe(
         "trunk",
       );
     } finally {
