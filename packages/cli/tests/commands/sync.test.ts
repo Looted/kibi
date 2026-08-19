@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { execFileSync, execSync, spawnSync } from "node:child_process";
+import { execFileSync, execSync, spawnSync } from "../helpers/isolated-env.js";
 import {
   closeSync,
   copyFileSync,

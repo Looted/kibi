@@ -381,6 +381,36 @@ symbols:
         target: TEST-cli-branch-store-recovery
       - type: executable_for
         target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-isolated-sandbox-env
+    title: isolatedCliSandboxEnv
+    sourceFile: packages/cli/tests/helpers/isolated-env.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-conservative-requirement-proof
+      - type: executable_for
+        target: TEST-cli-canonical-status
+  - id: SYM-cli-isolated-exec-sync
+    title: execSync
+    sourceFile: packages/cli/tests/helpers/isolated-env.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-conservative-requirement-proof
+  - id: SYM-cli-isolated-spawn-sync
+    title: spawnSync
+    sourceFile: packages/cli/tests/helpers/isolated-env.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-conservative-requirement-proof
+  - id: SYM-cli-isolated-exec-file-sync
+    title: execFileSync
+    sourceFile: packages/cli/tests/helpers/isolated-env.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-conservative-requirement-proof
   - id: SYM-packed-pnpm-upgrade-create-sandbox
     title: createPnpmUpgradeSandbox
     sourceFile: documentation/tests/e2e/packed/pnpm-upgrade-utils.ts

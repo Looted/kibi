@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { execSync } from "node:child_process";
+import { execSync, isolatedCliSandboxEnv } from "../helpers/isolated-env.js";
 import {
   existsSync,
   mkdtempSync,
@@ -67,6 +67,7 @@ describe("kibi branch lifecycle", () => {
     const result = Bun.spawnSync({
       cmd: ["bun", kibiBin, "branch", "ensure", "--from", "main"],
       cwd: tmpDir,
+      env: isolatedCliSandboxEnv(),
       stdout: "pipe",
       stderr: "pipe",
     });
@@ -125,6 +126,7 @@ describe("kibi branch lifecycle", () => {
         "feature/auth",
       ],
       cwd: tmpDir,
+      env: isolatedCliSandboxEnv(),
       stdout: "pipe",
       stderr: "pipe",
     });
@@ -153,6 +155,7 @@ describe("kibi branch lifecycle", () => {
         "master",
       ],
       cwd: tmpDir,
+      env: isolatedCliSandboxEnv(),
       stdout: "pipe",
       stderr: "pipe",
     });

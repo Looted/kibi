@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { fileURLToPath } from "node:url";
 
+import { isolatedCliSandboxEnv } from "../helpers/isolated-env.js";
 import { createParityWorkspace } from "../parity/helpers.js";
 
 describe("mutation JSON command adapters", () => {
@@ -21,7 +22,7 @@ describe("mutation JSON command adapters", () => {
         ["bun", "run", kibiBin, "upsert", "--input", "-"],
         {
           cwd: workspace.root,
-          env: { ...process.env, KIBI_WORKSPACE: workspace.root },
+          env: isolatedCliSandboxEnv({ KIBI_WORKSPACE: workspace.root }),
           stdin: new Blob([JSON.stringify(input)]),
           stdout: "pipe",
           stderr: "pipe",

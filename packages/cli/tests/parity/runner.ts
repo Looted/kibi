@@ -1,6 +1,7 @@
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { isolatedCliSandboxEnv } from "../helpers/isolated-env.js";
 
 // implements REQ-kibi-operation-interface-parity
 export type CliResult = {
@@ -62,7 +63,7 @@ export async function runCliJsonRoute(
       ],
       {
         cwd: workspaceRoot,
-        env: { ...process.env, KIBI_WORKSPACE: workspaceRoot },
+        env: isolatedCliSandboxEnv({ KIBI_WORKSPACE: workspaceRoot }),
         stdout: "pipe",
         stderr: "pipe",
       },

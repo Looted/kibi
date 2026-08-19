@@ -35,12 +35,24 @@ jobs:
 
       - name: Install SWI-Prolog
         run: |
+          retry() {
+            local attempts="$1"
+            shift
+            local attempt=1
+            until timeout 180 "$@"; do
+              if [ "$attempt" -ge "$attempts" ]; then
+                return 1
+              fi
+              attempt=$((attempt + 1))
+              sleep 10
+            done
+          }
           sudo apt-get install -y software-properties-common
           if [ "${{ github.actor }}" != "nektos/act" ]; then
-            sudo apt-add-repository -y ppa:swi-prolog/stable
+            retry 3 sudo apt-add-repository -y ppa:swi-prolog/stable
           fi
-          sudo apt-get update
-          sudo apt-get install -y bubblewrap swi-prolog
+          retry 3 sudo apt-get update
+          retry 3 sudo apt-get install -y bubblewrap swi-prolog
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2

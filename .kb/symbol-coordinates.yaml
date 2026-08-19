@@ -2837,9 +2837,9 @@ coordinates:
   SYM-auto-CC9A2A107D90:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 116
+    sourceEndLine: 117
     sourceFile: packages/cli/tests/parity/helpers.ts
-    sourceLine: 88
+    sourceLine: 89
   SYM-auto-CF2DCAD0569D:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2927,9 +2927,9 @@ coordinates:
   SYM-auto-F6D9F411400B:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 162
+    sourceEndLine: 163
     sourceFile: packages/cli/tests/parity/helpers.ts
-    sourceLine: 141
+    sourceLine: 142
   SYM-auto-F6E934B6698C:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -4946,6 +4946,30 @@ coordinates:
     sourceEndLine: 157
     sourceFile: packages/cli/src/cli-operation-metadata.ts
     sourceLine: 155
+  SYM-cli-isolated-exec-file-sync:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 67
+    sourceFile: packages/cli/tests/helpers/isolated-env.ts
+    sourceLine: 58
+  SYM-cli-isolated-exec-sync:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 45
+    sourceFile: packages/cli/tests/helpers/isolated-env.ts
+    sourceLine: 37
+  SYM-cli-isolated-sandbox-env:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 35
+    sourceFile: packages/cli/tests/helpers/isolated-env.ts
+    sourceLine: 21
+  SYM-cli-isolated-spawn-sync:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 56
+    sourceFile: packages/cli/tests/helpers/isolated-env.ts
+    sourceLine: 47
   SYM-cli-json-invocation-type:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -5207,27 +5231,27 @@ coordinates:
   SYM-cli-parity-cli-result-type:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 10
+    sourceEndLine: 11
     sourceFile: packages/cli/tests/parity/runner.ts
-    sourceLine: 6
+    sourceLine: 7
   SYM-cli-parity-comparison-result-type:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 22
+    sourceEndLine: 23
     sourceFile: packages/cli/tests/parity/runner.ts
-    sourceLine: 19
+    sourceLine: 20
   SYM-cli-parity-mcp-result-type:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 16
+    sourceEndLine: 17
     sourceFile: packages/cli/tests/parity/runner.ts
-    sourceLine: 13
+    sourceLine: 14
   SYM-cli-parity-workspace-type:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 22
+    sourceEndLine: 23
     sourceFile: packages/cli/tests/parity/helpers.ts
-    sourceLine: 19
+    sourceLine: 20
   SYM-cli-parse-property-list:
     sourceColumn: 16
     sourceEndColumn: 1

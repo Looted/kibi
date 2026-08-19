@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync, spawnSync } from "../helpers/isolated-env.js";
 import * as path from "node:path";
 
 describe("kibi skills", () => {

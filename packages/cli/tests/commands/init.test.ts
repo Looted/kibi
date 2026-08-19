@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { execSync } from "node:child_process";
+import { execSync, isolatedCliSandboxEnv } from "../helpers/isolated-env.js";
 import {
   existsSync,
   mkdirSync,
@@ -239,7 +239,7 @@ describe("kibi init", () => {
   test("allows init in a non-git directory with an explicit branch", () => {
     execSync(`bun ${kibiBin} init --no-hooks`, {
       cwd: tmpDir,
-      env: { ...process.env, KIBI_BRANCH: "trunk" },
+      env: isolatedCliSandboxEnv({ KIBI_BRANCH: "trunk" }),
       stdio: "pipe",
     });
 

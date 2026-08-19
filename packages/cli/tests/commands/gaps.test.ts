@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { execSync } from "node:child_process";
+import { execSync } from "../helpers/isolated-env.js";
 import {
   existsSync,
   mkdirSync,

@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
-import { execSync } from "node:child_process";
+import { execSync } from "./helpers/isolated-env.js";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";

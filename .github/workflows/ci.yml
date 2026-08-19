@@ -26,6 +26,7 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -38,7 +39,7 @@ jobs:
             local attempts="$1"
             shift
             local attempt=1
-            until "$@"; do
+            until timeout 180 "$@"; do
               if [ "$attempt" -ge "$attempts" ]; then
                 return 1
               fi
@@ -160,7 +161,7 @@ jobs:
             local attempts="$1"
             shift
             local attempt=1
-            until "$@"; do
+            until timeout 180 "$@"; do
               if [ "$attempt" -ge "$attempts" ]; then
                 return 1
               fi
@@ -217,7 +218,7 @@ jobs:
             local attempts="$1"
             shift
             local attempt=1
-            until "$@"; do
+            until timeout 180 "$@"; do
               if [ "$attempt" -ge "$attempts" ]; then
                 return 1
               fi
@@ -313,7 +314,7 @@ jobs:
             local attempts="$1"
             shift
             local attempt=1
-            until "$@"; do
+            until timeout 180 "$@"; do
               if [ "$attempt" -ge "$attempts" ]; then
                 return 1
               fi
@@ -399,6 +400,7 @@ jobs:
 
   prolog-unit-coverage:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: ${{ !inputs.skip_tests }}
     steps:
       - name: Checkout
@@ -412,7 +414,7 @@ jobs:
             local attempts="$1"
             shift
             local attempt=1
-            until "$@"; do
+            until timeout 180 "$@"; do
               if [ "$attempt" -ge "$attempts" ]; then
                 return 1
               fi
