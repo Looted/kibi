@@ -26125,3 +26125,13 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-test-journaled-engine-harness
+  - id: SYM-test-root-isolated-unit-batch-env
+    title: isolatedUnitBatchEnv
+    status: active
+    sourceFile: test/root.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-root-suite-batch-diagnostics
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness

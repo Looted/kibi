@@ -18,6 +18,8 @@ import { branchStorePath } from "../../src/utils/branch-store-locator.js";
 describe("kibi query", () => {
   test("attaches the supplied workspace branch instead of the injected ambient branch", async () => {
     const workspace = mkdtempSync(path.join(os.tmpdir(), "kibi-runtime-"));
+    const originalKibiBranch = process.env.KIBI_BRANCH;
+    delete process.env.KIBI_BRANCH;
     execSync("git init -b develop", { cwd: workspace });
     const goals: string[] = [];
     const runtime = createCliRuntime({
@@ -44,6 +46,11 @@ describe("kibi query", () => {
         expect.stringContaining(branchStorePath(workspace, "develop")),
       );
     } finally {
+      if (originalKibiBranch === undefined) {
+        delete process.env.KIBI_BRANCH;
+      } else {
+        process.env.KIBI_BRANCH = originalKibiBranch;
+      }
       rmSync(workspace, { force: true, recursive: true });
     }
   });

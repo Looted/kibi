@@ -94,7 +94,17 @@ export async function runMCPAdapter(
   if (!isMcpAdapterModule(adapter)) {
     throw new TypeError("Invalid MCP parity adapter module");
   }
-  return adapter.runMcpOperation(workspaceRoot, opName, input);
+  const originalKibiBranch = process.env.KIBI_BRANCH;
+  delete process.env.KIBI_BRANCH;
+  try {
+    return await adapter.runMcpOperation(workspaceRoot, opName, input);
+  } finally {
+    if (originalKibiBranch === undefined) {
+      delete process.env.KIBI_BRANCH;
+    } else {
+      process.env.KIBI_BRANCH = originalKibiBranch;
+    }
+  }
 }
 
 function semanticCliResult(result: CliResult): unknown {

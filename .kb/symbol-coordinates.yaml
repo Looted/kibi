@@ -16121,43 +16121,49 @@ coordinates:
   SYM-test-root-batch-concurrency:
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 26
+    sourceEndLine: 40
     sourceFile: test/root.test.ts
-    sourceLine: 26
+    sourceLine: 40
   SYM-test-root-batch-timeout-minutes:
     sourceColumn: 13
     sourceEndColumn: 39
-    sourceEndLine: 25
+    sourceEndLine: 39
     sourceFile: test/root.test.ts
-    sourceLine: 25
+    sourceLine: 39
   SYM-test-root-engine-shutdown-timeout:
     sourceColumn: 13
     sourceEndColumn: 52
-    sourceEndLine: 27
+    sourceEndLine: 41
     sourceFile: test/root.test.ts
-    sourceLine: 27
+    sourceLine: 41
   SYM-test-root-getBatchFailureMessage:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 51
+    sourceEndLine: 65
     sourceFile: test/root.test.ts
-    sourceLine: 37
+    sourceLine: 51
+  SYM-test-root-isolated-unit-batch-env:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 35
+    sourceFile: test/root.test.ts
+    sourceLine: 23
   SYM-test-root-runBatch:
     sourceColumn: 15
     sourceEndColumn: 1
-    sourceEndLine: 292
+    sourceEndLine: 302
     sourceFile: test/root.test.ts
-    sourceLine: 228
+    sourceLine: 242
   SYM-test-root-stop-engines:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 198
+    sourceEndLine: 212
     sourceFile: test/root.test.ts
-    sourceLine: 158
+    sourceLine: 172
   SYM-test-root-summary-timeout-diagnostic:
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 164
+    sourceEndLine: 182
     sourceFile: test/root-summary.test.ts
     sourceLine: 1
   SYM-test-rule-contradiction-witness-proof:

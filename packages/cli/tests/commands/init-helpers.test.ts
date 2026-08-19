@@ -45,12 +45,20 @@ import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
 
 describe("init-helpers", () => {
   let tmpDir: string;
+  let originalKibiBranch: string | undefined;
 
   beforeEach(() => {
+    originalKibiBranch = process.env.KIBI_BRANCH;
+    delete process.env.KIBI_BRANCH;
     tmpDir = mkdtempSync(path.join(tmpdir(), "kibi-test-init-helpers-"));
   });
 
   afterEach(() => {
+    if (originalKibiBranch === undefined) {
+      delete process.env.KIBI_BRANCH;
+    } else {
+      process.env.KIBI_BRANCH = originalKibiBranch;
+    }
     if (tmpDir && existsSync(tmpDir)) {
       rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -79,14 +87,13 @@ describe("init-helpers", () => {
   });
 
   test("getCurrentBranch uses KIBI_BRANCH when git fails", async () => {
-    const originalBranch = process.env.KIBI_BRANCH;
     process.env.KIBI_BRANCH = "custom-branch";
 
     try {
       const branch = await getCurrentBranch(tmpDir);
       expect(branch).toBe("custom-branch");
     } finally {
-      process.env.KIBI_BRANCH = originalBranch;
+      delete process.env.KIBI_BRANCH;
     }
   });
 
