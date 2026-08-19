@@ -76,3 +76,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f61611c2d6b7
+  - type: covered_by
+    from: SYM-cli-github-badge-workflow-relpath
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:54:21.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05910a7db2d9

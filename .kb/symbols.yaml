@@ -4079,6 +4079,8 @@ symbols:
       - type: covered_by
         target: TEST-001
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-cli-init
@@ -4091,6 +4093,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4100,6 +4104,8 @@ symbols:
     sourceFile: packages/cli/src/commands/github-init.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
@@ -4111,6 +4117,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4120,6 +4128,8 @@ symbols:
     sourceFile: packages/cli/src/commands/github-init.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
@@ -4131,6 +4141,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4140,6 +4152,8 @@ symbols:
     sourceFile: packages/cli/src/commands/github-init.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
@@ -4151,6 +4165,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4160,6 +4176,8 @@ symbols:
     sourceFile: packages/cli/src/commands/github-init.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
@@ -4171,6 +4189,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4180,6 +4200,8 @@ symbols:
     sourceFile: packages/cli/src/commands/github-init.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
@@ -4191,6 +4213,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4200,6 +4224,8 @@ symbols:
     sourceFile: packages/cli/src/commands/github-init.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
@@ -4211,6 +4237,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4220,6 +4248,8 @@ symbols:
     sourceFile: packages/cli/src/commands/github-init.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
@@ -4231,6 +4261,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4240,6 +4272,8 @@ symbols:
     sourceFile: packages/cli/src/commands/github-init.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
@@ -4251,6 +4285,8 @@ symbols:
     symbol_role: config
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4260,6 +4296,8 @@ symbols:
     sourceFile: packages/cli/src/commands/github-init.ts
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
@@ -4271,6 +4309,8 @@ symbols:
     symbol_role: config
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4280,6 +4320,8 @@ symbols:
     sourceFile: packages/cli/src/commands/github-init.ts
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
@@ -4291,6 +4333,8 @@ symbols:
     symbol_role: config
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4301,6 +4345,8 @@ symbols:
     symbol_role: config
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4310,6 +4356,8 @@ symbols:
     sourceFile: packages/cli/src/commands/github-init.ts
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
@@ -4637,7 +4685,8 @@ symbols:
       - type: covered_by
         target: TEST-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -26135,3 +26184,13 @@ symbols:
         target: TEST-root-suite-batch-diagnostics
       - type: executable_for
         target: TEST-test-journaled-engine-harness
+  - id: SYM-e2e-packed-cli-github-report
+    title: verifyGitHubReportIntegration
+    status: active
+    sourceFile: documentation/tests/e2e/packed/github-report-integration.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-github-report-e2e
+      - type: executable_for
+        target: TEST-kibi-github-report-integration

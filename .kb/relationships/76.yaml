@@ -48,3 +48,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e58828faf318
+  - type: covered_by
+    from: SYM-cli-init-command
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:56:36.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15d0c4a3754c

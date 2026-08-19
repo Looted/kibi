@@ -34,3 +34,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b48b92c5e903
+  - type: covered_by
+    from: SYM-cli-github-pages-namespace
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:55:17.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a73e118c6ba7

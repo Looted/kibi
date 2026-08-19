@@ -587,6 +587,30 @@
           "/tmp/kibi-e2e-packed-compiled/discovery-bundle.test.js"
         ]
       ]
+    },
+    {
+      "test_id": "TEST-kibi-github-report-e2e",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-kibi-github-report-e2e"
+        ],
+        "required_case_symbols": ["SYM-e2e-packed-cli-github-report"],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/github-report-integration.test.js"
+        ]
+      ]
     }
   ]
 }

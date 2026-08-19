@@ -45,3 +45,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-03b7ec373bc4
+  - type: covered_by
+    from: SYM-cli-github-insert-badge
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:54:52.516Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-511052386b19

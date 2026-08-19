@@ -69,3 +69,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fb50590c1977
+  - type: requires_predicate
+    from: REQ-kibi-github-report-integration
+    to: FACT-PRED-E1E36D7C3CC8
+    created_at: 2026-08-19T20:49:37.249Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0d0ff2c331f
+  - type: requires_predicate
+    from: REQ-kibi-github-report-integration
+    to: FACT-PRED-E2F868F51B6E
+    created_at: 2026-08-19T20:49:37.269Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea38786fb4c2
+  - type: requires_predicate
+    from: REQ-kibi-github-report-integration
+    to: FACT-PRED-EB7974DBD496
+    created_at: 2026-08-19T20:49:37.275Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-565e9300cf82
+  - type: requires_predicate
+    from: REQ-kibi-github-report-integration
+    to: FACT-PRED-D492CCE08A65
+    created_at: 2026-08-19T20:49:37.281Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04d971b5baa9
+  - type: requires_predicate
+    from: REQ-kibi-github-report-integration
+    to: FACT-PRED-6CA8CA948767
+    created_at: 2026-08-19T20:49:37.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cc4f8936c05
+  - type: requires_predicate
+    from: REQ-kibi-github-report-integration
+    to: FACT-PRED-A7E39C48DF6B
+    created_at: 2026-08-19T20:49:37.291Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fca47254dc9f
+  - type: requires_predicate
+    from: REQ-kibi-github-report-integration
+    to: FACT-PRED-F3A3B4FAE6F6
+    created_at: 2026-08-19T20:49:37.295Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2183be5211a0
+  - type: requires_predicate
+    from: REQ-kibi-github-report-integration
+    to: FACT-PRED-C0958A023626
+    created_at: 2026-08-19T20:49:37.299Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-738ebf26a9d3
+  - type: requires_predicate
+    from: REQ-kibi-github-report-integration
+    to: FACT-PRED-A24C352F14B2
+    created_at: 2026-08-19T20:49:37.303Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe4cabb71758
+  - type: requires_predicate
+    from: REQ-kibi-github-report-integration
+    to: FACT-PRED-BC91393C6DE0
+    created_at: 2026-08-19T20:49:37.307Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d917e078c25
+  - type: requires_predicate
+    from: REQ-kibi-github-report-integration
+    to: FACT-PRED-FCC864F6DAE7
+    created_at: 2026-08-19T20:49:37.313Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a538cff41631
+  - type: requires_predicate
+    from: REQ-kibi-github-report-integration
+    to: FACT-PRED-6F1882AB9A88
+    created_at: 2026-08-19T20:49:37.319Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e618a03b49f
+  - type: requires_predicate
+    from: REQ-kibi-github-report-integration
+    to: FACT-PRED-8390A7FDAADC
+    created_at: 2026-08-19T20:49:37.326Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f1ddd1d9858

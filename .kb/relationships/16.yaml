@@ -20,3 +20,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7ea6519401db
+  - type: covered_by
+    from: SYM-cli-github-metric-docs-url
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:55:11.114Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-925f078b3fec

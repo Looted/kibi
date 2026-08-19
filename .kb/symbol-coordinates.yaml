@@ -7010,6 +7010,12 @@ coordinates:
     sourceEndLine: 581
     sourceFile: packages/cli/src/public/distribution-parity.ts
     sourceLine: 552
+  SYM-e2e-packed-cli-github-report:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 143
+    sourceFile: documentation/tests/e2e/packed/github-report-integration.test.ts
+    sourceLine: 20
   SYM-e2e-packed-cli-html-report:
     sourceColumn: 22
     sourceEndColumn: 1

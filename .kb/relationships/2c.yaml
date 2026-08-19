@@ -69,3 +69,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fc37c7345d97
+  - type: covered_by
+    from: SYM-cli-github-format-badge-markdown
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:54:39.710Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cbcd74300f7
