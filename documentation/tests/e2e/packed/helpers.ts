@@ -28,6 +28,20 @@ import { writePackedInstallManifest } from "./packed-install-manifest.js";
 
 const REPO_ROOT = resolve(process.cwd());
 
+/**
+ * Packed sandboxes are independent Git checkouts. Host CI may set
+ * `KIBI_BRANCH` for the dogfood repository's detached HEAD; leaking that
+ * identity into a temp repo makes hashed stores and `kibi init`/`sync`
+ * attach to the host branch instead of the sandbox branch.
+ */
+export function isolatedPackedSandboxEnv(
+  overrides: NodeJS.ProcessEnv = {},
+): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = { ...process.env, ...overrides };
+  env.KIBI_BRANCH = undefined;
+  return env;
+}
+
 /** Return the exact hashed compiled-store directory for a Git branch identity. */
 export function exactBranchStorePath(repoDir: string, branch: string): string {
   const key = createHash("sha256").update(branch).digest("hex");
@@ -185,15 +199,14 @@ async function bootstrapSharedInstall(): Promise<void> {
     tarballs.codex,
     tarballs.cursor,
   ].join("|");
-  const env: NodeJS.ProcessEnv = {
-    ...process.env,
+  const env: NodeJS.ProcessEnv = isolatedPackedSandboxEnv({
     HOME: homeDir,
     USERPROFILE: homeDir,
     npm_config_cache: cacheDir,
     npm_config_userconfig: join(npmPrefix, "npmrc"),
     PATH: `${join(npmPrefix, "node_modules", ".bin")}:${gitDir}:${npmDir}:/usr/bin:${process.env.PATH ?? ""}`,
     NODE_ENV: "production",
-  };
+  });
 
   if (sharedInstallKey === installKey && sharedInstallPromise) {
     await sharedInstallPromise;
@@ -406,8 +419,7 @@ export function createSandbox(): TestSandbox {
   // Include npm directory in PATH for E2E tests
   const npmBinary = resolveNpmBinary();
   const npmDir = dirname(npmBinary);
-  const env: NodeJS.ProcessEnv = {
-    ...process.env,
+  const env: NodeJS.ProcessEnv = isolatedPackedSandboxEnv({
     HOME: homeDir,
     USERPROFILE: homeDir, // Windows
     npm_config_prefix: npmPrefix,
@@ -425,7 +437,7 @@ export function createSandbox(): TestSandbox {
     KIBI_RUNTIME_DIR: runtimeDir,
     // Ensure NODE_ENV is production-like for tests
     NODE_ENV: "production",
-  };
+  });
 
   // Create empty git config
   writeFileSync(

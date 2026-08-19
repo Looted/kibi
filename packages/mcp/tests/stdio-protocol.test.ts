@@ -13,7 +13,11 @@ function startServer(options?: {
   return spawn("bun", ["run", serverPath], {
     stdio: ["pipe", "pipe", "pipe"],
     cwd: options?.cwd,
-    env: options?.env ? { ...process.env, ...options.env } : process.env,
+    env: {
+      ...process.env,
+      KIBI_BRANCH: undefined,
+      ...options?.env,
+    },
   });
 }
 

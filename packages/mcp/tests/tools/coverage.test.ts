@@ -1,3 +1,4 @@
+import "../helpers/ensure-test-branch.js";
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";

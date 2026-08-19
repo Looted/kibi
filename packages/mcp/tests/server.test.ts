@@ -105,7 +105,11 @@ function startServer(options?: {
   const proc = spawn("bun", ["run", serverPath, ...(options?.args ?? [])], {
     stdio: ["pipe", "pipe", "pipe"],
     cwd: options?.cwd,
-    env: options?.env ? { ...process.env, ...options.env } : process.env,
+    env: {
+      ...process.env,
+      KIBI_BRANCH: undefined,
+      ...options?.env,
+    },
   });
 
   // Log errors from the server process

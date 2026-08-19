@@ -1,7 +1,7 @@
 ---
 id: REQ-cli-init
 title: Scaffold .kb directory, config, and git hooks
-status: open
+status: superseded
 created_at: 2026-05-13T10:00:00.000Z
 updated_at: 2026-05-13T10:00:00.000Z
 source: REQ-003

@@ -98,31 +98,41 @@ describe("resolveSymbolsManifestPath - canonical layout", () => {
       JSON.stringify({ paths: { symbols: "custom/symbols.yaml" } }),
     );
     fs.mkdirSync(path.join(tempDir, "custom"), { recursive: true });
-    fs.writeFileSync(path.join(tempDir, "custom", "symbols.yaml"), "custom: true");
+    fs.writeFileSync(
+      path.join(tempDir, "custom", "symbols.yaml"),
+      "custom: true",
+    );
     fs.writeFileSync(path.join(tempDir, "symbols.yaml"), "root: true");
 
     expect(resolveSymbolsManifestPath(tempDir)).toBe(canonical);
   });
 
-  test("legacy documentation/symbols.yaml is used when canonical is missing", () => {
+  test("leftover documentation/ or repo-root symbols files do not relocate the manifest", () => {
     const docsDir = path.join(tempDir, "documentation");
     fs.mkdirSync(docsDir, { recursive: true });
-    const docsSymbols = path.join(docsDir, "symbols.yaml");
-    fs.writeFileSync(docsSymbols, "symbols: []");
+    fs.writeFileSync(path.join(docsDir, "symbols.yaml"), "symbols: []");
+    fs.writeFileSync(path.join(tempDir, "symbols.yaml"), "root: true");
+    fs.writeFileSync(path.join(tempDir, "symbols.yml"), "yml: true");
 
-    expect(resolveSymbolsManifestPath(tempDir)).toBe(docsSymbols);
+    expect(resolveSymbolsManifestPath(tempDir)).toBe(
+      path.join(tempDir, ".kb", "symbols.yaml"),
+    );
   });
 
-  test("repo-root symbols.yaml is used when canonical and documentation copies are missing", () => {
+  test("repo-root symbols.yaml does not replace the canonical path", () => {
     const symbolsYaml = path.join(tempDir, "symbols.yaml");
     fs.writeFileSync(symbolsYaml, "test: value");
-    expect(resolveSymbolsManifestPath(tempDir)).toBe(symbolsYaml);
+    expect(resolveSymbolsManifestPath(tempDir)).toBe(
+      path.join(tempDir, ".kb", "symbols.yaml"),
+    );
   });
 
-  test("repo-root symbols.yml is used when no yaml sibling exists", () => {
+  test("repo-root symbols.yml does not replace the canonical path", () => {
     const symbolsYml = path.join(tempDir, "symbols.yml");
     fs.writeFileSync(symbolsYml, "test: value");
-    expect(resolveSymbolsManifestPath(tempDir)).toBe(symbolsYml);
+    expect(resolveSymbolsManifestPath(tempDir)).toBe(
+      path.join(tempDir, ".kb", "symbols.yaml"),
+    );
   });
 
   test("leftover config.json cannot relocate the manifest", () => {
@@ -149,7 +159,11 @@ describe("resolveSymbolsManifestPaths - coordinates", () => {
     }
 
     const canonical = writeKbSymbols();
-    const coordinatesPath = path.join(tempDir, ".kb", "symbol-coordinates.yaml");
+    const coordinatesPath = path.join(
+      tempDir,
+      ".kb",
+      "symbol-coordinates.yaml",
+    );
     fs.writeFileSync(coordinatesPath, "coordinates: {}");
 
     expect(resolveSymbolsManifestPaths(tempDir)).toEqual({
@@ -158,7 +172,7 @@ describe("resolveSymbolsManifestPaths - coordinates", () => {
     });
   });
 
-  test("legacy documentation coordinates sit beside the legacy symbols file", () => {
+  test("legacy documentation coordinates do not relocate the canonical coordinate file", () => {
     expect(typeof resolveSymbolsManifestPaths).toBe("function");
     if (typeof resolveSymbolsManifestPaths !== "function") {
       return;
@@ -166,12 +180,15 @@ describe("resolveSymbolsManifestPaths - coordinates", () => {
 
     const docsDir = path.join(tempDir, "documentation");
     fs.mkdirSync(docsDir, { recursive: true });
-    const docsSymbols = path.join(docsDir, "symbols.yaml");
-    fs.writeFileSync(docsSymbols, "symbols: []");
+    fs.writeFileSync(path.join(docsDir, "symbols.yaml"), "symbols: []");
+    fs.writeFileSync(
+      path.join(docsDir, "symbol-coordinates.yaml"),
+      "coordinates: {}",
+    );
 
     expect(resolveSymbolsManifestPaths(tempDir)).toEqual({
-      symbolsPath: docsSymbols,
-      coordinatesPath: path.join(docsDir, "symbol-coordinates.yaml"),
+      symbolsPath: path.join(tempDir, ".kb", "symbols.yaml"),
+      coordinatesPath: path.join(tempDir, ".kb", "symbol-coordinates.yaml"),
     });
   });
 });

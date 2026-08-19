@@ -812,12 +812,6 @@ coordinates:
     sourceEndLine: 200
     sourceFile: packages/cli/src/utils/config.ts
     sourceLine: 1
-  SYM-KbConfigPaths:
-    sourceColumn: 0
-    sourceEndColumn: 0
-    sourceEndLine: 200
-    sourceFile: packages/cli/src/utils/config.ts
-    sourceLine: 1
   SYM-KbFreshnessDecision:
     sourceColumn: 12
     sourceEndColumn: 13
@@ -1019,7 +1013,7 @@ coordinates:
   SYM-KibiTreeDataProvider:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 945
+    sourceEndLine: 947
     sourceFile: packages/vscode/src/treeProvider.ts
     sourceLine: 164
   SYM-KibiTreeItem:
@@ -2261,9 +2255,9 @@ coordinates:
   SYM-auto-01A7A4554EF9:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 662
+    sourceEndLine: 674
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 651
+    sourceLine: 663
   SYM-auto-02C5362C86BE:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2273,9 +2267,9 @@ coordinates:
   SYM-auto-02DDBEE0B7C8:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 35
+    sourceEndLine: 49
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 32
+    sourceLine: 46
   SYM-auto-059ACEEC9EDC:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2321,9 +2315,9 @@ coordinates:
   SYM-auto-17A7EF53F461:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 678
+    sourceEndLine: 690
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 667
+    sourceLine: 679
   SYM-auto-1861120B3765:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -2405,9 +2399,9 @@ coordinates:
   SYM-auto-29DF88F7A567:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 261
+    sourceEndLine: 274
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 257
+    sourceLine: 270
   SYM-auto-2A53383A4D89:
     sourceColumn: 12
     sourceEndColumn: 64
@@ -2489,9 +2483,9 @@ coordinates:
   SYM-auto-4A8343B906BF:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 271
+    sourceEndLine: 284
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 269
+    sourceLine: 282
   SYM-auto-4B78DAEF6C6B:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2585,9 +2579,9 @@ coordinates:
   SYM-auto-6CE6FE1E5AA4:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 683
+    sourceEndLine: 695
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 681
+    sourceLine: 693
   SYM-auto-711E3868D47B:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2651,9 +2645,9 @@ coordinates:
   SYM-auto-88E6CA6A3463:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 758
+    sourceEndLine: 770
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 740
+    sourceLine: 752
   SYM-auto-897151BA8338:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2759,15 +2753,15 @@ coordinates:
   SYM-auto-AA7E401E854D:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 735
+    sourceEndLine: 747
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 726
+    sourceLine: 738
   SYM-auto-AD2DCA2227C8:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 723
+    sourceEndLine: 735
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 688
+    sourceLine: 700
   SYM-auto-AD376CE47FDF:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2783,9 +2777,9 @@ coordinates:
   SYM-auto-B4518227A075:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 266
+    sourceEndLine: 279
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 263
+    sourceLine: 276
   SYM-auto-B4EA84AAACA8:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2807,15 +2801,15 @@ coordinates:
   SYM-auto-B892D7934A27:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 646
+    sourceEndLine: 658
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 582
+    sourceLine: 594
   SYM-auto-B9A2DDEE871F:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 254
+    sourceEndLine: 267
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 250
+    sourceLine: 263
   SYM-auto-BDE75AA4DB60:
     sourceColumn: 12
     sourceEndColumn: 20
@@ -2897,9 +2891,9 @@ coordinates:
   SYM-auto-E94328F678DF:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 770
+    sourceEndLine: 782
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 763
+    sourceLine: 775
   SYM-auto-EB53162A3CF2:
     sourceColumn: 13
     sourceEndColumn: 55
@@ -3449,33 +3443,33 @@ coordinates:
   SYM-canonical-KibiTreeDataProvider-getEntityById:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 910
+    sourceEndLine: 912
     sourceFile: packages/vscode/src/treeProvider.ts
-    sourceLine: 908
+    sourceLine: 910
   SYM-canonical-KibiTreeDataProvider-getEntityCount:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 905
+    sourceEndLine: 907
     sourceFile: packages/vscode/src/treeProvider.ts
-    sourceLine: 903
+    sourceLine: 905
   SYM-canonical-KibiTreeDataProvider-getFallbackSymbolEntity:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 932
+    sourceEndLine: 934
     sourceFile: packages/vscode/src/treeProvider.ts
-    sourceLine: 913
+    sourceLine: 915
   SYM-canonical-KibiTreeDataProvider-getLocalPathForEntity:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 944
+    sourceEndLine: 946
     sourceFile: packages/vscode/src/treeProvider.ts
-    sourceLine: 942
+    sourceLine: 944
   SYM-canonical-KibiTreeDataProvider-getNavigationTargetForEntity:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 900
+    sourceEndLine: 902
     sourceFile: packages/vscode/src/treeProvider.ts
-    sourceLine: 866
+    sourceLine: 868
   SYM-canonical-KibiTreeDataProvider-getTreeItem:
     sourceColumn: 2
     sourceEndColumn: 3
@@ -8369,9 +8363,9 @@ coordinates:
   SYM-mcp-attachTestKb:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 48
+    sourceEndLine: 49
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
-    sourceLine: 43
+    sourceLine: 44
   SYM-mcp-buildStructuredContent:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8399,15 +8393,15 @@ coordinates:
   SYM-mcp-createIntegrationProlog:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 21
+    sourceEndLine: 22
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
-    sourceLine: 15
+    sourceLine: 16
   SYM-mcp-createTestKbDir:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 41
+    sourceEndLine: 42
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
-    sourceLine: 39
+    sourceLine: 40
   SYM-mcp-describeBranchKbStamp:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8417,15 +8411,27 @@ coordinates:
   SYM-mcp-detachTestKb:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 54
+    sourceEndLine: 55
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
-    sourceLine: 50
+    sourceLine: 51
   SYM-mcp-discovery-context:
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 51
     sourceFile: packages/mcp/src/tools/discovery-adapter.ts
     sourceLine: 9
+  SYM-mcp-ensure-test-branch-constant:
+    sourceColumn: 13
+    sourceEndColumn: 51
+    sourceEndLine: 14
+    sourceFile: packages/mcp/tests/helpers/ensure-test-branch.ts
+    sourceLine: 14
+  SYM-mcp-ensure-test-branch-identity:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 20
+    sourceFile: packages/mcp/tests/helpers/ensure-test-branch.ts
+    sourceLine: 16
   SYM-mcp-formatImpactText:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8465,9 +8471,9 @@ coordinates:
   SYM-mcp-model-requirement-isolated-workspace-test:
     sourceColumn: 5
     sourceEndColumn: 54
-    sourceEndLine: 598
+    sourceEndLine: 602
     sourceFile: packages/mcp/tests/server.test.ts
-    sourceLine: 598
+    sourceLine: 602
   SYM-mcp-parity-run-operation:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -8585,9 +8591,9 @@ coordinates:
   SYM-mcp-startIntegrationProlog:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 37
+    sourceEndLine: 38
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
-    sourceLine: 23
+    sourceLine: 24
   SYM-mcp-startup-resolution-McpPackageInfo:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -8651,9 +8657,9 @@ coordinates:
   SYM-mcp-stopIntegrationProlog:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 63
+    sourceEndLine: 64
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
-    sourceLine: 56
+    sourceLine: 57
   SYM-mcp-test-attached-kb-discovery:
     sourceColumn: 0
     sourceEndColumn: 0
@@ -9575,15 +9581,15 @@ coordinates:
   SYM-packed-cleanup-shared-install:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 236
+    sourceEndLine: 249
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 228
+    sourceLine: 241
   SYM-packed-create-sandbox:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 524
+    sourceEndLine: 536
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 382
+    sourceLine: 395
   SYM-packed-e2e-runner:
     sourceColumn: 25
     sourceEndColumn: 43
@@ -9596,12 +9602,18 @@ coordinates:
     sourceEndLine: 34
     sourceFile: documentation/tests/e2e/packed/packed-install-manifest.ts
     sourceLine: 6
+  SYM-packed-isolated-sandbox-env:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 43
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    sourceLine: 37
   SYM-packed-pack-all:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 376
+    sourceEndLine: 389
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 308
+    sourceLine: 321
   SYM-packed-parity-bundle-paths:
     sourceColumn: 13
     sourceEndColumn: 10
@@ -9674,30 +9686,36 @@ coordinates:
     sourceEndLine: 178
     sourceFile: documentation/tests/e2e/packed/mcp-cli-operation-parity-support.ts
     sourceLine: 149
+  SYM-packed-pnpm-upgrade-create-sandbox:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 132
+    sourceFile: documentation/tests/e2e/packed/pnpm-upgrade-utils.ts
+    sourceLine: 71
   SYM-packed-prepare-shared-install:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 226
+    sourceEndLine: 239
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 222
+    sourceLine: 235
   SYM-packed-stop-runtime-engines:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 577
+    sourceEndLine: 589
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 538
+    sourceLine: 550
   SYM-packed-tarballs-type:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 247
+    sourceEndLine: 260
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 239
+    sourceLine: 252
   SYM-packed-test-sandbox:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 302
+    sourceEndLine: 315
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 274
+    sourceLine: 287
   SYM-parity-build-entity-delete-audit-goal:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -16190,6 +16208,54 @@ coordinates:
     sourceEndLine: 156
     sourceFile: packages/cli/src/operations/mutation/validation.ts
     sourceLine: 97
+  SYM-vscode-code-action-provider-action-kind:
+    sourceColumn: 25
+    sourceEndColumn: 67
+    sourceEndLine: 26
+    sourceFile: packages/vscode/src/codeActionProvider.ts
+    sourceLine: 26
+  SYM-vscode-code-action-provider-provide-code-actions:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 114
+    sourceFile: packages/vscode/src/codeActionProvider.ts
+    sourceLine: 70
+  SYM-vscode-code-action-provider-watch-manifest:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 68
+    sourceFile: packages/vscode/src/codeActionProvider.ts
+    sourceLine: 48
+  SYM-vscode-code-lens-provider-on-did-change-code-lenses:
+    sourceColumn: 11
+    sourceEndColumn: 38
+    sourceEndLine: 43
+    sourceFile: packages/vscode/src/codeLensProvider.ts
+    sourceLine: 42
+  SYM-vscode-code-lens-provider-provide-code-lenses:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 91
+    sourceFile: packages/vscode/src/codeLensProvider.ts
+    sourceLine: 65
+  SYM-vscode-code-lens-provider-refresh:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 246
+    sourceFile: packages/vscode/src/codeLensProvider.ts
+    sourceLine: 235
+  SYM-vscode-code-lens-provider-resolve-code-lens:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 155
+    sourceFile: packages/vscode/src/codeLensProvider.ts
+    sourceLine: 93
+  SYM-vscode-code-lens-provider-watch-sources:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 222
+    sourceFile: packages/vscode/src/codeLensProvider.ts
+    sourceLine: 190
   SYM-warn:
     sourceColumn: 16
     sourceEndColumn: 1

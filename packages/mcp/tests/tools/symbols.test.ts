@@ -107,14 +107,14 @@ describe("resolveManifestPath precedence (regression)", () => {
     expect(resolved).toBe(canonicalSymbols);
   });
 
-  it("falls back to repo-root symbols.yaml when canonical is missing", async () => {
+  it("ignores leftover repo-root symbols.yaml when canonical is missing", async () => {
     writeFixture({
       configSymbolsPath: null,
       hasRepoRootSymbols: true,
       hasCustomSymbols: true,
     });
     const resolved = await resolveManifestPath(testRoot);
-    expect(resolved).toBe(repoRootSymbols);
+    expect(resolved).toBe(canonicalSymbols);
   });
 
   it("returns canonical .kb/symbols.yaml when no symbols file exists", async () => {
@@ -188,14 +188,14 @@ describe("resolveManifestPath - leftover config.json is ignored", () => {
     expect(resolved).toBe(canonicalSymbols);
   });
 
-  it("still falls back to repo-root symbols.yaml after ignoring leftover config", async () => {
+  it("still ignores leftover repo-root symbols.yaml after ignoring leftover config", async () => {
     fs.writeFileSync(
       configPath,
       JSON.stringify({ paths: { symbols: "" } }, null, 2),
     );
     fs.writeFileSync(repoRootSymbols, "repo-root: true\n");
     const resolved = await resolveManifestPath(testRoot);
-    expect(resolved).toBe(repoRootSymbols);
+    expect(resolved).toBe(canonicalSymbols);
   });
 });
 
@@ -210,9 +210,10 @@ describe("refreshCoordinatesForSymbolId", () => {
 
   beforeEach(() => {
     refreshTestRoot = makeTmpDir();
-    refreshManifestPath = path.join(refreshTestRoot, "symbols.yaml");
+    refreshManifestPath = path.join(refreshTestRoot, ".kb", "symbols.yaml");
     refreshCoordinatesPath = path.join(
       refreshTestRoot,
+      ".kb",
       "symbol-coordinates.yaml",
     );
     emptyDirSync(refreshTestRoot);
@@ -224,6 +225,7 @@ describe("refreshCoordinatesForSymbolId", () => {
 
   function writeRefreshFixture(content: string) {
     emptyDirSync(refreshTestRoot);
+    fs.mkdirSync(path.dirname(refreshManifestPath), { recursive: true });
     fs.writeFileSync(refreshManifestPath, content, "utf-8");
   }
 
@@ -431,7 +433,7 @@ describe("refreshCoordinatesForSymbolId — internal declaration shapes (regress
 
   beforeEach(() => {
     internalTestRoot = makeTmpDir();
-    internalManifestPath = path.join(internalTestRoot, "symbols.yaml");
+    internalManifestPath = path.join(internalTestRoot, ".kb", "symbols.yaml");
     internalSrcPath = path.join(internalTestRoot, "src", "server.ts");
 
     // Source file with all three declaration shapes
@@ -457,6 +459,7 @@ describe("refreshCoordinatesForSymbolId — internal declaration shapes (regress
       "utf-8",
     );
 
+    fs.mkdirSync(path.dirname(internalManifestPath), { recursive: true });
     // Manifest with all three symbols (no coordinates yet)
     fs.writeFileSync(
       internalManifestPath,

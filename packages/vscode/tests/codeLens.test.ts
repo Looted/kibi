@@ -77,7 +77,8 @@ function writeTestSymbols(
   symbols: Array<Record<string, unknown>>,
   fileName = "symbols.yaml",
 ): string {
-  const symbolsPath = path.join(dir, fileName);
+  const symbolsPath = path.join(dir, ".kb", fileName);
+  fs.mkdirSync(path.dirname(symbolsPath), { recursive: true });
   const lines: string[] = ["symbols:"];
   for (const symbol of symbols) {
     lines.push(`  - id: ${String(symbol.id ?? "")}`);
@@ -422,7 +423,8 @@ describe("KibiCodeLensProvider – provideCodeLenses", () => {
     fs.mkdirSync(path.dirname(testFile), { recursive: true });
     fs.writeFileSync(testFile, "// main\n", "utf8");
 
-    const symbolsPath = path.join(tmpDir, "symbols.yaml");
+    const symbolsPath = path.join(tmpDir, ".kb", "symbols.yaml");
+    fs.mkdirSync(path.dirname(symbolsPath), { recursive: true });
     fs.writeFileSync(symbolsPath, "symbols: [\n  - id: SYM-001", "utf8");
 
     const provider = makeProvider(tmpDir);
@@ -751,19 +753,15 @@ describe("KibiCodeLensProvider \u2013 refresh and watchers", () => {
     expect(provider.provideCodeLenses(makeDoc(testFile), noCancel)).toBeNull();
 
     fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
-    writeTestSymbols(
-      path.join(tmpDir, ".kb"),
-      [
-        {
-          id: "SYM-001",
-          title: "main",
-          sourceFile: "src/main.ts",
-          sourceLine: 3,
-          links: [],
-        },
-      ],
-      "symbols.yaml",
-    );
+    writeTestSymbols(tmpDir, [
+      {
+        id: "SYM-001",
+        title: "main",
+        sourceFile: "src/main.ts",
+        sourceLine: 3,
+        links: [],
+      },
+    ]);
 
     provider.refresh();
 
@@ -776,19 +774,15 @@ describe("KibiCodeLensProvider \u2013 refresh and watchers", () => {
     fs.mkdirSync(path.dirname(testFile), { recursive: true });
     fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
     fs.writeFileSync(testFile, "// main\n", "utf8");
-    writeTestSymbols(
-      path.join(tmpDir, ".kb"),
-      [
-        {
-          id: "SYM-ABS-001",
-          title: "main",
-          sourceFile: "src/main.ts",
-          sourceLine: 5,
-          links: [],
-        },
-      ],
-      "symbols.yaml",
-    );
+    writeTestSymbols(tmpDir, [
+      {
+        id: "SYM-ABS-001",
+        title: "main",
+        sourceFile: "src/main.ts",
+        sourceLine: 5,
+        links: [],
+      },
+    ]);
 
     const cache = new RelationshipCache();
     cache.set("codelens:rel:SYM-ABS-001", { data: [], timestamp: Date.now() });
@@ -807,7 +801,7 @@ describe("KibiCodeLensProvider \u2013 refresh and watchers", () => {
     ).toBe(1);
   });
 
-  test("refresh ignores malformed config and falls back to symbols.yml", () => {
+  test("refresh ignores leftover config.json and repo-root symbols.yml", () => {
     const testFile = path.join(tmpDir, "src", "main.ts");
     fs.mkdirSync(path.dirname(testFile), { recursive: true });
     fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
@@ -830,9 +824,7 @@ describe("KibiCodeLensProvider \u2013 refresh and watchers", () => {
     const provider = makeProvider(tmpDir);
     provider.refresh();
 
-    expect(
-      provider.provideCodeLenses(makeDoc(testFile), noCancel)?.length,
-    ).toBe(1);
+    expect(provider.provideCodeLenses(makeDoc(testFile), noCancel)).toBeNull();
   });
 
   test("refresh falls back to default symbols.yaml path when no manifest exists", () => {

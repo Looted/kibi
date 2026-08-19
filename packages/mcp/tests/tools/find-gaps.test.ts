@@ -1,3 +1,4 @@
+import "../helpers/ensure-test-branch.js";
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import type { PrologProcess } from "kibi-cli/prolog";
 import { PrologProcess as RealPrologProcess } from "kibi-cli/prolog";

@@ -73,6 +73,12 @@ if (RUN_NODE_TEST_SUITE) {
       async () => {
         if (!hasProlog) return;
 
+        assert.strictEqual(
+          sandbox.env.KIBI_BRANCH,
+          undefined,
+          "packed sandboxes must not inherit host KIBI_BRANCH",
+        );
+
         createMarkdownFile(
           sandbox,
           ".kb/requirements/REQ-BRANCH-RECOVERY-E2E.md",

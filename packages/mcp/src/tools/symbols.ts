@@ -281,23 +281,8 @@ async function resolveManifestPaths(
 export async function resolveManifestPath(
   workspaceRoot: string,
 ): Promise<string> {
-  // implements REQ-002, REQ-013
-  const canonical = path.join(workspaceRoot, ".kb", "symbols.yaml");
-  if (await fileExists(canonical)) {
-    return canonical;
-  }
-
-  const legacyCandidates = [
-    path.join(workspaceRoot, "documentation", "symbols.yaml"),
-    path.join(workspaceRoot, "symbols.yaml"),
-    path.join(workspaceRoot, "symbols.yml"),
-  ];
-  for (const candidate of legacyCandidates) {
-    if (await fileExists(candidate)) {
-      return candidate;
-    }
-  }
-  return canonical;
+  // implements REQ-cli-canonical-runtime, REQ-vscode-traceability
+  return path.join(workspaceRoot, ".kb", "symbols.yaml");
 }
 
 function hasGeneratedCoordinates(entry: ManifestSymbolEntry): boolean {

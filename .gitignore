@@ -67,6 +67,7 @@ documentation/tests/e2e/packed/.compiled/
 .kb/verification/
 .kb/usage.log
 .kb/briefs/
+.kb/migrations/
 #! bun.lock
 .sisyphus
 .artifacts/

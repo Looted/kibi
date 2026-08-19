@@ -89,16 +89,6 @@ const CANONICAL_ENTITY_PATHS: Record<DocumentationEntityType, string> = {
   fact: ".kb/facts",
 };
 
-const LEGACY_ENTITY_PATHS: Record<DocumentationEntityType, string> = {
-  req: "documentation/requirements",
-  scenario: "documentation/scenarios",
-  test: "documentation/tests",
-  adr: "documentation/adr",
-  flag: "documentation/flags",
-  event: "documentation/events",
-  fact: "documentation/facts",
-};
-
 const ENTITY_TYPE_PREFIXES: Record<SupportedEntityType, string[]> = {
   req: ["REQ-"],
   scenario: ["SCEN-"],
@@ -440,14 +430,11 @@ export class KibiTreeDataProvider
     for (const type of Object.keys(
       CANONICAL_ENTITY_PATHS,
     ) as DocumentationEntityType[]) {
-      const canonical = this.resolveConfiguredPath(CANONICAL_ENTITY_PATHS[type]);
+      const canonical = this.resolveConfiguredPath(
+        CANONICAL_ENTITY_PATHS[type],
+      );
       if (fs.existsSync(canonical)) {
         dirs[type] = canonical;
-        continue;
-      }
-      const legacy = this.resolveConfiguredPath(LEGACY_ENTITY_PATHS[type]);
-      if (fs.existsSync(legacy)) {
-        dirs[type] = legacy;
       }
     }
 

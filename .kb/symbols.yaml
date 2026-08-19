@@ -372,6 +372,112 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-test-journaled-engine-harness
+  - id: SYM-packed-isolated-sandbox-env
+    title: isolatedPackedSandboxEnv
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-cli-branch-store-recovery
+      - type: executable_for
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-packed-pnpm-upgrade-create-sandbox
+    title: createPnpmUpgradeSandbox
+    sourceFile: documentation/tests/e2e/packed/pnpm-upgrade-utils.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-mcp-ensure-test-branch-identity
+    title: ensureMcpUnitTestBranchIdentity
+    sourceFile: packages/mcp/tests/helpers/ensure-test-branch.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-upsert-coverage
+      - type: executable_for
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+  - id: SYM-mcp-ensure-test-branch-constant
+    title: MCP_UNIT_TEST_BRANCH
+    sourceFile: packages/mcp/tests/helpers/ensure-test-branch.ts
+    symbol_role: config
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-upsert-coverage
+      - type: executable_for
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+  - id: SYM-vscode-code-action-provider-action-kind
+    title: KibiCodeActionProvider.ACTION_KIND
+    sourceFile: packages/vscode/src/codeActionProvider.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-vscode-source-to-kb
+      - type: covered_by
+        target: TEST-vscode-traceability
+  - id: SYM-vscode-code-action-provider-provide-code-actions
+    title: KibiCodeActionProvider.provideCodeActions
+    sourceFile: packages/vscode/src/codeActionProvider.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-vscode-source-to-kb
+      - type: covered_by
+        target: TEST-vscode-traceability
+  - id: SYM-vscode-code-lens-provider-on-did-change-code-lenses
+    title: KibiCodeLensProvider.onDidChangeCodeLenses
+    sourceFile: packages/vscode/src/codeLensProvider.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-vscode-source-to-kb
+      - type: covered_by
+        target: TEST-vscode-traceability
+  - id: SYM-vscode-code-lens-provider-provide-code-lenses
+    title: KibiCodeLensProvider.provideCodeLenses
+    sourceFile: packages/vscode/src/codeLensProvider.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-vscode-source-to-kb
+      - type: covered_by
+        target: TEST-vscode-traceability
+  - id: SYM-vscode-code-lens-provider-refresh
+    title: KibiCodeLensProvider.refresh
+    sourceFile: packages/vscode/src/codeLensProvider.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-vscode-source-to-kb
+      - type: covered_by
+        target: TEST-vscode-traceability
+  - id: SYM-vscode-code-lens-provider-resolve-code-lens
+    title: KibiCodeLensProvider.resolveCodeLens
+    sourceFile: packages/vscode/src/codeLensProvider.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-vscode-source-to-kb
+      - type: covered_by
+        target: TEST-vscode-traceability
+  - id: SYM-vscode-code-action-provider-watch-manifest
+    title: KibiCodeActionProvider.watchManifest
+    sourceFile: packages/vscode/src/codeActionProvider.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-vscode-source-to-kb
+      - type: covered_by
+        target: TEST-vscode-traceability
+  - id: SYM-vscode-code-lens-provider-watch-sources
+    title: KibiCodeLensProvider.watchSources
+    sourceFile: packages/vscode/src/codeLensProvider.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-vscode-source-to-kb
+      - type: covered_by
+        target: TEST-vscode-traceability
   - id: SYM-packed-cleanup-shared-install
     title: cleanupSharedPackedInstallation
     sourceFile: documentation/tests/e2e/packed/helpers.ts
@@ -25265,11 +25371,6 @@ symbols:
         target: TEST-opencode-kibi-plugin-v1
       - type: implements
         target: REQ-opencode-bootstrap-nudge
-  - id: SYM-KbConfigPaths
-    title: KbConfigPaths
-    status: active
-    sourceFile: packages/cli/src/utils/config.ts
-    granularity_reason: extractor-miss
   - id: SYM-canonical-DiscoveryOptions
     title: DiscoveryOptions
     status: active

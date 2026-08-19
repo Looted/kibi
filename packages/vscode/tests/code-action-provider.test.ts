@@ -66,7 +66,9 @@ afterAll(() => {
 });
 
 function writeManifest(symbols: string) {
-  fs.writeFileSync(path.join(tmpDir, "symbols.yaml"), symbols, "utf8");
+  const manifestPath = path.join(tmpDir, ".kb", "symbols.yaml");
+  fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
+  fs.writeFileSync(manifestPath, symbols, "utf8");
 }
 
 describe("KibiCodeActionProvider — provideCodeActions", () => {

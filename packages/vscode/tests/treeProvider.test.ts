@@ -102,7 +102,7 @@ function writeSymbolsManifest(
   }
 
   writeFile(
-    path.join(workspaceRoot, "documentation", "symbols.yaml"),
+    path.join(workspaceRoot, ".kb", "symbols.yaml"),
     `${lines.join("\n")}\n`,
   );
 }
@@ -254,9 +254,7 @@ test("getTreeItem maps file-backed and relationship-backed nodes to commands", (
     sourceLine: 4,
   });
 
-  expect(fileTreeItem.description).toBe(
-    ".kb/requirements/REQ-001.md",
-  );
+  expect(fileTreeItem.description).toBe(".kb/requirements/REQ-001.md");
   expect((fileTreeItem.iconPath as ThemeIcon).id).toBe("list-ordered");
   expect(fileTreeItem.contextValue).toBe("kibi-entity-req");
   expect(fileTreeItem.tooltip).toBe("tooltip");
@@ -304,12 +302,7 @@ test("parseRdf resolves absolute, file URI, relative, windows, and invalid local
   const provider = makeProvider();
   const internals = provider as unknown as ParseRdfInternals;
   const absoluteFile = path.join(tmpDir, "absolute.md");
-  const relativeFile = path.join(
-    tmpDir,
-    "documentation",
-    "requirements",
-    "REQ-REL.md",
-  );
+  const relativeFile = path.join(tmpDir, ".kb", "requirements", "REQ-REL.md");
   writeFile(absoluteFile, "absolute");
   writeFile(relativeFile, "relative");
 
@@ -571,7 +564,7 @@ test("frontmatter helpers normalize tags and links from YAML content", () => {
   ]);
 });
 
-test("documentation directory resolution uses canonical .kb/ lanes and legacy fallback", () => {
+test("documentation directory resolution uses canonical .kb/ lanes and ignores leftover config", () => {
   const provider = makeProvider();
   const internals = provider as unknown as DocumentationDirsInternals;
 
@@ -593,14 +586,17 @@ test("documentation directory resolution uses canonical .kb/ lanes and legacy fa
   const second = internals.getDocumentationEntityDirs();
   expect(first).toBe(second);
   expect(first.req).toBe(path.join(tmpDir, ".kb", "requirements"));
-  expect(first.test).toBe(path.join(tmpDir, "documentation", "tests"));
+  expect(first.test).toBeUndefined();
 
   internals.documentationEntityDirs = null;
-  fs.rmSync(path.join(tmpDir, ".kb", "requirements"), { recursive: true, force: true });
+  fs.rmSync(path.join(tmpDir, ".kb", "requirements"), {
+    recursive: true,
+    force: true,
+  });
   writeFile(path.join(tmpDir, "documentation", "requirements", ".gitkeep"));
 
   const fallback = internals.getDocumentationEntityDirs();
-  expect(fallback.req).toBe(path.join(tmpDir, "documentation", "requirements"));
+  expect(fallback.req).toBeUndefined();
 });
 
 test("type inference and documentation path lookup cover prefixes and symbol exclusion", () => {
@@ -608,7 +604,7 @@ test("type inference and documentation path lookup cover prefixes and symbol exc
   const internals = provider as unknown as TypeInferenceInternals;
   const requirementPath = path.join(
     tmpDir,
-    "documentation",
+    ".kb",
     "requirements",
     "REQ-777.md",
   );
@@ -635,12 +631,7 @@ test("navigation helpers prefer entity paths, then symbol sources, then document
   const internals = provider as unknown as NavigationInternals;
 
   const existingSymbolSource = path.join(tmpDir, "src", "symbol.ts");
-  const docPath = path.join(
-    tmpDir,
-    "documentation",
-    "requirements",
-    "REQ-DOC.md",
-  );
+  const docPath = path.join(tmpDir, ".kb", "requirements", "REQ-DOC.md");
   writeFile(existingSymbolSource, "export const symbol = 1;\n");
   writeFile(docPath, "---\nid: REQ-DOC\n---\n");
 
@@ -652,12 +643,7 @@ test("navigation helpers prefer entity paths, then symbol sources, then document
       status: "open",
       tags: "",
       source: ".kb/requirements/REQ-MISSING.md",
-      localPath: path.join(
-        tmpDir,
-        "documentation",
-        "requirements",
-        "REQ-MISSING.md",
-      ),
+      localPath: path.join(tmpDir, ".kb", "requirements", "REQ-MISSING.md"),
     },
     {
       id: "REQ-LOCAL",
@@ -705,7 +691,7 @@ test("navigation helpers prefer entity paths, then symbol sources, then document
 test("entity helpers and symbol fallbacks expose counts, lookup, and manifest-relative sources", async () => {
   writeJson(path.join(tmpDir, ".kb", "config.json"), {});
   writeFile(
-    path.join(tmpDir, "documentation", "requirements", "REQ-001.md"),
+    path.join(tmpDir, ".kb", "requirements", "REQ-001.md"),
     "---\nid: REQ-001\n---\n",
   );
   writeFile(path.join(tmpDir, "src", "one.ts"), "export const one = 1;\n");

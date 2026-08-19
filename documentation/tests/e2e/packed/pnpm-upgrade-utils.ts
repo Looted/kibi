@@ -9,6 +9,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
+import { isolatedPackedSandboxEnv } from "./helpers.js";
 import { parseNpmPackJsonOutput } from "./npm-pack-json.js";
 
 export interface PnpmCommand {
@@ -100,8 +101,7 @@ export function createPnpmUpgradeSandbox(): PnpmUpgradeSandbox {
     pnpm.command === "corepack"
       ? dirname(resolve("corepack"))
       : dirname(pnpm.command);
-  const env: NodeJS.ProcessEnv = {
-    ...process.env,
+  const env: NodeJS.ProcessEnv = isolatedPackedSandboxEnv({
     HOME: homeDir,
     USERPROFILE: homeDir,
     PNPM_HOME: pnpmHome,
@@ -112,7 +112,7 @@ export function createPnpmUpgradeSandbox(): PnpmUpgradeSandbox {
     npm_config_userconfig: join(baseDir, "npmrc"),
     PATH: `${pnpmHome}:${pnpmDir}:/usr/bin:${process.env.PATH ?? ""}`,
     NODE_ENV: "production",
-  };
+  });
 
   writeFileSync(
     env.npm_config_userconfig ?? join(baseDir, "npmrc"),

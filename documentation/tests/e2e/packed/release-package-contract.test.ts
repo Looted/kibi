@@ -10,6 +10,7 @@ import {
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { after, describe, it } from "node:test";
+import { isolatedPackedSandboxEnv } from "./helpers.js";
 import { parseNpmPackJsonOutput } from "./npm-pack-json.js";
 
 const REPO_ROOT = resolve(process.cwd());
@@ -99,11 +100,10 @@ function verifyConsumer(dir: string, packageManager: "npm" | "pnpm"): void {
   execFileSync(command, offline ? [...args, "--offline"] : args, {
     cwd: dir,
     encoding: "utf8",
-    env: {
-      ...process.env,
+    env: isolatedPackedSandboxEnv({
       npm_config_audit: "false",
       ...(offline ? { npm_config_registry: "http://127.0.0.1:9" } : {}),
-    },
+    }),
     stdio: "pipe",
   });
   const probe = execFileSync(
