@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-c5163d47c70a
+    type: verified_by
+    from: SCEN-codex-consumer-local-mcp-registration-v1
+    to: TEST-codex-consumer-local-mcp-registration-v1
+    created_at: "2026-08-20T15:44:35.761Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

@@ -207,6 +207,12 @@ The marketplace lives at `.agents/plugins/marketplace.json` and points Codex at
 `./packages/codex`, where the plugin manifest, skills, hooks, and MCP config are
 stored. Codex resolves that path relative to the marketplace root.
 
+The plugin's `.mcp.json` deliberately leaves `cwd` unset. Codex then launches
+`npx --no-install kibi-mcp` from the active task workspace, so the MCP server
+comes from the consumer project's local dependencies. Do not change this to
+`cwd: "."`: that would run from the installed plugin cache instead. The manual
+project-level MCP configuration below remains an independent fallback.
+
 For local development or npm package smoke testing, you can also install the
 adapter package with your project-local dependencies:
 
@@ -221,7 +227,7 @@ developing/testing.
 The installed plugin package contributes:
 
 - `.codex-plugin/plugin.json` manifest
-- `.mcp.json` MCP config pointing to your local `kibi-mcp`
+- `.mcp.json` MCP config pointing to your local `kibi-mcp` and inheriting the active task cwd
 - `hooks/hooks.json` lifecycle hooks
 - `skills/*/SKILL.md` Kibi workflow guidance
 

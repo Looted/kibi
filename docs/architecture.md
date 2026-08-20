@@ -67,7 +67,10 @@ graph TD
 ### Codex Adapter Plugin
 - Located at `packages/codex/`
 - Optional package that provides a Codex plugin manifest, skill bundle, and lifecycle hooks
-- Points Codex MCP wiring to the local `kibi-mcp` server
+- Points Codex MCP wiring to the local `kibi-mcp` server through `mcpServers`; the
+  plugin leaves `cwd` unset so Codex supplies the active task workspace to the
+  project-local `npx --no-install` command. Setting `cwd` to `.` would instead
+  re-root the process in the installed plugin cache.
 - Provides optional reminders and advisories only; it does not replace `kibi-core`, `kibi-cli`, or `kibi-mcp`
 
 ### Cursor Adapter Plugin

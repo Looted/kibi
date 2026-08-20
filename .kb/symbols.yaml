@@ -26286,3 +26286,9 @@ symbols:
         target: TEST-cursor-consumer-local-mcp-launcher-v1
       - type: implements
         target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-codex-packed-plugin-e2e
+    title: packed Codex plugin consumer-local MCP registration
+    status: active
+    relationships:
+      - type: executable_for
+        target: TEST-codex-consumer-local-mcp-registration-v1
