@@ -171,8 +171,8 @@ describe.serial("session module", () => {
     resetMocks();
     // Reset environment
     process.env = { ...originalEnv };
-    delete process.env.KIBI_BRANCH;
-    delete process.env.KIBI_MCP_DEBUG;
+    Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+    Reflect.deleteProperty(process.env, "KIBI_MCP_DEBUG");
   });
 
   afterEach(async () => {
@@ -441,7 +441,7 @@ describe.serial("session module", () => {
 
   describe("ensureProlog", () => {
     test("should return a PrologProcess-like object on success", async () => {
-      delete process.env.KIBI_BRANCH;
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
       mockResolveBranchAttachment.mockImplementation(() => ({
         gitBranch: "develop",
         kbBranch: "develop",
@@ -490,7 +490,7 @@ describe.serial("session module", () => {
     });
 
     test("should resolve the exact branch attachment when KIBI_BRANCH is not set", async () => {
-      delete process.env.KIBI_BRANCH;
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
       mockResolveBranchAttachment.mockImplementation(() => ({
         gitBranch: "main",
         kbBranch: "main",
@@ -508,7 +508,7 @@ describe.serial("session module", () => {
     });
 
     test("should handle concurrent calls without error", async () => {
-      delete process.env.KIBI_BRANCH;
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
       mockResolveBranchAttachment.mockImplementation(() => ({
         gitBranch: "develop",
         kbBranch: "develop",
@@ -1176,7 +1176,7 @@ describe.serial("session module", () => {
     });
 
     test("ensureProlog reports branch resolution diagnostics when active branch lookup fails", async () => {
-      delete process.env.KIBI_BRANCH;
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
       mockResolveBranchAttachment.mockImplementation((() => ({
         error: "detached HEAD",
         code: "DETACHED_HEAD",

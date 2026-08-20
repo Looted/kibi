@@ -17,7 +17,6 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { execSync, spawnSync } from "../helpers/isolated-env.js";
 import {
   chmodSync,
   existsSync,
@@ -42,6 +41,7 @@ import {
 } from "../../src/commands/init-helpers.js";
 import { branchStoreKey } from "../../src/utils/branch-store-locator.js";
 import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
+import { execSync, spawnSync } from "../helpers/isolated-env.js";
 
 describe("init-helpers", () => {
   let tmpDir: string;
@@ -49,13 +49,13 @@ describe("init-helpers", () => {
 
   beforeEach(() => {
     originalKibiBranch = process.env.KIBI_BRANCH;
-    delete process.env.KIBI_BRANCH;
+    Reflect.deleteProperty(process.env, "KIBI_BRANCH");
     tmpDir = mkdtempSync(path.join(tmpdir(), "kibi-test-init-helpers-"));
   });
 
   afterEach(() => {
     if (originalKibiBranch === undefined) {
-      delete process.env.KIBI_BRANCH;
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
     } else {
       process.env.KIBI_BRANCH = originalKibiBranch;
     }
@@ -93,7 +93,7 @@ describe("init-helpers", () => {
       const branch = await getCurrentBranch(tmpDir);
       expect(branch).toBe("custom-branch");
     } finally {
-      delete process.env.KIBI_BRANCH;
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
     }
   });
 

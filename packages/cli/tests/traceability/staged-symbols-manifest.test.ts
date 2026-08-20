@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
-import { execSync } from "../helpers/isolated-env.js";
 import {
   existsSync,
   mkdirSync,
@@ -15,6 +14,7 @@ import {
   assessStagedSymbolsManifest,
   collectStagedAuthoredSymbolsManifestEvidence,
 } from "../../src/traceability/staged-symbols-manifest.js";
+import { execSync } from "../helpers/isolated-env.js";
 
 function writeFile(root: string, relativePath: string, content: string): void {
   const fullPath = path.join(root, relativePath);

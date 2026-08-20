@@ -24,9 +24,7 @@ function relativeLuminance(hex: string): number {
     .match(/.{2}/g)
     ?.map((channel) => Number.parseInt(channel, 16) / 255)
     .map((channel) =>
-      channel <= 0.03928
-        ? channel / 12.92
-        : ((channel + 0.055) / 1.055) ** 2.4,
+      channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4,
     );
   assert.strictEqual(channels?.length, 3, `invalid RGB color: ${hex}`);
   const [red = 0, green = 0, blue = 0] = channels ?? [];
@@ -43,7 +41,9 @@ function contrastRatio(foreground: string, background: string): number {
 }
 
 function brandToken(html: string, name: string): string {
-  const value = html.match(new RegExp(`--${name}:\\s*(#[0-9a-f]{6})`, "i"))?.[1];
+  const value = html.match(
+    new RegExp(`--${name}:\\s*(#[0-9a-f]{6})`, "i"),
+  )?.[1];
   assert.ok(value, `report should define the --${name} brand token`);
   return value;
 }
@@ -70,12 +70,15 @@ function svgVisualFingerprint(svg: string): string[] {
     if (kind === "path") {
       const data = element.match(/\bd="([^"]+)"/)?.[1];
       assert.ok(data, `SVG path has no path data: ${element}`);
-      const tokens = data.match(/[A-Za-z]|-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/g) ?? [];
+      const tokens =
+        data.match(/[A-Za-z]|-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/g) ?? [];
       assert.ok(tokens.length >= 5, `SVG path data is incomplete: ${data}`);
       return [
         "path",
         fill,
-        ...tokens.map((token) => (/[A-Za-z]/.test(token) ? token : rounded(token))),
+        ...tokens.map((token) =>
+          /[A-Za-z]/.test(token) ? token : rounded(token),
+        ),
       ].join(":");
     }
 
@@ -154,7 +157,8 @@ export async function verifyHtmlRequirementHealthReport(
     data?: { rows?: Record<string, unknown>[] };
     rows?: Record<string, unknown>[];
   };
-  const coverageRows = coverageEnvelope.data?.rows ?? coverageEnvelope.rows ?? [];
+  const coverageRows =
+    coverageEnvelope.data?.rows ?? coverageEnvelope.rows ?? [];
   const currentRows = coverageRows.filter(
     (row) => row.proofStatus !== "not_applicable",
   );
@@ -163,7 +167,8 @@ export async function verifyHtmlRequirementHealthReport(
     ["REQ-001"],
     "the packed report fixture should contain one current requirement",
   );
-  const fixtureRequirement = currentRows[0]!;
+  const fixtureRequirement = currentRows.at(0);
+  assert.ok(fixtureRequirement, "the current requirement row must exist");
   const fixtureFailsSemanticGate = [
     "semanticInventory",
     "logicGrounding",
@@ -191,18 +196,9 @@ export async function verifyHtmlRequirementHealthReport(
     "utf8",
   );
   assert.match(html, /Kibi Requirement Health(?: · [^<]+)? · develop/);
-  assert.match(
-    html,
-    /viewBox="0 0 308 309" role="img" aria-label="Kibi logo"/,
-  );
-  assert.match(
-    html,
-    /viewBox="0 0 308 309" role="img" aria-label="Kibi logo"/,
-  );
-  assert.match(
-    html,
-    /viewBox="-2 10 395 148" role="img" aria-label="Kibi"/,
-  );
+  assert.match(html, /viewBox="0 0 308 309" role="img" aria-label="Kibi logo"/);
+  assert.match(html, /viewBox="0 0 308 309" role="img" aria-label="Kibi logo"/);
+  assert.match(html, /viewBox="-2 10 395 148" role="img" aria-label="Kibi"/);
   assert.match(
     html,
     /Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'"/,
@@ -230,7 +226,10 @@ export async function verifyHtmlRequirementHealthReport(
   const ratio = html.match(
     /aria-label="(\d+)% strict proof coverage, ([\d,]+) of ([\d,]+) current requirements fully proven end-to-end"/,
   );
-  assert.ok(ratio, "report should expose its exact proof ratio to assistive technology");
+  assert.ok(
+    ratio,
+    "report should expose its exact proof ratio to assistive technology",
+  );
   const percent = Number(ratio[1]);
   const proven = Number(ratio[2]?.replaceAll(",", ""));
   const current = Number(ratio[3]?.replaceAll(",", ""));
@@ -241,7 +240,9 @@ export async function verifyHtmlRequirementHealthReport(
   assert.match(html, new RegExp(`>${percent}<span>%<\\/span>`));
   assert.match(
     html,
-    new RegExp(`${proven.toLocaleString("en-US")} of ${current.toLocaleString("en-US")} current requirements fully proven end-to-end`),
+    new RegExp(
+      `${proven.toLocaleString("en-US")} of ${current.toLocaleString("en-US")} current requirements fully proven end-to-end`,
+    ),
   );
 
   const gates = [
@@ -268,9 +269,13 @@ export async function verifyHtmlRequirementHealthReport(
     "the row's actual earliest unmet gate should receive the only drop",
   );
   assert.ok(
-    gates.every(
-      (gate, index) => index === 0 || gate.remaining <= gates[index - 1]!.remaining,
-    ),
+    gates.every((gate, index) => {
+      const previous = gates[index - 1];
+      return (
+        index === 0 ||
+        (previous !== undefined && gate.remaining <= previous.remaining)
+      );
+    }),
     "proof-gate counts should be sequential and non-increasing",
   );
   const blocked = gates.reduce((total, gate) => {
@@ -294,7 +299,10 @@ export async function verifyHtmlRequirementHealthReport(
     assert.match(html, new RegExp(`stage__label">${label}<`));
   }
   assert.match(html, /stage__icon" aria-hidden="true">[✓!×—]</);
-  assert.match(html, /proof-badge[^>]*>Needs attention<|proof-badge[^>]*>Proven</);
+  assert.match(
+    html,
+    /proof-badge[^>]*>Needs attention<|proof-badge[^>]*>Proven</,
+  );
 
   const deepCarbon = brandToken(html, "deep-carbon");
   const carbon = brandToken(html, "carbon");
@@ -337,9 +345,7 @@ export async function verifyHtmlRequirementHealthReport(
   assert.match(badge, /fill="#555"/);
   assert.match(badge, /DejaVu Sans,Verdana,Geneva,sans-serif/);
   assert.doesNotMatch(badge, /font-weight="700"/);
-  const badgeLogo = badge.match(
-    /<svg x="\d+" y="\d+"[\s\S]*?<\/svg>/,
-  )?.[0];
+  const badgeLogo = badge.match(/<svg x="\d+" y="\d+"[\s\S]*?<\/svg>/)?.[0];
   assert.ok(badgeLogo, "badge should embed the canonical logo");
   assert.deepStrictEqual(
     svgVisualFingerprint(badgeLogo.replaceAll("#555", "#1d1e23")),

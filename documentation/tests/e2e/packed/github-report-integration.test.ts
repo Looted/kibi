@@ -60,12 +60,13 @@ export async function verifyGitHubReportIntegration(
   const workflow = readFileSync(workflowPath, "utf8");
   assert.match(workflow, /kibi report --output kibi-report/);
   assert.ok(
-    workflow.includes(
-      "KIBI_BRANCH: ${{ github.head_ref || github.ref_name }}",
-    ),
+    workflow.includes("KIBI_BRANCH: ${{ github.head_ref || github.ref_name }}"),
     "detached checkouts must set KIBI_BRANCH from the GitHub ref",
   );
-  assert.ok(workflow.includes("pull_request:"), "workflow must use pull_request");
+  assert.ok(
+    workflow.includes("pull_request:"),
+    "workflow must use pull_request",
+  );
   assert.ok(
     !workflow.includes("pull_request_target"),
     "workflow must not use pull_request_target",

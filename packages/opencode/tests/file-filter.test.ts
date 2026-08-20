@@ -12,10 +12,7 @@ import {
 
 describe("file-filter shouldHandleFile", () => {
   it("matches documentation markdown under configured directories", () => {
-    const ok = shouldHandleFile(
-      ".kb/requirements/REQ-001.md",
-      process.cwd(),
-    );
+    const ok = shouldHandleFile(".kb/requirements/REQ-001.md", process.cwd());
     assert.equal(ok, true);
   });
 

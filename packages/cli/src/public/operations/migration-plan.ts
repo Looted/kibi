@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
-import { readKbManifestStatus } from "../../utils/kb-manifest.js";
 import { legacyConfigExists } from "../../utils/config.js";
+import { readKbManifestStatus } from "../../utils/kb-manifest.js";
 import {
   getSchemaVersionStatus,
   normalizeSchemaVersion,
@@ -479,10 +479,9 @@ export function readMigrationConfigStatus(
       latestVersion: getSchemaVersionStatus({
         schemaVersion: status.manifest.schemaVersion,
       }).latestVersion,
-      needsMigration:
-        getSchemaVersionStatus({
-          schemaVersion: status.manifest.schemaVersion,
-        }).needsMigration,
+      needsMigration: getSchemaVersionStatus({
+        schemaVersion: status.manifest.schemaVersion,
+      }).needsMigration,
       warning: null,
       configHash: status.manifestHash,
     };
@@ -588,7 +587,9 @@ export function buildActionsFromStatus(input: {
   }
 
   const storeState = typeof store?.state === "string" ? store.state : null;
-  const legacyStorageMigrationRequired = legacyConfigExists(input.workspaceRoot);
+  const legacyStorageMigrationRequired = legacyConfigExists(
+    input.workspaceRoot,
+  );
   if (storeState === "missing") {
     actions.push(
       migrationAction({
@@ -638,7 +639,11 @@ export function buildActionsFromStatus(input: {
         state: configStatus.status === "newer" ? "blocked" : "ready",
         safety: configStatus.status === "newer" ? "operator" : "automatic",
         invocation: { kind: "cli", command_argv: ["kibi", "migrate", "--yes"] },
-        affectedFiles: [".kb/manifest.json", ".kb/migrations", ".kb/config.json"],
+        affectedFiles: [
+          ".kb/manifest.json",
+          ".kb/migrations",
+          ".kb/config.json",
+        ],
         evidence: { configStatus },
         dependsOn: storeState === "missing" ? ["branch-store-ensure"] : [],
         autoApplicable: configStatus.status !== "newer",

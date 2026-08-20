@@ -1,5 +1,4 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { execSync } from "../helpers/isolated-env.js";
 import {
   existsSync,
   mkdirSync,
@@ -14,12 +13,13 @@ import * as path from "node:path";
 import relationshipSchema from "../../src/public/schemas/relationship.js";
 import { createCliRuntime } from "../../src/runtime/cli-runtime.js";
 import { branchStorePath } from "../../src/utils/branch-store-locator.js";
+import { execSync } from "../helpers/isolated-env.js";
 
 describe("kibi query", () => {
   test("attaches the supplied workspace branch instead of the injected ambient branch", async () => {
     const workspace = mkdtempSync(path.join(os.tmpdir(), "kibi-runtime-"));
     const originalKibiBranch = process.env.KIBI_BRANCH;
-    delete process.env.KIBI_BRANCH;
+    Reflect.deleteProperty(process.env, "KIBI_BRANCH");
     execSync("git init -b develop", { cwd: workspace });
     const goals: string[] = [];
     const runtime = createCliRuntime({
@@ -47,7 +47,7 @@ describe("kibi query", () => {
       );
     } finally {
       if (originalKibiBranch === undefined) {
-        delete process.env.KIBI_BRANCH;
+        Reflect.deleteProperty(process.env, "KIBI_BRANCH");
       } else {
         process.env.KIBI_BRANCH = originalKibiBranch;
       }

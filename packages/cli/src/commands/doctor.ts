@@ -25,8 +25,8 @@ import {
   buildMigrationPlan,
   migrationAction,
 } from "../public/operations/migration-plan.js";
-import { planLegacyStorageMigration } from "./legacy-storage-migration.js";
 import { readKbManifestStatus } from "../utils/kb-manifest.js";
+import { planLegacyStorageMigration } from "./legacy-storage-migration.js";
 
 interface DoctorCheck {
   name: string;
@@ -424,7 +424,8 @@ function checkKbManifest(): {
   if (status.state !== "ok") {
     return {
       passed: false,
-      message: status.state === "invalid" ? "Invalid manifest" : "Future version",
+      message:
+        status.state === "invalid" ? "Invalid manifest" : "Future version",
       remediation: `Repair .kb/manifest.json: ${status.warning}`,
     };
   }

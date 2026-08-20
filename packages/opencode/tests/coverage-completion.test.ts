@@ -1245,12 +1245,7 @@ describe("coverage completion for plugin lifecycle", () => {
       dispose: () => {},
     });
     try {
-      const reqPath = path.join(
-        tmpDir,
-        ".kb",
-        "requirements",
-        "REQ-must.md",
-      );
+      const reqPath = path.join(tmpDir, ".kb", "requirements", "REQ-must.md");
       fs.writeFileSync(reqPath, "---\npriority: must\n---\nRequirement\n");
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,

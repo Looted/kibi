@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { execFileSync, spawnSync } from "../helpers/isolated-env.js";
 import * as path from "node:path";
+import { execFileSync, spawnSync } from "../helpers/isolated-env.js";
 
 describe("kibi skills", () => {
   const kibiCli = path.resolve(__dirname, "../../src/cli.ts");

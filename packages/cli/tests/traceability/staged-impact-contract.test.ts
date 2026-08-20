@@ -84,15 +84,13 @@ describe("isSupportedBehaviorSourcePath", () => {
   });
 
   it("rejects yaml files", () => {
-    expect(isSupportedBehaviorSourcePath(".kb/symbols.yaml")).toBe(
-      false,
-    );
+    expect(isSupportedBehaviorSourcePath(".kb/symbols.yaml")).toBe(false);
   });
 
   it("rejects markdown files", () => {
-    expect(
-      isSupportedBehaviorSourcePath(".kb/requirements/REQ-001.md"),
-    ).toBe(false);
+    expect(isSupportedBehaviorSourcePath(".kb/requirements/REQ-001.md")).toBe(
+      false,
+    );
   });
 
   it("rejects JSON files", () => {

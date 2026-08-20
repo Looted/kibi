@@ -41,10 +41,7 @@ function coordinate(value: unknown): CoordinateRecord | null {
 }
 
 async function manifestPath(context: OperationContext): Promise<string> {
-  return path.join(
-    context.workspaceRoot,
-    CANONICAL_ENTITY_PATHS.symbols,
-  );
+  return path.join(context.workspaceRoot, CANONICAL_ENTITY_PATHS.symbols);
 }
 
 async function defaultRefresh(

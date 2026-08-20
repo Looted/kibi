@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { execSync, spawnSync } from "../helpers/isolated-env.js";
 import {
   existsSync,
   mkdirSync,
@@ -11,6 +10,7 @@ import {
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { execSync, spawnSync } from "../helpers/isolated-env.js";
 
 function stdoutToString(stdout: unknown): string {
   if (typeof stdout === "string") return stdout;

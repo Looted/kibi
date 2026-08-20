@@ -30,7 +30,7 @@ export function isolatedUnitBatchEnv(
   };
   // Proof CI sets KIBI_BRANCH for the dogfood detached HEAD. Unit batches are
   // independent Git sandboxes and must resolve their own branch identity.
-  delete env.KIBI_BRANCH;
+  Reflect.deleteProperty(env, "KIBI_BRANCH");
   return env;
 }
 

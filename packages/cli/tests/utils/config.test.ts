@@ -14,15 +14,15 @@ import {
 import * as os from "node:os";
 import * as path from "node:path";
 import {
-  CANONICAL_ENTITY_PATHS,
-  LEGACY_DEFAULT_ENTITY_PATHS,
-} from "../../src/utils/kb-paths.js";
-import {
   legacyConfigExists,
   loadEntityPaths,
   readLegacyKbConfig,
   resolveLegacyEntityPaths,
 } from "../../src/utils/config.js";
+import {
+  CANONICAL_ENTITY_PATHS,
+  LEGACY_DEFAULT_ENTITY_PATHS,
+} from "../../src/utils/kb-paths.js";
 
 describe("config (canonical contract)", () => {
   let tmpDir: string;
@@ -70,7 +70,9 @@ describe("config (canonical contract)", () => {
     if (result.kind !== "present") return;
 
     expect(result.config.schemaVersion).toBe(4);
-    expect(result.config.paths?.requirements).toBe("documentation/requirements");
+    expect(result.config.paths?.requirements).toBe(
+      "documentation/requirements",
+    );
     expect(result.config.paths?.symbols).toBe("documentation/symbols.yaml");
   });
 

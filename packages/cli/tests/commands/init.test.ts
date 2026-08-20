@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { execSync, isolatedCliSandboxEnv } from "../helpers/isolated-env.js";
 import {
   existsSync,
   mkdirSync,
@@ -13,6 +12,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { branchStorePath } from "../../src/utils/branch-store-locator.js";
 import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
+import { execSync, isolatedCliSandboxEnv } from "../helpers/isolated-env.js";
 
 describe("kibi init", () => {
   let tmpDir: string;
@@ -316,7 +316,9 @@ describe("kibi init", () => {
       "utf8",
     );
     expect(workflow).toContain("kibi report --output kibi-report");
-    expect(workflow).toContain("KIBI_BRANCH: ${{ github.head_ref || github.ref_name }}");
+    expect(workflow).toContain(
+      "KIBI_BRANCH: ${{ github.head_ref || github.ref_name }}",
+    );
     expect(workflow).toContain("pull_request:");
     expect(workflow).not.toContain("pull_request_target");
     expect(workflow).toContain("name: kibi-pr-report");

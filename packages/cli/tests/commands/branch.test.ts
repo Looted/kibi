@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { execSync, isolatedCliSandboxEnv } from "../helpers/isolated-env.js";
 import {
   existsSync,
   mkdtempSync,
@@ -15,6 +14,7 @@ import {
   branchStoreKey,
   branchStorePath,
 } from "../../src/utils/branch-store-locator.js";
+import { execSync, isolatedCliSandboxEnv } from "../helpers/isolated-env.js";
 
 describe("kibi branch lifecycle", () => {
   const kibiBin = path.resolve(__dirname, "../../bin/kibi");

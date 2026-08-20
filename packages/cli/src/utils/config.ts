@@ -192,7 +192,8 @@ export function resolveLegacyEntityPaths(
     events: pick("events"),
     facts: pick("facts"),
     symbols:
-      typeof symbolsConfigured === "string" && symbolsConfigured.trim().length > 0
+      typeof symbolsConfigured === "string" &&
+      symbolsConfigured.trim().length > 0
         ? symbolsConfigured.trim()
         : LEGACY_DEFAULT_ENTITY_PATHS.symbols,
   };

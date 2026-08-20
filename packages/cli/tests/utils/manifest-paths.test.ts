@@ -20,8 +20,11 @@ afterEach(() => {
 
 describe("manifest path resolver", () => {
   test("resolves canonical manifest and coordinate paths", async () => {
-    const { resolveSymbolsManifestPaths, DEFAULT_SYMBOLS_PATH, DEFAULT_COORDINATES_PATH } =
-      await import(manifestPathsModulePath);
+    const {
+      resolveSymbolsManifestPaths,
+      DEFAULT_SYMBOLS_PATH,
+      DEFAULT_COORDINATES_PATH,
+    } = await import(manifestPathsModulePath);
 
     const workspaceRoot = createWorkspace();
     const result = resolveSymbolsManifestPaths(workspaceRoot);
@@ -35,7 +38,9 @@ describe("manifest path resolver", () => {
   });
 
   test("backward compatible wrapper returns only the symbols path", async () => {
-    const { resolveSymbolsManifestPath } = await import(manifestPathsModulePath);
+    const { resolveSymbolsManifestPath } = await import(
+      manifestPathsModulePath
+    );
 
     const workspaceRoot = createWorkspace();
     expect(resolveSymbolsManifestPath(workspaceRoot)).toBe(
@@ -44,7 +49,9 @@ describe("manifest path resolver", () => {
   });
 
   test("ignores legacy config.json and always uses canonical paths", async () => {
-    const { resolveSymbolsManifestPaths } = await import(manifestPathsModulePath);
+    const { resolveSymbolsManifestPaths } = await import(
+      manifestPathsModulePath
+    );
 
     const workspaceRoot = createWorkspace();
     mkdirSync(join(workspaceRoot, ".kb"), { recursive: true });

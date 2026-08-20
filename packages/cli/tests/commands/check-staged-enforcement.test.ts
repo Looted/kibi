@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { execSync, spawnSync } from "../helpers/isolated-env.js";
 import {
   existsSync,
   mkdirSync,
@@ -14,6 +13,7 @@ import {
   semanticClaimKey,
 } from "../../src/operations/semantic-advisor/clauses.js";
 import { semanticSourceHash } from "../../src/operations/semantic-advisor/shared.js";
+import { execSync, spawnSync } from "../helpers/isolated-env.js";
 
 type FileMap = Record<string, string>;
 
@@ -76,13 +76,10 @@ function syncKb(kibiBin: string, cwd: string, args: string[] = []): void {
 
 function commitRefreshedCoordinates(kibiBin: string, cwd: string): void {
   syncKb(kibiBin, cwd, ["--refresh-symbol-coordinates"]);
-  execSync(
-    "git add .kb/symbol-coordinates.yaml .kb/symbols.yaml",
-    {
-      cwd,
-      stdio: "pipe",
-    },
-  );
+  execSync("git add .kb/symbol-coordinates.yaml .kb/symbols.yaml", {
+    cwd,
+    stdio: "pipe",
+  });
   execSync('git commit -m "refresh symbol coordinates" --no-verify', {
     cwd,
     stdio: "pipe",
@@ -506,13 +503,10 @@ describe("kibi check --staged impact enforcement", () => {
       commitAll(tmpDir, "initial");
 
       writeFiles(tmpDir, createMultiRequirementSymbolFixture());
-      execSync(
-        "git add .kb/requirements .kb/symbols.yaml",
-        {
-          cwd: tmpDir,
-          stdio: "pipe",
-        },
-      );
+      execSync("git add .kb/requirements .kb/symbols.yaml", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       const { status, stdout, stderr } = runKibi(
         kibiBin,
@@ -565,13 +559,10 @@ describe("kibi check --staged impact enforcement", () => {
         tmpDir,
         "Updated to reflect the staged greeting change.",
       );
-      execSync(
-        "git add src/greet.ts .kb/requirements/REQ-BEHAVIOR-001.md",
-        {
-          cwd: tmpDir,
-          stdio: "pipe",
-        },
-      );
+      execSync("git add src/greet.ts .kb/requirements/REQ-BEHAVIOR-001.md", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       const { status, stdout, stderr } = runKibi(
         kibiBin,
@@ -627,13 +618,10 @@ describe("kibi check --staged impact enforcement", () => {
         tmpDir,
         "Staged requirement note proving KB evidence exists for this edit.",
       );
-      execSync(
-        "git add src/greet.ts .kb/requirements/REQ-BEHAVIOR-001.md",
-        {
-          cwd: tmpDir,
-          stdio: "pipe",
-        },
-      );
+      execSync("git add src/greet.ts .kb/requirements/REQ-BEHAVIOR-001.md", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       const { status, stdout, stderr } = runKibi(
         kibiBin,
@@ -666,13 +654,10 @@ describe("kibi check --staged impact enforcement", () => {
         "Staged requirement note proving KB evidence exists for this edit.",
       );
       syncKb(kibiBin, tmpDir, ["--refresh-symbol-coordinates"]);
-      execSync(
-        "git add src/greet.ts .kb/requirements/REQ-BEHAVIOR-001.md",
-        {
-          cwd: tmpDir,
-          stdio: "pipe",
-        },
-      );
+      execSync("git add src/greet.ts .kb/requirements/REQ-BEHAVIOR-001.md", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       const { status, stdout, stderr } = runKibi(
         kibiBin,
@@ -818,10 +803,10 @@ describe("kibi check --staged impact enforcement", () => {
         tmpDir,
         "Staged requirement note proving KB evidence exists for this edit.",
       );
-      execSync(
-        "git add src/greet.ts .kb/requirements/REQ-GRANULAR-001.md",
-        { cwd: tmpDir, stdio: "pipe" },
-      );
+      execSync("git add src/greet.ts .kb/requirements/REQ-GRANULAR-001.md", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       const { status, stdout, stderr } = runKibi(
         kibiBin,

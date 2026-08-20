@@ -1,5 +1,4 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { execSync } from "../helpers/isolated-env.js";
 import {
   existsSync,
   mkdirSync,
@@ -13,6 +12,7 @@ import path from "node:path";
 import { renderCoverageTable } from "../../src/commands/discovery-shared.js";
 import type { LegacyMigrationPlan } from "../../src/public/operations/legacy-migration-plan.js";
 import { branchStorePath } from "../../src/utils/branch-store-locator.js";
+import { execSync } from "../helpers/isolated-env.js";
 
 describe("kibi coverage", () => {
   let tmpDir: string;

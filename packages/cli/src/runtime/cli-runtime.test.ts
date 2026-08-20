@@ -66,7 +66,7 @@ describe("CLI operation runtime", () => {
   const originalKibiBranch = process.env.KIBI_BRANCH;
 
   beforeAll(() => {
-    delete process.env.KIBI_BRANCH;
+    Reflect.deleteProperty(process.env, "KIBI_BRANCH");
     _setBranchResolverDepsForTests({
       execSync: fakeBranchExecSync("feature/runtime"),
     });
@@ -74,7 +74,7 @@ describe("CLI operation runtime", () => {
 
   afterAll(() => {
     if (originalKibiBranch === undefined) {
-      delete process.env.KIBI_BRANCH;
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
     } else {
       process.env.KIBI_BRANCH = originalKibiBranch;
     }

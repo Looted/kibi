@@ -9,7 +9,9 @@ describe("isolatedMcpSandboxEnv", () => {
       const stripped = isolatedMcpSandboxEnv();
       expect(stripped.KIBI_BRANCH).toBeUndefined();
       expect("KIBI_BRANCH" in stripped).toBe(false);
-      expect(isolatedMcpSandboxEnv({ ...process.env }).KIBI_BRANCH).toBeUndefined();
+      expect(
+        isolatedMcpSandboxEnv({ ...process.env }).KIBI_BRANCH,
+      ).toBeUndefined();
       expect(
         isolatedMcpSandboxEnv({ KIBI_WORKSPACE: "/tmp/sandbox" }).KIBI_BRANCH,
       ).toBeUndefined();
@@ -18,7 +20,7 @@ describe("isolatedMcpSandboxEnv", () => {
       );
     } finally {
       if (original === undefined) {
-        delete process.env.KIBI_BRANCH;
+        Reflect.deleteProperty(process.env, "KIBI_BRANCH");
       } else {
         process.env.KIBI_BRANCH = original;
       }

@@ -95,12 +95,12 @@ export async function runMCPAdapter(
     throw new TypeError("Invalid MCP parity adapter module");
   }
   const originalKibiBranch = process.env.KIBI_BRANCH;
-  delete process.env.KIBI_BRANCH;
+  Reflect.deleteProperty(process.env, "KIBI_BRANCH");
   try {
     return await adapter.runMcpOperation(workspaceRoot, opName, input);
   } finally {
     if (originalKibiBranch === undefined) {
-      delete process.env.KIBI_BRANCH;
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
     } else {
       process.env.KIBI_BRANCH = originalKibiBranch;
     }

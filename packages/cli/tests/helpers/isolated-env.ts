@@ -1,11 +1,11 @@
 import {
-  execFileSync as nodeExecFileSync,
-  execSync as nodeExecSync,
-  spawnSync as nodeSpawnSync,
   type ExecFileSyncOptions,
   type ExecSyncOptions,
   type SpawnSyncOptions,
   type SpawnSyncReturns,
+  execFileSync as nodeExecFileSync,
+  execSync as nodeExecSync,
+  spawnSync as nodeSpawnSync,
 } from "node:child_process";
 
 /**
@@ -22,7 +22,7 @@ export function isolatedCliSandboxEnv(
   overrides: NodeJS.ProcessEnv = {},
 ): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = { ...process.env, ...overrides };
-  delete env.KIBI_BRANCH;
+  Reflect.deleteProperty(env, "KIBI_BRANCH");
   const explicit = overrides.KIBI_BRANCH;
   if (
     typeof explicit === "string" &&

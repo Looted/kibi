@@ -1,6 +1,5 @@
 // @ts-ignore
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { execSync, spawnSync } from "../helpers/isolated-env.js";
 import {
   existsSync,
   mkdirSync,
@@ -15,6 +14,7 @@ import {
   semanticClaimKey,
 } from "../../src/operations/semantic-advisor/clauses.js";
 import { semanticSourceHash } from "../../src/operations/semantic-advisor/shared.js";
+import { execSync, spawnSync } from "../helpers/isolated-env.js";
 
 type FileMap = Record<string, string>;
 
@@ -156,13 +156,10 @@ ${note}
 
 function commitRefreshedManifest(kibiBin: string, cwd: string): void {
   syncKb(kibiBin, cwd, ["--refresh-symbol-coordinates"]);
-  execSync(
-    "git add .kb/symbol-coordinates.yaml .kb/symbols.yaml",
-    {
-      cwd,
-      stdio: "pipe",
-    },
-  );
+  execSync("git add .kb/symbol-coordinates.yaml .kb/symbols.yaml", {
+    cwd,
+    stdio: "pipe",
+  });
   execSync('git commit -m "refresh manifest" --no-verify', {
     cwd,
     stdio: "pipe",
@@ -211,20 +208,14 @@ describe("kibi check --staged stale symbols manifest detection", () => {
         "Staged requirement note proving KB evidence exists for this edit.",
       );
       syncKb(kibiBin, tmpDir, ["--refresh-symbol-coordinates"]);
-      execSync(
-        "git checkout -- .kb/symbol-coordinates.yaml .kb/symbols.yaml",
-        {
-          cwd: tmpDir,
-          stdio: "pipe",
-        },
-      );
-      execSync(
-        "git add src/greet.ts .kb/requirements/REQ-GREET-001.md",
-        {
-          cwd: tmpDir,
-          stdio: "pipe",
-        },
-      );
+      execSync("git checkout -- .kb/symbol-coordinates.yaml .kb/symbols.yaml", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync("git add src/greet.ts .kb/requirements/REQ-GREET-001.md", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       const { status, stdout, stderr } = runKibi(
         kibiBin,
@@ -349,17 +340,14 @@ status: open
         tmpDir,
         "Staged requirement note proving KB evidence exists for this edit.",
       );
-      execSync(
-        "git checkout -- .kb/symbol-coordinates.yaml .kb/symbols.yaml",
-        {
-          cwd: tmpDir,
-          stdio: "pipe",
-        },
-      );
-      execSync(
-        "git add src/greet.ts .kb/requirements/REQ-GREET-001.md",
-        { cwd: tmpDir, stdio: "pipe" },
-      );
+      execSync("git checkout -- .kb/symbol-coordinates.yaml .kb/symbols.yaml", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync("git add src/greet.ts .kb/requirements/REQ-GREET-001.md", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       const { status, stdout, stderr } = runKibi(
         kibiBin,

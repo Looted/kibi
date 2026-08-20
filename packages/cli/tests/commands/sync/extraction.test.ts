@@ -125,10 +125,7 @@ describe("processExtractions", () => {
       .mockReturnValueOnce(result2);
 
     const result = await processExtractions(
-      [
-        ".kb/requirements/REQ-001.md",
-        ".kb/requirements/REQ-002.md",
-      ],
+      [".kb/requirements/REQ-001.md", ".kb/requirements/REQ-002.md"],
       [],
       true,
     );
@@ -155,9 +152,7 @@ describe("processExtractions", () => {
   });
 
   test("dry run mode collects errors without stopping", async () => {
-    const manifestResults = [
-      makeResult({ source: ".kb/symbols.yaml" }),
-    ];
+    const manifestResults = [makeResult({ source: ".kb/symbols.yaml" })];
     mockExtractFromManifest.mockReturnValueOnce(manifestResults);
     mockExtractFromMarkdown.mockImplementation(() => {
       throw new Error("Markdown parse error");
@@ -172,9 +167,7 @@ describe("processExtractions", () => {
     // Markdown extraction was attempted but failed
     expect(mockExtractFromMarkdown).toHaveBeenCalled();
     // Manifest extraction still works
-    expect(mockExtractFromManifest).toHaveBeenCalledWith(
-      ".kb/symbols.yaml",
-    );
+    expect(mockExtractFromManifest).toHaveBeenCalledWith(".kb/symbols.yaml");
     // Errors are collected
     expect(result.errors.length).toBeGreaterThan(0);
   });
@@ -265,11 +258,7 @@ describe("processExtractions edge cases", () => {
     const manifestResults = [makeResult()];
     mockExtractFromManifest.mockReturnValueOnce(manifestResults);
 
-    const result = await processExtractions(
-      [],
-      [".kb/symbols.yaml"],
-      true,
-    );
+    const result = await processExtractions([], [".kb/symbols.yaml"], true);
 
     expect(result.results).toHaveLength(1);
     expect(mockExtractFromManifest).toHaveBeenCalledTimes(1);
@@ -278,11 +267,7 @@ describe("processExtractions edge cases", () => {
   test("handles manifest extraction returning empty array", async () => {
     mockExtractFromManifest.mockReturnValueOnce([]);
 
-    const result = await processExtractions(
-      [],
-      [".kb/symbols.yaml"],
-      true,
-    );
+    const result = await processExtractions([], [".kb/symbols.yaml"], true);
 
     expect(result.results).toEqual([]);
     expect(result.errors).toEqual([]);

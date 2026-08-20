@@ -200,9 +200,7 @@ describe("shared check operation executor", () => {
 
       expect(capturedQuery).toContain("check_all_json_with_options");
       expect(capturedQuery).toContain("false");
-      expect(capturedQuery).not.toMatch(
-        /check_all_json_with_options\(\s*true/,
-      );
+      expect(capturedQuery).not.toMatch(/check_all_json_with_options\(\s*true/);
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });
     }

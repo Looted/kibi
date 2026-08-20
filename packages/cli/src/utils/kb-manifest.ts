@@ -17,7 +17,13 @@
  */
 
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  writeFileSync,
+} from "node:fs";
 import * as path from "node:path";
 import { KB_PATHS } from "./kb-paths.js";
 import { LATEST_KB_SCHEMA_VERSION } from "./schema-version.js";
@@ -109,9 +115,7 @@ function validateManifest(parsed: unknown): KbManifest | null {
   };
 }
 
-export function readKbManifestStatus(
-  workspaceRoot: string,
-): KbManifestStatus {
+export function readKbManifestStatus(workspaceRoot: string): KbManifestStatus {
   const manifestPath = manifestPathFor(workspaceRoot);
   if (!existsSync(manifestPath)) {
     return {
@@ -170,9 +174,7 @@ export function readKbManifestStatus(
   return { state: "ok", manifest, manifestHash };
 }
 
-export function readKbManifest(
-  workspaceRoot: string,
-): KbManifest | null {
+export function readKbManifest(workspaceRoot: string): KbManifest | null {
   const status = readKbManifestStatus(workspaceRoot);
   return status.state === "ok" ? status.manifest : null;
 }

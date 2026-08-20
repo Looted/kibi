@@ -86,10 +86,7 @@ function loadPredicateFirstGraph(): GraphFixture {
   const testIdentity = parseMarkdown(
     ".kb/tests/TEST-skillopt-predicate-first-requirements.md",
   );
-  const symbols = readFileSync(
-    path.join(ROOT, ".kb/symbols.yaml"),
-    "utf8",
-  );
+  const symbols = readFileSync(path.join(ROOT, ".kb/symbols.yaml"), "utf8");
   const symbolBlock = symbols.match(
     new RegExp(
       `^([ \\t]*)- id: ${TEST_SYMBOL_ID}\\n([\\s\\S]*?)(?=^\\1- id: |$(?![\\s\\S]))`,

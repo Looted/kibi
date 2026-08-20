@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { spawnSync } from "../helpers/isolated-env.js";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { branchStoreKey } from "../../src/utils/branch-store-locator.js";
+import { spawnSync } from "../helpers/isolated-env.js";
 
 const kibiBin = path.resolve(__dirname, "../../bin/kibi");
 

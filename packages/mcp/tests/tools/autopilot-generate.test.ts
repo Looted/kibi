@@ -516,12 +516,7 @@ describe.serial("autopilot generate", () => {
     await fs.mkdir(path.join(tmp, ".kb", "requirements"), {
       recursive: true,
     });
-    const keepPath = path.join(
-      tmp,
-      ".kb",
-      "requirements",
-      "REQ-KEEP.md",
-    );
+    const keepPath = path.join(tmp, ".kb", "requirements", "REQ-KEEP.md");
     // Make this a typed Kibi doc (YAML frontmatter) so typed candidate generation includes it
     await fs.writeFile(
       keepPath,

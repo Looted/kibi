@@ -82,10 +82,7 @@ if (RUN_NODE_TEST_SUITE) {
           recursive: true,
         });
         writeFileSync(
-          join(
-            sandbox.repoDir,
-            ".kb/facts/FACT-SCHEMA-PACKED-BINDING.md",
-          ),
+          join(sandbox.repoDir, ".kb/facts/FACT-SCHEMA-PACKED-BINDING.md"),
           `---
 id: FACT-SCHEMA-PACKED-BINDING
 title: Packed binding rule schema
@@ -103,10 +100,7 @@ tags: [packed, convergence, binding]
 Defines the packed convergence binding relation.
 `,
         );
-        stageSourceFile(
-          sandbox,
-          ".kb/facts/FACT-SCHEMA-PACKED-BINDING.md",
-        );
+        stageSourceFile(sandbox, ".kb/facts/FACT-SCHEMA-PACKED-BINDING.md");
         assert.strictEqual((await kibi(sandbox, ["sync"])).exitCode, 0);
 
         const prose =
@@ -188,10 +182,7 @@ Fixture subject.
           ],
         ] as const) {
           writeFileSync(
-            join(
-              sandbox.repoDir,
-              `.kb/facts/FACT-PACKED-${suffix}.md`,
-            ),
+            join(sandbox.repoDir, `.kb/facts/FACT-PACKED-${suffix}.md`),
             `---
 id: FACT-PACKED-${suffix}
 title: Packed quota ${suffix}
@@ -213,10 +204,7 @@ Fixture value ${suffix}.
 `,
           );
           writeFileSync(
-            join(
-              sandbox.repoDir,
-              `.kb/requirements/REQ-PACKED-${suffix}.md`,
-            ),
+            join(sandbox.repoDir, `.kb/requirements/REQ-PACKED-${suffix}.md`),
             `---
 id: REQ-PACKED-${suffix}
 title: Packed contradiction ${suffix}

@@ -1,8 +1,8 @@
 import path from "node:path";
 
 import type { OperationContext } from "../../public/operations/runtime-types.js";
-import { KB_PATHS } from "../../utils/kb-paths.js";
 import { readKbManifestStatus } from "../../utils/kb-manifest.js";
+import { KB_PATHS } from "../../utils/kb-paths.js";
 import type { ActivationPolicy, ActivationState } from "./types.js";
 
 function activationFor(state: ActivationState): ActivationPolicy {

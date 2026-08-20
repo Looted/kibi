@@ -1,9 +1,9 @@
 import {
-  execSync as nodeExecSync,
-  spawnSync as nodeSpawnSync,
   type ExecSyncOptions,
   type SpawnSyncOptions,
   type SpawnSyncReturns,
+  execSync as nodeExecSync,
+  spawnSync as nodeSpawnSync,
 } from "node:child_process";
 
 /**
@@ -22,7 +22,7 @@ export function isolatedMcpSandboxEnv(
   overrides: NodeJS.ProcessEnv = {},
 ): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = { ...process.env, ...overrides };
-  delete env.KIBI_BRANCH;
+  Reflect.deleteProperty(env, "KIBI_BRANCH");
   const explicit = overrides.KIBI_BRANCH;
   if (
     typeof explicit === "string" &&
@@ -35,7 +35,7 @@ export function isolatedMcpSandboxEnv(
 }
 
 export function clearHostKibiBranch(): void {
-  delete process.env.KIBI_BRANCH;
+  Reflect.deleteProperty(process.env, "KIBI_BRANCH");
 }
 
 export function execSync(

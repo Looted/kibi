@@ -60,10 +60,7 @@ function prepareDiscoveryWorkspace(): string {
   if (init.status !== 0) {
     throw new Error(init.stderr || `CLI init exited ${init.status}`);
   }
-  const requirementsDir = path.join(
-    workspaceRoot,
-    ".kb/requirements",
-  );
+  const requirementsDir = path.join(workspaceRoot, ".kb/requirements");
   mkdirSync(requirementsDir, { recursive: true });
   writeFileSync(
     path.join(requirementsDir, "REQ-mcp-search-discovery.md"),

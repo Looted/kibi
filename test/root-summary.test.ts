@@ -24,7 +24,7 @@ describe("getBatchFailureMessage", () => {
       expect(env.KIBI_RUNTIME_DIR).toBe("/tmp/kibi-unit-runtime");
     } finally {
       if (original === undefined) {
-        delete process.env.KIBI_BRANCH;
+        Reflect.deleteProperty(process.env, "KIBI_BRANCH");
       } else {
         process.env.KIBI_BRANCH = original;
       }

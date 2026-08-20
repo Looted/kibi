@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { execFileSync, execSync, spawnSync } from "../helpers/isolated-env.js";
 import {
   closeSync,
   copyFileSync,
@@ -24,6 +23,7 @@ import {
 } from "../../src/operations/semantic-advisor/clauses.js";
 import { semanticSourceHash } from "../../src/operations/semantic-advisor/shared.js";
 import { PrologProcess, type QueryResult } from "../../src/prolog.js";
+import { execFileSync, execSync, spawnSync } from "../helpers/isolated-env.js";
 
 interface Deferred<T> {
   promise: Promise<T>;

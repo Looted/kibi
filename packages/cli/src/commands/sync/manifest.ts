@@ -107,8 +107,13 @@ export function isCoarseGranularityAnchor(entry: ManifestSymbolEntry): boolean {
 function extractedCoordinates(
   entry: ManifestSymbolEntry,
 ): SymbolCoordinatesRecord | null {
-  const { sourceFile, sourceLine, sourceColumn, sourceEndLine, sourceEndColumn } =
-    entry;
+  const {
+    sourceFile,
+    sourceLine,
+    sourceColumn,
+    sourceEndLine,
+    sourceEndColumn,
+  } = entry;
   return typeof sourceFile === "string" &&
     typeof sourceLine === "number" &&
     typeof sourceColumn === "number" &&

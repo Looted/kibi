@@ -17,12 +17,7 @@
 */
 
 import { execFileSync } from "node:child_process";
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -31,8 +26,7 @@ const __dirname = path.dirname(__filename);
 
 export const GITHUB_REPORT_WORKFLOW_RELPATH =
   ".github/workflows/kibi-report.yml";
-export const GITHUB_BADGE_WORKFLOW_RELPATH =
-  ".github/workflows/kibi-badge.yml";
+export const GITHUB_BADGE_WORKFLOW_RELPATH = ".github/workflows/kibi-badge.yml";
 export const GITHUB_PAGES_NAMESPACE = "kibi-report";
 export const KIBI_BADGE_ALT = "Kibi requirement health";
 export const KIBI_METRIC_DOCS_URL =
@@ -191,7 +185,10 @@ export function detectReadmePath(cwd: string): string | undefined {
   return undefined;
 }
 
-export function insertKibiBadge(content: string, badgeMarkdown: string): string {
+export function insertKibiBadge(
+  content: string,
+  badgeMarkdown: string,
+): string {
   const newline = content.includes("\r\n") ? "\r\n" : "\n";
   const lines = content.split(/\r?\n/);
   let h1Index = -1;
@@ -202,10 +199,7 @@ export function insertKibiBadge(content: string, badgeMarkdown: string): string 
     }
   }
 
-  const clusterEnd = findBadgeClusterEnd(
-    lines,
-    h1Index >= 0 ? h1Index + 1 : 0,
-  );
+  const clusterEnd = findBadgeClusterEnd(lines, h1Index >= 0 ? h1Index + 1 : 0);
   if (h1Index >= 0) {
     const insertAt = clusterEnd > h1Index + 1 ? clusterEnd : h1Index + 1;
     return insertLine(lines, insertAt, badgeMarkdown, newline);
@@ -238,7 +232,9 @@ export function listGitRemotes(cwd: string): GitRemote[] {
   }
 }
 
-export function resolveGitHubRepo(remotes: readonly GitRemote[]): GitHubRepo | undefined {
+export function resolveGitHubRepo(
+  remotes: readonly GitRemote[],
+): GitHubRepo | undefined {
   const parsed = remotes
     .map((remote) => ({ remote, repo: parseGitHubRemote(remote.url) }))
     .filter(
@@ -364,7 +360,9 @@ function updateReadmeBadge(
     error(
       "Warning: Could not determine a github.com owner/repository from git remotes.",
     );
-    error("Did not invent a badge URL. Add this Markdown after replacing OWNER/REPOSITORY:");
+    error(
+      "Did not invent a badge URL. Add this Markdown after replacing OWNER/REPOSITORY:",
+    );
     log(markdown);
     if (!readmePath) {
       return "printed";
@@ -380,7 +378,7 @@ function updateReadmeBadge(
 
   const existing = readFileSync(readmePath, "utf8");
   if (hasKibiBadge(existing)) {
-    log(`✓ README already contains the Kibi requirement-health badge`);
+    log("✓ README already contains the Kibi requirement-health badge");
     return "unchanged";
   }
 
@@ -438,7 +436,11 @@ function insertLine(
       : [""];
   const suffixBlank =
     after.length === 0 || (after[0] ?? "").trim() === "" ? [] : [""];
-  return [...before, ...prefixBlank, badgeMarkdown, ...suffixBlank, ...after].join(
-    newline,
-  );
+  return [
+    ...before,
+    ...prefixBlank,
+    badgeMarkdown,
+    ...suffixBlank,
+    ...after,
+  ].join(newline);
 }

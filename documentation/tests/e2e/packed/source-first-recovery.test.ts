@@ -88,10 +88,7 @@ if (RUN_NODE_TEST_SUITE) {
       assert.doesNotMatch(after.stdout, /REQ-UNTRACKED-E2E/);
 
       const trackedContent = readFileSync(
-        join(
-          sandbox.repoDir,
-          ".kb/requirements/REQ-SOURCE-FIRST-E2E.md",
-        ),
+        join(sandbox.repoDir, ".kb/requirements/REQ-SOURCE-FIRST-E2E.md"),
         "utf8",
       );
       assert.match(trackedContent, /The source file is authoritative/);

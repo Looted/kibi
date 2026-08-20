@@ -3,11 +3,11 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import type { OperationContext } from "kibi-cli/operations/runtime-types";
+import type { PrologProcess } from "kibi-cli/prolog";
 import {
   branchStorePath,
   ensureBranchStoreManifest,
 } from "kibi-cli/public/branch-resolver";
-import type { PrologProcess } from "kibi-cli/prolog";
 import { handleKbCoverage } from "../../src/tools/coverage.js";
 import { handleKbFindGaps } from "../../src/tools/find-gaps.js";
 import { handleKbGraph } from "../../src/tools/graph.js";
@@ -17,7 +17,9 @@ import { handleKbStatus } from "../../src/tools/status.js";
 const tempRoots: string[] = [];
 
 function isolatedWorkspace(): string {
-  const workspaceRoot = mkdtempSync(path.join(tmpdir(), "kibi-mcp-status-err-"));
+  const workspaceRoot = mkdtempSync(
+    path.join(tmpdir(), "kibi-mcp-status-err-"),
+  );
   tempRoots.push(workspaceRoot);
   return workspaceRoot;
 }

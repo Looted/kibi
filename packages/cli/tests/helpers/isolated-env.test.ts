@@ -9,19 +9,22 @@ describe("isolatedCliSandboxEnv", () => {
       const stripped = isolatedCliSandboxEnv();
       expect(stripped.KIBI_BRANCH).toBeUndefined();
       expect("KIBI_BRANCH" in stripped).toBe(false);
-      expect(isolatedCliSandboxEnv({ ...process.env }).KIBI_BRANCH).toBeUndefined();
+      expect(
+        isolatedCliSandboxEnv({ ...process.env }).KIBI_BRANCH,
+      ).toBeUndefined();
       expect(
         isolatedCliSandboxEnv({ KIBI_WORKSPACE: "/tmp/sandbox" }).KIBI_BRANCH,
       ).toBeUndefined();
-      expect(isolatedCliSandboxEnv({ KIBI_WORKSPACE: "/tmp/sandbox" }).KIBI_WORKSPACE).toBe(
-        "/tmp/sandbox",
-      );
+      expect(
+        isolatedCliSandboxEnv({ KIBI_WORKSPACE: "/tmp/sandbox" })
+          .KIBI_WORKSPACE,
+      ).toBe("/tmp/sandbox");
       expect(isolatedCliSandboxEnv({ KIBI_BRANCH: "trunk" }).KIBI_BRANCH).toBe(
         "trunk",
       );
     } finally {
       if (original === undefined) {
-        delete process.env.KIBI_BRANCH;
+        Reflect.deleteProperty(process.env, "KIBI_BRANCH");
       } else {
         process.env.KIBI_BRANCH = original;
       }

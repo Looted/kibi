@@ -3,11 +3,11 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import type { OperationContext } from "kibi-cli/operations/runtime-types";
+import type { PrologProcess } from "kibi-cli/prolog";
 import {
   branchStorePath,
   ensureBranchStoreManifest,
 } from "kibi-cli/public/branch-resolver";
-import type { PrologProcess } from "kibi-cli/prolog";
 import { createMcpRuntime } from "../../src/runtime/mcp-runtime.js";
 import { registerAllTools } from "../../src/server/tools.js";
 import { TOOLS } from "../../src/tools-config.js";

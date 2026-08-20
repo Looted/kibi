@@ -103,14 +103,8 @@ describe("sync scheduler", () => {
       const schedulerA = makeScheduler(worktreeA);
       const schedulerB = makeScheduler(worktreeB);
 
-      schedulerA.scheduleSync(
-        "file.edited",
-        ".kb/requirements/REQ-A.md",
-      );
-      schedulerB.scheduleSync(
-        "file.edited",
-        ".kb/requirements/REQ-B.md",
-      );
+      schedulerA.scheduleSync("file.edited", ".kb/requirements/REQ-A.md");
+      schedulerB.scheduleSync("file.edited", ".kb/requirements/REQ-B.md");
 
       await schedulerA.flush();
       assert.deepEqual(runs, [path.resolve(worktreeA)]);
@@ -260,10 +254,7 @@ test("file.created reason treated same as file.edited for sync scheduling", asyn
     },
   });
 
-  scheduler.scheduleSync(
-    "file.created",
-    ".kb/requirements/REQ-001.md",
-  );
+  scheduler.scheduleSync("file.created", ".kb/requirements/REQ-001.md");
 
   clock.advance(99);
   assert.equal(runs, 0);
@@ -292,10 +283,7 @@ test("file.deleted reason treated same as file.edited for sync scheduling", asyn
     },
   });
 
-  scheduler.scheduleSync(
-    "file.deleted",
-    ".kb/requirements/REQ-001.md",
-  );
+  scheduler.scheduleSync("file.deleted", ".kb/requirements/REQ-001.md");
 
   clock.advance(99);
   assert.equal(runs, 0);
@@ -386,11 +374,9 @@ test("onRunComplete exposes check failure via checkExitCode", async () => {
     },
   });
 
-  scheduler.scheduleSync(
-    "file.edited",
-    ".kb/requirements/REQ-006.md",
-    ["required-fields"],
-  );
+  scheduler.scheduleSync("file.edited", ".kb/requirements/REQ-006.md", [
+    "required-fields",
+  ]);
   clock.advance(100);
   await flushAsync();
 
@@ -888,17 +874,11 @@ test("smart-enforcement trailing sync.failed produces zero raw console.error", a
       },
     });
 
-    scheduler.scheduleSync(
-      "smart-enforcement.kb-doc",
-      ".kb/facts/FACT-001.md",
-    );
+    scheduler.scheduleSync("smart-enforcement.kb-doc", ".kb/facts/FACT-001.md");
     clock.advance(100);
     await flushAsync();
 
-    scheduler.scheduleSync(
-      "smart-enforcement.kb-doc",
-      ".kb/facts/FACT-002.md",
-    );
+    scheduler.scheduleSync("smart-enforcement.kb-doc", ".kb/facts/FACT-002.md");
     clock.advance(100);
     await flushAsync();
 

@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { spawnSync } from "../helpers/isolated-env.js";
 import {
   existsSync,
   mkdirSync,
@@ -12,6 +11,7 @@ import {
 import os from "node:os";
 import path from "node:path";
 import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
+import { spawnSync } from "../helpers/isolated-env.js";
 
 const kibiCliEntry = path.resolve(__dirname, "../../src/cli.ts");
 

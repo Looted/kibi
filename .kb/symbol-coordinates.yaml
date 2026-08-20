@@ -341,25 +341,25 @@ coordinates:
   SYM-DEFAULT-CONFIG:
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 200
+    sourceEndLine: 201
     sourceFile: packages/cli/src/utils/config.ts
     sourceLine: 1
   SYM-DEFAULT-COORDINATES-PATH:
     sourceColumn: 13
     sourceEndColumn: 66
-    sourceEndLine: 8
+    sourceEndLine: 5
     sourceFile: packages/cli/src/utils/manifest-paths.ts
-    sourceLine: 8
+    sourceLine: 5
   SYM-DEFAULT-SYMBOLS-PATH:
     sourceColumn: 13
     sourceEndColumn: 60
-    sourceEndLine: 7
+    sourceEndLine: 4
     sourceFile: packages/cli/src/utils/manifest-paths.ts
-    sourceLine: 7
+    sourceLine: 4
   SYM-DEFAULT-SYNC-PATHS:
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 200
+    sourceEndLine: 201
     sourceFile: packages/cli/src/utils/config.ts
     sourceLine: 1
   SYM-DEFAULT-TOOLS-RUNTIME:
@@ -809,7 +809,7 @@ coordinates:
   SYM-KbConfig:
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 200
+    sourceEndLine: 201
     sourceFile: packages/cli/src/utils/config.ts
     sourceLine: 1
   SYM-KbFreshnessDecision:
@@ -3395,9 +3395,9 @@ coordinates:
   SYM-canonical-KB_MANIFEST_VERSION:
     sourceColumn: 13
     sourceEndColumn: 36
-    sourceEndLine: 34
+    sourceEndLine: 40
     sourceFile: packages/cli/src/utils/kb-manifest.ts
-    sourceLine: 34
+    sourceLine: 40
   SYM-canonical-KB_PATHS:
     sourceColumn: 13
     sourceEndColumn: 10
@@ -3425,15 +3425,15 @@ coordinates:
   SYM-canonical-KbManifest:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 48
+    sourceEndLine: 54
     sourceFile: packages/cli/src/utils/kb-manifest.ts
-    sourceLine: 41
+    sourceLine: 47
   SYM-canonical-KbManifestStatus:
     sourceColumn: 12
     sourceEndColumn: 6
-    sourceEndLine: 65
+    sourceEndLine: 71
     sourceFile: packages/cli/src/utils/kb-manifest.ts
-    sourceLine: 58
+    sourceLine: 64
   SYM-canonical-KibiTreeDataProvider-getChildren:
     sourceColumn: 8
     sourceEndColumn: 3
@@ -3557,9 +3557,9 @@ coordinates:
   SYM-canonical-SemanticAdvisorBackfill:
     sourceColumn: 12
     sourceEndColumn: 21
-    sourceEndLine: 39
+    sourceEndLine: 45
     sourceFile: packages/cli/src/utils/kb-manifest.ts
-    sourceLine: 36
+    sourceLine: 42
   SYM-canonical-StagedFile:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -3629,9 +3629,9 @@ coordinates:
   SYM-canonical-defaultKbManifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 56
+    sourceEndLine: 62
     sourceFile: packages/cli/src/utils/kb-manifest.ts
-    sourceLine: 50
+    sourceLine: 56
   SYM-canonical-entityLaneForPath:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3737,21 +3737,21 @@ coordinates:
   SYM-canonical-readKbManifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 178
+    sourceEndLine: 180
     sourceFile: packages/cli/src/utils/kb-manifest.ts
-    sourceLine: 173
+    sourceLine: 177
   SYM-canonical-readKbManifestOrDefault:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 183
+    sourceEndLine: 185
     sourceFile: packages/cli/src/utils/kb-manifest.ts
-    sourceLine: 181
+    sourceLine: 183
   SYM-canonical-readKbManifestStatus:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 171
+    sourceEndLine: 175
     sourceFile: packages/cli/src/utils/kb-manifest.ts
-    sourceLine: 112
+    sourceLine: 118
   SYM-canonical-readLegacyChecksHint:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3767,9 +3767,9 @@ coordinates:
   SYM-canonical-refreshSymbolCoordinates:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 111
+    sourceEndLine: 108
     sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
-    sourceLine: 106
+    sourceLine: 103
   SYM-canonical-resolveCheckRules:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3779,7 +3779,7 @@ coordinates:
   SYM-canonical-resolveLegacyEntityPaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 199
+    sourceEndLine: 200
     sourceFile: packages/cli/src/utils/config.ts
     sourceLine: 174
   SYM-canonical-rewritePendingSourceReceiptPaths:
@@ -3791,9 +3791,9 @@ coordinates:
   SYM-canonical-setSymbolRefreshForTests:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 118
+    sourceEndLine: 115
     sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
-    sourceLine: 114
+    sourceLine: 111
   SYM-canonical-shouldHandleFile:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3815,9 +3815,9 @@ coordinates:
   SYM-canonical-writeKbManifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 199
+    sourceEndLine: 201
     sourceFile: packages/cli/src/utils/kb-manifest.ts
-    sourceLine: 192
+    sourceLine: 194
   SYM-canonicalSkillsDir:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -4505,201 +4505,201 @@ coordinates:
   SYM-cli-github-badge-alt:
     sourceColumn: 13
     sourceEndColumn: 55
-    sourceEndLine: 37
+    sourceEndLine: 31
     sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 37
+    sourceLine: 31
   SYM-cli-github-badge-workflow-relpath:
     sourceColumn: 13
-    sourceEndColumn: 36
-    sourceEndLine: 35
+    sourceEndColumn: 79
+    sourceEndLine: 29
     sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 34
+    sourceLine: 29
   SYM-cli-github-detect-readme:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 192
+    sourceEndLine: 186
     sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 184
+    sourceLine: 178
   SYM-cli-github-ensure-gitignore:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 285
+    sourceEndLine: 281
     sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 272
+    sourceLine: 268
   SYM-cli-github-format-badge-markdown:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 163
+    sourceEndLine: 157
     sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 158
+    sourceLine: 152
   SYM-cli-github-gitignore-write-status:
     sourceColumn: 12
     sourceEndColumn: 59
-    sourceEndLine: 70
+    sourceEndLine: 64
     sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 70
+    sourceLine: 64
   SYM-cli-github-has-badge:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 182
+    sourceEndLine: 176
     sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 180
+    sourceLine: 174
   SYM-cli-github-init-deps:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 81
-    sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 77
-  SYM-cli-github-insert-badge:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 220
-    sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 194
-  SYM-cli-github-list-remotes:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 239
-    sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 222
-  SYM-cli-github-load-workflow-template:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 111
-    sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 102
-  SYM-cli-github-metric-docs-url:
-    sourceColumn: 13
-    sourceEndColumn: 95
-    sourceEndLine: 39
-    sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 38
-  SYM-cli-github-pages-namespace:
-    sourceColumn: 13
-    sourceEndColumn: 51
-    sourceEndLine: 36
-    sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 36
-  SYM-cli-github-pages-urls:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 156
-    sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 146
-  SYM-cli-github-pages-urls-type:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 60
-    sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 57
-  SYM-cli-github-parse-remote:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 144
-    sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 113
-  SYM-cli-github-placeholder-badge-markdown:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 178
-    sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 172
-  SYM-cli-github-placeholder-owner:
-    sourceColumn: 13
-    sourceEndColumn: 40
-    sourceEndLine: 40
-    sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 40
-  SYM-cli-github-placeholder-pages-urls:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 170
-    sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 165
-  SYM-cli-github-placeholder-repo:
-    sourceColumn: 13
-    sourceEndColumn: 44
-    sourceEndLine: 41
-    sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 41
-  SYM-cli-github-readme-write-status:
-    sourceColumn: 12
-    sourceEndColumn: 27
-    sourceEndLine: 69
-    sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 65
-  SYM-cli-github-remote:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 55
-    sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 52
-  SYM-cli-github-repo:
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 50
-    sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 47
-  SYM-cli-github-report-workflow-relpath:
-    sourceColumn: 13
-    sourceEndColumn: 37
-    sourceEndLine: 33
-    sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 32
-  SYM-cli-github-resolve-repo:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 250
-    sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 241
-  SYM-cli-github-scaffold:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 345
-    sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 288
-  SYM-cli-github-scaffold-options:
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 75
     sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 72
+    sourceLine: 71
+  SYM-cli-github-insert-badge:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 214
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 188
+  SYM-cli-github-list-remotes:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 233
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 216
+  SYM-cli-github-load-workflow-template:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 105
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 96
+  SYM-cli-github-metric-docs-url:
+    sourceColumn: 13
+    sourceEndColumn: 95
+    sourceEndLine: 33
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 32
+  SYM-cli-github-pages-namespace:
+    sourceColumn: 13
+    sourceEndColumn: 51
+    sourceEndLine: 30
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 30
+  SYM-cli-github-pages-urls:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 150
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 140
+  SYM-cli-github-pages-urls-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 54
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 51
+  SYM-cli-github-parse-remote:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 138
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 107
+  SYM-cli-github-placeholder-badge-markdown:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 172
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 166
+  SYM-cli-github-placeholder-owner:
+    sourceColumn: 13
+    sourceEndColumn: 40
+    sourceEndLine: 34
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 34
+  SYM-cli-github-placeholder-pages-urls:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 164
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 159
+  SYM-cli-github-placeholder-repo:
+    sourceColumn: 13
+    sourceEndColumn: 44
+    sourceEndLine: 35
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 35
+  SYM-cli-github-readme-write-status:
+    sourceColumn: 12
+    sourceEndColumn: 27
+    sourceEndLine: 63
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 59
+  SYM-cli-github-remote:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 49
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 46
+  SYM-cli-github-repo:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 44
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 41
+  SYM-cli-github-report-workflow-relpath:
+    sourceColumn: 13
+    sourceEndColumn: 37
+    sourceEndLine: 28
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 27
+  SYM-cli-github-resolve-repo:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 246
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 235
+  SYM-cli-github-scaffold:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 341
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 284
+  SYM-cli-github-scaffold-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 69
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 66
   SYM-cli-github-scaffold-result:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 89
+    sourceEndLine: 83
     sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 83
+    sourceLine: 77
   SYM-cli-github-template-dir:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 88
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 86
+  SYM-cli-github-workflow-kind:
+    sourceColumn: 12
+    sourceEndColumn: 52
+    sourceEndLine: 56
+    sourceFile: packages/cli/src/commands/github-init.ts
+    sourceLine: 56
+  SYM-cli-github-workflow-template-filename:
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 94
     sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 92
-  SYM-cli-github-workflow-kind:
-    sourceColumn: 12
-    sourceEndColumn: 52
-    sourceEndLine: 62
-    sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 62
-  SYM-cli-github-workflow-template-filename:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 100
-    sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 96
+    sourceLine: 90
   SYM-cli-github-workflow-write-status:
     sourceColumn: 12
     sourceEndColumn: 71
-    sourceEndLine: 64
+    sourceEndLine: 58
     sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 64
+    sourceLine: 58
   SYM-cli-github-write-workflow:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 270
+    sourceEndLine: 266
     sourceFile: packages/cli/src/commands/github-init.ts
-    sourceLine: 252
+    sourceLine: 248
   SYM-cli-impact-AGGREGATE_KINDS:
     sourceColumn: 13
     sourceEndColumn: 2
@@ -7049,15 +7049,15 @@ coordinates:
   SYM-e2e-packed-cli-github-report:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 143
+    sourceEndLine: 144
     sourceFile: documentation/tests/e2e/packed/github-report-integration.test.ts
     sourceLine: 20
   SYM-e2e-packed-cli-html-report:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 356
+    sourceEndLine: 362
     sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
-    sourceLine: 137
+    sourceLine: 140
   SYM-effective-requirement-relationships:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7469,9 +7469,9 @@ coordinates:
   SYM-hasAllGeneratedCoordinates:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 347
+    sourceEndLine: 352
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 337
+    sourceLine: 342
   SYM-hasOverrideRationale:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7583,9 +7583,9 @@ coordinates:
   SYM-isEligibleForCoordinateRefresh:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 364
+    sourceEndLine: 369
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 349
+    sourceLine: 354
   SYM-isErrno:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -8093,7 +8093,7 @@ coordinates:
   SYM-kibi-migration-config-read:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 502
+    sourceEndLine: 501
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
     sourceLine: 469
   SYM-kibi-migration-config-status:
@@ -8147,9 +8147,9 @@ coordinates:
   SYM-kibi-migration-plan-status-actions:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 735
+    sourceEndLine: 740
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
-    sourceLine: 526
+    sourceLine: 525
   SYM-kibi-migration-plan-version:
     sourceColumn: 13
     sourceEndColumn: 71
@@ -8285,7 +8285,7 @@ coordinates:
   SYM-loadConfig:
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 200
+    sourceEndLine: 201
     sourceFile: packages/cli/src/utils/config.ts
     sourceLine: 1
   SYM-loadConfig-2:
@@ -8309,7 +8309,7 @@ coordinates:
   SYM-loadSyncConfig:
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 200
+    sourceEndLine: 201
     sourceFile: packages/cli/src/utils/config.ts
     sourceLine: 1
   SYM-markdown-ExtractedEntity:
@@ -8753,7 +8753,7 @@ coordinates:
   SYM-mcp-test-attached-kb-discovery:
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 322
+    sourceEndLine: 319
     sourceFile: packages/mcp/tests/attached-kb-discovery.test.ts
     sourceLine: 1
   SYM-mcp-test-bounded-search-fixture:
@@ -10241,9 +10241,9 @@ coordinates:
   SYM-refreshManifestCoordinates:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 335
+    sourceEndLine: 340
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 202
+    sourceLine: 207
   SYM-registerAllTools:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -10823,9 +10823,9 @@ coordinates:
   SYM-resolveSymbolsManifestPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 24
+    sourceEndLine: 22
     sourceFile: packages/cli/src/utils/manifest-paths.ts
-    sourceLine: 22
+    sourceLine: 20
   SYM-resolveSymbolsManifestPath-2:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -10835,9 +10835,9 @@ coordinates:
   SYM-resolveSymbolsManifestPaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 19
+    sourceEndLine: 17
     sourceFile: packages/cli/src/utils/manifest-paths.ts
-    sourceLine: 11
+    sourceLine: 8
   SYM-resolveSymbolsManifestPaths-2:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -16175,7 +16175,7 @@ coordinates:
   SYM-test-predicate-first-graph:
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 260
+    sourceEndLine: 257
     sourceFile: packages/cli/tests/traceability/predicate-first.test.ts
     sourceLine: 1
   SYM-test-root-batch-concurrency:

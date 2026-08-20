@@ -114,10 +114,7 @@ describe("prompt coverage", () => {
         posture: "root_active",
         riskClass: "behavior_candidate",
         hardGateBlock: {
-          shownPaths: [
-            "packages/opencode/src/prompt.ts",
-            ".kb/symbols.yaml",
-          ],
+          shownPaths: ["packages/opencode/src/prompt.ts", ".kb/symbols.yaml"],
           remainingCount: 2,
           reason: "preflight checkpoint failed",
         },

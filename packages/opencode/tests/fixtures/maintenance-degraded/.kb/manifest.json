@@ -1,1 +1,5 @@
-{"manifestVersion":1,"schemaVersion":5,"semanticAdvisorBackfill":"not_applicable"}
+{
+  "manifestVersion": 1,
+  "schemaVersion": 5,
+  "semanticAdvisorBackfill": "not_applicable"
+}

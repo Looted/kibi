@@ -143,9 +143,7 @@ describe("getKbExistenceTargets", () => {
 
 describe("shouldHandleFile", () => {
   test("returns true for requirements markdown files", () => {
-    expect(shouldHandleFile(".kb/requirements/REQ-001.md")).toBe(
-      true,
-    );
+    expect(shouldHandleFile(".kb/requirements/REQ-001.md")).toBe(true);
   });
 
   test("returns true for scenarios markdown files", () => {
