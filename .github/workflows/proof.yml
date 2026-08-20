@@ -44,7 +44,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: "24"
+          node-version: "26.7.0"
 
       - name: Provision strict-proof host prerequisites
         env:

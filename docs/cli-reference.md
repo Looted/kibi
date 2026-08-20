@@ -125,7 +125,7 @@ workspace path and branch and exits after ten minutes without clients.
 - `storage compact` explicitly compacts the RDF journal; idle engines also compact journals over 16 MiB.
 - `storage export --output <directory>` writes derived legacy `kb.rdf` and `audit.log` files outside the active branch store. These exports are not authoritative and are never read by the engine.
 
-Node.js 18 or newer is required for both the CLI/MCP clients and the engine.
+Node.js 22 or newer is required for both the CLI/MCP clients and the engine.
 Bun remains a repository build/test tool, but is not a supported runtime for
 the published Kibi packages.
 
