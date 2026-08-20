@@ -57,6 +57,7 @@ export function exactBranchStorePath(repoDir: string, branch: string): string {
 }
 
 let cachedTarballsPromise: Promise<Tarballs> | null = null;
+let cachedTarballsKey: string | null = null;
 let sharedPrefixPath: string | null = null;
 let sharedInstallKey: string | null = null;
 let sharedInstallPromise: Promise<void> | null = null;
@@ -94,6 +95,22 @@ function resolveNpmBinary(): string {
   }
 
   return "npm";
+}
+
+function resolveBunBinary(): string {
+  try {
+    const locator = process.platform === "win32" ? "where.exe" : "which";
+    const bunPath = execFileSync(locator, ["bun"], {
+      encoding: "utf8",
+    })
+      .split(/\r?\n/)[0]
+      ?.trim();
+    if (bunPath) return bunPath;
+  } catch (error) {
+    if (!(error instanceof Error)) throw error;
+  }
+
+  return "bun";
 }
 
 function npmPackCommand(npmBinary: string): {
@@ -272,6 +289,8 @@ export function cleanupSharedPackedInstallation(): void {
   }
   ownedSharedPaths.clear();
   sharedPrefixPath = null;
+  cachedTarballsKey = null;
+  cachedTarballsPromise = null;
   sharedInstallKey = null;
   sharedInstallPromise = null;
 }
@@ -347,17 +366,30 @@ export interface TestSandbox {
  * In Docker environments, checks for pre-packed tarballs first
  */
 export async function packAll(): Promise<Tarballs> {
-  if (cachedTarballsPromise) {
+  // Artifact-only tests can switch from the runner's baked installation to a
+  // downloaded-artifact directory after this module has been imported. Cache
+  // by source so that a previous local pack cannot silently leak into that
+  // workflow.
+  const prePackedDir = process.env.KIBI_TEST_TARBALLS;
+  const cacheKey = prePackedDir ?? "<workspace-pack>";
+  if (cachedTarballsPromise && cachedTarballsKey === cacheKey) {
     return cachedTarballsPromise;
   }
+
+  cachedTarballsPromise = null;
+  cachedTarballsKey = cacheKey;
 
   cachedTarballsPromise = (async () => {
     console.log("📦 Packing packages...");
 
     const tarballs: Partial<Tarballs> = {};
     const npmBinary = resolveNpmBinary();
+    const bunBinary = resolveBunBinary();
+    const lifecycleEnv: NodeJS.ProcessEnv = {
+      ...process.env,
+      PATH: `${dirname(bunBinary)}:${process.env.PATH ?? ""}`,
+    };
 
-    const prePackedDir = process.env.KIBI_TEST_TARBALLS;
     if (prePackedDir && existsSync(prePackedDir)) {
       console.log(`  Using pre-packed tarballs from ${prePackedDir}`);
       for (const pkg of packagesForPack) {
@@ -385,6 +417,7 @@ export async function packAll(): Promise<Tarballs> {
           {
             cwd: pkgDir,
             encoding: "utf8",
+            env: lifecycleEnv,
             stdio: ["pipe", "pipe", "pipe"],
           },
         );
@@ -412,6 +445,7 @@ export async function packAll(): Promise<Tarballs> {
     return await cachedTarballsPromise;
   } catch (error) {
     cachedTarballsPromise = null;
+    cachedTarballsKey = null;
     throw error;
   }
 }

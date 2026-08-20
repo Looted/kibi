@@ -63,6 +63,19 @@ function writeConsumerManifest(
     ),
     "utf8",
   );
+  // pnpm resolves a transitive semver dependency from its registry even when
+  // the same package is also a direct file dependency. Its current contract
+  // reads overrides from the workspace settings file, so model the downloaded
+  // artifact set there and keep the consumer registry-independent.
+  writeFileSync(
+    join(dir, "pnpm-workspace.yaml"),
+    [
+      "overrides:",
+      ...packageNames.map((pkg) => `  kibi-${pkg}: "file:${tarballs[pkg]}"`),
+      "",
+    ].join("\n"),
+    "utf8",
+  );
 }
 
 function verifyConsumer(dir: string, packageManager: "npm" | "pnpm"): void {

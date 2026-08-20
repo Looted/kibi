@@ -12,6 +12,7 @@
 import { spawnSync } from "node:child_process";
 import {
   cpSync,
+  existsSync,
   mkdirSync,
   readFileSync,
   rmSync,
@@ -24,6 +25,10 @@ import { mergeLcovContents } from "./merge-lcov";
 
 const COVERAGE_DIR = "coverage/unit";
 const LCOV_PATH = join(COVERAGE_DIR, "lcov.info");
+// Bun may clear its configured coverage directory at the start of each test
+// process. Keep intermediate shard copies in a sibling directory so they
+// survive until the final merge.
+const SHARD_DIR = "coverage/.unit-shards";
 const UNIT_LINE_COVERAGE_FLOOR = 50;
 const COVERAGE_ARGS = [
   "test",
@@ -81,8 +86,11 @@ const COVERAGE_SHARDS: readonly {
   },
 ] as const;
 
-function runBunTest(paths: readonly string[]): number {
-  const result = spawnSync("bun", [...COVERAGE_ARGS, ...paths], {
+function runBunTest(paths: readonly string[], coverageDir: string): number {
+  const args: string[] = [...COVERAGE_ARGS];
+  const coverageDirIndex = args.indexOf("--coverage-dir");
+  args[coverageDirIndex + 1] = coverageDir;
+  const result = spawnSync("bun", [...args, ...paths], {
     stdio: "inherit",
   });
   return result.status ?? 1;
@@ -101,18 +109,36 @@ function lineCoveragePercent(lcov: string): number {
 // implements REQ-014
 export async function runUnitCoverage(): Promise<void> {
   rmSync(COVERAGE_DIR, { recursive: true, force: true });
+  rmSync(SHARD_DIR, { recursive: true, force: true });
   mkdirSync(COVERAGE_DIR, { recursive: true });
+  mkdirSync(SHARD_DIR, { recursive: true });
 
   const shardFiles: string[] = [];
   const failedShards: string[] = [];
   for (const shard of COVERAGE_SHARDS) {
+    const shardCoverageDir = join(
+      SHARD_DIR,
+      shard.label.replace(/[^a-zA-Z0-9._-]/g, "_"),
+    );
+    mkdirSync(shardCoverageDir, { recursive: true });
+    // Bun 1.3.13 accepts --coverage-dir but still emits lcov.info at the
+    // repository default. Remove that path before each shard so a fallback
+    // capture cannot accidentally reuse the previous shard's report.
     rmSync(LCOV_PATH, { force: true });
-    const exitCode = runBunTest(shard.paths);
+    const exitCode = runBunTest(shard.paths, shardCoverageDir);
     if (exitCode !== 0) failedShards.push(`${shard.label} (exit ${exitCode})`);
 
     let lcovPath: string;
     try {
-      lcovPath = await finalizeLcov(COVERAGE_DIR);
+      const shardLcovPath = join(shardCoverageDir, "lcov.info");
+      if (existsSync(shardLcovPath)) {
+        lcovPath = shardLcovPath;
+      } else if (existsSync(LCOV_PATH)) {
+        // Compatibility fallback for Bun versions that ignore --coverage-dir.
+        lcovPath = LCOV_PATH;
+      } else {
+        lcovPath = await finalizeLcov(shardCoverageDir);
+      }
     } catch (error) {
       failedShards.push(`${shard.label} (coverage artifact missing)`);
       console.error(error);
@@ -123,6 +149,10 @@ export async function runUnitCoverage(): Promise<void> {
     shardFiles.push(shardPath);
   }
 
+  // Some Bun versions flush the default report just after the test process
+  // exits. Let that writer finish before publishing the merged artifact so it
+  // cannot overwrite the final report.
+  await new Promise((resolve) => setTimeout(resolve, 100));
   const mergedLcov = mergeLcovContents(
     shardFiles.map((filePath) => readFileSync(filePath, "utf8")),
   );
@@ -152,6 +182,11 @@ export async function runUnitCoverage(): Promise<void> {
     failedShards.length > 0 ? `${failedShards.join("\n")}\n` : "",
     "utf8",
   );
+  // Keep the published artifact focused on the merged report. A late Bun
+  // coverage writer from a failed shard may still finish after its test
+  // process exits; isolating and removing shard directories prevents it from
+  // overwriting the merged lcov.info.
+  rmSync(SHARD_DIR, { recursive: true, force: true });
   if (failedShards.length > 0) {
     console.error(`Coverage shards failed:\n${failedShards.join("\n")}`);
     process.exitCode = 1;

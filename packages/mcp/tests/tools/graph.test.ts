@@ -81,6 +81,10 @@ describe("kb_graph multi-relationship integration", () => {
   });
 
   beforeEach(async () => {
+    // Detach before replacing the attached store. Removing an RDF directory
+    // while Prolog still owns the previous attachment leaves a stale in-memory
+    // entity index and makes later relationship validation fail nondeterministically.
+    await prolog.query("kb_detach").catch(() => undefined);
     await fs.rm(testKbPath, { recursive: true, force: true });
     await fs.mkdir(testKbPath, { recursive: true });
     await prolog.query(`kb_attach('${testKbPath}')`);
@@ -314,6 +318,9 @@ describe("kb_graph canonical traceability chain traversal", () => {
   });
 
   beforeEach(async () => {
+    // Detach before replacing the attached store so Prolog cannot retain the
+    // previous branch's entity index after its RDF directory is removed.
+    await prolog.query("kb_detach").catch(() => undefined);
     await fs.rm(testKbPath, { recursive: true, force: true });
     await fs.mkdir(testKbPath, { recursive: true });
     await prolog.query(`kb_attach('${testKbPath}')`);
