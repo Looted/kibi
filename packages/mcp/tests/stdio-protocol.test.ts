@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { type ChildProcess, spawn } from "node:child_process";
 import path from "node:path";
+import { isolatedMcpSandboxEnv } from "./helpers/isolated-env.js";
 
 type JsonValue = null | boolean | number | string | JsonValue[] | JsonObject;
 type JsonObject = { [key: string]: JsonValue };
@@ -13,7 +14,7 @@ function startServer(options?: {
   return spawn("bun", ["run", serverPath], {
     stdio: ["pipe", "pipe", "pipe"],
     cwd: options?.cwd,
-    env: options?.env ? { ...process.env, ...options.env } : process.env,
+    env: isolatedMcpSandboxEnv(options?.env),
   });
 }
 

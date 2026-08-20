@@ -57,7 +57,7 @@ if (RUN_NODE_TEST_SUITE) {
       await kibi(sandbox, ["init", "--no-hooks"]);
       createMarkdownFile(
         sandbox,
-        "documentation/requirements/REQ-SOURCE-FIRST-E2E.md",
+        ".kb/requirements/REQ-SOURCE-FIRST-E2E.md",
         {
           id: "REQ-SOURCE-FIRST-E2E",
           title: "Source-first proof",
@@ -74,7 +74,7 @@ if (RUN_NODE_TEST_SUITE) {
 
       const untracked = join(
         sandbox.repoDir,
-        "documentation/requirements/REQ-UNTRACKED-E2E.md",
+        ".kb/requirements/REQ-UNTRACKED-E2E.md",
       );
       mkdirSync(join(untracked, ".."), { recursive: true });
       writeFileSync(
@@ -90,7 +90,7 @@ if (RUN_NODE_TEST_SUITE) {
       const trackedContent = readFileSync(
         join(
           sandbox.repoDir,
-          "documentation/requirements/REQ-SOURCE-FIRST-E2E.md",
+          ".kb/requirements/REQ-SOURCE-FIRST-E2E.md",
         ),
         "utf8",
       );

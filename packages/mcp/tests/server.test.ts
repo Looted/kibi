@@ -1,10 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import {
-  type ChildProcess,
-  execSync,
-  spawn,
-  spawnSync,
-} from "node:child_process";
+import { type ChildProcess, spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -13,6 +8,11 @@ import {
   branchStorePath,
   ensureBranchStoreManifest,
 } from "kibi-cli/public/branch-resolver";
+import {
+  execSync,
+  isolatedMcpSandboxEnv,
+  spawnSync,
+} from "./helpers/isolated-env.js";
 
 // Read expected version from package.json to prevent drift
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -105,7 +105,7 @@ function startServer(options?: {
   const proc = spawn("bun", ["run", serverPath, ...(options?.args ?? [])], {
     stdio: ["pipe", "pipe", "pipe"],
     cwd: options?.cwd,
-    env: options?.env ? { ...process.env, ...options.env } : process.env,
+    env: isolatedMcpSandboxEnv(options?.env),
   });
 
   // Log errors from the server process
@@ -633,14 +633,13 @@ describe("MCP Server", () => {
               name: "kb_model_requirement",
               arguments: {
                 text: "Customer data must be retained for 7 years.",
-                source: "documentation/requirements/customer-retention.md",
+                source: ".kb/requirements/customer-retention.md",
                 confidence: 0.92,
                 subjectKey: "Customer.Data",
                 propertyKey: "Retention Years",
                 operator: "eq",
                 value: 7,
-                provenance:
-                  "documentation/requirements/customer-retention.md#L1",
+                provenance: ".kb/requirements/customer-retention.md#L1",
               },
             },
           },
@@ -941,7 +940,7 @@ describe("MCP Server", () => {
                   status: "open",
                 },
                 document: {
-                  path: `documentation/requirements/${upsertId}.md`,
+                  path: `.kb/requirements/${upsertId}.md`,
                 },
               },
             },
@@ -1039,11 +1038,11 @@ describe("MCP Server", () => {
       cwd: tempRoot,
       stdio: "ignore",
     });
-    fs.mkdirSync(path.join(tempRoot, "documentation", "requirements"), {
+    fs.mkdirSync(path.join(tempRoot, ".kb", "requirements"), {
       recursive: true,
     });
     fs.writeFileSync(
-      path.join(tempRoot, "documentation", "requirements", "REQ-LIVE-BASE.md"),
+      path.join(tempRoot, ".kb", "requirements", "REQ-LIVE-BASE.md"),
       "---\nid: REQ-LIVE-BASE\ntitle: Live session baseline\nstatus: open\n---\n",
     );
     execSync(`bun ${kibiBin} sync`, {
@@ -1078,7 +1077,7 @@ describe("MCP Server", () => {
       });
 
       fs.writeFileSync(
-        path.join(tempRoot, "documentation", "requirements", "REQ-LIVE-001.md"),
+        path.join(tempRoot, ".kb", "requirements", "REQ-LIVE-001.md"),
         "---\nid: REQ-LIVE-001\ntitle: Live session status\nstatus: open\n---\n",
       );
 
@@ -1111,7 +1110,7 @@ describe("MCP Server", () => {
     const proc = spawn("bun", ["run", serverPath, "--diagnostic-mode"], {
       stdio: ["pipe", "pipe", "pipe"],
       cwd: repoDir,
-      env: process.env,
+      env: isolatedMcpSandboxEnv(),
     });
 
     try {
@@ -1141,7 +1140,7 @@ describe("MCP Server", () => {
         `node ${path.resolve(import.meta.dir, "../../cli/bin/kibi")} init`,
         {
           cwd: repoDir,
-          env: process.env,
+          env: isolatedMcpSandboxEnv(),
         },
       );
 
@@ -1220,11 +1219,7 @@ describe("MCP Server", () => {
       cwd: tempRoot,
       stdio: "ignore",
     });
-    const requirementsDir = path.join(
-      tempRoot,
-      "documentation",
-      "requirements",
-    );
+    const requirementsDir = path.join(tempRoot, ".kb", "requirements");
     fs.mkdirSync(requirementsDir, { recursive: true });
     const staleRequirement = path.join(
       requirementsDir,
@@ -1234,7 +1229,7 @@ describe("MCP Server", () => {
       staleRequirement,
       "---\nid: REQ-stale-before-rebuild\ntitle: Stale requirement\nstatus: open\n---\n",
     );
-    execSync("git add documentation", { cwd: tempRoot, stdio: "ignore" });
+    execSync("git add .kb/requirements", { cwd: tempRoot, stdio: "ignore" });
     syncRebuild(kibiBin, tempRoot);
 
     const proc = startServer({ cwd: tempRoot });
@@ -1288,7 +1283,7 @@ describe("MCP Server", () => {
         path.join(requirementsDir, "REQ-fresh-after-rebuild.md"),
         "---\nid: REQ-fresh-after-rebuild\ntitle: Fresh requirement\nstatus: open\n---\n",
       );
-      execSync("git add documentation", { cwd: tempRoot, stdio: "ignore" });
+      execSync("git add .kb/requirements", { cwd: tempRoot, stdio: "ignore" });
       syncRebuild(kibiBin, tempRoot);
 
       // Query SAME process again — must see fresh data

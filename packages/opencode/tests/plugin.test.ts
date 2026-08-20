@@ -63,20 +63,20 @@ function makeTempWorkspace(prefix: string): string {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
   fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
   fs.mkdirSync(path.join(tmpDir, ".opencode"), { recursive: true });
-  fs.writeFileSync(path.join(tmpDir, ".kb", "config.json"), "{}\n");
+  fs.writeFileSync(path.join(tmpDir, ".kb", "manifest.json"), "{}\n");
   for (const dir of [
-    "documentation/requirements",
-    "documentation/scenarios",
-    "documentation/tests",
-    "documentation/adr",
-    "documentation/flags",
-    "documentation/events",
-    "documentation/facts",
+    ".kb/requirements",
+    ".kb/scenarios",
+    ".kb/tests",
+    ".kb/adr",
+    ".kb/flags",
+    ".kb/events",
+    ".kb/facts",
     "src",
   ]) {
     fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
   }
-  fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "[]\n");
+  fs.writeFileSync(path.join(tmpDir, ".kb", "symbols.yaml"), "[]\n");
   return tmpDir;
 }
 
@@ -280,7 +280,7 @@ describe("kibiOpencodePlugin core hooks", () => {
       });
       const activeOutput = { system: [] as string[] };
       await activeHooks["experimental.chat.system.transform"]?.(
-        { focusFilePath: "documentation/requirements/REQ-001.md" },
+        { focusFilePath: ".kb/requirements/REQ-001.md" },
         activeOutput,
       );
 
@@ -372,7 +372,7 @@ describe("kibiOpencodePlugin requirement lint integration", () => {
         (_, index) => `Requirement detail line ${index + 1}`,
       );
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "requirements", "REQ-001.md"),
+        path.join(tmpDir, ".kb", "requirements", "REQ-001.md"),
         [
           "# Requirement",
           "Given a user has an account",
@@ -390,7 +390,7 @@ describe("kibiOpencodePlugin requirement lint integration", () => {
       await hooks.event?.({
         event: {
           type: "file.edited",
-          properties: { file: "documentation/requirements/REQ-001.md" },
+          properties: { file: ".kb/requirements/REQ-001.md" },
         },
       });
 

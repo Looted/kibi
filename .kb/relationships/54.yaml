@@ -1,0 +1,43 @@
+relationships:
+  - id: rel-a5a436b1899c
+    type: validates
+    from: TEST-cursor-canonical-manifest
+    to: SCEN-cli-canonical-runtime
+    created_at: "2026-08-18T16:39:39.528Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: validates
+    from: TEST-cursor-canonical-manifest
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T16:39:39.529Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd1e5e4627c8
+  - type: implements
+    from: SYM-collectMarkdownFiles
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T16:41:09.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4c833d474c9
+  - type: covered_by
+    from: SYM-collectMarkdownFiles
+    to: TEST-mcp-canonical-activation
+    created_at: 2026-08-18T16:41:09.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f50f4d31697
+  - type: implements
+    from: SYM-canonical-KibiTreeDataProvider-refresh
+    to: REQ-vscode-traceability
+    created_at: 2026-08-18T17:38:05.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-922d63e1faed
+  - type: covered_by
+    from: SYM-canonical-KibiTreeDataProvider-refresh
+    to: TEST-vscode-traceability
+    created_at: 2026-08-18T17:38:05.219Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7696630d41fb

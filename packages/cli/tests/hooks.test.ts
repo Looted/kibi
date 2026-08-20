@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
-import { execSync } from "node:child_process";
+import { execSync } from "./helpers/isolated-env.js";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -41,7 +41,7 @@ describe("Git hooks", () => {
     const content = fs.readFileSync(hookPath, "utf-8");
     expect(content).toContain("kibi check");
     expect(content).toContain("Hard enforcement boundary");
-    expect(content).toContain("documentation/symbols.yaml");
+    expect(content).toContain(".kb/symbols.yaml");
     expect(content).toContain("kibi sync --refresh-symbol-coordinates");
   });
 

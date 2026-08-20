@@ -73,13 +73,13 @@ These predicates remain useful for product features, automation, and future inte
 - `kb_delete`
 - `kb_check`
 
-## Migration-oriented validation rule
+## Advisory strict-fact validation
 
 - `strict-fact-shape`
   - checks only facts that already declare `fact_kind`
-  - ignores legacy prose facts without `fact_kind` (migration-safe)
-  - is intended for migration auditing and is **disabled by default** while older repos are being normalized
-  - can be opted into explicitly through CLI/MCP rule selection when a repo is ready to inspect or enforce strict fact shape
+  - ignores legacy prose facts without `fact_kind`
+  - runs by default as a non-blocking quality diagnostic; it does not fail canonical health
+  - can be selected explicitly with `--rules` for a focused audit without changing enforcement class
 
 - `domain-contradictions`
   - checks for logical conflicts between requirements based on shared strict facts

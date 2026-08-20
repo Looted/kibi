@@ -1,4 +1,4 @@
-import { describe, expect, mock, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 
 import { executeIngestVerification } from "../../src/operations/verification/ingest-verification.js";
 import type {
@@ -39,6 +39,19 @@ function context(query: PrologPort["query"]): OperationContext {
 }
 
 describe("kb_ingest_verification", () => {
+  const originalBranch = process.env.KIBI_BRANCH;
+
+  beforeEach(() => {
+    process.env.KIBI_BRANCH = "test-branch";
+  });
+
+  afterEach(() => {
+    if (originalBranch === undefined) {
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+    } else {
+      process.env.KIBI_BRANCH = originalBranch;
+    }
+  });
   test("derives a passing v2 receipt from a complete contracted artifact", async () => {
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
       if (goal.includes("kb_entity('TEST-001'")) {

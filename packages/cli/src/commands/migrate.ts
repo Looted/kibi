@@ -28,13 +28,23 @@ import { load as parseYAML } from "js-yaml";
 import type { MigrationPlan } from "../public/operations/migration-plan.js";
 import { extractSymbolsFromStagedFile } from "../traceability/symbol-extract.js";
 import { resolveBranchAttachment } from "../utils/branch-resolver.js";
-import type { KbConfig } from "../utils/config.js";
-import { DEFAULT_CONFIG } from "../utils/config.js";
+import {
+  defaultKbManifest,
+  readKbManifest,
+  readKbManifestStatus,
+  writeKbManifest,
+} from "../utils/kb-manifest.js";
+import { CANONICAL_ENTITY_PATHS } from "../utils/kb-paths.js";
 import {
   LATEST_KB_SCHEMA_VERSION,
   getSchemaVersionStatus,
   normalizeSchemaVersion,
 } from "../utils/schema-version.js";
+import { updateGitIgnore } from "./init-helpers.js";
+import {
+  applyLegacyStorageMigration,
+  planLegacyStorageMigration,
+} from "./legacy-storage-migration.js";
 
 interface MigrateOptions {
   dryRun?: boolean;
@@ -44,18 +54,14 @@ interface MigrateOptions {
   approvedPlanHash?: string;
   approvedActionIds?: string[];
   workspaceRoot?: string;
-  /** Internal migration-plan executor: create only the canonical baseline config. */
+  /** Internal migration-plan executor: create only the canonical baseline manifest. */
   initializeMissingConfig?: boolean;
-}
-
-interface RawKbConfigDocument extends Partial<KbConfig> {
-  [key: string]: unknown;
 }
 
 interface MigrationAuditRecord {
   auditVersion: number;
   branch: string;
-  configPath: string;
+  manifestPath: string;
   fromVersion: number | null;
   migratedAt: string;
   semanticAdvisorBackfill: "pending" | "completed" | "not_applicable" | null;
@@ -122,6 +128,13 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     description:
       "Mark semantic-advisor backfill as pending without inventing claims.",
   },
+  {
+    id: "canonical-storage-v5",
+    from: 4,
+    to: 5,
+    description:
+      "Move Kibi knowledge into the canonical .kb/ namespace and retire .kb/config.json.",
+  },
 ];
 
 function migrationStepsFor(
@@ -169,51 +182,6 @@ function resolveMigrationBranch(
   return { branch: result.kbBranch, warnings: [] };
 }
 
-function loadRawConfigDocument(
-  cwd: string,
-): { config: RawKbConfigDocument; configPath: string } | { error: string } {
-  const kbDir = path.join(cwd, ".kb");
-  const configPath = path.join(kbDir, "config.json");
-
-  if (!existsSync(kbDir)) {
-    return {
-      error: "Missing .kb/ directory. Run 'kibi init' before 'kibi migrate'.",
-    };
-  }
-
-  if (!existsSync(configPath)) {
-    return {
-      error:
-        "Missing .kb/config.json. Run 'kibi init' to create a baseline config before migrating.",
-    };
-  }
-
-  try {
-    const parsed = JSON.parse(readFileSync(configPath, "utf8")) as unknown;
-
-    if (
-      parsed === null ||
-      Array.isArray(parsed) ||
-      typeof parsed !== "object"
-    ) {
-      return {
-        error:
-          ".kb/config.json must contain a JSON object. Fix the file and retry 'kibi migrate'.",
-      };
-    }
-
-    return {
-      config: parsed as RawKbConfigDocument,
-      configPath,
-    };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    return {
-      error: `Invalid .kb/config.json: ${message}. Fix the JSON or re-run 'kibi init'.`,
-    };
-  }
-}
-
 function writeJsonAtomically(filePath: string, value: unknown): void {
   writeTextAtomically(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
@@ -243,7 +211,7 @@ function formatSchemaVersion(
 
 function buildMigrationAuditRecord(args: {
   branch: string;
-  configPath: string;
+  manifestPath: string;
   fromVersion: number | null;
   migratedAt: string;
   semanticAdvisorBackfill: "pending" | "completed" | "not_applicable" | null;
@@ -254,7 +222,7 @@ function buildMigrationAuditRecord(args: {
   return {
     auditVersion: MIGRATION_AUDIT_VERSION,
     branch: args.branch,
-    configPath: args.configPath,
+    manifestPath: args.manifestPath,
     fromVersion: args.fromVersion,
     migratedAt: args.migratedAt,
     semanticAdvisorBackfill: args.semanticAdvisorBackfill,
@@ -383,18 +351,12 @@ function addLegacyReasonsToManifestText(
 
 function migrateSymbolGranularity(options: {
   cwd: string;
-  config: RawKbConfigDocument;
   dryRun: boolean;
+  manifestPath?: string;
 }): { count: number; manifestPath: string | null } {
-  const configuredSymbolsPath =
-    options.config.paths?.symbols ?? DEFAULT_CONFIG.paths.symbols;
-  if (typeof configuredSymbolsPath !== "string") {
-    return { count: 0, manifestPath: null };
-  }
-
-  const manifestPath = path.isAbsolute(configuredSymbolsPath)
-    ? configuredSymbolsPath
-    : path.join(options.cwd, configuredSymbolsPath);
+  const manifestPath =
+    options.manifestPath ??
+    path.join(options.cwd, CANONICAL_ENTITY_PATHS.symbols);
   if (!existsSync(manifestPath)) {
     return { count: 0, manifestPath };
   }
@@ -476,49 +438,61 @@ export async function migrateCommand(
     return { exitCode: 1 };
   }
 
-  let configResult = loadRawConfigDocument(cwd);
+  const manifestStatus = readKbManifestStatus(cwd);
+  const storagePlan = planLegacyStorageMigration(cwd);
 
+  // Baseline for fresh workspaces driven by the internal plan executor.
   if (
-    "error" in configResult &&
     options.initializeMissingConfig === true &&
-    configResult.error.includes("Missing .kb/config.json")
+    manifestStatus.state === "missing"
   ) {
-    const configPath = path.join(cwd, ".kb", "config.json");
-    const config = {
-      ...DEFAULT_CONFIG,
-      schemaVersion: LATEST_KB_SCHEMA_VERSION,
-    } as RawKbConfigDocument;
-    writeJsonAtomically(configPath, config);
-    configResult = { config, configPath };
+    writeKbManifest(cwd, defaultKbManifest());
   }
 
-  if ("error" in configResult) {
-    console.error(configResult.error);
+  if (
+    manifestStatus.state === "missing" &&
+    storagePlan.moves.length === 0 &&
+    storagePlan.legacyConfig === "absent"
+  ) {
+    console.error(
+      "Missing .kb/ lifecycle state. Run 'kibi init' to create the canonical layout before migrating.",
+    );
     return { exitCode: 1 };
   }
 
   const { branch, warnings: branchWarnings } = branchResult;
-  const { config, configPath } = configResult;
-  const configStatus = getSchemaVersionStatus(config);
-  const normalizedVersion = normalizeSchemaVersion(config.schemaVersion);
-  const rawSchemaVersion = config.schemaVersion;
-  const needsCanonicalSchemaWrite =
-    normalizedVersion === LATEST_KB_SCHEMA_VERSION &&
-    rawSchemaVersion !== undefined &&
-    rawSchemaVersion !== LATEST_KB_SCHEMA_VERSION;
-  const migrationWarning = needsCanonicalSchemaWrite
-    ? "KB config schemaVersion should be normalized to the latest numeric version."
-    : configStatus.warning;
+  const currentManifest = readKbManifest(cwd);
+  const legacySchemaVersion = normalizeSchemaVersion(storagePlan.schemaVersion);
+  const currentVersion = currentManifest?.schemaVersion ?? legacySchemaVersion;
+  const normalizedVersion = normalizeSchemaVersion(currentVersion);
+  const configStatus = getSchemaVersionStatus(
+    normalizedVersion === null
+      ? undefined
+      : { schemaVersion: normalizedVersion },
+  );
+  const needsStorageMigration =
+    storagePlan.moves.length > 0 || storagePlan.legacyConfig !== "absent";
+  const needsSchemaUpgrade =
+    configStatus.needsMigration || normalizedVersion === null;
+  const migrationWarning =
+    manifestStatus.state === "invalid" || manifestStatus.state === "future"
+      ? manifestStatus.warning
+      : configStatus.warning;
   const warnings = [
     ...branchWarnings,
     ...(migrationWarning ? [migrationWarning] : []),
   ];
   const auditPath = path.join(cwd, ".kb", "migrations", `${branch}.json`);
-  const configPathRelative = toRelativePath(cwd, configPath);
-  const auditPathRelative = toRelativePath(cwd, auditPath);
 
   for (const warning of warnings) {
     printWarning(warning);
+  }
+
+  if (storagePlan.blockers.length > 0) {
+    for (const blocker of storagePlan.blockers) {
+      console.error(`Blocked: ${blocker}`);
+    }
+    return { exitCode: 1 };
   }
 
   if (
@@ -531,20 +505,26 @@ export async function migrateCommand(
     return { exitCode: 1 };
   }
 
-  if (!configStatus.needsMigration && !needsCanonicalSchemaWrite) {
+  if (!needsStorageMigration && !needsSchemaUpgrade) {
     console.log(
-      `No migration needed: ${configPathRelative} is already at schemaVersion ${LATEST_KB_SCHEMA_VERSION}.`,
+      `No migration needed: the KB is already at schemaVersion ${LATEST_KB_SCHEMA_VERSION} on the canonical .kb/ layout.`,
     );
 
     if (existsSync(auditPath)) {
-      console.log(`Existing migration audit metadata: ${auditPathRelative}`);
+      console.log(
+        `Existing migration audit metadata: ${toRelativePath(cwd, auditPath)}`,
+      );
+    }
+
+    if (options.yes === true) {
+      updateGitIgnore(cwd);
     }
 
     return { exitCode: 0 };
   }
 
   const fromVersionLabel = formatSchemaVersion(
-    rawSchemaVersion,
+    currentVersion,
     normalizedVersion,
   );
   const migrationSteps = migrationStepsFor(configStatus.currentVersion);
@@ -554,61 +534,94 @@ export async function migrateCommand(
   const semanticBackfillStep = migrationSteps.some(
     (step) => step.id === "semantic-backfill-v4",
   );
-  const symbolGranularityMigration = migrateSymbolGranularity({
-    cwd,
-    config,
-    dryRun: !symbolGranularityStep || options.dryRun || !options.yes,
-  });
-  const semanticAdvisorBackfill =
-    normalizeSemanticAdvisorBackfill(config.semanticAdvisorBackfill) ??
-    (semanticBackfillStep ? "pending" : "not_applicable");
 
   if (options.dryRun) {
+    if (storagePlan.moves.length > 0) {
+      console.log(
+        `dry run: would move ${storagePlan.moves.length} legacy knowledge file(s) into .kb/:`,
+      );
+      for (const move of storagePlan.moves) {
+        console.log(`  ${move.from} -> ${move.to}`);
+      }
+    }
+    if (storagePlan.legacyConfig !== "absent") {
+      console.log(
+        "dry run: would retire legacy .kb/config.json after moving knowledge into .kb/.",
+      );
+    }
     console.log(
-      `dry run: would migrate ${configPathRelative} schemaVersion from ${fromVersionLabel} to ${LATEST_KB_SCHEMA_VERSION}.`,
+      `dry run: would set schemaVersion from ${fromVersionLabel} to ${LATEST_KB_SCHEMA_VERSION} in .kb/manifest.json.`,
     );
+    if (symbolGranularityStep) {
+      const symbolsSource =
+        storagePlan.moves.find(
+          (move) => move.to === CANONICAL_ENTITY_PATHS.symbols,
+        )?.from ?? CANONICAL_ENTITY_PATHS.symbols;
+      const preview = migrateSymbolGranularity({
+        cwd,
+        dryRun: true,
+        manifestPath: path.join(cwd, symbolsSource),
+      });
+      if (preview.count > 0) {
+        console.log(
+          `dry run: would mark ${preview.count} legacy coarse symbol link(s) as legacy-link.`,
+        );
+      }
+    }
     console.log(
-      `dry run: would write migration audit metadata to ${auditPathRelative}.`,
+      `dry run: would write migration audit metadata to ${toRelativePath(cwd, auditPath)}.`,
     );
-    if (symbolGranularityMigration.count > 0) {
-      console.log(
-        `dry run: would mark ${symbolGranularityMigration.count} legacy coarse symbol link(s) in ${toRelativePath(cwd, symbolGranularityMigration.manifestPath ?? "symbols.yaml")}.`,
-      );
-    }
-    if (semanticAdvisorBackfill === "pending") {
-      console.log(
-        `dry run: would mark semantic advisor backfill as pending in ${configPathRelative}.`,
-      );
-    }
-    if (migrationSteps.length > 0) {
-      console.log(
-        `dry run: would evaluate schema steps: ${migrationSteps.map((step) => step.id).join(", ")}.`,
-      );
-    }
     console.log("Re-run with --yes to apply these changes.");
     return { exitCode: 0 };
   }
 
   if (!options.yes) {
-    printWarning(`Migration required for ${configPathRelative}.`);
+    printWarning("Migration required for this repository.");
     console.log("No changes applied.");
     console.log("Use --dry-run to preview or --yes to apply the migration.");
     return { exitCode: 0 };
   }
 
-  const nextConfig: RawKbConfigDocument = {
-    ...config,
+  // One-way storage cutover first: files must reach the canonical layout
+  // before the manifest records the new schema generation.
+  if (needsStorageMigration) {
+    const storageResult = applyLegacyStorageMigration(cwd, storagePlan);
+    if (storageResult.movedFiles.length > 0) {
+      console.log(
+        `Moved ${storageResult.movedFiles.length} knowledge file(s) into the canonical .kb/ layout.`,
+      );
+    }
+    if (storageResult.retiredLegacyConfig) {
+      console.log("Retired legacy .kb/config.json.");
+    }
+  }
+
+  const symbolGranularityMigration = migrateSymbolGranularity({
+    cwd,
+    dryRun: !symbolGranularityStep || options.dryRun || !options.yes,
+  });
+  const semanticAdvisorBackfill =
+    normalizeSemanticAdvisorBackfill(
+      readKbManifest(cwd)?.semanticAdvisorBackfill,
+    ) ??
+    normalizeSemanticAdvisorBackfill(storagePlan.semanticAdvisorBackfill) ??
+    (semanticBackfillStep || needsStorageMigration
+      ? "pending"
+      : "not_applicable");
+
+  const existingManifest = readKbManifest(cwd) ?? defaultKbManifest();
+  writeKbManifest(cwd, {
+    ...existingManifest,
     schemaVersion: LATEST_KB_SCHEMA_VERSION,
     semanticAdvisorBackfill,
-  };
+  });
   const migratedAt = new Date().toISOString();
 
-  writeJsonAtomically(configPath, nextConfig);
   writeJsonAtomically(
     auditPath,
     buildMigrationAuditRecord({
       branch,
-      configPath: configPathRelative,
+      manifestPath: KB_MANIFEST_RELATIVE,
       fromVersion: configStatus.currentVersion,
       migratedAt,
       semanticAdvisorBackfill,
@@ -619,7 +632,7 @@ export async function migrateCommand(
   );
 
   console.log(
-    `Migrated ${configPathRelative} schemaVersion from ${fromVersionLabel} to ${LATEST_KB_SCHEMA_VERSION}.`,
+    `Migrated the KB to schemaVersion ${LATEST_KB_SCHEMA_VERSION} on the canonical .kb/ layout (was ${fromVersionLabel}).`,
   );
   if (symbolGranularityMigration.count > 0) {
     console.log(
@@ -628,16 +641,21 @@ export async function migrateCommand(
   }
   if (semanticAdvisorBackfill === "pending") {
     console.log(
-      `Marked semantic advisor backfill as pending in ${configPathRelative}.`,
+      `Marked semantic advisor backfill as pending in ${KB_MANIFEST_RELATIVE}.`,
     );
   }
-  console.log(`Wrote migration audit metadata to ${auditPathRelative}.`);
+  console.log(
+    `Wrote migration audit metadata to ${toRelativePath(cwd, auditPath)}.`,
+  );
   console.log(
     "Migration complete. Future 'kibi migrate' runs will be a no-op.",
   );
+  updateGitIgnore(cwd);
 
   return { exitCode: 0 };
 }
+
+const KB_MANIFEST_RELATIVE = ".kb/manifest.json";
 
 async function buildWorkspaceMigrationPlan(
   workspaceRoot = process.cwd(),

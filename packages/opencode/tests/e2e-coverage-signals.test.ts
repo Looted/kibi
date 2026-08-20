@@ -20,7 +20,7 @@ describe("getE2eCoverageSignal", () => {
     } catch {}
   });
 
-  /** Helper to write documentation/symbols.yaml */
+  /** Helper to write .kb/symbols.yaml */
   function writeSymbolsYaml(
     entries: Array<{
       id: string;
@@ -28,7 +28,7 @@ describe("getE2eCoverageSignal", () => {
       relationships?: Array<{ type: string; target: string }>;
     }>,
   ) {
-    const docDir = path.join(tmpDir, "documentation");
+    const docDir = path.join(tmpDir, ".kb");
     fs.mkdirSync(docDir, { recursive: true });
 
     const entriesYaml = entries
@@ -59,7 +59,7 @@ describe("getE2eCoverageSignal", () => {
       body?: string;
     },
   ) {
-    const docDir = path.join(tmpDir, "documentation", "tests");
+    const docDir = path.join(tmpDir, ".kb", "tests");
     // Allow subdirectories like e2e/packed/
     const fullPath = path.join(docDir, filename);
     fs.mkdirSync(path.dirname(fullPath), { recursive: true });
@@ -80,12 +80,12 @@ ${opts.body ?? "Test verification content."}
     fs.writeFileSync(fullPath, content);
   }
 
-  /** Helper to write .kb/config.json */
+  /** Helper to write .kb/manifest.json */
   function writeKbConfig() {
     const kbDir = path.join(tmpDir, ".kb");
     fs.mkdirSync(kbDir, { recursive: true });
     fs.writeFileSync(
-      path.join(kbDir, "config.json"),
+      path.join(kbDir, "manifest.json"),
       JSON.stringify({ paths: {} }, null, 2),
     );
   }
@@ -408,7 +408,7 @@ ${opts.body ?? "Test verification content."}
   });
 
   test("none: no .kb directory", () => {
-    // No .kb/config.json, no documentation/
+    // No .kb/manifest.json, no documentation/
     const result = getE2eCoverageSignal(
       tmpDir,
       path.join(tmpDir, "packages/opencode/src/toast.ts"),

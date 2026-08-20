@@ -24,3 +24,31 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/adr/ADR-006.md
+  - type: implements
+    from: SYM-canonical-analyzeKbCheckImpact
+    to: REQ-cli-check
+    created_at: 2026-08-18T17:35:57.604Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ddcf37b8cddb
+  - type: covered_by
+    from: SYM-canonical-analyzeKbCheckImpact
+    to: TEST-004
+    created_at: 2026-08-18T17:35:57.613Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e568483524b2
+  - type: implements
+    from: SYM-canonical-collectQueryPlanSafetyViolations
+    to: REQ-cli-check
+    created_at: 2026-08-18T17:36:02.106Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-223085d47080
+  - type: covered_by
+    from: SYM-canonical-collectQueryPlanSafetyViolations
+    to: TEST-004
+    created_at: 2026-08-18T17:36:02.116Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76dc003c627d

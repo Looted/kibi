@@ -110,7 +110,7 @@ agent-plugin/
 
 Hooks are warning-only and never replace MCP/CLI behavior:
 
-- **sessionStart**: bootstrap reminder when `.kb/config.json` is missing.
+- **sessionStart**: bootstrap reminder when `.kb/manifest.json` is missing.
 - **preToolUse**: warns on explicit direct `.kb/**` edits without blocking.
 - **beforeReadFile** and **postToolUse (Read)**: inject source-linked lookup guidance once per path per session.
 - **postToolUse (Write/Edit)**: inject traceability and freshness guidance once per path per session, including `kb_check({sourceFiles:[...], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})` for meaningful source edits.

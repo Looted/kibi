@@ -13,3 +13,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a74c6853956c
+  - type: implements
+    from: SYM-canonical-PendingSourceReceiptSnapshot
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T17:35:40.615Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f89dd24d162f
+  - type: covered_by
+    from: SYM-canonical-PendingSourceReceiptSnapshot
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T17:35:40.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-425863d8a7b4

@@ -2,6 +2,7 @@ import path from "node:path";
 import { dump as dumpYaml, load as parseYaml } from "js-yaml";
 import { enrichSymbolCoordinates } from "../../public/extractors/symbols-coordinator.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
+import { CANONICAL_ENTITY_PATHS } from "../../utils/kb-paths.js";
 
 type CoordinateRecord = {
   readonly sourceFile: string;
@@ -39,42 +40,11 @@ function coordinate(value: unknown): CoordinateRecord | null {
     : null;
 }
 
-async function exists(
-  context: OperationContext,
-  filePath: string,
-): Promise<boolean> {
-  try {
-    return context.fs?.stat(filePath).then((stat) => stat.isFile()) ?? false;
-  } catch (error) {
-    if (error instanceof Error) return false;
-    throw error;
-  }
-}
-
 async function manifestPath(context: OperationContext): Promise<string> {
-  const fs = context.fs;
-  if (fs === undefined) return path.join(context.workspaceRoot, "symbols.yaml");
-  const configPath = path.join(context.workspaceRoot, ".kb", "config.json");
-  try {
-    const config = JSON.parse(await fs.readFile(configPath));
-    if (record(config)) {
-      const paths = config.paths;
-      const configured =
-        record(paths) && typeof paths.symbols === "string"
-          ? paths.symbols
-          : typeof config.symbolsManifest === "string"
-            ? config.symbolsManifest
-            : null;
-      if (configured) return path.resolve(context.workspaceRoot, configured);
-    }
-  } catch (error) {
-    if (!(error instanceof Error)) throw error;
-  }
-  for (const name of ["symbols.yaml", "symbols.yml"]) {
-    const candidate = path.join(context.workspaceRoot, name);
-    if (await exists(context, candidate)) return candidate;
-  }
-  return path.join(context.workspaceRoot, "symbols.yaml");
+  return path.join(
+    context.workspaceRoot,
+    CANONICAL_ENTITY_PATHS.symbols,
+  );
 }
 
 async function defaultRefresh(

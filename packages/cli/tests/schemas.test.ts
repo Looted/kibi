@@ -98,7 +98,7 @@ describe("Entity Schema", () => {
       status: "open",
       created_at: "2026-08-11T00:00:00Z",
       updated_at: "2026-08-11T00:00:00Z",
-      source: "documentation/requirements/REQ-SEMANTIC-SOURCE.md",
+      source: ".kb/requirements/REQ-SEMANTIC-SOURCE.md",
       semantic_text: "Authored requirement prose.",
       semantic_source_field: "semantic_text",
     };
@@ -119,7 +119,7 @@ describe("Entity Schema", () => {
       status: "failing",
       created_at: "2026-08-10T00:00:00Z",
       updated_at: "2026-08-10T00:00:00Z",
-      source: "documentation/tests/TEST-RECEIPT-SCHEMA.md",
+      source: ".kb/tests/TEST-RECEIPT-SCHEMA.md",
       verification_scope: "end_to_end",
       verification_receipts: [
         {

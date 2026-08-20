@@ -3,6 +3,7 @@ import { spawn, spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { isolatedMcpSandboxEnv } from "./helpers/isolated-env.js";
 
 type JsonObject = Readonly<Record<string, unknown>>;
 
@@ -29,6 +30,7 @@ function runCli(
     cwd: workspaceRoot,
     encoding: "utf8",
     input: JSON.stringify(input),
+    env: isolatedMcpSandboxEnv(),
   });
   if (result.status !== 0) {
     throw new Error(
@@ -45,6 +47,7 @@ function prepareDiscoveryWorkspace(): string {
   const gitInit = spawnSync("git", ["init", "-b", "main"], {
     cwd: workspaceRoot,
     encoding: "utf8",
+    env: isolatedMcpSandboxEnv(),
   });
   if (gitInit.status !== 0) {
     throw new Error(gitInit.stderr || `git init exited ${gitInit.status}`);
@@ -52,13 +55,14 @@ function prepareDiscoveryWorkspace(): string {
   const init = spawnSync(process.execPath, [cliPath, "init", "--no-hooks"], {
     cwd: workspaceRoot,
     encoding: "utf8",
+    env: isolatedMcpSandboxEnv(),
   });
   if (init.status !== 0) {
     throw new Error(init.stderr || `CLI init exited ${init.status}`);
   }
   const requirementsDir = path.join(
     workspaceRoot,
-    "documentation/requirements",
+    ".kb/requirements",
   );
   mkdirSync(requirementsDir, { recursive: true });
   writeFileSync(
@@ -90,6 +94,7 @@ Provide a stable skillopt search result for attached-KB frame tests.
   const sync = spawnSync(process.execPath, [cliPath, "sync"], {
     cwd: workspaceRoot,
     encoding: "utf8",
+    env: isolatedMcpSandboxEnv(),
   });
   if (sync.status !== 0) {
     throw new Error(sync.stderr || `CLI sync exited ${sync.status}`);
@@ -101,6 +106,7 @@ function stopWorkspaceEngine(workspaceRoot: string): void {
   spawnSync(process.execPath, [cliPath, "engine", "stop"], {
     cwd: workspaceRoot,
     encoding: "utf8",
+    env: isolatedMcpSandboxEnv(),
   });
 }
 
@@ -250,11 +256,10 @@ test("Node CLI and MCP consume complete attached-KB discovery frames repeatedly"
       );
       const child = spawn("node", [mcpPath], {
         cwd: workspaceRoot,
-        env: {
-          ...process.env,
+        env: isolatedMcpSandboxEnv({
           KIBI_BRANCH: "main",
           KIBI_WORKSPACE: workspaceRoot,
-        },
+        }),
         stdio: ["pipe", "pipe", "pipe"],
       });
       try {

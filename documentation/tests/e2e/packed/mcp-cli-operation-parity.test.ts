@@ -47,7 +47,7 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
       await kibi(sandbox, ["init"]);
       createMarkdownFile(
         sandbox,
-        "documentation/requirements/REQ-PACKED-PARITY.md",
+        ".kb/requirements/REQ-PACKED-PARITY.md",
         {
           id: "REQ-PACKED-PARITY",
           title: "Packed parity",
@@ -59,7 +59,7 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
       );
       createMarkdownFile(
         sandbox,
-        "documentation/scenarios/SCEN-PACKED-PARITY.md",
+        ".kb/scenarios/SCEN-PACKED-PARITY.md",
         {
           id: "SCEN-PACKED-PARITY",
           title: "Packed parity scenario",

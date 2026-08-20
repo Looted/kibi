@@ -62,10 +62,16 @@ describe("MCP check aggregated config overrides", () => {
         workspaceRoot,
       });
 
-      expect(result.structuredContent?.count).toBe(1);
-      expect(result.structuredContent?.violations[0]?.rule).toBe(
-        "strict-fact-shape",
-      );
+      expect(result.structuredContent?.count).toBe(0);
+      expect(result.structuredContent?.violations).toEqual([]);
+      expect(
+        result.structuredContent?.qualityDiagnostics?.some(
+          (diagnostic) =>
+            diagnostic.id === "rule.strict-fact-shape" &&
+            diagnostic.entityId === "FACT-MALFORMED-OPTIN-001" &&
+            diagnostic.blocking === false,
+        ),
+      ).toBe(true);
       expect(query).toHaveBeenCalledTimes(1);
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });
@@ -129,10 +135,16 @@ describe("MCP check aggregated config overrides", () => {
         workspaceRoot,
       });
 
-      expect(result.structuredContent?.count).toBe(1);
-      expect(result.structuredContent?.violations[0]?.rule).toBe(
-        "strict-req-fact-pairing",
-      );
+      expect(result.structuredContent?.count).toBe(0);
+      expect(result.structuredContent?.violations).toEqual([]);
+      expect(
+        result.structuredContent?.qualityDiagnostics?.some(
+          (diagnostic) =>
+            diagnostic.id === "rule.strict-req-fact-pairing" &&
+            diagnostic.entityId === "REQ-PAIRING-OPTIN-001" &&
+            diagnostic.blocking === false,
+        ),
+      ).toBe(true);
       expect(query).toHaveBeenCalledTimes(1);
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });

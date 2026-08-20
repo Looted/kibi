@@ -21,7 +21,7 @@ async function packedCliEnforcesPropositionCompleteIngestion(
 ) {
   createMarkdownFile(
     sandbox,
-    "documentation/requirements/baseline.md",
+    ".kb/requirements/baseline.md",
     {
       id: "REQ-BASELINE",
       title: "Legacy baseline",
@@ -63,7 +63,7 @@ async function packedCliEnforcesPropositionCompleteIngestion(
 
   createMarkdownFile(
     sandbox,
-    "documentation/requirements/new-requirement.md",
+    ".kb/requirements/new-requirement.md",
     {
       id: "REQ-NEW",
       title: "Retain audit records",
@@ -79,7 +79,7 @@ async function packedCliEnforcesPropositionCompleteIngestion(
     /proposition-complete ingestion failed/,
   );
 
-  const requirementDir = join(sandbox.repoDir, "documentation/requirements");
+  const requirementDir = join(sandbox.repoDir, ".kb/requirements");
   mkdirSync(requirementDir, { recursive: true });
   writeFileSync(
     join(requirementDir, "new-requirement.md"),

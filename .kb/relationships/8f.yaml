@@ -20,3 +20,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1b2c600789b6
+  - type: covered_by
+    from: SYM-cli-github-detect-readme
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:54:27.780Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5bf7c63aff7

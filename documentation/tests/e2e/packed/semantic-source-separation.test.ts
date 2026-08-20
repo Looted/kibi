@@ -92,7 +92,7 @@ function assertSemanticSourceSeparation(
   );
   assert.strictEqual(
     batch?.sourceBinding.sourceFile,
-    "documentation/requirements/REQ-PACKED-SEMANTIC-SOURCE.md",
+    ".kb/requirements/REQ-PACKED-SEMANTIC-SOURCE.md",
   );
   assert.match(batch?.sourceBinding.sourceHash ?? "", /^[a-f0-9]{64}$/);
   assert.match(
@@ -142,7 +142,7 @@ if (RUN_NODE_TEST_SUITE) {
       async () => {
         if (!hasProlog) return;
         const requirementPath =
-          "documentation/requirements/REQ-PACKED-SEMANTIC-SOURCE.md";
+          ".kb/requirements/REQ-PACKED-SEMANTIC-SOURCE.md";
         const semanticText =
           "Policy changes must retain their authored requirement semantics.";
         createMarkdownFile(

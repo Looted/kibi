@@ -193,15 +193,10 @@ Body
     execFileSync("git", ["config", "user.name", "Kibi Test"], {
       cwd: workspaceRoot,
     });
-    mkdirSync(path.join(workspaceRoot, "documentation", "tests"), {
+    mkdirSync(path.join(workspaceRoot, ".kb", "tests"), {
       recursive: true,
     });
-    const proofDoc = path.join(
-      workspaceRoot,
-      "documentation",
-      "tests",
-      "TEST-DEMO.md",
-    );
+    const proofDoc = path.join(workspaceRoot, ".kb", "tests", "TEST-DEMO.md");
     const frontmatter = (receiptId: string) => `---
 id: TEST-DEMO
 title: Demo proof test
@@ -222,7 +217,7 @@ verification_contract:
 Demo proof body
 `;
     writeFileSync(proofDoc, frontmatter("VR-TWO"));
-    execFileSync("git", ["add", "documentation/tests/TEST-DEMO.md"], {
+    execFileSync("git", ["add", ".kb/tests/TEST-DEMO.md"], {
       cwd: workspaceRoot,
     });
     execFileSync("git", ["commit", "--quiet", "-m", "initial"], {
@@ -242,7 +237,7 @@ Demo proof body
       changeCount: 1,
       changes: [
         {
-          path: "documentation/tests/TEST-DEMO.md",
+          path: ".kb/tests/TEST-DEMO.md",
           snapshotRelevant: false,
         },
       ],

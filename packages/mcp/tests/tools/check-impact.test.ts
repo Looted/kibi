@@ -44,11 +44,7 @@ function writeUploadSource(workspaceRoot: string): void {
 }
 
 function writeSymbolsManifest(workspaceRoot: string, content: string): void {
-  const absolutePath = path.join(
-    workspaceRoot,
-    "documentation",
-    "symbols.yaml",
-  );
+  const absolutePath = path.join(workspaceRoot, ".kb", "symbols.yaml");
   mkdirSync(path.dirname(absolutePath), { recursive: true });
   writeFileSync(absolutePath, content);
 }
@@ -118,7 +114,7 @@ describe("MCP kb_check impact diagnostics", () => {
       rule: "required-fields",
       entityId: "REQ-HARD-001",
       description: "Requirement is missing a title.",
-      source: "documentation/requirements/REQ-HARD-001.md",
+      source: ".kb/requirements/REQ-HARD-001.md",
     };
     const diagnostic: QualityDiagnostic = {
       id: "coverage_depth_review",
@@ -149,7 +145,7 @@ describe("MCP kb_check impact diagnostics", () => {
         severity: "review",
         blocking: false,
         category: "requirement",
-        files: ["documentation/requirements/REQ-AUDIT-001.md"],
+        files: [".kb/requirements/REQ-AUDIT-001.md"],
         docs: ["docs/modeling-cheatsheet.md"],
         message: "Requirement may be too broad for precise traceability.",
         suggestion: "Split it or add stricter fact modeling.",

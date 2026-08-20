@@ -78,16 +78,16 @@ function parseMarkdown(relativePath: string): MarkdownEntity {
 
 function loadPredicateFirstGraph(): GraphFixture {
   const requirement = parseMarkdown(
-    "documentation/requirements/REQ-skillopt-predicate-first-requirements.md",
+    ".kb/requirements/REQ-skillopt-predicate-first-requirements.md",
   );
   const scenario = parseMarkdown(
-    "documentation/scenarios/SCEN-skillopt-predicate-first-requirements.md",
+    ".kb/scenarios/SCEN-skillopt-predicate-first-requirements.md",
   );
   const testIdentity = parseMarkdown(
-    "documentation/tests/TEST-skillopt-predicate-first-requirements.md",
+    ".kb/tests/TEST-skillopt-predicate-first-requirements.md",
   );
   const symbols = readFileSync(
-    path.join(ROOT, "documentation/symbols.yaml"),
+    path.join(ROOT, ".kb/symbols.yaml"),
     "utf8",
   );
   const symbolBlock = symbols.match(

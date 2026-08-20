@@ -28,9 +28,8 @@ import { migrateCommand } from "../../src/commands/migrate.js";
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe("Integration: schema version warning before migration", () => {
-  test("config with schemaVersion: undefined returns invalid status (key present, value unparseable)", () => {
-    // 'schemaVersion' key IS present but value is undefined → "invalid"
-    const status = getSchemaVersionStatus({ schemaVersion: undefined });
+  test("leftover config with unparseable schemaVersion returns invalid status", () => {
+    const status = getSchemaVersionStatus({ schemaVersion: "not-a-number" });
     expect(status.status).toBe("invalid");
     expect(status.needsMigration).toBe(true);
     expect(status.warning).toBeTruthy();
@@ -105,14 +104,14 @@ describe("Integration: kibi migrate idempotency", () => {
     expect(result2.exitCode).toBe(0);
   });
 
-  test("after migration, config.json contains schemaVersion", async () => {
+  test("after migration, leftover config.json is retired and manifest.json holds schemaVersion", async () => {
     await migrateCommand({ yes: true, dryRun: false });
     const configPath = path.join(tmpDir, ".kb", "config.json");
-    const config = JSON.parse(fs.readFileSync(configPath, "utf8")) as Record<
-      string,
-      unknown
-    >;
-    expect(config.schemaVersion).toBe(LATEST_KB_SCHEMA_VERSION);
+    expect(fs.existsSync(configPath)).toBe(false);
+    const manifest = JSON.parse(
+      fs.readFileSync(path.join(tmpDir, ".kb", "manifest.json"), "utf8"),
+    ) as Record<string, unknown>;
+    expect(manifest.schemaVersion).toBe(LATEST_KB_SCHEMA_VERSION);
   });
 
   test("dry-run does not write schemaVersion to config.json", async () => {

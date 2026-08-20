@@ -1,0 +1,29 @@
+relationships:
+  - id: rel-551f6c0edf29
+    type: relates_to
+    from: SCEN-cli-canonical-runtime
+    to: REQ-cli-canonical-runtime
+    created_at: "2026-08-18T16:39:35.130Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: verified_by
+    from: SCEN-cli-canonical-runtime
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T16:39:46.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a6fe262a27b
+  - type: verified_by
+    from: SCEN-cli-canonical-runtime
+    to: TEST-mcp-canonical-activation
+    created_at: 2026-08-18T16:39:46.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10534dd9e360
+  - type: verified_by
+    from: SCEN-cli-canonical-runtime
+    to: TEST-cursor-canonical-manifest
+    created_at: 2026-08-18T16:39:46.264Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-912e7e057577

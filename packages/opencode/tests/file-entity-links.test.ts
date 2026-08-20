@@ -22,7 +22,7 @@ describe("getFileLinkedEntityIds", () => {
     } catch {}
   });
 
-  /** Helper to write a documentation/symbols.yaml in tmpDir */
+  /** Helper to write a .kb/symbols.yaml in tmpDir */
   function writeSymbolsYaml(
     entries: Array<{
       id: string;
@@ -32,7 +32,7 @@ describe("getFileLinkedEntityIds", () => {
     }>,
     wrapInSymbolsKey = false,
   ) {
-    const docDir = path.join(tmpDir, "documentation");
+    const docDir = path.join(tmpDir, ".kb");
     fs.mkdirSync(docDir, { recursive: true });
 
     const entriesYaml = entries
@@ -232,105 +232,105 @@ describe("getFileLinkedEntityIds", () => {
 
   // ── Doc-path identity ─────────────────────────────────────────────
 
-  test("maps documentation/requirements/REQ-001.md to REQ-001 via doc-path", () => {
-    const docDir = path.join(tmpDir, "documentation", "requirements");
+  test("maps .kb/requirements/REQ-001.md to REQ-001 via doc-path", () => {
+    const docDir = path.join(tmpDir, ".kb", "requirements");
     fs.mkdirSync(docDir, { recursive: true });
     fs.writeFileSync(path.join(docDir, "REQ-001.md"), "---\nid: REQ-001\n---");
 
     const result = getFileLinkedEntityIds(
       tmpDir,
-      path.join(tmpDir, "documentation/requirements/REQ-001.md"),
+      path.join(tmpDir, ".kb/requirements/REQ-001.md"),
     );
     assert.deepEqual(result.ids, ["REQ-001"]);
     assert.equal(result.source, "doc-path");
   });
 
-  test("maps documentation/scenarios/SCEN-001.md via doc-path", () => {
-    const docDir = path.join(tmpDir, "documentation", "scenarios");
+  test("maps .kb/scenarios/SCEN-001.md via doc-path", () => {
+    const docDir = path.join(tmpDir, ".kb", "scenarios");
     fs.mkdirSync(docDir, { recursive: true });
     fs.writeFileSync(path.join(docDir, "SCEN-001.md"), "");
 
     const result = getFileLinkedEntityIds(
       tmpDir,
-      path.join(tmpDir, "documentation/scenarios/SCEN-001.md"),
+      path.join(tmpDir, ".kb/scenarios/SCEN-001.md"),
     );
     assert.deepEqual(result.ids, ["SCEN-001"]);
     assert.equal(result.source, "doc-path");
   });
 
-  test("maps documentation/tests/TEST-001.md via doc-path", () => {
-    const docDir = path.join(tmpDir, "documentation", "tests");
+  test("maps .kb/tests/TEST-001.md via doc-path", () => {
+    const docDir = path.join(tmpDir, ".kb", "tests");
     fs.mkdirSync(docDir, { recursive: true });
     fs.writeFileSync(path.join(docDir, "TEST-001.md"), "");
 
     const result = getFileLinkedEntityIds(
       tmpDir,
-      path.join(tmpDir, "documentation/tests/TEST-001.md"),
+      path.join(tmpDir, ".kb/tests/TEST-001.md"),
     );
     assert.deepEqual(result.ids, ["TEST-001"]);
     assert.equal(result.source, "doc-path");
   });
 
-  test("maps documentation/adr/ADR-001.md via doc-path", () => {
-    const docDir = path.join(tmpDir, "documentation", "adr");
+  test("maps .kb/adr/ADR-001.md via doc-path", () => {
+    const docDir = path.join(tmpDir, ".kb", "adr");
     fs.mkdirSync(docDir, { recursive: true });
     fs.writeFileSync(path.join(docDir, "ADR-001.md"), "");
 
     const result = getFileLinkedEntityIds(
       tmpDir,
-      path.join(tmpDir, "documentation/adr/ADR-001.md"),
+      path.join(tmpDir, ".kb/adr/ADR-001.md"),
     );
     assert.deepEqual(result.ids, ["ADR-001"]);
     assert.equal(result.source, "doc-path");
   });
 
-  test("maps documentation/flags/FLAG-001.md via doc-path", () => {
-    const docDir = path.join(tmpDir, "documentation", "flags");
+  test("maps .kb/flags/FLAG-001.md via doc-path", () => {
+    const docDir = path.join(tmpDir, ".kb", "flags");
     fs.mkdirSync(docDir, { recursive: true });
     fs.writeFileSync(path.join(docDir, "FLAG-001.md"), "");
 
     const result = getFileLinkedEntityIds(
       tmpDir,
-      path.join(tmpDir, "documentation/flags/FLAG-001.md"),
+      path.join(tmpDir, ".kb/flags/FLAG-001.md"),
     );
     assert.deepEqual(result.ids, ["FLAG-001"]);
     assert.equal(result.source, "doc-path");
   });
 
-  test("maps documentation/events/EVT-001.md via doc-path", () => {
-    const docDir = path.join(tmpDir, "documentation", "events");
+  test("maps .kb/events/EVT-001.md via doc-path", () => {
+    const docDir = path.join(tmpDir, ".kb", "events");
     fs.mkdirSync(docDir, { recursive: true });
     fs.writeFileSync(path.join(docDir, "EVT-001.md"), "");
 
     const result = getFileLinkedEntityIds(
       tmpDir,
-      path.join(tmpDir, "documentation/events/EVT-001.md"),
+      path.join(tmpDir, ".kb/events/EVT-001.md"),
     );
     assert.deepEqual(result.ids, ["EVT-001"]);
     assert.equal(result.source, "doc-path");
   });
 
-  test("maps documentation/facts/FACT-001.md via doc-path", () => {
-    const docDir = path.join(tmpDir, "documentation", "facts");
+  test("maps .kb/facts/FACT-001.md via doc-path", () => {
+    const docDir = path.join(tmpDir, ".kb", "facts");
     fs.mkdirSync(docDir, { recursive: true });
     fs.writeFileSync(path.join(docDir, "FACT-001.md"), "");
 
     const result = getFileLinkedEntityIds(
       tmpDir,
-      path.join(tmpDir, "documentation/facts/FACT-001.md"),
+      path.join(tmpDir, ".kb/facts/FACT-001.md"),
     );
     assert.deepEqual(result.ids, ["FACT-001"]);
     assert.equal(result.source, "doc-path");
   });
 
   test("does not match non-entity files in doc roots as doc-path", () => {
-    const docDir = path.join(tmpDir, "documentation", "requirements");
+    const docDir = path.join(tmpDir, ".kb", "requirements");
     fs.mkdirSync(docDir, { recursive: true });
     fs.writeFileSync(path.join(docDir, "README.md"), "# Requirements");
 
     const result = getFileLinkedEntityIds(
       tmpDir,
-      path.join(tmpDir, "documentation/requirements/README.md"),
+      path.join(tmpDir, ".kb/requirements/README.md"),
     );
     // README.md doesn't match REQ-*, SCEN-*, etc. pattern
     assert.deepEqual(result.ids, []);
@@ -443,7 +443,7 @@ describe("getFileLinkedTargetsByType", () => {
       relationships?: Array<{ type: string; target: string }>;
     }>,
   ) {
-    const docDir = path.join(tmpDir, "documentation");
+    const docDir = path.join(tmpDir, ".kb");
     fs.mkdirSync(docDir, { recursive: true });
 
     const entriesYaml = entries

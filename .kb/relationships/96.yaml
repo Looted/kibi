@@ -6,3 +6,66 @@ relationships:
     created_at: "2026-08-16T18:52:30.452Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: relates_to
+    from: REQ-cli-canonical-runtime
+    to: ADR-026
+    created_at: 2026-08-18T16:39:06.664Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b59e2a94f3bb
+  - type: relates_to
+    from: REQ-cli-canonical-runtime
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T16:39:06.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ff1db2735dc
+  - type: supersedes
+    from: REQ-cli-canonical-runtime
+    to: REQ-cli-sync
+    created_at: 2026-08-18T16:39:06.686Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1ce54ba8087
+  - type: specified_by
+    from: REQ-cli-canonical-runtime
+    to: SCEN-cli-canonical-runtime
+    created_at: 2026-08-18T16:39:42.915Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5366c00a6e5a
+  - type: verified_by
+    from: REQ-cli-canonical-runtime
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T16:39:42.931Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4ac6ae8e214
+  - type: verified_by
+    from: REQ-cli-canonical-runtime
+    to: TEST-mcp-canonical-activation
+    created_at: 2026-08-18T16:39:42.936Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4e64a7222af
+  - type: verified_by
+    from: REQ-cli-canonical-runtime
+    to: TEST-cursor-canonical-manifest
+    created_at: 2026-08-18T16:39:42.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25c43b150697
+  - type: implements
+    from: SYM-canonical-CANONICAL_ENTITY_PATHS
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:03:27.561Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6474ad24721b
+  - type: covered_by
+    from: SYM-canonical-CANONICAL_ENTITY_PATHS
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:03:27.571Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76223dd45a3f

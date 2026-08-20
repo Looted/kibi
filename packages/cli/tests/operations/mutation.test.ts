@@ -1,4 +1,4 @@
-import { describe, expect, mock, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 
 import { buildUpsertCommitGoal } from "../../src/operations/mutation/contradictions.js";
 import { buildPropertyList } from "../../src/operations/mutation/serialization.js";
@@ -76,6 +76,19 @@ const verificationContract = {
 } as const;
 
 describe("shared mutation operation specs", () => {
+  const originalBranch = process.env.KIBI_BRANCH;
+
+  beforeEach(() => {
+    process.env.KIBI_BRANCH = "test-branch";
+  });
+
+  afterEach(() => {
+    if (originalBranch === undefined) {
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+    } else {
+      process.env.KIBI_BRANCH = originalBranch;
+    }
+  });
   test("effective relationship projection preserves repeated and omitted outgoing relationships", async () => {
     const { context } = createContext((goal): PrologQueryResult => {
       if (goal === "once(kb_entity('REQ-PROJECTION', _, _))") {

@@ -68,7 +68,7 @@ describe("shared discovery operation executors", () => {
       success: true,
       bindings: {
         Results:
-          '[[REQ-exact,req,[title="Exact lookup",status=open,source="documentation/requirements/REQ-exact.md"]]]',
+          '[[REQ-exact,req,[title="Exact lookup",status=open,source=".kb/requirements/REQ-exact.md"]]]',
       },
     }));
 
@@ -86,7 +86,7 @@ describe("shared discovery operation executors", () => {
           type: "req",
           title: "Exact lookup",
           status: "open",
-          source: "documentation/requirements/REQ-exact.md",
+          source: ".kb/requirements/REQ-exact.md",
         },
       ],
       count: 1,

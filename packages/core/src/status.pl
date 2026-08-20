@@ -113,8 +113,10 @@ freshness_state(_, true, unknown).
 
 stale_reasons(Reasons, Count, Truncated) :-
     findall(Reason, stale_indexed_source_reason(Reason), IndexedReasons),
+    findall(Reason, stale_knowledge_lane_reason(Reason), KnowledgeReasons),
     findall(Reason, stale_documentation_reason(Reason), DocumentationReasons),
-    append(IndexedReasons, DocumentationReasons, Reasons0),
+    append(IndexedReasons, KnowledgeReasons, IndexedAndKnowledge),
+    append(IndexedAndKnowledge, DocumentationReasons, Reasons0),
     sort(Reasons0, Sorted),
     length(Sorted, Count),
     (   Count > 200
@@ -139,6 +141,18 @@ stale_indexed_source_reason(Reason) :-
     ),
     entity_ids_for_source(RelativeSource, EntityIds),
     Reason = _{code: Code, path: RelativeSource, entityIds: EntityIds}.
+
+stale_knowledge_lane_reason(Reason) :-
+    attached_workspace_root(WorkspaceRoot),
+    knowledge_lane(Lane),
+    directory_file_path(WorkspaceRoot, '.kb', KbRoot),
+    directory_file_path(KbRoot, Lane, LaneRoot),
+    exists_directory(LaneRoot),
+    kb_snapshot_time(SnapshotTime),
+    directory_tree_newer_path(LaneRoot, SnapshotTime, Path),
+    workspace_relative_path(WorkspaceRoot, Path, RelativePath),
+    entity_ids_for_source(RelativePath, EntityIds),
+    Reason = _{code: knowledge_source_newer, path: RelativePath, entityIds: EntityIds}.
 
 stale_documentation_reason(Reason) :-
     attached_workspace_root(WorkspaceRoot),
@@ -179,6 +193,9 @@ workspace_state_changed(SnapshotTime) :-
     workspace_source_changed(SnapshotTime),
     !.
 workspace_state_changed(SnapshotTime) :-
+    knowledge_lane_tree_changed(SnapshotTime),
+    !.
+workspace_state_changed(SnapshotTime) :-
     documentation_tree_changed(SnapshotTime),
     !.
 
@@ -195,6 +212,15 @@ workspace_source_changed(SnapshotTime) :-
     ->  fail
     ;   true
     ),
+    !.
+
+knowledge_lane_tree_changed(SnapshotTime) :-
+    attached_workspace_root(WorkspaceRoot),
+    knowledge_lane(Lane),
+    directory_file_path(WorkspaceRoot, '.kb', KbRoot),
+    directory_file_path(KbRoot, Lane, LaneRoot),
+    exists_directory(LaneRoot),
+    directory_tree_newer(LaneRoot, SnapshotTime),
     !.
 
 documentation_tree_changed(SnapshotTime) :-
@@ -306,8 +332,20 @@ source_value_atom(Val, Atom) :-
     term_string(Val, Str),
     atom_string(Atom, Str).
 
+knowledge_lane(requirements).
+knowledge_lane(scenarios).
+knowledge_lane(tests).
+knowledge_lane(facts).
+knowledge_lane(adr).
+knowledge_lane(flags).
+knowledge_lane(events).
+
 ignored_documentation_file(Path) :-
     file_base_name(Path, 'README.md').
+ignored_documentation_file(Path) :-
+    sub_atom(Path, _, _, _, '/tests/e2e/').
+ignored_documentation_file(Path) :-
+    sub_atom(Path, _, _, _, '/tests/benchmarks/').
 
 entity_documentation_file(Path) :-
     read_file_to_string(Path, Content, []),

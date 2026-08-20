@@ -104,37 +104,37 @@ This section provides guidance on selecting the appropriate entity type for your
 **Canonical Example: REQ + SCEN + TEST (Golden Path)**
 
 ```yaml
-# documentation/requirements/REQ-001.md
+# .kb/requirements/REQ-001.md
 ---
 id: REQ-001
 title: User authentication
 status: open
 created_at: 2026-03-10T10:00:00Z
 updated_at: 2026-03-10T10:00:00Z
-source: documentation/requirements/REQ-001.md
+source: .kb/requirements/REQ-001.md
 links:
   - type: specified_by
     target: SCEN-001
 ---
 
-# documentation/scenarios/SCEN-001.md
+# .kb/scenarios/SCEN-001.md
 ---
 id: SCEN-001
 title: Login with valid credentials
 status: active
 created_at: 2026-03-10T10:01:00Z
 updated_at: 2026-03-10T10:01:00Z
-source: documentation/scenarios/SCEN-001.md
+source: .kb/scenarios/SCEN-001.md
 ---
 
-# documentation/tests/TEST-001.md
+# .kb/tests/TEST-001.md
 ---
 id: TEST-001
 title: Login test
 status: passing
 created_at: 2026-03-10T10:02:00Z
 updated_at: 2026-03-10T10:02:00Z
-source: documentation/tests/TEST-001.md
+source: .kb/tests/TEST-001.md
 links:
   - type: validates
     target: SCEN-001
@@ -163,7 +163,7 @@ relationship:
   target: SCEN-001
   created_at: 2026-03-10T10:03:00Z
   created_by: analyst
-  source: documentation/requirements/REQ-001.md
+  source: .kb/requirements/REQ-001.md
 ---
 # Relationship: REQ-001 verified_by TEST-001
 relationship:
@@ -172,7 +172,7 @@ relationship:
   target: TEST-001
   created_at: 2026-03-10T10:04:00Z
   created_by: qa
-  source: documentation/requirements/REQ-001.md
+  source: .kb/requirements/REQ-001.md
 ```
 
 > **Rule:** Never embed scenarios or tests inside requirement records. Always create separate files for each entity and link them with explicit typed `links` entries or relationship rows (`specified_by`, `verified_by`). Plain string `links` are generic `relates_to` only.
@@ -195,26 +195,26 @@ relationship:
 **Canonical Contradiction-Safe Example:**
 
 ```yaml
-# documentation/facts/FACT-USER-ROLE.md
+# .kb/facts/FACT-USER-ROLE.md
 ---
 id: FACT-USER-ROLE
 title: User Role Assignment
 status: active
 created_at: 2026-03-24T00:00:00Z
 updated_at: 2026-03-24T00:00:00Z
-source: documentation/facts/FACT-USER-ROLE.md
+source: .kb/facts/FACT-USER-ROLE.md
 fact_kind: subject
 subject_key: user.role_assignment
 ---
 
-# documentation/facts/FACT-LIMIT-3.md
+# .kb/facts/FACT-LIMIT-3.md
 ---
 id: FACT-LIMIT-3
 title: Maximum of Three
 status: active
 created_at: 2026-03-24T00:00:00Z
 updated_at: 2026-03-24T00:00:00Z
-source: documentation/facts/FACT-LIMIT-3.md
+source: .kb/facts/FACT-LIMIT-3.md
 fact_kind: property_value
 subject_key: user.role_assignment
 property_key: max_roles
@@ -223,14 +223,14 @@ value_type: int
 value_int: 3
 ---
 
-# documentation/requirements/REQ-019.md
+# .kb/requirements/REQ-019.md
 ---
 id: REQ-019
 title: Users can now have 3 roles
 status: open
 created_at: 2026-02-20T13:06:00Z
 updated_at: 2026-03-24T00:00:00Z
-source: documentation/requirements/REQ-019.md
+source: .kb/requirements/REQ-019.md
 links:
   - type: constrains
     target: FACT-USER-ROLE
@@ -542,7 +542,7 @@ Legacy prose facts without `fact_kind` remain readable during migration, but new
 
 Requirements also retain a `semantic_inventory` proposition ledger. Each entry binds a claim key and exact claim text to a UTF-8 byte span and one of `modeled`, `ambiguous`, `ontology_gap`, `nonlogical`, or `missing`. An assertive proposition that is not modeled must be explicitly unresolved; prose alone is not logical coverage.
 
-Generated symbol coordinates (`sourceLine`, `sourceColumn`, `sourceEndLine`, and `sourceEndColumn`) are persisted into the RDF snapshot during sync alongside `sourceFile`. This lets conservative proof reporting validate the exact source-bound symbols that carry implementation and executable-test evidence; the authored manifest remains coordinate-free and `documentation/symbol-coordinates.yaml` remains the generated source of truth.
+Generated symbol coordinates (`sourceLine`, `sourceColumn`, `sourceEndLine`, and `sourceEndColumn`) are persisted into the RDF snapshot during sync alongside `sourceFile`. This lets conservative proof reporting validate the exact source-bound symbols that carry implementation and executable-test evidence; the authored manifest remains coordinate-free and `.kb/symbol-coordinates.yaml` remains the generated source of truth.
 
 | Property     | Required | Type           | Description                                      |
 |--------------|----------|----------------|--------------------------------------------------|
@@ -567,7 +567,7 @@ title: User Role Assignment
 status: active
 created_at: 2026-02-20T13:00:00Z
 updated_at: 2026-02-20T13:00:00Z
-source: documentation/facts/FACT-USER-ROLE.md
+source: .kb/facts/FACT-USER-ROLE.md
 tags:
   - domain
   - auth
@@ -769,7 +769,7 @@ relationship:
   target: FACT-USER-ROLE
   created_at: 2026-02-20T14:00:00Z
   created_by: analyst
-  source: documentation/requirements/REQ-018.md
+  source: .kb/requirements/REQ-018.md
 ```
 
 **requires_property**
@@ -781,7 +781,7 @@ relationship:
   target: FACT-LIMIT-2
   created_at: 2026-02-20T14:01:00Z
   created_by: analyst
-  source: documentation/requirements/REQ-018.md
+  source: .kb/requirements/REQ-018.md
 ```
 
 **relates_to**

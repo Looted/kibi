@@ -65,7 +65,7 @@ describe("MCP check aggregated path", () => {
     expect(firstCallGoal).toContain("check_all_json_with_options");
   });
 
-  test("should include strict-fact-shape violations when returned from aggregated checks", async () => {
+  test("should include strict-fact-shape quality diagnostics when returned from aggregated checks", async () => {
     const query = mock(async (goal: string) => {
       if (goal.includes("check_all_json_with_options")) {
         return {
@@ -99,15 +99,20 @@ describe("MCP check aggregated path", () => {
       rules: ["strict-fact-shape"],
     });
 
-    expect(result.structuredContent?.count).toBe(1);
-    expect(result.structuredContent?.violations[0]?.rule).toBe(
-      "strict-fact-shape",
+    const diagnostic = result.structuredContent?.qualityDiagnostics?.find(
+      (item) =>
+        item.id === "rule.strict-fact-shape" &&
+        item.entityId === "FACT-MALFORMED-001",
     );
+    expect(result.structuredContent?.count).toBe(0);
+    expect(result.structuredContent?.violations).toEqual([]);
+    expect(diagnostic).toBeDefined();
+    expect(diagnostic?.blocking).toBe(false);
     expect(result.content[0]?.text).toContain("strict-fact-shape");
     expect(result.content[0]?.text).toContain("FACT-MALFORMED-001");
   });
 
-  test("should include strict-req-fact-pairing violations when returned from aggregated checks", async () => {
+  test("should include strict-req-fact-pairing quality diagnostics when returned from aggregated checks", async () => {
     const query = mock(async (goal: string) => {
       if (goal.includes("check_all_json_with_options")) {
         return {
@@ -142,10 +147,15 @@ describe("MCP check aggregated path", () => {
       rules: ["strict-req-fact-pairing"],
     });
 
-    expect(result.structuredContent?.count).toBe(1);
-    expect(result.structuredContent?.violations[0]?.rule).toBe(
-      "strict-req-fact-pairing",
+    const diagnostic = result.structuredContent?.qualityDiagnostics?.find(
+      (item) =>
+        item.id === "rule.strict-req-fact-pairing" &&
+        item.entityId === "REQ-PAIRING-001",
     );
+    expect(result.structuredContent?.count).toBe(0);
+    expect(result.structuredContent?.violations).toEqual([]);
+    expect(diagnostic).toBeDefined();
+    expect(diagnostic?.blocking).toBe(false);
     expect(result.content[0]?.text).toContain("strict-req-fact-pairing");
     expect(result.content[0]?.text).toContain("REQ-PAIRING-001");
   });

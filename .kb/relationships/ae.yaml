@@ -17,3 +17,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6effdc9495f
+  - type: implements
+    from: SYM-canonical-shouldHandleFile
+    to: REQ-opencode-bootstrap-nudge
+    created_at: 2026-08-18T17:37:02.138Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-281fe01756b3
+  - type: covered_by
+    from: SYM-canonical-shouldHandleFile
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-18T17:37:02.145Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59e94e04305b
+  - type: covered_by
+    from: SYM-cli-github-placeholder-repo
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:55:54.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b66ae1da5971

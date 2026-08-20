@@ -41,3 +41,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-454903306286
+  - type: implements
+    from: SYM-canonical-HunkRange
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T17:36:24.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38b0b23e8dda
+  - type: covered_by
+    from: SYM-canonical-HunkRange
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T17:36:24.977Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-184b7d4d9390

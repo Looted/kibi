@@ -192,7 +192,7 @@ export class KibiCodeLensProvider implements vscode.CodeLensProvider {
     const manifestWatcher = vscode.workspace.createFileSystemWatcher(
       new vscode.RelativePattern(
         vscode.Uri.file(this.workspaceRoot),
-        "{symbols.yaml,symbols.yml}",
+        ".kb/{symbols.yaml,symbol-coordinates.yaml}",
       ),
     );
 

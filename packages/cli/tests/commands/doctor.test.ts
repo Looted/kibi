@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { execSync } from "node:child_process";
+import { execSync } from "../helpers/isolated-env.js";
 import {
   existsSync,
   mkdirSync,
@@ -78,10 +78,10 @@ describe("kibi doctor", () => {
     }
   });
 
-  test("validates config.json is valid JSON", () => {
+  test("validates manifest.json is valid JSON", () => {
     execSync("git init -b main", { cwd: tmpDir });
     mkdirSync(path.join(tmpDir, ".kb"));
-    writeFileSync(path.join(tmpDir, ".kb/config.json"), "{invalid json");
+    writeFileSync(path.join(tmpDir, ".kb/manifest.json"), "{invalid json");
 
     try {
       execSync(`bun ${kibiBin} doctor`, {
@@ -105,8 +105,12 @@ describe("kibi doctor", () => {
   test("checks git repository exists", () => {
     mkdirSync(path.join(tmpDir, ".kb"));
     writeFileSync(
-      path.join(tmpDir, ".kb/config.json"),
-      JSON.stringify({ paths: {} }),
+      path.join(tmpDir, ".kb/manifest.json"),
+      JSON.stringify({
+        manifestVersion: 1,
+        schemaVersion: 5,
+        semanticAdvisorBackfill: "not_applicable",
+      }),
     );
 
     try {
@@ -222,7 +226,7 @@ describe("kibi doctor", () => {
     });
 
     const lines = output.split("\n");
-    const checkOrder = ["SWI-Prolog", ".kb", "config.json", "repository"];
+    const checkOrder = ["SWI-Prolog", ".kb", "manifest", "repository"];
 
     let lastIndex = -1;
     for (const check of checkOrder) {

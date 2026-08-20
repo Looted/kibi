@@ -66,3 +66,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bfbf80266bf1
+  - type: implements
+    from: SYM-cli-report-format-absolute-utc
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-18T20:40:53.096Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-991e794a72aa
+  - type: covered_by
+    from: SYM-cli-report-format-absolute-utc
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-18T20:40:53.109Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-077eea18555c

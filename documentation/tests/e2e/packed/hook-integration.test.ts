@@ -131,7 +131,7 @@ if (RUN_NODE_TEST_SUITE) {
 
       await kibi(sandbox, ["init"]);
 
-      const reqDir = join(sandbox.repoDir, "documentation/requirements");
+      const reqDir = join(sandbox.repoDir, ".kb/requirements");
       mkdirSync(reqDir, { recursive: true });
 
       writeFileSync(
@@ -207,7 +207,7 @@ status: open
 
       await kibi(sandbox, ["init"]);
 
-      const reqDir = join(sandbox.repoDir, "documentation/requirements");
+      const reqDir = join(sandbox.repoDir, ".kb/requirements");
       mkdirSync(reqDir, { recursive: true });
 
       writeFileSync(
@@ -349,7 +349,7 @@ echo "Existing hook"
 
         await kibi(sandbox, ["init"]);
 
-        const reqDir = join(sandbox.repoDir, "documentation/requirements");
+        const reqDir = join(sandbox.repoDir, ".kb/requirements");
         mkdirSync(reqDir, { recursive: true });
 
         writeFileSync(
@@ -408,7 +408,7 @@ status: open
 
         await kibi(sandbox, ["init"]);
 
-        const reqDir = join(sandbox.repoDir, "documentation/requirements");
+        const reqDir = join(sandbox.repoDir, ".kb/requirements");
         mkdirSync(reqDir, { recursive: true });
 
         writeFileSync(

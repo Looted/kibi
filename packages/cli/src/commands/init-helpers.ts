@@ -31,7 +31,8 @@ import {
   resolveActiveBranch,
 } from "../utils/branch-resolver.js";
 import { ensureBranchStoreManifest } from "../utils/branch-store-locator.js";
-import { DEFAULT_CONFIG } from "../utils/config.js";
+import { defaultKbManifest, writeKbManifest } from "../utils/kb-manifest.js";
+import { ENTITY_LANES, KB_PATHS } from "../utils/kb-paths.js";
 import { SYMBOLS_MANIFEST_COMMENT_BLOCK } from "./sync/manifest.js";
 
 const POST_CHECKOUT_HOOK = `#!/bin/sh
@@ -83,10 +84,10 @@ const PRE_COMMIT_HOOK = `#!/bin/sh
 # Hard enforcement boundary: commits are blocked only here via kibi check.
 # The OpenCode plugin remains advisory and must not replace this gate.
 # Behavior-changing source edits require staged Kibi impact evidence
-# (KB entity docs, authored symbols metadata, or refreshed symbol
-# coordinates). Test-only and docs-only edits are exempt.
+# (KB entity docs under .kb/, authored symbols metadata, or refreshed
+# symbol coordinates). Test-only and docs-only edits are exempt.
 # Refresh with:
-#   kibi sync --refresh-symbol-coordinates && git add documentation/symbol-coordinates.yaml documentation/symbols.yaml
+#   kibi sync --refresh-symbol-coordinates && git add .kb/symbol-coordinates.yaml .kb/symbols.yaml
 
 set -e
 
@@ -112,55 +113,100 @@ export function createKbDirectoryStructure(
 ): void {
   mkdirSync(kbDir, { recursive: true });
   mkdirSync(path.join(kbDir, "schema"), { recursive: true });
+  // Canonical tracked knowledge lanes under .kb/.
+  for (const lane of ENTITY_LANES) {
+    mkdirSync(path.join(kbDir, lane), { recursive: true });
+  }
   ensureBranchStoreManifest(path.dirname(kbDir), currentBranch);
   console.log("✓ Created .kb/ directory structure");
   console.log(`✓ Created hashed branch store for ${currentBranch}`);
 }
 
-export function createConfigFile(kbDir: string): void {
-  writeFileSync(
-    path.join(kbDir, "config.json"),
-    JSON.stringify(DEFAULT_CONFIG, null, 2),
-  );
-  console.log("✓ Created config.json with default paths");
+export function createManifestFile(kbDir: string): void {
+  writeKbManifest(path.dirname(kbDir), defaultKbManifest());
+  console.log("✓ Created Kibi lifecycle manifest at .kb/manifest.json");
 }
 
 export function updateGitIgnore(cwd: string): void {
-  // implements REQ-001
+  // implements REQ-cli-init-canonical
   const gitignorePath = path.join(cwd, ".gitignore");
   const gitignoreContent = existsSync(gitignorePath)
     ? readFileSync(gitignorePath, "utf8")
     : "";
 
   const ensureEntry = (current: string, entry: string): string => {
-    if (current.includes(entry)) {
+    const lines = current.split(/\r?\n/).map((line) => line.trim());
+    if (lines.includes(entry)) {
       return current;
     }
 
     return current ? `${current.trimEnd()}\n${entry}\n` : `${entry}\n`;
   };
 
-  // Compiled stores and recovery journals are derived state, while config,
-  // schema, and relationship shards are authored source artifacts. Keep the
-  // broad fence for safety, then explicitly re-include the canonical source
-  // lanes so ordinary `git add` makes them compiler inputs.
-  let updatedContent = ensureEntry(gitignoreContent, ".kb/");
-  updatedContent = ensureEntry(updatedContent, "!.kb/");
-  updatedContent = ensureEntry(updatedContent, "!.kb/config.json");
-  updatedContent = ensureEntry(updatedContent, "!.kb/schema/");
-  updatedContent = ensureEntry(updatedContent, "!.kb/relationships/");
-  updatedContent = ensureEntry(updatedContent, "!.kb/relationships/*.yaml");
+  // Derived runtime state stays ignored. Authored knowledge lanes, the
+  // symbols manifest, relationship shards, schema, and the lifecycle
+  // manifest stay committable. `.kb/migrations/` is derived runtime
+  // audit state, not tracked project knowledge.
+  let updatedContent = stripLegacyKibiGitIgnoreStanza(gitignoreContent);
+  for (const entry of CANONICAL_DERIVED_GITIGNORE_ENTRIES) {
+    updatedContent = ensureEntry(updatedContent, entry);
+  }
 
   if (updatedContent !== gitignoreContent) {
     writeFileSync(gitignorePath, updatedContent);
-    console.log("✓ Added .kb/ to .gitignore");
+    console.log("✓ Configured .gitignore for the canonical .kb/ layout");
   }
+}
+
+/** Exact derived-runtime entries owned by current Kibi init/migrate. */
+const CANONICAL_DERIVED_GITIGNORE_ENTRIES = [
+  ".kb/branches/",
+  ".kb/recovery/",
+  ".kb/verification/",
+  ".kb/briefs/",
+  ".kb/migrations/",
+  ".kb/usage.log",
+] as const;
+
+/**
+ * Pre-canonical Kibi init wrote a blanket `.kb/` fence and then
+ * re-included only config/schema/relationship artifacts. After the
+ * knowledge cutover that fence would keep `.kb/requirements/*` ignored.
+ */
+const LEGACY_KIBI_GITIGNORE_FENCE = ".kb/";
+const LEGACY_KIBI_GITIGNORE_REINCLUDES = [
+  "!.kb/",
+  "!.kb/config.json",
+  "!.kb/schema/",
+  "!.kb/relationships/",
+  "!.kb/relationships/*.yaml",
+] as const;
+
+function stripLegacyKibiGitIgnoreStanza(content: string): string {
+  if (content.length === 0) return content;
+  const lines = content.split(/\r?\n/);
+  const trimmed = lines.map((line) => line.trim());
+  const hasFence = trimmed.includes(LEGACY_KIBI_GITIGNORE_FENCE);
+  const hasReinclude = LEGACY_KIBI_GITIGNORE_REINCLUDES.some((entry) =>
+    trimmed.includes(entry),
+  );
+  if (!hasFence || !hasReinclude) {
+    return content;
+  }
+  const drop = new Set<string>([
+    LEGACY_KIBI_GITIGNORE_FENCE,
+    ...LEGACY_KIBI_GITIGNORE_REINCLUDES,
+  ]);
+  const kept = lines.filter((line) => !drop.has(line.trim()));
+  while (kept.length > 0 && kept[kept.length - 1] === "") {
+    kept.pop();
+  }
+  return kept.length === 0 ? "" : `${kept.join("\n")}\n`;
 }
 
 // implements REQ-003
 export function ensureSymbolsManifestFile(cwd: string): void {
-  const symbolsRelPath =
-    DEFAULT_CONFIG.paths.symbols ?? "documentation/symbols.yaml";
+  const symbolsRelPath = KB_PATHS.symbolsManifest;
   const symbolsPath = path.join(cwd, symbolsRelPath);
   if (existsSync(symbolsPath)) {
     return;

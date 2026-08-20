@@ -24,3 +24,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f98c5fa4d171
+  - type: implements
+    from: SYM-canonical-rewritePendingSourceReceiptPaths
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:01:09.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80129987cec4
+  - type: covered_by
+    from: SYM-canonical-rewritePendingSourceReceiptPaths
+    to: TEST-cli-migrate
+    created_at: 2026-08-18T17:01:09.806Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8590d2688ae

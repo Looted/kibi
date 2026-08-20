@@ -75,10 +75,10 @@ describe("sync scheduler", () => {
     );
     const worktreeA = path.join(tmpDir, "worktree-a");
     const worktreeB = path.join(tmpDir, "worktree-b");
-    fs.mkdirSync(path.join(worktreeA, "documentation", "requirements"), {
+    fs.mkdirSync(path.join(worktreeA, ".kb", "requirements"), {
       recursive: true,
     });
-    fs.mkdirSync(path.join(worktreeB, "documentation", "requirements"), {
+    fs.mkdirSync(path.join(worktreeB, ".kb", "requirements"), {
       recursive: true,
     });
     const runs: string[] = [];
@@ -105,11 +105,11 @@ describe("sync scheduler", () => {
 
       schedulerA.scheduleSync(
         "file.edited",
-        "documentation/requirements/REQ-A.md",
+        ".kb/requirements/REQ-A.md",
       );
       schedulerB.scheduleSync(
         "file.edited",
-        "documentation/requirements/REQ-B.md",
+        ".kb/requirements/REQ-B.md",
       );
 
       await schedulerA.flush();
@@ -144,11 +144,11 @@ describe("sync scheduler", () => {
       },
     });
 
-    scheduler.onFileEdited("documentation/requirements/REQ-001.md");
+    scheduler.onFileEdited(".kb/requirements/REQ-001.md");
     clock.advance(20);
-    scheduler.onFileEdited("documentation/requirements/REQ-001.md");
+    scheduler.onFileEdited(".kb/requirements/REQ-001.md");
     clock.advance(20);
-    scheduler.onFileEdited("documentation/requirements/REQ-001.md");
+    scheduler.onFileEdited(".kb/requirements/REQ-001.md");
 
     clock.advance(99);
     assert.equal(runs, 0);
@@ -193,12 +193,12 @@ describe("sync scheduler", () => {
       },
     });
 
-    scheduler.onFileEdited("documentation/requirements/REQ-002.md");
+    scheduler.onFileEdited(".kb/requirements/REQ-002.md");
     clock.advance(100);
     await flushAsync();
     assert.equal(runs.length, 1);
 
-    scheduler.onFileEdited("documentation/requirements/REQ-003.md");
+    scheduler.onFileEdited(".kb/requirements/REQ-003.md");
     clock.advance(100);
     await flushAsync();
     assert.equal(runs.length, 1);
@@ -232,7 +232,7 @@ describe("sync scheduler", () => {
       },
     });
 
-    scheduler.onFileEdited("documentation/requirements/REQ-004.md");
+    scheduler.onFileEdited(".kb/requirements/REQ-004.md");
     scheduler.onToolExecuteAfter();
 
     clock.advance(100);
@@ -262,7 +262,7 @@ test("file.created reason treated same as file.edited for sync scheduling", asyn
 
   scheduler.scheduleSync(
     "file.created",
-    "documentation/requirements/REQ-001.md",
+    ".kb/requirements/REQ-001.md",
   );
 
   clock.advance(99);
@@ -294,7 +294,7 @@ test("file.deleted reason treated same as file.edited for sync scheduling", asyn
 
   scheduler.scheduleSync(
     "file.deleted",
-    "documentation/requirements/REQ-001.md",
+    ".kb/requirements/REQ-001.md",
   );
 
   clock.advance(99);
@@ -323,7 +323,7 @@ test("onRunComplete exposes sync failure via exitCode", async () => {
     },
   });
 
-  scheduler.onFileEdited("documentation/requirements/REQ-005.md");
+  scheduler.onFileEdited(".kb/requirements/REQ-005.md");
   clock.advance(100);
   await flushAsync();
 
@@ -388,7 +388,7 @@ test("onRunComplete exposes check failure via checkExitCode", async () => {
 
   scheduler.scheduleSync(
     "file.edited",
-    "documentation/requirements/REQ-006.md",
+    ".kb/requirements/REQ-006.md",
     ["required-fields"],
   );
   clock.advance(100);
@@ -797,7 +797,7 @@ test("check.failed for multi-rule payload produces zero raw console.error", asyn
 
     scheduler.scheduleSync(
       "smart-enforcement.kb-doc",
-      "documentation/facts/FACT-001.md",
+      ".kb/facts/FACT-001.md",
       ["required-fields", "no-dangling-refs", "strict-fact-shape"],
     );
     clock.advance(100);
@@ -890,14 +890,14 @@ test("smart-enforcement trailing sync.failed produces zero raw console.error", a
 
     scheduler.scheduleSync(
       "smart-enforcement.kb-doc",
-      "documentation/facts/FACT-001.md",
+      ".kb/facts/FACT-001.md",
     );
     clock.advance(100);
     await flushAsync();
 
     scheduler.scheduleSync(
       "smart-enforcement.kb-doc",
-      "documentation/facts/FACT-002.md",
+      ".kb/facts/FACT-002.md",
     );
     clock.advance(100);
     await flushAsync();
@@ -939,7 +939,7 @@ test("operational sync.failed still produces console.error (control)", async () 
       runSync: async () => ({ exitCode: 1 }),
     });
 
-    scheduler.onFileEdited("documentation/requirements/REQ-001.md");
+    scheduler.onFileEdited(".kb/requirements/REQ-001.md");
     clock.advance(100);
     await flushAsync();
 
@@ -980,7 +980,7 @@ test("runKibiSync captures stdout/stderr on non-zero exit", async () => {
     }),
   });
 
-  scheduler.onFileEdited("documentation/requirements/REQ-006.md");
+  scheduler.onFileEdited(".kb/requirements/REQ-006.md");
   clock.advance(100);
   await flushAsync();
 
@@ -1009,7 +1009,7 @@ test("runKibiSync throw-path captures error message in syncErrorMessage", async 
     },
   });
 
-  scheduler.onFileEdited("documentation/requirements/REQ-007.md");
+  scheduler.onFileEdited(".kb/requirements/REQ-007.md");
   clock.advance(100);
   await flushAsync();
 
@@ -1042,7 +1042,7 @@ test("runKibiSync truncates stdout/stderr exceeding 4000 chars", async () => {
     }),
   });
 
-  scheduler.onFileEdited("documentation/requirements/REQ-008.md");
+  scheduler.onFileEdited(".kb/requirements/REQ-008.md");
   clock.advance(100);
   await flushAsync();
 
@@ -1080,7 +1080,7 @@ test("runKibiSync normalizes empty stdout/stderr to undefined", async () => {
     }),
   });
 
-  scheduler.onFileEdited("documentation/requirements/REQ-009.md");
+  scheduler.onFileEdited(".kb/requirements/REQ-009.md");
   clock.advance(100);
   await flushAsync();
 

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { execSync } from "node:child_process";
+import { execSync, isolatedCliSandboxEnv } from "../helpers/isolated-env.js";
 import {
   existsSync,
   mkdirSync,
@@ -41,8 +41,16 @@ describe("kibi init", () => {
     });
 
     expect(existsSync(path.join(tmpDir, ".kb"))).toBe(true);
-    expect(existsSync(path.join(tmpDir, ".kb/config.json"))).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/manifest.json"))).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/config.json"))).toBe(false);
     expect(existsSync(path.join(tmpDir, ".kb/schema"))).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/requirements"))).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/scenarios"))).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/tests"))).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/facts"))).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/adr"))).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/flags"))).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/events"))).toBe(true);
     expect(existsSync(path.join(tmpDir, ".kb/branches"))).toBe(true);
     // The explicit test branch remains main.
     expect(existsSync(branchStorePath(tmpDir, "main"))).toBe(true);
@@ -64,46 +72,38 @@ describe("kibi init", () => {
     );
   }, 30000);
 
-  test("creates valid config.json with default paths", () => {
+  test("creates a Kibi-owned lifecycle manifest without path or check policy", () => {
     execSync("git init -b main", { cwd: tmpDir });
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "inherit",
     });
 
-    const configPath = path.join(tmpDir, ".kb/config.json");
-    const config = JSON.parse(readFileSync(configPath, "utf-8"));
+    const manifestPath = path.join(tmpDir, ".kb/manifest.json");
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf-8"));
 
-    expect(config.$schema).toBe(
-      "https://raw.githubusercontent.com/Looted/kibi/master/packages/cli/schema/config.json",
-    );
-    expect(config.schemaVersion).toBe(LATEST_KB_SCHEMA_VERSION);
-    expect(config.paths).toBeDefined();
-    expect(config.paths.requirements).toBe("documentation/requirements");
-    expect(config.paths.scenarios).toBe("documentation/scenarios");
-    expect(config.paths.tests).toBe("documentation/tests");
-    expect(config.paths.adr).toBe("documentation/adr");
-    expect(config.paths.flags).toBe("documentation/flags");
-    expect(config.paths.events).toBe("documentation/events");
-    expect(config.paths.facts).toBe("documentation/facts");
-    expect(config.paths.symbols).toBe("documentation/symbols.yaml");
+    expect(manifest.manifestVersion).toBe(1);
+    expect(manifest.schemaVersion).toBe(LATEST_KB_SCHEMA_VERSION);
+    expect(manifest.semanticAdvisorBackfill).toBe("not_applicable");
+    expect(manifest.paths).toBeUndefined();
+    expect(manifest.checks).toBeUndefined();
   });
 
-  test("creates documentation/symbols.yaml when it is missing", () => {
+  test("creates .kb/symbols.yaml when it is missing", () => {
     execSync("git init -b main", { cwd: tmpDir });
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "inherit",
     });
 
-    const symbolsPath = path.join(tmpDir, "documentation", "symbols.yaml");
+    const symbolsPath = path.join(tmpDir, ".kb", "symbols.yaml");
     expect(existsSync(symbolsPath)).toBe(true);
     const content = readFileSync(symbolsPath, "utf-8");
     expect(content).toContain("# symbols.yaml");
     expect(content).toContain("symbols: []");
   });
 
-  test("adds only .kb to .gitignore", () => {
+  test("ignores derived .kb/ state while keeping knowledge tracked", () => {
     execSync("git init -b main", { cwd: tmpDir });
     execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
     execSync("git config user.name 'Test User'", { cwd: tmpDir });
@@ -117,35 +117,27 @@ describe("kibi init", () => {
     const gitignorePath = path.join(tmpDir, ".gitignore");
     const content = readFileSync(gitignorePath, "utf-8");
 
-    expect(content).toContain(".kb/");
-    expect(content).not.toContain(".kb/briefs/");
+    expect(content).toContain(".kb/branches/");
+    expect(content).toContain(".kb/recovery/");
+    expect(content).toContain(".kb/verification/");
+    expect(content).toContain(".kb/briefs/");
+    expect(content).toContain(".kb/migrations/");
+    expect(content).toContain(".kb/usage.log");
+    expect(content).not.toMatch(/^\.kb\/$/m);
   }, 30000);
 
-  test("creates config.json with all check rules explicitly set to true", () => {
+  test("does not scaffold a user-editable check policy", () => {
     execSync("git init -b main", { cwd: tmpDir });
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "inherit",
     });
 
-    const configPath = path.join(tmpDir, ".kb/config.json");
-    const config = JSON.parse(readFileSync(configPath, "utf-8"));
-
-    expect(config.checks).toBeDefined();
-    expect(config.checks.rules).toBeDefined();
-    expect(config.checks.rules["must-priority-coverage"]).toBe(true);
-    expect(config.checks.rules["symbol-coverage"]).toBe(true);
-    expect(config.checks.rules["symbol-traceability"]).toBe(true);
-    expect(config.checks.rules["no-dangling-refs"]).toBe(true);
-    expect(config.checks.rules["no-cycles"]).toBe(true);
-    expect(config.checks.rules["required-fields"]).toBe(true);
-    expect(config.checks.rules["deprecated-adr-no-successor"]).toBe(true);
-    expect(config.checks.rules["domain-contradictions"]).toBe(true);
-    expect(config.checks.rules["strict-fact-shape"]).toBe(false); // disabled by default
-    expect(config.checks.rules["strict-req-fact-pairing"]).toBe(false); // disabled by default
-    expect(config.checks.rules["strict-readiness"]).toBe(false); // disabled by default
-    expect(config.checks.symbolTraceability).toBeDefined();
-    expect(config.checks.symbolTraceability.requireAdr).toBe(false);
+    expect(existsSync(path.join(tmpDir, ".kb/config.json"))).toBe(false);
+    const manifest = JSON.parse(
+      readFileSync(path.join(tmpDir, ".kb/manifest.json"), "utf-8"),
+    );
+    expect(manifest.checks).toBeUndefined();
   });
 
   test("does not fail if .kb already exists", () => {
@@ -226,7 +218,7 @@ describe("kibi init", () => {
 
     const content = readFileSync(preCommit, "utf8");
     expect(content).toContain("kibi check");
-    expect(content).toContain("documentation/symbols.yaml");
+    expect(content).toContain(".kb/symbols.yaml");
     expect(content).toContain("kibi sync --refresh-symbol-coordinates");
   });
 
@@ -247,12 +239,12 @@ describe("kibi init", () => {
   test("allows init in a non-git directory with an explicit branch", () => {
     execSync(`bun ${kibiBin} init --no-hooks`, {
       cwd: tmpDir,
-      env: { ...process.env, KIBI_BRANCH: "trunk" },
+      env: isolatedCliSandboxEnv({ KIBI_BRANCH: "trunk" }),
       stdio: "pipe",
     });
 
     expect(existsSync(path.join(tmpDir, ".kb"))).toBe(true);
-    expect(existsSync(path.join(tmpDir, ".kb/config.json"))).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/manifest.json"))).toBe(true);
     expect(existsSync(path.join(tmpDir, ".kb/schema"))).toBe(true);
     expect(existsSync(branchStorePath(tmpDir, "trunk"))).toBe(true);
   });
@@ -316,12 +308,18 @@ describe("kibi init", () => {
     });
 
     expect(out).toContain("Added .github/workflows/kibi-report.yml");
-    expect(out).toContain("GitHub → Settings → Pages → Source → GitHub Actions");
+    expect(out).toContain(
+      "GitHub → Settings → Pages → Source → GitHub Actions",
+    );
     const workflow = readFileSync(
       path.join(tmpDir, ".github/workflows/kibi-report.yml"),
       "utf8",
     );
     expect(workflow).toContain("kibi report --output kibi-report");
+    expect(workflow).toContain("KIBI_BRANCH: ${{ github.head_ref || github.ref_name }}");
+    expect(workflow).toContain("pull_request:");
+    expect(workflow).not.toContain("pull_request_target");
+    expect(workflow).toContain("name: kibi-pr-report");
     const readme = readFileSync(path.join(tmpDir, "README.md"), "utf8");
     expect(readme).toContain(
       "[![Kibi requirement health](https://acme.github.io/widgets/kibi-report/badge.svg)](https://acme.github.io/widgets/kibi-report/)",

@@ -55,3 +55,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c26ea97a7f9c
+  - type: implements
+    from: SYM-auto-44CE7BD0251E
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T16:40:57.182Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c976849bd926
+  - type: covered_by
+    from: SYM-auto-44CE7BD0251E
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T16:40:57.194Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69891f7ee0f3
+  - type: implements
+    from: SYM-canonical-applyLegacyStorageMigration
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:01:05.684Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6d9714b8f33
+  - type: covered_by
+    from: SYM-canonical-applyLegacyStorageMigration
+    to: TEST-cli-migrate
+    created_at: 2026-08-18T17:01:05.695Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f885279f086d
+  - type: implements
+    from: SYM-canonical-applyLegacyStorageMigration
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T18:23:55.416Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b21fcf5f83a4

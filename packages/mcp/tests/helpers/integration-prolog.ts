@@ -4,6 +4,7 @@
  * runJsonModuleQuery should keep Bun one-shot mode — interactive sessions can
  * hang on discovery goals.
  */
+import "./ensure-test-branch.js";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";

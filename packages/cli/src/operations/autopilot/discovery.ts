@@ -1,7 +1,7 @@
 import path from "node:path";
 
 import type { OperationContext } from "../../public/operations/runtime-types.js";
-import { getSchemaVersionStatus } from "../../public/schema-version.js";
+import { readKbManifestStatus } from "../../utils/kb-manifest.js";
 import { classifyActivation } from "./activation.js";
 import { scanEvidence } from "./discovery-evidence.js";
 import {
@@ -43,10 +43,9 @@ async function migrationWarning(
   context: OperationContext,
 ): Promise<string | null> {
   try {
-    const raw = await context.fs?.readFile(
-      path.join(context.workspaceRoot, ".kb", "config.json"),
-    );
-    return getSchemaVersionStatus(JSON.parse(raw ?? "{}") ?? undefined).warning;
+    const status = readKbManifestStatus(context.workspaceRoot);
+    if (status.state === "ok") return null;
+    return status.warning;
   } catch {
     return null;
   }

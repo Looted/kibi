@@ -42,7 +42,7 @@ describe("Cursor hook runner", () => {
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(cwd, pluginData);
     fs.mkdirSync(path.join(cwd, ".kb"));
-    fs.writeFileSync(path.join(cwd, ".kb", "config.json"), "{}");
+    fs.writeFileSync(path.join(cwd, ".kb", "manifest.json"), "{}");
 
     const result = await runHook(
       { hook_event_name: "sessionStart", cwd },
@@ -58,7 +58,7 @@ describe("Cursor hook runner", () => {
     const commandRoot = createTempRoot("kibi-cursor-commands-");
     tempRoots.push(cwd, pluginData, commandRoot);
     fs.mkdirSync(path.join(cwd, ".kb"));
-    fs.writeFileSync(path.join(cwd, ".kb", "config.json"), "{}");
+    fs.writeFileSync(path.join(cwd, ".kb", "manifest.json"), "{}");
     const executionMarker = path.join(commandRoot, "executed");
     for (const command of ["npx", "bunx"] as const) {
       const executable = path.join(commandRoot, command);
@@ -81,7 +81,7 @@ describe("Cursor hook runner", () => {
     const pluginInstallRoot = createTempRoot("kibi-cursor-plugin-");
     tempRoots.push(workspaceRoot, pluginData, pluginInstallRoot);
     fs.mkdirSync(path.join(workspaceRoot, ".kb"));
-    fs.writeFileSync(path.join(workspaceRoot, ".kb", "config.json"), "{}");
+    fs.writeFileSync(path.join(workspaceRoot, ".kb", "manifest.json"), "{}");
     process.chdir(pluginInstallRoot);
 
     const result = await runHook(
@@ -111,7 +111,7 @@ describe("Cursor hook runner", () => {
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(cwd, pluginData);
     fs.mkdirSync(path.join(cwd, ".kb"));
-    fs.writeFileSync(path.join(cwd, ".kb", "config.json"), "{}");
+    fs.writeFileSync(path.join(cwd, ".kb", "manifest.json"), "{}");
 
     const result = await runHook(
       {
@@ -151,7 +151,7 @@ describe("Cursor hook runner", () => {
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(cwd, pluginData);
     fs.mkdirSync(path.join(cwd, ".kb"));
-    fs.writeFileSync(path.join(cwd, ".kb", "config.json"), "{}");
+    fs.writeFileSync(path.join(cwd, ".kb", "manifest.json"), "{}");
     fs.mkdirSync(path.join(cwd, "src"), { recursive: true });
 
     const payload = {
@@ -184,7 +184,7 @@ describe("Cursor hook runner", () => {
     ).toEqual({ permission: "allow" });
 
     fs.mkdirSync(path.join(cwd, ".kb"));
-    fs.writeFileSync(path.join(cwd, ".kb", "config.json"), "{}");
+    fs.writeFileSync(path.join(cwd, ".kb", "manifest.json"), "{}");
 
     expect(
       await runHook(
@@ -199,7 +199,7 @@ describe("Cursor hook runner", () => {
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(cwd, pluginData);
     fs.mkdirSync(path.join(cwd, ".kb"));
-    fs.writeFileSync(path.join(cwd, ".kb", "config.json"), "{}");
+    fs.writeFileSync(path.join(cwd, ".kb", "manifest.json"), "{}");
 
     await runHook(
       {
@@ -257,7 +257,7 @@ describe("Cursor hook runner", () => {
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(cwd, pluginData);
     fs.mkdirSync(path.join(cwd, ".kb"));
-    fs.writeFileSync(path.join(cwd, ".kb", "config.json"), "{}");
+    fs.writeFileSync(path.join(cwd, ".kb", "manifest.json"), "{}");
 
     const result = await runHook(
       {
@@ -281,7 +281,7 @@ describe("Cursor hook runner", () => {
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(cwd, pluginData);
     fs.mkdirSync(path.join(cwd, ".kb"));
-    fs.writeFileSync(path.join(cwd, ".kb", "config.json"), "{}");
+    fs.writeFileSync(path.join(cwd, ".kb", "manifest.json"), "{}");
 
     const payload = {
       hook_event_name: "postToolUse",
@@ -301,7 +301,7 @@ describe("Cursor hook runner", () => {
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(cwd, pluginData);
     fs.mkdirSync(path.join(cwd, ".kb"));
-    fs.writeFileSync(path.join(cwd, ".kb", "config.json"), "{}");
+    fs.writeFileSync(path.join(cwd, ".kb", "manifest.json"), "{}");
 
     const writePayload = {
       hook_event_name: "postToolUse",
@@ -355,7 +355,7 @@ describe("Cursor hook runner", () => {
       {
         hook_event_name: "postToolUse",
         tool_name: "Write",
-        tool_input: { file_path: "documentation/requirements/REQ-cursor.md" },
+        tool_input: { file_path: ".kb/requirements/REQ-cursor.md" },
       },
       { pluginData },
     );

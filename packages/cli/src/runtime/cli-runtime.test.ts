@@ -63,13 +63,21 @@ function fakeBranchExecSync(branch: string) {
 }
 
 describe("CLI operation runtime", () => {
+  const originalKibiBranch = process.env.KIBI_BRANCH;
+
   beforeAll(() => {
+    delete process.env.KIBI_BRANCH;
     _setBranchResolverDepsForTests({
       execSync: fakeBranchExecSync("feature/runtime"),
     });
   });
 
   afterAll(() => {
+    if (originalKibiBranch === undefined) {
+      delete process.env.KIBI_BRANCH;
+    } else {
+      process.env.KIBI_BRANCH = originalKibiBranch;
+    }
     // Restore real execSync so other test files are not affected.
     _setBranchResolverDepsForTests({ execSync: undefined as never });
   });

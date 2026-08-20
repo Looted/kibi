@@ -73,3 +73,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a5671711d351
+  - type: implements
+    from: SYM-canonical-KibiTreeDataProvider-getEntityCount
+    to: REQ-vscode-traceability
+    created_at: 2026-08-18T17:37:44.291Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8a1f5520b73
+  - type: covered_by
+    from: SYM-canonical-KibiTreeDataProvider-getEntityCount
+    to: TEST-vscode-traceability
+    created_at: 2026-08-18T17:37:44.302Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ecae43ae9198

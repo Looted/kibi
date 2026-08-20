@@ -55,14 +55,14 @@ if (RUN_NODE_TEST_SUITE) {
 
           createMarkdownFile(
             sandbox,
-            "documentation/requirements/REQ-ISSUE93-001.md",
+            ".kb/requirements/REQ-ISSUE93-001.md",
             {
               id: "REQ-ISSUE93-001",
               title: "Issue 93 regression requirement",
               status: "open",
               created_at: "2026-03-20T16:20:00Z",
               updated_at: "2026-03-20T16:20:00Z",
-              source: "documentation/requirements/REQ-ISSUE93-001.md",
+              source: ".kb/requirements/REQ-ISSUE93-001.md",
               links: ["SCEN-ISSUE93-001"],
             },
             "Regression test requirement for plain markdown links.",
@@ -70,14 +70,14 @@ if (RUN_NODE_TEST_SUITE) {
 
           createMarkdownFile(
             sandbox,
-            "documentation/scenarios/SCEN-ISSUE93-001.md",
+            ".kb/scenarios/SCEN-ISSUE93-001.md",
             {
               id: "SCEN-ISSUE93-001",
               title: "Issue 93 regression scenario",
               status: "active",
               created_at: "2026-03-20T16:20:00Z",
               updated_at: "2026-03-20T16:20:00Z",
-              source: "documentation/scenarios/SCEN-ISSUE93-001.md",
+              source: ".kb/scenarios/SCEN-ISSUE93-001.md",
             },
             "Regression test scenario for plain markdown links.",
           );

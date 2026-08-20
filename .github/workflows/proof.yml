@@ -21,6 +21,7 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   KIBI_CLI: ./packages/cli/bin/kibi
+  KIBI_BRANCH: ${{ github.head_ref || github.ref_name }}
 
 jobs:
   proof:
@@ -33,13 +34,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install SWI-Prolog
-        run: |
-          sudo apt-get install -y software-properties-common
-          if [ "${{ github.actor }}" != "nektos/act" ]; then
-            sudo apt-add-repository -y ppa:swi-prolog/stable
-          fi
-          sudo apt-get update
-          sudo apt-get install -y bubblewrap swi-prolog
+        run: bash scripts/ci-install-swi-prolog.sh bubblewrap
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2

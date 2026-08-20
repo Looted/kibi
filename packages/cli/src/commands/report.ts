@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { mkdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -14,7 +14,12 @@ import {
   type HtmlReportCoverage,
   renderHtmlReport,
 } from "../report/html-report.js";
+import {
+  type ReportRepository,
+  resolveReportRepository,
+} from "../report/repository.js";
 import { createCliRuntime } from "../runtime/cli-runtime.js";
+import { listGitRemotes } from "./github-init.js";
 
 export type ReportOptions = Readonly<{
   output?: string;
@@ -37,7 +42,29 @@ export type ReportCommandDeps = Readonly<{
   openReport?: (filePath: string) => Promise<void>;
   now?: () => Date;
   cwd?: () => string;
+  repository?: ReportRepository;
 }>;
+
+function gitCommitSha(cwd: string): string | undefined {
+  try {
+    const sha = execFileSync("git", ["-C", cwd, "rev-parse", "HEAD"], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    }).trim();
+    return /^[0-9a-f]{7,64}$/i.test(sha) ? sha : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function loadReportRepository(cwd: string, branch: string): ReportRepository {
+  const commitSha = gitCommitSha(cwd);
+  return resolveReportRepository({
+    remotes: listGitRemotes(cwd),
+    ...(commitSha ? { commitSha } : {}),
+    branch,
+  });
+}
 
 function parseTags(value?: string): string[] {
   return (value ?? "")
@@ -185,16 +212,16 @@ export async function reportCommand(
   assertCompleteRequirementRows(coverage.requirements, limit);
 
   const now = (deps.now ?? (() => new Date()))();
+  const workspace = (deps.cwd ?? (() => process.cwd()))();
   const html = renderHtmlReport({
     requirements: coverage.requirements,
     symbols: coverage.symbols,
     branch: coverage.branch,
     generatedAt: now,
+    repository:
+      deps.repository ?? loadReportRepository(workspace, coverage.branch),
   });
-  const outputPath = reportTarget(
-    (deps.cwd ?? (() => process.cwd()))(),
-    options.output,
-  );
+  const outputPath = reportTarget(workspace, options.output);
   const requestedOutput = options.output?.trim() || "kibi-report";
   const outputIsHtmlFile = [".html", ".htm"].includes(
     path.extname(requestedOutput).toLowerCase(),

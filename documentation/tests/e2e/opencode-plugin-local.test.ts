@@ -31,21 +31,30 @@ if (RUN_NODE_TEST_SUITE) {
 
         tmpDir = mkdtempSync(join(tmpdir(), "kibi-e2e-local-"));
         mkdirSync(join(tmpDir, ".kb"), { recursive: true });
-        mkdirSync(join(tmpDir, "documentation", "requirements"), {
-          recursive: true,
-        });
+        for (const dir of [
+          ".kb/requirements",
+          ".kb/scenarios",
+          ".kb/tests",
+          ".kb/adr",
+          ".kb/flags",
+          ".kb/events",
+          ".kb/facts",
+        ]) {
+          mkdirSync(join(tmpDir, dir), { recursive: true });
+        }
         mkdirSync(join(tmpDir, "src"), { recursive: true });
 
         writeFileSync(
-          join(tmpDir, ".kb", "config.json"),
+          join(tmpDir, ".kb", "manifest.json"),
           JSON.stringify({
-            paths: {
-              requirements: "documentation/requirements/**/*.md",
-            },
+            manifestVersion: 1,
+            schemaVersion: 5,
+            semanticAdvisorBackfill: "not_applicable",
           }),
         );
+        writeFileSync(join(tmpDir, ".kb", "symbols.yaml"), "symbols: []\n");
         writeFileSync(
-          join(tmpDir, "documentation", "requirements", "REQ-001.md"),
+          join(tmpDir, ".kb", "requirements", "REQ-001.md"),
           "---\nid: REQ-001\ntitle: Test Requirement\nstatus: open\n---\n# Test",
         );
         writeFileSync(join(tmpDir, "src", "main.ts"), "console.log('hello');");
@@ -114,10 +123,7 @@ if (RUN_NODE_TEST_SUITE) {
         const { shouldHandleFile } = await import(
           join(REPO_ROOT, "packages/opencode/dist/file-filter.js")
         );
-        const result = shouldHandleFile(
-          "documentation/requirements/REQ-001.md",
-          tmpDir,
-        );
+        const result = shouldHandleFile(".kb/requirements/REQ-001.md", tmpDir);
         assert.equal(result, true);
       },
     );
@@ -136,43 +142,37 @@ if (RUN_NODE_TEST_SUITE) {
 
     // implements REQ-opencode-kibi-plugin-v1
     it(
-      "does not emit bootstrap warning for healthy relocated paths",
+      "does not emit bootstrap warning for a healthy canonical .kb/ layout",
       { timeout: 30000 },
       async () => {
         const healthyDir = mkdtempSync(
-          join(tmpdir(), "kibi-e2e-relocated-healthy-"),
+          join(tmpdir(), "kibi-e2e-canonical-healthy-"),
         );
         try {
           mkdirSync(join(healthyDir, ".kb"), { recursive: true });
           writeFileSync(
-            join(healthyDir, ".kb", "config.json"),
+            join(healthyDir, ".kb", "manifest.json"),
             JSON.stringify({
-              paths: {
-                requirements: "kibi-docs/requirements/**/*.md",
-                scenarios: "kibi-docs/scenarios/**/*.md",
-                tests: "kibi-docs/tests/**/*.md",
-                adr: "kibi-docs/adr/**/*.md",
-                flags: "kibi-docs/flags/**/*.md",
-                events: "kibi-docs/events/**/*.md",
-                facts: "kibi-docs/facts/**/*.md",
-                symbols: "kibi-docs/symbols.yaml",
-              },
+              manifestVersion: 1,
+              schemaVersion: 5,
+              semanticAdvisorBackfill: "not_applicable",
             }),
           );
-
-          const customDirs = [
-            "kibi-docs/requirements",
-            "kibi-docs/scenarios",
-            "kibi-docs/tests",
-            "kibi-docs/adr",
-            "kibi-docs/flags",
-            "kibi-docs/events",
-            "kibi-docs/facts",
-          ];
-          for (const dir of customDirs) {
+          for (const dir of [
+            ".kb/requirements",
+            ".kb/scenarios",
+            ".kb/tests",
+            ".kb/adr",
+            ".kb/flags",
+            ".kb/events",
+            ".kb/facts",
+          ]) {
             mkdirSync(join(healthyDir, dir), { recursive: true });
           }
-          writeFileSync(join(healthyDir, "kibi-docs", "symbols.yaml"), "[]");
+          writeFileSync(
+            join(healthyDir, ".kb", "symbols.yaml"),
+            "symbols: []\n",
+          );
 
           const { getSessionTracker, resetSessionTracker } = await import(
             join(REPO_ROOT, "packages/opencode/dist/session-tracker.js")
@@ -188,7 +188,7 @@ if (RUN_NODE_TEST_SUITE) {
           assert.equal(
             summary.warningsByCategory["bootstrap-needed"],
             0,
-            "Should not emit bootstrap warning for healthy relocated paths",
+            "Should not emit bootstrap warning for a healthy canonical .kb/ layout",
           );
         } finally {
           rmSync(healthyDir, { recursive: true, force: true });
@@ -198,32 +198,23 @@ if (RUN_NODE_TEST_SUITE) {
 
     // implements REQ-opencode-kibi-plugin-v1
     it(
-      "emits bootstrap warning when configured target is missing",
+      "emits bootstrap warning when canonical targets are missing",
       { timeout: 30000 },
       async () => {
         const missingDir = mkdtempSync(
-          join(tmpdir(), "kibi-e2e-relocated-missing-"),
+          join(tmpdir(), "kibi-e2e-canonical-missing-"),
         );
         try {
           mkdirSync(join(missingDir, ".kb"), { recursive: true });
           writeFileSync(
-            join(missingDir, ".kb", "config.json"),
+            join(missingDir, ".kb", "manifest.json"),
             JSON.stringify({
-              paths: {
-                requirements: "kibi-docs/requirements/**/*.md",
-                scenarios: "kibi-docs/scenarios/**/*.md",
-                tests: "kibi-docs/tests/**/*.md",
-                adr: "kibi-docs/adr/**/*.md",
-                flags: "kibi-docs/flags/**/*.md",
-                events: "kibi-docs/events/**/*.md",
-                facts: "kibi-docs/facts/**/*.md",
-                symbols: "kibi-docs/symbols.yaml",
-              },
+              manifestVersion: 1,
+              schemaVersion: 5,
+              semanticAdvisorBackfill: "not_applicable",
             }),
           );
-
-          // Create only ONE directory (requirements), leave all others missing
-          mkdirSync(join(missingDir, "kibi-docs", "requirements"), {
+          mkdirSync(join(missingDir, ".kb", "requirements"), {
             recursive: true,
           });
 
@@ -241,7 +232,7 @@ if (RUN_NODE_TEST_SUITE) {
           assert.equal(
             summary.warningsByCategory["bootstrap-needed"],
             1,
-            "Should emit bootstrap warning when configured targets are missing",
+            "Should emit bootstrap warning when canonical targets are missing",
           );
         } finally {
           rmSync(missingDir, { recursive: true, force: true });

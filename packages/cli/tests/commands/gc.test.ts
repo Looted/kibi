@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { spawnSync } from "node:child_process";
+import { spawnSync } from "../helpers/isolated-env.js";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";

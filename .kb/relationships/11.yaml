@@ -20,3 +20,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1929751f93d4
+  - type: implements
+    from: SYM-cli-rule-registry-getRuleDefinition
+    to: REQ-cli-check
+    created_at: 2026-08-18T17:03:35.652Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ff02bb3b8fe
+  - type: covered_by
+    from: SYM-cli-rule-registry-getRuleDefinition
+    to: TEST-004
+    created_at: 2026-08-18T17:03:35.661Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b446959a06b4
+  - type: implements
+    from: SYM-canonical-PostureResult
+    to: REQ-opencode-posture-detection
+    created_at: 2026-08-18T17:37:24.228Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74f6ee065d61
+  - type: covered_by
+    from: SYM-canonical-PostureResult
+    to: TEST-opencode-smart-enforcement
+    created_at: 2026-08-18T17:37:24.237Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e732185bacb4

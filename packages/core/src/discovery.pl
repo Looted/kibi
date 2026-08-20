@@ -143,7 +143,7 @@ coverage_rows(type, _Tags, _IncludePassing, _IncludeTransitive, _VerificationSna
 requirement_coverage_row(Tags, IncludeTransitive, ProofContext, Row) :-
     kb_entity(Id, req, Props),
     matches_tags(Tags, Props),
-    entity_title_status_source(Props, Title, Status, _Source),
+    entity_title_status_source(Props, Title, Status, Source),
     entity_priority(Props, Priority),
     count_distinct_targets(specified_by, Id, source, ScenarioCount),
     requirement_test_count(Id, TestCount),
@@ -156,6 +156,7 @@ requirement_coverage_row(Tags, IncludeTransitive, ProofContext, Row) :-
         type: req,
         title: Title,
         status: Status,
+        source: Source,
         priority: Priority,
         scenarioCount: ScenarioCount,
         testCount: TestCount,

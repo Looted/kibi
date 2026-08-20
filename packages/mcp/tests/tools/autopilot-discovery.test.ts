@@ -71,7 +71,7 @@ import {
   createThinRepo,
   createVendoredTree,
   setupWorkspace,
-  writeRootConfig,
+  writeRootManifest,
 } from "./autopilot-workspace-fixture";
 
 describe("autopilot discovery", () => {
@@ -217,7 +217,7 @@ describe("autopilot discovery", () => {
     const summary = summaryExtras(discovered.summary);
     expect(summary.activationMode).toBe("repair_bootstrap");
     expect(discovered.candidates).toContain(
-      "documentation/requirements/REQ-PARTIAL-001.md",
+      ".kb/requirements/REQ-PARTIAL-001.md",
     );
     expect(discovered.candidates).toContain("docs/bootstrap.md");
   });
@@ -282,18 +282,18 @@ describe("autopilot discovery", () => {
     if (!fixture) throw new Error("missing fixture");
 
     // Create standard docs and a few ignored/secret files
-    // ensureDocs creates documentation/requirements etc.
+    // ensureDocs creates .kb/requirements etc.
     setupWorkspace(); // no-op for typing; ensure fixture present
     // create docs
     // use helper to ensure docs structure
     // The fixture helpers expose ensureDocs via import file; call createThinRepo to populate docs
     // createThinRepo writes documentation and root config; we prefer minimal docs without root .kb
     // Use ensureDir + write files directly
-    fs.mkdirSync(path.join(fixture.root, "documentation", "requirements"), {
+    fs.mkdirSync(path.join(fixture.root, ".kb", "requirements"), {
       recursive: true,
     });
     fs.writeFileSync(
-      path.join(fixture.root, "documentation", "requirements", "REQ-KEEP.md"),
+      path.join(fixture.root, ".kb", "requirements", "REQ-KEEP.md"),
       [
         "---",
         "id: REQ-KEEP",
@@ -343,9 +343,7 @@ describe("autopilot discovery", () => {
 
     const discovered = discoverSources(fixture.root, activation);
     // Keep doc should be discovered
-    expect(discovered.candidates).toContain(
-      "documentation/requirements/REQ-KEEP.md",
-    );
+    expect(discovered.candidates).toContain(".kb/requirements/REQ-KEEP.md");
     // Gitignored private doc should NOT be discovered
     expect(discovered.candidates).not.toContain(
       "documentation/private/SECRET.md",
@@ -400,20 +398,18 @@ describe("autopilot discovery", () => {
     expect(state).toBe("root_uninitialized");
   });
 
-  it("discovers configured exact markdown files, directory shorthands, and symbol manifests", () => {
+  it("ignores leftover config.json custom paths and discovers canonical .kb/ lanes", () => {
     if (!fixture) throw new Error("missing fixture");
-    writeRootConfig(fixture.root, {
-      paths: {
-        requirements: "requirements/REQ-SHORT-001.md",
-        scenarios: "scenarios",
-        tests: "tests",
-        adr: "adr",
-        flags: "flags",
-        events: "events",
-        facts: "facts",
-        symbols: "docs/symbols.yaml",
-      },
-    });
+    writeRootManifest(fixture.root);
+    fs.writeFileSync(
+      path.join(fixture.root, ".kb", "config.json"),
+      JSON.stringify({
+        paths: {
+          requirements: "requirements/REQ-SHORT-001.md",
+          symbols: "docs/symbols.yaml",
+        },
+      }),
+    );
     fs.mkdirSync(path.join(fixture.root, "requirements"), { recursive: true });
     fs.writeFileSync(
       path.join(fixture.root, "requirements", "REQ-SHORT-001.md"),
@@ -424,6 +420,24 @@ describe("autopilot discovery", () => {
       path.join(fixture.root, "docs", "symbols.yaml"),
       "symbols: []\n",
     );
+    fs.mkdirSync(path.join(fixture.root, ".kb", "requirements"), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(fixture.root, ".kb", "requirements", "REQ-CANONICAL.md"),
+      [
+        "---",
+        "id: REQ-CANONICAL",
+        "title: Canonical",
+        "status: open",
+        "---",
+        "",
+      ].join("\n"),
+    );
+    fs.writeFileSync(
+      path.join(fixture.root, ".kb", "symbols.yaml"),
+      "symbols: []\n",
+    );
 
     const discovery = discoverProviderEvidence(
       fixture.root,
@@ -432,11 +446,17 @@ describe("autopilot discovery", () => {
     const typedEvidence = discovery.providerResults.find(
       (result) => result.provider === "typed_kibi_docs",
     );
+    const typedPaths = typedEvidence?.evidence.map((item) => item.relativePath);
 
-    expect(typedEvidence?.evidence.map((item) => item.relativePath)).toContain(
-      "requirements/REQ-SHORT-001.md",
-    );
+    expect(typedPaths).toContain(".kb/requirements/REQ-CANONICAL.md");
+    expect(typedPaths).not.toContain("requirements/REQ-SHORT-001.md");
     expect(typedEvidence?.evidence).toContainEqual(
+      expect.objectContaining({
+        kind: "symbol_manifest",
+        relativePath: ".kb/symbols.yaml",
+      }),
+    );
+    expect(typedEvidence?.evidence).not.toContainEqual(
       expect.objectContaining({
         kind: "symbol_manifest",
         relativePath: "docs/symbols.yaml",

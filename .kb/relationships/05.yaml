@@ -24,3 +24,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d4dc3d7cdb0a
+  - type: implements
+    from: SYM-canonical-parseNameStatusNull
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T17:36:41.201Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce46d0cf745b
+  - type: covered_by
+    from: SYM-canonical-parseNameStatusNull
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T17:36:41.209Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34437506851c

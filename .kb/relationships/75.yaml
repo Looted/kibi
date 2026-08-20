@@ -27,3 +27,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-017dbe5beb91
+  - type: implements
+    from: SYM-canonical-KibiTreeDataProvider-getChildren
+    to: REQ-vscode-traceability
+    created_at: 2026-08-18T17:37:37.423Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b53c72dda18
+  - type: covered_by
+    from: SYM-canonical-KibiTreeDataProvider-getChildren
+    to: TEST-vscode-traceability
+    created_at: 2026-08-18T17:37:37.434Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dce902714873

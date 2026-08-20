@@ -13,31 +13,31 @@ import { type PathKind, analyzePath } from "../src/path-kind.js";
 
 describe("analyzePath", () => {
   test("identifies requirement files", () => {
-    const result = analyzePath("documentation/requirements/REQ-001.md");
+    const result = analyzePath(".kb/requirements/REQ-001.md");
     expect(result.kind).toBe("requirement");
     expect(result.isKibiDocRelevant).toBe(true);
   });
 
   test("identifies scenario files", () => {
-    const result = analyzePath("documentation/scenarios/SCEN-001.md");
+    const result = analyzePath(".kb/scenarios/SCEN-001.md");
     expect(result.kind).toBe("scenario");
     expect(result.isKibiDocRelevant).toBe(true);
   });
 
   test("identifies test files", () => {
-    const result = analyzePath("documentation/tests/TEST-001.md");
+    const result = analyzePath(".kb/tests/TEST-001.md");
     expect(result.kind).toBe("test");
     expect(result.isKibiDocRelevant).toBe(true);
   });
 
   test("identifies ADR files", () => {
-    const result = analyzePath("documentation/adr/ADR-001.md");
+    const result = analyzePath(".kb/adr/ADR-001.md");
     expect(result.kind).toBe("adr");
     expect(result.isKibiDocRelevant).toBe(true);
   });
 
   test("identifies fact files", () => {
-    const result = analyzePath("documentation/facts/FACT-001.md");
+    const result = analyzePath(".kb/facts/FACT-001.md");
     expect(result.kind).toBe("fact");
     expect(result.isKibiDocRelevant).toBe(true);
   });
@@ -58,7 +58,7 @@ describe("analyzePath", () => {
     expect(result.kind).toBe("code");
   });
 
-  test("identifies files in .kb directory", () => {
+  test("identifies leftover config.json under .kb as kb, not a knowledge lane", () => {
     const result = analyzePath(".kb/config.json");
     expect(result.isUnderKb).toBe(true);
     expect(result.isKibiDocRelevant).toBe(false);
@@ -75,9 +75,9 @@ describe("analyzePath", () => {
     expect(result.isKibiDocRelevant).toBe(false);
   });
 
-  test("isUnderKb is false for normal docs", () => {
-    const result = analyzePath("documentation/requirements/REQ-001.md");
-    expect(result.isUnderKb).toBe(false);
+  test("isUnderKb is true for knowledge lanes", () => {
+    const result = analyzePath(".kb/requirements/REQ-001.md");
+    expect(result.isUnderKb).toBe(true);
   });
 
   test("isUnderKb is true for .kb contents", () => {

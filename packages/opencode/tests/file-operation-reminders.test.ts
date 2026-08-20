@@ -39,7 +39,7 @@ describe("deriveFileOperationReminder", () => {
 
     test("created requirement doc does NOT return new file reminder (not a code file)", () => {
       const result = deriveFileOperationReminder({
-        normalizedPath: "documentation/requirements/REQ-001.md",
+        normalizedPath: ".kb/requirements/REQ-001.md",
         lifecycle: "created",
         pathKind: "requirement",
         linkedEntityResult: { ids: [], source: "none" },
@@ -213,7 +213,7 @@ describe("deriveFileOperationReminder", () => {
         checkpointEvidence: false,
       });
       const symbolManifestResult = derivePolicyReminder({
-        normalizedPath: "documentation/symbols.yaml",
+        normalizedPath: ".kb/symbols.yaml",
         lifecycle: "created",
         pathKind: "symbol" satisfies PathKind,
         linkedEntityResult: { ids: [], source: "none" },
@@ -226,7 +226,7 @@ describe("deriveFileOperationReminder", () => {
       expect(configResult.lifecycleReminder).toContain("bunfig.toml");
       expect(symbolManifestResult.policyDecision).toBe("hard_block");
       expect(symbolManifestResult.lifecycleReminder).toContain(
-        "documentation/symbols.yaml",
+        ".kb/symbols.yaml",
       );
     });
 
@@ -274,7 +274,7 @@ describe("deriveFileOperationReminder", () => {
           { normalizedPath: "src/two.ts", lifecycle: "created" },
           { normalizedPath: "tests/three.test.ts", lifecycle: "created" },
           { normalizedPath: "docs/four.md", lifecycle: "edited" },
-          { normalizedPath: "documentation/symbols.yaml", lifecycle: "edited" },
+          { normalizedPath: ".kb/symbols.yaml", lifecycle: "edited" },
           { normalizedPath: "src/six.ts", lifecycle: "deleted" },
           { normalizedPath: "src/seven.ts", lifecycle: "edited" },
         ],
@@ -333,7 +333,7 @@ describe("deriveFileOperationReminder", () => {
 
     test("deleted file with doc-path identity returns reminder with ID and kibi_delete kind", () => {
       const result = deriveFileOperationReminder({
-        normalizedPath: "documentation/requirements/REQ-001.md",
+        normalizedPath: ".kb/requirements/REQ-001.md",
         lifecycle: "deleted",
         pathKind: "requirement",
         linkedEntityResult: { ids: ["REQ-001"], source: "doc-path" },

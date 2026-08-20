@@ -27,3 +27,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ea980170b1bd
+  - type: implements
+    from: SYM-canonical-readLegacyKbConfig
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:01:42.011Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a4a3e087b97
+  - type: covered_by
+    from: SYM-canonical-readLegacyKbConfig
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:01:42.021Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68bb878112d9

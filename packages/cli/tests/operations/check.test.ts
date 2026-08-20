@@ -47,7 +47,7 @@ describe("shared check operation executor", () => {
       type: "implements",
       from: "SYM-PARITY",
       to: "REQ-PARITY",
-      source: "documentation/symbols.yaml",
+      source: ".kb/symbols.yaml",
       ownership: "authored",
     };
 
@@ -55,7 +55,7 @@ describe("shared check operation executor", () => {
       type: "implements",
       from: "SYM-PARITY",
       to: "REQ-PARITY",
-      source: "documentation/symbols.yaml",
+      source: ".kb/symbols.yaml",
       ownership: "authored",
     });
   });
@@ -67,19 +67,19 @@ describe("shared check operation executor", () => {
           type: "requires_property",
           from: "REQ-1",
           to: "FACT-A",
-          source: "documentation/requirements/REQ-1.md",
+          source: ".kb/requirements/REQ-1.md",
         },
         {
           type: "requires_property",
           from: "REQ-1",
           to: "FACT-B",
-          source: "documentation/requirements/REQ-1.md",
+          source: ".kb/requirements/REQ-1.md",
         },
         {
           type: "specified_by",
           from: "REQ-1",
           to: "SCEN-KEEP",
-          source: "documentation/requirements/REQ-1.md",
+          source: ".kb/requirements/REQ-1.md",
         },
       ],
       [
@@ -107,7 +107,7 @@ describe("shared check operation executor", () => {
           type: "specified_by",
           from: "REQ-AUTHORED",
           to: "SCEN-MISSING",
-          source: "documentation/requirements/REQ-AUTHORED.md",
+          source: ".kb/requirements/REQ-AUTHORED.md",
         },
       ],
       [
@@ -132,14 +132,14 @@ describe("shared check operation executor", () => {
     expect(
       parseCompiledRelationshipRows(
         "specified_by",
-        "[['REQ-PARITY-E2E','SCEN-PARITY-E2E',\"documentation/requirements/REQ-PARITY-E2E.md\"]]",
+        "[['REQ-PARITY-E2E','SCEN-PARITY-E2E',\".kb/requirements/REQ-PARITY-E2E.md\"]]",
       ),
     ).toEqual([
       {
         type: "specified_by",
         from: "REQ-PARITY-E2E",
         to: "SCEN-PARITY-E2E",
-        source: "documentation/requirements/REQ-PARITY-E2E.md",
+        source: ".kb/requirements/REQ-PARITY-E2E.md",
         ownership: "authored",
       },
     ]);
@@ -168,8 +168,8 @@ describe("shared check operation executor", () => {
     expect(result.content[0]?.text).toContain("No violations");
   });
 
-  test("passes requireAdr true to symbol-traceability query", async () => {
-    // Given: a workspace with requireAdr enabled via .kb/config.json.
+  test("ignores leftover requireAdr config and always passes false", async () => {
+    // Given: a leftover .kb/config.json that tries to enable requireAdr.
     const workspaceRoot = mkdtempSync(
       path.join(os.tmpdir(), "kibi-check-shared-"),
     );
@@ -196,12 +196,13 @@ describe("shared check operation executor", () => {
     });
 
     try {
-      // When: executing the check operation.
       await checkSpec.execute({}, createContext(query, workspaceRoot));
 
-      // Then: the aggregated Prolog query receives the requireAdr flag as true.
       expect(capturedQuery).toContain("check_all_json_with_options");
-      expect(capturedQuery).toContain("true");
+      expect(capturedQuery).toContain("false");
+      expect(capturedQuery).not.toMatch(
+        /check_all_json_with_options\(\s*true/,
+      );
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });
     }
@@ -224,7 +225,7 @@ describe("shared check operation executor", () => {
                   description:
                     "Must-priority requirement lacks scenario coverage",
                   suggestion: "Create scenario that covers this requirement",
-                  source: "documentation/requirements/REQ-MUST-001.md",
+                  source: ".kb/requirements/REQ-MUST-001.md",
                 },
               ],
             }),

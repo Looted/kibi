@@ -1,3 +1,4 @@
+import "../helpers/ensure-test-branch.js";
 import {
   afterAll,
   beforeAll,

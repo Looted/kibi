@@ -148,14 +148,14 @@ ${id} must expose a stable requirement-compiler outcome.
 
 function fixtureDocuments(sandbox: TestSandbox): Record<string, string> {
   return {
-    "documentation/requirements/REQ-MATRIX-INCOMPLETE.md": requirementDocument(
+    ".kb/requirements/REQ-MATRIX-INCOMPLETE.md": requirementDocument(
       "REQ-MATRIX-INCOMPLETE",
     ),
-    "documentation/requirements/REQ-MATRIX-RECEIPT.md": requirementDocument(
+    ".kb/requirements/REQ-MATRIX-RECEIPT.md": requirementDocument(
       "REQ-MATRIX-RECEIPT",
       [{ type: "specified_by", target: "SCEN-MATRIX-RECEIPT" }],
     ),
-    "documentation/scenarios/SCEN-MATRIX-RECEIPT.md": `---
+    ".kb/scenarios/SCEN-MATRIX-RECEIPT.md": `---
 id: SCEN-MATRIX-RECEIPT
 title: Distribution parity receipt scenario
 status: active
@@ -166,7 +166,7 @@ links:
 
 Given a resolved runtime, when proof runs, then receipt evidence is checked.
 `,
-    "documentation/tests/TEST-MATRIX-RECEIPT.md": `---
+    ".kb/tests/TEST-MATRIX-RECEIPT.md": `---
 id: TEST-MATRIX-RECEIPT
 title: Distribution parity receipt test
 status: failing
@@ -194,7 +194,7 @@ Intentionally has no verification receipt.
 `,
     "tests/e2e/matrix-receipt.test.ts":
       "export const matrixReceiptFixture = 'missing';\n",
-    "documentation/facts/FACT-MATRIX-SUBJECT.md": `---
+    ".kb/facts/FACT-MATRIX-SUBJECT.md": `---
 id: FACT-MATRIX-SUBJECT
 title: Distribution parity quota subject
 type: fact
@@ -205,10 +205,10 @@ subject_key: matrix.quota
 
 Strict contradiction subject.
 `,
-    "documentation/facts/FACT-MATRIX-A.md": strictValueFact("A", 10),
-    "documentation/facts/FACT-MATRIX-B.md": strictValueFact("B", 20),
-    "documentation/requirements/REQ-MATRIX-A.md": strictRequirement("A", 10),
-    "documentation/requirements/REQ-MATRIX-B.md": strictRequirement("B", 20),
+    ".kb/facts/FACT-MATRIX-A.md": strictValueFact("A", 10),
+    ".kb/facts/FACT-MATRIX-B.md": strictValueFact("B", 20),
+    ".kb/requirements/REQ-MATRIX-A.md": strictRequirement("A", 10),
+    ".kb/requirements/REQ-MATRIX-B.md": strictRequirement("B", 20),
   };
 }
 

@@ -30,7 +30,7 @@ describe("repo-posture coverage", () => {
 
   test("treats unreadable root config JSON as partial root posture", () => {
     fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
-    fs.writeFileSync(path.join(tmpDir, ".kb", "config.json"), "{not-json");
+    fs.writeFileSync(path.join(tmpDir, ".kb", "manifest.json"), "{not-json");
 
     const posture = detectPosture(tmpDir);
 

@@ -27,3 +27,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-269c18b750ec
+  - type: implements
+    from: SYM-canonical-resolveLegacyEntityPaths
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:01:46.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3af192d3b52
+  - type: covered_by
+    from: SYM-canonical-resolveLegacyEntityPaths
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:01:46.107Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4dd1c77e5e47
+  - type: implements
+    from: SYM-canonical-KibiTreeDataProvider-getTreeItem
+    to: REQ-vscode-traceability
+    created_at: 2026-08-18T17:37:58.026Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7efdce8336ea
+  - type: covered_by
+    from: SYM-canonical-KibiTreeDataProvider-getTreeItem
+    to: TEST-vscode-traceability
+    created_at: 2026-08-18T17:37:58.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2742164b7516

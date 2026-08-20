@@ -166,7 +166,7 @@ function resolveDocPathIdentity(
     if (!pattern) continue;
 
     // Strip glob from pattern to get the root dir prefix
-    // e.g. "documentation/requirements/**/*.md" → "documentation/requirements"
+    // e.g. ".kb/requirements/**/*.md" → ".kb/requirements"
     const rootDir = pattern.replace(/\/\*\*\/.*$/, "").replace(/\/+$/, "");
 
     if (normalizedRel.startsWith(`${rootDir}/`)) {
@@ -174,8 +174,6 @@ function resolveDocPathIdentity(
     }
   }
 
-  // If no specific root matched but path starts with documentation/,
-  // still accept (covers default configuration)
   return null;
 }
 

@@ -63,7 +63,7 @@ function createTempGitRepo(): TempGitRepo {
 
 function createAuthoritativeKb(root: string): void {
   mkdirSync(join(root, ".kb"), { recursive: true });
-  writeFileSync(join(root, ".kb", "config.json"), "{}\n");
+  writeFileSync(join(root, ".kb", "manifest.json"), "{}\n");
 
   for (const dir of [
     "requirements",
@@ -74,9 +74,9 @@ function createAuthoritativeKb(root: string): void {
     "events",
     "facts",
   ]) {
-    mkdirSync(join(root, "documentation", dir), { recursive: true });
+    mkdirSync(join(root, ".kb", dir), { recursive: true });
   }
-  writeFileSync(join(root, "documentation", "symbols.yaml"), "[]\n");
+  writeFileSync(join(root, ".kb", "symbols.yaml"), "[]\n");
 }
 
 function createLinkedWorktree(

@@ -136,7 +136,7 @@ if (RUN_NODE_TEST_SUITE) {
 
         createMarkdownFile(
           sandbox,
-          "documentation/requirements/req1.md",
+          ".kb/requirements/req1.md",
           {
             id: "req1",
             title: "Initial Requirement",
@@ -344,7 +344,7 @@ if (RUN_NODE_TEST_SUITE) {
                   tags: ["new"],
                 },
                 document: {
-                  path: "documentation/requirements/req-new.md",
+                  path: ".kb/requirements/req-new.md",
                 },
               },
             },

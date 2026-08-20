@@ -39,7 +39,7 @@ function makeManifestResult(
       status: "active",
       created_at: "2026-06-25T00:00:00.000Z",
       updated_at: "2026-06-25T00:00:00.000Z",
-      source: "documentation/symbols.yaml",
+      source: ".kb/symbols.yaml",
       ...(granularityReason ? { granularity_reason: granularityReason } : {}),
     },
     sourceFile: "src/app/pages/upload/upload-page.component.ts",

@@ -25,7 +25,7 @@ function emptyFullQualityResult(goal: string) {
 }
 
 describe("MCP check aggregated defaults", () => {
-  test("should keep strict-fact-shape disabled by default when no rules are requested", async () => {
+  test("should report strict-fact-shape as a quality diagnostic by default", async () => {
     const workspaceRoot = mkdtempSync(
       path.join(os.tmpdir(), "kibi-mcp-check-default-"),
     );
@@ -69,13 +69,21 @@ describe("MCP check aggregated defaults", () => {
 
       expect(result.structuredContent?.count).toBe(0);
       expect(result.structuredContent?.violations).toEqual([]);
+      expect(
+        result.structuredContent?.qualityDiagnostics?.some(
+          (diagnostic) =>
+            diagnostic.id === "rule.strict-fact-shape" &&
+            diagnostic.entityId === "FACT-MALFORMED-DEFAULT-001" &&
+            diagnostic.blocking === false,
+        ),
+      ).toBe(true);
       expect(query).toHaveBeenCalledTimes(18);
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });
     }
   });
 
-  test("should keep strict-req-fact-pairing disabled by default when no rules are requested", async () => {
+  test("should report strict-req-fact-pairing as a quality diagnostic by default", async () => {
     const workspaceRoot = mkdtempSync(
       path.join(os.tmpdir(), "kibi-mcp-check-pairing-default-"),
     );
@@ -120,13 +128,21 @@ describe("MCP check aggregated defaults", () => {
 
       expect(result.structuredContent?.count).toBe(0);
       expect(result.structuredContent?.violations).toEqual([]);
+      expect(
+        result.structuredContent?.qualityDiagnostics?.some(
+          (diagnostic) =>
+            diagnostic.id === "rule.strict-req-fact-pairing" &&
+            diagnostic.entityId === "REQ-PAIRING-DEFAULT-001" &&
+            diagnostic.blocking === false,
+        ),
+      ).toBe(true);
       expect(query).toHaveBeenCalledTimes(18);
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });
     }
   });
 
-  test("should pass maxDiagnostics to full quality diagnostics when configured rules are disabled", async () => {
+  test("should pass maxDiagnostics to full quality diagnostics even when leftover config disables rules", async () => {
     const workspaceRoot = mkdtempSync(
       path.join(os.tmpdir(), "kibi-mcp-check-no-rules-"),
     );
@@ -147,6 +163,15 @@ describe("MCP check aggregated defaults", () => {
         const fullQualityResult = emptyFullQualityResult(goal);
         if (fullQualityResult !== undefined) {
           return fullQualityResult;
+        }
+
+        if (goal.includes("check_all_json_with_options")) {
+          return {
+            success: true,
+            bindings: {
+              JsonString: JSON.stringify({}),
+            },
+          };
         }
 
         throw new Error(`Unexpected query: ${goal}`);

@@ -4,6 +4,7 @@ import {
   BATCH_TIMEOUT_MINUTES,
   type SuiteSummary,
   getBatchFailureMessage,
+  isolatedUnitBatchEnv,
   parseSuiteSummaries,
 } from "./root.test.ts";
 
@@ -11,6 +12,23 @@ import {
 describe("getBatchFailureMessage", () => {
   it("bounds package-process parallelism", () => {
     expect(BATCH_CONCURRENCY).toBe(2);
+  });
+
+  it("strips host KIBI_BRANCH from unit-batch child env", () => {
+    const original = process.env.KIBI_BRANCH;
+    process.env.KIBI_BRANCH = "feat/host-branch";
+    try {
+      const env = isolatedUnitBatchEnv("/tmp/kibi-unit-runtime");
+      expect(env.KIBI_BRANCH).toBeUndefined();
+      expect("KIBI_BRANCH" in env).toBe(false);
+      expect(env.KIBI_RUNTIME_DIR).toBe("/tmp/kibi-unit-runtime");
+    } finally {
+      if (original === undefined) {
+        delete process.env.KIBI_BRANCH;
+      } else {
+        process.env.KIBI_BRANCH = original;
+      }
+    }
   });
 
   it("reports a killed batch timeout before a missing summary", () => {

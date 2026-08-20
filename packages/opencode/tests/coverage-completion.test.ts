@@ -153,20 +153,20 @@ function makeWorkspace(prefix: string): string {
   const tmpDir = makeTempDir(prefix);
   fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
   fs.mkdirSync(path.join(tmpDir, ".opencode"), { recursive: true });
-  fs.writeFileSync(path.join(tmpDir, ".kb", "config.json"), "{}\n");
+  fs.writeFileSync(path.join(tmpDir, ".kb", "manifest.json"), "{}\n");
   for (const dir of [
-    "documentation/requirements",
-    "documentation/scenarios",
-    "documentation/tests",
-    "documentation/adr",
-    "documentation/flags",
-    "documentation/events",
-    "documentation/facts",
+    ".kb/requirements",
+    ".kb/scenarios",
+    ".kb/tests",
+    ".kb/adr",
+    ".kb/flags",
+    ".kb/events",
+    ".kb/facts",
     "src",
   ]) {
     fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
   }
-  fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "[]\n");
+  fs.writeFileSync(path.join(tmpDir, ".kb", "symbols.yaml"), "[]\n");
   return tmpDir;
 }
 
@@ -674,7 +674,7 @@ describe("coverage completion for small pure modules", () => {
     const tmpDir = makeWorkspace("kibi-e2e-more-");
     try {
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "symbols.yaml"),
+        path.join(tmpDir, ".kb", "symbols.yaml"),
         [
           "symbols:",
           "  - id: SYM-one",
@@ -687,7 +687,7 @@ describe("coverage completion for small pure modules", () => {
         ].join("\n"),
       );
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "tests", "TEST-no-frontmatter.md"),
+        path.join(tmpDir, ".kb", "tests", "TEST-no-frontmatter.md"),
         "plain body names src/other.ts only\n",
       );
 
@@ -708,7 +708,7 @@ describe("coverage completion for small pure modules", () => {
     try {
       const result = getFileLinkedEntityIds(
         tmpDir,
-        path.join(tmpDir, "documentation", "events", "EVT-created.md"),
+        path.join(tmpDir, ".kb", "events", "EVT-created.md"),
       );
 
       expect(result).toEqual({ ids: ["EVT-created"], source: "doc-path" });
@@ -954,14 +954,14 @@ describe("coverage completion for policy, prompt, and reconcile", () => {
     expect(
       buildPrompt({
         recentEdits: [
-          { path: "documentation/requirements/REQ-1.md", kind: "requirement" },
+          { path: ".kb/requirements/REQ-1.md", kind: "requirement" },
         ],
         posture: "root_active",
       }),
     ).toContain("Requirement changes detected");
     expect(
       buildPrompt({
-        recentEdits: [{ path: "documentation/facts/FACT-1.md", kind: "fact" }],
+        recentEdits: [{ path: ".kb/facts/FACT-1.md", kind: "fact" }],
         posture: "root_active",
       }),
     ).toContain("Kibi documentation changes detected");
@@ -1043,8 +1043,8 @@ describe("coverage completion for policy, prompt, and reconcile", () => {
             changeKind: "updated",
             properties: {
               title: "Fact title",
-              source: "documentation/facts/FACT-1.md",
-              text_ref: "documentation/facts/FACT-1.md#L1",
+              source: ".kb/facts/FACT-1.md",
+              text_ref: ".kb/facts/FACT-1.md#L1",
             },
           },
         },
@@ -1054,8 +1054,8 @@ describe("coverage completion for policy, prompt, and reconcile", () => {
         id: "FACT-1",
         type: "fact",
         title: "Fact title",
-        source: "documentation/facts/FACT-1.md",
-        textRef: "documentation/facts/FACT-1.md#L1",
+        source: ".kb/facts/FACT-1.md",
+        textRef: ".kb/facts/FACT-1.md#L1",
       },
     ]);
   });
@@ -1247,7 +1247,7 @@ describe("coverage completion for plugin lifecycle", () => {
     try {
       const reqPath = path.join(
         tmpDir,
-        "documentation",
+        ".kb",
         "requirements",
         "REQ-must.md",
       );
@@ -1261,12 +1261,12 @@ describe("coverage completion for plugin lifecycle", () => {
       await hooks.event?.({
         event: {
           type: "file.edited",
-          properties: { file: "documentation/requirements/REQ-must.md" },
+          properties: { file: ".kb/requirements/REQ-must.md" },
         },
       });
       const output = { system: [] as string[] };
       await hooks["experimental.chat.system.transform"]?.(
-        { focusFilePath: "documentation/requirements/REQ-must.md" },
+        { focusFilePath: ".kb/requirements/REQ-must.md" },
         output,
       );
 
@@ -1525,7 +1525,7 @@ describe("coverage completion for plugin lifecycle", () => {
     const scheduled: ScheduledSync[] = [];
     installSchedulerStub(scheduled);
     try {
-      const factPath = path.join(tmpDir, "documentation", "facts", "FACT-1.md");
+      const factPath = path.join(tmpDir, ".kb", "facts", "FACT-1.md");
       fs.writeFileSync(factPath, "---\ntitle: Fact\n---\nFact body\n");
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
@@ -1535,7 +1535,7 @@ describe("coverage completion for plugin lifecycle", () => {
       await hooks.event?.({
         event: {
           type: "file.edited",
-          properties: { file: "documentation/facts/FACT-1.md" },
+          properties: { file: ".kb/facts/FACT-1.md" },
         },
       });
 
@@ -1553,7 +1553,7 @@ describe("coverage completion for plugin lifecycle", () => {
     const tmpDir = makeWorkspace("kibi-plugin-e2e-reminder-");
     try {
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "symbols.yaml"),
+        path.join(tmpDir, ".kb", "symbols.yaml"),
         [
           "symbols:",
           "  - id: SYM-e2e",
@@ -1564,7 +1564,7 @@ describe("coverage completion for plugin lifecycle", () => {
         ].join("\n"),
       );
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "tests", "TEST-e2e.md"),
+        path.join(tmpDir, ".kb", "tests", "TEST-e2e.md"),
         [
           "---",
           "title: E2E",

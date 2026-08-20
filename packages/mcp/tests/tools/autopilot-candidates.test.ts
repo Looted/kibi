@@ -25,7 +25,7 @@ describe("autopilot candidates", () => {
   });
 
   test("symbol manifest candidates include extracted entities, relationships, and apply plans", async () => {
-    const manifestPath = path.join(tmp, "documentation", "symbols.yaml");
+    const manifestPath = path.join(tmp, ".kb", "symbols.yaml");
     await fs.mkdir(path.dirname(manifestPath), { recursive: true });
     await fs.writeFile(
       manifestPath,
@@ -49,7 +49,7 @@ describe("autopilot candidates", () => {
 
     expect(candidates).toHaveLength(1);
     expect(candidates[0]).toMatchObject({
-      candidateId: "mf:documentation/symbols.yaml:symbol-auth-service",
+      candidateId: "mf:.kb/symbols.yaml:symbol-auth-service",
       entityType: "symbol",
       title: "Auth service",
       sourceKind: "symbol_manifest",
@@ -57,7 +57,7 @@ describe("autopilot candidates", () => {
       confidence: 0.98,
       confidenceBand: "high",
       evidence: [
-        "extracted_from_manifest:documentation/symbols.yaml",
+        "extracted_from_manifest:.kb/symbols.yaml",
         "entity_id:symbol-auth-service",
       ],
       relationships: [
@@ -76,18 +76,8 @@ describe("autopilot candidates", () => {
   });
 
   test("typed markdown candidates prefer evidence-scoped files and skip existing entities", async () => {
-    const requirementPath = path.join(
-      tmp,
-      "documentation",
-      "requirements",
-      "REQ-NEW.md",
-    );
-    const skippedPath = path.join(
-      tmp,
-      "documentation",
-      "requirements",
-      "REQ-OLD.md",
-    );
+    const requirementPath = path.join(tmp, ".kb", "requirements", "REQ-NEW.md");
+    const skippedPath = path.join(tmp, ".kb", "requirements", "REQ-OLD.md");
     await fs.mkdir(path.dirname(requirementPath), { recursive: true });
     await fs.writeFile(
       requirementPath,
@@ -122,7 +112,7 @@ describe("autopilot candidates", () => {
             provider: "typed_kibi_docs",
             kind: "typed_markdown",
             label: "REQ-NEW.md",
-            relativePath: "documentation/requirements/REQ-NEW.md",
+            relativePath: ".kb/requirements/REQ-NEW.md",
             absolutePath: requirementPath,
             data: {},
           },
@@ -133,7 +123,7 @@ describe("autopilot candidates", () => {
 
     expect(candidates).toHaveLength(1);
     expect(candidates[0]).toMatchObject({
-      candidateId: "md:documentation/requirements/REQ-NEW.md:REQ-NEW",
+      candidateId: "md:.kb/requirements/REQ-NEW.md:REQ-NEW",
       entityType: "req",
       title: "New requirement",
       sourceKind: "typed_markdown",
@@ -141,7 +131,7 @@ describe("autopilot candidates", () => {
       confidence: 1,
       confidenceBand: "high",
       evidence: [
-        "extracted_from_markdown:documentation/requirements/REQ-NEW.md",
+        "extracted_from_markdown:.kb/requirements/REQ-NEW.md",
         "entity_id:REQ-NEW",
       ],
       relationships: [],
@@ -158,7 +148,7 @@ describe("autopilot candidates", () => {
   test("typed markdown candidates fall back to markdownFiles without provider evidence", async () => {
     const requirementPath = path.join(
       tmp,
-      "documentation",
+      ".kb",
       "requirements",
       "REQ-FALLBACK.md",
     );
@@ -183,7 +173,7 @@ describe("autopilot candidates", () => {
 
     expect(candidates).toHaveLength(1);
     expect(candidates[0]?.candidateId).toBe(
-      "md:documentation/requirements/REQ-FALLBACK.md:REQ-FALLBACK",
+      "md:.kb/requirements/REQ-FALLBACK.md:REQ-FALLBACK",
     );
   });
 

@@ -1,3 +1,4 @@
+import "../helpers/ensure-test-branch.js";
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import type { PrologProcess } from "kibi-cli/prolog";
 import { PrologProcess as RealPrologProcess } from "kibi-cli/prolog";
@@ -25,7 +26,7 @@ describe("MCP find-gaps tool handler", () => {
               missingRelationships: ["specified_by"],
               presentRelationships: [],
               relationshipCounts: { specified_by: 0, verified_by: 1 },
-              source: "documentation/requirements/REQ-001.md",
+              source: ".kb/requirements/REQ-001.md",
             },
           ],
           count: 1,

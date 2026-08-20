@@ -47,7 +47,7 @@ function hasKibiConfig(cwd: string | undefined): boolean {
     return false;
   }
 
-  return fs.existsSync(path.join(cwd, ".kb", "config.json"));
+  return fs.existsSync(path.join(cwd, ".kb", "manifest.json"));
 }
 
 function isEditLikeTool(toolName: string | undefined): boolean {

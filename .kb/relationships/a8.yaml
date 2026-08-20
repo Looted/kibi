@@ -27,3 +27,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b80eaf39974
+  - type: implements
+    from: SYM-cli-report-repository
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-18T19:48:10.575Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1374cd2924ca
+  - type: covered_by
+    from: SYM-cli-report-repository
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-18T19:49:58.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d45598afa45
+  - type: implements
+    from: SYM-cli-report-git-remote
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-18T20:42:26.827Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20e38a983101
+  - type: covered_by
+    from: SYM-cli-report-git-remote
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-18T20:42:26.838Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79384a12dc59

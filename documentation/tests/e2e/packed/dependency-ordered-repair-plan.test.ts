@@ -143,7 +143,7 @@ async function cliJson<T>(sandbox: TestSandbox, args: readonly string[]) {
 }
 
 function writeRequirement(sandbox: TestSandbox, id: string) {
-  const relativePath = `documentation/requirements/${id}.md`;
+  const relativePath = `.kb/requirements/${id}.md`;
   writeFileSync(
     join(sandbox.repoDir, relativePath),
     `---
@@ -177,7 +177,7 @@ if (RUN_NODE_TEST_SUITE) {
       await sandbox.install(tarballs);
       await sandbox.initGitRepo();
       await kibi(sandbox, ["init"]);
-      mkdirSync(join(sandbox.repoDir, "documentation", "requirements"), {
+      mkdirSync(join(sandbox.repoDir, ".kb", "requirements"), {
         recursive: true,
       });
       writeRequirement(sandbox, "REQ-PACKED-PLAN-A");

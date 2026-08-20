@@ -12,11 +12,10 @@ export const KIBI_STAGED_IMPACT_EVIDENCE_DOC =
 export const KIBI_ENTITY_SCHEMA_DOC = "docs/entity-schema.md";
 
 /** Canonical symbols manifest path used by staged traceability enforcement. */
-export const KIBI_SYMBOLS_MANIFEST_PATH = "documentation/symbols.yaml";
+export const KIBI_SYMBOLS_MANIFEST_PATH = ".kb/symbols.yaml";
 
 /** Canonical symbol coordinates artifact used by staged traceability enforcement. */
-export const KIBI_SYMBOL_COORDINATES_PATH =
-  "documentation/symbol-coordinates.yaml";
+export const KIBI_SYMBOL_COORDINATES_PATH = ".kb/symbol-coordinates.yaml";
 
 /** Explicit declaration string for audited no-impact overrides. */
 export const KIBI_NO_IMPACT_DECLARATION = "Kibi-Impact: none";

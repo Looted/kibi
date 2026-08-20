@@ -53,7 +53,7 @@ function makeEntity(overrides: Partial<ExtractedEntity> = {}): ExtractedEntity {
     status: "open",
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
-    source: "documentation/requirements/REQ-001.md",
+    source: ".kb/requirements/REQ-001.md",
     ...overrides,
   };
 }
@@ -155,7 +155,7 @@ describe("persistEntities", () => {
       id: "SYM-PROOF",
       type: "symbol",
       title: "proofSymbol",
-      source: "documentation/symbols.yaml",
+      source: ".kb/symbols.yaml",
       sourceLine: 12,
       sourceColumn: 3,
       sourceEndLine: 18,
@@ -1119,7 +1119,7 @@ describe("persistRelationships", () => {
     const prolog = makeProlog();
     const entity = makeEntity({
       id: "REQ-001",
-      source: "documentation/requirements/REQ-001.md",
+      source: ".kb/requirements/REQ-001.md",
     });
     const rel: ExtractedRelationship = {
       type: "depends_on",
@@ -1142,7 +1142,7 @@ describe("persistRelationships", () => {
     const prolog = makeProlog();
     const entity = makeEntity({
       id: "REQ-001",
-      source: "documentation/requirements/my-requirement.md",
+      source: ".kb/requirements/my-requirement.md",
     });
     const rel: ExtractedRelationship = {
       type: "depends_on",
@@ -1157,7 +1157,7 @@ describe("persistRelationships", () => {
         {
           entity: makeEntity({
             id: "REQ-002",
-            source: "documentation/requirements/REQ-002.md",
+            source: ".kb/requirements/REQ-002.md",
           }),
           relationships: [],
         },
@@ -1172,11 +1172,11 @@ describe("persistRelationships", () => {
     const prolog = makeProlog();
     const entity = makeEntity({
       id: "REQ-001",
-      source: "documentation/requirements/my-requirement.md",
+      source: ".kb/requirements/my-requirement.md",
     });
     const entity2 = makeEntity({
       id: "REQ-002",
-      source: "documentation/requirements/my-target.md",
+      source: ".kb/requirements/my-target.md",
     });
     const rel: ExtractedRelationship = {
       type: "depends_on",
@@ -1698,7 +1698,7 @@ describe("persistRelationships", () => {
     const prolog = makeProlog();
     const entity = makeEntity({
       id: "REQ-001",
-      source: "documentation/requirements/REQ-001.md",
+      source: ".kb/requirements/REQ-001.md",
     });
     const rel: ExtractedRelationship = {
       type: "depends_on",

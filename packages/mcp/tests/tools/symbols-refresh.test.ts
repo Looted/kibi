@@ -86,7 +86,7 @@ describe.serial("handleKbSymbolsRefresh", () => {
       "# Reference\nNo symbol match here.\n",
     );
 
-    const manifestPath = path.join(workspaceRoot, "symbols.yaml");
+    const manifestPath = path.join(workspaceRoot, ".kb", "symbols.yaml");
     const originalManifest = [
       "symbols:",
       "  - stray-entry",
@@ -118,8 +118,13 @@ describe.serial("handleKbSymbolsRefresh", () => {
       "    title: noSource",
       "    status: active",
     ].join("\n");
+    mkdirSync(path.dirname(manifestPath), { recursive: true });
     writeFileSync(manifestPath, originalManifest, "utf8");
-    const coordinatesPath = path.join(workspaceRoot, "symbol-coordinates.yaml");
+    const coordinatesPath = path.join(
+      workspaceRoot,
+      ".kb",
+      "symbol-coordinates.yaml",
+    );
 
     const result = await handleKbSymbolsRefresh({
       dryRun: false,
@@ -134,7 +139,7 @@ describe.serial("handleKbSymbolsRefresh", () => {
     expect(result.structuredContent?.failed).toBe(1);
     expect(result.structuredContent?.unchanged).toBe(5);
     expect(result.content[0]?.text).toContain(
-      "completed for symbol-coordinates.yaml",
+      "completed for .kb/symbol-coordinates.yaml",
     );
     expect(writtenManifest).toBe(originalManifest);
     expect(existsSync(coordinatesPath)).toBe(true);
@@ -172,7 +177,7 @@ describe.serial("handleKbSymbolsRefresh", () => {
       "export function dryRunSymbol() {\n  return true;\n}\n",
     );
 
-    const manifestPath = path.join(workspaceRoot, "symbols.yaml");
+    const manifestPath = path.join(workspaceRoot, ".kb", "symbols.yaml");
     const original = [
       "symbols:",
       "  - id: SYM-dry-run",
@@ -182,8 +187,13 @@ describe.serial("handleKbSymbolsRefresh", () => {
       "",
     ].join("\n");
 
+    mkdirSync(path.dirname(manifestPath), { recursive: true });
     writeFileSync(manifestPath, original, "utf8");
-    const coordinatesPath = path.join(workspaceRoot, "symbol-coordinates.yaml");
+    const coordinatesPath = path.join(
+      workspaceRoot,
+      ".kb",
+      "symbol-coordinates.yaml",
+    );
 
     const result = await handleKbSymbolsRefresh({
       dryRun: true,
@@ -197,14 +207,15 @@ describe.serial("handleKbSymbolsRefresh", () => {
         (result.structuredContent?.unchanged ?? 0),
     ).toBe(1);
     expect(result.content[0]?.text).toContain(
-      "kb_symbols_refresh (dry run) completed for symbol-coordinates.yaml",
+      "kb_symbols_refresh (dry run) completed for .kb/symbol-coordinates.yaml",
     );
     expect(readFileSync(manifestPath, "utf8")).toBe(original);
     expect(existsSync(coordinatesPath)).toBe(false);
   });
 
   test("throws a clear error for invalid symbol manifests", async () => {
-    const manifestPath = path.join(workspaceRoot, "symbols.yaml");
+    const manifestPath = path.join(workspaceRoot, ".kb", "symbols.yaml");
+    mkdirSync(path.dirname(manifestPath), { recursive: true });
     writeFileSync(manifestPath, "symbols: invalid", "utf8");
 
     return expect(handleKbSymbolsRefresh({ workspaceRoot })).rejects.toThrow(

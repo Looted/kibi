@@ -44,6 +44,7 @@ import type { QualityDiagnostic } from "../public/impact-diagnostics.js";
 import { executeCheck } from "../public/operations/check-executor.js";
 import {
   KIBI_NO_IMPACT_DECLARATION,
+  KIBI_SYMBOL_COORDINATES_PATH,
   KIBI_SYMBOLS_MANIFEST_PATH,
   type KibiEntityType,
   type KibiImpactEvidence,
@@ -80,7 +81,7 @@ import {
   validateStagedSymbols,
 } from "../traceability/validate.js";
 import { resolveBranchAttachment } from "../utils/branch-resolver.js";
-import { loadConfig } from "../utils/config.js";
+import { CANONICAL_ENTITY_PATHS } from "../utils/kb-paths.js";
 import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
 import type { Violation } from "../utils/rule-registry.js";
 
@@ -147,9 +148,8 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
   // Pre-populate lookup from working-tree manifests so that code-only changes
   // (where symbols.yaml is not staged) still resolve to the correct symbol IDs
   // and relationships already defined on disk.
-  const config = loadConfig(process.cwd());
-  const symbolsRelPath = config.paths.symbols;
-  if (symbolsRelPath) {
+  const symbolsRelPath = CANONICAL_ENTITY_PATHS.symbols;
+  {
     const absSymbolsPath = path.resolve(process.cwd(), symbolsRelPath);
     if (existsSync(absSymbolsPath)) {
       try {
@@ -189,10 +189,8 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
   const stagedManifestFiles = stagedFiles.filter(
     (file) =>
       file.content !== undefined &&
-      (file.path.endsWith("/symbols.yaml") ||
-        file.path.endsWith("/symbols.yml") ||
-        file.path === "symbols.yaml" ||
-        file.path === "symbols.yml"),
+      (file.path === CANONICAL_ENTITY_PATHS.symbols ||
+        file.path === ".kb/symbols.yml"),
   );
 
   for (const manifestFile of stagedManifestFiles) {
@@ -287,32 +285,11 @@ function isKibiEntityType(value: string): value is KibiEntityType {
 }
 
 function isStagedManifestPath(filePath: string): boolean {
-  if (
-    filePath.endsWith("/symbols.yaml") ||
-    filePath.endsWith("/symbols.yml") ||
-    filePath.endsWith("/symbol-coordinates.yaml") ||
-    filePath === "symbols.yaml" ||
-    filePath === "symbols.yml" ||
-    filePath === "symbol-coordinates.yaml"
-  ) {
-    return true;
-  }
-  try {
-    const config = loadConfig(process.cwd());
-    if (config.paths.symbols) {
-      const relSymbols = config.paths.symbols;
-      const configuredBase = relSymbols.split(/[\\/]/).pop();
-      if (
-        filePath === relSymbols ||
-        (configuredBase && filePath.endsWith(`/${configuredBase}`))
-      ) {
-        return true;
-      }
-    }
-  } catch {
-    // ignore config read errors
-  }
-  return false;
+  return (
+    filePath === CANONICAL_ENTITY_PATHS.symbols ||
+    filePath === ".kb/symbols.yml" ||
+    filePath === KIBI_SYMBOL_COORDINATES_PATH
+  );
 }
 
 function isTestOnlySourcePath(filePath: string): boolean {
@@ -581,8 +558,7 @@ export async function checkCommand(
           authoredSymbolResults,
           stagedAuthoredSymbolResults,
         } = buildManifestLookup(stagedFiles);
-        const symbolsManifestPath =
-          loadConfig(process.cwd()).paths.symbols ?? KIBI_SYMBOLS_MANIFEST_PATH;
+        const symbolsManifestPath = KIBI_SYMBOLS_MANIFEST_PATH;
 
         const sourceFiles = stagedFiles.filter(
           (file) =>
@@ -1399,33 +1375,6 @@ async function checkSymbolCoverage(
             "Update symbols.yaml to link this symbol to a related requirement.",
         });
       }
-    }
-  }
-
-  return violations;
-}
-
-async function checkSymbolTraceability(
-  prolog: PrologProcess,
-  requireAdr: boolean,
-): Promise<Violation[]> {
-  const violations: Violation[] = [];
-
-  const requireAdrStr = requireAdr ? "true" : "false";
-  const result = await prolog.query(
-    `findall(violation(Rule, EntityId, Desc, Sugg, Src), 
-      checks:symbol_traceability_violation(${requireAdrStr}, violation(Rule, EntityId, Desc, Sugg, Src)), 
-      Violations)`,
-  );
-
-  if (!result.success || !result.bindings.Violations) {
-    return violations;
-  }
-
-  const violationsStr = result.bindings.Violations as string;
-  if (violationsStr && violationsStr !== "[]") {
-    for (const v of parseViolationRows(violationsStr)) {
-      violations.push(v);
     }
   }
 

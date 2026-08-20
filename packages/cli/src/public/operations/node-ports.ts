@@ -1,7 +1,7 @@
 import { execFile, execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import * as fs from "node:fs/promises";
 import * as fsSync from "node:fs";
+import * as fs from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import fg from "fast-glob";
@@ -24,10 +24,22 @@ type NodeGitPort = GitPort & {
 };
 
 const execFileAsync = promisify(execFile);
-const SNAPSHOT_EXCLUDED_PREFIXES = [".changeset/", ".kb/", "docs/"] as const;
+const SNAPSHOT_EXCLUDED_PREFIXES = [
+  ".changeset/",
+  ".kb/branches/",
+  ".kb/recovery/",
+  ".kb/verification/",
+  ".kb/briefs/",
+  ".kb/migrations/",
+  "docs/",
+] as const;
 const ALWAYS_IGNORED_GLOBS = [
   "**/.git/**",
-  "**/.kb/**",
+  "**/.kb/branches/**",
+  "**/.kb/recovery/**",
+  "**/.kb/verification/**",
+  "**/.kb/briefs/**",
+  "**/.kb/migrations/**",
   "**/node_modules/**",
   "**/vendor/**",
   "**/vendors/**",

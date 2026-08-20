@@ -10,6 +10,7 @@ import {
   kibi,
   packAll,
   parseKibiResult,
+  stageSourceFile,
 } from "./helpers.js";
 
 const RUN_NODE_TEST_SUITE =
@@ -137,7 +138,7 @@ if (RUN_NODE_TEST_SUITE) {
         );
 
         // Write a minimal requirement file
-        const docsDir = join(sandbox.repoDir, "documentation", "requirements");
+        const docsDir = join(sandbox.repoDir, ".kb", "requirements");
         mkdirSync(docsDir, { recursive: true });
         writeFileSync(
           join(docsDir, "REQ-STATUS-001.md"),
@@ -151,6 +152,7 @@ Test requirement for CLI status pre-first-sync regression.
 `,
           "utf8",
         );
+        stageSourceFile(sandbox, ".kb/requirements/REQ-STATUS-001.md");
 
         // Run sync
         const syncResult = await kibi(sandbox, ["sync"]);

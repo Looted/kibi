@@ -17,7 +17,7 @@ describe("source-linked-guidance coverage", () => {
   });
 
   test("returns an empty list when the configured symbols path cannot be read", () => {
-    fs.mkdirSync(path.join(tmpDir, "documentation", "symbols.yaml"), {
+    fs.mkdirSync(path.join(tmpDir, ".kb", "symbols.yaml"), {
       recursive: true,
     });
 

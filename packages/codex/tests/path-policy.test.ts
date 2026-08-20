@@ -53,6 +53,8 @@ describe("Codex hook path policy", () => {
     expect(isMeaningfulTrackedPath("package.json")).toBe(false);
     expect(isMeaningfulTrackedPath("dist/hook-runner.js")).toBe(false);
     expect(isMeaningfulTrackedPath(".kb/config.json")).toBe(false);
+    expect(isMeaningfulTrackedPath(".kb/requirements/REQ.md")).toBe(true);
+    expect(isMeaningfulTrackedPath(".kb/symbols.yaml")).toBe(true);
   });
 
   test("classifies source impact paths while excluding docs tests dist and KB files", () => {

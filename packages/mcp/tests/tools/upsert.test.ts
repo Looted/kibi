@@ -1,3 +1,4 @@
+import "../helpers/ensure-test-branch.js";
 import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -307,7 +308,7 @@ const videoPlayerStore = createStore(withMethods({
       properties: {
         title: "VideoPlayerStore",
         status: "active",
-        source: "documentation/symbols.yaml",
+        source: ".kb/symbols.yaml",
         sourceFile: "src/video-player.store.ts",
       },
       relationships: [
@@ -344,7 +345,7 @@ export function greet() {
         properties: {
           title: "greetModule",
           status: "active",
-          source: "documentation/symbols.yaml",
+          source: ".kb/symbols.yaml",
           sourceFile: "src/greet.ts",
         },
         relationships: [
@@ -387,7 +388,7 @@ export function validateRelationships() {
       properties: {
         title: "RELATIONSHIP_TYPES",
         status: "active",
-        source: "documentation/symbols.yaml",
+        source: ".kb/symbols.yaml",
         sourceFile: "src/relationships.ts",
         symbol_role: "config",
       },
@@ -431,7 +432,7 @@ export function validateRelationships() {
       properties: {
         title: "Worker.run",
         status: "active",
-        source: "documentation/symbols.yaml",
+        source: ".kb/symbols.yaml",
         sourceFile: "src/worker.ts",
       },
       relationships: [
@@ -472,7 +473,7 @@ export function validateRelationships() {
       properties: {
         title: "Worker.state",
         status: "active",
-        source: "documentation/symbols.yaml",
+        source: ".kb/symbols.yaml",
         sourceFile: "src/worker.ts",
       },
       relationships: [
@@ -515,7 +516,7 @@ export class Beta {
         properties: {
           title: "run",
           status: "active",
-          source: "documentation/symbols.yaml",
+          source: ".kb/symbols.yaml",
           sourceFile: "src/workers.ts",
         },
         relationships: [
@@ -558,7 +559,7 @@ export function greet() {
       properties: {
         title: "greetModule",
         status: "active",
-        source: "documentation/symbols.yaml",
+        source: ".kb/symbols.yaml",
         sourceFile: "src/greet.ts",
         granularity_reason: "module-level-behavior",
       },

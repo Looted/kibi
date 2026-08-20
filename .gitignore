@@ -50,16 +50,27 @@ documentation/tests/e2e/packed/.compiled/
 .bun/
 
 # --- Do NOT ignore these (intentionally tracked) ---
-#! .kb/config.json
+#! .kb/manifest.json
+#! .kb/requirements/
+#! .kb/scenarios/
+#! .kb/tests/
+#! .kb/facts/
+#! .kb/adr/
+#! .kb/flags/
+#! .kb/events/
+#! .kb/symbols.yaml
+#! .kb/symbol-coordinates.yaml
 #! .kb/schema/
 .kb/branches
 .kb/branches/*/sync-cache.json
 .kb/recovery/
 .kb/verification/
+.kb/usage.log
+.kb/briefs/
+.kb/migrations/
 #! bun.lock
 .sisyphus
 .artifacts/
 artifacts/skillopt/
-.kb/briefs/
 .env
 .omo

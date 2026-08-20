@@ -79,7 +79,7 @@ if (RUN_NODE_TEST_SUITE) {
 
         createMarkdownFile(
           sandbox,
-          "documentation/requirements/REQ-MCP-001.md",
+          ".kb/requirements/REQ-MCP-001.md",
           {
             id: "REQ-MCP-001",
             title: "MCP Test Requirement",

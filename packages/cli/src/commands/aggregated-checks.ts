@@ -18,23 +18,19 @@ interface JsonViolation {
  * faster than running individual checks with multiple round-trips.
  * @param prolog - The Prolog process
  * @param rulesAllowlist - Set of rule names to run (null = all)
- * @param requireAdr - Whether to require ADR constraints for symbol-traceability
  */
 export async function runAggregatedChecks(
   prolog: Pick<PrologProcess, "query">,
   rulesAllowlist: Set<string> | null,
-  requireAdr = false,
 ): Promise<Violation[]> {
   // implements REQ-003
   const violations: Violation[] = [];
 
   const checksPlPath = path.join(path.dirname(resolveKbPlPath()), "checks.pl");
   const checksPlPathEscaped = escapeAtom(checksPlPath);
-  // Use check_all_json_with_options if available, otherwise fall back to check_all_json
-  const requireAdrStr = requireAdr ? "true" : "false";
-  const query = `(use_module('${checksPlPathEscaped}'), 
+  const query = `(use_module('${checksPlPathEscaped}'),
     (   predicate_property(checks:check_all_json_with_options(_, _), _)
-    ->  call(checks:check_all_json_with_options(JsonString, ${requireAdrStr}))
+    ->  call(checks:check_all_json_with_options(JsonString, false))
     ;   call(checks:check_all_json(JsonString))
     ))`;
 

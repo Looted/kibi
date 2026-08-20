@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { execSync } from "node:child_process";
+import { execSync } from "../helpers/isolated-env.js";
 import {
   existsSync,
   mkdirSync,
@@ -18,6 +18,8 @@ import { branchStorePath } from "../../src/utils/branch-store-locator.js";
 describe("kibi query", () => {
   test("attaches the supplied workspace branch instead of the injected ambient branch", async () => {
     const workspace = mkdtempSync(path.join(os.tmpdir(), "kibi-runtime-"));
+    const originalKibiBranch = process.env.KIBI_BRANCH;
+    delete process.env.KIBI_BRANCH;
     execSync("git init -b develop", { cwd: workspace });
     const goals: string[] = [];
     const runtime = createCliRuntime({
@@ -44,6 +46,11 @@ describe("kibi query", () => {
         expect.stringContaining(branchStorePath(workspace, "develop")),
       );
     } finally {
+      if (originalKibiBranch === undefined) {
+        delete process.env.KIBI_BRANCH;
+      } else {
+        process.env.KIBI_BRANCH = originalKibiBranch;
+      }
       rmSync(workspace, { force: true, recursive: true });
     }
   });
@@ -397,7 +404,7 @@ User logs in with OAuth2 provider.
   test(
     "query is read-only and does not rewrite kb.rdf",
     () => {
-      const docReqDir = path.join(tmpDir, "documentation/requirements");
+      const docReqDir = path.join(tmpDir, ".kb/requirements");
       mkdirSync(docReqDir, { recursive: true });
       writeFileSync(
         path.join(docReqDir, "req-readonly.md"),
@@ -409,7 +416,7 @@ status: open
 ---
 `,
       );
-      execSync("git add documentation/requirements/req-readonly.md", {
+      execSync("git add .kb/requirements/req-readonly.md", {
         cwd: tmpDir,
         stdio: "pipe",
       });

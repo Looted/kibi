@@ -5,7 +5,10 @@ import { dump as dumpYaml, load as loadYaml } from "js-yaml";
 import { parseDocument, stringify } from "yaml";
 import { OperationError } from "../../cli-errors.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
-import { loadConfig } from "../../utils/config.js";
+import {
+  CANONICAL_ENTITY_PATHS,
+  isDerivedKbPath,
+} from "../../utils/kb-paths.js";
 import type { RelationshipInput, UpsertInput } from "./types.js";
 
 export type SourceWriteReceipt = Readonly<{
@@ -85,14 +88,13 @@ export function resolveContainedSourcePath(
       `document.path escapes the workspace: ${relative}`,
     );
   }
-  const workspaceRelative = path.relative(root, absolute);
-  if (
-    workspaceRelative === ".kb" ||
-    workspaceRelative.startsWith(`.kb${path.sep}`)
-  ) {
+  const workspaceRelative = path
+    .relative(root, absolute)
+    .replaceAll(path.sep, "/");
+  if (isDerivedKbPath(workspaceRelative)) {
     throw new OperationError(
       "SOURCE_PATH_INVALID",
-      "document.path cannot target Kibi's derived .kb directory",
+      `document.path cannot target Kibi's derived state under ${workspaceRelative}: ${relative}`,
     );
   }
   // A symlinked existing file or parent could otherwise escape the workspace.
@@ -146,33 +148,26 @@ function bodyAndFrontmatter(content: string): {
   };
 }
 
+/**
+ * Canonical authored target for an entity type: `.kb/<lane>/<ID>.md` for
+ * markdown entities and `.kb/symbols.yaml` for symbols. Kibi owns these
+ * locations; repositories cannot relocate them.
+ */
 export function configuredSourceTarget(
   workspaceRoot: string,
   type: string,
 ): string | undefined {
-  const config = loadConfig(workspaceRoot);
-  const keyByType: Record<string, keyof typeof config.paths> = {
-    req: "requirements",
-    scenario: "scenarios",
-    test: "tests",
-    adr: "adr",
-    flag: "flags",
-    event: "events",
-    fact: "facts",
-    symbol: "symbols",
+  const laneByType: Record<string, string | undefined> = {
+    req: CANONICAL_ENTITY_PATHS.requirements,
+    scenario: CANONICAL_ENTITY_PATHS.scenarios,
+    test: CANONICAL_ENTITY_PATHS.tests,
+    adr: CANONICAL_ENTITY_PATHS.adr,
+    flag: CANONICAL_ENTITY_PATHS.flags,
+    event: CANONICAL_ENTITY_PATHS.events,
+    fact: CANONICAL_ENTITY_PATHS.facts,
+    symbol: CANONICAL_ENTITY_PATHS.symbols,
   };
-  const key = keyByType[type];
-  if (key === undefined) return undefined;
-  const configured = config.paths[key as keyof typeof config.paths];
-  if (!configured || configured.includes("*")) {
-    return undefined;
-  }
-  const normalized = configured.replaceAll("\\", "/");
-  // A configured document is a single writable target only when it names a
-  // file. Directory and glob configurations intentionally remain ambiguous;
-  // callers must provide document.path rather than guessing a filename.
-  if (/\.(?:md|mdx|ya?ml)$/i.test(normalized)) return normalized;
-  return undefined;
+  return laneByType[type];
 }
 
 export function hasConfiguredSourceTarget(
@@ -189,14 +184,24 @@ function sourcePath(
   existing: Readonly<Record<string, unknown>> | undefined,
 ): string {
   const requested = input.document?.path;
-  let relative =
-    requested ??
-    authoredPath(existing?.source) ??
-    configuredSourceTarget(context.workspaceRoot, input.type);
+  const canonical = configuredSourceTarget(context.workspaceRoot, input.type);
+  let relative: string | undefined =
+    requested ?? authoredPath(existing?.source);
+  // Canonical markdown lanes name a directory; append the entity's file so
+  // upserts without document.path land in the canonical location.
+  if (
+    relative === undefined &&
+    canonical !== undefined &&
+    !/\.(?:md|mdx|ya?ml)$/i.test(canonical)
+  ) {
+    relative = `${canonical}/${String(entity.id)}.md`;
+  } else if (relative === undefined && canonical !== undefined) {
+    relative = canonical;
+  }
   if (!relative) {
     throw new OperationError(
       "DOCUMENT_PATH_REQUIRED",
-      `No single writable source target is configured for ${input.type}; provide document.path explicitly`,
+      `No writable source target is available for ${input.type}; provide document.path explicitly`,
     );
   }
   // Extracted entities may carry an absolute source path even though the

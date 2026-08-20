@@ -18,7 +18,7 @@ function withTempWorkspace(run: (workspaceRoot: string) => void): void {
 }
 
 describe("impact manifest", () => {
-  it("returns no results when the configured symbols manifest is absent", () => {
+  it("returns no results when .kb/symbols.yaml is absent", () => {
     withTempWorkspace((workspaceRoot) => {
       mkdirSync(join(workspaceRoot, ".kb"), { recursive: true });
       writeFileSync(
@@ -30,21 +30,20 @@ describe("impact manifest", () => {
     });
   });
 
-  it("reads relative configured symbols manifest and normalizes source paths", () => {
+  it("reads canonical .kb/symbols.yaml and normalizes source paths", () => {
     withTempWorkspace((workspaceRoot) => {
       mkdirSync(join(workspaceRoot, ".kb"), { recursive: true });
-      mkdirSync(join(workspaceRoot, "documentation"), { recursive: true });
       writeFileSync(
         join(workspaceRoot, ".kb", "config.json"),
         JSON.stringify({ paths: { symbols: "documentation/symbols.yaml" } }),
       );
       writeFileSync(
-        join(workspaceRoot, "documentation", "symbols.yaml"),
+        join(workspaceRoot, ".kb", "symbols.yaml"),
         [
           "symbols:",
           "  - id: SYM-UPLOAD",
           "    title: upload",
-          `    source: ${join(workspaceRoot, "documentation", "symbols.yaml")}`,
+          `    source: ${join(workspaceRoot, ".kb", "symbols.yaml")}`,
           `    sourceFile: ${join(workspaceRoot, "src", "upload.ts")}`,
           "    relationships:",
           "      - type: implements",
@@ -59,7 +58,7 @@ describe("impact manifest", () => {
         expect.objectContaining({
           entity: expect.objectContaining({
             id: "SYM-UPLOAD",
-            source: "documentation/symbols.yaml",
+            source: ".kb/symbols.yaml",
           }),
           sourceFile: "src/upload.ts",
           relationships: [
@@ -71,21 +70,27 @@ describe("impact manifest", () => {
     });
   });
 
-  it("reads absolute configured symbols manifest paths", () => {
+  it("ignores leftover config.json absolute symbol paths", () => {
     withTempWorkspace((workspaceRoot) => {
-      const manifestPath = join(workspaceRoot, "absolute-symbols.yaml");
+      const leftoverManifestPath = join(workspaceRoot, "absolute-symbols.yaml");
       mkdirSync(join(workspaceRoot, ".kb"), { recursive: true });
       writeFileSync(
         join(workspaceRoot, ".kb", "config.json"),
-        JSON.stringify({ paths: { symbols: manifestPath } }),
+        JSON.stringify({ paths: { symbols: leftoverManifestPath } }),
       );
       writeFileSync(
-        manifestPath,
+        leftoverManifestPath,
         ["symbols:", "  - id: SYM-ABS", "    title: absolute", ""].join("\n"),
+      );
+      writeFileSync(
+        join(workspaceRoot, ".kb", "symbols.yaml"),
+        ["symbols:", "  - id: SYM-CANONICAL", "    title: canonical", ""].join(
+          "\n",
+        ),
       );
 
       expect(readImpactManifestResults(workspaceRoot)[0]?.entity.id).toBe(
-        "SYM-ABS",
+        "SYM-CANONICAL",
       );
     });
   });
@@ -100,7 +105,7 @@ describe("impact manifest", () => {
           status: "active",
           created_at: "2026-07-01T00:00:00.000Z",
           updated_at: "2026-07-01T00:00:00.000Z",
-          source: "documentation/symbols.yaml",
+          source: ".kb/symbols.yaml",
         },
         sourceFile: "src/upload.ts",
         relationships: [

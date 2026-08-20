@@ -27,6 +27,32 @@ const IGNORED_DIRECTORIES = [
   "coverage",
 ];
 
+/** Derived `.kb/` runtime trees — must stay in sync with kb-paths.ts DERIVED_KB_PREFIXES. */
+const DERIVED_KB_PREFIXES = [
+  ".kb/branches",
+  ".kb/recovery",
+  ".kb/verification",
+  ".kb/briefs",
+  ".kb/migrations",
+] as const;
+
+function isDerivedKbPath(normalizedPath: string): boolean {
+  for (const prefix of DERIVED_KB_PREFIXES) {
+    if (
+      normalizedPath === prefix ||
+      normalizedPath.startsWith(`${prefix}/`) ||
+      normalizedPath.includes(`/${prefix}/`) ||
+      normalizedPath.endsWith(`/${prefix}`)
+    ) {
+      return true;
+    }
+  }
+  return (
+    normalizedPath === ".kb/config.json" ||
+    normalizedPath.endsWith("/.kb/config.json")
+  );
+}
+
 // Filenames that are advisory-only (lockfiles).
 const ADVISORY_FILENAMES = new Set([
   "bun.lock",
@@ -57,7 +83,7 @@ const UPGRADE_RISK_CLASSES: ReadonlySet<RiskClass> = new Set([
   "req_policy_candidate",
 ]);
 
-function isIgnoredPath(normalizedPath: string, pathKind: PathKind): boolean {
+function isIgnoredPath(normalizedPath: string): boolean {
   // Check extension-based ignored patterns.
   if (
     normalizedPath.endsWith(".tsbuildinfo") ||
@@ -76,12 +102,11 @@ function isIgnoredPath(normalizedPath: string, pathKind: PathKind): boolean {
     }
   }
 
-  // Special handling for .kb/ — only ignored when pathKind is NOT "kb".
-  // Actual KB entity files (pathKind=kb) should still require evidence.
-  if (pathKind !== "kb") {
-    if (normalizedPath.startsWith(".kb/") || normalizedPath.includes("/.kb/")) {
-      return true;
-    }
+  // Derived `.kb/` runtime (stores, recovery, leftover config) is ignored.
+  // Canonical entity lanes, symbols, relationships, and the manifest are
+  // authored knowledge and still require evidence.
+  if (isDerivedKbPath(normalizedPath)) {
+    return true;
   }
 
   return false;
@@ -114,7 +139,7 @@ export function classifyMeaningfulChange(params: {
   const { normalizedPath, pathKind, lifecycle: _lifecycle, riskClass } = params;
 
   // 1. IGNORED paths (for freshness contract)
-  if (isIgnoredPath(normalizedPath, pathKind)) {
+  if (isIgnoredPath(normalizedPath)) {
     return "ignored";
   }
 

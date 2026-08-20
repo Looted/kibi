@@ -13,3 +13,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0ab8e6bd1765
+  - type: implements
+    from: SYM-canonical-isKbKnowledgePath
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:02:51.148Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76dbbb031501
+  - type: covered_by
+    from: SYM-canonical-isKbKnowledgePath
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:02:51.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8fb903ab24fd

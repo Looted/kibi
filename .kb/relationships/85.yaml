@@ -6,3 +6,17 @@ relationships:
     created_at: "2026-08-16T19:49:09.963Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-canonical-isEntityLanePath
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:02:39.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28416516c8a5
+  - type: covered_by
+    from: SYM-canonical-isEntityLanePath
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:02:39.154Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ef1d4ed5b06

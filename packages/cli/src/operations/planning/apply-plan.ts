@@ -18,6 +18,7 @@ import {
 import { readMigrationConfigStatus } from "../../public/operations/migration-plan.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { readWorkspaceSnapshot } from "../../public/operations/workspace-snapshot.js";
+import { isDerivedKbPath } from "../../utils/kb-paths.js";
 import { executeDelete } from "../mutation/delete.js";
 import { writePendingSourceReceipt } from "../mutation/source-authoring.js";
 import type {
@@ -569,16 +570,13 @@ async function applySourceWrites(
           `Apply plan failed: sourceWrites.path escapes workspace: ${write.path}`,
         );
       }
-      const workspaceRelative = path.relative(root, absolute);
-      if (
-        workspaceRelative === ".kb" ||
-        (workspaceRelative.startsWith(`.kb${path.sep}`) &&
-          !workspaceRelative.startsWith(
-            `.kb${path.sep}relationships${path.sep}`,
-          ))
-      ) {
+      const workspaceRelative = path
+        .relative(root, absolute)
+        .split(path.sep)
+        .join("/");
+      if (workspaceRelative === ".kb" || isDerivedKbPath(workspaceRelative)) {
         throw new Error(
-          "Apply plan failed: sourceWrites.path cannot target Kibi's derived .kb directory (except canonical relationship shards)",
+          "Apply plan failed: sourceWrites.path cannot target Kibi's derived .kb runtime trees",
         );
       }
       let existingPath = absolute;
@@ -1392,6 +1390,7 @@ async function applyMigrationAction(
       return;
     case "schema_version_upgrade":
     case "invalid_schema_version":
+    case "legacy_storage_migration":
       if (
         (
           await migrateCommand({

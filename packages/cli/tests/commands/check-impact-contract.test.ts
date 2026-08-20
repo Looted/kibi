@@ -72,7 +72,7 @@ describe("staged impact contract", () => {
 
     expect(
       KIBI_IMPACT_DIAGNOSTICS.symbols_manifest_stale.resolution.join("\n"),
-    ).toContain("documentation/symbols.yaml");
+    ).toContain(".kb/symbols.yaml");
 
     expect(
       KIBI_IMPACT_DIAGNOSTICS.kibi_impact_override_missing_rationale.resolution.join(
@@ -86,40 +86,47 @@ describe("staged impact contract", () => {
     ).toContain("Rationale:");
   });
 
-  it("treats documentation/symbols.yaml as valid evidence when extraction output changes", () => {
+  it("treats .kb/symbols.yaml as valid evidence when extraction output changes", () => {
     expect(
       classifyKibiImpactEvidence({
-        filePath: "documentation/symbols.yaml",
+        filePath: ".kb/symbols.yaml",
         extractionOutputChanged: true,
       }),
     ).toBe("symbols_manifest");
 
     expect(
       classifyKibiImpactEvidence({
-        filePath: "documentation/symbols.yaml",
+        filePath: ".kb/symbols.yaml",
         extractionOutputChanged: false,
       }),
     ).toBeNull();
 
     expect(
       classifyKibiImpactEvidence({
-        filePath: "documentation/facts/FACT-IMPACT-001.md",
+        filePath: ".kb/facts/FACT-IMPACT-001.md",
       }),
     ).toBe("entity_markdown");
   });
 
-  it("treats .yml and configured symbols manifest paths as valid evidence", () => {
+  it("treats leftover and relocated symbols manifests as non-evidence", () => {
     expect(
       classifyKibiImpactEvidence({
         filePath: "documentation/symbols.yml",
         extractionOutputChanged: true,
       }),
-    ).toBe("symbols_manifest");
+    ).toBeNull();
 
     expect(
       classifyKibiImpactEvidence({
         filePath: "custom/my-symbols.yaml",
         symbolsManifestPath: "custom/my-symbols.yaml",
+        extractionOutputChanged: true,
+      }),
+    ).toBeNull();
+
+    expect(
+      classifyKibiImpactEvidence({
+        filePath: ".kb/symbols.yml",
         extractionOutputChanged: true,
       }),
     ).toBe("symbols_manifest");

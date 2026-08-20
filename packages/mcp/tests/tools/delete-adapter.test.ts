@@ -1,3 +1,4 @@
+import "../helpers/ensure-test-branch.js";
 import { describe, expect, mock, test } from "bun:test";
 import { deleteSpec } from "kibi-cli/operations";
 import { PrologProcess } from "kibi-cli/prolog";

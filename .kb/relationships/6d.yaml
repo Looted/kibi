@@ -27,3 +27,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-31988a6f5225
+  - type: implements
+    from: SYM-canonical-git-staged-Status
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T17:36:33.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a7b2fcbd0d1
+  - type: covered_by
+    from: SYM-canonical-git-staged-Status
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T17:36:33.100Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f9f26f464e7

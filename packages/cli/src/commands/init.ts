@@ -23,8 +23,8 @@ import { resolveBranchAttachment } from "../utils/branch-resolver.js";
 import { scaffoldGitHubIntegration } from "./github-init.js";
 import {
   copySchemaFiles,
-  createConfigFile,
   createKbDirectoryStructure,
+  createManifestFile,
   ensureSymbolsManifestFile,
   installGitHooks,
   updateGitIgnore,
@@ -82,7 +82,7 @@ export async function initCommand(
   try {
     if (!kbExists) {
       createKbDirectoryStructure(kbDir, currentBranch);
-      createConfigFile(kbDir);
+      createManifestFile(kbDir);
       updateGitIgnore(process.cwd());
 
       const schemaSourceDir = path.resolve(__dirname, "..", "..", "schema");
@@ -90,12 +90,12 @@ export async function initCommand(
       await copySchemaFiles(kbDir, schemaSourceDir);
     } else {
       console.log("✓ .kb/ directory already exists, skipping creation");
-      // An orphan branch can legitimately remove tracked `.kb/config.json`
-      // while the ignored branch stores remain on disk. Recreate the authored
-      // configuration so sync uses the canonical documentation paths instead
-      // of falling back to legacy relative globs.
-      if (!existsSync(path.join(kbDir, "config.json"))) {
-        createConfigFile(kbDir);
+      // An orphan branch can legitimately remove tracked `.kb/manifest.json`
+      // while the ignored branch stores remain on disk. Recreate the
+      // lifecycle manifest so status/doctor stay coherent; entity paths are
+      // canonical and require no per-repository configuration.
+      if (!existsSync(path.join(kbDir, "manifest.json"))) {
+        createManifestFile(kbDir);
       }
     }
 

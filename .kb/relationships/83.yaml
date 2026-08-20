@@ -59,3 +59,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0e3a6b0b31a2
+  - type: implements
+    from: SYM-canonical-StagedFile
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T17:36:28.975Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-108f2b0fafbe
+  - type: covered_by
+    from: SYM-canonical-StagedFile
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T17:36:28.989Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3bfa0581c11
+  - type: covered_by
+    from: SYM-cli-github-template-dir
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:56:19.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-356dea95fe14

@@ -1,10 +1,5 @@
 import assert from "node:assert";
-import {
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  writeFileSync,
-} from "node:fs";
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import {
@@ -109,8 +104,9 @@ async function validatedUpsert(
   const mutationEnvelope = parseEnvelope(mutation.stdout);
   assert.strictEqual(mutationEnvelope.status, "success");
   assert.ok(
-    Number((mutationEnvelope.data as JsonRecord | undefined)?.relationships_created) >
-      0,
+    Number(
+      (mutationEnvelope.data as JsonRecord | undefined)?.relationships_created,
+    ) > 0,
     "upsert should create at least one typed relationship",
   );
 }
@@ -132,7 +128,9 @@ function relationshipKey(relationship: ExpectedRelationship): string {
 }
 
 function shardField(block: string, name: string): string | undefined {
-  return block.match(new RegExp(`^\\s+${name}:\\s+"?([^"\\n]+?)"?\\s*$`, "m"))?.[1];
+  return block.match(
+    new RegExp(`^\\s+${name}:\\s+"?([^"\\n]+?)"?\\s*$`, "m"),
+  )?.[1];
 }
 
 function canonicalRelationshipRecords(repoDir: string): JsonRecord[] {
@@ -157,7 +155,7 @@ function canonicalRelationshipRecords(repoDir: string): JsonRecord[] {
 function writeSchemaFixtures(sandbox: TestSandbox): void {
   createMarkdownFile(
     sandbox,
-    "documentation/requirements/REQ-SCHEMA-ROUNDTRIP.md",
+    ".kb/requirements/REQ-SCHEMA-ROUNDTRIP.md",
     {
       id: "REQ-SCHEMA-ROUNDTRIP",
       type: "req",
@@ -172,7 +170,7 @@ function writeSchemaFixtures(sandbox: TestSandbox): void {
   );
   createMarkdownFile(
     sandbox,
-    "documentation/requirements/REQ-SCHEMA-DEPENDENCY.md",
+    ".kb/requirements/REQ-SCHEMA-DEPENDENCY.md",
     {
       id: "REQ-SCHEMA-DEPENDENCY",
       type: "req",
@@ -183,7 +181,7 @@ function writeSchemaFixtures(sandbox: TestSandbox): void {
   );
   createMarkdownFile(
     sandbox,
-    "documentation/scenarios/SCEN-SCHEMA-ROUNDTRIP.md",
+    ".kb/scenarios/SCEN-SCHEMA-ROUNDTRIP.md",
     {
       id: "SCEN-SCHEMA-ROUNDTRIP",
       type: "scenario",
@@ -194,7 +192,7 @@ function writeSchemaFixtures(sandbox: TestSandbox): void {
   );
   createMarkdownFile(
     sandbox,
-    "documentation/tests/TEST-SCHEMA-ROUNDTRIP.md",
+    ".kb/tests/TEST-SCHEMA-ROUNDTRIP.md",
     {
       id: "TEST-SCHEMA-ROUNDTRIP",
       type: "test",
@@ -207,7 +205,7 @@ function writeSchemaFixtures(sandbox: TestSandbox): void {
   );
   createMarkdownFile(
     sandbox,
-    "documentation/adr/ADR-SCHEMA-ROUNDTRIP.md",
+    ".kb/adr/ADR-SCHEMA-ROUNDTRIP.md",
     {
       id: "ADR-SCHEMA-ROUNDTRIP",
       type: "adr",
@@ -218,7 +216,7 @@ function writeSchemaFixtures(sandbox: TestSandbox): void {
   );
   createMarkdownFile(
     sandbox,
-    "documentation/flags/FLAG-SCHEMA-ROUNDTRIP.md",
+    ".kb/flags/FLAG-SCHEMA-ROUNDTRIP.md",
     {
       id: "FLAG-SCHEMA-ROUNDTRIP",
       type: "flag",
@@ -229,7 +227,7 @@ function writeSchemaFixtures(sandbox: TestSandbox): void {
   );
   createMarkdownFile(
     sandbox,
-    "documentation/events/EVT-SCHEMA-ROUNDTRIP.md",
+    ".kb/events/EVT-SCHEMA-ROUNDTRIP.md",
     {
       id: "EVT-SCHEMA-ROUNDTRIP",
       type: "event",
@@ -240,7 +238,7 @@ function writeSchemaFixtures(sandbox: TestSandbox): void {
   );
   createMarkdownFile(
     sandbox,
-    "documentation/facts/FACT-SCHEMA-ROUNDTRIP.md",
+    ".kb/facts/FACT-SCHEMA-ROUNDTRIP.md",
     {
       id: "FACT-SCHEMA-ROUNDTRIP",
       type: "fact",
@@ -258,8 +256,9 @@ function writeSchemaFixtures(sandbox: TestSandbox): void {
     "utf8",
   );
   stageSourceFile(sandbox, "src/schema-roundtrip.ts");
+  mkdirSync(join(sandbox.repoDir, ".kb"), { recursive: true });
   writeFileSync(
-    join(sandbox.repoDir, "documentation", "symbols.yaml"),
+    join(sandbox.repoDir, ".kb", "symbols.yaml"),
     `symbols:
   - id: SYM-SCHEMA-ROUNDTRIP
     title: schemaRoundTripFixture
@@ -269,7 +268,7 @@ function writeSchemaFixtures(sandbox: TestSandbox): void {
 `,
     "utf8",
   );
-  stageSourceFile(sandbox, "documentation/symbols.yaml");
+  stageSourceFile(sandbox, ".kb/symbols.yaml");
 }
 
 // implements REQ-004
@@ -298,7 +297,10 @@ export async function packedEightEntitySchemaRoundTrip(
   assert.notStrictEqual(rejected.exitCode, 0);
   assert.match(rejected.stderr + rejected.stdout, /Invalid type 'widget'/);
   for (const type of ENTITY_TYPES) {
-    assert.match(rejected.stderr + rejected.stdout, new RegExp(`\\b${type}\\b`));
+    assert.match(
+      rejected.stderr + rejected.stdout,
+      new RegExp(`\\b${type}\\b`),
+    );
   }
 
   for (const entity of entities) {
@@ -314,18 +316,22 @@ export async function packedEightEntitySchemaRoundTrip(
     assertIsoTimestamp(entity.updated_at, `${String(entity.id)}.updated_at`);
   }
 
-  const primary = entities.find((entity) => entity.id === "REQ-SCHEMA-ROUNDTRIP");
+  const primary = entities.find(
+    (entity) => entity.id === "REQ-SCHEMA-ROUNDTRIP",
+  );
   assert.ok(primary);
   assert.deepStrictEqual(primary.tags, ["schema", "roundtrip"]);
   assert.strictEqual(primary.owner, "schema-team");
   assert.strictEqual(primary.priority, "must");
   assert.strictEqual(
     primary.source,
-    "documentation/requirements/REQ-SCHEMA-ROUNDTRIP.md",
+    ".kb/requirements/REQ-SCHEMA-ROUNDTRIP.md",
     "source provenance should be generated from the authored document path",
   );
 
-  const sparse = entities.find((entity) => entity.id === "EVT-SCHEMA-ROUNDTRIP");
+  const sparse = entities.find(
+    (entity) => entity.id === "EVT-SCHEMA-ROUNDTRIP",
+  );
   assert.ok(sparse);
   assert.strictEqual(sparse.owner, undefined);
   assert.strictEqual(sparse.priority, undefined);
@@ -407,7 +413,9 @@ export async function packedTypedRelationshipRoundTrip(
   assert.strictEqual(stop.exitCode, 0, stop.stderr || stop.stdout);
 
   const reloaded: ExpectedRelationship[] = [];
-  for (const from of [...new Set(EXPECTED_RELATIONSHIPS.map((item) => item.from))]) {
+  for (const from of [
+    ...new Set(EXPECTED_RELATIONSHIPS.map((item) => item.from)),
+  ]) {
     const query = await kibi(sandbox, [
       "query",
       "--relationships",

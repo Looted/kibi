@@ -1725,6 +1725,10 @@ test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain,
     assertion(Row.testCount == 1),
     assertion(Row.proofStatus == proven),
     assertion(Row.proofGaps == []),
+    assertion(Row.proofAdvisories == []),
+    assertion(Row.proofStages.sourceCoordinates.requirementPath == 'test://kb.plt'),
+    assertion(memberchk(_{id: 'SYM-PROOF-PRODUCTION', path: 'packages/core/src/requirement_proof.pl', line: 10, column: 0, endLine: 30, endColumn: 1}, Row.proofStages.sourceCoordinates.coordinates)),
+    assertion(memberchk(_{id: 'SCEN-PROOF-COMPLETE', path: 'test://kb.plt'}, Row.proofStages.scenarios.sources)),
     assertion(Row.proofStages.semanticInventory.status == passed),
     assertion(Row.proofStages.logicGrounding.status == passed),
     assertion(Row.proofStages.contradictions.outcome == no_conflict_found),
@@ -1754,6 +1758,98 @@ test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain,
     assertion(MismatchRow.proofStages.logicGrounding.claimTextMismatchClaims == [ClaimKey]),
     assertion(memberchk(ambiguous_logic_grounding, MismatchRow.proofGaps)).
 
+test(requirement_proof_extra_missing_receipts_are_advisories_when_strict_proof_exists, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ClaimKey = 'CLAIM-ABCDEF0123456789',
+    ClaimKeyString = "CLAIM-ABCDEF0123456789",
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    verification_receipt_json(
+        'TEST-PROOF-ADVISORY-E2E',
+        Snapshot,
+        passed,
+        '2026-08-10T11:55:00Z',
+        '2026-08-10T12:00:00Z',
+        ReceiptJson
+    ),
+    Inventory = [_{
+        claim_key: ClaimKey,
+        claim_text: "Coverage reports expose conservative proof outcomes",
+        role: normative,
+        status: modeled,
+        span: _{start: 0, end: 51}
+    }],
+    assert_fixture_entity(req, 'REQ-PROOF-ADVISORY', "Conservative requirement proof with extra test", active, [
+        priority=must,
+        source=".kb/requirements/REQ-PROOF-ADVISORY.md",
+        logic_claims=[ClaimKey],
+        semantic_inventory=Inventory
+    ]),
+    assert_fixture_entity(fact, 'FACT-PROOF-ADV-SUBJECT', "Coverage report subject", active, [
+        fact_kind=subject,
+        subject_key="kibi.coverage.report",
+        source=".kb/facts/FACT-PROOF-ADV-SUBJECT.md"
+    ]),
+    assert_fixture_entity(fact, 'FACT-PROOF-ADV-PROPERTY', "Proof outcome property", active, [
+        fact_kind=property_value,
+        subject_key="kibi.coverage.report",
+        property_key="proof_outcome",
+        operator=eq,
+        value_type=string,
+        value_string="conservative",
+        claim_key=ClaimKeyString,
+        claim_text="Coverage reports expose conservative proof outcomes",
+        source=".kb/facts/FACT-PROOF-ADV-PROPERTY.md"
+    ]),
+    assert_fixture_entity(scenario, 'SCEN-PROOF-ADVISORY', "Inspect a requirement proof", active, [
+        source=".kb/scenarios/SCEN-PROOF-ADVISORY.md"
+    ]),
+    assert_fixture_entity(scenario, 'SCEN-PROOF-ADVISORY-EXTRA', "Inspect extra evidence", active, [
+        source=".kb/scenarios/SCEN-PROOF-ADVISORY-EXTRA.md"
+    ]),
+    assert_fixture_entity(test, 'TEST-PROOF-ADVISORY-E2E', "Requirement proof E2E", passing, [
+        verification_scope=end_to_end,
+        verification_receipts=ReceiptJson,
+        source="documentation/tests/e2e/advisory.test.ts"
+    ]),
+    assert_fixture_entity(test, 'TEST-PROOF-ADVISORY-EXTRA', "Additional E2E without a receipt", passing, [
+        verification_scope=end_to_end,
+        source="documentation/tests/e2e/advisory-extra.test.ts"
+    ]),
+    assert_fixture_entity(symbol, 'SYM-PROOF-ADV-PRODUCTION', "requirement_proof", active, [
+        sourceFile="packages/core/src/requirement_proof.pl",
+        sourceLine=10,
+        sourceColumn=0,
+        sourceEndLine=30,
+        sourceEndColumn=1
+    ]),
+    assert_fixture_entity(symbol, 'SYM-PROOF-ADV-E2E', "requirement proof E2E test", active, [
+        sourceFile="packages/core/tests/kb.plt",
+        sourceLine=1300,
+        sourceColumn=0,
+        sourceEndLine=1340,
+        sourceEndColumn=1
+    ]),
+    kb_assert_relationship(constrains, 'REQ-PROOF-ADVISORY', 'FACT-PROOF-ADV-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-PROOF-ADVISORY', 'FACT-PROOF-ADV-PROPERTY', []),
+    kb_assert_relationship(specified_by, 'REQ-PROOF-ADVISORY', 'SCEN-PROOF-ADVISORY', []),
+    kb_assert_relationship(specified_by, 'REQ-PROOF-ADVISORY', 'SCEN-PROOF-ADVISORY-EXTRA', []),
+    kb_assert_relationship(verified_by, 'SCEN-PROOF-ADVISORY', 'TEST-PROOF-ADVISORY-E2E', []),
+    kb_assert_relationship(verified_by, 'SCEN-PROOF-ADVISORY-EXTRA', 'TEST-PROOF-ADVISORY-EXTRA', []),
+    kb_assert_relationship(implements, 'SYM-PROOF-ADV-PRODUCTION', 'REQ-PROOF-ADVISORY', []),
+    kb_assert_relationship(covered_by, 'SYM-PROOF-ADV-PRODUCTION', 'TEST-PROOF-ADVISORY-E2E', []),
+    kb_assert_relationship(executable_for, 'SYM-PROOF-ADV-E2E', 'TEST-PROOF-ADVISORY-E2E', []),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-PROOF-ADVISORY', Row),
+    assertion(Row.proofStatus == proven),
+    assertion(Row.proofGaps == []),
+    assertion(memberchk(missing_verification_receipt, Row.proofAdvisories)),
+    assertion(\+ memberchk(missing_verification_receipt, Row.proofGaps)),
+    assertion(Row.source == '.kb/requirements/REQ-PROOF-ADVISORY.md'),
+    assertion(Row.proofStages.sourceCoordinates.requirementPath == '.kb/requirements/REQ-PROOF-ADVISORY.md'),
+    assertion(memberchk(_{id: 'SCEN-PROOF-ADVISORY', path: '.kb/scenarios/SCEN-PROOF-ADVISORY.md'}, Row.proofStages.scenarios.sources)),
+    assertion(memberchk(_{id: 'TEST-PROOF-ADVISORY-E2E', path: 'documentation/tests/e2e/advisory.test.ts'}, Row.proofStages.scenarioTests.sources)),
+    assertion(memberchk(_{id: 'FACT-PROOF-ADV-PROPERTY', path: '.kb/facts/FACT-PROOF-ADV-PROPERTY.md'}, Row.proofStages.logicGrounding.sources)).
+
 test(requirement_proof_receipts_are_snapshot_bound_fresh_and_outcome_sensitive, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     OtherSnapshot = 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
@@ -1767,6 +1863,7 @@ test(requirement_proof_receipts_are_snapshot_bound_fresh_and_outcome_sensitive, 
     coverage_row(MissingReport.rows, 'REQ-PROOF-RECEIPTS', MissingRow),
     assertion(MissingRow.proofStages.passingE2e.missingReceiptTests == ['TEST-PROOF-RECEIPTS']),
     assertion(memberchk(missing_verification_receipt, MissingRow.proofGaps)),
+    assertion(\+ memberchk(missing_verification_receipt, MissingRow.proofAdvisories)),
 
     verification_receipt_json('TEST-PROOF-RECEIPTS', OtherSnapshot, passed, '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', StaleJson),
     assert_fixture_entity(test, 'TEST-PROOF-RECEIPTS', "Receipt-sensitive E2E", passing, [verification_scope=end_to_end, verification_receipts=StaleJson]),
@@ -2923,8 +3020,8 @@ test(check_required_fields_reports_each_missing_field_and_empty_source, [setup(s
 test(check_no_cycles_reports_self_cycle_and_formats_source_name, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-SELF-CYCLE', "Self cycle req", active, [source="docs/requirements/REQ-SELF-CYCLE.md"]),
     kb_assert_relationship(depends_on, 'REQ-SELF-CYCLE', 'REQ-SELF-CYCLE', []),
-    check_no_cycles([violation('no-cycles', 'REQ-SELF-CYCLE', Description, _, 'kb.plt')]),
-    assertion(sub_string(Description, _, _, _, "kb.plt → kb.plt")).
+    check_no_cycles([violation('no-cycles', 'REQ-SELF-CYCLE', Description, _, 'REQ-SELF-CYCLE.md')]),
+    assertion(sub_string(Description, _, _, _, "REQ-SELF-CYCLE.md → REQ-SELF-CYCLE.md")).
 
 test(check_no_cycles_deduplicates_equivalent_cycles, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-CYCLE-A', "Cycle A", active, []),
@@ -3304,13 +3401,17 @@ test(cleanup_temp_file_removes_existing_temp_file, [setup(setup_kb), cleanup(cle
 
 % Test setup/cleanup helpers
 assert_fixture_entity(Type, Id, Title, Status, ExtraProps) :-
+    (   memberchk(source=_, ExtraProps)
+    ->  SourceDefault = []
+    ;   SourceDefault = [source="test://kb.plt"]
+    ),
     append([
         id=Id,
         title=Title,
         status=Status,
         created_at="2026-05-01T00:00:00Z",
-        updated_at="2026-05-01T00:00:00Z",
-        source="test://kb.plt"
+        updated_at="2026-05-01T00:00:00Z"
+        | SourceDefault
     ], ExtraProps, Props),
     kb_assert_entity(Type, Props).
 

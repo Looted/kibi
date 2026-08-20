@@ -135,7 +135,7 @@ Requirement semantic evolution is append-only:
 - New/modified symbols must be traceable to at least one requirement.
 - Preferred for test/e2e code: symbol manifest + `executable_for` relation.
 - Inline `// implements REQ-xxx` remains optional/backward-compatible for quick code-only changes.
-- When code edits change symbol extraction output, include updated `documentation/symbol-coordinates.yaml` in the same commit as the related code/documentation changes. If new logical symbols are added, update `documentation/symbols.yaml` accordingly.
+- When code edits change symbol extraction output, include updated `.kb/symbol-coordinates.yaml` in the same commit as the related code/documentation changes. If new logical symbols are added, update `.kb/symbols.yaml` accordingly.
 
 ## Release & Versioning Rules (npm packages)
 

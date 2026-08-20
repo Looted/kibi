@@ -4,6 +4,8 @@ import path from "node:path";
 
 import {
   renderKibiBadge,
+  renderKibiFaviconDataUri,
+  renderKibiFaviconSvg,
   renderKibiLogo,
   renderKibiWordmark,
 } from "../../src/report/brand.js";
@@ -79,6 +81,10 @@ describe("canonical brand marks", () => {
     );
     expect(svgVisualFingerprint(renderKibiWordmark("brand__wordmark"))).toEqual(
       svgVisualFingerprint(wordmark),
+    );
+    expect(renderKibiFaviconDataUri()).toContain("data:image/svg+xml;utf8,");
+    expect(svgVisualFingerprint(renderKibiFaviconSvg())).toEqual(
+      svgVisualFingerprint(logo),
     );
   });
 

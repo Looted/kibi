@@ -14,7 +14,7 @@ const entityRows = [
   [
     "'SYM-UPLOAD'",
     "symbol",
-    "[title='upload',status=active,created_at='2026-07-01T00:00:00.000Z',updated_at='2026-07-01T00:00:00.000Z',source='documentation/symbols.yaml',source_file='src/a.ts',symbol_kind=function,symbol_role=behavioral,sourceLine=^^(\"1\", 'http://www.w3.org/2001/XMLSchema#integer'),sourceColumn=^^(\"2\", 'http://www.w3.org/2001/XMLSchema#integer'),sourceEndLine=^^(\"3\", 'http://www.w3.org/2001/XMLSchema#integer'),sourceEndColumn=^^(\"4\", 'http://www.w3.org/2001/XMLSchema#integer')]",
+    "[title='upload',status=active,created_at='2026-07-01T00:00:00.000Z',updated_at='2026-07-01T00:00:00.000Z',source='.kb/symbols.yaml',source_file='src/a.ts',symbol_kind=function,symbol_role=behavioral,sourceLine=^^(\"1\", 'http://www.w3.org/2001/XMLSchema#integer'),sourceColumn=^^(\"2\", 'http://www.w3.org/2001/XMLSchema#integer'),sourceEndLine=^^(\"3\", 'http://www.w3.org/2001/XMLSchema#integer'),sourceEndColumn=^^(\"4\", 'http://www.w3.org/2001/XMLSchema#integer')]",
   ],
   [
     "'TEST-UPLOAD'",

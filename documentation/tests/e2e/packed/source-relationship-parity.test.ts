@@ -59,7 +59,7 @@ if (RUN_NODE_TEST_SUITE) {
       async () => {
         if (!hasProlog) return;
 
-        const requirementPath = "documentation/requirements/REQ-PARITY-E2E.md";
+        const requirementPath = ".kb/requirements/REQ-PARITY-E2E.md";
         createMarkdownFile(
           sandbox,
           requirementPath,
@@ -73,7 +73,7 @@ if (RUN_NODE_TEST_SUITE) {
         );
         createMarkdownFile(
           sandbox,
-          "documentation/scenarios/SCEN-PARITY-E2E.md",
+          ".kb/scenarios/SCEN-PARITY-E2E.md",
           {
             id: "SCEN-PARITY-E2E",
             title: "Relationship parity scenario",
@@ -82,7 +82,7 @@ if (RUN_NODE_TEST_SUITE) {
           },
           "Reference fixture.",
         );
-        await run("git", ["add", "documentation"], {
+        await run("git", ["add", ".kb"], {
           cwd: sandbox.repoDir,
           env: sandbox.env,
         });

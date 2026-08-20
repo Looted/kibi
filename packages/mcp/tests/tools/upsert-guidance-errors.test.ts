@@ -1,3 +1,4 @@
+import "../helpers/ensure-test-branch.js";
 import { describe, expect, mock, test } from "bun:test";
 import type { PrologProcess } from "kibi-cli/prolog";
 import { handleKbUpsert } from "../../src/tools/upsert.js";

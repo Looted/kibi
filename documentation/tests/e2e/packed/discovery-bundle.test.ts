@@ -130,23 +130,18 @@ if (RUN_NODE_TEST_SUITE) {
         await sandbox.initGitRepo();
         await kibi(sandbox, ["init"]);
 
-        fs.mkdirSync(join(sandbox.repoDir, "documentation", "requirements"), {
+        fs.mkdirSync(join(sandbox.repoDir, ".kb", "requirements"), {
           recursive: true,
         });
-        fs.mkdirSync(join(sandbox.repoDir, "documentation", "scenarios"), {
+        fs.mkdirSync(join(sandbox.repoDir, ".kb", "scenarios"), {
           recursive: true,
         });
-        fs.mkdirSync(join(sandbox.repoDir, "documentation", "tests"), {
+        fs.mkdirSync(join(sandbox.repoDir, ".kb", "tests"), {
           recursive: true,
         });
 
         fs.writeFileSync(
-          join(
-            sandbox.repoDir,
-            "documentation",
-            "requirements",
-            "REQ-DISC-001.md",
-          ),
+          join(sandbox.repoDir, ".kb", "requirements", "REQ-DISC-001.md"),
           `---
 id: REQ-DISC-001
 title: OAuth login flow
@@ -166,12 +161,7 @@ The markdown body mentions latent discovery token.
         );
 
         fs.writeFileSync(
-          join(
-            sandbox.repoDir,
-            "documentation",
-            "scenarios",
-            "SCEN-DISC-001.md",
-          ),
+          join(sandbox.repoDir, ".kb", "scenarios", "SCEN-DISC-001.md"),
           `---
 id: SCEN-DISC-001
 title: Login scenario
@@ -186,7 +176,7 @@ Then access is granted
         );
 
         fs.writeFileSync(
-          join(sandbox.repoDir, "documentation", "tests", "TEST-DISC-001.md"),
+          join(sandbox.repoDir, ".kb", "tests", "TEST-DISC-001.md"),
           `---
 id: TEST-DISC-001
 title: Login test
@@ -202,12 +192,7 @@ Verifies login behavior.
         );
 
         fs.writeFileSync(
-          join(
-            sandbox.repoDir,
-            "documentation",
-            "requirements",
-            "REQ-DISC-002.md",
-          ),
+          join(sandbox.repoDir, ".kb", "requirements", "REQ-DISC-002.md"),
           `---
 id: REQ-DISC-002
 title: Optional telemetry note
@@ -221,10 +206,10 @@ This requirement is intentionally not must-priority.
         );
 
         for (const sourcePath of [
-          "documentation/requirements/REQ-DISC-001.md",
-          "documentation/requirements/REQ-DISC-002.md",
-          "documentation/scenarios/SCEN-DISC-001.md",
-          "documentation/tests/TEST-DISC-001.md",
+          ".kb/requirements/REQ-DISC-001.md",
+          ".kb/requirements/REQ-DISC-002.md",
+          ".kb/scenarios/SCEN-DISC-001.md",
+          ".kb/tests/TEST-DISC-001.md",
         ]) {
           stageSourceFile(sandbox, sourcePath);
         }

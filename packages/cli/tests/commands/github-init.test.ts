@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { execSync } from "node:child_process";
+import { execSync } from "../helpers/isolated-env.js";
 import {
   existsSync,
   mkdirSync,
@@ -12,7 +12,6 @@ import * as os from "node:os";
 import * as path from "node:path";
 
 import { buildProgram } from "../../src/cli.js";
-import { initCommand } from "../../src/commands/init.js";
 import {
   GITHUB_BADGE_WORKFLOW_RELPATH,
   GITHUB_REPORT_WORKFLOW_RELPATH,
@@ -31,6 +30,7 @@ import {
   scaffoldGitHubIntegration,
   writeGitHubWorkflow,
 } from "../../src/commands/github-init.js";
+import { initCommand } from "../../src/commands/init.js";
 
 const repoRoot = path.resolve(__dirname, "../../../..");
 
@@ -56,9 +56,10 @@ describe("GitHub remote parsing", () => {
       owner: "owner",
       repo: "repo",
     });
-    expect(
-      parseGitHubRemote("ssh://git@github.com/owner/repo.git"),
-    ).toEqual({ owner: "owner", repo: "repo" });
+    expect(parseGitHubRemote("ssh://git@github.com/owner/repo.git")).toEqual({
+      owner: "owner",
+      repo: "repo",
+    });
     expect(parseGitHubRemote("git://github.com/owner/repo.git")).toEqual({
       owner: "owner",
       repo: "repo",
@@ -71,9 +72,7 @@ describe("GitHub remote parsing", () => {
     expect(
       parseGitHubRemote("https://gitlab.com/owner/repo.git"),
     ).toBeUndefined();
-    expect(
-      parseGitHubRemote("git@gitlab.com:owner/repo.git"),
-    ).toBeUndefined();
+    expect(parseGitHubRemote("git@gitlab.com:owner/repo.git")).toBeUndefined();
     expect(
       parseGitHubRemote("https://github.example.com/owner/repo.git"),
     ).toBeUndefined();
@@ -110,9 +109,7 @@ describe("GitHub Pages URLs", () => {
   });
 
   test("builds owner-site URLs without a repository segment", () => {
-    expect(
-      githubPagesUrls({ owner: "Acme", repo: "Acme.github.io" }),
-    ).toEqual({
+    expect(githubPagesUrls({ owner: "Acme", repo: "Acme.github.io" })).toEqual({
       siteUrl: "https://acme.github.io/kibi-report/",
       badgeUrl: "https://acme.github.io/kibi-report/badge.svg",
     });
@@ -136,25 +133,79 @@ describe("GitHub workflow templates", () => {
     }
   });
 
-  test("report template deploys the full report directory on the default branch", () => {
+  test("report template generates on PRs and deploys Pages only from the default branch", () => {
     const workflow = loadGitHubWorkflowTemplate("report");
+    const deployIndex = workflow.indexOf("deploy-report:");
+    const pagesWriteIndex = workflow.indexOf("pages: write");
+    const idTokenWriteIndex = workflow.indexOf("id-token: write");
+    const prArtifactIndex = workflow.indexOf(
+      "uses: actions/upload-artifact@v5",
+    );
+    const pagesArtifactIndex = workflow.indexOf(
+      "uses: actions/upload-pages-artifact@v5",
+    );
+
+    expect(workflow).toContain("pull_request:");
+    expect(workflow).not.toContain("pull_request_target");
+    expect(workflow).toContain(
+      "KIBI_BRANCH: ${{ github.head_ref || github.ref_name }}",
+    );
     expect(workflow).toContain("kibi report --output kibi-report");
+    expect(workflow).toContain("name: kibi-pr-report");
+    expect(workflow).toContain("path: kibi-report");
     expect(workflow).toContain("mkdir -p pages/kibi-report");
     expect(workflow).toContain("path: pages");
-    expect(workflow).not.toContain("path: kibi-report");
     expect(workflow).toContain("github.event.repository.default_branch");
     expect(workflow).toContain("workflow_dispatch");
     expect(workflow).not.toContain("branches: [main]");
     expect(workflow).toContain("cancel-in-progress: false");
+    expect(workflow).toContain(
+      "github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch)",
+    );
+    expect(workflow).toContain("github.event_name != 'pull_request'");
+    expect(deployIndex).toBeGreaterThan(0);
+    expect(prArtifactIndex).toBeGreaterThan(0);
+    expect(prArtifactIndex).toBeLessThan(deployIndex);
+    expect(pagesArtifactIndex).toBeGreaterThan(prArtifactIndex);
+    expect(pagesArtifactIndex).toBeLessThan(deployIndex);
+    expect(pagesWriteIndex).toBeGreaterThan(deployIndex);
+    expect(idTokenWriteIndex).toBeGreaterThan(deployIndex);
+    expect(workflow.indexOf("permissions:\n  contents: read")).toBeGreaterThan(
+      0,
+    );
+    expect(workflow.indexOf("permissions:\n  contents: read")).toBeLessThan(
+      deployIndex,
+    );
+    expect(workflow).toContain(
+      "if: ${{ github.event_name == 'pull_request' }}",
+    );
+    expect(workflow).toContain(
+      "if: ${{ github.event_name != 'pull_request' && (github.event_name == 'workflow_dispatch' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch)) }}",
+    );
+    expect(workflow.split("pages: write").length).toBe(2);
+    expect(workflow.split("id-token: write").length).toBe(2);
+    expect(workflow.split("actions/upload-pages-artifact").length).toBe(2);
+    expect(workflow.split("actions/deploy-pages").length).toBe(2);
   });
 
   test("badge-only template still generates the report then publishes badge.svg", () => {
     const workflow = loadGitHubWorkflowTemplate("badge");
+    const deployIndex = workflow.indexOf("deploy-report:");
+    const pagesWriteIndex = workflow.indexOf("pages: write");
+
+    expect(workflow).toContain("pull_request:");
+    expect(workflow).not.toContain("pull_request_target");
+    expect(workflow).toContain(
+      "KIBI_BRANCH: ${{ github.head_ref || github.ref_name }}",
+    );
     expect(workflow).toContain("kibi report --output kibi-report");
+    expect(workflow).toContain("name: kibi-pr-report");
     expect(workflow).toContain(
       "cp kibi-report/badge.svg pages/kibi-report/badge.svg",
     );
     expect(workflow).toContain("path: pages");
+    expect(workflow).toContain("github.event_name != 'pull_request'");
+    expect(pagesWriteIndex).toBeGreaterThan(deployIndex);
   });
 });
 
@@ -261,9 +312,9 @@ describe("GitHub workflow and README scaffolding", () => {
     expect(result.exitCode).toBe(0);
     expect(result.workflow).toBe("created");
     expect(result.readme).toBe("updated");
-    expect(
-      readFileSync(path.join(tmpDir, ".gitignore"), "utf8"),
-    ).toContain("kibi-report/");
+    expect(readFileSync(path.join(tmpDir, ".gitignore"), "utf8")).toContain(
+      "kibi-report/",
+    );
     const written = readFileSync(
       path.join(tmpDir, GITHUB_REPORT_WORKFLOW_RELPATH),
       "utf8",
@@ -393,7 +444,9 @@ describe("GitHub workflow and README scaffolding", () => {
       readFileSync(path.join(tmpDir, GITHUB_BADGE_WORKFLOW_RELPATH), "utf8"),
     ).toBe(loadGitHubWorkflowTemplate("badge"));
     const readme = readFileSync(path.join(tmpDir, "README.md"), "utf8");
-    expect(readme).toContain("https://acme.github.io/widgets/kibi-report/badge.svg");
+    expect(readme).toContain(
+      "https://acme.github.io/widgets/kibi-report/badge.svg",
+    );
     expect(readme).toContain(KIBI_METRIC_DOCS_URL);
     expect(readme).toContain(`](${KIBI_METRIC_DOCS_URL})`);
   });

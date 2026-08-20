@@ -513,12 +513,12 @@ describe.serial("autopilot generate", () => {
     );
 
     // Create a normal (non-ignored) requirements doc that should be discovered
-    await fs.mkdir(path.join(tmp, "documentation", "requirements"), {
+    await fs.mkdir(path.join(tmp, ".kb", "requirements"), {
       recursive: true,
     });
     const keepPath = path.join(
       tmp,
-      "documentation",
+      ".kb",
       "requirements",
       "REQ-KEEP.md",
     );
@@ -859,9 +859,9 @@ describe.serial("autopilot generate", () => {
   });
 
   test("generic candidates shadowed by typed sources use shadowed_by_typed_source", async () => {
-    await fs.mkdir(path.join(tmp, "documentation", "adr"), { recursive: true });
+    await fs.mkdir(path.join(tmp, ".kb", "adr"), { recursive: true });
     await fs.writeFile(
-      path.join(tmp, "documentation", "adr", "ADR-001.md"),
+      path.join(tmp, ".kb", "adr", "ADR-001.md"),
       '---\nid: ADR-001\ntitle: "ADR: Adopt Kibi"\nstatus: proposed\n---\n# ADR Content\n',
     );
     await fs.mkdir(path.join(tmp, "docs"), { recursive: true });
@@ -1256,9 +1256,9 @@ describe.serial("autopilot generate", () => {
 
   test("symbol manifests are split from discovered sources and emitted as manifest candidates", async () => {
     createColdStartRepo(tmp);
-    await fs.mkdir(path.join(tmp, "documentation"), { recursive: true });
+    await fs.mkdir(path.join(tmp, ".kb"), { recursive: true });
     await fs.writeFile(
-      path.join(tmp, "documentation", "symbols.yaml"),
+      path.join(tmp, ".kb", "symbols.yaml"),
       [
         "symbols:",
         "  - id: symbol-autopilot-entry",
@@ -1295,11 +1295,11 @@ describe.serial("autopilot generate", () => {
 
   test("lower-confidence duplicates are suppressed after typed evidence wins", async () => {
     createColdStartRepo(tmp);
-    await fs.mkdir(path.join(tmp, "documentation", "facts"), {
+    await fs.mkdir(path.join(tmp, ".kb", "facts"), {
       recursive: true,
     });
     await fs.writeFile(
-      path.join(tmp, "documentation", "facts", "FACT-PACKAGE.md"),
+      path.join(tmp, ".kb", "facts", "FACT-PACKAGE.md"),
       [
         "---",
         "id: FACT-PACKAGE",

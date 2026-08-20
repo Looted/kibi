@@ -6,7 +6,7 @@ const repoRoot = resolve(import.meta.dir, "../../..");
 const evaluationRoot = join(repoRoot, "documentation/evaluations/skillopt");
 const methodologyPath = join(
   repoRoot,
-  "documentation/facts/FACT-skillopt-methodology.md",
+  ".kb/facts/FACT-skillopt-methodology.md",
 );
 
 function readEvaluationFile(fileName: string): string {

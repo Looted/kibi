@@ -53,6 +53,7 @@ requirement_proof(ReqId, _ReqProps, _Context, Proof) :-
         proofVersion: Version,
         proofStatus: not_applicable,
         proofGaps: [],
+        proofAdvisories: [],
         proofRepairs: [],
         proofStages: _{applicability: _{status: not_applicable}}
     }.
@@ -77,7 +78,7 @@ requirement_proof(ReqId, ReqProps, Context, Proof) :-
         productionSymbols: ProductionStage,
         sourceCoordinates: CoordinateStage
     },
-    proof_gaps(Stages, Gaps),
+    proof_issues(Stages, Gaps, Advisories),
     proof_repairs(Gaps, Repairs),
     proof_status(Stages, Status),
     proof_version(Version),
@@ -85,6 +86,7 @@ requirement_proof(ReqId, ReqProps, Context, Proof) :-
         proofVersion: Version,
         proofStatus: Status,
         proofGaps: Gaps,
+        proofAdvisories: Advisories,
         proofRepairs: Repairs,
         proofStages: Stages
     }.
@@ -225,6 +227,7 @@ logic_grounding_stage(ReqId, Props, Inventory, Context, Stage) :-
         InvalidRuleFactIds,
         Status
     ),
+    ground_source_refs(Evidence, GroundSources),
     Stage = _{
         status: Status,
         manifestClaims: ManifestKeys,
@@ -239,7 +242,8 @@ logic_grounding_stage(ReqId, Props, Inventory, Context, Stage) :-
         missingManifestClaims: MissingManifestKeys,
         extraManifestClaims: ExtraManifestKeys,
         undeclaredGroundClaims: UndeclaredGroundKeys,
-        invalidRuleFacts: InvalidRuleFactIds
+        invalidRuleFacts: InvalidRuleFactIds,
+        sources: GroundSources
     }.
 
 requirement_claim_keys(Props, true, Keys) :-
@@ -437,7 +441,8 @@ scenario_stage(ReqId, Stage, ScenarioIds) :-
         ScenarioIds0),
     sort(ScenarioIds0, ScenarioIds),
     (ScenarioIds = [] -> Status = missing ; Status = passed),
-    Stage = _{status: Status, scenarios: ScenarioIds}.
+    maplist(entity_source_ref, ScenarioIds, Sources),
+    Stage = _{status: Status, scenarios: ScenarioIds, sources: Sources}.
 
 scenario_test_stage(ScenarioIds, Stage, ScenarioTests) :-
     findall(TestId,
@@ -445,7 +450,8 @@ scenario_test_stage(ScenarioIds, Stage, ScenarioTests) :-
         ScenarioTests0),
     sort(ScenarioTests0, ScenarioTests),
     (ScenarioTests = [] -> Status = missing ; Status = passed),
-    Stage = _{status: Status, tests: ScenarioTests}.
+    maplist(entity_source_ref, ScenarioTests, Sources),
+    Stage = _{status: Status, tests: ScenarioTests, sources: Sources}.
 
 scenario_test(ScenarioId, TestId) :-
     kb_relationship(verified_by, ScenarioId, TestId),
@@ -797,7 +803,7 @@ test_scope(Props, end_to_end) :-
     !.
 test_scope(_, unknown).
 
-executable_symbol_stage([], _{status: blocked, symbols: [], missingTests: []}, []).
+executable_symbol_stage([], _{status: blocked, symbols: [], missingTests: [], coordinates: []}, []).
 executable_symbol_stage(PassingE2eTests, Stage, Symbols) :-
     PassingE2eTests \= [],
     findall(SymbolId,
@@ -808,7 +814,8 @@ executable_symbol_stage(PassingE2eTests, Stage, Symbols) :-
     sort(Symbols0, Symbols),
     include(test_missing_executable_symbol, PassingE2eTests, MissingTests),
     (MissingTests = [] -> Status = passed ; Status = missing),
-    Stage = _{status: Status, symbols: Symbols, missingTests: MissingTests}.
+    maplist(symbol_coordinate_ref, Symbols, Coordinates),
+    Stage = _{status: Status, symbols: Symbols, missingTests: MissingTests, coordinates: Coordinates}.
 
 test_missing_executable_symbol(TestId) :-
     \+ (kb_relationship(executable_for, SymbolId, TestId), kb_entity(SymbolId, symbol, _)).
@@ -824,11 +831,13 @@ production_symbol_stage(ReqId, PassingE2eTests, Stage, ProductionSymbols) :-
     exclude(type_shape_symbol_with_structural_contract, ImplementingSymbols, ProductionSymbols),
     include(symbol_not_covered_by_tests(PassingE2eTests), ProductionSymbols, UncoveredSymbols),
     production_stage_status(ProductionSymbols, StructuralSymbols, PassingE2eTests, UncoveredSymbols, Status),
+    maplist(symbol_coordinate_ref, ProductionSymbols, Coordinates),
     Stage = _{
         status: Status,
         symbols: ProductionSymbols,
         structuralSymbols: StructuralSymbols,
-        uncoveredSymbols: UncoveredSymbols
+        uncoveredSymbols: UncoveredSymbols,
+        coordinates: Coordinates
     }.
 
 type_shape_symbol_with_structural_contract(SymbolId) :-
@@ -860,11 +869,15 @@ source_coordinate_stage(ReqProps, ExecutableSymbols, ProductionSymbols, Stage) :
     ;   RequirementSource = present,
         coordinate_stage_status(Symbols, MissingSymbols, Status)
     ),
+    requirement_source_path(ReqProps, RequirementPath),
+    maplist(symbol_coordinate_ref, Symbols, Coordinates),
     Stage = _{
         status: Status,
         requirementSource: RequirementSource,
+        requirementPath: RequirementPath,
         symbols: Symbols,
-        missingSymbols: MissingSymbols
+        missingSymbols: MissingSymbols,
+        coordinates: Coordinates
     }.
 
 coordinate_stage_status([], _, blocked) :- !.
@@ -877,7 +890,7 @@ symbol_missing_coordinates(SymbolId) :-
 
 valid_symbol_coordinates(Props) :-
     memberchk(sourceFile=RawSourceFile, Props),
-    normalize_atom(RawSourceFile, SourceFile),
+    source_path_atom(RawSourceFile, SourceFile),
     SourceFile \= '',
     memberchk(sourceLine=RawLine, Props),
     memberchk(sourceColumn=RawColumn, Props),
@@ -892,10 +905,66 @@ valid_symbol_coordinates(Props) :-
     EndLine >= Line,
     EndColumn >= 0.
 
-nonempty_source(Props) :-
+% Prefer sourceFile, then source, without URI-basename stripping. Paths must
+% remain inspectable coordinates for report linking.
+proof_source_property(Props, RawSource) :-
+    memberchk(sourceFile=RawSource, Props),
+    source_path_atom(RawSource, _),
+    !.
+proof_source_property(Props, RawSource) :-
     memberchk(source=RawSource, Props),
-    normalize_atom(RawSource, Source),
-    Source \= ''.
+    source_path_atom(RawSource, _).
+
+nonempty_source(Props) :-
+    proof_source_property(Props, _).
+
+requirement_source_path(Props, Path) :-
+    proof_source_property(Props, RawSource),
+    source_path_atom(RawSource, Path),
+    !.
+requirement_source_path(_, '').
+
+entity_source_path(Id, Path) :-
+    kb_entity(Id, _, Props),
+    requirement_source_path(Props, Path).
+
+entity_source_ref(Id, _{id: Id, path: Path}) :-
+    entity_source_path(Id, Path).
+
+ground_source_refs(Evidence, Refs) :-
+    findall(Ref,
+        (member(Item, Evidence),
+         entity_source_ref(Item.factId, Ref),
+         Ref.path \= ''),
+        Refs0),
+    sort(Refs0, Refs).
+
+symbol_coordinate_ref(SymbolId, Ref) :-
+    kb_entity(SymbolId, symbol, Props),
+    memberchk(sourceFile=RawFile, Props),
+    source_path_atom(RawFile, File),
+    File \= '',
+    !,
+    (   valid_symbol_coordinates(Props)
+    ->  memberchk(sourceLine=RawLine, Props),
+        memberchk(sourceColumn=RawColumn, Props),
+        memberchk(sourceEndLine=RawEndLine, Props),
+        memberchk(sourceEndColumn=RawEndColumn, Props),
+        normalize_integer(RawLine, Line),
+        normalize_integer(RawColumn, Column),
+        normalize_integer(RawEndLine, EndLine),
+        normalize_integer(RawEndColumn, EndColumn),
+        Ref = _{
+            id: SymbolId,
+            path: File,
+            line: Line,
+            column: Column,
+            endLine: EndLine,
+            endColumn: EndColumn
+        }
+    ;   Ref = _{id: SymbolId, path: File}
+    ).
+symbol_coordinate_ref(SymbolId, _{id: SymbolId, path: ''}).
 
 proof_status(Stages, unresolved) :-
     Stages.contradictions.status == blocked,
@@ -915,7 +984,36 @@ stage_dict(Stages, Stage) :-
     member(_-Stage, Pairs).
 
 proof_gaps(Stages, Gaps) :-
-    findall(Gap, (gap_definition(Gap, _, _, _), proof_gap_present(Gap, Stages)), Gaps).
+    proof_issues(Stages, Gaps, _).
+
+proof_advisories(Stages, Advisories) :-
+    proof_issues(Stages, _, Advisories).
+
+% implements REQ-kibi-conservative-requirement-proof
+% proofGaps are blocking only. Receipt-completeness codes become
+% proofAdvisories when passingE2e already supplies strict proof.
+% Invariant: proofStatus == proven implies proofGaps == [].
+proof_issues(Stages, Gaps, Advisories) :-
+    findall(Gap,
+        (gap_definition(Gap, _, _, _),
+         proof_gap_present(Gap, Stages),
+         \+ proof_issue_advisory(Gap, Stages)),
+        Gaps),
+    findall(Gap,
+        (gap_definition(Gap, _, _, _),
+         proof_gap_present(Gap, Stages),
+         proof_issue_advisory(Gap, Stages)),
+        Advisories).
+
+receipt_completeness_issue(missing_verification_receipt).
+receipt_completeness_issue(stale_verification_receipt).
+receipt_completeness_issue(failed_verification_receipt).
+receipt_completeness_issue(invalid_verification_receipt).
+receipt_completeness_issue(verification_contract_mismatch).
+
+proof_issue_advisory(Gap, Stages) :-
+    receipt_completeness_issue(Gap),
+    Stages.passingE2e.status == passed.
 
 proof_gap_present(missing_semantic_inventory, Stages) :- Stages.semanticInventory.propositionCount =:= 0.
 proof_gap_present(incomplete_semantic_inventory, Stages) :- Stages.semanticInventory.missingCount > 0.
@@ -978,6 +1076,10 @@ proof_repairs(Gaps, Repairs) :-
 
 normalize_atom(Value, Atom) :-
     kb:normalize_term_atom(Value, Atom).
+
+source_path_atom(Value, Atom) :-
+    kb:source_value_atom(Value, Atom),
+    Atom \= ''.
 
 normalize_atom_list(Value, Atoms) :-
     kb:normalize_term_atom_list(Value, Atoms).

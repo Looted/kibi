@@ -34,3 +34,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7a12bcf09ba6
+  - type: implements
+    from: SYM-canonical-LegacyKbConfig
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:01:54.292Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4a1ac5353cd
+  - type: covered_by
+    from: SYM-canonical-LegacyKbConfig
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:01:54.301Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8537d64e7f8d
+  - type: implements
+    from: SYM-canonical-EntityLane
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:02:59.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f7e58e0deef
+  - type: covered_by
+    from: SYM-canonical-EntityLane
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:02:59.263Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85c705afcba5

@@ -41,3 +41,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c95b74dffe91
+  - type: covered_by
+    from: SYM-cli-github-write-workflow
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:56:31.050Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1521ea414fe

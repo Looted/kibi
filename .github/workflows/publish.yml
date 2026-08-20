@@ -56,11 +56,7 @@ jobs:
           ref: refs/heads/master
           fetch-depth: 1
       - name: Install SWI-Prolog
-        run: |
-          sudo apt-get install -y software-properties-common
-          sudo apt-add-repository -y ppa:swi-prolog/stable
-          sudo apt-get update
-          sudo apt-get install -y swi-prolog
+        run: bash scripts/ci-install-swi-prolog.sh
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -149,11 +145,7 @@ jobs:
           ref: refs/heads/master
           fetch-depth: 1
       - name: Install SWI-Prolog
-        run: |
-          sudo apt-get install -y software-properties-common
-          sudo apt-add-repository -y ppa:swi-prolog/stable
-          sudo apt-get update
-          sudo apt-get install -y swi-prolog
+        run: bash scripts/ci-install-swi-prolog.sh
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
