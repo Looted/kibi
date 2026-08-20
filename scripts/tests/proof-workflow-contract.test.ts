@@ -57,7 +57,7 @@ describe("strict proof workflow contract", () => {
       }
 
       const markdown = readFileSync(
-        join(ROOT, "documentation", "tests", `${entry.test_id}.md`),
+        join(ROOT, ".kb", "tests", `${entry.test_id}.md`),
         "utf8",
       );
       const frontmatter = markdown.match(/^---\n([\s\S]*?)\n---/)?.[1];
