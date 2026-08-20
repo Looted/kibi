@@ -111,7 +111,7 @@ export interface BootstrapWorkspaceFixture {
   cleanup: () => void;
 }
 
-// implements REQ-mcp-init-kibi-bootstrap-v1
+// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function setupWorkspace(): BootstrapWorkspaceFixture {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-bootstrap-"));
   const root = path.join(tmp, "repo");
@@ -126,7 +126,7 @@ export function setupWorkspace(): BootstrapWorkspaceFixture {
   return { root, cleanup };
 }
 
-// implements REQ-mcp-init-kibi-bootstrap-v1
+// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function writeRootManifest(root: string) {
   const kbDir = path.join(root, ".kb");
   fs.mkdirSync(kbDir, { recursive: true });
@@ -144,7 +144,7 @@ export function writeRootManifest(root: string) {
   );
 }
 
-// implements REQ-mcp-init-kibi-bootstrap-v1
+// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function createVendoredTree(root: string) {
   const vend = path.join(root, "kibi");
   fs.mkdirSync(path.join(vend, "documentation", "requirements"), {
@@ -157,12 +157,12 @@ export function createVendoredTree(root: string) {
   );
 }
 
-// implements REQ-mcp-init-kibi-bootstrap-v1
+// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function ensureDocs(root: string) {
   ensureDocsAt(path.join(root, ".kb"));
 }
 
-// implements REQ-mcp-init-kibi-bootstrap-v1
+// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function createColdStartRepo(root: string) {
   ensureDir(root);
   ensureDir(path.join(root, "src", "routes"));
@@ -228,7 +228,7 @@ export function createColdStartRepo(root: string) {
   );
 }
 
-// implements REQ-mcp-init-kibi-bootstrap-v1
+// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function createPartialRepo(root: string) {
   writeRootManifest(root);
   writeEntityDoc(
@@ -244,7 +244,7 @@ export function createPartialRepo(root: string) {
   );
 }
 
-// implements REQ-mcp-init-kibi-bootstrap-v1
+// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function createMultiRootRepo(root: string) {
   ensureDocsAt(path.join(root, ".kb"));
   ensureDocsAt(path.join(root, "packages", "app", "docs"), "APP");
@@ -256,12 +256,12 @@ export function createMultiRootRepo(root: string) {
   );
 }
 
-// implements REQ-mcp-init-kibi-bootstrap-v1
+// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function createNoisyRepo(root: string) {
   createNoise(root);
 }
 
-// implements REQ-mcp-init-kibi-bootstrap-v1
+// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function createThinRepo(
   root: string,
   options: { multiRoot?: boolean; noisy?: boolean } = {},
@@ -279,7 +279,7 @@ export function createThinRepo(
   }
 }
 
-// implements REQ-mcp-init-kibi-bootstrap-v1
+// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function createSeededRepo(
   root: string,
   options: { multiRoot?: boolean; noisy?: boolean } = {},
