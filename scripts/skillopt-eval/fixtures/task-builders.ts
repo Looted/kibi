@@ -62,13 +62,13 @@ const DEFINITIONS: Readonly<
   "kibi-usage": USAGE_DEFINITIONS,
   "kibi-freshness": FRESHNESS_DEFINITIONS,
   "kibi-traceability": TRACEABILITY_DEFINITIONS,
-  "init-kibi": INIT_DEFINITIONS,
+  "kibi-bootstrap": INIT_DEFINITIONS,
 };
 const SKILL_FILES = [
   "skills/kibi-usage/SKILL.md",
   "skills/kibi-freshness/SKILL.md",
   "skills/kibi-traceability/SKILL.md",
-  "skills/init-kibi/SKILL.md",
+  "skills/kibi-bootstrap/SKILL.md",
   "skills/bundle.json",
 ] as const;
 const BASE_FILES = [
@@ -392,7 +392,7 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
     mutation: "write",
     approvalPhase: "post-approval",
   },
-  "init-kibi/bootstrap-analysis/held-out/0": {
+  "kibi-bootstrap/bootstrap-analysis/held-out/0": {
     prompt:
       "An extractor-owned symbol disappeared from complete current extraction. Delete it only when it has no authored ownership or live relationships; never delete an authored symbol automatically.",
     objectiveCode: "extractor_owned_symbol_safety",
@@ -402,7 +402,7 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
     mutation: "write",
     approvalPhase: "post-approval",
   },
-  "init-kibi/bootstrap-analysis/held-out/1": {
+  "kibi-bootstrap/bootstrap-analysis/held-out/1": {
     prompt:
       "Historical receipts disagree with the current verification contract. Preserve append-only history, report the mismatch, and require a current-contract run without rewriting receipt records.",
     objectiveCode: "contract_mismatch_preserving_receipt_history",
@@ -412,7 +412,7 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
     mutation: "write",
     approvalPhase: "post-approval",
   },
-  "init-kibi/bounded-context-questions/held-out/0": {
+  "kibi-bootstrap/bounded-context-questions/held-out/0": {
     prompt:
       "Mixed Kibi package versions expose incompatible APIs. Escalate an operator release action with exact versions and exports; do not choose a package manager or treat a local override as permanent.",
     objectiveCode: "mixed_package_operator_escalation",
@@ -420,7 +420,7 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
     worktree: "clean",
     adversarialCases: ["malformed-input", "misleading-success"],
   },
-  "init-kibi/bounded-context-questions/held-out/1": {
+  "kibi-bootstrap/bounded-context-questions/held-out/1": {
     prompt:
       "For every quality diagnostic, return an ID-specific fixed, accepted, or deferred disposition with rationale. Keep accepted limitations separate from proof and include the structured five-axis closeout.",
     objectiveCode: "structured_quality_diagnostic_disposition",

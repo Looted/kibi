@@ -11,14 +11,14 @@ const skillsRoot = path.join(packageRoot, "skills");
 
 const requiredSkills = [
   "kibi-usage",
-  "init-kibi",
+  "kibi-bootstrap",
   "kibi-freshness",
   "kibi-traceability",
 ] as const;
 
 const expectedSkillNames: Record<(typeof requiredSkills)[number], string> = {
   "kibi-usage": "Kibi Usage",
-  "init-kibi": "init-kibi",
+  "kibi-bootstrap": "kibi-bootstrap",
   "kibi-freshness": "kibi-freshness",
   "kibi-traceability": "kibi-traceability",
 };
@@ -30,7 +30,7 @@ const requiredToolNames = [
   "kb_delete",
   "kb_check",
   "kb_status",
-  "kb_autopilot_generate",
+  "kb_plan_bootstrap",
 ];
 
 function parseFrontmatter(text: string): Record<string, string> {

@@ -1,17 +1,18 @@
 ---
 id: SCEN-mcp-init-kibi-autopilot-v1
-title: "Agent uses kb_autopilot_generate to bootstrap a repository"
-status: draft
-created_at: 2026-04-19T00:00:00Z
-updated_at: 2026-05-05T00:00:00Z
+title: Historical bootstrap scenario (superseded)
+status: superseded
+created_at: 2026-04-19T00:00:00.000Z
+updated_at: 2026-05-05T00:00:00.000Z
 source: documentation/scenarios/SCEN-mcp-init-kibi-autopilot-v1.md
 tags:
   - scenario
-  - autopilot
-  - init-kibi
+  - bootstrap
+  - plan-apply
 links:
   - type: relates_to
     target: REQ-mcp-init-kibi-autopilot-v1
+type: scenario
 ---
 
 **Scenario: Interactive Kibi bootstrap in an uninitialized repository**

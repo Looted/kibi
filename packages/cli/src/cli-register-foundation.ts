@@ -16,7 +16,7 @@ async function runJsonInvocation(invocation: JsonInvocation): Promise<void> {
 export function registerFoundationCommands(program: Command): void {
   program
     .command("init")
-    .description("Initialize .kb/ directory")
+    .description("Initialize Kibi repository infrastructure, hooks, and branch-local storage")
     .option(
       "--no-hooks",
       "Do not install git hooks (hooks installed by default)",

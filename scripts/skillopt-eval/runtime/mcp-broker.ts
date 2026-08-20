@@ -1,5 +1,5 @@
 export const REQUIRED_KIBI_TOOLS = [
-  "kb_autopilot_generate",
+  "kb_plan_bootstrap",
   "kb_search",
   "kb_query",
   "kb_status",

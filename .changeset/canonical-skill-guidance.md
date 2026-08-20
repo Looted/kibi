@@ -9,4 +9,4 @@ Generic MCP and CLI agents now discover Kibi's operating rules from bundled skil
 
 - Add `kibi-usage` `resources/kb-improvement.md` and bump that skill to 2.1.0.
 - Replace `docs/prompts/llm-rules.md` with `docs/generic-agent-onboarding.md`.
-- Remove the obsolete retroactive-init prompt; bootstrap stays in the `init-kibi` skill.
+- Remove the obsolete retroactive-init prompt; bootstrap stays in the `kibi-bootstrap` skill.

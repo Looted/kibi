@@ -9,7 +9,7 @@ graph TD
     end
     D -->|Extract| E[Extractors]
     E -->|Entities/Relationships| KB[Prolog KB (per branch)]
-    CLI[CLI: flags + JSON routes] --> OPS[21 shared operation specs]
+    CLI[CLI: flags + JSON routes] --> OPS[shared operation specs]
     MCP[MCP Server] --> OPS
     OPS -->|Framed local RPC| ENG[Node kibi-engine\n(single writer per workspace/branch)]
     ENG -->|One interactive process| KB[SWI-Prolog KB (per branch)]
@@ -37,7 +37,7 @@ graph TD
 ### CLI
 - Located at `packages/cli/`
 - Peer public operation surface alongside MCP, plus maintenance and human-oriented commands
-- Exposes all 21 public operations through `--input <file|->` JSON routes and preserves ergonomic flag commands where available
+- Exposes the public operation contracts through `--input <file|->` JSON routes and preserves ergonomic flag commands where available
 - Node.js 18+ is the supported CLI/MCP runtime and hosts the long-lived `kibi-engine` daemon
 - Automatically connects to (or starts) one engine per real workspace path and branch over a protected local socket/named pipe
 - Maintenance commands include init, sync, migrate, gc, branch, doctor, and usage-metrics
@@ -48,7 +48,7 @@ graph TD
 - Located at `packages/mcp/`
 - Peer public operation surface alongside the CLI
 - Provides stdio JSON-RPC transport (newline-delimited, no embedded newlines)
-- Registers the same 21 shared operation specs as host-visible `kb_*` tools
+- Registers the shared operation specs as host-visible `kb_*` tools
 - Uses the same Node engine as CLI, so MCP and CLI requests serialize through one SWI-Prolog writer
 
 ### Journaled engine

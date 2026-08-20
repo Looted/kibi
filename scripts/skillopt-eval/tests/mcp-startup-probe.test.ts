@@ -52,7 +52,7 @@ describe("required Kibi MCP stdio startup", () => {
         ),
       ).toBe(false);
       expect(result.toolNames).toEqual([
-        "kb_autopilot_generate",
+        "kb_plan_bootstrap",
         "kb_search",
         "kb_query",
         "kb_status",

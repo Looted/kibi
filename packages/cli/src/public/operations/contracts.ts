@@ -103,6 +103,7 @@ export const OPERATION_DATA_SCHEMAS: Readonly<
     engineStatus: recordValue,
     schemaStatus: recordValue,
     migrationPlan: recordValue,
+    bootstrap: recordValue,
   }),
   kb_find_gaps: objectData({
     rows: recordArray,
@@ -159,7 +160,14 @@ export const OPERATION_DATA_SCHEMAS: Readonly<
     relationshipPlan: { type: ["object", "null"] },
     warnings: stringArray,
   }),
-  kb_autopilot_generate: objectData({
+  kb_plan_bootstrap: objectData({
+    plan: recordValue,
+    version: stringValue,
+    planHash: stringValue,
+    status: stringValue,
+    expected: recordValue,
+    activation: recordValue,
+    contextQuestions: stringArray,
     activationState: stringValue,
     activationMode: stringValue,
     bootstrapMode: stringValue,
@@ -174,10 +182,12 @@ export const OPERATION_DATA_SCHEMAS: Readonly<
     declaredContext: recordValue,
     discoverySummary: recordValue,
     candidates: recordArray,
-    applyPlan: recordArray,
+    actions: recordArray,
+    sourceWrites: recordArray,
     suppressedCandidates: recordArray,
     payoffSummary: recordValue,
-  }),
+    diagnostics: stringArray,
+  }, ["plan", "diagnostics"]),
   kb_validate_upsert: objectData({
     valid: booleanValue,
     errors: valueArray,
@@ -295,7 +305,7 @@ const EFFECT_OVERRIDES: Readonly<
   kb_semantic_advisor: {},
   kb_model_requirement: {},
   kb_suggest_predicates: {},
-  kb_autopilot_generate: {},
+  kb_plan_bootstrap: {},
   kb_validate_upsert: {},
   kb_upsert: {
     "kb-write": { destructive: true, retrySafety: "unsafe" },

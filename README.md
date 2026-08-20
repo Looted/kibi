@@ -34,29 +34,16 @@ Install the core runtime, CLI, and MCP server in your project:
 npm install --save-dev kibi-core kibi-cli kibi-mcp
 ```
 
-Then initialize and explore your project memory:
+Then initialize Kibi and ask your coding agent to bootstrap the existing codebase:
 
 ```bash
-# Verify prerequisites
-npm exec -- kibi doctor
-
-# Initialize .kb/ and install Git hooks
+# Initialize Kibi infrastructure and install Git hooks
 npm exec -- kibi init
-
-# Import Markdown entities and code symbols
-npm exec -- kibi sync
-
-# Discover relevant knowledge
-npm exec -- kibi search auth
-
-# Confirm the active branch snapshot is fresh
-npm exec -- kibi status
-
-# Validate graph integrity and traceability
-npm exec -- kibi check
 ```
 
-`kibi init` installs Git hooks by default and adds the required `.kb/` entries to `.gitignore`. The hooks keep branch-local knowledge synchronized after checkout and merge.
+`kibi init` installs Git hooks by default and adds the required `.kb/` entries to `.gitignore`. It initializes Kibi infrastructure only; it does not infer product knowledge. Next, ask your coding agent: **“Bootstrap Kibi for this repository.”** The agent runs the read-only `kibi-bootstrap` plan, shows the exact plan hash for approval, applies it through `kb_apply_plan`, and validates the result.
+
+After bootstrap, work normally with your agent. For manual inspection or troubleshooting, use `kibi status`, `kibi check`, `kibi search`, and `kibi sync` as needed.
 
 Use your project's local binary runner with pnpm, Yarn, or Bun. See the [installation guide](docs/install.md) for package-manager equivalents, SWI-Prolog setup, global installation, and troubleshooting.
 
@@ -346,7 +333,7 @@ The optional `kibi-cursor` plugin adds rules, bundled skills, commands, and advi
 
 ### Bundled agent guidance
 
-Kibi's **skill subsystem** is the preferred agent-guidance mechanism. It ships reusable, bundled skills for discovery, initialization, freshness, and traceability. MCP-capable agents discover them with `kb_skills_list` and load `kibi-usage` with `kb_skills_load`. The same read-only operations are available through the trusted project-local CLI. Do not copy a long system prompt into the agent.
+Kibi's **skill subsystem** is the agent-guidance mechanism. It ships four reusable, bundled skills for operation safety, bootstrap, freshness, and traceability. Normal users can simply ask their agent to bootstrap; hosts use the bundled skills as infrastructure. MCP-capable agents can inspect them with `kb_skills_list` and `kb_skills_load`, and the same read-only operations are available through the trusted project-local CLI. Do not copy a long system prompt into the agent.
 
 See [generic-agent onboarding](docs/generic-agent-onboarding.md) for the copy-paste discovery snippet, and [MCP reference](docs/mcp-reference.md#generic-agent-onboarding) for the progressive-disclosure and safety contract.
 
@@ -356,7 +343,7 @@ See [generic-agent onboarding](docs/generic-agent-onboarding.md) for the copy-pa
 | --- | --- |
 | `kibi-core` | Prolog-backed knowledge graph, inference, and validation |
 | `kibi-cli` | Human, agent, automation, and Git-hook interface |
-| `kibi-mcp` | MCP surface exposing the same 18 public operations |
+| `kibi-mcp` | MCP surface exposing the public Kibi operation contracts |
 | `kibi-opencode` | Optional OpenCode guidance and maintenance adapter |
 | `kibi-codex` | Optional Codex skills, MCP, and lifecycle adapter |
 | `kibi-cursor` | Optional Cursor rules, skills, MCP, and advisory hooks |

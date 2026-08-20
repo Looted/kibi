@@ -5,7 +5,7 @@ content use the same `KibiResult` envelope (protocol 1); result data is versione
 per operation. Effects are authoritative for mutability and adapter annotations.
 
 | MCP tool name | CLI route | Input mode | Mutability | Requires Prolog | Effects | Interface | Result version | Destructive | Retry safety | Open-world | Output schema |
-|---|---|---|---|---|---|---|---|
+|---|---|---|---|---|---|---|---|---|---|---|---|
 | `kb_skills_list` | `skills-list` | --input JSON | read | no | local-read | peer; capability-selected | kibi.kb_skills_list.v1 | no | safe | no | yes |
 | `kb_skills_load` | `skills-load` | --input JSON | read | no | local-read | peer; capability-selected | kibi.kb_skills_load.v1 | no | safe | no | yes |
 | `kb_skills_read` | `skills-read` | --input JSON | read | no | local-read | peer; capability-selected | kibi.kb_skills_read.v1 | no | safe | no | yes |
@@ -18,7 +18,7 @@ per operation. Effects are authoritative for mutability and adapter annotations.
 | `kb_semantic_advisor` | `semantic-advisor` | --input JSON | read | no | local-read | peer; capability-selected | kibi.kb_semantic_advisor.v1 | no | safe | no | yes |
 | `kb_model_requirement` | `model-requirement` | --input JSON | read | yes | kb-read | peer; capability-selected | kibi.kb_model_requirement.v1 | no | safe | no | yes |
 | `kb_suggest_predicates` | `suggest-predicates` | --input JSON | read | yes | kb-read | peer; capability-selected | kibi.kb_suggest_predicates.v1 | no | safe | no | yes |
-| `kb_autopilot_generate` | `autopilot-generate` | --input JSON | read | no | workspace-read | peer; capability-selected | kibi.kb_autopilot_generate.v1 | no | safe | no | yes |
+| `kb_plan_bootstrap` | `plan-bootstrap` | --input JSON | read | no | workspace-read | peer; capability-selected | kibi.kb_plan_bootstrap.v1 | no | safe | no | yes |
 | `kb_validate_upsert` | `validate-upsert` | --input JSON | read | yes | kb-read | peer; capability-selected | kibi.kb_validate_upsert.v1 | no | safe | no | yes |
 | `kb_upsert` | `upsert` | --input JSON | write | yes | kb-write, workspace-write | peer; capability-selected | kibi.kb_upsert.v1 | yes | unsafe | no | yes |
 | `kb_delete` | `delete` | --input JSON | write | yes | kb-write, workspace-write | peer; capability-selected | kibi.kb_delete.v1 | yes | unsafe | no | yes |

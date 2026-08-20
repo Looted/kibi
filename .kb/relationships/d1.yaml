@@ -45,3 +45,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f8beceeac9e1
+  - type: implements
+    from: SYM-kibi-bootstrap-plan-presentation
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:15:04.918Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce8dea013d18
+  - type: covered_by
+    from: SYM-kibi-bootstrap-plan-presentation
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:15:04.935Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92de8bed3ae6
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapdeclaredcontext
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:02.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7da15a74b8b2
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapdeclaredcontext
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:02.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77302205d00c

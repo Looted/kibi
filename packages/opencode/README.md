@@ -155,9 +155,11 @@ The plugin injects guidance into OpenCode sessions to improve agent grounding. U
 
 ### Bootstrap Command
 
-OpenCode exposes Kibi MCP prompts as slash commands. The \`/init-kibi\` command triggers the \`kb_autopilot_generate\` workflow to assist in retroactive bootstrap. Agents use visible MCP tools when available, a trusted project-local CLI JSON route with `--input` when MCP is unavailable, and stop for operator action when neither interface is available.
+OpenCode exposes the canonical bootstrap skill as `/kibi-bootstrap`. The
+command routes an explicit request to the read-only planner and its typed
+approval/apply workflow.
 
-OpenCode may show Kibi MCP tools with the configured server prefix. For example, canonical MCP names such as `kb_autopilot_generate`, `kb_upsert`, and `kb_check` can appear to agents as `kibi_kb_autopilot_generate`, `kibi_kb_upsert`, and `kibi_kb_check`. Use the visible `kibi_kb_*` identifier when OpenCode requires an exact tool name; it maps to the same MCP operation.
+OpenCode may show Kibi MCP tools with the configured server prefix. For example, canonical MCP names such as `kb_plan_bootstrap`, `kb_upsert`, and `kb_check` can appear to agents as `kibi_kb_plan_bootstrap`, `kibi_kb_upsert`, and `kibi_kb_check`. Use the visible `kibi_kb_*` identifier when OpenCode requires an exact tool name; it maps to the same MCP operation.
 
 ### Discovery-first capability guidance
 

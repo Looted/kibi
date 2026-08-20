@@ -45,6 +45,10 @@ export { _resetSessionModulePromise, _setToolsServerDepsForTests };
 
 const DEFAULT_TOOL_TIMEOUT_MS = 90_000;
 const TOOL_TIMEOUT_ENV = "KIBI_MCP_TOOL_TIMEOUT_MS";
+// Give cancellation and the Prolog reset a short bounded grace period, but do
+// not hold the MCP request open for the full five-second shutdown budget when
+// a handler never observes AbortSignal.
+const TOOL_TIMEOUT_GRACE_MS = 100;
 
 // implements REQ-008
 function debugLog(...args: Parameters<typeof console.error>): void {
@@ -111,7 +115,9 @@ async function withToolTimeout<T>(
                   () => undefined,
                   () => undefined,
                 ),
-                new Promise<void>((resolve) => setTimeout(resolve, 5_000)),
+                new Promise<void>((resolve) =>
+                  setTimeout(resolve, TOOL_TIMEOUT_GRACE_MS),
+                ),
               ]);
             })
             .finally(() => reject(error));

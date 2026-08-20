@@ -19,10 +19,10 @@ import {
 } from "../src/file-entity-links.js";
 import { createFileOperationState } from "../src/file-operation-state.js";
 import {
-  detectInitKibiCommandCapability,
+  detectKibiBootstrapCommandCapability,
   findSdkPackageJsonForPluginRoot,
-  registerInitKibiCommand,
-} from "../src/init-kibi-capability.js";
+  registerKibiBootstrapCommand,
+} from "../src/kibi-bootstrap-capability.js";
 import {
   createKbFreshnessEvidenceStore,
   evaluateKbFreshness,
@@ -553,10 +553,10 @@ describe("coverage completion for auto-update", () => {
   });
 });
 
-describe("coverage completion for init-kibi capability", () => {
+describe("coverage completion for kibi-bootstrap capability", () => {
   test("Given direct detection inputs When unsupported surfaces are missing Then reason includes version when present", () => {
     expect(
-      detectInitKibiCommandCapability({
+      detectKibiBootstrapCommandCapability({
         pluginVersion: "1.4.7",
         pluginHooksDts: "export interface Hooks { event?: () => void; }",
         sdkTypesDts: "export interface Config {}",
@@ -569,7 +569,7 @@ describe("coverage completion for init-kibi capability", () => {
     });
 
     expect(
-      detectInitKibiCommandCapability({
+      detectKibiBootstrapCommandCapability({
         pluginVersion: "1.4.7",
         pluginHooksDts:
           "export interface Hooks { config?: (input: Config) => Promise<void>; }",
@@ -585,13 +585,13 @@ describe("coverage completion for init-kibi capability", () => {
   test("Given config hook receives invalid input When registering command Then unsupported reasons are returned", () => {
     const capability = { supported: true, pluginVersion: "1.4.7" } as const;
 
-    expect(registerInitKibiCommand(null, capability)).toEqual({
+    expect(registerKibiBootstrapCommand(null, capability)).toEqual({
       supported: false,
       pluginVersion: "1.4.7",
       reason: "@opencode-ai/plugin@1.4.7 config hook input is not an object.",
     });
 
-    expect(registerInitKibiCommand({ command: [] }, capability)).toEqual({
+    expect(registerKibiBootstrapCommand({ command: [] }, capability)).toEqual({
       supported: false,
       pluginVersion: "1.4.7",
       reason:
@@ -637,9 +637,9 @@ describe("coverage completion for init-kibi capability", () => {
 
       process.chdir(tmpDir);
       const freshCapabilityModule = await import(
-        new URL("../src/init-kibi-capability.ts?dogfood", import.meta.url).href
+        new URL("../src/kibi-bootstrap-capability.ts?dogfood", import.meta.url).href
       );
-      const capability = freshCapabilityModule.getInitKibiCommandCapability();
+      const capability = freshCapabilityModule.getKibiBootstrapCommandCapability();
 
       expect(capability.supported).toBe(true);
     } finally {

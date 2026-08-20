@@ -10,7 +10,7 @@ const DOC_FILES = [
   "docs/generic-agent-onboarding.md",
   "packages/runtime/src/skills/kibi-usage/SKILL.md",
   "packages/runtime/src/skills/kibi-usage/resources/fact-lanes.md",
-  "packages/runtime/src/skills/init-kibi/SKILL.md",
+  "packages/runtime/src/skills/kibi-bootstrap/SKILL.md",
   "docs/architecture.md",
   "CONTRIBUTING.md",
   "README.md",

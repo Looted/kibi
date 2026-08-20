@@ -251,7 +251,7 @@ if (RUN_NODE_TEST_SUITE) {
                       "kb_check",
                       "kb_model_requirement",
                       "kb_suggest_predicates",
-                      "kb_autopilot_generate",
+                      "kb_plan_bootstrap",
                       "kb_compile_intent",
                       "kb_apply_plan",
                       "kb_ingest_verification",
@@ -342,9 +342,9 @@ if (RUN_NODE_TEST_SUITE) {
                       "Prompts should be an array",
                     );
                     const initPrompt = prompts.find(
-                      (p) => p.name === "init-kibi",
+                      (p) => p.name === "kibi-bootstrap",
                     );
-                    assert.ok(initPrompt, "init-kibi should be registered");
+                    assert.ok(initPrompt, "kibi-bootstrap should be registered");
                     assert.match(
                       initPrompt.description ?? "",
                       /interactive activation|new or empty/i,

@@ -4,7 +4,7 @@ This document provides complete command-by-command documentation for the kibi CL
 
 ## Dedicated JSON operation routes
 
-The CLI exposes the same 21 public operations as MCP. Every route accepts one JSON object through `--input <file|->`, where a path is resolved from the current working directory and `-` reads standard input exactly once. JSON mode writes one structured JSON value followed by a newline to stdout.
+The CLI exposes the canonical public operation catalog as a peer to MCP. Every route accepts one JSON object through `--input <file|->`, where a path is resolved from the current working directory and `-` reads standard input exactly once. JSON mode writes one structured JSON value followed by a newline to stdout.
 
 ```bash
 # Read an input object from a file
@@ -30,7 +30,7 @@ The input root must be a JSON object that matches the corresponding operation sc
 | `kb_semantic_advisor` | `kibi semantic-advisor --input <file|->` |
 | `kb_model_requirement` | `kibi model-requirement --input <file|->` |
 | `kb_suggest_predicates` | `kibi suggest-predicates --input <file|->` |
-| `kb_autopilot_generate` | `kibi autopilot-generate --input <file|->` |
+| `kb_plan_bootstrap` | `kibi plan-bootstrap --input <file|->` |
 | `kb_compile_intent` | `kibi compile-intent --input <file|->` |
 | `kb_apply_plan` | `kibi apply-plan --input <file|->` |
 | `kb_ingest_verification` | `kibi ingest-verification --input <file|->` |
@@ -52,7 +52,8 @@ Errors are written to stderr as `Error [CODE]: detail`. Failed routes do not wri
 
 ## `kibi init`
 
-Initializes a kibi project in the current directory.
+Initializes Kibi repository infrastructure in the current directory. It does
+not infer or write product knowledge.
 
 **Behavior:**
 - Creates `.kb/` directory structure with canonical knowledge lanes (`requirements/`, `scenarios/`, `tests/`, `facts/`, `adr/`, `flags/`, `events/`)
@@ -78,6 +79,9 @@ Initializes a kibi project in the current directory.
 - The pre-commit hook blocks commits when `.kb/symbol-coordinates.yaml` has unstaged changes, forcing refreshed symbol coordinates to be staged with the related code changes.
 - The pre-commit hook also blocks behavior-changing source edits that lack staged Kibi impact evidence (KB entity docs or refreshed manifest). Test-only and docs-only edits are exempt.
 - Idempotent: safe to run multiple times
+- After initialization, ask the coding agent to bootstrap the repository. The
+  bootstrap planner owns discovery, approval, source-first application, and
+  repair; `doctor` and `sync` are diagnostics/internal lifecycle operations.
 - After running, see the quick start guide in README.md for next steps
 
 ## `kibi sync`

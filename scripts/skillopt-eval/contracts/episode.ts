@@ -17,7 +17,7 @@ export const SkillSchema = z.enum([
   "kibi-usage",
   "kibi-freshness",
   "kibi-traceability",
-  "init-kibi",
+  "kibi-bootstrap",
   "bundle",
 ]);
 

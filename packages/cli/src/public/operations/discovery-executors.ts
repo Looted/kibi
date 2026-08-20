@@ -33,6 +33,7 @@ import {
 import type { OperationContext, PrologPort } from "./runtime-types.js";
 import type { OperationResult } from "./types.js";
 import { readWorkspaceSnapshot } from "./workspace-snapshot.js";
+import { classifyActivation } from "../../operations/bootstrap/activation.js";
 
 export type QueryInput = {
   readonly type?: string;
@@ -102,6 +103,13 @@ export type StatusPayload = {
   };
   readonly schemaStatus?: MigrationConfigStatus;
   readonly migrationPlan?: MigrationPlan;
+  readonly bootstrap?: {
+    readonly activationState: string;
+    readonly activationMode: string;
+    readonly planEligible: boolean;
+    readonly reason: string;
+    readonly nextAction?: Readonly<Record<string, unknown>>;
+  };
 };
 
 function requireProlog(context: OperationContext): PrologPort {
@@ -440,10 +448,67 @@ export async function executeStatus(
         : null,
       configStatus: schemaStatus,
     });
+    const bootstrapSourceFiles = context.fs?.glob
+      ? await context.fs.glob(
+          [
+            ".kb/requirements/**/*.md",
+            ".kb/scenarios/**/*.md",
+            ".kb/tests/**/*.md",
+            ".kb/adrs/**/*.md",
+            ".kb/adr/**/*.md",
+            ".kb/flags/**/*.md",
+            ".kb/events/**/*.md",
+            ".kb/facts/**/*.md",
+          ],
+          { cwd: context.workspaceRoot },
+        )
+      : [];
+    const bootstrapActivation = await classifyActivation(
+      context,
+      bootstrapSourceFiles,
+    );
     const statusWithPlan: StatusPayload = {
       ...enrichedPayload,
       schemaStatus,
       migrationPlan,
+      bootstrap: {
+        activationState: bootstrapActivation.activationState,
+        activationMode: bootstrapActivation.activationMode,
+        planEligible:
+          bootstrapActivation.activationState === "root_active_thin" &&
+          !bootstrapActivation.applyBlocked,
+        reason: bootstrapActivation.reason,
+        nextAction:
+          bootstrapActivation.activationState === "root_uninitialized"
+            ? {
+                operation: "kibi init",
+                reason: bootstrapActivation.reason,
+                required: true,
+              }
+            : bootstrapActivation.activationState === "root_partial"
+              ? {
+                  operation: "kibi doctor",
+                  reason: bootstrapActivation.reason,
+                  required: true,
+                }
+              : bootstrapActivation.activationState === "vendored_only"
+                ? {
+                    operation: "move-to-project-root",
+                    reason: bootstrapActivation.reason,
+                    required: true,
+                  }
+                : bootstrapActivation.activationState === "root_active_thin"
+                  ? {
+                      operation: "kb_plan_bootstrap",
+                      reason: bootstrapActivation.reason,
+                      required: true,
+                    }
+                  : {
+                      operation: "continue-kibi-workflow",
+                      reason: bootstrapActivation.reason,
+                      required: false,
+                    },
+      },
     };
     return {
       content: [

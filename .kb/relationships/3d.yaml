@@ -34,3 +34,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-18d818bd262c
+  - type: relates_to
+    from: TEST-opencode-agent-mcp-only
+    to: REQ-agent-kibi-interface-selection
+    created_at: 2026-08-20T14:39:25.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d1718987147

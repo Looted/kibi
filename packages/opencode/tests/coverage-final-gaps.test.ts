@@ -9,9 +9,9 @@ import {
 } from "../src/auto-update.js";
 import { computeEnforcementPolicy } from "../src/enforcement-policy.js";
 import {
-  detectInitKibiCommandCapability,
-  registerInitKibiCommand,
-} from "../src/init-kibi-capability.js";
+  detectKibiBootstrapCommandCapability,
+  registerKibiBootstrapCommand,
+} from "../src/kibi-bootstrap-capability.js";
 import { resolveWorkContext } from "../src/work-context-resolver.js";
 import type { WorkContext } from "../src/work-context-resolver.js";
 
@@ -195,15 +195,15 @@ describe("coverage final gaps for auto-update", () => {
   });
 });
 
-describe("coverage final gaps for init-kibi capability", () => {
+describe("coverage final gaps for kibi-bootstrap capability", () => {
   test("Given missing host hooks and sdk command fields When detecting capability Then each unsupported path is returned", () => {
-    expect(detectInitKibiCommandCapability({})).toEqual({
+    expect(detectKibiBootstrapCommandCapability({})).toEqual({
       supported: false,
       reason:
         "@opencode-ai/plugin host Hooks definition is unavailable for config hook inspection.",
     });
     expect(
-      detectInitKibiCommandCapability({
+      detectKibiBootstrapCommandCapability({
         pluginHooksDts:
           "export interface Hooks { config?: (input: Config) => Promise<void>; }",
         sdkTypesDts:
@@ -224,7 +224,7 @@ describe("coverage final gaps for init-kibi capability", () => {
       >;
     } = { command: { existing: { template: "keep", description: "Keep" } } };
 
-    const capability = registerInitKibiCommand(configInput, {
+    const capability = registerKibiBootstrapCommand(configInput, {
       supported: true,
       pluginVersion: "unknown",
     });
@@ -234,8 +234,8 @@ describe("coverage final gaps for init-kibi capability", () => {
       template: "keep",
       description: "Keep",
     });
-    expect(configInput.command["init-kibi"]?.template).toContain(
-      "kb_autopilot_generate",
+    expect(configInput.command["kibi-bootstrap"]?.template).toContain(
+      "canonical `kibi-bootstrap` skill",
     );
   });
 });

@@ -1,6 +1,6 @@
 # MCP Server Reference
 
-The Kibi Model Context Protocol (MCP) server is a peer public interface alongside the CLI's 21 dedicated JSON routes. It serves MCP-capable agents over `stdio` and receives JSON-RPC 2.0 requests; operation schemas and executors are shared with the CLI.
+The Kibi Model Context Protocol (MCP) server is a peer public interface alongside the CLI's dedicated JSON routes. It serves MCP-capable agents over `stdio` and receives JSON-RPC 2.0 requests; operation schemas and executors are shared with the CLI.
 
 ## Public Tools
 
@@ -8,7 +8,7 @@ The public MCP surface is intentionally curated. Agents can call exact lookup, d
 
 ### Host-visible tool names
 
-The canonical MCP names in this reference use the `kb_*` form. Some hosts display tools with the configured MCP server name prefixed. In OpenCode, the same tools commonly appear as `kibi_kb_search`, `kibi_kb_query`, `kibi_kb_upsert`, `kibi_kb_check`, and `kibi_kb_autopilot_generate`. Use the host-visible prefixed name when an agent must reference an exact tool identifier; the semantics are identical to the canonical `kb_*` names documented here.
+The canonical MCP names in this reference use the `kb_*` form. Some hosts display tools with the configured MCP server name prefixed. In OpenCode, the same tools commonly appear as `kibi_kb_search`, `kibi_kb_query`, `kibi_kb_upsert`, `kibi_kb_check`, and `kibi_kb_plan_bootstrap`. Use the host-visible prefixed name when an agent must reference an exact tool identifier; the semantics are identical to the canonical `kb_*` names documented here.
 
 ### Generic-agent onboarding
 
@@ -17,7 +17,7 @@ For a copy-paste discovery snippet, see [generic-agent onboarding](generic-agent
 MCP-capable agents should use the standard `tools/list` capability discovery step, then follow Kibi's progressive-disclosure path instead of assuming that a package `skills/` directory is loaded by the host:
 
 1. Call `kb_skills_list` to obtain the bundled skill manifests.
-2. Call `kb_skills_load` with a returned ID, normally `kibi-usage` for general Kibi workflow guidance. Load `init-kibi`, `kibi-freshness`, or `kibi-traceability` when the task matches those workflows.
+2. Call `kb_skills_load` with a returned ID, normally `kibi-usage` for general Kibi workflow guidance. Load `kibi-bootstrap`, `kibi-freshness`, or `kibi-traceability` when the task matches those workflows.
 3. Call `kb_skills_read` only for resource paths declared by that manifest.
 
 These skill operations are local, read-only, and do not require Prolog. They return a human-readable `content` item plus structured data for clients that support structured tool results. Their MCP registrations advertise `readOnlyHint: true`, `destructiveHint: false`, `idempotentHint: true`, and `openWorldHint: false` as client-facing behavior hints. Clients must treat annotations and skill text as untrusted guidance: authorization, schema validation, approval gates, and mutation sequencing remain enforced by the server and repository workflow.
@@ -32,11 +32,13 @@ printf '%s\n' '{"id":"kibi-usage","resource":"resources/workflows.md"}' | kibi s
 
 If neither a visible Kibi MCP surface nor a trusted local CLI is available, the agent must stop and ask the operator to enable one; it must not infer availability from configuration files or read `.kb/` directly.
 
-Day-0 bootstrap uses the `init-kibi` bundled skill and `kb_autopilot_generate`: preview candidates, get explicit approval, then apply sequential `kb_upsert` writes. Hosts that support it also expose `/init-kibi`.
+Day-0 bootstrap uses the `kibi-bootstrap` bundled skill and `kb_plan_bootstrap`: inspect `kb_status.bootstrap`, follow its typed next action, review the deterministic `kibi.bootstrap-plan.v1`, ask only questions returned by a `needs_context` result, get explicit approval for its hash, then pass the unchanged plan to `kb_apply_plan`. Hosts that support it also expose `/kibi-bootstrap`.
 
-### `kb_autopilot_generate`
+### `kb_plan_bootstrap`
 
-Discover existing repository entities and bootstrap the KB via read-only candidate synthesis. Use this as the backend for the interactive `/init-kibi` onboarding workflow.
+Discover existing repository evidence and return a deterministic, snapshot-bound
+`kibi.bootstrap-plan.v1`. Use this as the backend for the interactive
+`/kibi-bootstrap` onboarding workflow. It never mutates the KB.
 
 **Parameters:**
 - `includeGenericMarkdown` (optional): Include generic Markdown content as candidate evidence.
@@ -46,11 +48,14 @@ Discover existing repository entities and bootstrap the KB via read-only candida
 - `bootstrapContext` (optional): Declared project summary, source-of-truth paths/notes, priority roots, and verification anchors.
 
 **Returns:**
-Grouped candidate entities synthesized from declared context and codebase evidence, plus `structuredContent.applyPlan`: the exact sequential `kb_upsert` payloads for those candidates. Candidates must be explicitly previewed and approved by the user before applying the plan.
+Evidence, bounded context questions, dependency-ordered actions, expected
+snapshots/source hashes, payoff summary, diagnostics, and `planHash`. Only a
+`ready` plan may be approved. Apply it with `kb_apply_plan`; do not replay raw
+`kb_upsert` payloads.
 
 ## Repository Ignore Policy
 
-During read-only discovery (for example `kb_autopilot_generate`) and other file-based inference, Kibi will exclude files and directories matched by the repository ignore policy:
+During read-only discovery (for example `kb_plan_bootstrap`) and other file-based inference, Kibi will exclude files and directories matched by the repository ignore policy:
 
 - repository root `.gitignore` files and nested `.gitignore` files in subdirectories
 - `.git/info/exclude`
@@ -131,7 +136,7 @@ The tool ranks project-local `fact_kind: predicate_schema` facts when available 
 **Returns:**
 - `candidates`: Ranked predicate suggestions with schema signature, usage hints, ordered `predicate_args`, `binding_status`, `unbound_arguments`, `canonical_key`, score, and rationale.
 - `recommendedAction`: `apply_requires_predicate` when the top or explicitly selected candidate fits and every argument is bound, `provide_argument_bindings` when its schema fits but exact values are missing, `resolve_schema_reference` when an explicitly selected schema is unavailable, otherwise `record_ontology_gap`.
-- `structuredContent.applyPlan`: A ready-to-apply `kb_upsert` payload for a completely bound top predicate fact, an empty list for an incomplete binding, or an explicit `fact_kind: observation` tagged `review:ontology-gap` and `needs_schema_extension`, with a `relates_to` review anchor.
+- `structuredContent.actions`: A ready-to-apply `kb_upsert` payload for a completely bound top predicate fact, an empty list for an incomplete binding, or an explicit `fact_kind: observation` tagged `review:ontology-gap` and `needs_schema_extension`, with a `relates_to` review anchor.
 - `structuredContent.relationshipPlan`: When `requirementId` is supplied and a predicate fits, the req -> fact `requires_predicate` link plus the merged `logicClaims` manifest to apply after querying/preserving the existing requirement entity. This is separate from `applyPlan` so the tool never emits a foreign-source relationship that `kb_upsert` would reject.
 
 **Example:**
@@ -558,9 +563,9 @@ with an explicit hash/action approval through `kb_apply_plan`.
 
 ## Public Prompts
 
-### `/init-kibi`
+### `/kibi-bootstrap`
 
-Interactive onboarding workflow for day-0 KB activation. It guides agents to ask at most 4 bounded questions to gather declared context, call `kb_autopilot_generate` for read-only synthesis, present a preview for user approval, and perform sequential `kb_upsert` followed by `kb_check`.
+Interactive onboarding workflow for day-0 KB activation. It guides agents to ask at most four bounded questions when requested by the planner, call `kb_plan_bootstrap` for read-only synthesis, present the complete hash-bound plan for approval, call `kb_apply_plan` once, and finish with `kb_check`/`kb_status`.
 
 ## Branch Behavior
 
@@ -595,7 +600,7 @@ This behavior is important after external branch operations such as `kibi sync -
 
 ## Recommended Agent Workflow
 
-1. **Interactive Bootstrap**: Start with the `/init-kibi` workflow to gather declared context and synthesize entities. Always preview candidates for user approval before applying.
+1. **Interactive Bootstrap**: Start with the `/kibi-bootstrap` workflow, inspect typed status, and let `kb_plan_bootstrap` return any bounded context questions. Always preview candidates for user approval before applying.
 2. **Gather Context**: Use `kb_search` for discovery (decomposing broad tasks into focused probes) and `kb_query` for exact follow-up.
 3. **Inspect Freshness**: Use `kb_status` when branch or stale-state confidence matters.
 4. **Analyze**: Use `kb_find_gaps`, `kb_coverage`, and `kb_graph` for curated reporting.

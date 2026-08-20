@@ -90,7 +90,7 @@ Manual MCP fallback (no plugin install required):
 ```
 agent-plugin/
 ├── plugin.json   # agent-plugins.org/schemas/1.0.0/plugin.schema.json
-├── skills/       # canonical Kibi Agent Skills (kibi-usage, init-kibi, ...)
+├── skills/       # canonical Kibi Agent Skills (kibi-usage, kibi-bootstrap, ...)
 └── mcp.json      # agent-plugins.org/schemas/1.0.0/mcp.schema.json (stdio kibi-mcp)
 ```
 
@@ -103,8 +103,8 @@ agent-plugin/
 ### Discovery-first rules and skills
 
 - **Rules**: always-on capability-based workflow guidance plus optional traceability rules for source files.
-- **Skills**: `kibi-usage`, `init-kibi`, `kibi-freshness`, and `kibi-traceability`.
-- **Commands**: `/init-kibi` documents the `kb_autopilot_generate` bootstrap workflow.
+- **Skills**: `kibi-usage`, `kibi-bootstrap`, `kibi-freshness`, and `kibi-traceability`.
+- **Commands**: `/kibi-bootstrap` documents the `kb_plan_bootstrap` bootstrap workflow.
 
 ### Advisory editor hooks
 

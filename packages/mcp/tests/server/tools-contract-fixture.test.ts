@@ -61,7 +61,7 @@ const OPERATION_NAMES = [
   "kb_delete",
   "kb_model_requirement",
   "kb_suggest_predicates",
-  "kb_autopilot_generate",
+  "kb_plan_bootstrap",
   "kb_sparql_remote",
   "kb_compile_intent",
   "kb_apply_plan",
@@ -235,7 +235,7 @@ function createRegisteredToolsSnapshot(): CapturedTool[] {
     handleKbValidateUpsert: async () => ({}),
     handleKbModelRequirement: async () => ({}),
     handleKbSuggestPredicates: async () => ({}),
-    handleKbAutopilotGenerate: async () => ({}),
+    handleKbPlanBootstrap: async () => ({}),
   } as unknown as Parameters<typeof registerAllTools>[1];
 
   registerAllTools(server, runtime);

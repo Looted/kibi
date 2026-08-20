@@ -36,7 +36,7 @@ import {
 } from "./skillopt-eval/adoption-lock";
 
 const EXPECTED_SKILL_IDS = [
-  "init-kibi",
+  "kibi-bootstrap",
   "kibi-freshness",
   "kibi-traceability",
   "kibi-usage",
@@ -163,7 +163,7 @@ function walkFiles(rootDir: string): string[] {
 }
 
 interface PlannedFile {
-  /** Path relative to the mirror root (e.g. `init-kibi/SKILL.md`). */
+  /** Path relative to the mirror root (e.g. `kibi-bootstrap/SKILL.md`). */
   relPath: string;
   absoluteSource: string;
   content: Buffer;

@@ -16,8 +16,8 @@ const READ_TOOLS: Readonly<Record<CatalogSkill, readonly string[]>> = {
   "kibi-usage": ["kb_search", "kb_query"],
   "kibi-freshness": ["kb_status", "kb_query", "kb_check"],
   "kibi-traceability": ["kb_search", "kb_query", "kb_graph"],
-  "init-kibi": ["kb_autopilot_generate"],
-  bundle: ["kb_autopilot_generate", "kb_search", "kb_query", "kb_check"],
+  "kibi-bootstrap": ["kb_plan_bootstrap"],
+  bundle: ["kb_plan_bootstrap", "kb_search", "kb_query", "kb_check"],
 };
 
 class VariantOrderError extends Error {
@@ -172,9 +172,11 @@ function requiredTools(task: FixtureTaskSpec): readonly string[] {
     ? ["kb_status"]
     : [];
   const tools =
-    task.taskData.mutation === "read-only"
-      ? [...READ_TOOLS[task.skill], ...extraStatus]
-      : [...READ_TOOLS[task.skill], ...extraStatus, "kb_upsert", "kb_check"];
+    task.skill === "kibi-bootstrap" && task.taskData.approvalPhase === "post-approval"
+      ? [...READ_TOOLS[task.skill], ...extraStatus, "kb_apply_plan", "kb_check"]
+      : task.taskData.mutation === "read-only"
+        ? [...READ_TOOLS[task.skill], ...extraStatus]
+        : [...READ_TOOLS[task.skill], ...extraStatus, "kb_upsert", "kb_check"];
   return [...new Set(tools)];
 }
 
@@ -634,7 +636,13 @@ export function buildPrivateManifest(input: {
           tool: "kb_delete",
           predicate: "unless task explicitly requires removal",
         },
-        { tool: "kb_upsert", predicate: "before discovery or approval" },
+        {
+          tool: "kb_upsert",
+          predicate:
+            input.task.skill === "kibi-bootstrap"
+              ? "always; use kb_apply_plan for approved bootstrap plans"
+              : "before discovery or approval",
+        },
       ],
     },
     isolationSentinels: [

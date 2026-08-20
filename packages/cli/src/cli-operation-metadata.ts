@@ -83,10 +83,10 @@ export const CLI_OPERATION_METADATA = [
       "Suggest ontology predicate schemas for prose requirements before agents write facts. Read-only guidance returns ranked candidates, an applicable predicate-fact plan only when every ordered argument is bound, a separate requires_predicate relationship plan when a requirement ID is supplied, or an explicit ontology-gap observation when no predicate fits.",
   },
   {
-    name: "kb_autopilot_generate",
-    cliName: "autopilot-generate",
+    name: "kb_plan_bootstrap",
+    cliName: "plan-bootstrap",
     description:
-      "Generate agent-centric bootstrap output for KB population. Read-only analysis that returns activation state, bootstrap guidance, candidate entities with evidence, payoff summary, and exact applyPlan payloads for later kb_upsert calls. No mutation side effects.",
+      "Generate a deterministic, snapshot-bound kibi.bootstrap-plan.v1 for repository onboarding. Read-only analysis returns evidence, bounded context questions, exact dependency-ordered actions, a canonical plan hash, and no mutation side effects.",
   },
   {
     name: "kb_validate_upsert",
@@ -128,7 +128,7 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_apply_plan",
     cliName: "apply-plan",
     description:
-      "Apply an approved kibi.compile-plan.v1 or kibi.migration-plan.v2 after revalidating its canonical hash and live snapshots. Compile steps remain sequential entity writes; migration steps require explicit automatic action IDs and preserve backups/audit evidence. Review, operator, and execution actions are rejected.",
+      "Apply an explicitly approved kibi.bootstrap-plan.v1, kibi.compile-plan.v1, kibi.migration-plan.v2, or entity-deletion plan after revalidating its canonical hash and live snapshots. Bootstrap actions are dependency-ordered, sequential, source-first, and recoverable from a typed journal.",
   },
   {
     name: "kb_ingest_verification",

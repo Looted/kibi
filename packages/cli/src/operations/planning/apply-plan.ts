@@ -28,6 +28,12 @@ import type {
 } from "../mutation/types.js";
 import { executeUpsert } from "../mutation/upsert.js";
 import {
+  bootstrapEmptyKbSnapshotId,
+  bootstrapPlanHash,
+  type BootstrapAction,
+  type BootstrapPlanV1,
+} from "../bootstrap/types.js";
+import {
   type CompilePlanV1,
   type PlanStep,
   type SourceWritePlan,
@@ -39,6 +45,10 @@ export const PLAN_APPLY_RESULT_VERSION = "kibi.plan-apply-result.v1" as const;
 
 // implements REQ-kibi-change-to-proof-plan-compiler
 export type ApplyPlanArgs =
+  | Readonly<{
+      plan: BootstrapPlanV1;
+      approvedPlanHash: string;
+    }>
   | Readonly<{
       plan: CompilePlanV1;
       approvedPlanHash: string;
@@ -65,8 +75,33 @@ export type EntityDeletionPlan = Readonly<{
   supersessionRequired: boolean;
 }>;
 
+type BootstrapActionResult = Readonly<{
+  actionId: string;
+  outcome: "applied" | "failed" | "skipped";
+  detail: string;
+}>;
+
 // implements REQ-kibi-change-to-proof-plan-compiler
 export type ApplyPlanResult =
+  | Readonly<{
+      version: typeof PLAN_APPLY_RESULT_VERSION;
+      outcome: "applied" | "replayed" | "partially_applied";
+      planHash: string;
+      actionResults: readonly BootstrapActionResult[];
+      changedEntities: number;
+      changedRelationships: number;
+      finalSnapshots: {
+        branch: string;
+        kbSnapshotId: string;
+        workspaceSnapshot: string;
+      };
+      recoveryJournalId: string | null;
+      changedPaths?: readonly string[];
+      validationSummary?: Readonly<Record<string, unknown>>;
+      status?: "committed_with_repairs";
+      effectFailures?: readonly Readonly<Record<string, unknown>>[];
+      nextActions?: readonly Readonly<Record<string, unknown>>[];
+    }>
   | Readonly<{
       version: typeof PLAN_APPLY_RESULT_VERSION;
       outcome: "applied" | "replayed";
@@ -184,11 +219,22 @@ function asUpsert(step: PlanStep): UpsertInput {
     );
   if (!id) throw new Error("Apply plan failed: every step needs an entity id");
   const properties = isRecord(step.properties) ? step.properties : {};
+  const document = isRecord(step.document)
+    ? {
+        ...(typeof step.document.path === "string"
+          ? { path: step.document.path }
+          : {}),
+        ...(typeof step.document.body === "string"
+          ? { body: step.document.body }
+          : {}),
+      }
+    : undefined;
   return {
     type,
     id,
     properties,
     relationships: relationships(step),
+    ...(document !== undefined ? { document } : {}),
   };
 }
 
@@ -226,6 +272,102 @@ function isMigrationApplyArgs(
   args: ApplyPlanArgs,
 ): args is Extract<ApplyPlanArgs, { plan: MigrationPlan }> {
   return "plan" in args && args.plan.version === "kibi.migration-plan.v2";
+}
+
+function isBootstrapApplyArgs(
+  args: ApplyPlanArgs,
+): args is Extract<ApplyPlanArgs, { plan: BootstrapPlanV1 }> {
+  return "plan" in args && args.plan.version === "kibi.bootstrap-plan.v1";
+}
+
+export function orderBootstrapActions(
+  actions: readonly BootstrapAction[],
+  completed = new Set<string>(),
+): BootstrapAction[] {
+  const byId = new Map<string, BootstrapAction>();
+  for (const action of actions) {
+    if (!action.id || byId.has(action.id))
+      throw new Error("Bootstrap apply failed: action IDs must be unique");
+    if (action.kind !== "upsert" || !isRecord(action.payload))
+      throw new Error(`Bootstrap apply failed: action '${action.id}' is invalid`);
+    byId.set(action.id, action);
+  }
+  const result: BootstrapAction[] = [];
+  const visiting = new Set<string>();
+  const visited = new Set<string>();
+  const visit = (action: BootstrapAction): void => {
+    if (visited.has(action.id)) return;
+    if (completed.has(action.id)) {
+      visited.add(action.id);
+      return;
+    }
+    if (visiting.has(action.id))
+      throw new Error(`Bootstrap apply failed: dependency cycle at '${action.id}'`);
+    visiting.add(action.id);
+    for (const dependency of action.dependsOn ?? []) {
+      if (completed.has(dependency)) continue;
+      const endpoint = byId.get(dependency);
+      if (!endpoint)
+        throw new Error(
+          `Bootstrap apply failed: action '${action.id}' requires missing dependency '${dependency}'`,
+        );
+      visit(endpoint);
+    }
+    visiting.delete(action.id);
+    visited.add(action.id);
+    result.push(action);
+  };
+  for (const action of [...actions].sort((left, right) =>
+    left.id.localeCompare(right.id),
+  )) visit(action);
+  return result;
+}
+
+function validateBootstrapPlanShape(
+  args: Extract<ApplyPlanArgs, { plan: BootstrapPlanV1 }>,
+): BootstrapAction[] {
+  const { plan } = args;
+  if (plan.status !== "ready")
+    throw new Error("Bootstrap apply failed: only ready plans may be applied");
+  if (!/^[a-f0-9]{64}$/i.test(args.approvedPlanHash))
+    throw new Error("Bootstrap apply failed: approvedPlanHash must be SHA-256");
+  if (args.approvedPlanHash !== plan.planHash)
+    throw new Error("Bootstrap apply failed: approvedPlanHash does not match planHash");
+  if (bootstrapPlanHash(plan as unknown as Record<string, unknown>) !== plan.planHash)
+    throw new Error("Bootstrap apply failed: planHash does not match canonical plan body");
+  if (plan.activation.applyBlocked)
+    throw new Error("Bootstrap apply failed: activation policy blocks application");
+  if (
+    !plan.expected.branch ||
+    plan.expected.branch === "unknown" ||
+    plan.expected.branch === "unavailable" ||
+    !plan.expected.kbSnapshotId ||
+    plan.expected.kbSnapshotId === "unknown" ||
+    plan.expected.kbSnapshotId === "missing" ||
+    plan.expected.kbSnapshotId === "unavailable" ||
+    !/^[a-f0-9]{64}$/i.test(plan.expected.workspaceSnapshot)
+  ) {
+    throw new Error(
+      "Bootstrap apply failed: ready plans require exact branch, KB snapshot, and workspace snapshot bindings",
+    );
+  }
+  if (
+    !/^[a-f0-9]{64}$/i.test(plan.expected.kbSnapshotId) &&
+    !/^empty-source-state-[a-f0-9]{64}$/i.test(plan.expected.kbSnapshotId)
+  ) {
+    throw new Error(
+      "Bootstrap apply failed: ready plans require an exact KB snapshot binding",
+    );
+  }
+  for (const [sourcePath, sourceHash] of Object.entries(plan.expected.sourceHashes)) {
+    if (!sourcePath || sourceHash === null || !/^[a-f0-9]{64}$/i.test(sourceHash))
+      throw new Error(
+        `Bootstrap apply failed: ready plans require an exact hash for evidence source '${sourcePath}'`,
+      );
+  }
+  if (!Array.isArray(plan.actions) || plan.actions.length === 0)
+    throw new Error("Bootstrap apply failed: ready plans must contain actions");
+  return orderBootstrapActions(plan.actions);
 }
 
 function isEntityDeletionApplyArgs(
@@ -883,6 +1025,297 @@ async function executeSourceRecovery(
   };
 }
 
+async function executeBootstrapPlan(
+  args: Extract<ApplyPlanArgs, { plan: BootstrapPlanV1 }>,
+  context: OperationContext,
+  recovery = false,
+  remainingActions?: readonly BootstrapAction[],
+  priorResults: readonly BootstrapActionResult[] = [],
+): Promise<{
+  content: Array<{ type: "text"; text: string }>;
+  structuredContent: ApplyPlanResult;
+}> {
+  const actions = recovery
+    ? [...(remainingActions ?? args.plan.actions)]
+    : validateBootstrapPlanShape(args);
+  const prolog = context.prolog ?? (await context.ensureProlog?.());
+  if (!prolog) throw new Error("Bootstrap apply requires a Prolog runtime");
+  const operationContext = { ...context, prolog, sourceFirst: true as const };
+  const statusResult = await executeStatus({}, operationContext);
+  const status = statusResult.structuredContent;
+  if (!status) throw new Error("Bootstrap apply failed: status returned no payload");
+  const workspace = await readWorkspaceSnapshot(operationContext);
+  const boundLiveKbSnapshot =
+    status.snapshotId === "missing" &&
+    workspace.available &&
+    /^[a-f0-9]{64}$/i.test(workspace.snapshot.hash)
+      ? bootstrapEmptyKbSnapshotId({
+          branch: status.branch,
+          workspaceSnapshot: workspace.snapshot.hash,
+          sourceHashes: args.plan.expected.sourceHashes,
+        })
+      : status.snapshotId;
+  if (!recovery) {
+    if (args.plan.expected.branch !== "unknown" && status.branch !== args.plan.expected.branch)
+      throw new Error("Bootstrap apply failed: branch changed since planning");
+    if (boundLiveKbSnapshot !== args.plan.expected.kbSnapshotId)
+      throw new Error("Bootstrap apply failed: KB snapshot changed since planning");
+    if (
+      args.plan.expected.workspaceSnapshot !== "unknown" &&
+      (!workspace.available || workspace.snapshot.hash !== args.plan.expected.workspaceSnapshot)
+    )
+      throw new Error("Bootstrap apply failed: workspace snapshot changed since planning");
+    await validateSources(operationContext, args.plan.expected.sourceHashes);
+  }
+  const journalId = `bootstrap-${args.plan.planHash.slice(0, 16)}`;
+  const journalPath = path.join(
+    context.workspaceRoot,
+    ".kb",
+    "recovery",
+    `${journalId}.json`,
+  );
+  if (!recovery && context.fs) {
+    try {
+      await context.fs.readFile(journalPath);
+      throw new Error(
+        `Bootstrap apply refused: journal ${journalId} already exists; recover it with kb_apply_plan recoveryJournalId=${journalId} instead of replaying the original plan`,
+      );
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("journal ")) throw error;
+      // No journal exists yet; this is the first application attempt.
+    }
+  }
+  const results: BootstrapActionResult[] = [...priorResults];
+  let changedEntities = 0;
+  let changedRelationships = 0;
+  const failures: Readonly<Record<string, unknown>>[] = [];
+  let activeActionId: string | undefined;
+  type BootstrapCheckpoint = {
+    branch: string;
+    kbSnapshotId: string;
+    workspaceSnapshot: string;
+  };
+  const checkpoint = async (): Promise<BootstrapCheckpoint> => {
+    const current = (await executeStatus({}, operationContext)).structuredContent;
+    const currentWorkspace = await readWorkspaceSnapshot(operationContext);
+    return {
+      branch: current?.branch ?? "unavailable",
+      kbSnapshotId:
+        current?.snapshotId === "missing" &&
+        currentWorkspace.available &&
+        /^[a-f0-9]{64}$/i.test(currentWorkspace.snapshot.hash)
+          ? bootstrapEmptyKbSnapshotId({
+              branch: current?.branch ?? "unavailable",
+              workspaceSnapshot: currentWorkspace.snapshot.hash,
+              sourceHashes: args.plan.expected.sourceHashes,
+            })
+          : current?.snapshotId ?? "unavailable",
+      workspaceSnapshot: currentWorkspace.available
+        ? currentWorkspace.snapshot.hash
+        : "unavailable",
+    };
+  };
+  const initialCheckpoint = await checkpoint();
+  let lastCheckpoint = initialCheckpoint;
+  const writeJournal = async (
+    state: "applying" | "committed" | "repair_required",
+    activeActionId?: string,
+    currentCheckpoint: BootstrapCheckpoint = lastCheckpoint,
+  ) => {
+    if (!context.fs) return;
+    await context.fs.mkdir(path.dirname(journalPath));
+    await context.fs.writeFile(
+      journalPath,
+      `${JSON.stringify({ version: 2, kind: "bootstrap", plan: args.plan, state, checkpoint: currentCheckpoint, ...(activeActionId ? { activeActionId } : {}), results }, null, 2)}\n`,
+    );
+  };
+  await writeJournal("applying", undefined, initialCheckpoint);
+  try {
+    for (const action of actions) {
+      try {
+        activeActionId = action.id;
+        await writeJournal("applying", activeActionId);
+        const result = await executeUpsert(asUpsert(action.payload as PlanStep), operationContext);
+        const payload = result.structuredContent;
+        if (payload && typeof payload === "object") {
+          const row = payload as Record<string, unknown>;
+          changedEntities += Number(row.created ?? 0) + Number(row.updated ?? 0);
+          changedRelationships += Number(row.relationships_created ?? 0);
+
+          // A source-first upsert can commit its authoritative mutation while
+          // a derived effect still needs repair. Treat that as a committed
+          // action with repair state, checkpoint it, and stop the bootstrap
+          // graph. Recovery will see the applied action in the journal and
+          // resume only its remaining dependants.
+          if (row.status === "committed_with_repairs") {
+            results.push({
+              actionId: action.id,
+              outcome: "applied",
+              detail: "Applied with committed derived effects requiring repair.",
+            });
+            const effectFailures = Array.isArray(row.effectFailures)
+              ? row.effectFailures
+                  .filter(
+                    (failure): failure is Readonly<Record<string, unknown>> =>
+                      failure !== null &&
+                      typeof failure === "object" &&
+                      !Array.isArray(failure),
+                  )
+                  .map((failure) => ({ ...failure, actionId: action.id }))
+              : [];
+            failures.push(...effectFailures);
+            const nextActions = Array.isArray(row.nextActions)
+              ? row.nextActions.filter(
+                  (nextAction): nextAction is Readonly<Record<string, unknown>> =>
+                    nextAction !== null &&
+                    typeof nextAction === "object" &&
+                    !Array.isArray(nextAction),
+                )
+              : [];
+            lastCheckpoint = await checkpoint();
+            activeActionId = undefined;
+            await writeJournal("repair_required", action.id, lastCheckpoint);
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Bootstrap plan ${args.plan.planHash.slice(0, 12)} committed an action with repair effects; repair journal ${journalId}.`,
+                },
+              ],
+              structuredContent: {
+                version: PLAN_APPLY_RESULT_VERSION,
+                outcome: "partially_applied",
+                planHash: args.plan.planHash,
+                actionResults: results,
+                changedEntities,
+                changedRelationships,
+                finalSnapshots: {
+                  branch: lastCheckpoint.branch,
+                  kbSnapshotId: lastCheckpoint.kbSnapshotId,
+                  workspaceSnapshot: lastCheckpoint.workspaceSnapshot,
+                },
+                recoveryJournalId: journalId,
+                changedPaths: [],
+                validationSummary: {
+                  stepsValidated: actions.length,
+                  stepsApplied: results.filter((row) => row.outcome === "applied").length,
+                  sourceHashesChecked: Object.keys(args.plan.expected.sourceHashes).length,
+                  notes: ["Bootstrap stopped after an authoritative action committed with derived repair effects."],
+                },
+                status: "committed_with_repairs",
+                effectFailures: failures,
+                nextActions: [
+                  ...nextActions,
+                  {
+                    operation: "kb_apply_plan",
+                    input: { recoveryJournalId: journalId },
+                    reason: "Resume the remaining bootstrap actions from the immutable recovery journal; do not retry the original plan.",
+                    required: true,
+                  },
+                ],
+              },
+            };
+          }
+        }
+        results.push({ actionId: action.id, outcome: "applied", detail: "Applied sequentially." });
+        lastCheckpoint = await checkpoint();
+        activeActionId = undefined;
+        await writeJournal("applying", undefined, lastCheckpoint);
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : String(error);
+        results.push({ actionId: action.id, outcome: "failed", detail });
+        failures.push({ actionId: action.id, detail });
+        await writeJournal("repair_required", activeActionId, lastCheckpoint);
+        return {
+          content: [{ type: "text", text: `Bootstrap plan ${args.plan.planHash.slice(0, 12)} partially applied; repair journal ${journalId}.` }],
+          structuredContent: {
+            version: PLAN_APPLY_RESULT_VERSION,
+            outcome: "partially_applied",
+            planHash: args.plan.planHash,
+            actionResults: results,
+            changedEntities,
+            changedRelationships,
+            finalSnapshots: {
+              branch: lastCheckpoint.branch,
+              kbSnapshotId: lastCheckpoint.kbSnapshotId,
+              workspaceSnapshot: lastCheckpoint.workspaceSnapshot,
+            },
+            recoveryJournalId: journalId,
+            changedPaths: [],
+            validationSummary: {
+              stepsValidated: actions.length,
+              stepsApplied: results.filter((row) => row.outcome === "applied").length,
+              sourceHashesChecked: Object.keys(args.plan.expected.sourceHashes).length,
+              notes: ["Bootstrap application stopped at a repairable action failure."],
+            },
+            status: "committed_with_repairs",
+            effectFailures: failures,
+            nextActions: [{ operation: "kb_apply_plan", input: { recoveryJournalId: journalId }, reason: "Resume the remaining bootstrap actions from the immutable recovery journal; do not retry the original plan.", required: true }],
+          },
+        };
+      }
+    }
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    failures.push({ kind: "bootstrap", detail });
+    await writeJournal("repair_required", activeActionId, lastCheckpoint);
+    return {
+      content: [{ type: "text", text: `Bootstrap plan ${args.plan.planHash.slice(0, 12)} requires repair; journal ${journalId}.` }],
+      structuredContent: {
+        version: PLAN_APPLY_RESULT_VERSION,
+        outcome: "partially_applied",
+        planHash: args.plan.planHash,
+        actionResults: results,
+        changedEntities,
+        changedRelationships,
+        finalSnapshots: {
+          branch: lastCheckpoint.branch,
+          kbSnapshotId: lastCheckpoint.kbSnapshotId,
+          workspaceSnapshot: lastCheckpoint.workspaceSnapshot,
+        },
+        recoveryJournalId: journalId,
+        changedPaths: [],
+        validationSummary: {
+          stepsValidated: actions.length,
+          stepsApplied: results.filter((row) => row.outcome === "applied").length,
+          sourceHashesChecked: Object.keys(args.plan.expected.sourceHashes).length,
+          notes: ["Bootstrap application stopped before its full action graph completed."],
+        },
+        status: "committed_with_repairs",
+        effectFailures: failures,
+        nextActions: [{ operation: "kb_apply_plan", input: { recoveryJournalId: journalId }, reason: "Resume the remaining bootstrap actions from the immutable recovery journal; do not retry the original plan.", required: true }],
+      },
+    };
+  }
+  await writeJournal("committed");
+  const finalStatus = (await executeStatus({}, operationContext)).structuredContent ?? status;
+  const finalWorkspace = await readWorkspaceSnapshot(operationContext);
+  return {
+    content: [{ type: "text", text: `Applied bootstrap plan ${args.plan.planHash.slice(0, 12)}.` }],
+    structuredContent: {
+      version: PLAN_APPLY_RESULT_VERSION,
+      outcome: "applied",
+      planHash: args.plan.planHash,
+      actionResults: results,
+      changedEntities,
+      changedRelationships,
+      finalSnapshots: {
+        branch: finalStatus.branch,
+        kbSnapshotId: finalStatus.snapshotId,
+        workspaceSnapshot: finalWorkspace.available ? finalWorkspace.snapshot.hash : "unknown",
+      },
+      recoveryJournalId: context.fs ? journalId : null,
+      changedPaths: [],
+      validationSummary: {
+        stepsValidated: actions.length,
+        stepsApplied: results.filter((row) => row.outcome === "applied").length,
+        sourceHashesChecked: Object.keys(args.plan.expected.sourceHashes).length,
+        notes: ["Bootstrap actions applied sequentially through the shared plan executor."],
+      },
+    },
+  };
+}
+
 // implements REQ-kibi-change-to-proof-plan-compiler, REQ-agent-guided-migration-orchestration
 export async function executeApplyPlan(
   args: ApplyPlanArgs,
@@ -892,8 +1325,120 @@ export async function executeApplyPlan(
   structuredContent: ApplyPlanResult;
 }> {
   if ("recoveryJournalId" in args) {
+    if (args.recoveryJournalId.startsWith("bootstrap-")) {
+      if (!context.fs) throw new Error("Bootstrap recovery requires a filesystem-capable runtime");
+      if (!/^bootstrap-[a-f0-9]{16}$/.test(args.recoveryJournalId))
+        throw new Error("Bootstrap recovery journal ID is invalid");
+      const journalPath = path.join(context.workspaceRoot, ".kb", "recovery", `${args.recoveryJournalId}.json`);
+      const journal = JSON.parse(await context.fs.readFile(journalPath)) as {
+        version?: number;
+        kind?: string;
+        plan?: BootstrapPlanV1;
+        checkpoint?: {
+          branch?: string;
+          kbSnapshotId?: string;
+          workspaceSnapshot?: string;
+        };
+        results?: readonly {
+          actionId?: unknown;
+          outcome?: unknown;
+          detail?: unknown;
+        }[];
+      };
+      if (journal.version !== 2 || journal.kind !== "bootstrap" || !journal.plan)
+        throw new Error("Bootstrap recovery journal is invalid");
+      if (
+        !/^[a-f0-9]{64}$/i.test(journal.plan.planHash) ||
+        bootstrapPlanHash(journal.plan as unknown as Record<string, unknown>) !==
+          journal.plan.planHash
+      )
+        throw new Error("Bootstrap recovery journal plan hash is invalid");
+      const ordered = validateBootstrapPlanShape({
+        plan: journal.plan,
+        approvedPlanHash: journal.plan.planHash,
+      });
+      if (
+        !journal.checkpoint?.branch ||
+        !journal.checkpoint.kbSnapshotId ||
+        !journal.checkpoint.workspaceSnapshot
+      )
+        throw new Error("Bootstrap recovery journal has no state checkpoint");
+      const recoveryStatus = (await executeStatus({}, context)).structuredContent;
+      const recoveryWorkspace = await readWorkspaceSnapshot(context);
+      const liveCheckpoint = {
+        branch: recoveryStatus?.branch ?? "unavailable",
+        kbSnapshotId:
+          recoveryStatus?.snapshotId === "missing" &&
+          recoveryWorkspace.available &&
+          /^[a-f0-9]{64}$/i.test(recoveryWorkspace.snapshot.hash)
+            ? bootstrapEmptyKbSnapshotId({
+                branch: recoveryStatus?.branch ?? "unavailable",
+                workspaceSnapshot: recoveryWorkspace.snapshot.hash,
+                sourceHashes: journal.plan.expected.sourceHashes,
+              })
+            : recoveryStatus?.snapshotId ?? "unavailable",
+        workspaceSnapshot: recoveryWorkspace.available
+          ? recoveryWorkspace.snapshot.hash
+          : "unavailable",
+      };
+      if (
+        liveCheckpoint.branch !== journal.checkpoint.branch ||
+        liveCheckpoint.kbSnapshotId !== journal.checkpoint.kbSnapshotId ||
+        liveCheckpoint.workspaceSnapshot !== journal.checkpoint.workspaceSnapshot
+      )
+        throw new Error(
+          "Bootstrap recovery refused: repository state changed since the last action checkpoint",
+        );
+      const actionIds = new Set(ordered.map((action) => action.id));
+      const applied = new Set<string>();
+      for (const row of journal.results ?? []) {
+        if (
+          typeof row.actionId !== "string" ||
+          !actionIds.has(row.actionId)
+        )
+          throw new Error("Bootstrap recovery journal contains an unknown action");
+        if (row.outcome === "applied") applied.add(row.actionId);
+      }
+      const remaining = orderBootstrapActions(
+        ordered.filter((action) => !applied.has(action.id)),
+        applied,
+      );
+      for (const action of remaining) {
+        for (const dependency of action.dependsOn ?? []) {
+          if (!applied.has(dependency) && !remaining.some((candidate) => candidate.id === dependency))
+            throw new Error(
+              `Bootstrap recovery journal is missing dependency '${dependency}' for '${action.id}'`,
+            );
+        }
+      }
+      return executeBootstrapPlan(
+        { plan: journal.plan, approvedPlanHash: journal.plan.planHash },
+        context,
+        true,
+        remaining,
+        (journal.results ?? []).flatMap((row) =>
+          row &&
+          typeof row.actionId === "string" &&
+          (row.outcome === "applied" ||
+            row.outcome === "failed" ||
+            row.outcome === "skipped") &&
+          typeof row.detail === "string"
+            ? row.outcome === "applied"
+              ? [
+                  {
+                    actionId: row.actionId,
+                    outcome: row.outcome,
+                    detail: row.detail,
+                  },
+                ]
+              : []
+            : [],
+        ),
+      );
+    }
     return executeSourceRecovery(args, context);
   }
+  if (isBootstrapApplyArgs(args)) return executeBootstrapPlan(args, context);
   if (isMigrationApplyArgs(args)) {
     return applyMigrationPlan(args, context);
   }

@@ -64,9 +64,9 @@ export async function loadOperationSpec(
       spec = (await import("./public/operations/specs/modeling.js"))
         .suggestPredicatesSpec;
       break;
-    case "kb_autopilot_generate":
-      spec = (await import("./public/operations/specs/autopilot.js"))
-        .autopilotGenerateSpec;
+    case "kb_plan_bootstrap":
+      spec = (await import("./public/operations/specs/bootstrap.js"))
+        .planBootstrapSpec;
       break;
     case "kb_validate_upsert":
       spec = (await import("./public/operations/specs/mutation.js"))

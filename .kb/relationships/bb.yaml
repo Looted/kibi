@@ -111,3 +111,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3434895ef7dd
+  - type: constrains
+    from: REQ-KIBI-BOOTSTRAP-PLAN
+    to: FACT-KIBI-BOOTSTRAP-SUBJECT
+    created_at: 2026-08-20T11:31:12.979Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e687cf100bdc
+  - type: requires_property
+    from: REQ-KIBI-BOOTSTRAP-PLAN
+    to: FACT-KIBI-BOOTSTRAP-PROPERTY
+    created_at: 2026-08-20T11:31:13.129Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23b8d15c9873
+  - type: specified_by
+    from: REQ-KIBI-BOOTSTRAP-PLAN
+    to: SCEN-KIBI-BOOTSTRAP-PLAN-APPROVAL
+    created_at: 2026-08-20T11:32:40.222Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f41eedbb830
+  - type: requires_property
+    from: REQ-KIBI-BOOTSTRAP-PLAN
+    to: FACT-KIBI-BOOTSTRAP-CLAUSE-02
+    created_at: 2026-08-20T13:01:59.567Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ee346858d4f
+  - type: requires_property
+    from: REQ-KIBI-BOOTSTRAP-PLAN
+    to: FACT-KIBI-BOOTSTRAP-CLAUSE-03
+    created_at: 2026-08-20T13:01:59.596Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1c4f374390a
+  - type: requires_property
+    from: REQ-KIBI-BOOTSTRAP-PLAN
+    to: FACT-KIBI-BOOTSTRAP-CLAUSE-04
+    created_at: 2026-08-20T13:01:59.612Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5dc310e84483
+  - type: requires_property
+    from: REQ-KIBI-BOOTSTRAP-PLAN
+    to: FACT-KIBI-BOOTSTRAP-CLAUSE-05
+    created_at: 2026-08-20T13:01:59.618Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9ee8373f457
+  - type: requires_property
+    from: REQ-KIBI-BOOTSTRAP-PLAN
+    to: FACT-KIBI-BOOTSTRAP-CLAUSE-06
+    created_at: 2026-08-20T13:01:59.626Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b430421bfc96
+  - type: requires_property
+    from: REQ-KIBI-BOOTSTRAP-PLAN
+    to: FACT-KIBI-BOOTSTRAP-CLAUSE-07
+    created_at: 2026-08-20T13:01:59.635Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ef0f2efaa06
+  - type: requires_property
+    from: REQ-KIBI-BOOTSTRAP-PLAN
+    to: FACT-KIBI-BOOTSTRAP-CLAUSE-08
+    created_at: 2026-08-20T13:01:59.644Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55feb2194a6f
+  - type: requires_property
+    from: REQ-KIBI-BOOTSTRAP-PLAN
+    to: FACT-KIBI-BOOTSTRAP-CLAUSE-09
+    created_at: 2026-08-20T13:01:59.652Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7355caaa039e
+  - type: supersedes
+    from: REQ-KIBI-BOOTSTRAP-PLAN
+    to: REQ-mcp-init-kibi-autopilot-v1
+    created_at: 2026-08-20T13:02:31.325Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab4718015ea0
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-discoverbootstrap
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:54:30.734Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c31292af753
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-discoverbootstrap
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:54:30.746Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b9c4b78a451

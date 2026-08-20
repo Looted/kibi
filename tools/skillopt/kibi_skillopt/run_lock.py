@@ -75,7 +75,7 @@ class BaselineSkillHashes(ContractModel):
     usage: Annotated[SkillSurfaceHashes, Field(alias="kibi-usage")]
     freshness: Annotated[SkillSurfaceHashes, Field(alias="kibi-freshness")]
     traceability: Annotated[SkillSurfaceHashes, Field(alias="kibi-traceability")]
-    init: Annotated[SkillSurfaceHashes, Field(alias="init-kibi")]
+    init: Annotated[SkillSurfaceHashes, Field(alias="kibi-bootstrap")]
 
 
 class ExecutableIdentity(ContractModel):

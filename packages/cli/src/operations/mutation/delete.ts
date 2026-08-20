@@ -424,6 +424,12 @@ export async function executeDelete(
       afterHash: string | null;
       body?: string;
     }> = [];
+    // Several entities commonly share one authored source (for example the
+    // symbol manifest).  Keep one before-image and fold every requested
+    // deletion into a single final source body.  Emitting one independent
+    // source write per entity would make the hash-bound apply step overwrite
+    // earlier deletions with a stale intermediate body.
+    const workingSourceBodies = new Map<string, string | undefined>();
     for (const id of ids) {
       const safeId = id.replaceAll("'", "''");
       const exists = await prolog.query(`once(kb_entity('${safeId}', _, _))`);
@@ -456,35 +462,46 @@ export async function executeDelete(
           );
           const sourcePath = path.join(context.workspaceRoot, relativeSource);
           try {
-            const contents = await context.fs.readFile(sourcePath);
+            const original =
+              sourceBodies.get(relativeSource) ??
+              (await context.fs.readFile(sourcePath));
+            if (!sourceBodies.has(relativeSource)) {
+              sourceBodies.set(relativeSource, original);
+            }
+            const contents = workingSourceBodies.has(relativeSource)
+              ? workingSourceBodies.get(relativeSource)
+              : original;
+            if (contents === undefined) continue;
             const deletion = renderSourceDeletion(
               relativeSource,
               id,
               String(entity.type),
               contents,
             );
-            sourceBodies.set(relativeSource, contents);
-            const beforeHash = createHash("sha256")
-              .update(contents)
+            workingSourceBodies.set(relativeSource, deletion.body);
+            sourceHashes[relativeSource] = createHash("sha256")
+              .update(original)
               .digest("hex");
-            const afterHash =
-              deletion.body === undefined
-                ? null
-                : createHash("sha256").update(deletion.body).digest("hex");
-            sourceHashes[relativeSource] = beforeHash;
-            sourcePlans.push({
-              path: relativeSource,
-              mode: deletion.mode,
-              beforeHash,
-              afterHash,
-              ...(deletion.body === undefined ? {} : { body: deletion.body }),
-            });
           } catch {
             sourceHashes[relativeSource] = null;
           }
         }
       }
       goals.push(buildEntityDeleteAuditGoal(entity));
+    }
+    for (const [relativeSource, body] of workingSourceBodies) {
+      const original = sourceBodies.get(relativeSource);
+      if (original === undefined) continue;
+      const beforeHash = createHash("sha256").update(original).digest("hex");
+      const afterHash =
+        body === undefined ? null : createHash("sha256").update(body).digest("hex");
+      sourcePlans.push({
+        path: relativeSource,
+        mode: body === undefined ? "delete" : "write",
+        beforeHash,
+        afterHash,
+        ...(body === undefined ? {} : { body }),
+      });
     }
     if (authoredIds.length > 0 && context.sourcePlanApplication !== true) {
       const supersessionRequired = authoredRequirementIds.length > 0;

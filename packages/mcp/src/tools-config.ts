@@ -51,7 +51,7 @@ const MCP_TOOL_ORDER = [
   "kb_check",
   "kb_model_requirement",
   "kb_suggest_predicates",
-  "kb_autopilot_generate",
+  "kb_plan_bootstrap",
   "kb_compile_intent",
   "kb_apply_plan",
   "kb_ingest_verification",

@@ -1,0 +1,96 @@
+{
+  "error": {
+    "class": "JSONRPCError",
+    "code": -32602,
+    "message": "bootstrapContext must reference a deterministic seed"
+  },
+  "input": {
+    "bootstrapContext": {
+      "priorityRoots": ["contracts/seed"],
+      "projectSummary": "Frozen MCP contract seed",
+      "sourceOfTruthNotes": [
+        "Deterministic fixture seed used for contract regeneration."
+      ],
+      "sourceOfTruthPaths": ["contracts/seed"],
+      "verificationAnchors": ["tools/list"]
+    },
+    "entityTypes": ["req", "symbol"],
+    "includeGenericMarkdown": false,
+    "maxCandidates": 1,
+    "minConfidence": 0.8
+  },
+  "tool": {
+    "description": "Generate a deterministic, snapshot-bound kibi.bootstrap-plan.v1 for repository onboarding. Read-only analysis returns evidence, bounded context questions, exact dependency-ordered actions, a canonical plan hash, and no mutation side effects.",
+    "inputSchema": {
+      "properties": {
+        "bootstrapContext": {
+          "description": "Optional declared bootstrap context supplied by the agent to ground the read-only synthesis output.",
+          "properties": {
+            "priorityRoots": {
+              "description": "Optional repo roots the bootstrap flow should prioritize when authoring entities.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "projectSummary": {
+              "description": "Optional short summary of the project or bootstrap goal.",
+              "type": "string"
+            },
+            "sourceOfTruthNotes": {
+              "description": "Optional notes about how to interpret the declared sources of truth.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "sourceOfTruthPaths": {
+              "description": "Optional repo-relative paths that should be treated as declared sources of truth.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "verificationAnchors": {
+              "description": "Optional verification commands, documents, or checkpoints to reference in the output.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
+        "entityTypes": {
+          "description": "Optional filter to limit candidate generation to specific entity types.",
+          "items": {
+            "enum": ["req", "scenario", "test", "adr", "fact", "symbol"],
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "includeGenericMarkdown": {
+          "default": true,
+          "description": "Whether to include generic markdown file content as candidate facts. Default: true.",
+          "type": "boolean"
+        },
+        "maxCandidates": {
+          "default": 50,
+          "description": "Maximum number of candidates to return. Clamped to [1, 200]. Default: 50.",
+          "maximum": 200,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "minConfidence": {
+          "default": 0.8,
+          "description": "Minimum confidence threshold for candidates. Clamped to [0.60, 0.95]. Default: 0.80.",
+          "maximum": 0.95,
+          "minimum": 0.6,
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "name": "kb_plan_bootstrap"
+  }
+}

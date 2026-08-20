@@ -3,7 +3,7 @@ import {
   type OperationJsonSchema,
   declaredEffects,
 } from "./contracts.js";
-import { autopilotGenerateSpec } from "./specs/autopilot.js";
+import { planBootstrapSpec } from "./specs/bootstrap.js";
 import { checkSpec } from "./specs/check.js";
 import { querySpec, searchSpec, statusSpec } from "./specs/discovery.js";
 import {
@@ -44,7 +44,7 @@ export const OPERATION_CATALOG = [
   semanticAdvisorSpec,
   modelRequirementSpec,
   suggestPredicatesSpec,
-  autopilotGenerateSpec,
+  planBootstrapSpec,
   validateUpsertSpec,
   upsertSpec,
   deleteSpec,
