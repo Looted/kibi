@@ -12,7 +12,7 @@ Install these **before** enabling the plugin MCP server:
 | --- | --- |
 | **SWI-Prolog 9+** (`swipl` on `PATH`) | Powers Kibi inference and validation |
 | **`kibi-cli`** | Project CLI (`kibi` command) |
-| **`kibi-mcp`** | MCP server the plugin's `mcp.json` invokes via `npx --no-install kibi-mcp` |
+| **`kibi-mcp`** | MCP server installed in the opened project; the plugin launcher resolves this package without downloading it |
 | **`kibi-core`** | Shared graph/runtime dependency |
 
 ```bash
@@ -25,7 +25,7 @@ Full setup: [docs/install.md](https://github.com/Looted/kibi/blob/develop/docs/i
 
 Add this plugin only after the base packages work in your project.
 
-**Git worktrees:** the published plugin MCP entry (`npx --no-install kibi-mcp`) needs `kibi-mcp` resolvable from that worktree's `node_modules` (run install there). For this monorepo's dogfood path, prefer project `.cursor/mcp.json`, which can fall back to the primary checkout's built MCP — see [DEV.md](./DEV.md#linked-worktrees).
+**Git worktrees:** the published plugin MCP entry resolves `kibi-mcp` from the opened worktree's `node_modules` (run install there). The plugin does not download or bundle a Kibi runtime. For this monorepo's dogfood path, prefer project `.cursor/mcp.json`, which can fall back to the primary checkout's built MCP — see [DEV.md](./DEV.md#linked-worktrees).
 
 ## Installation
 
@@ -55,14 +55,17 @@ cp -r "$(npm root)/kibi-cursor" ~/.cursor/plugins/local/kibi-cursor
 
 ## MCP configuration
 
-The plugin bundles `mcp.json` pointing at the project-local `kibi-mcp` binary:
+The plugin bundles `mcp.json` with a thin launcher that locates and starts the
+`kibi-mcp` package installed in the opened project. The launcher runs from the
+consumer workspace and sets `KIBI_WORKSPACE` to that root; it never downloads,
+bundles, or falls back to a global Kibi runtime:
 
 ```json
 {
   "mcpServers": {
     "kibi": {
-      "command": "npx",
-      "args": ["--no-install", "kibi-mcp"]
+      "command": "node",
+      "args": ["bin/launch-kibi-mcp.mjs", "${workspaceFolder}"]
     }
   }
 }

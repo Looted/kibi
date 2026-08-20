@@ -48,3 +48,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e732185bacb4
+  - type: executable_for
+    from: SYM-cursor-packed-launcher-e2e
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-08-20T12:41:13.941Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-176e1e8b8165
+  - type: executable_for
+    from: SYM-cursor-packed-launcher-e2e
+    to: TEST-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-08-20T13:01:04.538Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8dabe88e6a4

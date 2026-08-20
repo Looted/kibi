@@ -6575,27 +6575,27 @@ coordinates:
   SYM-cursor-agentPluginRoot:
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 66
+    sourceEndLine: 69
     sourceFile: packages/cursor/scripts/build-agent-plugin.ts
-    sourceLine: 64
+    sourceLine: 67
   SYM-cursor-buildAgentPluginMcpJson:
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 202
+    sourceEndLine: 205
     sourceFile: packages/cursor/scripts/build-agent-plugin.ts
-    sourceLine: 187
+    sourceLine: 190
   SYM-cursor-buildAgentPluginUnlocked:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 253
+    sourceEndLine: 256
     sourceFile: packages/cursor/scripts/build-agent-plugin.ts
-    sourceLine: 230
+    sourceLine: 233
   SYM-cursor-buildPluginManifest:
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 228
+    sourceEndLine: 231
     sourceFile: packages/cursor/scripts/build-agent-plugin.ts
-    sourceLine: 213
+    sourceLine: 216
   SYM-cursor-clearDirtyPaths:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6701,9 +6701,9 @@ coordinates:
   SYM-cursor-launchKibiMcp:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 368
+    sourceEndLine: 372
     sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
-    sourceLine: 315
+    sourceLine: 319
   SYM-cursor-launcher-tests:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -6773,9 +6773,9 @@ coordinates:
   SYM-cursor-parseWorkspaceFolderPaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 83
+    sourceEndLine: 87
     sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
-    sourceLine: 57
+    sourceLine: 61
   SYM-cursor-readGuidance:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6815,9 +6815,9 @@ coordinates:
   SYM-cursor-resolveProjectLocalMcp:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 208
+    sourceEndLine: 212
     sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
-    sourceLine: 150
+    sourceLine: 154
   SYM-cursor-resolveStateDir:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -6827,9 +6827,9 @@ coordinates:
   SYM-cursor-resolveWorkspaceRoot:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 308
+    sourceEndLine: 312
     sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
-    sourceLine: 264
+    sourceLine: 268
   SYM-cursor-runHook:
     sourceColumn: 22
     sourceEndColumn: 1

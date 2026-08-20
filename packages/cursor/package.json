@@ -15,6 +15,7 @@
   "files": [
     ".cursor-plugin",
     "mcp.json",
+    "bin",
     "hooks",
     "skills",
     "rules",

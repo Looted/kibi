@@ -17,3 +17,10 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/tests/TEST-opencode-kibi-plugin-v1.md
+  - type: verified_by
+    from: SCEN-cursor-consumer-local-mcp-launcher-v1
+    to: TEST-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-08-20T12:59:59.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6e8bbbe1506

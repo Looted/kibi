@@ -15,6 +15,9 @@
  * `.cursor-plugin` Cursor Plugin format. The artifact is committed so a fresh
  * marketplace clone resolves it without a build step.
  */
+/**
+ * Keep the portable artifact's MCP contract independent from Cursor's host config.
+ */
 // allow: SIZE_OK — the artifact is small and regenerated atomically.
 import {
   existsSync,
@@ -184,22 +187,21 @@ function writeSkillsMirror(repoRoot: string, targetRoot: string): void {
   }
 }
 
-function buildAgentPluginMcpJson(repoRoot: string): object {
-  const cursorMcpPath = join(cursorPackageRoot(repoRoot), "mcp.json");
-  if (!existsSync(cursorMcpPath)) {
-    throw new Error(
-      `Missing Cursor MCP config at ${cursorMcpPath}; cannot derive the Agent Plugin mcp.json.`,
-    );
-  }
-  const cursorMcp = readJson<{ mcpServers?: Record<string, object> }>(
-    cursorMcpPath,
-  );
-  const mcpServers = cursorMcp.mcpServers ?? {};
-  const normalizedServers: Record<string, object> = {};
-  for (const [name, server] of Object.entries(mcpServers)) {
-    normalizedServers[name] = { type: "stdio", ...(server as object) };
-  }
-  return { $schema: AGENT_MCP_SCHEMA, mcpServers: normalizedServers };
+function buildAgentPluginMcpJson(): object {
+  // The portable Agent Plugin has different host semantics from Cursor's
+  // published plugin. Keep its existing project-level npx contract separate
+  // from the Cursor plugin-installation launcher; changing packages/cursor/
+  // mcp.json must never rewrite this artifact.
+  return {
+    $schema: AGENT_MCP_SCHEMA,
+    mcpServers: {
+      kibi: {
+        type: "stdio",
+        command: "npx",
+        args: ["--no-install", "kibi-mcp"],
+      },
+    },
+  };
 }
 
 function repositoryUrl(packageJson: PackageJson): string {
@@ -243,7 +245,7 @@ export function buildAgentPluginUnlocked(
   writeSkillsMirror(repoRoot, resolvedTarget);
   writeFileSync(
     join(resolvedTarget, "mcp.json"),
-    formatAgentJsonDocument(buildAgentPluginMcpJson(repoRoot)),
+    formatAgentJsonDocument(buildAgentPluginMcpJson()),
   );
   writeFileSync(
     join(resolvedTarget, "plugin.json"),

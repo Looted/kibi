@@ -104,3 +104,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9646a51a80d2
+  - type: specified_by
+    from: REQ-cursor-consumer-local-mcp-launcher-v1
+    to: SCEN-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-08-20T12:59:55.873Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10d864ada1b5
+  - type: relates_to
+    from: REQ-cursor-consumer-local-mcp-launcher-v1
+    to: REQ-cursor-kibi-plugin-v1
+    created_at: 2026-08-20T12:59:55.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2c08631970a

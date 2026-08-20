@@ -5415,15 +5415,15 @@ symbols:
         target: TEST-cursor-stop-job-vs-plan
   - id: SYM-cursor-agentPluginRoot
     title: agentPluginRoot
+    status: active
     sourceFile: packages/cursor/scripts/build-agent-plugin.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
-    text_ref: packages/cursor/scripts/build-agent-plugin.ts#agentPluginRoot
+    granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-cursor-agent-plugin-standard-v1
       - type: covered_by
         target: TEST-cursor-agent-plugin-v1
+      - type: implements
+        target: REQ-cursor-agent-plugin-standard-v1
   - id: SYM-cursor-BOOTSTRAP_REMINDER
     title: BOOTSTRAP_REMINDER
     sourceFile: packages/cursor/src/messages.ts
@@ -5440,38 +5440,36 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
   - id: SYM-cursor-buildAgentPluginMcpJson
     title: buildAgentPluginMcpJson
+    status: active
     sourceFile: packages/cursor/scripts/build-agent-plugin.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
-    text_ref: packages/cursor/scripts/build-agent-plugin.ts#buildAgentPluginMcpJson
+    granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-cursor-agent-plugin-standard-v1
       - type: covered_by
         target: TEST-cursor-agent-plugin-v1
+      - type: implements
+        target: REQ-cursor-agent-plugin-standard-v1
   - id: SYM-cursor-buildAgentPluginUnlocked
     title: buildAgentPluginUnlocked
+    status: active
     sourceFile: packages/cursor/scripts/build-agent-plugin.ts
     symbol_role: behavioral
-    text_ref: packages/cursor/scripts/build-agent-plugin.ts#buildAgentPluginUnlocked
-    links:
-      - REQ-cursor-agent-plugin-standard-v1
     relationships:
-      - type: implements
-        target: REQ-cursor-agent-plugin-standard-v1
       - type: covered_by
         target: TEST-cursor-agent-plugin-v1
+      - type: implements
+        target: REQ-cursor-agent-plugin-standard-v1
   - id: SYM-cursor-buildPluginManifest
     title: buildPluginManifest
+    status: active
     sourceFile: packages/cursor/scripts/build-agent-plugin.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
-    text_ref: packages/cursor/scripts/build-agent-plugin.ts#buildPluginManifest
+    granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-cursor-agent-plugin-standard-v1
       - type: covered_by
         target: TEST-cursor-agent-plugin-v1
+      - type: implements
+        target: REQ-cursor-agent-plugin-standard-v1
   - id: SYM-cursor-clearDirtyPaths
     title: clearDirtyPaths
     sourceFile: packages/cursor/src/hook-state.ts
@@ -26223,3 +26221,68 @@ symbols:
         target: TEST-scripts-unit-coverage-runner
       - type: implements
         target: REQ-014
+  - id: SYM-cursor-resolveProjectLocalMcp
+    title: resolveProjectLocalMcp
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+  - id: SYM-cursor-launcher-tests
+    title: runLauncher
+    status: active
+    sourceFile: packages/cursor/tests/launch-kibi-mcp.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: executable_for
+        target: TEST-cursor-kibi-plugin-v1
+  - id: SYM-cursor-packed-launcher-e2e
+    title: packed Cursor plugin launcher E2E
+    status: active
+    sourceFile: documentation/tests/e2e/packed/cursor-plugin-launcher.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: executable_for
+        target: TEST-cursor-kibi-plugin-v1
+  - id: SYM-cursor-parseWorkspaceFolderPaths
+    title: parseWorkspaceFolderPaths
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-resolveWorkspaceRoot
+    title: resolveWorkspaceRoot
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-launchKibiMcp
+    title: launchKibiMcp
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1

@@ -34,6 +34,7 @@ describe("kibi-cursor package contract", () => {
     expect(packageJson.files).toEqual([
       ".cursor-plugin",
       "mcp.json",
+      "bin",
       "hooks",
       "skills",
       "rules",
@@ -56,6 +57,12 @@ describe("kibi-cursor package contract", () => {
     const declaredTypes = packageJson.types;
     expect(exportsTypes).toBe(declaredTypes);
     expect(declaredTypes).toBe("./dist/index.d.ts");
+  });
+
+  test("packages the consumer-local MCP launcher", () => {
+    expect(
+      fs.existsSync(path.join(packageRoot, "bin", "launch-kibi-mcp.mjs")),
+    ).toBe(true);
   });
 
   test("package exports adapter entrypoint", async () => {

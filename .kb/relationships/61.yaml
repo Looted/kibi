@@ -34,3 +34,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cb0ec92e20fa
+  - type: implements
+    from: SYM-cursor-resolveProjectLocalMcp
+    to: REQ-cursor-kibi-plugin-v1
+    created_at: 2026-08-20T12:40:34.783Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ffd0eb2e19c
+  - type: covered_by
+    from: SYM-cursor-resolveProjectLocalMcp
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-08-20T12:40:34.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92ea5c52a32e
+  - type: implements
+    from: SYM-cursor-resolveProjectLocalMcp
+    to: REQ-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-08-20T13:00:53.165Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e775959ce33d
+  - type: covered_by
+    from: SYM-cursor-resolveProjectLocalMcp
+    to: TEST-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-08-20T13:00:53.172Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-463cf86a80b2

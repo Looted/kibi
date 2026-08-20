@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "kibi": {
-      "command": "npx",
-      "args": ["--no-install", "kibi-mcp"]
+      "command": "node",
+      "args": ["bin/launch-kibi-mcp.mjs", "${workspaceFolder}"]
     }
   }
 }

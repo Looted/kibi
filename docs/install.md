@@ -268,11 +268,16 @@ npm install --save-dev kibi-cursor
 The installed plugin package contributes:
 
 - `.cursor-plugin/plugin.json` manifest
-- `mcp.json` MCP config pointing to your local `kibi-mcp`
+- `mcp.json` MCP config with a launcher that resolves and starts the `kibi-mcp` installed in the opened project
 - `hooks/hooks.json` advisory lifecycle hooks
 - `rules/*.mdc` workflow and traceability guidance
 - `skills/*/SKILL.md` Kibi workflow skills
 - `commands/init-kibi.md` bootstrap command guidance
+
+The plugin launcher runs the consumer project's `kibi-mcp` with the opened
+workspace as its current directory and with `KIBI_WORKSPACE` set to that root.
+It does not download, bundle, or use a global Kibi runtime. Install the base
+packages in each project before enabling the plugin MCP server.
 
 Manual MCP fallback (no plugin install required):
 

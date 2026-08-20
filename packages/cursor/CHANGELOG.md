@@ -1,5 +1,14 @@
 # kibi-cursor
 
+## Unreleased
+
+### Patch Changes
+
+- The published Cursor plugin now launches the `kibi-mcp` installed in the opened project, even when Cursor starts plugin processes from the plugin installation directory. The launcher preserves the consumer workspace as the child cwd and `KIBI_WORKSPACE`, and fails with an actionable message when the project-local package is missing.
+
+  - Replace plugin MCP's ambient `npx --no-install` invocation with the packaged consumer-local resolver.
+  - Add isolated and packed-artifact coverage for workspace resolution, package layouts, exit codes, signals, and missing-runtime failures.
+
 ## 0.6.3
 
 ### Patch Changes
