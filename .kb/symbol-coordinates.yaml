@@ -7133,9 +7133,9 @@ coordinates:
   SYM-kibi-bootstrap-apply-recovery:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1626
+    sourceEndLine: 1701
     sourceFile: packages/cli/src/operations/planning/apply-plan.ts
-    sourceLine: 1245
+    sourceLine: 1320
   SYM-kibi-bootstrap-cli-spec:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -7145,7 +7145,7 @@ coordinates:
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-activation-classifyactivation:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 186
+    sourceEndLine: 192
     sourceFile: packages/cli/src/operations/bootstrap/activation.ts
     sourceLine: 119
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-confidenceband:
@@ -7175,15 +7175,15 @@ coordinates:
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidates-buildbootstrapcandidates:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 156
+    sourceEndLine: 172
     sourceFile: packages/cli/src/operations/bootstrap/candidates.ts
-    sourceLine: 130
+    sourceLine: 129
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-discoverbootstrap:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 132
+    sourceEndLine: 137
     sourceFile: packages/cli/src/operations/bootstrap/discovery.ts
-    sourceLine: 83
+    sourceLine: 88
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-evidence-evidencescan:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -7193,9 +7193,9 @@ coordinates:
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-evidence-scanevidence:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 235
+    sourceEndLine: 262
     sourceFile: packages/cli/src/operations/bootstrap/discovery-evidence.ts
-    sourceLine: 180
+    sourceLine: 202
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-generate-selectbootstrapcandidates:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7643,9 +7643,9 @@ coordinates:
   SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1626
+    sourceEndLine: 1701
     sourceFile: packages/cli/src/operations/planning/apply-plan.ts
-    sourceLine: 1245
+    sourceLine: 1320
   SYM-kibi-cli-src-operations-planning-apply-plan-ts-plan-apply-result-version:
     sourceColumn: 13
     sourceEndColumn: 77
