@@ -72,6 +72,7 @@ describe("MCP discovery adapters", () => {
     expect(adapterResult).toEqual(sharedResult);
   });
 
+  // implements REQ-kibi-operation-interface-parity
   test("status adapter matches the shared executor", async () => {
     // Given
     const response = {
@@ -96,6 +97,7 @@ describe("MCP discovery adapters", () => {
         query: adapterQuery,
       } as unknown as PrologProcess,
       {},
+      createContext(createPort(adapterQuery)),
     );
     const sharedResult = await statusSpec.execute(
       {},

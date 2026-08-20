@@ -62,7 +62,7 @@ if (RUN_NODE_TEST_SUITE) {
       const { stdout } = await kibi(sandbox, ["init"]);
 
       assert.ok(
-        stdout.includes("initialized successfully"),
+        stdout.includes("Kibi initialized"),
         "Should indicate success",
       );
 

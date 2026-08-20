@@ -55,7 +55,7 @@ export const TRACEABILITY_DEFINITIONS: Readonly<Record<string, Definition>> = {
   },
 };
 
-export const INIT_DEFINITIONS: Readonly<Record<string, Definition>> = {
+export const BOOTSTRAP_DEFINITIONS: Readonly<Record<string, Definition>> = {
   "bootstrap-analysis": {
     instruction:
       "Analyze the initialized thin repository and produce a read-only bootstrap plan.",

@@ -34,18 +34,17 @@ if (RUN_NODE_TEST_SUITE) {
         // Create a temporary artifact root that mirrors actions/download-artifact output
         artifactRoot = join(tmpdir(), `kibi-e2e-artifacts-${Date.now()}`);
 
-        // Allow packAll() to resolve pre-packed tarballs by setting KIBI_TEST_TARBALLS
-        process.env.KIBI_TEST_TARBALLS = artifactRoot;
-
-        // packAll() will throw if tarballs are not present in artifactRoot;
-        // in normal CI the artifacts are downloaded into this directory.
-        // To make this smoke test hermetic locally we call packAll() which
-        // will create tarballs in the repo and then we mirror them into
-        // artifactRoot layout expected by helpers.findPrePackedTarball
-        // (helpers supports both flat and <pkg> subdir layouts).
-
-        // Produce tarballs (this writes into repo packages/* dirs)
-        tarballs = await packAll();
+        // In CI, downloaded package artifacts are already available through
+        // KIBI_TEST_TARBALLS. Standalone runs pack once from the checkout,
+        // then copy that immutable set into the simulated download root.
+        const downloadedArtifacts = process.env.KIBI_TEST_TARBALLS;
+        if (downloadedArtifacts) {
+          tarballs = await packAll();
+        } else {
+          // biome-ignore lint/performance/noDelete: clear the inherited CI override so packAll uses workspace artifacts.
+          delete process.env.KIBI_TEST_TARBALLS;
+          tarballs = await packAll();
+        }
 
         // Create artifactRoot and copy tarballs into it under package-named subdirs
         // Use run('cp', ...) to avoid introducing fs copy logic here
@@ -62,6 +61,18 @@ if (RUN_NODE_TEST_SUITE) {
           env: process.env,
         });
         await run("mkdir", ["-p", join(artifactRoot, "mcp")], {
+          cwd: "/tmp",
+          env: process.env,
+        });
+        await run("mkdir", ["-p", join(artifactRoot, "opencode")], {
+          cwd: "/tmp",
+          env: process.env,
+        });
+        await run("mkdir", ["-p", join(artifactRoot, "codex")], {
+          cwd: "/tmp",
+          env: process.env,
+        });
+        await run("mkdir", ["-p", join(artifactRoot, "cursor")], {
           cwd: "/tmp",
           env: process.env,
         });
@@ -82,12 +93,26 @@ if (RUN_NODE_TEST_SUITE) {
           cwd: "/tmp",
           env: process.env,
         });
+        await run("cp", [tarballs.opencode, join(artifactRoot, "opencode")], {
+          cwd: "/tmp",
+          env: process.env,
+        });
+        await run("cp", [tarballs.codex, join(artifactRoot, "codex")], {
+          cwd: "/tmp",
+          env: process.env,
+        });
+        await run("cp", [tarballs.cursor, join(artifactRoot, "cursor")], {
+          cwd: "/tmp",
+          env: process.env,
+        });
 
         // Now create an empty workspace (no checked-out repo) and a sandbox that
         // will install from the artifactRoot via KIBI_TEST_TARBALLS. Ensure any
         // baked prefix is unset so we exercise packed installs rather than a
         // pre-baked installation.
-        process.env.KIBI_E2E_PREFIX = undefined as unknown as string;
+        process.env.KIBI_TEST_TARBALLS = artifactRoot;
+        // biome-ignore lint/performance/noDelete: clear the inherited baked-prefix override for this isolated artifact test.
+        delete process.env.KIBI_E2E_PREFIX;
 
         // Create sandbox which will use KIBI_TEST_TARBALLS via packAll() during install
         sandbox = createSandbox();

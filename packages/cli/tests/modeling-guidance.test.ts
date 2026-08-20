@@ -187,12 +187,14 @@ describe("modeling guidance: canonical entity-choice rule", () => {
   // ─── bundled kibi-bootstrap skill ────────────────────────────────────────────────
 
   describe("kibi-bootstrap skill", () => {
-    test("must describe bootstrap preview, sequential apply, and repair-safe completion", () => {
+    test("must describe bootstrap preview, plan-owned apply, and repair-safe completion", () => {
       const content = readDoc("packages/runtime/src/skills/kibi-bootstrap/SKILL.md");
       expect(content).toContain("kb_plan_bootstrap");
       expect(content).toMatch(/preview/i);
       expect(content).toMatch(/approval/i);
-      expect(content).toMatch(/sequential `kb_upsert`/);
+      expect(content).toContain("`kb_apply_plan`");
+      expect(content).toMatch(/owns dependency ordering[\s\S]*sequential mutation/);
+      expect(content).toMatch(/Direct\s+`kb_upsert`\s+is forbidden/i);
       expect(content).toContain("committed_with_repairs");
     });
   });

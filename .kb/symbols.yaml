@@ -4123,7 +4123,8 @@ symbols:
       - type: covered_by
         target: TEST-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -14799,14 +14800,14 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-fixture-init-definitions
-    title: INIT_DEFINITIONS
+    title: BOOTSTRAP_DEFINITIONS
+    status: active
     sourceFile: scripts/skillopt-eval/fixtures/task-definitions-bootstrap.ts
-    symbol_role: config
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-fixture-integrity-error
     title: FixtureIntegrityError
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts

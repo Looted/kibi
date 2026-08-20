@@ -347,7 +347,7 @@ if (RUN_NODE_TEST_SUITE) {
                     assert.ok(initPrompt, "kibi-bootstrap should be registered");
                     assert.match(
                       initPrompt.description ?? "",
-                      /interactive activation|new or empty/i,
+                      /canonical planner|plan.*apply/i,
                     );
                     resolve();
                   });

@@ -14,7 +14,7 @@ import {
 } from "./predicate-cases";
 import type { Definition } from "./task-definition-types";
 import {
-  INIT_DEFINITIONS,
+  BOOTSTRAP_DEFINITIONS,
   TRACEABILITY_DEFINITIONS,
 } from "./task-definitions-bootstrap";
 import {
@@ -62,7 +62,7 @@ const DEFINITIONS: Readonly<
   "kibi-usage": USAGE_DEFINITIONS,
   "kibi-freshness": FRESHNESS_DEFINITIONS,
   "kibi-traceability": TRACEABILITY_DEFINITIONS,
-  "kibi-bootstrap": INIT_DEFINITIONS,
+  "kibi-bootstrap": BOOTSTRAP_DEFINITIONS,
 };
 const SKILL_FILES = [
   "skills/kibi-usage/SKILL.md",

@@ -63,6 +63,18 @@ function writeConsumerManifest(
     ),
     "utf8",
   );
+  // pnpm resolves a transitive semver dependency from its registry even when
+  // the same package is also a direct file dependency. Pin every Kibi package
+  // to this immutable tarball set so the consumer remains registry-independent.
+  writeFileSync(
+    join(dir, "pnpm-workspace.yaml"),
+    [
+      "overrides:",
+      ...packageNames.map((pkg) => `  kibi-${pkg}: "file:${tarballs[pkg]}"`),
+      "",
+    ].join("\n"),
+    "utf8",
+  );
 }
 
 function verifyConsumer(dir: string, packageManager: "npm" | "pnpm"): void {
