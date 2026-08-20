@@ -18,11 +18,13 @@ import {
   writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
+import { writeCoverageManifestAudit } from "./coverage-manifest";
 import { finalizeLcov } from "./finalize-lcov";
 import { mergeLcovContents } from "./merge-lcov";
 
 const COVERAGE_DIR = "coverage/unit";
 const LCOV_PATH = join(COVERAGE_DIR, "lcov.info");
+const UNIT_LINE_COVERAGE_FLOOR = 50;
 const COVERAGE_ARGS = [
   "test",
   "--coverage",
@@ -79,13 +81,21 @@ const COVERAGE_SHARDS: readonly {
   },
 ] as const;
 
-function runBunTest(paths: readonly string[]): void {
+function runBunTest(paths: readonly string[]): number {
   const result = spawnSync("bun", [...COVERAGE_ARGS, ...paths], {
     stdio: "inherit",
   });
-  if (result.status !== 0) {
-    process.exit(result.status ?? 1);
+  return result.status ?? 1;
+}
+
+function lineCoveragePercent(lcov: string): number {
+  let linesFound = 0;
+  let linesHit = 0;
+  for (const line of lcov.split("\n")) {
+    if (line.startsWith("LF:")) linesFound += Number(line.slice(3));
+    if (line.startsWith("LH:")) linesHit += Number(line.slice(3));
   }
+  return linesFound === 0 ? 0 : (linesHit / linesFound) * 100;
 }
 
 // implements REQ-014
@@ -94,22 +104,58 @@ export async function runUnitCoverage(): Promise<void> {
   mkdirSync(COVERAGE_DIR, { recursive: true });
 
   const shardFiles: string[] = [];
+  const failedShards: string[] = [];
   for (const shard of COVERAGE_SHARDS) {
     rmSync(LCOV_PATH, { force: true });
-    runBunTest(shard.paths);
-    const lcovPath = await finalizeLcov(COVERAGE_DIR);
+    const exitCode = runBunTest(shard.paths);
+    if (exitCode !== 0) failedShards.push(`${shard.label} (exit ${exitCode})`);
+
+    let lcovPath: string;
+    try {
+      lcovPath = await finalizeLcov(COVERAGE_DIR);
+    } catch (error) {
+      failedShards.push(`${shard.label} (coverage artifact missing)`);
+      console.error(error);
+      continue;
+    }
     const shardPath = join(COVERAGE_DIR, `lcov.${shard.label}.info`);
     cpSync(lcovPath, shardPath);
     shardFiles.push(shardPath);
   }
 
+  const mergedLcov = mergeLcovContents(
+    shardFiles.map((filePath) => readFileSync(filePath, "utf8")),
+  );
+  writeFileSync(LCOV_PATH, mergedLcov, "utf8");
+  const lineCoverage = lineCoveragePercent(mergedLcov);
+  console.log(
+    `Merged unit line coverage: ${lineCoverage.toFixed(2)}% (floor ${UNIT_LINE_COVERAGE_FLOOR}%)`,
+  );
+  if (lineCoverage < UNIT_LINE_COVERAGE_FLOOR) {
+    console.error(
+      `Unit line coverage ${lineCoverage.toFixed(2)}% is below the ${UNIT_LINE_COVERAGE_FLOOR}% floor.`,
+    );
+    process.exitCode = 1;
+  }
+  const missingFiles = writeCoverageManifestAudit(
+    process.cwd(),
+    COVERAGE_DIR,
+    mergedLcov,
+  );
+  if (missingFiles.length > 0) {
+    console.warn(
+      `Coverage manifest audit: ${missingFiles.length} production source files are absent from LCOV.`,
+    );
+  }
   writeFileSync(
-    LCOV_PATH,
-    mergeLcovContents(
-      shardFiles.map((filePath) => readFileSync(filePath, "utf8")),
-    ),
+    join(COVERAGE_DIR, "failed-shards.txt"),
+    failedShards.length > 0 ? `${failedShards.join("\n")}\n` : "",
     "utf8",
   );
+  if (failedShards.length > 0) {
+    console.error(`Coverage shards failed:\n${failedShards.join("\n")}`);
+    process.exitCode = 1;
+  }
 }
 
 if (import.meta.main) {

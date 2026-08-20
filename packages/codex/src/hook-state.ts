@@ -4,11 +4,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 const stateFileName = "hook-state.json";
-const lockFileName = "hook-state.lock";
+const journalFileName = "hook-state.events.jsonl";
 const maxDirtyPaths = 50;
-const lockRetryCount = 100;
-const lockRetryDelayMs = 5;
-const staleLockAgeMs = 30_000;
 
 export type HookState = {
   dirtyPaths: string[];
@@ -30,22 +27,12 @@ function statePath(pluginData: string): string {
   return path.join(pluginData, stateFileName);
 }
 
-function lockPath(pluginData: string): string {
-  return path.join(pluginData, lockFileName);
-}
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function normalizeDirtyPath(dirtyPath: string): string {
   return dirtyPath.trim().replaceAll("\\", "/");
-}
-
-function sleepSync(milliseconds: number): void {
-  const buffer = new SharedArrayBuffer(4);
-  const view = new Int32Array(buffer);
-  Atomics.wait(view, 0, 0, milliseconds);
 }
 
 function uniqueTempPath(pluginData: string): string {
@@ -67,68 +54,6 @@ function mergeDirtyPaths(
     ...emptyHookState(),
     dirtyPaths: [...new Set(merged)].slice(-maxDirtyPaths),
   };
-}
-
-function acquireLock(pluginData: string): number | undefined {
-  const targetLockPath = lockPath(pluginData);
-
-  for (let attempt = 0; attempt < lockRetryCount; attempt++) {
-    try {
-      return fs.openSync(targetLockPath, "wx");
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        "code" in error &&
-        error.code === "EEXIST"
-      ) {
-        if (removeStaleLock(targetLockPath)) {
-          continue;
-        }
-
-        sleepSync(lockRetryDelayMs);
-        continue;
-      }
-
-      return undefined;
-    }
-  }
-
-  return undefined;
-}
-
-function removeStaleLock(targetLockPath: string): boolean {
-  let stats: fs.Stats;
-
-  try {
-    stats = fs.statSync(targetLockPath);
-  } catch {
-    return false;
-  }
-
-  if (Date.now() - stats.mtimeMs < staleLockAgeMs) {
-    return false;
-  }
-
-  try {
-    fs.unlinkSync(targetLockPath);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function releaseLock(pluginData: string, fileDescriptor: number): void {
-  try {
-    fs.closeSync(fileDescriptor);
-  } catch {
-    // Ignore close failures; unlink still gives future hook runs a chance.
-  }
-
-  try {
-    fs.unlinkSync(lockPath(pluginData));
-  } catch {
-    // A missing lock file is safe: bounded retries prevent permanent blocking.
-  }
 }
 
 function coerceHookState(value: unknown): HookState {
@@ -156,17 +81,111 @@ function coerceHookState(value: unknown): HookState {
   };
 }
 
+type JournalEvent =
+  | { kind: "add_dirty_paths"; dirtyPaths: string[] }
+  | { kind: "record_kb_check"; impactCheckRun: boolean; sourceFiles: string[] }
+  | { kind: "clear" }
+  | { kind: "replace"; state: HookState };
+
+function journalPath(pluginData: string): string {
+  return path.join(pluginData, journalFileName);
+}
+
+function applyJournalEvent(state: HookState, event: JournalEvent): HookState {
+  switch (event.kind) {
+    case "add_dirty_paths":
+      return {
+        ...state,
+        dirtyPaths: mergeDirtyPathValues(state.dirtyPaths, event.dirtyPaths),
+      };
+    case "record_kb_check":
+      return {
+        ...state,
+        kbCheckRun: true,
+        impactCheckRun: state.impactCheckRun || event.impactCheckRun,
+        impactCheckedPaths: event.impactCheckRun
+          ? mergeDirtyPathValues(state.impactCheckedPaths, event.sourceFiles)
+          : state.impactCheckedPaths,
+      };
+    case "clear":
+      return emptyHookState();
+    case "replace":
+      return coerceHookState(event.state);
+  }
+}
+
+function readJournal(pluginData: string, initialState: HookState): HookState {
+  let contents: string;
+  try {
+    contents = fs.readFileSync(journalPath(pluginData), "utf8");
+  } catch {
+    return initialState;
+  }
+
+  return contents.split("\n").reduce((state, line) => {
+    if (line.trim().length === 0) return state;
+    try {
+      const value: unknown = JSON.parse(line);
+      if (!isRecord(value) || typeof value.kind !== "string") return state;
+      if (value.kind === "clear")
+        return applyJournalEvent(state, { kind: "clear" });
+      if (value.kind === "replace" && isRecord(value.state)) {
+        return applyJournalEvent(state, {
+          kind: "replace",
+          state: coerceHookState(value.state),
+        });
+      }
+      if (value.kind === "add_dirty_paths" && Array.isArray(value.dirtyPaths)) {
+        return applyJournalEvent(state, {
+          kind: "add_dirty_paths",
+          dirtyPaths: value.dirtyPaths.filter(
+            (entry): entry is string => typeof entry === "string",
+          ),
+        });
+      }
+      if (value.kind === "record_kb_check") {
+        return applyJournalEvent(state, {
+          kind: "record_kb_check",
+          impactCheckRun: value.impactCheckRun === true,
+          sourceFiles: Array.isArray(value.sourceFiles)
+            ? value.sourceFiles.filter(
+                (entry): entry is string => typeof entry === "string",
+              )
+            : [],
+        });
+      }
+    } catch {
+      // A process can be terminated after opening the journal but before its
+      // complete line is visible. Ignore only that incomplete event; later
+      // events remain readable and durable.
+    }
+    return state;
+  }, initialState);
+}
+
+function appendJournalEvent(pluginData: string, event: JournalEvent): void {
+  fs.mkdirSync(pluginData, { recursive: true });
+  fs.appendFileSync(
+    journalPath(pluginData),
+    `${JSON.stringify(event)}\n`,
+    "utf8",
+  );
+}
+
 export function loadHookState(pluginData: string | undefined): HookState {
   if (!pluginData) {
     return emptyHookState();
   }
 
   try {
-    return coerceHookState(
-      JSON.parse(fs.readFileSync(statePath(pluginData), "utf8")),
+    return readJournal(
+      pluginData,
+      coerceHookState(
+        JSON.parse(fs.readFileSync(statePath(pluginData), "utf8")),
+      ),
     );
   } catch {
-    return emptyHookState();
+    return readJournal(pluginData, emptyHookState());
   }
 }
 
@@ -178,8 +197,9 @@ export function saveHookState(
     return;
   }
 
-  fs.mkdirSync(pluginData, { recursive: true });
   const boundedState = coerceHookState(state);
+  appendJournalEvent(pluginData, { kind: "replace", state: boundedState });
+  fs.mkdirSync(pluginData, { recursive: true });
   const tempPath = uniqueTempPath(pluginData);
   fs.writeFileSync(tempPath, `${JSON.stringify(boundedState)}\n`);
   fs.renameSync(tempPath, statePath(pluginData));
@@ -199,26 +219,11 @@ export function addDirtyPaths(
     return fallbackState;
   }
 
-  fs.mkdirSync(pluginData, { recursive: true });
-  const lockFileDescriptor = acquireLock(pluginData);
-
-  if (lockFileDescriptor === undefined) {
-    return fallbackState;
-  }
-
-  try {
-    const lockedState = loadHookState(pluginData);
-    const nextState: HookState = {
-      ...lockedState,
-      dirtyPaths: mergeDirtyPathValues(lockedState.dirtyPaths, dirtyPaths),
-    };
-    saveHookState(pluginData, nextState);
-    return nextState;
-  } catch {
-    return fallbackState;
-  } finally {
-    releaseLock(pluginData, lockFileDescriptor);
-  }
+  appendJournalEvent(pluginData, {
+    kind: "add_dirty_paths",
+    dirtyPaths: [...dirtyPaths],
+  });
+  return loadHookState(pluginData);
 }
 
 function mergeDirtyPathValues(
@@ -263,23 +268,16 @@ export function recordKbMcpTool(
     return fallbackState;
   }
 
-  fs.mkdirSync(pluginData, { recursive: true });
-  const lockFileDescriptor = acquireLock(pluginData);
-
-  if (lockFileDescriptor === undefined) {
-    return fallbackState;
+  if (normalized !== "kb_check") {
+    return initialState;
   }
 
-  try {
-    const lockedState = loadHookState(pluginData);
-    const nextState = update(lockedState);
-    saveHookState(pluginData, nextState);
-    return nextState;
-  } catch {
-    return fallbackState;
-  } finally {
-    releaseLock(pluginData, lockFileDescriptor);
-  }
+  appendJournalEvent(pluginData, {
+    kind: "record_kb_check",
+    impactCheckRun: options.impactCheckRun === true,
+    sourceFiles: [...(options.sourceFiles ?? [])],
+  });
+  return loadHookState(pluginData);
 }
 
 export function clearDirtyPaths(pluginData: string | undefined): HookState {
@@ -289,19 +287,7 @@ export function clearDirtyPaths(pluginData: string | undefined): HookState {
     return clearedState;
   }
 
-  fs.mkdirSync(pluginData, { recursive: true });
-  const lockFileDescriptor = acquireLock(pluginData);
-
-  if (lockFileDescriptor === undefined) {
-    return clearedState;
-  }
-
-  try {
-    saveHookState(pluginData, clearedState);
-    return clearedState;
-  } catch {
-    return clearedState;
-  } finally {
-    releaseLock(pluginData, lockFileDescriptor);
-  }
+  appendJournalEvent(pluginData, { kind: "clear" });
+  saveHookState(pluginData, clearedState);
+  return loadHookState(pluginData);
 }

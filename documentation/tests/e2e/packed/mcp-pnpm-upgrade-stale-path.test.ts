@@ -71,6 +71,10 @@ function pinLocalKibiTransitives(
   sandbox: PnpmUpgradeSandbox,
   tarballs: Tarballs,
 ): void {
+  // This is a deliberate upgrade fixture: pin the transitive package versions
+  // while simulating the consumer's old-to-new MCP transition. The ordinary
+  // packed-install path has no overrides and exercises resolver behavior as
+  // an end user would see it.
   writeFileSync(
     join(sandbox.projectDir, "package.json"),
     JSON.stringify(

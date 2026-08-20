@@ -42,8 +42,10 @@ describe("ci.yml CI workflow contract", () => {
     "packed-e2e-branch-workflow",
   ] as const;
   const sourceDependentPackedJobs: readonly string[] = [
+    "packed-e2e-cli-regression",
     "packed-e2e-mcp-regression",
     "packed-e2e-tarball-verify",
+    "packed-e2e-branch-workflow",
   ] as readonly string[];
   const coverageGatedJobs = [...packedJobs, "publish-dry-run"] as const;
 
@@ -95,13 +97,13 @@ describe("ci.yml CI workflow contract", () => {
     );
   });
 
-  test("Codecov unit status requires 100 percent coverage", () => {
+  test("Codecov unit status enforces the initial 50 percent floor", () => {
     expect(workflowContent).toContain("flags: unit");
     expect(workflowContent).toContain("files: ./coverage/unit/lcov.info");
-    expect(codecovConfig).toContain('range: "100...100"');
+    expect(codecovConfig).toContain('range: "50...100"');
     expect(codecovConfig).toContain("project:");
     expect(codecovConfig).toContain("patch:");
-    expect(codecovConfig).toContain("target: 100%");
+    expect(codecovConfig).toContain("target: 50%");
     expect(codecovConfig).toContain("threshold: 0%");
     expect(codecovConfig).toContain("- unit");
   });

@@ -13,11 +13,26 @@ type LineCoverage = {
   readonly suffix: string;
 };
 
+type FunctionCoverage = {
+  readonly line: number;
+  readonly name: string;
+  readonly hits: number;
+};
+
+type BranchCoverage = {
+  readonly line: number;
+  readonly block: string;
+  readonly branch: string;
+  readonly taken: string;
+};
+
 type LcovRecord = {
   readonly sourceFile: string;
   readonly testName: string;
   readonly functionFound: number;
   readonly functionHit: number;
+  readonly functions: Map<string, FunctionCoverage>;
+  readonly branches: Map<string, BranchCoverage>;
   readonly lines: Map<number, LineCoverage>;
 };
 
@@ -31,13 +46,56 @@ function parseRecord(record: string): LcovRecord | null {
   if (sourceFile === undefined || sourceFile.length === 0) return null;
 
   const lines = new Map<number, LineCoverage>();
-  for (const line of record.split("\n")) {
-    const match = line.match(/^DA:(\d+),(\d+)(,.*)?$/);
-    if (match === null) continue;
+  const functions = new Map<string, FunctionCoverage>();
+  const functionLinesByName = new Map<string, number[]>();
+  const branches = new Map<string, BranchCoverage>();
 
-    const lineNumber = Number(match[1]);
-    const hits = Number(match[2]);
-    const suffix = match[3] ?? "";
+  for (const line of record.split("\n")) {
+    const functionMatch = line.match(/^FN:(\d+),(.*)$/);
+    if (functionMatch !== null) {
+      const functionLine = Number(functionMatch[1]);
+      const name = functionMatch[2] ?? "";
+      const key = `${functionLine}:${name}`;
+      functions.set(key, { line: functionLine, name, hits: 0 });
+      functionLinesByName.set(name, [
+        ...(functionLinesByName.get(name) ?? []),
+        functionLine,
+      ]);
+      continue;
+    }
+
+    const functionDataMatch = line.match(/^FNDA:(\d+),(.*)$/);
+    if (functionDataMatch !== null) {
+      const name = functionDataMatch[2] ?? "";
+      const functionLine = functionLinesByName.get(name)?.[0] ?? 0;
+      const key = `${functionLine}:${name}`;
+      const current = functions.get(key);
+      functions.set(key, {
+        line: current?.line ?? functionLine,
+        name,
+        hits: Number(functionDataMatch[1]),
+      });
+      continue;
+    }
+
+    const branchMatch = line.match(/^BRDA:(\d+),([^,]*),([^,]*),(.*)$/);
+    if (branchMatch !== null) {
+      const branch = {
+        line: Number(branchMatch[1]),
+        block: branchMatch[2] ?? "",
+        branch: branchMatch[3] ?? "",
+        taken: branchMatch[4] ?? "-",
+      };
+      branches.set(`${branch.line}:${branch.block}:${branch.branch}`, branch);
+      continue;
+    }
+
+    const lineMatch = line.match(/^DA:(\d+),(\d+)(,.*)?$/);
+    if (lineMatch === null) continue;
+
+    const lineNumber = Number(lineMatch[1]);
+    const hits = Number(lineMatch[2]);
+    const suffix = lineMatch[3] ?? "";
     const current = lines.get(lineNumber);
     if (current === undefined || hits > current.hits) {
       lines.set(lineNumber, { hits, suffix });
@@ -49,7 +107,30 @@ function parseRecord(record: string): LcovRecord | null {
     testName: record.match(/^TN:(.*)$/m)?.[1] ?? "",
     functionFound: numericField(record, "FNF"),
     functionHit: numericField(record, "FNH"),
+    functions,
+    branches,
     lines,
+  };
+}
+
+function mergeBranch(
+  existing: BranchCoverage,
+  incoming: BranchCoverage,
+): BranchCoverage {
+  const existingTaken = Number(existing.taken);
+  const incomingTaken = Number(incoming.taken);
+  if (Number.isNaN(existingTaken) && Number.isNaN(incomingTaken)) {
+    return existing;
+  }
+
+  return {
+    ...existing,
+    taken: String(
+      Math.max(
+        Number.isNaN(existingTaken) ? 0 : existingTaken,
+        Number.isNaN(incomingTaken) ? 0 : incomingTaken,
+      ),
+    ),
   };
 }
 
@@ -60,6 +141,8 @@ function mergeRecord(
   if (existing === undefined) {
     return {
       ...incoming,
+      functions: new Map(incoming.functions),
+      branches: new Map(incoming.branches),
       lines: new Map(incoming.lines),
     };
   }
@@ -72,29 +155,78 @@ function mergeRecord(
     }
   }
 
+  const functions = new Map(existing.functions);
+  for (const [key, incomingFunction] of incoming.functions) {
+    const existingFunction = functions.get(key);
+    if (
+      existingFunction === undefined ||
+      incomingFunction.hits > existingFunction.hits
+    ) {
+      functions.set(key, incomingFunction);
+    }
+  }
+
+  const branches = new Map(existing.branches);
+  for (const [key, incomingBranch] of incoming.branches) {
+    const existingBranch = branches.get(key);
+    branches.set(
+      key,
+      existingBranch === undefined
+        ? incomingBranch
+        : mergeBranch(existingBranch, incomingBranch),
+    );
+  }
+
+  const hasFunctionIdentities = functions.size > 0;
   return {
     sourceFile: existing.sourceFile,
     testName: existing.testName,
-    functionFound: Math.max(existing.functionFound, incoming.functionFound),
-    // Bun currently emits function totals without function identities. Keep
-    // this conservative when shards overlap; line coverage is merged exactly.
-    functionHit: Math.max(existing.functionHit, incoming.functionHit),
+    functionFound: hasFunctionIdentities
+      ? functions.size
+      : Math.max(existing.functionFound, incoming.functionFound),
+    functionHit: hasFunctionIdentities
+      ? [...functions.values()].filter((fn) => fn.hits > 0).length
+      : Math.max(existing.functionHit, incoming.functionHit),
+    functions,
+    branches,
     lines,
   };
 }
 
 function renderRecord(record: LcovRecord): string {
+  const functions = [...record.functions.values()].sort(
+    (left, right) =>
+      left.line - right.line || left.name.localeCompare(right.name),
+  );
+  const branches = [...record.branches.values()].sort(
+    (left, right) =>
+      left.line - right.line ||
+      left.block.localeCompare(right.block) ||
+      left.branch.localeCompare(right.branch),
+  );
   const lines = [...record.lines.entries()].sort(
     ([left], [right]) => left - right,
   );
   const lineCount = lines.length;
   const hitLineCount = lines.filter(([, coverage]) => coverage.hits > 0).length;
+  const hitBranchCount = branches.filter(
+    (branch) => branch.taken !== "-" && Number(branch.taken) > 0,
+  ).length;
 
   return [
     `TN:${record.testName}`,
     `SF:${record.sourceFile}`,
+    ...functions.map((fn) => `FN:${fn.line},${fn.name}`),
+    ...functions.map((fn) => `FNDA:${fn.hits},${fn.name}`),
     `FNF:${record.functionFound}`,
     `FNH:${record.functionHit}`,
+    ...branches.map(
+      (branch) =>
+        `BRDA:${branch.line},${branch.block},${branch.branch},${branch.taken}`,
+    ),
+    ...(branches.length > 0
+      ? [`BRF:${branches.length}`, `BRH:${hitBranchCount}`]
+      : []),
     ...lines.map(
       ([lineNumber, coverage]) =>
         `DA:${lineNumber},${coverage.hits}${coverage.suffix}`,

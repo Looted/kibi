@@ -5,7 +5,7 @@ coordinates:
   SYM-001:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 997
+    sourceEndLine: 1015
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 107
   SYM-003:
@@ -2255,9 +2255,9 @@ coordinates:
   SYM-auto-01A7A4554EF9:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 682
+    sourceEndLine: 702
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 671
+    sourceLine: 691
   SYM-auto-02C5362C86BE:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2315,9 +2315,9 @@ coordinates:
   SYM-auto-17A7EF53F461:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 698
+    sourceEndLine: 718
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 687
+    sourceLine: 707
   SYM-auto-1861120B3765:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -2399,9 +2399,9 @@ coordinates:
   SYM-auto-29DF88F7A567:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 282
+    sourceEndLine: 302
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 278
+    sourceLine: 298
   SYM-auto-2A53383A4D89:
     sourceColumn: 12
     sourceEndColumn: 64
@@ -2483,9 +2483,9 @@ coordinates:
   SYM-auto-4A8343B906BF:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 292
+    sourceEndLine: 312
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 290
+    sourceLine: 310
   SYM-auto-4B78DAEF6C6B:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2579,9 +2579,9 @@ coordinates:
   SYM-auto-6CE6FE1E5AA4:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 703
+    sourceEndLine: 723
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 701
+    sourceLine: 721
   SYM-auto-711E3868D47B:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2645,9 +2645,9 @@ coordinates:
   SYM-auto-88E6CA6A3463:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 778
+    sourceEndLine: 798
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 760
+    sourceLine: 780
   SYM-auto-897151BA8338:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2753,15 +2753,15 @@ coordinates:
   SYM-auto-AA7E401E854D:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 755
+    sourceEndLine: 775
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 746
+    sourceLine: 766
   SYM-auto-AD2DCA2227C8:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 743
+    sourceEndLine: 763
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 708
+    sourceLine: 728
   SYM-auto-AD376CE47FDF:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2777,9 +2777,9 @@ coordinates:
   SYM-auto-B4518227A075:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 287
+    sourceEndLine: 307
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 284
+    sourceLine: 304
   SYM-auto-B4EA84AAACA8:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2801,15 +2801,15 @@ coordinates:
   SYM-auto-B892D7934A27:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 666
+    sourceEndLine: 686
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 602
+    sourceLine: 622
   SYM-auto-B9A2DDEE871F:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 275
+    sourceEndLine: 295
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 271
+    sourceLine: 291
   SYM-auto-BDE75AA4DB60:
     sourceColumn: 12
     sourceEndColumn: 20
@@ -2891,9 +2891,9 @@ coordinates:
   SYM-auto-E94328F678DF:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 790
+    sourceEndLine: 810
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 783
+    sourceLine: 803
   SYM-auto-EB53162A3CF2:
     sourceColumn: 13
     sourceEndColumn: 55
@@ -3959,9 +3959,9 @@ coordinates:
   SYM-cli-PrologProcess-getPid:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 961
+    sourceEndLine: 979
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 959
+    sourceLine: 977
   SYM-cli-PrologProcess-invalidateCache:
     sourceColumn: 2
     sourceEndColumn: 3
@@ -3971,9 +3971,9 @@ coordinates:
   SYM-cli-PrologProcess-isRunning:
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 957
+    sourceEndLine: 975
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 953
+    sourceLine: 971
   SYM-cli-PrologProcess-query:
     sourceColumn: 8
     sourceEndColumn: 3
@@ -3995,9 +3995,9 @@ coordinates:
   SYM-cli-PrologProcess-terminate:
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 996
+    sourceEndLine: 1014
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 963
+    sourceLine: 981
   SYM-cli-PrologProcess-terminateProcessTree:
     sourceColumn: 16
     sourceEndColumn: 3
@@ -5369,7 +5369,7 @@ coordinates:
   SYM-cli-prolog-shared-fixture-tests:
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 395
+    sourceEndLine: 411
     sourceFile: packages/cli/tests/prolog.test.ts
     sourceLine: 1
   SYM-cli-protocol-execute-operation:
@@ -5981,9 +5981,9 @@ coordinates:
   SYM-codex-HookState:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 18
+    sourceEndLine: 15
     sourceFile: packages/codex/src/hook-state.ts
-    sourceLine: 13
+    sourceLine: 10
   SYM-codex-KbMcpToolCall:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -5999,9 +5999,9 @@ coordinates:
   SYM-codex-addDirtyPaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 222
+    sourceEndLine: 227
     sourceFile: packages/codex/src/hook-state.ts
-    sourceLine: 188
+    sourceLine: 208
   SYM-codex-bootstrapReminder:
     sourceColumn: 13
     sourceEndColumn: 164
@@ -6011,9 +6011,9 @@ coordinates:
   SYM-codex-clearDirtyPaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 307
+    sourceEndLine: 293
     sourceFile: packages/codex/src/hook-state.ts
-    sourceLine: 285
+    sourceLine: 283
   SYM-codex-directKbEditWarning:
     sourceColumn: 13
     sourceEndColumn: 112
@@ -6071,9 +6071,9 @@ coordinates:
   SYM-codex-loadHookState:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 171
+    sourceEndLine: 190
     sourceFile: packages/codex/src/hook-state.ts
-    sourceLine: 159
+    sourceLine: 175
   SYM-codex-packageName:
     sourceColumn: 13
     sourceEndColumn: 39
@@ -6101,9 +6101,9 @@ coordinates:
   SYM-codex-recordKbMcpTool:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 283
+    sourceEndLine: 281
     sourceFile: packages/codex/src/hook-state.ts
-    sourceLine: 231
+    sourceLine: 236
   SYM-codex-runHook:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -6113,9 +6113,9 @@ coordinates:
   SYM-codex-saveHookState:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 186
+    sourceEndLine: 206
     sourceFile: packages/codex/src/hook-state.ts
-    sourceLine: 173
+    sourceLine: 192
   SYM-collectMarkdownFiles:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -9635,15 +9635,15 @@ coordinates:
   SYM-packed-cleanup-shared-install:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 257
+    sourceEndLine: 277
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 249
+    sourceLine: 269
   SYM-packed-create-sandbox:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 544
+    sourceEndLine: 564
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 403
+    sourceLine: 423
   SYM-packed-e2e-runner:
     sourceColumn: 25
     sourceEndColumn: 43
@@ -9653,7 +9653,7 @@ coordinates:
   SYM-packed-install-manifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 34
+    sourceEndLine: 31
     sourceFile: documentation/tests/e2e/packed/packed-install-manifest.ts
     sourceLine: 6
   SYM-packed-isolated-sandbox-env:
@@ -9665,9 +9665,9 @@ coordinates:
   SYM-packed-pack-all:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 397
+    sourceEndLine: 417
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 329
+    sourceLine: 349
   SYM-packed-parity-bundle-paths:
     sourceColumn: 13
     sourceEndColumn: 10
@@ -9749,27 +9749,27 @@ coordinates:
   SYM-packed-prepare-shared-install:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 247
+    sourceEndLine: 267
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 243
+    sourceLine: 263
   SYM-packed-stop-runtime-engines:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 597
+    sourceEndLine: 617
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 558
+    sourceLine: 578
   SYM-packed-tarballs-type:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 268
+    sourceEndLine: 288
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 260
+    sourceLine: 280
   SYM-packed-test-sandbox:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 323
+    sourceEndLine: 343
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 295
+    sourceLine: 315
   SYM-parity-build-entity-delete-audit-goal:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -10922,6 +10922,24 @@ coordinates:
     sourceEndLine: 170
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     sourceLine: 162
+  SYM-scripts-coverageManifest-collectProductionSourceFiles:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 45
+    sourceFile: scripts/coverage-manifest.ts
+    sourceLine: 30
+  SYM-scripts-coverageManifest-sourceFilesInLcov:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 52
+    sourceFile: scripts/coverage-manifest.ts
+    sourceLine: 48
+  SYM-scripts-coverageManifest-writeCoverageManifestAudit:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 74
+    sourceFile: scripts/coverage-manifest.ts
+    sourceLine: 55
   SYM-scripts-finalizeLcov:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -10931,15 +10949,15 @@ coordinates:
   SYM-scripts-mergeLcovContents:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 129
+    sourceEndLine: 261
     sourceFile: scripts/merge-lcov.ts
-    sourceLine: 109
+    sourceLine: 241
   SYM-scripts-runUnitCoverage:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 113
+    sourceEndLine: 159
     sourceFile: scripts/run-unit-coverage.ts
-    sourceLine: 92
+    sourceLine: 102
   SYM-scripts-skillopt-eval-scoring-held-out-predicate-PredicateVariant:
     sourceColumn: 12
     sourceEndColumn: 68

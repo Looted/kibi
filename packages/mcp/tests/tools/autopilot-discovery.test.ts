@@ -525,8 +525,22 @@ describe("autopilot discovery", () => {
     const sourceFile = path.join(fixture.root, "src", "unreadable.ts");
     fs.writeFileSync(testFile, 'import { test } from "bun:test";\n');
     fs.writeFileSync(sourceFile, "export const unreadable = true;\n");
-    fs.chmodSync(testFile, 0);
-    fs.chmodSync(sourceFile, 0);
+    const originalReadFileSync = fs.readFileSync;
+    fs.readFileSync = ((filePath: fs.PathLike, ...args: unknown[]) => {
+      const normalizedPath = path.resolve(String(filePath));
+      if (
+        normalizedPath === path.resolve(testFile) ||
+        normalizedPath === path.resolve(sourceFile)
+      ) {
+        const error = new Error("permission denied") as NodeJS.ErrnoException;
+        error.code = "EACCES";
+        throw error;
+      }
+      return Reflect.apply(originalReadFileSync, fs, [
+        filePath,
+        ...args,
+      ] as Parameters<typeof fs.readFileSync>);
+    }) as typeof fs.readFileSync;
 
     try {
       const discovery = discoverProviderEvidence(
@@ -541,8 +555,7 @@ describe("autopilot discovery", () => {
         ]),
       );
     } finally {
-      fs.chmodSync(testFile, 0o644);
-      fs.chmodSync(sourceFile, 0o644);
+      fs.readFileSync = originalReadFileSync;
     }
   });
 

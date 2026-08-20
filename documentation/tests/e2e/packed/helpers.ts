@@ -38,7 +38,7 @@ export function isolatedPackedSandboxEnv(
   overrides: NodeJS.ProcessEnv = {},
 ): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = { ...process.env, ...overrides };
-  delete env.KIBI_BRANCH;
+  env.KIBI_BRANCH = undefined;
   const explicit = overrides.KIBI_BRANCH;
   if (
     typeof explicit === "string" &&
@@ -80,7 +80,12 @@ function resolveNpmBinary(): string {
   }
 
   try {
-    const npmPath = execFileSync("which", ["npm"], { encoding: "utf8" }).trim();
+    const locator = process.platform === "win32" ? "where.exe" : "which";
+    const npmPath = execFileSync(locator, ["npm"], {
+      encoding: "utf8",
+    })
+      .split(/\r?\n/)[0]
+      ?.trim();
     if (npmPath) {
       return npmPath;
     }
@@ -91,9 +96,24 @@ function resolveNpmBinary(): string {
   return "npm";
 }
 
+function npmPackCommand(npmBinary: string): {
+  command: string;
+  args: string[];
+} {
+  if (/\.(?:c?m?js)$/i.test(npmBinary)) {
+    return { command: process.execPath, args: [npmBinary] };
+  }
+  return { command: npmBinary, args: [] };
+}
+
 function resolveGitBinary(): string {
   try {
-    const gitPath = execFileSync("which", ["git"], { encoding: "utf8" }).trim();
+    const locator = process.platform === "win32" ? "where.exe" : "which";
+    const gitPath = execFileSync(locator, ["git"], {
+      encoding: "utf8",
+    })
+      .split(/\r?\n/)[0]
+      ?.trim();
     if (gitPath) {
       return gitPath;
     }
@@ -225,7 +245,7 @@ async function bootstrapSharedInstall(): Promise<void> {
   sharedInstallPromise = (async () => {
     console.log("📥 Bootstrapping shared packed test installation...");
     writePackedInstallManifest(npmPrefix, tarballs);
-    await run(npmBinary, ["install", "--legacy-peer-deps", "--no-audit"], {
+    await run(npmBinary, ["install", "--no-audit"], {
       cwd: npmPrefix,
       env,
       timeoutMs: 300000,
@@ -358,10 +378,10 @@ export async function packAll(): Promise<Tarballs> {
       console.log(`  Packing packages/${pkg}...`);
 
       try {
-        const npmCommand = npmBinary === "npm" ? "npm" : `\"${npmBinary}\"`;
+        const npmCommand = npmPackCommand(npmBinary);
         const result = execFileSync(
-          "/bin/bash",
-          ["-lc", `${npmCommand} pack --json --ignore-scripts`],
+          npmCommand.command,
+          [...npmCommand.args, "pack", "--json"],
           {
             cwd: pkgDir,
             encoding: "utf8",
@@ -495,7 +515,7 @@ export function createSandbox(): TestSandbox {
       sharedInstallPromise = (async () => {
         console.log("📥 Installing packages into shared sandbox...");
         writePackedInstallManifest(npmPrefix, tarballs);
-        await run(npmBinary, ["install", "--legacy-peer-deps", "--no-audit"], {
+        await run(npmBinary, ["install", "--no-audit"], {
           cwd: npmPrefix,
           env,
           timeoutMs: 300000,

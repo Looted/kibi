@@ -57,35 +57,10 @@ function writeConsumerManifest(
         dependencies: Object.fromEntries(
           packageNames.map((pkg) => [`kibi-${pkg}`, `file:${tarballs[pkg]}`]),
         ),
-        overrides: {
-          "kibi-mcp": {
-            "kibi-cli": "$kibi-cli",
-            "kibi-runtime": "$kibi-runtime",
-            "kibi-core": "$kibi-core",
-          },
-        },
-        pnpm: {
-          overrides: {
-            "kibi-core": `file:${tarballs.core}`,
-            "kibi-cli": `file:${tarballs.cli}`,
-            "kibi-runtime": `file:${tarballs.runtime}`,
-            "kibi-mcp": `file:${tarballs.mcp}`,
-          },
-        },
       },
       null,
       2,
     ),
-    "utf8",
-  );
-  writeFileSync(
-    join(dir, "pnpm-workspace.yaml"),
-    `overrides:\n${[
-      `  kibi-core: file:${tarballs.core}`,
-      `  kibi-cli: file:${tarballs.cli}`,
-      `  kibi-runtime: file:${tarballs.runtime}`,
-      `  kibi-mcp: file:${tarballs.mcp}`,
-    ].join("\n")}\n`,
     "utf8",
   );
 }
@@ -93,8 +68,8 @@ function writeConsumerManifest(
 function verifyConsumer(dir: string, packageManager: "npm" | "pnpm"): void {
   const args =
     packageManager === "npm"
-      ? ["install", "--ignore-scripts", "--no-audit"]
-      : ["install", "--ignore-scripts", "--no-frozen-lockfile"];
+      ? ["install", "--no-audit"]
+      : ["install", "--no-frozen-lockfile"];
   const command = packageManager === "npm" ? "npm" : "pnpm";
   const offline = process.env.KIBI_RELEASE_CONTRACT_OFFLINE === "1";
   execFileSync(command, offline ? [...args, "--offline"] : args, {

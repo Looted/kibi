@@ -230,7 +230,7 @@ export async function installTarballsWithPnpm(
   options: { offline?: boolean } = {},
 ): Promise<CommandResult> {
   // implements REQ-mcp-pnpm-upgrade-stale-path
-  const installArgs = ["add", "--ignore-scripts"];
+  const installArgs = ["add"];
   if (options.offline !== false) {
     installArgs.push("--offline");
   }
@@ -290,7 +290,12 @@ function findPrePackedTarball(
 
 function resolveNpmForPack(): string {
   try {
-    const npm = execFileSync("which", ["npm"], { encoding: "utf8" }).trim();
+    const locator = process.platform === "win32" ? "where.exe" : "which";
+    const npm = execFileSync(locator, ["npm"], {
+      encoding: "utf8",
+    })
+      .split(/\r?\n/)[0]
+      ?.trim();
     if (npm) {
       return npm;
     }
@@ -298,6 +303,7 @@ function resolveNpmForPack(): string {
   return "npm";
 }
 
+// implements REQ-mcp-pnpm-upgrade-stale-path
 export async function packAllForPnpmUpgrade(): Promise<Tarballs> {
   if (cachedTarballsPromise) {
     return cachedTarballsPromise;
@@ -323,10 +329,12 @@ export async function packAllForPnpmUpgrade(): Promise<Tarballs> {
     const npm = resolveNpmForPack();
     for (const pkg of packagesForPack) {
       const packageDir = join(repoRoot, "packages", pkg);
-      const npmCommand = npm === "npm" ? "npm" : `"${npm}"`;
+      const npmCommand = /\.(?:c?m?js)$/i.test(npm)
+        ? { command: process.execPath, args: [npm] }
+        : { command: npm, args: [] };
       const result = execFileSync(
-        "/bin/bash",
-        ["-lc", `${npmCommand} pack --json --ignore-scripts`],
+        npmCommand.command,
+        [...npmCommand.args, "pack", "--json"],
         { cwd: packageDir, encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] },
       );
       const packResult = parseNpmPackJsonOutput(result);

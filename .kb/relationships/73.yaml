@@ -27,3 +27,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-31f1b0024ced
+  - type: implements
+    from: SYM-scripts-coverageManifest-collectProductionSourceFiles
+    to: REQ-014
+    created_at: 2026-08-20T10:35:54.332Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d70b00fb8f9a
+  - type: covered_by
+    from: SYM-scripts-coverageManifest-collectProductionSourceFiles
+    to: TEST-scripts-unit-coverage-runner
+    created_at: 2026-08-20T10:35:54.345Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ff5704b7b24

@@ -52,6 +52,22 @@ describe("PrologProcess", () => {
     expect(result.bindings.X).toBe("42");
   });
 
+  test("preserves multiline quoted bindings in long-lived sessions", async () => {
+    prolog = new PrologProcess({ oneShot: false });
+    await prolog.start();
+    await prolog.query(
+      "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
+    );
+
+    const result = await prolog.query(
+      'JsonString = "{\\n  \\"count\\": 1\\n}"',
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.bindings.JsonString).toContain('"count": 1');
+    expect(result.bindings.JsonString).toContain("\n");
+  });
+
   test("translates existence_error to friendly message", async () => {
     const result = await sharedProlog.query("nonexistent_predicate(foo)");
     expect(result.success).toBe(false);

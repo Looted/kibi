@@ -235,7 +235,7 @@ export function installOpencodeTarball(
 ): void {
   // implements REQ-opencode-kibi-plugin-v1
   log("  📥 Installing kibi-opencode from tarball...");
-  const installArgs = ["install", "--legacy-peer-deps", "--no-audit"];
+  const installArgs = ["install", "--no-audit"];
   const tarballEnv = process.env.KIBI_TEST_TARBALLS;
 
   for (const dep of ["core", "cli", "runtime"] as const) {

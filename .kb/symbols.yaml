@@ -4685,8 +4685,7 @@ symbols:
       - type: covered_by
         target: TEST-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable
-      resource examples
+    title: predicate guidance loads a canonical decision tree with immutable resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -26194,3 +26193,33 @@ symbols:
         target: TEST-kibi-github-report-e2e
       - type: executable_for
         target: TEST-kibi-github-report-integration
+  - id: SYM-scripts-coverageManifest-collectProductionSourceFiles
+    title: collectProductionSourceFiles
+    status: active
+    sourceFile: scripts/coverage-manifest.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-scripts-unit-coverage-runner
+      - type: implements
+        target: REQ-014
+  - id: SYM-scripts-coverageManifest-sourceFilesInLcov
+    title: sourceFilesInLcov
+    status: active
+    sourceFile: scripts/coverage-manifest.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-scripts-unit-coverage-runner
+      - type: implements
+        target: REQ-014
+  - id: SYM-scripts-coverageManifest-writeCoverageManifestAudit
+    title: writeCoverageManifestAudit
+    status: active
+    sourceFile: scripts/coverage-manifest.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-scripts-unit-coverage-runner
+      - type: implements
+        target: REQ-014
