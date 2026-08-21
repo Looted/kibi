@@ -90,8 +90,8 @@ describe("strict proof workflow contract", () => {
 
   test("ratchet baseline fixes the denominator and tracks every observed gap", () => {
     expect(baseline.mode).toBe("ratchet");
-    expect(baseline.currentRequirements).toBe(91);
-    expect(baseline.proofProven).toBe(21);
+    expect(baseline.currentRequirements).toBe(96);
+    expect(baseline.proofProven).toBe(26);
     expect(baseline.currentUnproven).toBe(70);
     expect(Object.keys(baseline.trackedGaps).sort()).toEqual([
       "contradiction_check_incomplete",

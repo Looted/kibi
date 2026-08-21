@@ -1179,7 +1179,11 @@ describe("semantic advisor prose analysis", () => {
         id: "DISABLED-UNTIL",
         text: "Analytics and Sentry must stay disabled until users grant consent.",
         expectedName: "guard",
-        expectedArgs: ["sentry", "users_grant_consent", "disabled"],
+        expectedArgs: [
+          "analytics_and_sentry",
+          "users_grant_consent",
+          "disabled",
+        ],
       },
       {
         id: "WHEN-MUST",

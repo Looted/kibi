@@ -34,3 +34,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-18d818bd262c
+  - type: executable_for
+    from: SYM-kibi-delete-composed-source-writes
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-21T12:23:42.466Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f30937c78f7

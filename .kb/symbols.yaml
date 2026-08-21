@@ -4636,13 +4636,18 @@ symbols:
         target: TEST-004
   - id: SYM-cli-run-aggregated-checks
     title: runAggregatedChecks
+    status: active
     sourceFile: packages/cli/src/commands/aggregated-checks.ts
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-mcp-tool-check-coverage
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: implements
+        target: REQ-mcp-tool-check
   - id: SYM-cli-run-json-invocation
     title: runJsonInvocation
     sourceFile: packages/cli/src/cli-json-command.ts
@@ -7312,15 +7317,18 @@ symbols:
         target: TEST-mcp-skills-resource-discoverability
   - id: SYM-handleKbSuggestPredicates
     title: handleKbSuggestPredicates
+    status: active
     sourceFile: packages/mcp/src/tools/suggest-predicates.ts
-    links:
-      - REQ-002
-      - REQ-mcp-suggest-predicates
+    symbol_role: unknown
     relationships:
-      - type: implements
-        target: REQ-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
       - type: covered_by
         target: TEST-mcp-suggest-predicates
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-mcp-suggest-predicates
   - id: SYM-handleKbSymbolsRefresh
     title: handleKbSymbolsRefresh
     sourceFile: packages/mcp/src/tools/symbols.ts
@@ -10583,11 +10591,12 @@ symbols:
     title: executeDelete
     sourceFile: packages/cli/src/operations/mutation/delete.ts
     symbol_role: behavioral
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-parity-existing-relationships
     title: existingRelationships
     status: active
@@ -10883,17 +10892,22 @@ symbols:
         target: TEST-opencode-kibi-plugin-v1
   - id: SYM-predicate-build-suggestion
     title: buildSuggestion
+    status: active
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-mcp-suggest-predicates
-      - type: implements
-        target: REQ-kibi-ontology-convergence-witnesses
-      - type: covered_by
-        target: TEST-mcp-suggest-predicates
       - type: covered_by
         target: TEST-kibi-ontology-convergence-witnesses
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
+      - type: implements
+        target: REQ-kibi-ontology-convergence-witnesses
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-mcp-suggest-predicates
   - id: SYM-predicate-catalog-part-1
     title: PREDICATE_CATALOG_1
     sourceFile: packages/cli/src/operations/modeling/predicate-catalog-1.ts
@@ -20119,21 +20133,26 @@ symbols:
         target: TEST-005
   - id: SYM-suggest-predicates-core-handler
     title: handleKbSuggestPredicates
+    status: active
     sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-kibi-logical-requirement-coverage
-      - type: implements
-        target: REQ-kibi-ontology-convergence-witnesses
-      - type: covered_by
-        target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-kibi-ontology-convergence-witnesses
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-kibi-ontology-convergence-witnesses
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
   - id: SYM-SuggestPredicatesArgs
     title: SuggestPredicatesArgs
     sourceFile: packages/cli/src/operations/modeling/predicate-types.ts
@@ -24453,9 +24472,12 @@ symbols:
         target: REQ-branch-store-recovery-v2
   - id: SYM-auto-CC9A2A107D90
     title: createParityWorkspace
-    status: active
     sourceFile: packages/cli/tests/parity/helpers.ts
     symbol_role: behavioral
+    status: active
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-operation-interface-parity
   - id: SYM-auto-F6D9F411400B
     title: normalizeParityValue
     status: active
@@ -26226,15 +26248,20 @@ symbols:
     status: active
     sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
     symbol_role: behavioral
+    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-cursor-consumer-local-mcp-launcher-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
       - type: implements
         target: REQ-cursor-consumer-local-mcp-launcher-v1
       - type: implements
         target: REQ-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
   - id: SYM-cursor-launcher-tests
     title: runLauncher
     status: active
@@ -26256,42 +26283,179 @@ symbols:
         target: TEST-cursor-consumer-local-mcp-launcher-v1
       - type: executable_for
         target: TEST-cursor-kibi-plugin-v1
+      - type: executable_for
+        target: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
   - id: SYM-cursor-parseWorkspaceFolderPaths
     title: parseWorkspaceFolderPaths
     status: active
     sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
     symbol_role: behavioral
+    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: covered_by
+        target: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
       - type: implements
         target: REQ-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
   - id: SYM-cursor-resolveWorkspaceRoot
     title: resolveWorkspaceRoot
     status: active
     sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
     symbol_role: behavioral
+    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: covered_by
+        target: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
       - type: implements
         target: REQ-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
   - id: SYM-cursor-launchKibiMcp
     title: launchKibiMcp
     status: active
     sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
     symbol_role: behavioral
+    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: covered_by
+        target: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
       - type: implements
         target: REQ-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
   - id: SYM-codex-packed-plugin-e2e
     title: packed Codex plugin consumer-local MCP registration
     status: active
+    sourceFile: documentation/tests/e2e/packed/codex-plugin.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
     relationships:
       - type: executable_for
         target: TEST-codex-consumer-local-mcp-registration-v1
+  - id: SYM-codex-mcp-registration-config
+    title: Codex MCP registration config
+    status: active
+    sourceFile: packages/codex/.mcp.json
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-codex-consumer-local-mcp-registration-v1
+      - type: implements
+        target: REQ-codex-consumer-local-mcp-registration-v1
+  - id: SYM-kibi-predicate-suggestion-relevance-e2e
+    title: predicate suggestion relevance e2e
+    status: active
+    sourceFile: documentation/tests/e2e/packed/predicate-suggestion-relevance.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    tags:
+      - test-case
+      - node
+      - predicate
+      - relevance
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+  - id: SYM-kibi-predicate-semantic-applicability
+    title: evaluateSemanticApplicability
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/predicate-applicability.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+  - id: SYM-kibi-predicate-binding-provenance
+    title: predicate binding provenance
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/predicate-bindings.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+  - id: SYM-kibi-launcher-argument-inference
+    title: inferLauncherArgs
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/predicate-inference-launcher.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+  - id: SYM-kibi-launcher-predicate-rules
+    title: LAUNCHER_PREDICATE_RULES
+    status: active
+    sourceFile: packages/cli/src/operations/semantic-advisor/predicate-rules-launcher.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+  - id: SYM-kibi-predicate-schema-draft
+    title: buildPredicateSchemaDraft
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+  - id: SYM-core-expression-dependency
+    title: expression_dependency
+    status: active
+    sourceFile: packages/core/src/logic_ir.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+  - id: SYM-core-check-selected-json
+    title: check_selected_json
+    status: active
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-tool-check-coverage
+      - type: implements
+        target: REQ-mcp-tool-check
+  - id: SYM-kibi-consumer-local-plugin-launcher-ontology-e2e
+    title: consumer-local plugin launcher ontology e2e
+    status: active
+    sourceFile: documentation/tests/e2e/packed/predicate-suggestion-relevance.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    tags:
+      - test-case
+      - node
+      - predicate
+      - launcher
+      - ontology
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
   - id: SYM-test-runtime-engine-daemon
     title: startPackedEngineDaemonAndQuery
     status: active
@@ -26319,3 +26483,191 @@ symbols:
         target: TEST-runtime-packed-engine-daemon
       - type: implements
         target: REQ-runtime-packed-engine-daemon
+  - id: 36ec3bc91de13ec6
+    title: assertPackedPredicateSuggestionRelevance
+    status: active
+    sourceFile: documentation/tests/e2e/packed/predicate-suggestion-relevance.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+  - id: 5112611e8378cf73
+    title: assertPackedConsumerLocalPluginLauncherOntology
+    status: active
+    sourceFile: documentation/tests/e2e/packed/predicate-suggestion-relevance.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+  - id: c4e27c9dd7a7948c
+    title: SemanticApplicability
+    sourceFile: packages/cli/src/operations/modeling/predicate-applicability.ts
+    symbol_role: type-shape
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+  - id: 7e908d2d61025d58
+    title: isGenericPlaceholder
+    sourceFile: packages/cli/src/operations/modeling/predicate-bindings.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+  - id: 86c21fecd3d7b203
+    title: classifyBinding
+    sourceFile: packages/cli/src/operations/modeling/predicate-bindings.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+  - id: 3ddd3dd671e3f236
+    title: MIN_APPLICABILITY_SCORE
+    sourceFile: packages/cli/src/operations/modeling/predicate-applicability.ts
+    symbol_role: unknown
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+  - id: 4fad501950207b0b
+    title: STRONG_APPLICABILITY_SCORE
+    sourceFile: packages/cli/src/operations/modeling/predicate-applicability.ts
+    symbol_role: unknown
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+  - id: 7657f944663e9895
+    title: WEAK_CANDIDATE_MARGIN
+    sourceFile: packages/cli/src/operations/modeling/predicate-applicability.ts
+    symbol_role: unknown
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+  - id: 26e0fdf782563d2c
+    title: aggregateBindingProvenance
+    sourceFile: packages/cli/src/operations/modeling/predicate-bindings.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+  - id: 76bad0a66461775e
+    title: bindingCanBeApplied
+    sourceFile: packages/cli/src/operations/modeling/predicate-bindings.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+  - id: 7580de62d3ca1d60
+    title: usageHintsForSchema
+    sourceFile: packages/cli/src/operations/modeling/predicate-ranker.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+  - id: 20446b29996b593e
+    title: rankSchema
+    sourceFile: packages/cli/src/operations/modeling/predicate-ranker.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+  - id: d36577498a152edf
+    title: RankedPredicateSchema
+    sourceFile: packages/cli/src/operations/modeling/predicate-ranker.ts
+    symbol_role: type-shape
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+  - id: 28f7e953a0a87fbb
+    title: PredicateScoreComponents
+    sourceFile: packages/cli/src/operations/modeling/predicate-types.ts
+    symbol_role: type-shape
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+  - id: 6bbf244479d3b27f
+    title: RecommendedPredicateSchema
+    sourceFile: packages/cli/src/operations/modeling/predicate-types.ts
+    symbol_role: type-shape
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+  - id: 7d817470d43bd8f1
+    title: BindingProvenance
+    sourceFile: packages/cli/src/operations/modeling/predicate-types.ts
+    symbol_role: type-shape
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+  - id: 758516ddb337c842
+    title: exactLauncherPredicateArgs
+    sourceFile: packages/cli/src/operations/semantic-advisor/predicate-rules-launcher.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+  - id: 8bec915de42a76db
+    title: SemanticPredicateSchemaDraft
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    symbol_role: type-shape
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-relevance-v1
+  - id: SYM-kibi-delete-composed-source-writes
+    title: composes two authored symbol deletions into one plan write
+    sourceFile: packages/cli/tests/commands/delete.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    status: active
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-operation-interface-parity

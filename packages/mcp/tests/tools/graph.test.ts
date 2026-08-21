@@ -309,7 +309,11 @@ describe("kb_graph canonical traceability chain traversal", () => {
   let testKbPath: string;
 
   beforeAll(async () => {
-    prolog = new RealPrologProcess();
+    // Keep the long-lived session used by production MCP callers. Bun's
+    // default one-shot fallback starts a fresh SWI-Prolog process for every
+    // validation and persistence query; this chain's six upserts can then
+    // exceed the test timeout and leave in-flight writes behind.
+    prolog = new RealPrologProcess({ oneShot: false });
     await prolog.start();
     await prolog.query(
       "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",

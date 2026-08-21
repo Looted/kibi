@@ -81,5 +81,15 @@ export function scoreExactPredicates3(
     }
     return 0;
   }
+  if (schema.predicate_name === "permission_rule") {
+    if (
+      /^(?:only\s+)?[a-z][a-z\s_-]*\s+(?:may|can|is\s+allowed\s+to|must\s+not|cannot|can't|is\s+forbidden\s+to)\s+.+?\.?$/i.test(
+        text,
+      )
+    ) {
+      return 0.98;
+    }
+    return 0;
+  }
   return null;
 }

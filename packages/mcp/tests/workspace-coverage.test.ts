@@ -32,19 +32,27 @@ describe.serial("workspace uncovered path coverage", () => {
   let isolationRoot: string;
   let workspaceRoot: string;
 
+  function tempRootParent(): string {
+    const candidates =
+      process.platform === "linux" ? ["/dev/shm", os.tmpdir()] : [os.tmpdir()];
+    const parent = candidates.find(
+      (candidate) =>
+        fs.existsSync(candidate) &&
+        !fs.existsSync(path.join(candidate, ".git")) &&
+        !fs.existsSync(path.join(candidate, ".kb")),
+    );
+    if (!parent) {
+      throw new Error("No marker-free temporary directory is available");
+    }
+    return parent;
+  }
+
   beforeEach(() => {
     isolationRoot = fs.mkdtempSync(
-      path.join(os.tmpdir(), "kibi-workspace-coverage-"),
+      path.join(tempRootParent(), "kibi-workspace-coverage-"),
     );
     workspaceRoot = path.join(isolationRoot, "workspace");
     fs.mkdirSync(workspaceRoot);
-
-    for (const marker of [".git", ".kb"]) {
-      const staleMarker = path.join(os.tmpdir(), marker);
-      if (fs.existsSync(staleMarker)) {
-        fs.rmSync(staleMarker, { recursive: true, force: true });
-      }
-    }
 
     setEnvVar("KIBI_WORKSPACE", undefined);
     setEnvVar("KIBI_PROJECT_ROOT", undefined);

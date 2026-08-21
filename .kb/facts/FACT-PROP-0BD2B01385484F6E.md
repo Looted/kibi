@@ -17,7 +17,7 @@ operator: eq
 value_type: string
 value_string: consumer-local
 claim_key: CLAIM-387DE160D72D606F
-claim_text: The kibi-codex plugin registers consumer-local MCP startup behavior for Codex.
+claim_text: The kibi-codex plugin registers consumer-local MCP startup behavior for Codex
 id: FACT-PROP-0BD2B01385484F6E
 type: fact
 ---

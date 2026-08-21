@@ -2972,6 +2972,57 @@ test(check_all_json_with_options_serializes_dict, [setup(setup_kb), cleanup(clea
     assertion(Row.get(entityId) == "SYM-ADR-NEEDED"),
     assertion(Row.get(description) == "Symbol has no ADR constraint.").
 
+test(check_rule_verifiability_normalizes_typed_schema_reference, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    rule_fixture_json(oblige, typed_schema_reference, RuleJson),
+    assert_fixture_entity(fact, 'FACT-RULE-SCHEMA-TYPED', "Typed rule schema", active, [
+        fact_kind=rule_schema,
+        rule_name="kibi.logic.v1",
+        argument_names=["rule_ir"],
+        argument_types=["logic_ir"]
+    ]),
+    assert_fixture_entity(fact, 'FACT-RULE-TYPED', "Rule with typed schema reference", active, [
+        fact_kind=rule,
+        rule_ir=RuleJson,
+        rule_hash="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        rule_schema_id="FACT-RULE-SCHEMA-TYPED",
+        rule_name="kibi.logic.v1",
+        semantic_key="typed_schema_reference",
+        claim_key="CLAIM-EEEEEEEEEEEEEEEE",
+        claim_text="A typed rule schema reference remains verifiable",
+        claim_span_start=0,
+        claim_span_end=58
+    ]),
+    kb_entity('FACT-RULE-TYPED', fact, StoredProps),
+    memberchk(rule_schema_id=StoredSchemaId, StoredProps),
+    assertion(StoredSchemaId = ^^("FACT-RULE-SCHEMA-TYPED", _)),
+    assert_fixture_entity(req, 'REQ-RULE-TYPED', "Requirement with typed rule", open, []),
+    kb_assert_relationship(requires_rule, 'REQ-RULE-TYPED', 'FACT-RULE-TYPED', []),
+    check_rule_verifiability(Violations),
+    assertion(Violations == []).
+
+test(check_rule_verifiability_normalizes_typed_invalid_schema_reference, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    rule_fixture_json(oblige, typed_invalid_schema_reference, RuleJson),
+    assert_fixture_entity(fact, 'FACT-NOT-RULE-SCHEMA-TYPED', "Typed non-schema fact", active, [
+        fact_kind=observation
+    ]),
+    assert_fixture_entity(fact, 'FACT-RULE-INVALID-TYPED', "Rule with typed invalid schema reference", active, [
+        fact_kind=rule,
+        rule_ir=RuleJson,
+        rule_hash="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        rule_schema_id="FACT-NOT-RULE-SCHEMA-TYPED",
+        rule_name="kibi.logic.v1",
+        semantic_key="typed_invalid_schema_reference",
+        claim_key="CLAIM-FFFFFFFFFFFFFFFF",
+        claim_text="A typed rule schema reference identifies the schema kind",
+        claim_span_start=0,
+        claim_span_end=62
+    ]),
+    assert_fixture_entity(req, 'REQ-RULE-INVALID-TYPED', "Requirement with typed invalid rule", open, []),
+    kb_assert_relationship(requires_rule, 'REQ-RULE-INVALID-TYPED', 'FACT-RULE-INVALID-TYPED', []),
+    check_rule_verifiability(Violations),
+    member(violation('rule-verifiability', 'REQ-RULE-INVALID-TYPED', Description, _, _), Violations),
+    assertion(sub_string(Description, _, _, _, "FACT-NOT-RULE-SCHEMA-TYPED, which is not a rule_schema fact")).
+
 test(check_must_priority_coverage_reports_missing_scenario_semantics, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
     assert_fixture_entity(req, 'REQ-MUST-NO-SCENARIO', "Must req without scenario", active, [priority=must]),
     assert_fixture_entity(test, 'TEST-MUST-NO-SCENARIO', "Direct validating test", active, []),
@@ -3059,6 +3110,14 @@ test(check_domain_contradictions_wraps_conflict_reason, [setup(setup_kb), cleanu
     JsonViolation.evidence.witnesses = [JsonWitness],
     assertion(JsonWitness.left.factId == 'FACT-CONFLICT-A'),
     assertion(JsonWitness.right.factId == 'FACT-CONFLICT-B').
+
+test(check_domain_contradictions_and_witnesses_returns_matching_evidence, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_contradicting_requirement_pair('REQ-CONFLICT-A', 10, 'REQ-CONFLICT-B', 20),
+    checks:check_domain_contradictions_and_witnesses(Violations, Witnesses),
+    Violations = [violation('domain-contradictions', "REQ-CONFLICT-A/REQ-CONFLICT-B", _, _, "")],
+    Witnesses = [Witness],
+    assertion(Witness.kind == strict_property),
+    assertion(Witness.status == contradiction).
 
 test(rule_contradiction_witness_is_source_bound_and_blocks_proof, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_rule_requirement_pair(customer, customer),

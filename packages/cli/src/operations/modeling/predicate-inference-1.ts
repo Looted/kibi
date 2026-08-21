@@ -59,6 +59,18 @@ export function inferExceptionRuleArgs(
   const exception = text.match(
     /^(?:the\s+)?(?<subject>[a-z][a-z\s_-]*?)\s+(?:must|shall|should)\s+(?<behavior>.+?)\s+unless\s+(?:the\s+)?(?<exception>.+?)\.?$/i,
   );
+  const broadException = text.match(
+    /^(?:the\s+)?(?<subject>.+?)\s+(?:is|are|remains?|constitutes?)\s+(?:the\s+)?(?:only\s+)?exception(?:\s+to\s+(?<behavior>.+?))?\.?$/i,
+  );
+  if (broadException?.groups?.subject) {
+    return [
+      normalizeSubjectKey(broadException.groups.subject),
+      normalizePredicateToken(
+        broadException.groups.behavior ?? "normal_behavior",
+      ),
+      "exception",
+    ];
+  }
   return [
     exception?.groups?.subject
       ? normalizeSubjectKey(exception.groups.subject)

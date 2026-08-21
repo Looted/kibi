@@ -1021,77 +1021,80 @@ describe.serial("server tools coverage", () => {
   test("addTool times out hung handlers, resets Prolog, logs diagnostics, and cleans in-flight requests", async () => {
     const originalTimeout = process.env.KIBI_MCP_TOOL_TIMEOUT_MS;
     process.env.KIBI_MCP_TOOL_TIMEOUT_MS = "5";
-    const { runtime, spies, trackedRequests } = createRuntime();
-    const { server, registered } = createCapturingServer();
-    const deferred = createDeferred<never>();
-    const rawArgs = {
-      marker: "timeout",
-      _requestId: "req-timeout",
-      _diagnostic_telemetry: { is_autonomous: true },
-    };
-    const businessArgs = { marker: "timeout", _requestId: "req-timeout" };
-    const telemetry = { is_autonomous: true };
-    const handler = mock(
-      (_args: Record<string, unknown>): Promise<never> => deferred.promise,
-    );
-
-    spies.diagnosticModeEnabled.mockImplementation(() => true);
-    spies.extractToolCallPayload.mockImplementation(() => ({
-      businessArgs,
-      telemetry,
-    }));
-    spies.classifyDiagnosticError.mockImplementation((error: unknown) => {
-      const err = error instanceof Error ? error : new Error(String(error));
-      return {
-        error_name: err.name,
-        error_message: err.message,
-        error_category: "tool_timeout",
-        error_stage: "tool_timeout",
-        error_summary: "MCP tool execution exceeded its bounded timeout.",
+    try {
+      const { runtime, spies, trackedRequests } = createRuntime();
+      const { server, registered } = createCapturingServer();
+      const deferred = createDeferred<never>();
+      const rawArgs = {
+        marker: "timeout",
+        _requestId: "req-timeout",
+        _diagnostic_telemetry: { is_autonomous: true },
       };
-    });
-    spies.activeBranchName.mockImplementation(async () => "feature/timeout");
-    spies.prologProcess.mockImplementation(async () => null);
+      const businessArgs = { marker: "timeout", _requestId: "req-timeout" };
+      const telemetry = { is_autonomous: true };
+      const handler = mock(
+        (_args: Record<string, unknown>): Promise<never> => deferred.promise,
+      );
 
-    addTool(server, "timeout_tool", "timeout tool", {}, handler, runtime);
+      spies.diagnosticModeEnabled.mockImplementation(() => true);
+      spies.extractToolCallPayload.mockImplementation(() => ({
+        businessArgs,
+        telemetry,
+      }));
+      spies.classifyDiagnosticError.mockImplementation((error: unknown) => {
+        const err = error instanceof Error ? error : new Error(String(error));
+        return {
+          error_name: err.name,
+          error_message: err.message,
+          error_category: "tool_timeout",
+          error_stage: "tool_timeout",
+          error_summary: "MCP tool execution exceeded its bounded timeout.",
+        };
+      });
+      spies.activeBranchName.mockImplementation(async () => "feature/timeout");
+      spies.prologProcess.mockImplementation(async () => null);
 
-    const tool = getRegisteredTool(registered, "timeout_tool");
-    const callPromise = invokeTool(tool, rawArgs);
+      addTool(server, "timeout_tool", "timeout tool", {}, handler, runtime);
 
-    await flushWrappedHandlerSetup();
+      const tool = getRegisteredTool(registered, "timeout_tool");
+      const callPromise = invokeTool(tool, rawArgs);
 
-    expect(handler).toHaveBeenCalledWith(businessArgs);
-    expect(trackedRequests.size).toBe(1);
+      await flushWrappedHandlerSetup();
 
-    const error = await getRejectedError(callPromise);
+      expect(handler).toHaveBeenCalledWith(businessArgs);
+      expect(trackedRequests.size).toBe(1);
 
-    expect(error.message).toBe(
-      "Tool timeout_tool failed: Tool timeout_tool timed out after 5ms",
-    );
-    expect(trackedRequests.size).toBe(0);
-    expect(spies.resetProlog).toHaveBeenCalledWith(
-      "tool timeout: timeout_tool",
-    );
-    expect(spies.appendUsageLogLine).toHaveBeenCalledWith(
-      expect.objectContaining({
-        request_id: "req-timeout",
-        tool: "timeout_tool",
-        status: "error",
-        diagnostic_phase: "error",
-        error_category: "tool_timeout",
-        reset_attempted: true,
-        reset_succeeded: true,
-        reset_error: null,
-        diagnostic_hints: expect.arrayContaining([
-          expect.stringContaining("tool_timeout runtime:"),
-        ]),
-        tool_call: expect.objectContaining({
+      const error = await getRejectedError(callPromise);
+
+      expect(error.message).toBe(
+        "Tool timeout_tool failed: Tool timeout_tool timed out after 5ms",
+      );
+      expect(trackedRequests.size).toBe(0);
+      expect(spies.resetProlog).toHaveBeenCalledWith(
+        "tool timeout: timeout_tool",
+      );
+      expect(spies.appendUsageLogLine).toHaveBeenCalledWith(
+        expect.objectContaining({
+          request_id: "req-timeout",
+          tool: "timeout_tool",
+          status: "error",
           diagnostic_phase: "error",
+          error_category: "tool_timeout",
+          reset_attempted: true,
+          reset_succeeded: true,
+          reset_error: null,
+          diagnostic_hints: expect.arrayContaining([
+            expect.stringContaining("tool_timeout runtime:"),
+          ]),
+          tool_call: expect.objectContaining({
+            diagnostic_phase: "error",
+          }),
         }),
-      }),
-    );
-    restoreEnvVar("KIBI_MCP_TOOL_TIMEOUT_MS", originalTimeout);
-  });
+      );
+    } finally {
+      restoreEnvVar("KIBI_MCP_TOOL_TIMEOUT_MS", originalTimeout);
+    }
+  }, 10_000);
 
   test("registerAllTools registers all configured tools and delegates to the matching runtime handlers", async () => {
     const { runtime, spies, mockProlog } = createRuntime();

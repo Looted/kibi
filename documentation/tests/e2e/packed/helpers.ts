@@ -262,11 +262,16 @@ async function bootstrapSharedInstall(): Promise<void> {
   sharedInstallPromise = (async () => {
     console.log("📥 Bootstrapping shared packed test installation...");
     writePackedInstallManifest(npmPrefix, tarballs);
-    await run(npmBinary, ["install", "--no-audit"], {
+    const installResult = await run(npmBinary, ["install", "--no-audit"], {
       cwd: npmPrefix,
       env,
       timeoutMs: 300000,
     });
+    if (installResult.exitCode !== 0) {
+      throw new Error(
+        `Shared packed installation failed with exit code ${installResult.exitCode}.\nstdout:\n${installResult.stdout}\nstderr:\n${installResult.stderr}`,
+      );
+    }
     await verifyKibiCliResolutionImpl(npmPrefix, env);
   })();
 

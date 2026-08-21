@@ -131,6 +131,19 @@ export interface SemanticPredicateClaim {
   readonly polarity: "assert" | "deny";
 }
 
+export interface SemanticPredicateSchemaDraft {
+  readonly predicate_name: string;
+  readonly argument_names: readonly string[];
+  readonly argument_types: readonly string[];
+  readonly title?: string;
+  readonly description?: string;
+  readonly argument_descriptions?: readonly string[];
+  readonly candidate_bindings?: Readonly<Record<string, string>>;
+  readonly unresolved_bindings?: readonly string[];
+  readonly rationale?: string;
+  readonly reuse_scope?: string;
+}
+
 export type SemanticModelingSuggestion =
   | {
       readonly kind: "strict_property";
@@ -193,11 +206,7 @@ export type SemanticModelingSuggestion =
       readonly evidence: string;
       readonly rationale: string;
       readonly suggested_next_tool: "kb_suggest_predicates";
-      readonly recommendedPredicateSchema: {
-        readonly predicate_name: string;
-        readonly argument_names: readonly string[];
-        readonly argument_types: readonly string[];
-      } | null;
+      readonly recommendedPredicateSchema: SemanticPredicateSchemaDraft | null;
       readonly applyPlan: readonly Readonly<Record<string, unknown>>[];
     };
 

@@ -33,31 +33,45 @@ export async function startPackedEngineDaemonAndQuery(
     "installed kibi-runtime must export EngineClient",
   );
 
-  // Route the spawned daemon into the sandbox runtime namespace so it shares
-  // sockets and branch-store locks with engines started by sandboxed CLI
-  // commands instead of fighting them for the rdf_db lock.
-  const previousRuntimeDir = process.env.KIBI_RUNTIME_DIR;
-  process.env.KIBI_RUNTIME_DIR = sandbox.runtimeDir;
-
-  // The setup hook's `kibi sync` may leave an idle engine holding the branch
-  // store. Stop owned engines first so the client starts against a quiescent
-  // store instead of racing a dying daemon for the rdf_db lock.
+  // `kibi sync` in the setup hook starts the CLI-owned daemon using the
+  // sandbox runtime directory. Stop that daemon before exercising the
+  // installed runtime so this test proves that its bundled daemon can own
+  // the branch, rather than racing a second daemon against the same RDF
+  // store. EngineClient reads KIBI_RUNTIME_DIR from the current process, not
+  // from the child-process environment used by the kibi helper.
   await stopRuntimeEngines(sandbox.runtimeDir);
-
-  const client = new installed.EngineClient({
-    workspaceRoot: sandbox.repoDir,
-    branch: "develop",
-    timeout: 120000,
-  });
+  const previousRuntimeDir = process.env.KIBI_RUNTIME_DIR;
+  const previousNodePath = process.env.KIBI_NODE_PATH;
+  process.env.KIBI_RUNTIME_DIR = sandbox.runtimeDir;
+  process.env.KIBI_NODE_PATH = process.execPath;
+  let client: InstanceType<typeof installed.EngineClient> | undefined;
   try {
+    client = new installed.EngineClient({
+      workspaceRoot: sandbox.repoDir,
+      branch: "develop",
+      timeout: 120000,
+    });
     await client.start();
     return await client.query("kb_storage_status(S)");
   } finally {
-    await client.stop();
-    if (previousRuntimeDir === undefined) {
-      delete process.env.KIBI_RUNTIME_DIR;
-    } else {
-      process.env.KIBI_RUNTIME_DIR = previousRuntimeDir;
+    try {
+      // A failed start may have no reachable daemon to stop. Avoid masking the
+      // original startup error by asking EngineClient not to auto-start again;
+      // the sandbox cleanup still reaps any daemon process left behind.
+      await client?.stop(false);
+    } finally {
+      if (previousRuntimeDir === undefined) {
+        // biome-ignore lint/performance/noDelete: restore the caller's absent environment variable exactly.
+        delete process.env.KIBI_RUNTIME_DIR;
+      } else {
+        process.env.KIBI_RUNTIME_DIR = previousRuntimeDir;
+      }
+      if (previousNodePath === undefined) {
+        // biome-ignore lint/performance/noDelete: restore the caller's absent environment variable exactly.
+        delete process.env.KIBI_NODE_PATH;
+      } else {
+        process.env.KIBI_NODE_PATH = previousNodePath;
+      }
     }
   }
 }

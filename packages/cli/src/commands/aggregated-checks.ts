@@ -1,6 +1,6 @@
 import path from "node:path";
 import { type PrologProcess, resolveKbPlPath } from "../prolog.js";
-import { escapeAtom } from "../prolog/codec.js";
+import { escapeAtom, toPrologAtom } from "../prolog/codec.js";
 import type { Violation } from "./check.js";
 
 interface JsonViolation {
@@ -28,11 +28,19 @@ export async function runAggregatedChecks(
 
   const checksPlPath = path.join(path.dirname(resolveKbPlPath()), "checks.pl");
   const checksPlPathEscaped = escapeAtom(checksPlPath);
-  const query = `(use_module('${checksPlPathEscaped}'),
-    (   predicate_property(checks:check_all_json_with_options(_, _), _)
+  const fallbackQuery = `(   predicate_property(checks:check_all_json_with_options(_, _), _)
     ->  call(checks:check_all_json_with_options(JsonString, false))
     ;   call(checks:check_all_json(JsonString))
-    ))`;
+    )`;
+  const checksQuery = rulesAllowlist
+    ? `(   predicate_property(checks:check_selected_json(_, _), _)
+      ->  call(checks:check_selected_json([${[...rulesAllowlist]
+        .map(toPrologAtom)
+        .join(",")}], JsonString))
+      ;   ${fallbackQuery}
+      )`
+    : fallbackQuery;
+  const query = `(use_module('${checksPlPathEscaped}'), ${checksQuery})`;
 
   const result = await prolog.query(query);
 

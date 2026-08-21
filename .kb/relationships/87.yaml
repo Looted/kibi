@@ -104,3 +104,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-10338213fdfb
+  - type: implements
+    from: SYM-cursor-resolveWorkspaceRoot
+    to: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    created_at: 2026-08-20T22:17:33.198Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84dececf6367
+  - type: covered_by
+    from: SYM-cursor-resolveWorkspaceRoot
+    to: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    created_at: 2026-08-20T22:17:33.214Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29f62c307ad0

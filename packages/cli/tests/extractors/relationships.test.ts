@@ -84,6 +84,32 @@ describe("extractFromRelationshipShards", () => {
     });
   });
 
+  test("extracts requires_rule relationships from Logic IR shards", () => {
+    fs.writeFileSync(
+      path.join(relationshipsDir, "logic-rule.yaml"),
+      `relationships:
+  - id: rel-rule-abc123
+    type: requires_rule
+    from: REQ-LOGIC-001
+    to: FACT-RULE-001
+    created_at: "2026-08-21T10:00:00Z"
+    created_by: agent/kibi-mcp
+    source: mcp://kb_upsert`,
+    );
+
+    const results = extractFromRelationshipShards(relationshipsDir);
+    expect(results.flatMap((result) => result.relationships)).toContainEqual({
+      type: "requires_rule",
+      from: "REQ-LOGIC-001",
+      to: "FACT-RULE-001",
+      metadata: {
+        created_at: "2026-08-21T10:00:00Z",
+        created_by: "agent/kibi-mcp",
+        source: "mcp://kb_upsert",
+      },
+    });
+  });
+
   test("extracts relationships from multiple shard files", () => {
     fs.writeFileSync(
       path.join(relationshipsDir, "a1.yaml"),

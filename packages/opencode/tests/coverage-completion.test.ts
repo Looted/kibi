@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, mock, test } from "bun:test";
+import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
 import fs from "node:fs";
-import os from "node:os";
+import * as os from "node:os";
 import path from "node:path";
 
 import {
@@ -105,8 +105,10 @@ const globals = globalThis as typeof globalThis & {
 };
 
 const originalXdgCacheHome = process.env.XDG_CACHE_HOME;
+const originalXdgConfigHome = process.env.XDG_CONFIG_HOME;
 const originalAppData = process.env.APPDATA;
 const originalLocalAppData = process.env.LOCALAPPDATA;
+const originalHome = process.env.HOME;
 const originalFetch = globalThis.fetch;
 const originalPlatform = process.platform;
 
@@ -121,6 +123,11 @@ function restoreProcessState(): void {
   } else {
     process.env.XDG_CACHE_HOME = originalXdgCacheHome;
   }
+  if (originalXdgConfigHome === undefined) {
+    Reflect.deleteProperty(process.env, "XDG_CONFIG_HOME");
+  } else {
+    process.env.XDG_CONFIG_HOME = originalXdgConfigHome;
+  }
   if (originalAppData === undefined) {
     Reflect.deleteProperty(process.env, "APPDATA");
   } else {
@@ -130,6 +137,11 @@ function restoreProcessState(): void {
     Reflect.deleteProperty(process.env, "LOCALAPPDATA");
   } else {
     process.env.LOCALAPPDATA = originalLocalAppData;
+  }
+  if (originalHome === undefined) {
+    Reflect.deleteProperty(process.env, "HOME");
+  } else {
+    process.env.HOME = originalHome;
   }
   globalThis.fetch = originalFetch;
   globals.__kibi_test_scheduler_factory = undefined;
@@ -147,6 +159,20 @@ afterEach(() => {
 
 function makeTempDir(prefix: string): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+}
+
+function isolateUserEnvironment(root: string): string {
+  const home = path.join(root, "home");
+  const cacheHome = path.join(root, "cache");
+  const configHome = path.join(root, "config");
+  fs.mkdirSync(home, { recursive: true });
+  fs.mkdirSync(cacheHome, { recursive: true });
+  fs.mkdirSync(configHome, { recursive: true });
+  process.env.HOME = home;
+  process.env.XDG_CACHE_HOME = cacheHome;
+  process.env.XDG_CONFIG_HOME = configHome;
+  spyOn(os, "homedir").mockReturnValue(home);
+  return home;
 }
 
 function makeWorkspace(prefix: string): string {
@@ -272,6 +298,7 @@ describe("coverage completion for auto-update", () => {
   test("Given platform-specific caches When reading cached version Then each cache root is considered", () => {
     const tmpDir = makeTempDir("kibi-auto-update-platform-");
     try {
+      const home = isolateUserEnvironment(tmpDir);
       withPlatform("win32");
       process.env.APPDATA = path.join(tmpDir, "roaming");
       process.env.LOCALAPPDATA = path.join(tmpDir, "local");
@@ -302,7 +329,7 @@ describe("coverage completion for auto-update", () => {
 
       withPlatform("darwin");
       const darwinPackage = path.join(
-        os.homedir(),
+        home,
         "Library",
         "Caches",
         "opencode",
@@ -314,10 +341,6 @@ describe("coverage completion for auto-update", () => {
       fs.mkdirSync(path.dirname(darwinPackage), { recursive: true });
       fs.writeFileSync(darwinPackage, JSON.stringify({ version: "1.2.5" }));
       expect(getCachedPluginVersion()).toBe("1.2.5");
-      fs.rmSync(path.join(os.homedir(), "Library", "Caches", "opencode"), {
-        recursive: true,
-        force: true,
-      });
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -507,13 +530,12 @@ describe("coverage completion for auto-update", () => {
   });
 
   test("Given mocked child process When running install Then active workspace selection is covered", async () => {
-    const cacheHome = makeTempDir("kibi-auto-update-install-");
+    const tmpDir = makeTempDir("kibi-auto-update-install-");
     try {
-      process.env.XDG_CACHE_HOME = cacheHome;
+      const home = isolateUserEnvironment(tmpDir);
+      const configDir = path.join(home, ".config", "opencode");
       const configPackageJson = path.join(
-        os.homedir(),
-        ".config",
-        "opencode",
+        configDir,
         "node_modules",
         "kibi-opencode",
         "package.json",
@@ -541,14 +563,10 @@ describe("coverage completion for auto-update", () => {
       expect(execCalls[0]).toEqual({
         command: "bun",
         args: ["install"],
-        cwd: path.join(os.homedir(), ".config", "opencode"),
-      });
-      fs.rmSync(path.join(os.homedir(), ".config", "opencode"), {
-        recursive: true,
-        force: true,
+        cwd: configDir,
       });
     } finally {
-      fs.rmSync(cacheHome, { recursive: true, force: true });
+      fs.rmSync(tmpDir, { recursive: true, force: true });
     }
   });
 });

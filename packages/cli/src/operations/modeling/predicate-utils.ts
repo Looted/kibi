@@ -94,6 +94,7 @@ export function inferScope(text: string): string {
   if (lower.includes("draft")) return "draft";
   if (lower.includes("annotation")) return "active_annotation";
   if (lower.includes("session")) return "session";
+  if (/\bchanges?\b/.test(lower)) return "changes";
   return "subject";
 }
 

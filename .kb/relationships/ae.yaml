@@ -38,3 +38,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b66ae1da5971
+  - type: implements
+    from: 7e908d2d61025d58
+    to: REQ-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T10:45:27.775Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a9a14326fa5
+  - type: covered_by
+    from: 7e908d2d61025d58
+    to: TEST-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T12:53:22.130Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cef00ef92a35

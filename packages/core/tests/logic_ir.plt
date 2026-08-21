@@ -59,4 +59,10 @@ test(rejects_unstratified_negation_cycle) :-
         [], scope('', '', []), '', '', '', []),
     \+ logic_rules_stratified([A, B]).
 
+test(accepts_positive_stored_style_rules_without_generating_arities) :-
+    Head = atom(default, derived, [const('x', string)], positive, false),
+    Body = atom(default, source, [const('x', string)], positive, false),
+    Rule = rule(rule, assert, Head, Body, [], scope('', '', []), '', '', '', []),
+    once(logic_rules_stratified([Rule])).
+
 :- end_tests(logic_ir).

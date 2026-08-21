@@ -119,6 +119,10 @@ export type {
   SemanticAdvisorOperationResult,
 } from "kibi-cli/operations/semantic-advisor/types";
 export type {
+  BindingProvenance,
+  PredicateScoreComponents,
+  PredicateSuggestion,
+  RecommendedPredicateSchema,
   SuggestPredicatesArgs,
   SuggestPredicatesResult,
 } from "kibi-cli/operations/modeling/suggest-predicates";
