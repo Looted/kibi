@@ -13,7 +13,7 @@
   },
   "files": ["dist"],
   "scripts": {
-    "build": "tsc -p tsconfig.json && bun build src/index.ts --outfile dist/index.js --target node --format esm --packages bundle --external kibi-core && mkdir -p dist/skills && cp -r src/skills/. dist/skills/",
+    "build": "tsc -p tsconfig.json && bun build src/index.ts --outfile dist/index.js --target node --format esm --packages bundle --external kibi-core && bun build ../cli/src/engine-daemon.ts --outfile dist/engine-daemon.js --target node --format esm --packages bundle --external kibi-core && mkdir -p dist/skills && cp -r src/skills/. dist/skills/",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
