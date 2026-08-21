@@ -26292,3 +26292,30 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-codex-consumer-local-mcp-registration-v1
+  - id: SYM-test-runtime-engine-daemon
+    title: startPackedEngineDaemonAndQuery
+    status: active
+    sourceFile: documentation/tests/e2e/packed/runtime-engine-daemon.test.ts
+    symbol_role: behavioral
+    tags:
+      - testing
+      - engine
+      - packed
+    relationships:
+      - type: executable_for
+        target: TEST-runtime-packed-engine-daemon
+  - id: SYM-runtime-packed-daemon-build
+    title: kibi-runtime packed daemon bundle build step
+    status: active
+    sourceFile: packages/runtime/package.json
+    symbol_role: config
+    granularity_reason: config-artifact
+    tags:
+      - runtime
+      - engine
+      - packed
+    relationships:
+      - type: covered_by
+        target: TEST-runtime-packed-engine-daemon
+      - type: implements
+        target: REQ-runtime-packed-engine-daemon
