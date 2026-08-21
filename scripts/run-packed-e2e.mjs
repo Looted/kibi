@@ -28,7 +28,11 @@ try {
     process.execPath,
     [
       "--test",
-      "--test-concurrency=2",
+      // Keep packed files deterministic. The Node test runner's parallel file
+      // transport can fail while deserializing large result messages even
+      // after every named subtest passed; packed fixtures already isolate
+      // their own sandboxes, so file-level parallelism adds no coverage.
+      "--test-concurrency=1",
       ...testFiles.map((testFile) => path.resolve(testFile)),
     ],
     {

@@ -10,12 +10,33 @@ import {
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { after, describe, it } from "node:test";
-import { isolatedPackedSandboxEnv } from "./helpers.js";
-import { parseNpmPackJsonOutput } from "./npm-pack-json.js";
+import {
+  createOwnedPackedTempDirectory,
+  isolatedPackedSandboxEnv,
+} from "./helpers.js";
+import {
+  parseNpmPackJsonOutput,
+  resolveNpmPackFilename,
+} from "./npm-pack-json.js";
+import {
+  createIsolatedPnpmEnvironment,
+  resolvePnpm,
+} from "./pnpm-upgrade-utils.js";
 
 const REPO_ROOT = resolve(process.cwd());
 const packageNames = ["core", "cli", "runtime", "mcp"] as const;
 type PackageName = (typeof packageNames)[number];
+
+let releasePackDestination: string | undefined;
+
+function resolveReleasePackDestination(): string {
+  if (releasePackDestination === undefined) {
+    releasePackDestination = createOwnedPackedTempDirectory(
+      "kibi-release-tarballs-",
+    );
+  }
+  return releasePackDestination;
+}
 
 function packReleasePackage(pkg: PackageName): string {
   const suppliedRoot = process.env.KIBI_TEST_TARBALLS;
@@ -33,14 +54,19 @@ function packReleasePackage(pkg: PackageName): string {
     return join(packageDir, candidate);
   }
   const packageDir = join(REPO_ROOT, "packages", pkg);
-  const output = execFileSync("npm", ["pack", "--json"], {
-    cwd: packageDir,
-    encoding: "utf8",
-    stdio: ["pipe", "pipe", "pipe"],
-  });
+  const packDestination = resolveReleasePackDestination();
+  const output = execFileSync(
+    "npm",
+    ["pack", "--json", "--pack-destination", packDestination],
+    {
+      cwd: packageDir,
+      encoding: "utf8",
+      stdio: ["pipe", "pipe", "pipe"],
+    },
+  );
   const result = parseNpmPackJsonOutput(output)[0];
   assert.ok(result?.filename, `npm pack returned no filename for ${pkg}`);
-  return join(packageDir, result.filename);
+  return resolveNpmPackFilename(packDestination, result.filename);
 }
 
 function writeConsumerManifest(
@@ -83,17 +109,27 @@ function verifyConsumer(dir: string, packageManager: "npm" | "pnpm"): void {
     packageManager === "npm"
       ? ["install", "--no-audit"]
       : ["install", "--no-frozen-lockfile"];
-  const command = packageManager === "npm" ? "npm" : "pnpm";
+  const pnpm = packageManager === "pnpm" ? resolvePnpm() : undefined;
+  const command = pnpm?.command ?? "npm";
+  const commandPrefix = pnpm?.argsPrefix ?? [];
   const offline = process.env.KIBI_RELEASE_CONTRACT_OFFLINE === "1";
-  execFileSync(command, offline ? [...args, "--offline"] : args, {
-    cwd: dir,
-    encoding: "utf8",
-    env: isolatedPackedSandboxEnv({
-      npm_config_audit: "false",
-      ...(offline ? { npm_config_registry: "http://127.0.0.1:9" } : {}),
-    }),
-    stdio: "pipe",
-  });
+  const pnpmEnv =
+    pnpm === undefined
+      ? isolatedPackedSandboxEnv({
+          npm_config_audit: "false",
+          ...(offline ? { npm_config_registry: "http://127.0.0.1:9" } : {}),
+        })
+      : createIsolatedPnpmEnvironment(dir, pnpm).env;
+  execFileSync(
+    command,
+    [...commandPrefix, ...(offline ? [...args, "--offline"] : args)],
+    {
+      cwd: dir,
+      encoding: "utf8",
+      env: pnpmEnv,
+      stdio: "pipe",
+    },
+  );
   const probe = execFileSync(
     "node",
     [
@@ -132,7 +168,10 @@ describe("release package contracts", { concurrency: false }, () => {
       timeout: 300_000,
       skip: (() => {
         try {
-          execFileSync("pnpm", ["--version"], { stdio: "ignore" });
+          const pnpm = resolvePnpm();
+          execFileSync(pnpm.command, [...pnpm.argsPrefix, "--version"], {
+            stdio: "ignore",
+          });
           return false;
         } catch {
           return "pnpm is not installed";

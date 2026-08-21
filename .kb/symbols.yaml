@@ -26671,3 +26671,43 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-operation-interface-parity
+  - id: SYM-packed-create-owned-temp-directory
+    title: createOwnedPackedTempDirectory
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-packed-parse-npm-pack-json
+    title: parseNpmPackJsonOutput
+    status: active
+    sourceFile: documentation/tests/e2e/packed/npm-pack-json.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-packed-resolve-npm-pack-filename
+    title: resolveNpmPackFilename
+    status: active
+    sourceFile: documentation/tests/e2e/packed/npm-pack-json.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-packed-create-isolated-pnpm-environment
+    title: createIsolatedPnpmEnvironment
+    status: active
+    sourceFile: documentation/tests/e2e/packed/pnpm-upgrade-utils.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-packed-isolated-pnpm-environment
+    title: IsolatedPnpmEnvironment
+    status: active
+    sourceFile: documentation/tests/e2e/packed/pnpm-upgrade-utils.ts
+    symbol_role: type-shape
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness
