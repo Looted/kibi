@@ -746,8 +746,16 @@ export async function syncCommand(
       !validateOnly &&
       !rebuild &&
       runtime.createProlog === undefined;
+    // Re-materialize every authored shard edge whenever a source entity is
+    // refreshed. Entity-delta sync retracts outgoing relationships for changed
+    // entities before persisting their extracted relationships. Manifest
+    // entities commonly carry no inline links, so a manifest-only edit (for
+    // example, a generated coordinate refresh) would otherwise drop valid
+    // shard-only edges and leave the cache claiming they were already synced.
     const materializeAllRelationships =
-      !useEntityDelta || changedMarkdownFiles.length > 0;
+      !useEntityDelta ||
+      changedMarkdownFiles.length > 0 ||
+      changedManifestFiles.length > 0;
     const allRelationships = materializeAllRelationships
       ? Object.values(nextShardRelationships).flat().map(relationshipFromKey)
       : [...addedShardRelationships, ...removedShardRelationships];
@@ -1021,14 +1029,15 @@ export async function syncCommand(
           ),
         );
         const shardDeltaByKey = new Map<string, ExtractedRelationship>();
-        const shardCandidates = useEntityDelta
-          ? [
-              ...addedShardRelationships,
-              ...allRelationships.filter((relationship) =>
-                changedEntityIds.has(relationship.from),
-              ),
-            ]
-          : allRelationships;
+        const shardCandidates =
+          useEntityDelta && !materializeAllRelationships
+            ? [
+                ...addedShardRelationships,
+                ...allRelationships.filter((relationship) =>
+                  changedEntityIds.has(relationship.from),
+                ),
+              ]
+            : allRelationships;
         for (const relationship of shardCandidates) {
           if (
             !danglingKeys.has(

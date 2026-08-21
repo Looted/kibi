@@ -13,8 +13,7 @@
 :- use_module(library(pcre)).
 :- use_module('kb.pl').
 :- use_module('checks.pl', [
-    check_domain_contradictions/1,
-    check_domain_contradiction_witnesses/1,
+    check_domain_contradictions_and_witnesses/2,
     check_rule_safety/1,
     check_rule_verifiability/1
 ]).
@@ -26,8 +25,7 @@ requirement_proof_context(Context) :-
     requirement_proof_context(unknown, '1970-01-01T00:00:00Z', 604800, Context).
 
 requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, Context) :-
-    check_domain_contradictions(Contradictions),
-    check_domain_contradiction_witnesses(ContradictionWitnesses),
+    check_domain_contradictions_and_witnesses(Contradictions, ContradictionWitnesses),
     check_rule_safety(UnsafeRules),
     check_rule_verifiability(UnverifiableRules),
     normalize_atom(VerificationSnapshot, Snapshot),

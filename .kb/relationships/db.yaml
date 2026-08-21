@@ -69,3 +69,108 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-99fe570678f8
+  - type: constrains
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-SUBJECT-79C92ADA34274409
+    created_at: 2026-08-20T22:05:24.885Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e6b0d32fc3f
+  - type: requires_property
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-PROP-6CB6EAF6F48DC108
+    created_at: 2026-08-20T22:05:24.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19590d3128e0
+  - type: requires_property
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-PROP-60F32F10D6BCB433
+    created_at: 2026-08-20T22:05:24.917Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d239f917e6d5
+  - type: requires_rule
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-RULE-B4018810804C39BB
+    created_at: 2026-08-20T22:05:24.924Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f29cfcdb3a0b
+  - type: requires_rule
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-RULE-48AEB32CAA5D0D22
+    created_at: 2026-08-20T22:05:24.930Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f14ce9fe0772
+  - type: requires_rule
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-RULE-14136BF7761A8C21
+    created_at: 2026-08-20T22:05:24.934Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8dd2d08926ca
+  - type: requires_rule
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-RULE-235633360AF478BE
+    created_at: 2026-08-20T22:05:24.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac40fe9f1dc5
+  - type: requires_rule
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-RULE-495538D2923976DC
+    created_at: 2026-08-20T22:05:24.944Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1a8adbd58da
+  - type: requires_rule
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-RULE-050759068A89B8DD
+    created_at: 2026-08-20T22:05:24.949Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e5c31b664fa
+  - type: requires_rule
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-RULE-9F98A139BADE71B4
+    created_at: 2026-08-20T22:05:24.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bc0f92ff764
+  - type: requires_rule
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-RULE-AE090594589798D9
+    created_at: 2026-08-20T22:05:24.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6250eef2fbe7
+  - type: requires_rule
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-RULE-D0B5C9528E56F35E
+    created_at: 2026-08-20T22:05:24.962Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97a90306799a
+  - type: requires_rule
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-RULE-6F232D165E251652
+    created_at: 2026-08-20T22:05:24.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71c6b69e1b62
+  - type: specified_by
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: SCEN-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-20T22:09:28.509Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-909775b9570c
+  - type: executable_for
+    from: 5112611e8378cf73
+    to: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    created_at: 2026-08-21T10:45:09.705Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6c3ebb84437

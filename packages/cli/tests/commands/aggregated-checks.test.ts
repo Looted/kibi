@@ -170,5 +170,20 @@ describe("runAggregatedChecks", () => {
     await runAggregatedChecks(prolog, null);
     expect(capture.lastQuery).toContain("check_all_json_with_options");
     expect(capture.lastQuery).toContain("false");
+    expect(capture.lastQuery).not.toContain("check_selected_json");
+  });
+
+  test("uses the selected Prolog check path for focused rules", async () => {
+    const capture: { lastQuery?: string } = {};
+    const prolog = makeProlog(
+      { success: true, bindings: { JsonString: JSON.stringify({}) } },
+      capture,
+    );
+    await runAggregatedChecks(prolog, new Set(["logic-coverage"]));
+    expect(capture.lastQuery).toContain("check_selected_json");
+    expect(capture.lastQuery).toContain("['logic-coverage']");
+    expect(capture.lastQuery).toContain(
+      "call(checks:check_selected_json(['logic-coverage'], JsonString))",
+    );
   });
 });

@@ -416,14 +416,22 @@ export async function executeDelete(
     const authoredIds: string[] = [];
     const authoredRequirementIds: string[] = [];
     const sourceHashes: Record<string, string | null> = {};
+    // Keep the original body for rollback, while applying each deletion to the
+    // body produced by the previous deletion. A deletion plan must contain one
+    // hash-bound write per authored path; otherwise apply-plan's last write can
+    // resurrect an earlier record when multiple IDs share one manifest.
     const sourceBodies = new Map<string, string>();
-    const sourcePlans: Array<{
-      path: string;
-      mode: "write" | "delete";
-      beforeHash: string | null;
-      afterHash: string | null;
-      body?: string;
-    }> = [];
+    const evolvingSourceBodies = new Map<string, string | undefined>();
+    const sourcePlansByPath = new Map<
+      string,
+      {
+        path: string;
+        mode: "write" | "delete";
+        beforeHash: string | null;
+        afterHash: string | null;
+        body?: string;
+      }
+    >();
     for (const id of ids) {
       const safeId = id.replaceAll("'", "''");
       const exists = await prolog.query(`once(kb_entity('${safeId}', _, _))`);
@@ -456,23 +464,39 @@ export async function executeDelete(
           );
           const sourcePath = path.join(context.workspaceRoot, relativeSource);
           try {
-            const contents = await context.fs.readFile(sourcePath);
+            const original =
+              sourceBodies.get(relativeSource) ??
+              (await context.fs.readFile(sourcePath));
+            if (!sourceBodies.has(relativeSource)) {
+              sourceBodies.set(relativeSource, original);
+            }
+            const contents = evolvingSourceBodies.has(relativeSource)
+              ? evolvingSourceBodies.get(relativeSource)
+              : original;
+            if (contents === undefined) {
+              throw new Error(
+                `Authored document ${relativeSource} no longer contains ${id}`,
+              );
+            }
             const deletion = renderSourceDeletion(
               relativeSource,
               id,
               String(entity.type),
               contents,
             );
-            sourceBodies.set(relativeSource, contents);
+            evolvingSourceBodies.set(
+              relativeSource,
+              deletion.mode === "write" ? deletion.body : undefined,
+            );
             const beforeHash = createHash("sha256")
-              .update(contents)
+              .update(original)
               .digest("hex");
             const afterHash =
               deletion.body === undefined
                 ? null
                 : createHash("sha256").update(deletion.body).digest("hex");
             sourceHashes[relativeSource] = beforeHash;
-            sourcePlans.push({
+            sourcePlansByPath.set(relativeSource, {
               path: relativeSource,
               mode: deletion.mode,
               beforeHash,
@@ -488,6 +512,7 @@ export async function executeDelete(
     }
     if (authoredIds.length > 0 && context.sourcePlanApplication !== true) {
       const supersessionRequired = authoredRequirementIds.length > 0;
+      const sourcePlans = [...sourcePlansByPath.values()];
       const planBody = {
         version: "kibi.entity-deletion-plan.v1" as const,
         entityIds: authoredIds,

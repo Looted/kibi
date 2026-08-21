@@ -97,3 +97,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9fc0c7fc2071
+  - type: implements
+    from: SYM-cursor-parseWorkspaceFolderPaths
+    to: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    created_at: 2026-08-20T22:17:19.671Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e4fc8044e75
+  - type: covered_by
+    from: SYM-cursor-parseWorkspaceFolderPaths
+    to: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    created_at: 2026-08-20T22:17:19.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7adb990f0b6d

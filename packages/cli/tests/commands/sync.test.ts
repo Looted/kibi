@@ -960,6 +960,100 @@ claim_text: System must support OAuth2 authentication
   );
 
   test(
+    "re-materializes shard relationships after a manifest-only entity edit",
+    () => {
+      const testsDir = path.join(tmpDir, ".kb/tests");
+      const relationshipsDir = path.join(tmpDir, ".kb/relationships");
+      mkdirSync(testsDir, { recursive: true });
+      mkdirSync(relationshipsDir, { recursive: true });
+
+      writeFileSync(
+        path.join(testsDir, "shard-executable.md"),
+        `---
+id: TEST-SHARD-EXECUTABLE
+title: Shard executable test
+status: passing
+verification_scope: end_to_end
+---
+
+# Shard executable test
+`,
+      );
+      const manifestPath = path.join(tmpDir, ".kb/symbols.yaml");
+      writeFileSync(
+        manifestPath,
+        `symbols:
+  - id: SYM-SHARD-EXECUTABLE
+    title: Shard executable symbol
+    sourceFile: src/shard-executable.ts
+`,
+      );
+      writeFileSync(
+        path.join(relationshipsDir, "shard-executable.yaml"),
+        `relationships:
+  - id: rel-shard-executable
+    type: executable_for
+    from: SYM-SHARD-EXECUTABLE
+    to: TEST-SHARD-EXECUTABLE
+    created_at: "2026-08-21T00:00:00Z"
+    created_by: agent/test
+    source: test://sync-shard-executable
+`,
+      );
+      stageSources(
+        tmpDir,
+        ".kb/tests/shard-executable.md",
+        ".kb/symbols.yaml",
+        ".kb/relationships/shard-executable.yaml",
+      );
+
+      const initial = spawnSync("bun", [kibiBin, "sync"], {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
+      expect(initial.status, `${initial.stdout}${initial.stderr}`).toBe(0);
+      const before = JSON.parse(
+        execSync(`bun ${kibiBin} query --relationships SYM-SHARD-EXECUTABLE`, {
+          cwd: tmpDir,
+          encoding: "utf8",
+        }),
+      ) as Array<{ type?: string; from?: string; to?: string }>;
+      expect(before).toContainEqual({
+        type: "executable_for",
+        from: "SYM-SHARD-EXECUTABLE",
+        to: "TEST-SHARD-EXECUTABLE",
+      });
+
+      writeFileSync(
+        manifestPath,
+        `symbols:
+  - id: SYM-SHARD-EXECUTABLE
+    title: Updated shard executable symbol
+    sourceFile: src/shard-executable.ts
+`,
+      );
+      stageSources(tmpDir, ".kb/symbols.yaml");
+      const updated = spawnSync("bun", [kibiBin, "sync"], {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
+      expect(updated.status, `${updated.stdout}${updated.stderr}`).toBe(0);
+      const after = JSON.parse(
+        execSync(`bun ${kibiBin} query --relationships SYM-SHARD-EXECUTABLE`, {
+          cwd: tmpDir,
+          encoding: "utf8",
+        }),
+      ) as Array<{ type?: string; from?: string; to?: string }>;
+      expect(after).toContainEqual({
+        type: "executable_for",
+        from: "SYM-SHARD-EXECUTABLE",
+        to: "TEST-SHARD-EXECUTABLE",
+      });
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
     "imports markdown string links as relates_to relationships",
     async () => {
       const testsDir = path.join(tmpDir, ".kb/tests");

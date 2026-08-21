@@ -154,7 +154,16 @@ export const OPERATION_DATA_SCHEMAS: Readonly<
     requirementId: { type: ["string", "null"] },
     subject: stringValue,
     candidates: recordArray,
-    recommendedAction: stringValue,
+    recommendedAction: {
+      type: "string",
+      enum: [
+        "apply_requires_predicate",
+        "provide_argument_bindings",
+        "resolve_schema_reference",
+        "record_ontology_gap",
+      ],
+    },
+    recommendedPredicateSchema: { type: ["object", "null"] },
     applyPlan: recordArray,
     relationshipPlan: { type: ["object", "null"] },
     warnings: stringArray,

@@ -45,3 +45,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce8aab4a0b2e
+  - type: requires_predicate
+    from: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    to: FACT-PRED-D5B9A3D96F2D
+    created_at: 2026-08-20T22:14:10.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b303b30e658a
+  - type: requires_predicate
+    from: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    to: FACT-PRED-7DF9B295814F
+    created_at: 2026-08-20T22:14:10.281Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3652ffb4388
+  - type: requires_predicate
+    from: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    to: FACT-PRED-073AC8A66AD6
+    created_at: 2026-08-20T22:14:10.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3d11d94a511
+  - type: requires_predicate
+    from: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    to: FACT-PRED-27F6945747CB
+    created_at: 2026-08-20T22:14:10.291Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a95812d262d8
+  - type: requires_predicate
+    from: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    to: FACT-PRED-A39735F2CF1C
+    created_at: 2026-08-20T22:14:10.297Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f8d6fcae170
+  - type: requires_predicate
+    from: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    to: FACT-PRED-F555DB150F42
+    created_at: 2026-08-20T22:14:10.302Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a55bfe29f26
+  - type: specified_by
+    from: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    to: SCEN-kibi-consumer-local-plugin-launcher-ontology-v1
+    created_at: 2026-08-20T22:15:43.877Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-814508dd1ae1
+  - type: relates_to
+    from: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    to: REQ-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-08-20T22:15:43.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0e5747f265d

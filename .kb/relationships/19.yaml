@@ -13,3 +13,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-25e63f512c86
+  - type: implements
+    from: SYM-kibi-launcher-predicate-rules
+    to: REQ-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T08:28:31.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49ad3ce6fa6b
+  - type: covered_by
+    from: SYM-kibi-launcher-predicate-rules
+    to: TEST-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T08:28:31.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a46781689c99
+  - type: implements
+    from: 20446b29996b593e
+    to: REQ-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T10:54:17.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1fb237a31b0a
+  - type: covered_by
+    from: 20446b29996b593e
+    to: TEST-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T12:51:52.840Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e95841e9cf4

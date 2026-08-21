@@ -51,6 +51,7 @@ import {
   inferVisualLayoutRuleArgs,
   inferWarmupPolicyRuleArgs,
 } from "./predicate-inference-3.js";
+import { inferLauncherArgs } from "./predicate-inference-launcher.js";
 import type { PredicateSchemaCandidate } from "./predicate-types.js";
 import {
   inferDuration,
@@ -74,6 +75,8 @@ export function inferArgs(
   subject: string,
 ): string[] {
   const lower = text.toLowerCase();
+  const launcherArgs = inferLauncherArgs(schema.predicate_name, text, subject);
+  if (launcherArgs !== null) return launcherArgs;
   switch (schema.predicate_name) {
     case "state":
       return [subject, lower.includes("idle") ? "idle" : "active"];

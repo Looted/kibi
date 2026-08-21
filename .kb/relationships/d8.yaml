@@ -118,3 +118,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f2c08631970a
+  - type: requires_predicate
+    from: REQ-cursor-consumer-local-mcp-launcher-v1
+    to: FACT-PRED-BABC674A6E13
+    created_at: 2026-08-20T20:35:31.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe548e9ce65a
+  - type: requires_predicate
+    from: REQ-cursor-consumer-local-mcp-launcher-v1
+    to: FACT-PRED-FD73EABDF83A
+    created_at: 2026-08-20T20:35:31.824Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ceaf472b4d19
+  - type: requires_predicate
+    from: REQ-cursor-consumer-local-mcp-launcher-v1
+    to: FACT-PRED-270BA8568B7D
+    created_at: 2026-08-20T20:35:31.846Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15e9bb275032
+  - type: requires_predicate
+    from: REQ-cursor-consumer-local-mcp-launcher-v1
+    to: FACT-PRED-DD4E3E041FE1
+    created_at: 2026-08-20T20:35:31.856Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0288c6fcc1b
+  - type: requires_predicate
+    from: REQ-cursor-consumer-local-mcp-launcher-v1
+    to: FACT-PRED-FF255911CF23
+    created_at: 2026-08-20T20:35:31.866Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29df2ac15dbf
+  - type: requires_predicate
+    from: REQ-cursor-consumer-local-mcp-launcher-v1
+    to: FACT-PRED-A506C5EA5D79
+    created_at: 2026-08-20T20:35:31.876Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-91cddd6d423c

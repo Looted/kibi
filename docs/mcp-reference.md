@@ -113,7 +113,9 @@ The modeling call is read-only. Applying its plan is a separate mutation and mus
 
 Suggest ontology predicate candidates for a prose requirement before an agent writes freeform ontology notes. Agents should spell out the requirement claim, call this tool, then either apply a returned `fact_kind: predicate` plan linked with `requires_predicate`, supply exact `argumentBindings` when a fitting schema still has unbound arguments, or record the returned `review:ontology-gap` observation when no predicate fits. Gap observations include a `relates_to` review anchor so unresolved ontology work remains queryable without entering the contradiction lane.
 
-The tool ranks project-local `fact_kind: predicate_schema` facts when available and falls back to Kibi's built-in predicate catalog covering state, transitions, guards, exceptions, mutual exclusion, dependencies, ownership, retry policies, escalation rules, availability SLAs, notification routing, idempotency, data residency, audit logging, consent, lifecycle actions, conflict resolution, fallback behavior, batch operations, consistency rules, build constraints, environment safety rules, schema invariants, coding standards, migration boundaries, absence/removal requirements, offline behavior, release gates, platform consistency, preservation rules, abstraction boundaries, security configuration, ordered strategies, refresh policies, scoped authorization, documentation standards, warmup policies, visual layout rules, enforcement-location rules, reconciliation rules, throttling policies, persistence/save/discard behavior, accessibility, retention, resource constraints, feature gates, events, permissions, defaults, uniqueness, state memberships, temporal ordering, conditional behavior, rate limits, and acceptance outcomes. Built-in candidates include usage hints (`use_when` / `do_not_use_when`) so agents can choose precise predicates instead of matching keywords blindly.
+The tool ranks project-local `fact_kind: predicate_schema` facts when available and falls back to Kibi's built-in predicate catalog covering state, transitions, guards, exceptions, mutual exclusion, dependencies, ownership, retry policies, escalation rules, availability SLAs, notification routing, idempotency, data residency, audit logging, consent, lifecycle actions, conflict resolution, fallback behavior, batch operations, consistency rules, build constraints, environment safety rules, schema invariants, coding standards, migration boundaries, absence/removal requirements, offline behavior, release gates, platform consistency, preservation rules, abstraction boundaries, security configuration, ordered strategies, refresh policies, scoped authorization, documentation standards, warmup policies, visual layout rules, enforcement-location rules, reconciliation rules, throttling policies, persistence/save/discard behavior, accessibility, retention, resource constraints, feature gates, events, permissions, defaults, uniqueness, state memberships, temporal ordering, conditional behavior, rate limits, acceptance outcomes, and reusable launcher contracts (`dependency_resolution_policy`, `ordered_resolution_strategy`, `resolution_failure_policy`, `process_delegation_contract`, and `failure_behavior`). Built-in candidates include usage hints (`use_when` / `do_not_use_when`) so agents can choose precise predicates instead of matching keywords blindly.
+
+Candidate diagnostics are additive: each candidate may report `eligibility` (`eligible` or `rejected`), `rejection_reasons`, a conservative aggregate `binding_provenance` (the least-reviewable provenance across arguments), per-argument `binding_provenance_by_argument` (`explicit`, `extracted`, `inferred`, or `placeholder`), `applicability_score`, and deterministic score components. Retrieval and argument binding do not by themselves make a candidate applicable; negative evidence and margin-based abstention can reject weak or near-tied candidates. When no schema is genuinely eligible, the response uses `record_ontology_gap` and includes a non-null `recommendedPredicateSchema` draft with proposed name, ordered arguments, extracted bindings, unresolved bindings, rationale, and reuse scope for review. Draft schemas are never applied automatically.
 
 **Parameters:**
 - `text` (required): Prose requirement or claim to classify into ontology predicates.
@@ -295,58 +297,59 @@ through the previewed `kibi branch recover --apply` workflow.
 {}
 ```
 
-MK|### `kb_skills_list`
-XZ|
-PW|List bundled Kibi agent skills available for progressive disclosure. Read-only; does not mutate the KB or require Prolog.
-QW|
-RH|**Parameters:**
-ZJ|- None
-QW|
-KQ|**Returns:**
-JP|Array of skill manifests with `id`, `name`, `version`, `description`, and declared `resources`.
-MS|
-TH|**Example:**
-YP|```json
-TT|{}
-TV|```
-NJ|
-BN|### `kb_skills_load`
-HT|
-YK|Load a bundled Kibi agent skill by ID, returning its manifest metadata, Markdown body, declared resources, content hash, and source type. Read-only; does not execute scripts or require Prolog.
+### `kb_skills_list`
+
+List bundled Kibi agent skills available for progressive disclosure. Read-only; does not mutate the KB or require Prolog.
+
+**Parameters:**
+- None
+
+**Returns:**
+Array of skill manifests with `id`, `name`, `version`, `description`, and declared `resources`.
+
+**Example:**
+```json
+{}
+```
+
+### `kb_skills_load`
+
+Load a bundled Kibi agent skill by ID, returning its manifest metadata, Markdown body, declared resources, content hash, and source type. Read-only; does not execute scripts or require Prolog.
 
 The visible text includes the skill's declared resources so agents can discover follow-up `kb_skills_read` calls without guessing resource paths.
-YQ|
-RH|**Parameters:**
-ZV|- `id` (required): Bundled skill ID to load. Example: `'kibi-usage'`.
-XY|
-KQ|**Returns:**
-SB|Skill bundle with `manifest`, `body`, `resources`, `hash`, and `sourceType`.
-BQ|
-TH|**Example:**
-YP|```json
-TY|{
-RN|  "id": "kibi-usage"
-MJ|}
-HP|```
-SH|
-WV|### `kb_skills_read`
-VH|
-YX|Read a declared resource from a bundled Kibi agent skill. Resource paths are restricted to the skill manifest; arbitrary file paths are not exposed. Read-only; does not require Prolog.
-PX|
-RH|**Parameters:**
-VZ|- `id` (required): Bundled skill ID. Example: `'kibi-usage'`.
-KQ|- `resource` (required): Manifest-declared resource path to read. Example: `'resources/fact-lanes.md'`.
-YY|
-KQ|**Returns:**
-VZ|Resource contents as text.
-BM|
-TH|**Example:**
-YP|```json
-TT|{
-TV|  "id": "kibi-usage",
-BQ|  "resource": "resources/fact-lanes.md"
-SZ|}
-YN|
+
+**Parameters:**
+- `id` (required): Bundled skill ID to load. Example: `'kibi-usage'`.
+
+**Returns:**
+Skill bundle with `manifest`, `body`, `resources`, `hash`, and `sourceType`.
+
+**Example:**
+```json
+{
+  "id": "kibi-usage"
+}
+```
+
+### `kb_skills_read`
+
+Read a declared resource from a bundled Kibi agent skill. Resource paths are restricted to the skill manifest; arbitrary file paths are not exposed. Read-only; does not require Prolog.
+
+**Parameters:**
+- `id` (required): Bundled skill ID. Example: `'kibi-usage'`.
+- `resource` (required): Manifest-declared resource path to read. Example: `'resources/fact-lanes.md'`.
+
+**Returns:**
+Resource contents as text.
+
+**Example:**
+```json
+{
+  "id": "kibi-usage",
+  "resource": "resources/fact-lanes.md"
+}
+```
+
 ### `kb_find_gaps`
 
 Run curated missing/present relationship analysis over KB entities.

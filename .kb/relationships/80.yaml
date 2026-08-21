@@ -62,3 +62,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9faad000d1c5
+  - type: requires_predicate
+    from: REQ-runtime-packed-engine-daemon
+    to: FACT-RUNTIME-PACKED-ENGINE-DAEMON-SHIP
+    created_at: 2026-08-21T09:46:34.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc517f90b589
+  - type: requires_predicate
+    from: REQ-runtime-packed-engine-daemon
+    to: FACT-RUNTIME-PACKED-CONSUMER-ENGINE-START
+    created_at: 2026-08-21T09:46:34.555Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3964d7288c11
+  - type: specified_by
+    from: REQ-runtime-packed-engine-daemon
+    to: SCEN-runtime-packed-engine-daemon
+    created_at: 2026-08-21T09:46:34.570Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-512939139a2e
+  - type: verified_by
+    from: REQ-runtime-packed-engine-daemon
+    to: TEST-runtime-packed-engine-daemon
+    created_at: 2026-08-21T09:46:34.583Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb397002156e

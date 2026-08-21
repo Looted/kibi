@@ -23,6 +23,89 @@ describe("kb_suggest_predicates", () => {
     return handleKbSuggestPredicates(null, args);
   }
 
+  test("routes Cursor launcher clauses to reusable schemas and rejects unrelated candidates", async () => {
+    const cases = [
+      [
+        "The published kibi-cursor plugin must resolve and execute the consumer project's project-local kibi-mcp package without downloading packages or using a global or plugin-local runtime",
+        "dependency_resolution_policy",
+      ],
+      [
+        "It must resolve the consumer workspace in deterministic order: explicit workspace argument, WORKSPACE_FOLDER_PATHS, KIBI_WORKSPACE, CURSOR_WORKSPACE, then cwd only when cwd demonstrably contains project-local kibi-mcp",
+        "ordered_resolution_strategy",
+      ],
+      ["unresolved placeholders are invalid", "resolution_failure_policy"],
+      [
+        "ambiguous multiple usable roots fail clearly",
+        "resolution_failure_policy",
+      ],
+      [
+        "The launcher must resolve kibi-mcp through consumer-scoped Node package semantics including exports-restricted and pnpm-style layouts, and reject packages outside consumer scope unless active package-manager semantics authorize it",
+        "exception_rule",
+      ],
+      [
+        "It must spawn the declared kibi-mcp bin with cwd and KIBI_WORKSPACE set to the consumer workspace, preserve stdio, and propagate child exit codes and termination signals",
+        "process_delegation_contract",
+      ],
+      [
+        "Missing project-local kibi-mcp must produce a concise actionable error",
+        "failure_behavior",
+      ],
+    ] as const;
+    const forbidden = new Set(["publishes_event", "has_unsaved_changes"]);
+    for (const [text, expected] of cases) {
+      const structured = (await suggest({ text, maxCandidates: 8 }))
+        .structuredContent;
+      const candidates = (structured.candidates ?? []) as Array<
+        Record<string, unknown>
+      >;
+      const applicable = candidates.filter(
+        (candidate) => candidate.eligibility !== "rejected",
+      );
+      expect(
+        applicable.some((candidate) => candidate.predicate_name === expected),
+      ).toBe(true);
+      expect(
+        applicable.some((candidate) =>
+          forbidden.has(String(candidate.predicate_name)),
+        ),
+      ).toBe(false);
+      expect(
+        applicable.some(
+          (candidate) =>
+            /annotation/i.test(String(candidate.predicate_name)) &&
+            /policy/i.test(String(candidate.predicate_name)),
+        ),
+      ).toBe(false);
+    }
+  });
+
+  test("abstains when semantic analysis finds multiple assertive propositions", async () => {
+    const structured = (
+      await suggest({
+        text: "The launcher must resolve consumer-local kibi-mcp without downloading packages. The launcher must preserve stdio.",
+        includeExistingSchemas: false,
+        schemaId: "FACT-SCHEMA-EVENT-PUBLISH",
+        argumentBindings: {
+          subject: "consumer_launcher",
+          event: "LauncherDependenciesResolved",
+        },
+      })
+    ).structuredContent;
+
+    expect(structured).toMatchObject({
+      candidates: [],
+      recommendedAction: "record_ontology_gap",
+      recommendedPredicateSchema: null,
+      applyPlan: [],
+      relationshipPlan: null,
+      warnings: [
+        expect.stringContaining(
+          "requires one atomic assertive proposition; semantic advisor detected 2",
+        ),
+      ],
+    });
+  });
+
   test("ranks built-in state and persistence predicates for editor navigation prose", async () => {
     const { handleKbSuggestPredicates } = await loadModule();
 
@@ -100,6 +183,12 @@ describe("kb_suggest_predicates", () => {
 
     expect(candidates).toHaveLength(0);
     expect(structured.recommendedAction).toBe("record_ontology_gap");
+    expect(structured.recommendedPredicateSchema).toEqual(
+      expect.objectContaining({
+        predicate_name: expect.any(String),
+        argument_names: expect.any(Array),
+      }),
+    );
     expect(structured.warnings).toEqual(
       expect.arrayContaining([expect.stringContaining("predicate_schema")]),
     );

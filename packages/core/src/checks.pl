@@ -6,6 +6,7 @@
 :- module(checks, [
     check_all/1,                    % Returns all violations as a dict
     check_all_json/1,               % Returns all violations as JSON string
+    check_selected_json/2,           % Returns only selected rule violations as JSON
     check_must_priority_coverage/1, % Returns list of must-priority violations
     check_symbol_coverage/1,        % Returns list of uncovered symbols
     check_symbol_traceability/2,    % Returns list of symbols lacking requirement traceability (ReqAdr option)
@@ -14,6 +15,7 @@
     check_required_fields/1,        % Returns list of missing required field violations
     check_deprecated_adrs/1,        % Returns list of deprecated ADR violations
     check_domain_contradictions/1,  % Returns list of contradiction violations
+    check_domain_contradictions_and_witnesses/2,
     check_domain_contradiction_witnesses/1,
     check_strict_fact_shape/1,      % Returns list of malformed strict fact violations
     check_strict_req_fact_pairing/1,% Returns list of malformed strict req/fact pairing violations
@@ -588,6 +590,15 @@ checks_normalize_atom_list(Raw, Atoms) :-
 %% check_domain_contradictions(-Violations)
 % Finds all pairs of requirements with contradicting required properties.
 check_domain_contradictions(Violations) :-
+    check_domain_contradiction_witnesses(Witnesses),
+    maplist(contradiction_witness_violation, Witnesses, Violations).
+
+%% check_domain_contradictions_and_witnesses(-Violations, -Witnesses)
+% Compute the contradiction witness graph once when a caller needs both the
+% report violations and their exact evidence. The existing one-result
+% predicates remain unchanged; this paired form avoids duplicate work in
+% proof contexts without weakening any contradiction checks.
+check_domain_contradictions_and_witnesses(Violations, Witnesses) :-
     check_domain_contradiction_witnesses(Witnesses),
     maplist(contradiction_witness_violation, Witnesses, Violations).
 
@@ -1265,13 +1276,15 @@ rule_verifiability_description(Props, FactId, Description) :-
 rule_verifiability_description(Props, FactId, Description) :-
     memberchk(fact_kind=RawKind, Props),
     normalize_term_atom(RawKind, rule),
-    memberchk(rule_schema_id=SchemaId, Props),
+    memberchk(rule_schema_id=RawSchemaId, Props),
+    normalize_term_atom(RawSchemaId, SchemaId),
     \+ kb_entity(SchemaId, fact, _),
     format(string(Description), "Rule fact ~w references missing rule schema ~w", [FactId, SchemaId]).
 rule_verifiability_description(Props, FactId, Description) :-
     memberchk(fact_kind=RawKind, Props),
     normalize_term_atom(RawKind, rule),
-    memberchk(rule_schema_id=SchemaId, Props),
+    memberchk(rule_schema_id=RawSchemaId, Props),
+    normalize_term_atom(RawSchemaId, SchemaId),
     kb_entity(SchemaId, fact, SchemaProps),
     \+ valid_rule_schema_props(SchemaProps),
     format(string(Description), "Rule fact ~w references ~w, which is not a rule_schema fact", [FactId, SchemaId]).
@@ -1386,6 +1399,64 @@ check_all_json(JsonString) :-
     with_output_to_string(
         json_write_dict(current_output, JsonDict, [width(0)]),
         JsonString
+    ).
+
+%% check_selected_json(+Rules, -JsonString)
+% Run only the named aggregated checks. This is intentionally separate from
+% check_all/1 so focused diagnostics cannot evaluate unrelated rule queries.
+check_selected_json(Rules, JsonString) :-
+    check_selected(Rules, ViolationsDict),
+    violations_dict_to_json(ViolationsDict, JsonDict),
+    with_output_to_string(
+        json_write_dict(current_output, JsonDict, [width(0)]),
+        JsonString
+    ).
+
+check_selected(Rules, _{
+    must_priority_coverage: MustPriority,
+    symbol_coverage: SymbolCoverage,
+    symbol_traceability: SymbolTraceability,
+    no_dangling_refs: DanglingRefs,
+    no_cycles: Cycles,
+    required_fields: RequiredFields,
+    deprecated_adr_no_successor: DeprecatedADRs,
+    domain_contradictions: Contradictions,
+    strict_fact_shape: StrictFactShape,
+    strict_req_fact_pairing: StrictReqFactPairing,
+    strict_readiness: StrictReadiness,
+    predicate_verifiability: PredicateVerifiability,
+    logic_coverage: LogicCoverage,
+    rule_safety: RuleSafety,
+    rule_verifiability: RuleVerifiability,
+    semantic_completeness: SemanticCompleteness
+}) :-
+    selected_rule(Rules, 'must-priority-coverage', check_must_priority_coverage, MustPriority),
+    selected_rule(Rules, 'symbol-coverage', check_symbol_coverage, SymbolCoverage),
+    selected_rule_with_options(Rules, 'symbol-traceability', check_symbol_traceability, SymbolTraceability),
+    selected_rule(Rules, 'no-dangling-refs', check_no_dangling_refs, DanglingRefs),
+    selected_rule(Rules, 'no-cycles', check_no_cycles, Cycles),
+    selected_rule(Rules, 'required-fields', check_required_fields, RequiredFields),
+    selected_rule(Rules, 'deprecated-adr-no-successor', check_deprecated_adrs, DeprecatedADRs),
+    selected_rule(Rules, 'domain-contradictions', check_domain_contradictions, Contradictions),
+    selected_rule(Rules, 'strict-fact-shape', check_strict_fact_shape, StrictFactShape),
+    selected_rule(Rules, 'strict-req-fact-pairing', check_strict_req_fact_pairing, StrictReqFactPairing),
+    selected_rule(Rules, 'strict-readiness', check_strict_readiness, StrictReadiness),
+    selected_rule(Rules, 'predicate-verifiability', check_predicate_verifiability, PredicateVerifiability),
+    selected_rule(Rules, 'logic-coverage', check_logic_coverage, LogicCoverage),
+    selected_rule(Rules, 'rule-safety', check_rule_safety, RuleSafety),
+    selected_rule(Rules, 'rule-verifiability', check_rule_verifiability, RuleVerifiability),
+    selected_rule(Rules, 'semantic-completeness', check_semantic_completeness, SemanticCompleteness).
+
+selected_rule(Rules, Name, Goal, Violations) :-
+    (   memberchk(Name, Rules)
+    ->  call(Goal, Violations)
+    ;   Violations = []
+    ).
+
+selected_rule_with_options(Rules, Name, Goal, Violations) :-
+    (   memberchk(Name, Rules)
+    ->  call(Goal, false, Violations)
+    ;   Violations = []
     ).
 
 %% check_all_json_with_options(-JsonString, +RequireAdr)

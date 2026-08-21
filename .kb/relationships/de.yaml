@@ -73,3 +73,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0373f7ce7098
+  - type: implements
+    from: SYM-suggest-predicates-core-handler
+    to: REQ-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-20T22:11:11.760Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d144e1b9d89a
+  - type: covered_by
+    from: SYM-suggest-predicates-core-handler
+    to: TEST-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-20T22:17:53.866Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01514d70c449
+  - type: executable_for
+    from: SYM-kibi-consumer-local-plugin-launcher-ontology-e2e
+    to: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    created_at: 2026-08-21T08:38:40.566Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3bed3664e040

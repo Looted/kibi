@@ -15,6 +15,8 @@ export interface PredicateSchemaCandidate {
   description: string;
   argument_names: string[];
   argument_types: string[];
+  /** Optional human-readable descriptions aligned with argument_names. */
+  argument_descriptions?: string[];
   keywords: string[];
   /** Human-language aliases and controlled paraphrase templates used for deterministic retrieval. */
   aliases?: string[];
@@ -52,11 +54,49 @@ export interface PredicateSuggestion {
   polarity: PredicatePolarity;
   binding_status: "complete" | "incomplete";
   unbound_arguments: string[];
+  /** Conservative aggregate: the least-reviewable provenance across bindings. */
+  binding_provenance: BindingProvenance;
+  /** Per-argument provenance retained for review and deterministic diagnostics. */
+  binding_provenance_by_argument: Record<string, BindingProvenance>;
+  eligibility: "eligible" | "rejected";
+  rejection_reasons: string[];
+  applicability_score: number;
+  score_components: PredicateScoreComponents;
   score: number;
   rationale: string;
   schema: Omit<PredicateSchemaCandidate, "keywords"> & {
     usage_hints: PredicateUsageHints;
   };
+}
+
+export type BindingProvenance =
+  | "explicit"
+  | "extracted"
+  | "inferred"
+  | "placeholder";
+
+export interface PredicateScoreComponents {
+  exact_pattern: number;
+  keyword_hits: number;
+  descriptor_overlap: number;
+  usage_match: number;
+  negative_evidence: number;
+  broad_token_penalty: number;
+  specificity_bonus: number;
+  total: number;
+}
+
+export interface RecommendedPredicateSchema {
+  predicate_name: string;
+  title: string;
+  description: string;
+  argument_names: string[];
+  argument_types: string[];
+  argument_descriptions?: string[];
+  candidate_bindings: Record<string, string>;
+  unresolved_bindings: string[];
+  rationale: string;
+  reuse_scope: string;
 }
 
 // implements REQ-mcp-suggest-predicates
@@ -75,6 +115,7 @@ export interface SuggestPredicatesResult {
       | "provide_argument_bindings"
       | "resolve_schema_reference"
       | "record_ontology_gap";
+    recommendedPredicateSchema: RecommendedPredicateSchema | null;
     applyPlan: Array<Record<string, unknown>>;
     relationshipPlan: Record<string, unknown> | null;
     warnings: string[];

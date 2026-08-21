@@ -13,3 +13,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-85e40691671a
+  - type: validates
+    from: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    to: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    created_at: 2026-08-20T22:16:24.597Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95ac70b3bb4b
+  - type: validates
+    from: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    to: SCEN-kibi-consumer-local-plugin-launcher-ontology-v1
+    created_at: 2026-08-20T22:16:24.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02abeea6b3a3
+  - type: implements
+    from: SYM-core-check-selected-json
+    to: REQ-mcp-tool-check
+    created_at: 2026-08-21T08:28:56.451Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b5c4aa0d6a8
+  - type: covered_by
+    from: SYM-core-check-selected-json
+    to: TEST-mcp-tool-check-coverage
+    created_at: 2026-08-21T08:28:56.463Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-966f07b180e4

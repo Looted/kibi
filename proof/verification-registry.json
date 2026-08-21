@@ -611,6 +611,130 @@
           "/tmp/kibi-e2e-packed-compiled/github-report-integration.test.js"
         ]
       ]
+    },
+    {
+      "test_id": "TEST-cursor-consumer-local-mcp-launcher-v1",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-cursor-consumer-local-mcp-launcher-v1"
+        ],
+        "required_case_symbols": ["SYM-cursor-packed-launcher-e2e"],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/cursor-plugin-launcher.test.js"
+        ]
+      ]
+    },
+    {
+      "test_id": "TEST-codex-consumer-local-mcp-registration-v1",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-codex-consumer-local-mcp-registration-v1"
+        ],
+        "required_case_symbols": ["SYM-codex-packed-plugin-e2e"],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/codex-plugin.test.js"
+        ]
+      ]
+    },
+    {
+      "test_id": "TEST-kibi-predicate-suggestion-relevance-v1",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-kibi-predicate-suggestion-relevance-v1"
+        ],
+        "required_case_symbols": [
+          "SYM-kibi-predicate-suggestion-relevance-e2e"
+        ],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/predicate-suggestion-relevance.test.js"
+        ]
+      ]
+    },
+    {
+      "test_id": "TEST-kibi-consumer-local-plugin-launcher-ontology-v1",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-kibi-consumer-local-plugin-launcher-ontology-v1"
+        ],
+        "required_case_symbols": [
+          "SYM-kibi-consumer-local-plugin-launcher-ontology-e2e"
+        ],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/predicate-suggestion-relevance.test.js"
+        ]
+      ]
+    },
+    {
+      "test_id": "TEST-runtime-packed-engine-daemon",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-runtime-packed-engine-daemon"
+        ],
+        "required_case_symbols": ["SYM-test-runtime-engine-daemon"],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        [
+          "node",
+          "scripts/run-packed-e2e.mjs",
+          "/tmp/kibi-e2e-packed-compiled",
+          "/tmp/kibi-e2e-packed-compiled/runtime-engine-daemon.test.js"
+        ]
+      ]
     }
   ]
 }

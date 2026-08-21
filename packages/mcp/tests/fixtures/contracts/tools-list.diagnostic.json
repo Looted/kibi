@@ -4461,7 +4461,7 @@
         "readOnlyHint": true,
         "title": "Suggest Kibi ontology predicates"
       },
-      "description": "Suggest ontology predicate schemas for prose requirements before agents write facts. Read-only guidance returns ranked candidates, an applicable predicate-fact plan only when every ordered argument is bound, a separate requires_predicate relationship plan when a requirement ID is supplied, or an explicit ontology-gap observation when no predicate fits.",
+      "description": "Suggest ontology predicate schemas for prose requirements before agents write facts. Retrieval/ranking is followed by a semantic applicability gate and conservative binding review; complete-looking generic placeholders never trigger application. Read-only guidance returns additive candidate diagnostics, an applicable predicate-fact plan only for a semantically eligible candidate with reviewed bindings, or an explicit ontology-gap observation plus a deterministic review-only predicate schema draft when no schema fits.",
       "inputSchema": {
         "properties": {
           "_diagnostic_telemetry": {
@@ -4596,7 +4596,16 @@
                 "type": "array"
               },
               "recommendedAction": {
+                "enum": [
+                  "apply_requires_predicate",
+                  "provide_argument_bindings",
+                  "resolve_schema_reference",
+                  "record_ontology_gap"
+                ],
                 "type": "string"
+              },
+              "recommendedPredicateSchema": {
+                "type": ["object", "null"]
               },
               "relationshipPlan": {
                 "type": ["object", "null"]

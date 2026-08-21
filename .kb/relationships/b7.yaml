@@ -62,3 +62,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c0aea6b2e0db
+  - type: implements
+    from: SYM-cli-run-aggregated-checks
+    to: REQ-mcp-tool-check
+    created_at: 2026-08-21T08:29:08.966Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63e85a67c18a
+  - type: covered_by
+    from: SYM-cli-run-aggregated-checks
+    to: TEST-mcp-tool-check-coverage
+    created_at: 2026-08-21T08:29:08.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42402b3142fc

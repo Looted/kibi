@@ -20,3 +20,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8c33da46b4fc
+  - type: implements
+    from: SYM-kibi-launcher-argument-inference
+    to: REQ-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T08:28:25.717Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aeeccc7b3ddc
+  - type: covered_by
+    from: SYM-kibi-launcher-argument-inference
+    to: TEST-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T08:28:25.734Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c460998fa2f
+  - type: implements
+    from: 4fad501950207b0b
+    to: REQ-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T10:53:42.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c72d3ff253a8
+  - type: covered_by
+    from: 4fad501950207b0b
+    to: TEST-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T12:52:27.302Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2e3125ce3ec

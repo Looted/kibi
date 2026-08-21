@@ -80,7 +80,7 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_suggest_predicates",
     cliName: "suggest-predicates",
     description:
-      "Suggest ontology predicate schemas for prose requirements before agents write facts. Read-only guidance returns ranked candidates, an applicable predicate-fact plan only when every ordered argument is bound, a separate requires_predicate relationship plan when a requirement ID is supplied, or an explicit ontology-gap observation when no predicate fits.",
+      "Suggest ontology predicate schemas for prose requirements before agents write facts. Retrieval/ranking is followed by a semantic applicability gate and conservative binding review; complete-looking generic placeholders never trigger application. Read-only guidance returns additive candidate diagnostics, an applicable predicate-fact plan only for a semantically eligible candidate with reviewed bindings, or an explicit ontology-gap observation plus a deterministic review-only predicate schema draft when no schema fits.",
   },
   {
     name: "kb_autopilot_generate",

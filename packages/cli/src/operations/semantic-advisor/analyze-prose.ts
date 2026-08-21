@@ -14,6 +14,7 @@ import {
 import { observationPlan } from "./observation-plan.js";
 import { detectPredicateRules } from "./predicate-rule.js";
 import { CORE_PREDICATE_RULES } from "./predicate-rules-core.js";
+import { LAUNCHER_PREDICATE_RULES } from "./predicate-rules-launcher.js";
 import { POLICY_PREDICATE_RULES } from "./predicate-rules-policy.js";
 import { PRODUCT_TAIL_PREDICATE_RULES } from "./predicate-rules-product-tail.js";
 import { PRODUCT_PREDICATE_RULES } from "./predicate-rules-product.js";
@@ -96,7 +97,10 @@ const SIGNAL_PATTERNS = [
     kind: "normative_modal",
     candidateLane: "observation_review",
     confidence: 0.65,
-    pattern: /\b(?:must|shall|should|may|must\s+not|cannot|can't)\b/i,
+    // Modal-free validity, rejection, prohibition, and failure-outcome
+    // assertions are normative even when they omit must/shall.
+    pattern:
+      /\b(?:must|shall|should|may|must\s+not|cannot|can't|invalid|unresolved|reject(?:ed|ion)?|prohibited|forbidden|fail(?:s|ed|ure)?\s+(?:clearly|explicitly|with)|required\s+outcome)\b/i,
   },
 ] as const satisfies readonly SignalPattern[];
 
@@ -247,6 +251,7 @@ function predicateSuggestion(
   statement: string,
 ): SemanticModelingSuggestion | null {
   return (
+    detectPredicateRules(payload, statement, LAUNCHER_PREDICATE_RULES) ??
     detectPredicateRules(payload, statement, CORE_PREDICATE_RULES) ??
     detectPredicateRules(payload, statement, POLICY_PREDICATE_RULES) ??
     detectPredicateRules(payload, statement, PRODUCT_PREDICATE_RULES) ??

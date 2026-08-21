@@ -45,3 +45,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5bba8852bbb2
+  - type: implements
+    from: 86c21fecd3d7b203
+    to: REQ-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T10:45:34.872Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49b8fec9267e
+  - type: covered_by
+    from: 86c21fecd3d7b203
+    to: TEST-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T12:53:33.220Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88428790947f
