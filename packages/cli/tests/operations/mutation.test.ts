@@ -1,9 +1,13 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 
 import { buildUpsertCommitGoal } from "../../src/operations/mutation/contradictions.js";
 import { buildPropertyList } from "../../src/operations/mutation/serialization.js";
 import { effectiveRelationships } from "../../src/operations/mutation/upsert.js";
 import { analyzeSemanticAdvisorInput } from "../../src/operations/semantic-advisor/analyze-prose.js";
+import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
 import type {
   OperationContext,
   PrologPort,
@@ -699,5 +703,174 @@ describe("shared mutation operation specs", () => {
       expect.stringMatching(/^rdf_transaction\(\(.*kb_save\)\)$/),
     );
     expect(save).not.toHaveBeenCalled();
+  });
+
+  test("delete removes an authored YAML relationship before retracting a live edge", async () => {
+    const workspace = await mkdtemp(
+      path.join(os.tmpdir(), "kibi-yaml-delete-"),
+    );
+    try {
+      const manifestPath = path.join(workspace, ".kb", "symbols.yaml");
+      await mkdir(path.dirname(manifestPath), { recursive: true });
+      await writeFile(
+        manifestPath,
+        [
+          "# authored symbols",
+          "symbols:",
+          "  - id: SYM-YAML-DELETE",
+          "    title: Delete one authored relationship",
+          "    relationships:",
+          "      - type: executable_for",
+          "        target: TEST-YAML-DELETE",
+          "      - type: implements",
+          "        target: REQ-YAML-KEEP",
+          "  - id: SYM-YAML-KEEP",
+          "    title: Keep this symbol",
+          "",
+        ].join("\n"),
+        "utf8",
+      );
+
+      const {
+        context: baseContext,
+        query,
+        save,
+      } = createContext((goal): PrologQueryResult => {
+        if (goal.includes("findall(['SYM-YAML-DELETE',Type,Props]")) {
+          return {
+            success: true,
+            bindings: {
+              Results:
+                "[['SYM-YAML-DELETE',symbol,[source='.kb/symbols.yaml']]]",
+            },
+          };
+        }
+        if (goal.startsWith("once(kb_relationship(")) {
+          return { success: true, bindings: {} };
+        }
+        if (goal.startsWith("kb_retract_relationship(")) {
+          return { success: true, bindings: {} };
+        }
+        throw new Error(`Unexpected goal: ${goal}`);
+      });
+      const context: OperationContext = {
+        ...baseContext,
+        workspaceRoot: workspace,
+        fs: nodeFilesystem,
+        branchAttachment: {
+          gitBranch: "test",
+          kbBranch: "test",
+          storePath: path.join(workspace, ".kb", "branches", "test"),
+          kind: "exact",
+          migrationRequired: false,
+        },
+      };
+
+      const result = await deleteSpec.execute(
+        {
+          relationships: [
+            {
+              type: "executable_for",
+              from: "SYM-YAML-DELETE",
+              to: "TEST-YAML-DELETE",
+            },
+          ],
+        },
+        context,
+      );
+
+      expect(result.structuredContent).toMatchObject({
+        relationships_deleted: 1,
+        skipped: 0,
+        sync_required: true,
+        sourceWrites: [
+          expect.objectContaining({
+            path: ".kb/symbols.yaml",
+            mode: "write",
+          }),
+        ],
+      });
+      expect(query).toHaveBeenCalledWith(
+        expect.stringContaining("kb_retract_relationship(executable_for"),
+      );
+      expect(save).toHaveBeenCalledTimes(1);
+      const updated = await readFile(manifestPath, "utf8");
+      expect(updated).not.toContain("TEST-YAML-DELETE");
+      expect(updated).toContain("REQ-YAML-KEEP");
+      expect(updated).toContain("SYM-YAML-KEEP");
+      expect(updated).toContain("# authored symbols");
+    } finally {
+      await rm(workspace, { recursive: true, force: true });
+    }
+  });
+
+  test("delete fails closed when an authored YAML relationship cannot be patched", async () => {
+    const workspace = await mkdtemp(
+      path.join(os.tmpdir(), "kibi-yaml-delete-invalid-"),
+    );
+    try {
+      const manifestPath = path.join(workspace, ".kb", "symbols.yaml");
+      await mkdir(path.dirname(manifestPath), { recursive: true });
+      await writeFile(
+        manifestPath,
+        "symbols:\n  - id: SYM-YAML-INVALID\n    relationships: [\n",
+        "utf8",
+      );
+
+      const {
+        context: baseContext,
+        query,
+        save,
+      } = createContext((goal): PrologQueryResult => {
+        if (goal.includes("findall(['SYM-YAML-INVALID',Type,Props]")) {
+          return {
+            success: true,
+            bindings: {
+              Results:
+                "[['SYM-YAML-INVALID',symbol,[source='.kb/symbols.yaml']]]",
+            },
+          };
+        }
+        if (goal.startsWith("once(kb_relationship(")) {
+          return { success: true, bindings: {} };
+        }
+        throw new Error(`Unexpected goal: ${goal}`);
+      });
+      const context: OperationContext = {
+        ...baseContext,
+        workspaceRoot: workspace,
+        fs: nodeFilesystem,
+        branchAttachment: {
+          gitBranch: "test",
+          kbBranch: "test",
+          storePath: path.join(workspace, ".kb", "branches", "test"),
+          kind: "exact",
+          migrationRequired: false,
+        },
+      };
+
+      await expect(
+        deleteSpec.execute(
+          {
+            relationships: [
+              {
+                type: "executable_for",
+                from: "SYM-YAML-INVALID",
+                to: "TEST-YAML-INVALID",
+              },
+            ],
+          },
+          context,
+        ),
+      ).rejects.toThrow("Authored YAML relationship deletion failed");
+      expect(
+        query.mock.calls.some(([goal]) =>
+          String(goal).startsWith("kb_retract_relationship("),
+        ),
+      ).toBe(false);
+      expect(save).not.toHaveBeenCalled();
+    } finally {
+      await rm(workspace, { recursive: true, force: true });
+    }
   });
 });

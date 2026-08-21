@@ -529,6 +529,82 @@ export function renderMarkdownRelationshipDeletion(
   };
 }
 
+/**
+ * Remove one exact typed relationship from an authored symbol manifest. The
+ * YAML CST is edited in place so comments, ordering, and unrelated symbols or
+ * relationships remain authored content rather than being re-serialized.
+ */
+export function renderYamlRelationshipDeletion(
+  sourcePathValue: string,
+  existingContent: string,
+  selector: Readonly<{ type: string; from: string; to: string }>,
+): { body: string; removed: boolean } {
+  const extension = path.extname(sourcePathValue).toLowerCase();
+  if (extension !== ".yaml" && extension !== ".yml") {
+    throw new OperationError(
+      "SOURCE_FORMAT_UNSUPPORTED",
+      `Relationship declarations can only be patched in YAML symbol manifests: ${sourcePathValue}`,
+    );
+  }
+  const doc = parseDocument(existingContent);
+  if (doc.errors.length > 0) {
+    throw new OperationError(
+      "SOURCE_FORMAT_INVALID",
+      `Symbol manifest contains invalid YAML: ${doc.errors[0]?.message ?? "parse failed"}`,
+    );
+  }
+  const symbols = doc.get("symbols", true);
+  if (!symbols || typeof symbols !== "object" || !("items" in symbols)) {
+    throw new OperationError(
+      "SOURCE_FORMAT_INVALID",
+      "Symbol manifest must contain a symbols array",
+    );
+  }
+  const items = (symbols as { items: unknown[] }).items;
+  const symbol = items.find((item) => {
+    if (!item || typeof item !== "object" || !("get" in item)) return false;
+    return (
+      String((item as { get(key: string): unknown }).get("id")) ===
+      selector.from
+    );
+  });
+  if (!symbol || typeof symbol !== "object" || !("get" in symbol)) {
+    return { body: existingContent, removed: false };
+  }
+  const relationships = (
+    symbol as { get(key: string, keepCst?: boolean): unknown }
+  ).get("relationships", true);
+  if (
+    !relationships ||
+    typeof relationships !== "object" ||
+    !("items" in relationships)
+  ) {
+    return { body: existingContent, removed: false };
+  }
+  const relationshipItems = (relationships as { items: unknown[] }).items;
+  let removed = false;
+  for (let index = relationshipItems.length - 1; index >= 0; index -= 1) {
+    const item = relationshipItems[index];
+    if (!item || typeof item !== "object" || !("get" in item)) continue;
+    const node = item as { get(key: string): unknown };
+    const type = node.get("type");
+    const target = node.get("target") ?? node.get("to");
+    const normalizedTarget =
+      typeof target === "string"
+        ? target.replace(/^kb:entity\//, "")
+        : undefined;
+    if (type === selector.type && normalizedTarget === selector.to) {
+      (relationships as unknown as { delete(index: number): unknown }).delete(
+        index,
+      );
+      removed = true;
+    }
+  }
+  return removed
+    ? { body: doc.toString(), removed: true }
+    : { body: existingContent, removed: false };
+}
+
 function renderSourceDocument(
   input: UpsertInput,
   entity: Readonly<Record<string, unknown>>,

@@ -3,6 +3,19 @@ export interface Tarballs {
   cli: string;
   runtime: string;
   mcp: string;
+  opencode: string;
+  codex: string;
+  cursor: string;
+}
+
+export interface SharedPackedEnvironment {
+  readonly prefix: string;
+  readonly tarballsRoot: string;
+}
+
+export interface SharedNpmCacheResolution {
+  path: string;
+  owned: boolean;
 }
 
 export interface RunOptions {
@@ -35,6 +48,11 @@ export interface TestSandbox {
   cleanup(): Promise<void>;
   verifyKibiCliResolution(): Promise<void>;
 }
+
+export function prepareSharedPackedEnvironment(): Promise<SharedPackedEnvironment>;
+export function prepareSharedPackedInstallation(): Promise<string>;
+export function cleanupSharedPackedInstallation(): void;
+export function resolveSharedNpmCache(): SharedNpmCacheResolution;
 
 export interface Frontmatter {
   id: string;

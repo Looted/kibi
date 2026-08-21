@@ -28,6 +28,9 @@ verification_contract:
     - TEST-test-journaled-engine-harness
   required_case_symbols:
     - SYM-test-owned-engine-runner
+    - SYM-packed-e2e-runner
+    - SYM-proof-runner
+    - SYM-shared-npm-cache-resolution
   required_projects:
     - default
   success_policy: all_required_cases_first_attempt

@@ -9,8 +9,10 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
-import { isolatedPackedSandboxEnv } from "./helpers.js";
-import { parseNpmPackJsonOutput } from "./npm-pack-json.js";
+import {
+  isolatedPackedSandboxEnv,
+  packAll as packAllPackages,
+} from "./helpers.js";
 
 export interface PnpmCommand {
   command: string;
@@ -262,97 +264,13 @@ export function pnpmLabel(pnpm: PnpmCommand): string {
   return [basename(pnpm.command), ...pnpm.argsPrefix].join(" ");
 }
 
-const packagesForPack = ["core", "cli", "runtime", "mcp"] as const;
-let cachedTarballsPromise: Promise<Tarballs> | null = null;
-
-function findPrePackedTarball(
-  prePackedDir: string,
-  pkg: (typeof packagesForPack)[number],
-): string | null {
-  const candidateDirs = [prePackedDir, join(prePackedDir, pkg)];
-  for (const dir of candidateDirs) {
-    if (!existsSync(dir)) {
-      continue;
-    }
-    const match = execFileSync("ls", [dir], { encoding: "utf8" })
-      .trim()
-      .split("\n")
-      .find(
-        (fileName) =>
-          fileName.startsWith(`kibi-${pkg}-`) && fileName.endsWith(".tgz"),
-      );
-    if (match) {
-      return join(dir, match);
-    }
-  }
-  return null;
-}
-
-function resolveNpmForPack(): string {
-  try {
-    const locator = process.platform === "win32" ? "where.exe" : "which";
-    const npm = execFileSync(locator, ["npm"], {
-      encoding: "utf8",
-    })
-      .split(/\r?\n/)[0]
-      ?.trim();
-    if (npm) {
-      return npm;
-    }
-  } catch {}
-  return "npm";
-}
-
 // implements REQ-mcp-pnpm-upgrade-stale-path
 export async function packAllForPnpmUpgrade(): Promise<Tarballs> {
-  if (cachedTarballsPromise) {
-    return cachedTarballsPromise;
-  }
-
-  cachedTarballsPromise = (async () => {
-    console.log("📦 Packing packages for pnpm upgrade regression...");
-    const repoRoot = resolve(process.cwd());
-    const prePackedDir = process.env.KIBI_TEST_TARBALLS;
-    const tarballs: Partial<Tarballs> = {};
-
-    if (prePackedDir && existsSync(prePackedDir)) {
-      for (const pkg of packagesForPack) {
-        const tarballPath = findPrePackedTarball(prePackedDir, pkg);
-        if (!tarballPath) {
-          throw new Error(`Pre-packed tarball not found for package: ${pkg}`);
-        }
-        tarballs[pkg] = tarballPath;
-      }
-      return tarballs as Tarballs;
-    }
-
-    const npm = resolveNpmForPack();
-    for (const pkg of packagesForPack) {
-      const packageDir = join(repoRoot, "packages", pkg);
-      const npmCommand = /\.(?:c?m?js)$/i.test(npm)
-        ? { command: process.execPath, args: [npm] }
-        : { command: npm, args: [] };
-      const result = execFileSync(
-        npmCommand.command,
-        [...npmCommand.args, "pack", "--json"],
-        { cwd: packageDir, encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] },
-      );
-      const packResult = parseNpmPackJsonOutput(result);
-      const filename = packResult[0]?.filename;
-      if (!filename) {
-        throw new Error(`Failed to pack package ${pkg}: no filename in output`);
-      }
-      tarballs[pkg] = join(packageDir, filename);
-      console.log(`  ${pkg}: ${filename}`);
-    }
-
-    return tarballs as Tarballs;
-  })();
-
-  try {
-    return await cachedTarballsPromise;
-  } catch (error) {
-    cachedTarballsPromise = null;
-    throw error;
-  }
+  const tarballs = await packAllPackages();
+  return {
+    core: tarballs.core,
+    cli: tarballs.cli,
+    runtime: tarballs.runtime,
+    mcp: tarballs.mcp,
+  };
 }

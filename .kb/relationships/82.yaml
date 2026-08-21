@@ -6,3 +6,17 @@ relationships:
     created_at: "2026-08-16T18:52:30.416Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-shared-npm-cache-resolution
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-08-21T19:57:14.212Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9117e0b7f42
+  - type: covered_by
+    from: SYM-shared-npm-cache-resolution
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-21T19:57:14.223Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6de998c45cb5

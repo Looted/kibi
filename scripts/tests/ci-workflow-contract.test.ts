@@ -11,6 +11,21 @@ const WORKFLOW_PATH = join(
   "ci.yml",
 );
 const CODECOV_CONFIG_PATH = join(import.meta.dir, "..", "..", "codecov.yml");
+const DOCKERFILE_PATH = join(
+  import.meta.dir,
+  "..",
+  "..",
+  "docker",
+  "test-runner.Dockerfile",
+);
+const DOCKER_ENTRYPOINT_PATH = join(
+  import.meta.dir,
+  "..",
+  "..",
+  "scripts",
+  "docker",
+  "entrypoint.sh",
+);
 
 /**
  * Extract the text block for a named job from a GitHub Actions YAML workflow.
@@ -35,6 +50,8 @@ function extractJobBlock(content: string, jobName: string): string {
 describe("ci.yml CI workflow contract", () => {
   const workflowContent = readFileSync(WORKFLOW_PATH, "utf8");
   const codecovConfig = readFileSync(CODECOV_CONFIG_PATH, "utf8");
+  const dockerfileContent = readFileSync(DOCKERFILE_PATH, "utf8");
+  const dockerEntrypointContent = readFileSync(DOCKER_ENTRYPOINT_PATH, "utf8");
   const packedJobs = [
     "packed-e2e-cli-regression",
     "packed-e2e-mcp-regression",
@@ -78,6 +95,33 @@ describe("ci.yml CI workflow contract", () => {
         "KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages",
       );
     }
+  });
+
+  test("multi-file CLI and MCP packed jobs use the shared packed runner", () => {
+    expect(
+      extractJobBlock(workflowContent, "packed-e2e-cli-regression"),
+    ).toContain("node scripts/run-packed-e2e.mjs");
+    expect(
+      extractJobBlock(workflowContent, "packed-e2e-mcp-regression"),
+    ).toContain("node scripts/run-packed-e2e.mjs");
+    expect(workflowContent).not.toMatch(
+      /node --test --test-concurrency=1 \/tmp\/kibi-e2e-packed-compiled\/(?:cli|mcp)-[^\n]+\.test\.js[^\n]*\n[^\n]*node --test/s,
+    );
+  });
+
+  test("packed compilation performs the E2E typecheck while emitting", () => {
+    const buildBlock = extractJobBlock(workflowContent, "build-and-test");
+    expect(buildBlock).toContain("bun run compile:e2e:packed");
+    expect(buildBlock).not.toContain("bun run typecheck:e2e:packed");
+  });
+
+  test("Docker packed fallback covers every package and uses the shared runner", () => {
+    const packageList = "core cli runtime mcp opencode codex cursor";
+    expect(dockerfileContent).toContain(`for pkg in ${packageList}; do`);
+    expect(dockerEntrypointContent).toContain(`for pkg in ${packageList}; do`);
+    expect(dockerEntrypointContent).toContain(
+      "/workspace/scripts/run-packed-e2e.mjs",
+    );
   });
 
   test("build-and-test: explicit shallow checkout", () => {

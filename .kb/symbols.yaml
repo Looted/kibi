@@ -542,13 +542,15 @@ symbols:
       - type: executable_for
         target: TEST-test-journaled-engine-harness
   - id: SYM-packed-e2e-runner
-    title: run-packed-e2e.mjs
+    title: runPackedE2E
+    status: active
     sourceFile: scripts/run-packed-e2e.mjs
     symbol_role: behavioral
-    granularity_reason: module-level-behavior
     relationships:
-      - type: executable_for
+      - type: covered_by
         target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness
   - id: SYM-cli-operation-metadata-tests
     title: lightweight CLI operation metadata
     sourceFile: packages/cli/tests/cli-operation-metadata.test.ts
@@ -26671,3 +26673,95 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-operation-interface-parity
+  - id: SYM-proof-runner
+    title: runProofContracts
+    status: active
+    sourceFile: scripts/run-proof-runner.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+  - id: SYM-shared-npm-cache-resolution
+    title: resolveSharedNpmCache
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+  - id: SYM-packed-tarballs-declaration
+    title: Tarballs
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.d.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+  - id: SYM-packed-environment-declaration
+    title: SharedPackedEnvironment
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.d.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+  - id: SYM-shared-npm-cache-declaration
+    title: SharedNpmCacheResolution
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.d.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+  - id: SYM-shared-npm-cache-type
+    title: SharedNpmCacheResolution
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+  - id: SYM-packed-environment-type
+    title: SharedPackedEnvironment
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+  - id: SYM-yaml-relationship-deletion
+    title: renderYamlRelationshipDeletion
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-proof-packed-compiled-directory
+    title: findPackedCompiledDirectory
+    status: active
+    sourceFile: scripts/run-proof-runner.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness

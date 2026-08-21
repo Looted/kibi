@@ -14,13 +14,13 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js 20.x
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+# Install Node.js 24.x
+RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Bun (pinned version for reproducibility)
-ENV BUN_VERSION=1.1.29
+ENV BUN_VERSION=1.3.10
 RUN curl -fsSL https://bun.sh/install | bash -s "bun-v${BUN_VERSION}"
 ENV PATH="/root/.bun/bin:${PATH}"
 
@@ -52,12 +52,11 @@ COPY . /workspace
 
 # Install dependencies and build
 RUN bun install \
-    && bun run build:cli \
-    && bun run build:mcp
+    && bun run build
 
 # Bake pre-packed tarballs into the image (eliminates npm pack at runtime)
 RUN mkdir -p /opt/kibi-tarballs \
-    && for pkg in core cli mcp; do \
+    && for pkg in core cli runtime mcp opencode codex cursor; do \
         (cd /workspace/packages/$pkg && /usr/bin/npm pack --pack-destination /opt/kibi-tarballs); \
     done
 
@@ -69,10 +68,6 @@ RUN npm install -g --prefix /opt/kibi-e2e-prefix /opt/kibi-tarballs/*.tgz \
 ENV KIBI_TEST_TARBALLS=/opt/kibi-tarballs
 ENV KIBI_E2E_PREFIX=/opt/kibi-e2e-prefix
 ENV PATH="/opt/kibi-e2e-prefix/bin:${PATH}"
-
-RUN bun install \
-    && bun run build:cli \
-    && bun run build:mcp
 
 # Pre-verify the build
 RUN swipl --version && echo "---" && node --version && echo "---" && bun --version

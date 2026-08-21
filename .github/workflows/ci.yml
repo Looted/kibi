@@ -125,7 +125,6 @@ jobs:
 
       - name: Typecheck and compile e2e tests
         run: |
-          bun run typecheck:e2e:packed
           bun run compile:e2e:packed
 
       - name: Upload compiled e2e tests
@@ -167,8 +166,10 @@ jobs:
           path: /tmp/kibi-e2e-packed-compiled
       - name: Run CLI regression tests
         run: |
-          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/cli-workflows.test.js
-          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/cli-query-regression.test.js
+          NODE_OPTIONS='--enable-source-maps' node scripts/run-packed-e2e.mjs \
+            /tmp/kibi-e2e-packed-compiled \
+            /tmp/kibi-e2e-packed-compiled/cli-workflows.test.js \
+            /tmp/kibi-e2e-packed-compiled/cli-query-regression.test.js
         env:
           KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
@@ -210,7 +211,10 @@ jobs:
           corepack prepare pnpm@10.24.0 --activate
       - name: Run MCP packed regression tests
         run: |
-          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/mcp-protocol-regression.test.js /tmp/kibi-e2e-packed-compiled/mcp-pnpm-upgrade-stale-path.test.js
+          NODE_OPTIONS='--enable-source-maps' node scripts/run-packed-e2e.mjs \
+            /tmp/kibi-e2e-packed-compiled \
+            /tmp/kibi-e2e-packed-compiled/mcp-protocol-regression.test.js \
+            /tmp/kibi-e2e-packed-compiled/mcp-pnpm-upgrade-stale-path.test.js
         env:
           KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages

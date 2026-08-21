@@ -1,46 +1,19 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import {
-  existsSync,
-  mkdtempSync,
-  readdirSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import { after, describe, it } from "node:test";
-import { isolatedPackedSandboxEnv } from "./helpers.js";
-import { parseNpmPackJsonOutput } from "./npm-pack-json.js";
+import { isolatedPackedSandboxEnv, packAll } from "./helpers.js";
 
-const REPO_ROOT = resolve(process.cwd());
 const packageNames = ["core", "cli", "runtime", "mcp"] as const;
 type PackageName = (typeof packageNames)[number];
 
-function packReleasePackage(pkg: PackageName): string {
-  const suppliedRoot = process.env.KIBI_TEST_TARBALLS;
-  if (suppliedRoot) {
-    const packageDir = join(suppliedRoot, pkg);
-    const candidate = existsSync(packageDir)
-      ? readdirSync(packageDir).find(
-          (entry) => entry.startsWith(`kibi-${pkg}-`) && entry.endsWith(".tgz"),
-        )
-      : undefined;
-    assert.ok(
-      candidate,
-      `No supplied kibi-${pkg} tarball found under ${packageDir}`,
-    );
-    return join(packageDir, candidate);
-  }
-  const packageDir = join(REPO_ROOT, "packages", pkg);
-  const output = execFileSync("npm", ["pack", "--json"], {
-    cwd: packageDir,
-    encoding: "utf8",
-    stdio: ["pipe", "pipe", "pipe"],
-  });
-  const result = parseNpmPackJsonOutput(output)[0];
-  assert.ok(result?.filename, `npm pack returned no filename for ${pkg}`);
-  return join(packageDir, result.filename);
+async function resolveReleaseTarballs(): Promise<Record<PackageName, string>> {
+  const tarballs = await packAll();
+  return Object.fromEntries(
+    packageNames.map((pkg) => [pkg, tarballs[pkg]]),
+  ) as Record<PackageName, string>;
 }
 
 function writeConsumerManifest(
@@ -115,10 +88,8 @@ describe("release package contracts", { concurrency: false }, () => {
   it(
     "packs compiled CLI/core/MCP artifacts and resolves an npm consumer locally",
     { timeout: 300_000 },
-    () => {
-      const tarballs = Object.fromEntries(
-        packageNames.map((pkg) => [pkg, packReleasePackage(pkg)]),
-      ) as Record<PackageName, string>;
+    async () => {
+      const tarballs = await resolveReleaseTarballs();
       const dir = mkdtempSync(join(tmpdir(), "kibi-release-npm-"));
       tempDirs.push(dir);
       writeConsumerManifest(dir, tarballs);
@@ -139,10 +110,8 @@ describe("release package contracts", { concurrency: false }, () => {
         }
       })(),
     },
-    () => {
-      const tarballs = Object.fromEntries(
-        packageNames.map((pkg) => [pkg, packReleasePackage(pkg)]),
-      ) as Record<PackageName, string>;
+    async () => {
+      const tarballs = await resolveReleaseTarballs();
       const dir = mkdtempSync(join(tmpdir(), "kibi-release-pnpm-"));
       tempDirs.push(dir);
       writeConsumerManifest(dir, tarballs);

@@ -81,6 +81,12 @@ describe("publish.yml CI workflow contract", () => {
     expect(block).toContain("npm publish");
   });
 
+  test("packed publish compile does not repeat the emitting E2E typecheck", () => {
+    const block = extractJobBlock(workflowContent, "release-gate");
+    expect(block).toContain("bun run compile:e2e:packed");
+    expect(block).not.toContain("bun run typecheck:e2e:packed");
+  });
+
   // ── create-github-releases ──────────────────────────────────────────
   test("create-github-releases: shallow checkout pinned to master", () => {
     const block = extractJobBlock(workflowContent, "create-github-releases");

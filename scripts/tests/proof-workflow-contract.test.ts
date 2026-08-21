@@ -71,6 +71,47 @@ describe("strict proof workflow contract", () => {
     }
   });
 
+  test("journaled engine harness registers each runner boundary before its existing steps", () => {
+    const entry = registry.contracts.find(
+      ({ test_id }) => test_id === "TEST-test-journaled-engine-harness",
+    );
+    expect(entry).toBeDefined();
+    expect(entry?.contract.required_case_symbols).toEqual([
+      "SYM-test-owned-engine-runner",
+      "SYM-packed-e2e-runner",
+      "SYM-proof-runner",
+      "SYM-shared-npm-cache-resolution",
+    ]);
+    expect(entry?.steps.slice(0, 3)).toEqual([
+      ["node", "--test", "scripts/tests/run-packed-e2e.test.mjs"],
+      ["node", "--test", "scripts/tests/run-proof-runner.test.mjs"],
+      [
+        "bun",
+        "test",
+        "--cwd",
+        "documentation/tests/e2e/packed",
+        "shared-cache-resolution.test.ts",
+      ],
+    ]);
+    expect(entry?.steps.slice(3)).toEqual([
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./test/root.test.ts",
+        "./packages/cli/tests/engine.test.ts",
+        "./scripts/tests/run-owned-engine-tests.test.ts",
+      ],
+      [
+        "node",
+        "scripts/run-packed-e2e.mjs",
+        "/tmp/kibi-e2e-packed-compiled",
+        "/tmp/kibi-e2e-packed-compiled/cli-workflows.test.js",
+      ],
+    ]);
+  });
+
   test("proof runs before baseline enforcement and report generation", () => {
     const runner = proofWorkflow.indexOf(
       "Run every contracted proof command through Kibi",

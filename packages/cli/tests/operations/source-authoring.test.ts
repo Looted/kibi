@@ -12,6 +12,7 @@ import {
   configuredSourceTarget,
   normalizeAuthoredSourcePath,
   renderSourceDeletion,
+  renderYamlRelationshipDeletion,
   writePendingSourceReceipt,
   writeSourceForUpsert,
 } from "../../src/operations/mutation/source-authoring.js";
@@ -163,6 +164,62 @@ describe("source-first authoring", () => {
     expect(
       renderSourceDeletion("symbols.yaml", "SYM-1", "symbol", updated).mode,
     ).toBe("write");
+  });
+
+  test("removes one exact YAML symbol relationship without rewriting unrelated content", () => {
+    const original = [
+      "# authored manifest",
+      "symbols:",
+      "  # keep this symbol",
+      "  - id: SYM-REMOVE",
+      "    title: Remove one relationship",
+      "    relationships:",
+      "      - type: implements",
+      "        target: REQ-REMOVE",
+      "      # keep this relationship comment",
+      "      - type: covered_by",
+      "        target: TEST-KEEP",
+      "  - id: SYM-KEEP",
+      "    title: Unrelated symbol",
+      "    relationships:",
+      "      - type: implements",
+      "        target: REQ-KEEP",
+      "",
+    ].join("\n");
+    const rendered = renderYamlRelationshipDeletion(
+      ".kb/symbols.yaml",
+      original,
+      { type: "implements", from: "SYM-REMOVE", to: "REQ-REMOVE" },
+    );
+
+    expect(rendered).toEqual({
+      removed: true,
+      body: [
+        "# authored manifest",
+        "symbols:",
+        "  # keep this symbol",
+        "  - id: SYM-REMOVE",
+        "    title: Remove one relationship",
+        "    relationships:",
+        "      # keep this relationship comment",
+        "      - type: covered_by",
+        "        target: TEST-KEEP",
+        "  - id: SYM-KEEP",
+        "    title: Unrelated symbol",
+        "    relationships:",
+        "      - type: implements",
+        "        target: REQ-KEEP",
+        "",
+      ].join("\n"),
+    });
+
+    expect(
+      renderYamlRelationshipDeletion(".kb/symbols.yaml", original, {
+        type: "implements",
+        from: "SYM-REMOVE",
+        to: "REQ-MISSING",
+      }),
+    ).toEqual({ body: original, removed: false });
   });
 
   test("accepts exact-hash pending sources and blocks drift", async () => {

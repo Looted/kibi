@@ -25,6 +25,7 @@ import {
   normalizeAuthoredSourcePath,
   renderMarkdownRelationshipDeletion,
   renderSourceDeletion,
+  renderYamlRelationshipDeletion,
   resolveContainedSourcePath,
   writePendingSourceReceipt,
 } from "./source-authoring.js";
@@ -136,15 +137,17 @@ async function executeRelationshipDelete(
       `once(kb_relationship(${toPrologAtom(selector.type)}, ${toPrologAtom(selector.from)}, ${toPrologAtom(selector.to)}))`,
     );
     let sourceRemoved = false;
-    if (!liveResult.success && matchingShard.length === 0 && context.fs) {
-      // Legacy Markdown relationship declarations are still authored source.
-      // Patch them through the public delete operation when a compiled edge or
-      // relationship shard is unavailable, instead of leaving an ignored,
-      // dangling link that makes the next sync fail closed.
+    let authoredYamlSource = false;
+    if (context.fs) {
+      // Authored YAML symbol relationships remain authoritative even when the
+      // compiled edge or relationship shard is present. Patch the source first
+      // so the next sync cannot recreate a relationship the caller deleted.
+      // Legacy Markdown declarations retain their fallback-only behavior.
       try {
         const entity = await loadEntity(prolog, selector.from);
         const source = typeof entity.source === "string" ? entity.source : "";
         if (sourceIsAuthored(source)) {
+          authoredYamlSource = /\.(?:ya?ml)$/i.test(source);
           const relative = normalizeAuthoredSourcePath(
             context.workspaceRoot,
             source,
@@ -153,18 +156,31 @@ async function executeRelationshipDelete(
             context.workspaceRoot,
             relative,
           );
-          const before = await context.fs.readFile(absolute);
-          const rendered = renderMarkdownRelationshipDeletion(
-            relative,
-            before,
-            selector,
-          );
-          if (rendered.removed) {
-            sourcePatches.set(relative, { before, after: rendered.body });
-            sourceRemoved = true;
+          const isYaml = /\.(?:ya?ml)$/i.test(relative);
+          authoredYamlSource = isYaml;
+          if (isYaml || (!liveResult.success && matchingShard.length === 0)) {
+            const previous = sourcePatches.get(relative);
+            const before =
+              previous?.before ?? (await context.fs.readFile(absolute));
+            const current = previous?.after ?? before;
+            const rendered = isYaml
+              ? renderYamlRelationshipDeletion(relative, current, selector)
+              : renderMarkdownRelationshipDeletion(relative, current, selector);
+            if (rendered.removed) {
+              sourcePatches.set(relative, {
+                before,
+                after: rendered.body,
+              });
+              sourceRemoved = true;
+            }
           }
         }
-      } catch {
+      } catch (error) {
+        if (authoredYamlSource) {
+          throw new Error(
+            `Authored YAML relationship deletion failed for ${selector.from}: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
         // The normal typed preflight below reports a deterministic not-found
         // or inspection error when no authored source can prove the edge.
       }
