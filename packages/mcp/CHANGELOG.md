@@ -399,7 +399,7 @@
   - Enrich MCP diagnostic usage fields for `kb_semantic_advisor`, `kb_suggest_predicates`, and `kb_upsert`.
   - Classify requirement contradiction errors as `semantic_contradiction` validation failures with actionable hints.
   - Preserve semantic context in CLI sync/rebuild validation errors instead of reducing Prolog failures to `Query returned false`.
-  - Extend prose coverage with real Align annotation time-key and merge-policy requirements.
+  - Extend prose coverage with real dogfood project A annotation time-key and merge-policy requirements.
   - Refresh changed Prolog check modules through the MCP aggregated check loader.
 
 - 224f18b: Agents and hook users now get clearer guidance when behavior-changing staged files are missing Kibi impact evidence. The staged check points to the staged-impact workflow, explains that MCP KB writes do not automatically stage tracked markdown or manifest evidence, and tells users which files to stage before rerunning the hook. MCP validation also catches invalid relationship shortcuts earlier, and bundled skill loading makes follow-up resources easier to discover.

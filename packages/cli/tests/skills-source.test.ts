@@ -8,7 +8,7 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const canonicalRoot = join(repoRoot, "packages/cli/src/public/skills");
 
 const EXPECTED_SKILL_IDS = [
-  "init-kibi",
+  "kibi-bootstrap",
   "kibi-freshness",
   "kibi-traceability",
   "kibi-usage",
@@ -132,7 +132,7 @@ describe("canonical skills source", () => {
 
   test("canonical skills declare their current release versions and compatibility", () => {
     const newCanonical = {
-      "init-kibi": "2.0.0",
+      "kibi-bootstrap": "3.0.0",
       "kibi-freshness": "2.0.0",
       "kibi-traceability": "2.0.0",
     } as const;

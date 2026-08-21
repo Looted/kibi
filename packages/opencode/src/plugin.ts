@@ -28,9 +28,9 @@ import type { ReminderKind } from "./file-operation-state.js";
 import type { CacheKey } from "./guidance-cache.js";
 import {
   type OpenCodeConfigHookInput,
-  getInitKibiCommandCapability,
-  registerInitKibiCommand,
-} from "./init-kibi-capability.js";
+  getKibiBootstrapCommandCapability,
+  registerKibiBootstrapCommand,
+} from "./kibi-bootstrap-capability.js";
 import {
   type KbFreshnessScope,
   createKbFreshnessEvidenceStore,
@@ -262,11 +262,11 @@ const kibiOpencodePlugin: Plugin = async (
   } = startup;
 
   const hooks: Hooks = {};
-  const initKibiCommandCapability = getInitKibiCommandCapability();
+  const kibiBootstrapCommandCapability = getKibiBootstrapCommandCapability();
 
-  if (initKibiCommandCapability.supported) {
+  if (kibiBootstrapCommandCapability.supported) {
     hooks.config = async (configInput) => {
-      registerInitKibiCommand(configInput, initKibiCommandCapability);
+      registerKibiBootstrapCommand(configInput, kibiBootstrapCommandCapability);
     };
   }
 

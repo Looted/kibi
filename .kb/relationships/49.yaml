@@ -48,3 +48,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3801c003d00
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidates-buildbootstrapcandidates
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-21T19:52:19.739Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-530bf95108e4
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidates-buildbootstrapcandidates
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-21T19:52:19.765Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3cf1bad1ab0b

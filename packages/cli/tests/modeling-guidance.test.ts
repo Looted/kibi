@@ -184,15 +184,17 @@ describe("modeling guidance: canonical entity-choice rule", () => {
     });
   });
 
-  // ─── bundled init-kibi skill ────────────────────────────────────────────────
+  // ─── bundled kibi-bootstrap skill ────────────────────────────────────────────────
 
-  describe("init-kibi skill", () => {
-    test("must describe autopilot preview, sequential apply, and repair-safe completion", () => {
-      const content = readDoc("packages/runtime/src/skills/init-kibi/SKILL.md");
-      expect(content).toContain("kb_autopilot_generate");
+  describe("kibi-bootstrap skill", () => {
+    test("must describe bootstrap preview, plan-owned apply, and repair-safe completion", () => {
+      const content = readDoc("packages/runtime/src/skills/kibi-bootstrap/SKILL.md");
+      expect(content).toContain("kb_plan_bootstrap");
       expect(content).toMatch(/preview/i);
       expect(content).toMatch(/approval/i);
-      expect(content).toMatch(/sequential `kb_upsert`/);
+      expect(content).toContain("`kb_apply_plan`");
+      expect(content).toMatch(/owns dependency ordering[\s\S]*sequential mutation/);
+      expect(content).toMatch(/Direct\s+`kb_upsert`\s+is forbidden/i);
       expect(content).toContain("committed_with_repairs");
     });
   });

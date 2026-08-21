@@ -241,7 +241,7 @@ export function parseOperatorArgs(args: readonly string[]): ParsedOperatorArgs {
   const command = args[0];
   if (command !== "smoke" && command !== "optimize" && command !== "suite") {
     throw new OperatorUsageError(
-      "Usage: bun run scripts/skillopt-eval/operator.ts <smoke|optimize|suite> [--skill kibi-usage|kibi-freshness|kibi-traceability|init-kibi] [--max-steps 1..4] [--seed-candidate PATH]",
+      "Usage: bun run scripts/skillopt-eval/operator.ts <smoke|optimize|suite> [--skill kibi-usage|kibi-freshness|kibi-traceability|kibi-bootstrap] [--max-steps 1..4] [--seed-candidate PATH]",
     );
   }
   let maxSteps = 1;
@@ -330,7 +330,7 @@ export async function runOperatorCommand(
   }
   if (options.skill === "bundle") {
     throw new OperatorUsageError(
-      "optimize requires --skill kibi-usage|kibi-freshness|kibi-traceability|init-kibi",
+      "optimize requires --skill kibi-usage|kibi-freshness|kibi-traceability|kibi-bootstrap",
     );
   }
   const selectedSkill = options.skill ?? "kibi-usage";

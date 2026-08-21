@@ -261,7 +261,7 @@ describe("server docs coverage", () => {
 
   test("PROMPTS has expected prompt names", () => {
     const expectedNames = [
-      "init-kibi",
+      "kibi-bootstrap",
       "kibi_overview",
       "kibi_workflow",
       "kibi_constraints",

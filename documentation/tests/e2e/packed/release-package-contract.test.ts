@@ -5,6 +5,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, describe, it } from "node:test";
 import { isolatedPackedSandboxEnv, packAll } from "./helpers.js";
+import {
+  createIsolatedPnpmEnvironment,
+  resolvePnpm,
+} from "./pnpm-upgrade-utils.js";
 
 const packageNames = ["core", "cli", "runtime", "mcp"] as const;
 type PackageName = (typeof packageNames)[number];
@@ -56,17 +60,27 @@ function verifyConsumer(dir: string, packageManager: "npm" | "pnpm"): void {
     packageManager === "npm"
       ? ["install", "--no-audit"]
       : ["install", "--no-frozen-lockfile"];
-  const command = packageManager === "npm" ? "npm" : "pnpm";
+  const pnpm = packageManager === "pnpm" ? resolvePnpm() : undefined;
+  const command = pnpm?.command ?? "npm";
+  const commandPrefix = pnpm?.argsPrefix ?? [];
   const offline = process.env.KIBI_RELEASE_CONTRACT_OFFLINE === "1";
-  execFileSync(command, offline ? [...args, "--offline"] : args, {
-    cwd: dir,
-    encoding: "utf8",
-    env: isolatedPackedSandboxEnv({
-      npm_config_audit: "false",
-      ...(offline ? { npm_config_registry: "http://127.0.0.1:9" } : {}),
-    }),
-    stdio: "pipe",
-  });
+  const pnpmEnv =
+    pnpm === undefined
+      ? isolatedPackedSandboxEnv({
+          npm_config_audit: "false",
+          ...(offline ? { npm_config_registry: "http://127.0.0.1:9" } : {}),
+        })
+      : createIsolatedPnpmEnvironment(dir, pnpm).env;
+  execFileSync(
+    command,
+    [...commandPrefix, ...(offline ? [...args, "--offline"] : args)],
+    {
+      cwd: dir,
+      encoding: "utf8",
+      env: pnpmEnv,
+      stdio: "pipe",
+    },
+  );
   const probe = execFileSync(
     "node",
     [
@@ -103,7 +117,10 @@ describe("release package contracts", { concurrency: false }, () => {
       timeout: 300_000,
       skip: (() => {
         try {
-          execFileSync("pnpm", ["--version"], { stdio: "ignore" });
+          const pnpm = resolvePnpm();
+          execFileSync(pnpm.command, [...pnpm.argsPrefix, "--version"], {
+            stdio: "ignore",
+          });
           return false;
         } catch {
           return "pnpm is not installed";

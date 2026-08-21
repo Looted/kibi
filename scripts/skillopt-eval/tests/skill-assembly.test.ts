@@ -45,7 +45,7 @@ describe("canonical skill assembly", () => {
       "kibi-usage",
       "kibi-freshness",
       "kibi-traceability",
-      "init-kibi",
+      "kibi-bootstrap",
     ]);
     expect(
       receipt.skills.find(({ id }) => id === "kibi-usage")?.bodyChanged,
@@ -119,7 +119,7 @@ describe("canonical skill assembly", () => {
     const attempt = assembleCanonicalSkills({
       sourceRepoRoot: resolve(import.meta.dir, "../../.."),
       workspace: root,
-      targetSkill: "init-kibi",
+      targetSkill: "kibi-bootstrap",
       candidate: { body: "---\nid: changed\n---\nbody\n" },
     });
 

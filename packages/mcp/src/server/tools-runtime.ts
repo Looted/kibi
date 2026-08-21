@@ -11,7 +11,7 @@ import {
 import { isMcpDebugEnabled } from "../env.js";
 import { createMcpRuntime } from "../runtime/mcp-runtime.js";
 import { TOOLS } from "../tools-config.js";
-import { handleKbAutopilotGenerate } from "../tools/autopilot-generate.js";
+import { handleKbPlanBootstrap } from "../tools/plan-bootstrap.js";
 import { handleKbCheck } from "../tools/check.js";
 import { handleKbCoverage } from "../tools/coverage.js";
 import { handleKbDelete } from "../tools/delete.js";
@@ -210,5 +210,5 @@ export const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
   handleKbValidateUpsert,
   handleKbModelRequirement,
   handleKbSuggestPredicates,
-  handleKbAutopilotGenerate,
+  handleKbPlanBootstrap,
 };

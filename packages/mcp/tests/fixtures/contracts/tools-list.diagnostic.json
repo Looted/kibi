@@ -577,6 +577,10 @@
           "data": {
             "additionalProperties": false,
             "properties": {
+              "bootstrap": {
+                "additionalProperties": true,
+                "type": "object"
+              },
               "branch": {
                 "type": "string"
               },
@@ -4751,7 +4755,7 @@
         "openWorldHint": false,
         "readOnlyHint": true
       },
-      "description": "Generate agent-centric bootstrap output for KB population. Read-only analysis that returns activation state, bootstrap guidance, candidate entities with evidence, payoff summary, and exact applyPlan payloads for later kb_upsert calls. No mutation side effects.",
+      "description": "Generate a deterministic, snapshot-bound kibi.bootstrap-plan.v1 for repository onboarding. Read-only analysis returns evidence, bounded context questions, exact dependency-ordered actions, a canonical plan hash, and no mutation side effects.",
       "inputSchema": {
         "properties": {
           "_diagnostic_telemetry": {
@@ -4856,7 +4860,7 @@
         },
         "type": "object"
       },
-      "name": "kb_autopilot_generate",
+      "name": "kb_plan_bootstrap",
       "outputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
@@ -4864,6 +4868,17 @@
           "data": {
             "additionalProperties": false,
             "properties": {
+              "actions": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "activation": {
+                "additionalProperties": true,
+                "type": "object"
+              },
               "activationMode": {
                 "type": "string"
               },
@@ -4875,13 +4890,6 @@
               },
               "applyBlocked": {
                 "type": "boolean"
-              },
-              "applyPlan": {
-                "items": {
-                  "additionalProperties": true,
-                  "type": "object"
-                },
-                "type": "array"
               },
               "bootstrapMode": {
                 "type": "string"
@@ -4897,11 +4905,27 @@
                 "additionalProperties": true,
                 "type": "object"
               },
+              "contextQuestions": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
               "declaredContext": {
                 "additionalProperties": true,
                 "type": "object"
               },
+              "diagnostics": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
               "discoverySummary": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "expected": {
                 "additionalProperties": true,
                 "type": "object"
               },
@@ -4915,6 +4939,13 @@
                 "additionalProperties": true,
                 "type": "object"
               },
+              "plan": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "planHash": {
+                "type": "string"
+              },
               "promptBlock": {
                 "type": "string"
               },
@@ -4925,6 +4956,16 @@
                 },
                 "type": "array"
               },
+              "sourceWrites": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "status": {
+                "type": "string"
+              },
               "suppressedCandidates": {
                 "items": {
                   "additionalProperties": true,
@@ -4934,8 +4975,12 @@
               },
               "tldr": {
                 "type": "string"
+              },
+              "version": {
+                "type": "string"
               }
             },
+            "required": ["plan", "diagnostics"],
             "type": "object"
           },
           "diagnostics": {
@@ -5029,10 +5074,10 @@
             "type": "array"
           },
           "operation": {
-            "const": "kb_autopilot_generate"
+            "const": "kb_plan_bootstrap"
           },
           "resultVersion": {
-            "const": "kibi.kb_autopilot_generate.v1"
+            "const": "kibi.kb_plan_bootstrap.v1"
           },
           "status": {
             "enum": ["success", "committed_with_repairs", "error"]
@@ -5479,8 +5524,29 @@
         "readOnlyHint": false,
         "title": "Apply an approved Kibi plan"
       },
-      "description": "Apply an approved kibi.compile-plan.v1 or kibi.migration-plan.v2 after revalidating its canonical hash and live snapshots. Compile steps remain sequential entity writes; migration steps require explicit automatic action IDs and preserve backups/audit evidence. Review, operator, and execution actions are rejected.",
+      "description": "Apply an explicitly approved kibi.bootstrap-plan.v1, kibi.compile-plan.v1, kibi.migration-plan.v2, or entity-deletion plan after revalidating its canonical hash and live snapshots. Bootstrap actions are dependency-ordered, sequential, source-first, and recoverable from a typed journal.",
       "inputSchema": {
+        "oneOf": [
+          {
+            "not": {
+              "required": ["recoveryJournalId"]
+            },
+            "required": ["plan", "approvedPlanHash"]
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": ["plan"]
+                },
+                {
+                  "required": ["approvedPlanHash"]
+                }
+              ]
+            },
+            "required": ["recoveryJournalId"]
+          }
+        ],
         "properties": {
           "_diagnostic_telemetry": {
             "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
@@ -5525,17 +5591,21 @@
             "type": "array"
           },
           "approvedPlanHash": {
-            "description": "Exact SHA-256 planHash returned by kb_compile_intent after human/agent review.",
+            "description": "Exact SHA-256 planHash returned by kb_plan_bootstrap, kb_compile_intent, or another approved plan after human review.",
             "pattern": "^[a-fA-F0-9]{64}$",
             "type": "string"
           },
           "plan": {
-            "description": "The complete kibi.compile-plan.v1, kibi.migration-plan.v2, or hash-bound kibi.entity-deletion-plan.v1 object. Migration plans require approvedActionIds and reject blocked/non-automatic actions.",
+            "description": "The complete kibi.bootstrap-plan.v1, kibi.compile-plan.v1, kibi.migration-plan.v2, or hash-bound kibi.entity-deletion-plan.v1 object. Migration plans require approvedActionIds and reject blocked/non-automatic actions.",
             "required": ["version", "planHash"],
             "type": "object"
+          },
+          "recoveryJournalId": {
+            "description": "Typed recovery journal identifier returned by a committed_with_repairs result. Recovery replays only the immutable journal and never the original plan request.",
+            "pattern": "^[A-Za-z0-9._-]+$",
+            "type": "string"
           }
         },
-        "required": ["plan", "approvedPlanHash"],
         "type": "object"
       },
       "name": "kb_apply_plan",

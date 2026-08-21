@@ -8,7 +8,7 @@ import type {
   deriveDiagnosticFields,
   extractToolCallPayload,
 } from "../diagnostics.js";
-import type { AutopilotGenerateArgs } from "../tools/autopilot-generate.js";
+import type { PlanBootstrapArgs } from "../tools/plan-bootstrap.js";
 import type { CheckArgs } from "../tools/check.js";
 import type { CoverageArgs } from "../tools/coverage.js";
 import type { DeleteArgs } from "../tools/delete.js";
@@ -94,8 +94,8 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
     prolog: TProlog,
     args: SuggestPredicatesArgs,
   ) => Promise<unknown>;
-  handleKbAutopilotGenerate: (
-    args: AutopilotGenerateArgs,
+  handleKbPlanBootstrap: (
+    args: PlanBootstrapArgs,
     context: OperationContext,
   ) => Promise<unknown>;
   /** Optional test/host override; production falls back to the shared executor. */

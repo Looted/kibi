@@ -31,7 +31,7 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const EXPECTED_SKILL_IDS = [
-  "init-kibi",
+  "kibi-bootstrap",
   "kibi-freshness",
   "kibi-traceability",
   "kibi-usage",

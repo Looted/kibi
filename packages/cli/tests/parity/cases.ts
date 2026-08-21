@@ -61,7 +61,7 @@ const SEED_INPUTS = {
     text: "The editor must save changes automatically when the user navigates away.",
     maxCandidates: 1,
   },
-  kb_autopilot_generate: {
+  kb_plan_bootstrap: {
     includeGenericMarkdown: false,
     minConfidence: 0.8,
     maxCandidates: 1,

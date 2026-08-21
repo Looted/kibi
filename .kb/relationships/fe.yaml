@@ -55,3 +55,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6bc4ff4b6437
+  - type: implements
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-findsdkpackagejsonforpluginroot
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:35.506Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c96222b1529
+  - type: covered_by
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-findsdkpackagejsonforpluginroot
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:35.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79584a834131

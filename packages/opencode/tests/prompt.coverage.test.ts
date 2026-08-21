@@ -127,8 +127,8 @@ describe("prompt coverage", () => {
     assert.match(prompt, /STOP implementation/);
     assert.match(prompt, /Reason: preflight checkpoint failed\./);
     assert.match(prompt, /\+2 more dirty files/);
-    assert.match(prompt, /kb_search/);
-    assert.match(prompt, /kb_check/);
+    assert.match(prompt, /typed Kibi status/);
+    assert.match(prompt, /kibi-(usage|freshness|traceability)/);
     assert.ok(!prompt.includes("Code changes detected"));
   });
 
@@ -175,9 +175,9 @@ describe("prompt coverage", () => {
     );
 
     assert.match(prompt, /Bootstrap required/);
-    assert.match(prompt, /\/init-kibi/);
-    assert.match(prompt, /--input <file\|->/);
-    assert.match(prompt, /Kibi capability selection/);
+    assert.match(prompt, /\/kibi-bootstrap/);
+    assert.match(prompt, /kb_status\.bootstrap\.nextAction/);
+    assert.doesNotMatch(prompt, /MCP.*CLI|capability selection/i);
   });
 
   test("advisory cache suppresses repeated semantic guidance", () => {

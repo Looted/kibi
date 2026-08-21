@@ -11,7 +11,7 @@ const mirrorRoot = join(repoRoot, "packages/codex/skills");
 const hashManifestPath = join(mirrorRoot, ".canon-hash.json");
 
 const EXPECTED_SKILL_IDS = [
-  "init-kibi",
+  "kibi-bootstrap",
   "kibi-freshness",
   "kibi-traceability",
   "kibi-usage",

@@ -16,7 +16,7 @@ from .common import (
 )
 
 BridgePhase = Literal["train", "development"]
-BridgeSkill = Literal["kibi-usage", "kibi-freshness", "kibi-traceability", "init-kibi"]
+BridgeSkill = Literal["kibi-usage", "kibi-freshness", "kibi-traceability", "kibi-bootstrap"]
 TASK_ID_PATTERN: Final = r"^[a-z0-9][a-z0-9-]{0,127}$"
 
 

@@ -339,8 +339,8 @@ function hardBlockText(events: NormalizedPolicyEvent[]): {
     (note): note is string => note !== null,
   );
   const deletionCleanup = deletedWithoutLinks
-    ? "Deleted files without linked IDs still need sourceFile cleanup: use `kb_search` plus `kb_query` with `sourceFile` for the deleted path before deciding whether `kb_upsert` cleanup is needed."
-    : "Use `kb_upsert` when traceability, relationships, or source-linked facts need updates.";
+    ? "Deleted paths without linked IDs still require a source-linked traceability review before cleanup."
+    : "Use the canonical traceability workflow when relationships or source-linked facts need updates.";
 
   return {
     text: [
@@ -348,22 +348,12 @@ function hardBlockText(events: NormalizedPolicyEvent[]): {
       "Changed relevant files require Kibi verification before continuing:",
       ...pathLines,
       ...evidenceNotes,
-      "Capability-based checkpoint instructions:",
-      "- MCP tools and the trusted project-local CLI are peer surfaces over the same 21 operations; choose by what is visible and approved here.",
-      "- If Kibi MCP tools are visible and approved, use MCP.",
-      "- Otherwise, in a trusted workspace, use the project-local CLI's dedicated JSON routes with `--input <file|->`.",
-      "- If neither interface is available, Kibi operation is blocked; tell the operator to enable MCP or the trusted project-local CLI.",
-      "- Do not infer MCP availability from config file existence. Do not read or edit `.kb/` files directly.",
-      "- Query before mutate. Run `kb_upsert` sequentially. Run `kb_check` before completion.",
-      "- Run `kb_search` to discover impacted requirements, tests, ADRs, and facts.",
-      `- Run \`kb_query\` with \`sourceFile\` (example sourceFile: \"${representativePath}\") for each listed path.`,
-      "- Run `kb_status` if branch or snapshot freshness matters.",
+      "- Inspect typed Kibi status `nextActions` and route to the canonical kibi-usage, kibi-freshness, or kibi-traceability skill.",
+      "- Use the host-visible approved Kibi peer surface; if it is unavailable, report the blocked capability.",
+      "- Never read or edit `.kb/` files directly.",
+      `- Preserve source-linked evidence for \`${representativePath}\` through the typed traceability workflow.`,
       `- ${deletionCleanup}`,
-      "- Run `kb_check` before completing the task.",
-      "KB freshness resolution:",
-      "- **KB updated**: run `kb_search` for discovery, then `kb_upsert`/`kb_delete` for mutations, then `kb_check`.",
-      "- **No KB impact**: provide a no-impact rationale in your final report after source-linked discovery via `kb_search` or `kb_query(sourceFile=...)` and `kb_check`.",
-      "- **Deferred/failed**: do not claim task completion.",
+      "- Follow typed check/status next actions before completing the task; unresolved or blocked state is not completion.",
     ].join("\n"),
     shownPaths,
     remainingCount,

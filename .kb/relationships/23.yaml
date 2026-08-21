@@ -24,3 +24,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0bf42ea429bb
+  - type: implements
+    from: SYM-skillopt-fixture-init-definitions
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-21T19:38:26.474Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19c5b4d08372
+  - type: covered_by
+    from: SYM-skillopt-fixture-init-definitions
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-21T19:38:26.491Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-598b5340cfa4

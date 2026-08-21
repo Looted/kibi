@@ -33,16 +33,16 @@ This plan implements all four requested product areas:
 
 The 2026-08-13 dogfood baseline shows that the primitives exist but are not yet a reliable workflow:
 
-| Signal | BizzWords / Align evidence | Product consequence |
+| Signal | Dogfood project B / dogfood project A evidence | Product consequence |
 |---|---:|---|
 | Usage volume | 11,392 diagnostic events and 3,236 upserts | Kibi is used enough for workflow friction to be material. |
-| Validation discipline | 244 validations total; Align's latest sample had 0 exact validations before 53 upserts | Preflight must become part of plan application, not optional agent memory. |
-| Exact lookup misses | BizzWords 264/1,486; Align 372/2,760 | Literal lookup does not reliably recover intent from unfamiliar vocabulary or code. |
+| Validation discipline | 244 validations total; dogfood project A's latest sample had 0 exact validations before 53 upserts | Preflight must become part of plan application, not optional agent memory. |
+| Exact lookup misses | Dogfood project B 264/1,486; dogfood project A 372/2,760 | Literal lookup does not reliably recover intent from unfamiliar vocabulary or code. |
 | Semantic-tool adoption | 12 semantic-advisor and 24 model-requirement calls combined | The low-level semantic sequence is too fragmented. |
-| Proof | Align has 59 passing E2E tests but 0/102 proven requirements | Authored tests and durable status are not connected to current execution evidence. |
-| Semantic completeness | 84 Align requirements lack complete semantic inventories; 94 lack qualifying E2E proof | Contradiction checks cannot be trusted until proposition grounding and proof are joined. |
-| Attribution quality | BizzWords `TEST-170` is linked to 51 symbols | Broad links create graph coverage without credible behavioral attribution. |
-| Runtime parity | BizzWords pins `kibi-cli` 0.14.0; Align pins 0.16.1 while this checkout is newer | Dogfood conclusions are confounded by runtime drift. |
+| Proof | Dogfood project A has 59 passing E2E tests but 0/102 proven requirements | Authored tests and durable status are not connected to current execution evidence. |
+| Semantic completeness | 84 dogfood project A requirements lack complete semantic inventories; 94 lack qualifying E2E proof | Contradiction checks cannot be trusted until proposition grounding and proof are joined. |
+| Attribution quality | Dogfood project B `TEST-170` is linked to 51 symbols | Broad links create graph coverage without credible behavioral attribution. |
+| Runtime parity | Dogfood project B pins `kibi-cli` 0.14.0; dogfood project A pins 0.16.1 while this checkout is newer | Dogfood conclusions are confounded by runtime drift. |
 
 The key product decision is to join these capabilities rather than add another isolated report.
 
@@ -332,7 +332,7 @@ The operation:
 
 - [ ] Encode the decisions in this plan as an accepted ADR.
 - [ ] Add proposition-complete requirements and scenario/test traceability before production code.
-- [ ] Build at least 60 search cases: 20 direct prose, 20 synonym/facet, 20 source-location/symbol cases, split evenly across Kibi, Align, and BizzWords concepts.
+- [ ] Build at least 60 search cases: 20 direct prose, 20 synonym/facet, 20 source-location/symbol cases, split evenly across Kibi, dogfood project A, and dogfood project B concepts.
 - [ ] Build at least 40 compiler cases covering scalar constraints, predicates, safe rules, ambiguity, ontology gaps, supersession, and compound clauses.
 - [ ] Store only normalized query text, source paths, and expected public entity IDs; do not copy private usage-log payloads into fixtures.
 - [ ] Add metrics for Recall@5, source-location Recall@5, MRR, abstention precision, proposition accounting, grounding precision, and contradiction witness correctness.
@@ -353,8 +353,8 @@ The operation:
 
 **Dogfood adoption:**
 
-- BizzWords: update `package.json`, `pnpm-lock.yaml`, and `.cursor/mcp.json` from `kibi-cli` 0.14.0 / `kibi-mcp` 0.19.0 to the same freshly packed release tested from this checkout.
-- Align: update `package.json`, `pnpm-lock.yaml`, `.opencode/bin/`, and the existing local update script to the same release.
+- Dogfood project B: update `package.json`, `pnpm-lock.yaml`, and `.cursor/mcp.json` from `kibi-cli` 0.14.0 / `kibi-mcp` 0.19.0 to the same freshly packed release tested from this checkout.
+- Dogfood project A: update `package.json`, `pnpm-lock.yaml`, `.opencode/bin/`, and the existing local update script to the same release.
 - Preserve all unrelated dirty changes in both repositories.
 
 **Steps:**
@@ -612,8 +612,8 @@ This is data/model adoption using public Kibi operations, not a one-off hidden m
 
 **Selection:**
 
-- Align: 25 high-priority requirements spanning the 59 existing passing E2E tests.
-- BizzWords: 10 high-priority requirements including the area currently represented by broad `TEST-170` links.
+- Dogfood project A: 25 high-priority requirements spanning the 59 existing passing E2E tests.
+- Dogfood project B: 10 high-priority requirements including the area currently represented by broad `TEST-170` links.
 
 **Steps per requirement:**
 
@@ -632,7 +632,7 @@ This is data/model adoption using public Kibi operations, not a one-off hidden m
 - Add a non-blocking `coverage_attribution_outlier` when one test has more than 20 incoming production-symbol `covered_by` links or is the sole proof test for more than 10 requirements.
 - The diagnostic must show exact relationships and ask for case-level review; it must not delete links or assume the threshold proves an error.
 
-**Exit gate:** At least 25 Align and 10 BizzWords selected requirements are `proofProven`; every one has complete proposition grounding and exact case evidence; no selected requirement relies on a broad inferred coverage link.
+**Exit gate:** At least 25 dogfood project A and 10 dogfood project B selected requirements are `proofProven`; every one has complete proposition grounding and exact case evidence; no selected requirement relies on a broad inferred coverage link.
 
 ### Task 11: Agent integration and hard-gate rollout
 
@@ -723,7 +723,7 @@ The feature is not complete when the operations merely exist. All of these gates
 
 - Every contracted required Playwright case/project is present exactly once and passed on first attempt.
 - Partial, skipped, retried, failed, stale, cancelled, or contract-drifted runs never prove a requirement.
-- At least 25 Align and 10 BizzWords high-priority requirements become `proofProven`.
+- At least 25 dogfood project A and 10 dogfood project B high-priority requirements become `proofProven`.
 - Selected requirements have no suite-level or implausibly broad inferred coverage dependency.
 
 ## Dependency order and release slices
@@ -757,7 +757,7 @@ Each increment must be independently shippable and must not leave a public schem
 
 ## Delivery schedule
 
-This schedule assumes one primary engineer, with short reviews from the Align and BizzWords owners during corpus construction and migration. Additional engineers can parallelize fixtures, docs, and dogfood adoption, but not the search -> compile -> apply or contract -> ingest -> verify critical paths.
+This schedule assumes one primary engineer, with short reviews from the dogfood project A and dogfood project B owners during corpus construction and migration. Additional engineers can parallelize fixtures, docs, and dogfood adoption, but not the search -> compile -> apply or contract -> ingest -> verify critical paths.
 
 | Window | Planned work | Demonstrable result |
 |---|---|---|

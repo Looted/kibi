@@ -12,7 +12,7 @@ The repo-root setup relies on these files:
 4. `.opencode/tui.json` loads `.opencode/plugins/kibi.tui.ts`, which re-exports `../../packages/opencode/dist/tui.js`.
 5. `packages/mcp/dist/` and `packages/opencode/dist/` must exist locally because OpenCode uses those built outputs.
 
-Agent-visible Kibi operations are not owned exclusively by this MCP dogfood wiring. MCP tools and the trusted project-local CLI's 18 `--input` JSON routes are peer surfaces over the same operation catalog; this setup exercises MCP transport and plugin behavior specifically.
+Agent-visible Kibi operations are not owned exclusively by this MCP dogfood wiring. MCP tools and the trusted project-local CLI's `--input` JSON routes are peer surfaces over the same operation catalog; this setup exercises MCP transport and plugin behavior specifically.
 
 ## Initial Setup
 

@@ -244,7 +244,7 @@ function maskPrologData(goal: string): string {
 function safeEngineGoal(goal: string): boolean {
   // The socket is a local capability boundary, not a general-purpose SWI
   // console. Public clients may compose the typed Kibi predicates needed by
-  // the 21 operation contracts, but process/filesystem/network escape hatches
+  // the typed operation contracts, but process/filesystem/network escape hatches
   // are rejected before they reach Prolog.
   const executable = maskPrologData(goal);
   if (

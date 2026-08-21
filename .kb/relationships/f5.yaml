@@ -21,16 +21,30 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-43d99eeb089b
   - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapplanv1
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:21.708Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e0ae5083f13
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapplanv1
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:21.713Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2a924abae5f
+  - type: implements
     from: SYM-shared-npm-cache-type
     to: REQ-test-journaled-engine-harness
-    created_at: 2026-08-21T20:52:17.367Z
+    created_at: 2026-08-21T21:07:34.240Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7ab037a4f629
   - type: covered_by
     from: SYM-shared-npm-cache-type
     to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-21T20:52:17.377Z
+    created_at: 2026-08-21T21:07:34.254Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a954d201e76

@@ -123,6 +123,11 @@ export type FilesystemStat = {
 export interface FilesystemPort {
   readFile(path: string): Promise<string>;
   writeFile(path: string, data: string): Promise<void>;
+  /** Optional workspace globbing used by source-posture classifiers. */
+  glob?(
+    patterns: readonly string[],
+    options: { readonly cwd: string; readonly includeIgnored?: boolean },
+  ): Promise<readonly string[]>;
   /** Replace a file atomically when the host filesystem supports it. */
   rename?(from: string, to: string): Promise<void>;
   mkdir(path: string): Promise<void>;

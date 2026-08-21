@@ -619,7 +619,7 @@
         }
       }
     },
-    "kb_autopilot_generate": {
+    "kb_plan_bootstrap": {
       "input": {
         "includeGenericMarkdown": false,
         "minConfidence": 0.8,

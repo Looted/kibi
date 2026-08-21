@@ -34,3 +34,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-743a2e990057
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-presentation-normalizebootstrapcontext
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:48:48.511Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8ec8acfe23e
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-presentation-normalizebootstrapcontext
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:48:48.519Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30b5c051605c

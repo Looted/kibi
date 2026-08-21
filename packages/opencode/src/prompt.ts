@@ -5,9 +5,9 @@ import type { KibiConfig } from "./config.js";
 import { isPluginEnabled } from "./config.js";
 import type { CacheKey, GuidanceCache } from "./guidance-cache.js";
 import {
-  type InitKibiCommandCapability,
-  getInitKibiCommandCapability,
-} from "./init-kibi-capability.js";
+  type KibiBootstrapCommandCapability,
+  getKibiBootstrapCommandCapability,
+} from "./kibi-bootstrap-capability.js";
 import type { KbFreshnessEvaluation } from "./kb-freshness-state.js";
 import type { PathKind } from "./path-kind.js";
 import type { RepoPosture } from "./repo-posture.js";
@@ -84,24 +84,23 @@ function getFocusEdit(
   );
 }
 
-function buildInitKibiBootstrapReference(
-  capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
+function buildKibiBootstrapReference(
+  capability: KibiBootstrapCommandCapability = getKibiBootstrapCommandCapability(),
 ): string {
   if (capability.supported) {
-    return "Bootstrap existing repos: when the Kibi OpenCode plugin is active and native injection is supported, `/init-kibi` is the canonical short alias; `/kibi:init-kibi:mcp` remains the namespaced MCP fallback for the retroactive initialization (`kb_autopilot_generate`) workflow.";
+    return "Bootstrap existing repositories with `/kibi-bootstrap`; the canonical `kibi-bootstrap` skill owns planner, approval, apply, and repair semantics.";
   }
 
-  return "Bootstrap existing repos: this host does not support native `/init-kibi` injection, so Kibi must fail closed and does not register a fake native alias; use `/kibi:init-kibi:mcp` for the retroactive initialization (`kb_autopilot_generate`) workflow.";
+  return "This host cannot inject native `/kibi-bootstrap`; use `/kibi:kibi-bootstrap:mcp` to route to the canonical `kibi-bootstrap` skill.";
 }
 
 function buildBootstrapRequiredBody(
-  capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
+  capability: KibiBootstrapCommandCapability = getKibiBootstrapCommandCapability(),
 ): string {
-  const commandBullet = capability.supported
-    ? "- When the Kibi OpenCode plugin is active and native injection is supported, use `/init-kibi` as the canonical short alias; `/kibi:init-kibi:mcp` remains the namespaced MCP fallback."
-    : "- This host does not support native `/init-kibi` injection. Kibi must fail closed and does not register a fake native alias; use `/kibi:init-kibi:mcp` instead.";
-
-  return `Kibi capability selection (MCP tools and the trusted project-local CLI are peer surfaces over the same 21 operations):\n1. If Kibi MCP tools are visible and approved, use MCP.\n2. Otherwise, in a trusted workspace, use the project-local CLI's dedicated JSON routes with \`--input <file|->\`.\n3. If neither interface is available, Kibi operation is blocked; tell the operator.\nDo not infer MCP availability from config file existence. Do not read or edit \`.kb/\` files directly. Query before mutate. Run \`kb_upsert\` sequentially. Run \`kb_check\` before completion.\n\nThis repository does not appear to have Kibi initialized. Agents should:\n${commandBullet}\n- The workflow uses \`kb_autopilot_generate\` for read-only synthesis; always preview and get approval before writes.\n- Ask the operator to handle setup or repair if bootstrap is insufficient.\n- Load \`kibi-usage\` with \`kb_skills_load\` for comprehensive guidance.`;
+  const command = capability.supported
+    ? "Use `/kibi-bootstrap`."
+    : "Use `/kibi:kibi-bootstrap:mcp`; this host does not support native command injection.";
+  return `Kibi infrastructure is not initialized. Run \`kibi init\`, then inspect \`kb_status.bootstrap.nextAction\` and route the explicit bootstrap request to the canonical \`kibi-bootstrap\` skill. ${command}`;
 }
 
 // ── PromptContext ──────────────────────────────────────────────────────
@@ -163,18 +162,7 @@ function buildHardGateBlock(
     reasonLine,
     "Affected files:",
     ...pathLines,
-    "Capability-based recovery steps:",
-    "- MCP tools and the trusted project-local CLI are peer surfaces over the same 21 operations; choose by what is visible and approved here.",
-    "- If Kibi MCP tools are visible and approved, use MCP.",
-    "- Otherwise, in a trusted workspace, use the project-local CLI's dedicated JSON routes with `--input <file|->`.",
-    "- If neither interface is available, Kibi operation is blocked; tell the operator to enable MCP or the trusted project-local CLI.",
-    "- Do not infer MCP availability from config file existence. Do not read or edit `.kb/` files directly.",
-    "- Query before mutate. Run `kb_upsert` sequentially. Run `kb_check` before completion.",
-    "- Run `kb_search` for impacted requirements, tests, ADRs, and facts.",
-    "- Run `kb_query` with `sourceFile` for each affected file.",
-    "- Run `kb_status` if branch or snapshot freshness matters.",
-    "- Run `kb_upsert` for required traceability, relationship, or fact updates.",
-    "- Run `kb_check` before continuing.",
+    "Inspect typed Kibi status `nextActions`, then route to the canonical kibi-usage, kibi-freshness, or kibi-traceability skill. Use the host-visible approved peer surface and never read or edit `.kb` directly.",
   ]
     .filter((line): line is string => line !== null)
     .join("\n");
@@ -216,18 +204,14 @@ Production code: use \`implements\` (symbol→req) for requirement ownership. Te
 
   manual_kb_edit: `⚠️  **WARNING: Direct .kb/ edits bypass validation**
 
-The Kibi knowledge base is managed through visible MCP tools or the trusted project-local CLI — peer surfaces over the same 21 operations. Do not read or edit \`.kb/\` files directly.
-- Query before mutate and run kb_upsert sequentially
-- Use kb_upsert to create/update entities
-- Use kb_delete to remove entities
-- Use kb_check to validate consistency`,
+Do not read or edit \`.kb/\` directly. Follow typed Kibi status \`nextActions\` and route durable changes through the canonical kibi-usage, kibi-freshness, or kibi-traceability skill.`,
 };
 
 // ── Posture overrides ──────────────────────────────────────────────────
 
 export function postureGuidance(
   posture: RepoPosture,
-  capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
+  capability: KibiBootstrapCommandCapability = getKibiBootstrapCommandCapability(),
 ): string | null {
   // implements REQ-opencode-prompt-injection
   switch (posture) {
@@ -254,7 +238,7 @@ Root .kb/manifest.json exists but some canonical KB targets under .kb/ are missi
  */
 function buildContextualGuidance(
   context: PromptContext,
-  capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
+  capability: KibiBootstrapCommandCapability = getKibiBootstrapCommandCapability(),
 ): string {
   if (context.hardGateBlock) {
     return `${SENTINEL}\n\n${buildHardGateBlock(context.hardGateBlock)}`;
@@ -624,37 +608,16 @@ Before implementing or explaining code:
  * Build the static guidance block (original behavior).
  */
 function buildBaseGuidance(
-  capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
+  capability: KibiBootstrapCommandCapability = getKibiBootstrapCommandCapability(),
 ): string {
   return `${SENTINEL}
-This project uses Kibi through capability-selected MCP or CLI JSON routes. Prefer storing durable knowledge in Kibi over code comments.
+Use typed Kibi status and its \`nextActions\` as the workflow contract. Route general work to \`kibi-usage\`, freshness decisions to \`kibi-freshness\`, source proof to \`kibi-traceability\`, and an explicit bootstrap request to \`kibi-bootstrap\`. Use the host-visible approved Kibi peer surface; if it is unavailable, report the blocked capability. Never read or edit \`.kb/\` directly.
 
-Before changing behavior: use kb_search for discovery, then kb_query by sourceFile, id, type, or tags for exact follow-up; do not rely on undocumented tools.
-
-Keep changed symbols traceable: production code uses \`implements\` (symbol→req) for ownership; test code uses \`executable_for\`; \`covered_by\` is coverage evidence only. Inline \`// implements REQ-xxx\` comments remain backward-compatible.
-
-Kibi capability selection (MCP tools and the trusted project-local CLI are peer surfaces over the same 21 operations):
-1. If Kibi MCP tools are visible and approved, use MCP.
-2. Otherwise, in a trusted workspace, use the project-local CLI's dedicated JSON routes with \`--input <file|->\`.
-3. If neither interface is available, Kibi operation is blocked; tell the operator to enable MCP or the trusted project-local CLI.
-Do not infer MCP availability from config file existence. Do not read or edit \`.kb/\` files directly. Query before mutate. Run \`kb_upsert\` sequentially. Run \`kb_check\` before completion.
+Keep changed symbols traceable: production code uses \`implements\` (symbol→req) for ownership; test code uses \`executable_for\`; \`covered_by\` is coverage evidence only.
 
 Dogfood note for this repo: OpenCode here uses local built \`kibi-mcp\` and \`kibi-opencode\` artifacts. If you change package versions or local package wiring, run \`bun run build\` before relying on OpenCode in this workspace.
 
-**Kibi-first workflow:**
-1. **Discover**: Run kb_search for REQ, ADR, TEST, FACT. Decompose broad queries (e.g., "Apple Sign-In").
-2. **Confirm**: Run kb_query with sourceFile, id, type, or tags once you know the exact follow-up target.
-3. **Inspect freshness**: Run kb_status when branch or stale-state confidence matters.
-4. **Document intent**: If you are about to explain code, STOP. Route that explanation to kb_upsert instead of inline comments.
-5. **Link during work**: When creating KB entities, include relationship rows: specified_by (req→scenario), implements (symbol→req for ownership), covered_by (symbol→test for coverage), executable_for (test code→test).
-6. **Validate**: Run kb_check after KB mutations to catch violations early.
-7. **Before completion/commit**: Kibi impact evidence is required before completion/commit. If extraction output changes, refresh .kb/symbols.yaml and do not revert that update as scope creep.
-
-MCP and CLI expose the same 18 Kibi operations. Use the exact MCP tool or dedicated CLI route; do not invent a generic runner.
-
-For comprehensive Kibi usage guidance (relationships, fact lanes, workflows), use \`kb_skills_load\` with skill id \`kibi-usage\`.
-
-${buildInitKibiBootstrapReference(capability)}`;
+${buildKibiBootstrapReference(capability)}`;
 }
 
 /**
@@ -662,7 +625,7 @@ ${buildInitKibiBootstrapReference(capability)}`;
  */
 export function buildPrompt(
   context?: PromptContext,
-  capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
+  capability: KibiBootstrapCommandCapability = getKibiBootstrapCommandCapability(),
 ): string {
   if (!context) {
     return buildBaseGuidance(capability).trim();
@@ -677,7 +640,7 @@ export function injectPrompt(
   current: string,
   config: KibiConfig,
   context?: PromptContext,
-  capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
+  capability: KibiBootstrapCommandCapability = getKibiBootstrapCommandCapability(),
 ): string {
   if (!config.prompt.enabled || !isPluginEnabled(config)) {
     return current;

@@ -9,7 +9,7 @@ export const CANONICAL_SKILLS = [
   "kibi-usage",
   "kibi-freshness",
   "kibi-traceability",
-  "init-kibi",
+  "kibi-bootstrap",
 ] as const;
 
 export type CanonicalSkill = (typeof CANONICAL_SKILLS)[number];
@@ -18,7 +18,7 @@ export type TaskSplit = "train" | "development" | "held-out";
 export type ActivationMode =
   | "cold_start_bootstrap"
   | "repair_bootstrap"
-  | "attached_thin_handoff"
+  | "attached_thin_bootstrap"
   | "attached_seeded_handoff";
 export type RepositoryState = "cold-start" | "partial" | "thin" | "seeded";
 export type KnowledgeState = "absent" | "partial" | "fresh" | "stale";
@@ -81,10 +81,10 @@ const FAMILY_BY_SKILL: Readonly<Record<CanonicalSkill, readonly string[]>> = {
     "relationship-chain",
     "executable-coverage",
   ],
-  "init-kibi": [
+  "kibi-bootstrap": [
     "bootstrap-analysis",
     "bounded-context-questions",
-    "approval-sequential-writes",
+    "approval-plan-apply",
     "repair-escalation",
   ],
 };

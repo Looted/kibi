@@ -43,7 +43,7 @@ const TaskSpecObjectSchema = z
     activationMode: z.enum([
       "cold_start_bootstrap",
       "repair_bootstrap",
-      "attached_thin_handoff",
+      "attached_thin_bootstrap",
       "attached_seeded_handoff",
     ]),
     initialState: InitialStateSchema,

@@ -35,8 +35,29 @@
     "version": "kibi.plan-apply-result.v1"
   },
   "tool": {
-    "description": "Apply an approved kibi.compile-plan.v1 or kibi.migration-plan.v2 after revalidating its canonical hash and live snapshots. Compile steps remain sequential entity writes; migration steps require explicit automatic action IDs and preserve backups/audit evidence. Review, operator, and execution actions are rejected.",
+    "description": "Apply an explicitly approved kibi.bootstrap-plan.v1, kibi.compile-plan.v1, kibi.migration-plan.v2, or entity-deletion plan after revalidating its canonical hash and live snapshots. Bootstrap actions are dependency-ordered, sequential, source-first, and recoverable from a typed journal.",
     "inputSchema": {
+      "oneOf": [
+        {
+          "not": {
+            "required": ["recoveryJournalId"]
+          },
+          "required": ["plan", "approvedPlanHash"]
+        },
+        {
+          "not": {
+            "anyOf": [
+              {
+                "required": ["plan"]
+              },
+              {
+                "required": ["approvedPlanHash"]
+              }
+            ]
+          },
+          "required": ["recoveryJournalId"]
+        }
+      ],
       "properties": {
         "approvedActionIds": {
           "description": "Required for migration-plan.v2. Exact automatic action IDs explicitly approved for this application.",
@@ -47,17 +68,21 @@
           "type": "array"
         },
         "approvedPlanHash": {
-          "description": "Exact SHA-256 planHash returned by kb_compile_intent after human/agent review.",
+          "description": "Exact SHA-256 planHash returned by kb_plan_bootstrap, kb_compile_intent, or another approved plan after human review.",
           "pattern": "^[a-fA-F0-9]{64}$",
           "type": "string"
         },
         "plan": {
-          "description": "The complete kibi.compile-plan.v1, kibi.migration-plan.v2, or hash-bound kibi.entity-deletion-plan.v1 object. Migration plans require approvedActionIds and reject blocked/non-automatic actions.",
+          "description": "The complete kibi.bootstrap-plan.v1, kibi.compile-plan.v1, kibi.migration-plan.v2, or hash-bound kibi.entity-deletion-plan.v1 object. Migration plans require approvedActionIds and reject blocked/non-automatic actions.",
           "required": ["version", "planHash"],
           "type": "object"
+        },
+        "recoveryJournalId": {
+          "description": "Typed recovery journal identifier returned by a committed_with_repairs result. Recovery replays only the immutable journal and never the original plan request.",
+          "pattern": "^[A-Za-z0-9._-]+$",
+          "type": "string"
         }
       },
-      "required": ["plan", "approvedPlanHash"],
       "type": "object"
     },
     "name": "kb_apply_plan"

@@ -19,7 +19,7 @@ const JSON_COMMANDS = [
   "check",
   "model-requirement",
   "suggest-predicates",
-  "autopilot-generate",
+  "plan-bootstrap",
 ] as const;
 
 describe("buildProgram", () => {

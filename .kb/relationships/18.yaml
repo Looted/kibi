@@ -55,3 +55,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b6d2a7d04ba
+  - type: implements
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-opencodeconfighookinput
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:44.716Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09439fbd19e0
+  - type: covered_by
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-opencodeconfighookinput
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:44.723Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58e47af1af3a

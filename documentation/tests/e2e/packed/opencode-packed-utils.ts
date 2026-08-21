@@ -17,7 +17,12 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { type NpmPackResult, parseNpmPackJsonOutput } from "./npm-pack-json.js";
+import { createOwnedPackedTempDirectory } from "./helpers.js";
+import {
+  type NpmPackResult,
+  parseNpmPackJsonOutput,
+  resolveNpmPackFilename,
+} from "./npm-pack-json.js";
 
 const REPO_ROOT = resolve(process.cwd());
 
@@ -102,14 +107,21 @@ function packKibiPackageTarball(
   repoRoot: string = REPO_ROOT,
 ): string {
   const pkgDir = join(repoRoot, "packages", pkg);
+  const packDestination = createOwnedPackedTempDirectory(
+    "kibi-opencode-tarballs-",
+  );
 
   let packOutput: string;
   try {
-    packOutput = execFileSync("npm", ["pack", "--json"], {
-      cwd: pkgDir,
-      encoding: "utf8",
-      stdio: ["pipe", "pipe", "pipe"],
-    });
+    packOutput = execFileSync(
+      "npm",
+      ["pack", "--json", "--pack-destination", packDestination],
+      {
+        cwd: pkgDir,
+        encoding: "utf8",
+        stdio: ["pipe", "pipe", "pipe"],
+      },
+    );
   } catch (error) {
     const err = error as Error & { stderr?: Buffer; stdout?: Buffer };
     throw new Error(
@@ -124,7 +136,10 @@ function packKibiPackageTarball(
     throw new Error(`npm pack did not return a filename for kibi-${pkg}`);
   }
 
-  const tarballPath = join(pkgDir, packResults[0].filename);
+  const tarballPath = resolveNpmPackFilename(
+    packDestination,
+    packResults[0].filename,
+  );
   if (!existsSync(tarballPath)) {
     throw new Error(`Tarball not found: ${tarballPath}`);
   }
@@ -164,14 +179,21 @@ export function resolveOpencodeTarball(
   // Pack fresh tarball
   log("  📦 Packing kibi-opencode...");
   const opencodeDir = join(repoRoot, "packages/opencode");
+  const packDestination = createOwnedPackedTempDirectory(
+    "kibi-opencode-tarballs-",
+  );
 
   let packOutput: string;
   try {
-    packOutput = execFileSync("npm", ["pack", "--json"], {
-      cwd: opencodeDir,
-      encoding: "utf8",
-      stdio: ["pipe", "pipe", "pipe"],
-    });
+    packOutput = execFileSync(
+      "npm",
+      ["pack", "--json", "--pack-destination", packDestination],
+      {
+        cwd: opencodeDir,
+        encoding: "utf8",
+        stdio: ["pipe", "pipe", "pipe"],
+      },
+    );
   } catch (error) {
     const err = error as Error & { stderr?: Buffer; stdout?: Buffer };
     throw new Error(
@@ -186,7 +208,10 @@ export function resolveOpencodeTarball(
     throw new Error("npm pack did not return a filename");
   }
 
-  const tarballPath = join(opencodeDir, packResults[0].filename);
+  const tarballPath = resolveNpmPackFilename(
+    packDestination,
+    packResults[0].filename,
+  );
   if (!existsSync(tarballPath)) {
     throw new Error(`Tarball not found: ${tarballPath}`);
   }

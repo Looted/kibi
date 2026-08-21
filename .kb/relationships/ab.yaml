@@ -73,3 +73,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f56addccc6f6
+  - type: relates_to
+    from: ADR-KIBI-BOOTSTRAP-PLAN-APPLY
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T12:34:37.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25c7374644b9
+  - type: supersedes
+    from: ADR-KIBI-BOOTSTRAP-PLAN-APPLY
+    to: ADR-018
+    created_at: 2026-08-20T14:39:07.230Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eed264bb7bb4

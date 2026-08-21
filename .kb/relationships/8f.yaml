@@ -27,3 +27,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b5bf7c63aff7
+  - type: relates_to
+    from: SCEN-opencode-agent-mcp-only
+    to: REQ-agent-kibi-interface-selection
+    created_at: 2026-08-20T14:39:23.274Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-089988472f2d

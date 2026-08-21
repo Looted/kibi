@@ -34,3 +34,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6ac913d13956
+  - type: implements
+    from: SYM-skillopt-contract-source-lock
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-21T19:52:32.089Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84532d722cfb
+  - type: covered_by
+    from: SYM-skillopt-contract-source-lock
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-21T19:52:32.112Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a332a23d72d

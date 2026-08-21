@@ -1,0 +1,15 @@
+relationships:
+  - id: rel-45a56e49a8c5
+    type: implements
+    from: SYM-skillopt-mcp-broker-error
+    to: REQ-skillopt-codex-optimization
+    created_at: "2026-08-21T19:52:39.572Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-skillopt-mcp-broker-error
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-21T19:52:39.574Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c500ab1706ff

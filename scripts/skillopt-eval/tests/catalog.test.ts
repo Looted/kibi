@@ -19,6 +19,7 @@ import {
   materializePredicateCorpus,
   reservePredicateMatrix,
 } from "../fixtures/predicate-corpus";
+import { buildPrivateManifest } from "../fixtures/evaluator";
 import { publicSkillDescriptors } from "../real-workflow-setup";
 import { temporaryRoot } from "./fixture-test-helpers";
 
@@ -103,6 +104,29 @@ describe("SkillOpt fixture catalog", () => {
         "approval-boundary",
       ]),
     );
+  });
+
+  test("forbids direct upsert throughout every bootstrap task", () => {
+    const task = buildSkillCatalog("kibi-bootstrap").find(
+      (candidate) => candidate.taskData.approvalPhase === "post-approval",
+    );
+    if (task === undefined) throw new Error("bootstrap approval fixture missing");
+    const manifest = buildPrivateManifest({
+      task: task as unknown as Parameters<typeof buildPrivateManifest>[0]["task"],
+      publicManifestHash: "a".repeat(64),
+      workspaceHash: "b".repeat(64),
+    });
+    expect(
+      manifest.orderedMcpPredicates.forbidden.find(
+        ({ tool }) => tool === "kb_upsert",
+      )?.predicate,
+    ).toBe("always; use kb_apply_plan for approved bootstrap plans");
+    expect(manifest.orderedMcpPredicates.required.map(({ tool }) => tool)).toEqual([
+      "kb_plan_bootstrap",
+      "kb_status",
+      "kb_apply_plan",
+      "kb_check",
+    ]);
   });
 });
 

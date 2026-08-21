@@ -152,38 +152,33 @@ describe("MCP runtime docs: canonical modeling wording", () => {
     });
   });
 
-  describe("init-kibi prompt", () => {
+  describe("kibi-bootstrap prompt", () => {
     test("must not claim 'bug' or 'workaround' are entity types", () => {
-      const prompt = findPrompt("init-kibi");
+      const prompt = findPrompt("kibi-bootstrap");
       expect(prompt.text).not.toMatch(/type:\s*bug|type:\s*workaround/i);
     });
 
-    test("must instruct agents to execute candidate applyPlan steps sequentially", () => {
-      const prompt = findPrompt("init-kibi");
-      expect(prompt.text).toContain("structuredContent.applyPlan");
-      expect(prompt.text).toMatch(/sequentially/i);
+    test("must instruct agents to apply the reviewed bootstrap plan", () => {
+      const prompt = findPrompt("kibi-bootstrap");
+      expect(prompt.text).toContain("actions");
+      expect(prompt.text).toContain("kb_apply_plan");
     });
 
     test("must require preview and explicit approval before bootstrap writes", () => {
-      const prompt = findPrompt("init-kibi");
+      const prompt = findPrompt("kibi-bootstrap");
       expect(prompt.text).toContain("Preview and Approval");
       expect(prompt.text).toMatch(/explicit user approval/i);
       expect(prompt.text).not.toMatch(/optional human review/i);
       expect(prompt.text).not.toMatch(/must not block writes/i);
     });
 
-    test("must select MCP, trusted CLI JSON, or blocked operation by capability", () => {
-      const prompt = findPrompt("init-kibi");
-      expect(prompt.text).toContain("MCP tools are visible");
-      expect(prompt.text).toContain("trusted project-local CLI");
-      expect(prompt.text).toContain("--input");
-      expect(prompt.text).toContain("neither interface is available");
-      expect(prompt.text).toContain(
-        "Do not read or edit `.kb/` files directly",
-      );
-      expect(prompt.text).toContain("Query before mutate");
-      expect(prompt.text).toContain("sequentially");
-      expect(prompt.text).toContain("`kb_check` before completion");
+    test("must route through typed status and the canonical bootstrap skill", () => {
+      const prompt = findPrompt("kibi-bootstrap");
+      expect(prompt.text).toContain("kb_status.bootstrap");
+      expect(prompt.text).toContain("canonical `kibi-bootstrap` skill");
+      expect(prompt.text).not.toContain("MCP tools are visible");
+      expect(prompt.text).toContain("kb_apply_plan");
+      expect(prompt.text).toContain("kb_check");
     });
   });
 
@@ -231,13 +226,13 @@ describe("MCP runtime docs: canonical modeling wording", () => {
   // ─── PROMPTS array completeness ─────────────────────────────────────────────
 
   describe("PROMPTS array", () => {
-    test("must contain kibi_overview, kibi_workflow, kibi_constraints, and init-kibi", () => {
+    test("must contain kibi_overview, kibi_workflow, kibi_constraints, and kibi-bootstrap", () => {
       const promptNames = PROMPTS.map((p) => p.name);
       expect(promptNames).not.toContain("brief-kibi");
       expect(promptNames).toContain("kibi_overview");
       expect(promptNames).toContain("kibi_workflow");
       expect(promptNames).toContain("kibi_constraints");
-      expect(promptNames).toContain("init-kibi");
+      expect(promptNames).toContain("kibi-bootstrap");
     });
   });
 

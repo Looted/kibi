@@ -57,7 +57,7 @@
             "kibi-usage",
             "kibi-freshness",
             "kibi-traceability",
-            "init-kibi",
+            "kibi-bootstrap",
             "bundle"
           ]
         },
