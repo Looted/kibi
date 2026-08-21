@@ -20,9 +20,8 @@
       "steps": [
         [
           "node",
-          "scripts/run-packed-e2e.mjs",
-          "/tmp/kibi-e2e-packed-compiled",
-          "/tmp/kibi-e2e-packed-compiled/source-relationship-parity.test.js"
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/source-relationship-parity.test.ts"
         ]
       ]
     },
@@ -44,9 +43,8 @@
       "steps": [
         [
           "node",
-          "scripts/run-packed-e2e.mjs",
-          "/tmp/kibi-e2e-packed-compiled",
-          "/tmp/kibi-e2e-packed-compiled/branch-store-recovery.test.js"
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/branch-store-recovery.test.ts"
         ]
       ]
     },
@@ -71,9 +69,8 @@
       "steps": [
         [
           "node",
-          "scripts/run-packed-e2e.mjs",
-          "/tmp/kibi-e2e-packed-compiled",
-          "/tmp/kibi-e2e-packed-compiled/hook-integration.test.js"
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/hook-integration.test.ts"
         ]
       ]
     },
@@ -139,9 +136,8 @@
       "steps": [
         [
           "node",
-          "scripts/run-packed-e2e.mjs",
-          "/tmp/kibi-e2e-packed-compiled",
-          "/tmp/kibi-e2e-packed-compiled/dependency-ordered-repair-plan.test.js"
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/dependency-ordered-repair-plan.test.ts"
         ]
       ]
     },
@@ -163,9 +159,8 @@
       "steps": [
         [
           "node",
-          "scripts/run-packed-e2e.mjs",
-          "/tmp/kibi-e2e-packed-compiled",
-          "/tmp/kibi-e2e-packed-compiled/distribution-parity-matrix.test.js"
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/distribution-parity-matrix.test.ts"
         ]
       ]
     },
@@ -189,9 +184,8 @@
       "steps": [
         [
           "node",
-          "scripts/run-packed-e2e.mjs",
-          "/tmp/kibi-e2e-packed-compiled",
-          "/tmp/kibi-e2e-packed-compiled/fresh-verification-receipts.test.js"
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/fresh-verification-receipts.test.ts"
         ]
       ]
     },
@@ -213,9 +207,8 @@
       "steps": [
         [
           "node",
-          "scripts/run-packed-e2e.mjs",
-          "/tmp/kibi-e2e-packed-compiled",
-          "/tmp/kibi-e2e-packed-compiled/cli-workflows.test.js"
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/cli-workflows.test.ts"
         ]
       ]
     },
@@ -237,9 +230,8 @@
       "steps": [
         [
           "node",
-          "scripts/run-packed-e2e.mjs",
-          "/tmp/kibi-e2e-packed-compiled",
-          "/tmp/kibi-e2e-packed-compiled/cli-workflows.test.js"
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/cli-workflows.test.ts"
         ]
       ]
     },
@@ -264,9 +256,8 @@
       "steps": [
         [
           "node",
-          "scripts/run-packed-e2e.mjs",
-          "/tmp/kibi-e2e-packed-compiled",
-          "/tmp/kibi-e2e-packed-compiled/schema-relationship-roundtrip.test.js"
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/schema-relationship-roundtrip.test.ts"
         ]
       ]
     },
@@ -290,9 +281,8 @@
       "steps": [
         [
           "node",
-          "scripts/run-packed-e2e.mjs",
-          "/tmp/kibi-e2e-packed-compiled",
-          "/tmp/kibi-e2e-packed-compiled/ontology-convergence-witnesses.test.js"
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/ontology-convergence-witnesses.test.ts"
         ]
       ]
     },
@@ -314,9 +304,8 @@
       "steps": [
         [
           "node",
-          "scripts/run-packed-e2e.mjs",
-          "/tmp/kibi-e2e-packed-compiled",
-          "/tmp/kibi-e2e-packed-compiled/proposition-complete-ingestion.test.js"
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/proposition-complete-ingestion.test.ts"
         ]
       ]
     },
@@ -338,9 +327,8 @@
       "steps": [
         [
           "node",
-          "scripts/run-packed-e2e.mjs",
-          "/tmp/kibi-e2e-packed-compiled",
-          "/tmp/kibi-e2e-packed-compiled/telemetry-acceptance-gate.test.js"
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/telemetry-acceptance-gate.test.ts"
         ]
       ]
     },
@@ -362,9 +350,8 @@
       "steps": [
         [
           "node",
-          "scripts/run-packed-e2e.mjs",
-          "/tmp/kibi-e2e-packed-compiled",
-          "/tmp/kibi-e2e-packed-compiled/telemetry-remediation-evidence.test.js"
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/telemetry-remediation-evidence.test.ts"
         ]
       ]
     },
@@ -388,9 +375,8 @@
       "steps": [
         [
           "node",
-          "scripts/run-packed-e2e.mjs",
-          "/tmp/kibi-e2e-packed-compiled",
-          "/tmp/kibi-e2e-packed-compiled/fresh-verification-receipts.test.js"
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/fresh-verification-receipts.test.ts"
         ]
       ]
     },
@@ -421,9 +407,8 @@
         ],
         [
           "node",
-          "scripts/run-packed-e2e.mjs",
-          "/tmp/kibi-e2e-packed-compiled",
-          "/tmp/kibi-e2e-packed-compiled/cli-workflows.test.js"
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/cli-workflows.test.ts"
         ]
       ]
     },
@@ -556,9 +541,8 @@
       "steps": [
         [
           "node",
-          "scripts/run-packed-e2e.mjs",
-          "/tmp/kibi-e2e-packed-compiled",
-          "/tmp/kibi-e2e-packed-compiled/mcp-cli-operation-parity.test.js"
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/mcp-cli-operation-parity.test.ts"
         ]
       ]
     },
@@ -582,9 +566,8 @@
       "steps": [
         [
           "node",
-          "scripts/run-packed-e2e.mjs",
-          "/tmp/kibi-e2e-packed-compiled",
-          "/tmp/kibi-e2e-packed-compiled/discovery-bundle.test.js"
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/discovery-bundle.test.ts"
         ]
       ]
     },
@@ -606,9 +589,127 @@
       "steps": [
         [
           "node",
-          "scripts/run-packed-e2e.mjs",
-          "/tmp/kibi-e2e-packed-compiled",
-          "/tmp/kibi-e2e-packed-compiled/github-report-integration.test.js"
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/github-report-integration.test.ts"
+        ]
+      ]
+    },
+    {
+      "test_id": "TEST-cursor-consumer-local-mcp-launcher-v1",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-cursor-consumer-local-mcp-launcher-v1"
+        ],
+        "required_case_symbols": ["SYM-cursor-packed-launcher-e2e"],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        [
+          "node",
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/cursor-plugin-launcher.test.ts"
+        ]
+      ]
+    },
+    {
+      "test_id": "TEST-codex-consumer-local-mcp-registration-v1",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-codex-consumer-local-mcp-registration-v1"
+        ],
+        "required_case_symbols": ["SYM-codex-packed-plugin-e2e"],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        [
+          "node",
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/codex-plugin.test.ts"
+        ]
+      ]
+    },
+    {
+      "test_id": "TEST-kibi-predicate-suggestion-relevance-v1",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-kibi-predicate-suggestion-relevance-v1"
+        ],
+        "required_case_symbols": [
+          "SYM-kibi-predicate-suggestion-relevance-e2e"
+        ],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        [
+          "node",
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/predicate-suggestion-relevance.test.ts"
+        ]
+      ]
+    },
+    {
+      "test_id": "TEST-kibi-consumer-local-plugin-launcher-ontology-v1",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-kibi-consumer-local-plugin-launcher-ontology-v1"
+        ],
+        "required_case_symbols": [
+          "SYM-kibi-consumer-local-plugin-launcher-ontology-e2e"
+        ],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        [
+          "node",
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/predicate-suggestion-relevance.test.ts"
+        ]
+      ]
+    },
+    {
+      "test_id": "TEST-runtime-packed-engine-daemon",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-runtime-packed-engine-daemon"
+        ],
+        "required_case_symbols": ["SYM-test-runtime-engine-daemon"],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        [
+          "node",
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/runtime-engine-daemon.test.ts"
         ]
       ]
     },

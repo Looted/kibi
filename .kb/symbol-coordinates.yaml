@@ -2201,9 +2201,9 @@ coordinates:
   SYM-auto-01A7A4554EF9:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 746
+    sourceEndLine: 810
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 735
+    sourceLine: 799
   SYM-auto-02C5362C86BE:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2213,9 +2213,9 @@ coordinates:
   SYM-auto-02DDBEE0B7C8:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 57
+    sourceEndLine: 60
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 54
+    sourceLine: 57
   SYM-auto-059ACEEC9EDC:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2261,9 +2261,9 @@ coordinates:
   SYM-auto-17A7EF53F461:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 762
+    sourceEndLine: 826
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 751
+    sourceLine: 815
   SYM-auto-1861120B3765:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -2345,9 +2345,9 @@ coordinates:
   SYM-auto-29DF88F7A567:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 326
+    sourceEndLine: 371
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 322
+    sourceLine: 367
   SYM-auto-2A53383A4D89:
     sourceColumn: 12
     sourceEndColumn: 64
@@ -2429,9 +2429,9 @@ coordinates:
   SYM-auto-4A8343B906BF:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 336
+    sourceEndLine: 381
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 334
+    sourceLine: 379
   SYM-auto-4B78DAEF6C6B:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2525,9 +2525,9 @@ coordinates:
   SYM-auto-6CE6FE1E5AA4:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 767
+    sourceEndLine: 831
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 765
+    sourceLine: 829
   SYM-auto-711E3868D47B:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2591,9 +2591,9 @@ coordinates:
   SYM-auto-88E6CA6A3463:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 842
+    sourceEndLine: 906
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 824
+    sourceLine: 888
   SYM-auto-897151BA8338:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2699,15 +2699,15 @@ coordinates:
   SYM-auto-AA7E401E854D:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 819
+    sourceEndLine: 883
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 810
+    sourceLine: 874
   SYM-auto-AD2DCA2227C8:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 807
+    sourceEndLine: 871
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 772
+    sourceLine: 836
   SYM-auto-AD376CE47FDF:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2723,9 +2723,9 @@ coordinates:
   SYM-auto-B4518227A075:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 331
+    sourceEndLine: 376
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 328
+    sourceLine: 373
   SYM-auto-B4EA84AAACA8:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2747,15 +2747,15 @@ coordinates:
   SYM-auto-B892D7934A27:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 730
+    sourceEndLine: 794
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 666
+    sourceLine: 730
   SYM-auto-B9A2DDEE871F:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 319
+    sourceEndLine: 364
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 315
+    sourceLine: 360
   SYM-auto-BDE75AA4DB60:
     sourceColumn: 12
     sourceEndColumn: 20
@@ -2837,9 +2837,9 @@ coordinates:
   SYM-auto-E94328F678DF:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 854
+    sourceEndLine: 918
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 847
+    sourceLine: 911
   SYM-auto-EB53162A3CF2:
     sourceColumn: 13
     sourceEndColumn: 55
@@ -7103,9 +7103,9 @@ coordinates:
   SYM-hasAllGeneratedCoordinates:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 357
+    sourceEndLine: 352
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 347
+    sourceLine: 342
   SYM-hasOverrideRationale:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7217,9 +7217,9 @@ coordinates:
   SYM-isEligibleForCoordinateRefresh:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 374
+    sourceEndLine: 369
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 359
+    sourceLine: 354
   SYM-isErrno:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -9683,15 +9683,27 @@ coordinates:
   SYM-packed-cleanup-shared-install:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 301
+    sourceEndLine: 346
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 291
+    sourceLine: 336
+  SYM-packed-create-isolated-pnpm-environment:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 160
+    sourceFile: documentation/tests/e2e/packed/pnpm-upgrade-utils.ts
+    sourceLine: 112
+  SYM-packed-create-owned-temp-directory:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 76
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    sourceLine: 70
   SYM-packed-create-sandbox:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 608
+    sourceEndLine: 672
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 462
+    sourceLine: 518
   SYM-packed-e2e-runner:
     sourceColumn: 25
     sourceEndColumn: 43
@@ -9701,21 +9713,27 @@ coordinates:
   SYM-packed-install-manifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 31
+    sourceEndLine: 47
     sourceFile: documentation/tests/e2e/packed/packed-install-manifest.ts
     sourceLine: 6
+  SYM-packed-isolated-pnpm-environment:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 44
+    sourceFile: documentation/tests/e2e/packed/pnpm-upgrade-utils.ts
+    sourceLine: 41
   SYM-packed-isolated-sandbox-env:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 51
+    sourceEndLine: 54
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 37
+    sourceLine: 40
   SYM-packed-pack-all:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 456
+    sourceEndLine: 512
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 373
+    sourceLine: 418
   SYM-packed-parity-bundle-paths:
     sourceColumn: 13
     sourceEndColumn: 10
@@ -9788,36 +9806,48 @@ coordinates:
     sourceEndLine: 178
     sourceFile: documentation/tests/e2e/packed/mcp-cli-operation-parity-support.ts
     sourceLine: 149
+  SYM-packed-parse-npm-pack-json:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 83
+    sourceFile: documentation/tests/e2e/packed/npm-pack-json.ts
+    sourceLine: 69
   SYM-packed-pnpm-upgrade-create-sandbox:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 132
+    sourceEndLine: 110
     sourceFile: documentation/tests/e2e/packed/pnpm-upgrade-utils.ts
-    sourceLine: 71
+    sourceLine: 82
   SYM-packed-prepare-shared-install:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 289
+    sourceEndLine: 334
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 285
+    sourceLine: 330
+  SYM-packed-resolve-npm-pack-filename:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 101
+    sourceFile: documentation/tests/e2e/packed/npm-pack-json.ts
+    sourceLine: 86
   SYM-packed-stop-runtime-engines:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 661
+    sourceEndLine: 725
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 622
+    sourceLine: 686
   SYM-packed-tarballs-type:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 312
+    sourceEndLine: 357
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 304
+    sourceLine: 349
   SYM-packed-test-sandbox:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 367
+    sourceEndLine: 412
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 339
+    sourceLine: 384
   SYM-parity-build-entity-delete-audit-goal:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -10253,7 +10283,7 @@ coordinates:
   SYM-refreshManifestCoordinates:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 345
+    sourceEndLine: 340
     sourceFile: packages/cli/src/commands/sync/manifest.ts
     sourceLine: 207
   SYM-registerAllTools:
@@ -10952,6 +10982,12 @@ coordinates:
     sourceEndLine: 175
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     sourceLine: 167
+  SYM-runtime-packed-daemon-build:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 29
+    sourceFile: packages/runtime/package.json
+    sourceLine: 1
   SYM-scripts-coverageManifest-collectProductionSourceFiles:
     sourceColumn: 16
     sourceEndColumn: 1

@@ -34,6 +34,10 @@ const ciWorkflow = readFileSync(
   join(ROOT, ".github", "workflows", "ci.yml"),
   "utf8",
 );
+const proofPackedRunner = readFileSync(
+  join(ROOT, "scripts", "run-proof-packed-e2e.mjs"),
+  "utf8",
+);
 
 describe("strict proof workflow contract", () => {
   test("registry entries execute through the real Kibi verify adapter", () => {
@@ -86,6 +90,28 @@ describe("strict proof workflow contract", () => {
       "--rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness",
     );
     expect(ciWorkflow).not.toContain("Generate Kibi requirement health report");
+  });
+
+  test("packed proof contracts isolate compilation and cleanup", () => {
+    const packedSteps = registry.contracts.flatMap((entry) =>
+      entry.steps.filter(
+        (step) => step[1] === "scripts/run-proof-packed-e2e.mjs",
+      ),
+    );
+    expect(packedSteps.length).toBeGreaterThan(0);
+    for (const step of packedSteps) {
+      expect(step).toHaveLength(3);
+      expect(step[0]).toBe("node");
+      expect(step[2]).toMatch(
+        /^documentation\/tests\/e2e\/packed\/[^/]+\.test\.ts$/,
+      );
+      expect(step.join(" ")).not.toContain("/tmp/kibi-e2e-packed-compiled");
+    }
+    expect(proofPackedRunner).toContain("mkdtemp(");
+    expect(proofPackedRunner).toContain("run-packed-e2e.mjs");
+    expect(proofPackedRunner).toContain(
+      "rm(compiledDirectory, { recursive: true, force: true })",
+    );
   });
 
   test("ratchet baseline fixes the denominator and tracks every observed gap", () => {

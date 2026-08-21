@@ -175,7 +175,7 @@
   - Enrich MCP diagnostic usage fields for `kb_semantic_advisor`, `kb_suggest_predicates`, and `kb_upsert`.
   - Classify requirement contradiction errors as `semantic_contradiction` validation failures with actionable hints.
   - Preserve semantic context in CLI sync/rebuild validation errors instead of reducing Prolog failures to `Query returned false`.
-  - Extend prose coverage with real Align annotation time-key and merge-policy requirements.
+  - Extend prose coverage with real dogfood project A annotation time-key and merge-policy requirements.
   - Refresh changed Prolog check modules through the MCP aggregated check loader.
 
 - cb8d977: Kibi sync no longer treats README files inside configured entity directories as entities. This prevents human documentation such as fixture READMEs from producing missing-frontmatter warnings or failed background syncs while preserving normal entity markdown discovery.
