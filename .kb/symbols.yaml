@@ -26468,6 +26468,21 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-runtime-packed-engine-daemon
+  - id: SYM-runtime-packed-daemon-build
+    title: kibi-runtime packed daemon bundle build step
+    status: active
+    sourceFile: packages/runtime/package.json
+    symbol_role: config
+    granularity_reason: config-artifact
+    tags:
+      - runtime
+      - engine
+      - packed
+    relationships:
+      - type: covered_by
+        target: TEST-runtime-packed-engine-daemon
+      - type: implements
+        target: REQ-runtime-packed-engine-daemon
   - id: 36ec3bc91de13ec6
     title: assertPackedPredicateSuggestionRelevance
     status: active

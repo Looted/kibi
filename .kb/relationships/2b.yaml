@@ -69,3 +69,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c6b005df52ac
+  - type: implements
+    from: SYM-runtime-packed-daemon-build
+    to: REQ-runtime-packed-engine-daemon
+    created_at: 2026-08-21T12:10:15.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2004303ca1b2
+  - type: covered_by
+    from: SYM-runtime-packed-daemon-build
+    to: TEST-runtime-packed-engine-daemon
+    created_at: 2026-08-21T12:10:15.379Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82f6935744fc

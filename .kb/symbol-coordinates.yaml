@@ -2,6 +2,12 @@
 # GENERATED coordinate artifact — do not edit manually.
 # Run `kibi sync --refresh-symbol-coordinates` to refresh.
 coordinates:
+  SYM-runtime-packed-daemon-build:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 29
+    sourceFile: packages/runtime/package.json
+    sourceLine: 1
   20446b29996b593e:
     sourceColumn: 16
     sourceEndColumn: 1
