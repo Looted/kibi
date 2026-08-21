@@ -13,7 +13,7 @@ SkillOpt is an isolated review tool, not a runtime dependency of Kibi. Real runs
 
 ## Trust-plane scope
 
-**Primary path for improving the bundled skills:** authenticated Codex CLI SkillOpt. Select one of `kibi-usage`, `kibi-freshness`, `kibi-traceability`, or `init-kibi`; use the bundle suite for assembled acceptance. The scripts verify the pin, confirm the Codex login, and run the paid pipeline. `prepareExistingLogin` only mirrors that operator-owned session into a private Codex home; it does not provision credentials.
+**Primary path for improving the bundled skills:** authenticated Codex CLI SkillOpt. Select one of `kibi-usage`, `kibi-freshness`, `kibi-traceability`, or `kibi-bootstrap`; use the bundle suite for assembled acceptance. The scripts verify the pin, confirm the Codex login, and run the paid pipeline. `prepareExistingLogin` only mirrors that operator-owned session into a private Codex home; it does not provision credentials.
 
 Canonical skill mutation still requires a separate production-adoption verdict; SkillOpt review artifacts alone do not rewrite production skills.
 

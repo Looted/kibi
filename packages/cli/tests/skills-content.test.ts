@@ -9,14 +9,14 @@ describe("bundled Kibi skills", () => {
   test("ships the four canonical skills with source-first descriptions", () => {
     const skills = listBundledSkills();
     expect(skills.map((skill) => skill.id)).toEqual([
-      "init-kibi",
+      "kibi-bootstrap",
       "kibi-freshness",
       "kibi-traceability",
       "kibi-usage",
     ]);
     for (const id of skills.map((skill) => skill.id)) {
       const bundle = loadBundledSkill(id);
-      expect(bundle.manifest.version).toMatch(/^2\./);
+      expect(bundle.manifest.version).toMatch(/^[23]\./);
       expect(bundle.manifest.description).toMatch(
         /Git|source|traceability|bootstrap/i,
       );

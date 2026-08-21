@@ -1,0 +1,29 @@
+relationships:
+  - id: rel-120b98017b3d
+    type: implements
+    from: SYM-kibi-bootstrap-source-plan-fold
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: "2026-08-20T13:17:38.294Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-kibi-bootstrap-source-plan-fold
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:17:38.295Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3ce01be08ce
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-planbootstrapargs
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:48:57.731Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7daead87e6b
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-planbootstrapargs
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:48:57.736Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-215254135345

@@ -14,6 +14,7 @@ import { branchStorePath } from "../../src/utils/branch-store-locator.js";
 import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
 import { execSync, isolatedCliSandboxEnv } from "../helpers/isolated-env.js";
 
+// executable_for TEST-KIBI-BOOTSTRAP-PLAN-APPLY
 describe("kibi init", () => {
   let tmpDir: string;
   const kibiBin = path.resolve(__dirname, "../../bin/kibi");
@@ -24,6 +25,14 @@ describe("kibi init", () => {
 
   afterEach(() => {
     if (tmpDir && existsSync(tmpDir)) {
+      try {
+        execSync(`bun ${kibiBin} engine stop`, {
+          cwd: tmpDir,
+          stdio: "ignore",
+        });
+      } catch {
+        // Most init-only cases never start the engine.
+      }
       rmSync(tmpDir, { recursive: true, force: true });
     }
   });
@@ -156,6 +165,115 @@ describe("kibi init", () => {
     // init is idempotent and prints a skipping message when .kb exists
     expect(out.toLowerCase()).toContain("already exists, skipping");
   });
+
+  test("routes an initialized thin repository to bootstrap", () => {
+    execSync("git init -b main", { cwd: tmpDir });
+    const out = execSync(`bun ${kibiBin} init --no-hooks`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+      stdio: "pipe",
+    });
+
+    expect(out).toContain("Bootstrap Kibi for this repository");
+    expect(out).not.toContain("already has seeded Kibi knowledge");
+  }, 30000);
+
+  test("routes an initialized seeded repository to normal Kibi work", () => {
+    execSync("git init -b main", { cwd: tmpDir });
+    execSync(`bun ${kibiBin} init --no-hooks`, {
+      cwd: tmpDir,
+      stdio: "pipe",
+    });
+    const source = [
+      ["requirements", "REQ-INIT-SEEDED"],
+      ["scenarios", "SCEN-INIT-SEEDED"],
+      ["tests", "TEST-INIT-SEEDED"],
+      ["facts", "FACT-INIT-SEEDED-ONE"],
+      ["facts", "FACT-INIT-SEEDED-TWO"],
+    ] as const;
+    for (const [lane, id] of source) {
+      writeFileSync(
+        path.join(tmpDir, ".kb", lane, `${id}.md`),
+        `---\nid: ${id}\ntitle: ${id}\nstatus: active\n---\n`,
+      );
+    }
+
+    const out = execSync(`bun ${kibiBin} init --no-hooks`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+      stdio: "pipe",
+    });
+
+    expect(out).toContain("already has seeded Kibi knowledge");
+    expect(out).not.toContain("Bootstrap Kibi for this repository");
+  }, 30000);
+
+  test("supports the cold-start init, plan, approved apply, and status lifecycle", () => {
+    execSync("git init -b main", { cwd: tmpDir });
+    execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
+    execSync("git config user.name 'Test User'", { cwd: tmpDir });
+    writeFileSync(
+      path.join(tmpDir, "package.json"),
+      '{"name":"cold-start-init-e2e","scripts":{"test":"bun test"}}\n',
+    );
+    execSync("git add package.json && git commit -m init", { cwd: tmpDir });
+    execSync(`bun ${kibiBin} init --no-hooks`, {
+      cwd: tmpDir,
+      stdio: "pipe",
+    });
+
+    const plan = JSON.parse(
+      execSync(`printf '%s\\n' '{}' | bun ${kibiBin} plan-bootstrap --input -`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      }),
+    ) as {
+      data?: {
+        plan?: { status?: string; planHash?: string };
+      };
+    };
+    expect(plan.data?.plan?.status).toBe("ready");
+    expect(plan.data?.plan?.planHash).toMatch(/^[a-f0-9]{64}$/);
+
+    const approved = plan.data?.plan;
+    if (approved === undefined || approved.planHash === undefined) {
+      throw new Error("cold-start planner did not return an approved plan");
+    }
+    const approvedInput = path.join(
+      os.tmpdir(),
+      `kibi-approved-plan-${path.basename(tmpDir)}.json`,
+    );
+    writeFileSync(
+      approvedInput,
+      JSON.stringify({ plan: approved, approvedPlanHash: approved.planHash }),
+    );
+    const applied = JSON.parse(
+      execSync(`bun ${kibiBin} apply-plan --input ${approvedInput}`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      }),
+    ) as { data?: { outcome?: string; version?: string } };
+    expect(applied.data?.outcome).toBe("applied");
+    expect(applied.data?.version).toBe("kibi.plan-apply-result.v1");
+
+    const checked = JSON.parse(
+      execSync(`printf '%s\\n' '{}' | bun ${kibiBin} check --input -`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      }),
+    ) as { status?: string };
+    const status = JSON.parse(
+      execSync(`printf '%s\\n' '{}' | bun ${kibiBin} status --input -`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      }),
+    ) as { status?: string; data?: { bootstrap?: { nextAction?: { operation?: string } } } };
+    expect(checked.status).toBe("success");
+    expect(status.status).toBe("success");
+    expect(status.data?.bootstrap?.nextAction?.operation).toBe(
+      "kb_plan_bootstrap",
+    );
+  }, 120000);
 
   test("installs git hooks by default", () => {
     execSync("git init -b main", { cwd: tmpDir });

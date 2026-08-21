@@ -1,7 +1,14 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -18,6 +25,16 @@ if (!existsSync(helpersPath)) {
 }
 
 const helpers = await import(pathToFileURL(helpersPath).href);
+// implements REQ-test-journaled-engine-harness
+// Publish one immutable tarball set to every isolated test worker. Without
+// this handoff, concurrent workers can rebuild the same package dist tree.
+const tarballs = await helpers.packAll();
+const tarballRoot = mkdtempSync(path.join(tmpdir(), "kibi-e2e-tarballs-"));
+for (const [packageName, tarball] of Object.entries(tarballs)) {
+  const packageRoot = path.join(tarballRoot, packageName);
+  mkdirSync(packageRoot, { recursive: true });
+  copyFileSync(tarball, path.join(packageRoot, path.basename(tarball)));
+}
 const prefix = await helpers.prepareSharedPackedInstallation();
 let child;
 try {
@@ -36,6 +53,7 @@ try {
       env: {
         ...process.env,
         KIBI_E2E_PREFIX: prefix,
+        KIBI_TEST_TARBALLS: tarballRoot,
         KIBI_ENGINE_IDLE_TIMEOUT_MS: "30000",
       },
       stdio: "inherit",
@@ -56,4 +74,5 @@ try {
   process.exitCode = status;
 } finally {
   helpers.cleanupSharedPackedInstallation();
+  rmSync(tarballRoot, { recursive: true, force: true });
 }

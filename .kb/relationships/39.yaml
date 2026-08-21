@@ -13,3 +13,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7ffaa85922b9
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-mutation-delete-executedelete
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:30.309Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f8ff52a790d
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-mutation-delete-executedelete
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:30.314Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dedcabd690a5

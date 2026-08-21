@@ -1,4 +1,7 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 import { buildUpsertCommitGoal } from "../../src/operations/mutation/contradictions.js";
 import { buildPropertyList } from "../../src/operations/mutation/serialization.js";
@@ -14,6 +17,7 @@ import {
   upsertSpec,
   validateUpsertSpec,
 } from "../../src/public/operations/specs/mutation.js";
+import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
 
 type QueryHandler = (goal: string) => PrologQueryResult;
 
@@ -660,6 +664,64 @@ describe("shared mutation operation specs", () => {
         String(goal).includes("kb_retract_entity"),
       ),
     ).toBe(false);
+  });
+
+  test("folds multiple authored deletions into one source write", async () => {
+    const workspaceRoot = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-delete-source-fold-") ,
+    );
+    try {
+      mkdirSync(path.join(workspaceRoot, ".kb"), { recursive: true });
+      const symbolsPath = path.join(workspaceRoot, ".kb", "symbols.yaml");
+      const symbols = `symbols:\n  - id: SYM-A\n    title: A\n  - id: SYM-B\n    title: B\n`;
+      writeFileSync(symbolsPath, symbols);
+      const { context } = createContext((goal): PrologQueryResult => {
+        if (goal.startsWith("once(kb_entity('SYM-"))
+          return { success: true, bindings: {} };
+        if (goal.includes("Dependents"))
+          return { success: true, bindings: { Dependents: "[]" } };
+        if (goal.includes("findall(['SYM-A'"))
+          return {
+            success: true,
+            bindings: {
+              Results:
+                "[['SYM-A',symbol,[id='SYM-A',title='A',source='.kb/symbols.yaml']]]",
+            },
+          };
+        if (goal.includes("findall(['SYM-B'"))
+          return {
+            success: true,
+            bindings: {
+              Results:
+                "[['SYM-B',symbol,[id='SYM-B',title='B',source='.kb/symbols.yaml']]]",
+            },
+          };
+        throw new Error(`Unexpected goal: ${goal}`);
+      });
+      const result = await deleteSpec.execute(
+        { ids: ["SYM-A", "SYM-B"] },
+        {
+          ...context,
+          workspaceRoot,
+          fs: nodeFilesystem,
+          branchAttachment: {
+            gitBranch: "test-branch",
+            kbBranch: "test-branch",
+            storePath: path.join(workspaceRoot, ".kb", "branches", "test-branch"),
+            kind: "exact",
+            migrationRequired: false,
+          },
+        },
+      );
+
+      const plan = result.structuredContent?.deletionPlan;
+      expect(plan?.entityIds).toEqual(["SYM-A", "SYM-B"]);
+      expect(plan?.sourceWrites).toHaveLength(1);
+      expect(plan?.sourceWrites?.[0]?.body).not.toContain("SYM-A");
+      expect(plan?.sourceWrites?.[0]?.body).not.toContain("SYM-B");
+    } finally {
+      rmSync(workspaceRoot, { recursive: true, force: true });
+    }
   });
 
   test("delete keeps mutation and save in one rollback-safe transaction", async () => {

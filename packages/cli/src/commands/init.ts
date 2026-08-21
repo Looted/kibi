@@ -20,6 +20,8 @@ import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { resolveBranchAttachment } from "../utils/branch-resolver.js";
+import { nodeFilesystem } from "../public/operations/node-ports.js";
+import { classifyActivation } from "../operations/bootstrap/activation.js";
 import { scaffoldGitHubIntegration } from "./github-init.js";
 import {
   copySchemaFiles,
@@ -37,6 +39,48 @@ interface InitOptions {
   hooks?: boolean;
   github?: boolean;
   badgeOnly?: boolean;
+}
+
+async function initNextAction(): Promise<{
+  readonly operation: string;
+  readonly message: string;
+}> {
+  const sourceFiles = await nodeFilesystem.glob(
+    [
+      ".kb/requirements/**/*.md",
+      ".kb/scenarios/**/*.md",
+      ".kb/tests/**/*.md",
+      ".kb/adrs/**/*.md",
+      ".kb/adr/**/*.md",
+      ".kb/flags/**/*.md",
+      ".kb/events/**/*.md",
+      ".kb/facts/**/*.md",
+    ],
+    { cwd: process.cwd() },
+  );
+  const activation = await classifyActivation({
+    workspaceRoot: process.cwd(),
+    signal: new AbortController().signal,
+    clock: () => new Date(),
+    fs: nodeFilesystem,
+  }, sourceFiles);
+  switch (activation.activationState) {
+    case "root_active_seeded":
+      return {
+        operation: "continue-kibi-workflow",
+        message: "  Next: your repository already has seeded Kibi knowledge; continue working with your coding agent.",
+      };
+    case "root_partial":
+      return {
+        operation: "kibi doctor",
+        message: "  Next: run 'kibi doctor' to repair degraded Kibi infrastructure before bootstrapping.",
+      };
+    default:
+      return {
+        operation: "kb_plan_bootstrap",
+        message: "  Next: ask your coding agent “Bootstrap Kibi for this repository.”",
+      };
+  }
 }
 
 // implements REQ-cli-init
@@ -110,10 +154,13 @@ export async function initCommand(
       }
     }
 
-    console.log("\nKibi initialized successfully!");
-    console.log("Next steps:");
-    console.log("  1. Run 'kibi doctor' to verify setup");
-    console.log("  2. Run 'kibi sync' to extract entities from documents");
+    console.log("\n✓ Kibi initialized. Kibi infrastructure is ready for this repository.");
+    console.log("  No product knowledge was inferred or changed by kibi init.");
+    if (kbExists) {
+      console.log("  Existing Kibi source knowledge was preserved.");
+    }
+    console.log((await initNextAction()).message);
+    console.log("  Optional diagnostic: run 'kibi doctor' if setup appears degraded.");
 
     if (options.github === true) {
       scaffoldGitHubIntegration({

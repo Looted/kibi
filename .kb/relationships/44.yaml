@@ -13,3 +13,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e62ce9eedfa4
+  - type: implements
+    from: SYM-skillopt-required-kibi-tools
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-21T19:52:52.491Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-609c3f85e5d9
+  - type: covered_by
+    from: SYM-skillopt-required-kibi-tools
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-21T19:52:52.506Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-050f1a1a1745

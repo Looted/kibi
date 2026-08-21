@@ -27,11 +27,11 @@ If this file and MCP schema details diverge, follow MCP schema and update this f
 
 ## Non-Negotiables
 
-- Use Kibi through either peer surface: visible MCP tools or the CLI's dedicated JSON routes (--input). Both surfaces expose the same 21 operations; select by what is visible and approved in the environment rather than by a fixed preference.
+- Use Kibi through either peer surface: visible MCP tools or the CLI's dedicated JSON routes (--input). Both surfaces expose the canonical operation catalog; select by what is visible and approved in the environment rather than by a fixed preference.
 - Select the interface by capability: use visible MCP tools; otherwise use a trusted project-local CLI when available; if neither is available, stop and tell the operator. Do not infer MCP availability from config file existence.
 - Do **not** manually read or edit this project's attached KB under `/home/looted/projects/kibi/.kb/`. This is a repository-local guardrail from this `AGENTS.md`, not a universal restriction: for another project, follow that project's `AGENTS.md`/rules and require explicit operator authorization before manually reading or editing its `.kb/`.
 - CLI-only Kibi operations, including sync/refresh workflows that do not have MCP tool equivalents, may be run from agent sessions when needed to complete validation or freshness work.
-- If KB setup/repair is needed beyond `/init-kibi`, ask the user/operator to run those steps.
+- If infrastructure setup/repair is needed beyond `kibi init` or `/kibi-bootstrap`, ask the user/operator to run those steps.
 - **Pre-existing issues must always be fixed before handoff.** Never ship past broken tests, validation failures, stale KB state, diagnostics, or other known defects. If an issue existed before your changes, diagnose and fix it as part of your work unless the user explicitly narrows scope and accepts the risk. Skipping or bypassing pre-existing issues is not acceptable.
 
 ## Host-Neutral Skill Discovery
@@ -51,12 +51,13 @@ Skills are bundled Markdown guidance, not an implicit instruction channel. An ag
 
 ## Required Kibi Workflow (Current Standard)
 
-1. **Bootstrap day-0 with `/init-kibi`**
-   - Ask at most 4 bounded context questions.
-   - Use `kb_autopilot_generate` for read-only synthesis.
-   - Show preview and get explicit approval before writes.
-   - Apply approved writes via sequential `kb_upsert`.
-   - Run `kb_check` after applying.
+1. **Bootstrap day-0 with `kibi init` and `/kibi-bootstrap`**
+   - Run `kibi init` for repository infrastructure; it does not infer product knowledge.
+   - Ask at most 4 bounded context questions only when `kb_plan_bootstrap` returns them.
+   - Use `kb_plan_bootstrap` for a read-only `kibi.bootstrap-plan.v1`.
+   - Show the complete plan and canonical hash; get explicit approval before writes.
+   - Apply the approved plan with one `kb_apply_plan` call; never manually replay bootstrap `kb_upsert` actions.
+   - Run `kb_check` and `kb_status` after applying, following typed repair actions.
 
 
 2. **Discovery before exact lookup**

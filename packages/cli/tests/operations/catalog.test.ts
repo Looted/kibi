@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { OPERATION_CATALOG, getSpec, listSpecs } from "kibi-cli/operations";
+import { applyPlanSpec } from "../../src/public/operations/specs/planning.js";
 
 const EXPECTED_CLI_NAMES = {
   kb_query: "query",
@@ -15,7 +16,7 @@ const EXPECTED_CLI_NAMES = {
   kb_semantic_advisor: "semantic-advisor",
   kb_model_requirement: "model-requirement",
   kb_suggest_predicates: "suggest-predicates",
-  kb_autopilot_generate: "autopilot-generate",
+  kb_plan_bootstrap: "plan-bootstrap",
   kb_validate_upsert: "validate-upsert",
   kb_upsert: "upsert",
   kb_delete: "delete",
@@ -32,7 +33,7 @@ const PROLOG_FREE_OPERATIONS = new Set([
   "kb_skills_read",
   "kb_status",
   "kb_semantic_advisor",
-  "kb_autopilot_generate",
+  "kb_plan_bootstrap",
   "kb_sparql_remote",
 ]);
 
@@ -76,5 +77,16 @@ describe("public operation catalog", () => {
       });
       expect(decorated.outputSchema).toBeDefined();
     }
+  });
+
+  test("accepts either an approved plan or a typed recovery journal", () => {
+    const schema = applyPlanSpec.businessInputSchema as Record<string, unknown>;
+    expect(Array.isArray(schema.oneOf)).toBe(true);
+    expect(schema.properties).toMatchObject({
+      recoveryJournalId: {
+        type: "string",
+        pattern: "^[A-Za-z0-9._-]+$",
+      },
+    });
   });
 });

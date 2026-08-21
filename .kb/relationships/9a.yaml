@@ -34,17 +34,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b2f228156820
-  - type: implements
-    from: SYM-classifyActivationState
-    to: REQ-cli-canonical-runtime
-    created_at: 2026-08-18T16:41:03.303Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4412f898450a
-  - type: covered_by
-    from: SYM-classifyActivationState
-    to: TEST-mcp-canonical-activation
-    created_at: 2026-08-18T16:41:03.312Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b0338af7ccb0

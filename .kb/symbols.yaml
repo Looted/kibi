@@ -773,11 +773,15 @@ symbols:
       - type: covered_by
         target: TEST-cli-canonical-runtime
       - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-agent-guided-migration-orchestration
       - type: implements
         target: REQ-cli-canonical-runtime
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
       - type: implements
         target: REQ-kibi-change-to-proof-plan-compiler
   - id: SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanargs
@@ -1944,30 +1948,6 @@ symbols:
         target: REQ-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability
-  - id: SYM-ActivationMode
-    title: ActivationMode
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-  - id: SYM-ActivationPolicy
-    title: ActivationPolicy
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-  - id: SYM-ActivationState
-    title: ActivationState
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
   - id: SYM-addTool
     title: addTool
     sourceFile: packages/mcp/src/server/tools.ts
@@ -2391,472 +2371,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-external-adoption-verdict
-  - id: SYM-autopilot-activation-mode-shared
-    title: ActivationMode
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-activation-policy-shared
-    title: ActivationPolicy
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-activation-state-shared
-    title: ActivationState
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-build-actions
-    title: buildActions
-    sourceFile: packages/cli/src/operations/autopilot/guidance-actions.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-build-candidates-shared
-    title: buildAutopilotCandidates
-    sourceFile: packages/cli/src/operations/autopilot/candidates.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-build-guidance
-    title: buildGuidance
-    sourceFile: packages/cli/src/operations/autopilot/guidance.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-candidate-build-result
-    title: CandidateBuildResult
-    sourceFile: packages/cli/src/operations/autopilot/markdown-candidates.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-candidate-shared
-    title: Candidate
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-claim-for
-    title: claimFor
-    sourceFile: packages/cli/src/operations/autopilot/requirement-claims.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-classify-activation
-    title: classifyActivation
-    sourceFile: packages/cli/src/operations/autopilot/activation.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-confidence-band
-    title: confidenceBand
-    sourceFile: packages/cli/src/operations/autopilot/candidate-helpers.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-discover-shared
-    title: discoverAutopilot
-    sourceFile: packages/cli/src/operations/autopilot/discovery.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-discovery-result-shared
-    title: DiscoveryResult
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-discovery-summary-shared
-    title: DiscoverySummary
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-evidence-kind-shared
-    title: EvidenceKind
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-evidence-scan
-    title: EvidenceScan
-    sourceFile: packages/cli/src/operations/autopilot/discovery-evidence.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-evidence-shared
-    title: AutopilotEvidence
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-execute-shared
-    title: executeAutopilotGenerate
-    sourceFile: packages/cli/src/operations/autopilot/generate.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-markdown-candidates
-    title: markdownCandidates
-    sourceFile: packages/cli/src/operations/autopilot/markdown-candidates.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-mcp-adapter-test
-    title: autopilot MCP adapter test
-    sourceFile: packages/mcp/tests/tools/autopilot-adapter.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-normalize-context
-    title: normalizeBootstrapContext
-    sourceFile: packages/cli/src/operations/autopilot/presentation.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-parity-test
-    title: autopilot CLI MCP parity test
-    sourceFile: packages/cli/tests/parity/autopilot.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-kibi-operation-interface-parity
-  - id: SYM-autopilot-present-shared
-    title: presentAutopilot
-    sourceFile: packages/cli/src/operations/autopilot/presentation.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-provider-name-shared
-    title: EvidenceProviderName
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-AUTOPILOT-PROVIDER-ORDER
-    title: AUTOPILOT_PROVIDER_ORDER
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-  - id: SYM-autopilot-provider-order-shared
-    title: AUTOPILOT_PROVIDER_ORDER
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-scan-evidence
-    title: scanEvidence
-    sourceFile: packages/cli/src/operations/autopilot/discovery-evidence.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-select-candidates
-    title: selectAutopilotCandidates
-    sourceFile: packages/cli/src/operations/autopilot/generate.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-shared-executor-test
-    title: shared autopilot executor test
-    sourceFile: packages/cli/tests/operations/autopilot.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-slug
-    title: slug
-    sourceFile: packages/cli/src/operations/autopilot/candidate-helpers.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-source-only-signal-shared
-    title: SourceOnlySignal
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-strict-plan
-    title: strictPlan
-    sourceFile: packages/cli/src/operations/autopilot/candidate-helpers.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-structured-content-shared
-    title: AutopilotStructuredContent
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-test-activation-parser
-    title: activation
-    sourceFile: packages/mcp/src/tools/autopilot-test-parsers.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-test-candidate-parser
-    title: candidate
-    sourceFile: packages/mcp/src/tools/autopilot-test-parsers.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-test-execute-dependencies
-    title: executeTestDependencies
-    sourceFile: packages/mcp/src/tools/autopilot-test-compat.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-test-legacy-dependencies
-    title: LegacyDependencies
-    sourceFile: packages/mcp/src/tools/autopilot-test-compat.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-test-record-parser
-    title: record
-    sourceFile: packages/mcp/src/tools/autopilot-test-parsers.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-test-reset-dependencies
-    title: resetTestDependencies
-    sourceFile: packages/mcp/src/tools/autopilot-test-compat.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-test-set-dependencies
-    title: setTestDependencies
-    sourceFile: packages/mcp/src/tools/autopilot-test-compat.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-test-signal-parser
-    title: signal
-    sourceFile: packages/mcp/src/tools/autopilot-test-parsers.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-autopilot-upsert-plan
-    title: upsert
-    sourceFile: packages/cli/src/operations/autopilot/candidate-helpers.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-AutopilotBootstrapContext
-    title: AutopilotBootstrapContext
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-AutopilotConfidence
-    title: AutopilotConfidence
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-AutopilotDeclaredContext
-    title: AutopilotDeclaredContext
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-AutopilotEvidence
-    title: AutopilotEvidence
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-  - id: SYM-AutopilotEvidenceKind
-    title: AutopilotEvidenceKind
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-  - id: SYM-AutopilotGenerateArgs
-    title: AutopilotGenerateArgs
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-AutopilotGenerateResult
-    title: AutopilotGenerateResult
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
-  - id: SYM-AutopilotRecommendedAction
-    title: AutopilotRecommendedAction
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
   - id: SYM-AutoUpdateInput
     title: AutoUpdateInput
     sourceFile: packages/opencode/src/auto-update.ts
@@ -2973,14 +2487,6 @@ symbols:
         target: REQ-skillopt-external-adoption-verdict
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
-  - id: SYM-buildGenericMarkdownCandidates
-    title: buildGenericMarkdownCandidates
-    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
   - id: SYM-buildIndex
     title: buildIndex
     sourceFile: packages/vscode/src/symbolIndex.ts
@@ -2989,24 +2495,6 @@ symbols:
         target: REQ-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability
-  - id: SYM-buildInitKibiAlias
-    title: buildInitKibiAlias
-    sourceFile: packages/opencode/src/init-kibi-alias.ts
-    relationships:
-      - type: implements
-        target: REQ-opencode-bootstrap-nudge
-      - type: implements
-        target: REQ-agent-kibi-interface-selection
-      - type: covered_by
-        target: TEST-opencode-kibi-plugin-v1
-  - id: SYM-buildNormativeRequirementCandidates
-    title: buildNormativeRequirementCandidates
-    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
   - id: SYM-buildPrompt
     title: buildPrompt
     sourceFile: packages/opencode/src/prompt.ts
@@ -3017,14 +2505,6 @@ symbols:
         target: REQ-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
-  - id: SYM-buildProviderEvidenceCandidates
-    title: buildProviderEvidenceCandidates
-    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
   - id: SYM-buildStableRequirementIds
     title: buildStableRequirementIds
     sourceFile: packages/cli/src/utils/strict-modeling.ts
@@ -3041,22 +2521,6 @@ symbols:
         target: REQ-011
       - type: covered_by
         target: TEST-cli-strict-modeling
-  - id: SYM-buildSymbolManifestCandidates
-    title: buildSymbolManifestCandidates
-    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-  - id: SYM-buildTypedMarkdownCandidates
-    title: buildTypedMarkdownCandidates
-    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
   - id: SYM-built-in-predicate-schemas
     title: BUILT_IN_PREDICATE_SCHEMAS
     sourceFile: packages/cli/src/operations/modeling/predicate-catalog.ts
@@ -3075,14 +2539,6 @@ symbols:
         target: REQ-skillopt-external-adoption-verdict
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
-  - id: SYM-Candidate
-    title: Candidate
-    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
   - id: SYM-canonicalSkillsDir
     title: canonicalSkillsDir
     sourceFile: scripts/sync-agent-skills.ts
@@ -3138,20 +2594,6 @@ symbols:
         target: REQ-opencode-bootstrap-nudge
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
-  - id: SYM-classifyActivationState
-    title: classifyActivationState
-    status: active
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-canonical-activation
-      - type: implements
-        target: REQ-002
-      - type: implements
-        target: REQ-cli-canonical-runtime
   - id: SYM-classifyDiagnosticError
     title: classifyDiagnosticError
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
@@ -4690,7 +4132,8 @@ symbols:
       - type: covered_by
         target: TEST-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -5127,28 +4570,6 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-  - id: SYM-collectMarkdownFiles
-    title: collectMarkdownFiles
-    status: active
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-canonical-activation
-      - type: implements
-        target: REQ-002
-      - type: implements
-        target: REQ-cli-canonical-runtime
-  - id: SYM-collectSourceOnlyAuthoringSignals
-    title: collectSourceOnlyAuthoringSignals
-    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
   - id: SYM-collectStagedAuthoredSymbolsManifestEvidence
     title: collectStagedAuthoredSymbolsManifestEvidence
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
@@ -6227,14 +5648,6 @@ symbols:
         target: REQ-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
-  - id: SYM-detectInitKibiCommandCapability
-    title: detectInitKibiCommandCapability
-    sourceFile: packages/opencode/src/init-kibi-capability.ts
-    relationships:
-      - type: implements
-        target: REQ-opencode-bootstrap-nudge
-      - type: covered_by
-        target: TEST-opencode-kibi-plugin-v1
   - id: SYM-detectPosture
     title: detectPosture
     sourceFile: packages/opencode/src/repo-posture.ts
@@ -6308,14 +5721,6 @@ symbols:
       - type: covered_by
         target: TEST-skill-cli-load-validate
     granularity_reason: module-level-behavior
-  - id: SYM-discoverProviderEvidence
-    title: discoverProviderEvidence
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
   - id: SYM-discoverSourceFiles
     title: discoverSourceFiles
     status: active
@@ -6330,14 +5735,6 @@ symbols:
         target: REQ-cli-canonical-runtime
       - type: implements
         target: REQ-core-extractors
-  - id: SYM-discoverSources
-    title: discoverSources
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
   - id: SYM-discovery-execute-query
     title: executeQuery
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
@@ -6445,14 +5842,6 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-  - id: SYM-DiscoverySummary
-    title: DiscoverySummary
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
   - id: SYM-DOC-RESOURCES
     title: DOC_RESOURCES
     sourceFile: packages/mcp/src/server/docs.ts
@@ -6636,22 +6025,6 @@ symbols:
         target: REQ-skillopt-external-adoption-verdict
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
-  - id: SYM-EvidenceProviderName
-    title: EvidenceProviderName
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-  - id: SYM-EvidenceProviderResult
-    title: EvidenceProviderResult
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
   - id: SYM-execute-model-requirement
     title: executeModelRequirement
     sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
@@ -6906,14 +6279,6 @@ symbols:
         target: REQ-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
-  - id: SYM-findSdkPackageJsonForPluginRoot
-    title: findSdkPackageJsonForPluginRoot
-    sourceFile: packages/opencode/src/init-kibi-capability.ts
-    relationships:
-      - type: implements
-        target: REQ-opencode-bootstrap-nudge
-      - type: covered_by
-        target: TEST-opencode-kibi-plugin-v1
   - id: SYM-FixtureAuthorizationClaim
     title: FixtureAuthorizationClaim
     sourceFile: scripts/skillopt-eval/fixtures/fixture-claim.ts
@@ -7111,14 +6476,6 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-  - id: SYM-getInitKibiCommandCapability
-    title: getInitKibiCommandCapability
-    sourceFile: packages/opencode/src/init-kibi-capability.ts
-    relationships:
-      - type: implements
-        target: REQ-opencode-bootstrap-nudge
-      - type: covered_by
-        target: TEST-opencode-kibi-plugin-v1
   - id: SYM-getKbCoveredSourcePaths
     title: getKbCoveredSourcePaths
     sourceFile: packages/cli/src/traceability/evidence-model.ts
@@ -7244,16 +6601,6 @@ symbols:
         target: REQ-opencode-guidance-caching
       - type: covered_by
         target: TEST-opencode-smart-enforcement
-  - id: SYM-handleKbAutopilotGenerate
-    title: handleKbAutopilotGenerate
-    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
   - id: SYM-handleKbDelete
     title: handleKbDelete
     sourceFile: packages/mcp/src/tools/delete.ts
@@ -7606,30 +6953,6 @@ symbols:
         target: REQ-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
-  - id: SYM-INIT-KIBI-COMMAND-DESCRIPTION
-    title: INIT_KIBI_COMMAND_DESCRIPTION
-    sourceFile: packages/opencode/src/init-kibi-capability.ts
-    relationships:
-      - type: implements
-        target: REQ-opencode-bootstrap-nudge
-      - type: covered_by
-        target: TEST-opencode-kibi-plugin-v1
-  - id: SYM-INIT-KIBI-COMMAND-NAME
-    title: INIT_KIBI_COMMAND_NAME
-    sourceFile: packages/opencode/src/init-kibi-capability.ts
-    relationships:
-      - type: implements
-        target: REQ-opencode-bootstrap-nudge
-      - type: covered_by
-        target: TEST-opencode-kibi-plugin-v1
-  - id: SYM-INIT-KIBI-COMMAND-TEMPLATE
-    title: INIT_KIBI_COMMAND_TEMPLATE
-    sourceFile: packages/opencode/src/init-kibi-capability.ts
-    relationships:
-      - type: implements
-        target: REQ-opencode-bootstrap-nudge
-      - type: covered_by
-        target: TEST-opencode-kibi-plugin-v1
   - id: SYM-initializeDiagnosticMode
     title: initializeDiagnosticMode
     sourceFile: packages/mcp/src/diagnostics.ts
@@ -7639,14 +6962,6 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-  - id: SYM-InitKibiCommandCapability
-    title: InitKibiCommandCapability
-    sourceFile: packages/opencode/src/init-kibi-capability.ts
-    relationships:
-      - type: implements
-        target: REQ-opencode-bootstrap-nudge
-      - type: covered_by
-        target: TEST-opencode-kibi-plugin-v1
   - id: SYM-injectPrompt
     title: injectPrompt
     sourceFile: packages/opencode/src/prompt.ts
@@ -10073,22 +9388,6 @@ symbols:
         target: REQ-020
       - type: covered_by
         target: TEST-014
-  - id: SYM-OpenCodeCommandDefinition
-    title: OpenCodeCommandDefinition
-    sourceFile: packages/opencode/src/init-kibi-capability.ts
-    relationships:
-      - type: implements
-        target: REQ-opencode-bootstrap-nudge
-      - type: covered_by
-        target: TEST-opencode-kibi-plugin-v1
-  - id: SYM-OpenCodeConfigHookInput
-    title: OpenCodeConfigHookInput
-    sourceFile: packages/opencode/src/init-kibi-capability.ts
-    relationships:
-      - type: implements
-        target: REQ-opencode-bootstrap-nudge
-      - type: covered_by
-        target: TEST-opencode-kibi-plugin-v1
   - id: SYM-openFileAtLine
     title: openFileAtLine
     sourceFile: packages/vscode/src/codeActionProvider.ts
@@ -10097,17 +9396,6 @@ symbols:
         target: REQ-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability
-  - id: SYM-operation-autopilot-generate-spec
-    title: autopilotGenerateSpec
-    sourceFile: packages/cli/src/public/operations/specs/autopilot.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
   - id: SYM-operation-catalog
     title: OPERATION_CATALOG
     sourceFile: packages/cli/src/public/operations/catalog.ts
@@ -11418,14 +10706,6 @@ symbols:
         target: REQ-mcp-semantic-advisor-preflight
       - type: covered_by
         target: TEST-mcp-semantic-advisor-preflight
-  - id: SYM-ProviderEvidenceDiscoveryResult
-    title: ProviderEvidenceDiscoveryResult
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
   - id: SYM-PublicTaskClaim
     title: PublicTaskClaim
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
@@ -11659,14 +10939,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-opencode-kibi-plugin-v1
-  - id: SYM-registerInitKibiCommand
-    title: registerInitKibiCommand
-    sourceFile: packages/opencode/src/init-kibi-capability.ts
-    relationships:
-      - type: implements
-        target: REQ-opencode-bootstrap-nudge
-      - type: covered_by
-        target: TEST-opencode-kibi-plugin-v1
   - id: SYM-registerTraceability
     title: registerTraceability
     sourceFile: packages/vscode/src/activation/traceability.ts
@@ -11781,16 +11053,6 @@ symbols:
         target: REQ-skillopt-external-adoption-verdict
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
-  - id: SYM-resetAutopilotGenerateDepsForTests
-    title: _resetAutopilotGenerateDepsForTests
-    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
   - id: SYM-resetBundledSkillsDir
     title: resetBundledSkillsDir
     sourceFile: packages/cli/src/public/skill-system/loader.ts
@@ -11849,14 +11111,6 @@ symbols:
         target: REQ-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability
-  - id: SYM-resolveActivationPolicy
-    title: resolveActivationPolicy
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
   - id: SYM-resolveCurrentBranch
     title: resolveCurrentBranch
     sourceFile: packages/opencode/src/plugin-startup.ts
@@ -12675,16 +11929,6 @@ symbols:
         target: REQ-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
-  - id: SYM-setAutopilotGenerateDepsForTests
-    title: _setAutopilotGenerateDepsForTests
-    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    relationships:
-      - type: implements
-        target: REQ-mcp-init-kibi-autopilot-v1
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-init-kibi-autopilot-v1
   - id: SYM-setBundledSkillsDir
     title: setBundledSkillsDir
     sourceFile: packages/cli/src/public/skill-system/loader.ts
@@ -14590,14 +13834,14 @@ symbols:
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-contract-source-lock
     title: SKILLOPT_SOURCE_LOCK
+    status: active
     sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
     symbol_role: config
-    granularity_reason: config-artifact
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-contract-source-lock-schema
     title: SourceLockSchema
     sourceFile: scripts/skillopt-eval/contracts/run-lock.ts
@@ -15581,14 +14825,15 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-fixture-init-definitions
-    title: INIT_DEFINITIONS
+    title: BOOTSTRAP_DEFINITIONS
+    status: active
     sourceFile: scripts/skillopt-eval/fixtures/task-definitions-bootstrap.ts
     symbol_role: config
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-fixture-integrity-error
     title: FixtureIntegrityError
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
@@ -16183,24 +15428,24 @@ symbols:
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-mcp-broker-error
     title: McpBrokerError
+    status: active
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
-    symbol_role: structural
-    granularity_reason: extractor-miss
+    symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-mcp-broker-error-name
     title: McpBrokerError.name
+    status: active
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
-    symbol_role: structural
-    granularity_reason: extractor-miss
+    symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-mcp-broker-tests
     title: evaluator-owned Kibi MCP broker and independent final-state client
     sourceFile: scripts/skillopt-eval/tests/mcp-broker.test.ts
@@ -18210,14 +17455,14 @@ symbols:
         target: TEST-skillopt-paid-launch-accounting
   - id: SYM-skillopt-required-kibi-tools
     title: REQUIRED_KIBI_TOOLS
+    status: active
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
     symbol_role: config
-    granularity_reason: config-artifact
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-resolve-artifact-root
     title: resolveArtifactRoot
     sourceFile: scripts/skillopt-eval/runtime/artifact-root.ts
@@ -19941,14 +19186,6 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-  - id: SYM-SourceDiscoveryResult
-    title: SourceDiscoveryResult
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
   - id: SYM-SourceModuleAnalysis
     title: SourceModuleAnalysis
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
@@ -19957,14 +19194,6 @@ symbols:
         target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
-  - id: SYM-SourceOnlyAuthoringSignal
-    title: SourceOnlyAuthoringSignal
-    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
   - id: SYM-SourceSymbolAnalysis
     title: SourceSymbolAnalysis
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
@@ -26656,3 +25885,651 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-operation-interface-parity
+  - id: SYM-kibi-bootstrap-plan-executor
+    title: executePlanBootstrap
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/generate.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-apply-tests
+    title: bootstrap apply recovery scenarios
+    status: active
+    sourceFile: packages/cli/tests/operations/apply-plan.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+  - id: SYM-kibi-bootstrap-cli-spec
+    title: planBootstrapSpec
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/bootstrap.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-activation-classifyactivation
+    title: classifyActivation
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/activation.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-confidenceband
+    title: confidenceBand
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/candidate-helpers.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-slug
+    title: slug
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/candidate-helpers.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-strictplan
+    title: strictPlan
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/candidate-helpers.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-upsert
+    title: upsert
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/candidate-helpers.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-discoverbootstrap
+    title: discoverBootstrap
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/discovery.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-evidence-evidencescan
+    title: EvidenceScan
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/discovery-evidence.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-evidence-scanevidence
+    title: scanEvidence
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/discovery-evidence.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-generate-selectbootstrapcandidates
+    title: selectBootstrapCandidates
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/generate.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-guidance-buildguidance
+    title: buildGuidance
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/guidance.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-markdown-candidates-markdowncandidates
+    title: markdownCandidates
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/markdown-candidates.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-presentation-normalizebootstrapcontext
+    title: normalizeBootstrapContext
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/presentation.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-activationmode
+    title: ActivationMode
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-activationstate
+    title: ActivationState
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrap-provider-order
+    title: BOOTSTRAP_PROVIDER_ORDER
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapaction
+    title: BootstrapAction
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapcontext
+    title: BootstrapContext
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapdeclaredcontext
+    title: BootstrapDeclaredContext
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapemptykbsnapshotid
+    title: bootstrapEmptyKbSnapshotId
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapevidence
+    title: BootstrapEvidence
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapplanhash
+    title: bootstrapPlanHash
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapplanv1
+    title: BootstrapPlanV1
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstraprecommendedaction
+    title: BootstrapRecommendedAction
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapstructuredcontent
+    title: BootstrapStructuredContent
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-candidate
+    title: Candidate
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-discoveryresult
+    title: DiscoveryResult
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-discoverysummary
+    title: DiscoverySummary
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-evidencekind
+    title: EvidenceKind
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-evidenceprovidername
+    title: EvidenceProviderName
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-planbootstrapargs
+    title: PlanBootstrapArgs
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-planbootstrapresult
+    title: PlanBootstrapResult
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-mutation-delete-executedelete
+    title: executeDelete
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/delete.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-planning-apply-plan-orderbootstrapactions
+    title: orderBootstrapActions
+    status: active
+    sourceFile: packages/cli/src/operations/planning/apply-plan.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-init-e2e
+    title: cold-start bootstrap lifecycle
+    status: active
+    sourceFile: packages/cli/tests/commands/init.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+  - id: SYM-kibi-bootstrap-mcp-tests
+    title: bootstrap MCP adapter parity
+    status: active
+    sourceFile: packages/mcp/tests/tools/bootstrap-adapter.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+  - id: SYM-kibi-bootstrap-opencode-route
+    title: buildKibiBootstrapAlias
+    status: active
+    sourceFile: packages/opencode/src/kibi-bootstrap-alias.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-detectkibibootstrapcommandcapability
+    title: detectKibiBootstrapCommandCapability
+    status: active
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-findsdkpackagejsonforpluginroot
+    title: findSdkPackageJsonForPluginRoot
+    status: active
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-getkibibootstrapcommandcapability
+    title: getKibiBootstrapCommandCapability
+    status: active
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-description
+    title: KIBI_BOOTSTRAP_COMMAND_DESCRIPTION
+    status: active
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-name
+    title: KIBI_BOOTSTRAP_COMMAND_NAME
+    status: active
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-template
+    title: KIBI_BOOTSTRAP_COMMAND_TEMPLATE
+    status: active
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibibootstrapcommandcapability
+    title: KibiBootstrapCommandCapability
+    status: active
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-opencodecommanddefinition
+    title: OpenCodeCommandDefinition
+    status: active
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-opencodeconfighookinput
+    title: OpenCodeConfigHookInput
+    status: active
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-registerkibibootstrapcommand
+    title: registerKibiBootstrapCommand
+    status: active
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-plan-presentation
+    title: presentBootstrap
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/presentation.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-source-plan-fold
+    title: executeDelete source plan folding
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/delete.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-guidance-actions-buildactions
+    title: buildActions
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/guidance-actions.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-markdown-candidates-candidatebuildresult
+    title: CandidateBuildResult
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/markdown-candidates.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-requirement-claims-claimfor
+    title: claimFor
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/requirement-claims.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapconfidence
+    title: BootstrapConfidence
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-activationpolicy
+    title: ActivationPolicy
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-sourceonlysignal
+    title: SourceOnlySignal
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-cli-tests-operations-bootstrap-workspace-fixture-bootstrapworkspacefixture
+    title: BootstrapWorkspaceFixture
+    status: active
+    sourceFile: packages/cli/tests/operations/bootstrap-workspace-fixture.ts
+    symbol_role: type-shape
+    relationships:
+      - type: executable_for
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidates-buildbootstrapcandidates
+    title: buildBootstrapCandidates
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/candidates.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-kibi-bootstrap-mcp-adapter
+    title: handleKbPlanBootstrap
+    status: active
+    sourceFile: packages/mcp/src/tools/plan-bootstrap.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN

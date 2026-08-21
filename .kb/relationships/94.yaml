@@ -13,3 +13,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-561e0ce8ece2
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-spec
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:15:11.548Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9da817af4a41
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-spec
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:15:11.556Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6460f9726f88
+  - type: implements
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-detectkibibootstrapcommandcapability
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:37.814Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a836632b947
+  - type: covered_by
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-detectkibibootstrapcommandcapability
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:37.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01e3c9392cec

@@ -554,11 +554,16 @@ export function createSandbox(): TestSandbox {
       sharedInstallPromise = (async () => {
         console.log("📥 Installing packages into shared sandbox...");
         writePackedInstallManifest(npmPrefix, tarballs);
-        await run(npmBinary, ["install", "--no-audit"], {
+        const install = await run(npmBinary, ["install", "--no-audit"], {
           cwd: npmPrefix,
           env,
           timeoutMs: 300000,
         });
+        if (install.exitCode !== 0) {
+          throw new Error(
+            `Packed sandbox npm install failed (exit ${install.exitCode}):\n${install.stderr || install.stdout}`,
+          );
+        }
         await verifyKibiCliResolutionImpl(npmPrefix, env);
         console.log("  ✓ Packages installed");
       })();

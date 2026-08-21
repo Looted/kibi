@@ -20,3 +20,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-02dd7f1f9b91
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-strictplan
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:48:36.731Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a29040eb6248
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-strictplan
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:48:36.739Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9046af4e933

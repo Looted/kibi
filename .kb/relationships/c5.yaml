@@ -6,3 +6,17 @@ relationships:
     created_at: "2026-08-16T18:52:23.870Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-kibi-bootstrap-opencode-route
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:15:17.458Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01c67ef0f7c0
+  - type: covered_by
+    from: SYM-kibi-bootstrap-opencode-route
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:15:17.463Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ef8f9610500

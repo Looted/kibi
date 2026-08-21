@@ -180,13 +180,13 @@
         "kibi-usage",
         "kibi-freshness",
         "kibi-traceability",
-        "init-kibi"
+        "kibi-bootstrap"
       ],
       "properties": {
         "kibi-usage": { "$ref": "#/$defs/skillSurfaceHashes" },
         "kibi-freshness": { "$ref": "#/$defs/skillSurfaceHashes" },
         "kibi-traceability": { "$ref": "#/$defs/skillSurfaceHashes" },
-        "init-kibi": { "$ref": "#/$defs/skillSurfaceHashes" }
+        "kibi-bootstrap": { "$ref": "#/$defs/skillSurfaceHashes" }
       }
     },
     "seed": { "type": "integer", "minimum": 0 },

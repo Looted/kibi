@@ -41,6 +41,14 @@ function syncRebuild(kibiBin: string, cwd: string): void {
   );
 }
 
+function stopWorkspaceEngine(kibiBin: string, cwd: string): void {
+  spawnSync(process.execPath, [kibiBin, "engine", "stop"], {
+    cwd,
+    encoding: "utf8",
+    stdio: "ignore",
+  });
+}
+
 async function sendRequest(
   proc: ChildProcess,
   request: Record<string, unknown>,
@@ -328,7 +336,7 @@ describe("MCP Server", () => {
       "kb_check",
       "kb_model_requirement",
       "kb_suggest_predicates",
-      "kb_autopilot_generate",
+      "kb_plan_bootstrap",
       "kb_compile_intent",
       "kb_apply_plan",
       "kb_ingest_verification",
@@ -380,19 +388,19 @@ describe("MCP Server", () => {
     expect(prompts.length).toBeGreaterThanOrEqual(1);
 
     // Check that public prompts are included
-    const initKibiPrompt = prompts.find((p) => p.name === "init-kibi");
+    const initKibiPrompt = prompts.find((p) => p.name === "kibi-bootstrap");
     expect(initKibiPrompt).toBeDefined();
     expect(initKibiPrompt?.description).toBeDefined();
     expect(typeof initKibiPrompt?.description).toBe("string");
     expect(initKibiPrompt?.description).toMatch(
-      /interactive activation|new or empty/i,
+      /canonical planner|existing repository|bootstrap/i,
     );
     expect(prompts.map((prompt) => prompt.name)).not.toContain("brief-kibi");
 
     await killServer(proc);
   });
 
-  test("should handle prompts/get for init-kibi", async () => {
+  test("should handle prompts/get for kibi-bootstrap", async () => {
     const proc = startServer();
 
     // Initialize first
@@ -407,13 +415,13 @@ describe("MCP Server", () => {
       },
     });
 
-    // Get init-kibi prompt
+    // Get kibi-bootstrap prompt
     const response = await sendRequest(proc, {
       jsonrpc: "2.0",
       id: 2,
       method: "prompts/get",
       params: {
-        name: "init-kibi",
+        name: "kibi-bootstrap",
       },
     });
 
@@ -436,13 +444,16 @@ describe("MCP Server", () => {
       .join(" ");
 
     // Assert that content mentions expected public tools
-    expect(contentText).toMatch(/kb_autopilot_generate/);
-    expect(contentText).toMatch(/kb_upsert/);
+    expect(contentText).toMatch(/kb_plan_bootstrap/);
+    expect(contentText).toMatch(/structuredContent\.plan/);
+    expect(contentText).toMatch(/kb_apply_plan/);
     expect(contentText).toMatch(/kb_check/);
-    expect(contentText).toMatch(/Project Summary/);
-    expect(contentText).toMatch(/Source of Truth/);
-    expect(contentText).toMatch(/post-hoc/i);
+    expect(contentText).toMatch(/kb_status/);
     expect(contentText).toMatch(/read-only/);
+    expect(contentText).not.toMatch(/kb_upsert/);
+    expect(contentText).not.toMatch(/Project Summary/);
+    expect(contentText).not.toMatch(/Source of Truth/);
+    expect(contentText).not.toMatch(/post-hoc/i);
 
     // Assert that content mentions activation workflow concepts
     expect(contentText).toMatch(/(activationState|activation|approval)/i);
@@ -486,7 +497,7 @@ describe("MCP Server", () => {
   });
 
   test(
-    "should handle tools/call for kb_autopilot_generate",
+    "should handle tools/call for kb_plan_bootstrap",
     async () => {
       const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-auto-"));
       const kibiBin = path.resolve(import.meta.dir, "../../cli/bin/kibi");
@@ -529,7 +540,7 @@ describe("MCP Server", () => {
             id: 2,
             method: "tools/call",
             params: {
-              name: "kb_autopilot_generate",
+              name: "kb_plan_bootstrap",
               arguments: {},
             },
           },
@@ -562,6 +573,7 @@ describe("MCP Server", () => {
         expect([
           "cold_start_bootstrap",
           "repair_bootstrap",
+          "attached_thin_bootstrap",
           "attached_thin_handoff",
           "attached_seeded_handoff",
           "vendored_blocked",
@@ -575,12 +587,20 @@ describe("MCP Server", () => {
         expect(Array.isArray(structured.suppressedCandidates)).toBe(true);
         expect(typeof structured.discoverySummary).toBe("object");
         expect(typeof structured.payoffSummary).toBe("object");
-
-        expect(result.candidates).toEqual(structured.candidates);
-        expect(result.suppressedCandidates).toEqual(
-          structured.suppressedCandidates,
+        const bootstrapPlan = structured.plan as Record<string, unknown>;
+        expect(bootstrapPlan).toEqual(
+          expect.objectContaining({
+            version: "kibi.bootstrap-plan.v1",
+            planHash: expect.any(String),
+            diagnostics: expect.any(Array),
+          }),
         );
-        expect(result.payoffSummary).toEqual(structured.payoffSummary);
+
+        expect(structured.candidates).toEqual(bootstrapPlan.candidates);
+        expect(structured.suppressedCandidates).toEqual(
+          bootstrapPlan.suppressedCandidates,
+        );
+        expect(structured.payoffSummary).toEqual(bootstrapPlan.payoffSummary);
       } finally {
         await killServer(proc);
         spawnSync(process.execPath, [kibiBin, "engine", "stop"], {
@@ -795,6 +815,7 @@ describe("MCP Server", () => {
     const tempRoot = fs.mkdtempSync(
       path.join(os.tmpdir(), "kibi-mcp-branch-init-"),
     );
+    const kibiBin = path.resolve(import.meta.dir, "../../cli/bin/kibi");
 
     execSync("git init -b main", { cwd: tempRoot, stdio: "ignore" });
     execSync('git config user.email "test@example.com"', {
@@ -851,6 +872,7 @@ describe("MCP Server", () => {
       ).toBe(true);
     } finally {
       await killServer(proc);
+      stopWorkspaceEngine(kibiBin, tempRoot);
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
   });
@@ -885,6 +907,7 @@ describe("MCP Server", () => {
 
   test("should handle mixed kb_query/kb_check/kb_upsert/kb_delete burst without timeouts", async () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-burst-"));
+    const kibiBin = path.resolve(import.meta.dir, "../../cli/bin/kibi");
 
     execSync("git init -b main", { cwd: tempRoot, stdio: "ignore" });
     execSync('git config user.email "test@example.com"', {
@@ -1015,6 +1038,7 @@ describe("MCP Server", () => {
       }
     } finally {
       await killServer(proc);
+      stopWorkspaceEngine(kibiBin, tempRoot);
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
   }, 180000);
@@ -1089,6 +1113,7 @@ describe("MCP Server", () => {
       expect(afterStructured?.syncState).toBe("stale");
     } finally {
       await killServer(proc);
+      stopWorkspaceEngine(kibiBin, tempRoot);
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
   }, 30000);
@@ -1096,6 +1121,7 @@ describe("MCP Server", () => {
   test("should create usage.log when --diagnostic-mode is enabled", async () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-diag-"));
     const repoDir = path.join(tempRoot, "repo");
+    const kibiBin = path.resolve(import.meta.dir, "../../cli/bin/kibi");
     fs.mkdirSync(repoDir, { recursive: true });
 
     // Initialize git repo and kibi
@@ -1137,7 +1163,7 @@ describe("MCP Server", () => {
 
       // Initialize kibi via CLI
       execSync(
-        `node ${path.resolve(import.meta.dir, "../../cli/bin/kibi")} init`,
+        `node ${kibiBin} init`,
         {
           cwd: repoDir,
           env: isolatedMcpSandboxEnv(),
@@ -1190,6 +1216,7 @@ describe("MCP Server", () => {
       expect(typeof lastLine.result_summary).toBe("string");
     } finally {
       await killServer(proc);
+      stopWorkspaceEngine(kibiBin, repoDir);
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
   }, 60000);
@@ -1327,6 +1354,7 @@ describe("MCP Server", () => {
       }
     } finally {
       await killServer(proc);
+      stopWorkspaceEngine(kibiBin, tempRoot);
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
   }, 60000);

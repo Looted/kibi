@@ -84,8 +84,8 @@ export const OPERATIONS: readonly OperationCase[] = [
     input: { text: "The CLI must expose every MCP operation." },
   },
   {
-    tool: "kb_autopilot_generate",
-    route: "autopilot-generate",
+    tool: "kb_plan_bootstrap",
+    route: "plan-bootstrap",
     input: { includeGenericMarkdown: false, maxCandidates: 1 },
   },
   {
@@ -110,7 +110,7 @@ export const OPERATIONS: readonly OperationCase[] = [
 ] as const;
 
 export const EXPECTED_BUNDLE_PATHS = [
-  "package/skills/init-kibi/SKILL.md",
+  "package/skills/kibi-bootstrap/SKILL.md",
   "package/skills/kibi-freshness/SKILL.md",
   "package/skills/kibi-traceability/SKILL.md",
   "package/skills/kibi-usage/SKILL.md",

@@ -6,3 +6,17 @@ relationships:
     created_at: "2026-08-16T18:52:06.513Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-markdown-candidates-markdowncandidates
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T14:03:48.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ed7fffde510
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-markdown-candidates-markdowncandidates
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T14:03:48.042Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc8c9f70db01

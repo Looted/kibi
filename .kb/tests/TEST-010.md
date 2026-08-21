@@ -1,9 +1,9 @@
 ---
 id: TEST-010
-title: Non-core inference tools are not advertised through the public MCP surface
+title: Core MCP surface excludes internal inference tools
 status: active
 created_at: 2026-02-20T08:10:00.000Z
-updated_at: 2026-04-24T08:12:00Z
+updated_at: 2026-04-24T08:12:00.000Z
 priority: must
 tags:
   - mcp
@@ -12,10 +12,6 @@ tags:
 links:
   - type: validates
     target: SCEN-008
+type: test
 ---
-
-Validation steps:
-1. Start `kibi-mcp` and call `tools/list`.
-2. Verify only `kb_query`, `kb_search`, `kb_status`, `kb_find_gaps`, `kb_coverage`, `kb_graph`, `kb_upsert`, `kb_delete`, `kb_check`, `kb_autopilot_generate`, and `kb_briefing_generate` are advertised (11 tools total).
-3. Attempt `tools/call` for a removed non-core inference tool name.
-4. Verify the call is rejected with an unknown-tool style error.
+Verify that the public MCP catalog advertises the approved read, validation, mutation, bootstrap-planning, and briefing operations, while internal inference helpers remain unadvertised. Bootstrap uses kb_plan_bootstrap and kb_apply_plan with exact plan approval.

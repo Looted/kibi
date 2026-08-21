@@ -20,7 +20,7 @@ import {
   TOOLS,
   withDiagnosticTelemetrySchema,
 } from "../../src/tools-config.js";
-import type { AutopilotGenerateArgs } from "../../src/tools/autopilot-generate.js";
+import type { PlanBootstrapArgs } from "../../src/tools/plan-bootstrap.js";
 import type { CheckArgs } from "../../src/tools/check.js";
 import type { CoverageArgs } from "../../src/tools/coverage.js";
 import type { DeleteArgs } from "../../src/tools/delete.js";
@@ -84,7 +84,7 @@ const TOOL_NAMES = [
   "kb_check",
   "kb_model_requirement",
   "kb_suggest_predicates",
-  "kb_autopilot_generate",
+  "kb_plan_bootstrap",
   "kb_compile_intent",
   "kb_apply_plan",
   "kb_ingest_verification",
@@ -538,13 +538,13 @@ function createRuntime() {
         args,
       }),
     );
-  const handleKbAutopilotGenerate: ToolsRuntime<MockProlog>["handleKbAutopilotGenerate"] =
+  const handleKbPlanBootstrap: ToolsRuntime<MockProlog>["handleKbPlanBootstrap"] =
     mock(
       async (
-        _args: AutopilotGenerateArgs,
+        _args: PlanBootstrapArgs,
         context: OperationContext,
       ): Promise<unknown> => ({
-        tool: "kb_autopilot_generate",
+        tool: "kb_plan_bootstrap",
         args: context,
       }),
     );
@@ -603,7 +603,7 @@ function createRuntime() {
     handleKbValidateUpsert,
     handleKbModelRequirement,
     handleKbSuggestPredicates,
-    handleKbAutopilotGenerate,
+    handleKbPlanBootstrap,
     handleKbCompileIntent,
     handleKbApplyPlan,
     handleKbIngestVerification,
@@ -643,7 +643,7 @@ function createRuntime() {
       handleKbValidateUpsert,
       handleKbModelRequirement,
       handleKbSuggestPredicates,
-      handleKbAutopilotGenerate,
+      handleKbPlanBootstrap,
       handleKbCompileIntent,
       handleKbApplyPlan,
       handleKbIngestVerification,
@@ -1104,7 +1104,7 @@ describe.serial("server tools coverage", () => {
 
     expect(registered.map((tool) => tool.name)).toEqual([...TOOL_NAMES]);
     expect(
-      registered.some((tool) => tool.name === "kb_autopilot_generate"),
+      registered.some((tool) => tool.name === "kb_plan_bootstrap"),
     ).toBe(true);
     expect(
       registered.some((tool) => tool.name === "kb_briefing_generate"),

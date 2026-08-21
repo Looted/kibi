@@ -34,3 +34,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3f51e89d23e2
+  - type: implements
+    from: SYM-skillopt-mcp-broker-error-name
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-21T19:52:46.998Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b827303200a2
+  - type: covered_by
+    from: SYM-skillopt-mcp-broker-error-name
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-21T19:52:47.020Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73e4abcb84a0

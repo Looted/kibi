@@ -188,7 +188,7 @@ relationship:
   - one `fact_kind: subject` fact linked via `constrains`
   - one `fact_kind: property_value` fact linked via `requires_property`
 - For v1, the supported evolution path is append-only: create a new requirement and link it to the prior one with `supersedes`.
-- Automated modeling via `kb_model_requirement` can produce deterministic write plans. `/init-kibi` also follows this pattern, but bootstrap writes still require a user-facing preview and explicit approval before applying `kb_upsert` payloads.
+- Automated modeling via `kb_model_requirement` can produce deterministic write plans. `/kibi-bootstrap` returns `kibi.bootstrap-plan.v1`; bootstrap writes require a user-facing preview and explicit approval before calling `kb_apply_plan`.
 - **Low-confidence downgrade:** If confidence is < 0.7, requirements are downgraded to `observation` facts to avoid false-positive contradictions.
 - Use `observation` and `meta` facts for runtime evidence, historical notes, and governance context that should not participate in contradiction blocking.
 

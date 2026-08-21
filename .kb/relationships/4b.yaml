@@ -76,3 +76,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1ca794ae1292
+  - type: executable_for
+    from: SYM-kibi-bootstrap-init-e2e
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:15:19.568Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66ee4fd51a7c
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-evidencekind
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:09.806Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57593e3d27b1
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-evidencekind
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:09.813Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa263532705c

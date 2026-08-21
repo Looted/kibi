@@ -182,28 +182,48 @@ export const applyPlanSpec = {
   name: "kb_apply_plan",
   cliName: "apply-plan",
   description:
-    "Apply an approved kibi.compile-plan.v1 or kibi.migration-plan.v2 after revalidating its canonical hash and live snapshots. Compile steps remain sequential entity writes; migration steps require explicit automatic action IDs and preserve backups/audit evidence. Review, operator, and execution actions are rejected.",
+    "Apply an explicitly approved kibi.bootstrap-plan.v1, kibi.compile-plan.v1, kibi.migration-plan.v2, or entity-deletion plan after revalidating its canonical hash and live snapshots. Bootstrap actions are dependency-ordered, sequential, source-first, and recoverable from a typed journal.",
   businessInputSchema: {
     type: "object",
-    required: ["plan", "approvedPlanHash"],
+    oneOf: [
+      {
+        required: ["plan", "approvedPlanHash"],
+        not: { required: ["recoveryJournalId"] },
+      },
+      {
+        required: ["recoveryJournalId"],
+        not: {
+          anyOf: [
+            { required: ["plan"] },
+            { required: ["approvedPlanHash"] },
+          ],
+        },
+      },
+    ],
     properties: {
       approvedPlanHash: {
         type: "string",
         pattern: "^[a-fA-F0-9]{64}$",
         description:
-          "Exact SHA-256 planHash returned by kb_compile_intent after human/agent review.",
+          "Exact SHA-256 planHash returned by kb_plan_bootstrap, kb_compile_intent, or another approved plan after human review.",
       },
       plan: {
         type: "object",
         required: ["version", "planHash"],
         description:
-          "The complete kibi.compile-plan.v1, kibi.migration-plan.v2, or hash-bound kibi.entity-deletion-plan.v1 object. Migration plans require approvedActionIds and reject blocked/non-automatic actions.",
+          "The complete kibi.bootstrap-plan.v1, kibi.compile-plan.v1, kibi.migration-plan.v2, or hash-bound kibi.entity-deletion-plan.v1 object. Migration plans require approvedActionIds and reject blocked/non-automatic actions.",
       },
       approvedActionIds: {
         type: "array",
         items: { type: "string", minLength: 1 },
         description:
           "Required for migration-plan.v2. Exact automatic action IDs explicitly approved for this application.",
+      },
+      recoveryJournalId: {
+        type: "string",
+        pattern: "^[A-Za-z0-9._-]+$",
+        description:
+          "Typed recovery journal identifier returned by a committed_with_repairs result. Recovery replays only the immutable journal and never the original plan request.",
       },
     },
   },

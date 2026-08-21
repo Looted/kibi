@@ -128,30 +128,6 @@ coordinates:
     sourceEndLine: 26
     sourceFile: packages/cli/src/public/symbol-granularity.ts
     sourceLine: 21
-  SYM-AUTOPILOT-PROVIDER-ORDER:
-    sourceColumn: 13
-    sourceEndColumn: 10
-    sourceEndLine: 38
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    sourceLine: 30
-  SYM-ActivationMode:
-    sourceColumn: 12
-    sourceEndColumn: 23
-    sourceEndLine: 27
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    sourceLine: 22
-  SYM-ActivationPolicy:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 109
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    sourceLine: 102
-  SYM-ActivationState:
-    sourceColumn: 12
-    sourceEndColumn: 25
-    sourceEndLine: 20
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    sourceLine: 15
   SYM-AnalyzeSourceTextOptions:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -266,54 +242,6 @@ coordinates:
     sourceEndLine: 29
     sourceFile: packages/opencode/src/auto-update.ts
     sourceLine: 21
-  SYM-AutopilotBootstrapContext:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 9
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    sourceLine: 3
-  SYM-AutopilotConfidence:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 31
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    sourceLine: 26
-  SYM-AutopilotDeclaredContext:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 46
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    sourceLine: 40
-  SYM-AutopilotEvidence:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 58
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    sourceLine: 51
-  SYM-AutopilotEvidenceKind:
-    sourceColumn: 12
-    sourceEndColumn: 21
-    sourceEndLine: 49
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    sourceLine: 42
-  SYM-AutopilotGenerateArgs:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 24
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    sourceLine: 11
-  SYM-AutopilotGenerateResult:
-    sourceColumn: 12
-    sourceEndColumn: 4
-    sourceEndLine: 165
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    sourceLine: 157
-  SYM-AutopilotRecommendedAction:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 38
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    sourceLine: 33
   SYM-Awaitable:
     sourceColumn: 12
     sourceEndColumn: 42
@@ -380,12 +308,6 @@ coordinates:
     sourceEndLine: 151
     sourceFile: packages/cli/tests/traceability/release-audit-fixture.ts
     sourceLine: 33
-  SYM-Candidate:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 43
-    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
-    sourceLine: 27
   SYM-CheckOptions:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -479,9 +401,9 @@ coordinates:
   SYM-DOC-RESOURCES:
     sourceColumn: 13
     sourceEndColumn: 51
-    sourceEndLine: 300
+    sourceEndLine: 272
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 300
+    sourceLine: 272
   SYM-DefaultRuntimeProlog:
     sourceColumn: 12
     sourceEndColumn: 49
@@ -524,12 +446,6 @@ coordinates:
     sourceEndLine: 131
     sourceFile: packages/mcp/src/diagnostics.ts
     sourceLine: 120
-  SYM-DiscoverySummary:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 83
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    sourceLine: 69
   SYM-DocResource:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -584,18 +500,6 @@ coordinates:
     sourceEndLine: 58
     sourceFile: packages/cli/src/utils/strict-modeling.ts
     sourceLine: 51
-  SYM-EvidenceProviderName:
-    sourceColumn: 12
-    sourceEndColumn: 77
-    sourceEndLine: 40
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    sourceLine: 40
-  SYM-EvidenceProviderResult:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 67
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    sourceLine: 60
   SYM-ExternalAdoptionVerdict:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -800,36 +704,12 @@ coordinates:
     sourceEndLine: 150
     sourceFile: packages/opencode/src/plugin.ts
     sourceLine: 142
-  SYM-INIT-KIBI-COMMAND-DESCRIPTION:
-    sourceColumn: 13
-    sourceEndColumn: 49
-    sourceEndLine: 10
-    sourceFile: packages/opencode/src/init-kibi-capability.ts
-    sourceLine: 9
-  SYM-INIT-KIBI-COMMAND-NAME:
-    sourceColumn: 13
-    sourceEndColumn: 49
-    sourceEndLine: 7
-    sourceFile: packages/opencode/src/init-kibi-capability.ts
-    sourceLine: 7
-  SYM-INIT-KIBI-COMMAND-TEMPLATE:
-    sourceColumn: 13
-    sourceEndColumn: 62
-    sourceEndLine: 8
-    sourceFile: packages/opencode/src/init-kibi-capability.ts
-    sourceLine: 8
   SYM-IgnorePolicy:
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 22
     sourceFile: packages/cli/src/public/ignore-policy.ts
     sourceLine: 18
-  SYM-InitKibiCommandCapability:
-    sourceColumn: 12
-    sourceEndColumn: 6
-    sourceEndLine: 34
-    sourceFile: packages/opencode/src/init-kibi-capability.ts
-    sourceLine: 25
   SYM-KB_RELATIONSHIP_TYPES:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -1214,22 +1094,10 @@ coordinates:
     sourceEndLine: 20
     sourceFile: scripts/release-runner-fixture.ts
     sourceLine: 20
-  SYM-OpenCodeCommandDefinition:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 18
-    sourceFile: packages/opencode/src/init-kibi-capability.ts
-    sourceLine: 12
-  SYM-OpenCodeConfigHookInput:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 23
-    sourceFile: packages/opencode/src/init-kibi-capability.ts
-    sourceLine: 20
   SYM-PROMPTS:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 200
+    sourceEndLine: 172
     sourceFile: packages/mcp/src/server/docs.ts
     sourceLine: 68
   SYM-PROSE_COVERAGE_CORPUS:
@@ -1415,9 +1283,9 @@ coordinates:
   SYM-PromptContext:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 149
+    sourceEndLine: 148
     sourceFile: packages/opencode/src/prompt.ts
-    sourceLine: 109
+    sourceLine: 108
   SYM-ProseCoverageCase:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1442,12 +1310,6 @@ coordinates:
     sourceEndLine: 32
     sourceFile: packages/cli/src/operations/semantic-advisor/prose-coverage-evaluator.ts
     sourceLine: 24
-  SYM-ProviderEvidenceDiscoveryResult:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 89
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    sourceLine: 85
   SYM-PublicTaskClaim:
     sourceColumn: 12
     sourceEndColumn: 78
@@ -1826,24 +1688,12 @@ coordinates:
     sourceEndLine: 44
     sourceFile: packages/cli/src/traceability/evidence-model.ts
     sourceLine: 42
-  SYM-SourceDiscoveryResult:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 115
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    sourceLine: 111
   SYM-SourceModuleAnalysis:
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 69
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
     sourceLine: 64
-  SYM-SourceOnlyAuthoringSignal:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 51
-    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
-    sourceLine: 45
   SYM-SourceSymbolAnalysis:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -2243,9 +2093,9 @@ coordinates:
   SYM-addTool:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 353
+    sourceEndLine: 359
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 129
+    sourceLine: 135
   SYM-analyzeSemanticAdvisorInput:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2351,9 +2201,9 @@ coordinates:
   SYM-auto-01A7A4554EF9:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 741
+    sourceEndLine: 746
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 730
+    sourceLine: 735
   SYM-auto-02C5362C86BE:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2411,9 +2261,9 @@ coordinates:
   SYM-auto-17A7EF53F461:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 757
+    sourceEndLine: 762
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 746
+    sourceLine: 751
   SYM-auto-1861120B3765:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -2675,9 +2525,9 @@ coordinates:
   SYM-auto-6CE6FE1E5AA4:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 762
+    sourceEndLine: 767
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 760
+    sourceLine: 765
   SYM-auto-711E3868D47B:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2741,9 +2591,9 @@ coordinates:
   SYM-auto-88E6CA6A3463:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 837
+    sourceEndLine: 842
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 819
+    sourceLine: 824
   SYM-auto-897151BA8338:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2789,9 +2639,9 @@ coordinates:
   SYM-auto-92BF4F1E0EC1:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 353
+    sourceEndLine: 363
     sourceFile: packages/cli/src/public/operations/contracts.ts
-    sourceLine: 328
+    sourceLine: 338
   SYM-auto-93C73D20FA03:
     sourceColumn: 12
     sourceEndColumn: 68
@@ -2849,15 +2699,15 @@ coordinates:
   SYM-auto-AA7E401E854D:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 814
+    sourceEndLine: 819
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 805
+    sourceLine: 810
   SYM-auto-AD2DCA2227C8:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 802
+    sourceEndLine: 807
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 767
+    sourceLine: 772
   SYM-auto-AD376CE47FDF:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2897,9 +2747,9 @@ coordinates:
   SYM-auto-B892D7934A27:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 725
+    sourceEndLine: 730
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 661
+    sourceLine: 666
   SYM-auto-B9A2DDEE871F:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -2963,7 +2813,7 @@ coordinates:
   SYM-auto-D694B2C4BE06:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 280
+    sourceEndLine: 290
     sourceFile: packages/cli/src/public/operations/contracts.ts
     sourceLine: 61
   SYM-auto-D6D87A820746:
@@ -2987,9 +2837,9 @@ coordinates:
   SYM-auto-E94328F678DF:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 849
+    sourceEndLine: 854
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 842
+    sourceLine: 847
   SYM-auto-EB53162A3CF2:
     sourceColumn: 13
     sourceEndColumn: 55
@@ -3029,9 +2879,9 @@ coordinates:
   SYM-auto-F6E934B6698C:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 66
+    sourceEndLine: 76
     sourceFile: packages/cli/src/operations/planning/apply-plan.ts
-    sourceLine: 59
+    sourceLine: 69
   SYM-auto-F8534C607C20:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -3062,252 +2912,6 @@ coordinates:
     sourceEndLine: 96
     sourceFile: packages/cli/src/public/operations/result-envelope.ts
     sourceLine: 91
-  SYM-autopilot-activation-mode-shared:
-    sourceColumn: 12
-    sourceEndColumn: 23
-    sourceEndLine: 60
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    sourceLine: 55
-  SYM-autopilot-activation-policy-shared:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 88
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    sourceLine: 81
-  SYM-autopilot-activation-state-shared:
-    sourceColumn: 12
-    sourceEndColumn: 25
-    sourceEndLine: 53
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    sourceLine: 48
-  SYM-autopilot-build-actions:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 101
-    sourceFile: packages/cli/src/operations/autopilot/guidance-actions.ts
-    sourceLine: 24
-  SYM-autopilot-build-candidates-shared:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 155
-    sourceFile: packages/cli/src/operations/autopilot/candidates.ts
-    sourceLine: 129
-  SYM-autopilot-build-guidance:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 199
-    sourceFile: packages/cli/src/operations/autopilot/guidance.ts
-    sourceLine: 162
-  SYM-autopilot-candidate-build-result:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 20
-    sourceFile: packages/cli/src/operations/autopilot/markdown-candidates.ts
-    sourceLine: 17
-  SYM-autopilot-candidate-shared:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 139
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    sourceLine: 124
-  SYM-autopilot-claim-for:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 62
-    sourceFile: packages/cli/src/operations/autopilot/requirement-claims.ts
-    sourceLine: 3
-  SYM-autopilot-classify-activation:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 153
-    sourceFile: packages/cli/src/operations/autopilot/activation.ts
-    sourceLine: 101
-  SYM-autopilot-confidence-band:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 5
-    sourceFile: packages/cli/src/operations/autopilot/candidate-helpers.ts
-    sourceLine: 3
-  SYM-autopilot-discover-shared:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 131
-    sourceFile: packages/cli/src/operations/autopilot/discovery.ts
-    sourceLine: 82
-  SYM-autopilot-discovery-result-shared:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 122
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    sourceLine: 116
-  SYM-autopilot-discovery-summary-shared:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 114
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    sourceLine: 100
-  SYM-autopilot-evidence-kind-shared:
-    sourceColumn: 12
-    sourceEndColumn: 21
-    sourceEndLine: 79
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    sourceLine: 72
-  SYM-autopilot-evidence-scan:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 44
-    sourceFile: packages/cli/src/operations/autopilot/discovery-evidence.ts
-    sourceLine: 39
-  SYM-autopilot-evidence-shared:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 98
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    sourceLine: 90
-  SYM-autopilot-execute-shared:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 157
-    sourceFile: packages/cli/src/operations/autopilot/generate.ts
-    sourceLine: 106
-  SYM-autopilot-markdown-candidates:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 198
-    sourceFile: packages/cli/src/operations/autopilot/markdown-candidates.ts
-    sourceLine: 142
-  SYM-autopilot-mcp-adapter-test:
-    sourceColumn: 0
-    sourceEndColumn: 0
-    sourceEndLine: 45
-    sourceFile: packages/mcp/tests/tools/autopilot-adapter.test.ts
-    sourceLine: 1
-  SYM-autopilot-normalize-context:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 29
-    sourceFile: packages/cli/src/operations/autopilot/presentation.ts
-    sourceLine: 18
-  SYM-autopilot-parity-test:
-    sourceColumn: 0
-    sourceEndColumn: 0
-    sourceEndLine: 46
-    sourceFile: packages/cli/tests/parity/autopilot.test.ts
-    sourceLine: 1
-  SYM-autopilot-present-shared:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 122
-    sourceFile: packages/cli/src/operations/autopilot/presentation.ts
-    sourceLine: 45
-  SYM-autopilot-provider-name-shared:
-    sourceColumn: 12
-    sourceEndColumn: 77
-    sourceEndLine: 71
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    sourceLine: 71
-  SYM-autopilot-provider-order-shared:
-    sourceColumn: 13
-    sourceEndColumn: 10
-    sourceEndLine: 69
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    sourceLine: 62
-  SYM-autopilot-scan-evidence:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 234
-    sourceFile: packages/cli/src/operations/autopilot/discovery-evidence.ts
-    sourceLine: 179
-  SYM-autopilot-select-candidates:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 89
-    sourceFile: packages/cli/src/operations/autopilot/generate.ts
-    sourceLine: 32
-  SYM-autopilot-shared-executor-test:
-    sourceColumn: 0
-    sourceEndColumn: 0
-    sourceEndLine: 64
-    sourceFile: packages/cli/tests/operations/autopilot.test.ts
-    sourceLine: 1
-  SYM-autopilot-slug:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 13
-    sourceFile: packages/cli/src/operations/autopilot/candidate-helpers.ts
-    sourceLine: 7
-  SYM-autopilot-source-only-signal-shared:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 147
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    sourceLine: 141
-  SYM-autopilot-strict-plan:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 71
-    sourceFile: packages/cli/src/operations/autopilot/candidate-helpers.ts
-    sourceLine: 34
-  SYM-autopilot-structured-content-shared:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 155
-    sourceFile: packages/cli/src/operations/autopilot/types.ts
-    sourceLine: 149
-  SYM-autopilot-test-activation-parser:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 147
-    sourceFile: packages/mcp/src/tools/autopilot-test-parsers.ts
-    sourceLine: 92
-  SYM-autopilot-test-candidate-parser:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 61
-    sourceFile: packages/mcp/src/tools/autopilot-test-parsers.ts
-    sourceLine: 15
-  SYM-autopilot-test-execute-dependencies:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 131
-    sourceFile: packages/mcp/src/tools/autopilot-test-compat.ts
-    sourceLine: 41
-  SYM-autopilot-test-legacy-dependencies:
-    sourceColumn: 12
-    sourceEndColumn: 67
-    sourceEndLine: 19
-    sourceFile: packages/mcp/src/tools/autopilot-test-compat.ts
-    sourceLine: 19
-  SYM-autopilot-test-record-parser:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 13
-    sourceFile: packages/mcp/src/tools/autopilot-test-parsers.ts
-    sourceLine: 7
-  SYM-autopilot-test-reset-dependencies:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 28
-    sourceFile: packages/mcp/src/tools/autopilot-test-compat.ts
-    sourceLine: 26
-  SYM-autopilot-test-set-dependencies:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 24
-    sourceFile: packages/mcp/src/tools/autopilot-test-compat.ts
-    sourceLine: 22
-  SYM-autopilot-test-signal-parser:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 90
-    sourceFile: packages/mcp/src/tools/autopilot-test-parsers.ts
-    sourceLine: 63
-  SYM-autopilot-upsert-plan:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 32
-    sourceFile: packages/cli/src/operations/autopilot/candidate-helpers.ts
-    sourceLine: 15
   SYM-bindBridgeResult:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3368,42 +2972,18 @@ coordinates:
     sourceEndLine: 71
     sourceFile: scripts/skillopt-eval/fixtures/fixture-claim.ts
     sourceLine: 49
-  SYM-buildGenericMarkdownCandidates:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 443
-    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
-    sourceLine: 321
   SYM-buildIndex:
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 114
     sourceFile: packages/vscode/src/symbolIndex.ts
     sourceLine: 46
-  SYM-buildInitKibiAlias:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 44
-    sourceFile: packages/opencode/src/init-kibi-alias.ts
-    sourceLine: 14
-  SYM-buildNormativeRequirementCandidates:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 688
-    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
-    sourceLine: 566
   SYM-buildPrompt:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 671
+    sourceEndLine: 634
     sourceFile: packages/opencode/src/prompt.ts
-    sourceLine: 663
-  SYM-buildProviderEvidenceCandidates:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 763
-    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
-    sourceLine: 691
+    sourceLine: 626
   SYM-buildStableRequirementIds:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3416,18 +2996,6 @@ coordinates:
     sourceEndLine: 277
     sourceFile: packages/cli/src/utils/strict-modeling.ts
     sourceLine: 159
-  SYM-buildSymbolManifestCandidates:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 308
-    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
-    sourceLine: 261
-  SYM-buildTypedMarkdownCandidates:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 258
-    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
-    sourceLine: 212
   SYM-buildUpsertTransaction:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3932,12 +3500,6 @@ coordinates:
     sourceEndLine: 51
     sourceFile: packages/opencode/src/workspace-health.ts
     sourceLine: 22
-  SYM-classifyActivationState:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 1169
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    sourceLine: 1103
   SYM-classifyDiagnosticError:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -5027,9 +4589,9 @@ coordinates:
   SYM-cli-init-command:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 130
+    sourceEndLine: 177
     sourceFile: packages/cli/src/commands/init.ts
-    sourceLine: 44
+    sourceLine: 88
   SYM-cli-input-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -6224,18 +5786,6 @@ coordinates:
     sourceEndLine: 206
     sourceFile: packages/codex/src/hook-state.ts
     sourceLine: 192
-  SYM-collectMarkdownFiles:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 1215
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    sourceLine: 1172
-  SYM-collectSourceOnlyAuthoringSignals:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 563
-    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
-    sourceLine: 446
   SYM-collectSourceRelationshipParityViolations:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -6263,9 +5813,9 @@ coordinates:
   SYM-computeEnforcementPolicy:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 465
+    sourceEndLine: 455
     sourceFile: packages/opencode/src/enforcement-policy.ts
-    sourceLine: 374
+    sourceLine: 364
   SYM-computeHashManifest:
     sourceColumn: 9
     sourceEndColumn: 1
@@ -7040,12 +6590,6 @@ coordinates:
     sourceEndLine: 113
     sourceFile: packages/opencode/src/file-operation-reminders.ts
     sourceLine: 59
-  SYM-detectInitKibiCommandCapability:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 302
-    sourceFile: packages/opencode/src/init-kibi-capability.ts
-    sourceLine: 265
   SYM-detectPosture:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7070,78 +6614,66 @@ coordinates:
     sourceEndLine: 282
     sourceFile: scripts/sync-agent-skills.ts
     sourceLine: 227
-  SYM-discoverProviderEvidence:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 1003
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    sourceLine: 948
   SYM-discoverSourceFiles:
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 351
     sourceFile: packages/cli/src/commands/sync/discovery.ts
     sourceLine: 251
-  SYM-discoverSources:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 1244
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    sourceLine: 1219
   SYM-discovery-execute-query:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 190
+    sourceEndLine: 198
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 126
+    sourceLine: 134
   SYM-discovery-execute-search:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 290
+    sourceEndLine: 298
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 192
+    sourceLine: 200
   SYM-discovery-execute-status:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 461
+    sourceEndLine: 526
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 292
+    sourceLine: 300
   SYM-discovery-query-input:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 44
+    sourceEndLine: 45
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 37
+    sourceLine: 38
   SYM-discovery-query-payload:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 49
+    sourceEndLine: 50
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 46
+    sourceLine: 47
   SYM-discovery-search-input:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 60
+    sourceEndLine: 61
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 51
+    sourceLine: 52
   SYM-discovery-search-payload:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 66
+    sourceEndLine: 67
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 62
+    sourceLine: 63
   SYM-discovery-status-input:
     sourceColumn: 12
     sourceEndColumn: 58
-    sourceEndLine: 68
+    sourceEndLine: 69
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 68
+    sourceLine: 69
   SYM-discovery-status-payload:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 105
+    sourceEndLine: 113
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    sourceLine: 70
+    sourceLine: 71
   SYM-distribution-parity-build-report:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7265,9 +6797,9 @@ coordinates:
   SYM-executeOperation:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 234
+    sourceEndLine: 239
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 215
+    sourceLine: 220
   SYM-executeSemanticAdvisor:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7346,12 +6878,6 @@ coordinates:
     sourceEndLine: 150
     sourceFile: packages/opencode/src/auto-update.ts
     sourceLine: 99
-  SYM-findSdkPackageJsonForPluginRoot:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 194
-    sourceFile: packages/opencode/src/init-kibi-capability.ts
-    sourceLine: 178
   SYM-firstGitAdditionCommit:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7436,12 +6962,6 @@ coordinates:
     sourceEndLine: 192
     sourceFile: packages/cli/src/traceability/evidence-model.ts
     sourceLine: 184
-  SYM-getInitKibiCommandCapability:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 313
-    sourceFile: packages/opencode/src/init-kibi-capability.ts
-    sourceLine: 304
   SYM-getKbCoveredSourcePaths:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7514,12 +7034,6 @@ coordinates:
     sourceEndLine: 44
     sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
     sourceLine: 38
-  SYM-handleKbAutopilotGenerate:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 92
-    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 69
   SYM-handleKbDelete:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -7589,9 +7103,9 @@ coordinates:
   SYM-hasAllGeneratedCoordinates:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 352
+    sourceEndLine: 357
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 342
+    sourceLine: 347
   SYM-hasOverrideRationale:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7637,9 +7151,9 @@ coordinates:
   SYM-injectPrompt:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 689
+    sourceEndLine: 652
     sourceFile: packages/opencode/src/prompt.ts
-    sourceLine: 676
+    sourceLine: 639
   SYM-inspectBranchStore:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7703,9 +7217,9 @@ coordinates:
   SYM-isEligibleForCoordinateRefresh:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 369
+    sourceEndLine: 374
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 354
+    sourceLine: 359
   SYM-isErrno:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7772,6 +7286,342 @@ coordinates:
     sourceEndLine: 5
     sourceFile: packages/core/src/status.pl
     sourceLine: 5
+  SYM-kibi-bootstrap-cli-spec:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 99
+    sourceFile: packages/cli/src/public/operations/specs/bootstrap.ts
+    sourceLine: 16
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-activation-classifyactivation:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 192
+    sourceFile: packages/cli/src/operations/bootstrap/activation.ts
+    sourceLine: 119
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-confidenceband:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 5
+    sourceFile: packages/cli/src/operations/bootstrap/candidate-helpers.ts
+    sourceLine: 3
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-slug:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 13
+    sourceFile: packages/cli/src/operations/bootstrap/candidate-helpers.ts
+    sourceLine: 7
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-strictplan:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 71
+    sourceFile: packages/cli/src/operations/bootstrap/candidate-helpers.ts
+    sourceLine: 34
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-upsert:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 32
+    sourceFile: packages/cli/src/operations/bootstrap/candidate-helpers.ts
+    sourceLine: 15
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidates-buildbootstrapcandidates:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 172
+    sourceFile: packages/cli/src/operations/bootstrap/candidates.ts
+    sourceLine: 129
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-discoverbootstrap:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 137
+    sourceFile: packages/cli/src/operations/bootstrap/discovery.ts
+    sourceLine: 88
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-evidence-evidencescan:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 44
+    sourceFile: packages/cli/src/operations/bootstrap/discovery-evidence.ts
+    sourceLine: 39
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-evidence-scanevidence:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 262
+    sourceFile: packages/cli/src/operations/bootstrap/discovery-evidence.ts
+    sourceLine: 202
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-generate-selectbootstrapcandidates:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 99
+    sourceFile: packages/cli/src/operations/bootstrap/generate.ts
+    sourceLine: 42
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-guidance-actions-buildactions:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 101
+    sourceFile: packages/cli/src/operations/bootstrap/guidance-actions.ts
+    sourceLine: 24
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-guidance-buildguidance:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 201
+    sourceFile: packages/cli/src/operations/bootstrap/guidance.ts
+    sourceLine: 164
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-markdown-candidates-candidatebuildresult:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 20
+    sourceFile: packages/cli/src/operations/bootstrap/markdown-candidates.ts
+    sourceLine: 17
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-markdown-candidates-markdowncandidates:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 199
+    sourceFile: packages/cli/src/operations/bootstrap/markdown-candidates.ts
+    sourceLine: 143
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-presentation-normalizebootstrapcontext:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 33
+    sourceFile: packages/cli/src/operations/bootstrap/presentation.ts
+    sourceLine: 22
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-requirement-claims-claimfor:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 62
+    sourceFile: packages/cli/src/operations/bootstrap/requirement-claims.ts
+    sourceLine: 3
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-activationmode:
+    sourceColumn: 12
+    sourceEndColumn: 23
+    sourceEndLine: 88
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 82
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-activationpolicy:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 116
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 109
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-activationstate:
+    sourceColumn: 12
+    sourceEndColumn: 25
+    sourceEndLine: 80
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 75
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrap-provider-order:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 97
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 90
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapaction:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 175
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 169
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapconfidence:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 58
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 53
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapcontext:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 36
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 30
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapdeclaredcontext:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 73
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 67
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapemptykbsnapshotid:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 28
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 13
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapevidence:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 126
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 118
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapplanhash:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 10
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 5
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapplanv1:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 203
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 177
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstraprecommendedaction:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 65
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 60
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapstructuredcontent:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 225
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 213
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-candidate:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 167
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 152
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-discoveryresult:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 150
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 144
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-discoverysummary:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 142
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 128
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-evidencekind:
+    sourceColumn: 12
+    sourceEndColumn: 21
+    sourceEndLine: 107
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 100
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-evidenceprovidername:
+    sourceColumn: 12
+    sourceEndColumn: 77
+    sourceEndLine: 99
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 99
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-planbootstrapargs:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 51
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 38
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-planbootstrapresult:
+    sourceColumn: 12
+    sourceEndColumn: 4
+    sourceEndLine: 230
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 227
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-sourceonlysignal:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 211
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 205
+  SYM-kibi-bootstrap-cli-src-operations-mutation-delete-executedelete:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 577
+    sourceFile: packages/cli/src/operations/mutation/delete.ts
+    sourceLine: 370
+  SYM-kibi-bootstrap-cli-src-operations-planning-apply-plan-orderbootstrapactions:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 324
+    sourceFile: packages/cli/src/operations/planning/apply-plan.ts
+    sourceLine: 283
+  SYM-kibi-bootstrap-cli-tests-operations-bootstrap-workspace-fixture-bootstrapworkspacefixture:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 112
+    sourceFile: packages/cli/tests/operations/bootstrap-workspace-fixture.ts
+    sourceLine: 109
+  SYM-kibi-bootstrap-mcp-adapter:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 40
+    sourceFile: packages/mcp/src/tools/plan-bootstrap.ts
+    sourceLine: 28
+  SYM-kibi-bootstrap-opencode-route:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 15
+    sourceFile: packages/opencode/src/kibi-bootstrap-alias.ts
+    sourceLine: 3
+  SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-detectkibibootstrapcommandcapability:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 302
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    sourceLine: 265
+  SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-findsdkpackagejsonforpluginroot:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 194
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    sourceLine: 178
+  SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-getkibibootstrapcommandcapability:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 313
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    sourceLine: 304
+  SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-description:
+    sourceColumn: 13
+    sourceEndColumn: 56
+    sourceEndLine: 10
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    sourceLine: 9
+  SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-name:
+    sourceColumn: 13
+    sourceEndColumn: 59
+    sourceEndLine: 7
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    sourceLine: 7
+  SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-template:
+    sourceColumn: 13
+    sourceEndColumn: 72
+    sourceEndLine: 8
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    sourceLine: 8
+  SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibibootstrapcommandcapability:
+    sourceColumn: 12
+    sourceEndColumn: 6
+    sourceEndLine: 34
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    sourceLine: 25
+  SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-opencodecommanddefinition:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 18
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    sourceLine: 12
+  SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-opencodeconfighookinput:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 23
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    sourceLine: 20
+  SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-registerkibibootstrapcommand:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 348
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    sourceLine: 316
+  SYM-kibi-bootstrap-plan-executor:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 250
+    sourceFile: packages/cli/src/operations/bootstrap/generate.ts
+    sourceLine: 188
+  SYM-kibi-bootstrap-plan-presentation:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 218
+    sourceFile: packages/cli/src/operations/bootstrap/presentation.ts
+    sourceLine: 50
   SYM-kibi-check-build-structured-content:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7937,27 +7787,27 @@ coordinates:
   SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanargs:
     sourceColumn: 12
     sourceEndColumn: 7
-    sourceEndLine: 57
+    sourceEndLine: 67
     sourceFile: packages/cli/src/operations/planning/apply-plan.ts
-    sourceLine: 41
+    sourceLine: 47
   SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanresult:
     sourceColumn: 12
     sourceEndColumn: 7
-    sourceEndLine: 139
+    sourceEndLine: 174
     sourceFile: packages/cli/src/operations/planning/apply-plan.ts
-    sourceLine: 69
+    sourceLine: 85
   SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1156
+    sourceEndLine: 1701
     sourceFile: packages/cli/src/operations/planning/apply-plan.ts
-    sourceLine: 887
+    sourceLine: 1320
   SYM-kibi-cli-src-operations-planning-apply-plan-ts-plan-apply-result-version:
     sourceColumn: 13
     sourceEndColumn: 77
-    sourceEndLine: 38
+    sourceEndLine: 44
     sourceFile: packages/cli/src/operations/planning/apply-plan.ts
-    sourceLine: 38
+    sourceLine: 44
   SYM-kibi-cli-src-operations-planning-compile-intent-ts-compile-plan-version:
     sourceColumn: 13
     sourceEndColumn: 67
@@ -8057,7 +7907,7 @@ coordinates:
   SYM-kibi-cli-src-public-operations-specs-planning-ts-applyplanspec:
     sourceColumn: 13
     sourceEndColumn: 66
-    sourceEndLine: 217
+    sourceEndLine: 237
     sourceFile: packages/cli/src/public/operations/specs/planning.ts
     sourceLine: 181
   SYM-kibi-cli-src-public-operations-specs-planning-ts-compileintentspec:
@@ -8729,9 +8579,9 @@ coordinates:
   SYM-mcp-model-requirement-isolated-workspace-test:
     sourceColumn: 5
     sourceEndColumn: 54
-    sourceEndLine: 598
+    sourceEndLine: 618
     sourceFile: packages/mcp/tests/server.test.ts
-    sourceLine: 598
+    sourceLine: 618
   SYM-mcp-parity-run-operation:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -9614,12 +9464,6 @@ coordinates:
     sourceEndLine: 308
     sourceFile: packages/opencode/tests/work-context-resolver.test.ts
     sourceLine: 1
-  SYM-operation-autopilot-generate-spec:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 98
-    sourceFile: packages/cli/src/public/operations/specs/autopilot.ts
-    sourceLine: 15
   SYM-operation-catalog:
     sourceColumn: 13
     sourceEndColumn: 45
@@ -9845,15 +9689,15 @@ coordinates:
   SYM-packed-create-sandbox:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 603
+    sourceEndLine: 608
     sourceFile: documentation/tests/e2e/packed/helpers.ts
     sourceLine: 462
   SYM-packed-e2e-runner:
     sourceColumn: 25
     sourceEndColumn: 43
-    sourceEndLine: 11
+    sourceEndLine: 18
     sourceFile: scripts/run-packed-e2e.mjs
-    sourceLine: 11
+    sourceLine: 18
   SYM-packed-install-manifest:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -9959,9 +9803,9 @@ coordinates:
   SYM-packed-stop-runtime-engines:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 656
+    sourceEndLine: 661
     sourceFile: documentation/tests/e2e/packed/helpers.ts
-    sourceLine: 617
+    sourceLine: 622
   SYM-packed-tarballs-type:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -10133,9 +9977,9 @@ coordinates:
   SYM-postureGuidance:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 248
+    sourceEndLine: 232
     sourceFile: packages/opencode/src/prompt.ts
-    sourceLine: 228
+    sourceLine: 212
   SYM-predicate-build-suggestion:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -10409,15 +10253,15 @@ coordinates:
   SYM-refreshManifestCoordinates:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 340
+    sourceEndLine: 345
     sourceFile: packages/cli/src/commands/sync/manifest.ts
     sourceLine: 207
   SYM-registerAllTools:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 362
+    sourceEndLine: 368
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 356
+    sourceLine: 362
   SYM-registerConfiguredTools:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -10430,12 +10274,6 @@ coordinates:
     sourceEndLine: 30
     sourceFile: packages/opencode/tests/index.coverage.shared.ts
     sourceLine: 7
-  SYM-registerInitKibiCommand:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 347
-    sourceFile: packages/opencode/src/init-kibi-capability.ts
-    sourceLine: 315
   SYM-registerTraceability:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -10751,9 +10589,9 @@ coordinates:
   SYM-reqcompiler-runtime-workspace-snapshot:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 154
+    sourceEndLine: 159
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 141
+    sourceLine: 146
   SYM-reqcompiler-semantic-source-field:
     sourceColumn: 12
     sourceEndColumn: 73
@@ -10904,12 +10742,6 @@ coordinates:
     sourceEndLine: 455
     sourceFile: packages/cli/src/extractors/markdown.ts
     sourceLine: 447
-  SYM-resetAutopilotGenerateDepsForTests:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 32
-    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 30
   SYM-resetBundledSkillsDir:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -10952,12 +10784,6 @@ coordinates:
     sourceEndLine: 18
     sourceFile: packages/vscode/src/activation/workspace.ts
     sourceLine: 16
-  SYM-resolveActivationPolicy:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 1071
-    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
-    sourceLine: 1064
   SYM-resolveCurrentBranch:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -11045,13 +10871,13 @@ coordinates:
   SYM-runtime-Clock:
     sourceColumn: 12
     sourceEndColumn: 31
-    sourceEndLine: 160
+    sourceEndLine: 165
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 160
+    sourceLine: 165
   SYM-runtime-FilesystemPort:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 132
+    sourceEndLine: 137
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     sourceLine: 123
   SYM-runtime-FilesystemStat:
@@ -11063,9 +10889,9 @@ coordinates:
   SYM-runtime-GitPort:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 139
+    sourceEndLine: 144
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 134
+    sourceLine: 139
   SYM-runtime-McpOperationRuntime:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -11081,27 +10907,27 @@ coordinates:
   SYM-runtime-NetworkPort:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 158
+    sourceEndLine: 163
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 156
+    sourceLine: 161
   SYM-runtime-OperationContext:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 188
+    sourceEndLine: 193
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 172
+    sourceLine: 177
   SYM-runtime-OperationOutcome:
     sourceColumn: 12
     sourceEndColumn: 58
-    sourceEndLine: 199
+    sourceEndLine: 204
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 197
+    sourceLine: 202
   SYM-runtime-OperationRuntime:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 212
+    sourceEndLine: 217
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 202
+    sourceLine: 207
   SYM-runtime-PrologPort:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -11117,15 +10943,15 @@ coordinates:
   SYM-runtime-RuntimeOperationSpec:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 195
+    sourceEndLine: 200
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 190
+    sourceLine: 195
   SYM-runtime-RuntimeOptions:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 170
+    sourceEndLine: 175
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
-    sourceLine: 162
+    sourceLine: 167
   SYM-scripts-coverageManifest-collectProductionSourceFiles:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -11402,12 +11228,6 @@ coordinates:
     sourceEndLine: 74
     sourceFile: packages/opencode/src/toast.ts
     sourceLine: 32
-  SYM-setAutopilotGenerateDepsForTests:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 28
-    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 24
   SYM-setBundledSkillsDir:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -11447,9 +11267,9 @@ coordinates:
   SYM-setupDocsAndPrompts:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 330
+    sourceEndLine: 302
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 302
+    sourceLine: 274
   SYM-sha256Text:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -13289,9 +13109,9 @@ coordinates:
   SYM-skillopt-fixture-catalog-tests:
     sourceColumn: 10
     sourceEndColumn: 34
-    sourceEndLine: 31
+    sourceEndLine: 32
     sourceFile: scripts/skillopt-eval/tests/catalog.test.ts
-    sourceLine: 31
+    sourceLine: 32
   SYM-skillopt-fixture-corpus-entry-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -13415,15 +13235,15 @@ coordinates:
   SYM-skillopt-fixture-private-integrity:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 723
+    sourceEndLine: 731
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    sourceLine: 699
+    sourceLine: 707
   SYM-skillopt-fixture-private-manifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 696
+    sourceEndLine: 704
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    sourceLine: 557
+    sourceLine: 559
   SYM-skillopt-fixture-private-tests:
     sourceColumn: 10
     sourceEndColumn: 41

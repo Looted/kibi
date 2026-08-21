@@ -104,9 +104,9 @@ describe("flag and fact canonical wording", () => {
     expect(violations).toHaveLength(0);
   });
 
-  test("README quick start must not mention nonexistent autopilot CLI command", () => {
+  test("README quick start must not mention nonexistent bootstrap CLI command", () => {
     const content = readDoc("README.md");
-    expect(content).not.toMatch(/npx\s+kibi\s+autopilot\s+generate/);
+    expect(content).not.toMatch(/npx\s+kibi\s+bootstrap\s+generate/);
   });
 
   test("docs must not describe 'workaround' as an entity type", () => {

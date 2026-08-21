@@ -39,19 +39,13 @@ describe("prompt", () => {
   test("buildPrompt preserves generic Kibi guidance and sentinel", () => {
     const prompt = buildPrompt();
     assert.ok(prompt.includes(SENTINEL));
-    assert.ok(prompt.includes("kb_search"));
-    assert.ok(prompt.includes("kb_query"));
-    assert.ok(prompt.includes("kb_upsert"));
-    assert.ok(prompt.includes("kb_check"));
-    assert.ok(prompt.includes("/init-kibi"));
-    assert.ok(prompt.includes("MCP tools are visible"));
-    assert.ok(prompt.includes("trusted project-local CLI"));
-    assert.ok(prompt.includes("--input"));
-    assert.ok(prompt.includes("neither interface is available"));
-    assert.ok(prompt.includes("Do not read or edit `.kb/` files directly"));
-    assert.ok(prompt.includes("Query before mutate"));
-    assert.ok(prompt.includes("sequentially"));
-    assert.ok(prompt.includes("`kb_check` before completion"));
+    assert.ok(prompt.includes("kibi-usage"));
+    assert.ok(prompt.includes("kibi-freshness"));
+    assert.ok(prompt.includes("kibi-traceability"));
+    assert.ok(prompt.includes("kibi-bootstrap"));
+    assert.ok(prompt.includes("/kibi-bootstrap"));
+    assert.ok(prompt.includes("host-visible approved Kibi peer surface"));
+    assert.ok(prompt.includes("Never read or edit `.kb/` directly"));
   });
 
   test("injectPrompt adds guidance once and respects disabled config", () => {

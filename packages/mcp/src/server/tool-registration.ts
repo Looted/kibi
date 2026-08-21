@@ -11,7 +11,7 @@ import {
 } from "kibi-runtime";
 import type { OperationContext, RuntimeOperationSpec } from "kibi-runtime";
 
-import type { AutopilotGenerateArgs } from "../tools/autopilot-generate.js";
+import type { PlanBootstrapArgs } from "../tools/plan-bootstrap.js";
 import type { CheckArgs } from "../tools/check.js";
 import type { CoverageArgs } from "../tools/coverage.js";
 import type { DeleteArgs } from "../tools/delete.js";
@@ -207,10 +207,10 @@ export function registerConfiguredTools<TProlog>(
       ),
   });
   register({
-    name: "kb_autopilot_generate",
+    name: "kb_plan_bootstrap",
     execute: async (context, args) =>
-      runtime.handleKbAutopilotGenerate(
-        args as unknown as AutopilotGenerateArgs,
+      runtime.handleKbPlanBootstrap(
+        args as unknown as PlanBootstrapArgs,
         context,
       ),
   });

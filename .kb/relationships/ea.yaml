@@ -48,3 +48,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c9c41c24fd9f
+  - type: executable_for
+    from: SYM-kibi-bootstrap-cli-tests-operations-bootstrap-workspace-fixture-bootstrapworkspacefixture
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-21T19:38:19.907Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-072db61840fb

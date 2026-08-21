@@ -41,3 +41,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6726ca2b17a8
+  - type: implements
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibibootstrapcommandcapability
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:47.005Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3ee3ff7c204
+  - type: covered_by
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibibootstrapcommandcapability
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:47.013Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-375087c83327

@@ -118,3 +118,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d17d73130e32
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-sourceonlysignal
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-21T19:38:15.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db2d3e72c629
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-sourceonlysignal
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-21T19:38:15.435Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-187f68aae450
