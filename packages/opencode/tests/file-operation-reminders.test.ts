@@ -158,11 +158,13 @@ describe("deriveFileOperationReminder", () => {
       expect(result.lifecycleReminder).toContain(
         "packages/opencode/src/existing.ts",
       );
-      expect(result.lifecycleReminder).toContain("kb_check");
+      expect(result.lifecycleReminder).toContain(
+        "Inspect typed Kibi status `nextActions`",
+      );
       expect(result.reminderKindsToMark).toContain("kibi_write");
     });
 
-    test("deleted file with no linked IDs in hard mode hard-blocks with sourceFile cleanup guidance", () => {
+    test("deleted file with no linked IDs in hard mode hard-blocks with source-linked traceability cleanup guidance", () => {
       const result = derivePolicyReminder({
         normalizedPath: "packages/opencode/src/no-links.ts",
         lifecycle: "deleted",
@@ -174,13 +176,13 @@ describe("deriveFileOperationReminder", () => {
       });
 
       expect(result.policyDecision).toBe("hard_block");
-      expect(result.lifecycleReminder).toContain("kb_search");
-      expect(result.lifecycleReminder).toContain("kb_query");
-      expect(result.lifecycleReminder).toContain("sourceFile");
+      expect(result.lifecycleReminder).toContain(
+        "Deleted paths without linked IDs still require a source-linked traceability review before cleanup.",
+      );
       expect(result.lifecycleReminder).toContain(
         "packages/opencode/src/no-links.ts",
       );
-      expect(result.lifecycleReminder).toContain("kb_upsert");
+      expect(result.lifecycleReminder).toContain("typed traceability workflow");
       expect(result.reminderKindsToMark).toContain("kibi_delete");
     });
 

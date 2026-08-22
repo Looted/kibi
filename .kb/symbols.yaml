@@ -26443,17 +26443,6 @@ symbols:
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: implements
         target: REQ-KIBI-BOOTSTRAP-PLAN
-  - id: SYM-kibi-bootstrap-source-plan-fold
-    title: executeDelete source plan folding
-    status: active
-    sourceFile: packages/cli/src/operations/mutation/delete.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-guidance-actions-buildactions
     title: buildActions
     status: active

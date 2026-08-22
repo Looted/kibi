@@ -76,3 +76,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b9bbeaa9669d
+  - type: specified_by
+    from: REQ-opencode-bootstrap-nudge
+    to: SCEN-opencode-bootstrap-nudge
+    created_at: 2026-08-22T07:49:45.863Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71d507ab846d
+  - type: verified_by
+    from: REQ-opencode-bootstrap-nudge
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T07:49:45.899Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0b3adf82f51
+  - type: constrains
+    from: REQ-opencode-bootstrap-nudge
+    to: FACT-SUBJ-PLUGIN-ONBOARDING
+    created_at: 2026-08-22T07:49:45.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-855369829a84
+  - type: requires_property
+    from: REQ-opencode-bootstrap-nudge
+    to: FACT-PROP-NUDGE-ROUTING
+    created_at: 2026-08-22T07:49:45.547Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a3f5f0e65f5

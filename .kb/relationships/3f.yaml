@@ -55,3 +55,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-184b7d4d9390
+  - type: specified_by
+    from: REQ-kibi-operation-interface-parity
+    to: SCEN-kibi-operation-interface-parity
+    created_at: 2026-08-22T07:40:03.781Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca12c9eeaf15
+  - type: verified_by
+    from: REQ-kibi-operation-interface-parity
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T07:40:03.824Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33b9174055af
+  - type: requires_property
+    from: REQ-kibi-operation-interface-parity
+    to: FACT-PROP-PARITY-ALIGNMENT
+    created_at: 2026-08-22T07:40:03.831Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de4541be31a8
+  - type: requires_property
+    from: REQ-kibi-operation-interface-parity
+    to: FACT-PROP-PARITY-CATALOG
+    created_at: 2026-08-22T07:40:03.838Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-354605dfe352
+  - type: requires_property
+    from: REQ-kibi-operation-interface-parity
+    to: FACT-PROP-PARITY-SELECTION
+    created_at: 2026-08-22T07:40:03.846Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90edaad43706
+  - type: constrains
+    from: REQ-kibi-operation-interface-parity
+    to: FACT-SUBJ-PUBLIC-OPERATION-SURFACE
+    created_at: 2026-08-22T07:46:14.196Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9df89b946421
+  - type: constrains
+    from: REQ-kibi-operation-interface-parity
+    to: FACT-SUBJ-HOST-SELECTION
+    created_at: 2026-08-22T07:46:14.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-777cf352f580

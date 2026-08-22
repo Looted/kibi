@@ -59,3 +59,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0d7043eee6de
+  - type: specified_by
+    from: REQ-opencode-kibi-plugin-v1
+    to: SCEN-opencode-kibi-plugin-v1-coverage
+    created_at: 2026-08-22T07:41:36.836Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54ac2474c67c
+  - type: requires_property
+    from: REQ-opencode-kibi-plugin-v1
+    to: FACT-PROP-OCV1-CAPABILITY
+    created_at: 2026-08-22T07:41:36.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30d44229d1ce
+  - type: requires_property
+    from: REQ-opencode-kibi-plugin-v1
+    to: FACT-PROP-OCV1-STRUCTURE
+    created_at: 2026-08-22T07:41:36.904Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89d37e9a2267
+  - type: requires_property
+    from: REQ-opencode-kibi-plugin-v1
+    to: FACT-PROP-OCV1-ALLOCATION
+    created_at: 2026-08-22T07:41:36.911Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06ca81f66724
+  - type: constrains
+    from: REQ-opencode-kibi-plugin-v1
+    to: FACT-SUBJ-PLUGIN-V1
+    created_at: 2026-08-22T07:46:25.204Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ac6293c0189
+  - type: constrains
+    from: REQ-opencode-kibi-plugin-v1
+    to: FACT-SUBJ-PLUGIN-V1-DOC
+    created_at: 2026-08-22T07:46:25.264Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1266afcf381d
+  - type: requires_property
+    from: REQ-opencode-kibi-plugin-v1
+    to: FACT-PROP-OCV1-BOOTSTRAP-ROUTING
+    created_at: 2026-08-22T07:49:50.989Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbc133f75d36
+  - type: constrains
+    from: REQ-015
+    to: FACT-SUBJ-MCP-QUERY
+    created_at: 2026-08-22T07:53:02.385Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a163c5c2bc15
+  - type: requires_property
+    from: REQ-015
+    to: FACT-PROP-REQ015-SOURCEFILE
+    created_at: 2026-08-22T07:53:02.428Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21e019a81a39
+  - type: requires_property
+    from: REQ-015
+    to: FACT-PROP-REQ015-SOURCEQUERY
+    created_at: 2026-08-22T07:54:38.365Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4f32b083929

@@ -23,10 +23,11 @@ semantic_inventory:
   - claim_key: CLAIM-7A9EABE008983B73
     claim_text: The plugin must assist with repository knowledge onboarding.\n\nIt must detect uninitialized or weakly seeded repositories that declare Kibi intent.\n\nIt must route the agent to the canonical kibi-bootstrap skill and the kb_plan_bootstrap plan/apply contract for initial inference and seed.\n\nIt must escalate to the user or operator if environmental setup or repair is required
     role: normative
-    status: ontology_gap
+    status: modeled
     span:
       start: 0
       end: 380
+    reason: Grounded by a strict property_value fact linked via requires_property.
 logic_claims:
   - CLAIM-7A9EABE008983B73
 type: req

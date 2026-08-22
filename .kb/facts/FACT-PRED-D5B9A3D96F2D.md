@@ -18,7 +18,7 @@ predicate_args:
 canonical_key: dependency_resolution_policy(kibi_cursor_launcher,kibi_mcp,consumer_local,no_download)
 polarity: assert
 claim_key: CLAIM-DE59C964E152A960
-claim_text: A published kibi-cursor plugin shall resolve and run only the kibi-mcp package installed in the consumer project, without downloading packages or consulting global or plugin-local runtimes.
+claim_text: A published kibi-cursor plugin shall resolve and run only the kibi-mcp package installed in the consumer project, without downloading packages or consulting global or plugin-local runtimes
 id: FACT-PRED-D5B9A3D96F2D
 type: fact
 ---

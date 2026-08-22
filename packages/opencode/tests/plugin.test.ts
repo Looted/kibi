@@ -299,11 +299,12 @@ describe("kibiOpencodePlugin core hooks", () => {
       expect(activeRendered).toContain("<!-- kibi-opencode -->");
       expect(activeRendered).toContain("Requirement changes detected");
       expect(uninitializedRendered).toContain("<!-- kibi-opencode -->");
+      expect(uninitializedRendered).toContain("**Bootstrap required**");
       expect(uninitializedRendered).toContain(
-        "does not appear to have Kibi initialized",
+        "Kibi infrastructure is not initialized",
       );
-      expect(uninitializedRendered).toContain("--input <file|->");
-      expect(uninitializedRendered).toContain("Kibi capability selection");
+      expect(uninitializedRendered).toContain("kb_status.bootstrap.nextAction");
+      expect(uninitializedRendered).toContain("`kibi-bootstrap` skill");
     } finally {
       fs.rmSync(activeDir, { recursive: true, force: true });
       fs.rmSync(uninitializedDir, { recursive: true, force: true });

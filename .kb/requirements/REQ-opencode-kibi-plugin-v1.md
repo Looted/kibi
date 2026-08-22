@@ -35,17 +35,19 @@ semantic_inventory:
   - claim_key: CLAIM-467E97BDD611495A
     claim_text: The OpenCode Kibi Plugin v1 provides Kibi context and synchronization within the OpenCode environment
     role: descriptive
-    status: missing
+    status: modeled
     span:
       start: 0
       end: 101
+    reason: Grounded by a strict property_value fact linked via requires_property.
   - claim_key: CLAIM-50956285FDEECBA9
     claim_text: For repository bootstrap, agent-facing guidance must route to the canonical kibi-bootstrap skill and kb_plan_bootstrap plan/apply contract
     role: normative
-    status: ontology_gap
+    status: modeled
     span:
       start: 104
       end: 242
+    reason: Grounded by a strict property_value fact linked via requires_property.
   - claim_key: CLAIM-C43533023974FEBC
     claim_text: When risky work needs start-task context, the plugin may guide agents toward /brief-kibi and the public MCP briefing surface via kb_briefing_generate
     role: condition
@@ -56,17 +58,19 @@ semantic_inventory:
   - claim_key: CLAIM-D34542A620470C7D
     claim_text: This requirement is an umbrella doc for granular behaviors
     role: descriptive
-    status: missing
+    status: modeled
     span:
       start: 397
       end: 455
+    reason: Grounded by a strict property_value fact linked via requires_property.
   - claim_key: CLAIM-0B0C01D653DC9E26
     claim_text: detailed specifications remain in their respective requirement documents
     role: descriptive
-    status: missing
+    status: modeled
     span:
       start: 457
       end: 529
+    reason: Grounded by a strict property_value fact linked via requires_property.
 logic_claims:
   - CLAIM-467E97BDD611495A
   - CLAIM-50956285FDEECBA9

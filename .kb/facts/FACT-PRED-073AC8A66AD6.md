@@ -17,7 +17,7 @@ predicate_args:
 canonical_key: resolution_failure_policy(kibi_cursor_launcher,unresolved_placeholder_or_ambiguous_usable_roots,clear_error)
 polarity: assert
 claim_key: CLAIM-220282AF6C04F1A1
-claim_text: The launcher shall reject unresolved placeholders and ambiguous sets of multiple usable workspace roots with a clear error.
+claim_text: The launcher shall reject unresolved placeholders and ambiguous sets of multiple usable workspace roots with a clear error
 id: FACT-PRED-073AC8A66AD6
 type: fact
 ---
