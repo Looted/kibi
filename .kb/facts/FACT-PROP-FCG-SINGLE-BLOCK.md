@@ -10,8 +10,8 @@ subject_key: opencode.kibi_plugin.guidance_rendering
 property_key: rendering_policy
 operator: eq
 value_string: folded_single_block_per_plugin_v1
-claim_key: CLAIM-743E93E78B372864
-claim_text: 'E2E guidance must be folded into the standard single-block prompt behavior defined in REQ-opencode-kibi-plugin-v1.\n**Non-Blocking**: Guidance is advisory and must never block the agent''s workflow.\n\n**Bootstrap**: Repositories without Kibi initialized should use `kibi-bootstrap` to run `kb_plan_bootstrap` for initial setup.\n**Briefing**: Agents should use `kb_briefing_generate` to discover contextual briefings for the current edit fingerprint'
+claim_key: CLAIM-C738CEA7FF0DF90A
+claim_text: '**Single-Block Policy**: All lifecycle and E2E guidance must be folded into the standard single-block prompt behavior defined in REQ-opencode-kibi-plugin-v1'
 value_type: string
 id: FACT-PROP-FCG-SINGLE-BLOCK
 type: fact

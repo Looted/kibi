@@ -308,6 +308,30 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 14523
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-f7f8e03aa7c68b3105b403f7
+    test_id: TEST-kibi-dependency-ordered-repair-plan
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-dependency-ordered-repair-plan
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-dependency-ordered-repair-plan
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 94f9e8c4ffc1d15bb89aa0bc45fe0fc920d6343d426e8182198e696832604f20
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-22T12:43:11.810Z'
+    finished_at: '2026-08-22T12:43:24.340Z'
+    artifact_digest: 576a9c52ae5ccbfe5e2a1040ece7ea4c4c6f5ce99821f5d52eecdd5acbbdc29a
+    contract_hash: d43e430d659807bd75415740e9e35956c73ebac70f8b23b8c18f9ce1a42ba4c3
+    case_results:
+      - symbol_id: SYM-test-packed-dependency-ordered-repair-plan
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 12530
 tags:
   - requirements
   - proof

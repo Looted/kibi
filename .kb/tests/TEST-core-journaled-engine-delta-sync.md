@@ -271,6 +271,30 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 87671
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-2ed6d3ef2a623148f67e4094
+    test_id: TEST-core-journaled-engine-delta-sync
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-delta-sync
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-delta-sync
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 94f9e8c4ffc1d15bb89aa0bc45fe0fc920d6343d426e8182198e696832604f20
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-22T12:59:00.501Z'
+    finished_at: '2026-08-22T13:00:18.740Z'
+    artifact_digest: 19069ae3e550c071ca2828e900505387a338d1f1655e256ca617a19aab1d0849
+    contract_hash: 0d3da02eed7c281471856b8f86a5ba1039505ca8fd69b6ff393e72e6303bcc55
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-delta-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 78239
 ---
 
 Contract fixtures cover no-op, one-symbol, relationship-only, deletion,

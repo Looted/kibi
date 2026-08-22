@@ -10,8 +10,8 @@ subject_key: opencode.kibi_plugin
 property_key: file_access_policy
 operator: eq
 value_string: monitor_only_no_interception_or_content_modification
-claim_key: CLAIM-272EF813462372B6
-claim_text: 'the plugin must not attempt first-read interception or modify file content returned by tools.\n**Single-Block Policy**: All lifecycle'
+claim_key: CLAIM-1DD6E7F6784123C1
+claim_text: the plugin must not attempt first-read interception or modify file content returned by tools
 value_type: string
 id: FACT-PROP-FCG-FILE-ACCESS
 type: fact

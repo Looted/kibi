@@ -1,9 +1,9 @@
 ---
 id: TEST-remove-briefs-v1
-title: "Briefing removal verification plan"
-status: pending
-created_at: 2026-05-28T00:00:00Z
-updated_at: 2026-05-28T00:00:00Z
+title: Briefing removal verification plan
+status: passing
+created_at: 2026-05-28T00:00:00.000Z
+updated_at: 2026-05-28T00:00:00.000Z
 source: documentation/tests/TEST-remove-briefs-v1.md
 priority: must
 tags:
@@ -15,6 +15,7 @@ tags:
 links:
   - type: validates
     target: SCEN-remove-briefs-v1
+type: test
 ---
 
 Verification plan for the briefing removal requirement:
