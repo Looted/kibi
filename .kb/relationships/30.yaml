@@ -27,3 +27,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e201f613719e
+  - type: implements
+    from: SYM-ToolsRuntime
+    to: REQ-002
+    created_at: 2026-08-22T20:11:13.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8a08965254f
+  - type: implements
+    from: SYM-ToolsRuntime
+    to: REQ-mcp-tool-upsert
+    created_at: 2026-08-22T20:11:13.042Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8cb6355b823
+  - type: implements
+    from: SYM-ToolsRuntime
+    to: REQ-mcp-relationship-preflight
+    created_at: 2026-08-22T20:11:13.048Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6f5d0b36db3
+  - type: covered_by
+    from: SYM-ToolsRuntime
+    to: TEST-005
+    created_at: 2026-08-22T20:11:13.055Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98b5d656da46
+  - type: covered_by
+    from: SYM-ToolsRuntime
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-08-22T20:11:13.060Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-35cef69d1f2b
+  - type: covered_by
+    from: SYM-ToolsRuntime
+    to: TEST-mcp-relationship-preflight
+    created_at: 2026-08-22T20:11:13.069Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b93970c5818b
+  - type: covered_by
+    from: SYM-ToolsRuntime
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:11:13.074Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8adaded93a29
+  - type: implements
+    from: SYM-migrateCommand
+    to: REQ-011
+    created_at: 2026-08-22T20:13:11.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-296d3bc7f3ca
+  - type: covered_by
+    from: SYM-migrateCommand
+    to: TEST-cli-config-schema
+    created_at: 2026-08-22T20:13:11.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-91cc5ef6e641
+  - type: covered_by
+    from: SYM-migrateCommand
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:13:11.045Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53e67c9452c6

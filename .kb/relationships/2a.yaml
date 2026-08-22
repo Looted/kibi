@@ -20,3 +20,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fff0e5450c07
+  - type: implements
+    from: SYM-setToolsServerDepsForTests
+    to: REQ-002
+    created_at: 2026-08-22T20:09:41.594Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba0319a8e3b9
+  - type: covered_by
+    from: SYM-setToolsServerDepsForTests
+    to: TEST-005
+    created_at: 2026-08-22T20:09:41.606Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad9d94600bab
+  - type: covered_by
+    from: SYM-setToolsServerDepsForTests
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:09:41.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dff3e6100060
+  - type: implements
+    from: SYM-resetClient
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:54:07.323Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c02540afbdc0
+  - type: covered_by
+    from: SYM-resetClient
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:54:07.342Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f9e7e674b5c
+  - type: covered_by
+    from: SYM-resetClient
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:54:07.348Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bef7d88b2ae6

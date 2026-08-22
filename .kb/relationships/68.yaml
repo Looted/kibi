@@ -34,3 +34,108 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3661764eb608
+  - type: implements
+    from: SYM-mcp-session-prologProcess
+    to: REQ-002
+    created_at: 2026-08-22T20:07:59.298Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f28accc9302
+  - type: covered_by
+    from: SYM-mcp-session-prologProcess
+    to: TEST-005
+    created_at: 2026-08-22T20:07:59.313Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ffbedc48f7bb
+  - type: covered_by
+    from: SYM-mcp-session-prologProcess
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:07:59.319Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90f7b0d268d3
+  - type: implements
+    from: SYM-DEFAULT-SYNC-PATHS
+    to: REQ-011
+    created_at: 2026-08-22T20:12:29.236Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27bb723bad3a
+  - type: covered_by
+    from: SYM-DEFAULT-SYNC-PATHS
+    to: TEST-cli-config-schema
+    created_at: 2026-08-22T20:12:29.248Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c615dace39e
+  - type: covered_by
+    from: SYM-DEFAULT-SYNC-PATHS
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:12:29.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ac77844477c
+  - type: implements
+    from: SYM-normalizeSubjectKey
+    to: REQ-011
+    created_at: 2026-08-22T20:13:38.084Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c92307ff145a
+  - type: covered_by
+    from: SYM-normalizeSubjectKey
+    to: TEST-cli-strict-modeling
+    created_at: 2026-08-22T20:13:38.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4fd0d9ea3d2a
+  - type: covered_by
+    from: SYM-normalizeSubjectKey
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:13:38.109Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f48b946b78c
+  - type: implements
+    from: SYM-mutation-entity-properties-schema
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:28:35.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be8ac278e120
+  - type: implements
+    from: SYM-mutation-entity-properties-schema
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:28:35.637Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76436a4c10ea
+  - type: implements
+    from: SYM-mutation-entity-properties-schema
+    to: REQ-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:28:35.642Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b747138807b
+  - type: covered_by
+    from: SYM-mutation-entity-properties-schema
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:28:35.647Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6038da1050ea
+  - type: covered_by
+    from: SYM-mutation-entity-properties-schema
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:28:35.656Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0354d949b2c5
+  - type: covered_by
+    from: SYM-mutation-entity-properties-schema
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:28:35.666Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5876e150be5d

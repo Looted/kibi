@@ -38,3 +38,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-598b5340cfa4
+  - type: implements
+    from: SYM-PromptContext
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:57:51.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f1aad653478
+  - type: covered_by
+    from: SYM-PromptContext
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:57:51.836Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53a49dbf4341
+  - type: covered_by
+    from: SYM-PromptContext
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:57:51.841Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9d2c8567180

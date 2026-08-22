@@ -332,7 +332,10 @@ describe("prompt coverage", () => {
       supportedCapability,
     );
 
-    assert.match(prompt, /Existing Kibi links: REQ-opencode-kibi-plugin-v1/);
+    assert.match(
+      prompt,
+      /Existing Kibi links: .*REQ-opencode-kibi-plugin-v1/,
+    );
     assert.match(prompt, /Keep e2e reminder visible/);
     assert.ok(
       !prompt.includes("Duplicate lifecycle reminder should be suppressed"),

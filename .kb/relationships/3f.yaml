@@ -104,3 +104,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-777cf352f580
+  - type: implements
+    from: SYM-modeling-requirement-utils-normalizeOptionalString
+    to: REQ-002
+    created_at: 2026-08-22T20:08:31.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fefc30966136
+  - type: covered_by
+    from: SYM-modeling-requirement-utils-normalizeOptionalString
+    to: TEST-005
+    created_at: 2026-08-22T20:08:31.636Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a3beaa9a713
+  - type: covered_by
+    from: SYM-modeling-requirement-utils-normalizeOptionalString
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:08:31.643Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9d89233dc5f
+  - type: implements
+    from: SYM-executeSemanticAdvisor
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:20:22.802Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65957a49be8f
+  - type: implements
+    from: SYM-executeSemanticAdvisor
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:20:22.828Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62c0011df041
+  - type: covered_by
+    from: SYM-executeSemanticAdvisor
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:20:22.847Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd427ca31f7c
+  - type: covered_by
+    from: SYM-executeSemanticAdvisor
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:20:22.861Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48c60e7b4387
+  - type: covered_by
+    from: SYM-executeSemanticAdvisor
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:20:22.873Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59626bd6f3e2
+  - type: covered_by
+    from: SYM-executeSemanticAdvisor
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:27:21.768Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e107b1be851

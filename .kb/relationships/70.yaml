@@ -55,3 +55,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5c9b79f58b0d
+  - type: implements
+    from: SYM-SkillsReadResult
+    to: REQ-002
+    created_at: 2026-08-22T20:10:18.126Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22a4abd43af9
+  - type: covered_by
+    from: SYM-SkillsReadResult
+    to: TEST-005
+    created_at: 2026-08-22T20:10:18.140Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74ff126e3887
+  - type: covered_by
+    from: SYM-SkillsReadResult
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:10:18.144Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad1b971b517b
+  - type: implements
+    from: SYM-core-contradicting-reqs
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:19:58.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-661aa814edd3
+  - type: covered_by
+    from: SYM-core-contradicting-reqs
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:19:58.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d5bc7b3d4aa
+  - type: covered_by
+    from: SYM-core-contradicting-reqs
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:19:58.263Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-955b5df8c819

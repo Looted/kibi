@@ -20,3 +20,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6360ae40716b
+  - type: implements
+    from: SYM-cli-register-maintenance-commands
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:26:05.292Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf794c2b405d
+  - type: implements
+    from: SYM-cli-register-maintenance-commands
+    to: REQ-kibi-telemetry-acceptance-gate
+    created_at: 2026-08-22T20:26:05.304Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd463c0450c1
+  - type: implements
+    from: SYM-cli-register-maintenance-commands
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-08-22T20:26:05.309Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5c8f4037ebd
+  - type: covered_by
+    from: SYM-cli-register-maintenance-commands
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:26:05.312Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3575a06f73fa
+  - type: covered_by
+    from: SYM-cli-register-maintenance-commands
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:26:05.317Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-784c2d3afc62
+  - type: implements
+    from: SYM-discovery-execute-query
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:33:11.162Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a950b58aec2
+  - type: covered_by
+    from: SYM-discovery-execute-query
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:33:11.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07e8a9bca22b
+  - type: covered_by
+    from: SYM-discovery-execute-query
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:33:11.194Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a4bf6d803ce

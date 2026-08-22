@@ -27,3 +27,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-efa5861aefed
+  - type: implements
+    from: SYM-ToastPayload
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:56:56.087Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2076d632358a
+  - type: covered_by
+    from: SYM-ToastPayload
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:56:56.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a71976d6299c
+  - type: covered_by
+    from: SYM-ToastPayload
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:56:56.104Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2946f72de95

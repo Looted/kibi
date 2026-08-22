@@ -59,3 +59,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-88428790947f
+  - type: implements
+    from: SYM-cli-search-command
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:26:36.571Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76a33e7e38c2
+  - type: implements
+    from: SYM-cli-search-command
+    to: REQ-mcp-search-discovery
+    created_at: 2026-08-22T20:26:36.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb0c6a4f16ad
+  - type: implements
+    from: SYM-cli-search-command
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-08-22T20:26:36.587Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca61292d5a65
+  - type: covered_by
+    from: SYM-cli-search-command
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:26:36.591Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15bb9cd89834
+  - type: covered_by
+    from: SYM-cli-search-command
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:26:36.596Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88119aa892b3
+  - type: covered_by
+    from: SYM-auto-EE0B2692CF85
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:41:11.674Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eac5498e53a2

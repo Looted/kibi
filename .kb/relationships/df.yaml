@@ -34,3 +34,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5e4f0f9ec4e4
+  - type: implements
+    from: SYM-modeling-requirement-utils-trimSentenceTail
+    to: REQ-002
+    created_at: 2026-08-22T20:08:46.149Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12dc81c69f76
+  - type: covered_by
+    from: SYM-modeling-requirement-utils-trimSentenceTail
+    to: TEST-005
+    created_at: 2026-08-22T20:08:46.160Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f8cb8f90f3e
+  - type: covered_by
+    from: SYM-modeling-requirement-utils-trimSentenceTail
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:08:46.163Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4c69dd9ded5
+  - type: implements
+    from: SYM-buildStableRequirementIds
+    to: REQ-011
+    created_at: 2026-08-22T20:12:11.168Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3347d18a0b19
+  - type: covered_by
+    from: SYM-buildStableRequirementIds
+    to: TEST-cli-strict-modeling
+    created_at: 2026-08-22T20:12:11.180Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe2f889a498d
+  - type: covered_by
+    from: SYM-buildStableRequirementIds
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:12:11.185Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54149bf5f1bb
+  - type: covered_by
+    from: SYM-auto-974943F1E67A
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:42:16.641Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-165df6c739e2

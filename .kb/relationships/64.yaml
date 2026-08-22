@@ -20,3 +20,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d9c83b0dc64b
+  - type: implements
+    from: SYM-DiagnosticToolCall
+    to: REQ-002
+    created_at: 2026-08-22T20:05:55.731Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b411204f27a
+  - type: covered_by
+    from: SYM-DiagnosticToolCall
+    to: TEST-005
+    created_at: 2026-08-22T20:05:55.742Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0125e2fe255b
+  - type: covered_by
+    from: SYM-DiagnosticToolCall
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:05:55.746Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31d1bf6e563f
+  - type: implements
+    from: SYM-operation-graph-spec
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T21:00:45.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2c69f325211
+  - type: covered_by
+    from: SYM-operation-graph-spec
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T21:00:45.085Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d4ab2c5d992
+  - type: covered_by
+    from: SYM-operation-graph-spec
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T21:00:45.089Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2dd7fa0005b0

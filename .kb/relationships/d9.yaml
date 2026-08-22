@@ -34,3 +34,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-282ee9168df0
+  - type: implements
+    from: SYM-DIAGNOSTIC_TELEMETRY_SCHEMA
+    to: REQ-002
+    created_at: 2026-08-22T20:05:43.008Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-496d829b2a06
+  - type: covered_by
+    from: SYM-DIAGNOSTIC_TELEMETRY_SCHEMA
+    to: TEST-005
+    created_at: 2026-08-22T20:05:43.021Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-365ba99d5168
+  - type: covered_by
+    from: SYM-DIAGNOSTIC_TELEMETRY_SCHEMA
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:05:43.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f221390c0007
+  - type: implements
+    from: SYM-AutoUpdateResult
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:45:12.590Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-738a8b7bee5b
+  - type: covered_by
+    from: SYM-AutoUpdateResult
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:45:12.606Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58e5b767f848
+  - type: covered_by
+    from: SYM-AutoUpdateResult
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:45:12.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33b9b1fc6d3a

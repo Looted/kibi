@@ -2,13 +2,18 @@
 id: SCEN-skillopt-logical-evidence-fidelity
 title: Skillopt distinguishes model behavior from faithful evaluation evidence
 status: active
-created_at: 2026-08-04T00:00:00Z
-updated_at: 2026-08-04T00:00:00Z
+created_at: 2026-08-04T00:00:00.000Z
+updated_at: 2026-08-04T00:00:00.000Z
 source: documentation/scenarios/SCEN-skillopt-logical-evidence-fidelity.md
-tags: [skillopt, evaluation, predicates, evidence]
+tags:
+  - skillopt
+  - evaluation
+  - predicates
+  - evidence
 links:
   - type: verified_by
     target: TEST-skillopt-logical-evidence-fidelity
+type: scenario
 ---
 
 Given a correct strict property model whose subject key is dotted, when the independent final-state decoder derives the expected property target, then it uses the stored property key unchanged.

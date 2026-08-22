@@ -3,8 +3,8 @@ id: SCEN-opencode-kibi-plugin-v1-coverage
 title: OpenCode Kibi plugin exposes sanctioned context and synchronization guidance
 type: scenario
 status: active
-created_at: 2026-07-21T00:00:00Z
-updated_at: 2026-07-21T00:00:00Z
+created_at: 2026-07-21T00:00:00.000Z
+updated_at: 2026-07-21T00:00:00.000Z
 source: documentation/scenarios/SCEN-opencode-kibi-plugin-v1-coverage.md
 priority: must
 links:

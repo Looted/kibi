@@ -34,3 +34,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1f5a620da0ff
+  - type: implements
+    from: SYM-modeling-requirement-utils-normalizeSourceFiles
+    to: REQ-002
+    created_at: 2026-08-22T20:08:36.556Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8208fb8bbc03
+  - type: covered_by
+    from: SYM-modeling-requirement-utils-normalizeSourceFiles
+    to: TEST-005
+    created_at: 2026-08-22T20:08:36.569Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3ccd701f385
+  - type: covered_by
+    from: SYM-modeling-requirement-utils-normalizeSourceFiles
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:08:36.574Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20ad7589191a
+  - type: implements
+    from: SYM-resetSessionModulePromise
+    to: REQ-002
+    created_at: 2026-08-22T20:09:26.389Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17de40ae1d04
+  - type: covered_by
+    from: SYM-resetSessionModulePromise
+    to: TEST-005
+    created_at: 2026-08-22T20:09:26.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93fd9a70e4c1
+  - type: covered_by
+    from: SYM-resetSessionModulePromise
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:09:26.414Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-037af112d57c
+  - type: implements
+    from: SYM-cli-mutation-strict-fact-validateFactModelingShape
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:22:55.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69da147d2af2
+  - type: covered_by
+    from: SYM-cli-mutation-strict-fact-validateFactModelingShape
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:22:55.255Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c7f06f81f0b
+  - type: covered_by
+    from: SYM-cli-mutation-strict-fact-validateFactModelingShape
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:22:55.260Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94aed4ebaa0e
+  - type: implements
+    from: SYM-MeaningfulChangeClass
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:52:32.623Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d38c1192e54d
+  - type: covered_by
+    from: SYM-MeaningfulChangeClass
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:52:32.639Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e902abd6714
+  - type: covered_by
+    from: SYM-MeaningfulChangeClass
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:52:32.649Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6336fe64e3ad

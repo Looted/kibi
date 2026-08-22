@@ -27,3 +27,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7696630d41fb
+  - type: implements
+    from: SYM-cli-operation-error
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:25:29.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dacfba6e5960
+  - type: covered_by
+    from: SYM-cli-operation-error
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:25:29.103Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5372acea4941
+  - type: covered_by
+    from: SYM-cli-operation-error
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:25:29.107Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2826be4c7d7e

@@ -73,3 +73,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-77302205d00c
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapdeclaredcontext
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:18:53.417Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ffec8dfb283
+  - type: covered_by
+    from: SYM-kibi-bootstrap-plan-presentation
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:18:56.938Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57b49518d75e

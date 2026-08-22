@@ -41,3 +41,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-085e204cd88b
+  - type: implements
+    from: SYM-cli-register-foundation-commands
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:25:49.762Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f8e117b1949
+  - type: implements
+    from: SYM-cli-register-foundation-commands
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-08-22T20:25:49.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbf98c7dccd1
+  - type: covered_by
+    from: SYM-cli-register-foundation-commands
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:25:49.784Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db48eeb523a3
+  - type: covered_by
+    from: SYM-cli-register-foundation-commands
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:25:49.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e2e7ebb0219
+  - type: implements
+    from: SYM-operation-check-spec
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:29:19.404Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7810e336bc87
+  - type: covered_by
+    from: SYM-operation-check-spec
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:29:19.417Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16a510f69ae1
+  - type: covered_by
+    from: SYM-operation-check-spec
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:29:19.421Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cedf718cb5f2
+  - type: covered_by
+    from: SYM-auto-7AE5927FBDB9
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:40:07.475Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c1b5ce5fd8c

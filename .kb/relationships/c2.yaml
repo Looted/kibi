@@ -24,3 +24,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-af00e504ff34
+  - type: implements
+    from: SYM-cli-logic-ir-logicRuleHash
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:21:46.384Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19cd4f8c3a61
+  - type: covered_by
+    from: SYM-cli-logic-ir-logicRuleHash
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:21:46.396Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53644f38af9e
+  - type: covered_by
+    from: SYM-cli-logic-ir-logicRuleHash
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:21:46.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e32726b07e59
+  - type: implements
+    from: SYM-formatRelationshipSourceMismatch
+    to: REQ-mcp-relationship-preflight
+    created_at: 2026-08-22T20:28:08.044Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86cdc2a66a1e
+  - type: implements
+    from: SYM-formatRelationshipSourceMismatch
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:28:08.058Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba9d5d97d240
+  - type: covered_by
+    from: SYM-formatRelationshipSourceMismatch
+    to: TEST-mcp-relationship-preflight
+    created_at: 2026-08-22T20:28:08.066Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c18e02b4869
+  - type: covered_by
+    from: SYM-formatRelationshipSourceMismatch
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:28:08.070Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77fb4babf625
+  - type: covered_by
+    from: SYM-formatRelationshipSourceMismatch
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:28:08.075Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8541aa94037e
+  - type: implements
+    from: SYM-KibiCheckpointRequestResult
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:51:08.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fbf23547bf8
+  - type: covered_by
+    from: SYM-KibiCheckpointRequestResult
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:51:08.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2e139659d94
+  - type: covered_by
+    from: SYM-KibiCheckpointRequestResult
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:51:08.528Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ca26075d508
+  - type: implements
+    from: SYM-skillopt-write-safe-mutation-evidence
+    to: REQ-skillopt-logical-evidence-fidelity
+    created_at: 2026-08-22T20:58:22.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b24f56b90ccf
+  - type: covered_by
+    from: SYM-skillopt-write-safe-mutation-evidence
+    to: TEST-skillopt-logical-evidence-fidelity
+    created_at: 2026-08-22T20:58:22.752Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4bf4d44d29c
+  - type: covered_by
+    from: SYM-skillopt-write-safe-mutation-evidence
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:58:22.758Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fe98bc2a629

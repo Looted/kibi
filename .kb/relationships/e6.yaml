@@ -41,3 +41,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ccd793e8d4d8
+  - type: implements
+    from: SYM-modeling-requirement-heuristics-buildFallbackClaim
+    to: REQ-002
+    created_at: 2026-08-22T20:08:07.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a950638637fc
+  - type: covered_by
+    from: SYM-modeling-requirement-heuristics-buildFallbackClaim
+    to: TEST-005
+    created_at: 2026-08-22T20:08:07.165Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77224e5d6db6
+  - type: covered_by
+    from: SYM-modeling-requirement-heuristics-buildFallbackClaim
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:08:07.170Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c25f99640d30
+  - type: implements
+    from: SYM-AutoUpdateRunnerDeps
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:45:20.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94b4396957bb
+  - type: covered_by
+    from: SYM-AutoUpdateRunnerDeps
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:45:20.579Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14e41e67e11a
+  - type: covered_by
+    from: SYM-AutoUpdateRunnerDeps
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:45:20.586Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc1c4a27a4c8

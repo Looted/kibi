@@ -27,3 +27,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fce1172d2449
+  - type: implements
+    from: SYM-mcp-session-isShuttingDown
+    to: REQ-002
+    created_at: 2026-08-22T20:07:54.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a808d05a250f
+  - type: covered_by
+    from: SYM-mcp-session-isShuttingDown
+    to: TEST-005
+    created_at: 2026-08-22T20:07:54.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d0d6eaaff78
+  - type: covered_by
+    from: SYM-mcp-session-isShuttingDown
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:07:54.458Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2ce40412bbb
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-planning-apply-plan-orderbootstrapactions
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:18:04.979Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83ae83aa83ef

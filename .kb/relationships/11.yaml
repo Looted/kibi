@@ -69,3 +69,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-82cf0ebd1a12
+  - type: implements
+    from: SYM-mcp-handle-sparql
+    to: REQ-prolog-library-adoption
+    created_at: 2026-08-22T20:07:43.713Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ee9ab886017
+  - type: implements
+    from: SYM-mcp-handle-sparql
+    to: REQ-002
+    created_at: 2026-08-22T20:07:43.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17b09980d8e6
+  - type: covered_by
+    from: SYM-mcp-handle-sparql
+    to: TEST-prolog-library-adoption-mcp
+    created_at: 2026-08-22T20:07:43.731Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53ce7a87586a
+  - type: covered_by
+    from: SYM-mcp-handle-sparql
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:07:43.736Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4055aaabb1f4
+  - type: implements
+    from: SYM-cli-build-program
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:25:02.128Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c347b2fa8b42
+  - type: implements
+    from: SYM-cli-build-program
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-08-22T20:25:02.142Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9dfa027c972
+  - type: covered_by
+    from: SYM-cli-build-program
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:25:02.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8bd02fa64996
+  - type: covered_by
+    from: SYM-cli-build-program
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:25:02.162Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e253346699b0
+  - type: implements
+    from: SYM-KbFreshnessScope
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:50:40.467Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f82baad2fb57
+  - type: covered_by
+    from: SYM-KbFreshnessScope
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:50:40.482Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c09039fc5b4
+  - type: covered_by
+    from: SYM-KbFreshnessScope
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:50:40.489Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84b36edd2a61

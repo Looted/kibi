@@ -27,3 +27,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-925f078b3fec
+  - type: implements
+    from: SYM-scripts-finalizeLcov
+    to: REQ-014
+    created_at: 2026-08-22T20:14:25.119Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a2dcad96287
+  - type: covered_by
+    from: SYM-scripts-finalizeLcov
+    to: TEST-scripts-finalize-lcov
+    created_at: 2026-08-22T20:14:25.132Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2728a53395f
+  - type: covered_by
+    from: SYM-scripts-finalizeLcov
+    to: TEST-006
+    created_at: 2026-08-22T20:14:25.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae5861cb5167
+  - type: implements
+    from: SYM-operation-execute-check
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:29:32.547Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7f025a8336d
+  - type: implements
+    from: SYM-operation-execute-check
+    to: REQ-kibi-telemetry-acceptance-gate
+    created_at: 2026-08-22T20:29:32.561Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53a7339ceffd
+  - type: covered_by
+    from: SYM-operation-execute-check
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:29:32.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-506a2e6139d8
+  - type: covered_by
+    from: SYM-operation-execute-check
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:29:32.572Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-08f36706fa62
+  - type: implements
+    from: SYM-operation-find-gaps-spec
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T21:00:37.165Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68c8645d4be1
+  - type: covered_by
+    from: SYM-operation-find-gaps-spec
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T21:00:37.179Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c93726385d32
+  - type: covered_by
+    from: SYM-operation-find-gaps-spec
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T21:00:37.186Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31339371c4f3

@@ -3,10 +3,11 @@ id: SCEN-001
 title: Critical Feature Scenario
 type: scenario
 status: active
-created_at: 2026-03-09T03:30:00Z
-updated_at: 2026-03-09T03:30:00Z
+created_at: 2026-03-09T03:30:00.000Z
+updated_at: 2026-03-09T03:30:00.000Z
 source: documentation/scenarios/SCEN-001.md
-tags: [critical]
+tags:
+  - critical
 links:
   - type: verified_by
     target: TEST-001

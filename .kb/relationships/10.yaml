@@ -55,3 +55,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8f43c0242d6b
+  - type: implements
+    from: SYM-DeleteArgs
+    to: REQ-002
+    created_at: 2026-08-22T20:05:08.445Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44f55c78d48b
+  - type: covered_by
+    from: SYM-DeleteArgs
+    to: TEST-005
+    created_at: 2026-08-22T20:05:08.461Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-827aa8964846
+  - type: covered_by
+    from: SYM-DeleteArgs
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:05:08.466Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ade6c85aa3e5
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-discoverysummary
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:15:11.428Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-807f51a5012f
+  - type: implements
+    from: SYM-cli-with-exit-code
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:26:57.465Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ba1b059980a
+  - type: covered_by
+    from: SYM-cli-with-exit-code
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:26:57.480Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b6b4811d41b
+  - type: covered_by
+    from: SYM-cli-with-exit-code
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:26:57.486Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c750f58c0abc
+  - type: implements
+    from: SYM-parity-build-entity-delete-audit-goal
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:31:22.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24687b9355b1
+  - type: covered_by
+    from: SYM-parity-build-entity-delete-audit-goal
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:31:22.444Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4773fe4fe6c7
+  - type: covered_by
+    from: SYM-parity-build-entity-delete-audit-goal
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:31:22.450Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9eb421cc1dac
+  - type: covered_by
+    from: SYM-auto-87E4086AAAB1
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:34:30.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5bd80fd3520

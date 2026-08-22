@@ -62,3 +62,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e5475fa77713
+  - type: implements
+    from: SYM-requirement-normalize-text
+    to: REQ-002
+    created_at: 2026-08-22T20:09:21.164Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa4b076cc9f3
+  - type: covered_by
+    from: SYM-requirement-normalize-text
+    to: TEST-005
+    created_at: 2026-08-22T20:09:21.179Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92b077cabd38
+  - type: covered_by
+    from: SYM-requirement-normalize-text
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:09:21.183Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4619ecda905b
+  - type: implements
+    from: SYM-SkillsListResult
+    to: REQ-002
+    created_at: 2026-08-22T20:09:52.973Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d22dbaa62e55
+  - type: covered_by
+    from: SYM-SkillsListResult
+    to: TEST-005
+    created_at: 2026-08-22T20:09:52.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f120b9aff7b
+  - type: covered_by
+    from: SYM-SkillsListResult
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:09:53.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-adc7c68f228d

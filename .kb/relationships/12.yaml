@@ -27,3 +27,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9e7c36978727
+  - type: implements
+    from: SYM-StrictModelInput
+    to: REQ-011
+    created_at: 2026-08-22T20:14:10.244Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23f400b52d1a
+  - type: covered_by
+    from: SYM-StrictModelInput
+    to: TEST-cli-strict-modeling
+    created_at: 2026-08-22T20:14:10.255Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9fc451de109
+  - type: covered_by
+    from: SYM-StrictModelInput
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:14:10.259Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b430890db43

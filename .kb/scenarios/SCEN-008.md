@@ -12,6 +12,7 @@ tags:
 links:
   - type: verified_by
     target: TEST-010
+type: scenario
 ---
 
 Steps:

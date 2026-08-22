@@ -20,3 +20,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fedc73ce034d
+  - type: implements
+    from: SYM-handleKbDelete
+    to: REQ-002
+    created_at: 2026-08-22T20:06:33.081Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64b31cc3a58d
+  - type: covered_by
+    from: SYM-handleKbDelete
+    to: TEST-005
+    created_at: 2026-08-22T20:06:33.091Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1164ca5ee171
+  - type: covered_by
+    from: SYM-handleKbDelete
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:06:33.096Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3fc5b749a2e
+  - type: implements
+    from: SYM-scripts-mergeLcovContents
+    to: REQ-014
+    created_at: 2026-08-22T20:14:32.509Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab5265e5a67d
+  - type: covered_by
+    from: SYM-scripts-mergeLcovContents
+    to: TEST-scripts-unit-coverage-runner
+    created_at: 2026-08-22T20:14:32.521Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be0911da37f8
+  - type: covered_by
+    from: SYM-scripts-mergeLcovContents
+    to: TEST-006
+    created_at: 2026-08-22T20:14:32.525Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87042bdcadbd

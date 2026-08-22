@@ -41,3 +41,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-811aa5c3d568
+  - type: covered_by
+    from: SYM-auto-61AB23FEF699
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:39:19.977Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3bc27ae06b3
+  - type: implements
+    from: SYM-skillopt-fixture-entity-ids
+    to: REQ-skillopt-logical-evidence-fidelity
+    created_at: 2026-08-22T20:58:16.340Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a471a9c3ff88
+  - type: covered_by
+    from: SYM-skillopt-fixture-entity-ids
+    to: TEST-skillopt-logical-evidence-fidelity
+    created_at: 2026-08-22T20:58:16.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0bec3fff89d2
+  - type: covered_by
+    from: SYM-skillopt-fixture-entity-ids
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:58:16.359Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2d983da6f70
+  - type: implements
+    from: SYM-cli-parse-property-list
+    to: REQ-009
+    created_at: 2026-08-22T20:58:29.580Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0958b22a149
+  - type: implements
+    from: SYM-cli-parse-property-list
+    to: REQ-skillopt-logical-evidence-fidelity
+    created_at: 2026-08-22T20:58:29.592Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-111cb6ebf560
+  - type: covered_by
+    from: SYM-cli-parse-property-list
+    to: TEST-skillopt-logical-evidence-fidelity
+    created_at: 2026-08-22T20:58:29.597Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28dd29a88f70
+  - type: covered_by
+    from: SYM-cli-parse-property-list
+    to: TEST-cli-prolog-codec
+    created_at: 2026-08-22T20:58:29.602Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc893791baaa
+  - type: covered_by
+    from: SYM-cli-parse-property-list
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:58:29.607Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb05d0fff3de

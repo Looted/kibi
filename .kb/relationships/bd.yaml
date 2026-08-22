@@ -55,3 +55,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7c5b72997890
+  - type: implements
+    from: SYM-handleSparql
+    to: REQ-prolog-library-adoption
+    created_at: 2026-08-22T20:07:13.646Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61f587bc8cd3
+  - type: implements
+    from: SYM-handleSparql
+    to: REQ-002
+    created_at: 2026-08-22T20:07:13.661Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb9a8d9a2b4f
+  - type: covered_by
+    from: SYM-handleSparql
+    to: TEST-prolog-library-adoption-mcp
+    created_at: 2026-08-22T20:07:13.666Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2291e057877a
+  - type: covered_by
+    from: SYM-handleSparql
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:07:13.672Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0478acddd17e
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapaction
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:18:22.022Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b96207ec101e
+  - type: covered_by
+    from: SYM-cli-prolog-json-operation-decode-error-prefix-code-points
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:40:57.082Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85559a8cfd95

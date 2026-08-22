@@ -27,3 +27,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-00388e049924
+  - type: implements
+    from: SYM-modeling-predicate-applyplan-buildGapApplyPlan
+    to: REQ-mcp-suggest-predicates
+    created_at: 2026-08-22T20:23:29.750Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a91a6ef0776a
+  - type: implements
+    from: SYM-modeling-predicate-applyplan-buildGapApplyPlan
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:23:29.761Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3805d605a53c
+  - type: covered_by
+    from: SYM-modeling-predicate-applyplan-buildGapApplyPlan
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-08-22T20:23:29.764Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-507d31b51737
+  - type: covered_by
+    from: SYM-modeling-predicate-applyplan-buildGapApplyPlan
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:23:29.767Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5667c24ae68
+  - type: covered_by
+    from: SYM-modeling-predicate-applyplan-buildGapApplyPlan
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:23:29.770Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16b25f174098

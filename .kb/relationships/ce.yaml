@@ -76,3 +76,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-df68682ac251
+  - type: implements
+    from: SYM-ToolConfig
+    to: REQ-002
+    created_at: 2026-08-22T20:10:55.273Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f0915f3caac
+  - type: covered_by
+    from: SYM-ToolConfig
+    to: TEST-005
+    created_at: 2026-08-22T20:10:55.288Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-beeae72644f8
+  - type: covered_by
+    from: SYM-ToolConfig
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:10:55.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8346675c98da
+  - type: implements
+    from: SYM-KbConfig
+    to: REQ-011
+    created_at: 2026-08-22T20:12:46.252Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9aa3e4c398d4
+  - type: covered_by
+    from: SYM-KbConfig
+    to: TEST-cli-config-schema
+    created_at: 2026-08-22T20:12:46.266Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81ee2ef872b4
+  - type: covered_by
+    from: SYM-KbConfig
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:12:46.273Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7dd5bff73be7
+  - type: implements
+    from: SYM-StableRequirementIds
+    to: REQ-011
+    created_at: 2026-08-22T20:14:04.262Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d1b9f23e02a
+  - type: covered_by
+    from: SYM-StableRequirementIds
+    to: TEST-cli-strict-modeling
+    created_at: 2026-08-22T20:14:04.281Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a865342250c2
+  - type: covered_by
+    from: SYM-StableRequirementIds
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:14:04.290Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-166351aed6d6
+  - type: implements
+    from: SYM-mcp-status-adapter
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:28:24.260Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd5c244ecf76
+  - type: covered_by
+    from: SYM-mcp-status-adapter
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:28:24.278Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55a56995ad80
+  - type: covered_by
+    from: SYM-mcp-status-adapter
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:28:24.287Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef69d2a8c661
+  - type: covered_by
+    from: SYM-auto-75AB1677E263
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:41:40.986Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-160b7ec06f76

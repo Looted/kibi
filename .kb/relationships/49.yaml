@@ -62,3 +62,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3cf1bad1ab0b
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidates-buildbootstrapcandidates
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:16:07.862Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60c0d59e4127

@@ -55,3 +55,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5001382a9fcd
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-planbootstrapresult
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:18:48.478Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9bfdd5106bde
+  - type: covered_by
+    from: SYM-auto-5E0D46927248
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:41:31.717Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-003064517816

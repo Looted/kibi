@@ -69,3 +69,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0c3913f915c
+  - type: implements
+    from: SYM-appendDiagnosticSuccessUsage
+    to: REQ-002
+    created_at: 2026-08-22T20:04:33.064Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b20a3350add
+  - type: covered_by
+    from: SYM-appendDiagnosticSuccessUsage
+    to: TEST-005
+    created_at: 2026-08-22T20:04:33.079Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68ee9256e0c5
+  - type: covered_by
+    from: SYM-appendDiagnosticSuccessUsage
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:04:33.084Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee04040d2ecb

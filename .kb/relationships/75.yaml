@@ -41,3 +41,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dce902714873
+  - type: implements
+    from: SYM-cli-status-command
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:26:44.251Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8acd908e7284
+  - type: implements
+    from: SYM-cli-status-command
+    to: REQ-cli-status-pre-first-sync
+    created_at: 2026-08-22T20:26:44.262Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59b7d0744587
+  - type: implements
+    from: SYM-cli-status-command
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-08-22T20:26:44.267Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d318c12e1bf
+  - type: covered_by
+    from: SYM-cli-status-command
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:26:44.272Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e02d8d2e1e1f
+  - type: covered_by
+    from: SYM-cli-status-command
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:26:44.277Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b23b4a342d3
+  - type: covered_by
+    from: SYM-auto-E702A9034CD4
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:38:10.164Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2f5ec0d7220

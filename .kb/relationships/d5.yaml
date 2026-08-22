@@ -34,3 +34,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-542ec1fd0df6
+  - type: covered_by
+    from: SYM-auto-5D198D1E54F9
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:42:01.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5549c4fa3b6d

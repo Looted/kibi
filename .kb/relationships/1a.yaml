@@ -111,3 +111,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fddf98eeb377
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-markdown-candidates-candidatebuildresult
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:15:29.111Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-248f0b205e73
+  - type: implements
+    from: SYM-buildEnforcementScopeKey
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:45:42.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f5564aaa563
+  - type: covered_by
+    from: SYM-buildEnforcementScopeKey
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:45:42.403Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a3d0860852d
+  - type: covered_by
+    from: SYM-buildEnforcementScopeKey
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:45:42.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31f01b8b5a2a

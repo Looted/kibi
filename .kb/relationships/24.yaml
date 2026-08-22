@@ -69,3 +69,108 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-439789d735c2
+  - type: implements
+    from: SYM-buildUpsertTransaction
+    to: REQ-core-atomic-upsert-persistence
+    created_at: 2026-08-22T20:20:38.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6530a1961ca2
+  - type: implements
+    from: SYM-buildUpsertTransaction
+    to: REQ-core-persistence
+    created_at: 2026-08-22T20:20:38.467Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d2f90cbce41
+  - type: implements
+    from: SYM-buildUpsertTransaction
+    to: REQ-core-audit-logging
+    created_at: 2026-08-22T20:20:38.474Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54e1e8fecc6b
+  - type: implements
+    from: SYM-buildUpsertTransaction
+    to: REQ-core-prolog-process-management
+    created_at: 2026-08-22T20:20:38.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-273b58e56db2
+  - type: implements
+    from: SYM-buildUpsertTransaction
+    to: REQ-mcp-tool-upsert
+    created_at: 2026-08-22T20:20:38.485Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4eae19f8240
+  - type: implements
+    from: SYM-buildUpsertTransaction
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:20:38.490Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be42ecff3535
+  - type: implements
+    from: SYM-buildUpsertTransaction
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:20:38.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-afad78b16f2c
+  - type: covered_by
+    from: SYM-buildUpsertTransaction
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:20:38.500Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b761904e6676
+  - type: covered_by
+    from: SYM-buildUpsertTransaction
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:20:38.505Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-707890490c43
+  - type: covered_by
+    from: SYM-buildUpsertTransaction
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:20:38.511Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1cec229b4b5c
+  - type: covered_by
+    from: SYM-buildUpsertTransaction
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:27:49.425Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e8dc1a103e4
+  - type: covered_by
+    from: SYM-auto-897151BA8338
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:34:56.643Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00f66cdcc806
+  - type: implements
+    from: SYM-PendingLifecycleEvent
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:52:53.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e26960288f2
+  - type: covered_by
+    from: SYM-PendingLifecycleEvent
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:52:53.545Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da8f198ad215
+  - type: covered_by
+    from: SYM-PendingLifecycleEvent
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:52:53.553Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ecbe93d04933

@@ -41,3 +41,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c6c6d1c11f2b
+  - type: covered_by
+    from: SYM-kibi-bootstrap-plan-executor
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:18:41.829Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4bb5859cdc8

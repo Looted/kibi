@@ -34,3 +34,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fc16ac7e41c5
+  - type: implements
+    from: SYM-semantic-advisor-predicateSuggestion
+    to: REQ-mcp-semantic-advisor-preflight
+    created_at: 2026-08-22T20:20:44.485Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e67f8d8f45ee
+  - type: implements
+    from: SYM-semantic-advisor-predicateSuggestion
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:20:44.496Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d349f7606e5c
+  - type: covered_by
+    from: SYM-semantic-advisor-predicateSuggestion
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-08-22T20:20:44.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7787128f206
+  - type: covered_by
+    from: SYM-semantic-advisor-predicateSuggestion
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:20:44.505Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fb37910da3b
+  - type: covered_by
+    from: SYM-semantic-advisor-predicateSuggestion
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:20:44.509Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-026a7771f263
+  - type: implements
+    from: SYM-cli-prepare-operation-input
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:25:35.484Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57cb41e62ba5
+  - type: covered_by
+    from: SYM-cli-prepare-operation-input
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:25:35.497Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-463fba71b4e1
+  - type: covered_by
+    from: SYM-cli-prepare-operation-input
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:25:35.502Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37784f3ab8ac
+  - type: covered_by
+    from: SYM-cli-prolog-json-operation-decode-error-raw-length
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:33:48.383Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82f342cb54e0
+  - type: covered_by
+    from: SYM-yaml-relationship-deletion
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:33:55.088Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9df10a133de9
+  - type: implements
+    from: SYM-SyncRunMetadata
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:56:14.459Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72a7fb3308e1
+  - type: covered_by
+    from: SYM-SyncRunMetadata
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:56:14.478Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0222d1bed6cd
+  - type: covered_by
+    from: SYM-SyncRunMetadata
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:56:14.489Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1ba7dfa0bc7

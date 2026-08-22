@@ -62,3 +62,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fe951706bc2f
+  - type: implements
+    from: SYM-DocResource
+    to: REQ-002
+    created_at: 2026-08-22T20:06:02.176Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21660d8538e6
+  - type: implements
+    from: SYM-DocResource
+    to: REQ-008
+    created_at: 2026-08-22T20:06:02.188Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17d9040eb00d
+  - type: covered_by
+    from: SYM-DocResource
+    to: TEST-005
+    created_at: 2026-08-22T20:06:02.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92c64530c6c8
+  - type: covered_by
+    from: SYM-DocResource
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:06:02.196Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf7058e72759
+  - type: implements
+    from: SYM-handleKbModelRequirement
+    to: REQ-002
+    created_at: 2026-08-22T20:06:37.785Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-687ebd131fcf
+  - type: covered_by
+    from: SYM-handleKbModelRequirement
+    to: TEST-005
+    created_at: 2026-08-22T20:06:37.801Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ea9427fc37b
+  - type: covered_by
+    from: SYM-handleKbModelRequirement
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:06:37.807Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3b64e6bf2cd
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapplanhash
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:17:05.571Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7e79a17fefb

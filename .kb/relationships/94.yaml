@@ -41,3 +41,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-01e3c9392cec
+  - type: implements
+    from: SYM-handleKbSkillsLoad
+    to: REQ-002
+    created_at: 2026-08-22T20:06:48.807Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f2c8362829a
+  - type: implements
+    from: SYM-handleKbSkillsLoad
+    to: REQ-mcp-skills-resource-discoverability
+    created_at: 2026-08-22T20:06:48.818Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87fbca7298b4
+  - type: covered_by
+    from: SYM-handleKbSkillsLoad
+    to: TEST-005
+    created_at: 2026-08-22T20:06:48.822Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-984bba3dfeee
+  - type: covered_by
+    from: SYM-handleKbSkillsLoad
+    to: TEST-mcp-skills-resource-discoverability
+    created_at: 2026-08-22T20:06:48.826Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6d482598918
+  - type: covered_by
+    from: SYM-handleKbSkillsLoad
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:06:48.831Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98291d5e443f
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-spec
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:17:38.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77027647ee37
+  - type: covered_by
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-detectkibibootstrapcommandcapability
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:17:43.563Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e6c6336443b
+  - type: implements
+    from: SYM-mutation-relationships-schema
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:28:52.167Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea761572fcb0
+  - type: covered_by
+    from: SYM-mutation-relationships-schema
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:28:52.194Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e59bdd3de05
+  - type: covered_by
+    from: SYM-mutation-relationships-schema
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:28:52.205Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4dd818963ed4

@@ -52,3 +52,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-704f69585433
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-activationmode
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:15:45.105Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b8f6e68eb6e
+  - type: implements
+    from: SYM-core-check-logic-coverage
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:23:08.715Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b346c42f4a1
+  - type: covered_by
+    from: SYM-core-check-logic-coverage
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:23:08.733Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dd0d4490f09
+  - type: covered_by
+    from: SYM-core-check-logic-coverage
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:23:08.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7bf77290af25

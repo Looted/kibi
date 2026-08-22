@@ -48,3 +48,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6fe3f76e5058
+  - type: implements
+    from: SYM-operation-list-specs
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:29:12.301Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9cd2bc30ea55
+  - type: covered_by
+    from: SYM-operation-list-specs
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:29:12.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd017192ac9f
+  - type: covered_by
+    from: SYM-operation-list-specs
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:29:12.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-532fa23b94e2

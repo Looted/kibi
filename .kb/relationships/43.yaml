@@ -62,3 +62,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ef913d03c315
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-evidence-evidencescan
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:16:02.870Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7a7e64c9c7f
+  - type: covered_by
+    from: SYM-auto-504B217261F9
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:35:48.570Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-713ea8f59a93
+  - type: implements
+    from: SYM-CheckpointEvidence
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:45:49.992Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9605eb0506e
+  - type: covered_by
+    from: SYM-CheckpointEvidence
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:45:50.015Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-464e185c7ce3
+  - type: covered_by
+    from: SYM-CheckpointEvidence
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:45:50.023Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a941e3374728

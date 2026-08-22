@@ -76,3 +76,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-16d2070ab09d
+  - type: covered_by
+    from: SYM-auto-2024D0C211DD
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:37:59.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f75f62e9b3e
+  - type: implements
+    from: SYM-StartupNotifierClient
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:55:50.506Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ecd8a9745f22
+  - type: covered_by
+    from: SYM-StartupNotifierClient
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:55:50.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d10f831b69c8
+  - type: covered_by
+    from: SYM-StartupNotifierClient
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:55:50.536Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e70d44bdd5fd

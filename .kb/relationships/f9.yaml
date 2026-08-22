@@ -87,3 +87,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ecae43ae9198
+  - type: covered_by
+    from: SYM-auto-2E8B94C6ABB2
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:43:28.457Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-597a60bca2bd
+  - type: covered_by
+    from: SYM-cli-prolog-json-operation-decode-error-stage
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:43:36.521Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81819b33a06c

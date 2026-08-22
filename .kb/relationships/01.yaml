@@ -27,3 +27,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f7a2b6a111c9
+  - type: implements
+    from: SYM-execute-suggest-predicates
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:32:41.893Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47be2d15249d
+  - type: covered_by
+    from: SYM-execute-suggest-predicates
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:32:41.911Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d7b8784b55a
+  - type: covered_by
+    from: SYM-execute-suggest-predicates
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:32:41.917Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c3b74e00584
+  - type: implements
+    from: SYM-classifyKnowledge
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:46:06.019Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52ce9e45ad8c
+  - type: covered_by
+    from: SYM-classifyKnowledge
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:46:06.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3bcf05d6b48
+  - type: covered_by
+    from: SYM-classifyKnowledge
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:46:06.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0a40e26cf79

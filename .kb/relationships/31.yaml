@@ -45,3 +45,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d52a8a8a27be
+  - type: verified_by
+    from: SCEN-002
+    to: TEST-001
+    created_at: 2026-08-22T19:52:52.352Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f3860607a7b
+  - type: verified_by
+    from: SCEN-002
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T19:52:52.401Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab61fae8190a
+  - type: implements
+    from: SYM-cli-prolog-json-list
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:24:54.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5447bf4cb54
+  - type: covered_by
+    from: SYM-cli-prolog-json-list
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:24:54.425Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-13b238f4b208
+  - type: covered_by
+    from: SYM-cli-prolog-json-list
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:24:54.434Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ae23b1c7618
+  - type: implements
+    from: SYM-DEFAULT-TOOLS-RUNTIME
+    to: REQ-002
+    created_at: 2026-08-22T20:59:53.329Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8d8da0b1dd1
+  - type: covered_by
+    from: SYM-DEFAULT-TOOLS-RUNTIME
+    to: TEST-005
+    created_at: 2026-08-22T20:59:53.342Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09db90ed3261
+  - type: covered_by
+    from: SYM-DEFAULT-TOOLS-RUNTIME
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:59:53.347Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5dd31602b20

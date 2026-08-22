@@ -62,3 +62,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fabe82bf60e3
+  - type: implements
+    from: SYM-refreshCoordinatesForSymbolId
+    to: REQ-002
+    created_at: 2026-08-22T20:08:58.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b21751682c34
+  - type: covered_by
+    from: SYM-refreshCoordinatesForSymbolId
+    to: TEST-005
+    created_at: 2026-08-22T20:08:58.208Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97286847c6ac
+  - type: covered_by
+    from: SYM-refreshCoordinatesForSymbolId
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:08:58.217Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5eaa15175bf1
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapemptykbsnapshotid
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:18:26.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41dbfafdcb2c
+  - type: covered_by
+    from: SYM-auto-13239C566F5C
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:41:03.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c2b2ee21ba8

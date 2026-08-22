@@ -48,3 +48,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fbe3c44610e6
+  - type: covered_by
+    from: SYM-auto-4411F1CA4EE0
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:36:10.579Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5715ca585cf3
+  - type: implements
+    from: SYM-SyncScheduler
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:56:36.722Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26ce47cfc424
+  - type: covered_by
+    from: SYM-SyncScheduler
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:56:36.734Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62fd6c68a199
+  - type: covered_by
+    from: SYM-SyncScheduler
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:56:36.738Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee84d96fecd0

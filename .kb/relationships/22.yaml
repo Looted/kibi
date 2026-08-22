@@ -160,3 +160,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4f1ddd1d9858
+  - type: covered_by
+    from: SYM-auto-532D065248B0
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:34:42.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d5a2536619c
+  - type: covered_by
+    from: SYM-auto-FDB3234DFBC2
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:34:47.576Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac3761240424

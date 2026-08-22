@@ -48,3 +48,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1b887112026e
+  - type: covered_by
+    from: SYM-cli-prolog-json-operation-decode-error
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-22T20:41:53.345Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7faa5b4470d
+  - type: covered_by
+    from: SYM-cli-prolog-json-operation-decode-error
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:41:53.353Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-081906d98b1c

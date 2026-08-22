@@ -97,3 +97,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fa263532705c
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-evidencekind
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:16:14.228Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f5f8eebd82f
+  - type: covered_by
+    from: SYM-auto-1ABE353EEDF1
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:36:03.641Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b8adebce18f

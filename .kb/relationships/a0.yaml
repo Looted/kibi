@@ -6,3 +6,24 @@ relationships:
     created_at: "2026-08-16T19:46:36.851Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-DeriveFileOperationReminderResult
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:47:17.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57e4627ac114
+  - type: covered_by
+    from: SYM-DeriveFileOperationReminderResult
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:47:17.408Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64a0af3a763d
+  - type: covered_by
+    from: SYM-DeriveFileOperationReminderResult
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:47:17.419Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f2f7986be4b

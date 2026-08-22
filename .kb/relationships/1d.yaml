@@ -48,3 +48,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8764bbc2bf6f
+  - type: verified_by
+    from: SCEN-kibi-logical-requirement-coverage
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T19:56:20.818Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17f5f01b59df
+  - type: verified_by
+    from: SCEN-kibi-logical-requirement-coverage
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T19:56:20.869Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02b5d8a852ec
+  - type: implements
+    from: SYM-discovery-execute-search
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:33:19.013Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0422d0963efc
+  - type: implements
+    from: SYM-discovery-execute-search
+    to: REQ-mcp-search-discovery
+    created_at: 2026-08-22T20:33:19.041Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1d47f378b39
+  - type: implements
+    from: SYM-discovery-execute-search
+    to: REQ-kibi-fresh-verification-receipts
+    created_at: 2026-08-22T20:33:19.054Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a95ef4a52248
+  - type: covered_by
+    from: SYM-discovery-execute-search
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:33:19.066Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5b6d0101131
+  - type: covered_by
+    from: SYM-discovery-execute-search
+    to: TEST-mcp-search-discovery
+    created_at: 2026-08-22T20:33:19.078Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89b32c3ab45e
+  - type: covered_by
+    from: SYM-discovery-execute-search
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:33:19.091Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3ec4eeb3124

@@ -52,3 +52,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-76dc003c627d
+  - type: implements
+    from: SYM-cli-discovery-dedupe-entities
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:24:23.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-acaf9da06b4c
+  - type: covered_by
+    from: SYM-cli-discovery-dedupe-entities
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:24:23.536Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53f6827972f0
+  - type: covered_by
+    from: SYM-cli-discovery-dedupe-entities
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:24:23.545Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0a0f2529975

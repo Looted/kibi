@@ -83,3 +83,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e5a4b0be62b0
+  - type: covered_by
+    from: SYM-parity-validate-strict-lane-pairing
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:37:17.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3bf14127616

@@ -80,3 +80,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-356dea95fe14
+  - type: implements
+    from: SYM-EntityChangeItem
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:48:10.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee475a2fc565
+  - type: covered_by
+    from: SYM-EntityChangeItem
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:48:10.810Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-387922e7b3fd
+  - type: covered_by
+    from: SYM-EntityChangeItem
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:48:10.816Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb2109ac4bb0
+  - type: implements
+    from: SYM-warn
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:57:08.229Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3696e31d2b8a
+  - type: covered_by
+    from: SYM-warn
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:57:08.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1959406a2ab8
+  - type: covered_by
+    from: SYM-warn
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:57:08.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-861aa89d4d0b

@@ -34,3 +34,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-608487a40d79
+  - type: implements
+    from: SYM-initializeDiagnosticMode
+    to: REQ-002
+    created_at: 2026-08-22T20:07:18.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b73a7fb73c1
+  - type: covered_by
+    from: SYM-initializeDiagnosticMode
+    to: TEST-005
+    created_at: 2026-08-22T20:07:18.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-274ebd5b5e00
+  - type: covered_by
+    from: SYM-initializeDiagnosticMode
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:07:18.326Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41b50b6fba0c

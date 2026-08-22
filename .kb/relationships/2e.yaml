@@ -31,3 +31,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e96679418c33
+  - type: implements
+    from: SYM-mcp-search-adapter
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:28:18.278Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a071525e7443
+  - type: implements
+    from: SYM-mcp-search-adapter
+    to: REQ-mcp-search-discovery
+    created_at: 2026-08-22T20:28:18.288Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72d2de96df35
+  - type: covered_by
+    from: SYM-mcp-search-adapter
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:28:18.292Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ef5297e0ba0
+  - type: covered_by
+    from: SYM-mcp-search-adapter
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:28:18.296Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a5739cb14cc

@@ -41,3 +41,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0f30937c78f7
+  - type: implements
+    from: SYM-addTool
+    to: REQ-002
+    created_at: 2026-08-22T20:11:43.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02f18b77f3ec
+  - type: implements
+    from: SYM-addTool
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:11:43.508Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eec41047cb4a
+  - type: covered_by
+    from: SYM-addTool
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:11:43.511Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-239ce1754dfc
+  - type: covered_by
+    from: SYM-addTool
+    to: TEST-005
+    created_at: 2026-08-22T20:11:43.517Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-442125fb28a7
+  - type: covered_by
+    from: SYM-addTool
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:11:43.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65be8dbb0cd2

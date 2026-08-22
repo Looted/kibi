@@ -55,3 +55,129 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2fc82c7af539
+  - type: implements
+    from: SYM-cli-rule-registry-RULES
+    to: REQ-core-validation-rules
+    created_at: 2026-08-22T20:20:15.914Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af3ddf534b23
+  - type: implements
+    from: SYM-cli-rule-registry-RULES
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:20:15.933Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5d3daf70acf
+  - type: covered_by
+    from: SYM-cli-rule-registry-RULES
+    to: TEST-004
+    created_at: 2026-08-22T20:20:15.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58300207dd8b
+  - type: covered_by
+    from: SYM-cli-rule-registry-RULES
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:20:15.945Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1cc57359a223
+  - type: covered_by
+    from: SYM-cli-rule-registry-RULES
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:20:15.949Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90ad470969bc
+  - type: implements
+    from: SYM-modeling-predicate-applyplan-buildRelationshipPlan
+    to: REQ-mcp-suggest-predicates
+    created_at: 2026-08-22T20:23:39.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93b65b6b6aca
+  - type: implements
+    from: SYM-modeling-predicate-applyplan-buildRelationshipPlan
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:23:39.714Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6453b575e43
+  - type: covered_by
+    from: SYM-modeling-predicate-applyplan-buildRelationshipPlan
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-08-22T20:23:39.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da0294ce0d0d
+  - type: covered_by
+    from: SYM-modeling-predicate-applyplan-buildRelationshipPlan
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:23:39.727Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46d007f80e59
+  - type: covered_by
+    from: SYM-modeling-predicate-applyplan-buildRelationshipPlan
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:23:39.738Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f346763c795
+  - type: implements
+    from: SYM-cli-query-command
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:25:41.515Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15ce1614cc21
+  - type: implements
+    from: SYM-cli-query-command
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-08-22T20:25:41.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b546b35fbc0
+  - type: covered_by
+    from: SYM-cli-query-command
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:25:41.537Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e127a9e446b9
+  - type: covered_by
+    from: SYM-cli-query-command
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:25:41.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-570f701f3f7f
+  - type: covered_by
+    from: SYM-auto-059ACEEC9EDC
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:38:57.411Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0551cfa58436
+  - type: implements
+    from: SYM-KbFreshnessStateKind
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:50:47.612Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b34e203c1944
+  - type: covered_by
+    from: SYM-KbFreshnessStateKind
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:50:47.627Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-765f86fd55a5
+  - type: covered_by
+    from: SYM-KbFreshnessStateKind
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:50:47.634Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93f5ea2ae0f0

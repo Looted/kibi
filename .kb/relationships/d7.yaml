@@ -69,3 +69,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-acc5b9197d03
+  - type: covered_by
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-name
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:19:03.545Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0786d6c58068

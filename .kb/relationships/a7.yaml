@@ -80,3 +80,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-077eea18555c
+  - type: implements
+    from: SYM-extractToolCallPayload
+    to: REQ-002
+    created_at: 2026-08-22T20:06:23.093Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43a9d1b81d3f
+  - type: covered_by
+    from: SYM-extractToolCallPayload
+    to: TEST-005
+    created_at: 2026-08-22T20:06:23.107Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-801fd4b39c6a
+  - type: covered_by
+    from: SYM-extractToolCallPayload
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:06:23.114Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-480381044359
+  - type: implements
+    from: SYM-modeling-requirement-utils-clampConfidence
+    to: REQ-002
+    created_at: 2026-08-22T20:08:13.591Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5776e147a50f
+  - type: covered_by
+    from: SYM-modeling-requirement-utils-clampConfidence
+    to: TEST-005
+    created_at: 2026-08-22T20:08:13.612Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58a3cd573b83
+  - type: covered_by
+    from: SYM-modeling-requirement-utils-clampConfidence
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:08:13.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4114f11f84c7
+  - type: covered_by
+    from: SYM-auto-7C9A229C5071
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:39:59.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ab414c6ebd2
+  - type: implements
+    from: SYM-PluginInput
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:53:23.489Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4221d5b8944
+  - type: covered_by
+    from: SYM-PluginInput
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:53:23.516Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-553a264fc161
+  - type: covered_by
+    from: SYM-PluginInput
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:53:23.525Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-352e075e011a

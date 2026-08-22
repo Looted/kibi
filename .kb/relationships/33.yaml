@@ -20,3 +20,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bfb9ea0ab360
+  - type: implements
+    from: SYM-strictWriteSetToApplyPlan
+    to: REQ-002
+    created_at: 2026-08-22T20:10:24.824Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a6006e043ca
+  - type: covered_by
+    from: SYM-strictWriteSetToApplyPlan
+    to: TEST-005
+    created_at: 2026-08-22T20:10:24.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-496b926cea0f
+  - type: covered_by
+    from: SYM-strictWriteSetToApplyPlan
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:10:24.841Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8325f6c48039

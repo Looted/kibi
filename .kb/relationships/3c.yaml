@@ -48,3 +48,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a4c1c01804ac
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-evidence-scanevidence
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:15:56.420Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f3022e2c2c8
+  - type: implements
+    from: SYM-cli-semantic-advisor-relationship
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:22:28.391Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45ba2c899428
+  - type: covered_by
+    from: SYM-cli-semantic-advisor-relationship
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:22:28.405Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0cac5aed21c3
+  - type: covered_by
+    from: SYM-cli-semantic-advisor-relationship
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:22:28.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2cf406dc7f39
+  - type: implements
+    from: SYM-errorStructuredOnly
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:48:25.866Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-104b04c0fc2a
+  - type: covered_by
+    from: SYM-errorStructuredOnly
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:48:25.879Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0508fc9bf747
+  - type: covered_by
+    from: SYM-errorStructuredOnly
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:48:25.884Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-157ba22e1173
+  - type: implements
+    from: SYM-ResolveWorkContextInput
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:54:21.923Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-356de68aee5c
+  - type: covered_by
+    from: SYM-ResolveWorkContextInput
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:54:21.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1e43aebdc51
+  - type: covered_by
+    from: SYM-ResolveWorkContextInput
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:54:21.947Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23486caa9d9c

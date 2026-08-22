@@ -55,3 +55,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-560142600034
+  - type: implements
+    from: SYM-ToolHandler
+    to: REQ-002
+    created_at: 2026-08-22T20:10:59.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15efade7a0bc
+  - type: covered_by
+    from: SYM-ToolHandler
+    to: TEST-005
+    created_at: 2026-08-22T20:10:59.972Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7af21a0af4f7
+  - type: covered_by
+    from: SYM-ToolHandler
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:10:59.976Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11fda491b95e
+  - type: implements
+    from: SYM-loadSyncConfig
+    to: REQ-011
+    created_at: 2026-08-22T20:13:03.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fdc2e4d50115
+  - type: covered_by
+    from: SYM-loadSyncConfig
+    to: TEST-cli-config-schema
+    created_at: 2026-08-22T20:13:03.325Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4471aa1af08a
+  - type: covered_by
+    from: SYM-loadSyncConfig
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:13:03.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c4c8229f95e

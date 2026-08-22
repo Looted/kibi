@@ -90,3 +90,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7df981e63ad7
+  - type: implements
+    from: SYM-model-requirement-core-handler
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:28:28.712Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-973614a59bd0
+  - type: implements
+    from: SYM-model-requirement-core-handler
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:28:28.727Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2bfa1eb41954
+  - type: implements
+    from: SYM-model-requirement-core-handler
+    to: REQ-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:28:28.733Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df5e7a809970
+  - type: covered_by
+    from: SYM-model-requirement-core-handler
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:28:28.739Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44d3c52fae08
+  - type: covered_by
+    from: SYM-model-requirement-core-handler
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:28:28.745Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54a43d771e82
+  - type: covered_by
+    from: SYM-model-requirement-core-handler
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:28:28.751Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab70c1b6ff32

@@ -55,3 +55,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b9275ecb69d
+  - type: covered_by
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-template
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:15:06.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e8ca3b6ca51

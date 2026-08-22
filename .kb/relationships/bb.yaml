@@ -209,3 +209,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5b9c4b78a451
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-discoverbootstrap
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:18:15.794Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-feeb31a56ceb
+  - type: implements
+    from: SYM-getSourceLinkedRequirementIds
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:49:38.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76534019a990
+  - type: covered_by
+    from: SYM-getSourceLinkedRequirementIds
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:49:38.116Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a31fe5fcd47
+  - type: covered_by
+    from: SYM-getSourceLinkedRequirementIds
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:49:38.126Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3ff28ca55ca

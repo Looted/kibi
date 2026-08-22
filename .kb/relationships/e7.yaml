@@ -34,3 +34,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e153e15b5355
+  - type: covered_by
+    from: SYM-auto-8FB623B4AC3F
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:42:52.113Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-208e02d31b84
+  - type: covered_by
+    from: SYM-auto-B4EA84AAACA8
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:42:59.339Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c82af14d564f

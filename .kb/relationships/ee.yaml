@@ -111,3 +111,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0c62b6270aff
+  - type: implements
+    from: SYM-cli-logic-ir-renderLogicProlog
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:22:01.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3141a74b423a
+  - type: covered_by
+    from: SYM-cli-logic-ir-renderLogicProlog
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:22:01.356Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf2112028aac
+  - type: covered_by
+    from: SYM-cli-logic-ir-renderLogicProlog
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:22:01.362Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4d10c589d34
+  - type: implements
+    from: SYM-cli-discovery-run-json-module-query
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:24:08.077Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0f798be8738
+  - type: covered_by
+    from: SYM-cli-discovery-run-json-module-query
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:24:08.096Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc168c92d85a
+  - type: covered_by
+    from: SYM-cli-discovery-run-json-module-query
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:24:08.104Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d83fa7a71d0
+  - type: implements
+    from: SYM-buildDirtyRelevantFingerprint
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:45:35.941Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b4fbd6c6889
+  - type: covered_by
+    from: SYM-buildDirtyRelevantFingerprint
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:45:35.962Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d7e4f935a10
+  - type: covered_by
+    from: SYM-buildDirtyRelevantFingerprint
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:45:35.972Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11e8a6a399b4

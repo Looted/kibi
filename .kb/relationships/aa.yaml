@@ -66,3 +66,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d7ad627a239d
+  - type: verified_by
+    from: SCEN-001
+    to: TEST-001
+    created_at: 2026-08-22T19:54:32.146Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e6700801de9
+  - type: verified_by
+    from: SCEN-001
+    to: TEST-005
+    created_at: 2026-08-22T19:54:32.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-122a52b10b16
+  - type: verified_by
+    from: SCEN-001
+    to: TEST-012
+    created_at: 2026-08-22T19:54:32.205Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cea23fa13626
+  - type: verified_by
+    from: SCEN-001
+    to: TEST-mcp-query-relationships
+    created_at: 2026-08-22T19:54:32.215Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f11d08e13dbd
+  - type: verified_by
+    from: SCEN-001
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-08-22T19:54:32.225Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b953db79f15c
+  - type: verified_by
+    from: SCEN-001
+    to: TEST-007
+    created_at: 2026-08-22T19:54:32.236Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fadf33858796
+  - type: verified_by
+    from: SCEN-001
+    to: TEST-008
+    created_at: 2026-08-22T19:54:32.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03cf158cc4d6
+  - type: verified_by
+    from: SCEN-001
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T19:54:32.254Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8025387b1bcc

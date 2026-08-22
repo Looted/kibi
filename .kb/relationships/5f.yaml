@@ -13,3 +13,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a85cb9378788
+  - type: implements
+    from: SYM-Awaitable
+    to: REQ-002
+    created_at: 2026-08-22T20:04:43.984Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b48d969bd9d6
+  - type: covered_by
+    from: SYM-Awaitable
+    to: TEST-005
+    created_at: 2026-08-22T20:04:43.995Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69818cfb8a5d
+  - type: covered_by
+    from: SYM-Awaitable
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:04:44.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1dd2ca89ad50
+  - type: covered_by
+    from: SYM-parity-execute-delete
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:36:50.593Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b26b85fe7627

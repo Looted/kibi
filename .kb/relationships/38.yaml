@@ -73,3 +73,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-443701719dd8
+  - type: verified_by
+    from: SCEN-008
+    to: TEST-010
+    created_at: 2026-08-22T19:55:00.012Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7ef65af5dfe
+  - type: verified_by
+    from: SCEN-008
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T19:55:00.060Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a94f4cfd28e
+  - type: covered_by
+    from: SYM-auto-711E3868D47B
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:35:35.644Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b8557f766ba

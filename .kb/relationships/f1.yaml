@@ -55,3 +55,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b984f4d7735c
+  - type: verified_by
+    from: SCEN-kibi-operation-interface-parity
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T19:57:07.373Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7214a21086c6
+  - type: relates_to
+    from: SCEN-kibi-operation-interface-parity
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T19:57:07.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2d25630d042
+  - type: relates_to
+    from: SCEN-kibi-operation-interface-parity
+    to: ADR-022
+    created_at: 2026-08-22T19:57:07.420Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b5e43f14e7c

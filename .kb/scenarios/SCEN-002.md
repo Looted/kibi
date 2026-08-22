@@ -3,7 +3,7 @@ id: SCEN-002
 title: Developer initializes KB on fresh repository with kibi init
 status: active
 created_at: 2026-02-18T13:12:25.000Z
-updated_at: 2026-03-22T00:00:00Z
+updated_at: 2026-03-22T00:00:00.000Z
 priority: must
 tags:
   - cli
@@ -11,6 +11,7 @@ tags:
 links:
   - type: verified_by
     target: TEST-001
+type: scenario
 ---
 
 Steps:

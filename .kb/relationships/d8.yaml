@@ -160,3 +160,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-91cddd6d423c
+  - type: implements
+    from: SYM-handleKbUpsert
+    to: REQ-002
+    created_at: 2026-08-22T20:07:08.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71fa129b1651
+  - type: implements
+    from: SYM-handleKbUpsert
+    to: REQ-mcp-relationship-preflight
+    created_at: 2026-08-22T20:07:08.743Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7e92e3f3567
+  - type: covered_by
+    from: SYM-handleKbUpsert
+    to: TEST-005
+    created_at: 2026-08-22T20:07:08.751Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-860173f847c7
+  - type: covered_by
+    from: SYM-handleKbUpsert
+    to: TEST-mcp-relationship-preflight
+    created_at: 2026-08-22T20:07:08.758Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f75b882141f
+  - type: covered_by
+    from: SYM-handleKbUpsert
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:07:08.767Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-488d58eb1a37

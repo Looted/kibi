@@ -83,3 +83,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b2cc0bf775a6
+  - type: implements
+    from: SYM-UpsertArgs
+    to: REQ-002
+    created_at: 2026-08-22T20:11:16.483Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98b988f7698d
+  - type: covered_by
+    from: SYM-UpsertArgs
+    to: TEST-005
+    created_at: 2026-08-22T20:11:16.496Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5cefde9f6389
+  - type: covered_by
+    from: SYM-UpsertArgs
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:11:16.504Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3eb1795013b1
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapcontext
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:17:15.048Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5fb98f423897
+  - type: covered_by
+    from: SYM-auto-8B6FF5246789
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:38:46.378Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ab02175efdc
