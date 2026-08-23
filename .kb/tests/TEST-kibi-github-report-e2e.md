@@ -267,4 +267,172 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 8115
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-34be4bd22626440f6b035d6a
+    test_id: TEST-kibi-github-report-e2e
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-github-report-e2e
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-github-report-e2e
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ee22ec51c9bc3153aa0a330d71805a1c8ce310bf3a763dc346ad13e15071ba11
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T12:30:55.647Z'
+    finished_at: '2026-08-23T12:31:00.548Z'
+    artifact_digest: c615b3c3d09abe0cdf51e5a5cf5f16dbe83785916038ec9feebd600dbb45e3ca
+    contract_hash: 5b7116040fb30890f2c87a63ffded85d91bdb989a4c89aaed02c2f78dd865fdc
+    case_results:
+      - symbol_id: SYM-e2e-packed-cli-github-report
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 4901
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-82a8ea3aa59d132c4a5f1b40
+    test_id: TEST-kibi-github-report-e2e
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-github-report-e2e
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-github-report-e2e
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dea1a8d20393c9e2212505a158b80a73843c68d9ea042614fc6c80fa98589b28
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:31:12.688Z'
+    finished_at: '2026-08-23T19:31:17.383Z'
+    artifact_digest: 7c62f866cbc2090a6a78134a69c06fdd4f658d39011b83cf0a984f01016af814
+    contract_hash: 5b7116040fb30890f2c87a63ffded85d91bdb989a4c89aaed02c2f78dd865fdc
+    case_results:
+      - symbol_id: SYM-e2e-packed-cli-github-report
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 4695
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-96186e166a8df0079d1f6875
+    test_id: TEST-kibi-github-report-e2e
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-github-report-e2e
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-github-report-e2e
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dcfad834bdf07e98adee34ec88d018b898fcdad42b22ba99a91adbfd48ff7459
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:57:24.746Z'
+    finished_at: '2026-08-23T19:57:29.504Z'
+    artifact_digest: 184c1ccd1b3ae175b13f53f088114d86b1ab768677f10e628efe71b96a4124c4
+    contract_hash: 5b7116040fb30890f2c87a63ffded85d91bdb989a4c89aaed02c2f78dd865fdc
+    case_results:
+      - symbol_id: SYM-e2e-packed-cli-github-report
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 4758
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-0009f7e63cd7431e7c1a0ba2
+    test_id: TEST-kibi-github-report-e2e
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-github-report-e2e
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-github-report-e2e
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 14ca65ca0dd701b64b6b9dc632e9eeda9ed796c6b816a70fbd6b50db303194cc
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:24:51.608Z'
+    finished_at: '2026-08-23T20:24:56.282Z'
+    artifact_digest: 45270944e11e1d7d773856cb115d287e5d41869f0d3f637e0d0fc7cb688b2e7b
+    contract_hash: 5b7116040fb30890f2c87a63ffded85d91bdb989a4c89aaed02c2f78dd865fdc
+    case_results:
+      - symbol_id: SYM-e2e-packed-cli-github-report
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 4674
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-9f52a99d5a9da2a262422f4d
+    test_id: TEST-kibi-github-report-e2e
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-github-report-e2e
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-github-report-e2e
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 3ee001d32bb209a819714ba2e42edd8ab694bfb5be890192445fb7e202afb01b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:50:57.864Z'
+    finished_at: '2026-08-23T20:51:02.445Z'
+    artifact_digest: 9e860beedb39b12344aaf6190f523e6c4b914373304873b018c2e77eb526b0cd
+    contract_hash: 5b7116040fb30890f2c87a63ffded85d91bdb989a4c89aaed02c2f78dd865fdc
+    case_results:
+      - symbol_id: SYM-e2e-packed-cli-github-report
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 4581
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-8c50fd66a1172ab4d363fea1
+    test_id: TEST-kibi-github-report-e2e
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-github-report-e2e
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-github-report-e2e
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8da5165ebb43b8ee33c18ba479134826479b9cecae4caf47c854dd2a844555c7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:31:23.652Z'
+    finished_at: '2026-08-23T22:31:28.092Z'
+    artifact_digest: c5b37a77cbf0e27f768be0d72b1ac9b59cb85334528f4266dc4b9aa2e8205067
+    contract_hash: 5b7116040fb30890f2c87a63ffded85d91bdb989a4c89aaed02c2f78dd865fdc
+    case_results:
+      - symbol_id: SYM-e2e-packed-cli-github-report
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 4440
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-50897bb634ea677db0a20dcd
+    test_id: TEST-kibi-github-report-e2e
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-github-report-e2e
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-github-report-e2e
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 9506b01b3f5194b44f47602b13261ce3139304cec73818f4b0553c152eb51048
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:57:44.036Z'
+    finished_at: '2026-08-23T22:57:48.535Z'
+    artifact_digest: fed282fb6f6fefcfa06df251aa7f01dd3cb4ad90f90fb2a1458a04f12c75db12
+    contract_hash: 5b7116040fb30890f2c87a63ffded85d91bdb989a4c89aaed02c2f78dd865fdc
+    case_results:
+      - symbol_id: SYM-e2e-packed-cli-github-report
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 4499
 ---

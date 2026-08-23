@@ -118,3 +118,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8e7c8702d79c
+  - type: covered_by
+    from: SYM-parity-upsert-input-type
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:38:59.432Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0d29f01c141
+  - type: implements
+    from: SYM-parity-upsert-input-type
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:05:04.042Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa7f53205329
+  - type: covered_by
+    from: SYM-parity-upsert-input-type
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:05:04.068Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e75c92eb55cd

@@ -452,6 +452,174 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 13322
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-5c24bda0a700236348773415
+    test_id: TEST-kibi-dependency-ordered-repair-plan
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-dependency-ordered-repair-plan
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-dependency-ordered-repair-plan
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ee22ec51c9bc3153aa0a330d71805a1c8ce310bf3a763dc346ad13e15071ba11
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T12:12:40.665Z'
+    finished_at: '2026-08-23T12:12:52.826Z'
+    artifact_digest: 7975bf2418ce0e9223d3f6613d39e1bd0715f3608cd2d5b5ea6579f14453d9cc
+    contract_hash: d43e430d659807bd75415740e9e35956c73ebac70f8b23b8c18f9ce1a42ba4c3
+    case_results:
+      - symbol_id: SYM-test-packed-dependency-ordered-repair-plan
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 12161
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-f415251bdab1e68d6431b665
+    test_id: TEST-kibi-dependency-ordered-repair-plan
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-dependency-ordered-repair-plan
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-dependency-ordered-repair-plan
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dea1a8d20393c9e2212505a158b80a73843c68d9ea042614fc6c80fa98589b28
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:12:28.354Z'
+    finished_at: '2026-08-23T19:12:40.827Z'
+    artifact_digest: c8cdedd7c25a5750092594268247b3167f7ac9b20deb0a6c34910d81b00719f8
+    contract_hash: d43e430d659807bd75415740e9e35956c73ebac70f8b23b8c18f9ce1a42ba4c3
+    case_results:
+      - symbol_id: SYM-test-packed-dependency-ordered-repair-plan
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 12473
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-be832ca6bdf87fe61ee708d9
+    test_id: TEST-kibi-dependency-ordered-repair-plan
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-dependency-ordered-repair-plan
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-dependency-ordered-repair-plan
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dcfad834bdf07e98adee34ec88d018b898fcdad42b22ba99a91adbfd48ff7459
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:38:38.440Z'
+    finished_at: '2026-08-23T19:38:51.383Z'
+    artifact_digest: 30f2190ee1ea4ec2d11453f76cb63306ee6d7c95c7283cd4a8b9fe83d460a9c9
+    contract_hash: d43e430d659807bd75415740e9e35956c73ebac70f8b23b8c18f9ce1a42ba4c3
+    case_results:
+      - symbol_id: SYM-test-packed-dependency-ordered-repair-plan
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 12943
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-8c0e540f35c54b493689ae87
+    test_id: TEST-kibi-dependency-ordered-repair-plan
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-dependency-ordered-repair-plan
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-dependency-ordered-repair-plan
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 14ca65ca0dd701b64b6b9dc632e9eeda9ed796c6b816a70fbd6b50db303194cc
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:06:33.825Z'
+    finished_at: '2026-08-23T20:06:46.751Z'
+    artifact_digest: 05072cbc75f11e473505f6d113ee01330b0f4266a8f099875fb94ac7cf2292e0
+    contract_hash: d43e430d659807bd75415740e9e35956c73ebac70f8b23b8c18f9ce1a42ba4c3
+    case_results:
+      - symbol_id: SYM-test-packed-dependency-ordered-repair-plan
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 12926
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-36a5b38a9a8929056bbde028
+    test_id: TEST-kibi-dependency-ordered-repair-plan
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-dependency-ordered-repair-plan
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-dependency-ordered-repair-plan
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 3ee001d32bb209a819714ba2e42edd8ab694bfb5be890192445fb7e202afb01b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:32:52.767Z'
+    finished_at: '2026-08-23T20:33:05.428Z'
+    artifact_digest: d0882f0740dfbc4fffb15e8d6e960ec98a58a32d1f96a5b2a601f8e23049da28
+    contract_hash: d43e430d659807bd75415740e9e35956c73ebac70f8b23b8c18f9ce1a42ba4c3
+    case_results:
+      - symbol_id: SYM-test-packed-dependency-ordered-repair-plan
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 12661
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-b4c7778f7305e8504e45a689
+    test_id: TEST-kibi-dependency-ordered-repair-plan
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-dependency-ordered-repair-plan
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-dependency-ordered-repair-plan
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8da5165ebb43b8ee33c18ba479134826479b9cecae4caf47c854dd2a844555c7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:13:43.884Z'
+    finished_at: '2026-08-23T22:13:55.944Z'
+    artifact_digest: 24d3b72cc100b5ad64a5974e7db1b4954b6bc4c1c55d1859bc07cb55949d66de
+    contract_hash: d43e430d659807bd75415740e9e35956c73ebac70f8b23b8c18f9ce1a42ba4c3
+    case_results:
+      - symbol_id: SYM-test-packed-dependency-ordered-repair-plan
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 12060
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-3168a688da60c288d54fc7f8
+    test_id: TEST-kibi-dependency-ordered-repair-plan
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-dependency-ordered-repair-plan
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-dependency-ordered-repair-plan
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 9506b01b3f5194b44f47602b13261ce3139304cec73818f4b0553c152eb51048
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:39:54.425Z'
+    finished_at: '2026-08-23T22:40:06.557Z'
+    artifact_digest: 4ce3bf1882279208b9ba223a6f5c82a6cde17fb7f989f27c357929bf63fef9d2
+    contract_hash: d43e430d659807bd75415740e9e35956c73ebac70f8b23b8c18f9ce1a42ba4c3
+    case_results:
+      - symbol_id: SYM-test-packed-dependency-ordered-repair-plan
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 12132
 tags:
   - requirements
   - proof

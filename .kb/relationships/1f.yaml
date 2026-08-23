@@ -125,3 +125,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-afa2ae82873d
+  - type: covered_by
+    from: SYM-parity-validated-upsert-type
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:39:16.408Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0a37ed38a99
+  - type: implements
+    from: SYM-parity-validated-upsert-type
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:05:42.926Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fdbb63403a78
+  - type: covered_by
+    from: SYM-parity-validated-upsert-type
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:05:42.932Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79508e85aa2e

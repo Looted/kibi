@@ -20,13 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-12fa4b0308ba
-  - type: implements
-    from: SYM-auto-F8534C607C20
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-15T22:22:13.033Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4058b0affdf8
   - type: covered_by
     from: SYM-auto-F8534C607C20
     to: TEST-kibi-operation-interface-parity
@@ -83,3 +76,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c45fb11cd811
+  - type: implements
+    from: SYM-auto-F8534C607C20
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:56:35.363Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4058b0affdf8
+  - type: covered_by
+    from: SYM-auto-F8534C607C20
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:56:35.368Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0513a6a5cc6a

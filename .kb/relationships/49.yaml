@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-39eef1510df1
-    type: implements
-    from: SYM-auto-B722155D82DD
-    to: REQ-kibi-operation-interface-parity
-    created_at: "2026-08-15T22:22:17.617Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: implements
     from: SYM-skillopt-operator-base-resolution-options
     to: REQ-skillopt-codex-optimization
@@ -69,3 +62,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-60c0d59e4127
+  - type: implements
+    from: SYM-auto-B722155D82DD
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:55:22.551Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39eef1510df1
+  - type: covered_by
+    from: SYM-auto-B722155D82DD
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:55:22.554Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f98b58a1dbf5

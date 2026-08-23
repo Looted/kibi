@@ -465,6 +465,174 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 11625
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-d821c49179eaf81b4f0bb007
+    test_id: TEST-kibi-verification-evidence-contract
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-verification-evidence-contract
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-verification-evidence-contract
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ee22ec51c9bc3153aa0a330d71805a1c8ce310bf3a763dc346ad13e15071ba11
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T12:15:53.516Z'
+    finished_at: '2026-08-23T12:16:05.193Z'
+    artifact_digest: 100fe4b97ef2ebceef06c313417c8a829a0a74fc9664aa0f5ce03f13e73d0518
+    contract_hash: c40f5a8fa17d333c96838383091b2c2b85d3cdf8ef9f32a46eba32a3f903ef2c
+    case_results:
+      - symbol_id: SYM-test-packed-fresh-verification-receipts
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11677
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-e4421a239535e5eaef013d3b
+    test_id: TEST-kibi-verification-evidence-contract
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-verification-evidence-contract
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-verification-evidence-contract
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dea1a8d20393c9e2212505a158b80a73843c68d9ea042614fc6c80fa98589b28
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:15:52.622Z'
+    finished_at: '2026-08-23T19:16:04.923Z'
+    artifact_digest: 36f9235fcdf90fbc1647176d35ec1376b1c0466e0124207586fbba85d2b7cdb4
+    contract_hash: c40f5a8fa17d333c96838383091b2c2b85d3cdf8ef9f32a46eba32a3f903ef2c
+    case_results:
+      - symbol_id: SYM-test-packed-fresh-verification-receipts
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 12301
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-031abd8a18ce6c09ba945fac
+    test_id: TEST-kibi-verification-evidence-contract
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-verification-evidence-contract
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-verification-evidence-contract
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dcfad834bdf07e98adee34ec88d018b898fcdad42b22ba99a91adbfd48ff7459
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:42:02.414Z'
+    finished_at: '2026-08-23T19:42:14.312Z'
+    artifact_digest: c5c22e8b0cbe897836c3dc27ecb97c8267bb3300f71ec01e9cdfb5ef3641ead2
+    contract_hash: c40f5a8fa17d333c96838383091b2c2b85d3cdf8ef9f32a46eba32a3f903ef2c
+    case_results:
+      - symbol_id: SYM-test-packed-fresh-verification-receipts
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11898
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-88da6984b073f044a88687be
+    test_id: TEST-kibi-verification-evidence-contract
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-verification-evidence-contract
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-verification-evidence-contract
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 14ca65ca0dd701b64b6b9dc632e9eeda9ed796c6b816a70fbd6b50db303194cc
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:09:50.849Z'
+    finished_at: '2026-08-23T20:10:02.631Z'
+    artifact_digest: f53763e15890eccf62ed2b04bc9a969d860fe6d8b75bfc1aaca947a667e49e01
+    contract_hash: c40f5a8fa17d333c96838383091b2c2b85d3cdf8ef9f32a46eba32a3f903ef2c
+    case_results:
+      - symbol_id: SYM-test-packed-fresh-verification-receipts
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11782
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-bf7e3929516e34b068c676dd
+    test_id: TEST-kibi-verification-evidence-contract
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-verification-evidence-contract
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-verification-evidence-contract
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 3ee001d32bb209a819714ba2e42edd8ab694bfb5be890192445fb7e202afb01b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:36:08.910Z'
+    finished_at: '2026-08-23T20:36:20.981Z'
+    artifact_digest: f4b19ea95a1cac8ca9eb7ff204c27c4c9259ecf336a9fba215db7da66868502f
+    contract_hash: c40f5a8fa17d333c96838383091b2c2b85d3cdf8ef9f32a46eba32a3f903ef2c
+    case_results:
+      - symbol_id: SYM-test-packed-fresh-verification-receipts
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 12071
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-07c51d5cbf079296528d55ab
+    test_id: TEST-kibi-verification-evidence-contract
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-verification-evidence-contract
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-verification-evidence-contract
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8da5165ebb43b8ee33c18ba479134826479b9cecae4caf47c854dd2a844555c7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:16:52.168Z'
+    finished_at: '2026-08-23T22:17:03.318Z'
+    artifact_digest: 9bd84e6d2219806ea1bf3b96578678829b6ada52b033ad6e04e5c0e0a4ccca4b
+    contract_hash: c40f5a8fa17d333c96838383091b2c2b85d3cdf8ef9f32a46eba32a3f903ef2c
+    case_results:
+      - symbol_id: SYM-test-packed-fresh-verification-receipts
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11150
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-3be8afc5313cdf5ea8da8980
+    test_id: TEST-kibi-verification-evidence-contract
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-verification-evidence-contract
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-verification-evidence-contract
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 9506b01b3f5194b44f47602b13261ce3139304cec73818f4b0553c152eb51048
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:43:04.165Z'
+    finished_at: '2026-08-23T22:43:15.707Z'
+    artifact_digest: 2051aacd1fc065de19cc6b5d834367f8504a46ccf0105fb70f49d65a7e070e3f
+    contract_hash: c40f5a8fa17d333c96838383091b2c2b85d3cdf8ef9f32a46eba32a3f903ef2c
+    case_results:
+      - symbol_id: SYM-test-packed-fresh-verification-receipts
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11542
 ---
 
 Receipt and reporter tests verify stable case IDs, contract and snapshot binding, append-only history across contract evolution, exact argv capture, first-attempt proof semantics, and rejection of stale, skipped, retried, partial, or mismatched runs. Earlier-contract receipts remain immutable audit evidence, while only a receipt for the current contract and snapshot contributes proof.

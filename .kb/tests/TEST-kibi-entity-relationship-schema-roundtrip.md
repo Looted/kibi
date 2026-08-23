@@ -497,6 +497,209 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 23975
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-8402df26f71069735c8a2ac9
+    test_id: TEST-kibi-entity-relationship-schema-roundtrip
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-entity-relationship-schema-roundtrip
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-entity-relationship-schema-roundtrip
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ee22ec51c9bc3153aa0a330d71805a1c8ce310bf3a763dc346ad13e15071ba11
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T12:14:34.171Z'
+    finished_at: '2026-08-23T12:14:57.169Z'
+    artifact_digest: 2a285e29eee683d60ff98986de4662f1f2a62dd6546967dece049bde79ab9423
+    contract_hash: 639cec8caf7c418fcf0af268fe5f77ef2aca798443fa404ac99f2e48e61c6e68
+    case_results:
+      - symbol_id: SYM-test-packed-eight-entity-schema-roundtrip
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 22998
+      - symbol_id: SYM-test-packed-typed-relationship-roundtrip
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 22998
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-56ff959f6082d873e86e6ece
+    test_id: TEST-kibi-entity-relationship-schema-roundtrip
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-entity-relationship-schema-roundtrip
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-entity-relationship-schema-roundtrip
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dea1a8d20393c9e2212505a158b80a73843c68d9ea042614fc6c80fa98589b28
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:14:30.852Z'
+    finished_at: '2026-08-23T19:14:54.500Z'
+    artifact_digest: e49e01c0d0db60909bd1eb8e789dff540d016ae40d950e72596f7897af391893
+    contract_hash: 639cec8caf7c418fcf0af268fe5f77ef2aca798443fa404ac99f2e48e61c6e68
+    case_results:
+      - symbol_id: SYM-test-packed-eight-entity-schema-roundtrip
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 23648
+      - symbol_id: SYM-test-packed-typed-relationship-roundtrip
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 23648
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-ef94d7de8c31140ab47d5269
+    test_id: TEST-kibi-entity-relationship-schema-roundtrip
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-entity-relationship-schema-roundtrip
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-entity-relationship-schema-roundtrip
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dcfad834bdf07e98adee34ec88d018b898fcdad42b22ba99a91adbfd48ff7459
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:40:38.879Z'
+    finished_at: '2026-08-23T19:41:02.455Z'
+    artifact_digest: c4aa8e4b5f8ad070d08d7e30f1e6467afde1368c3b8f966bccd9ea0b234a4e5f
+    contract_hash: 639cec8caf7c418fcf0af268fe5f77ef2aca798443fa404ac99f2e48e61c6e68
+    case_results:
+      - symbol_id: SYM-test-packed-eight-entity-schema-roundtrip
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 23576
+      - symbol_id: SYM-test-packed-typed-relationship-roundtrip
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 23576
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-f7340c96f4064696f9790c7a
+    test_id: TEST-kibi-entity-relationship-schema-roundtrip
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-entity-relationship-schema-roundtrip
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-entity-relationship-schema-roundtrip
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 14ca65ca0dd701b64b6b9dc632e9eeda9ed796c6b816a70fbd6b50db303194cc
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:08:30.911Z'
+    finished_at: '2026-08-23T20:08:54.057Z'
+    artifact_digest: 55622196be11d46c1532102203ea872b1c450ce875a69d0f26ba07638cd539d0
+    contract_hash: 639cec8caf7c418fcf0af268fe5f77ef2aca798443fa404ac99f2e48e61c6e68
+    case_results:
+      - symbol_id: SYM-test-packed-eight-entity-schema-roundtrip
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 23146
+      - symbol_id: SYM-test-packed-typed-relationship-roundtrip
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 23146
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-779bd674e43cd39040aa460c
+    test_id: TEST-kibi-entity-relationship-schema-roundtrip
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-entity-relationship-schema-roundtrip
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-entity-relationship-schema-roundtrip
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 3ee001d32bb209a819714ba2e42edd8ab694bfb5be890192445fb7e202afb01b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:34:48.626Z'
+    finished_at: '2026-08-23T20:35:12.008Z'
+    artifact_digest: 8be8895602c2db339ac88921b9cd79fb1fbf55b119036ccb7418666bbccda430
+    contract_hash: 639cec8caf7c418fcf0af268fe5f77ef2aca798443fa404ac99f2e48e61c6e68
+    case_results:
+      - symbol_id: SYM-test-packed-eight-entity-schema-roundtrip
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 23382
+      - symbol_id: SYM-test-packed-typed-relationship-roundtrip
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 23382
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-d70699f3b41ccb66072e874d
+    test_id: TEST-kibi-entity-relationship-schema-roundtrip
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-entity-relationship-schema-roundtrip
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-entity-relationship-schema-roundtrip
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8da5165ebb43b8ee33c18ba479134826479b9cecae4caf47c854dd2a844555c7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:15:35.307Z'
+    finished_at: '2026-08-23T22:15:57.853Z'
+    artifact_digest: 0e446df822c538ab86ff4a41ab0aa838569a84747a2b370bf0cbee4394bdc3bb
+    contract_hash: 639cec8caf7c418fcf0af268fe5f77ef2aca798443fa404ac99f2e48e61c6e68
+    case_results:
+      - symbol_id: SYM-test-packed-eight-entity-schema-roundtrip
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 22546
+      - symbol_id: SYM-test-packed-typed-relationship-roundtrip
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 22546
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-f91aff3b59f02ddc090f33b4
+    test_id: TEST-kibi-entity-relationship-schema-roundtrip
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-entity-relationship-schema-roundtrip
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-entity-relationship-schema-roundtrip
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 9506b01b3f5194b44f47602b13261ce3139304cec73818f4b0553c152eb51048
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:41:46.622Z'
+    finished_at: '2026-08-23T22:42:09.229Z'
+    artifact_digest: e086be635d61dcc12aeb27a965647e593747397c34c17276926fead4a466d429
+    contract_hash: 639cec8caf7c418fcf0af268fe5f77ef2aca798443fa404ac99f2e48e61c6e68
+    case_results:
+      - symbol_id: SYM-test-packed-eight-entity-schema-roundtrip
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 22607
+      - symbol_id: SYM-test-packed-typed-relationship-roundtrip
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 22607
 ---
 
 Asserts that:

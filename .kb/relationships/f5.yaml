@@ -55,3 +55,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-78b904546e3e
+  - type: covered_by
+    from: SYM-cli-diagnostic-telemetry-type
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:35:55.270Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40f2ce068a3c
+  - type: implements
+    from: SYM-cli-diagnostic-telemetry-type
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:58:11.921Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e0f944c07e2
+  - type: covered_by
+    from: SYM-cli-diagnostic-telemetry-type
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:58:11.924Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85b472f586b0

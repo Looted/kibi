@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-aeeaa9555ca3
-    type: implements
-    from: SYM-auto-2A53383A4D89
-    to: REQ-kibi-operation-interface-parity
-    created_at: "2026-08-15T22:22:21.459Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: covered_by
     from: SYM-auto-2A53383A4D89
     to: TEST-kibi-operation-interface-parity
@@ -118,3 +111,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6336fe64e3ad
+  - type: covered_by
+    from: SYM-runtime-Clock
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:39:49.376Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7ba733546d2
+  - type: covered_by
+    from: SYM-runtime-OperationRuntime
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:40:33.260Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb73f42d0d5a
+  - type: implements
+    from: SYM-auto-2A53383A4D89
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:51:56.929Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aeeaa9555ca3
+  - type: covered_by
+    from: SYM-auto-2A53383A4D89
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:51:56.934Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d40e2f8e321d
+  - type: implements
+    from: SYM-runtime-Clock
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:06:55.963Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9462fa9c5ae5
+  - type: covered_by
+    from: SYM-runtime-Clock
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:06:55.971Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9da44c861d36
+  - type: implements
+    from: SYM-runtime-OperationRuntime
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:08:41.571Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63d8b175d875
+  - type: covered_by
+    from: SYM-runtime-OperationRuntime
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:08:41.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2cdc538d9ba

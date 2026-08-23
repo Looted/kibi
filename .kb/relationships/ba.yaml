@@ -90,3 +90,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ee04040d2ecb
+  - type: covered_by
+    from: SYM-cli-prepared-input-result-type
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:36:30.772Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-316867926665
+  - type: implements
+    from: SYM-cli-prepared-input-result-type
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:59:27.547Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a582241f1d1e
+  - type: covered_by
+    from: SYM-cli-prepared-input-result-type
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:59:27.551Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4606790c4e77

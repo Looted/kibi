@@ -122,3 +122,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9fe98bc2a629
+  - type: covered_by
+    from: SYM-runtime-McpSession
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:40:15.764Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f454bee9c3fe
+  - type: implements
+    from: SYM-runtime-McpSession
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:07:58.050Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96e649ae77ae
+  - type: covered_by
+    from: SYM-runtime-McpSession
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:07:58.084Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34c4afc3c91e

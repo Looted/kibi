@@ -415,6 +415,174 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 16202
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-dbc099b015cebe97a85dd19c
+    test_id: TEST-kibi-intent-aware-source-discovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-intent-aware-source-discovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-intent-aware-source-discovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ee22ec51c9bc3153aa0a330d71805a1c8ce310bf3a763dc346ad13e15071ba11
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T12:30:33.827Z'
+    finished_at: '2026-08-23T12:30:49.368Z'
+    artifact_digest: 31d0d4d2b249e566ef0d876332cb692c572577c984291da743c2285150335427
+    contract_hash: 9ff77301c476e0962c5534b44d4bbbb046053837c3e6551db603fad8d291d21f
+    case_results:
+      - symbol_id: SYM-test-kibi-intent-aware-source-discovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 15541
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-9a2b11ceb4d366271a8a5691
+    test_id: TEST-kibi-intent-aware-source-discovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-intent-aware-source-discovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-intent-aware-source-discovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dea1a8d20393c9e2212505a158b80a73843c68d9ea042614fc6c80fa98589b28
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:30:51.011Z'
+    finished_at: '2026-08-23T19:31:06.773Z'
+    artifact_digest: e7237ed7f2cb0333ae1da4b0a805a39ddc75a18fc863245c0851c1c1fa8ed58c
+    contract_hash: 9ff77301c476e0962c5534b44d4bbbb046053837c3e6551db603fad8d291d21f
+    case_results:
+      - symbol_id: SYM-test-kibi-intent-aware-source-discovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 15762
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-493db7f10523109bb19606f8
+    test_id: TEST-kibi-intent-aware-source-discovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-intent-aware-source-discovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-intent-aware-source-discovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dcfad834bdf07e98adee34ec88d018b898fcdad42b22ba99a91adbfd48ff7459
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:57:03.787Z'
+    finished_at: '2026-08-23T19:57:19.027Z'
+    artifact_digest: 14e1187c27a95d85b83cd54d3c922a4048872f581a50f6f4177dd319df1b56cd
+    contract_hash: 9ff77301c476e0962c5534b44d4bbbb046053837c3e6551db603fad8d291d21f
+    case_results:
+      - symbol_id: SYM-test-kibi-intent-aware-source-discovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 15240
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-267af7f840e947334f5fba4d
+    test_id: TEST-kibi-intent-aware-source-discovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-intent-aware-source-discovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-intent-aware-source-discovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 14ca65ca0dd701b64b6b9dc632e9eeda9ed796c6b816a70fbd6b50db303194cc
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:24:31.062Z'
+    finished_at: '2026-08-23T20:24:46.340Z'
+    artifact_digest: b64be543bd638cb440bd85f630729b377fda819689e836ec5f5d4a775411e63a
+    contract_hash: 9ff77301c476e0962c5534b44d4bbbb046053837c3e6551db603fad8d291d21f
+    case_results:
+      - symbol_id: SYM-test-kibi-intent-aware-source-discovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 15278
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-61ff6273e3db6afbe87b02f4
+    test_id: TEST-kibi-intent-aware-source-discovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-intent-aware-source-discovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-intent-aware-source-discovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 3ee001d32bb209a819714ba2e42edd8ab694bfb5be890192445fb7e202afb01b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:50:38.048Z'
+    finished_at: '2026-08-23T20:50:52.828Z'
+    artifact_digest: be82cf203b7956fbb07567128175abac9e0481be2211fb0735e84034ebde063b
+    contract_hash: 9ff77301c476e0962c5534b44d4bbbb046053837c3e6551db603fad8d291d21f
+    case_results:
+      - symbol_id: SYM-test-kibi-intent-aware-source-discovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 14780
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-786b6f54e8026d7c178deb12
+    test_id: TEST-kibi-intent-aware-source-discovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-intent-aware-source-discovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-intent-aware-source-discovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8da5165ebb43b8ee33c18ba479134826479b9cecae4caf47c854dd2a844555c7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:31:03.917Z'
+    finished_at: '2026-08-23T22:31:18.520Z'
+    artifact_digest: c31eead9af1b4e217c30ed7d72885ad323c29679f625388c6b3a898d95e060e3
+    contract_hash: 9ff77301c476e0962c5534b44d4bbbb046053837c3e6551db603fad8d291d21f
+    case_results:
+      - symbol_id: SYM-test-kibi-intent-aware-source-discovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 14603
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-e70f3b3e008896197c7bf93f
+    test_id: TEST-kibi-intent-aware-source-discovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-intent-aware-source-discovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-intent-aware-source-discovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 9506b01b3f5194b44f47602b13261ce3139304cec73818f4b0553c152eb51048
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:57:23.822Z'
+    finished_at: '2026-08-23T22:57:38.396Z'
+    artifact_digest: 56fcb3ab9c8f1e901f03c38132b0bf7f332b9311a66ad7004503eefc0a0a4892
+    contract_hash: 9ff77301c476e0962c5534b44d4bbbb046053837c3e6551db603fad8d291d21f
+    case_results:
+      - symbol_id: SYM-test-kibi-intent-aware-source-discovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 14574
 ---
 
 The CLI and MCP search contracts accept natural-language intent, return stable ranked entities, include source-linked evidence and graph paths, and preserve explicit zero-result behavior. Unit and operation parity tests cover lexical fallback, source filters, relationship filters, and deterministic ordering.

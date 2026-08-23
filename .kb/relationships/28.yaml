@@ -115,3 +115,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-228759508f26
+  - type: covered_by
+    from: SYM-cli-delete-input-type
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:35:45.700Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17b20d7bfc59
+  - type: implements
+    from: SYM-cli-delete-input-type
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:57:44.917Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3bfd873476df
+  - type: covered_by
+    from: SYM-cli-delete-input-type
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:57:44.921Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b1bb10c5002

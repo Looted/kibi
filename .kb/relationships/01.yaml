@@ -69,3 +69,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e0a40e26cf79
+  - type: covered_by
+    from: SYM-discovery-status-input
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:37:35.674Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c07a65dcfa3
+  - type: implements
+    from: SYM-discovery-status-input
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:01:32.461Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c0d04c697fd
+  - type: covered_by
+    from: SYM-discovery-status-input
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:01:32.486Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-780bd0274e77

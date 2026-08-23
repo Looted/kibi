@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-75178f1d88d0
-    type: implements
-    from: SYM-auto-4533A0DDA5BD
-    to: REQ-kibi-operation-interface-parity
-    created_at: "2026-08-15T22:16:40.648Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: implements
     from: SYM-auto-4533A0DDA5BD
     to: REQ-core-atomic-upsert-persistence
@@ -167,3 +160,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0e107b1be851
+  - type: implements
+    from: SYM-auto-4533A0DDA5BD
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:52:56.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75178f1d88d0
+  - type: covered_by
+    from: SYM-auto-4533A0DDA5BD
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:52:56.502Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f91bd9bd28bd

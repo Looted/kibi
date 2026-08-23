@@ -488,6 +488,174 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 10125
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-685fc07677bc27cc489b69eb
+    test_id: TEST-kibi-ontology-convergence-witnesses
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-ontology-convergence-witnesses
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-ontology-convergence-witnesses
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ee22ec51c9bc3153aa0a330d71805a1c8ce310bf3a763dc346ad13e15071ba11
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T12:15:02.242Z'
+    finished_at: '2026-08-23T12:15:12.217Z'
+    artifact_digest: ca91448ee91b29f77e52192a478eced13d430ab00c304bbf8563372e65cf1e54
+    contract_hash: 8d613b550ceb1c1a07871a02082b3c852b93cda190bdf5e126f1aa3e79e84299
+    case_results:
+      - symbol_id: SYM-test-packed-ontology-convergence-witnesses
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 9975
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-569593550b9359543efad9ce
+    test_id: TEST-kibi-ontology-convergence-witnesses
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-ontology-convergence-witnesses
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-ontology-convergence-witnesses
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dea1a8d20393c9e2212505a158b80a73843c68d9ea042614fc6c80fa98589b28
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:15:00.552Z'
+    finished_at: '2026-08-23T19:15:10.250Z'
+    artifact_digest: 840e08e935b53832b588d25f9d88efe560f9135cd162a2ce0e77cbe1ecf8647d
+    contract_hash: 8d613b550ceb1c1a07871a02082b3c852b93cda190bdf5e126f1aa3e79e84299
+    case_results:
+      - symbol_id: SYM-test-packed-ontology-convergence-witnesses
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 9698
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-180892f0378d997935c39395
+    test_id: TEST-kibi-ontology-convergence-witnesses
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-ontology-convergence-witnesses
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-ontology-convergence-witnesses
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dcfad834bdf07e98adee34ec88d018b898fcdad42b22ba99a91adbfd48ff7459
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:41:08.990Z'
+    finished_at: '2026-08-23T19:41:19.174Z'
+    artifact_digest: 32af49fbb9b7f4f5e102bf2a4f161b6fefd892ef0b95ce84aefd12e80a076d9e
+    contract_hash: 8d613b550ceb1c1a07871a02082b3c852b93cda190bdf5e126f1aa3e79e84299
+    case_results:
+      - symbol_id: SYM-test-packed-ontology-convergence-witnesses
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 10184
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-56336915e463b1be7f8b368c
+    test_id: TEST-kibi-ontology-convergence-witnesses
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-ontology-convergence-witnesses
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-ontology-convergence-witnesses
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 14ca65ca0dd701b64b6b9dc632e9eeda9ed796c6b816a70fbd6b50db303194cc
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:08:59.502Z'
+    finished_at: '2026-08-23T20:09:09.185Z'
+    artifact_digest: c620928c1232433e058787e1ad7c5441e66d9d1e5beadf375f3915fbc6d312f4
+    contract_hash: 8d613b550ceb1c1a07871a02082b3c852b93cda190bdf5e126f1aa3e79e84299
+    case_results:
+      - symbol_id: SYM-test-packed-ontology-convergence-witnesses
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 9683
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-e13f3aa3d90095fb06a924e5
+    test_id: TEST-kibi-ontology-convergence-witnesses
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-ontology-convergence-witnesses
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-ontology-convergence-witnesses
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 3ee001d32bb209a819714ba2e42edd8ab694bfb5be890192445fb7e202afb01b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:35:17.484Z'
+    finished_at: '2026-08-23T20:35:27.376Z'
+    artifact_digest: bc684fe65c5df6eb18595386d400e80cc4997bf2d096b0e285a863672b799c50
+    contract_hash: 8d613b550ceb1c1a07871a02082b3c852b93cda190bdf5e126f1aa3e79e84299
+    case_results:
+      - symbol_id: SYM-test-packed-ontology-convergence-witnesses
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 9892
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-727892e70a433ed0bde51e47
+    test_id: TEST-kibi-ontology-convergence-witnesses
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-ontology-convergence-witnesses
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-ontology-convergence-witnesses
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8da5165ebb43b8ee33c18ba479134826479b9cecae4caf47c854dd2a844555c7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:16:03.034Z'
+    finished_at: '2026-08-23T22:16:12.500Z'
+    artifact_digest: 21a7e7228cb1f255b8f454d3526464cc3179af82a030ec474b7808c9bf8adf9a
+    contract_hash: 8d613b550ceb1c1a07871a02082b3c852b93cda190bdf5e126f1aa3e79e84299
+    case_results:
+      - symbol_id: SYM-test-packed-ontology-convergence-witnesses
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 9466
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-dd02571382ce106814646373
+    test_id: TEST-kibi-ontology-convergence-witnesses
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-ontology-convergence-witnesses
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-ontology-convergence-witnesses
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 9506b01b3f5194b44f47602b13261ce3139304cec73818f4b0553c152eb51048
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:42:14.494Z'
+    finished_at: '2026-08-23T22:42:23.870Z'
+    artifact_digest: 21e1fc67bae3f25d0df619593e1b5ea11e61bd7680a67eeb2c99cdf2e763779e
+    contract_hash: 8d613b550ceb1c1a07871a02082b3c852b93cda190bdf5e126f1aa3e79e84299
+    case_results:
+      - symbol_id: SYM-test-packed-ontology-convergence-witnesses
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 9376
 tags:
   - requirements
   - ontology

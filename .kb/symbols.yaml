@@ -577,13 +577,16 @@ symbols:
         target: TEST-test-journaled-engine-harness
   - id: SYM-cli-discovery-command-options
     title: DiscoveryCommandOptions
+    status: active
     sourceFile: packages/cli/src/commands/discovery-shared.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-kibi-cli-src-cli-register-verification-ts-registerverificationcommand
     title: registerVerificationCommand
     sourceFile: packages/cli/src/cli-register-verification.ts
@@ -1212,13 +1215,16 @@ symbols:
         target: TEST-kibi-change-to-proof-evaluation
   - id: SYM-cli-discovery-deps
     title: DiscoveryDeps
+    status: active
     sourceFile: packages/cli/src/commands/discovery-shared.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-discovery-execute-reporting-spec
     title: executeReportingSpec
     status: active
@@ -1335,13 +1341,16 @@ symbols:
         target: TEST-core-journaled-engine-delta-sync
   - id: SYM-cli-discovery-entity-query-input
     title: EntityQueryInput
+    status: active
     sourceFile: packages/cli/src/public/operations/discovery-entities.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-discovery-valid-entity-types
     title: VALID_ENTITY_TYPES
     status: active
@@ -2830,22 +2839,28 @@ symbols:
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-command-result-type
     title: CommandResult
+    status: active
     sourceFile: packages/cli/src/cli-command.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-context-type
     title: CliContext
+    status: active
     sourceFile: packages/cli/src/cli-protocol.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-protocol-execute-operation
     title: executeOperation
     status: active
@@ -2864,31 +2879,40 @@ symbols:
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-delete-input-type
     title: DeleteInput
+    status: active
     sourceFile: packages/cli/src/operations/mutation/types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-delete-payload-type
     title: DeletePayload
+    status: active
     sourceFile: packages/cli/src/operations/mutation/types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-diagnostic-telemetry-type
     title: DiagnosticTelemetry
+    status: active
     sourceFile: packages/cli/src/cli-validate.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-discovery-renderCoverageTable
     title: renderCoverageTable
     sourceFile: packages/cli/src/commands/discovery-table.ts
@@ -3348,14 +3372,17 @@ symbols:
         target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-json-invocation-type
     title: JsonInvocation
+    status: active
     sourceFile: packages/cli/src/cli-json-command.ts
-    symbol_role: type-shape
     granularity_reason: legacy-link
+    symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-load-input
     title: loadInput
     status: active
@@ -3370,13 +3397,16 @@ symbols:
         target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-load-input-options-type
     title: LoadInputOptions
+    status: active
     sourceFile: packages/cli/src/cli-input.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-operation-error
     title: OperationError
     status: active
@@ -3490,13 +3520,16 @@ symbols:
         target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-prepared-input-result-type
     title: PreparedInputResult
+    status: active
     sourceFile: packages/cli/src/cli-validate.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-processExtractions
     title: processExtractions
     sourceFile: packages/cli/src/commands/sync/extraction.ts
@@ -3615,13 +3648,16 @@ symbols:
         target: TEST-004
   - id: SYM-cli-protocol-result-type
     title: CliProtocolResult
+    status: active
     sourceFile: packages/cli/src/cli-protocol.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-query-command
     title: queryCommand
     status: active
@@ -4297,7 +4333,8 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -4418,13 +4455,16 @@ symbols:
         target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-validation-result-type
     title: ValidationResult
+    status: active
     sourceFile: packages/cli/src/cli-validate.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-with-exit-code
     title: withExitCode
     status: active
@@ -6037,64 +6077,82 @@ symbols:
         target: REQ-mcp-search-discovery
   - id: SYM-discovery-query-input
     title: QueryInput
+    status: active
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    symbol_role: type-shape
     granularity_reason: legacy-link
+    symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-discovery-query-payload
     title: QueryPayload
+    status: active
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    symbol_role: type-shape
     granularity_reason: legacy-link
+    symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-discovery-search-input
     title: SearchInput
+    status: active
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    symbol_role: type-shape
     granularity_reason: legacy-link
+    symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-discovery-search-payload
     title: SearchPayload
+    status: active
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    symbol_role: type-shape
     granularity_reason: legacy-link
+    symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-discovery-status-input
     title: StatusInput
+    status: active
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    symbol_role: type-shape
     granularity_reason: legacy-link
+    symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-discovery-status-payload
     title: StatusPayload
+    status: active
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    symbol_role: type-shape
     granularity_reason: legacy-link
+    symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-DOC-RESOURCES
     title: DOC_RESOURCES
     status: active
@@ -6473,13 +6531,16 @@ symbols:
         target: TEST-007
   - id: SYM-ExtractedRequirementClaim
     title: ExtractedRequirementClaim
+    status: active
     sourceFile: packages/cli/src/operations/modeling/requirement-types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-002
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-002
   - id: SYM-ExtractedSymbol
     title: ExtractedSymbol
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
@@ -9794,13 +9855,16 @@ symbols:
         target: REQ-002
   - id: SYM-ModelRequirementArgs
     title: ModelRequirementArgs
+    status: active
     sourceFile: packages/cli/src/operations/modeling/requirement-types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-002
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-002
   - id: SYM-modelRequirementClaims
     title: modelRequirementClaims
     status: active
@@ -9814,15 +9878,16 @@ symbols:
         target: REQ-011
   - id: SYM-ModelRequirementResult
     title: ModelRequirementResult
+    status: active
     sourceFile: packages/cli/src/operations/modeling/requirement-types.ts
     symbol_role: type-shape
-    links:
-      - REQ-002
     relationships:
-      - type: implements
-        target: REQ-002
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-002
   - id: SYM-mutation-entity-properties-schema
     title: ENTITY_PROPERTIES_SCHEMA
     status: active
@@ -10000,34 +10065,43 @@ symbols:
         target: REQ-kibi-operation-interface-parity
   - id: SYM-operation-check-input
     title: CheckInput
+    status: active
     sourceFile: packages/cli/src/public/operations/check-executor.ts
-    symbol_role: type-shape
     granularity_reason: legacy-link
+    symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-operation-check-options
     title: CheckExecutionOptions
+    status: active
     sourceFile: packages/cli/src/public/operations/check-executor.ts
-    symbol_role: type-shape
     granularity_reason: legacy-link
+    symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-operation-check-payload
     title: CheckPayload
+    status: active
     sourceFile: packages/cli/src/public/operations/check-executor.ts
-    symbol_role: type-shape
     granularity_reason: legacy-link
+    symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-operation-check-spec
     title: checkSpec
     status: active
@@ -10042,14 +10116,16 @@ symbols:
         target: REQ-kibi-operation-interface-parity
   - id: SYM-operation-content-type
     title: OperationContent
+    status: active
     sourceFile: packages/cli/src/public/operations/types.ts
     symbol_role: type-shape
-    text_ref: packages/cli/src/public/operations/types.ts#OperationContent
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-operation-coverage-spec
     title: coverageSpec
     status: active
@@ -10085,13 +10161,16 @@ symbols:
         target: REQ-kibi-operation-interface-parity
   - id: SYM-operation-effect-type
     title: OperationEffect
+    status: active
     sourceFile: packages/cli/src/public/operations/types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-operation-execute-check
     title: executeCheck
     status: active
@@ -10156,13 +10235,16 @@ symbols:
         target: TEST-kibi-operation-interface-parity
   - id: SYM-operation-name-type
     title: OperationName
+    status: active
     sourceFile: packages/cli/src/public/operations/types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-operation-node-filesystem
     title: nodeFilesystem
     status: active
@@ -10213,13 +10295,16 @@ symbols:
         target: REQ-kibi-operation-interface-parity
   - id: SYM-operation-result-type
     title: OperationResult
+    status: active
     sourceFile: packages/cli/src/public/operations/types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-operation-search-spec
     title: searchSpec
     status: active
@@ -10287,22 +10372,28 @@ symbols:
         target: REQ-kibi-operation-interface-parity
   - id: SYM-operation-sparql-remote-input
     title: SparqlRemoteInput
+    status: active
     sourceFile: packages/cli/src/public/operations/specs/sparql.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-operation-sparql-remote-output
     title: SparqlRemoteOutput
+    status: active
     sourceFile: packages/cli/src/public/operations/specs/sparql.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-operation-sparql-remote-spec
     title: sparqlRemoteSpec
     status: active
@@ -10317,13 +10408,16 @@ symbols:
         target: REQ-kibi-operation-interface-parity
   - id: SYM-operation-spec-type
     title: OperationSpec
+    status: active
     sourceFile: packages/cli/src/public/operations/types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-operation-status-spec
     title: statusSpec
     status: active
@@ -10573,13 +10667,16 @@ symbols:
         target: REQ-kibi-operation-interface-parity
   - id: SYM-parity-relationship-input-type
     title: RelationshipInput
+    status: active
     sourceFile: packages/cli/src/operations/mutation/types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-parity-run-operation-json-query
     title: runOperationJsonQuery
     status: active
@@ -10626,22 +10723,28 @@ symbols:
         target: REQ-kibi-operation-interface-parity
   - id: SYM-parity-upsert-input-type
     title: UpsertInput
+    status: active
     sourceFile: packages/cli/src/operations/mutation/types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-parity-upsert-payload-type
     title: UpsertPayload
+    status: active
     sourceFile: packages/cli/src/operations/mutation/types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-parity-validate-live-relationship-targets
     title: validateLiveRelationshipTargets
     status: active
@@ -10680,22 +10783,28 @@ symbols:
         target: REQ-kibi-operation-interface-parity
   - id: SYM-parity-validate-upsert-payload-type
     title: ValidateUpsertPayload
+    status: active
     sourceFile: packages/cli/src/operations/mutation/types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-parity-validated-upsert-type
     title: ValidatedUpsert
+    status: active
     sourceFile: packages/cli/src/operations/mutation/types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-parseArgs
     title: parseArgs
     sourceFile: scripts/sync-agent-skills.ts
@@ -12025,130 +12134,172 @@ symbols:
         target: REQ-opencode-kibi-plugin-v1
   - id: SYM-runtime-Clock
     title: Clock
+    status: active
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-runtime-FilesystemPort
     title: FilesystemPort
+    status: active
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-runtime-FilesystemStat
     title: FilesystemStat
+    status: active
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-runtime-GitPort
     title: GitPort
+    status: active
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-runtime-McpOperationRuntime
     title: McpOperationRuntime
+    status: active
     sourceFile: packages/mcp/src/runtime/mcp-runtime.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-runtime-McpSession
     title: McpSession
+    status: active
     sourceFile: packages/mcp/src/runtime/mcp-runtime.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-runtime-NetworkPort
     title: NetworkPort
+    status: active
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-runtime-OperationContext
     title: OperationContext
+    status: active
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-runtime-OperationOutcome
     title: OperationOutcome
+    status: active
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-runtime-OperationRuntime
     title: OperationRuntime
+    status: active
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-runtime-PrologPort
     title: PrologPort
+    status: active
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-runtime-PrologQueryResult
     title: PrologQueryResult
+    status: active
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-runtime-RuntimeOperationSpec
     title: RuntimeOperationSpec
+    status: active
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-runtime-RuntimeOptions
     title: RuntimeOptions
+    status: active
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-RuntimeDegradedOverlay
     title: RuntimeDegradedOverlay
     status: active
@@ -20084,36 +20235,36 @@ symbols:
         target: TEST-skillopt-external-adoption-verdict
   - id: SYM-SparqlArgs
     title: SparqlArgs
-    sourceFile: packages/mcp/src/tools/sparql.ts
-    symbol_role: type-shape
-    granularity_reason: legacy-link
+    status: active
     owner: mcp-team
-    links:
-      - REQ-prolog-library-adoption
-      - REQ-002
+    sourceFile: packages/mcp/src/tools/sparql.ts
+    granularity_reason: legacy-link
+    symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-prolog-library-adoption
-      - type: implements
-        target: REQ-002
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-prolog-library-adoption-mcp
+      - type: implements
+        target: REQ-002
+      - type: implements
+        target: REQ-prolog-library-adoption
   - id: SYM-SparqlResult
     title: SparqlResult
-    sourceFile: packages/mcp/src/tools/sparql.ts
-    symbol_role: type-shape
-    granularity_reason: legacy-link
+    status: active
     owner: mcp-team
-    links:
-      - REQ-prolog-library-adoption
-      - REQ-002
+    sourceFile: packages/mcp/src/tools/sparql.ts
+    granularity_reason: legacy-link
+    symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-prolog-library-adoption
-      - type: implements
-        target: REQ-002
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-prolog-library-adoption-mcp
+      - type: implements
+        target: REQ-002
+      - type: implements
+        target: REQ-prolog-library-adoption
   - id: SYM-StableRequirementIds
     title: StableRequirementIds
     status: active
@@ -20233,16 +20384,18 @@ symbols:
         target: REQ-kibi-predicate-suggestion-relevance-v1
   - id: SYM-SuggestPredicatesArgs
     title: SuggestPredicatesArgs
+    status: active
     sourceFile: packages/cli/src/operations/modeling/predicate-types.ts
     symbol_role: type-shape
-    links:
-      - REQ-002
-      - REQ-mcp-suggest-predicates
     relationships:
-      - type: implements
-        target: REQ-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-mcp-suggest-predicates
+      - type: implements
+        target: REQ-002
+      - type: implements
+        target: REQ-mcp-suggest-predicates
   - id: SYM-SuggestPredicatesResult
     title: SuggestPredicatesResult
     sourceFile: packages/cli/src/operations/modeling/predicate-types.ts
@@ -21909,22 +22062,28 @@ symbols:
         target: TEST-cursor-agent-plugin-v1
   - id: SYM-mcp-status-StatusArgs
     title: StatusArgs
+    status: active
     sourceFile: packages/mcp/src/tools/status.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-mcp-status-StatusResult
     title: StatusResult
+    status: active
     sourceFile: packages/mcp/src/tools/status.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-logic-ir-LOGIC_IR_VERSION
     title: LOGIC_IR_VERSION
     status: active
@@ -23582,40 +23741,52 @@ symbols:
         target: REQ-kibi-operation-interface-parity
   - id: SYM-reqcompiler-find-gaps-input
     title: FindGapsInput
+    status: active
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-reqcompiler-find-gaps-payload
     title: FindGapsPayload
+    status: active
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-reqcompiler-graph-input
     title: GraphInput
+    status: active
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-reqcompiler-graph-payload
     title: GraphPayload
+    status: active
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-report-command
     title: reportCommand
     status: active
@@ -23928,8 +24099,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-branch-store-recovery
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-branch-store-recovery-v2
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-A4A826B82393
     title: gcCommand
     status: active
@@ -23984,6 +24159,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-operation-interface-parity
@@ -23993,6 +24170,8 @@ symbols:
     sourceFile: packages/cli/src/engine.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
@@ -24138,9 +24317,13 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-5E0D46927248
     title: validateAppendOnlyVerificationReceipts
     status: active
@@ -24162,9 +24345,13 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-2CA6B4FC2059
     title: SourceWritePlan
     status: active
@@ -24172,9 +24359,13 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-4024A7FE598A
     title: withContractDefaults
     status: active
@@ -24205,6 +24396,8 @@ symbols:
     sourceFile: packages/cli/src/public/operations/contracts.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
@@ -24278,6 +24471,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-operation-interface-parity
@@ -24287,6 +24482,8 @@ symbols:
     sourceFile: packages/cli/src/public/operations/runtime-types.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
@@ -24298,6 +24495,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-operation-interface-parity
@@ -24307,6 +24506,8 @@ symbols:
     sourceFile: packages/cli/src/public/operations/types.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
@@ -24318,6 +24519,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-operation-interface-parity
@@ -24327,6 +24530,8 @@ symbols:
     sourceFile: packages/cli/src/public/operations/types.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
@@ -24506,7 +24711,11 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
         target: TEST-mcp-relationship-preflight
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-mcp-relationship-preflight
   - id: SYM-auto-F3AA3B988CC5
@@ -24516,7 +24725,11 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
         target: TEST-mcp-relationship-preflight
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-mcp-relationship-preflight
   - id: SYM-auto-6024925825AA
@@ -24526,7 +24739,11 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
         target: TEST-mcp-relationship-preflight
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-mcp-relationship-preflight
   - id: SYM-auto-5D3498497C5F
@@ -24685,8 +24902,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-branch-store-recovery
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-branch-store-recovery-v2
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-92638075C834
     title: BranchResolutionSuccess
     status: active
@@ -24695,8 +24916,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-branch-store-recovery
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-branch-store-recovery-v2
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-B2B1769454DE
     title: BranchResolutionError
     status: active
@@ -24705,8 +24930,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-branch-store-recovery
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-branch-store-recovery-v2
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-947A5C4D4E76
     title: BranchResolutionResult
     status: active
@@ -24715,8 +24944,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-branch-store-recovery
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-branch-store-recovery-v2
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-3317F858EB14
     title: BranchAttachment
     status: active
@@ -24725,8 +24958,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-branch-store-recovery
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-branch-store-recovery-v2
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-BDE75AA4DB60
     title: BranchErrorCode
     status: active
@@ -24735,8 +24972,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-branch-store-recovery
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-branch-store-recovery-v2
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-7D6473217301
     title: branchStoreKey
     status: active
@@ -24885,8 +25126,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-branch-store-recovery
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-branch-store-recovery-v2
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-EB53162A3CF2
     title: BRANCH_STORE_MANIFEST_VERSION
     status: active
@@ -24978,6 +25223,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-operation-interface-parity
@@ -24987,6 +25234,8 @@ symbols:
     sourceFile: packages/mcp/src/tools/find-gaps.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
@@ -25010,6 +25259,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-operation-interface-parity
@@ -25019,6 +25270,8 @@ symbols:
     sourceFile: packages/mcp/src/tools/graph.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
@@ -25030,7 +25283,11 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-mcp-search-discovery
   - id: SYM-auto-B722155D82DD
@@ -25040,7 +25297,11 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-mcp-search-discovery
   - id: SYM-auto-D6D87A820746
@@ -25049,6 +25310,8 @@ symbols:
     sourceFile: packages/runtime/src/engine.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
@@ -25059,6 +25322,8 @@ symbols:
     sourceFile: packages/runtime/src/engine.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
@@ -25325,6 +25590,8 @@ symbols:
     sourceFile: packages/cli/src/public/operations/prolog-json.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
