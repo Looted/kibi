@@ -118,3 +118,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3c403ab4dce8
+  - type: implements
+    from: SYM-isValidCoordinateSpan
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:41:31.226Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a23e1e03ab0
+  - type: covered_by
+    from: SYM-isValidCoordinateSpan
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:41:31.240Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81058ffa69d5

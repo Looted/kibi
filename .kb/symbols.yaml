@@ -28054,3 +28054,258 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-test-journaled-engine-harness
+  - id: SYM-GENERATED-SYMBOL-FIELDS
+    title: GENERATED_SYMBOL_FIELDS
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    status: active
+    symbol_role: type-shape
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-RefreshResult2
+    title: RefreshResult
+    sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
+    status: active
+    symbol_role: type-shape
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-SYMBOL-COORDINATES-FORMAT-VERSION
+    title: SYMBOL_COORDINATES_FORMAT_VERSION
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    symbol_role: type-shape
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-CoordinateArtifactError-name
+    title: CoordinateArtifactError.name
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-SymbolCompilerLockError-name
+    title: SymbolCompilerLockError.name
+    sourceFile: packages/cli/src/operations/mutation/symbol-compiler-lock.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-hashManifestWithCoordinates
+    title: hashManifestWithCoordinates
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-extractManifestSymbolRecords
+    title: extractManifestSymbolRecords
+    sourceFile: packages/cli/src/extractors/manifest.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-coordinateIdentityKey
+    title: coordinateIdentityKey
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-coordinateIdentityHash
+    title: coordinateIdentityHash
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-isValidCoordinateSpan
+    title: isValidCoordinateSpan
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-parseCoordinateArtifact
+    title: parseCoordinateArtifact
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-acquireSymbolCompilerLock
+    title: acquireSymbolCompilerLock
+    sourceFile: packages/cli/src/operations/mutation/symbol-compiler-lock.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-withSymbolCompilerLock
+    title: withSymbolCompilerLock
+    sourceFile: packages/cli/src/operations/mutation/symbol-compiler-lock.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-refreshSymbolCoordinatesUnlocked
+    title: refreshSymbolCoordinatesUnlocked
+    sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-GENERATED_SYMBOL_FIELDS
+    title: GENERATED_SYMBOL_FIELDS
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-SYMBOL_COORDINATES_FORMAT_VERSION
+    title: SYMBOL_COORDINATES_FORMAT_VERSION
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-BoundSymbolCoordinatesRecord
+    title: BoundSymbolCoordinatesRecord
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-CoordinateArtifactError
+    title: CoordinateArtifactError
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-CoordinateExtractionIdentity
+    title: CoordinateExtractionIdentity
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-ParsedCoordinateArtifact
+    title: ParsedCoordinateArtifact
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-RefreshResult
+    title: RefreshResult
+    sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-SymbolCompilerLockError
+    title: SymbolCompilerLockError
+    sourceFile: packages/cli/src/operations/mutation/symbol-compiler-lock.ts
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-SymbolCompilerLockHandle
+    title: SymbolCompilerLockHandle
+    sourceFile: packages/cli/src/operations/mutation/symbol-compiler-lock.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-SymbolCompilerLockOptions
+    title: SymbolCompilerLockOptions
+    sourceFile: packages/cli/src/operations/mutation/symbol-compiler-lock.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-SymbolCoordinateWriteEntry
+    title: SymbolCoordinateWriteEntry
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-TargetedRefreshOutcome
+    title: TargetedRefreshOutcome
+    sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence

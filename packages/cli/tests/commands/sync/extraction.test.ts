@@ -63,6 +63,7 @@ async function processExtractions(
     changedMarkdownFiles,
     changedManifestFiles,
     validateOnly,
+    process.cwd(),
     {
       extractFromMarkdown: mockExtractFromMarkdown,
       extractFromManifest: mockExtractFromManifest,

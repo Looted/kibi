@@ -150,3 +150,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ddbd2958e5ce
+  - type: implements
+    from: SYM-extractManifestSymbolRecords
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:41:15.757Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-330b1fe16a99
+  - type: covered_by
+    from: SYM-extractManifestSymbolRecords
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:41:15.774Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ee71f0f8760

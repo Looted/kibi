@@ -8,6 +8,8 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { OperationError } from "../../cli-errors.js";
+import { readManifestWithCoordinateOverlay } from "../../extractors/manifest.js";
+import { extractManifestSymbolRecords } from "../../extractors/manifest.js";
 import { escapeAtom } from "../../prolog/codec.js";
 import { loadEntities } from "../../public/operations/discovery-entities.js";
 // implements REQ-kibi-operation-interface-parity
@@ -19,6 +21,7 @@ import {
   computeShardPath,
 } from "../../relationships/shards.js";
 import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
+import { CANONICAL_ENTITY_PATHS } from "../../utils/kb-paths.js";
 import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
 import {
   assertLogicalGroundingClaimKeys,
@@ -37,8 +40,12 @@ import {
   writePendingSourceReceipt,
   writeSourceForUpsert,
 } from "./source-authoring.js";
+import {
+  type SymbolCompilerLockHandle,
+  acquireSymbolCompilerLock,
+} from "./symbol-compiler-lock.js";
 import { validateSymbolGranularity } from "./symbol-granularity.js";
-import { refreshSymbolCoordinates } from "./symbol-refresh.js";
+import { refreshSymbolCoordinatesUnlocked } from "./symbol-refresh.js";
 import type { RelationshipInput, UpsertInput, UpsertPayload } from "./types.js";
 import { validateUpsertInput } from "./validation.js";
 import { scenarioCoverageWarnings } from "./warnings.js";
@@ -107,7 +114,25 @@ function assertRelationshipShardContained(
 function restoreRelationshipShard(
   shardPath: string,
   before: string | null,
+  expectedAfterHash: string | null,
 ): void {
+  // Compare before restore: a concurrent writer may have replaced the shard
+  // after our append. Never clobber newer bytes; the next check/sync reports
+  // any canonical source path that needs reconciliation.
+  if (expectedAfterHash !== null) {
+    let currentHash: string | null = null;
+    try {
+      currentHash = fileHash(shardPath);
+    } catch {
+      currentHash = null;
+    }
+    if (currentHash !== expectedAfterHash) {
+      console.warn(
+        `Skipped relationship shard rollback for ${path.relative(process.cwd(), shardPath)}: shard changed after the Kibi write.`,
+      );
+      return;
+    }
+  }
   if (before === null) {
     try {
       unlinkSync(shardPath);
@@ -167,6 +192,33 @@ export async function effectiveRelationships(
   }
 }
 
+/**
+ * Re-extract one complete canonical symbol entity from the authored manifest
+ * plus the freshly published generated coordinate artifact. Source-first
+ * commits must match exactly what the next sync would compile, instead of
+ * hand-merging generated fields into the caller's partial payload.
+ */
+function reextractCanonicalSymbolEntity(
+  symbolId: string,
+  authoredRelativePath: string,
+  workspaceRoot: string,
+): Record<string, unknown> | null {
+  const absoluteManifest = path.resolve(workspaceRoot, authoredRelativePath);
+  let records: ReturnType<typeof readManifestWithCoordinateOverlay>;
+  try {
+    records = readManifestWithCoordinateOverlay(absoluteManifest);
+  } catch (error) {
+    throw new Error(
+      `Canonical symbol manifest ${authoredRelativePath} could not be compiled after coordinate refresh: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+  const mine = records.find((candidate) => candidate.id === symbolId);
+  if (mine === undefined) return null;
+  const [result] = extractManifestSymbolRecords([mine], absoluteManifest);
+  if (result === undefined) return null;
+  return result.entity as unknown as Record<string, unknown>;
+}
+
 export async function executeUpsert(
   input: UpsertInput,
   context: OperationContext,
@@ -190,9 +242,23 @@ export async function executeUpsert(
   let sourceRolledBack = false;
   let compiledCommitted = false;
   let relationshipCount = 0;
+  let changeKind: "created" | "updated" | null = null;
   let semanticAdvisor: SemanticAdvisorReceipt | undefined;
+  let compilerLock: SymbolCompilerLockHandle | undefined;
   const relationshipShardBefore = new Map<string, string | null>();
+  const relationshipShardAfterHash = new Map<string, string | null>();
+  const holdsSymbolCompilerLock =
+    input.type === "symbol" &&
+    context.fs !== undefined &&
+    context.sourceFirst !== false;
   try {
+    if (holdsSymbolCompilerLock) {
+      // Symbol source publication, coordinate refresh, canonical
+      // re-extraction, and the RDF commit form one read-modify-write cycle.
+      // Serialize the whole cycle so concurrent full refreshes or sibling
+      // upserts cannot lose updates.
+      compilerLock = await acquireSymbolCompilerLock(context.workspaceRoot);
+    }
     const validated = validateUpsertInput(input, context.clock());
     await validateAppendOnlyVerificationReceipts(validated.entity, context);
     validateRelationshipSources(input.id, validated.relationships);
@@ -305,8 +371,47 @@ export async function executeUpsert(
           created_by: "kibi/upsert",
           source: "mcp://kibi/upsert",
         });
+        relationshipShardAfterHash.set(shardPath, fileHash(shardPath));
       }
     }
+
+    // Coordinates are generated compiler state owned by
+    // `.kb/symbol-coordinates.yaml`. Refresh the target's generated record
+    // from current extraction (we hold the symbol compiler lock), then commit
+    // the complete canonical entity the next sync would compile. Failures
+    // abort before the RDF transaction so source and shard rollbacks keep all
+    // surfaces consistent; stale coordinates are never reused as a fallback.
+    if (
+      input.type === "symbol" &&
+      context.fs !== undefined &&
+      context.sourceFirst !== false &&
+      sourceWrite !== null
+    ) {
+      const refresh = await refreshSymbolCoordinatesUnlocked(input.id, context);
+      if (!refresh.found || refresh.outcome === "removed") {
+        throw new Error(
+          `Coordinate refresh could not find ${input.id} in the authored symbol manifest`,
+        );
+      }
+      const canonical = reextractCanonicalSymbolEntity(
+        input.id,
+        sourceWrite.receipt.path,
+        context.workspaceRoot,
+      );
+      if (canonical === null) {
+        throw new Error(
+          `Canonical symbol manifest ${sourceWrite.receipt.path} no longer contains ${input.id} after coordinate refresh`,
+        );
+      }
+      // The authored path is the entity's canonical identity. Runtime
+      // transport provenance (mcp://...) must never survive a source-first
+      // write or a later delete/sync cycle.
+      commitEntity = {
+        ...canonical,
+        source: sourceWrite.receipt.path,
+      };
+    }
+
     const transaction = buildUpsertCommitGoal({
       entity: commitEntity ?? validated.entity,
       relationships: validated.relationships,
@@ -317,7 +422,11 @@ export async function executeUpsert(
       await sourceWrite?.rollback();
       sourceRolledBack = sourceWrite !== null;
       for (const [shardPath, before] of relationshipShardBefore) {
-        restoreRelationshipShard(shardPath, before);
+        restoreRelationshipShard(
+          shardPath,
+          before,
+          relationshipShardAfterHash.get(shardPath) ?? null,
+        );
       }
       throw new Error(formatUpsertError(input.id, written.error));
     }
@@ -326,18 +435,11 @@ export async function executeUpsert(
     // after Prolog reports success so a failed/rolled-back commit does not
     // disturb callers' view of the current snapshot.
     prolog.invalidateCache?.();
-    const changeKind = parseChangeKind(written.bindings.ChangeKind);
+    changeKind = parseChangeKind(written.bindings.ChangeKind);
     if (changeKind === null) {
       throw new Error(
         `Upsert commit completed without a created/updated result for ${input.id}`,
       );
-    }
-    if (input.type === "symbol") {
-      try {
-        await refreshSymbolCoordinates(input.id, context);
-      } catch (error) {
-        if (!(error instanceof Error)) throw error;
-      }
     }
     const coverage = await scenarioCoverageWarnings(
       prolog,
@@ -431,7 +533,11 @@ export async function executeUpsert(
     if (!compiledCommitted) {
       for (const [shardPath, before] of relationshipShardBefore) {
         try {
-          restoreRelationshipShard(shardPath, before);
+          restoreRelationshipShard(
+            shardPath,
+            before,
+            relationshipShardAfterHash.get(shardPath) ?? null,
+          );
         } catch {
           // Preserve the original failure; the next check/sync reports any
           // canonical source path that could not be restored.
@@ -457,8 +563,8 @@ export async function executeUpsert(
           },
         ],
         structuredContent: {
-          created: 0,
-          updated: 0,
+          created: changeKind === "created" ? 1 : 0,
+          updated: changeKind === "updated" ? 1 : 0,
           relationships_created: relationshipCount,
           warnings: [detail],
           semanticAdvisor: semanticAdvisor as SemanticAdvisorReceipt,
@@ -490,5 +596,7 @@ export async function executeUpsert(
     if (error instanceof OperationError) throw error;
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Upsert execution failed: ${message}`);
+  } finally {
+    compilerLock?.release();
   }
 }

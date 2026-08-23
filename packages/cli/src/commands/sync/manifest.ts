@@ -16,11 +16,18 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  readFileSync,
+  renameSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
 import * as path from "node:path";
 import { dump as dumpYAML, load as parseYAML } from "js-yaml";
 import {
   type SymbolCoordinatesRecord,
+  coordinateIdentityHash,
   writeCoordinateArtifact,
 } from "../../extractors/symbol-coordinates.js";
 import {
@@ -39,6 +46,8 @@ interface ManifestDeps {
   existsSync: typeof existsSync;
   parseYAML: typeof parseYAML;
   readFileSync: typeof readFileSync;
+  renameSync: typeof renameSync;
+  unlinkSync: typeof unlinkSync;
   writeFileSync: typeof writeFileSync;
   writeCoordinateArtifact: typeof writeCoordinateArtifact;
   resolveSymbolsManifestPaths: typeof resolveSymbolsManifestPaths;
@@ -51,6 +60,8 @@ function resolveDeps(overrides?: Partial<ManifestDeps>): ManifestDeps {
     existsSync,
     parseYAML,
     readFileSync,
+    renameSync,
+    unlinkSync,
     writeFileSync,
     writeCoordinateArtifact,
     resolveSymbolsManifestPaths,
@@ -204,6 +215,49 @@ function fallbackCoarseCoordinates(
   );
 }
 
+/** Atomically replace `targetPath` with `content` via temp file + rename. */
+function publishAtomically(
+  targetPath: string,
+  content: string,
+  deps: ManifestDeps,
+): void {
+  const temporary = `${targetPath}.kibi-tmp-${process.pid}`;
+  try {
+    deps.writeFileSync(temporary, content, "utf8");
+    deps.renameSync(temporary, targetPath);
+  } catch (error) {
+    try {
+      deps.unlinkSync(temporary);
+    } catch {
+      // Temp cleanup is best effort; the original failure propagates.
+    }
+    throw error;
+  }
+}
+
+function manifestEntryIdentity(entry: ManifestSymbolEntry): {
+  id: string;
+  title?: string;
+  sourceFile?: string;
+  granularity_reason?: string;
+} {
+  const title = typeof entry.title === "string" ? entry.title : undefined;
+  const sourceFile =
+    typeof entry.sourceFile === "string" ? entry.sourceFile : undefined;
+  const granularityReason =
+    typeof entry.granularity_reason === "string"
+      ? entry.granularity_reason
+      : undefined;
+  return {
+    id: String(entry.id),
+    ...(title === undefined ? {} : { title }),
+    ...(sourceFile === undefined ? {} : { sourceFile }),
+    ...(granularityReason === undefined
+      ? {}
+      : { granularity_reason: granularityReason }),
+  };
+}
+
 export async function refreshManifestCoordinates(
   // implements REQ-003
   manifestPath: string,
@@ -218,18 +272,16 @@ export async function refreshManifestCoordinates(
   const parsed = resolved.parseYAML(rawContent);
 
   if (!isRecord(parsed)) {
-    console.warn(
-      `Warning: symbols manifest ${manifestPath} is not a YAML object; skipping coordinate refresh`,
+    throw new Error(
+      `symbols manifest ${manifestPath} is not a YAML object; refusing coordinate refresh`,
     );
-    return;
   }
 
   const rawSymbols = parsed.symbols;
   if (!Array.isArray(rawSymbols)) {
-    console.warn(
-      `Warning: symbols manifest ${manifestPath} has no symbols array; skipping coordinate refresh`,
+    throw new Error(
+      `symbols manifest ${manifestPath} has no symbols array; refusing coordinate refresh`,
     );
-    return;
   }
 
   const before = rawSymbols.map((entry) =>
@@ -243,7 +295,9 @@ export async function refreshManifestCoordinates(
     workspaceRoot,
   );
 
-  // Build coordinates map keyed by symbol id
+  // Build coordinates map keyed by symbol id. Every published record binds to
+  // the extraction identity that produced it so stale spans can never overlay
+  // a changed symbol during later compilation.
   const coordinatesMap: Record<string, SymbolCoordinatesRecord> = {};
   for (const entry of enriched) {
     const id = typeof entry?.id === "string" ? entry.id : undefined;
@@ -258,18 +312,30 @@ export async function refreshManifestCoordinates(
     coordinatesMap[id] = fallback;
   }
 
-  // Optionally write the coordinate artifact to the coordinates path when explicitly requested
+  // Publish the generated coordinate artifact when explicitly requested.
+  // Parse and I/O failures are fatal so sync never advances cache state on a
+  // partially published compiler dependency. Symbols without extractable
+  // coordinates stay absent from the artifact; coverage keeps their gap visible.
+  let refreshedArtifactBytes: string | null = null;
+  let coordinatesPath: string | null = null;
   if (shouldRefreshCoordinates) {
-    try {
-      const coordinatesPath =
-        resolved.resolveSymbolsManifestPaths(workspaceRoot).coordinatesPath;
-      const artifactContent = resolved.writeCoordinateArtifact(coordinatesMap);
-      resolved.writeFileSync(coordinatesPath, artifactContent, "utf8");
-    } catch (err) {
-      console.warn(
-        `Warning: Failed to write symbol-coordinates artifact: ${String(err)}`,
-      );
+    coordinatesPath =
+      resolved.resolveSymbolsManifestPaths(workspaceRoot).coordinatesPath;
+    const boundEntries: Record<
+      string,
+      SymbolCoordinatesRecord & { identityHash?: string }
+    > = {};
+    for (const entry of enriched) {
+      const id = typeof entry?.id === "string" ? entry.id : undefined;
+      if (!id) continue;
+      const span = coordinatesMap[id];
+      if (span === undefined) continue;
+      boundEntries[id] = {
+        ...span,
+        identityHash: coordinateIdentityHash(manifestEntryIdentity(entry)),
+      };
     }
+    refreshedArtifactBytes = resolved.writeCoordinateArtifact(boundEntries);
   }
 
   // Coordinates belong exclusively to the generated artifact. Always strip
@@ -331,7 +397,10 @@ export async function refreshManifestCoordinates(
   const nextContent = `${SYMBOLS_MANIFEST_COMMENT_BLOCK}${dumped}`;
 
   if (rawContent !== nextContent) {
-    resolved.writeFileSync(manifestPath, nextContent, "utf8");
+    publishAtomically(manifestPath, nextContent, resolved);
+  }
+  if (refreshedArtifactBytes !== null && coordinatesPath !== null) {
+    publishAtomically(coordinatesPath, refreshedArtifactBytes, resolved);
   }
 
   console.log(

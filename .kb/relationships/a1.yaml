@@ -160,3 +160,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-493521de21b8
+  - type: implements
+    from: SYM-CoordinateExtractionIdentity
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:27:40.867Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d288e489d4c6
+  - type: covered_by
+    from: SYM-CoordinateExtractionIdentity
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:27:40.900Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb5f32fa888e

@@ -83,3 +83,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cf3daf90cd9f
+  - type: verified_by
+    from: SCEN-generated-coordinate-repair
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:00:14.696Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d495c16a236

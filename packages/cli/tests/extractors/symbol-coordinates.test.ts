@@ -82,7 +82,7 @@ describe("symbol coordinates artifact", () => {
     expect(readCoordinateArtifact("meta: true\n")).toEqual({ coordinates: {} });
   });
 
-  test("skips invalid coordinate records while preserving valid entries", async () => {
+  test("rejects artifacts containing invalid coordinate records", async () => {
     const symbolCoordinatesExports = await loadSymbolCoordinatesModule();
 
     expect(typeof symbolCoordinatesExports.readCoordinateArtifact).toBe(
@@ -97,7 +97,9 @@ describe("symbol coordinates artifact", () => {
         content: string,
       ) => unknown;
 
-    expect(
+    // A single malformed record invalidates the whole generated artifact so
+    // compilation fails closed instead of silently dropping evidence.
+    expect(() =>
       readCoordinateArtifact(`coordinates:
   SYM-VALID:
     sourceFile: src/valid.ts
@@ -110,10 +112,28 @@ describe("symbol coordinates artifact", () => {
     sourceColumn: 0
     sourceEndLine: 2
     sourceEndColumn: 3
-  SYM-ARRAY:
-    - not
-    - a
-    - record
+`),
+    ).toThrow(/SYM-MISSING-LINE/);
+
+    expect(() =>
+      readCoordinateArtifact(`coordinates:
+  SYM-ZERO-LINE:
+    sourceFile: src/zero.ts
+    sourceLine: 0
+    sourceColumn: 0
+    sourceEndLine: 1
+    sourceEndColumn: 0
+`),
+    ).toThrow(/SYM-ZERO-LINE/);
+
+    expect(
+      readCoordinateArtifact(`coordinates:
+  SYM-VALID:
+    sourceFile: src/valid.ts
+    sourceLine: 1
+    sourceColumn: 0
+    sourceEndLine: 2
+    sourceEndColumn: 3
 `),
     ).toEqual({
       coordinates: {
@@ -182,6 +202,7 @@ describe("symbol coordinates artifact", () => {
     expect(first).toBe(`# symbol-coordinates.yaml
 # GENERATED coordinate artifact — do not edit manually.
 # Run \`kibi sync --refresh-symbol-coordinates\` to refresh.
+version: 2
 coordinates:
   SYM-001:
     sourceColumn: 0
@@ -198,7 +219,7 @@ coordinates:
 `);
   });
 
-  test("merges coordinate artifacts onto manifest records", async () => {
+  test("merges validated legacy coordinate artifacts onto manifest records", async () => {
     const symbolCoordinatesExports = await loadSymbolCoordinatesModule();
 
     expect(typeof symbolCoordinatesExports.mergeCoordinatesWithManifest).toBe(
@@ -215,13 +236,32 @@ coordinates:
       {
         id: "SYM-001",
         title: "Example",
+        sourceFile: "src/example.ts",
       },
     ];
 
+    // Unbound legacy records must be validated against current source content
+    // before they may prove coordinates.
+    const legacyContent = [
+      "// filler",
+      "// filler",
+      "// filler",
+      "// filler",
+      "// filler",
+      "// filler",
+      "// filler",
+      "// filler",
+      "// filler",
+      "  Example",
+      "",
+    ].join("\n");
     const merged = (
       symbolCoordinatesExports.mergeCoordinatesWithManifest as (
         symbolRecords: Array<Record<string, unknown>>,
         coordinateArtifact: { coordinates: Record<string, unknown> } | null,
+        options?: {
+          readonly resolveSourceText?: (sourceFile: string) => string | null;
+        },
       ) => Array<Record<string, unknown>>
     )(manifestRecords, {
       coordinates: {
@@ -233,6 +273,8 @@ coordinates:
           sourceEndColumn: 4,
         },
       },
+    }, {
+      resolveSourceText: () => legacyContent,
     });
 
     expect(merged).toEqual([
@@ -248,9 +290,33 @@ coordinates:
     ]);
     expect(merged).not.toBe(manifestRecords);
     expect(merged[0]).not.toBe(manifestRecords[0]);
+
+    const unvalidatable = (
+      symbolCoordinatesExports.mergeCoordinatesWithManifest as (
+        symbolRecords: Array<Record<string, unknown>>,
+        coordinateArtifact: { coordinates: Record<string, unknown> } | null,
+        options?: {
+          readonly resolveSourceText?: (sourceFile: string) => string | null;
+        },
+      ) => Array<Record<string, unknown>>
+    )(manifestRecords, {
+      coordinates: {
+        "SYM-001": {
+          sourceFile: "src/example.ts",
+          sourceLine: 10,
+          sourceColumn: 2,
+          sourceEndLine: 12,
+          sourceEndColumn: 4,
+        },
+      },
+    }, {
+      resolveSourceText: () => null,
+    });
+    // Without current extraction evidence the stale span fails closed.
+    expect(unvalidatable).toEqual([{ id: "SYM-001", title: "Example", sourceFile: "src/example.ts" }]);
   });
 
-  test("falls back to legacy inline coordinates when coordinate artifact is missing", async () => {
+  test("drops unvalidated legacy inline coordinates when coordinate artifact is missing", async () => {
     const symbolCoordinatesExports = await loadSymbolCoordinatesModule();
 
     expect(typeof symbolCoordinatesExports.mergeCoordinatesWithManifest).toBe(
@@ -275,15 +341,34 @@ coordinates:
       },
     ];
 
-    const merged = (
+    const merge = (
       symbolCoordinatesExports.mergeCoordinatesWithManifest as (
         symbolRecords: Array<Record<string, unknown>>,
         coordinateArtifact: { coordinates: Record<string, unknown> } | null,
+        options?: {
+          readonly resolveSourceText?: (sourceFile: string) => string | null;
+        },
       ) => Array<Record<string, unknown>>
-    )(manifestRecords, null);
+    );
+    const options = {
+      resolveSourceText: (sourceFile: string) =>
+        sourceFile === "src/legacy.ts" ? "Example\n" : null,
+    };
 
+    // Inline coordinates survive only after validating them against the live
+    // source; generated fields never reach compiled state unchecked.
+    const merged = merge(manifestRecords, null, options);
     expect(merged).toEqual(manifestRecords);
     expect(merged[0]).not.toBe(manifestRecords[0]);
+
+    const stripped = merge(
+      manifestRecords.map((record) => ({ ...record })),
+      null,
+      { resolveSourceText: () => null },
+    );
+    expect(stripped).toEqual([
+      { id: "SYM-001", title: "Example", sourceFile: "src/legacy.ts" },
+    ]);
   });
 
   test("prefers coordinate artifacts when inline coordinates conflict", async () => {
@@ -303,39 +388,67 @@ coordinates:
       {
         id: "SYM-001",
         title: "Example",
-        sourceFile: "src/stale-inline.ts",
-        sourceLine: 1,
+        sourceFile: "src/fresh-artifact.ts",
+        sourceLine: 2,
         sourceColumn: 0,
-        sourceEndLine: 1,
+        sourceEndLine: 2,
         sourceEndColumn: 5,
         coordinatesGeneratedAt: "2026-01-01T00:00:00.000Z",
       },
     ];
 
+    // The artifact is authoritative once it exists, so the stale inline span
+    // and its generated-at marker are stripped even before validation.
     const merged = (
       symbolCoordinatesExports.mergeCoordinatesWithManifest as (
         symbolRecords: Array<Record<string, unknown>>,
         coordinateArtifact: { coordinates: Record<string, unknown> } | null,
       ) => Array<Record<string, unknown>>
-    )(manifestRecords, {
-      coordinates: {
-        "SYM-001": {
-          sourceFile: "src/fresh-artifact.ts",
-          sourceLine: 20,
-          sourceColumn: 3,
-          sourceEndLine: 22,
-          sourceEndColumn: 9,
-        },
-      },
-    });
+    )(manifestRecords, { coordinates: {} });
 
     expect(merged[0]).toMatchObject({
+      sourceFile: "src/fresh-artifact.ts",
+    });
+    expect(merged[0]).not.toHaveProperty("sourceLine");
+    expect(merged[0]).not.toHaveProperty("coordinatesGeneratedAt");
+
+    const withFreshArtifact = (
+      symbolCoordinatesExports.mergeCoordinatesWithManifest as (
+        symbolRecords: Array<Record<string, unknown>>,
+        coordinateArtifact: { coordinates: Record<string, unknown> } | null,
+        options?: {
+          readonly resolveSourceText?: (sourceFile: string) => string | null;
+        },
+      ) => Array<Record<string, unknown>>
+    )(
+      manifestRecords.map((record) => ({ ...record })),
+      {
+        coordinates: {
+          "SYM-001": {
+            sourceFile: "src/fresh-artifact.ts",
+            sourceLine: 20,
+            sourceColumn: 3,
+            sourceEndLine: 22,
+            sourceEndColumn: 9,
+          },
+        },
+      },
+      {
+        resolveSourceText: (sourceFile) =>
+          sourceFile === "src/fresh-artifact.ts"
+            ? `${Array.from({ length: 19 }, () => "// filler").join("\n")}\n   Example\n`
+            : null,
+      },
+    );
+
+    expect(withFreshArtifact[0]).toMatchObject({
       sourceFile: "src/fresh-artifact.ts",
       sourceLine: 20,
       sourceColumn: 3,
       sourceEndLine: 22,
       sourceEndColumn: 9,
     });
+    expect(withFreshArtifact[0]).not.toHaveProperty("coordinatesGeneratedAt");
   });
 
   test("never writes coordinatesGeneratedAt to the coordinate artifact output", async () => {
@@ -427,7 +540,13 @@ describe("manifest coordinate overlay reader", () => {
 
     const workspaceRoot = createWorkspace();
     const documentationDir = join(workspaceRoot, "documentation");
+    mkdirSync(join(workspaceRoot, "src"), { recursive: true });
     mkdirSync(documentationDir, { recursive: true });
+    writeFileSync(
+      join(workspaceRoot, "src", "fresh.ts"),
+      `${Array.from({ length: 9 }, () => "// filler").join("\n")}\n  Example\n`,
+      "utf8",
+    );
 
     const symbolsPath = join(documentationDir, "symbols.yaml");
     writeFileSync(
@@ -435,7 +554,7 @@ describe("manifest coordinate overlay reader", () => {
       `symbols:
   - id: SYM-001
     title: Example
-    sourceFile: src/inline.ts
+    sourceFile: src/fresh.ts
     sourceLine: 1
     sourceColumn: 0
     sourceEndLine: 1
@@ -488,7 +607,9 @@ describe("manifest coordinate overlay reader", () => {
 
     const workspaceRoot = createWorkspace();
     const documentationDir = join(workspaceRoot, "documentation");
+    mkdirSync(join(workspaceRoot, "src"), { recursive: true });
     mkdirSync(documentationDir, { recursive: true });
+    writeFileSync(join(workspaceRoot, "src", "inline.ts"), "Example\n", "utf8");
 
     const symbolsPath = join(documentationDir, "symbols.yaml");
     writeFileSync(
@@ -537,7 +658,14 @@ describe("manifest coordinate overlay reader", () => {
 
     const workspaceRoot = createWorkspace();
     const documentationDir = join(workspaceRoot, "documentation");
+    mkdirSync(join(workspaceRoot, "src"), { recursive: true });
     mkdirSync(documentationDir, { recursive: true });
+    // Line 7, column 1 must start with the symbol title for legacy validation.
+    writeFileSync(
+      join(workspaceRoot, "src", "custom.ts"),
+      `${Array.from({ length: 6 }, () => "// filler").join("\n")}\n Example\n`,
+      "utf8",
+    );
 
     const symbolsPath = join(documentationDir, "symbols.yaml");
     const coordinatesPath = join(workspaceRoot, "custom-coordinates.yaml");
@@ -546,7 +674,7 @@ describe("manifest coordinate overlay reader", () => {
       `symbols:
   - id: SYM-001
     title: Example
-    sourceFile: src/inline.ts
+    sourceFile: src/custom.ts
 `,
       "utf8",
     );

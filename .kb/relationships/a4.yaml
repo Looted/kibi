@@ -111,3 +111,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6aba4b5bd942
+  - type: implements
+    from: SYM-coordinateIdentityKey
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:41:21.137Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5600b2435d3
+  - type: covered_by
+    from: SYM-coordinateIdentityKey
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:41:21.150Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb46caf3bba1

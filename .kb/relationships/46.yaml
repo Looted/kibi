@@ -83,3 +83,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2476df253467
+  - type: implements
+    from: SYM-CoordinateArtifactError
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:27:34.625Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1cb1b0c956e6
+  - type: covered_by
+    from: SYM-CoordinateArtifactError
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:27:34.651Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-574bfd2fe36c

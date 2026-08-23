@@ -104,3 +104,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3dde325e33a3
+  - type: specified_by
+    from: REQ-generated-coordinate-persistence
+    to: SCEN-generated-coordinate-repair
+    created_at: 2026-08-23T20:00:10.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ff9817ef32e

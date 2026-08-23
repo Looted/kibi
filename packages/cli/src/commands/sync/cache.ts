@@ -55,15 +55,26 @@ export type SyncCache = {
   semanticContracts: Record<string, boolean>;
 };
 
-export const SYNC_CACHE_VERSION = 1;
+/**
+ * v2: cache identities are workspace-root relative instead of process-cwd
+ * relative, and symbol manifests are fingerprinted together with their
+ * generated coordinate artifact so artifact-only changes are never mistaken
+ * for no-ops.
+ */
+export const SYNC_CACHE_VERSION = 2;
 export const SYNC_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
-export function toCacheKey(filePath: string): string {
-  return path.relative(process.cwd(), filePath).split(path.sep).join("/");
+export function toCacheKey(workspaceRoot: string, filePath: string): string {
+  const root = path.resolve(workspaceRoot);
+  const target = path.isAbsolute(filePath)
+    ? filePath
+    : path.resolve(root, filePath);
+  return path.relative(root, target).split(path.sep).join("/");
 }
 
 export function hashFile(
   // implements REQ-003
+  workspaceRoot: string,
   filePath: string,
   deps?: Partial<SyncCacheDeps>,
 ): string {
@@ -87,6 +98,47 @@ export function hashNormalized(value: unknown): string {
   };
   return createHash("sha256")
     .update(JSON.stringify(normalize(value)))
+    .digest("hex");
+}
+
+/**
+ * Composite fingerprint for a symbol manifest and its generated coordinate
+ * artifact. The artifact is a compiler dependency of the manifest, so its
+ * existence, emptiness, content, and deletion must all change the effective
+ * source hash even though the authored YAML bytes stay identical.
+ */
+// implements REQ-generated-coordinate-persistence
+export function hashManifestWithCoordinates(
+  workspaceRoot: string,
+  manifestPath: string,
+  coordinatesPath: string | null,
+  deps?: Partial<SyncCacheDeps>,
+): string {
+  const resolved = resolveDeps(deps);
+  const manifestHash = resolved.createHash("sha256")
+    .update(resolved.readFileSync(manifestPath))
+    .digest("hex");
+  let artifactState = "missing";
+  let artifactHash = "";
+  if (
+    coordinatesPath !== null &&
+    resolved.existsSync(coordinatesPath)
+  ) {
+    const content = resolved.readFileSync(coordinatesPath);
+    artifactState = content.length > 0 ? "present" : "empty";
+    artifactHash = resolved
+      .createHash("sha256")
+      .update(content)
+      .digest("hex");
+  }
+  return resolved
+    .createHash("sha256")
+    .update(
+      JSON.stringify({
+        manifest: manifestHash,
+        coordinates: { state: artifactState, sha256: artifactHash },
+      }),
+    )
     .digest("hex");
 }
 

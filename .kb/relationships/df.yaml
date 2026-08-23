@@ -83,3 +83,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-165df6c739e2
+  - type: implements
+    from: SYM-SymbolCompilerLockHandle2
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:28:09.954Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb7c783f1e92
+  - type: covered_by
+    from: SYM-SymbolCompilerLockHandle2
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:28:09.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00d02b60184f

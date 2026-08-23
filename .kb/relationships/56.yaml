@@ -104,3 +104,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-89c9e512c3c9
+  - type: implements
+    from: SYM-CoordinateArtifactError-name
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:30:45.483Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1742c984b5e
+  - type: covered_by
+    from: SYM-CoordinateArtifactError-name
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:30:45.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a477be273ca

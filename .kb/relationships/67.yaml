@@ -90,3 +90,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1438b6c23f42
+  - type: implements
+    from: SYM-GENERATED_SYMBOL_FIELDS
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:36:41.024Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4575ac6ad9dc
+  - type: covered_by
+    from: SYM-GENERATED_SYMBOL_FIELDS
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:36:41.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad4dbc7eb9bf

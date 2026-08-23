@@ -48,3 +48,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d4bb5859cdc8
+  - type: implements
+    from: SYM-GENERATED-SYMBOL-FIELDS
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:27:46.323Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-474f007e7ce1
+  - type: covered_by
+    from: SYM-GENERATED-SYMBOL-FIELDS
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:27:46.339Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df6cc6c3b66c

@@ -77,6 +77,7 @@ export async function processExtractions(
   changedMarkdownFiles: string[],
   changedManifestFiles: string[],
   validateOnly: boolean,
+  workspaceRoot = process.cwd(),
   dependencies: ExtractionDependencies = DEFAULT_EXTRACTION_DEPENDENCIES,
 ): Promise<ExtractionOutput> {
   const results: ExtractionResult[] = [];
@@ -102,7 +103,7 @@ export async function processExtractions(
       } else {
         console.warn(`Warning: Failed to extract from ${file}: ${message}`);
       }
-      failedCacheKeys.add(toCacheKey(file));
+      failedCacheKeys.add(toCacheKey(workspaceRoot, file));
     }
   }
 
@@ -117,7 +118,7 @@ export async function processExtractions(
       } else {
         console.warn(`Warning: Failed to extract from ${file}: ${message}`);
       }
-      failedCacheKeys.add(toCacheKey(file));
+      failedCacheKeys.add(toCacheKey(workspaceRoot, file));
     }
   }
 

@@ -69,3 +69,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-532fa23b94e2
+  - type: implements
+    from: SYM-coordinateIdentityHash
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:41:26.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04d28b6f945a
+  - type: covered_by
+    from: SYM-coordinateIdentityHash
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:41:26.221Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19e3940ac1ea

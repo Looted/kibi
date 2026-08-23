@@ -12,32 +12,34 @@ import { describe, expect, test } from "bun:test";
 import { toCacheKey } from "../src/commands/sync/cache.js";
 
 describe("toCacheKey", () => {
+  const workspaceRoot = "/workspace";
+
   test("generates consistent key for same path", () => {
-    const key1 = toCacheKey("/path/to/file.md");
-    const key2 = toCacheKey("/path/to/file.md");
+    const key1 = toCacheKey(workspaceRoot, "/workspace/path/to/file.md");
+    const key2 = toCacheKey(workspaceRoot, "/workspace/path/to/file.md");
     expect(key1).toBe(key2);
   });
 
   test("generates different keys for different paths", () => {
-    const key1 = toCacheKey("/path/a.md");
-    const key2 = toCacheKey("/path/b.md");
+    const key1 = toCacheKey(workspaceRoot, "/workspace/path/a.md");
+    const key2 = toCacheKey(workspaceRoot, "/workspace/path/b.md");
     expect(key1).not.toBe(key2);
   });
 
   test("returns string key", () => {
-    const key = toCacheKey("test.md");
+    const key = toCacheKey(workspaceRoot, "test.md");
     expect(typeof key).toBe("string");
     expect(key.length).toBeGreaterThan(0);
   });
 
   test("handles relative paths", () => {
-    const key = toCacheKey("./relative/path.md");
+    const key = toCacheKey(workspaceRoot, "./relative/path.md");
     expect(typeof key).toBe("string");
     expect(key.length).toBeGreaterThan(0);
   });
 
   test("handles paths with special characters", () => {
-    const key = toCacheKey("/path/with spaces/file.md");
+    const key = toCacheKey(workspaceRoot, "/workspace/with spaces/file.md");
     expect(typeof key).toBe("string");
   });
 });
