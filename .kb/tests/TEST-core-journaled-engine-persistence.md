@@ -367,6 +367,54 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 8240
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-9b019113ef9bd07325568b62
+    test_id: TEST-core-journaled-engine-persistence
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-persistence
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-persistence
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 179ebe71578e274182f932a44b388e84629d8c35aab70e11ed71512b5426c8e3
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T07:47:33.001Z'
+    finished_at: '2026-08-23T07:47:41.159Z'
+    artifact_digest: 31ead2753eac8b8189c2fef83bcce63e3cdd07d7d2dda8699f883b9509ecb1a3
+    contract_hash: c8501a74965a49669d0969698cd1691dab9a7fc0be1d11e3b248679f38802bc0
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-persistence
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 8158
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-7a4d742b47969e39d0ba56c2
+    test_id: TEST-core-journaled-engine-persistence
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-persistence
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-persistence
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: bd8e6d28630c837d83bb606b786976c761f4bcb8326f1aab37d01845783fbafe
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T08:31:05.171Z'
+    finished_at: '2026-08-23T08:31:13.596Z'
+    artifact_digest: 6a4b37f8cb2106002668952ca551aeb5282d5782348042bd6806176d55002008
+    contract_hash: c8501a74965a49669d0969698cd1691dab9a7fc0be1d11e3b248679f38802bc0
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-persistence
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 8425
 ---
 
 The persistence suite attaches a journaled branch, verifies journal replay after

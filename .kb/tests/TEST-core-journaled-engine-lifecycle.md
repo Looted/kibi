@@ -367,6 +367,54 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 6879
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-555bb1b44f0f1e817c145658
+    test_id: TEST-core-journaled-engine-lifecycle
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-lifecycle
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-lifecycle
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 179ebe71578e274182f932a44b388e84629d8c35aab70e11ed71512b5426c8e3
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T07:47:47.053Z'
+    finished_at: '2026-08-23T07:47:55.493Z'
+    artifact_digest: 1cd8228293a7fd68db65f93448b7081f91dda288b51a8b985a40e64ea57b2c41
+    contract_hash: 61d4add5b0e3bf8f8b7c432b951f2a2c1211224913c1b93d120583e3ff015cd1
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-lifecycle
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 8440
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-c969ccb0fa2085d00aa14a68
+    test_id: TEST-core-journaled-engine-lifecycle
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-lifecycle
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-lifecycle
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: bd8e6d28630c837d83bb606b786976c761f4bcb8326f1aab37d01845783fbafe
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T08:31:19.338Z'
+    finished_at: '2026-08-23T08:31:27.569Z'
+    artifact_digest: a5db7ba28b963357e377ab892b895c63ff8b75e5cb0a36efe4388a717cae4478
+    contract_hash: 61d4add5b0e3bf8f8b7c432b951f2a2c1211224913c1b93d120583e3ff015cd1
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-lifecycle
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 8231
 ---
 
 The daemon suite starts simultaneous clients, verifies one socket and ordered
