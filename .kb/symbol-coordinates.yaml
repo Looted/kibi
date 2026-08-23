@@ -6401,13 +6401,6 @@ coordinates:
     sourceEndLine: 274
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
     sourceLine: 268
-  SYM-GENERATED-SYMBOL-FIELDS:
-    identityHash: 7a1d271416d8ce5955e7c94d2b232d7b84e536c4eb3debf4ff0ed5eec1b9c269
-    sourceColumn: 13
-    sourceEndColumn: 10
-    sourceEndLine: 274
-    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 268
   SYM-getBehavioralSymbolNames:
     identityHash: 6ef5ed3470a1ed5e0ff7f07688df57c750804ef8157e7120b4fdb9120aa49edf
     sourceColumn: 16
@@ -11296,13 +11289,6 @@ coordinates:
     sourceLine: 261
   SYM-RefreshResult:
     identityHash: ef2e360f42a50ed9bd91af262534d6060b612fa5e223b38b0c70b9905244bd2e
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 38
-    sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
-    sourceLine: 34
-  SYM-RefreshResult2:
-    identityHash: f314c2fe15cecf2c6585bd41a48a5663af0d431e9f7cce6e677b6918ec6fdb57
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 38
@@ -18462,13 +18448,6 @@ coordinates:
     sourceEndLine: 8
     sourceFile: packages/cli/src/public/symbol-granularity.ts
     sourceLine: 1
-  SYM-SYMBOL-COORDINATES-FORMAT-VERSION:
-    identityHash: 5339457920bb968dd58a466e7efe40495237fe6ee6c1f718385f58d8f1b18802
-    sourceColumn: 13
-    sourceEndColumn: 50
-    sourceEndLine: 13
-    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
-    sourceLine: 13
   SYM-SymbolCompilerLockError:
     identityHash: ac9e35f028a09b2690a4785af90d103fa0b95dcf0fe6255082379a6166f55263
     sourceColumn: 13

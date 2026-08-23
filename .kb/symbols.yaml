@@ -28054,39 +28054,6 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-test-journaled-engine-harness
-  - id: SYM-GENERATED-SYMBOL-FIELDS
-    title: GENERATED_SYMBOL_FIELDS
-    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    status: active
-    symbol_role: type-shape
-    granularity_reason: module-level-behavior
-    relationships:
-      - type: covered_by
-        target: TEST-generated-coordinate-repair
-      - type: implements
-        target: REQ-generated-coordinate-persistence
-  - id: SYM-RefreshResult2
-    title: RefreshResult
-    sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
-    status: active
-    symbol_role: type-shape
-    granularity_reason: module-level-behavior
-    relationships:
-      - type: covered_by
-        target: TEST-generated-coordinate-repair
-      - type: implements
-        target: REQ-generated-coordinate-persistence
-  - id: SYM-SYMBOL-COORDINATES-FORMAT-VERSION
-    title: SYMBOL_COORDINATES_FORMAT_VERSION
-    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
-    status: active
-    symbol_role: type-shape
-    granularity_reason: module-level-behavior
-    relationships:
-      - type: covered_by
-        target: TEST-generated-coordinate-repair
-      - type: implements
-        target: REQ-generated-coordinate-persistence
   - id: SYM-CoordinateArtifactError-name
     title: CoordinateArtifactError.name
     sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
