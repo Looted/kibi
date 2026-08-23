@@ -76,10 +76,6 @@
       "types": "./dist/extractors/symbol-coordinates.d.ts",
       "default": "./dist/extractors/symbol-coordinates.js"
     },
-    "./operations/mutation/symbol-refresh": {
-      "types": "./dist/operations/mutation/symbol-refresh.d.ts",
-      "default": "./dist/operations/mutation/symbol-refresh.js"
-    },
     "./extractors/manifest": {
       "types": "./dist/public/extractors/manifest.d.ts",
       "default": "./dist/public/extractors/manifest.js"
