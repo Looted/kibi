@@ -136,3 +136,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-58e72dcf4c17
+  - type: implements
+    from: SYM-BRIDGE-ARTIFACT-ROOT-ENV
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-23T23:30:10.648Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-693efd5b8ab7
+  - type: covered_by
+    from: SYM-BRIDGE-ARTIFACT-ROOT-ENV
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-23T23:30:10.663Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-795af7fd1067

@@ -667,6 +667,40 @@ function sealedBroker(brokerTrace: string) {
     });
     return completed ? [call.tool] : [];
   });
+  const rawCalls = receipts
+    .filter(
+      (receipt) =>
+        receipt.direction === "target_to_server" &&
+        receipt.kind === "request" &&
+        receipt.method === "tools/call" &&
+        receipt.toolName !== undefined,
+    )
+    .map((receipt) => {
+      const params =
+        isRecord(receipt.payload) && isRecord(receipt.payload.params)
+          ? receipt.payload.params
+          : {};
+      const response = receipts.find(
+        (candidate) =>
+          candidate.direction === "server_to_target" &&
+          candidate.kind === "response" &&
+          candidate.method === "tools/call" &&
+          candidate.correlationId === receipt.correlationId &&
+          isRecord(candidate.payload) &&
+          Object.hasOwn(candidate.payload, "result"),
+      );
+      const result =
+        response !== undefined && isRecord(response.payload)
+          ? response.payload.result
+          : undefined;
+      return {
+        tool: receipt.toolName ?? "",
+        args:
+          isRecord(params) && isRecord(params.arguments) ? params.arguments : {},
+        resultOk: !isRecord(result) || result.isError !== true,
+        ...(isRecord(result) ? { result } : {}),
+      };
+    });
   return {
     evidence: {
       // Completeness means the broker emitted a structurally verifiable trace.
@@ -679,6 +713,7 @@ function sealedBroker(brokerTrace: string) {
         tool,
         predicate,
       })),
+      rawCalls,
     },
     successfulTools,
   };

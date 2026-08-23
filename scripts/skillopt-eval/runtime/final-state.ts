@@ -36,6 +36,8 @@ const FinalStateOptionsSchema = z
         args: z.array(z.string()),
         cwd: z.string().min(1),
         env: z.record(z.string(), z.string()).optional(),
+        // Evaluator-only staged CLI root; never forwarded to the model.
+        cliRoot: z.string().min(1).optional(),
       })
       .strict(),
     receiptPath: z.string().min(1),

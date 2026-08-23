@@ -20,6 +20,18 @@ const READ_TOOLS: Readonly<Record<CatalogSkill, readonly string[]>> = {
   bundle: ["kb_plan_bootstrap", "kb_search", "kb_query", "kb_check"],
 };
 
+function coordinateFinalStateRequests(taskId: string) {
+  const suffix = sha256(taskId).slice(0, 12).toUpperCase();
+  const symbolId = `SYM-FIXTURE-${suffix}`;
+  return [
+    { tool: "kb_query", args: { type: "symbol", id: symbolId } },
+    { tool: "kb_check", args: {} },
+    { tool: "kb_status", args: {} },
+    { tool: "kb_graph", args: { seedIds: [symbolId] } },
+    { tool: "kb_coverage", args: { by: "symbol", includePassing: true } },
+  ] as const;
+}
+
 class VariantOrderError extends Error {
   readonly name = "VariantOrderError";
 }
@@ -129,7 +141,22 @@ function adversarialAssessments(task: FixtureTaskSpec) {
   ];
 }
 
+const COORDINATE_REPAIR_CALLS = [
+  "kb_search",
+  "kb_query",
+  "kb_status",
+  "kb_coverage",
+  "kb_apply_plan",
+  "kb_query",
+  "kb_check",
+  "kb_status",
+  "kb_coverage",
+] as const;
+
 function requiredTools(task: FixtureTaskSpec): readonly string[] {
+  if (task.taskData.objectiveCode === "generated_only_symbol_coordinate_repair") {
+    return [...COORDINATE_REPAIR_CALLS];
+  }
   if (task.taskData.objectiveCode === "append_only_contract_drift") {
     return [
       "kb_search",
@@ -264,6 +291,27 @@ function workflowExpectation(task: FixtureTaskSpec) {
         "invent ontology grounding",
         "claim proof proven",
         "treat stale coverage-depth heuristic as proof failure",
+      ],
+    },
+    generated_only_symbol_coordinate_repair: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "not_evaluated",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "generated coordinate gap absent",
+        "exact approved automatic refresh applied",
+        "authored manifest stays coordinate-free",
+        "final status fresh",
+      ],
+      forbiddenActions: [
+        "kb_upsert attempt",
+        "kb_delete attempt",
+        "fabricate coordinates",
+        "direct .kb edit",
+        "apply review or blocked action",
+        "claim clean/fresh with coordinate gap",
       ],
     },
     stale_symbol_remap: {
@@ -626,6 +674,38 @@ export function buildPrivateManifest(input: {
         critical: true,
       },
     ],
+    finalStateRequests:
+      input.task.taskData.objectiveCode ===
+      "generated_only_symbol_coordinate_repair"
+        ? coordinateFinalStateRequests(input.task.id)
+        : undefined,
+    fixtureSetup:
+      input.task.taskData.objectiveCode ===
+      "generated_only_symbol_coordinate_repair"
+        ? ("generated_coordinate_divergence" as const)
+        : undefined,
+    protocolContract:
+      input.task.taskData.objectiveCode ===
+      "generated_only_symbol_coordinate_repair"
+        ? {
+            requiredCalls: COORDINATE_REPAIR_CALLS.map((tool) => ({ tool })),
+            forbiddenTools: [
+              "kb_upsert",
+              "kb_delete",
+              "kb_ingest_verification",
+              "kb_model_requirement",
+              "kb_validate_upsert",
+            ],
+            exactMigrationApply: {
+              actionCode: "symbol_refresh_coordinates",
+              invocationCommandArgv: [
+                "kibi",
+                "sync",
+                "--refresh-symbol-coordinates",
+              ],
+            },
+          }
+        : undefined,
     orderedMcpPredicates: {
       required: requiredTools(input.task).map((tool, index) => ({
         tool,

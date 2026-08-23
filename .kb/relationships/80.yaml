@@ -132,3 +132,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-822c1160c089
+  - type: implements
+    from: SYM-FixtureSetupError-name
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-23T23:20:18.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09e5663973c7
+  - type: covered_by
+    from: SYM-FixtureSetupError-name
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-23T23:20:18.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cab387c70bde

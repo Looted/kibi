@@ -27,3 +27,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-864bc8e749d9
+  - type: implements
+    from: SYM-BRIDGE-SOURCE-WORKTREE-ENV
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-23T23:34:06.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c6e2d3e10ab
+  - type: covered_by
+    from: SYM-BRIDGE-SOURCE-WORKTREE-ENV
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-23T23:34:06.991Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8aeb514ee66c

@@ -104,3 +104,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e70d44bdd5fd
+  - type: implements
+    from: SYM-BRIDGE-CODEX-EXECUTABLE-ENV
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-23T23:30:21.158Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d3e82fc2bdd
+  - type: covered_by
+    from: SYM-BRIDGE-CODEX-EXECUTABLE-ENV
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-23T23:30:21.172Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67ed73820676

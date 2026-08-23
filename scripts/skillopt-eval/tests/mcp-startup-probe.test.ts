@@ -63,6 +63,9 @@ describe("required Kibi MCP stdio startup", () => {
         "kb_check",
         "kb_graph",
         "kb_upsert",
+        "kb_coverage",
+        "kb_apply_plan",
+        "kb_ingest_verification",
       ]);
       expect(
         verifyTraceChain(await readFile(staged.mcpServer.tracePath, "utf8")),

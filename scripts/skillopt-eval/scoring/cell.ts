@@ -17,6 +17,12 @@ export type {
 
 type Manifest = ReturnType<typeof parsePrivateEvaluatorManifest>;
 
+export type BrokerRawCall = Readonly<{
+  tool: string;
+  args: Record<string, unknown>;
+  resultOk: boolean;
+}>;
+
 export type CellEvidence = Readonly<{
   finalState: EvidenceSource;
   broker: EvidenceSource & {
@@ -24,6 +30,7 @@ export type CellEvidence = Readonly<{
       tool: string;
       predicate: string;
     }>[];
+    readonly rawCalls?: readonly BrokerRawCall[];
   };
   diagnostic: EvidenceSource;
   codex: EvidenceSource;
@@ -90,7 +97,180 @@ function terminalReceipt(input: {
   };
 }
 
+type ProtocolContract = NonNullable<
+  ReturnType<typeof parsePrivateEvaluatorManifest>["protocolContract"]
+>;
+
+interface RawCallView {
+  readonly tool: string;
+  readonly args: Record<string, unknown>;
+  readonly resultOk: boolean;
+  readonly result?: Record<string, unknown>;
+}
+
+function isRecordLike(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function resultData(
+  result: Record<string, unknown> | undefined,
+): Record<string, unknown> | null {
+  if (result === undefined) return null;
+  const content = result.structuredContent ?? result.structured_content;
+  if (!isRecordLike(content)) {
+    return isRecordLike(result.data) ? result.data : null;
+  }
+  if (
+    content.kibiProtocol === 1 &&
+    isRecordLike(content.data)
+  ) {
+    return content.data;
+  }
+  return content;
+}
+
+function actionRecords(value: unknown): readonly Record<string, unknown>[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(isRecordLike);
+}
+
+function deepEquals(left: unknown, right: unknown): boolean {
+  try {
+    return (
+      JSON.stringify(sortKeysDeep(left)) === JSON.stringify(sortKeysDeep(right))
+    );
+  } catch {
+    return false;
+  }
+}
+
+function sortKeysDeep(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sortKeysDeep);
+  if (isRecordLike(value)) {
+    return Object.fromEntries(
+      Object.keys(value)
+        .sort()
+        .map((key) => [key, sortKeysDeep(value[key])]),
+    );
+  }
+  return value;
+}
+
+/**
+ * Typed verification of the exact migration apply contract over sealed broker
+ * payloads. Proves, without any prose matching: exactly one apply attempt; a
+ * preceding coverage response exposing exactly one ready automatic coordinate
+ * action; the applied plan body identical to the previewed one; the approved
+ * hash equal to that plan's hash; exactly the selected automatic action ID
+ * approved; a successful typed apply result; and zero forbidden attempts.
+ */
+// implements REQ-skillopt-codex-optimization
+export function migrationApplyContractViolations(
+  contract: ProtocolContract,
+  evidence: CellEvidence,
+): readonly string[] {
+  const violations: string[] = [];
+  const rawCalls: readonly RawCallView[] = evidence.broker.rawCalls ?? [];
+  const applyIndexes = rawCalls.flatMap((call, index) =>
+    call.tool === "kb_apply_plan" ? [index] : [],
+  );
+  if (applyIndexes.length === 0) return ["no kb_apply_plan attempt"];
+  if (applyIndexes.length > 1) {
+    violations.push("kb_apply_plan attempted more than once");
+  }
+  const firstApplyIndex = applyIndexes[0];
+  const apply =
+    firstApplyIndex === undefined ? undefined : rawCalls[firstApplyIndex];
+  if (apply === undefined) return ["no kb_apply_plan attempt"];
+
+  let coverageResult: Record<string, unknown> | null = null;
+  for (let index = firstApplyIndex - 1; index >= 0; index -= 1) {
+    const call = rawCalls[index];
+    if (call?.tool === "kb_coverage") {
+      coverageResult = call.result ?? null;
+      break;
+    }
+  }
+  if (coverageResult === null) {
+    violations.push("no kb_coverage before kb_apply_plan");
+  }
+
+  const expectedCode = contract.exactMigrationApply?.actionCode;
+  if (expectedCode !== undefined) {
+    const coverageData =
+      coverageResult === null ? null : resultData(coverageResult);
+    const planBodyCandidate = coverageData?.plan;
+    const actions = actionRecords(
+      coverageData?.actions ??
+        (isRecordLike(planBodyCandidate)
+          ? planBodyCandidate.actions
+          : undefined),
+    );
+    const readyAutomatic = actions.filter(
+      (action) =>
+        action.state === "ready" &&
+        action.safety === "automatic" &&
+        action.autoApplicable === true &&
+        (expectedCode === undefined || action.code === expectedCode),
+    );
+    if (readyAutomatic.length !== 1) {
+      violations.push(
+        `coverage must expose exactly one ready automatic ${expectedCode} action (found ${readyAutomatic.length})`,
+      );
+    }
+    const actionId = readyAutomatic[0]?.id;
+    const planHash =
+      coverageData?.planHash ??
+      (isRecordLike(planBodyCandidate) ? planBodyCandidate.planHash : undefined);
+    const planBody = planBodyCandidate;
+
+    if (typeof actionId !== "string" || actionId.length === 0) {
+      violations.push("coverage action id missing");
+    } else if (!deepEquals(apply.args.approvedActionIds, [actionId])) {
+      violations.push(
+        "approvedActionIds must equal exactly the selected action id",
+      );
+    }
+    if (typeof planHash !== "string" || planHash.length === 0) {
+      violations.push("coverage planHash missing");
+    } else if (apply.args.approvedPlanHash !== planHash) {
+      violations.push("approvedPlanHash must equal the coverage planHash");
+    }
+    if (planBody === undefined || planBody === null) {
+      violations.push("coverage plan body missing");
+    } else if (!deepEquals(apply.args.plan, planBody)) {
+      violations.push("applied plan must be unchanged from the coverage preview");
+    }
+
+    const applyData = resultData(apply.result);
+    if (applyData === null) {
+      violations.push("kb_apply_plan returned no typed result");
+    } else if (applyData.outcome !== "applied") {
+      violations.push(
+        `apply outcome must be applied (got ${String(applyData.outcome)})`,
+      );
+    }
+    if (!apply.resultOk) {
+      violations.push("kb_apply_plan response was an error");
+    }
+  }
+
+  for (const call of rawCalls) {
+    if (contract.forbiddenTools.includes(call.tool)) {
+      violations.push(`forbidden tool attempted: ${call.tool}`);
+    }
+  }
+  return [...new Set(violations)];
+}
+
 function protocolPasses(manifest: Manifest, evidence: CellEvidence): boolean {
+  if (
+    manifest.protocolContract !== undefined &&
+    manifest.protocolContract !== null &&
+    migrationApplyContractViolations(manifest.protocolContract, evidence).length > 0
+  ) {
+    return false;
+  }
   let cursor = 0;
   for (const required of manifest.orderedMcpPredicates.required) {
     const found = evidence.broker.orderedCalls.findIndex(

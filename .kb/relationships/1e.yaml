@@ -20,3 +20,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-324f95f2f9fd
+  - type: implements
+    from: SYM-setupGeneratedCoordinateDivergence
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-23T23:20:31.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20693bfa2b60
+  - type: covered_by
+    from: SYM-setupGeneratedCoordinateDivergence
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-23T23:20:31.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66dcf1de7bf4

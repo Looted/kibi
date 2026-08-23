@@ -28276,3 +28276,194 @@ symbols:
         target: TEST-generated-coordinate-repair
       - type: implements
         target: REQ-generated-coordinate-persistence
+  - id: SYM-BrokerRawCall
+    title: BrokerRawCall
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-DEFAULT_FINAL_STATE_REQUESTS
+    title: DEFAULT_FINAL_STATE_REQUESTS
+    sourceFile: scripts/skillopt-eval/runtime/final-state-requests.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-FIXTURE_BRANCH
+    title: FIXTURE_BRANCH
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-FinalStateRequest2
+    title: FinalStateRequest
+    sourceFile: scripts/skillopt-eval/runtime/final-state-requests.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-FinalStateSkill
+    title: FinalStateSkill
+    sourceFile: scripts/skillopt-eval/runtime/final-state-requests.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-FixtureSetupError-name
+    title: FixtureSetupError.name
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-FixtureSetupError
+    title: FixtureSetupError
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-migrationApplyContractViolations
+    title: migrationApplyContractViolations
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-setupGeneratedCoordinateDivergence
+    title: setupGeneratedCoordinateDivergence
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-stripSymbolCoordinates
+    title: stripSymbolCoordinates
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-taskFinalStateRequests
+    title: taskFinalStateRequests
+    sourceFile: scripts/skillopt-eval/runtime/final-state-requests.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-BRIDGE-ARTIFACT-ROOT-ENV
+    title: BRIDGE_ARTIFACT_ROOT_ENV
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-BRIDGE-BWRAP-EXECUTABLE-ENV
+    title: BRIDGE_BWRAP_EXECUTABLE_ENV
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-BRIDGE-CODEX-EXECUTABLE-ENV
+    title: BRIDGE_CODEX_EXECUTABLE_ENV
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-BRIDGE-FIXTURE-RUN-ROOT-ENV
+    title: BRIDGE_FIXTURE_RUN_ROOT_ENV
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-EPISODE-OUTPUT-SCHEMA
+    title: EPISODE_OUTPUT_SCHEMA
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-runIndependentFinalState
+    title: runIndependentFinalState
+    sourceFile: scripts/skillopt-eval/runtime/final-state.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-BRIDGE-SOURCE-WORKTREE-ENV
+    title: BRIDGE_SOURCE_WORKTREE_ENV
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-TrainerRequestPayload
+    title: TrainerRequestPayload
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization

@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { taskFinalStateRequests } from "./final-state-requests";
 import { readFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 import {
@@ -189,12 +190,10 @@ async function realResult(
           codexExecutable,
           bwrapExecutable,
           env: process.env,
-          finalStateRequests: [
-            { tool: "kb_query", args: {} },
-            { tool: "kb_check", args: {} },
-            { tool: "kb_status", args: {} },
-            { tool: "kb_coverage", args: { by: "req" } },
-          ],
+          finalStateRequests: taskFinalStateRequests(
+            taskId,
+            fixture.evaluatorManifest.protocolContract !== undefined,
+          ),
           evaluatorManifest: fixture.evaluatorManifest,
           hiddenMarkers: options.hiddenMarkers,
           pricingHash: options.pricingHash,

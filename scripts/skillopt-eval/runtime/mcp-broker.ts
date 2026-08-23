@@ -10,6 +10,12 @@ export const REQUIRED_KIBI_TOOLS = [
   "kb_check",
   "kb_graph",
   "kb_upsert",
+  // Coverage/apply/verification evidence tools are required by evaluator
+  // manifests (contracted E2E, migration apply, symbol coverage). The broker
+  // still never exposes destructive surface: kb_delete stays absent.
+  "kb_coverage",
+  "kb_apply_plan",
+  "kb_ingest_verification",
 ] as const;
 
 type ToolDescriptor = Readonly<{ name: string } & Record<string, unknown>>;

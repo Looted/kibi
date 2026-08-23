@@ -1,4 +1,5 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { taskFinalStateRequests } from "./runtime/final-state-requests";
 import { join } from "node:path";
 import {
   EvaluationInfrastructureError,
@@ -295,12 +296,10 @@ export const defaultEvaluateDevelopment: RealOptimizationDependencies["evaluateD
         codexExecutable: runtime.codexExecutable,
         bwrapExecutable: runtime.bwrapExecutable,
         env: input.env,
-        finalStateRequests: [
-          { tool: "kb_query", args: {} },
-          { tool: "kb_check", args: {} },
-          { tool: "kb_status", args: {} },
-          { tool: "kb_coverage", args: { by: "req" } },
-        ],
+        finalStateRequests: taskFinalStateRequests(
+          descriptor.id,
+          fixture.evaluatorManifest.protocolContract !== undefined,
+        ),
         evaluatorManifest: fixture.evaluatorManifest,
         hiddenMarkers: runtime.hiddenMarkers ?? [],
         pricingHash: runtime.pricingHash ?? "0".repeat(64),

@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
+import { taskFinalStateRequests } from "./runtime/final-state-requests";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
@@ -205,12 +206,10 @@ export const defaultEvaluateHeldOut: RealOptimizationDependencies["evaluateHeldO
               codexExecutable: runtime.codexExecutable,
               bwrapExecutable: runtime.bwrapExecutable,
               env: input.env,
-              finalStateRequests: [
-                { tool: "kb_query", args: {} },
-                { tool: "kb_check", args: {} },
-                { tool: "kb_status", args: {} },
-                { tool: "kb_coverage", args: { by: "req" } },
-              ],
+              finalStateRequests: taskFinalStateRequests(
+                task.taskId,
+                task.fixture.evaluatorManifest.protocolContract !== undefined,
+              ),
               evaluatorManifest: task.fixture.evaluatorManifest,
               hiddenMarkers: runtime.hiddenMarkers ?? [],
               pricingHash: runtime.pricingHash ?? "0".repeat(64),

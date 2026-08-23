@@ -163,6 +163,34 @@ function writePublicPredicateClaim(input: WorkspaceInput): void {
   });
 }
 
+
+// implements REQ-skillopt-codex-optimization
+function writeCoordinateRepairObservation(input: WorkspaceInput): void {
+  if (
+    input.task.taskData.objectiveCode !==
+    "generated_only_symbol_coordinate_repair"
+  ) {
+    return;
+  }
+  const suffix = sha256(input.task.id).slice(0, 12).toUpperCase();
+  // Public observations of the incident only. The expected migration action,
+  // plan hash, action ID, and any scoring expectation stay evaluator-private.
+  writeJson(input.root, "symbol-coordinate-repair.json", {
+    symbol: {
+      id: `SYM-FIXTURE-${suffix}`,
+      title: input.task.family,
+      sourceFile: "src/fixture.ts",
+    },
+    observation: {
+      extractionComplete: true,
+      authoredManifestCurrent: true,
+      generatedArtifactPresent: true,
+      reportedGap: "missing_symbol_coordinates",
+      reportedBy: "kb_coverage",
+    },
+  });
+}
+
 // implements REQ-skillopt-codex-optimization
 export function hashWorkspace(root: string): string {
   const hash = createHash("sha256");
@@ -213,6 +241,7 @@ export function writePublicWorkspace(input: WorkspaceInput): string {
   copyCanonicalSkills(input);
   writeAdversarialFiles(input);
   writeSafeMutationEvidence(input);
+  writeCoordinateRepairObservation(input);
   // Predicate-family tasks materialize the public claim and schema (no expected
   // outcome) from the semantically distinct registry. The private expectation
   // lives only in the evaluator/verifier lane.

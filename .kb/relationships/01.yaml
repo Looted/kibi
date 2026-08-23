@@ -69,3 +69,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e0a40e26cf79
+  - type: implements
+    from: SYM-DEFAULT_FINAL_STATE_REQUESTS
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-23T23:19:59.368Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-152a29a48604
+  - type: covered_by
+    from: SYM-DEFAULT_FINAL_STATE_REQUESTS
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-23T23:19:59.380Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-537c18d2f5e4

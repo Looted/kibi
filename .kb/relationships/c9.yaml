@@ -62,3 +62,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c01605471d92
+  - type: implements
+    from: SYM-FixtureSetupError
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-23T23:20:21.223Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-719c39e805a3
+  - type: covered_by
+    from: SYM-FixtureSetupError
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-23T23:20:21.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a00cba9e7449
