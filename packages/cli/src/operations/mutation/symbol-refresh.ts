@@ -229,7 +229,8 @@ export async function refreshSymbolCoordinatesUnlocked(
   symbolId: string,
   context: OperationContext,
 ): Promise<RefreshResult> {
-  return refreshUnlocked(symbolId, context);
+  const active = implementation ?? refreshUnlocked;
+  return active(symbolId, context);
 }
 
 // implements REQ-kibi-operation-interface-parity

@@ -1939,9 +1939,9 @@ coordinates:
     identityHash: 85da8abaf8c21e1a966d7561ea7d21ca18931d5899dac07925413344480a7ffc
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 240
+    sourceEndLine: 241
     sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
-    sourceLine: 236
+    sourceLine: 237
   SYM-canonical-shouldHandleFile:
     identityHash: 7324f09f6965826bb26caf89718e541523c52067270d63152d001e83aad7572d
     sourceColumn: 16
@@ -5012,7 +5012,7 @@ coordinates:
     identityHash: 11b11beec10035274866acda204caee4174bf3ea9e5e624faa1965ed869847d3
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 3717
+    sourceEndLine: 3750
     sourceFile: packages/core/tests/kb.plt
     sourceLine: 1
   SYM-core-kb-save-locked:
@@ -11298,7 +11298,7 @@ coordinates:
     identityHash: be841ef36d0ff00138b49eb8b4fc5a99ac8dae0a0c1571b3b4715d292c18b16a
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 233
+    sourceEndLine: 234
     sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
     sourceLine: 228
   SYM-registerAllTools:
@@ -19012,16 +19012,16 @@ coordinates:
     identityHash: 416e1f9df65dad7253f3fb0966166d25453441fe22fbb39e763362585af757a9
     sourceColumn: 5
     sourceEndColumn: 64
-    sourceEndLine: 3122
+    sourceEndLine: 3155
     sourceFile: packages/core/tests/kb.plt
-    sourceLine: 3122
+    sourceLine: 3155
   SYM-test-rule-overlap-witness-proof:
     identityHash: 3d30fbc2441ff42be8709237965f0c2333f5ade8ee2665025b40acdbb961aa1c
     sourceColumn: 5
     sourceEndColumn: 65
-    sourceEndLine: 3142
+    sourceEndLine: 3175
     sourceFile: packages/core/tests/kb.plt
-    sourceLine: 3142
+    sourceLine: 3175
   SYM-test-runtime-engine-daemon:
     identityHash: 288563ff26e429f30492eafa5717f7d50855014ca39b13b6c5ee9b4568908c6c
     sourceColumn: 22
