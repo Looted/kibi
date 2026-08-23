@@ -2005,6 +2005,39 @@ test(symbol_coverage_does_not_count_executable_test_symbols_as_production_covera
     assertion(Report.summary.notApplicable == 1),
     assertion(Report.summary.fullyCovered == 0).
 
+% implements REQ-generated-coordinate-persistence
+
+test(missing_single_coordinate_blocks_proof_until_all_four_persist, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-COORD-STAGE', "Coordinate stage regression", active, [
+        source="test://kb.plt"
+    ]),
+    % One missing generated field must fail closed...
+    assert_fixture_entity(symbol, 'SYM-COORD-STAGE', "coordinate stage symbol", active, [
+        sourceFile="src/stage.ts",
+        sourceLine=3,
+        sourceColumn=0,
+        sourceEndLine=5
+    ]),
+    kb_assert_relationship(implements, 'SYM-COORD-STAGE', 'REQ-COORD-STAGE', []),
+    coverage_report_json(req, [], true, true, 100, 0, BeforeJsonString),
+    json_string_dict(BeforeJsonString, BeforeReport),
+    coverage_row(BeforeReport.rows, 'REQ-COORD-STAGE', BeforeRow),
+    assertion(BeforeRow.proofStages.sourceCoordinates.status == missing),
+    requirement_proof:proof_gap_present(missing_symbol_coordinates, BeforeRow.proofStages),
+    % ...and persisting all four generated fields clears the gap.
+    assert_fixture_entity(symbol, 'SYM-COORD-STAGE', "coordinate stage symbol", active, [
+        sourceFile="src/stage.ts",
+        sourceLine=3,
+        sourceColumn=0,
+        sourceEndLine=5,
+        sourceEndColumn=1
+    ]),
+    coverage_report_json(req, [], true, true, 100, 0, AfterJsonString),
+    json_string_dict(AfterJsonString, AfterReport),
+    coverage_row(AfterReport.rows, 'REQ-COORD-STAGE', AfterRow),
+    assertion(AfterRow.proofStages.sourceCoordinates.status == passed),
+    \+ requirement_proof:proof_gap_present(missing_symbol_coordinates, AfterRow.proofStages).
+
 :- end_tests(kb_coverage_depth).
 
 % Semantic contradiction tests using typed facts (Task 4)
