@@ -102,8 +102,10 @@ function coverageState(
 
 function sourceCoverageState(files: readonly string[]): ActivationState {
   const counts = {
-    req: files.filter((file) => /^\.kb\/requirements\/.*\.md$/i.test(file)).length,
-    scenario: files.filter((file) => /^\.kb\/scenarios\/.*\.md$/i.test(file)).length,
+    req: files.filter((file) => /^\.kb\/requirements\/.*\.md$/i.test(file))
+      .length,
+    scenario: files.filter((file) => /^\.kb\/scenarios\/.*\.md$/i.test(file))
+      .length,
     test: files.filter((file) => /^\.kb\/tests\/.*\.md$/i.test(file)).length,
     adr: files.filter((file) => /^\.kb\/adrs?\/.*\.md$/i.test(file)).length,
     flag: files.filter((file) => /^\.kb\/flags\/.*\.md$/i.test(file)).length,
@@ -140,10 +142,12 @@ export async function classifyActivation(
     );
     const projectSignalFromDirectories = await Promise.all(
       ["README.md", "package.json", "src", "app", "packages", "tests"].map(
-        (target) => exists(context, path.resolve(context.workspaceRoot, target)),
+        (target) =>
+          exists(context, path.resolve(context.workspaceRoot, target)),
       ),
     );
-    const projectSignal = projectSignalFromFiles || projectSignalFromDirectories.some(Boolean);
+    const projectSignal =
+      projectSignalFromFiles || projectSignalFromDirectories.some(Boolean);
     return activationFor(
       vendored && !projectSignal ? "vendored_only" : "root_uninitialized",
     );

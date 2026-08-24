@@ -9,9 +9,9 @@ import { buildBootstrapCandidates } from "./candidates.js";
 import { discoverBootstrap } from "./discovery.js";
 import { presentBootstrap } from "./presentation.js";
 import type {
+  Candidate,
   PlanBootstrapArgs,
   PlanBootstrapResult,
-  Candidate,
 } from "./types.js";
 import { bootstrapEmptyKbSnapshotId } from "./types.js";
 
@@ -129,24 +129,40 @@ async function expectedSnapshots(
     const workspace = await readWorkspaceSnapshot(context);
     const sourceHashes: Record<string, string | null> = {};
     if (!context.fs) {
-      diagnostics.push("Bootstrap plan binding requires a filesystem-capable runtime.");
+      diagnostics.push(
+        "Bootstrap plan binding requires a filesystem-capable runtime.",
+      );
     } else {
       // Bind every evidence document that can affect candidate selection. The
       // workspace hash is still authoritative for the complete checkout, but
       // these per-source hashes make the plan's evidence set inspectable.
       for (const relative of new Set(evidencePaths)) {
         try {
-          sourceHashes[relative] = sha256(await context.fs.readFile(path.resolve(context.workspaceRoot, relative)));
+          sourceHashes[relative] = sha256(
+            await context.fs.readFile(
+              path.resolve(context.workspaceRoot, relative),
+            ),
+          );
         } catch {
           sourceHashes[relative] = null;
-          diagnostics.push(`Bootstrap evidence source is unavailable: ${relative}`);
+          diagnostics.push(
+            `Bootstrap evidence source is unavailable: ${relative}`,
+          );
         }
       }
     }
     const branch = status?.branch ?? context.branchAttachment?.kbBranch;
-    const workspaceSnapshot = workspace.available ? workspace.snapshot.hash : undefined;
-    if (!branch || branch === "unknown") diagnostics.push("Bootstrap plan binding could not determine the active Git branch.");
-    if (!workspaceSnapshot || !/^[a-f0-9]{64}$/i.test(workspaceSnapshot)) diagnostics.push("Bootstrap plan binding could not determine a current workspace snapshot.");
+    const workspaceSnapshot = workspace.available
+      ? workspace.snapshot.hash
+      : undefined;
+    if (!branch || branch === "unknown")
+      diagnostics.push(
+        "Bootstrap plan binding could not determine the active Git branch.",
+      );
+    if (!workspaceSnapshot || !/^[a-f0-9]{64}$/i.test(workspaceSnapshot))
+      diagnostics.push(
+        "Bootstrap plan binding could not determine a current workspace snapshot.",
+      );
     const rawSnapshot = status?.snapshotId;
     const kbSnapshotId =
       rawSnapshot === "missing" &&
@@ -164,7 +180,10 @@ async function expectedSnapshots(
       kbSnapshotId === "unknown" ||
       kbSnapshotId === "missing" ||
       kbSnapshotId === "unavailable"
-    ) diagnostics.push("Bootstrap plan binding could not determine a current KB snapshot.");
+    )
+      diagnostics.push(
+        "Bootstrap plan binding could not determine a current KB snapshot.",
+      );
     return {
       branch: branch ?? "unavailable",
       kbSnapshotId: kbSnapshotId ?? "unavailable",
@@ -178,7 +197,9 @@ async function expectedSnapshots(
       kbSnapshotId: "unavailable",
       workspaceSnapshot: "unavailable",
       sourceHashes: {},
-      bindingDiagnostics: ["Bootstrap plan binding could not read current repository state."],
+      bindingDiagnostics: [
+        "Bootstrap plan binding could not read current repository state.",
+      ],
     };
   }
 }

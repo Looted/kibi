@@ -2639,9 +2639,9 @@ coordinates:
   SYM-auto-92BF4F1E0EC1:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 363
+    sourceEndLine: 366
     sourceFile: packages/cli/src/public/operations/contracts.ts
-    sourceLine: 338
+    sourceLine: 341
   SYM-auto-93C73D20FA03:
     sourceColumn: 12
     sourceEndColumn: 68
@@ -2813,7 +2813,7 @@ coordinates:
   SYM-auto-D694B2C4BE06:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 290
+    sourceEndLine: 293
     sourceFile: packages/cli/src/public/operations/contracts.ts
     sourceLine: 61
   SYM-auto-D6D87A820746:
@@ -4589,9 +4589,9 @@ coordinates:
   SYM-cli-init-command:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 177
+    sourceEndLine: 187
     sourceFile: packages/cli/src/commands/init.ts
-    sourceLine: 88
+    sourceLine: 94
   SYM-cli-input-error:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -5051,7 +5051,7 @@ coordinates:
   SYM-cli-register-foundation-commands:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 163
+    sourceEndLine: 165
     sourceFile: packages/cli/src/cli-register-foundation.ts
     sourceLine: 16
   SYM-cli-register-json-only-commands:
@@ -7295,9 +7295,9 @@ coordinates:
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-activation-classifyactivation:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 192
+    sourceEndLine: 196
     sourceFile: packages/cli/src/operations/bootstrap/activation.ts
-    sourceLine: 119
+    sourceLine: 121
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-confidenceband:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7331,9 +7331,9 @@ coordinates:
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-discoverbootstrap:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 137
+    sourceEndLine: 139
     sourceFile: packages/cli/src/operations/bootstrap/discovery.ts
-    sourceLine: 88
+    sourceLine: 90
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-evidence-evidencescan:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -7343,9 +7343,9 @@ coordinates:
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-evidence-scanevidence:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 262
+    sourceEndLine: 270
     sourceFile: packages/cli/src/operations/bootstrap/discovery-evidence.ts
-    sourceLine: 202
+    sourceLine: 208
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-generate-selectbootstrapcandidates:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7373,9 +7373,9 @@ coordinates:
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-markdown-candidates-markdowncandidates:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 199
+    sourceEndLine: 200
     sourceFile: packages/cli/src/operations/bootstrap/markdown-candidates.ts
-    sourceLine: 143
+    sourceLine: 144
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-presentation-normalizebootstrapcontext:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -7529,7 +7529,7 @@ coordinates:
   SYM-kibi-bootstrap-cli-src-operations-planning-apply-plan-orderbootstrapactions:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 324
+    sourceEndLine: 329
     sourceFile: packages/cli/src/operations/planning/apply-plan.ts
     sourceLine: 283
   SYM-kibi-bootstrap-cli-tests-operations-bootstrap-workspace-fixture-bootstrapworkspacefixture:
@@ -7613,13 +7613,13 @@ coordinates:
   SYM-kibi-bootstrap-plan-executor:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 250
+    sourceEndLine: 271
     sourceFile: packages/cli/src/operations/bootstrap/generate.ts
-    sourceLine: 188
+    sourceLine: 209
   SYM-kibi-bootstrap-plan-presentation:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 218
+    sourceEndLine: 231
     sourceFile: packages/cli/src/operations/bootstrap/presentation.ts
     sourceLine: 50
   SYM-kibi-check-build-structured-content:
@@ -7799,9 +7799,9 @@ coordinates:
   SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1701
+    sourceEndLine: 1812
     sourceFile: packages/cli/src/operations/planning/apply-plan.ts
-    sourceLine: 1320
+    sourceLine: 1414
   SYM-kibi-cli-src-operations-planning-apply-plan-ts-plan-apply-result-version:
     sourceColumn: 13
     sourceEndColumn: 77
@@ -7907,7 +7907,7 @@ coordinates:
   SYM-kibi-cli-src-public-operations-specs-planning-ts-applyplanspec:
     sourceColumn: 13
     sourceEndColumn: 66
-    sourceEndLine: 237
+    sourceEndLine: 234
     sourceFile: packages/cli/src/public/operations/specs/planning.ts
     sourceLine: 181
   SYM-kibi-cli-src-public-operations-specs-planning-ts-compileintentspec:
@@ -8585,7 +8585,7 @@ coordinates:
   SYM-mcp-parity-run-operation:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 166
+    sourceEndLine: 165
     sourceFile: packages/mcp/tests/parity/adapter.ts
     sourceLine: 32
   SYM-mcp-readBranchKbStamp:
@@ -11831,9 +11831,9 @@ coordinates:
   SYM-skillopt-broker-options:
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 71
+    sourceEndLine: 78
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
-    sourceLine: 65
+    sourceLine: 72
   SYM-skillopt-broker-stage-options:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -12647,9 +12647,9 @@ coordinates:
   SYM-skillopt-default-codex-cell-dependencies:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 825
+    sourceEndLine: 952
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    sourceLine: 753
+    sourceLine: 880
   SYM-skillopt-default-evaluate-development:
     sourceColumn: 13
     sourceEndColumn: 3
@@ -12707,7 +12707,7 @@ coordinates:
   SYM-skillopt-docs-contract-tests:
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 172
+    sourceEndLine: 182
     sourceFile: scripts/skillopt-eval/tests/docs-contract.test.ts
     sourceLine: 1
   SYM-skillopt-durability-observer:
@@ -13139,9 +13139,9 @@ coordinates:
   SYM-skillopt-filter-advertised-tools:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 57
+    sourceEndLine: 64
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
-    sourceLine: 34
+    sourceLine: 41
   SYM-skillopt-final-state-context-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -13169,9 +13169,9 @@ coordinates:
   SYM-skillopt-fixture-blinded-order:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 48
+    sourceEndLine: 56
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    sourceLine: 32
+    sourceLine: 40
   SYM-skillopt-fixture-build-bundle-payload:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -13193,9 +13193,9 @@ coordinates:
   SYM-skillopt-fixture-catalog-tests:
     sourceColumn: 10
     sourceEndColumn: 34
-    sourceEndLine: 32
+    sourceEndLine: 33
     sourceFile: scripts/skillopt-eval/tests/catalog.test.ts
-    sourceLine: 32
+    sourceLine: 33
   SYM-skillopt-fixture-corpus-entry-type:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -13319,15 +13319,15 @@ coordinates:
   SYM-skillopt-fixture-private-integrity:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 731
+    sourceEndLine: 481
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    sourceLine: 707
+    sourceLine: 457
   SYM-skillopt-fixture-private-manifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 704
+    sourceEndLine: 454
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    sourceLine: 559
+    sourceLine: 301
   SYM-skillopt-fixture-private-tests:
     sourceColumn: 10
     sourceEndColumn: 41
@@ -13643,15 +13643,15 @@ coordinates:
   SYM-skillopt-mcp-broker-error:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 81
+    sourceEndLine: 88
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
-    sourceLine: 73
+    sourceLine: 80
   SYM-skillopt-mcp-broker-error-name:
     sourceColumn: 11
     sourceEndColumn: 35
-    sourceEndLine: 74
+    sourceEndLine: 81
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
-    sourceLine: 74
+    sourceLine: 81
   SYM-skillopt-mcp-broker-tests:
     sourceColumn: 0
     sourceEndColumn: 0
@@ -13661,7 +13661,7 @@ coordinates:
   SYM-skillopt-mcp-startup-probe-tests:
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 155
+    sourceEndLine: 144
     sourceFile: scripts/skillopt-eval/tests/mcp-startup-probe.test.ts
     sourceLine: 1
   SYM-skillopt-measured-report-metrics-type:
@@ -14939,7 +14939,7 @@ coordinates:
   SYM-skillopt-required-kibi-tools:
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 13
+    sourceEndLine: 20
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
     sourceLine: 1
   SYM-skillopt-resolve-artifact-root:
@@ -15635,9 +15635,9 @@ coordinates:
   SYM-skillopt-seal-default-cell-evidence:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 750
+    sourceEndLine: 877
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    sourceLine: 731
+    sourceLine: 857
   SYM-skillopt-sealed-cell-evidence:
     sourceColumn: 12
     sourceEndColumn: 2

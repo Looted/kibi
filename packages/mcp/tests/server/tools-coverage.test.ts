@@ -20,13 +20,13 @@ import {
   TOOLS,
   withDiagnosticTelemetrySchema,
 } from "../../src/tools-config.js";
-import type { PlanBootstrapArgs } from "../../src/tools/plan-bootstrap.js";
 import type { CheckArgs } from "../../src/tools/check.js";
 import type { CoverageArgs } from "../../src/tools/coverage.js";
 import type { DeleteArgs } from "../../src/tools/delete.js";
 import type { FindGapsArgs } from "../../src/tools/find-gaps.js";
 import type { GraphArgs } from "../../src/tools/graph.js";
 import type { ModelRequirementArgs } from "../../src/tools/model-requirement.js";
+import type { PlanBootstrapArgs } from "../../src/tools/plan-bootstrap.js";
 import type { QueryArgs } from "../../src/tools/query.js";
 import type { SearchArgs } from "../../src/tools/search.js";
 import type { SemanticAdvisorArgs } from "../../src/tools/semantic-advisor.js";
@@ -1103,9 +1103,9 @@ describe.serial("server tools coverage", () => {
     registerAllTools(server, runtime);
 
     expect(registered.map((tool) => tool.name)).toEqual([...TOOL_NAMES]);
-    expect(
-      registered.some((tool) => tool.name === "kb_plan_bootstrap"),
-    ).toBe(true);
+    expect(registered.some((tool) => tool.name === "kb_plan_bootstrap")).toBe(
+      true,
+    );
     expect(
       registered.some((tool) => tool.name === "kb_briefing_generate"),
     ).toBe(false);

@@ -1,5 +1,5 @@
-import type { OperationResult } from "../../public/operations/types.js";
 import { createHash } from "node:crypto";
+import type { OperationResult } from "../../public/operations/types.js";
 import { canonicalize } from "../semantic-advisor/shared.js";
 
 export function bootstrapPlanHash(

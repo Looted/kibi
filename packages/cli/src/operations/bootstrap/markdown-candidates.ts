@@ -78,7 +78,8 @@ function genericHeadingCandidate(
     sourceKind: "generic_markdown",
     sourcePath: item.absolutePath ?? relativePath,
     confidence,
-    confidenceBand: confidence >= 0.95 ? "high" : confidence >= 0.8 ? "medium" : "low",
+    confidenceBand:
+      confidence >= 0.95 ? "high" : confidence >= 0.8 ? "medium" : "low",
     evidence: [`generic_heading:${relativePath}#L${line}`],
     relationships: [],
     applyPlan: [upsert(entity)],

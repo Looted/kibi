@@ -7,6 +7,7 @@ import {
   executeIntentSearch,
   validateIntentSearchInput,
 } from "../../intent-search.js";
+import { classifyActivation } from "../../operations/bootstrap/activation.js";
 import { rankEntities } from "../../search-ranking.js";
 import type { SearchMatch } from "../../search-ranking.js";
 import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
@@ -33,7 +34,6 @@ import {
 import type { OperationContext, PrologPort } from "./runtime-types.js";
 import type { OperationResult } from "./types.js";
 import { readWorkspaceSnapshot } from "./workspace-snapshot.js";
-import { classifyActivation } from "../../operations/bootstrap/activation.js";
 
 export type QueryInput = {
   readonly type?: string;

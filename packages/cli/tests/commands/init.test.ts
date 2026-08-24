@@ -223,10 +223,13 @@ describe("kibi init", () => {
     });
 
     const plan = JSON.parse(
-      execSync(`printf '%s\\n' '{}' | bun ${kibiBin} plan-bootstrap --input -`, {
-        cwd: tmpDir,
-        encoding: "utf8",
-      }),
+      execSync(
+        `printf '%s\\n' '{}' | bun ${kibiBin} plan-bootstrap --input -`,
+        {
+          cwd: tmpDir,
+          encoding: "utf8",
+        },
+      ),
     ) as {
       data?: {
         plan?: { status?: string; planHash?: string };
@@ -267,7 +270,10 @@ describe("kibi init", () => {
         cwd: tmpDir,
         encoding: "utf8",
       }),
-    ) as { status?: string; data?: { bootstrap?: { nextAction?: { operation?: string } } } };
+    ) as {
+      status?: string;
+      data?: { bootstrap?: { nextAction?: { operation?: string } } };
+    };
     expect(checked.status).toBe("success");
     expect(status.status).toBe("success");
     expect(status.data?.bootstrap?.nextAction?.operation).toBe(

@@ -13,45 +13,163 @@ type CandidateInput = {
   evidence?: readonly BootstrapEvidence[];
 };
 
-function evidenceFor(filePath: string, kind: BootstrapEvidence["kind"], options: CandidateOptions): BootstrapEvidence {
-  const relativePath = path.relative(options.workspaceRoot, filePath).replaceAll("\\", "/");
-  const provider = kind === "generic_markdown" ? "generic_repo_docs" : kind === "typed_markdown" || kind === "symbol_manifest" ? "typed_kibi_docs" : kind;
-  return { provider, kind, label: relativePath, relativePath, absolutePath: filePath, content: fsSync.readFileSync(filePath, "utf8"), data: {} };
+function evidenceFor(
+  filePath: string,
+  kind: BootstrapEvidence["kind"],
+  options: CandidateOptions,
+): BootstrapEvidence {
+  const relativePath = path
+    .relative(options.workspaceRoot, filePath)
+    .replaceAll("\\", "/");
+  const provider =
+    kind === "generic_markdown"
+      ? "generic_repo_docs"
+      : kind === "typed_markdown" || kind === "symbol_manifest"
+        ? "typed_kibi_docs"
+        : kind;
+  return {
+    provider,
+    kind,
+    label: relativePath,
+    relativePath,
+    absolutePath: filePath,
+    content: fsSync.readFileSync(filePath, "utf8"),
+    data: {},
+  };
 }
 
-function allEvidence(input: CandidateInput, options: CandidateOptions): BootstrapEvidence[] {
+function allEvidence(
+  input: CandidateInput,
+  options: CandidateOptions,
+): BootstrapEvidence[] {
   return [
     ...(input.evidence ?? []).map((item) => {
-      const absolutePath = item.absolutePath ?? (item.relativePath ? path.join(options.workspaceRoot, item.relativePath) : undefined);
-      return item.content === undefined && absolutePath && fsSync.existsSync(absolutePath)
-        ? { ...item, absolutePath, content: fsSync.readFileSync(absolutePath, "utf8") }
+      const absolutePath =
+        item.absolutePath ??
+        (item.relativePath
+          ? path.join(options.workspaceRoot, item.relativePath)
+          : undefined);
+      return item.content === undefined &&
+        absolutePath &&
+        fsSync.existsSync(absolutePath)
+        ? {
+            ...item,
+            absolutePath,
+            content: fsSync.readFileSync(absolutePath, "utf8"),
+          }
         : absolutePath
           ? { ...item, absolutePath }
           : item;
     }),
-    ...(input.manifestFiles ?? []).map((filePath) => evidenceFor(filePath, "symbol_manifest", options)),
-    ...(input.markdownFiles ?? []).map((filePath) => evidenceFor(filePath, "typed_markdown", options)),
+    ...(input.manifestFiles ?? []).map((filePath) =>
+      evidenceFor(filePath, "symbol_manifest", options),
+    ),
+    ...(input.markdownFiles ?? []).map((filePath) =>
+      evidenceFor(filePath, "typed_markdown", options),
+    ),
   ];
 }
 
-function buildTyped(input: CandidateInput, options: CandidateOptions, kind: "symbol_manifest" | "typed_markdown") {
-  return buildBootstrapCandidates(allEvidence(input, options).filter((item) => item.kind === kind), options.ids, 0.8, true).candidates;
+function buildTyped(
+  input: CandidateInput,
+  options: CandidateOptions,
+  kind: "symbol_manifest" | "typed_markdown",
+) {
+  return buildBootstrapCandidates(
+    allEvidence(input, options).filter((item) => item.kind === kind),
+    options.ids,
+    0.8,
+    true,
+  ).candidates;
 }
-function buildGeneric(input: CandidateInput, options: CandidateOptions, minConfidence: number) {
-  return buildBootstrapCandidates(allEvidence(input, options).map((item) => item.kind === "typed_markdown" ? { ...item, kind: "generic_markdown" as const, provider: "generic_repo_docs" as const } : item), options.ids, minConfidence, true).candidates;
+function buildGeneric(
+  input: CandidateInput,
+  options: CandidateOptions,
+  minConfidence: number,
+) {
+  return buildBootstrapCandidates(
+    allEvidence(input, options).map((item) =>
+      item.kind === "typed_markdown"
+        ? {
+            ...item,
+            kind: "generic_markdown" as const,
+            provider: "generic_repo_docs" as const,
+          }
+        : item,
+    ),
+    options.ids,
+    minConfidence,
+    true,
+  ).candidates;
 }
-function buildProviders(input: CandidateInput, options: CandidateOptions, minConfidence: number) {
-  return buildBootstrapCandidates(allEvidence(input, options), options.ids, minConfidence, true).candidates.filter((candidate) => !["generic_markdown", "typed_markdown", "symbol_manifest"].includes(candidate.sourceKind));
+function buildProviders(
+  input: CandidateInput,
+  options: CandidateOptions,
+  minConfidence: number,
+) {
+  return buildBootstrapCandidates(
+    allEvidence(input, options),
+    options.ids,
+    minConfidence,
+    true,
+  ).candidates.filter(
+    (candidate) =>
+      !["generic_markdown", "typed_markdown", "symbol_manifest"].includes(
+        candidate.sourceKind,
+      ),
+  );
 }
-function buildSignals(input: CandidateInput, options: CandidateOptions, minConfidence: number) {
-  return buildBootstrapCandidates(allEvidence(input, options).map((item) => item.kind === "typed_markdown" ? { ...item, kind: "generic_markdown" as const, provider: "generic_repo_docs" as const } : item), options.ids, minConfidence, true).sourceOnlySignals;
+function buildSignals(
+  input: CandidateInput,
+  options: CandidateOptions,
+  minConfidence: number,
+) {
+  return buildBootstrapCandidates(
+    allEvidence(input, options).map((item) =>
+      item.kind === "typed_markdown"
+        ? {
+            ...item,
+            kind: "generic_markdown" as const,
+            provider: "generic_repo_docs" as const,
+          }
+        : item,
+    ),
+    options.ids,
+    minConfidence,
+    true,
+  ).sourceOnlySignals;
 }
-const buildSymbolManifestCandidates = (input: CandidateInput, options: CandidateOptions) => buildTyped(input, options, "symbol_manifest");
-const buildTypedMarkdownCandidates = (input: CandidateInput, options: CandidateOptions) => buildTyped(input, options, "typed_markdown");
-const buildGenericMarkdownCandidates = (input: CandidateInput, options: CandidateOptions, minConfidence: number) => buildGeneric(input, options, minConfidence);
-const buildNormativeRequirementCandidates = (input: CandidateInput, options: CandidateOptions, minConfidence: number) => buildGeneric(input, options, minConfidence).filter((candidate) => candidate.entityType === "req");
-const buildProviderEvidenceCandidates = (input: CandidateInput, options: CandidateOptions, minConfidence: number) => buildProviders(input, options, minConfidence);
-const collectSourceOnlyAuthoringSignals = (input: CandidateInput, options: CandidateOptions, minConfidence: number) => buildSignals(input, options, minConfidence);
+const buildSymbolManifestCandidates = (
+  input: CandidateInput,
+  options: CandidateOptions,
+) => buildTyped(input, options, "symbol_manifest");
+const buildTypedMarkdownCandidates = (
+  input: CandidateInput,
+  options: CandidateOptions,
+) => buildTyped(input, options, "typed_markdown");
+const buildGenericMarkdownCandidates = (
+  input: CandidateInput,
+  options: CandidateOptions,
+  minConfidence: number,
+) => buildGeneric(input, options, minConfidence);
+const buildNormativeRequirementCandidates = (
+  input: CandidateInput,
+  options: CandidateOptions,
+  minConfidence: number,
+) =>
+  buildGeneric(input, options, minConfidence).filter(
+    (candidate) => candidate.entityType === "req",
+  );
+const buildProviderEvidenceCandidates = (
+  input: CandidateInput,
+  options: CandidateOptions,
+  minConfidence: number,
+) => buildProviders(input, options, minConfidence);
+const collectSourceOnlyAuthoringSignals = (
+  input: CandidateInput,
+  options: CandidateOptions,
+  minConfidence: number,
+) => buildSignals(input, options, minConfidence);
 
 describe("bootstrap candidates", () => {
   let tmp: string;

@@ -3,12 +3,15 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { planBootstrapSpec } from "../../src/public/operations/specs/bootstrap.js";
-import { bootstrapPlanHash } from "../../src/operations/bootstrap/types.js";
 import { buildBootstrapCandidates } from "../../src/operations/bootstrap/candidates.js";
 import { discoverBootstrap } from "../../src/operations/bootstrap/discovery.js";
-import { nodeFilesystem, nodeGit } from "../../src/public/operations/node-ports.js";
+import { bootstrapPlanHash } from "../../src/operations/bootstrap/types.js";
+import {
+  nodeFilesystem,
+  nodeGit,
+} from "../../src/public/operations/node-ports.js";
 import type { OperationContext } from "../../src/public/operations/runtime-types.js";
+import { planBootstrapSpec } from "../../src/public/operations/specs/bootstrap.js";
 import {
   createSeededRepo,
   setupWorkspace,
@@ -50,7 +53,8 @@ describe("shared bootstrap executor", () => {
           kind: "typed_markdown",
           label: ".kb/requirements/REQ-BOOTSTRAP.md",
           relativePath: ".kb/requirements/REQ-BOOTSTRAP.md",
-          content: "---\nid: REQ-BOOTSTRAP\ntitle: Bootstrap plan\nstatus: open\n---\n",
+          content:
+            "---\nid: REQ-BOOTSTRAP\ntitle: Bootstrap plan\nstatus: open\n---\n",
           data: {},
         },
       ],
@@ -69,7 +73,7 @@ describe("shared bootstrap executor", () => {
       signal: new AbortController().signal,
       clock: () => new Date("2026-07-21T00:00:00Z"),
       fs: {
-        readFile: async () => "{\"name\":\"fixture\"}",
+        readFile: async () => '{"name":"fixture"}',
         writeFile: async () => undefined,
         mkdir: async () => undefined,
         stat: async () => ({ isFile: () => true, isDirectory: () => false }),
@@ -151,7 +155,9 @@ describe("shared bootstrap executor", () => {
   });
 
   test("returns planner-owned bounded questions for insufficient evidence", async () => {
-    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-bootstrap-needs-context-"));
+    const root = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-bootstrap-needs-context-"),
+    );
     try {
       writeRootManifest(root);
       for (const lane of [
@@ -168,8 +174,12 @@ describe("shared bootstrap executor", () => {
       writeFileSync(path.join(root, ".kb", "symbols.yaml"), "symbols: []\n");
       const result = await planBootstrapSpec.execute({}, planningContext(root));
       expect(result.structuredContent.plan.status).toBe("needs_context");
-      expect(result.structuredContent.plan.contextQuestions.length).toBeGreaterThanOrEqual(1);
-      expect(result.structuredContent.plan.contextQuestions.length).toBeLessThanOrEqual(4);
+      expect(
+        result.structuredContent.plan.contextQuestions.length,
+      ).toBeGreaterThanOrEqual(1);
+      expect(
+        result.structuredContent.plan.contextQuestions.length,
+      ).toBeLessThanOrEqual(4);
       expect(result.structuredContent.planHash).toBe(
         result.structuredContent.plan.planHash,
       );
@@ -179,15 +189,23 @@ describe("shared bootstrap executor", () => {
   });
 
   test("returns blocked and handoff plan statuses for uninitialized and seeded roots", async () => {
-    const blockedRoot = mkdtempSync(path.join(os.tmpdir(), "kibi-bootstrap-blocked-"));
+    const blockedRoot = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-bootstrap-blocked-"),
+    );
     const seeded = setupWorkspace();
     try {
-      const blocked = await planBootstrapSpec.execute({}, planningContext(blockedRoot));
+      const blocked = await planBootstrapSpec.execute(
+        {},
+        planningContext(blockedRoot),
+      );
       expect(blocked.structuredContent.plan.status).toBe("blocked");
       expect(blocked.structuredContent.plan.activation.applyBlocked).toBe(true);
 
       createSeededRepo(seeded.root);
-      const handoff = await planBootstrapSpec.execute({}, planningContext(seeded.root));
+      const handoff = await planBootstrapSpec.execute(
+        {},
+        planningContext(seeded.root),
+      );
       expect(handoff.structuredContent.plan.status).toBe("handoff");
       expect(handoff.structuredContent.plan.activation.activationMode).toBe(
         "attached_seeded_handoff",

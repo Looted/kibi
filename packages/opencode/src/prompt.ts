@@ -4,11 +4,11 @@ import type { CommentAnalysisResult } from "./comment-analysis.js";
 import type { KibiConfig } from "./config.js";
 import { isPluginEnabled } from "./config.js";
 import type { CacheKey, GuidanceCache } from "./guidance-cache.js";
+import type { KbFreshnessEvaluation } from "./kb-freshness-state.js";
 import {
   type KibiBootstrapCommandCapability,
   getKibiBootstrapCommandCapability,
 } from "./kibi-bootstrap-capability.js";
-import type { KbFreshnessEvaluation } from "./kb-freshness-state.js";
 import type { PathKind } from "./path-kind.js";
 import type { RepoPosture } from "./repo-posture.js";
 import type { RiskClass } from "./risk-classifier.js";

@@ -61,10 +61,7 @@ if (RUN_NODE_TEST_SUITE) {
 
       const { stdout } = await kibi(sandbox, ["init"]);
 
-      assert.ok(
-        stdout.includes("Kibi initialized"),
-        "Should indicate success",
-      );
+      assert.ok(stdout.includes("Kibi initialized"), "Should indicate success");
 
       assert.ok(existsSync(join(sandbox.repoDir, ".kb")), ".kb should exist");
       assert.ok(

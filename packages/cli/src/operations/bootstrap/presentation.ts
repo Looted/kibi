@@ -1,13 +1,13 @@
 import { buildGuidance } from "./guidance.js";
 import type {
   ActivationPolicy,
-  BootstrapContext,
   BootstrapAction,
+  BootstrapContext,
   BootstrapDeclaredContext,
   BootstrapPlanV1,
-  PlanBootstrapResult,
   Candidate,
   DiscoverySummary,
+  PlanBootstrapResult,
   SourceOnlySignal,
 } from "./types.js";
 
@@ -70,16 +70,19 @@ export function presentBootstrap(input: {
   });
   const confidenceLevel = String(guidance.confidence.level);
   const bindingDiagnostics = strings(input.bindingDiagnostics);
-  const applyBlocked = input.activation.applyBlocked || bindingDiagnostics.length > 0;
+  const applyBlocked =
+    input.activation.applyBlocked || bindingDiagnostics.length > 0;
   const blockedFallback =
-    input.activation.activationMode === "vendored_blocked" || bindingDiagnostics.length > 0
+    input.activation.activationMode === "vendored_blocked" ||
+    bindingDiagnostics.length > 0
       ? `Bootstrap blocked: ${input.activation.reason}${bindingDiagnostics.length > 0 ? ` ${bindingDiagnostics[0]}` : ""}`
       : input.activation.activationMode === "attached_thin_handoff" ||
           input.activation.activationMode === "attached_seeded_handoff"
         ? `Bootstrap handoff: ${input.activation.reason}`
         : "Bootstrap output found no safe candidates; follow the recommended actions to continue.";
   const baseTldr =
-    !applyBlocked && input.candidates.length + input.sourceOnlySignals.length > 0
+    !applyBlocked &&
+    input.candidates.length + input.sourceOnlySignals.length > 0
       ? `Bootstrap plan is ready for review with ${input.candidates.length} safe candidate(s) and ${input.sourceOnlySignals.length} source-only authoring follow-up(s).`
       : (input.activation.handoffMessage ?? blockedFallback);
   const tldr =
@@ -110,7 +113,9 @@ export function presentBootstrap(input: {
         : [];
       const dependsOn = relationships
         .map((relationship) =>
-          relationship && typeof relationship === "object" && "to" in relationship
+          relationship &&
+          typeof relationship === "object" &&
+          "to" in relationship
             ? actionIds.get(String(relationship.to))
             : undefined,
         )
@@ -136,13 +141,21 @@ export function presentBootstrap(input: {
   const contextQuestions: string[] = [];
   if (status === "needs_context") {
     if (!declaredContext.projectSummary)
-      contextQuestions.push("What is the one-sentence purpose of this repository?");
+      contextQuestions.push(
+        "What is the one-sentence purpose of this repository?",
+      );
     if (declaredContext.sourceOfTruthPaths.length === 0)
-      contextQuestions.push("Which repository paths are authoritative for product intent?");
+      contextQuestions.push(
+        "Which repository paths are authoritative for product intent?",
+      );
     if (input.sourceOnlySignals.length > 0)
-      contextQuestions.push("Which detected product behaviors should be prioritized for bootstrap?");
+      contextQuestions.push(
+        "Which detected product behaviors should be prioritized for bootstrap?",
+      );
     if (declaredContext.verificationAnchors.length === 0)
-      contextQuestions.push("Which command or test should verify the initial bootstrap?");
+      contextQuestions.push(
+        "Which command or test should verify the initial bootstrap?",
+      );
     if (contextQuestions.length === 0)
       contextQuestions.push(
         "Which specific product behavior should this bootstrap plan prioritize before authoring knowledge?",

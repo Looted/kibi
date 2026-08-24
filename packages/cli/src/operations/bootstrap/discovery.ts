@@ -54,17 +54,19 @@ async function migrationWarning(
 function languages(evidence: readonly BootstrapEvidence[]): string[] {
   return [
     ...new Set(
-      evidence
-        .flatMap((item) => {
-          const extension = path.extname(item.label).slice(1);
-          const fromExtension = item.kind === "source_symbols"
+      evidence.flatMap((item) => {
+        const extension = path.extname(item.label).slice(1);
+        const fromExtension =
+          item.kind === "source_symbols"
             ? [LANGUAGE_NAMES[extension] ?? extension]
             : [];
-          const fromMetadata = Array.isArray(item.data.languages)
-            ? item.data.languages.filter((value): value is string => typeof value === "string")
-            : [];
-          return [...fromExtension, ...fromMetadata];
-        }),
+        const fromMetadata = Array.isArray(item.data.languages)
+          ? item.data.languages.filter(
+              (value): value is string => typeof value === "string",
+            )
+          : [];
+        return [...fromExtension, ...fromMetadata];
+      }),
     ),
   ].sort();
 }
