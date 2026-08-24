@@ -104,3 +104,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb05d0fff3de
+  - type: covered_by
+    from: SYM-runtime-RuntimeOptions
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:40:50.840Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ff553a994eb
+  - type: implements
+    from: SYM-runtime-RuntimeOptions
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:09:28.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30b5fe7bcc64
+  - type: covered_by
+    from: SYM-runtime-RuntimeOptions
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:09:28.966Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82c24466864a

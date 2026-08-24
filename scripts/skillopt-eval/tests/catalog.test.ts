@@ -11,6 +11,7 @@ import {
   validateSkillCatalog,
 } from "../catalog";
 import { CANONICAL_SKILLS } from "../catalog";
+import { buildPrivateManifest } from "../fixtures/evaluator";
 import {
   PREDICATE_DEVELOPMENT_CASE_ID,
   PREDICATE_HELD_OUT_CASE_IDS,
@@ -19,7 +20,6 @@ import {
   materializePredicateCorpus,
   reservePredicateMatrix,
 } from "../fixtures/predicate-corpus";
-import { buildPrivateManifest } from "../fixtures/evaluator";
 import { publicSkillDescriptors } from "../real-workflow-setup";
 import { temporaryRoot } from "./fixture-test-helpers";
 
@@ -110,9 +110,12 @@ describe("SkillOpt fixture catalog", () => {
     const task = buildSkillCatalog("kibi-bootstrap").find(
       (candidate) => candidate.taskData.approvalPhase === "post-approval",
     );
-    if (task === undefined) throw new Error("bootstrap approval fixture missing");
+    if (task === undefined)
+      throw new Error("bootstrap approval fixture missing");
     const manifest = buildPrivateManifest({
-      task: task as unknown as Parameters<typeof buildPrivateManifest>[0]["task"],
+      task: task as unknown as Parameters<
+        typeof buildPrivateManifest
+      >[0]["task"],
       publicManifestHash: "a".repeat(64),
       workspaceHash: "b".repeat(64),
     });
@@ -121,12 +124,9 @@ describe("SkillOpt fixture catalog", () => {
         ({ tool }) => tool === "kb_upsert",
       )?.predicate,
     ).toBe("always; use kb_apply_plan for approved bootstrap plans");
-    expect(manifest.orderedMcpPredicates.required.map(({ tool }) => tool)).toEqual([
-      "kb_plan_bootstrap",
-      "kb_status",
-      "kb_apply_plan",
-      "kb_check",
-    ]);
+    expect(
+      manifest.orderedMcpPredicates.required.map(({ tool }) => tool),
+    ).toEqual(["kb_plan_bootstrap", "kb_status", "kb_apply_plan", "kb_check"]);
   });
 });
 

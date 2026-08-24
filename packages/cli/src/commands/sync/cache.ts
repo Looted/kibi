@@ -19,6 +19,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import * as path from "node:path";
+import { load as parseYAML } from "js-yaml";
 
 interface SyncCacheDeps {
   createHash: typeof createHash;
@@ -115,21 +116,85 @@ export function hashManifestWithCoordinates(
   deps?: Partial<SyncCacheDeps>,
 ): string {
   const resolved = resolveDeps(deps);
-  const manifestHash = resolved.createHash("sha256")
-    .update(resolved.readFileSync(manifestPath))
+  const manifestContent = resolved.readFileSync(manifestPath);
+  const manifestHash = resolved
+    .createHash("sha256")
+    .update(manifestContent)
     .digest("hex");
   let artifactState = "missing";
   let artifactHash = "";
-  if (
-    coordinatesPath !== null &&
-    resolved.existsSync(coordinatesPath)
-  ) {
+  if (coordinatesPath !== null && resolved.existsSync(coordinatesPath)) {
     const content = resolved.readFileSync(coordinatesPath);
     artifactState = content.length > 0 ? "present" : "empty";
-    artifactHash = resolved
-      .createHash("sha256")
-      .update(content)
-      .digest("hex");
+    artifactHash = resolved.createHash("sha256").update(content).digest("hex");
+  }
+  const referencedSources: Array<{
+    path: string;
+    state: "missing" | "outside-workspace" | "unreadable" | "present";
+    sha256?: string;
+  }> = [];
+  let symbols: unknown[] = [];
+  try {
+    const parsed = parseYAML(manifestContent.toString()) as unknown;
+    if (
+      parsed !== null &&
+      typeof parsed === "object" &&
+      !Array.isArray(parsed) &&
+      Array.isArray((parsed as { symbols?: unknown }).symbols)
+    ) {
+      symbols = (parsed as { symbols: unknown[] }).symbols;
+    }
+  } catch {
+    // Extraction owns the user-facing YAML diagnostic. Fingerprinting must
+    // still complete so malformed manifests cannot look cache-current.
+  }
+  const sourcePaths = new Set<string>();
+  for (const value of symbols) {
+    if (value === null || typeof value !== "object" || Array.isArray(value)) {
+      continue;
+    }
+    const symbol = value as { sourceFile?: unknown; source?: unknown };
+    const sourceFile =
+      typeof symbol.sourceFile === "string"
+        ? symbol.sourceFile
+        : typeof symbol.source === "string"
+          ? symbol.source
+          : undefined;
+    if (sourceFile !== undefined && sourceFile.length > 0) {
+      sourcePaths.add(sourceFile);
+    }
+  }
+  const root = path.resolve(workspaceRoot);
+  for (const sourceFile of [...sourcePaths].sort()) {
+    try {
+      const absolute = path.isAbsolute(sourceFile)
+        ? path.resolve(sourceFile)
+        : path.resolve(root, sourceFile);
+      const relative = path.relative(root, absolute);
+      if (relative === ".." || relative.startsWith(`..${path.sep}`)) {
+        referencedSources.push({
+          path: sourceFile,
+          state: "outside-workspace",
+        });
+      } else if (!resolved.existsSync(absolute)) {
+        referencedSources.push({ path: sourceFile, state: "missing" });
+      } else {
+        try {
+          referencedSources.push({
+            path: sourceFile,
+            state: "present",
+            sha256: resolved
+              .createHash("sha256")
+              .update(resolved.readFileSync(absolute))
+              .digest("hex"),
+          });
+        } catch {
+          referencedSources.push({ path: sourceFile, state: "unreadable" });
+        }
+      }
+    } catch {
+      referencedSources.push({ path: sourceFile, state: "unreadable" });
+    }
   }
   return resolved
     .createHash("sha256")
@@ -137,6 +202,7 @@ export function hashManifestWithCoordinates(
       JSON.stringify({
         manifest: manifestHash,
         coordinates: { state: artifactState, sha256: artifactHash },
+        referencedSources,
       }),
     )
     .digest("hex");

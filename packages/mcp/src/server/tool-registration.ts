@@ -11,13 +11,13 @@ import {
 } from "kibi-runtime";
 import type { OperationContext, RuntimeOperationSpec } from "kibi-runtime";
 
-import type { PlanBootstrapArgs } from "../tools/plan-bootstrap.js";
 import type { CheckArgs } from "../tools/check.js";
 import type { CoverageArgs } from "../tools/coverage.js";
 import type { DeleteArgs } from "../tools/delete.js";
 import type { FindGapsArgs } from "../tools/find-gaps.js";
 import type { GraphArgs } from "../tools/graph.js";
 import type { ModelRequirementArgs } from "../tools/model-requirement.js";
+import type { PlanBootstrapArgs } from "../tools/plan-bootstrap.js";
 import type { QueryArgs } from "../tools/query.js";
 import type { SearchArgs } from "../tools/search.js";
 import type { SemanticAdvisorArgs } from "../tools/semantic-advisor.js";

@@ -24,10 +24,16 @@ export interface SymbolCoordinatesRecord {
 // implements REQ-generated-coordinate-persistence
 export interface BoundSymbolCoordinatesRecord extends SymbolCoordinatesRecord {
   readonly identityHash: string;
+  readonly sourceHash: string;
 }
 
+// implements REQ-generated-coordinate-persistence
+export type CoordinateArtifactRecord =
+  | SymbolCoordinatesRecord
+  | BoundSymbolCoordinatesRecord;
+
 export interface SymbolCoordinatesArtifact {
-  coordinates: Record<string, SymbolCoordinatesRecord>;
+  coordinates: Record<string, CoordinateArtifactRecord>;
 }
 
 // implements REQ-generated-coordinate-persistence
@@ -41,6 +47,7 @@ export interface CoordinateExtractionIdentity {
 // implements REQ-generated-coordinate-persistence
 export interface SymbolCoordinateWriteEntry extends SymbolCoordinatesRecord {
   readonly identityHash?: string;
+  readonly sourceHash?: string;
 }
 
 // implements REQ-generated-coordinate-persistence
@@ -99,6 +106,53 @@ export function coordinateIdentityHash(
     .digest("hex");
 }
 
+/** Stable hash of the exact source text used to generate a coordinate span. */
+// implements REQ-generated-coordinate-persistence
+export function coordinateSourceHash(sourceText: string): string {
+  return createHash("sha256").update(sourceText).digest("hex");
+}
+
+/** Select a stable coarse anchor, preferring a title match over the whole file. */
+// implements REQ-generated-coordinate-persistence
+export function coarseCoordinateSpan(
+  sourceFile: string,
+  title: string,
+  content: string,
+): SymbolCoordinatesRecord {
+  if (title.length > 0) {
+    const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp(`\\b${escaped}\\b`);
+    const lines = content.split(/\r?\n/);
+    for (let index = 0; index < lines.length; index++) {
+      const line = lines[index];
+      if (line === undefined) continue;
+      const match = pattern.exec(line);
+      if (!match || match.index < 0) continue;
+      return {
+        sourceFile,
+        sourceLine: index + 1,
+        sourceColumn: match.index,
+        sourceEndLine: index + 1,
+        sourceEndColumn: match.index + title.length,
+      };
+    }
+  }
+
+  const lines = content.split(/\r?\n/);
+  const lastLine = lines[lines.length - 1] ?? "";
+  return {
+    sourceFile,
+    sourceLine: 1,
+    sourceColumn: 0,
+    sourceEndLine: Math.max(1, lines.length),
+    sourceEndColumn: lastLine.length,
+  };
+}
+
+function isSha256Hash(value: unknown): value is string {
+  return typeof value === "string" && /^[a-f0-9]{64}$/.test(value);
+}
+
 /**
  * Validate a coordinate span against the same rules requirement proof enforces:
  * nonempty source file, sourceLine >= 1, columns >= 0, endLine >= sourceLine.
@@ -136,12 +190,19 @@ export function isValidCoordinateSpan(
 interface RawCoordinateEntry {
   readonly span: SymbolCoordinatesRecord;
   readonly identityHash?: string;
+  readonly sourceHash?: string;
 }
 
 function normalizeRawEntry(value: unknown): RawCoordinateEntry | null {
   if (!isRecord(value)) return null;
-  const { identityHash, ...rest } = value;
+  const { identityHash, sourceHash, ...rest } = value;
   if (!isValidCoordinateSpan(rest)) return null;
+  if (
+    ("identityHash" in value && !isSha256Hash(identityHash)) ||
+    ("sourceHash" in value && !isSha256Hash(sourceHash))
+  ) {
+    return null;
+  }
   return {
     span: {
       sourceFile: rest.sourceFile,
@@ -152,6 +213,9 @@ function normalizeRawEntry(value: unknown): RawCoordinateEntry | null {
     },
     ...(typeof identityHash === "string" && identityHash.length > 0
       ? { identityHash }
+      : {}),
+    ...(typeof sourceHash === "string" && sourceHash.length > 0
+      ? { sourceHash }
       : {}),
   };
 }
@@ -186,7 +250,6 @@ export function parseCoordinateArtifact(
   }
   const declaredVersion = parsed.version;
   const entries: Record<string, RawCoordinateEntry> = {};
-  let sawBoundRecord = false;
   for (const [id, value] of Object.entries(rawCoordinates)) {
     const entry = normalizeRawEntry(value);
     if (entry === null) {
@@ -195,30 +258,33 @@ export function parseCoordinateArtifact(
         reason: `record '${id}' has an invalid coordinate span`,
       };
     }
-    if (entry.identityHash !== undefined) sawBoundRecord = true;
     entries[id] = entry;
   }
-  if (
-    (declaredVersion !== undefined &&
-      declaredVersion !== SYMBOL_COORDINATES_FORMAT_VERSION) ||
-    sawBoundRecord
-  ) {
-    if (declaredVersion !== SYMBOL_COORDINATES_FORMAT_VERSION) {
-      return {
-        status: "invalid",
-        reason: `unsupported artifact version: ${String(declaredVersion)}`,
-      };
+  if (declaredVersion === undefined) {
+    const legacy: Record<string, SymbolCoordinatesRecord> = {};
+    for (const [id, entry] of Object.entries(entries)) {
+      legacy[id] = entry.span;
     }
+    return { status: "legacy", coordinates: legacy };
+  }
+  if (declaredVersion !== SYMBOL_COORDINATES_FORMAT_VERSION) {
+    return {
+      status: "invalid",
+      reason: `unsupported or missing artifact version: ${String(declaredVersion)}`,
+    };
+  }
+  if (declaredVersion === SYMBOL_COORDINATES_FORMAT_VERSION) {
     const bound: Record<string, BoundSymbolCoordinatesRecord> = {};
     for (const [id, entry] of Object.entries(entries)) {
       const identityHash = entry.identityHash;
-      if (identityHash === undefined) {
+      const sourceHash = entry.sourceHash;
+      if (identityHash === undefined || sourceHash === undefined) {
         return {
           status: "invalid",
-          reason: `record '${id}' is missing its identity binding in a versioned artifact`,
+          reason: `record '${id}' is missing its identity or source binding in a versioned artifact`,
         };
       }
-      bound[id] = { ...entry.span, identityHash };
+      bound[id] = { ...entry.span, identityHash, sourceHash };
     }
     return {
       status: "parsed",
@@ -226,17 +292,12 @@ export function parseCoordinateArtifact(
       coordinates: bound,
     };
   }
-  const legacy: Record<string, SymbolCoordinatesRecord> = {};
-  for (const [id, entry] of Object.entries(entries)) {
-    legacy[id] = entry.span;
-  }
-  return { status: "legacy", coordinates: legacy };
+  return { status: "invalid", reason: "unreachable artifact parser state" };
 }
 
 /**
- * Serialize the generated artifact as a version 2 document. Entries carrying an
- * identity hash are bound records; entries without one serialize as unbound
- * records and are re-validated against current extraction before use.
+ * Serialize the generated artifact as a version 2 document. Every record is
+ * bound to both its manifest identity and exact source content.
  * Key order is deterministic without relying on YAML sortKeys so the
  * human-readable header stays first.
  */
@@ -254,10 +315,14 @@ export function writeCoordinateArtifact(
         `refusing to publish an invalid or missing coordinate span${id === undefined ? "" : ` for ${id}`}`,
       );
     }
+    if (!isSha256Hash(entry.identityHash) || !isSha256Hash(entry.sourceHash)) {
+      throw new CoordinateArtifactError(
+        `refusing to publish an invalid or missing identityHash/sourceHash binding for ${id}`,
+      );
+    }
     coordinates[id] = {
-      ...(entry.identityHash === undefined
-        ? {}
-        : { identityHash: entry.identityHash }),
+      identityHash: entry.identityHash,
+      sourceHash: entry.sourceHash,
       sourceColumn: entry.sourceColumn,
       sourceEndColumn: entry.sourceEndColumn,
       sourceEndLine: entry.sourceEndLine,
@@ -275,10 +340,38 @@ export function writeCoordinateArtifact(
   })}`;
 }
 
+/** Serialize a legacy artifact without introducing v2 bindings or metadata. */
+// implements REQ-generated-coordinate-persistence
+export function writeLegacyCoordinateArtifact(
+  entries: Record<string, SymbolCoordinatesRecord>,
+): string {
+  const coordinates: Record<string, SymbolCoordinatesRecord> = {};
+  for (const id of Object.keys(entries).sort((left, right) =>
+    left.localeCompare(right),
+  )) {
+    const entry = entries[id];
+    if (entry === undefined || !isValidCoordinateSpan(entry)) {
+      throw new CoordinateArtifactError(
+        `refusing to publish an invalid or missing legacy coordinate span for ${id}`,
+      );
+    }
+    coordinates[id] = {
+      sourceColumn: entry.sourceColumn,
+      sourceEndColumn: entry.sourceEndColumn,
+      sourceEndLine: entry.sourceEndLine,
+      sourceFile: entry.sourceFile,
+      sourceLine: entry.sourceLine,
+    };
+  }
+  return `${SYMBOL_COORDINATES_COMMENT_BLOCK}${dumpYAML(
+    { coordinates },
+    { lineWidth: -1, noRefs: true },
+  )}`;
+}
+
 /**
- * Lenient reader kept for diff/traceability surfaces: returns only valid
- * records in the historical `{coordinates}` shape. Malformed artifacts throw
- * instead of silently degrading to an empty view.
+ * Reader kept for diff/traceability surfaces. Legacy records remain available
+ * as spans while v2 records retain their bindings.
  */
 // implements REQ-generated-coordinate-persistence
 export function readCoordinateArtifact(
@@ -288,15 +381,9 @@ export function readCoordinateArtifact(
   if (parsed.status === "invalid") {
     throw new CoordinateArtifactError(parsed.reason);
   }
-  const coordinates: Record<string, SymbolCoordinatesRecord> = {};
+  const coordinates: Record<string, CoordinateArtifactRecord> = {};
   for (const [id, record] of Object.entries(parsed.coordinates)) {
-    coordinates[id] = {
-      sourceFile: record.sourceFile,
-      sourceLine: record.sourceLine,
-      sourceColumn: record.sourceColumn,
-      sourceEndLine: record.sourceEndLine,
-      sourceEndColumn: record.sourceEndColumn,
-    };
+    coordinates[id] = record;
   }
   return { coordinates };
 }
@@ -342,32 +429,6 @@ function defaultResolveSourceText(sourceFile: string): string | null {
   }
 }
 
-/**
- * A legacy (unbound) record may only prove coordinates when it still matches
- * current extraction: same declared source file, valid span, and the symbol
- * title occurring exactly at the recorded span in the live source text.
- */
-function legacyRecordMatchesCurrentExtraction(
-  record: ManifestSymbolRecord,
-  entry: SymbolCoordinatesRecord,
-  resolveSourceText: (sourceFile: string) => string | null,
-): boolean {
-  const sourceFile = manifestSourceFile(record);
-  if (sourceFile === undefined || entry.sourceFile !== sourceFile) return false;
-  const title = typeof record.title === "string" ? record.title : "";
-  if (title.length === 0) return false;
-  const content = resolveSourceText(entry.sourceFile);
-  if (content === null) return false;
-  const lines = content.split(/\r?\n/);
-  const lineText = lines[entry.sourceLine - 1];
-  if (lineText === undefined) return false;
-  if (entry.sourceColumn > lineText.length - title.length) return false;
-  return (
-    lineText.slice(entry.sourceColumn, entry.sourceColumn + title.length) ===
-    title
-  );
-}
-
 function overlaySpan(
   stripped: ManifestSymbolRecord,
   span: SymbolCoordinatesRecord,
@@ -386,10 +447,10 @@ function overlaySpan(
  * Overlay generated coordinates onto authored manifest records.
  *
  * Generated fields are always stripped first so stale spans can never reach
- * compiled state. Bound v2 records apply only when their identity hash matches
- * the manifest's current extraction identity; mismatches are treated as
- * missing coordinates. Unbound legacy records apply only after validating them
- * against current source content.
+ * compiled state. Bound v2 records apply only when both their identity hash
+ * and exact source-content hash match the current manifest and source. Legacy
+ * records and inline coordinates are accepted only after live declaration
+ * validation.
  */
 export function mergeCoordinatesWithManifest(
   symbolRecords: ManifestSymbolRecord[],
@@ -409,11 +470,6 @@ export function mergeCoordinatesWithManifest(
   const resolveSourceText =
     options.resolveSourceText ?? defaultResolveSourceText;
   const rawCoordinates = coordinateArtifact?.coordinates ?? {};
-  // Inline authored coordinates are only eligible while no generated artifact
-  // exists at all. Once the artifact exists, it is authoritative: symbols it
-  // omits stay omitted so proof fails closed.
-  const allowInlineFallback = coordinateArtifact === null;
-
   return symbolRecords.map((symbolRecord) => {
     const stripped = stripGeneratedFields(symbolRecord);
     const symbolId =
@@ -421,16 +477,14 @@ export function mergeCoordinatesWithManifest(
     if (symbolId === undefined) return stripped;
     const entry = rawCoordinates[symbolId];
 
-    // Legacy authored manifests may still carry inline coordinates. They are
-    // treated exactly like unbound legacy artifact records: kept only after
-    // validating them against current source content, and only while no
-    // generated artifact exists.
     const candidate =
-      entry ?? (allowInlineFallback ? inlineSpanOf(symbolRecord) : undefined);
+      entry ??
+      (coordinateArtifact === null ? inlineSpanOf(symbolRecord) : undefined);
     if (candidate === undefined) return stripped;
 
     const identityHash = (candidate as { identityHash?: unknown }).identityHash;
-    if (typeof identityHash === "string" && identityHash.length > 0) {
+    const sourceHash = (candidate as { sourceHash?: unknown }).sourceHash;
+    if (identityHash !== undefined || sourceHash !== undefined) {
       const recordSourceFile = manifestSourceFile(symbolRecord);
       const expected = coordinateIdentityHash({
         id: symbolId,
@@ -444,8 +498,23 @@ export function mergeCoordinatesWithManifest(
           ? { granularity_reason: symbolRecord.granularity_reason }
           : {}),
       });
-      if (identityHash !== expected) return stripped;
-      if (!isValidCoordinateSpan(candidate)) return stripped;
+      if (
+        !isSha256Hash(identityHash) ||
+        !isSha256Hash(sourceHash) ||
+        identityHash !== expected ||
+        !isValidCoordinateSpan(candidate) ||
+        recordSourceFile === undefined ||
+        candidate.sourceFile !== recordSourceFile
+      ) {
+        return stripped;
+      }
+      const sourceText = resolveSourceText(candidate.sourceFile);
+      if (
+        sourceText === null ||
+        coordinateSourceHash(sourceText) !== sourceHash
+      ) {
+        return stripped;
+      }
       return overlaySpan(stripped, candidate);
     }
 
@@ -463,6 +532,32 @@ export function mergeCoordinatesWithManifest(
   });
 }
 
+function legacyRecordMatchesCurrentExtraction(
+  record: ManifestSymbolRecord,
+  entry: SymbolCoordinatesRecord,
+  resolveSourceText: (sourceFile: string) => string | null,
+): boolean {
+  const sourceFile = manifestSourceFile(record);
+  if (sourceFile === undefined || entry.sourceFile !== sourceFile) return false;
+  const title = typeof record.title === "string" ? record.title : "";
+  const declarationName = title.slice(title.lastIndexOf(".") + 1);
+  if (declarationName.length === 0) return false;
+  const content = resolveSourceText(entry.sourceFile);
+  if (content === null) return false;
+  const lines = content.split(/\r?\n/);
+  const lineText = lines[entry.sourceLine - 1];
+  if (lineText === undefined) return false;
+  if (entry.sourceColumn > lineText.length - declarationName.length) {
+    return false;
+  }
+  return (
+    lineText.slice(
+      entry.sourceColumn,
+      entry.sourceColumn + declarationName.length,
+    ) === declarationName
+  );
+}
+
 function inlineSpanOf(
   record: ManifestSymbolRecord,
 ): SymbolCoordinatesRecord | undefined {
@@ -475,9 +570,7 @@ function inlineSpanOf(
     sourceEndLine:
       typeof record.sourceEndLine === "number" ? record.sourceEndLine : -1,
     sourceEndColumn:
-      typeof record.sourceEndColumn === "number"
-        ? record.sourceEndColumn
-        : -1,
+      typeof record.sourceEndColumn === "number" ? record.sourceEndColumn : -1,
   };
   return isValidCoordinateSpan(span) ? span : undefined;
 }

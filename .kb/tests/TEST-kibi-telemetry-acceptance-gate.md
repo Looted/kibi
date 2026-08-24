@@ -416,6 +416,366 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 6922
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-954bd1ad327d7bb7f9401b71
+    test_id: TEST-kibi-telemetry-acceptance-gate
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-telemetry-acceptance-gate
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-telemetry-acceptance-gate
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 179ebe71578e274182f932a44b388e84629d8c35aab70e11ed71512b5426c8e3
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T07:34:56.620Z'
+    finished_at: '2026-08-23T07:35:03.684Z'
+    artifact_digest: a05d6813e0af498ea45e5b090c80f746090b287a6bc24cc9ef1ed172ce25d473
+    contract_hash: 5da2bb6bde0a390f5577f2a61a6dde2846fc0959e6e75be85b1b12327cb977d7
+    case_results:
+      - symbol_id: SYM-test-packed-telemetry-acceptance
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 7064
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-77787c2d18ab6ea84c04c4ec
+    test_id: TEST-kibi-telemetry-acceptance-gate
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-telemetry-acceptance-gate
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-telemetry-acceptance-gate
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: bd8e6d28630c837d83bb606b786976c761f4bcb8326f1aab37d01845783fbafe
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T08:18:27.723Z'
+    finished_at: '2026-08-23T08:18:34.394Z'
+    artifact_digest: 40ea79dab13af4c45eac058697f60706ff15172f9b7b5e4398eff0500413c24b
+    contract_hash: 5da2bb6bde0a390f5577f2a61a6dde2846fc0959e6e75be85b1b12327cb977d7
+    case_results:
+      - symbol_id: SYM-test-packed-telemetry-acceptance
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 6671
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-283b9f1f6adde9d2b411c8aa
+    test_id: TEST-kibi-telemetry-acceptance-gate
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-telemetry-acceptance-gate
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-telemetry-acceptance-gate
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ee22ec51c9bc3153aa0a330d71805a1c8ce310bf3a763dc346ad13e15071ba11
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T12:15:30.450Z'
+    finished_at: '2026-08-23T12:15:37.119Z'
+    artifact_digest: 26a136566fc48f6eb1560bd9acc70b1ae1543f0ed87ee6c5d0a549ab84c6936d
+    contract_hash: 5da2bb6bde0a390f5577f2a61a6dde2846fc0959e6e75be85b1b12327cb977d7
+    case_results:
+      - symbol_id: SYM-test-packed-telemetry-acceptance
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 6669
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-27a5320e6b62a128050c1858
+    test_id: TEST-kibi-telemetry-acceptance-gate
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-telemetry-acceptance-gate
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-telemetry-acceptance-gate
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dea1a8d20393c9e2212505a158b80a73843c68d9ea042614fc6c80fa98589b28
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:15:29.070Z'
+    finished_at: '2026-08-23T19:15:35.772Z'
+    artifact_digest: 3de8fc16763f1f6fb2bf9a7eaa7592eb703f46ba51271917831c952b7e1735d0
+    contract_hash: 5da2bb6bde0a390f5577f2a61a6dde2846fc0959e6e75be85b1b12327cb977d7
+    case_results:
+      - symbol_id: SYM-test-packed-telemetry-acceptance
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 6702
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-1ef31dc20b284ba863c3ca70
+    test_id: TEST-kibi-telemetry-acceptance-gate
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-telemetry-acceptance-gate
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-telemetry-acceptance-gate
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dcfad834bdf07e98adee34ec88d018b898fcdad42b22ba99a91adbfd48ff7459
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:41:38.356Z'
+    finished_at: '2026-08-23T19:41:45.242Z'
+    artifact_digest: db175b1661f90282eaa04eb8d21f538aa57290436d8d78ebc2f429ff6ec188d3
+    contract_hash: 5da2bb6bde0a390f5577f2a61a6dde2846fc0959e6e75be85b1b12327cb977d7
+    case_results:
+      - symbol_id: SYM-test-packed-telemetry-acceptance
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 6886
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-80657840f13a488c9834f463
+    test_id: TEST-kibi-telemetry-acceptance-gate
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-telemetry-acceptance-gate
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-telemetry-acceptance-gate
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 14ca65ca0dd701b64b6b9dc632e9eeda9ed796c6b816a70fbd6b50db303194cc
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:09:27.322Z'
+    finished_at: '2026-08-23T20:09:34.463Z'
+    artifact_digest: 76ba3cd463f68679354503f7f4c6e72af25b5cf0bb3eb90a699b4d2e02bedbf2
+    contract_hash: 5da2bb6bde0a390f5577f2a61a6dde2846fc0959e6e75be85b1b12327cb977d7
+    case_results:
+      - symbol_id: SYM-test-packed-telemetry-acceptance
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 7141
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-1e293de913d54ed56cc5a60a
+    test_id: TEST-kibi-telemetry-acceptance-gate
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-telemetry-acceptance-gate
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-telemetry-acceptance-gate
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 3ee001d32bb209a819714ba2e42edd8ab694bfb5be890192445fb7e202afb01b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:35:45.659Z'
+    finished_at: '2026-08-23T20:35:52.400Z'
+    artifact_digest: 91faaf4525df0b43f571c7586f13a01f9445a6dbb0de8c504416b4a51fc3f847
+    contract_hash: 5da2bb6bde0a390f5577f2a61a6dde2846fc0959e6e75be85b1b12327cb977d7
+    case_results:
+      - symbol_id: SYM-test-packed-telemetry-acceptance
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 6741
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-6bb097100e8dd1744eeb1366
+    test_id: TEST-kibi-telemetry-acceptance-gate
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-telemetry-acceptance-gate
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-telemetry-acceptance-gate
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8da5165ebb43b8ee33c18ba479134826479b9cecae4caf47c854dd2a844555c7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:16:29.881Z'
+    finished_at: '2026-08-23T22:16:36.348Z'
+    artifact_digest: c8693d5cf3feb5b8fe9cc62c0541cef1898bf3b7ce41c8a573d3556003b54138
+    contract_hash: 5da2bb6bde0a390f5577f2a61a6dde2846fc0959e6e75be85b1b12327cb977d7
+    case_results:
+      - symbol_id: SYM-test-packed-telemetry-acceptance
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 6467
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-c355a9ce0aa53e25d9bc0be1
+    test_id: TEST-kibi-telemetry-acceptance-gate
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-telemetry-acceptance-gate
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-telemetry-acceptance-gate
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 9506b01b3f5194b44f47602b13261ce3139304cec73818f4b0553c152eb51048
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:42:41.534Z'
+    finished_at: '2026-08-23T22:42:48.108Z'
+    artifact_digest: 4c5879c0186872cb5dcf42c17be55562fea74b636eb76c841de7f46c8f2bf576
+    contract_hash: 5da2bb6bde0a390f5577f2a61a6dde2846fc0959e6e75be85b1b12327cb977d7
+    case_results:
+      - symbol_id: SYM-test-packed-telemetry-acceptance
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 6574
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-d9822c2ba5a053264b5f4adb
+    test_id: TEST-kibi-telemetry-acceptance-gate
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-telemetry-acceptance-gate
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-telemetry-acceptance-gate
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a54a428a72f914fe4ee86257b1e2eb792f98958f88ccf0d6a45eef244ab53055
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:28:34.673Z'
+    finished_at: '2026-08-24T06:28:41.716Z'
+    artifact_digest: b951732269f22c2b3cbf8249ea340871c12e05228a6e8b2efde64422bf21f4a1
+    contract_hash: 5da2bb6bde0a390f5577f2a61a6dde2846fc0959e6e75be85b1b12327cb977d7
+    case_results:
+      - symbol_id: SYM-test-packed-telemetry-acceptance
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 7043
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-c746f94963d101f41d1e7a87
+    test_id: TEST-kibi-telemetry-acceptance-gate
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-telemetry-acceptance-gate
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-telemetry-acceptance-gate
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: c2c5a06c408b705211516e8bd1f6733b82e8addfc4acd70c33d47a850f768285
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:56:43.287Z'
+    finished_at: '2026-08-24T06:56:50.468Z'
+    artifact_digest: 7e4c325f752e62f60c09974ff4e1a45158ba2c79c943f0fbc3ea8893363b6a05
+    contract_hash: 5da2bb6bde0a390f5577f2a61a6dde2846fc0959e6e75be85b1b12327cb977d7
+    case_results:
+      - symbol_id: SYM-test-packed-telemetry-acceptance
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 7181
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-1806322756ff84a5fb61fc6b
+    test_id: TEST-kibi-telemetry-acceptance-gate
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-telemetry-acceptance-gate
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-telemetry-acceptance-gate
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:26:32.519Z'
+    finished_at: '2026-08-24T07:26:41.025Z'
+    artifact_digest: aaf755544376259ed34e984cfbffcc1675372a98f84290643e0f6cf6a2a3d0d5
+    contract_hash: 5da2bb6bde0a390f5577f2a61a6dde2846fc0959e6e75be85b1b12327cb977d7
+    case_results:
+      - symbol_id: SYM-test-packed-telemetry-acceptance
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 8506
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-fd307249b750539541f055a1
+    test_id: TEST-kibi-telemetry-acceptance-gate
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-telemetry-acceptance-gate
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-telemetry-acceptance-gate
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:51:20.306Z'
+    finished_at: '2026-08-24T07:51:27.732Z'
+    artifact_digest: 74dccad9f36f20fe2ab52f1780be1a4a38fa45f29a840523ff08b04bacd94188
+    contract_hash: 5da2bb6bde0a390f5577f2a61a6dde2846fc0959e6e75be85b1b12327cb977d7
+    case_results:
+      - symbol_id: SYM-test-packed-telemetry-acceptance
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 7426
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-323d9312a35c2bcc3d8ad2a4
+    test_id: TEST-kibi-telemetry-acceptance-gate
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-telemetry-acceptance-gate
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-telemetry-acceptance-gate
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0202c720e01d3b5e58358f98e61e524d501259ef3b14d6f74a44ef1fd03cfad1
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:23:40.800Z'
+    finished_at: '2026-08-24T08:23:47.646Z'
+    artifact_digest: 4c846cdda580becf582c6cabdc3ad740ab8954dfd448baedc51c0bd80895251f
+    contract_hash: 5da2bb6bde0a390f5577f2a61a6dde2846fc0959e6e75be85b1b12327cb977d7
+    case_results:
+      - symbol_id: SYM-test-packed-telemetry-acceptance
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 6846
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-d21e6a566593c86e9a86aab5
+    test_id: TEST-kibi-telemetry-acceptance-gate
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-telemetry-acceptance-gate
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-telemetry-acceptance-gate
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 5e0dc87316dbd903ca5f2e3da37265c33a1559b0fecdabc93ab978662fad7b3b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:53:48.478Z'
+    finished_at: '2026-08-24T08:53:55.795Z'
+    artifact_digest: 75d904d6bcd18d3cb1625b38a7053e33b46ef5492ffa935657dc0cdf09f1e84f
+    contract_hash: 5da2bb6bde0a390f5577f2a61a6dde2846fc0959e6e75be85b1b12327cb977d7
+    case_results:
+      - symbol_id: SYM-test-packed-telemetry-acceptance
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 7317
 tags:
   - telemetry
   - acceptance

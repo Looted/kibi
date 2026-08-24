@@ -548,7 +548,7 @@ describe("kibi check --staged impact enforcement", () => {
   );
 
   test(
-    "passes behavior edits when linked requirement markdown is staged too",
+    "passes behavior edits when linked requirement and refreshed coordinates are staged",
     async () => {
       writeFiles(tmpDir, createBehaviorLinkedFixture());
       commitAll(tmpDir, "initial");
@@ -559,10 +559,11 @@ describe("kibi check --staged impact enforcement", () => {
         tmpDir,
         "Updated to reflect the staged greeting change.",
       );
-      execSync("git add src/greet.ts .kb/requirements/REQ-BEHAVIOR-001.md", {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
+      syncKb(kibiBin, tmpDir, ["--refresh-symbol-coordinates"]);
+      execSync(
+        "git add src/greet.ts .kb/requirements/REQ-BEHAVIOR-001.md .kb/symbol-coordinates.yaml .kb/symbols.yaml",
+        { cwd: tmpDir, stdio: "pipe" },
+      );
 
       const { status, stdout, stderr } = runKibi(
         kibiBin,
@@ -579,7 +580,7 @@ describe("kibi check --staged impact enforcement", () => {
   );
 
   test(
-    "passes behavior edits when authored symbols metadata is staged without coordinate changes",
+    "passes behavior edits when authored symbols metadata and refreshed coordinates are staged",
     async () => {
       writeFiles(tmpDir, createBehaviorLinkedFixture());
       commitAll(tmpDir, "initial");
@@ -587,10 +588,11 @@ describe("kibi check --staged impact enforcement", () => {
 
       writeSameCoordinateBehaviorEdit(tmpDir);
       stageAuthoredSymbolsEvidence(tmpDir);
-      execSync("git add src/greet.ts .kb/symbols.yaml", {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
+      syncKb(kibiBin, tmpDir, ["--refresh-symbol-coordinates"]);
+      execSync(
+        "git add src/greet.ts .kb/symbols.yaml .kb/symbol-coordinates.yaml",
+        { cwd: tmpDir, stdio: "pipe" },
+      );
 
       const { status, stdout, stderr } = runKibi(
         kibiBin,

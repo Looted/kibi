@@ -4052,6 +4052,7 @@ symbols:
     title: GitHub init scaffolding tests
     status: active
     sourceFile: packages/cli/tests/commands/github-init.test.ts
+    granularity_reason: test-suite
     relationships:
       - type: executable_for
         target: TEST-kibi-github-report-integration
@@ -4059,6 +4060,7 @@ symbols:
     title: kibi init GitHub flag tests
     status: active
     sourceFile: packages/cli/tests/commands/init.test.ts
+    granularity_reason: test-suite
     relationships:
       - type: executable_for
         target: TEST-001
@@ -12218,6 +12220,15 @@ symbols:
         target: TEST-scripts-unit-coverage-runner
       - type: implements
         target: REQ-014
+  - id: SYM-COVERAGE_SHARDS
+    title: COVERAGE_SHARDS
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    relationships:
+      - type: covered_by
+        target: TEST-scripts-unit-coverage-runner
+      - type: implements
+        target: REQ-root-suite-batch-diagnostics
   - id: SYM-scripts-skillopt-eval-scoring-held-out-predicate-PredicateVariant
     title: PredicateVariant
     sourceFile: scripts/skillopt-eval/scoring/held-out-predicate.ts
@@ -15894,6 +15905,36 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-fixture-assert-coordinates-present
+    title: assertSymbolCoordinatesPresent
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-skillopt-fixture-assert-coordinates-absent
+    title: assertSymbolCoordinatesAbsent
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-skillopt-fixture-symbol-id
+    title: fixtureSymbolId
+    sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-generated-coordinate-persistence
   - id: SYM-skillopt-fixture-write-workspace
     title: writePublicWorkspace
     sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
@@ -21202,9 +21243,20 @@ symbols:
         target: REQ-skillopt-external-adoption-verdict
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
+  - id: SYM-writeLegacyCoordinateArtifact
+    title: writeLegacyCoordinateArtifact
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
   - id: SYM-writeCoordinateArtifact
     title: writeCoordinateArtifact
     sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
     relationships:
       - type: implements
         target: REQ-core-extractors
@@ -26762,16 +26814,6 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: implements
         target: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
-  - id: SYM-cursor-launcher-tests
-    title: runLauncher
-    status: active
-    sourceFile: packages/cursor/tests/launch-kibi-mcp.test.ts
-    symbol_role: behavioral
-    relationships:
-      - type: executable_for
-        target: TEST-cursor-consumer-local-mcp-launcher-v1
-      - type: executable_for
-        target: TEST-cursor-kibi-plugin-v1
   - id: SYM-cursor-packed-launcher-e2e
     title: packed Cursor plugin launcher E2E
     status: active
@@ -27175,7 +27217,7 @@ symbols:
     title: bootstrap apply recovery scenarios
     status: active
     sourceFile: packages/cli/tests/operations/apply-plan.test.ts
-    symbol_role: behavioral
+    granularity_reason: test-suite
     relationships:
       - type: executable_for
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
@@ -27625,7 +27667,7 @@ symbols:
     title: cold-start bootstrap lifecycle
     status: active
     sourceFile: packages/cli/tests/commands/init.test.ts
-    symbol_role: behavioral
+    granularity_reason: test-suite
     relationships:
       - type: executable_for
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
@@ -27633,7 +27675,7 @@ symbols:
     title: bootstrap MCP adapter parity
     status: active
     sourceFile: packages/mcp/tests/tools/bootstrap-adapter.test.ts
-    symbol_role: behavioral
+    granularity_reason: test-suite
     relationships:
       - type: executable_for
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
@@ -28104,6 +28146,26 @@ symbols:
         target: TEST-generated-coordinate-repair
       - type: implements
         target: REQ-generated-coordinate-persistence
+  - id: SYM-coarseCoordinateSpan
+    title: coarseCoordinateSpan
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-coordinateSourceHash
+    title: coordinateSourceHash
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
   - id: SYM-coordinateIdentityHash
     title: coordinateIdentityHash
     sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
@@ -28193,6 +28255,15 @@ symbols:
         target: TEST-generated-coordinate-repair
       - type: implements
         target: REQ-generated-coordinate-persistence
+  - id: SYM-CoordinateArtifactRecord
+    title: CoordinateArtifactRecord
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
   - id: SYM-CoordinateArtifactError
     title: CoordinateArtifactError
     sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
@@ -28215,6 +28286,15 @@ symbols:
   - id: SYM-ParsedCoordinateArtifact
     title: ParsedCoordinateArtifact
     sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-ArtifactPublicationReceipt
+    title: ArtifactPublicationReceipt
+    sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
     status: active
     relationships:
       - type: covered_by
@@ -28244,6 +28324,25 @@ symbols:
     title: SymbolCompilerLockHandle
     sourceFile: packages/cli/src/operations/mutation/symbol-compiler-lock.ts
     status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-SymbolCompilerLockFileSystem
+    title: SymbolCompilerLockFileSystem
+    sourceFile: packages/cli/src/operations/mutation/symbol-compiler-lock.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-releaseSymbolCompilerLock
+    title: releaseSymbolCompilerLock
+    sourceFile: packages/cli/src/operations/mutation/symbol-compiler-lock.ts
+    status: active
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-generated-coordinate-repair

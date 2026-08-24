@@ -116,7 +116,13 @@ const PredicateExpectationSchema = z
 
 const FinalStateRequestSchema = z
   .object({
-    tool: z.enum(["kb_query", "kb_status", "kb_check", "kb_coverage", "kb_graph"]),
+    tool: z.enum([
+      "kb_query",
+      "kb_status",
+      "kb_check",
+      "kb_coverage",
+      "kb_graph",
+    ]),
     args: z.record(z.string(), z.unknown()),
   })
   .strict();
@@ -220,7 +226,9 @@ const PrivateEvaluatorManifestSchema = z
     fixtureSeedHash: Sha256Schema,
     expectedFinalState: z.array(AssertionSchema).min(1),
     finalStateRequests: z.array(FinalStateRequestSchema).optional(),
-    fixtureSetup: z.enum(["none", "generated_coordinate_divergence"]).optional(),
+    fixtureSetup: z
+      .enum(["none", "generated_coordinate_divergence"])
+      .optional(),
     protocolContract: ProtocolContractSchema.optional(),
     orderedMcpPredicates: z
       .object({

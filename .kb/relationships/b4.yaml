@@ -48,3 +48,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-571a6ec7ef2d
+  - type: covered_by
+    from: SYM-discovery-search-input
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:37:13.625Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de1959fc1dbe
+  - type: implements
+    from: SYM-discovery-search-input
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:00:48.691Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-412909020b49
+  - type: covered_by
+    from: SYM-discovery-search-input
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:00:48.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f378102a8b73

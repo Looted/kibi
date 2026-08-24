@@ -177,6 +177,10 @@
       "types": "./dist/operations/mutation/symbol-refresh.d.ts",
       "default": "./dist/operations/mutation/symbol-refresh.js"
     },
+    "./operations/mutation/symbol-compiler-lock": {
+      "types": "./dist/operations/mutation/symbol-compiler-lock.d.ts",
+      "default": "./dist/operations/mutation/symbol-compiler-lock.js"
+    },
     "./operations/mutation/types": {
       "types": "./dist/operations/mutation/types.d.ts",
       "default": "./dist/operations/mutation/types.js"

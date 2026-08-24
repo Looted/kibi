@@ -8,6 +8,10 @@ import {
   extractManifestSymbolRecordsString,
   readManifestWithCoordinateOverlay,
 } from "../../src/extractors/manifest";
+import {
+  coordinateIdentityHash,
+  coordinateSourceHash,
+} from "../../src/extractors/symbol-coordinates";
 
 const TEST_DIR = join(process.cwd(), "test-tmp");
 
@@ -315,12 +319,8 @@ symbols:
   });
 
   test("extractFromManifest overlays authored entries with coordinate artifact metadata", () => {
-    // Legacy (unbound) artifact records are validated against current source
-    // content, so point both the manifest and the artifact at a real file.
-    const inlineSource = setupTestFile(
-      "overlay-src.ts",
-      `${Array.from({ length: 9 }, () => "// filler").join("\n")}\n  Symbol With Overlay\n`,
-    );
+    const inlineContent = `${Array.from({ length: 9 }, () => "// filler").join("\n")}\n  Symbol With Overlay\n`;
+    const inlineSource = setupTestFile("overlay-src.ts", inlineContent);
     const yaml = `
 symbols:
   - id: symbol-with-overlay
@@ -335,8 +335,15 @@ symbols:
     const filePath = setupTestFile("test-overlay-sourcefile.yaml", yaml);
     writeFileSync(
       join(TEST_DIR, "symbol-coordinates.yaml"),
-      `coordinates:
+      `version: 2
+coordinates:
   symbol-with-overlay:
+    identityHash: ${coordinateIdentityHash({
+      id: "symbol-with-overlay",
+      title: "Symbol With Overlay",
+      sourceFile: inlineSource,
+    })}
+    sourceHash: ${coordinateSourceHash(inlineContent)}
     sourceFile: ${inlineSource}
     sourceLine: 10
     sourceColumn: 2

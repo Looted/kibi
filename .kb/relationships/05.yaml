@@ -66,3 +66,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7f5ea39206dd
+  - type: covered_by
+    from: SYM-cli-discovery-command-options
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:36:04.649Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbdd94de14ab
+  - type: implements
+    from: SYM-cli-discovery-command-options
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:58:24.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1589316d4c20
+  - type: covered_by
+    from: SYM-cli-discovery-command-options
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:58:25.029Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af88b62f3e2b

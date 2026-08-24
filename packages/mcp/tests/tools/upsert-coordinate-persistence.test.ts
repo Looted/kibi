@@ -10,7 +10,10 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { coordinateIdentityHash } from "kibi-cli/extractors/symbol-coordinates";
+import {
+  coordinateIdentityHash,
+  coordinateSourceHash,
+} from "kibi-cli/extractors/symbol-coordinates";
 import { setSymbolRefreshForTests } from "kibi-cli/operations/mutation/symbol-refresh";
 // The MCP server registers kibi-cli's production executeUpsert for kb_upsert.
 // This suite exercises that exact function with filesystem ports enabled so
@@ -61,25 +64,17 @@ const identity = {
 };
 
 function seedFixture(root: string): void {
-  writeFileSync(
-    path.join(root, "src", "coord.ts"),
-    "export function mcpCoordTarget() {\n  return 42;\n}\n",
-  );
+  const sourceContent = "export function mcpCoordTarget() {\n  return 42;\n}\n";
+  writeFileSync(path.join(root, "src", "coord.ts"), sourceContent);
   writeFileSync(
     path.join(root, ".kb", "symbols.yaml"),
-    "symbols:\n" +
-      `  - id: ${identity.id}\n` +
-      `    title: ${identity.title}\n` +
-      "    sourceFile: src/coord.ts\n" +
-      "    status: active\n",
+    `symbols:\n  - id: ${identity.id}\n    title: ${identity.title}\n    sourceFile: src/coord.ts\n    status: active\n`,
   );
   // Simulate the warm state after an approved refresh + sync: artifact and
   // compiled RDF both carry coordinates while cache hashes match.
   writeFileSync(
     path.join(root, ".kb", "symbol-coordinates.yaml"),
-    `version: 2\ncoordinates:\n  ${identity.id}:\n` +
-      `    identityHash: ${coordinateIdentityHash({ ...identity, sourceFile: "src/coord.ts" })}\n` +
-      "    sourceColumn: 16\n    sourceEndColumn: 1\n    sourceEndLine: 3\n    sourceFile: src/coord.ts\n    sourceLine: 1\n",
+    `version: 2\ncoordinates:\n  ${identity.id}:\n    identityHash: ${coordinateIdentityHash({ ...identity, sourceFile: "src/coord.ts" })}\n    sourceHash: ${coordinateSourceHash(sourceContent)}\n    sourceColumn: 16\n    sourceEndColumn: 1\n    sourceEndLine: 3\n    sourceFile: src/coord.ts\n    sourceLine: 1\n`,
   );
 }
 
@@ -147,6 +142,7 @@ describe("registered kb_upsert keeps generated coordinates (MCP runtime)", () =>
     });
     expect(committedGoals).toHaveLength(1);
     const commitGoal = committedGoals[0] ?? "";
+    expect(commitGoal).toContain('sourceFile="src/coord.ts"');
     for (const field of [
       "sourceLine=1",
       "sourceColumn=16",
@@ -219,5 +215,47 @@ describe("registered kb_upsert keeps generated coordinates (MCP runtime)", () =>
       "utf8",
     );
     expect(manifest).not.toContain("coordinatesGeneratedAt");
+  });
+
+  test("failed RDF commit restores the exact prior coordinate artifact", async () => {
+    const root = workspace();
+    seedFixture(root);
+    const artifactPath = path.join(root, ".kb", "symbol-coordinates.yaml");
+    const staleArtifact = readFileSync(artifactPath, "utf8").replace(
+      "sourceLine: 1",
+      "sourceLine: 2",
+    );
+    writeFileSync(artifactPath, staleArtifact, "utf8");
+    const query = mock(async (goal: string): Promise<PrologQueryResult> => {
+      if (goal.startsWith("kb_commit_upsert(")) {
+        return { success: false, bindings: {}, error: "commit denied" };
+      }
+      if (goal.startsWith("findall(")) {
+        return {
+          success: true,
+          bindings: goal.includes("findall(From,")
+            ? { Sources: "[]" }
+            : { Targets: "[]" },
+        };
+      }
+      return { success: true, bindings: {} };
+    });
+
+    await expect(
+      executeUpsert(
+        {
+          type: "symbol",
+          id: identity.id,
+          properties: {
+            title: identity.title,
+            status: "active",
+            sourceFile: "src/coord.ts",
+          },
+        },
+        createContext(root, query),
+      ),
+    ).rejects.toThrow("commit denied");
+
+    expect(readFileSync(artifactPath, "utf8")).toBe(staleArtifact);
   });
 });

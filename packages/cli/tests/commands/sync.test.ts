@@ -45,6 +45,9 @@ interface SyncTestHarness {
     context: SyncTestHookContext & { kbModified: boolean },
   ) => Promise<void> | void;
   createProlog?: (options: { timeout?: number }) => PrologProcess;
+  acquireSymbolCompilerLock?: (workspaceRoot: string) => Promise<{
+    release: () => void;
+  }>;
 }
 
 /** Source compilation intentionally follows Git's index. Keep fixtures explicit. */
@@ -331,9 +334,70 @@ User logs in with OAuth2 provider.
     });
   });
 
+  test("holds the symbol compiler lock through the save boundary", async () => {
+    await withWorkingDirectory(tmpDir, async () => {
+      let acquired = 0;
+      let released = 0;
+
+      await runHarnessedSync(
+        {},
+        {
+          acquireSymbolCompilerLock: async (workspaceRoot) => {
+            expect(workspaceRoot).toBe(tmpDir);
+            acquired += 1;
+            return {
+              release: () => {
+                released += 1;
+              },
+            };
+          },
+          beforeSave: () => {
+            expect(acquired).toBe(1);
+            expect(released).toBe(0);
+          },
+        },
+      );
+
+      expect(acquired).toBe(1);
+      expect(released).toBe(1);
+    });
+  });
+
+  test("preserves sync and compiler lock release failures", async () => {
+    await withWorkingDirectory(tmpDir, async () => {
+      const operationError = new Error("sync operation failed");
+      const releaseError = new Error("sync lock release failed");
+      let thrown: unknown;
+
+      try {
+        await runHarnessedSync(
+          {},
+          {
+            acquireSymbolCompilerLock: async () => ({
+              release: () => {
+                throw releaseError;
+              },
+            }),
+            beforeSave: () => {
+              throw operationError;
+            },
+          },
+        );
+      } catch (error) {
+        thrown = error;
+      }
+
+      expect(thrown).toBeInstanceOf(AggregateError);
+      expect((thrown as AggregateError).errors).toEqual([
+        operationError,
+        releaseError,
+      ]);
+    });
+  });
+
   describe("stale_snapshot classification", () => {
     test(
-      "classifies stale_snapshot as same-branch concurrent sync self-interference",
+      "serializes same-branch concurrent syncs through the compiler lock",
       async () => {
         await withWorkingDirectory(tmpDir, async () => {
           const baseline = await runHarnessedSync();
@@ -389,15 +453,16 @@ User logs in with OAuth2 provider.
               },
             );
 
-            expect(await settlesWithin(secondAttached.promise, 1500)).toBe(
-              true,
+            expect(await settlesWithin(secondAttached.promise, 250)).toBe(
+              false,
             );
             expect(firstFileIdentity).toBeDefined();
-            expect(secondFileIdentity).toBeDefined();
-            expect(secondFileIdentity).not.toEqual(firstFileIdentity);
+            expect(secondFileIdentity).toBeNull();
 
             releaseFirst.resolve();
             await firstSync;
+            await secondSync;
+            expect(secondFileIdentity).toBeNull();
           } finally {
             releaseSecond.resolve();
             releaseFirst.resolve();
@@ -617,14 +682,13 @@ User logs in with OAuth2 provider.
       const cache = JSON.parse(readFileSync(cachePath, "utf8")) as {
         version: number;
         hashes: Record<string, string>;
+        entityHashes?: Record<string, string>;
         seenAt: Record<string, string>;
       };
 
       // v2: workspace-relative keys + coordinate artifact dependency.
       expect(cache.version).toBe(2);
-      expect(
-        Object.keys(cache.entityHashes ?? {}).length,
-      ).toBeGreaterThan(0);
+      expect(Object.keys(cache.entityHashes ?? {}).length).toBeGreaterThan(0);
       expect(Object.keys(cache.hashes).length).toBeGreaterThanOrEqual(3);
       expect(cache.hashes[".kb/requirements/req1.md"]).toMatch(
         /^[a-f0-9]{64}$/,

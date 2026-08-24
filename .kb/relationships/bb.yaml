@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-2b083de9560d
-    type: implements
-    from: SYM-auto-F6E934B6698C
-    to: REQ-kibi-operation-interface-parity
-    created_at: "2026-08-15T22:16:48.410Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: implements
     from: SYM-auto-F6E934B6698C
     to: REQ-core-atomic-upsert-persistence
@@ -237,3 +230,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c3ff28ca55ca
+  - type: covered_by
+    from: SYM-operation-name-type
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:38:29.070Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff0169527e34
+  - type: implements
+    from: SYM-auto-F6E934B6698C
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:56:17.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b083de9560d
+  - type: covered_by
+    from: SYM-auto-F6E934B6698C
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:56:17.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9109fb57016e
+  - type: implements
+    from: SYM-operation-name-type
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:03:41.432Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e29a9d4733a8
+  - type: covered_by
+    from: SYM-operation-name-type
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:03:41.439Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d90f70fb289

@@ -120,10 +120,7 @@ function resultData(
   if (!isRecordLike(content)) {
     return isRecordLike(result.data) ? result.data : null;
   }
-  if (
-    content.kibiProtocol === 1 &&
-    isRecordLike(content.data)
-  ) {
+  if (content.kibiProtocol === 1 && isRecordLike(content.data)) {
     return content.data;
   }
   return content;
@@ -199,12 +196,9 @@ export function migrationApplyContractViolations(
   if (expectedCode !== undefined) {
     const coverageData =
       coverageResult === null ? null : resultData(coverageResult);
-    const planBodyCandidate = coverageData?.plan;
+    const planBodyCandidate = coverageData?.migrationPlan;
     const actions = actionRecords(
-      coverageData?.actions ??
-        (isRecordLike(planBodyCandidate)
-          ? planBodyCandidate.actions
-          : undefined),
+      isRecordLike(planBodyCandidate) ? planBodyCandidate.actions : undefined,
     );
     const readyAutomatic = actions.filter(
       (action) =>
@@ -219,9 +213,25 @@ export function migrationApplyContractViolations(
       );
     }
     const actionId = readyAutomatic[0]?.id;
-    const planHash =
-      coverageData?.planHash ??
-      (isRecordLike(planBodyCandidate) ? planBodyCandidate.planHash : undefined);
+    const expectedInvocationCommandArgv =
+      contract.exactMigrationApply?.invocationCommandArgv;
+    if (
+      expectedInvocationCommandArgv !== undefined &&
+      readyAutomatic.length === 1
+    ) {
+      const invocation = readyAutomatic[0]?.invocation;
+      const commandArgv = isRecordLike(invocation)
+        ? invocation.command_argv
+        : undefined;
+      if (!deepEquals(commandArgv, expectedInvocationCommandArgv)) {
+        violations.push(
+          "selected action invocation.command_argv must equal exactMigrationApply.invocationCommandArgv",
+        );
+      }
+    }
+    const planHash = isRecordLike(planBodyCandidate)
+      ? planBodyCandidate.planHash
+      : undefined;
     const planBody = planBodyCandidate;
 
     if (typeof actionId !== "string" || actionId.length === 0) {
@@ -239,7 +249,9 @@ export function migrationApplyContractViolations(
     if (planBody === undefined || planBody === null) {
       violations.push("coverage plan body missing");
     } else if (!deepEquals(apply.args.plan, planBody)) {
-      violations.push("applied plan must be unchanged from the coverage preview");
+      violations.push(
+        "applied plan must be unchanged from the coverage preview",
+      );
     }
 
     const applyData = resultData(apply.result);
@@ -267,7 +279,8 @@ function protocolPasses(manifest: Manifest, evidence: CellEvidence): boolean {
   if (
     manifest.protocolContract !== undefined &&
     manifest.protocolContract !== null &&
-    migrationApplyContractViolations(manifest.protocolContract, evidence).length > 0
+    migrationApplyContractViolations(manifest.protocolContract, evidence)
+      .length > 0
   ) {
     return false;
   }

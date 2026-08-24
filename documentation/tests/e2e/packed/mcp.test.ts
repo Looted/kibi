@@ -344,7 +344,10 @@ if (RUN_NODE_TEST_SUITE) {
                     const initPrompt = prompts.find(
                       (p) => p.name === "kibi-bootstrap",
                     );
-                    assert.ok(initPrompt, "kibi-bootstrap should be registered");
+                    assert.ok(
+                      initPrompt,
+                      "kibi-bootstrap should be registered",
+                    );
                     assert.match(
                       initPrompt.description ?? "",
                       /canonical planner|plan.*apply/i,

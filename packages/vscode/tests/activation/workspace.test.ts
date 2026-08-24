@@ -45,11 +45,11 @@ async function importWorkspaceModule() {
 }
 
 function setWorkspaceRootEnv(value: string | undefined) {
-  Object.defineProperty(process.env, "KIBI_WORKSPACE_ROOT", {
-    value,
-    writable: true,
-    configurable: true,
-  });
+  if (value === undefined) {
+    Reflect.deleteProperty(process.env, "KIBI_WORKSPACE_ROOT");
+  } else {
+    process.env.KIBI_WORKSPACE_ROOT = value;
+  }
 }
 
 beforeEach(() => {

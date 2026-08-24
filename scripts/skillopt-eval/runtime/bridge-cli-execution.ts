@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { taskFinalStateRequests } from "./final-state-requests";
 import { readFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 import {
@@ -12,6 +11,7 @@ import { defaultCodexCellDependencies } from "./codex-cell-defaults";
 import { type CodexCellOptions, runCodexCell } from "./codex-cell-runner";
 import type { CodexCellDependencies } from "./codex-cell-types";
 import type { BridgeRequest, BridgeResult } from "./file-bridge";
+import { taskFinalStateRequests } from "./final-state-requests";
 import { resolveTaskFixture } from "./task-fixture";
 
 type BridgeCellCompletion = Readonly<{

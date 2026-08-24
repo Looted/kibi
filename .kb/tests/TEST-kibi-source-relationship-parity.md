@@ -336,5 +336,365 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 10423
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-72d196ff98c029ddf70b6577
+    test_id: TEST-kibi-source-relationship-parity
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-source-relationship-parity
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-source-relationship-parity
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 179ebe71578e274182f932a44b388e84629d8c35aab70e11ed71512b5426c8e3
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T07:30:13.535Z'
+    finished_at: '2026-08-23T07:30:25.115Z'
+    artifact_digest: 631d58720d0e7782baf7564a3ad5c6cdecc3e040df4fc862bfed9b47a15f725e
+    contract_hash: d4bbf523c5d8016f234101c4278f46566f9afe52cfb52565359fca9f1633fa49
+    case_results:
+      - symbol_id: SYM-test-packed-source-relationship-parity
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11580
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-a42fc4dfa49843c85d699c07
+    test_id: TEST-kibi-source-relationship-parity
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-source-relationship-parity
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-source-relationship-parity
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: bd8e6d28630c837d83bb606b786976c761f4bcb8326f1aab37d01845783fbafe
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T08:13:48.934Z'
+    finished_at: '2026-08-23T08:14:00.529Z'
+    artifact_digest: 07ba78fc1b771d6ca5b45430485296adebdae3e4ee6e4cb7075bb980958e4d10
+    contract_hash: d4bbf523c5d8016f234101c4278f46566f9afe52cfb52565359fca9f1633fa49
+    case_results:
+      - symbol_id: SYM-test-packed-source-relationship-parity
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11595
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-3357bb942c620e9c4bc0d311
+    test_id: TEST-kibi-source-relationship-parity
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-source-relationship-parity
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-source-relationship-parity
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ee22ec51c9bc3153aa0a330d71805a1c8ce310bf3a763dc346ad13e15071ba11
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T12:11:02.922Z'
+    finished_at: '2026-08-23T12:11:14.309Z'
+    artifact_digest: 8f46cbb8534da6fb6df4401c35349f095d830251a7ef207fc9fc8c107aa16dde
+    contract_hash: d4bbf523c5d8016f234101c4278f46566f9afe52cfb52565359fca9f1633fa49
+    case_results:
+      - symbol_id: SYM-test-packed-source-relationship-parity
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11387
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-194f1ce808b50d0e99bb7bff
+    test_id: TEST-kibi-source-relationship-parity
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-source-relationship-parity
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-source-relationship-parity
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dea1a8d20393c9e2212505a158b80a73843c68d9ea042614fc6c80fa98589b28
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:10:46.614Z'
+    finished_at: '2026-08-23T19:10:58.297Z'
+    artifact_digest: c26053b76e79ea855cb432732a67283971d6d80d59ea9dc11264ebb999ceb34d
+    contract_hash: d4bbf523c5d8016f234101c4278f46566f9afe52cfb52565359fca9f1633fa49
+    case_results:
+      - symbol_id: SYM-test-packed-source-relationship-parity
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11683
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-07090b56d8664bd3669c1b7d
+    test_id: TEST-kibi-source-relationship-parity
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-source-relationship-parity
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-source-relationship-parity
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dcfad834bdf07e98adee34ec88d018b898fcdad42b22ba99a91adbfd48ff7459
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:36:55.511Z'
+    finished_at: '2026-08-23T19:37:06.989Z'
+    artifact_digest: 52b3d08f69854665c63271a41c494187781ea5e03f32ff46e372bef4e595e36c
+    contract_hash: d4bbf523c5d8016f234101c4278f46566f9afe52cfb52565359fca9f1633fa49
+    case_results:
+      - symbol_id: SYM-test-packed-source-relationship-parity
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11478
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-2479d07e1c29a5fd374d42ce
+    test_id: TEST-kibi-source-relationship-parity
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-source-relationship-parity
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-source-relationship-parity
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 14ca65ca0dd701b64b6b9dc632e9eeda9ed796c6b816a70fbd6b50db303194cc
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:04:51.807Z'
+    finished_at: '2026-08-23T20:05:03.377Z'
+    artifact_digest: 02aa8c042b7264c56167af4d444c00646ec8000511e5b262d70c7e22d3419790
+    contract_hash: d4bbf523c5d8016f234101c4278f46566f9afe52cfb52565359fca9f1633fa49
+    case_results:
+      - symbol_id: SYM-test-packed-source-relationship-parity
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11570
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-19b72121d1051d671a54ad8c
+    test_id: TEST-kibi-source-relationship-parity
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-source-relationship-parity
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-source-relationship-parity
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 3ee001d32bb209a819714ba2e42edd8ab694bfb5be890192445fb7e202afb01b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:31:11.744Z'
+    finished_at: '2026-08-23T20:31:23.258Z'
+    artifact_digest: 86cab3383b92d367422646c8696321d52eff39424123e53a43e928ab8247c0f9
+    contract_hash: d4bbf523c5d8016f234101c4278f46566f9afe52cfb52565359fca9f1633fa49
+    case_results:
+      - symbol_id: SYM-test-packed-source-relationship-parity
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11514
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-bf6344cd571f47ca9fb42512
+    test_id: TEST-kibi-source-relationship-parity
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-source-relationship-parity
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-source-relationship-parity
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8da5165ebb43b8ee33c18ba479134826479b9cecae4caf47c854dd2a844555c7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:12:07.567Z'
+    finished_at: '2026-08-23T22:12:18.872Z'
+    artifact_digest: 1a6f2aa98abd27c46b6dcc9dfaf09a721e1b468c9ca4d8882875c76b833576f7
+    contract_hash: d4bbf523c5d8016f234101c4278f46566f9afe52cfb52565359fca9f1633fa49
+    case_results:
+      - symbol_id: SYM-test-packed-source-relationship-parity
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11305
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-52e8d630e70c9ec5f5634789
+    test_id: TEST-kibi-source-relationship-parity
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-source-relationship-parity
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-source-relationship-parity
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 9506b01b3f5194b44f47602b13261ce3139304cec73818f4b0553c152eb51048
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:38:16.827Z'
+    finished_at: '2026-08-23T22:38:28.211Z'
+    artifact_digest: 7ae6bcaec5bb814af140b2c378b8c96ffd7b2e6420c7b92fac1333c96907d10b
+    contract_hash: d4bbf523c5d8016f234101c4278f46566f9afe52cfb52565359fca9f1633fa49
+    case_results:
+      - symbol_id: SYM-test-packed-source-relationship-parity
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11384
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-e3c56e565d7f65a1f8ee4c95
+    test_id: TEST-kibi-source-relationship-parity
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-source-relationship-parity
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-source-relationship-parity
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a54a428a72f914fe4ee86257b1e2eb792f98958f88ccf0d6a45eef244ab53055
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:23:30.493Z'
+    finished_at: '2026-08-24T06:23:43.347Z'
+    artifact_digest: 32948f27bcd3fffc9a6d052d743524db0b8d85f7486d5e8c011cc34bb1e8e58d
+    contract_hash: d4bbf523c5d8016f234101c4278f46566f9afe52cfb52565359fca9f1633fa49
+    case_results:
+      - symbol_id: SYM-test-packed-source-relationship-parity
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 12854
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-7bb4bc1ff897b2194e627ec8
+    test_id: TEST-kibi-source-relationship-parity
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-source-relationship-parity
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-source-relationship-parity
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: c2c5a06c408b705211516e8bd1f6733b82e8addfc4acd70c33d47a850f768285
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:51:37.131Z'
+    finished_at: '2026-08-24T06:51:48.711Z'
+    artifact_digest: 2a66acacf91226e5f43441d480c1536a48a1199b92afc6be84fc1e3c7e3a2acd
+    contract_hash: d4bbf523c5d8016f234101c4278f46566f9afe52cfb52565359fca9f1633fa49
+    case_results:
+      - symbol_id: SYM-test-packed-source-relationship-parity
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11580
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-8553196ffd020eb122f64957
+    test_id: TEST-kibi-source-relationship-parity
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-source-relationship-parity
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-source-relationship-parity
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:21:44.681Z'
+    finished_at: '2026-08-24T07:21:56.670Z'
+    artifact_digest: 93967d2abbaa80a069438029e81d2aade9b5c8d689514a1c706b6b97a53b1bf5
+    contract_hash: d4bbf523c5d8016f234101c4278f46566f9afe52cfb52565359fca9f1633fa49
+    case_results:
+      - symbol_id: SYM-test-packed-source-relationship-parity
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11989
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-f3426a26deb369d74cace527
+    test_id: TEST-kibi-source-relationship-parity
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-source-relationship-parity
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-source-relationship-parity
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:46:10.993Z'
+    finished_at: '2026-08-24T07:46:24.743Z'
+    artifact_digest: bc475409f8ef5138d7d5e53507d2dc5042111984a68f7bc93f138cd8deadb483
+    contract_hash: d4bbf523c5d8016f234101c4278f46566f9afe52cfb52565359fca9f1633fa49
+    case_results:
+      - symbol_id: SYM-test-packed-source-relationship-parity
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 13750
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-72a0baf5ef3beafe3de40df3
+    test_id: TEST-kibi-source-relationship-parity
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-source-relationship-parity
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-source-relationship-parity
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0202c720e01d3b5e58358f98e61e524d501259ef3b14d6f74a44ef1fd03cfad1
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:18:37.948Z'
+    finished_at: '2026-08-24T08:18:50.123Z'
+    artifact_digest: e2bf62ddc6a87414b878d196479e907c1d2c456f3ca5b15de3ab1d8a58fbee97
+    contract_hash: d4bbf523c5d8016f234101c4278f46566f9afe52cfb52565359fca9f1633fa49
+    case_results:
+      - symbol_id: SYM-test-packed-source-relationship-parity
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 12175
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-32142d28da4281d4e0c5847b
+    test_id: TEST-kibi-source-relationship-parity
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-source-relationship-parity
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-source-relationship-parity
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 5e0dc87316dbd903ca5f2e3da37265c33a1559b0fecdabc93ab978662fad7b3b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:48:04.480Z'
+    finished_at: '2026-08-24T08:48:16.634Z'
+    artifact_digest: f7e7018351c5368c741e49d9720d0efb3d3e50ddd7a2d5f993cbbc58e054dfa4
+    contract_hash: d4bbf523c5d8016f234101c4278f46566f9afe52cfb52565359fca9f1633fa49
+    case_results:
+      - symbol_id: SYM-test-packed-source-relationship-parity
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 12154
 ---
 The packed consumer test creates a tracked authored relationship after the initial compile, proves the scoped parity rule blocks on the exact missing edge, syncs, and proves the scoped check passes. Unit coverage separately proves runtime-only reverse ownership does not weaken authored-to-compiled detection.

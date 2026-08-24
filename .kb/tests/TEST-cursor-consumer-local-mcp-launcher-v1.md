@@ -389,4 +389,676 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 1623
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-eeb030d0ea2aa37f57201978
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 179ebe71578e274182f932a44b388e84629d8c35aab70e11ed71512b5426c8e3
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T07:51:21.261Z'
+    finished_at: '2026-08-23T07:51:24.503Z'
+    artifact_digest: 506a55e94ae32deae2ead29b1a4ddc5cfecb912b25971da9a4d5e15d5ab74ca2
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 3242
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-08e88c9b555b3c4fcf19899d
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 179ebe71578e274182f932a44b388e84629d8c35aab70e11ed71512b5426c8e3
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T07:52:45.772Z'
+    finished_at: '2026-08-23T07:52:49.748Z'
+    artifact_digest: 8cd00ff2615f827458254a80b64f6b8b06959b39eeaa4ce9ceebcd354075b4c9
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 3976
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-92366886af5ad1fcd952cf2e
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: bd8e6d28630c837d83bb606b786976c761f4bcb8326f1aab37d01845783fbafe
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T08:34:39.789Z'
+    finished_at: '2026-08-23T08:34:42.787Z'
+    artifact_digest: 35931ebd4d697a95259bfea2c834e4f8d710abe8e6399354269c6f7b0e372e14
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 2998
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-057a93aeb973016f02d6cbb9
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: bd8e6d28630c837d83bb606b786976c761f4bcb8326f1aab37d01845783fbafe
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T08:35:52.612Z'
+    finished_at: '2026-08-23T08:35:55.638Z'
+    artifact_digest: 35e4f071af6b6cb83d925a7b5bfae6ece6e0f6e394a24c66190732946566bc1e
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 3026
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-2f9a6d43da5aece13bbc0d9e
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ee22ec51c9bc3153aa0a330d71805a1c8ce310bf3a763dc346ad13e15071ba11
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T12:31:06.288Z'
+    finished_at: '2026-08-23T12:31:09.394Z'
+    artifact_digest: 0cc165fe13e3e85daf81a39ec7bf889a823e7c89c9839311073b025432cd9e75
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 3106
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-9d521d4a88c181e6679d26c9
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ee22ec51c9bc3153aa0a330d71805a1c8ce310bf3a763dc346ad13e15071ba11
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T12:32:20.735Z'
+    finished_at: '2026-08-23T12:32:23.846Z'
+    artifact_digest: b4dc56b5cc2fa6a4cd8719e57d0916355c6cb5451a4e5f1966b5ecbf5ab1e88a
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 3111
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-452d161b87407ae9eb0f3ac1
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dea1a8d20393c9e2212505a158b80a73843c68d9ea042614fc6c80fa98589b28
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:31:22.888Z'
+    finished_at: '2026-08-23T19:31:25.976Z'
+    artifact_digest: 17c53bfbf6ee455918eb9934b234e9cf9b123888f15082cfdfefb126a091f19b
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 3088
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-ff84ab334a750f6f6491ee2e
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dea1a8d20393c9e2212505a158b80a73843c68d9ea042614fc6c80fa98589b28
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:32:36.156Z'
+    finished_at: '2026-08-23T19:32:39.040Z'
+    artifact_digest: aa05688271afbffe117dee9e8f4ed28fe2076fb245e598fdadca0d9e8da1d0b2
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 2884
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-868698cd1a73ea9708907708
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dcfad834bdf07e98adee34ec88d018b898fcdad42b22ba99a91adbfd48ff7459
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:57:34.950Z'
+    finished_at: '2026-08-23T19:57:38.143Z'
+    artifact_digest: 186215227b3609d7f9185cf005d6e991f6833385a1e8596c9d14f936364f0f38
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 3193
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-c5264a03c2f7064e7409f9a6
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dcfad834bdf07e98adee34ec88d018b898fcdad42b22ba99a91adbfd48ff7459
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:58:48.000Z'
+    finished_at: '2026-08-23T19:58:50.825Z'
+    artifact_digest: 8e6266b4fb3ad1de0988f7911fbda7c084d4e26dbba1a3df76e48bd1500e73d2
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 2825
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-ab7437c0ebc386d19514c894
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 14ca65ca0dd701b64b6b9dc632e9eeda9ed796c6b816a70fbd6b50db303194cc
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:25:01.722Z'
+    finished_at: '2026-08-23T20:25:04.749Z'
+    artifact_digest: aa5cff4e036f54e029a3666782f913bb7aa4fcd12abc39236ce7d4b9bc4379f4
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 3027
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-8f5153951668aeeec216e1fb
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 14ca65ca0dd701b64b6b9dc632e9eeda9ed796c6b816a70fbd6b50db303194cc
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:26:13.545Z'
+    finished_at: '2026-08-23T20:26:16.432Z'
+    artifact_digest: e99cb3724f69808260d06425048a3a0ba812c5b1781046e2f300b51b5fbf0f00
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 2887
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-9e2dbba61833039a32df8f03
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 3ee001d32bb209a819714ba2e42edd8ab694bfb5be890192445fb7e202afb01b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:51:07.525Z'
+    finished_at: '2026-08-23T20:51:10.252Z'
+    artifact_digest: 874ae18623d588405b8ab6ce49a5ae3d2a941ca17ecc993c067f999fd87dccba
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 2727
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-3cd6537a81d186c856ce36cd
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 3ee001d32bb209a819714ba2e42edd8ab694bfb5be890192445fb7e202afb01b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:52:16.003Z'
+    finished_at: '2026-08-23T20:52:18.810Z'
+    artifact_digest: 5fd4edaef5983fcbd5c21209527ddebe0957673f6d58dce67030214e1f6a1a1e
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 2807
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-3e04423fcafd14476ab27044
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8da5165ebb43b8ee33c18ba479134826479b9cecae4caf47c854dd2a844555c7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:31:33.386Z'
+    finished_at: '2026-08-23T22:31:36.086Z'
+    artifact_digest: e5812b430ee0e1e6c8ce680c305c9924a648c8807682628e5f526ee819958fd3
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 2700
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-18fbe5bb18354ec70457e2bb
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8da5165ebb43b8ee33c18ba479134826479b9cecae4caf47c854dd2a844555c7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:32:41.108Z'
+    finished_at: '2026-08-23T22:32:43.805Z'
+    artifact_digest: 6aa55f7aef980e415cd037e52a509491c8274ea79b1fd17f729a1ba7017e6cdb
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 2697
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-f4a05c864bde2afb0b533b07
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 9506b01b3f5194b44f47602b13261ce3139304cec73818f4b0553c152eb51048
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:57:53.778Z'
+    finished_at: '2026-08-23T22:57:56.576Z'
+    artifact_digest: d231d4511be0661fc0da645ccec823c9fd7fba88b206245080db5bbcfa6cc8ec
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 2798
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-2013a5af6a2444c4612e608f
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 9506b01b3f5194b44f47602b13261ce3139304cec73818f4b0553c152eb51048
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:59:02.432Z'
+    finished_at: '2026-08-23T22:59:05.231Z'
+    artifact_digest: 39680cc09fa4f36d1ffb2d84bd291e8303f9a3e520214ef8eb91028d657148ad
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 2799
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-4b8113625d86541aab08d7b7
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a54a428a72f914fe4ee86257b1e2eb792f98958f88ccf0d6a45eef244ab53055
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:46:01.561Z'
+    finished_at: '2026-08-24T06:46:04.904Z'
+    artifact_digest: 54b25980c866f5233e4890c0d84a6e1f3dcdd6420640d09b48cd90e1aeac4752
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 3343
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-c1a42cd6c27c0c3b7065a6a3
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a54a428a72f914fe4ee86257b1e2eb792f98958f88ccf0d6a45eef244ab53055
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:47:42.672Z'
+    finished_at: '2026-08-24T06:47:45.864Z'
+    artifact_digest: e76a98c7092f87ce54543820e779af4981fa7635d854651e3326ef3271823736
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 3192
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-96f6ea7c84e79c95f8376367
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: c2c5a06c408b705211516e8bd1f6733b82e8addfc4acd70c33d47a850f768285
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:13:13.440Z'
+    finished_at: '2026-08-24T07:13:16.406Z'
+    artifact_digest: 3e9e2c48c3b01f79c530ff1867c597cf84e4d74788dc26ae675b6cb9db6eafc3
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 2966
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-ce50fc826c2420808eba2cd0
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: c2c5a06c408b705211516e8bd1f6733b82e8addfc4acd70c33d47a850f768285
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:14:29.575Z'
+    finished_at: '2026-08-24T07:14:32.516Z'
+    artifact_digest: f6a2be07ad06a005e013a8d36a3e9c3b5b248db63021b60cae13debe3f8165f9
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 2941
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-fc264a26c9c99d19fe9c0fb4
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:09:21.720Z'
+    finished_at: '2026-08-24T08:09:26.840Z'
+    artifact_digest: 8728e17fd011dbf8b8cbdbcee730a9a17305af69d3cd000538f28151a028e6f1
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 5120
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-f654b9eebba49bfe48bdb6fc
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:11:06.663Z'
+    finished_at: '2026-08-24T08:11:10.680Z'
+    artifact_digest: de992eb5cf758d4eb759eaddf4516c64efc9cbabf6b77265a601be52595445de
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 4017
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-b1d2ee232c8e93ffb16cd390
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0202c720e01d3b5e58358f98e61e524d501259ef3b14d6f74a44ef1fd03cfad1
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:41:36.823Z'
+    finished_at: '2026-08-24T08:41:39.944Z'
+    artifact_digest: 3e788ceb8f551ae520bc487a838093e1157c0333e9212ecff1c6024af81bef7e
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 3121
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-a04ac108e248e89fb811d011
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0202c720e01d3b5e58358f98e61e524d501259ef3b14d6f74a44ef1fd03cfad1
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:42:59.916Z'
+    finished_at: '2026-08-24T08:43:03.122Z'
+    artifact_digest: d9474e4c5ae5bd21f8829b7cd2626f434e30419d3e72b421d4c82eedf0973f88
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 3206
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-6f11e1a5ba97e14ca8500f1a
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 5e0dc87316dbd903ca5f2e3da37265c33a1559b0fecdabc93ab978662fad7b3b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T09:11:41.628Z'
+    finished_at: '2026-08-24T09:11:44.885Z'
+    artifact_digest: 8ecccc25c20256ed95adaf8e9269cb3ca2a3ac77c26111b4edecac896cd5acc3
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 3257
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-2d6c0965886dd9391f4a314c
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 5e0dc87316dbd903ca5f2e3da37265c33a1559b0fecdabc93ab978662fad7b3b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T09:13:04.028Z'
+    finished_at: '2026-08-24T09:13:07.616Z'
+    artifact_digest: 5ac943bd9232a58f4ae31f9a85527df3f00da50f1cf60520368516b8cc6c1fcc
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 3588
 ---

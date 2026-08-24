@@ -1,8 +1,15 @@
-import { createHash } from "node:crypto";
 import type { CatalogSkill } from "../catalog";
+import { fixtureSymbolId } from "../fixtures/workspace";
+
+export { fixtureSymbolId } from "../fixtures/workspace";
 
 export interface FinalStateRequest {
-  readonly tool: "kb_query" | "kb_status" | "kb_check" | "kb_coverage" | "kb_graph";
+  readonly tool:
+    | "kb_query"
+    | "kb_status"
+    | "kb_check"
+    | "kb_coverage"
+    | "kb_graph";
   readonly args: Readonly<Record<string, unknown>>;
 }
 
@@ -12,11 +19,6 @@ export const DEFAULT_FINAL_STATE_REQUESTS: FinalStateRequest[] = [
   { tool: "kb_status", args: {} },
   { tool: "kb_coverage", args: { by: "req" } },
 ];
-
-function fixtureSymbolId(taskId: string): string {
-  const suffix = createHash("sha256").update(taskId).digest("hex").slice(0, 12).toUpperCase();
-  return `SYM-FIXTURE-${suffix}`;
-}
 
 /**
  * Task-specific independent final-state evidence requests. The generated

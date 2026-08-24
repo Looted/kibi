@@ -146,3 +146,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-84b36edd2a61
+  - type: covered_by
+    from: SYM-runtime-PrologPort
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:40:37.521Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2007b6c02bef
+  - type: implements
+    from: SYM-runtime-PrologPort
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:08:53.581Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7313911967f
+  - type: covered_by
+    from: SYM-runtime-PrologPort
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:08:53.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-695fa2d3a930

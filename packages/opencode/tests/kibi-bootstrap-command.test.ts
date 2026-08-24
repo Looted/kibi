@@ -50,7 +50,9 @@ describe("kibi-bootstrap native command support", () => {
   let homedirSpy: ReturnType<typeof spyOn>;
 
   beforeAll(() => {
-    tmpBase = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-kibi-bootstrap-command-"));
+    tmpBase = fs.mkdtempSync(
+      path.join(os.tmpdir(), "kibi-kibi-bootstrap-command-"),
+    );
     homedirSpy = spyOn(os, "homedir").mockReturnValue(tmpBase);
   });
 
@@ -140,7 +142,10 @@ describe("kibi-bootstrap native command support", () => {
     }
     expect(missingCommandField.reason).toContain("command field");
 
-    const result = registerKibiBootstrapCommand(configInput, missingCommandField);
+    const result = registerKibiBootstrapCommand(
+      configInput,
+      missingCommandField,
+    );
 
     expect(result.supported).toBe(false);
     expect(configInput).toEqual({
@@ -190,7 +195,9 @@ describe("kibi-bootstrap native command support", () => {
     );
     // Verify the command is registered by the plugin, not requiring repo-local files
     assert.ok(
-      !fs.existsSync(path.join(dir, ".opencode", "commands", "kibi-bootstrap.md")),
+      !fs.existsSync(
+        path.join(dir, ".opencode", "commands", "kibi-bootstrap.md"),
+      ),
       "should not require repo-local command file",
     );
   });

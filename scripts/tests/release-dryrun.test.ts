@@ -143,6 +143,7 @@ describe("release dry-run: no-commit master publish model", () => {
       expect(pkgMap.opencode.version).toBe(ALL_PACKAGES.opencode.version);
       expect(pkgMap.codex.version).toBe(ALL_PACKAGES.codex.version);
       expect(pkgMap.cursor.version).toBe(ALL_PACKAGES.cursor.version);
+      expect(pkgMap.runtime.version).toBe(ALL_PACKAGES.runtime.version);
 
       for (const pkg of decision.packages) {
         expect(pkg.alreadyPublished).toBe(false);
@@ -227,9 +228,9 @@ describe("release dry-run: no-commit master publish model", () => {
       expect(decision.action).toBe("PUBLISH_ONLY_RERUN");
       expect(decision.reason).toContain("already published");
 
-      expect(decision.packages).toHaveLength(4);
+      expect(decision.packages).toHaveLength(5);
       const dirs = decision.packages.map((p) => p.dir).sort();
-      expect(dirs).toEqual(["codex", "cursor", "mcp", "opencode"]);
+      expect(dirs).toEqual(["codex", "cursor", "mcp", "opencode", "runtime"]);
 
       for (const pkg of decision.packages) {
         expect(pkg.alreadyPublished).toBe(false);
@@ -253,7 +254,14 @@ describe("release dry-run: no-commit master publish model", () => {
         .filter((p) => !p.alreadyPublished)
         .map((p) => p.dir)
         .sort();
-      expect(toPublish).toEqual(["cli", "codex", "cursor", "mcp", "opencode"]);
+      expect(toPublish).toEqual([
+        "cli",
+        "codex",
+        "cursor",
+        "mcp",
+        "opencode",
+        "runtime",
+      ]);
     });
 
     test("only mcp unpublished → rerun targets mcp alone", () => {
@@ -263,6 +271,7 @@ describe("release dry-run: no-commit master publish model", () => {
         `${ALL_PACKAGES.opencode.name}@${ALL_PACKAGES.opencode.version}`,
         `${ALL_PACKAGES.codex.name}@${ALL_PACKAGES.codex.version}`,
         `${ALL_PACKAGES.cursor.name}@${ALL_PACKAGES.cursor.version}`,
+        `${ALL_PACKAGES.runtime.name}@${ALL_PACKAGES.runtime.version}`,
       ]);
       const ctx = makeContext({
         changesetFiles: NO_CHANGESETS,
@@ -397,13 +406,13 @@ Reason: ${decision.reason}
 
 --- Unit-level partial rerun verification ---
 
-Source commit with core+cli published, codex+cursor+mcp+opencode unpublished:
+Source commit with core+cli published, codex+cursor+mcp+opencode+runtime unpublished:
 Expected action: PUBLISH_ONLY_RERUN
-Unpublished dirs: codex, cursor, mcp, opencode
+Unpublished dirs: codex, cursor, mcp, opencode, runtime
 
 Source commit with only core published:
 Expected action: PREPARE_RELEASE
-Unpublished dirs: cli, mcp, opencode
+Unpublished dirs: cli, codex, cursor, mcp, opencode, runtime
 
 Source commit + changesets + all published:
 Expected action: ALREADY_PUBLISHED_NOOP
@@ -414,10 +423,10 @@ Expected action: NOOP
       );
     });
 
-    test("partial rerun: comma-list fixture with core+cli published → PUBLISH_ONLY_RERUN with codex+cursor+mcp+opencode", () => {
+    test("partial rerun: comma-list fixture with core+cli published → PUBLISH_ONLY_RERUN with codex+cursor+mcp+opencode+runtime", () => {
       // Build comma-separated list from current core and cli package manifests.
       // This simulates a partial rerun where core and cli are already on npm,
-      // so only codex, cursor, mcp, and opencode remain to be published.
+      // so only codex, cursor, mcp, opencode, and runtime remain to be published.
       const { name: coreName, version: coreVersion } = ALL_PACKAGES.core;
       const { name: cliName, version: cliVersion } = ALL_PACKAGES.cli;
       const mockNpm = `${coreName}@${coreVersion},${cliName}@${cliVersion}`;
@@ -445,15 +454,27 @@ Expected action: NOOP
       const toPublishDirs = decision.toPublish
         .map((entry: string) => entry.split("=")[0])
         .sort();
-      expect(toPublishDirs).toEqual(["codex", "cursor", "mcp", "opencode"]);
+      expect(toPublishDirs).toEqual([
+        "codex",
+        "cursor",
+        "mcp",
+        "opencode",
+        "runtime",
+      ]);
 
       // --- PUBLISH_ONLY_RERUN only includes unpublished packages ---
       // The runner omits already-published packages from decision.packages.
-      expect(decision.packages).toHaveLength(4);
+      expect(decision.packages).toHaveLength(5);
       const pkgDirs = decision.packages
         .map((p: { dir: string }) => p.dir)
         .sort();
-      expect(pkgDirs).toEqual(["codex", "cursor", "mcp", "opencode"]);
+      expect(pkgDirs).toEqual([
+        "codex",
+        "cursor",
+        "mcp",
+        "opencode",
+        "runtime",
+      ]);
 
       // --- None of the returned packages are already published ---
       for (const pkg of decision.packages) {
@@ -486,6 +507,15 @@ Summary:
   // -------------------------------------------------------------------------
   describe("package directory constants", () => {
     test("PUBLISHABLE_DIRS contains exactly the expected npm package directories", () => {
+      expect([...PUBLISHABLE_DIRS]).toEqual([
+        "core",
+        "runtime",
+        "cli",
+        "mcp",
+        "opencode",
+        "codex",
+        "cursor",
+      ]);
       expect([...PUBLISHABLE_DIRS].sort()).toEqual([
         "cli",
         "codex",
@@ -493,6 +523,7 @@ Summary:
         "cursor",
         "mcp",
         "opencode",
+        "runtime",
       ]);
     });
   });

@@ -48,3 +48,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fa58568fc4a6
+  - type: covered_by
+    from: SYM-operation-sparql-remote-output
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:38:45.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d1958fcecb1
+  - type: implements
+    from: SYM-operation-sparql-remote-output
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:04:23.333Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0eb5bf4d182a
+  - type: covered_by
+    from: SYM-operation-sparql-remote-output
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:04:23.337Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed4aec9555a5

@@ -27,3 +27,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3f8d4ea726fd
+  - type: covered_by
+    from: SYM-operation-sparql-remote-input
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:38:39.129Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a01789ad376
+  - type: implements
+    from: SYM-operation-sparql-remote-input
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:04:09.491Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dceed3b7790
+  - type: covered_by
+    from: SYM-operation-sparql-remote-input
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:04:09.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-608fdfd335d3

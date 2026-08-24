@@ -368,6 +368,366 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 33
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-18f3e1a437ca5d0992b85e8c
+    test_id: TEST-kibi-change-to-proof-evaluation
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-evaluation
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-evaluation
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 179ebe71578e274182f932a44b388e84629d8c35aab70e11ed71512b5426c8e3
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T07:49:32.672Z'
+    finished_at: '2026-08-23T07:49:32.726Z'
+    artifact_digest: 0a54820e8579ada98b3c747544197c45e82d98f870816f82c06b4beb899358f3
+    contract_hash: d3aa4958e77cc2c2df9a6ff5d1d32d1fd88de59cdd4a0f641e5a48f51b6cd8b0
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-evaluation
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 54
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-e07d357f141244bc11b30848
+    test_id: TEST-kibi-change-to-proof-evaluation
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-evaluation
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-evaluation
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: bd8e6d28630c837d83bb606b786976c761f4bcb8326f1aab37d01845783fbafe
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T08:32:56.921Z'
+    finished_at: '2026-08-23T08:32:56.950Z'
+    artifact_digest: 10728b45ec20d975b12f3d24440b9df2f691e1087d0e069c12f79226caff0694
+    contract_hash: d3aa4958e77cc2c2df9a6ff5d1d32d1fd88de59cdd4a0f641e5a48f51b6cd8b0
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-evaluation
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 29
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-18941b793ddfeaec5fc58812
+    test_id: TEST-kibi-change-to-proof-evaluation
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-evaluation
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-evaluation
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ee22ec51c9bc3153aa0a330d71805a1c8ce310bf3a763dc346ad13e15071ba11
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T12:29:34.973Z'
+    finished_at: '2026-08-23T12:29:35.004Z'
+    artifact_digest: 849b7349d3e1dc07caf25b8f8d5a5ddd4e3ae6a9546a7f255633d2b211f81cbc
+    contract_hash: d3aa4958e77cc2c2df9a6ff5d1d32d1fd88de59cdd4a0f641e5a48f51b6cd8b0
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-evaluation
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 31
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-c1d1bacb82366722f3d6ac36
+    test_id: TEST-kibi-change-to-proof-evaluation
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-evaluation
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-evaluation
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dea1a8d20393c9e2212505a158b80a73843c68d9ea042614fc6c80fa98589b28
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:29:51.567Z'
+    finished_at: '2026-08-23T19:29:51.599Z'
+    artifact_digest: 4afcd40c0277e67d2eef59e986b2cef5feaa6e11004f1f1b88fefcb7cd6d8095
+    contract_hash: d3aa4958e77cc2c2df9a6ff5d1d32d1fd88de59cdd4a0f641e5a48f51b6cd8b0
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-evaluation
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 32
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-9f783f957703257b876b2c32
+    test_id: TEST-kibi-change-to-proof-evaluation
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-evaluation
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-evaluation
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dcfad834bdf07e98adee34ec88d018b898fcdad42b22ba99a91adbfd48ff7459
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:56:04.513Z'
+    finished_at: '2026-08-23T19:56:04.549Z'
+    artifact_digest: 9b265303038dce5ab99c2155750dbca7cc9cc9df1a306788ed20b529871cb71f
+    contract_hash: d3aa4958e77cc2c2df9a6ff5d1d32d1fd88de59cdd4a0f641e5a48f51b6cd8b0
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-evaluation
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 36
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-f0a9ee06d5b51b292ef55ba5
+    test_id: TEST-kibi-change-to-proof-evaluation
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-evaluation
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-evaluation
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 14ca65ca0dd701b64b6b9dc632e9eeda9ed796c6b816a70fbd6b50db303194cc
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:23:33.850Z'
+    finished_at: '2026-08-23T20:23:33.880Z'
+    artifact_digest: 5cf74e1f7979f66b1d6b78f599a9a064f6451f9a00a4fc724533f730780df7da
+    contract_hash: d3aa4958e77cc2c2df9a6ff5d1d32d1fd88de59cdd4a0f641e5a48f51b6cd8b0
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-evaluation
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 30
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-d10689b6443e5576ff5d85cd
+    test_id: TEST-kibi-change-to-proof-evaluation
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-evaluation
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-evaluation
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 3ee001d32bb209a819714ba2e42edd8ab694bfb5be890192445fb7e202afb01b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:49:42.565Z'
+    finished_at: '2026-08-23T20:49:42.594Z'
+    artifact_digest: ca51d660ac25d5535773285be05174df85edfdf44f2992aaf9dc9ba46513803a
+    contract_hash: d3aa4958e77cc2c2df9a6ff5d1d32d1fd88de59cdd4a0f641e5a48f51b6cd8b0
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-evaluation
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 29
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-d6d29fd211b7048c3271974a
+    test_id: TEST-kibi-change-to-proof-evaluation
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-evaluation
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-evaluation
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8da5165ebb43b8ee33c18ba479134826479b9cecae4caf47c854dd2a844555c7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:30:08.867Z'
+    finished_at: '2026-08-23T22:30:08.897Z'
+    artifact_digest: f819ab04cab8e1d9e3fcb8c270289fd6be4544fe89a62717cf28a92600d005fd
+    contract_hash: d3aa4958e77cc2c2df9a6ff5d1d32d1fd88de59cdd4a0f641e5a48f51b6cd8b0
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-evaluation
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 30
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-50cfb238348466a9c4276cf5
+    test_id: TEST-kibi-change-to-proof-evaluation
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-evaluation
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-evaluation
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 9506b01b3f5194b44f47602b13261ce3139304cec73818f4b0553c152eb51048
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:56:27.782Z'
+    finished_at: '2026-08-23T22:56:27.811Z'
+    artifact_digest: 79bc3cf7d5ee8a5ac818cdb3e079a83d3224d621a4d57bf6aca27f09e6bf892d
+    contract_hash: d3aa4958e77cc2c2df9a6ff5d1d32d1fd88de59cdd4a0f641e5a48f51b6cd8b0
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-evaluation
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 29
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-fc3e9a31f17e93b0e2f6e9fa
+    test_id: TEST-kibi-change-to-proof-evaluation
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-evaluation
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-evaluation
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a54a428a72f914fe4ee86257b1e2eb792f98958f88ccf0d6a45eef244ab53055
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:44:21.639Z'
+    finished_at: '2026-08-24T06:44:21.674Z'
+    artifact_digest: 24f96b6b79f6d254d281f055365dbb26b9a5f3764ab1cda38f3ba93126d7b3fc
+    contract_hash: d3aa4958e77cc2c2df9a6ff5d1d32d1fd88de59cdd4a0f641e5a48f51b6cd8b0
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-evaluation
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 35
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-114ec0ffb9a5d185d4988836
+    test_id: TEST-kibi-change-to-proof-evaluation
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-evaluation
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-evaluation
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: c2c5a06c408b705211516e8bd1f6733b82e8addfc4acd70c33d47a850f768285
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:11:38.453Z'
+    finished_at: '2026-08-24T07:11:38.492Z'
+    artifact_digest: d5b177551a9ca6e1b24d5b1fa797c638c7b21e0ca0bf09541dbe64abbbaf454a
+    contract_hash: d3aa4958e77cc2c2df9a6ff5d1d32d1fd88de59cdd4a0f641e5a48f51b6cd8b0
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-evaluation
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 39
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-f9b3a7b3a6680888202b014f
+    test_id: TEST-kibi-change-to-proof-evaluation
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-evaluation
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-evaluation
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:42:07.941Z'
+    finished_at: '2026-08-24T07:42:07.991Z'
+    artifact_digest: fc85be2b5b7afbcc85585635c129decb6a7d6f273d1cd3361d4eece614ccf280
+    contract_hash: d3aa4958e77cc2c2df9a6ff5d1d32d1fd88de59cdd4a0f641e5a48f51b6cd8b0
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-evaluation
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 50
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-3036c14e48cb8bbda198bbed
+    test_id: TEST-kibi-change-to-proof-evaluation
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-evaluation
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-evaluation
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:07:23.309Z'
+    finished_at: '2026-08-24T08:07:23.369Z'
+    artifact_digest: f47d6683b5eaf99da18d5319f850beae7cd3e9f9d863b8174c2545352d86b1f4
+    contract_hash: d3aa4958e77cc2c2df9a6ff5d1d32d1fd88de59cdd4a0f641e5a48f51b6cd8b0
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-evaluation
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 60
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-15c3526fdcea0f2b49d6f669
+    test_id: TEST-kibi-change-to-proof-evaluation
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-evaluation
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-evaluation
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0202c720e01d3b5e58358f98e61e524d501259ef3b14d6f74a44ef1fd03cfad1
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:39:57.215Z'
+    finished_at: '2026-08-24T08:39:57.247Z'
+    artifact_digest: 398d7bb6d33c1af06f287c1183d71a1071e2e43dc85d3c660df695c9576fab9c
+    contract_hash: d3aa4958e77cc2c2df9a6ff5d1d32d1fd88de59cdd4a0f641e5a48f51b6cd8b0
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-evaluation
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 32
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-9fe71b94020c9e068ce9f2ce
+    test_id: TEST-kibi-change-to-proof-evaluation
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-evaluation
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-evaluation
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 5e0dc87316dbd903ca5f2e3da37265c33a1559b0fecdabc93ab978662fad7b3b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T09:10:02.560Z'
+    finished_at: '2026-08-24T09:10:02.607Z'
+    artifact_digest: 317dd91b19e2307ba570033f33183629d046bb8260236ef727357b17f1318258
+    contract_hash: d3aa4958e77cc2c2df9a6ff5d1d32d1fd88de59cdd4a0f641e5a48f51b6cd8b0
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-evaluation
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 47
 ---
 
 The evaluator reads versioned JSONL gold fixtures and emits deterministic JSON with per-case matches, clause dispositions, abstentions, and aggregate scores. It fails closed when an expected result is missing or when a proof claim lacks the required evidence path.

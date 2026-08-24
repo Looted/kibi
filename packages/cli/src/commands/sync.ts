@@ -52,6 +52,11 @@ import {
   extractRelationshipShard,
   validateRelationships,
 } from "../extractors/relationships.js";
+import {
+  type SymbolCompilerLockHandle,
+  acquireSymbolCompilerLock,
+  releaseSymbolCompilerLock,
+} from "../operations/mutation/symbol-compiler-lock.js";
 import { analyzeSemanticAdvisorInput } from "../operations/semantic-advisor/analyze-prose.js";
 import { validateSemanticInventoryBoundary } from "../operations/semantic-advisor/ingestion-boundary.js";
 import { PrologProcess } from "../prolog.js";
@@ -318,6 +323,7 @@ interface SyncCommandRuntime {
     context: SyncCommandRuntimeContext & { kbModified: boolean },
   ) => Promise<void> | void;
   createProlog?: (options: { timeout: number }) => PrologProcess;
+  acquireSymbolCompilerLock?: typeof acquireSymbolCompilerLock;
 }
 
 function compilerCacheHasEntityDelta(cache: SyncCache): boolean {
@@ -356,10 +362,7 @@ function compilerCacheFilesMatch(
   sourceHashOf: (file: string) => string,
 ): boolean {
   for (const file of sourceFiles) {
-    if (
-      cache.hashes[toCacheKey(workspaceRoot, file)] !==
-      sourceHashOf(file)
-    )
+    if (cache.hashes[toCacheKey(workspaceRoot, file)] !== sourceHashOf(file))
       return false;
   }
   const relationshipKeys = new Set(
@@ -407,6 +410,8 @@ export async function syncCommand(
   let currentBranch: string | undefined;
   let stagingPath: string | undefined;
   let publicationLease: EnginePublicationLease | undefined;
+  let compilerLock: SymbolCompilerLockHandle | undefined;
+  let operationFailure: { readonly error: unknown } | undefined;
 
   const getCurrentCommit = (): string | undefined => {
     try {
@@ -428,6 +433,11 @@ export async function syncCommand(
     commit !== undefined ? { ...value, commit } : value;
 
   try {
+    if (!validateOnly) {
+      compilerLock = await (
+        runtime.acquireSymbolCompilerLock ?? acquireSymbolCompilerLock
+      )(workspaceRoot);
+    }
     assertNoUnresolvedGitConflicts(workspaceRoot);
     // Branch resolution
     const branchResult = resolveBranchAttachment(workspaceRoot);
@@ -1454,6 +1464,7 @@ export async function syncCommand(
       throw error;
     }
   } catch (error) {
+    operationFailure = { error };
     if (stagingPath) {
       cleanupStaging(stagingPath);
     }
@@ -1485,6 +1496,7 @@ export async function syncCommand(
     throw error;
   } finally {
     publicationLease?.release();
+    releaseSymbolCompilerLock(compilerLock, operationFailure);
   }
 }
 

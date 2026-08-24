@@ -4,21 +4,21 @@ import os from "node:os";
 import path from "node:path";
 
 import {
+  type BootstrapAction,
+  type BootstrapPlanV1,
+  bootstrapEmptyKbSnapshotId,
+  bootstrapPlanHash,
+} from "../../src/operations/bootstrap/types.js";
+import {
   executeApplyPlan,
   orderBootstrapActions,
 } from "../../src/operations/planning/apply-plan.js";
 import { compilePlanHash } from "../../src/operations/planning/compile-intent.js";
-import {
-  bootstrapEmptyKbSnapshotId,
-  bootstrapPlanHash,
-  type BootstrapAction,
-  type BootstrapPlanV1,
-} from "../../src/operations/bootstrap/types.js";
+import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
 import type {
   OperationContext,
   PrologQueryResult,
 } from "../../src/public/operations/runtime-types.js";
-import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
 
 const basePlan = {
   version: "kibi.compile-plan.v1" as const,
@@ -50,20 +50,22 @@ const basePlan = {
   diagnostics: [],
 };
 
-function bootstrapPlan(actions: readonly BootstrapAction[] = [
-  {
-    id: "bootstrap-upsert-0001",
-    kind: "upsert",
-    dependsOn: [],
-    payload: {
-      type: "adr",
-      id: "ADR-bootstrap",
-      properties: { title: "Bootstrap", status: "accepted" },
-      relationships: [],
-      document: { path: "adrs/ADR-bootstrap.md" },
+function bootstrapPlan(
+  actions: readonly BootstrapAction[] = [
+    {
+      id: "bootstrap-upsert-0001",
+      kind: "upsert",
+      dependsOn: [],
+      payload: {
+        type: "adr",
+        id: "ADR-bootstrap",
+        properties: { title: "Bootstrap", status: "accepted" },
+        relationships: [],
+        document: { path: "adrs/ADR-bootstrap.md" },
+      },
     },
-  },
-]): BootstrapPlanV1 {
+  ],
+): BootstrapPlanV1 {
   const body = {
     version: "kibi.bootstrap-plan.v1" as const,
     status: "ready" as const,
@@ -167,21 +169,24 @@ function filesystemContext(
   let commits = 0;
   mkdirSync(path.join(workspaceRoot, ".kb"), { recursive: true });
   return {
-    ...context(workspaceHash, queryOverride ?? {
-      query: async (goal): Promise<PrologQueryResult> => {
-        if (goal.includes("findall("))
-          return { success: true, bindings: { Results: "[]" } };
-        if (!goal.includes("kb_commit_upsert"))
-          return { success: false, bindings: {} };
-        commits += 1;
-        return failAfter !== undefined && commits > failAfter
-          ? { success: false, bindings: {}, error: "fixture failure" }
-          : { success: true, bindings: { ChangeKind: "created" } };
+    ...context(
+      workspaceHash,
+      queryOverride ?? {
+        query: async (goal): Promise<PrologQueryResult> => {
+          if (goal.includes("findall("))
+            return { success: true, bindings: { Results: "[]" } };
+          if (!goal.includes("kb_commit_upsert"))
+            return { success: false, bindings: {} };
+          commits += 1;
+          return failAfter !== undefined && commits > failAfter
+            ? { success: false, bindings: {}, error: "fixture failure" }
+            : { success: true, bindings: { ChangeKind: "created" } };
+        },
+        queryStatusJson: async () => ({ success: true, bindings: {} }),
+        nextSolution: async () => null,
+        save: async () => ({ success: true, bindings: {} }),
       },
-      queryStatusJson: async () => ({ success: true, bindings: {} }),
-      nextSolution: async () => null,
-      save: async () => ({ success: true, bindings: {} }),
-    }),
+    ),
     workspaceRoot,
     fs: nodeFilesystem,
     sourceFirst,
@@ -214,7 +219,10 @@ describe("kb_apply_plan", () => {
     const unapproved = {
       ...plan,
       status: "needs_context" as const,
-      planHash: bootstrapPlanHash({ ...plan, status: "needs_context" as const }),
+      planHash: bootstrapPlanHash({
+        ...plan,
+        status: "needs_context" as const,
+      }),
     };
     const mutationContext = context("a".repeat(64), {
       query: async (goal): Promise<PrologQueryResult> => {
@@ -257,7 +265,12 @@ describe("kb_apply_plan", () => {
       id: "bootstrap-upsert-endpoint",
       kind: "upsert",
       dependsOn: [],
-      payload: { type: "req", id: "REQ-endpoint", properties: {}, relationships: [] },
+      payload: {
+        type: "req",
+        id: "REQ-endpoint",
+        properties: {},
+        relationships: [],
+      },
     };
     const link: BootstrapAction = {
       id: "bootstrap-upsert-link",
@@ -272,10 +285,9 @@ describe("kb_apply_plan", () => {
         ],
       },
     };
-    expect(orderBootstrapActions([link, endpoint]).map(({ id }) => id)).toEqual([
-      endpoint.id,
-      link.id,
-    ]);
+    expect(orderBootstrapActions([link, endpoint]).map(({ id }) => id)).toEqual(
+      [endpoint.id, link.id],
+    );
   });
 
   test("rejects dependency cycles before starting bootstrap mutation", async () => {
@@ -284,20 +296,27 @@ describe("kb_apply_plan", () => {
         id: "bootstrap-upsert-0001",
         kind: "upsert",
         dependsOn: ["bootstrap-upsert-0002"],
-        payload: { type: "req", id: "REQ-a", properties: {}, relationships: [] },
+        payload: {
+          type: "req",
+          id: "REQ-a",
+          properties: {},
+          relationships: [],
+        },
       },
       {
         id: "bootstrap-upsert-0002",
         kind: "upsert",
         dependsOn: ["bootstrap-upsert-0001"],
-        payload: { type: "req", id: "REQ-b", properties: {}, relationships: [] },
+        payload: {
+          type: "req",
+          id: "REQ-b",
+          properties: {},
+          relationships: [],
+        },
       },
     ]);
     await expect(
-      executeApplyPlan(
-        { plan, approvedPlanHash: plan.planHash },
-        context(),
-      ),
+      executeApplyPlan({ plan, approvedPlanHash: plan.planHash }, context()),
     ).rejects.toThrow("dependency cycle");
   });
 
@@ -312,10 +331,7 @@ describe("kb_apply_plan", () => {
     };
     const plan = { ...body, planHash: bootstrapPlanHash(body) };
     await expect(
-      executeApplyPlan(
-        { plan, approvedPlanHash: plan.planHash },
-        context(),
-      ),
+      executeApplyPlan({ plan, approvedPlanHash: plan.planHash }, context()),
     ).rejects.toThrow("exact branch, KB snapshot");
   });
 
@@ -326,7 +342,9 @@ describe("kb_apply_plan", () => {
         { plan, approvedPlanHash: plan.planHash },
         context("c".repeat(64)),
       ),
-    ).rejects.toThrow(/KB snapshot changed|workspace snapshot changed|branch changed/);
+    ).rejects.toThrow(
+      /KB snapshot changed|workspace snapshot changed|branch changed/,
+    );
   });
 
   test("applies the exact returned plan sequentially", async () => {
@@ -368,7 +386,9 @@ describe("kb_apply_plan", () => {
   });
 
   test("returns repair state after a partial failure and resumes only remaining actions", async () => {
-    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-bootstrap-recovery-"));
+    const root = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-bootstrap-recovery-"),
+    );
     try {
       const plan = bootstrapPlan([
         {
@@ -409,8 +429,15 @@ describe("kb_apply_plan", () => {
       expect(partialResult.outcome).toBe("partially_applied");
       expect(partialResult.status).toBe("committed_with_repairs");
       expect(partialResult.actionResults).toEqual([
-        { actionId: "bootstrap-upsert-0001", outcome: "applied", detail: "Applied sequentially." },
-        expect.objectContaining({ actionId: "bootstrap-upsert-0002", outcome: "failed" }),
+        {
+          actionId: "bootstrap-upsert-0001",
+          outcome: "applied",
+          detail: "Applied sequentially.",
+        },
+        expect.objectContaining({
+          actionId: "bootstrap-upsert-0002",
+          outcome: "failed",
+        }),
       ]);
       const journalId = partialResult.recoveryJournalId;
       expect(journalId).toMatch(/^bootstrap-[a-f0-9]{16}$/);
@@ -440,7 +467,9 @@ describe("kb_apply_plan", () => {
   });
 
   test("propagates a committed-with-repairs upsert and recovery skips its committed action", async () => {
-    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-bootstrap-committed-repair-"));
+    const root = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-bootstrap-committed-repair-"),
+    );
     try {
       const plan = bootstrapPlan([
         {
@@ -452,7 +481,11 @@ describe("kb_apply_plan", () => {
             id: "REQ-committed-repair",
             properties: { title: "Committed repair", status: "open" },
             relationships: [
-              { type: "verified_by", from: "REQ-committed-repair", to: "TEST-repair" },
+              {
+                type: "verified_by",
+                from: "REQ-committed-repair",
+                to: "TEST-repair",
+              },
             ],
           },
         },
@@ -478,7 +511,11 @@ describe("kb_apply_plan", () => {
             return { success: true, bindings: { Type: "test" } };
           if (goal.includes("validate_relationship(verified_by, req, test)"))
             return { success: true, bindings: {} };
-          if (goal.includes("kb_relationship(specified_by, 'REQ-committed-repair'"))
+          if (
+            goal.includes(
+              "kb_relationship(specified_by, 'REQ-committed-repair'",
+            )
+          )
             throw new Error("derived coverage lookup failed");
           return { success: true, bindings: {} };
         },
@@ -519,7 +556,10 @@ describe("kb_apply_plan", () => {
       );
       expect(partialResult.effectFailures).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ actionId: "bootstrap-upsert-0001", errorCode: "POST_COMMIT_EFFECT_FAILED" }),
+          expect.objectContaining({
+            actionId: "bootstrap-upsert-0001",
+            errorCode: "POST_COMMIT_EFFECT_FAILED",
+          }),
         ]),
       );
 
@@ -534,13 +574,28 @@ describe("kb_apply_plan", () => {
       };
       const recovered = await executeApplyPlan(
         { recoveryJournalId: journalId },
-        filesystemContext(root, "a".repeat(64), undefined, recoveryQuery, false),
+        filesystemContext(
+          root,
+          "a".repeat(64),
+          undefined,
+          recoveryQuery,
+          false,
+        ),
       );
-      const recoveredResult = recovered.structuredContent as BootstrapApplyResult;
+      const recoveredResult =
+        recovered.structuredContent as BootstrapApplyResult;
       expect(recoveredResult.outcome).toBe("applied");
       expect(recoveredResult.actionResults).toEqual([
-        { actionId: "bootstrap-upsert-0001", outcome: "applied", detail: "Applied with committed derived effects requiring repair." },
-        { actionId: "bootstrap-upsert-0002", outcome: "applied", detail: "Applied sequentially." },
+        {
+          actionId: "bootstrap-upsert-0001",
+          outcome: "applied",
+          detail: "Applied with committed derived effects requiring repair.",
+        },
+        {
+          actionId: "bootstrap-upsert-0002",
+          outcome: "applied",
+          detail: "Applied sequentially.",
+        },
       ]);
     } finally {
       rmSync(root, { recursive: true, force: true });
@@ -548,7 +603,9 @@ describe("kb_apply_plan", () => {
   });
 
   test("refuses changed recovery checkpoints and unsafe recovery IDs", async () => {
-    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-bootstrap-recovery-"));
+    const root = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-bootstrap-recovery-"),
+    );
     try {
       const plan = bootstrapPlan([
         {
@@ -580,9 +637,11 @@ describe("kb_apply_plan", () => {
         { plan, approvedPlanHash: plan.planHash },
         filesystemContext(root, "a".repeat(64), 1),
       );
-      const journalId = (partial.structuredContent as {
-        recoveryJournalId: string | null;
-      }).recoveryJournalId as string;
+      const journalId = (
+        partial.structuredContent as {
+          recoveryJournalId: string | null;
+        }
+      ).recoveryJournalId as string;
       await expect(
         executeApplyPlan(
           { recoveryJournalId: journalId },

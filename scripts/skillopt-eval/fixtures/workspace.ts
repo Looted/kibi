@@ -112,12 +112,18 @@ function copyCanonicalSkills(input: WorkspaceInput): void {
 }
 
 // implements REQ-skillopt-logical-evidence-fidelity
+export function fixtureSymbolId(taskId: string): string {
+  const suffix = sha256(taskId).slice(0, 12).toUpperCase();
+  return `SYM-FIXTURE-${suffix}`;
+}
+
+// implements REQ-skillopt-logical-evidence-fidelity
 function fixtureEntityIds(taskId: string) {
   const suffix = sha256(taskId).slice(0, 12).toUpperCase();
   return {
     requirement: `REQ-FIXTURE-${suffix}`,
     test: `TEST-FIXTURE-${suffix}`,
-    symbol: `SYM-FIXTURE-${suffix}`,
+    symbol: fixtureSymbolId(taskId),
   } as const;
 }
 
@@ -163,7 +169,6 @@ function writePublicPredicateClaim(input: WorkspaceInput): void {
   });
 }
 
-
 // implements REQ-skillopt-codex-optimization
 function writeCoordinateRepairObservation(input: WorkspaceInput): void {
   if (
@@ -172,12 +177,11 @@ function writeCoordinateRepairObservation(input: WorkspaceInput): void {
   ) {
     return;
   }
-  const suffix = sha256(input.task.id).slice(0, 12).toUpperCase();
   // Public observations of the incident only. The expected migration action,
   // plan hash, action ID, and any scoring expectation stay evaluator-private.
   writeJson(input.root, "symbol-coordinate-repair.json", {
     symbol: {
-      id: `SYM-FIXTURE-${suffix}`,
+      id: fixtureSymbolId(input.task.id),
       title: input.task.family,
       sourceFile: "src/fixture.ts",
     },

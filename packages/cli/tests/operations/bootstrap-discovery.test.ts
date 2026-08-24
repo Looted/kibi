@@ -3,10 +3,13 @@ import fs from "node:fs";
 import path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
 import { classifyActivation } from "../../src/operations/bootstrap/activation.js";
-import { discoverBootstrap } from "../../src/operations/bootstrap/discovery.js";
 import { scanEvidence } from "../../src/operations/bootstrap/discovery-evidence.js";
+import { discoverBootstrap } from "../../src/operations/bootstrap/discovery.js";
 import type { ActivationPolicy } from "../../src/operations/bootstrap/types.js";
-import { nodeFilesystem, nodeGit } from "../../src/public/operations/node-ports.js";
+import {
+  nodeFilesystem,
+  nodeGit,
+} from "../../src/public/operations/node-ports.js";
 import type { OperationContext } from "../../src/public/operations/runtime-types.js";
 import {
   createColdStartRepo,
@@ -25,9 +28,14 @@ function runtime(root: string, prolog?: PrologProcess): OperationContext {
     workspaceRoot: root,
     signal: new AbortController().signal,
     clock: () => new Date("2026-08-20T00:00:00Z"),
-    fs: { ...nodeFilesystem, readFile: async (filePath) => fs.readFileSync(filePath, "utf8") },
+    fs: {
+      ...nodeFilesystem,
+      readFile: async (filePath) => fs.readFileSync(filePath, "utf8"),
+    },
     git: nodeGit,
-    ...(prolog ? { prolog: prolog as unknown as OperationContext["prolog"] } : {}),
+    ...(prolog
+      ? { prolog: prolog as unknown as OperationContext["prolog"] }
+      : {}),
   };
 }
 
@@ -49,14 +57,19 @@ async function discoverProviderEvidence(
 ) {
   const context = runtime(root);
   const result = await discoverBootstrap(context);
-  const providerResults = [...new Set(result.evidence.map((item) => item.provider))].map((provider) => ({
+  const providerResults = [
+    ...new Set(result.evidence.map((item) => item.provider)),
+  ].map((provider) => ({
     provider,
     evidence: result.evidence.filter((item) => item.provider === provider),
   }));
   return { ...result, providerResults };
 }
 
-async function discoverSources(root: string, activation: Awaited<ReturnType<typeof resolveActivationPolicy>>) {
+async function discoverSources(
+  root: string,
+  activation: Awaited<ReturnType<typeof resolveActivationPolicy>>,
+) {
   const context = runtime(root);
   const scan = await scanEvidence(context);
   return {
@@ -73,15 +86,43 @@ function collectMarkdownFiles(
   excluded: readonly string[],
 ): string[] {
   if (!fs.existsSync(target) || !fs.statSync(target).isDirectory()) return [];
-  return fs.readdirSync(target, { withFileTypes: true }).flatMap((entry) => {
-    const relative = path.relative(root, path.join(target, entry.name)).replaceAll("\\", "/");
-    if (entry.isDirectory()) {
-      const denied = [".git", ".kb", "node_modules", "vendor", "vendors", "third_party", "third-party", "dist", "build", "coverage", "target", "venv", ".venv"];
-      if ([...excluded, ...denied].some((item) => relative.split("/").includes(item))) return [];
-      return collectMarkdownFiles(path.join(target, entry.name), root, excluded);
-    }
-    return entry.name.endsWith(".md") ? [relative] : [];
-  }).sort();
+  return fs
+    .readdirSync(target, { withFileTypes: true })
+    .flatMap((entry) => {
+      const relative = path
+        .relative(root, path.join(target, entry.name))
+        .replaceAll("\\", "/");
+      if (entry.isDirectory()) {
+        const denied = [
+          ".git",
+          ".kb",
+          "node_modules",
+          "vendor",
+          "vendors",
+          "third_party",
+          "third-party",
+          "dist",
+          "build",
+          "coverage",
+          "target",
+          "venv",
+          ".venv",
+        ];
+        if (
+          [...excluded, ...denied].some((item) =>
+            relative.split("/").includes(item),
+          )
+        )
+          return [];
+        return collectMarkdownFiles(
+          path.join(target, entry.name),
+          root,
+          excluded,
+        );
+      }
+      return entry.name.endsWith(".md") ? [relative] : [];
+    })
+    .sort();
 }
 
 describe("bootstrap discovery", () => {

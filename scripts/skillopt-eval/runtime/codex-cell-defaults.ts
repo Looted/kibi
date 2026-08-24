@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { join } from "node:path";
+import { fixtureSymbolId } from "../fixtures/workspace";
 import type {
   EvidenceClaim,
   WorkflowCloseout,
@@ -463,12 +464,8 @@ function safeMutationComplete(
   taskId: string,
 ): boolean {
   if (!taskId.includes("-safe-mutation-direction-")) return true;
-  const suffix = createHash("sha256")
-    .update(taskId)
-    .digest("hex")
-    .slice(0, 12)
-    .toUpperCase();
-  const symbolId = `SYM-FIXTURE-${suffix}`;
+  const symbolId = fixtureSymbolId(taskId);
+  const suffix = symbolId.slice("SYM-FIXTURE-".length);
   const requirementId = `REQ-FIXTURE-${suffix}`;
   const testId = `TEST-FIXTURE-${suffix}`;
   const query = receipt.requests.find(({ tool }) => tool === "kb_query");
@@ -696,7 +693,9 @@ function sealedBroker(brokerTrace: string) {
       return {
         tool: receipt.toolName ?? "",
         args:
-          isRecord(params) && isRecord(params.arguments) ? params.arguments : {},
+          isRecord(params) && isRecord(params.arguments)
+            ? params.arguments
+            : {},
         resultOk: !isRecord(result) || result.isError !== true,
         ...(isRecord(result) ? { result } : {}),
       };

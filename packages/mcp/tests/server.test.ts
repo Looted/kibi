@@ -1162,13 +1162,10 @@ describe("MCP Server", () => {
       );
 
       // Initialize kibi via CLI
-      execSync(
-        `node ${kibiBin} init`,
-        {
-          cwd: repoDir,
-          env: isolatedMcpSandboxEnv(),
-        },
-      );
+      execSync(`node ${kibiBin} init`, {
+        cwd: repoDir,
+        env: isolatedMcpSandboxEnv(),
+      });
 
       // Call kb_query with diagnostic telemetry
       await sendRequest(

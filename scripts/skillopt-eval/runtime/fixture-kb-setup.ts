@@ -14,6 +14,43 @@ export class FixtureSetupError extends Error {
   override readonly name = "FixtureSetupError";
 }
 
+const COORDINATE_KEYS = [
+  "sourceLine",
+  "sourceColumn",
+  "sourceEndLine",
+  "sourceEndColumn",
+] as const;
+
+// implements REQ-generated-coordinate-persistence
+export function assertSymbolCoordinatesPresent(
+  entity: Record<string, unknown>,
+  symbolId: string,
+): void {
+  if (
+    entity.id !== symbolId ||
+    COORDINATE_KEYS.some((key) => typeof entity[key] !== "number")
+  ) {
+    throw new FixtureSetupError(
+      `fixture symbol ${symbolId} must have generated coordinates before strip`,
+    );
+  }
+}
+
+// implements REQ-generated-coordinate-persistence
+export function assertSymbolCoordinatesAbsent(
+  entity: Record<string, unknown>,
+  symbolId: string,
+): void {
+  if (
+    entity.id !== symbolId ||
+    COORDINATE_KEYS.some((key) => Object.hasOwn(entity, key))
+  ) {
+    throw new FixtureSetupError(
+      `fixture symbol ${symbolId} must not have generated coordinates after strip`,
+    );
+  }
+}
+
 interface CliResult {
   readonly ok: boolean;
   readonly stdout: string;
@@ -57,6 +94,7 @@ async function runStagedCli(
 export async function setupGeneratedCoordinateDivergence(
   workspaceTarget: string,
   cliRoot: string,
+  symbolId: string,
 ): Promise<void> {
   const expectOk = async (
     result: CliResult,
@@ -78,7 +116,9 @@ export async function setupGeneratedCoordinateDivergence(
     ["user.email", "skillopt@eval"],
     ["user.name", "SkillOpt Evaluator"],
   ] as const) {
-    await execFileAsync("git", ["config", key, value], { cwd: workspaceTarget });
+    await execFileAsync("git", ["config", key, value], {
+      cwd: workspaceTarget,
+    });
   }
   writeFileSync(
     join(workspaceTarget, ".git", "info", "exclude"),
@@ -98,7 +138,10 @@ export async function setupGeneratedCoordinateDivergence(
     { cwd: workspaceTarget },
   );
 
-  await expectOk(await runStagedCli(cliRoot, workspaceTarget, ["init"]), "kibi init");
+  await expectOk(
+    await runStagedCli(cliRoot, workspaceTarget, ["init"]),
+    "kibi init",
+  );
 
   writeFileSync(
     join(workspaceTarget, "src", "fixture.ts"),
@@ -106,16 +149,22 @@ export async function setupGeneratedCoordinateDivergence(
   );
   writeFileSync(
     join(workspaceTarget, ".kb", "symbols.yaml"),
-    "symbols:\n" +
-      "  - id: SYM-SETUP-COORD\n" +
-      "    title: fixtureFamily\n" +
-      "    sourceFile: src/fixture.ts\n" +
-      "    status: active\n",
+    `symbols:
+  - id: ${symbolId}
+    title: fixtureFamily
+    sourceFile: src/fixture.ts
+    status: active
+`,
   );
 
   const upsert = async (payload: unknown, label: string): Promise<void> => {
     await expectOk(
-      await runStagedCli(cliRoot, workspaceTarget, ["upsert", "--input", "-"], JSON.stringify(payload)),
+      await runStagedCli(
+        cliRoot,
+        workspaceTarget,
+        ["upsert", "--input", "-"],
+        JSON.stringify(payload),
+      ),
       label,
     );
   };
@@ -131,28 +180,39 @@ export async function setupGeneratedCoordinateDivergence(
   await upsert(
     {
       type: "symbol",
-      id: "SYM-SETUP-COORD",
+      id: symbolId,
       properties: {
         title: "fixtureFamily",
         status: "active",
         sourceFile: "src/fixture.ts",
       },
       relationships: [
-        { type: "implements", from: "SYM-SETUP-COORD", to: "REQ-SETUP-COORD" },
+        { type: "implements", from: symbolId, to: "REQ-SETUP-COORD" },
       ],
     },
     "symbol upsert",
   );
 
   await expectOk(
-    await runStagedCli(cliRoot, workspaceTarget, ["sync", "--refresh-symbol-coordinates"]),
+    await runStagedCli(cliRoot, workspaceTarget, [
+      "sync",
+      "--refresh-symbol-coordinates",
+    ]),
     "refresh sync",
   );
-  await expectOk(await runStagedCli(cliRoot, workspaceTarget, ["sync"]), "import sync");
+  await expectOk(
+    await runStagedCli(cliRoot, workspaceTarget, ["sync"]),
+    "import sync",
+  );
 
   // Strip RDF coordinates with the production commit path.
   const queryOutput = await expectOk(
-    await runStagedCli(cliRoot, workspaceTarget, ["query", "symbol", "--format", "json"]),
+    await runStagedCli(cliRoot, workspaceTarget, [
+      "query",
+      "symbol",
+      "--format",
+      "json",
+    ]),
     "readback",
   );
   const parsed: unknown = JSON.parse(queryOutput);
@@ -163,13 +223,38 @@ export async function setupGeneratedCoordinateDivergence(
     (candidate): candidate is Record<string, unknown> =>
       typeof candidate === "object" &&
       candidate !== null &&
-      (candidate as Record<string, unknown>).id === "SYM-SETUP-COORD",
+      (candidate as Record<string, unknown>).id === symbolId,
   );
   if (entity === undefined) {
     throw new FixtureSetupError("setup symbol missing after import sync");
   }
+  assertSymbolCoordinatesPresent(entity, symbolId);
 
   await stripSymbolCoordinates(workspaceTarget, entity);
+
+  const strippedOutput = await expectOk(
+    await runStagedCli(cliRoot, workspaceTarget, [
+      "query",
+      "symbol",
+      "--format",
+      "json",
+    ]),
+    "stripped readback",
+  );
+  const strippedParsed: unknown = JSON.parse(strippedOutput);
+  const strippedEntities = Array.isArray(strippedParsed)
+    ? strippedParsed
+    : ((strippedParsed as { entities?: unknown[] }).entities ?? []);
+  const strippedEntity = strippedEntities.find(
+    (candidate): candidate is Record<string, unknown> =>
+      typeof candidate === "object" &&
+      candidate !== null &&
+      (candidate as Record<string, unknown>).id === symbolId,
+  );
+  if (strippedEntity === undefined) {
+    throw new FixtureSetupError("setup symbol missing after coordinate strip");
+  }
+  assertSymbolCoordinatesAbsent(strippedEntity, symbolId);
 
   // Commit tracked setup content so the worktree is clean for the model.
   await execFileAsync("git", ["add", "-A"], { cwd: workspaceTarget });
@@ -187,12 +272,7 @@ export async function stripSymbolCoordinates(
   fullEntity: Record<string, unknown>,
 ): Promise<void> {
   const stripped: Record<string, unknown> = { ...fullEntity };
-  for (const key of [
-    "sourceLine",
-    "sourceColumn",
-    "sourceEndLine",
-    "sourceEndColumn",
-  ]) {
+  for (const key of COORDINATE_KEYS) {
     delete stripped[key];
   }
   const daemon = new EngineClient({
@@ -210,19 +290,14 @@ export async function stripSymbolCoordinates(
   const prolog = new PrologProcess({ timeout: 120_000 });
   try {
     await prolog.start();
-    const storePath = join(
-      workspaceTarget,
-      ".kb",
-      "branches",
-    );
     // Resolve the exact branch store path through the locator contract.
     const { branchStorePath } = await import(
       "../../../packages/cli/src/utils/branch-store-locator.js"
     );
+    const activeStorePath = branchStorePath(workspaceTarget, FIXTURE_BRANCH);
     const attached = await prolog.query(
-      `kb_attach('${escapeAtom(branchStorePath(storePath.replace(/\/\.kb$/, ""), FIXTURE_BRANCH))}')`,
+      `kb_attach('${escapeAtom(activeStorePath)}')`,
     );
-    void storePath;
     if (!attached.success) {
       throw new FixtureSetupError(attached.error ?? "attach failed");
     }

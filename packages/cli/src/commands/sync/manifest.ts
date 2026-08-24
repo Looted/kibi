@@ -27,7 +27,10 @@ import * as path from "node:path";
 import { dump as dumpYAML, load as parseYAML } from "js-yaml";
 import {
   type SymbolCoordinatesRecord,
+  coarseCoordinateSpan,
   coordinateIdentityHash,
+  coordinateSourceHash,
+  parseCoordinateArtifact,
   writeCoordinateArtifact,
 } from "../../extractors/symbol-coordinates.js";
 import {
@@ -157,46 +160,6 @@ function readSourceText(
   }
 }
 
-function titleMatchCoordinates(
-  sourceFile: string,
-  title: string,
-  content: string,
-): SymbolCoordinatesRecord | null {
-  if (title.length === 0) return null;
-  const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const pattern = new RegExp(`\\b${escaped}\\b`);
-  const lines = content.split(/\r?\n/);
-  for (let index = 0; index < lines.length; index++) {
-    const line = lines[index];
-    if (line === undefined) continue;
-    const match = pattern.exec(line);
-    if (!match || match.index < 0) continue;
-    return {
-      sourceFile,
-      sourceLine: index + 1,
-      sourceColumn: match.index,
-      sourceEndLine: index + 1,
-      sourceEndColumn: match.index + title.length,
-    };
-  }
-  return null;
-}
-
-function wholeFileCoordinates(
-  sourceFile: string,
-  content: string,
-): SymbolCoordinatesRecord {
-  const lines = content.split(/\r?\n/);
-  const lastLine = lines[lines.length - 1] ?? "";
-  return {
-    sourceFile,
-    sourceLine: 1,
-    sourceColumn: 0,
-    sourceEndLine: Math.max(1, lines.length),
-    sourceEndColumn: lastLine.length,
-  };
-}
-
 function fallbackCoarseCoordinates(
   entry: ManifestSymbolEntry,
   workspaceRoot: string,
@@ -209,10 +172,7 @@ function fallbackCoarseCoordinates(
   if (sourceFile === undefined) return null;
   const content = readSourceText(sourceFile, workspaceRoot, deps);
   if (content === null) return null;
-  return (
-    titleMatchCoordinates(sourceFile, title, content) ??
-    wholeFileCoordinates(sourceFile, content)
-  );
+  return coarseCoordinateSpan(sourceFile, title, content);
 }
 
 /** Atomically replace `targetPath` with `content` via temp file + rename. */
@@ -290,49 +250,54 @@ export async function refreshManifestCoordinates(
       : ({} as ManifestSymbolEntry),
   );
 
+  let coordinatesPath: string | null = null;
+  if (shouldRefreshCoordinates) {
+    coordinatesPath =
+      resolved.resolveSymbolsManifestPaths(workspaceRoot).coordinatesPath;
+    if (resolved.existsSync(coordinatesPath)) {
+      const existing = parseCoordinateArtifact(
+        String(resolved.readFileSync(coordinatesPath, "utf8")),
+      );
+      if (existing.status === "invalid") {
+        throw new Error(
+          `Failed to parse coordinate artifact ${coordinatesPath}: ${existing.reason}`,
+        );
+      }
+    }
+  }
+
   const enriched = await resolved.enrichSymbolCoordinates(
     before,
     workspaceRoot,
   );
-
-  // Build coordinates map keyed by symbol id. Every published record binds to
-  // the extraction identity that produced it so stale spans can never overlay
-  // a changed symbol during later compilation.
-  const coordinatesMap: Record<string, SymbolCoordinatesRecord> = {};
-  for (const entry of enriched) {
-    const id = typeof entry?.id === "string" ? entry.id : undefined;
-    if (!id) continue;
-    const extracted = extractedCoordinates(entry);
-    if (extracted !== null) {
-      coordinatesMap[id] = extracted;
-      continue;
-    }
-    const fallback = fallbackCoarseCoordinates(entry, workspaceRoot, resolved);
-    if (fallback === null) continue;
-    coordinatesMap[id] = fallback;
-  }
 
   // Publish the generated coordinate artifact when explicitly requested.
   // Parse and I/O failures are fatal so sync never advances cache state on a
   // partially published compiler dependency. Symbols without extractable
   // coordinates stay absent from the artifact; coverage keeps their gap visible.
   let refreshedArtifactBytes: string | null = null;
-  let coordinatesPath: string | null = null;
   if (shouldRefreshCoordinates) {
-    coordinatesPath =
-      resolved.resolveSymbolsManifestPaths(workspaceRoot).coordinatesPath;
     const boundEntries: Record<
       string,
-      SymbolCoordinatesRecord & { identityHash?: string }
+      SymbolCoordinatesRecord & { identityHash: string; sourceHash: string }
     > = {};
     for (const entry of enriched) {
       const id = typeof entry?.id === "string" ? entry.id : undefined;
       if (!id) continue;
-      const span = coordinatesMap[id];
-      if (span === undefined) continue;
+      const span =
+        extractedCoordinates(entry) ??
+        fallbackCoarseCoordinates(entry, workspaceRoot, resolved);
+      if (span === null) continue;
+      const sourceText = readSourceText(
+        span.sourceFile,
+        workspaceRoot,
+        resolved,
+      );
+      if (sourceText === null) continue;
       boundEntries[id] = {
         ...span,
         identityHash: coordinateIdentityHash(manifestEntryIdentity(entry)),
+        sourceHash: coordinateSourceHash(sourceText),
       };
     }
     refreshedArtifactBytes = resolved.writeCoordinateArtifact(boundEntries);
@@ -396,11 +361,33 @@ export async function refreshManifestCoordinates(
   });
   const nextContent = `${SYMBOLS_MANIFEST_COMMENT_BLOCK}${dumped}`;
 
-  if (rawContent !== nextContent) {
-    publishAtomically(manifestPath, nextContent, resolved);
-  }
-  if (refreshedArtifactBytes !== null && coordinatesPath !== null) {
-    publishAtomically(coordinatesPath, refreshedArtifactBytes, resolved);
+  let manifestPublished = false;
+  try {
+    if (rawContent !== nextContent) {
+      publishAtomically(manifestPath, nextContent, resolved);
+      manifestPublished = true;
+    }
+    if (refreshedArtifactBytes !== null && coordinatesPath !== null) {
+      publishAtomically(coordinatesPath, refreshedArtifactBytes, resolved);
+    }
+  } catch (error) {
+    if (manifestPublished) {
+      try {
+        const current = resolved.readFileSync(manifestPath, "utf8");
+        if (current !== nextContent) {
+          throw new Error(
+            `symbol manifest changed after publication; refusing rollback: ${manifestPath}`,
+          );
+        }
+        publishAtomically(manifestPath, rawContent, resolved);
+      } catch (rollbackError) {
+        throw new AggregateError(
+          [error, rollbackError],
+          `Coordinate artifact publication failed and manifest rollback failed: ${manifestPath}`,
+        );
+      }
+    }
+    throw error;
   }
 
   console.log(

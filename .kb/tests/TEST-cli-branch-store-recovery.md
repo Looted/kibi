@@ -339,5 +339,365 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 11279
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-52cae2548281e0b6718ef68d
+    test_id: TEST-cli-branch-store-recovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cli-branch-store-recovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cli-branch-store-recovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 179ebe71578e274182f932a44b388e84629d8c35aab70e11ed71512b5426c8e3
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T07:30:30.406Z'
+    finished_at: '2026-08-23T07:30:41.523Z'
+    artifact_digest: 31b7e86ad5af2721c7e171bb1642561eb534584ea3238b591596ebe2b1bfb5f8
+    contract_hash: 9a973eb1511c1857a8910cd47b851b302469d5aaa942f8b8594d982cffa30317
+    case_results:
+      - symbol_id: SYM-test-packed-exact-branch-recovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11117
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-9b2d153e2ed56e3b48de2c72
+    test_id: TEST-cli-branch-store-recovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cli-branch-store-recovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cli-branch-store-recovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: bd8e6d28630c837d83bb606b786976c761f4bcb8326f1aab37d01845783fbafe
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T08:14:06.044Z'
+    finished_at: '2026-08-23T08:14:17.137Z'
+    artifact_digest: 0b7b12065e348ef8a7ca04121b6dc74d7d9d423378bfc49c15248ae14ac92e4a
+    contract_hash: 9a973eb1511c1857a8910cd47b851b302469d5aaa942f8b8594d982cffa30317
+    case_results:
+      - symbol_id: SYM-test-packed-exact-branch-recovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11093
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-21438b95b3e0d0e62dd6e72c
+    test_id: TEST-cli-branch-store-recovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cli-branch-store-recovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cli-branch-store-recovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ee22ec51c9bc3153aa0a330d71805a1c8ce310bf3a763dc346ad13e15071ba11
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T12:11:19.338Z'
+    finished_at: '2026-08-23T12:11:30.134Z'
+    artifact_digest: c409a214d5979e1b0dc9bb5ffd13a27bcb968cd902e3c2c044012ee96365afc9
+    contract_hash: 9a973eb1511c1857a8910cd47b851b302469d5aaa942f8b8594d982cffa30317
+    case_results:
+      - symbol_id: SYM-test-packed-exact-branch-recovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 10796
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-12ea81fdf73a7d139f339fdc
+    test_id: TEST-cli-branch-store-recovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cli-branch-store-recovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cli-branch-store-recovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dea1a8d20393c9e2212505a158b80a73843c68d9ea042614fc6c80fa98589b28
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:11:04.008Z'
+    finished_at: '2026-08-23T19:11:15.194Z'
+    artifact_digest: 3b869bb4989302967e7e7e8d69c0d5c8c0c44af5e016b6f6fdced4d2e9aa8efb
+    contract_hash: 9a973eb1511c1857a8910cd47b851b302469d5aaa942f8b8594d982cffa30317
+    case_results:
+      - symbol_id: SYM-test-packed-exact-branch-recovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11186
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-4902a88c2e036c779ad9e4d2
+    test_id: TEST-cli-branch-store-recovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cli-branch-store-recovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cli-branch-store-recovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dcfad834bdf07e98adee34ec88d018b898fcdad42b22ba99a91adbfd48ff7459
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:37:12.530Z'
+    finished_at: '2026-08-23T19:37:23.600Z'
+    artifact_digest: 981b9ab5263554599422a2c037e759f07d32f43be34a7de60af87ccd0fa05a7b
+    contract_hash: 9a973eb1511c1857a8910cd47b851b302469d5aaa942f8b8594d982cffa30317
+    case_results:
+      - symbol_id: SYM-test-packed-exact-branch-recovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11070
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-ed160993be175411cec52dcd
+    test_id: TEST-cli-branch-store-recovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cli-branch-store-recovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cli-branch-store-recovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 14ca65ca0dd701b64b6b9dc632e9eeda9ed796c6b816a70fbd6b50db303194cc
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:05:08.917Z'
+    finished_at: '2026-08-23T20:05:19.782Z'
+    artifact_digest: 83b80818934b865643b4cdcb3bca4efd0ac4ba038721fc4f9cb2bb75544a4cda
+    contract_hash: 9a973eb1511c1857a8910cd47b851b302469d5aaa942f8b8594d982cffa30317
+    case_results:
+      - symbol_id: SYM-test-packed-exact-branch-recovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 10865
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-c9c9d60db449daabe31f512a
+    test_id: TEST-cli-branch-store-recovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cli-branch-store-recovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cli-branch-store-recovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 3ee001d32bb209a819714ba2e42edd8ab694bfb5be890192445fb7e202afb01b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:31:28.669Z'
+    finished_at: '2026-08-23T20:31:39.698Z'
+    artifact_digest: d838c8786ff4d9c4d7b717d3ece8f8a4f53ed328dd0e75997e6b6116798ed901
+    contract_hash: 9a973eb1511c1857a8910cd47b851b302469d5aaa942f8b8594d982cffa30317
+    case_results:
+      - symbol_id: SYM-test-packed-exact-branch-recovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11029
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-2b3e09e0eef02423cc584cd6
+    test_id: TEST-cli-branch-store-recovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cli-branch-store-recovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cli-branch-store-recovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8da5165ebb43b8ee33c18ba479134826479b9cecae4caf47c854dd2a844555c7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:12:24.103Z'
+    finished_at: '2026-08-23T22:12:34.528Z'
+    artifact_digest: a601b223a2e5fb948cc51d3449549099f22bb5723f91fcfbbb726ea613189382
+    contract_hash: 9a973eb1511c1857a8910cd47b851b302469d5aaa942f8b8594d982cffa30317
+    case_results:
+      - symbol_id: SYM-test-packed-exact-branch-recovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 10425
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-c7deddf2b0227fab8dc00ace
+    test_id: TEST-cli-branch-store-recovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cli-branch-store-recovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cli-branch-store-recovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 9506b01b3f5194b44f47602b13261ce3139304cec73818f4b0553c152eb51048
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:38:33.401Z'
+    finished_at: '2026-08-23T22:38:43.992Z'
+    artifact_digest: 68b39b1c00b73abc671631f8ae3475740dcc7d75215a10447f7fa8a2a5cc6562
+    contract_hash: 9a973eb1511c1857a8910cd47b851b302469d5aaa942f8b8594d982cffa30317
+    case_results:
+      - symbol_id: SYM-test-packed-exact-branch-recovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 10591
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-e8b92fe33a51fbd2795fdd50
+    test_id: TEST-cli-branch-store-recovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cli-branch-store-recovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cli-branch-store-recovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a54a428a72f914fe4ee86257b1e2eb792f98958f88ccf0d6a45eef244ab53055
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:23:48.947Z'
+    finished_at: '2026-08-24T06:24:00.483Z'
+    artifact_digest: c96a303c12657770d03171ac16632528a447ab360e9e1438282802a044fc9ce9
+    contract_hash: 9a973eb1511c1857a8910cd47b851b302469d5aaa942f8b8594d982cffa30317
+    case_results:
+      - symbol_id: SYM-test-packed-exact-branch-recovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11536
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-9e6279b047da5492b9af5b1b
+    test_id: TEST-cli-branch-store-recovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cli-branch-store-recovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cli-branch-store-recovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: c2c5a06c408b705211516e8bd1f6733b82e8addfc4acd70c33d47a850f768285
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:51:54.440Z'
+    finished_at: '2026-08-24T06:52:05.821Z'
+    artifact_digest: e59f2e3afc926dc18847c3b0e56c5d8d4d9b4cba6da38b8f0fbba9b399b72af3
+    contract_hash: 9a973eb1511c1857a8910cd47b851b302469d5aaa942f8b8594d982cffa30317
+    case_results:
+      - symbol_id: SYM-test-packed-exact-branch-recovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11381
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-8bebab0207406e111f0c3976
+    test_id: TEST-cli-branch-store-recovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cli-branch-store-recovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cli-branch-store-recovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:22:02.291Z'
+    finished_at: '2026-08-24T07:22:13.162Z'
+    artifact_digest: 796ad5facd0fb0aa11296f2fdabb82d07680279c14d54bf9a02d4aa2f6350056
+    contract_hash: 9a973eb1511c1857a8910cd47b851b302469d5aaa942f8b8594d982cffa30317
+    case_results:
+      - symbol_id: SYM-test-packed-exact-branch-recovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 10871
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-8bef998ad724f577d4d70b7b
+    test_id: TEST-cli-branch-store-recovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cli-branch-store-recovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cli-branch-store-recovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:46:33.468Z'
+    finished_at: '2026-08-24T07:46:48.314Z'
+    artifact_digest: ea2d0e36b9d466f65ea33e51efce183550c5e577f1f819703a7242872e0fb72c
+    contract_hash: 9a973eb1511c1857a8910cd47b851b302469d5aaa942f8b8594d982cffa30317
+    case_results:
+      - symbol_id: SYM-test-packed-exact-branch-recovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 14846
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-c1d5d230d03f5e899fbb3ab4
+    test_id: TEST-cli-branch-store-recovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cli-branch-store-recovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cli-branch-store-recovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0202c720e01d3b5e58358f98e61e524d501259ef3b14d6f74a44ef1fd03cfad1
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:18:56.013Z'
+    finished_at: '2026-08-24T08:19:07.229Z'
+    artifact_digest: 3b70c105b5feca15acbd3b3e72caa2a625a4ef0255b119b5642c10766c249ae3
+    contract_hash: 9a973eb1511c1857a8910cd47b851b302469d5aaa942f8b8594d982cffa30317
+    case_results:
+      - symbol_id: SYM-test-packed-exact-branch-recovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11216
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-2d7a1bb4a77d390c22d829cb
+    test_id: TEST-cli-branch-store-recovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cli-branch-store-recovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cli-branch-store-recovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 5e0dc87316dbd903ca5f2e3da37265c33a1559b0fecdabc93ab978662fad7b3b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:48:23.515Z'
+    finished_at: '2026-08-24T08:48:35.304Z'
+    artifact_digest: e3bf7cb56811a8214065253e3607bb84511a72d0bc90357cbd4c128e9c0e7f27
+    contract_hash: 9a973eb1511c1857a8910cd47b851b302469d5aaa942f8b8594d982cffa30317
+    case_results:
+      - symbol_id: SYM-test-packed-exact-branch-recovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 11789
 ---
 The CLI branch and packed consumer tests prove that same-identity literal-to-hashed migration remains available, every cross-identity pair (including main to master) is refused, and explicitly applied recovery preserves a backup and returns a fresh exact branch store.

@@ -19,9 +19,9 @@
 import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveBranchAttachment } from "../utils/branch-resolver.js";
-import { nodeFilesystem } from "../public/operations/node-ports.js";
 import { classifyActivation } from "../operations/bootstrap/activation.js";
+import { nodeFilesystem } from "../public/operations/node-ports.js";
+import { resolveBranchAttachment } from "../utils/branch-resolver.js";
 import { scaffoldGitHubIntegration } from "./github-init.js";
 import {
   copySchemaFiles,
@@ -58,27 +58,33 @@ async function initNextAction(): Promise<{
     ],
     { cwd: process.cwd() },
   );
-  const activation = await classifyActivation({
-    workspaceRoot: process.cwd(),
-    signal: new AbortController().signal,
-    clock: () => new Date(),
-    fs: nodeFilesystem,
-  }, sourceFiles);
+  const activation = await classifyActivation(
+    {
+      workspaceRoot: process.cwd(),
+      signal: new AbortController().signal,
+      clock: () => new Date(),
+      fs: nodeFilesystem,
+    },
+    sourceFiles,
+  );
   switch (activation.activationState) {
     case "root_active_seeded":
       return {
         operation: "continue-kibi-workflow",
-        message: "  Next: your repository already has seeded Kibi knowledge; continue working with your coding agent.",
+        message:
+          "  Next: your repository already has seeded Kibi knowledge; continue working with your coding agent.",
       };
     case "root_partial":
       return {
         operation: "kibi doctor",
-        message: "  Next: run 'kibi doctor' to repair degraded Kibi infrastructure before bootstrapping.",
+        message:
+          "  Next: run 'kibi doctor' to repair degraded Kibi infrastructure before bootstrapping.",
       };
     default:
       return {
         operation: "kb_plan_bootstrap",
-        message: "  Next: ask your coding agent “Bootstrap Kibi for this repository.”",
+        message:
+          "  Next: ask your coding agent “Bootstrap Kibi for this repository.”",
       };
   }
 }
@@ -154,13 +160,17 @@ export async function initCommand(
       }
     }
 
-    console.log("\n✓ Kibi initialized. Kibi infrastructure is ready for this repository.");
+    console.log(
+      "\n✓ Kibi initialized. Kibi infrastructure is ready for this repository.",
+    );
     console.log("  No product knowledge was inferred or changed by kibi init.");
     if (kbExists) {
       console.log("  Existing Kibi source knowledge was preserved.");
     }
     console.log((await initNextAction()).message);
-    console.log("  Optional diagnostic: run 'kibi doctor' if setup appears degraded.");
+    console.log(
+      "  Optional diagnostic: run 'kibi doctor' if setup appears degraded.",
+    );
 
     if (options.github === true) {
       scaffoldGitHubIntegration({

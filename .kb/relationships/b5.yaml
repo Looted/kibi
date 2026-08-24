@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-6fd31c019781
-    type: implements
-    from: SYM-auto-2CA6B4FC2059
-    to: REQ-kibi-operation-interface-parity
-    created_at: "2026-08-15T22:16:52.672Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: implements
     from: SYM-auto-2CA6B4FC2059
     to: REQ-core-atomic-upsert-persistence
@@ -223,3 +216,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-417157660bfa
+  - type: implements
+    from: SYM-auto-2CA6B4FC2059
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:52:24.670Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6fd31c019781
+  - type: covered_by
+    from: SYM-auto-2CA6B4FC2059
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:52:24.677Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c69d5d4436b8
+  - type: implements
+    from: SYM-ModelRequirementArgs
+    to: REQ-002
+    created_at: 2026-08-23T22:09:51.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01d2225328c3
+  - type: covered_by
+    from: SYM-ModelRequirementArgs
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:09:51.394Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ba905f3c314

@@ -73,3 +73,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4d2beecba386
+  - type: covered_by
+    from: SYM-reqcompiler-find-gaps-payload
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:39:29.057Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aaf3ab07d013
+  - type: implements
+    from: SYM-reqcompiler-find-gaps-payload
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:06:13.724Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3eda4d4a2c2c
+  - type: covered_by
+    from: SYM-reqcompiler-find-gaps-payload
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:06:13.727Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ea0b0ec84fa

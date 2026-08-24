@@ -3,6 +3,7 @@ import type { CatalogSkill } from "../catalog";
 import type { parseTaskSpec } from "./contracts";
 import type { parsePrivateEvaluatorManifest } from "./evaluator-contracts";
 import { predicateCaseById } from "./predicate-cases";
+import { fixtureSymbolId } from "./workspace";
 
 type FixtureTaskSpec = ReturnType<typeof parseTaskSpec>;
 type PrivateEvaluatorManifest = ReturnType<
@@ -21,8 +22,7 @@ const READ_TOOLS: Readonly<Record<CatalogSkill, readonly string[]>> = {
 };
 
 function coordinateFinalStateRequests(taskId: string) {
-  const suffix = sha256(taskId).slice(0, 12).toUpperCase();
-  const symbolId = `SYM-FIXTURE-${suffix}`;
+  const symbolId = fixtureSymbolId(taskId);
   return [
     { tool: "kb_query", args: { type: "symbol", id: symbolId } },
     { tool: "kb_check", args: {} },
@@ -154,7 +154,9 @@ const COORDINATE_REPAIR_CALLS = [
 ] as const;
 
 function requiredTools(task: FixtureTaskSpec): readonly string[] {
-  if (task.taskData.objectiveCode === "generated_only_symbol_coordinate_repair") {
+  if (
+    task.taskData.objectiveCode === "generated_only_symbol_coordinate_repair"
+  ) {
     return [...COORDINATE_REPAIR_CALLS];
   }
   if (task.taskData.objectiveCode === "append_only_contract_drift") {
@@ -199,7 +201,8 @@ function requiredTools(task: FixtureTaskSpec): readonly string[] {
     ? ["kb_status"]
     : [];
   const tools =
-    task.skill === "kibi-bootstrap" && task.taskData.approvalPhase === "post-approval"
+    task.skill === "kibi-bootstrap" &&
+    task.taskData.approvalPhase === "post-approval"
       ? [...READ_TOOLS[task.skill], ...extraStatus, "kb_apply_plan", "kb_check"]
       : task.taskData.mutation === "read-only"
         ? [...READ_TOOLS[task.skill], ...extraStatus]

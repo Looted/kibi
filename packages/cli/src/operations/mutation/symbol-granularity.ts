@@ -146,6 +146,6 @@ export async function validateSymbolGranularity(
       ? ` Non-behavioral symbols in the file were ignored for this decision: ${summarized(nonBehavioral)}.`
       : "";
   throw new Error(
-    `Symbol ${String(entity.id)} links ${entity.sourceFile} coarsely while granular symbols are available (behavioral only): ${summarized(behavioral)}. Move relationships to a behavioral symbol, add a manifest behavioral anchor, or set granularity_reason to config-artifact, module-level-behavior, extractor-miss, or legacy-link.${ignored}`,
+    `Symbol ${String(entity.id)} links ${entity.sourceFile} coarsely while granular symbols are available (behavioral only): ${summarized(behavioral)}. Move relationships to a behavioral symbol, add a manifest behavioral anchor, or set granularity_reason to config-artifact, module-level-behavior, extractor-miss, legacy-link, or test-suite.${ignored}`,
   );
 }

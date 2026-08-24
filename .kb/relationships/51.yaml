@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-665d9ff32b66
-    type: implements
-    from: SYM-auto-4B796036FBAD
-    to: REQ-kibi-operation-interface-parity
-    created_at: "2026-08-15T22:19:03.077Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: implements
     from: SYM-skillopt-bridge-request-schema
     to: REQ-skillopt-logical-evidence-fidelity
@@ -160,3 +153,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-046cf4e67b0f
+  - type: implements
+    from: SYM-auto-4B796036FBAD
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:53:18.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-665d9ff32b66
+  - type: covered_by
+    from: SYM-auto-4B796036FBAD
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:53:18.917Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c07e9f179fa1

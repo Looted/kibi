@@ -193,10 +193,7 @@ export const applyPlanSpec = {
       {
         required: ["recoveryJournalId"],
         not: {
-          anyOf: [
-            { required: ["plan"] },
-            { required: ["approvedPlanHash"] },
-          ],
+          anyOf: [{ required: ["plan"] }, { required: ["approvedPlanHash"] }],
         },
       },
     ],

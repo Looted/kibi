@@ -175,9 +175,7 @@ describe("toCacheKey", () => {
   });
 
   test("resolves relative paths against the workspace root", () => {
-    expect(toCacheKey(workspaceRoot, "docs/readme.md")).toBe(
-      "docs/readme.md",
-    );
+    expect(toCacheKey(workspaceRoot, "docs/readme.md")).toBe("docs/readme.md");
     expect(toCacheKey(workspaceRoot, "./a/b/c.ts")).toBe("a/b/c.ts");
   });
 

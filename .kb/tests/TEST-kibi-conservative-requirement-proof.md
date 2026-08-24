@@ -447,6 +447,366 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 35577
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-ccf7a2148f58ac56a983292b
+    test_id: TEST-kibi-conservative-requirement-proof
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-conservative-requirement-proof
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-conservative-requirement-proof
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 179ebe71578e274182f932a44b388e84629d8c35aab70e11ed71512b5426c8e3
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T07:31:12.511Z'
+    finished_at: '2026-08-23T07:31:48.367Z'
+    artifact_digest: 17a1a5a251dcb39064d7dc8e12e38d99b588df7c237ec27e882949776f960dee
+    contract_hash: 5b768b87a0fd1fc6d2971d082e9a22507a107f32b139249e4257e2136f6a7985
+    case_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 35856
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-0d5bb7400377aa9d1dc0f9ac
+    test_id: TEST-kibi-conservative-requirement-proof
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-conservative-requirement-proof
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-conservative-requirement-proof
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: bd8e6d28630c837d83bb606b786976c761f4bcb8326f1aab37d01845783fbafe
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T08:14:49.659Z'
+    finished_at: '2026-08-23T08:15:26.385Z'
+    artifact_digest: 0b9200e5d5610f197d5e1c501b8e4a6b2d0e662f5dea101af55a4d379779da50
+    contract_hash: 5b768b87a0fd1fc6d2971d082e9a22507a107f32b139249e4257e2136f6a7985
+    case_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 36726
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-8eca2954d3a825a8047df040
+    test_id: TEST-kibi-conservative-requirement-proof
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-conservative-requirement-proof
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-conservative-requirement-proof
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ee22ec51c9bc3153aa0a330d71805a1c8ce310bf3a763dc346ad13e15071ba11
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T12:12:00.553Z'
+    finished_at: '2026-08-23T12:12:35.412Z'
+    artifact_digest: d2fe0bbd28cb700f0aca5d0d848adbe5e822200cea80389a9f4fbca7f1e4f062
+    contract_hash: 5b768b87a0fd1fc6d2971d082e9a22507a107f32b139249e4257e2136f6a7985
+    case_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 34859
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-79fe4bce4f34b751d147c74b
+    test_id: TEST-kibi-conservative-requirement-proof
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-conservative-requirement-proof
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-conservative-requirement-proof
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dea1a8d20393c9e2212505a158b80a73843c68d9ea042614fc6c80fa98589b28
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:11:46.472Z'
+    finished_at: '2026-08-23T19:12:22.538Z'
+    artifact_digest: 393bc63da4c73f2bd6d2722a7f05428906dc835461bce1b10e6df8393dd610dc
+    contract_hash: 5b768b87a0fd1fc6d2971d082e9a22507a107f32b139249e4257e2136f6a7985
+    case_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 36066
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-ffb3d8ad3bab5deb66606383
+    test_id: TEST-kibi-conservative-requirement-proof
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-conservative-requirement-proof
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-conservative-requirement-proof
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dcfad834bdf07e98adee34ec88d018b898fcdad42b22ba99a91adbfd48ff7459
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:37:55.946Z'
+    finished_at: '2026-08-23T19:38:32.500Z'
+    artifact_digest: f915a286a69ca574365f676a9d08e4240afc3784cd2e3abf85cce07ea5c2ef14
+    contract_hash: 5b768b87a0fd1fc6d2971d082e9a22507a107f32b139249e4257e2136f6a7985
+    case_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 36554
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-ecc2c42182fa1191f0c343c0
+    test_id: TEST-kibi-conservative-requirement-proof
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-conservative-requirement-proof
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-conservative-requirement-proof
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 14ca65ca0dd701b64b6b9dc632e9eeda9ed796c6b816a70fbd6b50db303194cc
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:05:51.723Z'
+    finished_at: '2026-08-23T20:06:28.132Z'
+    artifact_digest: dff78b586370cd87ca9eee32137b3cae2851c0f12c639fa565b49de815c14168
+    contract_hash: 5b768b87a0fd1fc6d2971d082e9a22507a107f32b139249e4257e2136f6a7985
+    case_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 36409
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-f2396517e69c6f8ca1106690
+    test_id: TEST-kibi-conservative-requirement-proof
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-conservative-requirement-proof
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-conservative-requirement-proof
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 3ee001d32bb209a819714ba2e42edd8ab694bfb5be890192445fb7e202afb01b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:32:11.970Z'
+    finished_at: '2026-08-23T20:32:47.232Z'
+    artifact_digest: 2948cd107e1c20ad46531ad2447e91bb0f1b25640e5b9c71d25f4df6dd6e6981
+    contract_hash: 5b768b87a0fd1fc6d2971d082e9a22507a107f32b139249e4257e2136f6a7985
+    case_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 35262
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-70201b6570b242c33a413b0c
+    test_id: TEST-kibi-conservative-requirement-proof
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-conservative-requirement-proof
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-conservative-requirement-proof
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8da5165ebb43b8ee33c18ba479134826479b9cecae4caf47c854dd2a844555c7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:13:04.268Z'
+    finished_at: '2026-08-23T22:13:38.834Z'
+    artifact_digest: 7e3c53cf252d152d002d8c2b6f73f0149b91459e2c1ecd3c9aaa5e92daa08ff7
+    contract_hash: 5b768b87a0fd1fc6d2971d082e9a22507a107f32b139249e4257e2136f6a7985
+    case_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 34566
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-4bbf9c9581c6bd9313373e92
+    test_id: TEST-kibi-conservative-requirement-proof
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-conservative-requirement-proof
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-conservative-requirement-proof
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 9506b01b3f5194b44f47602b13261ce3139304cec73818f4b0553c152eb51048
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:39:14.367Z'
+    finished_at: '2026-08-23T22:39:49.309Z'
+    artifact_digest: 65cb2c71a69d9000fe56f26de635b3f01b85551aa28ae99ffa7be317436ff382
+    contract_hash: 5b768b87a0fd1fc6d2971d082e9a22507a107f32b139249e4257e2136f6a7985
+    case_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 34942
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-6ab34a57fa592462f73dfa78
+    test_id: TEST-kibi-conservative-requirement-proof
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-conservative-requirement-proof
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-conservative-requirement-proof
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a54a428a72f914fe4ee86257b1e2eb792f98958f88ccf0d6a45eef244ab53055
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:24:36.322Z'
+    finished_at: '2026-08-24T06:25:16.830Z'
+    artifact_digest: 9ef060175b2254f8b3aac557254423aa6ad8c3376593e1a98891f303a07e83f1
+    contract_hash: 5b768b87a0fd1fc6d2971d082e9a22507a107f32b139249e4257e2136f6a7985
+    case_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 40508
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-b09a7cf23a7ae6055fa19960
+    test_id: TEST-kibi-conservative-requirement-proof
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-conservative-requirement-proof
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-conservative-requirement-proof
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: c2c5a06c408b705211516e8bd1f6733b82e8addfc4acd70c33d47a850f768285
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:52:38.751Z'
+    finished_at: '2026-08-24T06:53:15.402Z'
+    artifact_digest: f3de4e8e114b0e6e239a79ba6dc48685f43d12c2b75815f0e8c118b2cbb8807d
+    contract_hash: 5b768b87a0fd1fc6d2971d082e9a22507a107f32b139249e4257e2136f6a7985
+    case_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 36651
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-64b88ccee16195f8a3074c83
+    test_id: TEST-kibi-conservative-requirement-proof
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-conservative-requirement-proof
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-conservative-requirement-proof
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:22:44.516Z'
+    finished_at: '2026-08-24T07:23:20.046Z'
+    artifact_digest: 0be560a0613e704aa65a91025d19dfc88350732138bf85dc462849c7c2acf781
+    contract_hash: 5b768b87a0fd1fc6d2971d082e9a22507a107f32b139249e4257e2136f6a7985
+    case_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 35530
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-e6f9d4190a0173d7b11513f2
+    test_id: TEST-kibi-conservative-requirement-proof
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-conservative-requirement-proof
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-conservative-requirement-proof
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:47:26.978Z'
+    finished_at: '2026-08-24T07:48:05.563Z'
+    artifact_digest: 249bab1250a283324bcbd7421d260d5d7c7b0132952328eaf510dd370a7066a3
+    contract_hash: 5b768b87a0fd1fc6d2971d082e9a22507a107f32b139249e4257e2136f6a7985
+    case_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 38585
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-f649a8e67bcd3b7a7daab1c3
+    test_id: TEST-kibi-conservative-requirement-proof
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-conservative-requirement-proof
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-conservative-requirement-proof
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0202c720e01d3b5e58358f98e61e524d501259ef3b14d6f74a44ef1fd03cfad1
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:19:42.147Z'
+    finished_at: '2026-08-24T08:20:23.391Z'
+    artifact_digest: c15a1bbdd3c48935256fda8308bd0375c519ce3a606d27211694442295bc2963
+    contract_hash: 5b768b87a0fd1fc6d2971d082e9a22507a107f32b139249e4257e2136f6a7985
+    case_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 41244
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-0fc4470aec3637d60d9b8bd3
+    test_id: TEST-kibi-conservative-requirement-proof
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-conservative-requirement-proof
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-conservative-requirement-proof
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 5e0dc87316dbd903ca5f2e3da37265c33a1559b0fecdabc93ab978662fad7b3b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:49:09.245Z'
+    finished_at: '2026-08-24T08:49:50.940Z'
+    artifact_digest: 8fd34727b4f597785425730a687f9fcff88c3f2f1edc76ff210deb0777cfb9ba
+    contract_hash: 5b768b87a0fd1fc6d2971d082e9a22507a107f32b139249e4257e2136f6a7985
+    case_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 41695
 links:
   - type: validates
     target: SCEN-kibi-conservative-requirement-proof

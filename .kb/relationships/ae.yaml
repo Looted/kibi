@@ -101,3 +101,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-51f4e1cfe653
+  - type: covered_by
+    from: SYM-discovery-query-input
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:36:55.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b177c010c46
+  - type: implements
+    from: SYM-discovery-query-input
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:00:28.855Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92f8171160c6
+  - type: covered_by
+    from: SYM-discovery-query-input
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:00:28.861Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d67968ca9f3

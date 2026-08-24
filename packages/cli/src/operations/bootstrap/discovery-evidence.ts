@@ -118,10 +118,14 @@ function evidenceData(
     const languages = new Set<string>();
     if (/^package\.json$/i.test(path.basename(relativePath))) {
       try {
-        const parsed = JSON.parse(content) as { bin?: unknown; scripts?: Record<string, unknown> };
+        const parsed = JSON.parse(content) as {
+          bin?: unknown;
+          scripts?: Record<string, unknown>;
+        };
         const text = JSON.stringify(parsed);
         if (/\.(?:ts|tsx|mts|cts)\b/.test(text)) languages.add("typescript");
-        if (/\.(?:js|jsx|mjs|cjs)\b|node\b/.test(text)) languages.add("javascript");
+        if (/\.(?:js|jsx|mjs|cjs)\b|node\b/.test(text))
+          languages.add("javascript");
       } catch {
         // The scanner records a parse warning separately below.
       }
@@ -156,7 +160,9 @@ function evidenceData(
   }
   if (provider === "source_symbols") {
     const symbolCount = Array.from(
-      content.matchAll(/\b(?:export\s+)?(?:function|class|const|let|var|interface|type)\s+([A-Za-z_$][\w$]*)/g),
+      content.matchAll(
+        /\b(?:export\s+)?(?:function|class|const|let|var|interface|type)\s+([A-Za-z_$][\w$]*)/g,
+      ),
     ).length;
     return {
       title: `Source module: ${path.basename(relativePath, path.extname(relativePath))}`,
@@ -254,7 +260,9 @@ export async function scanEvidence(
         : CODE_EXTENSION.test(relativePath)
           ? "source_symbols"
           : "generic_repo_docs";
-      warnings.push(`${warningProvider}:failed_to_${warningProvider === "test_topology" ? "read" : "analyze"}:${relativePath}`);
+      warnings.push(
+        `${warningProvider}:failed_to_${warningProvider === "test_topology" ? "read" : "analyze"}:${relativePath}`,
+      );
     }
   }
   evidence.push(...layoutEvidence(context.workspaceRoot, files, ignored));

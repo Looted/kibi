@@ -19,14 +19,14 @@ import {
 } from "../src/file-entity-links.js";
 import { createFileOperationState } from "../src/file-operation-state.js";
 import {
+  createKbFreshnessEvidenceStore,
+  evaluateKbFreshness,
+} from "../src/kb-freshness-state.js";
+import {
   detectKibiBootstrapCommandCapability,
   findSdkPackageJsonForPluginRoot,
   registerKibiBootstrapCommand,
 } from "../src/kibi-bootstrap-capability.js";
-import {
-  createKbFreshnessEvidenceStore,
-  evaluateKbFreshness,
-} from "../src/kb-freshness-state.js";
 import * as logger from "../src/logger.js";
 import { classifyMeaningfulChange } from "../src/meaningful-change-classifier.js";
 import kibiOpencodePlugin from "../src/plugin.js";
@@ -655,9 +655,11 @@ describe("coverage completion for kibi-bootstrap capability", () => {
 
       process.chdir(tmpDir);
       const freshCapabilityModule = await import(
-        new URL("../src/kibi-bootstrap-capability.ts?dogfood", import.meta.url).href
+        new URL("../src/kibi-bootstrap-capability.ts?dogfood", import.meta.url)
+          .href
       );
-      const capability = freshCapabilityModule.getKibiBootstrapCommandCapability();
+      const capability =
+        freshCapabilityModule.getKibiBootstrapCommandCapability();
 
       expect(capability.supported).toBe(true);
     } finally {

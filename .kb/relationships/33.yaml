@@ -41,3 +41,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8325f6c48039
+  - type: covered_by
+    from: SYM-operation-check-input
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:37:57.007Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4ccf866054c
+  - type: covered_by
+    from: SYM-runtime-GitPort
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:40:02.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a92a37c8f46
+  - type: implements
+    from: SYM-operation-check-input
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:02:18.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0effe33750be
+  - type: covered_by
+    from: SYM-operation-check-input
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:02:18.696Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8377783eab4
+  - type: implements
+    from: SYM-runtime-GitPort
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:07:35.781Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98b0d171d9f3
+  - type: covered_by
+    from: SYM-runtime-GitPort
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:07:35.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-35d0b2c89ad0

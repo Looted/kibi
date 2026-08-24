@@ -1,17 +1,28 @@
-import { existsSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import {
+  existsSync,
+  readFileSync,
+  renameSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
 import * as path from "node:path";
 import { load as parseYaml } from "js-yaml";
 import {
   CoordinateArtifactError,
   type SymbolCoordinateWriteEntry,
   type SymbolCoordinatesRecord,
+  coarseCoordinateSpan,
   coordinateIdentityHash,
+  coordinateSourceHash,
   isValidCoordinateSpan,
   parseCoordinateArtifact,
   writeCoordinateArtifact,
+  writeLegacyCoordinateArtifact,
 } from "../../extractors/symbol-coordinates.js";
 import { enrichSymbolCoordinates } from "../../public/extractors/symbols-coordinator.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
+import { isCoarseGranularityReason } from "../../public/symbol-granularity.js";
 import { CANONICAL_ENTITY_PATHS } from "../../utils/kb-paths.js";
 import { withSymbolCompilerLock } from "./symbol-compiler-lock.js";
 
@@ -22,6 +33,8 @@ type CoordinateRecord = {
   readonly sourceEndLine: number;
   readonly sourceEndColumn: number;
 };
+
+type ArtifactFormat = "legacy" | "v2";
 
 // implements REQ-generated-coordinate-persistence
 export type TargetedRefreshOutcome =
@@ -35,6 +48,15 @@ export type RefreshResult = {
   readonly refreshed: boolean;
   readonly found: boolean;
   readonly outcome?: TargetedRefreshOutcome;
+  readonly publication?: ArtifactPublicationReceipt;
+};
+
+// implements REQ-generated-coordinate-persistence
+export type ArtifactPublicationReceipt = {
+  readonly path: string;
+  readonly beforeHash: string | null;
+  readonly afterHash: string;
+  rollback(): void;
 };
 
 type RefreshImplementation = (
@@ -72,11 +94,29 @@ function artifactPathFor(manifest: string): string {
   return path.join(path.dirname(manifest), "symbol-coordinates.yaml");
 }
 
+function sourceTextFor(
+  sourceFile: string,
+  workspaceRoot: string,
+): string | null {
+  const absolute = path.isAbsolute(sourceFile)
+    ? sourceFile
+    : path.resolve(workspaceRoot, sourceFile);
+  try {
+    return readFileSync(absolute, "utf8");
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Publish artifact bytes atomically; rename failures clean their temp file and
  * propagate so callers never advance state on a partial publication.
  */
-function publishArtifact(targetPath: string, content: string): void {
+function contentHash(content: string): string {
+  return createHash("sha256").update(content).digest("hex");
+}
+
+function replaceArtifactAtomically(targetPath: string, content: string): void {
   const temporary = `${targetPath}.kibi-tmp-${process.pid}`;
   try {
     writeFileSync(temporary, content, "utf8");
@@ -89,6 +129,67 @@ function publishArtifact(targetPath: string, content: string): void {
     }
     throw error;
   }
+}
+
+function publishArtifact(
+  targetPath: string,
+  content: string,
+): ArtifactPublicationReceipt {
+  const before = existsSync(targetPath)
+    ? readFileSync(targetPath, "utf8")
+    : null;
+  const beforeHash = before === null ? null : contentHash(before);
+  const afterHash = contentHash(content);
+  replaceArtifactAtomically(targetPath, content);
+  return {
+    path: targetPath,
+    beforeHash,
+    afterHash,
+    rollback: () => {
+      if (!existsSync(targetPath)) {
+        throw new CoordinateArtifactError(
+          `coordinate artifact disappeared before rollback: ${targetPath}`,
+        );
+      }
+      const current = readFileSync(targetPath, "utf8");
+      if (contentHash(current) !== afterHash) {
+        throw new CoordinateArtifactError(
+          `coordinate artifact changed after publication; refusing rollback: ${targetPath}`,
+        );
+      }
+      if (before === null) {
+        unlinkSync(targetPath);
+      } else {
+        replaceArtifactAtomically(targetPath, before);
+      }
+    },
+  };
+}
+
+function writeTargetedArtifact(
+  records: Record<string, SymbolCoordinateWriteEntry>,
+  format: ArtifactFormat,
+): string {
+  if (format === "v2") {
+    return writeCoordinateArtifact(records);
+  }
+
+  const legacyRecords: Record<string, SymbolCoordinatesRecord> = {};
+  for (const [id, entry] of Object.entries(records)) {
+    if (!isValidCoordinateSpan(entry)) {
+      throw new CoordinateArtifactError(
+        `refusing to preserve invalid legacy coordinate span for ${id}`,
+      );
+    }
+    legacyRecords[id] = {
+      sourceColumn: entry.sourceColumn,
+      sourceEndColumn: entry.sourceEndColumn,
+      sourceEndLine: entry.sourceEndLine,
+      sourceFile: entry.sourceFile,
+      sourceLine: entry.sourceLine,
+    };
+  }
+  return writeLegacyCoordinateArtifact(legacyRecords);
 }
 
 /**
@@ -127,6 +228,7 @@ async function refreshUnlocked(
   // Strictly parse the existing artifact so a malformed compiler dependency
   // aborts the refresh instead of being truncated to one symbol.
   let existingRecords: Record<string, SymbolCoordinateWriteEntry> = {};
+  let artifactFormat: ArtifactFormat = "v2";
   if (existsSync(artifactPath)) {
     const parsedArtifact = parseCoordinateArtifact(
       await fs.readFile(artifactPath),
@@ -134,6 +236,7 @@ async function refreshUnlocked(
     if (parsedArtifact.status === "invalid") {
       throw new CoordinateArtifactError(parsedArtifact.reason);
     }
+    artifactFormat = parsedArtifact.status === "legacy" ? "legacy" : "v2";
     existingRecords = { ...parsedArtifact.coordinates };
   }
 
@@ -144,8 +247,16 @@ async function refreshUnlocked(
       return { refreshed: false, found: false, outcome: "not_found" };
     }
     delete existingRecords[symbolId];
-    publishArtifact(artifactPath, writeCoordinateArtifact(existingRecords));
-    return { refreshed: true, found: false, outcome: "removed" };
+    const publication = publishArtifact(
+      artifactPath,
+      writeTargetedArtifact(existingRecords, artifactFormat),
+    );
+    return {
+      refreshed: true,
+      found: false,
+      outcome: "removed",
+      publication,
+    };
   }
 
   const sourceFile =
@@ -155,13 +266,38 @@ async function refreshUnlocked(
     [{ ...entry, id: symbolId, title, sourceFile }],
     context.workspaceRoot,
   );
-  const next = coordinate(enriched);
+  let next = coordinate(enriched);
+  let sourceText =
+    next === null ? sourceTextFor(sourceFile, context.workspaceRoot) : null;
+  if (
+    next === null &&
+    isCoarseGranularityReason(entry.granularity_reason) &&
+    sourceText !== null
+  ) {
+    next = coarseCoordinateSpan(sourceFile, title, sourceText);
+  }
+  if (next !== null && sourceText === null) {
+    sourceText = sourceTextFor(next.sourceFile, context.workspaceRoot);
+  }
   if (next === null || !isValidCoordinateSpan(next)) {
-    // No extractable coordinates: keep the previous record untouched so proof
-    // keeps failing closed instead of inventing a location.
+    // No extractable coordinates: remove stale generated state so proof keeps
+    // failing closed instead of rebinding an old span to current source bytes.
     if (existingRecords[symbolId] === undefined) {
       return { refreshed: false, found: true };
     }
+    delete existingRecords[symbolId];
+    const publication = publishArtifact(
+      artifactPath,
+      writeTargetedArtifact(existingRecords, artifactFormat),
+    );
+    return {
+      refreshed: true,
+      found: true,
+      outcome: "removed",
+      publication,
+    };
+  }
+  if (sourceText === null) {
     return { refreshed: false, found: true, outcome: "unchanged" };
   }
 
@@ -176,35 +312,45 @@ async function refreshUnlocked(
   const bound: SymbolCoordinateWriteEntry & { identityHash: string } = {
     ...next,
     identityHash,
+    sourceHash: coordinateSourceHash(sourceText),
   };
 
   const previousRecord = existingRecords[symbolId];
-  const unchangedBytes =
+  const sameSpan =
     previousRecord !== undefined &&
     isValidCoordinateSpan(previousRecord) &&
-    (previousRecord as SymbolCoordinatesRecord).sourceFile ===
-      next.sourceFile &&
-    (previousRecord as SymbolCoordinatesRecord).sourceLine ===
-      next.sourceLine &&
-    (previousRecord as SymbolCoordinatesRecord).sourceColumn ===
-      next.sourceColumn &&
-    (previousRecord as SymbolCoordinatesRecord).sourceEndLine ===
-      next.sourceEndLine &&
-    (previousRecord as SymbolCoordinatesRecord).sourceEndColumn ===
-      next.sourceEndColumn &&
-    (previousRecord as { identityHash?: string }).identityHash === identityHash;
+    previousRecord.sourceFile === next.sourceFile &&
+    previousRecord.sourceLine === next.sourceLine &&
+    previousRecord.sourceColumn === next.sourceColumn &&
+    previousRecord.sourceEndLine === next.sourceEndLine &&
+    previousRecord.sourceEndColumn === next.sourceEndColumn;
+  const unchangedBytes =
+    sameSpan &&
+    (artifactFormat === "legacy" ||
+      ((previousRecord as { identityHash?: string }).identityHash ===
+        identityHash &&
+        (previousRecord as { sourceHash?: string }).sourceHash ===
+          bound.sourceHash));
   if (unchangedBytes) {
     return { refreshed: false, found: true, outcome: "unchanged" };
   }
 
-  existingRecords[symbolId] = bound;
+  existingRecords[symbolId] = artifactFormat === "legacy" ? next : bound;
   const sortedEntries = Object.fromEntries(
     Object.entries(existingRecords).sort(([left], [right]) =>
       left.localeCompare(right),
     ),
   );
-  publishArtifact(artifactPath, writeCoordinateArtifact(sortedEntries));
-  return { refreshed: true, found: true, outcome: "updated" };
+  const publication = publishArtifact(
+    artifactPath,
+    writeTargetedArtifact(sortedEntries, artifactFormat),
+  );
+  return {
+    refreshed: true,
+    found: true,
+    outcome: "updated",
+    publication,
+  };
 }
 
 let implementation: RefreshImplementation | null = null;
@@ -247,11 +393,9 @@ export async function refreshSymbolCoordinatesForManifest(
   if (implementation !== null) {
     return implementation(symbolId, context);
   }
-  return refreshUnlocked(
-    symbolId,
-    context,
-    { manifestPath: manifestAbsolutePath },
-  );
+  return refreshUnlocked(symbolId, context, {
+    manifestPath: manifestAbsolutePath,
+  });
 }
 
 // implements REQ-kibi-operation-interface-parity

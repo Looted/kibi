@@ -1,11 +1,19 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { load as parseYAML } from "js-yaml";
 import { EngineClient } from "../../src/engine.js";
 import { buildUpsertCommitGoal } from "../../src/operations/mutation/contradictions.js";
-import { escapeAtom } from "../../src/prolog/codec.js";
 import { PrologProcess } from "../../src/prolog.js";
+import { escapeAtom } from "../../src/prolog/codec.js";
 import { branchStorePath } from "../../src/utils/branch-store-locator.js";
 import { execSync, isolatedCliSandboxEnv } from "../helpers/isolated-env.js";
 
@@ -81,9 +89,9 @@ describe("generated symbol coordinate persistence", () => {
       "--refresh-symbol-coordinates",
     ]);
     expect(refreshed.exitCode, refreshed.stderr).toBe(0);
-    expect(existsSync(path.join(tmpDir, ".kb", "symbol-coordinates.yaml"))).toBe(
-      true,
-    );
+    expect(
+      existsSync(path.join(tmpDir, ".kb", "symbol-coordinates.yaml")),
+    ).toBe(true);
 
     const imported = await runCliAsync(["sync"]);
     expect(imported.exitCode, imported.stderr).toBe(0);
@@ -106,8 +114,8 @@ describe("generated symbol coordinate persistence", () => {
     const parsed: unknown = JSON.parse(output.stdout);
     const entities = Array.isArray(parsed)
       ? (parsed as Array<Record<string, unknown>>)
-      : ((parsed as { entities?: Array<Record<string, unknown>> })
-          .entities ?? []);
+      : ((parsed as { entities?: Array<Record<string, unknown>> }).entities ??
+        []);
     const symbol = entities.find((entity) => entity.id === "SYM-AUTH");
     expect(symbol).toBeDefined();
     return symbol as Record<string, unknown>;
@@ -212,7 +220,10 @@ describe("generated symbol coordinate persistence", () => {
 
       // The explicit approved refresh forces reassertion even though
       // normalized entity hashes match the cache.
-      const repaired = await runCliAsync(["sync", "--refresh-symbol-coordinates"]);
+      const repaired = await runCliAsync([
+        "sync",
+        "--refresh-symbol-coordinates",
+      ]);
       expect(repaired.exitCode, repaired.stderr).toBe(0);
       expectCoordinates(await querySymbolEntity());
 
@@ -257,6 +268,60 @@ describe("generated symbol coordinate persistence", () => {
       // A following plain sync remains a no-op (nothing diverged).
       const settled = await runCliAsync(["sync"]);
       expect(settled.stdout).toContain("Imported 0");
+    },
+    TEST_TIMEOUT_MS * 2,
+  );
+
+  test(
+    "full refresh omits stale coordinates after a symbol rename",
+    async () => {
+      const manifestPath = path.join(tmpDir, ".kb", "symbols.yaml");
+      writeFileSync(
+        path.join(tmpDir, "src", "auth.ts"),
+        "export function renamedAuthenticate() {\n  return true;\n}\n",
+      );
+      writeFileSync(
+        manifestPath,
+        `symbols:
+  - id: SYM-AUTH
+    title: authenticate
+    sourceFile: src/auth.ts
+    status: active
+    sourceLine: 1
+    sourceColumn: 16
+    sourceEndLine: 1
+    sourceEndColumn: 28
+    coordinatesGeneratedAt: '2026-01-01T00:00:00.000Z'
+`,
+      );
+
+      const refreshed = await runCliAsync([
+        "sync",
+        "--refresh-symbol-coordinates",
+      ]);
+      expect(refreshed.exitCode, refreshed.stderr).toBe(0);
+
+      const artifact = parseYAML(
+        readFileSync(
+          path.join(tmpDir, ".kb", "symbol-coordinates.yaml"),
+          "utf8",
+        ),
+      ) as { coordinates?: Record<string, unknown> };
+      expect(artifact.coordinates?.["SYM-AUTH"]).toBeUndefined();
+    },
+    TEST_TIMEOUT_MS * 2,
+  );
+
+  test(
+    "warm-cache sync delegates malformed manifest errors to extraction",
+    async () => {
+      writeFileSync(path.join(tmpDir, ".kb", "symbols.yaml"), "symbols: [\n");
+
+      const result = await runCliAsync(["sync"]);
+      const output = `${result.stdout}\n${result.stderr}`;
+      expect(result.exitCode).toBe(0);
+      expect(result.stderr).toContain("Failed to extract");
+      expect(output).toMatch(/yaml|manifest|unexpected end/i);
     },
     TEST_TIMEOUT_MS * 2,
   );

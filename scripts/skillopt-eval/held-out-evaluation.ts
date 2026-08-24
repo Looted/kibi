@@ -1,5 +1,4 @@
 import { createHash, randomUUID } from "node:crypto";
-import { taskFinalStateRequests } from "./runtime/final-state-requests";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
@@ -26,6 +25,7 @@ import {
   requireRuntime,
 } from "./real-workflow-types";
 import { runCodexCell } from "./runtime/codex-cell-runner";
+import { taskFinalStateRequests } from "./runtime/final-state-requests";
 import { resolveTaskFixture } from "./runtime/task-fixture";
 
 export type { HeldOutPhysicalCell } from "./held-out-eligibility";

@@ -850,6 +850,29 @@
           "/tmp/kibi-e2e-packed-compiled/runtime-engine-daemon.test.js"
         ]
       ]
+    },
+    {
+      "test_id": "TEST-opencode-bootstrap-paths",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-opencode-bootstrap-paths"
+        ],
+        "required_case_symbols": ["SYM-test-opencode-bootstrap-paths"],
+        "required_projects": ["default"],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        [
+          "node",
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/opencode-bootstrap-paths.test.ts"
+        ]
+      ]
     }
   ]
 }

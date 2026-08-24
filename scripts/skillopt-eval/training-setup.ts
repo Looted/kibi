@@ -1,5 +1,4 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { taskFinalStateRequests } from "./runtime/final-state-requests";
 import { join } from "node:path";
 import {
   EvaluationInfrastructureError,
@@ -18,6 +17,7 @@ import {
 import { runCodexCell } from "./runtime/codex-cell-runner";
 import { runCodexSkillOptStep } from "./runtime/codex-optimizer";
 import { PublicTaskClaimSchema } from "./runtime/file-bridge";
+import { taskFinalStateRequests } from "./runtime/final-state-requests";
 import { type ProcessResult, runBoundedProcess } from "./runtime/process";
 import { resolveTaskFixture } from "./runtime/task-fixture";
 import { freezeCandidateVariant } from "./variants";

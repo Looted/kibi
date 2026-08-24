@@ -25,11 +25,7 @@ describe("bootstrap parity", () => {
     try {
       // When: both transports execute the public JSON contract.
       const [cli, mcp] = await Promise.all([
-        runCliJsonRoute(
-          cliWorkspace.root,
-          planBootstrapSpec.cliName,
-          input,
-        ),
+        runCliJsonRoute(cliWorkspace.root, planBootstrapSpec.cliName, input),
         runMCPAdapter(mcpWorkspace.root, planBootstrapSpec.name, input),
       ]);
 

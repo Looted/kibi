@@ -1,7 +1,7 @@
 import { cp, mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { EpisodeRequestSchema } from "../contracts/episode";
-import { hashWorkspace } from "../fixtures/workspace";
+import { fixtureSymbolId, hashWorkspace } from "../fixtures/workspace";
 import { scoreCell } from "../scoring/cell";
 import { resolveIsolationArtifactRoot } from "./artifact-root";
 import { RequiredMcpStartupError } from "./canary-runtime";
@@ -129,7 +129,11 @@ export async function runCodexCell(
       if (cliRoot === undefined) {
         throw new FixtureSetupError("staged runtime exposes no kibi-cli root");
       }
-      await setupGeneratedCoordinateDivergence(workspace.target, cliRoot);
+      await setupGeneratedCoordinateDivergence(
+        workspace.target,
+        cliRoot,
+        fixtureSymbolId(request.taskId),
+      );
     }
     const runtimeRoot = join(workspace.target, ".runtime");
     await mkdir(runtimeRoot, { recursive: true, mode: 0o700 });

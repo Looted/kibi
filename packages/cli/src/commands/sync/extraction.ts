@@ -17,7 +17,10 @@
  */
 
 import * as path from "node:path";
-import { extractFromManifest } from "../../extractors/manifest.js";
+import {
+  ManifestError,
+  extractFromManifest,
+} from "../../extractors/manifest.js";
 import {
   type ExtractionResult,
   FrontmatterError,
@@ -113,6 +116,13 @@ export async function processExtractions(
       results.push(...manifestResults);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
+      if (
+        error instanceof ManifestError &&
+        error.classification === "coordinate-artifact" &&
+        !validateOnly
+      ) {
+        throw error;
+      }
       if (validateOnly) {
         errors.push({ file, message });
       } else {

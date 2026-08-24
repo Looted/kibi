@@ -407,6 +407,441 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 19961
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-d6657a12ad6189bead89ca3e
+    test_id: TEST-006
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-006
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-006
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 179ebe71578e274182f932a44b388e84629d8c35aab70e11ed71512b5426c8e3
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T07:30:46.685Z'
+    finished_at: '2026-08-23T07:31:07.457Z'
+    artifact_digest: dc79dc4f2c79cd02c3bd17c6ccf40e955e89b0bb4c7c6e76b8487178ee2c64f7
+    contract_hash: ed20e82f89da5234627d62ae72162872c2adc38b2f320e49c0ecba7150f14f3c
+    case_results:
+      - symbol_id: SYM-test-packed-default-branch-sync-hooks
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 20772
+      - symbol_id: SYM-test-packed-post-merge-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 20772
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-2d5f815450401d3bf71265ff
+    test_id: TEST-006
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-006
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-006
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: bd8e6d28630c837d83bb606b786976c761f4bcb8326f1aab37d01845783fbafe
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T08:14:22.868Z'
+    finished_at: '2026-08-23T08:14:43.927Z'
+    artifact_digest: 3c1446728a9b865a13cec52611c8f8ce894a0ef26dedeac571dc48b19af55ccb
+    contract_hash: ed20e82f89da5234627d62ae72162872c2adc38b2f320e49c0ecba7150f14f3c
+    case_results:
+      - symbol_id: SYM-test-packed-default-branch-sync-hooks
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 21059
+      - symbol_id: SYM-test-packed-post-merge-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 21059
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-c3662c5e6035c4661a2045a3
+    test_id: TEST-006
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-006
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-006
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ee22ec51c9bc3153aa0a330d71805a1c8ce310bf3a763dc346ad13e15071ba11
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T12:11:35.258Z'
+    finished_at: '2026-08-23T12:11:55.345Z'
+    artifact_digest: 833d6f4f7213e778b19bb3e888434c630fa46e7a72d89efc0f6813483c94cf4d
+    contract_hash: ed20e82f89da5234627d62ae72162872c2adc38b2f320e49c0ecba7150f14f3c
+    case_results:
+      - symbol_id: SYM-test-packed-default-branch-sync-hooks
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 20087
+      - symbol_id: SYM-test-packed-post-merge-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 20087
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-8861590d4a3805ec77b6c17b
+    test_id: TEST-006
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-006
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-006
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dea1a8d20393c9e2212505a158b80a73843c68d9ea042614fc6c80fa98589b28
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:11:20.946Z'
+    finished_at: '2026-08-23T19:11:40.970Z'
+    artifact_digest: f0e62ab299763e0af64d9f5da80c39fb6efb67fe45c36352fbf6559a834e6619
+    contract_hash: ed20e82f89da5234627d62ae72162872c2adc38b2f320e49c0ecba7150f14f3c
+    case_results:
+      - symbol_id: SYM-test-packed-default-branch-sync-hooks
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 20024
+      - symbol_id: SYM-test-packed-post-merge-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 20024
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-bab6f8da0556a2a4feb4a36d
+    test_id: TEST-006
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-006
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-006
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dcfad834bdf07e98adee34ec88d018b898fcdad42b22ba99a91adbfd48ff7459
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:37:29.249Z'
+    finished_at: '2026-08-23T19:37:50.370Z'
+    artifact_digest: 72c5bfac2a6fd40dd95ed71e3cf9285753187517d7518e4fcf17ba7146b12338
+    contract_hash: ed20e82f89da5234627d62ae72162872c2adc38b2f320e49c0ecba7150f14f3c
+    case_results:
+      - symbol_id: SYM-test-packed-default-branch-sync-hooks
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 21121
+      - symbol_id: SYM-test-packed-post-merge-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 21121
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-15f48282cf0256bd27fd5411
+    test_id: TEST-006
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-006
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-006
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 14ca65ca0dd701b64b6b9dc632e9eeda9ed796c6b816a70fbd6b50db303194cc
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:05:25.433Z'
+    finished_at: '2026-08-23T20:05:46.188Z'
+    artifact_digest: a563dbf46b4751e4aa08a88a266b9321dca260637a3b97090d4e6cab46db8978
+    contract_hash: ed20e82f89da5234627d62ae72162872c2adc38b2f320e49c0ecba7150f14f3c
+    case_results:
+      - symbol_id: SYM-test-packed-default-branch-sync-hooks
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 20755
+      - symbol_id: SYM-test-packed-post-merge-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 20755
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-cb9b3db6a3ef5f1f6e062ea7
+    test_id: TEST-006
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-006
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-006
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 3ee001d32bb209a819714ba2e42edd8ab694bfb5be890192445fb7e202afb01b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:31:45.228Z'
+    finished_at: '2026-08-23T20:32:05.946Z'
+    artifact_digest: 36370f77dbe6d07dbb08aac436bfe2d3cc488c2ea823d7985765fe0c660a3348
+    contract_hash: ed20e82f89da5234627d62ae72162872c2adc38b2f320e49c0ecba7150f14f3c
+    case_results:
+      - symbol_id: SYM-test-packed-default-branch-sync-hooks
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 20718
+      - symbol_id: SYM-test-packed-post-merge-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 20718
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-f171fffc8fcbda367b8d22da
+    test_id: TEST-006
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-006
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-006
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8da5165ebb43b8ee33c18ba479134826479b9cecae4caf47c854dd2a844555c7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:12:39.613Z'
+    finished_at: '2026-08-23T22:12:59.082Z'
+    artifact_digest: 76d96f4eb883dc18ee70952a258cd049964fa50666e79995628309d168b3b1b2
+    contract_hash: ed20e82f89da5234627d62ae72162872c2adc38b2f320e49c0ecba7150f14f3c
+    case_results:
+      - symbol_id: SYM-test-packed-default-branch-sync-hooks
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 19469
+      - symbol_id: SYM-test-packed-post-merge-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 19469
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-2515b026ddc0e6d64c6dcafe
+    test_id: TEST-006
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-006
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-006
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 9506b01b3f5194b44f47602b13261ce3139304cec73818f4b0553c152eb51048
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:38:49.547Z'
+    finished_at: '2026-08-23T22:39:09.163Z'
+    artifact_digest: 102c3daf9b88ff9798e69ea2eb96350100bc36a02a5f9fc3c1c859722d00d9e0
+    contract_hash: ed20e82f89da5234627d62ae72162872c2adc38b2f320e49c0ecba7150f14f3c
+    case_results:
+      - symbol_id: SYM-test-packed-default-branch-sync-hooks
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 19616
+      - symbol_id: SYM-test-packed-post-merge-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 19616
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-6fa1a02ce107c45383ce9252
+    test_id: TEST-006
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-006
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-006
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a54a428a72f914fe4ee86257b1e2eb792f98958f88ccf0d6a45eef244ab53055
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:24:05.959Z'
+    finished_at: '2026-08-24T06:24:30.787Z'
+    artifact_digest: 3e59cf9562b242c0688e20a9c20bba91bdeef68a8a2c78dcb833e0c16ea6d30b
+    contract_hash: ed20e82f89da5234627d62ae72162872c2adc38b2f320e49c0ecba7150f14f3c
+    case_results:
+      - symbol_id: SYM-test-packed-default-branch-sync-hooks
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 24828
+      - symbol_id: SYM-test-packed-post-merge-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 24828
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-8a0d3606ddafebd4e2195d2d
+    test_id: TEST-006
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-006
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-006
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: c2c5a06c408b705211516e8bd1f6733b82e8addfc4acd70c33d47a850f768285
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:52:12.023Z'
+    finished_at: '2026-08-24T06:52:32.897Z'
+    artifact_digest: 1c70cea7fae13b043bc222d04f5f33bd7351c79efd72c9ab218c85a334c42e15
+    contract_hash: ed20e82f89da5234627d62ae72162872c2adc38b2f320e49c0ecba7150f14f3c
+    case_results:
+      - symbol_id: SYM-test-packed-default-branch-sync-hooks
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 20874
+      - symbol_id: SYM-test-packed-post-merge-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 20874
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-b17e4551472b1badd5bcc433
+    test_id: TEST-006
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-006
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-006
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:22:18.660Z'
+    finished_at: '2026-08-24T07:22:39.139Z'
+    artifact_digest: 014fa8e1c037d03577d711f83a4008bcc1221a42a8cbdda523fd44159693d0e0
+    contract_hash: ed20e82f89da5234627d62ae72162872c2adc38b2f320e49c0ecba7150f14f3c
+    case_results:
+      - symbol_id: SYM-test-packed-default-branch-sync-hooks
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 20479
+      - symbol_id: SYM-test-packed-post-merge-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 20479
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-8e5771ba055b03ba218bad16
+    test_id: TEST-006
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-006
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-006
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:46:57.828Z'
+    finished_at: '2026-08-24T07:47:20.128Z'
+    artifact_digest: 54d06d8cc8de915f7c611067db0b2bc68c85da1f394cffb716d8d9a64b9e22f6
+    contract_hash: ed20e82f89da5234627d62ae72162872c2adc38b2f320e49c0ecba7150f14f3c
+    case_results:
+      - symbol_id: SYM-test-packed-default-branch-sync-hooks
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 22300
+      - symbol_id: SYM-test-packed-post-merge-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 22300
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-00b362d109eba84d61db90e2
+    test_id: TEST-006
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-006
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-006
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0202c720e01d3b5e58358f98e61e524d501259ef3b14d6f74a44ef1fd03cfad1
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:19:12.920Z'
+    finished_at: '2026-08-24T08:19:34.885Z'
+    artifact_digest: bbb8dd19cc32d1446e07e715864bf3e04adcaf1ebbbbcf1cd5dccca84bed480a
+    contract_hash: ed20e82f89da5234627d62ae72162872c2adc38b2f320e49c0ecba7150f14f3c
+    case_results:
+      - symbol_id: SYM-test-packed-default-branch-sync-hooks
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 21965
+      - symbol_id: SYM-test-packed-post-merge-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 21965
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-712c21af7f14fab6e002c898
+    test_id: TEST-006
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-006
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-006
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 5e0dc87316dbd903ca5f2e3da37265c33a1559b0fecdabc93ab978662fad7b3b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:48:41.617Z'
+    finished_at: '2026-08-24T08:49:03.063Z'
+    artifact_digest: b7d70b037d7a5eb7e8846f26f44f5784f4d58ddd29768f22ad2686870637d9f9
+    contract_hash: ed20e82f89da5234627d62ae72162872c2adc38b2f320e49c0ecba7150f14f3c
+    case_results:
+      - symbol_id: SYM-test-packed-default-branch-sync-hooks
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 21446
+      - symbol_id: SYM-test-packed-post-merge-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 21446
 ---
 
 In a temp git repo with hooks installed:

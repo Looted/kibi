@@ -146,6 +146,11 @@ export {
 } from "kibi-cli/operations/mutation/relationships";
 export { setSymbolRefreshForTests } from "kibi-cli/operations/mutation/symbol-refresh";
 export {
+  acquireSymbolCompilerLock,
+  releaseSymbolCompilerLock,
+  withSymbolCompilerLock,
+} from "kibi-cli/operations/mutation/symbol-compiler-lock";
+export {
   modelRequirementClaims,
   buildStrictWriteSet,
 } from "kibi-cli/public/check-types";

@@ -594,6 +594,591 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 680106
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-cfdca02dca6fb5ac6b68e37e
+    test_id: TEST-test-journaled-engine-harness
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-test-journaled-engine-harness
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-test-journaled-engine-harness
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 179ebe71578e274182f932a44b388e84629d8c35aab70e11ed71512b5426c8e3
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T07:35:36.775Z'
+    finished_at: '2026-08-23T07:47:26.979Z'
+    artifact_digest: 99dedb428268b42cf6897ad03e058638fbc01ca1cb08b0c2bcfde87a9d792f68
+    contract_hash: 974c93beee9ee76c06aba5714815029673cd0f234d2c4ce3ee5a383aa622e1bd
+    case_results:
+      - symbol_id: SYM-test-owned-engine-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 710204
+      - symbol_id: SYM-packed-e2e-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 710204
+      - symbol_id: SYM-proof-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 710204
+      - symbol_id: SYM-shared-npm-cache-resolution
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 710204
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-043ca031f1f59f1a7490ddb6
+    test_id: TEST-test-journaled-engine-harness
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-test-journaled-engine-harness
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-test-journaled-engine-harness
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: bd8e6d28630c837d83bb606b786976c761f4bcb8326f1aab37d01845783fbafe
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T08:19:08.548Z'
+    finished_at: '2026-08-23T08:30:59.178Z'
+    artifact_digest: 0bcb825d07333b5e51a273dbc387b8fd56acedaab28b279bac9d8e1427935971
+    contract_hash: 974c93beee9ee76c06aba5714815029673cd0f234d2c4ce3ee5a383aa622e1bd
+    case_results:
+      - symbol_id: SYM-test-owned-engine-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 710630
+      - symbol_id: SYM-packed-e2e-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 710630
+      - symbol_id: SYM-proof-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 710630
+      - symbol_id: SYM-shared-npm-cache-resolution
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 710630
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-7f2483591224ad8931b645c7
+    test_id: TEST-test-journaled-engine-harness
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-test-journaled-engine-harness
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-test-journaled-engine-harness
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ee22ec51c9bc3153aa0a330d71805a1c8ce310bf3a763dc346ad13e15071ba11
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T12:16:10.455Z'
+    finished_at: '2026-08-23T12:27:38.786Z'
+    artifact_digest: 9a4963099a7f13ea9e77432487231c05954c7c32d02aac3003e3ad7510518feb
+    contract_hash: 974c93beee9ee76c06aba5714815029673cd0f234d2c4ce3ee5a383aa622e1bd
+    case_results:
+      - symbol_id: SYM-test-owned-engine-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 688331
+      - symbol_id: SYM-packed-e2e-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 688331
+      - symbol_id: SYM-proof-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 688331
+      - symbol_id: SYM-shared-npm-cache-resolution
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 688331
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-e5e8c72534f5b8cb03b6e996
+    test_id: TEST-test-journaled-engine-harness
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-test-journaled-engine-harness
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-test-journaled-engine-harness
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dea1a8d20393c9e2212505a158b80a73843c68d9ea042614fc6c80fa98589b28
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:16:10.672Z'
+    finished_at: '2026-08-23T19:27:50.548Z'
+    artifact_digest: c0ea595b157586397c6df72a3868f8fb9d101a0d087f50ea9d12d3904ae8dd61
+    contract_hash: 974c93beee9ee76c06aba5714815029673cd0f234d2c4ce3ee5a383aa622e1bd
+    case_results:
+      - symbol_id: SYM-test-owned-engine-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 699876
+      - symbol_id: SYM-packed-e2e-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 699876
+      - symbol_id: SYM-proof-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 699876
+      - symbol_id: SYM-shared-npm-cache-resolution
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 699876
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-53a537313db19c42096e8ad8
+    test_id: TEST-test-journaled-engine-harness
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-test-journaled-engine-harness
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-test-journaled-engine-harness
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dcfad834bdf07e98adee34ec88d018b898fcdad42b22ba99a91adbfd48ff7459
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:42:19.857Z'
+    finished_at: '2026-08-23T19:54:07.614Z'
+    artifact_digest: a7ef5c39b3e9ad627a40db8ae315f2c111689af50b480251b3f1d691ff5a6235
+    contract_hash: 974c93beee9ee76c06aba5714815029673cd0f234d2c4ce3ee5a383aa622e1bd
+    case_results:
+      - symbol_id: SYM-test-owned-engine-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 707757
+      - symbol_id: SYM-packed-e2e-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 707757
+      - symbol_id: SYM-proof-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 707757
+      - symbol_id: SYM-shared-npm-cache-resolution
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 707757
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-bfe349cc332cb4680dcf1ee7
+    test_id: TEST-test-journaled-engine-harness
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-test-journaled-engine-harness
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-test-journaled-engine-harness
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 14ca65ca0dd701b64b6b9dc632e9eeda9ed796c6b816a70fbd6b50db303194cc
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:10:08.580Z'
+    finished_at: '2026-08-23T20:21:37.051Z'
+    artifact_digest: b46606ded4d26eb7e0c248ce0473ecfd5d3f978fa79eefc8e5f618410e5e89a4
+    contract_hash: 974c93beee9ee76c06aba5714815029673cd0f234d2c4ce3ee5a383aa622e1bd
+    case_results:
+      - symbol_id: SYM-test-owned-engine-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 688471
+      - symbol_id: SYM-packed-e2e-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 688471
+      - symbol_id: SYM-proof-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 688471
+      - symbol_id: SYM-shared-npm-cache-resolution
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 688471
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-0634a6b563af49fb9334c970
+    test_id: TEST-test-journaled-engine-harness
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-test-journaled-engine-harness
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-test-journaled-engine-harness
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 3ee001d32bb209a819714ba2e42edd8ab694bfb5be890192445fb7e202afb01b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:36:26.754Z'
+    finished_at: '2026-08-23T20:47:49.633Z'
+    artifact_digest: 15a2ba9e62b1b6e6334b7aa73f5bc70e72f32b5193ea34c131002faa4ad7a373
+    contract_hash: 974c93beee9ee76c06aba5714815029673cd0f234d2c4ce3ee5a383aa622e1bd
+    case_results:
+      - symbol_id: SYM-test-owned-engine-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 682879
+      - symbol_id: SYM-packed-e2e-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 682879
+      - symbol_id: SYM-proof-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 682879
+      - symbol_id: SYM-shared-npm-cache-resolution
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 682879
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-a38a302af5e627741982fd48
+    test_id: TEST-test-journaled-engine-harness
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-test-journaled-engine-harness
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-test-journaled-engine-harness
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8da5165ebb43b8ee33c18ba479134826479b9cecae4caf47c854dd2a844555c7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:17:08.488Z'
+    finished_at: '2026-08-23T22:28:15.822Z'
+    artifact_digest: 7d5f38ba8df539e1c4b8f5a2ace0f8e3112beaf8f3090ed3ffb9994abb9ae080
+    contract_hash: 974c93beee9ee76c06aba5714815029673cd0f234d2c4ce3ee5a383aa622e1bd
+    case_results:
+      - symbol_id: SYM-test-owned-engine-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 667334
+      - symbol_id: SYM-packed-e2e-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 667334
+      - symbol_id: SYM-proof-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 667334
+      - symbol_id: SYM-shared-npm-cache-resolution
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 667334
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-0824d37aae977dd5258d2a5e
+    test_id: TEST-test-journaled-engine-harness
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-test-journaled-engine-harness
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-test-journaled-engine-harness
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 9506b01b3f5194b44f47602b13261ce3139304cec73818f4b0553c152eb51048
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:43:20.946Z'
+    finished_at: '2026-08-23T22:54:33.689Z'
+    artifact_digest: ccb67eb50018ec20f89341e39a24ee20420c6910596e9417672e58f912adc686
+    contract_hash: 974c93beee9ee76c06aba5714815029673cd0f234d2c4ce3ee5a383aa622e1bd
+    case_results:
+      - symbol_id: SYM-test-owned-engine-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 672743
+      - symbol_id: SYM-packed-e2e-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 672743
+      - symbol_id: SYM-proof-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 672743
+      - symbol_id: SYM-shared-npm-cache-resolution
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 672743
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-236c99246476704c6874e3c1
+    test_id: TEST-test-journaled-engine-harness
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-test-journaled-engine-harness
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-test-journaled-engine-harness
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a54a428a72f914fe4ee86257b1e2eb792f98958f88ccf0d6a45eef244ab53055
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:29:16.853Z'
+    finished_at: '2026-08-24T06:42:06.113Z'
+    artifact_digest: 93b85790bde8917eac86145c7ef95bf3376ff28b4e6a3811d84ccf17b2daa1de
+    contract_hash: 974c93beee9ee76c06aba5714815029673cd0f234d2c4ce3ee5a383aa622e1bd
+    case_results:
+      - symbol_id: SYM-test-owned-engine-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 769260
+      - symbol_id: SYM-packed-e2e-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 769260
+      - symbol_id: SYM-proof-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 769260
+      - symbol_id: SYM-shared-npm-cache-resolution
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 769260
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-9a1d61cc7c36ee6847db6fe4
+    test_id: TEST-test-journaled-engine-harness
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-test-journaled-engine-harness
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-test-journaled-engine-harness
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: c2c5a06c408b705211516e8bd1f6733b82e8addfc4acd70c33d47a850f768285
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:57:27.768Z'
+    finished_at: '2026-08-24T07:09:37.396Z'
+    artifact_digest: ef89660e75e110f7ed1546cd3df56fcce03c4a747918c7e16dd4b3e02b69d963
+    contract_hash: 974c93beee9ee76c06aba5714815029673cd0f234d2c4ce3ee5a383aa622e1bd
+    case_results:
+      - symbol_id: SYM-test-owned-engine-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 729628
+      - symbol_id: SYM-packed-e2e-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 729628
+      - symbol_id: SYM-proof-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 729628
+      - symbol_id: SYM-shared-npm-cache-resolution
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 729628
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-8d370278672827a84b153144
+    test_id: TEST-test-journaled-engine-harness
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-test-journaled-engine-harness
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-test-journaled-engine-harness
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:27:16.092Z'
+    finished_at: '2026-08-24T07:39:51.409Z'
+    artifact_digest: 60deaf0f98366215f00a15f640f11cebeba43bef6f02bda778116d765fe26f99
+    contract_hash: 974c93beee9ee76c06aba5714815029673cd0f234d2c4ce3ee5a383aa622e1bd
+    case_results:
+      - symbol_id: SYM-test-owned-engine-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 755317
+      - symbol_id: SYM-packed-e2e-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 755317
+      - symbol_id: SYM-proof-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 755317
+      - symbol_id: SYM-shared-npm-cache-resolution
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 755317
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-f7ad0d86b011c261a902de92
+    test_id: TEST-test-journaled-engine-harness
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-test-journaled-engine-harness
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-test-journaled-engine-harness
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:52:05.489Z'
+    finished_at: '2026-08-24T08:04:49.574Z'
+    artifact_digest: 7c358b7767fac3d2cfbb94485f3471476ddc1b83bd3b946f1324e3224a2e8cc2
+    contract_hash: 974c93beee9ee76c06aba5714815029673cd0f234d2c4ce3ee5a383aa622e1bd
+    case_results:
+      - symbol_id: SYM-test-owned-engine-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 764085
+      - symbol_id: SYM-packed-e2e-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 764085
+      - symbol_id: SYM-proof-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 764085
+      - symbol_id: SYM-shared-npm-cache-resolution
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 764085
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-d0cb247499810a964453b582
+    test_id: TEST-test-journaled-engine-harness
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-test-journaled-engine-harness
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-test-journaled-engine-harness
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0202c720e01d3b5e58358f98e61e524d501259ef3b14d6f74a44ef1fd03cfad1
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:24:22.363Z'
+    finished_at: '2026-08-24T08:37:41.629Z'
+    artifact_digest: 099e3a0560acba7fe499340f56adcc257883e76fa8fa2d9b1a60b71b8abcacc9
+    contract_hash: 974c93beee9ee76c06aba5714815029673cd0f234d2c4ce3ee5a383aa622e1bd
+    case_results:
+      - symbol_id: SYM-test-owned-engine-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 799266
+      - symbol_id: SYM-packed-e2e-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 799266
+      - symbol_id: SYM-proof-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 799266
+      - symbol_id: SYM-shared-npm-cache-resolution
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 799266
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-63c0e8ef2d7e2d4bbab6ccd4
+    test_id: TEST-test-journaled-engine-harness
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-test-journaled-engine-harness
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-test-journaled-engine-harness
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 5e0dc87316dbd903ca5f2e3da37265c33a1559b0fecdabc93ab978662fad7b3b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:54:37.320Z'
+    finished_at: '2026-08-24T09:07:43.201Z'
+    artifact_digest: 25133b700cb5911dfbeb7ed14a6330099cb09be1cf75e1969f462c257875a2fe
+    contract_hash: 974c93beee9ee76c06aba5714815029673cd0f234d2c4ce3ee5a383aa622e1bd
+    case_results:
+      - symbol_id: SYM-test-owned-engine-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 785881
+      - symbol_id: SYM-packed-e2e-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 785881
+      - symbol_id: SYM-proof-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 785881
+      - symbol_id: SYM-shared-npm-cache-resolution
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 785881
 ---
 
 The harness tests verify graceful signal-driven journal flush and replay,

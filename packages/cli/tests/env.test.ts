@@ -10,6 +10,12 @@ import {
 
 const originalEnv = { ...process.env };
 
+function clearEnv(key: string): void {
+  const next = { ...process.env };
+  Reflect.deleteProperty(next, key);
+  process.env = next;
+}
+
 afterEach(() => {
   process.env = { ...originalEnv };
 });
@@ -22,7 +28,7 @@ describe("cli env helpers", () => {
     process.env.KIBI_BRANCH = " ";
     expect(getBranchOverride()).toBe(" ");
 
-    process.env.KIBI_BRANCH = undefined;
+    clearEnv("KIBI_BRANCH");
     expect(getBranchOverride()).toBeUndefined();
   });
 
@@ -33,7 +39,7 @@ describe("cli env helpers", () => {
     process.env.KIBI_KB_PL_PATH = "";
     expect(getKbPlPathOverride()).toBe("");
 
-    process.env.KIBI_KB_PL_PATH = undefined;
+    clearEnv("KIBI_KB_PL_PATH");
     expect(getKbPlPathOverride()).toBeUndefined();
   });
 

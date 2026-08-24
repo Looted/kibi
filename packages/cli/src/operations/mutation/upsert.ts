@@ -43,9 +43,11 @@ import {
 import {
   type SymbolCompilerLockHandle,
   acquireSymbolCompilerLock,
+  releaseSymbolCompilerLock,
 } from "./symbol-compiler-lock.js";
 import { validateSymbolGranularity } from "./symbol-granularity.js";
 import { refreshSymbolCoordinatesForManifest } from "./symbol-refresh.js";
+import type { ArtifactPublicationReceipt } from "./symbol-refresh.js";
 import type { RelationshipInput, UpsertInput, UpsertPayload } from "./types.js";
 import { validateUpsertInput } from "./validation.js";
 import { scenarioCoverageWarnings } from "./warnings.js";
@@ -216,7 +218,12 @@ function reextractCanonicalSymbolEntity(
   if (mine === undefined) return null;
   const [result] = extractManifestSymbolRecords([mine], absoluteManifest);
   if (result === undefined) return null;
-  return result.entity as unknown as Record<string, unknown>;
+  return {
+    ...(result.entity as unknown as Record<string, unknown>),
+    ...(result.sourceFile === undefined
+      ? {}
+      : { sourceFile: result.sourceFile }),
+  };
 }
 
 export async function executeUpsert(
@@ -245,6 +252,8 @@ export async function executeUpsert(
   let changeKind: "created" | "updated" | null = null;
   let semanticAdvisor: SemanticAdvisorReceipt | undefined;
   let compilerLock: SymbolCompilerLockHandle | undefined;
+  let coordinatePublication: ArtifactPublicationReceipt | undefined;
+  let operationFailure: { readonly error: unknown } | undefined;
   const relationshipShardBefore = new Map<string, string | null>();
   const relationshipShardAfterHash = new Map<string, string | null>();
   const holdsSymbolCompilerLock =
@@ -392,6 +401,7 @@ export async function executeUpsert(
         path.resolve(context.workspaceRoot, sourceWrite.receipt.path),
         context,
       );
+      coordinatePublication = refresh.publication;
       if (!refresh.found || refresh.outcome === "removed") {
         throw new Error(
           `Coordinate refresh could not find ${input.id} in the authored symbol manifest`,
@@ -534,6 +544,14 @@ export async function executeUpsert(
       structuredContent: payload,
     };
   } catch (error) {
+    let coordinateRollbackError: unknown;
+    if (!compiledCommitted && coordinatePublication !== undefined) {
+      try {
+        coordinatePublication.rollback();
+      } catch (rollbackError) {
+        coordinateRollbackError = rollbackError;
+      }
+    }
     if (!compiledCommitted) {
       for (const [shardPath, before] of relationshipShardBefore) {
         try {
@@ -597,10 +615,23 @@ export async function executeUpsert(
         },
       };
     }
-    if (error instanceof OperationError) throw error;
+    if (coordinateRollbackError !== undefined) {
+      const failure = new AggregateError(
+        [error, coordinateRollbackError],
+        `Upsert failed and coordinate artifact rollback failed for ${input.id}`,
+      );
+      operationFailure = { error: failure };
+      throw failure;
+    }
+    if (error instanceof OperationError) {
+      operationFailure = { error };
+      throw error;
+    }
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Upsert execution failed: ${message}`);
+    const failure = new Error(`Upsert execution failed: ${message}`);
+    operationFailure = { error: failure };
+    throw failure;
   } finally {
-    compilerLock?.release();
+    releaseSymbolCompilerLock(compilerLock, operationFailure);
   }
 }

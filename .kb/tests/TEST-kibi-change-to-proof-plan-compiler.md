@@ -440,6 +440,366 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 46054
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-3b36afd2d03d20e65d11d0c8
+    test_id: TEST-kibi-change-to-proof-plan-compiler
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-plan-compiler
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-plan-compiler
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 179ebe71578e274182f932a44b388e84629d8c35aab70e11ed71512b5426c8e3
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T07:49:41.489Z'
+    finished_at: '2026-08-23T07:50:42.084Z'
+    artifact_digest: b57337591ed58e6be0faed3e1154454277830b18f7a3b9763f2dabc76d221377
+    contract_hash: c1f7a009aef05413f810222cdf76b7c6cc8b9e90b37c9ed7484ca9166030e232
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-plan-compiler
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 60595
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-feafb0e8b5836e8bbfdf826a
+    test_id: TEST-kibi-change-to-proof-plan-compiler
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-plan-compiler
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-plan-compiler
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: bd8e6d28630c837d83bb606b786976c761f4bcb8326f1aab37d01845783fbafe
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T08:33:02.309Z'
+    finished_at: '2026-08-23T08:33:50.720Z'
+    artifact_digest: 8c8f3f1b39cb8d20c0b404e5f4b1c25ba9c9d27565558b9ec90d73fd8a1fb4de
+    contract_hash: c1f7a009aef05413f810222cdf76b7c6cc8b9e90b37c9ed7484ca9166030e232
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-plan-compiler
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 48411
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-a9682be09925cf64cbbec973
+    test_id: TEST-kibi-change-to-proof-plan-compiler
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-plan-compiler
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-plan-compiler
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ee22ec51c9bc3153aa0a330d71805a1c8ce310bf3a763dc346ad13e15071ba11
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T12:29:40.853Z'
+    finished_at: '2026-08-23T12:30:28.722Z'
+    artifact_digest: 828d1c57bc50a9b829dbb0f30809ad0ddd6ff5cfaa38843207512e017f9cc783
+    contract_hash: c1f7a009aef05413f810222cdf76b7c6cc8b9e90b37c9ed7484ca9166030e232
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-plan-compiler
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 47869
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-89efcbd0cf58181c9336f596
+    test_id: TEST-kibi-change-to-proof-plan-compiler
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-plan-compiler
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-plan-compiler
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dea1a8d20393c9e2212505a158b80a73843c68d9ea042614fc6c80fa98589b28
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:29:57.429Z'
+    finished_at: '2026-08-23T19:30:45.398Z'
+    artifact_digest: 73f38b6d1db1f9d1427bd6ca42959a450f8294cf7fc0be756815fbd4ebb120ca
+    contract_hash: c1f7a009aef05413f810222cdf76b7c6cc8b9e90b37c9ed7484ca9166030e232
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-plan-compiler
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 47969
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-bd3b96f81d04c623d5816143
+    test_id: TEST-kibi-change-to-proof-plan-compiler
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-plan-compiler
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-plan-compiler
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dcfad834bdf07e98adee34ec88d018b898fcdad42b22ba99a91adbfd48ff7459
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:56:10.241Z'
+    finished_at: '2026-08-23T19:56:57.734Z'
+    artifact_digest: 45ba8c20e9c0d83c9f0f9a70a37f2f4a3c4a8ed08eec411466391c2979adf9f5
+    contract_hash: c1f7a009aef05413f810222cdf76b7c6cc8b9e90b37c9ed7484ca9166030e232
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-plan-compiler
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 47493
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-8d994d057c5e866484d8bd44
+    test_id: TEST-kibi-change-to-proof-plan-compiler
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-plan-compiler
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-plan-compiler
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 14ca65ca0dd701b64b6b9dc632e9eeda9ed796c6b816a70fbd6b50db303194cc
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:23:39.086Z'
+    finished_at: '2026-08-23T20:24:25.597Z'
+    artifact_digest: 1a0140bde8dee0958724fb3ee1fbf86bd9d9dd728e20d79e2843319bea56f355
+    contract_hash: c1f7a009aef05413f810222cdf76b7c6cc8b9e90b37c9ed7484ca9166030e232
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-plan-compiler
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 46511
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-4848b4843a2df8361a273c63
+    test_id: TEST-kibi-change-to-proof-plan-compiler
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-plan-compiler
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-plan-compiler
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 3ee001d32bb209a819714ba2e42edd8ab694bfb5be890192445fb7e202afb01b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:49:47.795Z'
+    finished_at: '2026-08-23T20:50:32.975Z'
+    artifact_digest: 9dcdad6087396a62a2c17274c863b01480558445acb0f792439fa3ff515581ba
+    contract_hash: c1f7a009aef05413f810222cdf76b7c6cc8b9e90b37c9ed7484ca9166030e232
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-plan-compiler
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 45180
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-fd8614871c13f521f4131192
+    test_id: TEST-kibi-change-to-proof-plan-compiler
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-plan-compiler
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-plan-compiler
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8da5165ebb43b8ee33c18ba479134826479b9cecae4caf47c854dd2a844555c7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:30:14.191Z'
+    finished_at: '2026-08-23T22:30:58.795Z'
+    artifact_digest: c6c1e7d8dbe36438ddc2f026d7d9e6b042ed49245719d6ef5ba092b682b6f899
+    contract_hash: c1f7a009aef05413f810222cdf76b7c6cc8b9e90b37c9ed7484ca9166030e232
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-plan-compiler
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 44604
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-41415fc42f6abe3f81736097
+    test_id: TEST-kibi-change-to-proof-plan-compiler
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-plan-compiler
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-plan-compiler
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 9506b01b3f5194b44f47602b13261ce3139304cec73818f4b0553c152eb51048
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:56:32.944Z'
+    finished_at: '2026-08-23T22:57:18.663Z'
+    artifact_digest: 0d5a1eb3fa0f10f87168bafd57ca6c154db60f9f55f87aff4c2a438fad0e2458
+    contract_hash: c1f7a009aef05413f810222cdf76b7c6cc8b9e90b37c9ed7484ca9166030e232
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-plan-compiler
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 45719
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-fa850efd49fc087f44e6345d
+    test_id: TEST-kibi-change-to-proof-plan-compiler
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-plan-compiler
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-plan-compiler
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a54a428a72f914fe4ee86257b1e2eb792f98958f88ccf0d6a45eef244ab53055
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:44:28.112Z'
+    finished_at: '2026-08-24T06:45:21.312Z'
+    artifact_digest: 86b9cad23c347055e6b3275b883b89c4bccd1f6311edb01f966242ac9cf2dfd2
+    contract_hash: c1f7a009aef05413f810222cdf76b7c6cc8b9e90b37c9ed7484ca9166030e232
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-plan-compiler
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 53200
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-5054a408a6cb87cb02038dd5
+    test_id: TEST-kibi-change-to-proof-plan-compiler
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-plan-compiler
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-plan-compiler
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: c2c5a06c408b705211516e8bd1f6733b82e8addfc4acd70c33d47a850f768285
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:11:44.692Z'
+    finished_at: '2026-08-24T07:12:34.445Z'
+    artifact_digest: 79239a13f10f94ae82aa4722461d5d855fc7c19983ca8dc9c045254c88dbb5cb
+    contract_hash: c1f7a009aef05413f810222cdf76b7c6cc8b9e90b37c9ed7484ca9166030e232
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-plan-compiler
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 49753
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-42cf66cbda7f7f77116d82ac
+    test_id: TEST-kibi-change-to-proof-plan-compiler
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-plan-compiler
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-plan-compiler
+    scope: end_to_end
+    outcome: failed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:42:15.735Z'
+    finished_at: '2026-08-24T07:43:05.177Z'
+    artifact_digest: b2245860f9946e6ff5dd3edc44849ca47d9d6b726da1904026e7a7b52da21e5a
+    contract_hash: c1f7a009aef05413f810222cdf76b7c6cc8b9e90b37c9ed7484ca9166030e232
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-plan-compiler
+        project: default
+        outcome: failed
+        retries: 0
+        duration_ms: 49442
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-6eabae278ca9c9b8e9dc971a
+    test_id: TEST-kibi-change-to-proof-plan-compiler
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-plan-compiler
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-plan-compiler
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:07:30.270Z'
+    finished_at: '2026-08-24T08:08:30.966Z'
+    artifact_digest: 9645c4b8d04cb5364d92f9afd2fcdfd9648dfd73cc7e8b261641589678b20cbc
+    contract_hash: c1f7a009aef05413f810222cdf76b7c6cc8b9e90b37c9ed7484ca9166030e232
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-plan-compiler
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 60696
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-61f5e9328e28abc0e30199b6
+    test_id: TEST-kibi-change-to-proof-plan-compiler
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-plan-compiler
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-plan-compiler
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0202c720e01d3b5e58358f98e61e524d501259ef3b14d6f74a44ef1fd03cfad1
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:40:03.539Z'
+    finished_at: '2026-08-24T08:40:56.638Z'
+    artifact_digest: 45c93d2d5985c9ec850a32d4a9dbd1345ae5784b2ffac5b8522cd2bdb6b6ca8c
+    contract_hash: c1f7a009aef05413f810222cdf76b7c6cc8b9e90b37c9ed7484ca9166030e232
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-plan-compiler
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 53099
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-0ba539ced76c6bd18ccdb2ab
+    test_id: TEST-kibi-change-to-proof-plan-compiler
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-plan-compiler
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-plan-compiler
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 5e0dc87316dbd903ca5f2e3da37265c33a1559b0fecdabc93ab978662fad7b3b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T09:10:09.042Z'
+    finished_at: '2026-08-24T09:10:59.574Z'
+    artifact_digest: 8f827afd75e607416d5dd43bc6ee213c64f87d7a50323b2a98d483f3b7dfc9fe
+    contract_hash: c1f7a009aef05413f810222cdf76b7c6cc8b9e90b37c9ed7484ca9166030e232
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-plan-compiler
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 50532
 ---
 
 Operation tests verify deterministic plan hashes, one disposition per assertive clause, contradiction and ontology-gap abstentions, dependency ordering, sequential apply behavior, and rejection of stale plan hashes. MCP and CLI fixtures assert the same planning and mutation contracts.

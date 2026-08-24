@@ -214,6 +214,7 @@ export class ManifestError extends Error {
   constructor(
     message: string,
     public filePath: string,
+    public readonly classification?: "coordinate-artifact",
   ) {
     super(message);
     this.name = "ManifestError";
@@ -476,9 +477,15 @@ function readCoordinateArtifactFromFile(
   }
 
   try {
-    const parsed = parseCoordinateArtifact(readFileSync(coordinatesPath, "utf8"));
+    const parsed = parseCoordinateArtifact(
+      readFileSync(coordinatesPath, "utf8"),
+    );
     if (parsed.status === "invalid") {
-      throw new ManifestError(parsed.reason, coordinatesPath);
+      throw new ManifestError(
+        parsed.reason,
+        coordinatesPath,
+        "coordinate-artifact",
+      );
     }
     return parsed;
   } catch (error) {
@@ -486,26 +493,19 @@ function readCoordinateArtifactFromFile(
       throw new ManifestError(
         `Failed to parse coordinate artifact: ${error.message}`,
         coordinatesPath,
+        "coordinate-artifact",
       );
     }
     throw error;
   }
 }
 
-/**
- * Resolve a manifest-declared source file for legacy coordinate validation.
- * Source identities are workspace-relative, so candidates are resolved against
- * the process working directory used by production sync and, as a fallback,
- * the manifest's grandparent (the workspace root for canonical `.kb/symbols.yaml`
- * and one-level-deep manifests).
- */
-function legacySourceTextResolver(
+/** Resolve workspace-relative source files used to validate bound coordinates. */
+function sourceTextResolver(
   manifestPath: string,
 ): (sourceFile: string) => string | null {
   const bases = [process.cwd()];
-  const grandparent = path.resolve(
-    path.dirname(path.dirname(manifestPath)),
-  );
+  const grandparent = path.resolve(path.dirname(path.dirname(manifestPath)));
   if (!bases.includes(grandparent)) bases.push(grandparent);
   return (sourceFile: string) => {
     let resolved: string | null = null;
@@ -543,7 +543,7 @@ export function readManifestWithCoordinateOverlay(
   );
 
   return mergeCoordinatesWithManifest(manifestRecords, coordinateArtifact, {
-    resolveSourceText: legacySourceTextResolver(manifestPath),
+    resolveSourceText: sourceTextResolver(manifestPath),
   });
 }
 

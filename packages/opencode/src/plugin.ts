@@ -27,15 +27,15 @@ import {
 import type { ReminderKind } from "./file-operation-state.js";
 import type { CacheKey } from "./guidance-cache.js";
 import {
-  type OpenCodeConfigHookInput,
-  getKibiBootstrapCommandCapability,
-  registerKibiBootstrapCommand,
-} from "./kibi-bootstrap-capability.js";
-import {
   type KbFreshnessScope,
   createKbFreshnessEvidenceStore,
   evaluateKbFreshness,
 } from "./kb-freshness-state.js";
+import {
+  type OpenCodeConfigHookInput,
+  getKibiBootstrapCommandCapability,
+  registerKibiBootstrapCommand,
+} from "./kibi-bootstrap-capability.js";
 import {
   type KibiCheckpointContext,
   KibiCheckpointRunner,

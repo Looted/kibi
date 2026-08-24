@@ -367,6 +367,366 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 6879
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-555bb1b44f0f1e817c145658
+    test_id: TEST-core-journaled-engine-lifecycle
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-lifecycle
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-lifecycle
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 179ebe71578e274182f932a44b388e84629d8c35aab70e11ed71512b5426c8e3
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T07:47:47.053Z'
+    finished_at: '2026-08-23T07:47:55.493Z'
+    artifact_digest: 1cd8228293a7fd68db65f93448b7081f91dda288b51a8b985a40e64ea57b2c41
+    contract_hash: 61d4add5b0e3bf8f8b7c432b951f2a2c1211224913c1b93d120583e3ff015cd1
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-lifecycle
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 8440
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-c969ccb0fa2085d00aa14a68
+    test_id: TEST-core-journaled-engine-lifecycle
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-lifecycle
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-lifecycle
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: bd8e6d28630c837d83bb606b786976c761f4bcb8326f1aab37d01845783fbafe
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T08:31:19.338Z'
+    finished_at: '2026-08-23T08:31:27.569Z'
+    artifact_digest: a5db7ba28b963357e377ab892b895c63ff8b75e5cb0a36efe4388a717cae4478
+    contract_hash: 61d4add5b0e3bf8f8b7c432b951f2a2c1211224913c1b93d120583e3ff015cd1
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-lifecycle
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 8231
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-d14cb7ab8bdb89ce6231a5a1
+    test_id: TEST-core-journaled-engine-lifecycle
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-lifecycle
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-lifecycle
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ee22ec51c9bc3153aa0a330d71805a1c8ce310bf3a763dc346ad13e15071ba11
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T12:27:57.754Z'
+    finished_at: '2026-08-23T12:28:06.024Z'
+    artifact_digest: 1a97beb4ca2bdc36f1c1372f71080fbd956f3a812003428533c1382c65d2d9ee
+    contract_hash: 61d4add5b0e3bf8f8b7c432b951f2a2c1211224913c1b93d120583e3ff015cd1
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-lifecycle
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 8270
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-d17261bf20d0f38f9777a1f8
+    test_id: TEST-core-journaled-engine-lifecycle
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-lifecycle
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-lifecycle
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dea1a8d20393c9e2212505a158b80a73843c68d9ea042614fc6c80fa98589b28
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:28:09.756Z'
+    finished_at: '2026-08-23T19:28:17.973Z'
+    artifact_digest: 7c70a3868f5a5a281c476476549f5b72ed1fce2f59eca5c6a86f043d0becea5d
+    contract_hash: 61d4add5b0e3bf8f8b7c432b951f2a2c1211224913c1b93d120583e3ff015cd1
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-lifecycle
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 8217
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-e9ed76ce018816647ce96d05
+    test_id: TEST-core-journaled-engine-lifecycle
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-lifecycle
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-lifecycle
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dcfad834bdf07e98adee34ec88d018b898fcdad42b22ba99a91adbfd48ff7459
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T19:54:26.958Z'
+    finished_at: '2026-08-23T19:54:35.125Z'
+    artifact_digest: 7e402dac04402b00e7f84e03a8b6e2d965da5af492ef4ba6d0cd29e8ab36ef37
+    contract_hash: 61d4add5b0e3bf8f8b7c432b951f2a2c1211224913c1b93d120583e3ff015cd1
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-lifecycle
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 8167
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-ed57403979d34f95a675ca1c
+    test_id: TEST-core-journaled-engine-lifecycle
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-lifecycle
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-lifecycle
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 14ca65ca0dd701b64b6b9dc632e9eeda9ed796c6b816a70fbd6b50db303194cc
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:21:57.492Z'
+    finished_at: '2026-08-23T20:22:05.715Z'
+    artifact_digest: dafa53c0af24324465cbfab49e2fbdb4991aa6e2bcc05564b79aade7f8fab0d0
+    contract_hash: 61d4add5b0e3bf8f8b7c432b951f2a2c1211224913c1b93d120583e3ff015cd1
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-lifecycle
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 8223
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-0a3e46bc6e3881a709ab9bd0
+    test_id: TEST-core-journaled-engine-lifecycle
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-lifecycle
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-lifecycle
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 3ee001d32bb209a819714ba2e42edd8ab694bfb5be890192445fb7e202afb01b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T20:48:08.148Z'
+    finished_at: '2026-08-23T20:48:16.242Z'
+    artifact_digest: fab6d59863dd45318ec55eacf5a6ba1d135a5e9484fc78e2aa354720f7ebb63b
+    contract_hash: 61d4add5b0e3bf8f8b7c432b951f2a2c1211224913c1b93d120583e3ff015cd1
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-lifecycle
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 8094
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-f45526961ae24b38a3f1751d
+    test_id: TEST-core-journaled-engine-lifecycle
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-lifecycle
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-lifecycle
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8da5165ebb43b8ee33c18ba479134826479b9cecae4caf47c854dd2a844555c7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:28:34.112Z'
+    finished_at: '2026-08-23T22:28:42.207Z'
+    artifact_digest: bcc1bd7699aa92d81409a9e8358fa6a3de2556f643c25e63e7e7968fd9a597ec
+    contract_hash: 61d4add5b0e3bf8f8b7c432b951f2a2c1211224913c1b93d120583e3ff015cd1
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-lifecycle
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 8095
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-4fb14ce3a066524aff01b853
+    test_id: TEST-core-journaled-engine-lifecycle
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-lifecycle
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-lifecycle
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 9506b01b3f5194b44f47602b13261ce3139304cec73818f4b0553c152eb51048
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-23T22:54:52.530Z'
+    finished_at: '2026-08-23T22:55:00.603Z'
+    artifact_digest: e134c9ff68b15811c5fc9aff209009dd72183981c35fa0218eeeddfeadfdaaf2
+    contract_hash: 61d4add5b0e3bf8f8b7c432b951f2a2c1211224913c1b93d120583e3ff015cd1
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-lifecycle
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 8073
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-efd1d76912bbfd9c663af821
+    test_id: TEST-core-journaled-engine-lifecycle
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-lifecycle
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-lifecycle
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a54a428a72f914fe4ee86257b1e2eb792f98958f88ccf0d6a45eef244ab53055
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:42:25.211Z'
+    finished_at: '2026-08-24T06:42:33.821Z'
+    artifact_digest: 52371b4ce35ba0a43e9f464d51e1e738fe1bc5fdbf58bd58013f6651698364fb
+    contract_hash: 61d4add5b0e3bf8f8b7c432b951f2a2c1211224913c1b93d120583e3ff015cd1
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-lifecycle
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 8610
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-0c3421745e83f2ab5fe507e8
+    test_id: TEST-core-journaled-engine-lifecycle
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-lifecycle
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-lifecycle
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: c2c5a06c408b705211516e8bd1f6733b82e8addfc4acd70c33d47a850f768285
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:09:56.572Z'
+    finished_at: '2026-08-24T07:10:04.858Z'
+    artifact_digest: 299187a3671e5004b809f5692e84297a7d536ea380dd97f67efe85ba527861c7
+    contract_hash: 61d4add5b0e3bf8f8b7c432b951f2a2c1211224913c1b93d120583e3ff015cd1
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-lifecycle
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 8286
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-12be2fa90aa490f24bb9b673
+    test_id: TEST-core-journaled-engine-lifecycle
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-lifecycle
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-lifecycle
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:40:13.195Z'
+    finished_at: '2026-08-24T07:40:23.044Z'
+    artifact_digest: 219c19a5768e81f2ec0ac54c0eb8d31eec1753045c90f274d9ba8316d3b65b98
+    contract_hash: 61d4add5b0e3bf8f8b7c432b951f2a2c1211224913c1b93d120583e3ff015cd1
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-lifecycle
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 9849
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-53b55f796c9a903d424a63d7
+    test_id: TEST-core-journaled-engine-lifecycle
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-lifecycle
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-lifecycle
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:05:26.614Z'
+    finished_at: '2026-08-24T08:05:35.359Z'
+    artifact_digest: ef5181cfc0ff7d11edb17751f28927468a410b10384a72d0015616ee8d58b760
+    contract_hash: 61d4add5b0e3bf8f8b7c432b951f2a2c1211224913c1b93d120583e3ff015cd1
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-lifecycle
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 8745
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-223fe8fdd19b06fea5ce0c07
+    test_id: TEST-core-journaled-engine-lifecycle
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-lifecycle
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-lifecycle
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0202c720e01d3b5e58358f98e61e524d501259ef3b14d6f74a44ef1fd03cfad1
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:38:01.467Z'
+    finished_at: '2026-08-24T08:38:11.110Z'
+    artifact_digest: 64610fc95f6926aa0323f1e2d800fc95c9d801c747886387eb4d5e8e0f395518
+    contract_hash: 61d4add5b0e3bf8f8b7c432b951f2a2c1211224913c1b93d120583e3ff015cd1
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-lifecycle
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 9643
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-e7f4f9a715e27f33cf70e668
+    test_id: TEST-core-journaled-engine-lifecycle
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-lifecycle
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-lifecycle
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 5e0dc87316dbd903ca5f2e3da37265c33a1559b0fecdabc93ab978662fad7b3b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T09:08:04.659Z'
+    finished_at: '2026-08-24T09:08:13.468Z'
+    artifact_digest: 5bce656279c1ffb72d568ee171af0ca3a0caf67c31a5f929eaa64b39e0ca8529
+    contract_hash: 61d4add5b0e3bf8f8b7c432b951f2a2c1211224913c1b93d120583e3ff015cd1
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-lifecycle
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 8809
 ---
 
 The daemon suite starts simultaneous clients, verifies one socket and ordered
