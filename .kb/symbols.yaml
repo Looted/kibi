@@ -14182,14 +14182,15 @@ symbols:
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-codex-optimizer-error
     title: CodexOptimizerError
+    status: active
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    granularity_reason: legacy-link
     symbol_role: structural
-    granularity_reason: extractor-miss
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-codex-optimizer-error-name
     title: CodexOptimizerError.name
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts

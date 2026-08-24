@@ -290,7 +290,10 @@ export async function runCodexSkillOptStep(
       stdin: promptFor(options.request),
     });
     if (result.exitCode !== 0) {
-      throw new CodexOptimizerError(`optimizer_exit:${result.exitCode}`);
+      const stderrTail = result.stderr.trim().split("\n").slice(-6).join(" | ");
+      throw new CodexOptimizerError(
+        `optimizer_exit:${result.exitCode}${stderrTail ? `:${stderrTail.slice(0, 600)}` : ""}`,
+      );
     }
     const output = await readFile(outputLastMessage, "utf8");
     let body: string;

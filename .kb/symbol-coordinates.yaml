@@ -12203,7 +12203,7 @@ coordinates:
   SYM-skillopt-codex-optimizer-run:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 339
+    sourceEndLine: 342
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
     sourceLine: 187
   SYM-skillopt-codex-runtime-lease:
