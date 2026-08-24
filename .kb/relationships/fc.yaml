@@ -133,20 +133,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-87fdcd3ab995
   - type: implements
-    from: SYM-SYMBOL-COORDINATES-FORMAT-VERSION
-    to: REQ-generated-coordinate-persistence
-    created_at: 2026-08-23T20:28:01.716Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-05c402ee07d2
-  - type: covered_by
-    from: SYM-SYMBOL-COORDINATES-FORMAT-VERSION
-    to: TEST-generated-coordinate-repair
-    created_at: 2026-08-23T20:28:01.730Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d4e7bb5c009e
-  - type: implements
     from: SYM-SymbolCompilerLockOptions
     to: REQ-generated-coordinate-persistence
     created_at: 2026-08-23T20:36:18.873Z

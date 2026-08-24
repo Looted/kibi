@@ -620,7 +620,11 @@ User logs in with OAuth2 provider.
         seenAt: Record<string, string>;
       };
 
-      expect(cache.version).toBe(1);
+      // v2: workspace-relative keys + coordinate artifact dependency.
+      expect(cache.version).toBe(2);
+      expect(
+        Object.keys(cache.entityHashes ?? {}).length,
+      ).toBeGreaterThan(0);
       expect(Object.keys(cache.hashes).length).toBeGreaterThanOrEqual(3);
       expect(cache.hashes[".kb/requirements/req1.md"]).toMatch(
         /^[a-f0-9]{64}$/,

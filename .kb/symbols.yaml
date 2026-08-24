@@ -28467,3 +28467,13 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
+  - id: SYM-refreshSymbolCoordinatesForManifest
+    title: refreshSymbolCoordinatesForManifest
+    sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence

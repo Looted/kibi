@@ -123,20 +123,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-8025387b1bcc
   - type: implements
-    from: SYM-SymbolCompilerLockError2
-    to: REQ-generated-coordinate-persistence
-    created_at: 2026-08-23T20:28:05.898Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e7e8dcf1ae4a
-  - type: covered_by
-    from: SYM-SymbolCompilerLockError2
-    to: TEST-generated-coordinate-repair
-    created_at: 2026-08-23T20:28:05.918Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-58e72dcf4c17
-  - type: implements
     from: SYM-BRIDGE-ARTIFACT-ROOT-ENV
     to: REQ-skillopt-codex-optimization
     created_at: 2026-08-23T23:30:10.648Z

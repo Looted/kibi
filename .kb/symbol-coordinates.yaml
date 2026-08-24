@@ -1932,9 +1932,9 @@ coordinates:
     identityHash: 0ac99e0ac63d06661fa1ee2c31e35d1866ec9b65b6c5cf966b8b8251cf6b768d
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 224
+    sourceEndLine: 225
     sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
-    sourceLine: 212
+    sourceLine: 213
   SYM-canonical-RepoPosture:
     identityHash: cee1dbb4dcc499722a5b4c369ded10f9fcd03426aaaee97307626000f6c948e3
     sourceColumn: 12
@@ -1981,9 +1981,9 @@ coordinates:
     identityHash: 85da8abaf8c21e1a966d7561ea7d21ca18931d5899dac07925413344480a7ffc
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 241
+    sourceEndLine: 262
     sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
-    sourceLine: 237
+    sourceLine: 258
   SYM-canonical-shouldHandleFile:
     identityHash: 7324f09f6965826bb26caf89718e541523c52067270d63152d001e83aad7572d
     sourceColumn: 16
@@ -6216,7 +6216,7 @@ coordinates:
     identityHash: 718b72cdcdd3585f946ff3d90326797a8ce2a244b2c2636346d4fec6350cd837
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 602
+    sourceEndLine: 606
     sourceFile: packages/cli/src/operations/mutation/upsert.ts
     sourceLine: 222
   SYM-executeValidateUpsert:
@@ -11392,13 +11392,20 @@ coordinates:
     sourceEndLine: 38
     sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
     sourceLine: 34
+  SYM-refreshSymbolCoordinatesForManifest:
+    identityHash: 7d7886b26e69f6760a0cf0c29def00881fab84274af6056f49a5ec61d1b81a0a
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 255
+    sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
+    sourceLine: 242
   SYM-refreshSymbolCoordinatesUnlocked:
     identityHash: be841ef36d0ff00138b49eb8b4fc5a99ac8dae0a0c1571b3b4715d292c18b16a
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 234
+    sourceEndLine: 235
     sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
-    sourceLine: 228
+    sourceLine: 229
   SYM-registerAllTools:
     identityHash: e8271dd2d2d188231bdf23ad52ce8cc7d186ebb979805f3184a876c721aedfca
     sourceColumn: 16
@@ -19173,9 +19180,9 @@ coordinates:
     identityHash: f61eb4f7f15961a0ed28dc0a89384163ecd34a671a91f27a42408b6e9354d4a2
     sourceColumn: 5
     sourceEndColumn: 72
-    sourceEndLine: 798
+    sourceEndLine: 802
     sourceFile: packages/cli/tests/commands/sync.test.ts
-    sourceLine: 798
+    sourceLine: 802
   SYM-TimeoutHandle:
     identityHash: f53e8f5c2542a60ad62168ce6a19965745407aba00bf057beccc689210a4f69e
     sourceColumn: 12

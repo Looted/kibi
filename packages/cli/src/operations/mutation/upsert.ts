@@ -45,7 +45,7 @@ import {
   acquireSymbolCompilerLock,
 } from "./symbol-compiler-lock.js";
 import { validateSymbolGranularity } from "./symbol-granularity.js";
-import { refreshSymbolCoordinatesUnlocked } from "./symbol-refresh.js";
+import { refreshSymbolCoordinatesForManifest } from "./symbol-refresh.js";
 import type { RelationshipInput, UpsertInput, UpsertPayload } from "./types.js";
 import { validateUpsertInput } from "./validation.js";
 import { scenarioCoverageWarnings } from "./warnings.js";
@@ -387,7 +387,11 @@ export async function executeUpsert(
       context.sourceFirst !== false &&
       sourceWrite !== null
     ) {
-      const refresh = await refreshSymbolCoordinatesUnlocked(input.id, context);
+      const refresh = await refreshSymbolCoordinatesForManifest(
+        input.id,
+        path.resolve(context.workspaceRoot, sourceWrite.receipt.path),
+        context,
+      );
       if (!refresh.found || refresh.outcome === "removed") {
         throw new Error(
           `Coordinate refresh could not find ${input.id} in the authored symbol manifest`,

@@ -98,10 +98,11 @@ function publishArtifact(targetPath: string, content: string): void {
 async function refreshUnlocked(
   symbolId: string,
   context: OperationContext,
+  options: { readonly manifestPath?: string } = {},
 ): Promise<RefreshResult> {
   const fs = context.fs;
   if (fs === undefined) return { refreshed: false, found: false };
-  const manifest = await manifestPath(context);
+  const manifest = options.manifestPath ?? (await manifestPath(context));
   const artifactPath = artifactPathFor(manifest);
 
   let parsedManifest: Record<string, unknown>;
@@ -231,6 +232,26 @@ export async function refreshSymbolCoordinatesUnlocked(
 ): Promise<RefreshResult> {
   const active = implementation ?? refreshUnlocked;
   return active(symbolId, context);
+}
+
+/**
+ * Refresh against an explicitly authored manifest path (the source-first
+ * write target), not just the canonical lane. Callers hold the compiler lock.
+ */
+// implements REQ-generated-coordinate-persistence
+export async function refreshSymbolCoordinatesForManifest(
+  symbolId: string,
+  manifestAbsolutePath: string,
+  context: OperationContext,
+): Promise<RefreshResult> {
+  if (implementation !== null) {
+    return implementation(symbolId, context);
+  }
+  return refreshUnlocked(
+    symbolId,
+    context,
+    { manifestPath: manifestAbsolutePath },
+  );
 }
 
 // implements REQ-kibi-operation-interface-parity
