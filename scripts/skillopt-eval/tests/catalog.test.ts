@@ -11,6 +11,7 @@ import {
   validateSkillCatalog,
 } from "../catalog";
 import { CANONICAL_SKILLS } from "../catalog";
+import { buildPrivateManifest } from "../fixtures/evaluator";
 import {
   PREDICATE_DEVELOPMENT_CASE_ID,
   PREDICATE_HELD_OUT_CASE_IDS,
@@ -19,8 +20,8 @@ import {
   materializePredicateCorpus,
   reservePredicateMatrix,
 } from "../fixtures/predicate-corpus";
-import { buildPrivateManifest } from "../fixtures/evaluator";
 import { publicSkillDescriptors } from "../real-workflow-setup";
+import { REQUIRED_KIBI_TOOLS } from "../runtime/mcp-broker";
 import { temporaryRoot } from "./fixture-test-helpers";
 
 const predicateRoots: string[] = [];
@@ -108,11 +109,14 @@ describe("SkillOpt fixture catalog", () => {
 
   test("forbids direct upsert throughout every bootstrap task", () => {
     const task = buildSkillCatalog("kibi-bootstrap").find(
-      (candidate) => candidate.taskData.approvalPhase === "post-approval",
+      (candidate) => candidate.taskData.objectiveCode === "approved_plan_apply",
     );
-    if (task === undefined) throw new Error("bootstrap approval fixture missing");
+    if (task === undefined)
+      throw new Error("bootstrap approval fixture missing");
     const manifest = buildPrivateManifest({
-      task: task as unknown as Parameters<typeof buildPrivateManifest>[0]["task"],
+      task: task as unknown as Parameters<
+        typeof buildPrivateManifest
+      >[0]["task"],
       publicManifestHash: "a".repeat(64),
       workspaceHash: "b".repeat(64),
     });
@@ -120,13 +124,12 @@ describe("SkillOpt fixture catalog", () => {
       manifest.orderedMcpPredicates.forbidden.find(
         ({ tool }) => tool === "kb_upsert",
       )?.predicate,
-    ).toBe("always; use kb_apply_plan for approved bootstrap plans");
-    expect(manifest.orderedMcpPredicates.required.map(({ tool }) => tool)).toEqual([
-      "kb_plan_bootstrap",
-      "kb_status",
-      "kb_apply_plan",
-      "kb_check",
-    ]);
+    ).toBe(
+      "unless explicitly directed by an approved kibi.bootstrap-plan.v1 action",
+    );
+    expect(
+      manifest.orderedMcpPredicates.required.map(({ tool }) => tool),
+    ).toEqual(["kb_plan_bootstrap", "kb_apply_plan", "kb_check", "kb_status"]);
   });
 });
 
@@ -280,5 +283,120 @@ describe("predicate corpus rejects leak duplicate root drift or adaptive held-ou
     expect(JSON.stringify(first)).not.toMatch(
       /case-[a-z]|predicate_name|expectedLane/,
     );
+  });
+});
+
+describe("SkillOpt corpus executability invariants", () => {
+  const allTasks = [...buildPublicCatalog(), ...buildHeldOutCatalog()];
+
+  function manifestFor(task: (typeof allTasks)[number]) {
+    return buildPrivateManifest({
+      task: task as unknown as Parameters<
+        typeof buildPrivateManifest
+      >[0]["task"],
+      publicManifestHash: "a".repeat(64),
+      workspaceHash: "b".repeat(64),
+    });
+  }
+
+  test("every task carries an objective-specific expectation", () => {
+    expect(allTasks).toHaveLength(120);
+    const uncovered = allTasks.filter((task) => {
+      const manifest = manifestFor(task);
+      return (
+        manifest.workflowExpectation === null &&
+        manifest.predicateExpectation === null
+      );
+    });
+    expect(uncovered.map((task) => task.id)).toEqual([]);
+  });
+
+  test("every sequenced tool is advertised by the evaluator broker", () => {
+    for (const task of allTasks) {
+      const manifest = manifestFor(task);
+      for (const side of ["required", "forbidden"] as const) {
+        const unavailable = manifest.orderedMcpPredicates[side]
+          .map(({ tool }) => tool)
+          .filter((tool) => !REQUIRED_KIBI_TOOLS.includes(tool as never));
+        expect(unavailable).toEqual([]);
+      }
+    }
+  });
+
+  test("deletion-sanctioned tasks require kb_delete and never forbid it", () => {
+    const deleteObjectives = [
+      "legacy_shard_edge_cleanup",
+      "relationship_shard_delete",
+      "legacy_shard_reconciliation",
+      "obsolete_symbol_delete_with_replacement",
+      "extractor_owned_symbol_safety",
+    ];
+    for (const objective of deleteObjectives) {
+      const task = allTasks.find(
+        (candidate) => candidate.taskData.objectiveCode === objective,
+      );
+      if (task === undefined)
+        throw new Error(`missing delete-sanctioned task: ${objective}`);
+      const manifest = manifestFor(task);
+      expect(
+        manifest.orderedMcpPredicates.required.some(
+          ({ tool }) => tool === "kb_delete",
+        ),
+      ).toBe(true);
+      expect(
+        manifest.orderedMcpPredicates.forbidden.some(
+          ({ tool }) => tool === "kb_delete",
+        ),
+      ).toBe(false);
+    }
+  });
+
+  test("receipt and migration objectives sequence their dedicated operations", () => {
+    const expectations: Readonly<Record<string, readonly string[]>> = {
+      contracted_e2e_with_ontology_gap: [
+        "kb_ingest_verification",
+        "kb_coverage",
+        "kb_check",
+      ],
+      final_integration_invalidates_receipts: [
+        "kb_ingest_verification",
+        "kb_coverage",
+        "kb_check",
+      ],
+      safe_schema_application: ["kb_status", "kb_apply_plan", "kb_check"],
+      exact_legacy_branch_migration: ["kb_status", "kb_apply_plan", "kb_check"],
+    };
+    for (const [objective, suffix] of Object.entries(expectations)) {
+      const task = allTasks.find(
+        (candidate) => candidate.taskData.objectiveCode === objective,
+      );
+      if (task === undefined)
+        throw new Error(`missing objective fixture: ${objective}`);
+      const tools = manifestFor(task).orderedMcpPredicates.required.map(
+        ({ tool }) => tool,
+      );
+      const tail = [...tools.slice(-suffix.length)];
+      expect(tail).toEqual([...suffix]);
+    }
+  });
+
+  test("predicate-family tasks sequence advisor operations before writes", () => {
+    const predicateTask = allTasks.find((task) =>
+      task.taskData.objectiveCode.startsWith("model_predicate_"),
+    );
+    if (predicateTask === undefined)
+      throw new Error("predicate fixture missing");
+    const tools = manifestFor(predicateTask).orderedMcpPredicates.required.map(
+      ({ tool }) => tool,
+    );
+    expect(tools).toEqual([
+      "kb_search",
+      "kb_query",
+      "kb_semantic_advisor",
+      "kb_suggest_predicates",
+      "kb_model_requirement",
+      "kb_upsert",
+      "kb_check",
+    ]);
   });
 });

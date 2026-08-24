@@ -136,9 +136,19 @@ describe("SkillOpt documentation contract", () => {
         Notes:
           "Evaluates the assembled four-skill bundle and its compatibility/behavioral gates without selecting a single candidate for adoption.",
       },
+      {
+        Script: "`skillopt:cursor`",
+        Command: "`bun run scripts/skillopt-eval/cursor-operator.ts qualify`",
+        Notes:
+          "Non-authoritative Cursor compatibility lane. `qualify` checks version, session, models, and Kibi MCP approval with no paid call. `compat --skill S --candidate PATH --fixture-run-root PATH` runs frozen candidate bodies through the shared fixtures, evaluator broker, independent verifier, and sealed scorer. Cursor results never feed Codex gates or adoption.",
+      },
     ]);
 
-    expect(skilloptScripts).toEqual(["skillopt:optimize", "skillopt:smoke"]);
+    expect(skilloptScripts).toEqual([
+      "skillopt:cursor",
+      "skillopt:optimize",
+      "skillopt:smoke",
+    ]);
     expect(packageJson.scripts).toMatchObject({
       "skillopt:smoke": "bun run scripts/skillopt-eval/operator.ts smoke",
       "skillopt:optimize": "bun run scripts/skillopt-eval/operator.ts optimize",

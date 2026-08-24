@@ -38,6 +38,7 @@
     "sync:agent-skills": "bun run scripts/sync-agent-skills.ts --write",
     "skillopt:smoke": "bun run scripts/skillopt-eval/operator.ts smoke",
     "skillopt:optimize": "bun run scripts/skillopt-eval/operator.ts optimize",
+    "skillopt:cursor": "bun run scripts/skillopt-eval/cursor-operator.ts",
     "test:skillopt": "bun test --timeout 15000 ./scripts/skillopt-eval/tests",
     "benchmark:journaled-engine": "node documentation/tests/benchmarks/journaled-engine.bench.mjs",
     "sync:cursor-plugin-local": "./scripts/sync-cursor-plugin-local.sh",

@@ -28,6 +28,7 @@ An optional privileged verifier/installer lane (`kibi-skillopt-trust-v1`) exists
 | `skillopt:smoke` | `bun run scripts/skillopt-eval/operator.ts smoke` | Verifies the SkillOpt pin and Codex login, then runs the paid two-model capability canary. |
 | `skillopt:optimize` | `bun run scripts/skillopt-eval/operator.ts optimize --skill <skill>` | Verifies pin and login, materializes fixtures, allocates artifact roots, then runs the selected skill through preflight, smoke, Codex rewrite, public development gate, and held-out gates. Writes non-mutating review evidence only. Defaults to `--max-steps 1`; pass `--max-steps 1..4` for complete proposal rounds and `--seed-candidate PATH` to continue from preserved work. |
 | bundle suite | `bun run scripts/skillopt-eval/operator.ts suite` | Evaluates the assembled four-skill bundle and its compatibility/behavioral gates without selecting a single candidate for adoption. |
+| `skillopt:cursor` | `bun run scripts/skillopt-eval/cursor-operator.ts qualify` | Non-authoritative Cursor compatibility lane. `qualify` checks version, session, models, and Kibi MCP approval with no paid call. `compat --skill S --candidate PATH --fixture-run-root PATH` runs frozen candidate bodies through the shared fixtures, evaluator broker, independent verifier, and sealed scorer. Cursor results never feed Codex gates or adoption. |
 
 ```bash
 bun run skillopt:smoke
@@ -91,3 +92,14 @@ The held-out predicate supplement always reserves all 36 cells for four cases, t
 ## Recovery
 
 If a run stalls, start a new `bun run skillopt:optimize` with a fresh run id and pass the prior `candidate_skill.md` through `--seed-candidate` when it is worth retaining. To discard a partial tree, delete the printed `artifact-root` and `fixture-run-root` paths only after preserving any accepted candidate bodies. Local review remains non-mutating on retries; production adoption is an external verdict and installer handoff.
+
+## Cursor compatibility lane (non-authoritative)
+
+The Codex run lock, optimizer, and sealed held-out matrix remain Codex-only (`hosts: ["codex"]`). The Cursor lane cross-checks frozen candidate bodies on the `cursor-agent` CLI and never steers optimization or adoption:
+
+1. `bun run skillopt:cursor qualify` — fail-closed checks for version, an authenticated session, available models, and an approved Kibi MCP server. The receipt records booleans/versions only; tokens and account identifiers are never persisted.
+2. Materialize fixtures once per run (reuse the printed `fixture-run-root` from `skillopt:optimize`, or materialize offline) and freeze candidate bodies.
+3. `bun run skillopt:cursor compat --skill <skill> --candidate <candidate_skill.md> --fixture-run-root <root>` — development phase runs baseline + one-shot (optional) + candidate across the four development tasks; held-out phase runs candidate-only across that skill's held-out tasks.
+4. Verdicts: development is `compatible` only with zero security failures, mean score ≥ 70, and hard-pass rate ≥ 0.5 on the candidate; held-out results are informational. Anything else reports `incompatible` or `not-qualified` and blocks the compatibility handoff without altering Codex rankings.
+
+Cursor cells run unsandboxed inside their disposable workspace copy (no bwrap equivalent), so their evidence is advisory by construction. Reports are written to `$OPERATOR_BASE/cursor/<run-id>/cursor-compat.json` alongside per-cell receipts, transcripts, broker traces, and independent final-state receipts.

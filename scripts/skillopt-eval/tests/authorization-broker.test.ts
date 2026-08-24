@@ -38,7 +38,10 @@ describe("trusted broker authorization contracts", () => {
 
     // Then
     expect(exposed).toBe(true);
-    expect(allowlist.has("kb_delete")).toBe(false);
+    // Deletion is brokered and protocol-scored per task: the allowlist
+    // exposes kb_delete, while each private manifest forbids it except on
+    // deletion-sanctioned objectives.
+    expect(allowlist.has("kb_delete")).toBe(true);
   });
 
   test("separates immutable Root Authority scope from supervisor run scope", () => {

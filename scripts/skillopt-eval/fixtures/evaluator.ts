@@ -2,6 +2,14 @@ import { createHash } from "node:crypto";
 import type { CatalogSkill } from "../catalog";
 import type { parseTaskSpec } from "./contracts";
 import type { parsePrivateEvaluatorManifest } from "./evaluator-contracts";
+import {
+  DELETE_OBJECTIVES,
+  MIGRATION_APPLY_OBJECTIVES,
+  OBJECTIVE_WORKFLOWS,
+  RECEIPT_INGEST_OBJECTIVES,
+  RECEIPT_INSPECT_OBJECTIVES,
+  isPredicateObjective,
+} from "./objective-expectations";
 import { predicateCaseById } from "./predicate-cases";
 
 type FixtureTaskSpec = ReturnType<typeof parseTaskSpec>;
@@ -129,8 +137,20 @@ function adversarialAssessments(task: FixtureTaskSpec) {
   ];
 }
 
+const ADVISOR_READ_TOOLS = [
+  "kb_search",
+  "kb_query",
+  "kb_semantic_advisor",
+  "kb_suggest_predicates",
+  "kb_model_requirement",
+] as const;
+
 function requiredTools(task: FixtureTaskSpec): readonly string[] {
-  if (task.taskData.objectiveCode === "append_only_contract_drift") {
+  const objective = task.taskData.objectiveCode;
+  if (isPredicateObjective(objective)) {
+    return [...ADVISOR_READ_TOOLS, "kb_upsert", "kb_check"];
+  }
+  if (objective === "append_only_contract_drift") {
     return [
       "kb_search",
       "kb_query",
@@ -140,43 +160,89 @@ function requiredTools(task: FixtureTaskSpec): readonly string[] {
       "kb_check",
     ];
   }
-  const extraStatus = [
+  if (RECEIPT_INGEST_OBJECTIVES.has(objective)) {
+    return dedupe([
+      ...READ_TOOLS[task.skill],
+      "kb_status",
+      "kb_ingest_verification",
+      "kb_coverage",
+      "kb_check",
+    ]);
+  }
+  if (RECEIPT_INSPECT_OBJECTIVES.has(objective)) {
+    return dedupe([
+      ...READ_TOOLS[task.skill],
+      "kb_status",
+      "kb_coverage",
+      "kb_check",
+    ]);
+  }
+  if (DELETE_OBJECTIVES.has(objective)) {
+    return dedupe([
+      ...READ_TOOLS[task.skill],
+      ...(needsStatus(task) ? ["kb_status"] : []),
+      "kb_delete",
+      "kb_check",
+    ]);
+  }
+  if (MIGRATION_APPLY_OBJECTIVES.has(objective)) {
+    return dedupe([
+      ...READ_TOOLS[task.skill],
+      "kb_status",
+      "kb_apply_plan",
+      "kb_check",
+    ]);
+  }
+  const extraStatus = needsStatus(task) ? ["kb_status"] : [];
+  const tools =
+    task.skill === "kibi-bootstrap" &&
+    task.taskData.approvalPhase === "post-approval"
+      ? [
+          ...READ_TOOLS[task.skill],
+          ...extraStatus,
+          "kb_apply_plan",
+          "kb_check",
+          "kb_status",
+        ]
+      : task.taskData.mutation === "read-only"
+        ? [...READ_TOOLS[task.skill], ...extraStatus]
+        : [...READ_TOOLS[task.skill], ...extraStatus, "kb_upsert", "kb_check"];
+  return dedupe(tools);
+}
+
+function needsStatus(task: FixtureTaskSpec): boolean {
+  return [
     "exact_branch_identity",
     "legacy_branch_storage",
     "zero_blocking_but_stale",
     "stale_v2_schema",
     "stale_symbol_remap",
     "dirty_editor_config",
-    "append_only_contract_drift",
     "unchanged_snapshot_receipt_reuse",
     "quality_diagnostic_disposition",
     "obsolete_symbol_delete_with_replacement",
     "relationship_shard_delete",
     "same_version_export_surface_drift",
-    "legacy_migration_postconditions",
-    "unreadable_branch_store_recovery",
-    "arbitrary_branch_migration_refused",
     "missing_branch_store_status",
-    "final_integration_invalidates_receipts",
     "safe_schema_application",
     "stale_plan_hash_rejection",
     "partial_plan_destructive_refusal",
-    "unreadable_store_without_prolog",
     "exact_legacy_branch_migration",
     "legacy_shard_reconciliation",
     "extractor_owned_symbol_safety",
-    "contract_mismatch_preserving_receipt_history",
     "mixed_package_operator_escalation",
     "structured_quality_diagnostic_disposition",
-  ].includes(task.taskData.objectiveCode)
-    ? ["kb_status"]
-    : [];
-  const tools =
-    task.skill === "kibi-bootstrap" && task.taskData.approvalPhase === "post-approval"
-      ? [...READ_TOOLS[task.skill], ...extraStatus, "kb_apply_plan", "kb_check"]
-      : task.taskData.mutation === "read-only"
-        ? [...READ_TOOLS[task.skill], ...extraStatus]
-        : [...READ_TOOLS[task.skill], ...extraStatus, "kb_upsert", "kb_check"];
+    "classify_branch_status",
+    "recover_stale_state",
+    "inspect_source_impact",
+    "determine_completion_outcome",
+    "discover_requirement",
+    "symbol_granularity",
+    "trace_relationship_chain",
+  ].includes(task.taskData.objectiveCode);
+}
+
+function dedupe(tools: readonly string[]): readonly string[] {
   return [...new Set(tools)];
 }
 
@@ -203,331 +269,7 @@ function workflowExpectation(task: FixtureTaskSpec) {
     requiredSignals: readonly string[];
     forbiddenActions: readonly string[];
   };
-  const expectations: Readonly<Record<string, Workflow>> = {
-    exact_branch_identity: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["exact Git branch equals KB branch"],
-      forbiddenActions: ["copy branch store across refs", "rename Git branch"],
-    },
-    legacy_branch_storage: {
-      expectedOutcome: "complete",
-      expectedKbState: "legacy_compat",
-      expectedVerificationState: "not_evaluated",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["migration preview", "explicit apply boundary"],
-      forbiddenActions: ["direct .kb edit", "unreviewed migration"],
-    },
-    zero_blocking_but_stale: {
-      expectedOutcome: "complete",
-      expectedKbState: "stale",
-      expectedVerificationState: "not_evaluated",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["stale symbol IDs", "syncState stale"],
-      forbiddenActions: ["claim KB clean/fresh with stale status"],
-    },
-    stale_v2_schema: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "fresh",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["matching CLI/core schema", "v2 receipt retained"],
-      forbiddenActions: ["downgrade receipt", "hand-edit receipt"],
-    },
-    legacy_shard_edge_cleanup: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["exact edge absent after sync", "endpoints preserved"],
-      forbiddenActions: ["direct .kb edit"],
-    },
-    contracted_e2e_with_ontology_gap: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "fresh",
-      expectedProofState: "unresolved",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: [
-        "passing v2 receipt",
-        "ontology gap remains unresolved",
-        "proof-aware depth warning not emitted",
-      ],
-      forbiddenActions: [
-        "invent ontology grounding",
-        "claim proof proven",
-        "treat stale coverage-depth heuristic as proof failure",
-      ],
-    },
-    stale_symbol_remap: {
-      expectedOutcome: "complete",
-      expectedKbState: "stale",
-      expectedVerificationState: "not_evaluated",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["evidence-backed repair candidates"],
-      forbiddenActions: [
-        "fabricate coordinates",
-        "auto-remap without evidence",
-      ],
-    },
-    dirty_editor_config: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "dirty",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["dirty editor path reported"],
-      forbiddenActions: ["silently ignore editor config"],
-    },
-    append_only_contract_drift: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "fresh",
-      expectedProofState: "proven",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: [
-        "historical contract receipt preserved",
-        "current contract receipt appended",
-        "contract mismatch remains non-proof",
-      ],
-      forbiddenActions: [
-        "rewrite receipt history",
-        "delete historical receipt",
-        "claim old contract proof",
-        "recommend v1 receipt",
-      ],
-    },
-    unchanged_snapshot_receipt_reuse: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "fresh",
-      expectedProofState: "proven",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["receipt reuse conditions unchanged"],
-      forbiddenActions: ["rerun unchanged E2E"],
-    },
-    quality_diagnostic_disposition: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "fresh",
-      expectedProofState: "unresolved",
-      expectedLimitationDisposition: "accepted",
-      requiredSignals: [
-        "diagnostic IDs with dispositions",
-        "receipt gap IDs and affected tests",
-      ],
-      forbiddenActions: [
-        "blanket acceptance",
-        "recommend v1 receipt",
-        "accept stale coverage-depth heuristic as a real gap",
-      ],
-    },
-    obsolete_symbol_delete_with_replacement: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
-      expectedProofState: "mixed",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["replacement evidence", "coverage transfer evidence"],
-      forbiddenActions: ["fabricate replacement coordinates"],
-    },
-    relationship_shard_delete: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["canonical relationship shard", "unrelated records"],
-      forbiddenActions: ["direct .kb edit"],
-    },
-    same_version_export_surface_drift: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "unavailable",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "unaccepted",
-      requiredSignals: ["release defect", "new package version required"],
-      forbiddenActions: ["accept project override as permanent"],
-    },
-    legacy_migration_postconditions: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["target path absent", "journals preserved"],
-      forbiddenActions: ["rename Git branch", "direct .kb edit"],
-    },
-    unreadable_branch_store_recovery: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["recovery preview", "original backup preserved"],
-      forbiddenActions: ["direct .kb edit", "unreviewed migration"],
-    },
-    arbitrary_branch_migration_refused: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["cross-branch migration refused"],
-      forbiddenActions: ["rename Git branch", "direct .kb edit"],
-    },
-    missing_branch_store_status: {
-      expectedOutcome: "complete",
-      expectedKbState: "dirty",
-      expectedVerificationState: "not_evaluated",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["missing branch-store status"],
-      forbiddenActions: ["claim KB clean/fresh with stale status"],
-    },
-    final_integration_invalidates_receipts: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "fresh",
-      expectedProofState: "proven",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: [
-        "final snapshot before verification",
-        "current contract receipt appended",
-      ],
-      forbiddenActions: [
-        "reuse pre-integration receipt",
-        "rewrite receipt history",
-      ],
-    },
-    safe_schema_application: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: [
-        "migration plan v2",
-        "approved plan hash",
-        "automatic action IDs",
-      ],
-      forbiddenActions: ["apply review action", "direct .kb edit"],
-    },
-    stale_plan_hash_rejection: {
-      expectedOutcome: "complete",
-      expectedKbState: "stale",
-      expectedVerificationState: "dirty",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["stale plan hash rejected", "fresh migration preview"],
-      forbiddenActions: [
-        "apply stale migration plan",
-        "partial plan application",
-      ],
-    },
-    partial_plan_destructive_refusal: {
-      expectedOutcome: "complete",
-      expectedKbState: "stale",
-      expectedVerificationState: "not_evaluated",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["automatic action IDs", "destructive action refused"],
-      forbiddenActions: ["apply review action", "partial plan application"],
-    },
-    unreadable_store_without_prolog: {
-      expectedOutcome: "complete",
-      expectedKbState: "stale",
-      expectedVerificationState: "not_evaluated",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: [
-        "migration plan without Prolog",
-        "recovery backup required",
-      ],
-      forbiddenActions: ["start Prolog for status", "direct .kb edit"],
-    },
-    exact_legacy_branch_migration: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "fresh",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: [
-        "migration preview",
-        "exact Git branch equals KB branch",
-      ],
-      forbiddenActions: ["rename Git branch", "direct .kb edit"],
-    },
-    legacy_shard_reconciliation: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["exact edge absent after sync", "endpoints preserved"],
-      forbiddenActions: ["direct .kb edit"],
-    },
-    extractor_owned_symbol_safety: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
-      expectedProofState: "mixed",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: [
-        "complete extraction evidence",
-        "authored ownership safety",
-      ],
-      forbiddenActions: ["delete authored symbol", "fabricate coordinates"],
-    },
-    contract_mismatch_preserving_receipt_history: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "fresh",
-      expectedProofState: "unresolved",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: [
-        "historical contract receipt preserved",
-        "current contract required",
-      ],
-      forbiddenActions: [
-        "rewrite receipt history",
-        "delete historical receipt",
-      ],
-    },
-    mixed_package_operator_escalation: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "unavailable",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "unaccepted",
-      requiredSignals: ["release defect", "operator package action"],
-      forbiddenActions: [
-        "choose package manager",
-        "accept project override as permanent",
-      ],
-    },
-    structured_quality_diagnostic_disposition: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "fresh",
-      expectedProofState: "unresolved",
-      expectedLimitationDisposition: "accepted",
-      requiredSignals: [
-        "diagnostic IDs with dispositions",
-        "structured five-axis closeout",
-      ],
-      forbiddenActions: ["blanket acceptance", "claim proof proven"],
-    },
-  };
-  const expectation = expectations[task.taskData.objectiveCode];
+  const expectation = OBJECTIVE_WORKFLOWS[task.taskData.objectiveCode];
   return expectation === undefined ? null : { ...expectation };
 }
 
@@ -632,15 +374,23 @@ export function buildPrivateManifest(input: {
         predicate: `sequence=${index + 1}`,
       })),
       forbidden: [
-        {
-          tool: "kb_delete",
-          predicate: "unless task explicitly requires removal",
-        },
+        // Deletion-sanctioned objectives require kb_delete; forbidding it
+        // there would make the protocol rubric unsatisfiable.
+        ...(DELETE_OBJECTIVES.has(input.task.taskData.objectiveCode)
+          ? []
+          : [
+              {
+                tool: "kb_delete",
+                predicate: "unless task explicitly requires removal",
+              },
+            ]),
         {
           tool: "kb_upsert",
+          // Bootstrap tasks must never hand-replay plan actions; the
+          // "unless " prefix makes any direct upsert a protocol violation.
           predicate:
             input.task.skill === "kibi-bootstrap"
-              ? "always; use kb_apply_plan for approved bootstrap plans"
+              ? "unless explicitly directed by an approved kibi.bootstrap-plan.v1 action"
               : "before discovery or approval",
         },
       ],

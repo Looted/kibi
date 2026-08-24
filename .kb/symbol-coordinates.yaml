@@ -12626,6 +12626,186 @@ coordinates:
     sourceEndLine: 181
     sourceFile: scripts/skillopt-eval/optimize.ts
     sourceLine: 131
+  SYM-skillopt-cursor-candidate-type:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 31
+    sourceFile: scripts/skillopt-eval/cursor/suite.ts
+    sourceLine: 28
+  SYM-skillopt-cursor-cell-deps:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 47
+    sourceFile: scripts/skillopt-eval/cursor/runner.ts
+    sourceLine: 44
+  SYM-skillopt-cursor-cell-options:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 37
+    sourceFile: scripts/skillopt-eval/cursor/runner.ts
+    sourceLine: 24
+  SYM-skillopt-cursor-cell-outcome:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 28
+    sourceFile: scripts/skillopt-eval/cursor/types.ts
+    sourceLine: 22
+  SYM-skillopt-cursor-cell-receipt:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 52
+    sourceFile: scripts/skillopt-eval/cursor/types.ts
+    sourceLine: 30
+  SYM-skillopt-cursor-compatibility-report:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 81
+    sourceFile: scripts/skillopt-eval/cursor/types.ts
+    sourceLine: 62
+  SYM-skillopt-cursor-completed-cell:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 42
+    sourceFile: scripts/skillopt-eval/cursor/runner.ts
+    sourceLine: 39
+  SYM-skillopt-cursor-default-cell-timeout:
+    sourceColumn: 13
+    sourceEndColumn: 53
+    sourceEndLine: 26
+    sourceFile: scripts/skillopt-eval/cursor/suite.ts
+    sourceLine: 26
+  SYM-skillopt-cursor-evaluate-verdict:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 109
+    sourceFile: scripts/skillopt-eval/cursor/suite.ts
+    sourceLine: 79
+  SYM-skillopt-cursor-evaluation-branch:
+    sourceColumn: 13
+    sourceEndColumn: 66
+    sourceEndLine: 22
+    sourceFile: scripts/skillopt-eval/cursor/runner.ts
+    sourceLine: 22
+  SYM-skillopt-cursor-gate-input:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 46
+    sourceFile: scripts/skillopt-eval/cursor/suite.ts
+    sourceLine: 33
+  SYM-skillopt-cursor-main:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 220
+    sourceFile: scripts/skillopt-eval/cursor-operator.ts
+    sourceLine: 202
+  SYM-skillopt-cursor-parse-args:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 103
+    sourceFile: scripts/skillopt-eval/cursor-operator.ts
+    sourceLine: 31
+  SYM-skillopt-cursor-parsed-args:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 24
+    sourceFile: scripts/skillopt-eval/cursor-operator.ts
+    sourceLine: 14
+  SYM-skillopt-cursor-persist-report:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 283
+    sourceFile: scripts/skillopt-eval/cursor/suite.ts
+    sourceLine: 272
+  SYM-skillopt-cursor-qualification-check:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 10
+    sourceFile: scripts/skillopt-eval/cursor/types.ts
+    sourceLine: 6
+  SYM-skillopt-cursor-qualification-deps:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 12
+    sourceFile: scripts/skillopt-eval/cursor/qualify.ts
+    sourceLine: 7
+  SYM-skillopt-cursor-qualification-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 85
+    sourceFile: scripts/skillopt-eval/cursor/types.ts
+    sourceLine: 83
+  SYM-skillopt-cursor-qualification-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 45
+    sourceEndLine: 84
+    sourceFile: scripts/skillopt-eval/cursor/types.ts
+    sourceLine: 84
+  SYM-skillopt-cursor-qualification-receipt:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 20
+    sourceFile: scripts/skillopt-eval/cursor/types.ts
+    sourceLine: 12
+  SYM-skillopt-cursor-run-cell:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 240
+    sourceFile: scripts/skillopt-eval/cursor/runner.ts
+    sourceLine: 60
+  SYM-skillopt-cursor-run-command:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 200
+    sourceFile: scripts/skillopt-eval/cursor-operator.ts
+    sourceLine: 110
+  SYM-skillopt-cursor-run-compat-gate:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 238
+    sourceFile: scripts/skillopt-eval/cursor/suite.ts
+    sourceLine: 176
+  SYM-skillopt-cursor-run-qualification:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 127
+    sourceFile: scripts/skillopt-eval/cursor/qualify.ts
+    sourceLine: 33
+  SYM-skillopt-cursor-sha256-text:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 89
+    sourceFile: scripts/skillopt-eval/cursor/types.ts
+    sourceLine: 87
+  SYM-skillopt-cursor-summarize-cells:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 76
+    sourceFile: scripts/skillopt-eval/cursor/suite.ts
+    sourceLine: 49
+  SYM-skillopt-cursor-usage-error:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 28
+    sourceFile: scripts/skillopt-eval/cursor-operator.ts
+    sourceLine: 26
+  SYM-skillopt-cursor-usage-error-name:
+    sourceColumn: 11
+    sourceEndColumn: 37
+    sourceEndLine: 27
+    sourceFile: scripts/skillopt-eval/cursor-operator.ts
+    sourceLine: 27
+  SYM-skillopt-cursor-variant-summary:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 60
+    sourceFile: scripts/skillopt-eval/cursor/types.ts
+    sourceLine: 54
+  SYM-skillopt-cursor-variant-type:
+    sourceColumn: 12
+    sourceEndColumn: 65
+    sourceEndLine: 4
+    sourceFile: scripts/skillopt-eval/cursor/types.ts
+    sourceLine: 4
   SYM-skillopt-decode-final-state-predicate-snapshot:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -12674,6 +12854,12 @@ coordinates:
     sourceEndLine: 255
     sourceFile: scripts/skillopt-eval/training-setup.ts
     sourceLine: 183
+  SYM-skillopt-delete-objectives:
+    sourceColumn: 13
+    sourceEndColumn: 2
+    sourceEndLine: 670
+    sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
+    sourceLine: 664
   SYM-skillopt-derive-adoption-id:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -13526,6 +13712,12 @@ coordinates:
     sourceEndLine: 242
     sourceFile: scripts/skillopt-eval/adoption-journal.ts
     sourceLine: 240
+  SYM-skillopt-is-predicate-objective:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 41
+    sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
+    sourceLine: 39
   SYM-skillopt-isolation-workspace-tests:
     sourceColumn: 0
     sourceEndColumn: 0
@@ -13670,6 +13862,12 @@ coordinates:
     sourceEndLine: 70
     sourceFile: scripts/skillopt-eval/report.ts
     sourceLine: 63
+  SYM-skillopt-migration-apply-objectives:
+    sourceColumn: 13
+    sourceEndColumn: 2
+    sourceEndLine: 683
+    sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
+    sourceLine: 674
   SYM-skillopt-model-gateway-security-tests:
     sourceColumn: 10
     sourceEndColumn: 47
@@ -13706,6 +13904,18 @@ coordinates:
     sourceEndLine: 26
     sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
     sourceLine: 22
+  SYM-skillopt-objective-workflow-shape:
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 33
+    sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
+    sourceLine: 12
+  SYM-skillopt-objective-workflows:
+    sourceColumn: 13
+    sourceEndColumn: 3
+    sourceEndLine: 660
+    sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
+    sourceLine: 44
   SYM-skillopt-offline-review-artifacts:
     sourceColumn: 12
     sourceEndColumn: 3
@@ -14120,6 +14330,12 @@ coordinates:
     sourceEndLine: 197
     sourceFile: scripts/skillopt-eval/fixtures/predicate-corpus.ts
     sourceLine: 154
+  SYM-skillopt-predicate-objective-prefix:
+    sourceColumn: 13
+    sourceEndColumn: 60
+    sourceEndLine: 36
+    sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
+    sourceLine: 36
   SYM-skillopt-predicate-orchestration-eligibility:
     sourceColumn: 12
     sourceEndColumn: 71
@@ -14870,6 +15086,18 @@ coordinates:
     sourceEndLine: 142
     sourceFile: scripts/skillopt-eval/real-workflow-types.ts
     sourceLine: 136
+  SYM-skillopt-receipt-ingest-objectives:
+    sourceColumn: 13
+    sourceEndColumn: 2
+    sourceEndLine: 691
+    sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
+    sourceLine: 687
+  SYM-skillopt-receipt-inspect-objectives:
+    sourceColumn: 13
+    sourceEndColumn: 2
+    sourceEndLine: 699
+    sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
+    sourceLine: 695
   SYM-skillopt-receipt-path:
     sourceColumn: 16
     sourceEndColumn: 1

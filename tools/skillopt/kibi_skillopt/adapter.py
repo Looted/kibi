@@ -10,7 +10,7 @@ from typing_extensions import override
 
 from .bridge import BridgeError, OptimizerBridgeContext
 from .bridge_runner import run_bridge, run_optimizer_bridge
-from .common import JsonValue, contract_hash
+from .common import JsonValue, contract_hash, parse_json_value
 from .dataloader import SplitDataLoader
 from .models import BridgeRequest, BridgeResult, CorpusRoots, PublicTaskClaim, TrainTrajectory
 from .optimizer_adapter import OptimizerAdapterMixin
@@ -67,6 +67,15 @@ class EnvAdapter(OptimizerAdapterMixin, SkillOptEnvAdapter):
         self.failure_only = False
         self.minibatch_size = 4
         self.edit_budget = 4
+        # Epoch-to-epoch durability: the upstream trainer resumes from step
+        # directories, but this adapter's trajectories, development gates,
+        # and optimizer-step counter live in process memory. Without a
+        # journal, a mid-run restart silently drops every completed epoch
+        # and the first post-resume reflection fails its development
+        # baseline check.
+        self._journal_path = resolved_run_root / "trajectory-journal.jsonl"
+        self._journaled_trajectory_hashes: set[str] = set()
+        self._replay_journal()
 
     @override
     def setup(self, cfg: dict[str, JsonValue]) -> None:
@@ -109,10 +118,72 @@ class EnvAdapter(OptimizerAdapterMixin, SkillOptEnvAdapter):
     def train_trajectories(self) -> tuple[TrainTrajectory, ...]:
         return tuple(self._recorded_train_trajectories)
 
+    @property
+    def optimizer_step(self) -> int:
+        return self._optimizer_step
+
+    def advance_optimizer_step(self) -> int:
+        """Increment and durably journal the optimizer step counter."""
+        self._optimizer_step += 1
+        self._append_journal({"type": "optimizer_step", "step": self._optimizer_step})
+        return self._optimizer_step
+
+    def _replay_journal(self) -> None:
+        if not self._journal_path.is_file():
+            return
+        with self._journal_path.open("r", encoding="utf-8") as handle:
+            for line in handle:
+                stripped = line.strip()
+                if not stripped:
+                    continue
+                try:
+                    record = parse_json_value(stripped)
+                except ValueError:
+                    # A torn trailing line is the expected crash artifact;
+                    # replay the durable prefix and stop there.
+                    break
+                if not isinstance(record, dict):
+                    break
+                kind = record.get("type")
+                if kind == "trajectory":
+                    payload = record.get("trajectory")
+                    if not isinstance(payload, dict):
+                        break
+                    digest = contract_hash(payload)
+                    if digest in self._journaled_trajectory_hashes:
+                        continue
+                    trajectory = TrainTrajectory.model_validate(payload)
+                    self._recorded_train_trajectories.append(trajectory)
+                    self._journaled_trajectory_hashes.add(digest)
+                elif kind == "development":
+                    body_hash = record.get("bodyHash")
+                    gate = record.get("gate")
+                    if not isinstance(body_hash, str) or not isinstance(gate, dict):
+                        break
+                    self._development_by_body_hash[body_hash] = dict(gate)
+                elif kind == "optimizer_step":
+                    step = record.get("step")
+                    if not isinstance(step, int) or isinstance(step, bool):
+                        break
+                    self._optimizer_step = max(self._optimizer_step, step)
+
+    def _append_journal(self, record: dict[str, JsonValue]) -> None:
+        self._journal_path.parent.mkdir(parents=True, exist_ok=True)
+        with self._journal_path.open("a", encoding="utf-8") as handle:
+            _ = handle.write(json.dumps(record, sort_keys=True, separators=(",", ":")) + "\n")
+
     def record_train_trajectory(self, trajectory: TrainTrajectory) -> None:
         if trajectory.task_id not in self._train_ids:
             raise BridgeError("optimizer requires public train task ids")
+        payload = trajectory.model_dump(by_alias=True, mode="json")
+        digest = contract_hash(payload)
+        if digest in self._journaled_trajectory_hashes:
+            # Identical payload means the same attempt was re-recorded (for
+            # example a step replayed after a crash); keep it idempotent.
+            return
         self._recorded_train_trajectories.append(trajectory)
+        self._append_journal({"type": "trajectory", "trajectory": payload})
+        self._journaled_trajectory_hashes.add(digest)
 
     @staticmethod
     def _public_evidence_summary(
@@ -172,11 +243,14 @@ class EnvAdapter(OptimizerAdapterMixin, SkillOptEnvAdapter):
             by_family.setdefault(family, []).append(soft)
             hard_passes += int(hard_value)
         family_means = [sum(scores) / len(scores) for scores in by_family.values()]
-        self._development_by_body_hash[contract_hash(skill_content)] = {
+        body_hash = contract_hash(skill_content)
+        gate: dict[str, JsonValue] = {
             "mean": sum(soft_scores) / len(soft_scores),
             "hardPasses": hard_passes,
             "worstFamilyMean": min(family_means),
         }
+        self._development_by_body_hash[body_hash] = gate
+        self._append_journal({"type": "development", "bodyHash": body_hash, "gate": gate})
 
     @staticmethod
     def _write_conversation(
@@ -320,7 +394,7 @@ class EnvAdapter(OptimizerAdapterMixin, SkillOptEnvAdapter):
         previous = self.development_gate_for(skill_content)
         if previous is None:
             raise BridgeError("reflection_requires_development_baseline")
-        self._optimizer_step += 1
+        _ = self.advance_optimizer_step()
         cumulative = self.train_trajectories or trajectories
         optimized = self.optimize(
             current_body=skill_content,

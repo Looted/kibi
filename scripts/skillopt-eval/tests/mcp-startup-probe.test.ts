@@ -9,6 +9,7 @@ import {
 } from "../runtime/canary-runtime";
 import { createIsolationWorkspace } from "../runtime/isolation-workspace";
 import { verifyTraceChain } from "../runtime/jsonrpc";
+import { REQUIRED_KIBI_TOOLS } from "../runtime/mcp-broker";
 
 const roots: string[] = [];
 
@@ -51,19 +52,7 @@ describe("required Kibi MCP stdio startup", () => {
           process.cwd(),
         ),
       ).toBe(false);
-      expect(result.toolNames).toEqual([
-        "kb_plan_bootstrap",
-        "kb_search",
-        "kb_query",
-        "kb_status",
-        "kb_semantic_advisor",
-        "kb_suggest_predicates",
-        "kb_model_requirement",
-        "kb_validate_upsert",
-        "kb_check",
-        "kb_graph",
-        "kb_upsert",
-      ]);
+      expect(result.toolNames).toEqual([...REQUIRED_KIBI_TOOLS]);
       expect(
         verifyTraceChain(await readFile(staged.mcpServer.tracePath, "utf8")),
       ).toMatchObject({ valid: true, entries: 5 });

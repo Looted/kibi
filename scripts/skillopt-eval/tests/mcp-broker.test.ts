@@ -111,8 +111,8 @@ describe("evaluator-owned Kibi MCP evidence", () => {
       result: {
         tools: [
           ...REQUIRED_KIBI_TOOLS.map((name) => ({ name, inputSchema: {} })),
-          { name: "kb_delete", inputSchema: {} },
-          { name: "kb_skills_load", inputSchema: {} },
+          { name: "kb_autopilot_generate", inputSchema: {} },
+          { name: "unrelated_host_tool", inputSchema: {} },
         ],
       },
     };

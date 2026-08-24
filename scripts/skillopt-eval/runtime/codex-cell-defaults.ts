@@ -121,10 +121,98 @@ function proofStateFromCoverage(
 function workflowSignalObserved(
   signal: string,
   results: readonly Readonly<{ tool: string; result: unknown }>[],
+  brokerTools: readonly string[],
 ): boolean {
   const text = JSON.stringify(results).toLowerCase();
   const status = latestContent(results, "kb_status");
+  const hasBrokerTool = (tool: string): boolean => brokerTools.includes(tool);
   switch (signal) {
+    case "discovery search executed":
+      return hasBrokerTool("kb_search");
+    case "source-linked query executed":
+      return hasBrokerTool("kb_query");
+    case "typed relationship applied":
+      return text.includes('"implements"') && text.includes('"covered_by"');
+    case "symbol readback after write":
+      return brokerTools.filter((tool) => tool === "kb_query").length >= 2;
+    case "final check executed":
+      return hasBrokerTool("kb_check");
+    case "typed envelope inspected":
+      return text.includes('"kibiprotocol"');
+    case "repair executed after diagnostics":
+      return hasBrokerTool("kb_upsert");
+    case "stale reasons identified":
+      return (
+        Array.isArray(status?.staleReasons) && status.staleReasons.length > 0
+      );
+    case "recovery boundary reported":
+      return (
+        text.includes("sync") ||
+        text.includes("migrat") ||
+        text.includes("recover")
+      );
+    case "status consulted before decision":
+      return hasBrokerTool("kb_status");
+    case "dirty worktree evidence preserved":
+      return status?.dirty === true;
+    case "source-linked impact inspected":
+      return hasBrokerTool("kb_check");
+    case "behavioral symbol granularity used":
+      return text.includes('"type":"symbol"');
+    case "relationship chain traversed":
+      return text.includes('"implements"') || text.includes('"covered_by"');
+    case "graph traversal executed":
+      return hasBrokerTool("kb_graph");
+    case "executable test identity established":
+      return text.includes('"verification_scope"');
+    case "coverage link applied":
+      return text.includes('"covered_by"') || text.includes('"executable_for"');
+    case "read-only plan produced":
+    case "planner context gate honored":
+      return hasBrokerTool("kb_plan_bootstrap");
+    case "approval boundary respected":
+    case "no premature writes":
+      return (
+        !hasBrokerTool("kb_apply_plan") &&
+        !hasBrokerTool("kb_upsert") &&
+        !hasBrokerTool("kb_delete")
+      );
+    case "approved plan applied exactly once":
+      return hasBrokerTool("kb_apply_plan");
+    case "post-apply validation executed":
+      return hasBrokerTool("kb_check");
+    case "no manual action replay":
+      return !hasBrokerTool("kb_upsert");
+    case "partial setup identified":
+      return (
+        (Array.isArray(status?.staleReasons) &&
+          status.staleReasons.length > 0) ||
+        text.includes("stale")
+      );
+    case "operator escalation emitted":
+      return text.includes("operator");
+    case "bootstrap attached exactly":
+      return (
+        hasBrokerTool("kb_plan_bootstrap") || hasBrokerTool("kb_apply_plan")
+      );
+    case "discovery executed after attach":
+      return hasBrokerTool("kb_search") && hasBrokerTool("kb_query");
+    case "typed mutation applied":
+      return hasBrokerTool("kb_upsert") || text.includes('"implements"');
+    case "sanctioned delete applied":
+      return hasBrokerTool("kb_delete");
+    case "shard records preserved":
+      return text.includes("relationships_deleted") || text.includes("preserv");
+    case "pending receipts inspected":
+      return hasBrokerTool("kb_status");
+    case "conflict refusal explicit":
+      return text.includes("conflict");
+    case "strict claim modeled":
+      return text.includes("claim_key") || text.includes('"fact_kind"');
+    case "predicate fact stored":
+      return text.includes('"predicate_name"');
+    case "test chain validated":
+      return text.includes('"verified_by"') || text.includes('"validates"');
     case "exact Git branch equals KB branch": {
       const attachment = status?.branchAttachment;
       return (
@@ -306,10 +394,47 @@ function workflowSignalObserved(
 function forbiddenActionObserved(
   action: string,
   results: readonly Readonly<{ tool: string; result: unknown }>[],
+  brokerTools: readonly string[],
 ): boolean {
   const text = JSON.stringify(results).toLowerCase();
   const status = latestContent(results, "kb_status");
+  const hasBrokerTool = (tool: string): boolean => brokerTools.includes(tool);
   switch (action) {
+    case "mutation during discovery":
+      return (
+        hasBrokerTool("kb_upsert") ||
+        hasBrokerTool("kb_delete") ||
+        hasBrokerTool("kb_apply_plan")
+      );
+    case "delete during safe mutation":
+    case "delete during repair":
+    case "delete during chain inspection":
+    case "delete during typed mutation":
+      return hasBrokerTool("kb_delete");
+    case "apply plan without approval":
+      return hasBrokerTool("kb_apply_plan");
+    case "manual plan replay via upsert":
+    case "bootstrap direct upsert":
+      return hasBrokerTool("kb_upsert");
+    case "unauthorized repair execution":
+      return (
+        hasBrokerTool("kb_upsert") ||
+        hasBrokerTool("kb_delete") ||
+        hasBrokerTool("kb_apply_plan")
+      );
+    case "cross-branch store copy":
+      return (
+        text.includes("copy") &&
+        (text.includes("branch store") || text.includes("compiled store"))
+      );
+    case "discard dirty state":
+      return isRecord(status) && status.dirty === false;
+    case "mutation without advisor":
+      return (
+        hasBrokerTool("kb_upsert") &&
+        !hasBrokerTool("kb_suggest_predicates") &&
+        !hasBrokerTool("kb_semantic_advisor")
+      );
     case "copy branch store across refs":
       return (
         text.includes("copy") &&
@@ -488,6 +613,7 @@ function safeMutationComplete(
 function sealedFinalState(
   finalState: string,
   options: Pick<CodexCellOptions, "evaluatorManifest" | "finalStateRequests">,
+  brokerTools: readonly string[],
 ) {
   const receipt = FinalStateReceiptSchema.parse(JSON.parse(finalState));
   const integrityValid = receipt.requests.every(
@@ -593,7 +719,7 @@ function sealedFinalState(
             value:
               signal === undefined
                 ? false
-                : workflowSignalObserved(signal, requests),
+                : workflowSignalObserved(signal, requests, brokerTools),
           },
         ];
       }
@@ -609,7 +735,7 @@ function sealedFinalState(
             value:
               action === undefined
                 ? false
-                : !forbiddenActionObserved(action, requests),
+                : !forbiddenActionObserved(action, requests, brokerTools),
           },
         ];
       }
@@ -737,8 +863,9 @@ export function sealDefaultCellEvidence(
   }>,
 ) {
   const broker = sealedBroker(evidence.brokerTrace);
+  const brokerTools = broker.evidence.orderedCalls.map((call) => call.tool);
   return {
-    finalState: sealedFinalState(evidence.finalState, options),
+    finalState: sealedFinalState(evidence.finalState, options, brokerTools),
     broker: broker.evidence,
     diagnostic: sealedDiagnostic(
       evidence.diagnosticReceipt,

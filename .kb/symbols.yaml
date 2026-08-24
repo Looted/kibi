@@ -28337,3 +28337,345 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-opencode-bootstrap-paths
+  - id: SYM-skillopt-predicate-objective-prefix
+    title: PREDICATE_OBJECTIVE_PREFIX
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
+    granularity_reason: config-artifact
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-objective-workflows
+    title: OBJECTIVE_WORKFLOWS
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
+    granularity_reason: config-artifact
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-delete-objectives
+    title: DELETE_OBJECTIVES
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
+    granularity_reason: config-artifact
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-migration-apply-objectives
+    title: MIGRATION_APPLY_OBJECTIVES
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
+    granularity_reason: config-artifact
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-receipt-ingest-objectives
+    title: RECEIPT_INGEST_OBJECTIVES
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
+    granularity_reason: config-artifact
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-receipt-inspect-objectives
+    title: RECEIPT_INSPECT_OBJECTIVES
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
+    granularity_reason: config-artifact
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-cell-outcome
+    title: CursorCellOutcome
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/types.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-cell-receipt
+    title: CursorCellReceipt
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/types.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-variant-summary
+    title: CursorVariantSummary
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/types.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-compatibility-report
+    title: CursorCompatibilityReport
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/types.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-objective-workflow-shape
+    title: ObjectiveWorkflow
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-run-qualification
+    title: runCursorQualification
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/qualify.ts
+    granularity_reason: module-level-behavior
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-qualification-deps
+    title: CursorQualificationDependencies
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/qualify.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-variant-type
+    title: CursorVariant
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/types.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-qualification-check
+    title: CursorQualificationCheck
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/types.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-qualification-receipt
+    title: CursorQualificationReceipt
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/types.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-qualification-error
+    title: CursorQualificationError
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/types.ts
+    granularity_reason: config-artifact
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-qualification-error-name
+    title: CursorQualificationError.name
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/types.ts
+    granularity_reason: config-artifact
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-sha256-text
+    title: sha256Text
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/types.ts
+    granularity_reason: module-level-behavior
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-summarize-cells
+    title: summarizeCursorCells
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/suite.ts
+    granularity_reason: module-level-behavior
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-evaluate-verdict
+    title: evaluateCursorVerdict
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/suite.ts
+    granularity_reason: module-level-behavior
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-run-compat-gate
+    title: runCursorCompatibilityGate
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/suite.ts
+    granularity_reason: module-level-behavior
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-persist-report
+    title: persistCursorCompatibilityReport
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/suite.ts
+    granularity_reason: module-level-behavior
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-default-cell-timeout
+    title: DEFAULT_CURSOR_CELL_TIMEOUT_MS
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/suite.ts
+    granularity_reason: config-artifact
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-candidate-type
+    title: CursorCandidate
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/suite.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-gate-input
+    title: CursorGateInput
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/suite.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-evaluation-branch
+    title: CURSOR_EVALUATION_BRANCH
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/runner.ts
+    granularity_reason: config-artifact
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-run-cell
+    title: runCursorCell
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/runner.ts
+    granularity_reason: module-level-behavior
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-cell-options
+    title: CursorCellOptions
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/runner.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-completed-cell
+    title: CompletedCursorCell
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/runner.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-cell-deps
+    title: CursorCellDependencies
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor/runner.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-parse-args
+    title: parseCursorArgs
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor-operator.ts
+    granularity_reason: module-level-behavior
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-run-command
+    title: runCursorCommand
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor-operator.ts
+    granularity_reason: module-level-behavior
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-main
+    title: main
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor-operator.ts
+    granularity_reason: module-level-behavior
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-parsed-args
+    title: ParsedCursorArgs
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor-operator.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-usage-error
+    title: CursorUsageError
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor-operator.ts
+    granularity_reason: config-artifact
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-cursor-usage-error-name
+    title: CursorUsageError.name
+    status: active
+    sourceFile: scripts/skillopt-eval/cursor-operator.ts
+    granularity_reason: config-artifact
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-is-predicate-objective
+    title: isPredicateObjective
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
+    granularity_reason: module-level-behavior
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
