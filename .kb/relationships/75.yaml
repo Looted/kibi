@@ -104,3 +104,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3d29715c5efb
+  - type: implements
+    from: SYM-skillopt-cursor-compatibility-report
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:22:53.738Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b5f76bab866

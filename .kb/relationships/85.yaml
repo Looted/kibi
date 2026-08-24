@@ -104,3 +104,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-deb83ab356f8
+  - type: implements
+    from: SYM-skillopt-objective-workflow-shape
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:23:00.657Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a29ff3dedc4

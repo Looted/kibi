@@ -143,3 +143,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-34c4afc3c91e
+  - type: implements
+    from: SYM-skillopt-cursor-sha256-text
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:25:49.524Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f31dc2471cd

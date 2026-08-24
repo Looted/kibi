@@ -59,3 +59,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e02962184074
+  - type: implements
+    from: SYM-skillopt-cursor-variant-summary
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:22:41.765Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a46abe763df

@@ -80,5 +80,14 @@ relationships:
         created_by: kibi/upsert,
         source: mcp://kibi/upsert,
         id: rel-d628cd1f6c2c
+      },
+    {
+        type: implements,
+        from: SYM-skillopt-cursor-cell-receipt,
+        to: REQ-skillopt-codex-optimization,
+        created_at: 2026-08-24T17:22:33.006Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-41f1e91bdcdc
       }
   ]

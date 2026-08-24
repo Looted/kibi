@@ -41,3 +41,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e47fa5803799
+  - type: implements
+    from: SYM-skillopt-cursor-evaluate-verdict
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:26:09.540Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07ca1e0dbd66

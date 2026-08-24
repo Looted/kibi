@@ -150,3 +150,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ddbd2958e5ce
+  - type: implements
+    from: SYM-skillopt-cursor-summarize-cells
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:25:58.142Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ef3d45838ba

@@ -62,3 +62,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fc7d147b8383
+  - type: implements
+    from: SYM-skillopt-predicate-objective-prefix
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:20:15.594Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-807f40384115

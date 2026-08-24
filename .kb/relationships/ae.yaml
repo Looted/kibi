@@ -122,3 +122,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1d67968ca9f3
+  - type: implements
+    from: SYM-skillopt-cursor-qualification-receipt
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:25:18.255Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-acf3286b3f54

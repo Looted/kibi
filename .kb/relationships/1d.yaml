@@ -104,3 +104,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c3ec4eeb3124
+  - type: implements
+    from: SYM-skillopt-receipt-ingest-objectives
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:20:59.012Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae5f71661a61

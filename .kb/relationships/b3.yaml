@@ -55,3 +55,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-83ae83aa83ef
+  - type: implements
+    from: SYM-skillopt-cursor-run-compat-gate
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:26:18.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce631d2b4073

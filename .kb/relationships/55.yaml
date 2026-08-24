@@ -59,3 +59,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c700b860007a
+  - type: implements
+    from: SYM-skillopt-cursor-usage-error
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:28:53.497Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3068470e909a

@@ -125,3 +125,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b6bce457a76
+  - type: implements
+    from: SYM-skillopt-cursor-qualification-error-name
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:25:40.269Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-219c3550f2d2

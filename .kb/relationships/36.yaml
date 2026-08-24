@@ -80,3 +80,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7bf77290af25
+  - type: implements
+    from: SYM-skillopt-delete-objectives
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:20:41.840Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea0bb1755490

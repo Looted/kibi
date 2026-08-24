@@ -87,3 +87,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-57b49518d75e
+  - type: implements
+    from: SYM-skillopt-cursor-cell-options
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:27:37.806Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90fa9b89fe76

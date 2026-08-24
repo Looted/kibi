@@ -90,3 +90,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-22571874d6ab
+  - type: implements
+    from: SYM-skillopt-cursor-persist-report
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:26:27.567Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3a04ea48ada
