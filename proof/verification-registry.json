@@ -13,8 +13,12 @@
           "--test-id",
           "TEST-kibi-source-relationship-parity"
         ],
-        "required_case_symbols": ["SYM-test-packed-source-relationship-parity"],
-        "required_projects": ["default"],
+        "required_case_symbols": [
+          "SYM-test-packed-source-relationship-parity"
+        ],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -36,8 +40,12 @@
           "--test-id",
           "TEST-cli-branch-store-recovery"
         ],
-        "required_case_symbols": ["SYM-test-packed-exact-branch-recovery"],
-        "required_projects": ["default"],
+        "required_case_symbols": [
+          "SYM-test-packed-exact-branch-recovery"
+        ],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -63,7 +71,9 @@
           "SYM-test-packed-default-branch-sync-hooks",
           "SYM-test-packed-post-merge-sync"
         ],
-        "required_projects": ["default"],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -88,7 +98,9 @@
         "required_case_symbols": [
           "SYM-test-conservative-requirement-proof-chain"
         ],
-        "required_projects": ["default"],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -130,7 +142,9 @@
         "required_case_symbols": [
           "SYM-test-packed-dependency-ordered-repair-plan"
         ],
-        "required_projects": ["default"],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -152,8 +166,12 @@
           "--test-id",
           "TEST-kibi-distribution-parity-matrix"
         ],
-        "required_case_symbols": ["SYM-test-packed-distribution-parity"],
-        "required_projects": ["default"],
+        "required_case_symbols": [
+          "SYM-test-packed-distribution-parity"
+        ],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -178,7 +196,9 @@
         "required_case_symbols": [
           "SYM-test-packed-fresh-verification-receipts"
         ],
-        "required_projects": ["default"],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -200,8 +220,12 @@
           "--test-id",
           "TEST-kibi-html-health-report"
         ],
-        "required_case_symbols": ["SYM-e2e-packed-cli-html-report"],
-        "required_projects": ["default"],
+        "required_case_symbols": [
+          "SYM-e2e-packed-cli-html-report"
+        ],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -223,8 +247,12 @@
           "--test-id",
           "TEST-kibi-branded-health-report"
         ],
-        "required_case_symbols": ["SYM-e2e-packed-cli-html-report"],
-        "required_projects": ["default"],
+        "required_case_symbols": [
+          "SYM-e2e-packed-cli-html-report"
+        ],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -250,7 +278,9 @@
           "SYM-test-packed-eight-entity-schema-roundtrip",
           "SYM-test-packed-typed-relationship-roundtrip"
         ],
-        "required_projects": ["default"],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -275,7 +305,9 @@
         "required_case_symbols": [
           "SYM-test-packed-ontology-convergence-witnesses"
         ],
-        "required_projects": ["default"],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -297,8 +329,12 @@
           "--test-id",
           "TEST-kibi-proposition-complete-ingestion"
         ],
-        "required_case_symbols": ["SYM-test-packed-proposition-ingestion"],
-        "required_projects": ["default"],
+        "required_case_symbols": [
+          "SYM-test-packed-proposition-ingestion"
+        ],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -320,8 +356,12 @@
           "--test-id",
           "TEST-kibi-telemetry-acceptance-gate"
         ],
-        "required_case_symbols": ["SYM-test-packed-telemetry-acceptance"],
-        "required_projects": ["default"],
+        "required_case_symbols": [
+          "SYM-test-packed-telemetry-acceptance"
+        ],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -343,8 +383,12 @@
           "--test-id",
           "TEST-kibi-telemetry-remediation-evidence"
         ],
-        "required_case_symbols": ["SYM-test-packed-telemetry-remediation"],
-        "required_projects": ["default"],
+        "required_case_symbols": [
+          "SYM-test-packed-telemetry-remediation"
+        ],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -369,7 +413,9 @@
         "required_case_symbols": [
           "SYM-test-packed-fresh-verification-receipts"
         ],
-        "required_projects": ["default"],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -397,12 +443,22 @@
           "SYM-proof-runner",
           "SYM-shared-npm-cache-resolution"
         ],
-        "required_projects": ["default"],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
-        ["node", "--test", "scripts/tests/run-packed-e2e.test.mjs"],
-        ["node", "--test", "scripts/tests/run-proof-runner.test.mjs"],
+        [
+          "node",
+          "--test",
+          "scripts/tests/run-packed-e2e.test.mjs"
+        ],
+        [
+          "node",
+          "--test",
+          "scripts/tests/run-proof-runner.test.mjs"
+        ],
         [
           "bun",
           "test",
@@ -437,8 +493,12 @@
           "--test-id",
           "TEST-core-journaled-engine-persistence"
         ],
-        "required_case_symbols": ["SYM-test-core-journaled-engine-persistence"],
-        "required_projects": ["default"],
+        "required_case_symbols": [
+          "SYM-test-core-journaled-engine-persistence"
+        ],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -465,8 +525,12 @@
           "--test-id",
           "TEST-core-journaled-engine-lifecycle"
         ],
-        "required_case_symbols": ["SYM-test-core-journaled-engine-lifecycle"],
-        "required_projects": ["default"],
+        "required_case_symbols": [
+          "SYM-test-core-journaled-engine-lifecycle"
+        ],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -493,8 +557,12 @@
           "--test-id",
           "TEST-core-journaled-engine-delta-sync"
         ],
-        "required_case_symbols": ["SYM-test-core-journaled-engine-delta-sync"],
-        "required_projects": ["default"],
+        "required_case_symbols": [
+          "SYM-test-core-journaled-engine-delta-sync"
+        ],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -521,8 +589,12 @@
           "--test-id",
           "TEST-kibi-change-to-proof-evaluation"
         ],
-        "required_case_symbols": ["SYM-test-kibi-change-to-proof-evaluation"],
-        "required_projects": ["default"],
+        "required_case_symbols": [
+          "SYM-test-kibi-change-to-proof-evaluation"
+        ],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -549,7 +621,9 @@
         "required_case_symbols": [
           "SYM-test-kibi-change-to-proof-plan-compiler"
         ],
-        "required_projects": ["default"],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -574,7 +648,9 @@
         "required_case_symbols": [
           "SYM-test-kibi-intent-aware-source-discovery"
         ],
-        "required_projects": ["default"],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -596,8 +672,12 @@
           "--test-id",
           "TEST-kibi-github-report-e2e"
         ],
-        "required_case_symbols": ["SYM-e2e-packed-cli-github-report"],
-        "required_projects": ["default"],
+        "required_case_symbols": [
+          "SYM-e2e-packed-cli-github-report"
+        ],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -619,8 +699,12 @@
           "--test-id",
           "TEST-cursor-consumer-local-mcp-launcher-v1"
         ],
-        "required_case_symbols": ["SYM-cursor-packed-launcher-e2e"],
-        "required_projects": ["default"],
+        "required_case_symbols": [
+          "SYM-cursor-packed-launcher-e2e"
+        ],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -642,8 +726,12 @@
           "--test-id",
           "TEST-codex-consumer-local-mcp-registration-v1"
         ],
-        "required_case_symbols": ["SYM-codex-packed-plugin-e2e"],
-        "required_projects": ["default"],
+        "required_case_symbols": [
+          "SYM-codex-packed-plugin-e2e"
+        ],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -668,7 +756,9 @@
         "required_case_symbols": [
           "SYM-kibi-predicate-suggestion-relevance-e2e"
         ],
-        "required_projects": ["default"],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -693,7 +783,9 @@
         "required_case_symbols": [
           "SYM-kibi-consumer-local-plugin-launcher-ontology-e2e"
         ],
-        "required_projects": ["default"],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -715,8 +807,12 @@
           "--test-id",
           "TEST-runtime-packed-engine-daemon"
         ],
-        "required_case_symbols": ["SYM-test-runtime-engine-daemon"],
-        "required_projects": ["default"],
+        "required_case_symbols": [
+          "SYM-test-runtime-engine-daemon"
+        ],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -738,8 +834,12 @@
           "--test-id",
           "TEST-cursor-consumer-local-mcp-launcher-v1"
         ],
-        "required_case_symbols": ["SYM-cursor-packed-launcher-e2e"],
-        "required_projects": ["default"],
+        "required_case_symbols": [
+          "SYM-cursor-packed-launcher-e2e"
+        ],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -762,8 +862,12 @@
           "--test-id",
           "TEST-codex-consumer-local-mcp-registration-v1"
         ],
-        "required_case_symbols": ["SYM-codex-packed-plugin-e2e"],
-        "required_projects": ["default"],
+        "required_case_symbols": [
+          "SYM-codex-packed-plugin-e2e"
+        ],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -789,7 +893,9 @@
         "required_case_symbols": [
           "SYM-kibi-predicate-suggestion-relevance-e2e"
         ],
-        "required_projects": ["default"],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -815,7 +921,9 @@
         "required_case_symbols": [
           "SYM-kibi-consumer-local-plugin-launcher-ontology-e2e"
         ],
-        "required_projects": ["default"],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -838,8 +946,12 @@
           "--test-id",
           "TEST-runtime-packed-engine-daemon"
         ],
-        "required_case_symbols": ["SYM-test-runtime-engine-daemon"],
-        "required_projects": ["default"],
+        "required_case_symbols": [
+          "SYM-test-runtime-engine-daemon"
+        ],
+        "required_projects": [
+          "default"
+        ],
         "success_policy": "all_required_cases_first_attempt"
       },
       "steps": [
@@ -848,6 +960,33 @@
           "scripts/run-packed-e2e.mjs",
           "/tmp/kibi-e2e-packed-compiled",
           "/tmp/kibi-e2e-packed-compiled/runtime-engine-daemon.test.js"
+        ]
+      ]
+    },
+    {
+      "test_id": "TEST-opencode-bootstrap-paths",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-opencode-bootstrap-paths"
+        ],
+        "required_case_symbols": [
+          "SYM-test-opencode-bootstrap-paths"
+        ],
+        "required_projects": [
+          "default"
+        ],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        [
+          "node",
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/opencode-bootstrap-paths.test.ts"
         ]
       ]
     }

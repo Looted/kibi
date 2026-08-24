@@ -104,3 +104,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ceb8135cc1f3
+  - type: validates
+    from: TEST-opencode-bootstrap-paths
+    to: SCEN-opencode-bootstrap-nudge
+    created_at: 2026-08-24T06:17:43.315Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25cae2f6043a
+  - type: validates
+    from: TEST-opencode-bootstrap-paths
+    to: SCEN-opencode-kibi-plugin-v1
+    created_at: 2026-08-24T06:17:43.403Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6348220303b9
+  - type: validates
+    from: TEST-opencode-bootstrap-paths
+    to: SCEN-opencode-kibi-plugin-v1-coverage
+    created_at: 2026-08-24T07:19:17.908Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74c5c2d10ffe

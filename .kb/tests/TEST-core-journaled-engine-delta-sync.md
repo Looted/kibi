@@ -583,6 +583,150 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 76942
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-3190abbbe9800623d855054f
+    test_id: TEST-core-journaled-engine-delta-sync
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-delta-sync
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-delta-sync
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a54a428a72f914fe4ee86257b1e2eb792f98958f88ccf0d6a45eef244ab53055
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:42:39.662Z'
+    finished_at: '2026-08-24T06:44:15.424Z'
+    artifact_digest: 0564bd53d525565662447620ccc5d247aef7cc6f39386d675b7ca9e1bc47b727
+    contract_hash: 0d3da02eed7c281471856b8f86a5ba1039505ca8fd69b6ff393e72e6303bcc55
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-delta-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 95762
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-3f63f3a5c2dfb8149d699869
+    test_id: TEST-core-journaled-engine-delta-sync
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-delta-sync
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-delta-sync
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: c2c5a06c408b705211516e8bd1f6733b82e8addfc4acd70c33d47a850f768285
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:10:10.858Z'
+    finished_at: '2026-08-24T07:11:31.850Z'
+    artifact_digest: 1e28a35d211a8a3afe205757b14b801549789a7ff99c2f64b152955e97027429
+    contract_hash: 0d3da02eed7c281471856b8f86a5ba1039505ca8fd69b6ff393e72e6303bcc55
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-delta-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 80992
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-c03d2358dbc5b0754326328e
+    test_id: TEST-core-journaled-engine-delta-sync
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-delta-sync
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-delta-sync
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:40:31.371Z'
+    finished_at: '2026-08-24T07:42:01.101Z'
+    artifact_digest: 20831614ecb655e93aa84c0dc6a9697bb58147ec6339cf6d7a3a7173819c8335
+    contract_hash: 0d3da02eed7c281471856b8f86a5ba1039505ca8fd69b6ff393e72e6303bcc55
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-delta-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 89730
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-aea50bec8a190f024ca269b9
+    test_id: TEST-core-journaled-engine-delta-sync
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-delta-sync
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-delta-sync
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:05:42.813Z'
+    finished_at: '2026-08-24T08:07:16.048Z'
+    artifact_digest: 42ce85670388184ee5a8bf982792f382c643515ab0577cd70893bb746d629edf
+    contract_hash: 0d3da02eed7c281471856b8f86a5ba1039505ca8fd69b6ff393e72e6303bcc55
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-delta-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 93235
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-6608a75cfe1eac182628f8e3
+    test_id: TEST-core-journaled-engine-delta-sync
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-delta-sync
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-delta-sync
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0202c720e01d3b5e58358f98e61e524d501259ef3b14d6f74a44ef1fd03cfad1
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:38:20.397Z'
+    finished_at: '2026-08-24T08:39:51.389Z'
+    artifact_digest: bff5513a74eb40c87910d8a0d50cf503333976c5e289d9e6bbf50765e8af6c14
+    contract_hash: 0d3da02eed7c281471856b8f86a5ba1039505ca8fd69b6ff393e72e6303bcc55
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-delta-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 90992
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-42533a8d756850d40e62c971
+    test_id: TEST-core-journaled-engine-delta-sync
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-delta-sync
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-delta-sync
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 5e0dc87316dbd903ca5f2e3da37265c33a1559b0fecdabc93ab978662fad7b3b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T09:08:20.013Z'
+    finished_at: '2026-08-24T09:09:56.361Z'
+    artifact_digest: fdbce3dc74b9d00fa57443727ff2956959b7748d18ba190022bdc951b271d58b
+    contract_hash: 0d3da02eed7c281471856b8f86a5ba1039505ca8fd69b6ff393e72e6303bcc55
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-delta-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 96348
 ---
 
 Contract fixtures cover no-op, one-symbol, relationship-only, deletion,

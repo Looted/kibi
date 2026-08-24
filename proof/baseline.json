@@ -2,14 +2,14 @@
   "version": "kibi.proof-baseline.v1",
   "mode": "ratchet",
   "currentRequirements": 94,
-  "proofProven": 32,
-  "currentUnproven": 62,
+  "proofProven": 34,
+  "currentUnproven": 60,
   "trackedGaps": {
     "contradiction_check_incomplete": 41,
     "missing_logic_claims": 41,
     "missing_passing_e2e": 50,
     "missing_production_symbol": 16,
-    "missing_production_symbol_coverage": 46,
+    "missing_production_symbol_coverage": 44,
     "missing_semantic_inventory": 41,
     "missing_verification_receipt": 2,
     "unresolved_semantic_proposition": 14

@@ -73,3 +73,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-65f0ec63ddab
+  - type: covered_by
+    from: SYM-canonical-PathKind
+    to: TEST-opencode-bootstrap-paths
+    created_at: 2026-08-24T06:19:50.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7e589754bf1

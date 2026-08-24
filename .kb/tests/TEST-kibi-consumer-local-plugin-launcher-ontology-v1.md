@@ -892,4 +892,244 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 15204
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-5369524067ed08d1322dad95
+    test_id: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a54a428a72f914fe4ee86257b1e2eb792f98958f88ccf0d6a45eef244ab53055
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:47:03.866Z'
+    finished_at: '2026-08-24T06:47:23.329Z'
+    artifact_digest: d9dfdab27dec8eb9f3a02312bbdc9dd3f7e70c58e343e54eadc6316ffd0f3e5b
+    contract_hash: 4756e25292dbad76f28ebf29da8f8435dffbbd5b376d7eab696609dd1a84006b
+    case_results:
+      - symbol_id: SYM-kibi-consumer-local-plugin-launcher-ontology-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 19463
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-e2d2d87690800d1fd5795c6c
+    test_id: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a54a428a72f914fe4ee86257b1e2eb792f98958f88ccf0d6a45eef244ab53055
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:48:28.879Z'
+    finished_at: '2026-08-24T06:48:47.162Z'
+    artifact_digest: 91ab879f2c017dcabebf49bdfc3c0f096aba90868a510a0d3e4cbee1add88c2e
+    contract_hash: 4756e25292dbad76f28ebf29da8f8435dffbbd5b376d7eab696609dd1a84006b
+    case_results:
+      - symbol_id: SYM-kibi-consumer-local-plugin-launcher-ontology-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 18283
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-3352fcd67c41bacdfecc2f91
+    test_id: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: c2c5a06c408b705211516e8bd1f6733b82e8addfc4acd70c33d47a850f768285
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:13:55.676Z'
+    finished_at: '2026-08-24T07:14:11.650Z'
+    artifact_digest: a0ac7f995d60a874fbd9309794106ae3b4f198a5a6385665224eab7eb0e553f1
+    contract_hash: 4756e25292dbad76f28ebf29da8f8435dffbbd5b376d7eab696609dd1a84006b
+    case_results:
+      - symbol_id: SYM-kibi-consumer-local-plugin-launcher-ontology-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 15974
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-a82ca19c3e846e61bdfd8373
+    test_id: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: c2c5a06c408b705211516e8bd1f6733b82e8addfc4acd70c33d47a850f768285
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:15:09.102Z'
+    finished_at: '2026-08-24T07:15:24.990Z'
+    artifact_digest: 49298f6838a9e8a18945cfc63d4eb3401d9c94be189a8f00959c04f6627119be
+    contract_hash: 4756e25292dbad76f28ebf29da8f8435dffbbd5b376d7eab696609dd1a84006b
+    case_results:
+      - symbol_id: SYM-kibi-consumer-local-plugin-launcher-ontology-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 15888
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-53ce849274f0317193a6499d
+    test_id: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:10:24.320Z'
+    finished_at: '2026-08-24T08:10:44.107Z'
+    artifact_digest: e507112a01df250959f79dce31e88df7a8d97c62cc14c17cfb0ff12cd69f698c
+    contract_hash: 4756e25292dbad76f28ebf29da8f8435dffbbd5b376d7eab696609dd1a84006b
+    case_results:
+      - symbol_id: SYM-kibi-consumer-local-plugin-launcher-ontology-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 19787
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-a2a4f966f814d72e1ecb2df9
+    test_id: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:11:59.404Z'
+    finished_at: '2026-08-24T08:12:20.443Z'
+    artifact_digest: 8c1472083fe0aaec36ed1c6f3ff089f3410dbd7f3e239008200324f14be2b693
+    contract_hash: 4756e25292dbad76f28ebf29da8f8435dffbbd5b376d7eab696609dd1a84006b
+    case_results:
+      - symbol_id: SYM-kibi-consumer-local-plugin-launcher-ontology-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 21039
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-fa7a25e933afa5fdaa569d96
+    test_id: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0202c720e01d3b5e58358f98e61e524d501259ef3b14d6f74a44ef1fd03cfad1
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:42:20.866Z'
+    finished_at: '2026-08-24T08:42:39.265Z'
+    artifact_digest: 41b23c812c6830c254931a50d76874f46dc56e7b66b495ab6170c27753b894ef
+    contract_hash: 4756e25292dbad76f28ebf29da8f8435dffbbd5b376d7eab696609dd1a84006b
+    case_results:
+      - symbol_id: SYM-kibi-consumer-local-plugin-launcher-ontology-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 18399
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-b16920b5b94eda86deb91377
+    test_id: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0202c720e01d3b5e58358f98e61e524d501259ef3b14d6f74a44ef1fd03cfad1
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:43:45.344Z'
+    finished_at: '2026-08-24T08:44:03.278Z'
+    artifact_digest: f8d07a5be0c7390522ff176127b13d776f18fcfbcab85327af0a688e415ced00
+    contract_hash: 4756e25292dbad76f28ebf29da8f8435dffbbd5b376d7eab696609dd1a84006b
+    case_results:
+      - symbol_id: SYM-kibi-consumer-local-plugin-launcher-ontology-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 17934
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-0bc996fc8673aa538657b42d
+    test_id: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 5e0dc87316dbd903ca5f2e3da37265c33a1559b0fecdabc93ab978662fad7b3b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T09:12:24.262Z'
+    finished_at: '2026-08-24T09:12:41.552Z'
+    artifact_digest: 0e8694eaf98dc9be44a75f1d9b4f8aaa065e16047114823f03ab95b47b0c18fd
+    contract_hash: 4756e25292dbad76f28ebf29da8f8435dffbbd5b376d7eab696609dd1a84006b
+    case_results:
+      - symbol_id: SYM-kibi-consumer-local-plugin-launcher-ontology-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 17290
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-2bbcca54232223a248dfd911
+    test_id: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 5e0dc87316dbd903ca5f2e3da37265c33a1559b0fecdabc93ab978662fad7b3b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T09:13:51.318Z'
+    finished_at: '2026-08-24T09:14:10.660Z'
+    artifact_digest: 91c926972b061778b45c7875cab1d4d247e158ef6a6d559c902b585f4141f119
+    contract_hash: 4756e25292dbad76f28ebf29da8f8435dffbbd5b376d7eab696609dd1a84006b
+    case_results:
+      - symbol_id: SYM-kibi-consumer-local-plugin-launcher-ontology-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 19342
 ---

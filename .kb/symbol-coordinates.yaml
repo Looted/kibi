@@ -16136,6 +16136,12 @@ coordinates:
     sourceEndLine: 22
     sourceFile: packages/cli/tests/intent-search.test.ts
     sourceLine: 9
+  SYM-test-opencode-bootstrap-paths:
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 202
+    sourceFile: documentation/tests/e2e/packed/opencode-bootstrap-paths.test.ts
+    sourceLine: 1
   SYM-test-owned-engine-cleanup:
     sourceColumn: 22
     sourceEndColumn: 1

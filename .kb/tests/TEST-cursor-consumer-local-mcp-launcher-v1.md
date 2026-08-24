@@ -821,4 +821,244 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 2799
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-4b8113625d86541aab08d7b7
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a54a428a72f914fe4ee86257b1e2eb792f98958f88ccf0d6a45eef244ab53055
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:46:01.561Z'
+    finished_at: '2026-08-24T06:46:04.904Z'
+    artifact_digest: 54b25980c866f5233e4890c0d84a6e1f3dcdd6420640d09b48cd90e1aeac4752
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 3343
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-c1a42cd6c27c0c3b7065a6a3
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a54a428a72f914fe4ee86257b1e2eb792f98958f88ccf0d6a45eef244ab53055
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:47:42.672Z'
+    finished_at: '2026-08-24T06:47:45.864Z'
+    artifact_digest: e76a98c7092f87ce54543820e779af4981fa7635d854651e3326ef3271823736
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 3192
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-96f6ea7c84e79c95f8376367
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: c2c5a06c408b705211516e8bd1f6733b82e8addfc4acd70c33d47a850f768285
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:13:13.440Z'
+    finished_at: '2026-08-24T07:13:16.406Z'
+    artifact_digest: 3e9e2c48c3b01f79c530ff1867c597cf84e4d74788dc26ae675b6cb9db6eafc3
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 2966
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-ce50fc826c2420808eba2cd0
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: c2c5a06c408b705211516e8bd1f6733b82e8addfc4acd70c33d47a850f768285
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:14:29.575Z'
+    finished_at: '2026-08-24T07:14:32.516Z'
+    artifact_digest: f6a2be07ad06a005e013a8d36a3e9c3b5b248db63021b60cae13debe3f8165f9
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 2941
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-fc264a26c9c99d19fe9c0fb4
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:09:21.720Z'
+    finished_at: '2026-08-24T08:09:26.840Z'
+    artifact_digest: 8728e17fd011dbf8b8cbdbcee730a9a17305af69d3cd000538f28151a028e6f1
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 5120
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-f654b9eebba49bfe48bdb6fc
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:11:06.663Z'
+    finished_at: '2026-08-24T08:11:10.680Z'
+    artifact_digest: de992eb5cf758d4eb759eaddf4516c64efc9cbabf6b77265a601be52595445de
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 4017
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-b1d2ee232c8e93ffb16cd390
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0202c720e01d3b5e58358f98e61e524d501259ef3b14d6f74a44ef1fd03cfad1
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:41:36.823Z'
+    finished_at: '2026-08-24T08:41:39.944Z'
+    artifact_digest: 3e788ceb8f551ae520bc487a838093e1157c0333e9212ecff1c6024af81bef7e
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 3121
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-a04ac108e248e89fb811d011
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0202c720e01d3b5e58358f98e61e524d501259ef3b14d6f74a44ef1fd03cfad1
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:42:59.916Z'
+    finished_at: '2026-08-24T08:43:03.122Z'
+    artifact_digest: d9474e4c5ae5bd21f8829b7cd2626f434e30419d3e72b421d4c82eedf0973f88
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 3206
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-6f11e1a5ba97e14ca8500f1a
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 5e0dc87316dbd903ca5f2e3da37265c33a1559b0fecdabc93ab978662fad7b3b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T09:11:41.628Z'
+    finished_at: '2026-08-24T09:11:44.885Z'
+    artifact_digest: 8ecccc25c20256ed95adaf8e9269cb3ca2a3ac77c26111b4edecac896cd5acc3
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 3257
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-2d6c0965886dd9391f4a314c
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 5e0dc87316dbd903ca5f2e3da37265c33a1559b0fecdabc93ab978662fad7b3b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T09:13:04.028Z'
+    finished_at: '2026-08-24T09:13:07.616Z'
+    artifact_digest: 5ac943bd9232a58f4ae31f9a85527df3f00da50f1cf60520368516b8cc6c1fcc
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 3588
 ---

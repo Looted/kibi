@@ -4333,8 +4333,7 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable
-      resource examples
+    title: predicate guidance loads a canonical decision tree with immutable resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -26423,6 +26422,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-opencode-bootstrap-paths
+      - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
       - type: implements
         target: REQ-opencode-bootstrap-nudge
@@ -26457,6 +26458,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-opencode-bootstrap-paths
+      - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
@@ -26466,6 +26469,8 @@ symbols:
     sourceFile: packages/opencode/src/path-kind.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-opencode-bootstrap-paths
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
       - type: implements
@@ -26508,6 +26513,8 @@ symbols:
     sourceFile: packages/opencode/src/workspace-health.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-opencode-bootstrap-paths
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
       - type: implements
@@ -28321,3 +28328,12 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-test-journaled-engine-harness
+  - id: SYM-test-opencode-bootstrap-paths
+    title: opencode bootstrap paths e2e
+    status: active
+    sourceFile: documentation/tests/e2e/packed/opencode-bootstrap-paths.test.ts
+    granularity_reason: extractor-miss
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-opencode-bootstrap-paths

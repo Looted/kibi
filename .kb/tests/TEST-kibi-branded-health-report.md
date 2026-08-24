@@ -577,5 +577,149 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 11683
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-52e25117a03fcc28600f83bd
+    test_id: TEST-kibi-branded-health-report
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-branded-health-report
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-branded-health-report
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a54a428a72f914fe4ee86257b1e2eb792f98958f88ccf0d6a45eef244ab53055
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:27:09.532Z'
+    finished_at: '2026-08-24T06:27:25.223Z'
+    artifact_digest: 0473796c45c4b220316c28248ad0c394bec702b59763dbd66d2039a09f240348
+    contract_hash: 4c47a01ae9011db1d2a38b83cb448f40a3e631aa3066672b187bf455a3cea625
+    case_results:
+      - symbol_id: SYM-e2e-packed-cli-html-report
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 15691
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-02ca0099eafaa283f9c73815
+    test_id: TEST-kibi-branded-health-report
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-branded-health-report
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-branded-health-report
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: c2c5a06c408b705211516e8bd1f6733b82e8addfc4acd70c33d47a850f768285
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T06:55:19.065Z'
+    finished_at: '2026-08-24T06:55:32.994Z'
+    artifact_digest: ba92a91c80989e35b941da21489f9990db943b4ad6bb9451fdb7f3e0c493a15d
+    contract_hash: 4c47a01ae9011db1d2a38b83cb448f40a3e631aa3066672b187bf455a3cea625
+    case_results:
+      - symbol_id: SYM-e2e-packed-cli-html-report
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 13929
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-2de9da9bfa06815446699ed9
+    test_id: TEST-kibi-branded-health-report
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-branded-health-report
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-branded-health-report
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:25:14.537Z'
+    finished_at: '2026-08-24T07:25:27.309Z'
+    artifact_digest: a4af03c5eeddd39b29857ed04a460bc874bd452929149e7975bc039f91c838b5
+    contract_hash: 4c47a01ae9011db1d2a38b83cb448f40a3e631aa3066672b187bf455a3cea625
+    case_results:
+      - symbol_id: SYM-e2e-packed-cli-html-report
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 12772
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-c0f7af961e3d4ab0e002b031
+    test_id: TEST-kibi-branded-health-report
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-branded-health-report
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-branded-health-report
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 87c6ab7e6f971c15102202ee73e00746d5131749ae89a78713d45f63ce043d91
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T07:49:53.192Z'
+    finished_at: '2026-08-24T07:50:06.370Z'
+    artifact_digest: cfea391fb10c56e6aab009d7a641eb5a73c102df02992931c22e25aa6cf9e05f
+    contract_hash: 4c47a01ae9011db1d2a38b83cb448f40a3e631aa3066672b187bf455a3cea625
+    case_results:
+      - symbol_id: SYM-e2e-packed-cli-html-report
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 13178
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-b09fa4885cc025e196439377
+    test_id: TEST-kibi-branded-health-report
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-branded-health-report
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-branded-health-report
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0202c720e01d3b5e58358f98e61e524d501259ef3b14d6f74a44ef1fd03cfad1
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:22:16.925Z'
+    finished_at: '2026-08-24T08:22:30.714Z'
+    artifact_digest: 04ed5e88bdb42a27652747df296383d72e94e3cbc8cb5c96cc55febc0cac3b0f
+    contract_hash: 4c47a01ae9011db1d2a38b83cb448f40a3e631aa3066672b187bf455a3cea625
+    case_results:
+      - symbol_id: SYM-e2e-packed-cli-html-report
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 13789
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-b0014cc3377ffd929a0e6d33
+    test_id: TEST-kibi-branded-health-report
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-branded-health-report
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-branded-health-report
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 5e0dc87316dbd903ca5f2e3da37265c33a1559b0fecdabc93ab978662fad7b3b
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-24T08:52:09.587Z'
+    finished_at: '2026-08-24T08:52:23.002Z'
+    artifact_digest: 2f88ee9d8861b19e1d6f228db045d3df74b6b98ee2d4f1156fb89333cf2ded4c
+    contract_hash: 4c47a01ae9011db1d2a38b83cb448f40a3e631aa3066672b187bf455a3cea625
+    case_results:
+      - symbol_id: SYM-e2e-packed-cli-html-report
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 13415
 ---
 Covers canonical inline marks and tokens, exact proof ratio semantics, sequential earliest-blocker gate counts, accessible status text, responsive and print styling, self-contained output, and the generated branded SVG badge with Codecov-style chrome and a compact kibi label beside the logo.

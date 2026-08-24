@@ -55,3 +55,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-644deacef955
+  - type: executable_for
+    from: SYM-test-opencode-bootstrap-paths
+    to: TEST-opencode-bootstrap-paths
+    created_at: 2026-08-24T06:18:16.177Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc7d147b8383
