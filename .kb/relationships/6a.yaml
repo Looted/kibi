@@ -76,3 +76,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-25c77171b1ca
+  - type: validates
+    from: TEST-skillopt-cursor-compat
+    to: SCEN-skillopt-cursor-compat
+    created_at: 2026-08-25T19:06:14.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fcfade4aa5ef

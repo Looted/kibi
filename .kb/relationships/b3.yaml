@@ -76,3 +76,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-33a41b3ed06f
+  - type: covered_by
+    from: SYM-skillopt-cursor-run-compat-gate
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:52:10.163Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77fe7dde2539

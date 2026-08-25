@@ -43,7 +43,7 @@ Use whichever capability is visible and approved. The surfaces are equal peers:
    stop and identify the missing capability.
 4. Never use a global fallback, an installing runner, or an unapproved route.
 
-OpenCode may expose prefixed identifiers such as `kibi_kb_search`,
+Hosts may expose prefixed identifiers such as `kibi_kb_search`,
 `kibi_kb_query`, and `kibi_kb_upsert`; map them to the canonical MCP names.
 
 The CLI JSON route accepts the same business object as MCP:
@@ -142,7 +142,7 @@ such as `closed`, add an `implemented` tag, and link evidence instead.
 ## Anti-Patterns and Remediation
 
 Reject reversed relationship direction, a Bug-as-flag record without a runtime
-gate, direct `.kb/` edits, and a generic `strict kb_upsert.properties` field.
+gate, direct KB-store edits, and a generic `strict kb_upsert.properties` field.
 Keep symbol payloads minimal. When a generic `Query failed` appears, do not keep
 retrying the same payload; inspect the typed error and `nextActions`.
 

@@ -48,3 +48,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-07ca1e0dbd66
+  - type: covered_by
+    from: SYM-skillopt-cursor-evaluate-verdict
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:51:17.596Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90e102ae8416

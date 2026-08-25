@@ -111,3 +111,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-80ea655cd31e
+  - type: covered_by
+    from: SYM-skillopt-cursor-variant-type
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:52:37.581Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ae6712d7186

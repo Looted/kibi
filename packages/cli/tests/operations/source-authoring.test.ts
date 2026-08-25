@@ -166,6 +166,48 @@ describe("source-first authoring", () => {
     ).toBe("write");
   });
 
+  test("partial symbol upserts preserve authored provenance fields", async () => {
+    const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
+    workspaces.push(workspace);
+    const target = path.join(workspace, "symbols.yaml");
+    const original = [
+      "symbols:",
+      "  - id: SYM-A",
+      "    title: First",
+      "    status: active",
+      "    sourceFile: scripts/example.ts",
+      "    granularity_reason: module-level-behavior",
+      "    symbol_role: behavioral",
+      "",
+    ].join("\n");
+    await writeFile(target, original);
+    await writeSourceForUpsert(
+      {
+        type: "symbol",
+        id: "SYM-A",
+        properties: { title: "First", status: "active" },
+        relationships: [
+          { type: "covered_by", from: "SYM-A", to: "TEST-COVERAGE" },
+        ],
+        document: { path: "symbols.yaml" },
+      },
+      {
+        id: "SYM-A",
+        type: "symbol",
+        title: "First",
+        status: "active",
+        source: "symbols.yaml",
+      },
+      { id: "SYM-A", source: "symbols.yaml" },
+      context(workspace),
+    );
+    const updated = await readFile(target, "utf8");
+    expect(updated).toContain("sourceFile: scripts/example.ts");
+    expect(updated).toContain("granularity_reason: module-level-behavior");
+    expect(updated).toContain("symbol_role: behavioral");
+    expect(updated).toContain("target: TEST-COVERAGE");
+  });
+
   test("removes one exact YAML symbol relationship without rewriting unrelated content", () => {
     const original = [
       "# authored manifest",

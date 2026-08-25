@@ -171,3 +171,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3ee71f0f8760
+  - type: covered_by
+    from: SYM-skillopt-cursor-summarize-cells
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:52:21.909Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27e0bca51cd0

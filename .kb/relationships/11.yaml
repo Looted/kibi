@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-18f210831de2
+  - type: verified_by
+    from: SCEN-cli-doctor-packed-provenance
+    to: TEST-cli-doctor-packed-provenance
+    created_at: 2026-08-25T19:01:02.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52ffe584b8cd
+  - type: covered_by
+    from: SYM-skillopt-receipt-inspect-objectives
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-25T19:53:04.793Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5132dfbb16a

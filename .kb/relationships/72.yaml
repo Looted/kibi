@@ -146,3 +146,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-67ed73820676
+  - type: covered_by
+    from: SYM-skillopt-cursor-qualification-error-name
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:51:54.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36eab386a881

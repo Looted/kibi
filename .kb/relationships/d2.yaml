@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-de65a550d503
+  - type: covered_by
+    from: SYM-skillopt-cursor-parse-args
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:51:30.509Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6f4b8be7249
+  - type: covered_by
+    from: SYM-skillopt-migration-apply-objectives
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-25T19:52:47.781Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55a5324f213f

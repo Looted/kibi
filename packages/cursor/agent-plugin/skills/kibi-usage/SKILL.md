@@ -142,7 +142,7 @@ such as `closed`, add an `implemented` tag, and link evidence instead.
 ## Anti-Patterns and Remediation
 
 Reject reversed relationship direction, a Bug-as-flag record without a runtime
-gate, direct `.kb/` edits, and a generic `strict kb_upsert.properties` field.
+gate, direct KB-store edits, and a generic `strict kb_upsert.properties` field.
 Keep symbol payloads minimal. When a generic `Query failed` appears, do not keep
 retrying the same payload; inspect the typed error and `nextActions`.
 

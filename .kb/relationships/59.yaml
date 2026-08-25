@@ -62,3 +62,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9c92ae31953f
+  - type: covered_by
+    from: SYM-skillopt-cursor-parsed-args
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:51:34.962Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49ded2c14629

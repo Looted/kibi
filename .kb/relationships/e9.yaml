@@ -83,3 +83,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-991b091ecf9f
+  - type: covered_by
+    from: SYM-skillopt-predicate-objective-prefix
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-25T19:52:58.014Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df300a0986e2

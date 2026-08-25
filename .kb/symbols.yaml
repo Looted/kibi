@@ -194,13 +194,16 @@ symbols:
         target: TEST-agent-guided-migration-orchestration
   - id: SYM-kibi-doctor-command
     title: doctorCommand
+    status: active
     sourceFile: packages/cli/src/commands/doctor.ts
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-agent-guided-migration-orchestration
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-cli-doctor-packed-provenance
   - id: SYM-kibi-check-diagnostic
     title: CheckDiagnostic
     sourceFile: packages/cli/src/public/operations/check-format-shared.ts
@@ -4335,7 +4338,8 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -16396,6 +16400,7 @@ symbols:
     status: active
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
     symbol_role: behavioral
+    granularity_reason: module-level-behavior
     relationships:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
@@ -28353,6 +28358,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-objective-workflows
@@ -28362,6 +28369,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-delete-objectives
@@ -28371,6 +28380,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-migration-apply-objectives
@@ -28380,6 +28391,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-receipt-ingest-objectives
@@ -28389,6 +28402,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-receipt-inspect-objectives
@@ -28398,6 +28413,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-cell-outcome
@@ -28407,6 +28424,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-cell-receipt
@@ -28416,6 +28435,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-variant-summary
@@ -28425,6 +28446,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-compatibility-report
@@ -28434,6 +28457,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-objective-workflow-shape
@@ -28443,6 +28468,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-run-qualification
@@ -28452,6 +28479,8 @@ symbols:
     granularity_reason: module-level-behavior
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-qualification-deps
@@ -28461,6 +28490,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-variant-type
@@ -28470,6 +28501,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-qualification-check
@@ -28479,6 +28512,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-qualification-receipt
@@ -28488,6 +28523,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-qualification-error
@@ -28497,6 +28534,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: structural
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-qualification-error-name
@@ -28506,6 +28545,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: structural
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-sha256-text
@@ -28515,6 +28556,8 @@ symbols:
     granularity_reason: module-level-behavior
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-summarize-cells
@@ -28524,6 +28567,8 @@ symbols:
     granularity_reason: module-level-behavior
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-evaluate-verdict
@@ -28533,6 +28578,8 @@ symbols:
     granularity_reason: module-level-behavior
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-run-compat-gate
@@ -28542,6 +28589,8 @@ symbols:
     granularity_reason: module-level-behavior
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-persist-report
@@ -28551,6 +28600,8 @@ symbols:
     granularity_reason: module-level-behavior
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-default-cell-timeout
@@ -28560,6 +28611,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-candidate-type
@@ -28569,6 +28622,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-gate-input
@@ -28578,6 +28633,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-evaluation-branch
@@ -28587,6 +28644,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-run-cell
@@ -28596,6 +28655,8 @@ symbols:
     granularity_reason: module-level-behavior
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-cell-options
@@ -28605,6 +28666,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-completed-cell
@@ -28614,6 +28677,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-cell-deps
@@ -28623,6 +28688,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-parse-args
@@ -28632,6 +28699,8 @@ symbols:
     granularity_reason: module-level-behavior
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-run-command
@@ -28641,6 +28710,8 @@ symbols:
     granularity_reason: module-level-behavior
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-main
@@ -28650,8 +28721,12 @@ symbols:
     granularity_reason: module-level-behavior
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-parsed-args
     title: ParsedCursorArgs
     status: active
@@ -28659,6 +28734,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-usage-error
@@ -28668,6 +28745,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: structural
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-cursor-usage-error-name
@@ -28677,6 +28756,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: structural
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-is-predicate-objective
@@ -28686,6 +28767,8 @@ symbols:
     granularity_reason: module-level-behavior
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-COVERAGE_SHARDS

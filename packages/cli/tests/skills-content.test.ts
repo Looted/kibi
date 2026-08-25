@@ -35,7 +35,8 @@ describe("bundled Kibi skills", () => {
     expect(bundle.body).toContain("supersedes");
     expect(bundle.body).toContain("fact_kind: predicate");
     expect(bundle.body).toContain("fact_kind: observation");
-    expect(bundle.body).toContain("OpenCode");
+    expect(bundle.body).toContain("Hosts may expose prefixed identifiers");
+    expect(bundle.body).not.toContain("OpenCode");
     expect(bundle.body).not.toContain("Public Training Trajectories");
     expect(bundle.body).not.toContain("Training Data");
   });

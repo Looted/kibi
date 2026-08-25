@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, describe, it } from "node:test";
@@ -91,6 +97,91 @@ function verifyConsumer(dir: string, packageManager: "npm" | "pnpm"): void {
     { cwd: dir, encoding: "utf8", stdio: "pipe" },
   );
   assert.equal(probe, "");
+  verifyDoctorProvenance(dir, pnpmEnv);
+}
+
+type DoctorAction = Readonly<{ id?: unknown }>;
+
+function readInstalledVersion(
+  dir: string,
+  packageName: string,
+): string | undefined {
+  const manifest = JSON.parse(
+    readFileSync(
+      join(dir, "node_modules", packageName, "package.json"),
+      "utf8",
+    ),
+  ) as { version?: unknown };
+  return typeof manifest.version === "string" ? manifest.version : undefined;
+}
+
+/**
+ * Regression coverage for the packed-consumer doctor false positive: a
+ * coordinated install whose MCP package hides ./package.json behind a tight
+ * exports map must still report mcpVersion and must not emit
+ * package-provenance-unresolved.
+ */
+function verifyDoctorProvenance(dir: string, env: NodeJS.ProcessEnv): void {
+  const kibiBin = join(dir, "node_modules", "kibi-cli", "bin", "kibi");
+  let stdout = "";
+  try {
+    // Doctor exits non-zero when environment checks fail in a bare temp dir;
+    // its JSON provenance report is still printed to stdout either way.
+    stdout = execFileSync("node", [kibiBin, "doctor", "--format", "json"], {
+      cwd: dir,
+      encoding: "utf8",
+      env,
+      stdio: "pipe",
+    });
+  } catch (error) {
+    stdout = (error as { stdout?: string | Buffer }).stdout?.toString() ?? "";
+  }
+  const report = JSON.parse(stdout) as {
+    version?: unknown;
+    runtime?: {
+      coreVersion?: unknown;
+      mcpVersion?: unknown;
+      locations?: { core?: unknown; mcp?: unknown };
+    };
+    migrationPlan?: { actions?: readonly DoctorAction[] };
+  };
+
+  assert.equal(report.version, "kibi.doctor.v1");
+  assert.equal(
+    report.runtime?.coreVersion,
+    readInstalledVersion(dir, "kibi-core"),
+  );
+  assert.equal(
+    report.runtime?.mcpVersion,
+    readInstalledVersion(dir, "kibi-mcp"),
+  );
+
+  for (const [locationKey, packageName] of [
+    ["core", "kibi-core"],
+    ["mcp", "kibi-mcp"],
+  ] as const) {
+    const reportedPath = report.runtime?.locations?.[locationKey];
+    assert.ok(
+      typeof reportedPath === "string" &&
+        reportedPath.endsWith(join(packageName, "package.json")),
+      `runtime.locations.${locationKey} should point at the installed ${packageName} manifest, got: ${String(reportedPath)}`,
+    );
+    // pnpm installs resolve through .pnpm symlinks; compare real paths.
+    assert.equal(
+      realpathSync(reportedPath),
+      realpathSync(join(dir, "node_modules", packageName, "package.json")),
+    );
+    const manifest = JSON.parse(readFileSync(reportedPath, "utf8")) as {
+      name?: unknown;
+    };
+    assert.equal(manifest.name, packageName);
+  }
+
+  const actions = report.migrationPlan?.actions ?? [];
+  assert.ok(
+    !actions.some((action) => action.id === "package-provenance-unresolved"),
+    `coordinated consumer install must not emit package-provenance-unresolved, got: ${JSON.stringify(actions.map((action) => action.id))}`,
+  );
 }
 
 describe("release package contracts", { concurrency: false }, () => {

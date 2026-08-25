@@ -104,3 +104,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cbd06633009d
+  - type: specified_by
+    from: REQ-cli-doctor-packed-provenance
+    to: SCEN-cli-doctor-packed-provenance
+    created_at: 2026-08-25T19:00:19.254Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-474d0cdd6cc0

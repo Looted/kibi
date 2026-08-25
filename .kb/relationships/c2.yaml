@@ -150,3 +150,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6f31dc2471cd
+  - type: covered_by
+    from: SYM-skillopt-cursor-sha256-text
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:52:18.526Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71da851053ea

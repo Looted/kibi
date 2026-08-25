@@ -402,11 +402,30 @@ function renderSymbolManifest(
   });
   const existingRelationships =
     index >= 0 ? manifestRelationships(items[index]) : [];
-  const next = symbolManifestRecord(
+  let next = symbolManifestRecord(
     entity,
     mergeManifestRelationships(existingRelationships, relationships, id),
   );
   if (index >= 0) {
+    // Partial symbol payloads (for example a relationship-only upsert) must
+    // never erase authored provenance from the manifest. Preserve fields the
+    // payload omits, with incoming values winning on explicit conflicts.
+    const item = items[index] as {
+      toJSON?: () => unknown;
+    };
+    const previous =
+      typeof item?.toJSON === "function" ? (item.toJSON() as unknown) : null;
+    if (
+      typeof previous === "object" &&
+      previous !== null &&
+      !Array.isArray(previous)
+    ) {
+      const preserved = symbolManifestRecord(
+        previous as Readonly<Record<string, unknown>>,
+        [],
+      );
+      next = { ...preserved, ...next };
+    }
     doc.setIn(["symbols", index], next);
   } else {
     doc.addIn(["symbols"], next);

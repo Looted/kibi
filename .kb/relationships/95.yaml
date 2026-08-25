@@ -73,3 +73,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8099f312e191
+  - type: covered_by
+    from: SYM-skillopt-cursor-evaluation-branch
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:51:21.855Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ffbd9be08851

@@ -129,3 +129,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-acf3286b3f54
+  - type: covered_by
+    from: SYM-skillopt-cursor-qualification-receipt
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:51:58.028Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24486596a71b

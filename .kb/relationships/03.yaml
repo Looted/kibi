@@ -146,3 +146,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-351b7cd9376a
+  - type: covered_by
+    from: SYM-skillopt-cursor-qualification-deps
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:51:47.096Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f657c165a21

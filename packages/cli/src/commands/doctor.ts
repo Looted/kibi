@@ -259,79 +259,114 @@ async function runtimeProvenance(): Promise<Record<string, unknown>> {
   };
 }
 
-function resolveInstalledPackageInfo(name: string): {
+interface InstalledPackageInfo {
   version: string;
   path: string;
   entrypoint: string;
   dependencies?: Record<string, string> | undefined;
-} {
-  const candidates = [
-    `${name}/package.json`,
-    path.resolve(
-      path.dirname(fileURLToPath(import.meta.url)),
-      "..",
-      "..",
-      "..",
-      name.replace(/^kibi-/, ""),
-      "package.json",
-    ),
-  ];
+}
+
+function packageInfoFromManifest(
+  manifestPath: string,
+): InstalledPackageInfo | undefined {
+  let metadata: {
+    version?: unknown;
+    main?: unknown;
+    dependencies?: unknown;
+  };
   try {
-    const require = createRequire(import.meta.url);
-    const packageJson = candidates[0]?.startsWith("/")
-      ? candidates[0]
-      : require.resolve(candidates[0] ?? name);
-    const metadata = JSON.parse(readFileSync(packageJson, "utf8")) as {
-      version?: unknown;
-      main?: unknown;
-      dependencies?: unknown;
-    };
-    return {
-      version:
-        typeof metadata.version === "string" ? metadata.version : "unknown",
-      path: packageJson,
-      entrypoint:
-        typeof metadata.main === "string"
-          ? path.resolve(path.dirname(packageJson), metadata.main)
-          : "unknown",
-      dependencies:
-        metadata.dependencies && typeof metadata.dependencies === "object"
-          ? (metadata.dependencies as Record<string, string>)
-          : undefined,
-    };
+    metadata = JSON.parse(readFileSync(manifestPath, "utf8"));
   } catch {
-    const local = candidates[1];
-    if (local && existsSync(local)) {
-      try {
-        const metadata = JSON.parse(readFileSync(local, "utf8")) as {
-          version?: unknown;
-          main?: unknown;
-          dependencies?: unknown;
-        };
-        return {
-          version:
-            typeof metadata.version === "string" ? metadata.version : "unknown",
-          path: local,
-          entrypoint:
-            typeof metadata.main === "string"
-              ? path.resolve(path.dirname(local), metadata.main)
-              : "unknown",
-          dependencies:
-            metadata.dependencies && typeof metadata.dependencies === "object"
-              ? (metadata.dependencies as Record<string, string>)
-              : undefined,
-        };
-      } catch {
-        // Continue to the explicit unresolved result below.
-      }
-    }
-    return {
-      version: "unresolved",
-      path: "unresolved",
-      entrypoint: "unresolved",
-      dependencies: undefined,
-    };
+    // Missing or unreadable manifest is not usable provenance.
+    return undefined;
   }
+  return {
+    version:
+      typeof metadata.version === "string" ? metadata.version : "unknown",
+    path: manifestPath,
+    entrypoint:
+      typeof metadata.main === "string"
+        ? path.resolve(path.dirname(manifestPath), metadata.main)
+        : "unknown",
+    dependencies:
+      metadata.dependencies && typeof metadata.dependencies === "object"
+        ? (metadata.dependencies as Record<string, string>)
+        : undefined,
+  };
+}
+
+function nearestNamedPackageManifest(
+  startDir: string,
+  name: string,
+): string | undefined {
+  let current = startDir;
+  while (true) {
+    const candidate = path.join(current, "package.json");
+    try {
+      const metadata = JSON.parse(readFileSync(candidate, "utf8")) as {
+        name?: unknown;
+      };
+      if (metadata.name === name) return candidate;
+    } catch {
+      // Keep walking; an unrelated or absent manifest is not a match.
+    }
+    const parent = path.dirname(current);
+    if (parent === current) return undefined;
+    current = parent;
+  }
+}
+
+function resolveInstalledPackageInfo(name: string): InstalledPackageInfo {
+  const require = createRequire(import.meta.url);
+
+  // Preferred: direct manifest subpath. Works when the package exports
+  // "./package.json" or has no restrictive exports map at all.
+  try {
+    const info = packageInfoFromManifest(
+      require.resolve(`${name}/package.json`),
+    );
+    if (info) return info;
+  } catch {
+    // Fall through to entrypoint-based resolution below.
+  }
+
+  // Fallback: a tight exports map may hide ./package.json while the package
+  // itself is installed and runnable. Resolve the entrypoint, then walk up to
+  // the nearest manifest that actually names the target package so doctor
+  // never reports a coordinated install as unresolved.
+  try {
+    const entrypoint = require.resolve(name);
+    const manifestPath = nearestNamedPackageManifest(
+      path.dirname(entrypoint),
+      name,
+    );
+    const info = manifestPath
+      ? packageInfoFromManifest(manifestPath)
+      : undefined;
+    if (info) return info;
+  } catch {
+    // The package is genuinely absent from this install graph.
+  }
+
+  // Last resort: sibling workspace package inside the Kibi monorepo.
+  const local = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "..",
+    "..",
+    "..",
+    name.replace(/^kibi-/, ""),
+    "package.json",
+  );
+  if (existsSync(local)) {
+    const info = packageInfoFromManifest(local);
+    if (info) return info;
+  }
+  return {
+    version: "unresolved",
+    path: "unresolved",
+    entrypoint: "unresolved",
+    dependencies: undefined,
+  };
 }
 
 function checkSWIProlog(): {

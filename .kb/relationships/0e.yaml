@@ -89,5 +89,14 @@ relationships:
         created_by: kibi/upsert,
         source: mcp://kibi/upsert,
         id: rel-41f1e91bdcdc
+      },
+    {
+        type: covered_by,
+        from: SYM-skillopt-cursor-cell-receipt,
+        to: TEST-skillopt-cursor-compat,
+        created_at: 2026-08-25T19:51:02.344Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-8b06d0947991
       }
   ]
