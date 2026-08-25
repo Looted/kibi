@@ -120,6 +120,54 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 28093
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-8538bb99ac13ceae287d0e73
+    test_id: TEST-opencode-bootstrap-paths
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-opencode-bootstrap-paths
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-opencode-bootstrap-paths
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: b4c293e5c38acc3b1634297cb581f7a47990af06b571a148378040241f223e20
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-25T21:25:35.798Z'
+    finished_at: '2026-08-25T21:26:02.132Z'
+    artifact_digest: 5b5848edd81f35a07bfb9fff8023029c68590d5cee216fb3ec6f58e36f61ba95
+    contract_hash: 5c674cf3569b0b2ed34b605c3049caa5a6235a948b8e9dd7bb77115a31f07ab5
+    case_results:
+      - symbol_id: SYM-test-opencode-bootstrap-paths
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 26334
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-a980932029c77eb577471fcc
+    test_id: TEST-opencode-bootstrap-paths
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-opencode-bootstrap-paths
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-opencode-bootstrap-paths
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ade9827cc7a818c6ea2869e688fc01ca1e4e1127c9481d41441e12144ed18676
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-25T22:16:15.783Z'
+    finished_at: '2026-08-25T22:17:51.069Z'
+    artifact_digest: 5805a68d03f129a7efb34d923d67f41ec34dc74bcf58b91f232588a2e0873491
+    contract_hash: 5c674cf3569b0b2ed34b605c3049caa5a6235a948b8e9dd7bb77115a31f07ab5
+    case_results:
+      - symbol_id: SYM-test-opencode-bootstrap-paths
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 95286
 ---
 Verifies the packed kibi-opencode plugin's bootstrap path behavior against the canonical .kb/ layout through an isolated npm install of the real tarball.
 

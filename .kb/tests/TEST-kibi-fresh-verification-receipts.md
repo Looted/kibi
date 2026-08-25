@@ -817,6 +817,54 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 12131
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-fd7b757478367a46bcc9a520
+    test_id: TEST-kibi-fresh-verification-receipts
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-fresh-verification-receipts
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-fresh-verification-receipts
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: b4c293e5c38acc3b1634297cb581f7a47990af06b571a148378040241f223e20
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-25T20:54:38.886Z'
+    finished_at: '2026-08-25T20:54:51.654Z'
+    artifact_digest: 5e9fa6b92fb394a670ce3308387b1d330faa006b903e923afd3dc1f293795843
+    contract_hash: ba7a57dd4bc9730259c37651822020009939343e59aa4a3496c80e2baf4f423d
+    case_results:
+      - symbol_id: SYM-test-packed-fresh-verification-receipts
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 12768
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-6272089e5c95df703cb7e5dd
+    test_id: TEST-kibi-fresh-verification-receipts
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-fresh-verification-receipts
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-fresh-verification-receipts
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ade9827cc7a818c6ea2869e688fc01ca1e4e1127c9481d41441e12144ed18676
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-25T21:40:53.743Z'
+    finished_at: '2026-08-25T21:42:04.084Z'
+    artifact_digest: e0d718b729add3cd3bbad5bfb665d027e2d41ca7c53e95c4dbfed6f2ebd4a223
+    contract_hash: ba7a57dd4bc9730259c37651822020009939343e59aa4a3496c80e2baf4f423d
+    case_results:
+      - symbol_id: SYM-test-packed-fresh-verification-receipts
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 70341
 id: TEST-kibi-fresh-verification-receipts
 type: test
 verification_contract:

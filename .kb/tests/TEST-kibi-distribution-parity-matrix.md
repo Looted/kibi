@@ -764,6 +764,54 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 51632
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-d3f8fff3acab3bc9ced6b9d0
+    test_id: TEST-kibi-distribution-parity-matrix
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-distribution-parity-matrix
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-distribution-parity-matrix
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: b4c293e5c38acc3b1634297cb581f7a47990af06b571a148378040241f223e20
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-25T20:53:50.962Z'
+    finished_at: '2026-08-25T20:54:33.362Z'
+    artifact_digest: 5f4ba9ad5c69aee079593d986b2fc711f7228ffb8f8509b6bb2e8be0b66cf31f
+    contract_hash: 2352f1749e43e20f35cb64c265e7f3db698be2699a73b547b7cb9dec5887aadf
+    case_results:
+      - symbol_id: SYM-test-packed-distribution-parity
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 42400
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-bf532ea29e415fa7d689dfd4
+    test_id: TEST-kibi-distribution-parity-matrix
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-distribution-parity-matrix
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-distribution-parity-matrix
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ade9827cc7a818c6ea2869e688fc01ca1e4e1127c9481d41441e12144ed18676
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-25T21:39:06.565Z'
+    finished_at: '2026-08-25T21:40:47.915Z'
+    artifact_digest: a1f4e72549720c1bbe2a6a65008101e165ea83bb9fdad117e49e809a90e00b4b
+    contract_hash: 2352f1749e43e20f35cb64c265e7f3db698be2699a73b547b7cb9dec5887aadf
+    case_results:
+      - symbol_id: SYM-test-packed-distribution-parity
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 101350
 tags:
   - parity
   - distribution
