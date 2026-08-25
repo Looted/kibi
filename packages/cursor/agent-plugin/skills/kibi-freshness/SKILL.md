@@ -40,7 +40,7 @@ echo '{}' | npx --no-install kibi status --input -
   explicit old/new migration is approved.
 - Inspect bounded `staleReasons` (indexed source missing/newer or documentation
   source newer) and `verificationSnapshotChanges`. Kibi deliberately reports
-  editor/config paths such as `.cursor/`; do not silently ignore them.
+  editor/config paths such as editor dot-directories; do not silently ignore them.
 - Use `kb_query`, or `query --input`, with `sourceFile` and text references for source-linked discovery.
 - Re-run `kb_search`, or `search --input`, after sync gaps or stale context are detected.
 - If knowledge must change, use the selected interface's `kb_upsert`/`upsert` or `kb_delete`/`delete` operation sequentially, then finish with `kb_check`/`check`.
