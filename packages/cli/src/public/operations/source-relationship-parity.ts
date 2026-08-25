@@ -192,6 +192,7 @@ export async function collectSourceRelationshipParityViolations(
     discovery.markdownFiles,
     discovery.manifestFiles,
     true,
+    workspaceRoot,
   );
   if (extraction.errors.length > 0) {
     return extraction.errors.map(({ file, message }) => ({

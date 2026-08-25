@@ -97,3 +97,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7c1b5ce5fd8c
+  - type: implements
+    from: SYM-EPISODE-OUTPUT-SCHEMA
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-23T23:30:31.592Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d9b875c079d
+  - type: covered_by
+    from: SYM-EPISODE-OUTPUT-SCHEMA
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-23T23:30:31.604Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6cb9fac3b42d

@@ -442,6 +442,7 @@ const entitySchema: Record<string, unknown> = {
         "module-level-behavior",
         "extractor-miss",
         "legacy-link",
+        "test-suite",
       ],
     },
     symbol_role: {

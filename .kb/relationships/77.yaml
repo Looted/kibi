@@ -139,3 +139,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6c106007e39e
+  - type: implements
+    from: SYM-SymbolCompilerLockHandle
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:36:23.707Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc38ac96e33e
+  - type: covered_by
+    from: SYM-SymbolCompilerLockHandle
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:36:23.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7f4b5f375c2

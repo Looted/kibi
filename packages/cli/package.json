@@ -72,6 +72,10 @@
       "types": "./dist/public/extractors/symbols-coordinator.d.ts",
       "default": "./dist/public/extractors/symbols-coordinator.js"
     },
+    "./extractors/symbol-coordinates": {
+      "types": "./dist/extractors/symbol-coordinates.d.ts",
+      "default": "./dist/extractors/symbol-coordinates.js"
+    },
     "./extractors/manifest": {
       "types": "./dist/public/extractors/manifest.d.ts",
       "default": "./dist/public/extractors/manifest.js"
@@ -172,6 +176,10 @@
     "./operations/mutation/symbol-refresh": {
       "types": "./dist/operations/mutation/symbol-refresh.d.ts",
       "default": "./dist/operations/mutation/symbol-refresh.js"
+    },
+    "./operations/mutation/symbol-compiler-lock": {
+      "types": "./dist/operations/mutation/symbol-compiler-lock.d.ts",
+      "default": "./dist/operations/mutation/symbol-compiler-lock.js"
     },
     "./operations/mutation/types": {
       "types": "./dist/operations/mutation/types.d.ts",

@@ -4088,6 +4088,7 @@ symbols:
     title: GitHub init scaffolding tests
     status: active
     sourceFile: packages/cli/tests/commands/github-init.test.ts
+    granularity_reason: test-suite
     relationships:
       - type: executable_for
         target: TEST-kibi-github-report-integration
@@ -4095,6 +4096,7 @@ symbols:
     title: kibi init GitHub flag tests
     status: active
     sourceFile: packages/cli/tests/commands/init.test.ts
+    granularity_reason: test-suite
     relationships:
       - type: executable_for
         target: TEST-001
@@ -9879,6 +9881,8 @@ symbols:
     title: ModelRequirementResult
     status: active
     sourceFile: packages/cli/src/operations/modeling/requirement-types.ts
+    links:
+      - REQ-002
     symbol_role: type-shape
     relationships:
       - type: covered_by
@@ -10117,6 +10121,7 @@ symbols:
     title: OperationContent
     status: active
     sourceFile: packages/cli/src/public/operations/types.ts
+    text_ref: packages/cli/src/public/operations/types.ts#OperationContent
     symbol_role: type-shape
     relationships:
       - type: covered_by
@@ -20238,6 +20243,9 @@ symbols:
     status: active
     owner: mcp-team
     sourceFile: packages/mcp/src/tools/sparql.ts
+    links:
+      - REQ-prolog-library-adoption
+      - REQ-002
     granularity_reason: legacy-link
     symbol_role: type-shape
     relationships:
@@ -20254,6 +20262,9 @@ symbols:
     status: active
     owner: mcp-team
     sourceFile: packages/mcp/src/tools/sparql.ts
+    links:
+      - REQ-prolog-library-adoption
+      - REQ-002
     granularity_reason: legacy-link
     symbol_role: type-shape
     relationships:
@@ -20386,6 +20397,9 @@ symbols:
     title: SuggestPredicatesArgs
     status: active
     sourceFile: packages/cli/src/operations/modeling/predicate-types.ts
+    links:
+      - REQ-002
+      - REQ-mcp-suggest-predicates
     symbol_role: type-shape
     relationships:
       - type: covered_by
@@ -21358,6 +21372,7 @@ symbols:
   - id: SYM-writeCoordinateArtifact
     title: writeCoordinateArtifact
     sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
     relationships:
       - type: implements
         target: REQ-core-extractors
@@ -27037,16 +27052,6 @@ symbols:
         target: REQ-cursor-kibi-plugin-v1
       - type: implements
         target: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
-  - id: SYM-cursor-launcher-tests
-    title: runLauncher
-    status: active
-    sourceFile: packages/cursor/tests/launch-kibi-mcp.test.ts
-    symbol_role: behavioral
-    relationships:
-      - type: executable_for
-        target: TEST-cursor-consumer-local-mcp-launcher-v1
-      - type: executable_for
-        target: TEST-cursor-kibi-plugin-v1
   - id: SYM-cursor-packed-launcher-e2e
     title: packed Cursor plugin launcher E2E
     status: active
@@ -27450,6 +27455,7 @@ symbols:
     title: bootstrap apply recovery scenarios
     status: active
     sourceFile: packages/cli/tests/operations/apply-plan.test.ts
+    granularity_reason: test-suite
     symbol_role: behavioral
     relationships:
       - type: executable_for
@@ -27900,6 +27906,7 @@ symbols:
     title: cold-start bootstrap lifecycle
     status: active
     sourceFile: packages/cli/tests/commands/init.test.ts
+    granularity_reason: test-suite
     symbol_role: behavioral
     relationships:
       - type: executable_for
@@ -27908,6 +27915,7 @@ symbols:
     title: bootstrap MCP adapter parity
     status: active
     sourceFile: packages/mcp/tests/tools/bootstrap-adapter.test.ts
+    granularity_reason: test-suite
     symbol_role: behavioral
     relationships:
       - type: executable_for
@@ -28680,3 +28688,532 @@ symbols:
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
+  - id: SYM-COVERAGE_SHARDS
+    title: COVERAGE_SHARDS
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    relationships:
+      - type: covered_by
+        target: TEST-scripts-unit-coverage-runner
+      - type: implements
+        target: REQ-root-suite-batch-diagnostics
+  - id: SYM-skillopt-fixture-assert-coordinates-present
+    title: assertSymbolCoordinatesPresent
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-skillopt-fixture-assert-coordinates-absent
+    title: assertSymbolCoordinatesAbsent
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-skillopt-fixture-symbol-id
+    title: fixtureSymbolId
+    sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-writeLegacyCoordinateArtifact
+    title: writeLegacyCoordinateArtifact
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-CoordinateArtifactError-name
+    title: CoordinateArtifactError.name
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-SymbolCompilerLockError-name
+    title: SymbolCompilerLockError.name
+    sourceFile: packages/cli/src/operations/mutation/symbol-compiler-lock.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-hashManifestWithCoordinates
+    title: hashManifestWithCoordinates
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-extractManifestSymbolRecords
+    title: extractManifestSymbolRecords
+    sourceFile: packages/cli/src/extractors/manifest.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-coordinateIdentityKey
+    title: coordinateIdentityKey
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-coarseCoordinateSpan
+    title: coarseCoordinateSpan
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-coordinateSourceHash
+    title: coordinateSourceHash
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-coordinateIdentityHash
+    title: coordinateIdentityHash
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-isValidCoordinateSpan
+    title: isValidCoordinateSpan
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-parseCoordinateArtifact
+    title: parseCoordinateArtifact
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-acquireSymbolCompilerLock
+    title: acquireSymbolCompilerLock
+    sourceFile: packages/cli/src/operations/mutation/symbol-compiler-lock.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-withSymbolCompilerLock
+    title: withSymbolCompilerLock
+    sourceFile: packages/cli/src/operations/mutation/symbol-compiler-lock.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-refreshSymbolCoordinatesUnlocked
+    title: refreshSymbolCoordinatesUnlocked
+    sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-GENERATED_SYMBOL_FIELDS
+    title: GENERATED_SYMBOL_FIELDS
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-SYMBOL_COORDINATES_FORMAT_VERSION
+    title: SYMBOL_COORDINATES_FORMAT_VERSION
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-BoundSymbolCoordinatesRecord
+    title: BoundSymbolCoordinatesRecord
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-CoordinateArtifactRecord
+    title: CoordinateArtifactRecord
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-CoordinateArtifactError
+    title: CoordinateArtifactError
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-CoordinateExtractionIdentity
+    title: CoordinateExtractionIdentity
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-ParsedCoordinateArtifact
+    title: ParsedCoordinateArtifact
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-ArtifactPublicationReceipt
+    title: ArtifactPublicationReceipt
+    sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-RefreshResult
+    title: RefreshResult
+    sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-SymbolCompilerLockError
+    title: SymbolCompilerLockError
+    sourceFile: packages/cli/src/operations/mutation/symbol-compiler-lock.ts
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-SymbolCompilerLockHandle
+    title: SymbolCompilerLockHandle
+    sourceFile: packages/cli/src/operations/mutation/symbol-compiler-lock.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-SymbolCompilerLockFileSystem
+    title: SymbolCompilerLockFileSystem
+    sourceFile: packages/cli/src/operations/mutation/symbol-compiler-lock.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-releaseSymbolCompilerLock
+    title: releaseSymbolCompilerLock
+    sourceFile: packages/cli/src/operations/mutation/symbol-compiler-lock.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-SymbolCompilerLockOptions
+    title: SymbolCompilerLockOptions
+    sourceFile: packages/cli/src/operations/mutation/symbol-compiler-lock.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-SymbolCoordinateWriteEntry
+    title: SymbolCoordinateWriteEntry
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-TargetedRefreshOutcome
+    title: TargetedRefreshOutcome
+    sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+  - id: SYM-BrokerRawCall
+    title: BrokerRawCall
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-DEFAULT_FINAL_STATE_REQUESTS
+    title: DEFAULT_FINAL_STATE_REQUESTS
+    sourceFile: scripts/skillopt-eval/runtime/final-state-requests.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-FIXTURE_BRANCH
+    title: FIXTURE_BRANCH
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-FinalStateRequest2
+    title: FinalStateRequest
+    sourceFile: scripts/skillopt-eval/runtime/final-state-requests.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-FinalStateSkill
+    title: FinalStateSkill
+    sourceFile: scripts/skillopt-eval/runtime/final-state-requests.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-FixtureSetupError-name
+    title: FixtureSetupError.name
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-FixtureSetupError
+    title: FixtureSetupError
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-migrationApplyContractViolations
+    title: migrationApplyContractViolations
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-setupGeneratedCoordinateDivergence
+    title: setupGeneratedCoordinateDivergence
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-stripSymbolCoordinates
+    title: stripSymbolCoordinates
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-taskFinalStateRequests
+    title: taskFinalStateRequests
+    sourceFile: scripts/skillopt-eval/runtime/final-state-requests.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-BRIDGE-ARTIFACT-ROOT-ENV
+    title: BRIDGE_ARTIFACT_ROOT_ENV
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-BRIDGE-BWRAP-EXECUTABLE-ENV
+    title: BRIDGE_BWRAP_EXECUTABLE_ENV
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-BRIDGE-CODEX-EXECUTABLE-ENV
+    title: BRIDGE_CODEX_EXECUTABLE_ENV
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-BRIDGE-FIXTURE-RUN-ROOT-ENV
+    title: BRIDGE_FIXTURE_RUN_ROOT_ENV
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-EPISODE-OUTPUT-SCHEMA
+    title: EPISODE_OUTPUT_SCHEMA
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-runIndependentFinalState
+    title: runIndependentFinalState
+    sourceFile: scripts/skillopt-eval/runtime/final-state.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-BRIDGE-SOURCE-WORKTREE-ENV
+    title: BRIDGE_SOURCE_WORKTREE_ENV
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-TrainerRequestPayload
+    title: TrainerRequestPayload
+    sourceFile: scripts/skillopt-eval/training-setup.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-refreshSymbolCoordinatesForManifest
+    title: refreshSymbolCoordinatesForManifest
+    sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: implements
+        target: REQ-generated-coordinate-persistence

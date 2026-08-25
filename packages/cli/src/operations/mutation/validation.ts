@@ -32,6 +32,7 @@ const validateEntity = ajv.compile({
         "module-level-behavior",
         "extractor-miss",
         "legacy-link",
+        "test-suite",
       ],
     },
     symbol_role: { type: "string", enum: [...SYMBOL_ROLES] },

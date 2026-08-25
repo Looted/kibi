@@ -1521,7 +1521,7 @@ export function greet() {
     ]);
   });
 
-  test("refreshes symbol coordinates after a successful symbol upsert", async () => {
+  test("symbol coordinate refresh is owned by the source-first compiler, not a post-commit side effect", async () => {
     const refreshCoordinatesForSymbolId = mock(async () => ({
       refreshed: true,
       found: true,
@@ -1551,6 +1551,8 @@ export function greet() {
       throw new Error(`Unexpected goal: ${goal}`);
     });
 
+    // Without filesystem ports there is no authored manifest/artifact lane;
+    // generated coordinates are never fabricated from the partial payload.
     const result = await handleKbUpsert(prolog, {
       type: "symbol",
       id: "SYM-REFRESH-001",
@@ -1561,61 +1563,12 @@ export function greet() {
       },
     });
 
-    expect(refreshCoordinatesForSymbolId).toHaveBeenCalledWith(
-      "SYM-REFRESH-001",
-    );
+    expect(refreshCoordinatesForSymbolId).not.toHaveBeenCalled();
     expect(warnSpy).not.toHaveBeenCalled();
     expect(result.structuredContent?.created).toBe(1);
-  });
-
-  test("warns instead of failing when symbol coordinate refresh throws in debug mode", async () => {
-    const refreshCoordinatesForSymbolId = mock(async () => {
-      throw "refresh blew up";
-    });
-    __test__.setRefreshCoordinatesForSymbolIdForTests(
-      refreshCoordinatesForSymbolId,
+    expect(JSON.stringify(result.structuredContent)).not.toContain(
+      "sourceLine",
     );
-    process.env.KIBI_MCP_DEBUG = "1";
-    const warnSpy = spyOn(console, "warn").mockImplementation(() => {});
-
-    const { prolog } = createMockProlog(async (goal) => {
-      if (goal === "once(kb_entity('SYM-REFRESH-WARN-001', _, _))") {
-        return { success: false };
-      }
-      if (
-        goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(symbol,")
-      ) {
-        return { success: true };
-      }
-      if (goal.startsWith("kb_log_entity_upsert(created, symbol,")) {
-        return { success: true };
-      }
-      if (goal === "kb_save") {
-        return { success: true };
-      }
-
-      throw new Error(`Unexpected goal: ${goal}`);
-    });
-
-    const result = await handleKbUpsert(prolog, {
-      type: "symbol",
-      id: "SYM-REFRESH-WARN-001",
-      properties: {
-        title: "Warn me",
-        status: "active",
-        source: "test://upsert",
-      },
-    });
-
-    expect(refreshCoordinatesForSymbolId).toHaveBeenCalledWith(
-      "SYM-REFRESH-WARN-001",
-    );
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining(
-        "Symbol coordinate auto-refresh failed for SYM-REFRESH-WARN-001: refresh blew up",
-      ),
-    );
-    expect(result.structuredContent?.created).toBe(1);
   });
 
   test("wraps non-Error exceptions raised during execution", async () => {

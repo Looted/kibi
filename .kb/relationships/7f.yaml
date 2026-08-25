@@ -118,3 +118,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c7e79a17fefb
+  - type: implements
+    from: SYM-SymbolCompilerLockError-name
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:30:48.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-478a8ebafc1f
+  - type: covered_by
+    from: SYM-SymbolCompilerLockError-name
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:30:48.166Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1129ea0310de

@@ -94,3 +94,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-90fa9b89fe76
+  - type: implements
+    from: SYM-FIXTURE_BRANCH
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-23T23:20:04.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62ef9cd398a6
+  - type: covered_by
+    from: SYM-FIXTURE_BRANCH
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-23T23:20:04.296Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86467a9215d2

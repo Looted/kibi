@@ -97,7 +97,7 @@ Extracts entities and relationships from project documents and updates the knowl
 **Flags:**
 - `--validate-only` - Perform validation without making mutations
 - `--rebuild` - Rebuild branch snapshot from scratch (discards current KB)
-- `--refresh-symbol-coordinates` - Refresh symbol location data in `.kb/symbol-coordinates.yaml` during sync
+- `--refresh-symbol-coordinates` - Refresh symbol location data in `.kb/symbol-coordinates.yaml` during sync. Explicit refreshes are fatal on artifact errors, force coordinate-bearing symbols to persist even when normalized hashes match cached state, and only then advance the sync cache (version 2, workspace-root-relative keys; the artifact is a compiler dependency of `symbols.yaml`).
 
 **Notes (sync + MCP):**
 

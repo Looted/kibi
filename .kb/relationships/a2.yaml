@@ -62,3 +62,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c3fb7eef9ebb
+  - type: implements
+    from: SYM-BRIDGE-BWRAP-EXECUTABLE-ENV
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-23T23:30:15.935Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b479182ef00
+  - type: covered_by
+    from: SYM-BRIDGE-BWRAP-EXECUTABLE-ENV
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-23T23:30:15.947Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d405260a1c8

@@ -1,4 +1,11 @@
 relationships:
+  - id: rel-4174b97b3c31
+    type: implements
+    from: SYM-auto-67CF23A17B69
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:19:08.844Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
   - type: implements
     from: SYM-auto-0955397546A3
     to: REQ-kibi-operation-interface-parity
@@ -56,16 +63,16 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-c01605471d92
   - type: implements
-    from: SYM-auto-67CF23A17B69
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T21:53:43.463Z
+    from: SYM-FixtureSetupError
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-23T23:20:21.223Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-4174b97b3c31
+    id: rel-719c39e805a3
   - type: covered_by
-    from: SYM-auto-67CF23A17B69
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T21:53:43.485Z
+    from: SYM-FixtureSetupError
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-23T23:20:21.234Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-bd333717fbc3
+    id: rel-a00cba9e7449

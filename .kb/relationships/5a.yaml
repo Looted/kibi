@@ -6,6 +6,13 @@ relationships:
     created_at: "2026-08-15T22:15:48.806Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-1861120B3765
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:21:27.904Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-211006fc9c20
   - type: covered_by
     from: SYM-auto-9213E15DCB18
     to: TEST-kibi-html-health-report
@@ -146,38 +153,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9dd0a3ea5546
-  - type: covered_by
-    from: SYM-cli-delete-payload-type
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:35:49.882Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-26f3584724d5
   - type: implements
-    from: SYM-auto-1861120B3765
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T21:50:57.538Z
+    from: SYM-FinalStateRequest2
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-23T23:20:09.087Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-211006fc9c20
+    id: rel-fd5b659e3280
   - type: covered_by
-    from: SYM-auto-1861120B3765
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T21:50:57.549Z
+    from: SYM-FinalStateRequest2
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-23T23:20:09.102Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-ce2733f7435c
-  - type: implements
-    from: SYM-cli-delete-payload-type
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T21:57:58.811Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-af389c746d4a
-  - type: covered_by
-    from: SYM-cli-delete-payload-type
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T21:57:58.817Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2bd5a868911c
+    id: rel-c46b6ea8f130

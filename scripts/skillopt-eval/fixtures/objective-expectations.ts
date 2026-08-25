@@ -384,6 +384,27 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       requiredSignals: ["replacement evidence", "coverage transfer evidence"],
       forbiddenActions: ["fabricate replacement coordinates"],
     },
+    generated_only_symbol_coordinate_repair: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "not_evaluated",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "generated coordinate gap absent",
+        "exact approved automatic refresh applied",
+        "authored manifest stays coordinate-free",
+        "final status fresh",
+      ],
+      forbiddenActions: [
+        "kb_upsert attempt",
+        "kb_delete attempt",
+        "fabricate coordinates",
+        "direct .kb edit",
+        "apply review or blocked action",
+        "claim clean/fresh with coordinate gap",
+      ],
+    },
     relationship_shard_delete: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",

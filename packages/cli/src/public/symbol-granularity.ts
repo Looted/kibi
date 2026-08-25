@@ -23,6 +23,7 @@ export const ALLOWED_GRANULARITY_REASONS = [
   "module-level-behavior",
   "extractor-miss",
   "legacy-link",
+  "test-suite",
 ] as const;
 
 export type GranularityReason = (typeof ALLOWED_GRANULARITY_REASONS)[number];

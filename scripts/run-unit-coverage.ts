@@ -45,7 +45,8 @@ const COVERAGE_ARGS = [
   "--max-concurrency=1",
 ] as const;
 
-const COVERAGE_SHARDS: readonly {
+// implements REQ-root-suite-batch-diagnostics
+export const COVERAGE_SHARDS: readonly {
   readonly label: string;
   readonly paths: readonly string[];
 }[] = [
@@ -54,6 +55,8 @@ const COVERAGE_SHARDS: readonly {
   { label: "opencode", paths: ["./packages/opencode"] },
   { label: "codex", paths: ["./packages/codex"] },
   { label: "cursor", paths: ["./packages/cursor"] },
+  { label: "skillopt", paths: ["./scripts/skillopt-eval/tests"] },
+  { label: "scripts", paths: ["./scripts/tests"] },
   {
     label: "vscode.activation",
     paths: [

@@ -20,6 +20,15 @@ export interface StagedFile {
 
 type ExecFn = (cmd: string, opts: { encoding: "utf8" }) => string;
 
+// Staged manifests (e.g., .kb/symbols.yaml) can exceed Node's default 1 MiB
+// exec buffer; without a larger bound the staged file is silently skipped and
+// freshness checks compare against stale HEAD state.
+const GIT_EXEC_MAX_BUFFER = 64 * 1024 * 1024;
+
+function defaultExec(cmd: string, opts: { encoding: "utf8" }): string {
+  return execSync(cmd, { ...opts, maxBuffer: GIT_EXEC_MAX_BUFFER });
+}
+
 function runGit(cmd: string, exec: ExecFn): string {
   try {
     return exec(cmd, { encoding: "utf8" });
@@ -140,7 +149,7 @@ export function parseHunksFromDiff(
  * Get staged files with statuses, hunks and content.
  */
 // implements REQ-014
-export function getStagedFiles(exec: ExecFn = execSync): StagedFile[] {
+export function getStagedFiles(exec: ExecFn = defaultExec): StagedFile[] {
   // 1. get staged name-status -z
   let nameStatus: string;
   try {

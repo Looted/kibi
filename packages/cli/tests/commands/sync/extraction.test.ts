@@ -17,6 +17,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { ManifestError } from "../../../src/extractors/manifest.js";
 import {
   type ExtractionResult,
   FrontmatterError,
@@ -63,6 +64,7 @@ async function processExtractions(
     changedMarkdownFiles,
     changedManifestFiles,
     validateOnly,
+    process.cwd(),
     {
       extractFromMarkdown: mockExtractFromMarkdown,
       extractFromManifest: mockExtractFromManifest,
@@ -149,6 +151,41 @@ describe("processExtractions", () => {
     expect(result.results).toEqual([]);
     expect(result.errors.length).toBeGreaterThan(0);
     expect(result.failedCacheKeys.size).toBe(1);
+  });
+
+  test("fails the compiler when a coordinate artifact is malformed", async () => {
+    mockExtractFromManifest.mockImplementation(() => {
+      throw new ManifestError(
+        "record 'SYM-BROKEN' has an invalid coordinate span",
+        ".kb/symbol-coordinates.yaml",
+        "coordinate-artifact",
+      );
+    });
+
+    await expect(
+      processExtractions([], [".kb/symbols.yaml"], false),
+    ).rejects.toThrow("invalid coordinate span");
+  });
+
+  test("collects malformed coordinate artifacts during validate-only extraction", async () => {
+    mockExtractFromManifest.mockImplementation(() => {
+      throw new ManifestError(
+        "record 'SYM-BROKEN' has an invalid coordinate span",
+        ".kb/symbol-coordinates.yaml",
+        "coordinate-artifact",
+      );
+    });
+
+    const result = await processExtractions([], [".kb/symbols.yaml"], true);
+
+    expect(result.results).toEqual([]);
+    expect(result.errors).toEqual([
+      {
+        file: ".kb/symbols.yaml",
+        message: "record 'SYM-BROKEN' has an invalid coordinate span",
+      },
+    ]);
+    expect(result.failedCacheKeys).toEqual(new Set([".kb/symbols.yaml"]));
   });
 
   test("dry run mode collects errors without stopping", async () => {

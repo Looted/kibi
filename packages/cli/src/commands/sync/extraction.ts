@@ -17,7 +17,10 @@
  */
 
 import * as path from "node:path";
-import { extractFromManifest } from "../../extractors/manifest.js";
+import {
+  ManifestError,
+  extractFromManifest,
+} from "../../extractors/manifest.js";
 import {
   type ExtractionResult,
   FrontmatterError,
@@ -77,6 +80,7 @@ export async function processExtractions(
   changedMarkdownFiles: string[],
   changedManifestFiles: string[],
   validateOnly: boolean,
+  workspaceRoot = process.cwd(),
   dependencies: ExtractionDependencies = DEFAULT_EXTRACTION_DEPENDENCIES,
 ): Promise<ExtractionOutput> {
   const results: ExtractionResult[] = [];
@@ -102,7 +106,7 @@ export async function processExtractions(
       } else {
         console.warn(`Warning: Failed to extract from ${file}: ${message}`);
       }
-      failedCacheKeys.add(toCacheKey(file));
+      failedCacheKeys.add(toCacheKey(workspaceRoot, file));
     }
   }
 
@@ -112,12 +116,19 @@ export async function processExtractions(
       results.push(...manifestResults);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
+      if (
+        error instanceof ManifestError &&
+        error.classification === "coordinate-artifact" &&
+        !validateOnly
+      ) {
+        throw error;
+      }
       if (validateOnly) {
         errors.push({ file, message });
       } else {
         console.warn(`Warning: Failed to extract from ${file}: ${message}`);
       }
-      failedCacheKeys.add(toCacheKey(file));
+      failedCacheKeys.add(toCacheKey(workspaceRoot, file));
     }
   }
 

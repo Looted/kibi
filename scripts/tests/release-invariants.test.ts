@@ -55,7 +55,7 @@ for (const dir of PUBLISHABLE_DIRS) {
 const SOURCE_COMMIT_MSG =
   "Merge branch 'develop' into master\n\nIntegration of new schema features.";
 
-/** A changeset file representing a minor bump for all four packages */
+/** Changeset files representing a minor bump for all publishable packages */
 const FRESH_CHANGESETS = ["spotty-llamas-fly.md", "brave-tables-dance.md"];
 
 /** No changeset files (only README.md remains in .changeset/) */
@@ -149,7 +149,7 @@ describe("release invariants: develop-to-master model", () => {
       expect(decision.packages.length).toBeGreaterThan(0);
     });
 
-    test("includes all four publishable packages", () => {
+    test("includes all publishable packages", () => {
       const ctx = makeContext({
         changesetFiles: FRESH_CHANGESETS,
         isPublishedOnNpm: nothingPublished,
@@ -165,6 +165,7 @@ describe("release invariants: develop-to-master model", () => {
         "cursor",
         "mcp",
         "opencode",
+        "runtime",
       ]);
     });
 
@@ -226,7 +227,13 @@ describe("release invariants: develop-to-master model", () => {
         .filter((p) => !p.alreadyPublished)
         .map((p) => p.dir)
         .sort();
-      expect(unpublishedDirs).toEqual(["codex", "cursor", "mcp", "opencode"]);
+      expect(unpublishedDirs).toEqual([
+        "codex",
+        "cursor",
+        "mcp",
+        "opencode",
+        "runtime",
+      ]);
     });
 
     test("marks already-published packages correctly", () => {
@@ -265,7 +272,7 @@ describe("release invariants: develop-to-master model", () => {
   // -------------------------------------------------------------------------
   describe("partial rerun (some packages published, some not)", () => {
     test("returns PUBLISH_ONLY_RERUN for partially published packages on source commit", () => {
-      // Simulate: CI ran and published core+cli but codex+mcp+opencode failed.
+      // Simulate: CI ran and published core+cli but the remaining packages failed.
       // Re-running the same source commit detects partial state.
       const published = new Set([
         `${ALL_PACKAGES.core.name}@${ALL_PACKAGES.core.version}`,
@@ -284,7 +291,13 @@ describe("release invariants: develop-to-master model", () => {
         .filter((p) => !p.alreadyPublished)
         .map((p) => p.dir)
         .sort();
-      expect(toPublish).toEqual(["codex", "cursor", "mcp", "opencode"]);
+      expect(toPublish).toEqual([
+        "codex",
+        "cursor",
+        "mcp",
+        "opencode",
+        "runtime",
+      ]);
     });
 
     test("returns PUBLISH_ONLY_RERUN when all published → ALREADY_PUBLISHED_NOOP", () => {
@@ -317,7 +330,14 @@ describe("release invariants: develop-to-master model", () => {
         .filter((p) => !p.alreadyPublished)
         .map((p) => p.dir)
         .sort();
-      expect(toPublish).toEqual(["cli", "codex", "cursor", "mcp", "opencode"]);
+      expect(toPublish).toEqual([
+        "cli",
+        "codex",
+        "cursor",
+        "mcp",
+        "opencode",
+        "runtime",
+      ]);
     });
   });
 
@@ -334,7 +354,7 @@ describe("release invariants: develop-to-master model", () => {
       expect(decision.sourceSha).toBe(sha);
     });
 
-    test("all four publishable package dirs are represented", () => {
+    test("all publishable package dirs are represented", () => {
       const ctx = makeContext({});
       const dirs = Object.keys(ctx.packages).sort();
       expect(dirs).toEqual([
@@ -344,6 +364,7 @@ describe("release invariants: develop-to-master model", () => {
         "cursor",
         "mcp",
         "opencode",
+        "runtime",
       ]);
     });
 

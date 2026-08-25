@@ -263,6 +263,16 @@ function renderEntityDocument(
   return `---\n${dumpYaml(frontmatter, { noRefs: true, lineWidth: -1, sortKeys: false })}---${body.startsWith("\n") ? "" : "\n"}${body}`;
 }
 
+/** Generated coordinate fields belong exclusively to `.kb/symbol-coordinates.yaml`. */
+// implements REQ-generated-coordinate-persistence
+export const GENERATED_SYMBOL_FIELDS = [
+  "sourceLine",
+  "sourceColumn",
+  "sourceEndLine",
+  "sourceEndColumn",
+  "coordinatesGeneratedAt",
+] as const;
+
 function symbolManifestRecord(
   entity: Readonly<Record<string, unknown>>,
   relationships: readonly Readonly<{ type: string; target: string }>[] = [],
@@ -276,6 +286,9 @@ function symbolManifestRecord(
           "relationships",
           "created_at",
           "updated_at",
+          // Generated coordinates are compiler output. They must never enter
+          // the authored manifest, including legacy inline occurrences.
+          ...GENERATED_SYMBOL_FIELDS,
         ].includes(key),
     ),
   );
@@ -685,9 +698,31 @@ export async function writeSourceForUpsert(
   return {
     receipt,
     rollback: async () => {
+      const fsPort = context.fs;
+      if (fsPort === undefined) return;
+      // Compare before restore: a concurrent writer may have replaced the file
+      // after our publication. Never clobber newer bytes; keep the recovery
+      // receipt so the next sync reconciles deterministically instead.
+      let current: string | undefined;
+      try {
+        current = await fsPort.readFile(absolute);
+      } catch {
+        current = undefined;
+      }
+      if (current !== undefined && digest(current) !== digest(after)) {
+        writePendingSourceReceipt(
+          context.workspaceRoot,
+          relative,
+          receipt.afterHash as string,
+        );
+        console.warn(
+          `Skipped source rollback for ${relative}: file changed after the Kibi write; kept concurrent content and recorded recovery metadata.`,
+        );
+        return;
+      }
       if (before === undefined) {
-        if (context.fs?.unlink) await context.fs.unlink(absolute);
-        else await context.fs?.writeFile(absolute, "");
+        if (fsPort.unlink) await fsPort.unlink(absolute);
+        else await fsPort.writeFile(absolute, "");
         try {
           fs.unlinkSync(pendingReceiptPath(context.workspaceRoot, relative));
         } catch {
@@ -695,11 +730,11 @@ export async function writeSourceForUpsert(
         }
       } else {
         const rollbackTemp = `${absolute}.kibi-rollback-${digest(relative).slice(0, 12)}`;
-        await context.fs?.writeFile(rollbackTemp, before);
-        if (context.fs?.rename) await context.fs.rename(rollbackTemp, absolute);
+        await fsPort.writeFile(rollbackTemp, before);
+        if (fsPort.rename) await fsPort.rename(rollbackTemp, absolute);
         else {
-          await context.fs?.writeFile(absolute, before);
-          await context.fs?.unlink?.(rollbackTemp).catch(() => undefined);
+          await fsPort.writeFile(absolute, before);
+          await fsPort.unlink?.(rollbackTemp).catch(() => undefined);
         }
       }
     },

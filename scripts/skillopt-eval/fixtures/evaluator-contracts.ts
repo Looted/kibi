@@ -114,6 +114,49 @@ const PredicateExpectationSchema = z
   })
   .strict();
 
+const FinalStateRequestSchema = z
+  .object({
+    tool: z.enum([
+      "kb_query",
+      "kb_status",
+      "kb_check",
+      "kb_coverage",
+      "kb_graph",
+    ]),
+    args: z.record(z.string(), z.unknown()),
+  })
+  .strict();
+
+const ProtocolContractSchema = z
+  .object({
+    /** Ordered model-originated calls, duplicates preserved. */
+    requiredCalls: z
+      .array(
+        z
+          .object({
+            tool: z.string().regex(/^kb_[a-z_]+$/),
+            args: z.record(z.string(), z.unknown()).optional(),
+          })
+          .strict(),
+      )
+      .min(1),
+    /** Tools that must never be attempted by the model. */
+    forbiddenTools: z.array(z.string().regex(/^kb_[a-z_]+$/)),
+    /**
+     * When present, the model must apply exactly one ready automatic action
+     * from an unchanged migration plan using the exact approved hash and
+     * action ID, and the typed apply result must report success.
+     */
+    exactMigrationApply: z
+      .object({
+        actionCode: z.string().min(1),
+        invocationCommandArgv: z.array(z.string().min(1)),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+
 const WorkflowExpectationSchema = z
   .object({
     expectedOutcome: z.enum(["complete", "interim", "blocked"]),
@@ -182,6 +225,11 @@ const PrivateEvaluatorManifestSchema = z
     workspaceHash: Sha256Schema,
     fixtureSeedHash: Sha256Schema,
     expectedFinalState: z.array(AssertionSchema).min(1),
+    finalStateRequests: z.array(FinalStateRequestSchema).optional(),
+    fixtureSetup: z
+      .enum(["none", "generated_coordinate_divergence"])
+      .optional(),
+    protocolContract: ProtocolContractSchema.optional(),
     orderedMcpPredicates: z
       .object({
         required: z.array(McpPredicateSchema).min(1),

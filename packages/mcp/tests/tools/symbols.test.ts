@@ -323,11 +323,143 @@ symbols:
         sourceColumn: expect.any(Number),
         sourceEndLine: expect.any(Number),
         sourceEndColumn: expect.any(Number),
+        identityHash: expect.stringMatching(/^[a-f0-9]{64}$/),
+        sourceHash: expect.stringMatching(/^[a-f0-9]{64}$/),
       }),
     );
   });
 
-  it("preserves legacy inline coordinates when no refreshed coordinates are found", async () => {
+  it("uses a whole-file span for an unmatched coarse anchor", async () => {
+    const source = "first line\nsecond line\n";
+    writeRefreshFixture(
+      "symbols:\n  - id: coarse-symbol\n    title: missing suite title\n    sourceFile: src/coarse.ts\n    granularity_reason: extractor-miss\n",
+    );
+    fs.mkdirSync(path.join(refreshTestRoot, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(refreshTestRoot, "src/coarse.ts"),
+      source,
+      "utf-8",
+    );
+
+    const result = await refreshCoordinatesForSymbolId(
+      "coarse-symbol",
+      refreshTestRoot,
+    );
+
+    expect(result.refreshed).toBe(true);
+    expect(
+      readCoordinatesArtifact(refreshCoordinatesPath)["coarse-symbol"],
+    ).toEqual(
+      expect.objectContaining({
+        sourceLine: 1,
+        sourceColumn: 0,
+        sourceEndLine: 3,
+        sourceEndColumn: 0,
+      }),
+    );
+  });
+
+  it("preserves an unrelated legacy whole-file coarse record during targeted refresh", async () => {
+    writeRefreshFixture(
+      [
+        "symbols:",
+        "  - id: target-symbol",
+        "    title: targetSymbol",
+        "    sourceFile: src/target.ts",
+        "  - id: coarse-symbol",
+        "    title: missing suite title",
+        "    sourceFile: src/coarse.ts",
+        "    granularity_reason: extractor-miss",
+      ].join("\n"),
+    );
+    fs.mkdirSync(path.join(refreshTestRoot, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(refreshTestRoot, "src/target.ts"),
+      "export function targetSymbol() {}\n",
+      "utf-8",
+    );
+    fs.writeFileSync(
+      path.join(refreshTestRoot, "src/coarse.ts"),
+      "first line\nsecond line\n",
+      "utf-8",
+    );
+    fs.writeFileSync(
+      refreshCoordinatesPath,
+      [
+        "coordinates:",
+        "  target-symbol:",
+        "    sourceFile: src/target.ts",
+        "    sourceLine: 1",
+        "    sourceColumn: 16",
+        "    sourceEndLine: 1",
+        "    sourceEndColumn: 27",
+        "  coarse-symbol:",
+        "    sourceFile: src/coarse.ts",
+        "    sourceLine: 1",
+        "    sourceColumn: 0",
+        "    sourceEndLine: 3",
+        "    sourceEndColumn: 0",
+        "",
+      ].join("\n"),
+      "utf-8",
+    );
+
+    const result = await refreshCoordinatesForSymbolId(
+      "target-symbol",
+      refreshTestRoot,
+    );
+
+    expect(result.found).toBe(true);
+    const coordinates = readCoordinatesArtifact(refreshCoordinatesPath);
+    expect(coordinates["coarse-symbol"]).toEqual({
+      sourceFile: "src/coarse.ts",
+      sourceLine: 1,
+      sourceColumn: 0,
+      sourceEndLine: 3,
+      sourceEndColumn: 0,
+    });
+  });
+
+  it("omits stale coordinates after a symbol is renamed", async () => {
+    writeRefreshFixture(
+      "symbols:\n  - id: renamed-symbol\n    title: oldName\n    sourceFile: src/renamed.ts\n",
+    );
+    fs.mkdirSync(path.join(refreshTestRoot, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(refreshTestRoot, "src/renamed.ts"),
+      "export function newName() {}\n",
+      "utf-8",
+    );
+    fs.writeFileSync(
+      refreshCoordinatesPath,
+      [
+        "version: 2",
+        "coordinates:",
+        "  renamed-symbol:",
+        "    sourceFile: src/renamed.ts",
+        "    sourceLine: 1",
+        "    sourceColumn: 16",
+        "    sourceEndLine: 1",
+        "    sourceEndColumn: 23",
+        `    identityHash: ${"a".repeat(64)}`,
+        `    sourceHash: ${"b".repeat(64)}`,
+        "",
+      ].join("\n"),
+      "utf-8",
+    );
+
+    const result = await refreshCoordinatesForSymbolId(
+      "renamed-symbol",
+      refreshTestRoot,
+    );
+
+    expect(result).toMatchObject({ refreshed: false, found: true });
+    expect(
+      readCoordinatesArtifact(refreshCoordinatesPath)["renamed-symbol"],
+    ).toBeUndefined();
+  });
+
+  it("does not publish unbound inline coordinates when source is unavailable", async () => {
     const yamlWithCoordinates = `# symbols.yaml
 # AUTHORED fields (edit freely):
 #   id, title, sourceFile, links, status, tags, owner, priority
@@ -351,23 +483,14 @@ symbols:
       refreshTestRoot,
     );
 
-    expect(result).toEqual({ refreshed: false, found: true });
+    expect(result).toEqual({ refreshed: true, found: true });
     expect(fs.readFileSync(refreshManifestPath, "utf-8")).toBe(
       yamlWithCoordinates,
     );
-    expect(fs.existsSync(refreshCoordinatesPath)).toBe(true);
-
-    const coordinates = readCoordinatesArtifact(refreshCoordinatesPath);
-    expect(coordinates["test-symbol"]).toEqual({
-      sourceFile: "src/test.ts",
-      sourceLine: 10,
-      sourceColumn: 0,
-      sourceEndLine: 20,
-      sourceEndColumn: 5,
-    });
+    expect(fs.existsSync(refreshCoordinatesPath)).toBe(false);
   });
 
-  it("preserves valid existing coordinate artifact entries and drops malformed ones", async () => {
+  it("rejects malformed coordinate records in legacy artifacts", async () => {
     const yamlWithSymbol = `symbols:
   - id: test-symbol
     title: Missing Symbol
@@ -388,21 +511,130 @@ symbols:
       "utf-8",
     );
 
+    await expect(
+      refreshCoordinatesForSymbolId("test-symbol", refreshTestRoot),
+    ).rejects.toThrow(/invalid coordinate span/);
+  });
+
+  it("accepts a live-valid legacy artifact during targeted refresh", async () => {
+    const yamlWithSymbol =
+      "symbols:\n  - id: test-symbol\n    title: testSymbol\n    sourceFile: src/test.ts\n";
+    writeRefreshFixture(yamlWithSymbol);
+    fs.mkdirSync(path.join(refreshTestRoot, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(refreshTestRoot, "src/test.ts"),
+      "export function testSymbol() {\n  return true;\n}\n",
+      "utf-8",
+    );
+    fs.writeFileSync(
+      refreshCoordinatesPath,
+      "coordinates:\n  test-symbol:\n    sourceFile: src/test.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 1\n    sourceEndColumn: 26\n",
+      "utf-8",
+    );
+
     const result = await refreshCoordinatesForSymbolId(
       "test-symbol",
       refreshTestRoot,
     );
 
-    expect(result).toEqual({ refreshed: false, found: true });
-    const coordinates = readCoordinatesArtifact(refreshCoordinatesPath);
-    expect(coordinates["valid-symbol"]).toEqual({
-      sourceFile: "src/valid.ts",
-      sourceLine: 1,
-      sourceColumn: 0,
-      sourceEndLine: 1,
-      sourceEndColumn: 5,
-    });
-    expect(coordinates["malformed-symbol"]).toBeUndefined();
+    expect(result.found).toBe(true);
+    expect(
+      readCoordinatesArtifact(refreshCoordinatesPath)["test-symbol"],
+    ).toEqual(
+      expect.objectContaining({
+        sourceFile: "src/test.ts",
+        sourceLine: 1,
+        sourceColumn: 16,
+      }),
+    );
+    expect(
+      parseYAML(fs.readFileSync(refreshCoordinatesPath, "utf-8")),
+    ).not.toHaveProperty("version");
+  });
+
+  it("fails closed and preserves the artifact when the targeted read is denied", async () => {
+    const yamlWithSymbol =
+      "symbols:\n  - id: test-symbol\n    title: testSymbol\n    sourceFile: src/test.ts\n";
+    writeRefreshFixture(yamlWithSymbol);
+    fs.mkdirSync(path.join(refreshTestRoot, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(refreshTestRoot, "src/test.ts"),
+      "export function testSymbol() {\n  return true;\n}\n",
+      "utf-8",
+    );
+    const originalArtifact = [
+      "version: 2",
+      "coordinates:",
+      "  test-symbol:",
+      "    sourceFile: src/test.ts",
+      "    sourceLine: 1",
+      "    sourceColumn: 16",
+      "    sourceEndLine: 1",
+      "    sourceEndColumn: 26",
+      `    identityHash: ${"a".repeat(64)}`,
+      `    sourceHash: ${"b".repeat(64)}`,
+      "",
+    ].join("\n");
+    fs.writeFileSync(refreshCoordinatesPath, originalArtifact, "utf-8");
+    fs.chmodSync(refreshCoordinatesPath, 0o000);
+
+    try {
+      await expect(
+        refreshCoordinatesForSymbolId("test-symbol", refreshTestRoot),
+      ).rejects.toMatchObject({ code: "EACCES" });
+    } finally {
+      fs.chmodSync(refreshCoordinatesPath, 0o644);
+    }
+
+    expect(fs.readFileSync(refreshCoordinatesPath, "utf-8")).toBe(
+      originalArtifact,
+    );
+    expect(
+      fs
+        .readdirSync(path.dirname(refreshCoordinatesPath))
+        .filter((entry) => entry.includes("symbol-coordinates.yaml.kibi-tmp-")),
+    ).toEqual([]);
+  });
+
+  it("rejects fractional and reversed legacy spans", async () => {
+    writeRefreshFixture(
+      "symbols:\n  - id: test-symbol\n    title: testSymbol\n",
+    );
+    fs.writeFileSync(
+      refreshCoordinatesPath,
+      "coordinates:\n  test-symbol:\n    sourceFile: src/test.ts\n    sourceLine: 1.5\n    sourceColumn: 0\n    sourceEndLine: 0\n    sourceEndColumn: 1\n",
+      "utf-8",
+    );
+
+    await expect(
+      refreshCoordinatesForSymbolId("test-symbol", refreshTestRoot),
+    ).rejects.toThrow(/invalid coordinate span/);
+  });
+
+  it("matches the CLI span contract for every invalid boundary", async () => {
+    const invalidSpans = [
+      "sourceFile: ''\n    sourceLine: 1\n    sourceColumn: 0\n    sourceEndLine: 1\n    sourceEndColumn: 1",
+      "sourceFile: src/test.ts\n    sourceLine: 0\n    sourceColumn: 0\n    sourceEndLine: 1\n    sourceEndColumn: 1",
+      "sourceFile: src/test.ts\n    sourceLine: 1\n    sourceColumn: -1\n    sourceEndLine: 1\n    sourceEndColumn: 1",
+      "sourceFile: src/test.ts\n    sourceLine: 1\n    sourceColumn: 0.5\n    sourceEndLine: 1\n    sourceEndColumn: 1",
+      "sourceFile: src/test.ts\n    sourceLine: 2\n    sourceColumn: 0\n    sourceEndLine: 1\n    sourceEndColumn: 1",
+      "sourceFile: src/test.ts\n    sourceLine: 1\n    sourceColumn: 0\n    sourceEndLine: 1.5\n    sourceEndColumn: 1",
+      "sourceFile: src/test.ts\n    sourceLine: 1\n    sourceColumn: 0\n    sourceEndLine: 1\n    sourceEndColumn: -1",
+      "sourceFile: src/test.ts\n    sourceLine: 1\n    sourceColumn: 0\n    sourceEndLine: 1\n    sourceEndColumn: 1.5",
+    ];
+
+    for (const span of invalidSpans) {
+      writeRefreshFixture("symbols:\n  - id: test-symbol\n");
+      fs.writeFileSync(
+        refreshCoordinatesPath,
+        `coordinates:\n  test-symbol:\n    ${span}\n`,
+        "utf-8",
+      );
+
+      await expect(
+        refreshCoordinatesForSymbolId("test-symbol", refreshTestRoot),
+      ).rejects.toThrow(/invalid coordinate span/);
+    }
   });
 
   it("does not create coordinate artifact when a found symbol has no coordinates", async () => {

@@ -4,12 +4,14 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { load as parseYAML } from "js-yaml";
+import { acquireSymbolCompilerLock } from "kibi-runtime";
 import { handleKbSymbolsRefresh } from "../../src/tools/symbols.js";
 
 function writeWorkspaceFile(
@@ -135,15 +137,16 @@ describe.serial("handleKbSymbolsRefresh", () => {
     const coordinates = readCoordinates(artifact);
 
     expect(result.structuredContent?.dryRun).toBe(false);
-    expect(result.structuredContent?.refreshed).toBe(1);
+    expect(result.structuredContent?.refreshed).toBe(2);
     expect(result.structuredContent?.failed).toBe(1);
-    expect(result.structuredContent?.unchanged).toBe(5);
+    expect(result.structuredContent?.unchanged).toBe(4);
     expect(result.content[0]?.text).toContain(
       "completed for .kb/symbol-coordinates.yaml",
     );
     expect(writtenManifest).toBe(originalManifest);
     expect(existsSync(coordinatesPath)).toBe(true);
     expect(artifact).toContain("# symbol-coordinates.yaml");
+    expect(artifact).toContain("version: 2");
     expect(artifact).not.toContain("coordinatesGeneratedAt:");
 
     expect(coordinates["SYM-matched"]).toEqual(
@@ -153,17 +156,11 @@ describe.serial("handleKbSymbolsRefresh", () => {
         sourceColumn: expect.any(Number),
         sourceEndLine: expect.any(Number),
         sourceEndColumn: expect.any(Number),
+        identityHash: expect.stringMatching(/^[a-f0-9]{64}$/),
+        sourceHash: expect.stringMatching(/^[a-f0-9]{64}$/),
       }),
     );
-    expect(coordinates["SYM-preserved"]).toEqual(
-      expect.objectContaining({
-        sourceFile: "src/preserved.ts",
-        sourceLine: 10,
-        sourceColumn: 1,
-        sourceEndLine: 10,
-        sourceEndColumn: 15,
-      }),
-    );
+    expect(coordinates["SYM-preserved"]).toBeUndefined();
     expect(coordinates["SYM-failed"]).toBeUndefined();
     expect(coordinates["SYM-doc"]).toBeUndefined();
     expect(coordinates["SYM-missing-file"]).toBeUndefined();
@@ -211,6 +208,105 @@ describe.serial("handleKbSymbolsRefresh", () => {
     );
     expect(readFileSync(manifestPath, "utf8")).toBe(original);
     expect(existsSync(coordinatesPath)).toBe(false);
+  });
+
+  test("persists whole-file coordinates for unmatched coarse anchors", async () => {
+    const source = "first line\nsecond line\n";
+    writeWorkspaceFile(workspaceRoot, "src/coarse.ts", source);
+    const manifestPath = path.join(workspaceRoot, ".kb", "symbols.yaml");
+    mkdirSync(path.dirname(manifestPath), { recursive: true });
+    writeFileSync(
+      manifestPath,
+      [
+        "symbols:",
+        "  - id: SYM-coarse",
+        "    title: missing suite title",
+        "    status: active",
+        "    sourceFile: src/coarse.ts",
+        "    granularity_reason: test-suite",
+      ].join("\n"),
+      "utf8",
+    );
+
+    const first = await handleKbSymbolsRefresh({ workspaceRoot });
+    expect(first.structuredContent?.refreshed).toBe(1);
+    const coordinatesPath = path.join(
+      workspaceRoot,
+      ".kb",
+      "symbol-coordinates.yaml",
+    );
+    const firstCoordinates = readCoordinates(
+      readFileSync(coordinatesPath, "utf8"),
+    );
+    expect(firstCoordinates["SYM-coarse"]).toEqual(
+      expect.objectContaining({
+        sourceLine: 1,
+        sourceColumn: 0,
+        sourceEndLine: 3,
+        sourceEndColumn: 0,
+      }),
+    );
+
+    await handleKbSymbolsRefresh({ workspaceRoot });
+    expect(
+      readCoordinates(readFileSync(coordinatesPath, "utf8"))["SYM-coarse"],
+    ).toEqual(firstCoordinates["SYM-coarse"]);
+  });
+
+  test("waits for the shared workspace symbol compiler lock", async () => {
+    writeWorkspaceFile(
+      workspaceRoot,
+      "src/locked.ts",
+      "export function lockedSymbol() {}\n",
+    );
+    const manifestPath = path.join(workspaceRoot, ".kb", "symbols.yaml");
+    mkdirSync(path.dirname(manifestPath), { recursive: true });
+    writeFileSync(
+      manifestPath,
+      "symbols:\n  - id: SYM-LOCKED\n    title: lockedSymbol\n    sourceFile: src/locked.ts\n",
+      "utf8",
+    );
+
+    const lock = await acquireSymbolCompilerLock(workspaceRoot);
+    let settled = false;
+    const refresh = handleKbSymbolsRefresh({ workspaceRoot }).then(() => {
+      settled = true;
+    });
+
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 50));
+    expect(settled).toBe(false);
+    lock.release();
+    await refresh;
+    expect(settled).toBe(true);
+  });
+
+  test("cleans temporary coordinate output when publication fails", async () => {
+    writeWorkspaceFile(
+      workspaceRoot,
+      "src/failing.ts",
+      "export function failingSymbol() {}\n",
+    );
+    const manifestPath = path.join(workspaceRoot, ".kb", "symbols.yaml");
+    const coordinatesPath = path.join(
+      workspaceRoot,
+      ".kb",
+      "symbol-coordinates.yaml",
+    );
+    mkdirSync(path.dirname(manifestPath), { recursive: true });
+    writeFileSync(
+      manifestPath,
+      "symbols:\n  - id: SYM-FAIL\n    title: failingSymbol\n    sourceFile: src/failing.ts\n",
+      "utf8",
+    );
+    mkdirSync(coordinatesPath);
+
+    await expect(handleKbSymbolsRefresh({ workspaceRoot })).rejects.toThrow();
+    expect(existsSync(coordinatesPath)).toBe(true);
+    expect(
+      readdirSync(path.dirname(coordinatesPath)).some((name: string) =>
+        name.startsWith("symbol-coordinates.yaml.kibi-tmp-"),
+      ),
+    ).toBe(false);
   });
 
   test("throws a clear error for invalid symbol manifests", async () => {

@@ -83,10 +83,10 @@ jobs:
       - name: Verify generated schema parity
         run: bun run schema:check
 
-      - name: Build CLI package
-        run: bun run build:cli
       - name: Build runtime package
         run: bun run build:runtime
+      - name: Build CLI package
+        run: bun run build:cli
       - name: Build MCP package
         run: bun run build:mcp
       - name: Build Codex plugin package
@@ -100,8 +100,8 @@ jobs:
       - name: Pack packages
         run: |
           cd packages/core && npm pack
-          cd ../cli && npm pack
           cd ../runtime && npm pack
+          cd ../cli && npm pack
           cd ../mcp && npm pack
           cd ../opencode && npm pack
           cd ../codex && npm pack
@@ -112,8 +112,8 @@ jobs:
           name: package-tarballs
           path: |
             packages/core/*.tgz
-            packages/cli/*.tgz
             packages/runtime/*.tgz
+            packages/cli/*.tgz
             packages/mcp/*.tgz
             packages/opencode/*.tgz
             packages/codex/*.tgz
@@ -189,8 +189,8 @@ jobs:
           cd /tmp/kibi-smoke-test
           npm init -y
           npm install ${{ github.workspace }}/packages/core/kibi-core-*.tgz
-          npm install ${{ github.workspace }}/packages/cli/kibi-cli-*.tgz
           npm install ${{ github.workspace }}/packages/runtime/kibi-runtime-*.tgz
+          npm install ${{ github.workspace }}/packages/cli/kibi-cli-*.tgz
           npm install ${{ github.workspace }}/packages/mcp/kibi-mcp-*.tgz
           npm install ${{ github.workspace }}/packages/opencode/kibi-opencode-*.tgz
           npm install ${{ github.workspace }}/packages/codex/kibi-codex-*.tgz

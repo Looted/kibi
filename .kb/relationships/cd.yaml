@@ -146,3 +146,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bffb05cf6f3a
+  - type: implements
+    from: SYM-refreshSymbolCoordinatesUnlocked
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:41:51.818Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48fc9f681155
+  - type: covered_by
+    from: SYM-refreshSymbolCoordinatesUnlocked
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:41:51.836Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-462f5f21c8f7

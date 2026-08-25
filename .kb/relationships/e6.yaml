@@ -83,3 +83,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fc1c4a27a4c8
+  - type: implements
+    from: SYM-FinalStateSkill
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-23T23:20:13.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f395dc94bfeb
+  - type: covered_by
+    from: SYM-FinalStateSkill
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-23T23:20:13.808Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eee2400aff7f

@@ -1,4 +1,11 @@
 relationships:
+  - id: rel-cd4144da5d68
+    type: implements
+    from: SYM-auto-2AED513565C7
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:22:09.313Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
   - type: implements
     from: SYM-skillopt-bridge-cli-execution-run
     to: REQ-skillopt-codex-optimization
@@ -77,16 +84,16 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-ec2404f67ff7
   - type: implements
-    from: SYM-auto-2AED513565C7
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T21:52:10.470Z
+    from: SYM-TrainerRequestPayload
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-23T23:34:12.035Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-cd4144da5d68
+    id: rel-5dbb7905f037
   - type: covered_by
-    from: SYM-auto-2AED513565C7
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T21:52:10.475Z
+    from: SYM-TrainerRequestPayload
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-23T23:34:12.047Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-f84b617b9cd4
+    id: rel-ea9bb4443b39

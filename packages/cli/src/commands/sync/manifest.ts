@@ -16,11 +16,21 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  readFileSync,
+  renameSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
 import * as path from "node:path";
 import { dump as dumpYAML, load as parseYAML } from "js-yaml";
 import {
   type SymbolCoordinatesRecord,
+  coarseCoordinateSpan,
+  coordinateIdentityHash,
+  coordinateSourceHash,
+  parseCoordinateArtifact,
   writeCoordinateArtifact,
 } from "../../extractors/symbol-coordinates.js";
 import {
@@ -39,6 +49,8 @@ interface ManifestDeps {
   existsSync: typeof existsSync;
   parseYAML: typeof parseYAML;
   readFileSync: typeof readFileSync;
+  renameSync: typeof renameSync;
+  unlinkSync: typeof unlinkSync;
   writeFileSync: typeof writeFileSync;
   writeCoordinateArtifact: typeof writeCoordinateArtifact;
   resolveSymbolsManifestPaths: typeof resolveSymbolsManifestPaths;
@@ -51,6 +63,8 @@ function resolveDeps(overrides?: Partial<ManifestDeps>): ManifestDeps {
     existsSync,
     parseYAML,
     readFileSync,
+    renameSync,
+    unlinkSync,
     writeFileSync,
     writeCoordinateArtifact,
     resolveSymbolsManifestPaths,
@@ -146,46 +160,6 @@ function readSourceText(
   }
 }
 
-function titleMatchCoordinates(
-  sourceFile: string,
-  title: string,
-  content: string,
-): SymbolCoordinatesRecord | null {
-  if (title.length === 0) return null;
-  const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const pattern = new RegExp(`\\b${escaped}\\b`);
-  const lines = content.split(/\r?\n/);
-  for (let index = 0; index < lines.length; index++) {
-    const line = lines[index];
-    if (line === undefined) continue;
-    const match = pattern.exec(line);
-    if (!match || match.index < 0) continue;
-    return {
-      sourceFile,
-      sourceLine: index + 1,
-      sourceColumn: match.index,
-      sourceEndLine: index + 1,
-      sourceEndColumn: match.index + title.length,
-    };
-  }
-  return null;
-}
-
-function wholeFileCoordinates(
-  sourceFile: string,
-  content: string,
-): SymbolCoordinatesRecord {
-  const lines = content.split(/\r?\n/);
-  const lastLine = lines[lines.length - 1] ?? "";
-  return {
-    sourceFile,
-    sourceLine: 1,
-    sourceColumn: 0,
-    sourceEndLine: Math.max(1, lines.length),
-    sourceEndColumn: lastLine.length,
-  };
-}
-
 function fallbackCoarseCoordinates(
   entry: ManifestSymbolEntry,
   workspaceRoot: string,
@@ -198,10 +172,50 @@ function fallbackCoarseCoordinates(
   if (sourceFile === undefined) return null;
   const content = readSourceText(sourceFile, workspaceRoot, deps);
   if (content === null) return null;
-  return (
-    titleMatchCoordinates(sourceFile, title, content) ??
-    wholeFileCoordinates(sourceFile, content)
-  );
+  return coarseCoordinateSpan(sourceFile, title, content);
+}
+
+/** Atomically replace `targetPath` with `content` via temp file + rename. */
+function publishAtomically(
+  targetPath: string,
+  content: string,
+  deps: ManifestDeps,
+): void {
+  const temporary = `${targetPath}.kibi-tmp-${process.pid}`;
+  try {
+    deps.writeFileSync(temporary, content, "utf8");
+    deps.renameSync(temporary, targetPath);
+  } catch (error) {
+    try {
+      deps.unlinkSync(temporary);
+    } catch {
+      // Temp cleanup is best effort; the original failure propagates.
+    }
+    throw error;
+  }
+}
+
+function manifestEntryIdentity(entry: ManifestSymbolEntry): {
+  id: string;
+  title?: string;
+  sourceFile?: string;
+  granularity_reason?: string;
+} {
+  const title = typeof entry.title === "string" ? entry.title : undefined;
+  const sourceFile =
+    typeof entry.sourceFile === "string" ? entry.sourceFile : undefined;
+  const granularityReason =
+    typeof entry.granularity_reason === "string"
+      ? entry.granularity_reason
+      : undefined;
+  return {
+    id: String(entry.id),
+    ...(title === undefined ? {} : { title }),
+    ...(sourceFile === undefined ? {} : { sourceFile }),
+    ...(granularityReason === undefined
+      ? {}
+      : { granularity_reason: granularityReason }),
+  };
 }
 
 export async function refreshManifestCoordinates(
@@ -218,18 +232,16 @@ export async function refreshManifestCoordinates(
   const parsed = resolved.parseYAML(rawContent);
 
   if (!isRecord(parsed)) {
-    console.warn(
-      `Warning: symbols manifest ${manifestPath} is not a YAML object; skipping coordinate refresh`,
+    throw new Error(
+      `symbols manifest ${manifestPath} is not a YAML object; refusing coordinate refresh`,
     );
-    return;
   }
 
   const rawSymbols = parsed.symbols;
   if (!Array.isArray(rawSymbols)) {
-    console.warn(
-      `Warning: symbols manifest ${manifestPath} has no symbols array; skipping coordinate refresh`,
+    throw new Error(
+      `symbols manifest ${manifestPath} has no symbols array; refusing coordinate refresh`,
     );
-    return;
   }
 
   const before = rawSymbols.map((entry) =>
@@ -238,38 +250,57 @@ export async function refreshManifestCoordinates(
       : ({} as ManifestSymbolEntry),
   );
 
+  let coordinatesPath: string | null = null;
+  if (shouldRefreshCoordinates) {
+    coordinatesPath =
+      resolved.resolveSymbolsManifestPaths(workspaceRoot).coordinatesPath;
+    if (resolved.existsSync(coordinatesPath)) {
+      const existing = parseCoordinateArtifact(
+        String(resolved.readFileSync(coordinatesPath, "utf8")),
+      );
+      if (existing.status === "invalid") {
+        throw new Error(
+          `Failed to parse coordinate artifact ${coordinatesPath}: ${existing.reason}`,
+        );
+      }
+    }
+  }
+
   const enriched = await resolved.enrichSymbolCoordinates(
     before,
     workspaceRoot,
   );
 
-  // Build coordinates map keyed by symbol id
-  const coordinatesMap: Record<string, SymbolCoordinatesRecord> = {};
-  for (const entry of enriched) {
-    const id = typeof entry?.id === "string" ? entry.id : undefined;
-    if (!id) continue;
-    const extracted = extractedCoordinates(entry);
-    if (extracted !== null) {
-      coordinatesMap[id] = extracted;
-      continue;
-    }
-    const fallback = fallbackCoarseCoordinates(entry, workspaceRoot, resolved);
-    if (fallback === null) continue;
-    coordinatesMap[id] = fallback;
-  }
-
-  // Optionally write the coordinate artifact to the coordinates path when explicitly requested
+  // Publish the generated coordinate artifact when explicitly requested.
+  // Parse and I/O failures are fatal so sync never advances cache state on a
+  // partially published compiler dependency. Symbols without extractable
+  // coordinates stay absent from the artifact; coverage keeps their gap visible.
+  let refreshedArtifactBytes: string | null = null;
   if (shouldRefreshCoordinates) {
-    try {
-      const coordinatesPath =
-        resolved.resolveSymbolsManifestPaths(workspaceRoot).coordinatesPath;
-      const artifactContent = resolved.writeCoordinateArtifact(coordinatesMap);
-      resolved.writeFileSync(coordinatesPath, artifactContent, "utf8");
-    } catch (err) {
-      console.warn(
-        `Warning: Failed to write symbol-coordinates artifact: ${String(err)}`,
+    const boundEntries: Record<
+      string,
+      SymbolCoordinatesRecord & { identityHash: string; sourceHash: string }
+    > = {};
+    for (const entry of enriched) {
+      const id = typeof entry?.id === "string" ? entry.id : undefined;
+      if (!id) continue;
+      const span =
+        extractedCoordinates(entry) ??
+        fallbackCoarseCoordinates(entry, workspaceRoot, resolved);
+      if (span === null) continue;
+      const sourceText = readSourceText(
+        span.sourceFile,
+        workspaceRoot,
+        resolved,
       );
+      if (sourceText === null) continue;
+      boundEntries[id] = {
+        ...span,
+        identityHash: coordinateIdentityHash(manifestEntryIdentity(entry)),
+        sourceHash: coordinateSourceHash(sourceText),
+      };
     }
+    refreshedArtifactBytes = resolved.writeCoordinateArtifact(boundEntries);
   }
 
   // Coordinates belong exclusively to the generated artifact. Always strip
@@ -330,8 +361,33 @@ export async function refreshManifestCoordinates(
   });
   const nextContent = `${SYMBOLS_MANIFEST_COMMENT_BLOCK}${dumped}`;
 
-  if (rawContent !== nextContent) {
-    resolved.writeFileSync(manifestPath, nextContent, "utf8");
+  let manifestPublished = false;
+  try {
+    if (rawContent !== nextContent) {
+      publishAtomically(manifestPath, nextContent, resolved);
+      manifestPublished = true;
+    }
+    if (refreshedArtifactBytes !== null && coordinatesPath !== null) {
+      publishAtomically(coordinatesPath, refreshedArtifactBytes, resolved);
+    }
+  } catch (error) {
+    if (manifestPublished) {
+      try {
+        const current = resolved.readFileSync(manifestPath, "utf8");
+        if (current !== nextContent) {
+          throw new Error(
+            `symbol manifest changed after publication; refusing rollback: ${manifestPath}`,
+          );
+        }
+        publishAtomically(manifestPath, rawContent, resolved);
+      } catch (rollbackError) {
+        throw new AggregateError(
+          [error, rollbackError],
+          `Coordinate artifact publication failed and manifest rollback failed: ${manifestPath}`,
+        );
+      }
+    }
+    throw error;
   }
 
   console.log(

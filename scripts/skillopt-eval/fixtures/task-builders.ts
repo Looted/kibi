@@ -322,6 +322,18 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
     worktree: "clean",
     adversarialCases: ["stale-state", "misleading-success"],
   },
+  "kibi-traceability/symbol-impact-granularity/held-out/2": {
+    prompt:
+      "A catalogued symbol still matches complete current extraction, but its persisted RDF entity lost the generated source coordinates while source, artifact, and cache still agree. Discover the exact automatic coordinate-refresh action, apply it once with the unchanged plan, exact approved hash, and only that ready automatic action ID. Verify with exact symbol readback, clean check, fresh status, unchanged graph, and symbol coverage showing no coordinate gap. Never upsert, delete, remap, fabricate coordinates, or touch .kb directly.",
+    objectiveCode: "generated_only_symbol_coordinate_repair",
+    kb: "fresh",
+    worktree: "clean",
+    // Divergence is created by evaluator-owned setup, not a stale snapshot
+    // fixture, so the stale-state artifact pair stays unused here.
+    adversarialCases: ["misleading-success", "approval-boundary"],
+    mutation: "write",
+    approvalPhase: "post-approval",
+  },
   "kibi-traceability/executable-coverage/held-out/3": {
     prompt:
       "A standardization branch has passing receipts, but final integration also merges dependency pins. Merge and establish the final snapshot first, then run only the exact current contracts and append receipts; never reuse pre-integration evidence as proof.",
@@ -528,6 +540,9 @@ function payload(
     ...(effectiveObjectiveCode === "safe_typed_mutation"
       ? SAFE_MUTATION_FILES
       : []),
+    ...(effectiveObjectiveCode === "generated_only_symbol_coordinate_repair"
+      ? COORDINATE_REPAIR_FILES
+      : []),
   ];
   return {
     prompt: `${special?.prompt ?? `${definition.instruction} This is ${split} case ${index + 1}; use only the public Kibi MCP surface.`}`,
@@ -552,6 +567,8 @@ function payload(
     },
   };
 }
+
+const COORDINATE_REPAIR_FILES = ["symbol-coordinate-repair.json"] as const;
 
 class TaskDefinitionError extends Error {
   readonly name = "TaskDefinitionError";

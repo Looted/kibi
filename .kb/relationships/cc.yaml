@@ -69,24 +69,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-003064517816
-  - type: covered_by
-    from: SYM-operation-result-type
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:38:33.338Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-224637ebe32a
   - type: implements
-    from: SYM-operation-result-type
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:03:55.909Z
+    from: SYM-hashManifestWithCoordinates
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:41:10.292Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-62c18cde40a5
+    id: rel-5893ec75327d
   - type: covered_by
-    from: SYM-operation-result-type
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:03:55.914Z
+    from: SYM-hashManifestWithCoordinates
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:41:10.304Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-8a92d1a0bb6c
+    id: rel-0a70751d12db

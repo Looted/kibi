@@ -25,6 +25,7 @@ import {
   requireRuntime,
 } from "./real-workflow-types";
 import { runCodexCell } from "./runtime/codex-cell-runner";
+import { taskFinalStateRequests } from "./runtime/final-state-requests";
 import { resolveTaskFixture } from "./runtime/task-fixture";
 
 export type { HeldOutPhysicalCell } from "./held-out-eligibility";
@@ -205,12 +206,10 @@ export const defaultEvaluateHeldOut: RealOptimizationDependencies["evaluateHeldO
               codexExecutable: runtime.codexExecutable,
               bwrapExecutable: runtime.bwrapExecutable,
               env: input.env,
-              finalStateRequests: [
-                { tool: "kb_query", args: {} },
-                { tool: "kb_check", args: {} },
-                { tool: "kb_status", args: {} },
-                { tool: "kb_coverage", args: { by: "req" } },
-              ],
+              finalStateRequests: taskFinalStateRequests(
+                task.taskId,
+                task.fixture.evaluatorManifest.protocolContract !== undefined,
+              ),
               evaluatorManifest: task.fixture.evaluatorManifest,
               hiddenMarkers: runtime.hiddenMarkers ?? [],
               pricingHash: runtime.pricingHash ?? "0".repeat(64),

@@ -262,7 +262,7 @@ describe("kibi check --staged stale symbols manifest detection", () => {
   );
 
   test(
-    "does not hard-fail when the staged manifest only has timestamp churn",
+    "hard-fails when a staged body edit leaves bound coordinates stale",
     async () => {
       writeFiles(tmpDir, createTrackedFixture());
       commitAll(tmpDir, "initial");
@@ -286,8 +286,8 @@ describe("kibi check --staged stale symbols manifest detection", () => {
       );
 
       const output = stdoutToString(stdout || stderr);
-      expect(status).toBe(0);
-      expect(output).not.toContain("symbols_manifest_stale");
+      expect(status).toBe(1);
+      expect(output).toContain("symbols_manifest_stale");
       expect(output).not.toContain("kibi_impact_evidence_missing");
     },
     TEST_TIMEOUT_MS,

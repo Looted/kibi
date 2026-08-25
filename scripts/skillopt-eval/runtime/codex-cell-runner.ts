@@ -1,7 +1,7 @@
 import { cp, mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { EpisodeRequestSchema } from "../contracts/episode";
-import { hashWorkspace } from "../fixtures/workspace";
+import { fixtureSymbolId, hashWorkspace } from "../fixtures/workspace";
 import { scoreCell } from "../scoring/cell";
 import { resolveIsolationArtifactRoot } from "./artifact-root";
 import { RequiredMcpStartupError } from "./canary-runtime";
@@ -18,6 +18,10 @@ import {
   FixtureIntegrityError,
 } from "./codex-cell-types";
 import { replayCodexEpisode } from "./codex-episode";
+import {
+  FixtureSetupError,
+  setupGeneratedCoordinateDivergence,
+} from "./fixture-kb-setup";
 import { createIsolationWorkspace } from "./isolation-workspace";
 import {
   SKILLOPT_EVALUATION_BRANCH,
@@ -113,6 +117,24 @@ export async function runCodexCell(
       workspace,
       options.sourceWorktree,
     );
+    // Evaluator-owned precondition setup runs AFTER staging the broker and
+    // BEFORE the MCP probe/model launch, using the staged production CLI.
+    // The model never gains direct `.kb` access; the sandbox deny rule and
+    // the broker allowlist stay intact.
+    if (
+      options.evaluatorManifest.fixtureSetup ===
+      "generated_coordinate_divergence"
+    ) {
+      const cliRoot = broker.downstream.cliRoot;
+      if (cliRoot === undefined) {
+        throw new FixtureSetupError("staged runtime exposes no kibi-cli root");
+      }
+      await setupGeneratedCoordinateDivergence(
+        workspace.target,
+        cliRoot,
+        fixtureSymbolId(request.taskId),
+      );
+    }
     const runtimeRoot = join(workspace.target, ".runtime");
     await mkdir(runtimeRoot, { recursive: true, mode: 0o700 });
     const outputSchema = join(runtimeRoot, "episode-output.schema.json");

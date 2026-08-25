@@ -11,6 +11,7 @@ import { defaultCodexCellDependencies } from "./codex-cell-defaults";
 import { type CodexCellOptions, runCodexCell } from "./codex-cell-runner";
 import type { CodexCellDependencies } from "./codex-cell-types";
 import type { BridgeRequest, BridgeResult } from "./file-bridge";
+import { taskFinalStateRequests } from "./final-state-requests";
 import { resolveTaskFixture } from "./task-fixture";
 
 type BridgeCellCompletion = Readonly<{
@@ -189,12 +190,10 @@ async function realResult(
           codexExecutable,
           bwrapExecutable,
           env: process.env,
-          finalStateRequests: [
-            { tool: "kb_query", args: {} },
-            { tool: "kb_check", args: {} },
-            { tool: "kb_status", args: {} },
-            { tool: "kb_coverage", args: { by: "req" } },
-          ],
+          finalStateRequests: taskFinalStateRequests(
+            taskId,
+            fixture.evaluatorManifest.protocolContract !== undefined,
+          ),
           evaluatorManifest: fixture.evaluatorManifest,
           hiddenMarkers: options.hiddenMarkers,
           pricingHash: options.pricingHash,

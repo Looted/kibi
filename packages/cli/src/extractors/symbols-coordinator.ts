@@ -170,7 +170,7 @@ export async function enrichSymbolCoordinates(
   // implements REQ-vscode-traceability
   const enrichTsCoordinates =
     deps?.enrichTsCoordinates ?? enrichSymbolCoordinatesWithTsMorph;
-  const output = entries.map((entry) => ({ ...entry }));
+  const output = entries.map((entry) => withoutGeneratedCoordinates(entry));
 
   const tsIndices: number[] = [];
   const tsEntries: ManifestSymbolEntry[] = [];
@@ -203,6 +203,21 @@ export async function enrichSymbolCoordinates(
   }
 
   return output;
+}
+
+function withoutGeneratedCoordinates(
+  entry: ManifestSymbolEntry,
+): ManifestSymbolEntry {
+  const generatedFields = new Set([
+    "sourceLine",
+    "sourceColumn",
+    "sourceEndLine",
+    "sourceEndColumn",
+    "coordinatesGeneratedAt",
+  ]);
+  return Object.fromEntries(
+    Object.entries(entry).filter(([field]) => !generatedFields.has(field)),
+  ) as ManifestSymbolEntry;
 }
 
 function enrichWithRegexHeuristic(

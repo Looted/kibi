@@ -14,6 +14,8 @@ export type StagedMcpLaunch = Readonly<{
   command: string;
   args: readonly string[];
   cwd: string;
+  /** Staged kibi-cli root: bin/kibi + node_modules for evaluator-owned setup. */
+  readonly cliRoot?: string;
 }>;
 
 export type StagedMcpOptions = Readonly<{
@@ -140,5 +142,6 @@ export async function stageKibiMcpRuntime(
     command: stagedCommand,
     args: [bundlePath, "--diagnostic-mode"],
     cwd: workspace.target,
+    cliRoot: resolve(stagedRoot, "node_modules/kibi-cli"),
   };
 }

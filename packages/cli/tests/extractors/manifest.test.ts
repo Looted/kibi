@@ -8,6 +8,10 @@ import {
   extractManifestSymbolRecordsString,
   readManifestWithCoordinateOverlay,
 } from "../../src/extractors/manifest";
+import {
+  coordinateIdentityHash,
+  coordinateSourceHash,
+} from "../../src/extractors/symbol-coordinates";
 
 const TEST_DIR = join(process.cwd(), "test-tmp");
 
@@ -315,34 +319,43 @@ symbols:
   });
 
   test("extractFromManifest overlays authored entries with coordinate artifact metadata", () => {
+    const inlineContent = `${Array.from({ length: 9 }, () => "// filler").join("\n")}\n  Symbol With Overlay\n`;
+    const inlineSource = setupTestFile("overlay-src.ts", inlineContent);
     const yaml = `
 symbols:
   - id: symbol-with-overlay
     title: Symbol With Overlay
-    sourceFile: src/inline.ts
+    sourceFile: ${inlineSource}
     sourceLine: 1
     sourceColumn: 0
     sourceEndLine: 1
-    sourceEndColumn: 5
+    sourceEndColumn: 19
     status: active
 `;
     const filePath = setupTestFile("test-overlay-sourcefile.yaml", yaml);
     writeFileSync(
       join(TEST_DIR, "symbol-coordinates.yaml"),
-      `coordinates:
+      `version: 2
+coordinates:
   symbol-with-overlay:
-    sourceFile: src/fresh.ts
+    identityHash: ${coordinateIdentityHash({
+      id: "symbol-with-overlay",
+      title: "Symbol With Overlay",
+      sourceFile: inlineSource,
+    })}
+    sourceHash: ${coordinateSourceHash(inlineContent)}
+    sourceFile: ${inlineSource}
     sourceLine: 10
     sourceColumn: 2
     sourceEndLine: 12
-    sourceEndColumn: 4
+    sourceEndColumn: 21
 `,
     );
 
     const results = extractFromManifest(filePath);
 
     expect(results).toHaveLength(1);
-    expect(results[0]?.sourceFile).toBe("src/fresh.ts");
+    expect(results[0]?.sourceFile).toBe(inlineSource);
 
     cleanup();
   });

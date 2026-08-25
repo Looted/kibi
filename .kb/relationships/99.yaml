@@ -52,3 +52,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-75930a0d0505
+  - type: implements
+    from: SYM-SymbolCompilerLockError
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:36:13.884Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e097656e4f49
+  - type: covered_by
+    from: SYM-SymbolCompilerLockError
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:36:13.896Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f55287c6642f

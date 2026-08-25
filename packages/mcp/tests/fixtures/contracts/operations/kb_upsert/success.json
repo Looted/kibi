@@ -185,7 +185,8 @@
                 "config-artifact",
                 "module-level-behavior",
                 "extractor-miss",
-                "legacy-link"
+                "legacy-link",
+                "test-suite"
               ],
               "type": "string"
             },

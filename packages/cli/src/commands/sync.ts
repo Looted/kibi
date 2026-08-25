@@ -52,6 +52,11 @@ import {
   extractRelationshipShard,
   validateRelationships,
 } from "../extractors/relationships.js";
+import {
+  type SymbolCompilerLockHandle,
+  acquireSymbolCompilerLock,
+  releaseSymbolCompilerLock,
+} from "../operations/mutation/symbol-compiler-lock.js";
 import { analyzeSemanticAdvisorInput } from "../operations/semantic-advisor/analyze-prose.js";
 import { validateSemanticInventoryBoundary } from "../operations/semantic-advisor/ingestion-boundary.js";
 import { PrologProcess } from "../prolog.js";
@@ -67,6 +72,7 @@ import {
   SYNC_CACHE_TTL_MS,
   SYNC_CACHE_VERSION,
   hashFile,
+  hashManifestWithCoordinates,
   hashNormalized,
   readSyncCache,
   toCacheKey,
@@ -317,6 +323,7 @@ interface SyncCommandRuntime {
     context: SyncCommandRuntimeContext & { kbModified: boolean },
   ) => Promise<void> | void;
   createProlog?: (options: { timeout: number }) => PrologProcess;
+  acquireSymbolCompilerLock?: typeof acquireSymbolCompilerLock;
 }
 
 function compilerCacheHasEntityDelta(cache: SyncCache): boolean {
@@ -327,10 +334,11 @@ function compilerCacheHasEntityDelta(cache: SyncCache): boolean {
 
 function compilerCacheIsFresh(
   cache: SyncCache,
+  workspaceRoot: string,
   sourceFiles: readonly string[],
   nowMs: number,
 ): boolean {
-  const sourceKeys = sourceFiles.map(toCacheKey);
+  const sourceKeys = sourceFiles.map((file) => toCacheKey(workspaceRoot, file));
   if (Object.keys(cache.hashes).some((key) => !sourceKeys.includes(key))) {
     return false;
   }
@@ -348,13 +356,18 @@ function compilerCacheIsFresh(
 
 function compilerCacheFilesMatch(
   cache: SyncCache,
+  workspaceRoot: string,
   sourceFiles: readonly string[],
   relationshipFiles: readonly string[],
+  sourceHashOf: (file: string) => string,
 ): boolean {
   for (const file of sourceFiles) {
-    if (cache.hashes[toCacheKey(file)] !== hashFile(file)) return false;
+    if (cache.hashes[toCacheKey(workspaceRoot, file)] !== sourceHashOf(file))
+      return false;
   }
-  const relationshipKeys = new Set(relationshipFiles.map(toCacheKey));
+  const relationshipKeys = new Set(
+    relationshipFiles.map((file) => toCacheKey(workspaceRoot, file)),
+  );
   if (
     Object.keys(cache.relationshipHashes ?? {}).some(
       (key) => !relationshipKeys.has(key),
@@ -363,7 +376,10 @@ function compilerCacheFilesMatch(
     return false;
   }
   for (const file of relationshipFiles) {
-    if (cache.relationshipHashes?.[toCacheKey(file)] !== hashFile(file)) {
+    if (
+      cache.relationshipHashes?.[toCacheKey(workspaceRoot, file)] !==
+      hashFile(workspaceRoot, file)
+    ) {
       return false;
     }
   }
@@ -394,6 +410,8 @@ export async function syncCommand(
   let currentBranch: string | undefined;
   let stagingPath: string | undefined;
   let publicationLease: EnginePublicationLease | undefined;
+  let compilerLock: SymbolCompilerLockHandle | undefined;
+  let operationFailure: { readonly error: unknown } | undefined;
 
   const getCurrentCommit = (): string | undefined => {
     try {
@@ -415,6 +433,11 @@ export async function syncCommand(
     commit !== undefined ? { ...value, commit } : value;
 
   try {
+    if (!validateOnly) {
+      compilerLock = await (
+        runtime.acquireSymbolCompilerLock ?? acquireSymbolCompilerLock
+      )(workspaceRoot);
+    }
     assertNoUnresolvedGitConflicts(workspaceRoot);
     // Branch resolution
     const branchResult = resolveBranchAttachment(workspaceRoot);
@@ -520,7 +543,9 @@ export async function syncCommand(
     const syncCache = readSyncCache(cachePath);
     const nowIso = new Date().toISOString();
     const nowMs = Date.now();
-    const currentSourceKeys = new Set(sourceFiles.map(toCacheKey));
+    const currentSourceKeys = new Set(
+      sourceFiles.map((file) => toCacheKey(workspaceRoot, file)),
+    );
     const relationshipShardFiles = existsSync(relationshipsDir)
       ? trackedRelationshipFiles(
           workspaceRoot,
@@ -533,14 +558,30 @@ export async function syncCommand(
     // No-op is a first-class compiler result. Hashing the configured inputs is
     // sufficient when normalized entity/shard inventories are already fresh;
     // avoid rebuilding maps and rediscovering RDF state for the common path.
+    // Symbol manifests hash together with their generated coordinate artifact
+    // so artifact-only changes never masquerade as no-ops.
+    const fastPathSourceHashOf = (file: string): string =>
+      manifestFiles.includes(file)
+        ? hashManifestWithCoordinates(
+            workspaceRoot,
+            file,
+            path.join(path.dirname(file), "symbol-coordinates.yaml"),
+          )
+        : hashFile(workspaceRoot, file);
     if (
       !validateOnly &&
       !rebuild &&
       !options.refreshSymbolCoordinates &&
       runtime.createProlog === undefined &&
       compilerCacheHasEntityDelta(syncCache) &&
-      compilerCacheIsFresh(syncCache, sourceFiles, nowMs) &&
-      compilerCacheFilesMatch(syncCache, sourceFiles, relationshipShardFiles)
+      compilerCacheIsFresh(syncCache, workspaceRoot, sourceFiles, nowMs) &&
+      compilerCacheFilesMatch(
+        syncCache,
+        workspaceRoot,
+        sourceFiles,
+        relationshipShardFiles,
+        fastPathSourceHashOf,
+      )
     ) {
       await checkpointNoopSync(workspaceRoot, currentBranch);
       console.log("✓ Imported 0 entities, 0 relationships (no changes)");
@@ -560,10 +601,38 @@ export async function syncCommand(
       );
     }
 
+    // Explicit coordinate refresh must precede fingerprinting so the manifest
+    // overlay that is persisted into RDF observes the newly generated
+    // coordinates. Refresh failures are fatal: cache state may never advance
+    // on a partially published compiler dependency.
+    const refreshedManifestKeys = new Set<string>();
+    if (!validateOnly && options.refreshSymbolCoordinates) {
+      for (const file of manifestFiles) {
+        await refreshManifestCoordinates(file, workspaceRoot, {
+          refreshSymbolCoordinates: options.refreshSymbolCoordinates,
+        });
+        refreshedManifestKeys.add(toCacheKey(workspaceRoot, file));
+      }
+    }
+
+    // The generated coordinate artifact is a compiler dependency of every
+    // symbol manifest: its existence, emptiness, content, and deletion must
+    // all change the effective source hash even when authored YAML is stable.
+    const coordinatesPathForManifest = (manifestFile: string): string =>
+      path.join(path.dirname(manifestFile), "symbol-coordinates.yaml");
+    const effectiveSourceHash = (file: string): string =>
+      manifestFiles.includes(file)
+        ? hashManifestWithCoordinates(
+            workspaceRoot,
+            file,
+            coordinatesPathForManifest(file),
+          )
+        : hashFile(workspaceRoot, file);
+
     const changedSourceHashes = new Map<string, string>();
     for (const file of sourceFiles) {
-      const key = toCacheKey(file);
-      const hash = hashFile(file);
+      const key = toCacheKey(workspaceRoot, file);
+      const hash = effectiveSourceHash(file);
       if (syncCache.hashes[key] !== hash) changedSourceHashes.set(key, hash);
     }
 
@@ -595,11 +664,11 @@ export async function syncCommand(
 
     const currentRelationshipKeys = new Set<string>();
     for (const shardPath of relationshipShardFiles) {
-      const key = toCacheKey(shardPath);
+      const key = toCacheKey(workspaceRoot, shardPath);
       currentRelationshipKeys.add(key);
       let hash: string | undefined;
       try {
-        hash = hashFile(shardPath);
+        hash = hashFile(workspaceRoot, shardPath);
         nextRelationshipHashes[key] = hash;
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -647,7 +716,7 @@ export async function syncCommand(
 
     for (const file of sourceFiles) {
       try {
-        const key = toCacheKey(file);
+        const key = toCacheKey(workspaceRoot, file);
         const hash = changedSourceHashes.get(key) ?? syncCache.hashes[key];
         if (hash === undefined) continue;
         const lastSeen = syncCache.seenAt[key];
@@ -693,27 +762,20 @@ export async function syncCommand(
       }
     }
 
-    // Coordinate refresh must precede extraction so the manifest overlay that
-    // is persisted into RDF observes the newly generated coordinates. Force
-    // each refreshed manifest through extraction even when its authored YAML
-    // hash is unchanged; the generated coordinate artifact is an input too.
-    if (!validateOnly && options.refreshSymbolCoordinates) {
-      for (const file of manifestFiles) {
-        try {
-          await refreshManifestCoordinates(file, workspaceRoot, {
-            refreshSymbolCoordinates: options.refreshSymbolCoordinates,
-          });
-          if (!changedManifestFiles.includes(file)) {
-            changedManifestFiles.push(file);
-          }
-        } catch (error) {
-          const message =
-            error instanceof Error ? error.message : String(error);
-          console.warn(
-            `Warning: Failed to refresh symbol coordinates in ${file}: ${message}`,
-          );
-        }
+    // Explicitly requested refreshes force coordinate-bearing symbols through
+    // extraction and RDF persistence even when normalized entity hashes match
+    // the cached state, repairing warm-cache RDF divergence.
+    for (const file of manifestFiles) {
+      if (
+        !refreshedManifestKeys.has(toCacheKey(workspaceRoot, file)) ||
+        changedManifestFiles.includes(file)
+      ) {
+        continue;
       }
+      changedManifestFiles.push(file);
+    }
+    for (const key of refreshedManifestKeys) {
+      forceEntitySourceKeys.add(key);
     }
 
     const performedFullReindex =
@@ -724,6 +786,7 @@ export async function syncCommand(
       changedMarkdownFiles,
       changedManifestFiles,
       validateOnly,
+      workspaceRoot,
     );
     const { failedCacheKeys, errors } = extraction;
     const extractedResults = normalizeExtractionSources(
@@ -761,7 +824,7 @@ export async function syncCommand(
       : [...addedShardRelationships, ...removedShardRelationships];
 
     for (const deletedSource of deletedSourceFiles) {
-      const sourceKey = toCacheKey(deletedSource);
+      const sourceKey = toCacheKey(workspaceRoot, deletedSource);
       for (const id of nextSourceEntityIds[sourceKey] ?? []) {
         removedEntityIds.add(id);
         delete nextEntityHashes[id];
@@ -771,7 +834,7 @@ export async function syncCommand(
 
     const resultsBySource = new Map<string, ExtractionResult[]>();
     for (const result of extractedResults) {
-      const sourceKey = toCacheKey(result.entity.source);
+      const sourceKey = toCacheKey(workspaceRoot, result.entity.source);
       const sourceResults = resultsBySource.get(sourceKey) ?? [];
       sourceResults.push(result);
       resultsBySource.set(sourceKey, sourceResults);
@@ -780,7 +843,7 @@ export async function syncCommand(
       ...changedMarkdownFiles,
       ...changedManifestFiles,
     ]) {
-      const sourceKey = toCacheKey(changedSource);
+      const sourceKey = toCacheKey(workspaceRoot, changedSource);
       if (failedCacheKeys.has(sourceKey)) continue;
       const sourceResults = resultsBySource.get(sourceKey) ?? [];
       const previousIds = new Set(nextSourceEntityIds[sourceKey] ?? []);
@@ -811,7 +874,7 @@ export async function syncCommand(
 
     for (const result of extractedResults) {
       if (result.entity.type !== "req") continue;
-      const key = toCacheKey(result.entity.source);
+      const key = toCacheKey(workspaceRoot, result.entity.source);
       const relationships = semanticBoundaryRelationships(
         result,
         allRelationships,
@@ -919,6 +982,13 @@ export async function syncCommand(
         }
       }
 
+      // The durable KB checkpoint must precede the cache write: if the
+      // checkpoint fails, cached fingerprints must stay stale so the next
+      // sync recompiles instead of trusting uncommitted compiler output.
+      if (runtime.createProlog === undefined) {
+        await checkpointNoopSync(workspaceRoot, currentBranch);
+      }
+
       writeSyncCache(cachePath, {
         version: SYNC_CACHE_VERSION,
         hashes: evictedHashes,
@@ -930,10 +1000,6 @@ export async function syncCommand(
         semanticHashes: evictedSemanticHashes,
         semanticContracts: evictedSemanticContracts,
       });
-
-      if (runtime.createProlog === undefined) {
-        await checkpointNoopSync(workspaceRoot, currentBranch);
-      }
 
       console.log("✓ Imported 0 entities, 0 relationships (no changes)");
       return withOptionalCommit(
@@ -977,7 +1043,9 @@ export async function syncCommand(
         const successfulChangedSources = [
           ...changedMarkdownFiles,
           ...changedManifestFiles,
-        ].filter((file) => !failedCacheKeys.has(toCacheKey(file)));
+        ].filter(
+          (file) => !failedCacheKeys.has(toCacheKey(workspaceRoot, file)),
+        );
         const removedCount = useEntityDelta
           ? await retractEntitiesById(engineProlog, [...removedEntityIds])
           : await retractEntitiesForSources(engineProlog, [
@@ -1176,7 +1244,9 @@ export async function syncCommand(
           ...changedMarkdownFiles,
           ...changedManifestFiles,
           ...deletedSourceFiles,
-        ].filter((file) => !failedCacheKeys.has(toCacheKey(file))),
+        ].filter(
+          (file) => !failedCacheKeys.has(toCacheKey(workspaceRoot, file)),
+        ),
       );
 
       if (relationshipChanged) {
@@ -1394,6 +1464,7 @@ export async function syncCommand(
       throw error;
     }
   } catch (error) {
+    operationFailure = { error };
     if (stagingPath) {
       cleanupStaging(stagingPath);
     }
@@ -1425,6 +1496,7 @@ export async function syncCommand(
     throw error;
   } finally {
     publicationLease?.release();
+    releaseSymbolCompilerLock(compilerLock, operationFailure);
   }
 }
 

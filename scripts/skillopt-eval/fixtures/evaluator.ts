@@ -11,6 +11,7 @@ import {
   isPredicateObjective,
 } from "./objective-expectations";
 import { predicateCaseById } from "./predicate-cases";
+import { fixtureSymbolId } from "./workspace";
 
 type FixtureTaskSpec = ReturnType<typeof parseTaskSpec>;
 type PrivateEvaluatorManifest = ReturnType<
@@ -27,6 +28,17 @@ const READ_TOOLS: Readonly<Record<CatalogSkill, readonly string[]>> = {
   "kibi-bootstrap": ["kb_plan_bootstrap"],
   bundle: ["kb_plan_bootstrap", "kb_search", "kb_query", "kb_check"],
 };
+
+function coordinateFinalStateRequests(taskId: string) {
+  const symbolId = fixtureSymbolId(taskId);
+  return [
+    { tool: "kb_query", args: { type: "symbol", id: symbolId } },
+    { tool: "kb_check", args: {} },
+    { tool: "kb_status", args: {} },
+    { tool: "kb_graph", args: { seedIds: [symbolId] } },
+    { tool: "kb_coverage", args: { by: "symbol", includePassing: true } },
+  ] as const;
+}
 
 class VariantOrderError extends Error {
   readonly name = "VariantOrderError";
@@ -145,8 +157,23 @@ const ADVISOR_READ_TOOLS = [
   "kb_model_requirement",
 ] as const;
 
+const COORDINATE_REPAIR_CALLS = [
+  "kb_search",
+  "kb_query",
+  "kb_status",
+  "kb_coverage",
+  "kb_apply_plan",
+  "kb_query",
+  "kb_check",
+  "kb_status",
+  "kb_coverage",
+] as const;
+
 function requiredTools(task: FixtureTaskSpec): readonly string[] {
   const objective = task.taskData.objectiveCode;
+  if (objective === "generated_only_symbol_coordinate_repair") {
+    return [...COORDINATE_REPAIR_CALLS];
+  }
   if (isPredicateObjective(objective)) {
     return [...ADVISOR_READ_TOOLS, "kb_upsert", "kb_check"];
   }
@@ -368,6 +395,38 @@ export function buildPrivateManifest(input: {
         critical: true,
       },
     ],
+    finalStateRequests:
+      input.task.taskData.objectiveCode ===
+      "generated_only_symbol_coordinate_repair"
+        ? coordinateFinalStateRequests(input.task.id)
+        : undefined,
+    fixtureSetup:
+      input.task.taskData.objectiveCode ===
+      "generated_only_symbol_coordinate_repair"
+        ? ("generated_coordinate_divergence" as const)
+        : undefined,
+    protocolContract:
+      input.task.taskData.objectiveCode ===
+      "generated_only_symbol_coordinate_repair"
+        ? {
+            requiredCalls: COORDINATE_REPAIR_CALLS.map((tool) => ({ tool })),
+            forbiddenTools: [
+              "kb_upsert",
+              "kb_delete",
+              "kb_ingest_verification",
+              "kb_model_requirement",
+              "kb_validate_upsert",
+            ],
+            exactMigrationApply: {
+              actionCode: "symbol_refresh_coordinates",
+              invocationCommandArgv: [
+                "kibi",
+                "sync",
+                "--refresh-symbol-coordinates",
+              ],
+            },
+          }
+        : undefined,
     orderedMcpPredicates: {
       required: requiredTools(input.task).map((tool, index) => ({
         tool,

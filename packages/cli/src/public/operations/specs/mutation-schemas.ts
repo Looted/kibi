@@ -122,6 +122,7 @@ export const ENTITY_PROPERTIES_SCHEMA = {
         "module-level-behavior",
         "extractor-miss",
         "legacy-link",
+        "test-suite",
       ],
       description:
         "Optional justification for a coarse file/module-level symbol traceability relationship when narrower function/class/type symbols exist.",

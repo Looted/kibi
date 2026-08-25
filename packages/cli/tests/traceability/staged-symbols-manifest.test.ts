@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import { createHash } from "node:crypto";
 import {
   existsSync,
   mkdirSync,
@@ -34,6 +35,28 @@ function createSourceStagedFile(cwd: string): StagedFile {
     hunkRanges: [],
     content: readFileSync(path.join(cwd, "src", "app.ts"), "utf8"),
   };
+}
+
+function sha256(value: string): string {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+function appCoordinatesArtifact(
+  source: string,
+  sourceLine: number,
+  granularityReason = "",
+): string {
+  return `version: 2
+coordinates:
+  SYM-app:
+    identityHash: ${sha256(`SYM-app\u0000app\u0000src/app.ts\u0000${granularityReason}`)}
+    sourceHash: ${sha256(source)}
+    sourceFile: src/app.ts
+    sourceLine: ${sourceLine}
+    sourceColumn: 16
+    sourceEndLine: ${sourceLine + 2}
+    sourceEndColumn: 1
+`;
 }
 
 describe("assessStagedSymbolsManifest", () => {
@@ -152,7 +175,10 @@ describe("assessStagedSymbolsManifest", () => {
     writeFile(
       tmpDir,
       ".kb/symbol-coordinates.yaml",
-      "coordinates:\n  SYM-app:\n    sourceFile: src/app.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 3\n    sourceEndColumn: 1\n",
+      appCoordinatesArtifact(
+        `export function app() {\n  return "ok";\n}\n\nfunction privateHelper() {\n  return "private";\n}\n`,
+        1,
+      ),
     );
     commitAll(tmpDir, "initial");
 
@@ -164,7 +190,10 @@ describe("assessStagedSymbolsManifest", () => {
     writeFile(
       tmpDir,
       ".kb/symbol-coordinates.yaml",
-      "coordinates:\n  SYM-app:\n    sourceFile: src/app.ts\n    sourceLine: 2\n    sourceColumn: 16\n    sourceEndLine: 4\n    sourceEndColumn: 1\n",
+      appCoordinatesArtifact(
+        `\nexport function app() {\n  return "ok";\n}\n\nfunction privateHelper() {\n  return "private";\n}\n`,
+        2,
+      ),
     );
 
     const previousCwd = process.cwd();
@@ -268,14 +297,7 @@ describe("assessStagedSymbolsManifest", () => {
     writeFile(
       tmpDir,
       ".kb/symbol-coordinates.yaml",
-      `coordinates:
-  SYM-app:
-    sourceFile: src/app.ts
-    sourceLine: 1
-    sourceColumn: 16
-    sourceEndLine: 3
-    sourceEndColumn: 1
-`,
+      appCoordinatesArtifact(`export function app() {\n  return "ok";\n}\n`, 1),
     );
     commitAll(tmpDir, "initial");
 
@@ -287,14 +309,10 @@ describe("assessStagedSymbolsManifest", () => {
     writeFile(
       tmpDir,
       ".kb/symbol-coordinates.yaml",
-      `coordinates:
-  SYM-app:
-    sourceFile: src/app.ts
-    sourceLine: 2
-    sourceColumn: 16
-    sourceEndLine: 4
-    sourceEndColumn: 1
-`,
+      appCoordinatesArtifact(
+        `\nexport function app() {\n  return "ok";\n}\n`,
+        2,
+      ),
     );
 
     const previousCwd = process.cwd();
@@ -350,14 +368,11 @@ describe("assessStagedSymbolsManifest", () => {
     writeFile(
       tmpDir,
       ".kb/symbol-coordinates.yaml",
-      `coordinates:
-  SYM-app:
-    sourceFile: src/app.ts
-    sourceLine: 1
-    sourceColumn: 16
-    sourceEndLine: 3
-    sourceEndColumn: 1
-`,
+      appCoordinatesArtifact(
+        `export function app() {\n  return "ok";\n}\n`,
+        1,
+        "legacy-link",
+      ),
     );
     commitAll(tmpDir, "initial");
 
@@ -375,14 +390,11 @@ describe("assessStagedSymbolsManifest", () => {
         path: ".kb/symbol-coordinates.yaml",
         status: "M",
         hunkRanges: [],
-        content: `coordinates:
-  SYM-app:
-    sourceFile: src/app.ts
-    sourceLine: 2
-    sourceColumn: 16
-    sourceEndLine: 4
-    sourceEndColumn: 1
-`,
+        content: appCoordinatesArtifact(
+          `\nexport function app() {\n  return "ok";\n}\n`,
+          2,
+          "legacy-link",
+        ),
       };
 
       expect(
