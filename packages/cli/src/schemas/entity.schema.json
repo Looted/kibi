@@ -680,7 +680,6 @@
     },
     "verification_receipts": {
       "type": "array",
-      "maxItems": 50,
       "items": {
         "oneOf": [
           {

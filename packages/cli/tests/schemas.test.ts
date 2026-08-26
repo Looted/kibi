@@ -143,6 +143,16 @@ describe("Entity Schema", () => {
     };
 
     expect(validate({ ...base, type: "test" })).toBe(true);
+    expect(
+      validate({
+        ...base,
+        type: "test",
+        verification_receipts: Array.from({ length: 51 }, (_, index) => ({
+          ...base.verification_receipts[0],
+          receipt_id: `VR-SCHEMA-${String(index).padStart(8, "0")}`,
+        })),
+      }),
+    ).toBe(true);
     expect(validate({ ...base, type: "req" })).toBe(false);
     const { verification_scope: _scope, ...withoutScope } = base;
     expect(validate({ ...withoutScope, type: "test" })).toBe(false);
