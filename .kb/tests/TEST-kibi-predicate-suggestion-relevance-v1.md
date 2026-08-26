@@ -1204,4 +1204,28 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 70912
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-7e8e68559183f49419b3cc1d
+    test_id: TEST-kibi-predicate-suggestion-relevance-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-predicate-suggestion-relevance-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-predicate-suggestion-relevance-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 577989e891f4f7297aa31da46d632ac1ddf85ba7929cfdca9f3ec1e4c273331d
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-26T14:15:48.925Z'
+    finished_at: '2026-08-26T14:16:58.930Z'
+    artifact_digest: 46ea9653d4ac6314897e58c118439f48f04de4a8711f0a9eadc2fc3b00eb25b2
+    contract_hash: f33ef1a4ef5bbfd7e106c5190bce217fd74cc7498fa7a8f03af406c17ff8f843
+    case_results:
+      - symbol_id: SYM-kibi-predicate-suggestion-relevance-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 70005
 ---

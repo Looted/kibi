@@ -1153,4 +1153,28 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 67208
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-f08ab82cb904eeaafa819857
+    test_id: TEST-runtime-packed-engine-daemon
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-runtime-packed-engine-daemon
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-runtime-packed-engine-daemon
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 577989e891f4f7297aa31da46d632ac1ddf85ba7929cfdca9f3ec1e4c273331d
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-26T14:18:17.165Z'
+    finished_at: '2026-08-26T14:19:19.118Z'
+    artifact_digest: 96cb0a5ec594c8f1d2609f9efcd17e08a90a6707d208c8355b629d4ccb5d4881
+    contract_hash: f55723ff2baef6d83352cd00e187c51a79823a7db8bcd85e961d8fef91c0a0d1
+    case_results:
+      - symbol_id: SYM-test-runtime-engine-daemon
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 61953
 ---
