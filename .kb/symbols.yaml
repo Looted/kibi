@@ -29500,3 +29500,48 @@ symbols:
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-setup-seeded-fresh-kb
+    title: setupSeededFreshKb
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-setup-seeded-stale-kb
+    title: setupSeededStaleKb
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-setup-thin-root-kb
+    title: setupThinRootKb
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-init-fixture-repository
+    title: initFixtureRepository
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-kibi-bootstrap-plan-expected-snapshots
+    title: expectedSnapshots
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/generate.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN

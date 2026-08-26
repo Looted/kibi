@@ -69,3 +69,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2062add6e68a
+  - type: implements
+    from: SYM-kibi-bootstrap-plan-expected-snapshots
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-26T18:07:41.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd0e15a294e2

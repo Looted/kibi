@@ -416,7 +416,13 @@ export function buildPrivateManifest(input: {
       input.task.taskData.objectiveCode ===
       "generated_only_symbol_coordinate_repair"
         ? ("generated_coordinate_divergence" as const)
-        : undefined,
+        : input.task.initialState.kb === "fresh"
+          ? ("seeded_fresh_kb" as const)
+          : input.task.initialState.kb === "stale"
+            ? ("seeded_stale_kb" as const)
+            : input.task.initialState.kb === "absent"
+              ? ("thin_root_kb" as const)
+              : undefined,
     protocolContract:
       input.task.taskData.objectiveCode ===
       "generated_only_symbol_coordinate_repair"

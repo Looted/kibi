@@ -111,3 +111,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-69b9c6589ed1
+  - type: implements
+    from: SYM-skillopt-init-fixture-repository
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-26T18:07:26.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa44a2fb4ca1

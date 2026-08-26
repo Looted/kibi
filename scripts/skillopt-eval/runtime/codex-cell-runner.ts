@@ -21,6 +21,9 @@ import { replayCodexEpisode } from "./codex-episode";
 import {
   FixtureSetupError,
   setupGeneratedCoordinateDivergence,
+  setupSeededFreshKb,
+  setupSeededStaleKb,
+  setupThinRootKb,
 } from "./fixture-kb-setup";
 import { createIsolationWorkspace } from "./isolation-workspace";
 import {
@@ -137,6 +140,27 @@ export async function runCodexCell(
         cliRoot,
         fixtureSymbolId(request.taskId),
       );
+    } else {
+      const setupMode = options.evaluatorManifest.fixtureSetup;
+      if (
+        setupMode === "seeded_fresh_kb" ||
+        setupMode === "seeded_stale_kb" ||
+        setupMode === "thin_root_kb"
+      ) {
+        const cliRoot = broker.downstream.cliRoot;
+        if (cliRoot === undefined) {
+          throw new FixtureSetupError(
+            "staged runtime exposes no kibi-cli root",
+          );
+        }
+        if (setupMode === "seeded_fresh_kb") {
+          await setupSeededFreshKb(workspace.target, cliRoot);
+        } else if (setupMode === "seeded_stale_kb") {
+          await setupSeededStaleKb(workspace.target, cliRoot);
+        } else {
+          await setupThinRootKb(workspace.target, cliRoot);
+        }
+      }
     }
     const runtimeRoot = join(workspace.target, ".runtime");
     await mkdir(runtimeRoot, { recursive: true, mode: 0o700 });

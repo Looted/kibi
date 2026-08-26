@@ -109,34 +109,7 @@ export async function setupGeneratedCoordinateDivergence(
   };
 
   // Git identity on the evaluation branch; exclude runtime outputs.
-  await execFileAsync("git", ["init", "-q", "-b", FIXTURE_BRANCH], {
-    cwd: workspaceTarget,
-  });
-  for (const [key, value] of [
-    ["user.email", "skillopt@eval"],
-    ["user.name", "SkillOpt Evaluator"],
-  ] as const) {
-    await execFileAsync("git", ["config", key, value], {
-      cwd: workspaceTarget,
-    });
-  }
-  writeFileSync(
-    join(workspaceTarget, ".git", "info", "exclude"),
-    [
-      ".runtime/",
-      ".sandbox-home/",
-      ".kb/branches/",
-      ".kb/audit.log",
-      ".kb/usage.log",
-      ".kb/recovery/",
-      "",
-    ].join("\n"),
-  );
-  await execFileAsync(
-    "git",
-    ["commit", "-q", "--allow-empty", "-m", "fixture init"],
-    { cwd: workspaceTarget },
-  );
+  await initFixtureRepository(workspaceTarget);
 
   await expectOk(
     await runStagedCli(cliRoot, workspaceTarget, ["init"]),
@@ -260,7 +233,7 @@ export async function setupGeneratedCoordinateDivergence(
   await execFileAsync("git", ["add", "-A"], { cwd: workspaceTarget });
   await execFileAsync(
     "git",
-    ["commit", "-q", "-m", "evaluator fixture state"],
+    ["commit", "-q", "--no-verify", "-m", "evaluator fixture state"],
     { cwd: workspaceTarget },
   );
 }
@@ -318,4 +291,159 @@ export async function stripSymbolCoordinates(
   } finally {
     await prolog.terminate();
   }
+}
+
+/** Shared fixture repository bootstrap: evaluation branch, identity, excludes. */
+// implements REQ-skillopt-codex-optimization
+export async function initFixtureRepository(
+  workspaceTarget: string,
+): Promise<void> {
+  await execFileAsync("git", ["init", "-q", "-b", FIXTURE_BRANCH], {
+    cwd: workspaceTarget,
+  });
+  for (const [key, value] of [
+    ["user.email", "skillopt@eval"],
+    ["user.name", "SkillOpt Evaluator"],
+  ] as const) {
+    await execFileAsync("git", ["config", key, value], {
+      cwd: workspaceTarget,
+    });
+  }
+  writeFileSync(
+    join(workspaceTarget, ".git", "info", "exclude"),
+    [
+      ".runtime/",
+      ".sandbox-home/",
+      ".kb/branches/",
+      ".kb/audit.log",
+      ".kb/usage.log",
+      ".kb/recovery/",
+      "",
+    ].join("\n"),
+  );
+  await execFileAsync(
+    "git",
+    ["commit", "-q", "--allow-empty", "-m", "fixture init"],
+    { cwd: workspaceTarget },
+  );
+}
+
+async function stageCommitAll(workspaceTarget: string): Promise<void> {
+  await execFileAsync("git", ["add", "-A"], { cwd: workspaceTarget });
+  // Fixture staging is evaluator-owned; `kibi init` installs the production
+  // pre-commit gate into staged workspaces, and thin fixtures legitimately
+  // carry source files without KB ownership yet, so bypass it deliberately.
+  await execFileAsync(
+    "git",
+    ["commit", "-q", "--no-verify", "-m", "evaluator fixture state"],
+    { cwd: workspaceTarget },
+  );
+}
+
+/**
+ * Evaluator-owned staging for tasks whose declared initial KB state is
+ * "absent" (attached_thin_bootstrap). Infrastructure only: repository, root
+ * init, empty sync, committed. No knowledge entities are fabricated, so
+ * kb_plan_bootstrap stays eligible and apply gates remain meaningful.
+ */
+// implements REQ-skillopt-codex-optimization
+export async function setupThinRootKb(
+  workspaceTarget: string,
+  cliRoot: string,
+): Promise<void> {
+  await initFixtureRepository(workspaceTarget);
+  const expectOk = async (args: readonly string[], label: string) => {
+    const result = await runStagedCli(cliRoot, workspaceTarget, args);
+    if (!result.ok) {
+      throw new FixtureSetupError(
+        `${label} failed: ${result.stderr.slice(0, 500) || result.stdout.slice(0, 200)}`,
+      );
+    }
+    return result.stdout;
+  };
+  await expectOk(["init"], "kibi init");
+  await expectOk(["sync"], "thin sync");
+  await stageCommitAll(workspaceTarget);
+}
+
+/**
+ * Evaluator-owned staging for tasks declaring initialState.kb "fresh": a
+ * committed, seeded, fully-synced KB (probe-verified: kb_status reports
+ * dirty=false, syncState=fresh, verification snapshot available) plus one
+ * source-linked symbol pair so discovery/query signals have real content.
+ */
+// implements REQ-skillopt-codex-optimization
+export async function setupSeededFreshKb(
+  workspaceTarget: string,
+  cliRoot: string,
+): Promise<void> {
+  await initFixtureRepository(workspaceTarget);
+  const expectOk = async (args: readonly string[], label: string, stdin?: string) => {
+    const result = await runStagedCli(cliRoot, workspaceTarget, args, stdin);
+    if (!result.ok) {
+      throw new FixtureSetupError(
+        `${label} failed: ${result.stderr.slice(0, 500) || result.stdout.slice(0, 200)}`,
+      );
+    }
+    return result.stdout;
+  };
+  await expectOk(["init"], "kibi init");
+  await expectOk(
+    ["upsert", "--input", "-"],
+    "requirement upsert",
+    JSON.stringify({
+      type: "req",
+      id: "REQ-SETUP-BASE",
+      properties: { title: "seeded fixture requirement", status: "open" },
+      document: { path: ".kb/requirements/REQ-SETUP-BASE.md" },
+    }),
+  );
+  await expectOk(
+    ["upsert", "--input", "-"],
+    "symbol upsert",
+    JSON.stringify({
+      type: "symbol",
+      id: "SYM-SETUP-FIXTURE",
+      properties: {
+        title: "fixtureFamily",
+        status: "active",
+        sourceFile: "src/fixture.ts",
+      },
+      relationships: [
+        { type: "implements", from: "SYM-SETUP-FIXTURE", to: "REQ-SETUP-BASE" },
+      ],
+    }),
+  );
+  await expectOk(["sync"], "import sync");
+  await stageCommitAll(workspaceTarget);
+}
+
+/**
+ * Evaluator-owned staging for tasks declaring initialState.kb "stale": the
+ * seeded-fresh baseline plus a committed source drift that the compiled store
+ * has not absorbed (probe-verified: kb_status reports syncState=stale with a
+ * clean worktree), so staleness-classification signals have real content.
+ */
+// implements REQ-skillopt-codex-optimization
+export async function setupSeededStaleKb(
+  workspaceTarget: string,
+  cliRoot: string,
+): Promise<void> {
+  await setupSeededFreshKb(workspaceTarget, cliRoot);
+  const requirementPath = join(
+    workspaceTarget,
+    ".kb",
+    "requirements",
+    "REQ-SETUP-BASE.md",
+  );
+  const original = await (await import("node:fs/promises")).readFile(
+    requirementPath,
+    "utf8",
+  );
+  await (await import("node:fs/promises")).writeFile(
+    requirementPath,
+    `${original}\nUnabsorbed evaluator drift: stale-state classification seed.\n`,
+    "utf8",
+  );
+  await stageCommitAll(workspaceTarget);
 }

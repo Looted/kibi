@@ -400,3 +400,67 @@ describe("SkillOpt corpus executability invariants", () => {
     ]);
   });
 });
+
+describe("fixture KB staging modes", () => {
+  const manifestFor = (objectiveCode: string) => {
+    const catalog = [
+      ...buildSkillCatalog("kibi-usage"),
+      ...buildSkillCatalog("kibi-freshness"),
+      ...buildSkillCatalog("kibi-traceability"),
+      ...buildSkillCatalog("kibi-bootstrap"),
+      ...buildBundleCatalog(),
+    ];
+    const task = catalog.find(
+      (candidate) => candidate.taskData.objectiveCode === objectiveCode,
+    );
+    if (task === undefined) throw new Error(`fixture missing: ${objectiveCode}`);
+    return buildPrivateManifest({
+      task: task as unknown as Parameters<typeof buildPrivateManifest>[0]["task"],
+      publicManifestHash: "a".repeat(64),
+      workspaceHash: "b".repeat(64),
+    });
+  };
+
+  test("derives seeded_fresh_kb for fresh initial states", () => {
+    expect(manifestFor("discover_then_exact_lookup").fixtureSetup).toBe(
+      "seeded_fresh_kb",
+    );
+  });
+
+  test("derives seeded_stale_kb for stale initial states", () => {
+    expect(manifestFor("recover_stale_state").fixtureSetup).toBe(
+      "seeded_stale_kb",
+    );
+  });
+
+  test("derives thin_root_kb for absent initial states", () => {
+    expect(manifestFor("approved_plan_apply").fixtureSetup).toBe(
+      "thin_root_kb",
+    );
+  });
+
+  test("keeps divergence precedence over generic staging", () => {
+    expect(
+      manifestFor("generated_only_symbol_coordinate_repair")
+        .fixtureSetup,
+    ).toBe("generated_coordinate_divergence");
+  });
+
+  test("bundle tasks stage KBs instead of running on empty workspaces", () => {
+    const bundle = buildBundleCatalog();
+    const modes = new Set(
+      bundle.map((task) =>
+        buildPrivateManifest({
+          task: task as unknown as Parameters<
+            typeof buildPrivateManifest
+          >[0]["task"],
+          publicManifestHash: "a".repeat(64),
+          workspaceHash: "b".repeat(64),
+        }).fixtureSetup,
+      ),
+    );
+    expect(modes.has("seeded_fresh_kb")).toBe(true);
+    expect(modes.has("seeded_stale_kb")).toBe(true);
+    expect(modes.has(undefined)).toBe(false);
+  });
+});

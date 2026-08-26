@@ -136,12 +136,16 @@ async function expectedSnapshots(
       // Bind every evidence document that can affect candidate selection. The
       // workspace hash is still authoritative for the complete checkout, but
       // these per-source hashes make the plan's evidence set inspectable.
+      // Layout providers legitimately surface directory rows (for example a
+      // bare `src` entry); directories carry no hashable document content and
+      // must not surface as binding diagnostics, which would otherwise block
+      // an otherwise-ready thin-bootstrap plan.
       for (const relative of new Set(evidencePaths)) {
         try {
+          const resolved = path.resolve(context.workspaceRoot, relative);
+          if (!(await context.fs.stat(resolved)).isFile()) continue;
           sourceHashes[relative] = sha256(
-            await context.fs.readFile(
-              path.resolve(context.workspaceRoot, relative),
-            ),
+            await context.fs.readFile(resolved),
           );
         } catch {
           sourceHashes[relative] = null;
