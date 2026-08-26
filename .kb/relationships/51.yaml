@@ -167,3 +167,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c07e9f179fa1
+  - type: covered_by
+    from: SYM-skillopt-bridge-request-schema
+    to: TEST-skillopt-file-bridge-unit
+    created_at: 2026-08-26T07:14:18.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93f29a6e86da

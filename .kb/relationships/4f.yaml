@@ -178,3 +178,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-27e0bca51cd0
+  - type: covered_by
+    from: SYM-skillopt-predicate-case-snapshot-schema
+    to: TEST-skillopt-scoring-gates-unit
+    created_at: 2026-08-26T07:14:24.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e75ce7acdff

@@ -34,3 +34,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-639b44e50044
+  - type: relates_to
+    from: FACT-core-audit-logging-7CEFB9
+    to: REQ-core-audit-logging
+    created_at: 2026-08-26T07:20:06.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-912eb5053a47

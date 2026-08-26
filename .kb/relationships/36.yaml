@@ -94,3 +94,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f7cddcb25ae9
+  - type: requires_predicate
+    from: REQ-core-validation-rules
+    to: FACT-core-validation-rules-5171BD
+    created_at: 2026-08-26T07:20:46.778Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3400fd742880
+  - type: requires_predicate
+    from: REQ-core-validation-rules
+    to: FACT-core-validation-rules-DF093D
+    created_at: 2026-08-26T07:20:46.813Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a9115898117
+  - type: requires_predicate
+    from: REQ-core-validation-rules
+    to: FACT-core-validation-rules-CA4929
+    created_at: 2026-08-26T07:20:46.822Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c801db4205b

@@ -34,39 +34,39 @@ semantic_inventory:
   - claim_key: CLAIM-5447358E14FAFD65
     claim_text: The `kibi query` command provides CLI access to the knowledge base
     role: descriptive
-    status: ontology_gap
+    status: modeled
     span:
       start: 0
       end: 66
     payload_hash: 745ccd815c2d2460083f64cefba483ce9fc024c1f076147e6e5d905303614847
-    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
+    reason: Grounded by FACT-cli-query-FAFD65 via requires_predicate.
   - claim_key: CLAIM-44D864637CEE5FD5
     claim_text: It supports filtering by entity type, ID, tags, and source file
     role: descriptive
-    status: ontology_gap
+    status: modeled
     span:
       start: 68
       end: 131
     payload_hash: 745ccd815c2d2460083f64cefba483ce9fc024c1f076147e6e5d905303614847
-    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
+    reason: Grounded by FACT-cli-query-EE5FD5 via requires_predicate.
   - claim_key: CLAIM-E1BF29CD5D92382F
     claim_text: Output can be formatted as human-readable tables or machine-readable JSON
     role: descriptive
-    status: ontology_gap
+    status: modeled
     span:
       start: 133
       end: 206
     payload_hash: 745ccd815c2d2460083f64cefba483ce9fc024c1f076147e6e5d905303614847
-    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
+    reason: Grounded by FACT-cli-query-92382F via requires_predicate.
   - claim_key: CLAIM-BB2FD915BB3BA695
     claim_text: It also supports querying relationships for specific entities
     role: descriptive
-    status: ontology_gap
+    status: modeled
     span:
       start: 208
       end: 269
     payload_hash: 745ccd815c2d2460083f64cefba483ce9fc024c1f076147e6e5d905303614847
-    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
+    reason: Grounded by FACT-cli-query-3BA695 via requires_predicate.
 type: req
 ---
 

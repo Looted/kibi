@@ -80,3 +80,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ffbd9be08851
+  - type: covered_by
+    from: SYM-cli-rule-registry-RuleDefinition
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-26T07:15:25.323Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23138089f00a

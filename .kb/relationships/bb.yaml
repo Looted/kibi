@@ -265,3 +265,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0d90f70fb289
+  - type: relates_to
+    from: FACT-cli-query-3BA695
+    to: REQ-cli-query
+    created_at: 2026-08-26T07:44:04.326Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca6697577933

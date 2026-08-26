@@ -132,3 +132,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a846e043f9ff
+  - type: requires_predicate
+    from: REQ-cli-query
+    to: FACT-cli-query-FAFD65
+    created_at: 2026-08-26T07:44:07.931Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18bddd1ae877
+  - type: requires_predicate
+    from: REQ-cli-query
+    to: FACT-cli-query-EE5FD5
+    created_at: 2026-08-26T07:44:07.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50cef93855a3
+  - type: requires_predicate
+    from: REQ-cli-query
+    to: FACT-cli-query-92382F
+    created_at: 2026-08-26T07:44:07.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa712fdf33b4
+  - type: requires_predicate
+    from: REQ-cli-query
+    to: FACT-cli-query-3BA695
+    created_at: 2026-08-26T07:44:08.003Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3c4846667b3

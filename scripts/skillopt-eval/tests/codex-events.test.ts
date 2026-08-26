@@ -88,6 +88,70 @@ describe("Codex JSONL normalization", () => {
     ]);
   });
 
+  test("Given brokered MCP calls carrying .kb-relative plan paths When normalized Then arguments are not classified as direct KB access", () => {
+    // Given: kb_apply_plan arguments legitimately embed .kb store paths.
+    const transcript = [
+      JSON.stringify({
+        type: "item.completed",
+        item: {
+          type: "mcp_tool_call",
+          server: "kibi",
+          tool: "kb_apply_plan",
+          arguments: {
+            approvedPlanHash: "a".repeat(64),
+            plan: {
+              version: "kibi.migration-plan.v2",
+              actions: [
+                {
+                  id: "branch-store-ensure",
+                  path: ".kb/branches/skillopt-eval",
+                },
+              ],
+            },
+          },
+        },
+      }),
+      JSON.stringify({
+        type: "mcp_tool_call",
+        tool: "kb_upsert",
+        arguments: { properties: { text_ref: ".kb/requirements/x.md" } },
+      }),
+    ].join("\n");
+
+    // When
+    const normalized = normalizeCodexJsonl(transcript, {
+      hiddenMarkers: [],
+      forbiddenRoots: [],
+    });
+
+    // Then
+    expect(normalized.violations).toEqual([]);
+  });
+
+  test("Given a hidden marker inside brokered MCP arguments When normalized Then leakage is still reported", () => {
+    // Given
+    const transcript = [
+      JSON.stringify({
+        type: "item.completed",
+        item: {
+          type: "mcp_tool_call",
+          server: "kibi",
+          tool: "kb_query",
+          arguments: { query: "PRIVATE_SENTINEL_ABC" },
+        },
+      }),
+    ].join("\n");
+
+    // When
+    const normalized = normalizeCodexJsonl(transcript, {
+      hiddenMarkers: ["PRIVATE_SENTINEL_ABC"],
+      forbiddenRoots: [],
+    });
+
+    // Then
+    expect(normalized.violations).toEqual(["hidden_data_leakage"]);
+  });
+
   test("Given a workspace enumeration that excludes the KB tree When normalized Then exclusion is not classified as access", () => {
     // Given
     const transcript = JSON.stringify({

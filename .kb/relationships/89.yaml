@@ -181,3 +181,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-93f5ea2ae0f0
+  - type: covered_by
+    from: SYM-cli-rule-registry-RULES
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-26T07:15:07.309Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61573631b4ff
+  - type: implements
+    from: SYM-cli-query-command
+    to: REQ-015
+    created_at: 2026-08-26T07:44:19.114Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-418e6d252f46
+  - type: implements
+    from: SYM-cli-query-command
+    to: REQ-cli-query
+    created_at: 2026-08-26T07:44:32.629Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7370bc3af0a

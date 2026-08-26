@@ -90,3 +90,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b178864cc23
+  - type: relates_to
+    from: FACT-core-prolog-process-management-E396BE
+    to: REQ-core-prolog-process-management
+    created_at: 2026-08-26T07:20:49.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79ae33a49105

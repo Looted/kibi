@@ -73,3 +73,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d2896213d7e1
+  - type: covered_by
+    from: SYM-cli-PrologProcess-invalidateCache
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-26T07:16:39.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b19cf945afa

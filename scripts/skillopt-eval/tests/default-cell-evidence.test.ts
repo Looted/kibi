@@ -3,6 +3,8 @@ import { createHash } from "node:crypto";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { buildSkillCatalog } from "../catalog";
+import { buildPrivateManifest } from "../fixtures/evaluator";
 import { parsePrivateEvaluatorManifest } from "../fixtures/private";
 import { sealDefaultCellEvidence } from "../runtime/codex-cell-defaults";
 import { appendTraceReceipt } from "../runtime/jsonrpc";
@@ -652,5 +654,112 @@ describe("default Codex cell evidence sealing", () => {
       key: "final-safe-mutation-direction",
       value: false,
     });
+  });
+});
+
+describe("pre-approval interim outcome scoring", () => {
+  test("emits interim when the agent plans read-only and stops before writes", async () => {
+    const task = buildSkillCatalog("kibi-bootstrap").find(
+      (candidate) =>
+        candidate.taskData.objectiveCode === "bootstrap_analysis" &&
+        candidate.split === "train",
+    );
+    if (task === undefined) throw new Error("bootstrap train fixture missing");
+    const manifest = parsePrivateEvaluatorManifest(
+      JSON.stringify(
+        buildPrivateManifest({
+          task: task as never,
+          publicManifestHash: "a".repeat(64),
+          workspaceHash: "b".repeat(64),
+        }),
+      ),
+    );
+    if (manifest.workflowExpectation?.expectedOutcome !== "interim") {
+      throw new Error("fixture must expect interim outcome");
+    }
+    // Thin cold-start fixture: no KB attached yet, so every verifier call
+    // surfaces an error envelope and the closeout stays not_evaluated.
+    const errEnvelope = {
+      content: [{ type: "text", text: "branch store unavailable" }],
+      structuredContent: { status: "error" },
+    };
+    const finalState = `${JSON.stringify({
+      schemaVersion: "1.0.0",
+      workspaceRoot: "/isolated/workspace",
+      binding: {
+        caseId: "kibi-bootstrap-bootstrap-analysis-train-1",
+        roots: {
+          publicManifestHash: "a".repeat(64),
+          workspaceHash: "b".repeat(64),
+          fixtureSeedHash: "c".repeat(64),
+        },
+        sequence: 1,
+      },
+      requests: [
+        {
+          tool: "kb_query",
+          args: {},
+          result: errEnvelope,
+          resultHash: resultHash(errEnvelope),
+        },
+        {
+          tool: "kb_check",
+          args: {},
+          result: errEnvelope,
+          resultHash: resultHash(errEnvelope),
+        },
+        {
+          tool: "kb_status",
+          args: {},
+          result: errEnvelope,
+          resultHash: resultHash(errEnvelope),
+        },
+        {
+          tool: "kb_coverage",
+          args: { by: "req" },
+          result: errEnvelope,
+          resultHash: resultHash(errEnvelope),
+        },
+      ],
+    })}\n`;
+    const root = await mkdtemp(join(tmpdir(), "skillopt-interim-evidence-"));
+    roots.push(root);
+    const tracePath = join(root, "broker-trace.jsonl");
+    await appendTraceReceipt(tracePath, {
+      correlationId: "rpc-1",
+      direction: "target_to_server",
+      kind: "request",
+      method: "tools/call",
+      toolName: "kb_plan_bootstrap",
+      payload: {},
+    });
+    await appendTraceReceipt(tracePath, {
+      correlationId: "rpc-1",
+      direction: "server_to_target",
+      kind: "response",
+      method: "tools/call",
+      toolName: "kb_plan_bootstrap",
+      payload: { result: {} },
+    });
+    const brokerTrace = await readFile(tracePath, "utf8");
+    const evidence = sealDefaultCellEvidence(
+      {
+        evaluatorManifest: manifest,
+        finalStateRequests: [
+          { tool: "kb_query" as const, args: {} },
+          { tool: "kb_check" as const, args: {} },
+          { tool: "kb_status" as const, args: {} },
+          { tool: "kb_coverage" as const, args: { by: "req" } },
+        ],
+      },
+      {
+        finalState,
+        brokerTrace,
+        diagnosticReceipt:
+          '{"tool":"kb_plan_bootstrap","status":"success","telemetry":null}\n',
+      },
+    );
+    expect(evidence.finalState.closeout.taskOutcome).toBe("interim");
+    expect(scoreCell(manifest, evidence).outcome).toBe("pass");
   });
 });

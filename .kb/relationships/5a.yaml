@@ -167,3 +167,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c46b6ea8f130
+  - type: implements
+    from: SYM-TOOLS
+    to: REQ-013
+    created_at: 2026-08-26T07:44:12.550Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d25624f391f

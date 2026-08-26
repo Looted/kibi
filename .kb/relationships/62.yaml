@@ -48,3 +48,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-608fdfd335d3
+  - type: covered_by
+    from: SYM-core-kb-commit-upsert
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-26T07:14:40.550Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2fe553efa77f

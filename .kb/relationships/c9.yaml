@@ -76,3 +76,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a00cba9e7449
+  - type: covered_by
+    from: SYM-cli-PrologProcess-terminate
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-26T07:16:57.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f918e6f9d5c

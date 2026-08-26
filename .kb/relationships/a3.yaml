@@ -83,3 +83,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a6a613a9d7a9
+  - type: requires_predicate
+    from: REQ-cli-doctor
+    to: FACT-cli-doctor-BD0FDB
+    created_at: 2026-08-26T07:43:58.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-133e50095a5f
+  - type: requires_predicate
+    from: REQ-cli-doctor
+    to: FACT-cli-doctor-1B97E0
+    created_at: 2026-08-26T07:43:58.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0ae73f9d871
