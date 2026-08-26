@@ -15651,6 +15651,14 @@ coordinates:
     sourceEndLine: 17
     sourceFile: scripts/skillopt-eval/bundle-workflow.ts
     sourceLine: 17
+  SYM-skillopt-bundle-evaluate-verdict:
+    identityHash: dba149c140a89ef6054226f38fa5665fa27fcfa5f1635f4c883cabeb4d2880f4
+    sourceHash: 7bfcd0df6aaa754d22da665213e4c16fc0278b1696b2c4147e9908e3e55944be
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 121
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    sourceLine: 88
   SYM-skillopt-bundle-evaluation-branch:
     identityHash: a34ac5e5033d493657b395c91cd118c2fb98be1428516b4ab2ba71302ad61977
     sourceHash: 7bfcd0df6aaa754d22da665213e4c16fc0278b1696b2c4147e9908e3e55944be
@@ -15675,6 +15683,14 @@ coordinates:
     sourceEndLine: 159
     sourceFile: scripts/skillopt-eval/bundle-workflow.ts
     sourceLine: 155
+  SYM-skillopt-bundle-resolve-candidates-dir:
+    identityHash: d853f03a23970aa0c578c547f6ee313d4d9c3e0bde5d89a3d37736a065fb94d5
+    sourceHash: 7bfcd0df6aaa754d22da665213e4c16fc0278b1696b2c4147e9908e3e55944be
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 45
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    sourceLine: 31
   SYM-skillopt-bundle-run-paid-gate:
     identityHash: 7ee21f269762a04771830767c57c3ae45317ac22ab66acb58f3ba6711d55f3da
     sourceHash: 7bfcd0df6aaa754d22da665213e4c16fc0278b1696b2c4147e9908e3e55944be
@@ -18261,10 +18277,10 @@ coordinates:
     sourceLine: 1
   SYM-skillopt-mcp-startup-probe-tests:
     identityHash: a598711745ef51321876b0b5bc12872ca3e8c7f59470a95b784a4da5807853e5
-    sourceHash: 9f380a7880a1cf0f5135a149dae335d416ca90412b7843bc3b85cc2a88c33748
+    sourceHash: 0700dfa9bf213f1a430818f0b71ab56f845a7d2d477288051400e583587c4fc0
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 144
+    sourceEndLine: 158
     sourceFile: scripts/skillopt-eval/tests/mcp-startup-probe.test.ts
     sourceLine: 1
   SYM-skillopt-measured-report-metrics-type:
@@ -21349,10 +21365,10 @@ coordinates:
     sourceLine: 15
   SYM-skillopt-workspace-auth-cleanup-tests:
     identityHash: 190cf573378521e054b109b14acab858fdec1444f540bde1ff9d7dd5a0b5f9ec
-    sourceHash: 8a3c6b830c9da2a1693acd18240e079c7da9234095315fd7fc001ba4a19c2670
+    sourceHash: 54e896c605401d3652c98b7aa2a480f283edb9750519344f676f3cda5fe1c368
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 82
+    sourceEndLine: 87
     sourceFile: scripts/skillopt-eval/tests/workspace-auth-cleanup.test.ts
     sourceLine: 1
   SYM-skillopt-worktree-state-type:

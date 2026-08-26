@@ -29419,6 +29419,14 @@ symbols:
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-resolve-candidates-dir
+    title: resolveBundleCandidatesDir
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-cell-summary-type
     title: BundleCellSummary
     status: active
@@ -29433,6 +29441,14 @@ symbols:
     status: active
     sourceFile: scripts/skillopt-eval/bundle-workflow.ts
     granularity_reason: module-level-behavior
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-evaluate-verdict
+    title: evaluateBundleVerdict
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
     symbol_role: behavioral
     relationships:
       - type: implements

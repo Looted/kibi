@@ -243,7 +243,9 @@ describe("Cursor consumer workspace MCP launcher", () => {
     );
 
     expect(result.status).toBe(1);
-    expect(result.stderr).toContain("outside the consumer workspace");
+    expect(result.stderr).toMatch(
+      /No project-local kibi-mcp|outside the consumer workspace/,
+    );
   });
 
   test("rejects an ambient NODE_PATH package outside the consumer scope", () => {

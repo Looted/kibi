@@ -12,6 +12,12 @@ import { verifyTraceChain } from "../runtime/jsonrpc";
 import { REQUIRED_KIBI_TOOLS } from "../runtime/mcp-broker";
 
 const roots: string[] = [];
+const TEST_RUNTIME = {
+  stagedRuntime: {
+    codexExecutable: "/bin/true",
+    bwrapExecutable: "/bin/true",
+  },
+} as const;
 
 afterEach(async () => {
   for (const root of roots.splice(0)) {
@@ -37,7 +43,11 @@ describe("required Kibi MCP stdio startup", () => {
 
     try {
       // When
-      const staged = await stageCapabilityCanary(isolation, process.cwd());
+      const staged = await stageCapabilityCanary(
+        isolation,
+        process.cwd(),
+        TEST_RUNTIME,
+      );
       const result = await probeRequiredMcp({
         ...staged.mcpServer,
         env: process.env,
@@ -78,7 +88,11 @@ describe("required Kibi MCP stdio startup", () => {
 
     try {
       // When
-      const staged = await stageCapabilityCanary(isolation, process.cwd());
+      const staged = await stageCapabilityCanary(
+        isolation,
+        process.cwd(),
+        TEST_RUNTIME,
+      );
       const result = await probeRequiredMcp({
         ...staged.mcpServer,
         env: process.env,

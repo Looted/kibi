@@ -65,7 +65,12 @@ describe("workspace auth cleanup", () => {
       probeMcp: async () => {
         throw new RequiredMcpStartupError("connection_closed");
       },
-      stageDependencies: { codexExecutable: "/bin/true" },
+      stageDependencies: {
+        stagedRuntime: {
+          codexExecutable: "/bin/true",
+          bwrapExecutable: "/bin/true",
+        },
+      },
     });
 
     // Then
